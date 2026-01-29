@@ -1,11 +1,11 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { type BuildConfig, type PackageJSON, panic } from './util.ts';
-import { access, readFile } from './util.ts';
-import { basename, extname, join } from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { rollup } from 'rollup';
-import ts from 'typescript';
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
+import { type BuildConfig, type PackageJSON, panic } from "./util.ts";
+import { access, readFile } from "./util.ts";
+import { basename, extname, join } from "node:path";
+import { pathToFileURL } from "node:url";
+import { rollup } from "rollup";
+import ts from "typescript";
 
 /**
  * This will validate a completed production build by triple checking all the files have been
@@ -13,21 +13,21 @@ import ts from 'typescript';
  * build files to npm.
  */
 export async function validateBuild(config: BuildConfig) {
-  console.log('🕵️ validating build...');
-  const pkgPath = join(config.distQwikPkgDir, 'package.json');
-  const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
+  console.log("🕵️ validating build...");
+  const pkgPath = join(config.distQwikPkgDir, "package.json");
+  const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, "utf-8"));
   const errors: string[] = [];
   const require = createRequire(import.meta.url);
 
   // triple checks these package files all exist and parse
-  const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
+  const pkgFiles = [...pkg.files!, "LICENSE", "README.md", "package.json"];
   const expectedFiles = pkgFiles.map((f) => join(config.distQwikPkgDir, f));
 
-  const dependencies = ['csstype', 'vite'];
+  const dependencies = ["csstype", "vite"];
   const pkgDependencies = Object.keys(pkg.dependencies!);
   if (pkgDependencies.length !== dependencies.length) {
     errors.push(
-      `Expected ${dependencies.length} dependencies, but found ${pkgDependencies.length}.`
+      `Expected ${dependencies.length} dependencies, but found ${pkgDependencies.length}.`,
     );
   } else {
     for (const dep of dependencies) {
@@ -43,37 +43,37 @@ export async function validateBuild(config: BuildConfig) {
       const ext = extname(filePath);
 
       switch (ext) {
-        case '.cjs':
+        case ".cjs":
           const f = basename(filePath);
-          if (f !== 'qwik.cjs') {
+          if (f !== "qwik.cjs") {
             require(filePath);
             console.log(`✅ ${filePath}`);
           }
           break;
-        case '.mjs':
+        case ".mjs":
           if (config.esmNode) {
             await import(pathToFileURL(filePath).href);
             console.log(`✅ ${filePath}`);
             break;
           }
-        case '.ts':
+        case ".ts":
           validateTypeScriptFile(config, filePath);
           console.log(`✅ ${filePath}`);
           break;
-        case '.json':
-          JSON.parse(readFileSync(filePath, 'utf-8'));
+        case ".json":
+          JSON.parse(readFileSync(filePath, "utf-8"));
           console.log(`✅ ${filePath}`);
           break;
-        case '.map':
-          JSON.parse(readFileSync(filePath, 'utf-8'));
+        case ".map":
+          JSON.parse(readFileSync(filePath, "utf-8"));
           console.log(`✅ ${filePath}`);
           break;
         default:
           if (existsSync(filePath)) {
             const s = statSync(filePath);
             if (s.isFile()) {
-              const content = readFileSync(filePath, 'utf-8');
-              if (content.trim() === '') {
+              const content = readFileSync(filePath, "utf-8");
+              if (content.trim() === "") {
                 errors.push(`Expected package.json file is empty: ${filePath}`);
               } else {
                 console.log(`✅ ${filePath}`);
@@ -82,7 +82,7 @@ export async function validateBuild(config: BuildConfig) {
               console.log(`✅ ${filePath}`);
             }
           } else {
-            if (process.env.CI || (!process.env.CI && ext !== '.node')) {
+            if (process.env.CI || (!process.env.CI && ext !== ".node")) {
               errors.push(`Expected package.json file not found: ${filePath}`);
             } else {
               console.log(`✅ ${filePath}`);
@@ -96,16 +96,16 @@ export async function validateBuild(config: BuildConfig) {
 
   await validatePackageJson(config, pkg, errors);
   await Promise.all([
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.min.mjs')),
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.prod.mjs')),
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.mjs')),
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'server.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, "core.min.mjs")),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, "core.prod.mjs")),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, "core.mjs")),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, "server.mjs")),
   ]);
   if (config.qwikcity) {
     await validateModuleTreeshake(
       config,
-      join(config.packagesDir, 'qwik-city', 'lib', 'index.qwik.mjs'),
-      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod', '@builder.io/qwik/jsx-runtime']
+      join(config.packagesDir, "qwik-city", "lib", "index.qwik.mjs"),
+      ["@qwik-city-plan", "@qwik-city-sw-register", "zod", "@builder.io/qwik/jsx-runtime"],
     );
   }
 
@@ -117,7 +117,7 @@ export async function validateBuild(config: BuildConfig) {
         const s = statSync(filePath);
         if (s.isDirectory()) {
           const dirName = basename(filePath);
-          if (dirName !== 'starters' && dirName !== 'templates') {
+          if (dirName !== "starters" && dirName !== "templates") {
             getFiles(filePath);
           }
         } else if (s.isFile()) {
@@ -133,16 +133,16 @@ export async function validateBuild(config: BuildConfig) {
   if (unexpectedFiles.length > 0) {
     errors.push(
       `Unexpected files found in the package build:\n${unexpectedFiles.join(
-        '\n'
-      )}\n\nIf this file is expected, add the file(s) to the package.json "files" array`
+        "\n",
+      )}\n\nIf this file is expected, add the file(s) to the package.json "files" array`,
     );
   }
 
   if (errors.length > 0) {
     errors.unshift(`Build did not pass validation.`);
-    panic(errors.join('\n\n❌ '));
+    panic(errors.join("\n\n❌ "));
   } else {
-    console.log('🏅 validated build');
+    console.log("🏅 validated build");
   }
 }
 
@@ -151,14 +151,14 @@ export async function validateBuild(config: BuildConfig) {
  * well formed and relative import paths are correct.
  */
 export function validateTypeScriptFile(config: BuildConfig, tsFilePath: string) {
-  const tsconfigPath = join(config.rootDir, 'tsconfig.json');
+  const tsconfigPath = join(config.rootDir, "tsconfig.json");
   const tsconfigResults = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
   const tsconfig = ts.parseJsonConfigFileContent(
     tsconfigResults.config,
     ts.sys,
     config.rootDir,
     undefined,
-    tsconfigPath
+    tsconfigPath,
   );
   const program = ts.createProgram([tsFilePath], tsconfig.options);
 
@@ -188,8 +188,8 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
     } catch (e: any) {
       errors.push(
         `Error loading file "${path}" referenced in package.json: ${String(
-          e ? e.stack || e : 'Error'
-        )}`
+          e ? e.stack || e : "Error",
+        )}`,
       );
     }
   }
@@ -202,12 +202,12 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
     await Promise.all(
       exportKeys.map(async (exportKey) => {
         const val = exports[exportKey];
-        if (typeof val === 'string') {
+        if (typeof val === "string") {
           await validatePath(val);
         } else {
           await validateExports(val);
         }
-      })
+      }),
     );
   }
 
@@ -217,18 +217,18 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
 async function validateModuleTreeshake(
   config: BuildConfig,
   entryModulePath: string,
-  external: string[] = []
+  external: string[] = [],
 ): Promise<void> {
   const virtualInputId = `@index`;
   const bundle = await rollup({
     input: virtualInputId,
     treeshake: {
-      moduleSideEffects: 'no-external',
+      moduleSideEffects: "no-external",
     },
-    external: ['@builder.io/qwik/build', '@builder.io/qwik', ...external],
+    external: ["@builder.io/qwik/build", "@builder.io/qwik", ...external],
     plugins: [
       {
-        name: 'resolver',
+        name: "resolver",
         resolveId(id) {
           if (id === virtualInputId) {
             return id;
@@ -242,20 +242,20 @@ async function validateModuleTreeshake(
       },
     ],
     onwarn(warning) {
-      if (warning.code !== 'EMPTY_BUNDLE') {
+      if (warning.code !== "EMPTY_BUNDLE") {
         throw warning;
       }
     },
   });
 
   const o = await bundle.generate({
-    format: 'es',
+    format: "es",
   });
 
   const output = o.output[0];
   const outputCode = output.code.trim();
 
-  if (outputCode !== '') {
+  if (outputCode !== "") {
     console.log(outputCode);
     throw new Error(`🧨  Unable to treeshake for ${entryModulePath}`);
   }

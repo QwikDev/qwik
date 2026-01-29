@@ -1,2 +1,2 @@
 // re-export for typescript in old resolution mode
-export * from '../../lib/adapters/static/vite';
+export * from "../../lib/adapters/static/vite";

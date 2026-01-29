@@ -1,11 +1,4 @@
-import {
-  component$,
-  useTask$,
-  useVisibleTask$,
-  useSignal,
-  $,
-  useStyles$,
-} from "@builder.io/qwik";
+import { component$, useTask$, useVisibleTask$, useSignal, $, useStyles$ } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
 
 // This will be in a separate chunk due to dynamic import
@@ -52,12 +45,11 @@ export default component$(() => {
     <div class="home-container">
       <h1 class="title">Welcome to Preloader Test</h1>
       <p class="paragraph">
-        This is a test application to demonstrate preloading capabilities in
-        Qwik.
+        This is a test application to demonstrate preloading capabilities in Qwik.
       </p>
       <p class="paragraph">
-        Navigate to the Form page to try out the form functionality, or visit
-        the About page to learn more.
+        Navigate to the Form page to try out the form functionality, or visit the About page to
+        learn more.
       </p>
       <p>Count: {count.value}</p>
       <p>Message: {message.value}</p>

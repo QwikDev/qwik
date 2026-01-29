@@ -1,40 +1,40 @@
-import type { Plugin } from 'vite';
-import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
-import { join, basename } from 'node:path';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import type { ExampleSection } from './src/routes/examples/apps/examples-data';
-import type { PlaygroundApp } from './src/routes/playground/playground-data';
-import type { TutorialSection } from './src/routes/tutorial/tutorial-data';
-import type { PluginContext } from 'rollup';
-import type { ReplModuleInput } from './src/repl/types';
-import MagicString from 'magic-string';
+import type { Plugin } from "vite";
+import type { TransformModuleInput } from "@builder.io/qwik/optimizer";
+import { join, basename } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import type { ExampleSection } from "./src/routes/examples/apps/examples-data";
+import type { PlaygroundApp } from "./src/routes/playground/playground-data";
+import type { TutorialSection } from "./src/routes/tutorial/tutorial-data";
+import type { PluginContext } from "rollup";
+import type { ReplModuleInput } from "./src/repl/types";
+import MagicString from "magic-string";
 
 export function playgroundData(routesDir: string): Plugin {
-  const playgroundAppDir = join(routesDir, 'playground', 'app');
+  const playgroundAppDir = join(routesDir, "playground", "app");
 
   return {
-    name: 'playgroundData',
+    name: "playgroundData",
 
     resolveId(id) {
-      if (id === '@playground-data') {
+      if (id === "@playground-data") {
         return id;
       }
     },
 
     async load(id) {
-      if (basename(id) === '@playground-data') {
+      if (basename(id) === "@playground-data") {
         const playgroundApp: PlaygroundApp = {
           inputs: readdirSync(playgroundAppDir).map((fileName) => {
             const filePath = join(playgroundAppDir, fileName);
             const input: TransformModuleInput = {
               path: `/${fileName}`,
-              code: readFileSync(filePath, 'utf-8'),
+              code: readFileSync(filePath, "utf-8"),
             };
             return input;
           }),
         };
         return `const playgroundApp = ${JSON.stringify(
-          playgroundApp
+          playgroundApp,
         )};export default playgroundApp;`;
       }
       return null;
@@ -43,9 +43,9 @@ export function playgroundData(routesDir: string): Plugin {
 }
 
 export function examplesData(routesDir: string): Plugin {
-  const dir = join(routesDir, 'examples', 'apps');
-  const menuPath = join(dir, 'examples-menu.json');
-  const menuSrc = readFileSync(menuPath, 'utf-8');
+  const dir = join(routesDir, "examples", "apps");
+  const menuPath = join(dir, "examples-menu.json");
+  const menuSrc = readFileSync(menuPath, "utf-8");
 
   const loadExamplesData = (ctx: PluginContext) => {
     const sections: ExampleSection[] = [];
@@ -87,7 +87,7 @@ export function examplesData(routesDir: string): Plugin {
             if (s.isFile()) {
               const input: ReplModuleInput = {
                 path: `/${fileName}`,
-                code: readFileSync(filePath, 'utf-8'),
+                code: readFileSync(filePath, "utf-8"),
               };
               ctx.addWatchFile(filePath);
               return input;
@@ -100,9 +100,9 @@ export function examplesData(routesDir: string): Plugin {
         if (inputs.length === 0) {
           throw new Error(`Example "${appDir}" does not have any valid files.`);
         }
-        if (!inputs.some((i) => i.path.endsWith('app.tsx'))) {
+        if (!inputs.some((i) => i.path.endsWith("app.tsx"))) {
           throw new Error(
-            `Example must have an "app.tsx" file, which wasn't found in "${appDir}".`
+            `Example must have an "app.tsx" file, which wasn't found in "${appDir}".`,
           );
         }
 
@@ -124,16 +124,16 @@ export function examplesData(routesDir: string): Plugin {
   };
 
   return {
-    name: 'examplesData',
+    name: "examplesData",
 
     resolveId(id) {
-      if (id === '@examples-data') {
+      if (id === "@examples-data") {
         return id;
       }
     },
 
     async load(id) {
-      if (basename(id) === '@examples-data') {
+      if (basename(id) === "@examples-data") {
         const data = loadExamplesData(this as any);
         return `const exampleSections = ${JSON.stringify(data)};export default exampleSections;`;
       }
@@ -143,9 +143,9 @@ export function examplesData(routesDir: string): Plugin {
 }
 
 export function tutorialData(routesDir: string): Plugin {
-  const dir = join(routesDir, 'tutorial');
-  const menuPath = join(dir, 'tutorial-menu.json');
-  const menuSrc = readFileSync(menuPath, 'utf-8');
+  const dir = join(routesDir, "tutorial");
+  const menuPath = join(dir, "tutorial-menu.json");
+  const menuSrc = readFileSync(menuPath, "utf-8");
 
   const loadTutorialData = (ctx: PluginContext) => {
     const sections: TutorialSection[] = [];
@@ -180,7 +180,7 @@ export function tutorialData(routesDir: string): Plugin {
           throw new Error(`Tutorial app "${appDir}" is not a directory`);
         }
 
-        const readAppInputs = (appType: 'problem' | 'solution') => {
+        const readAppInputs = (appType: "problem" | "solution") => {
           const appTypeDir = join(appDir, appType);
 
           if (!existsSync(appTypeDir)) {
@@ -199,7 +199,7 @@ export function tutorialData(routesDir: string): Plugin {
               if (s.isFile()) {
                 const input: ReplModuleInput = {
                   path: `/${fileName}`,
-                  code: readFileSync(filePath, 'utf-8'),
+                  code: readFileSync(filePath, "utf-8"),
                 };
                 ctx.addWatchFile(filePath);
                 return input;
@@ -211,12 +211,12 @@ export function tutorialData(routesDir: string): Plugin {
 
           if (inputs.length === 0) {
             throw new Error(
-              `Tutorial "${appType}" dir "${appTypeDir}" does not have any valid files.`
+              `Tutorial "${appType}" dir "${appTypeDir}" does not have any valid files.`,
             );
           }
-          if (!inputs.some((i) => i.path.endsWith('app.tsx'))) {
+          if (!inputs.some((i) => i.path.endsWith("app.tsx"))) {
             throw new Error(
-              `Tutorials must have an "app.tsx" file, which wasn't found in "${appType}" dir "${appTypeDir}".`
+              `Tutorials must have an "app.tsx" file, which wasn't found in "${appType}" dir "${appTypeDir}".`,
             );
           }
 
@@ -226,8 +226,8 @@ export function tutorialData(routesDir: string): Plugin {
         section.apps.push({
           ...app,
           id: `${section.id}/${app.id}`,
-          problemInputs: readAppInputs('problem'),
-          solutionInputs: readAppInputs('solution'),
+          problemInputs: readAppInputs("problem"),
+          solutionInputs: readAppInputs("solution"),
         });
       }
 
@@ -242,16 +242,16 @@ export function tutorialData(routesDir: string): Plugin {
   };
 
   return {
-    name: 'tutorialData',
+    name: "tutorialData",
 
     resolveId(id) {
-      if (id === '@tutorial-data') {
+      if (id === "@tutorial-data") {
         return id;
       }
     },
 
     async load(id) {
-      if (basename(id) === '@tutorial-data') {
+      if (basename(id) === "@tutorial-data") {
         const data = loadTutorialData(this as any);
         return `const tutorialSections = ${JSON.stringify(data)};export default tutorialSections;`;
       }
@@ -268,35 +268,35 @@ export function rawSource(): Plugin {
   let isDev: boolean = false;
   let doSourceMap: boolean = false;
   const extToMime = {
-    mjs: 'application/javascript',
-    js: 'application/javascript',
-    css: 'text/css',
-    html: 'text/html',
-    json: 'application/json',
-    wasm: 'application/wasm',
+    mjs: "application/javascript",
+    js: "application/javascript",
+    css: "text/css",
+    html: "text/html",
+    json: "application/json",
+    wasm: "application/wasm",
   };
   return {
-    name: 'raw-source',
+    name: "raw-source",
 
     configResolved(config) {
       base = config.base;
-      isDev = config.command === 'serve';
+      isDev = config.command === "serve";
       doSourceMap = !!config.build.sourcemap;
     },
 
     configureServer(server) {
       // Vite still processes /@fs urls, so we need to run our own static server
       server.middlewares.use((req, res, next) => {
-        if (req.url!.startsWith('/@raw-fs')) {
-          const filePath = req.url!.slice('/@raw-fs'.length).split('?')[0];
+        if (req.url!.startsWith("/@raw-fs")) {
+          const filePath = req.url!.slice("/@raw-fs".length).split("?")[0];
           if (existsSync(filePath)) {
-            const ext = filePath.split('.').pop()! as keyof typeof extToMime;
-            const contentType = extToMime[ext] || 'application/octet-stream';
-            res.setHeader('Content-Type', contentType);
+            const ext = filePath.split(".").pop()! as keyof typeof extToMime;
+            const contentType = extToMime[ext] || "application/octet-stream";
+            res.setHeader("Content-Type", contentType);
             res.end(readFileSync(filePath));
           } else {
             res.statusCode = 404;
-            res.end('File not found');
+            res.end("File not found");
           }
         } else {
           next();
@@ -305,31 +305,31 @@ export function rawSource(): Plugin {
     },
 
     resolveId: {
-      order: 'pre',
+      order: "pre",
       async handler(id, importer) {
         const match = /^(?<path>.*)\?(|(?<before>.+)&)raw-source($|&(?<after>.*))/.exec(id);
 
         if (match) {
-          const newQuery = [match.groups!.before, match.groups!.after].filter(Boolean).join('&');
-          const newId = `${match.groups!.path}${newQuery ? `?${newQuery}` : ''}`;
+          const newQuery = [match.groups!.before, match.groups!.after].filter(Boolean).join("&");
+          const newId = `${match.groups!.path}${newQuery ? `?${newQuery}` : ""}`;
           const resolved = await this.resolve(newId, importer, {
             skipSelf: true,
           });
           if (!resolved) {
             throw new Error(`Could not resolve "${id}" from "${importer}"`);
           }
-          return `\0raw-source:${resolved!.id.split('?')[0]}`;
+          return `\0raw-source:${resolved!.id.split("?")[0]}`;
         }
       },
     },
 
     load(id) {
-      if (id.startsWith('\0raw-source:')) {
-        let path = id.slice('\0raw-source:'.length);
-        if (path.startsWith('/@fs/')) {
-          path = path.slice('/@fs'.length);
+      if (id.startsWith("\0raw-source:")) {
+        let path = id.slice("\0raw-source:".length);
+        if (path.startsWith("/@fs/")) {
+          path = path.slice("/@fs".length);
         }
-        if (path.startsWith('\x00')) {
+        if (path.startsWith("\x00")) {
           // let's just assume it's a path
           path = path.slice(1);
         }
@@ -339,13 +339,13 @@ export function rawSource(): Plugin {
         }
         const fileContent = readFileSync(path);
         const ref = this.emitFile({
-          type: 'asset',
+          type: "asset",
           name: basename(path),
           source: fileContent,
         });
         return {
           code: `export default "@@RAW-URL_${ref}@@";`,
-          map: { version: 3, sources: [path], mappings: '' },
+          map: { version: 3, sources: [path], mappings: "" },
         };
       }
     },

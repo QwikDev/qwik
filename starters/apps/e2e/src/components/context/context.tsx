@@ -284,11 +284,7 @@ export const Issue5356_Parent = component$(() => {
 
       <>
         {children.map((value) => (
-          <Issue5356_Child
-            key={value}
-            value={value}
-            active={signal.value === value}
-          />
+          <Issue5356_Child key={value} value={value} active={signal.value === value} />
         ))}
       </>
       <>
@@ -301,17 +297,15 @@ export const Issue5356_Parent = component$(() => {
   );
 });
 
-export const Issue5356_Child = component$<{ value: number; active: boolean }>(
-  (props) => {
-    useContext(Issue5356Context);
+export const Issue5356_Child = component$<{ value: number; active: boolean }>((props) => {
+  useContext(Issue5356Context);
 
-    return (
-      <div id={`issue5356-child-${props.value}`}>
-        Child {props.value}, active: {props.active ? "true" : "false"}
-      </div>
-    );
-  },
-);
+  return (
+    <div id={`issue5356-child-${props.value}`}>
+      Child {props.value}, active: {props.active ? "true" : "false"}
+    </div>
+  );
+});
 
 export const Issue5793 = component$(() => {
   useContextProvider(ContextString, "yes");

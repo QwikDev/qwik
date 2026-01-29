@@ -1,15 +1,15 @@
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
-import { getDB } from '~/db';
-import { computeSymbolGraph, type Symbol } from '~/stats/edges';
-import { getSymbolDetails, getEdges } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
-import { SymbolIcon } from '~/components/icons/symbol';
+import { component$ } from "@builder.io/qwik";
+import { routeLoader$ } from "@builder.io/qwik-city";
+import { getDB } from "~/db";
+import { computeSymbolGraph, type Symbol } from "~/stats/edges";
+import { getSymbolDetails, getEdges } from "~/db/query";
+import { dbGetManifestHashes } from "~/db/sql-manifest";
+import { SymbolIcon } from "~/components/icons/symbol";
 
 export const useRootSymbol = routeLoader$(async ({ params, url }) => {
   const db = getDB();
-  const limit = url.searchParams.get('limit')
-    ? parseInt(url.searchParams.get('limit')!)
+  const limit = url.searchParams.get("limit")
+    ? parseInt(url.searchParams.get("limit")!)
     : undefined;
   const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
   const [symbols, details] = await Promise.all([
@@ -35,7 +35,7 @@ export default component$(() => {
 function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; count?: number }) {
   const nextDepth = depth + 1;
   symbol.children.sort(
-    (a, b) => (b.to.depth === nextDepth ? b.count : 0) - (a.to.depth === nextDepth ? a.count : 0)
+    (a, b) => (b.to.depth === nextDepth ? b.count : 0) - (a.to.depth === nextDepth ? a.count : 0),
   );
   const terminal = symbol.depth !== depth;
   return (
@@ -54,13 +54,13 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
             {count} / {symbol.count}
           </span>
           <code class="text-xs ml-3 whitespace-nowrap">
-            <span class="font-bold">{(symbol.name as string | undefined) ?? 'n/A'}</span>
+            <span class="font-bold">{(symbol.name as string | undefined) ?? "n/A"}</span>
             <span class="text-purple-500 mx-2">|</span>
-            {symbol.fullName ?? 'n/A'}
+            {symbol.fullName ?? "n/A"}
             <span class="text-purple-500 mx-2">|</span>
-            {symbol.fileSrc || 'n/A'}
+            {symbol.fileSrc || "n/A"}
             <span class="text-purple-500 mx-2">|</span>
-            Depth:{' '}
+            Depth:{" "}
             <span class="bg-slate-200 inline-block py-[2px] px-2 text-xs text-center rounded-full">
               {symbol.depth}
             </span>

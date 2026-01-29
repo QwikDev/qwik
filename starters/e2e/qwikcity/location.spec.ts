@@ -9,14 +9,10 @@ test.describe("Qwik City API: useLocation", () => {
     const rsp = (await page.goto("/qwikcity-test/location/"))!;
     expect(rsp.status()).toBe(200);
     const span = page.locator(".url");
-    expect(await span.textContent()).toBe(
-      "http://override-server/qwikcity-test/location/",
-    );
+    expect(await span.textContent()).toBe("http://override-server/qwikcity-test/location/");
   });
 
-  test("should take x-forwarded headers into account with port", async ({
-    page,
-  }) => {
+  test("should take x-forwarded headers into account with port", async ({ page }) => {
     page.setExtraHTTPHeaders({
       "X-Forwarded-Host": "override-server:9999",
       "X-Forwarded-Proto": "https",
@@ -24,8 +20,6 @@ test.describe("Qwik City API: useLocation", () => {
     const rsp = (await page.goto("/qwikcity-test/location/"))!;
     expect(rsp.status()).toBe(200);
     const span = page.locator(".url");
-    expect(await span.textContent()).toBe(
-      "https://override-server:9999/qwikcity-test/location/",
-    );
+    expect(await span.textContent()).toBe("https://override-server:9999/qwikcity-test/location/");
   });
 });

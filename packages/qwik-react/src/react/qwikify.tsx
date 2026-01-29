@@ -10,30 +10,30 @@ import {
   Slot,
   RenderOnce,
   useStylesScoped$,
-} from '@builder.io/qwik';
+} from "@builder.io/qwik";
 
-import { isBrowser, isServer } from '@builder.io/qwik';
-import type { Root } from 'react-dom/client';
-import type { FunctionComponent as ReactFC } from 'react';
-import * as client from './client';
-import { renderFromServer } from './server-render';
-import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
-import type { Internal, QwikifyOptions, QwikifyProps } from './types';
+import { isBrowser, isServer } from "@builder.io/qwik";
+import type { Root } from "react-dom/client";
+import type { FunctionComponent as ReactFC } from "react";
+import * as client from "./client";
+import { renderFromServer } from "./server-render";
+import { getHostProps, main, mainExactProps, useWakeupSignal } from "./slot";
+import type { Internal, QwikifyOptions, QwikifyProps } from "./types";
 
 export function qwikifyQrl<PROPS extends Record<any, any>>(
   reactCmp$: QRL<ReactFC<PROPS & { children?: any }>>,
-  opts?: QwikifyOptions
+  opts?: QwikifyOptions,
 ) {
   return component$((props: QwikifyProps<PROPS>) => {
     const { scopeId } = useStylesScoped$(
-      `q-slot{display:none} q-slotc,q-slotc>q-slot{display:contents}`
+      `q-slot{display:none} q-slotc,q-slotc>q-slot{display:contents}`,
     );
     const hostRef = useSignal<Element>();
     const slotRef = useSignal<Element>();
     const internalState = useSignal<NoSerialize<Internal<PROPS>>>();
     const [signal, isClientOnly] = useWakeupSignal(props, opts);
     const hydrationKeys = {};
-    const TagName = opts?.tagName ?? ('qwik-react' as any);
+    const TagName = opts?.tagName ?? ("qwik-react" as any);
 
     // Task takes cares of updates and partial hydration
     useTask$(async ({ track }) => {
@@ -48,7 +48,7 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
       if (internalState.value) {
         if (internalState.value.root) {
           internalState.value.root.render(
-            main(slotRef.value, scopeId, internalState.value.cmp, trackedProps)
+            main(slotRef.value, scopeId, internalState.value.cmp, trackedProps),
           );
         }
       } else {
@@ -63,7 +63,7 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
             root = client.flushSync(() => {
               return client.hydrateRoot(
                 hostElement,
-                mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys)
+                mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys),
               );
             });
           }
@@ -96,7 +96,7 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
         props,
         hostRef,
         slotRef,
-        hydrationKeys
+        hydrationKeys,
       );
       return <RenderOnce key={2}>{jsx}</RenderOnce>;
     }

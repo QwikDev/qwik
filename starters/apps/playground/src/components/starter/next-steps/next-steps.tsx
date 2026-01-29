@@ -3,12 +3,10 @@ import styles from "./next-steps.module.css";
 
 export const GETTING_STARTED_STEPS = [
   {
-    message:
-      "Press and hold the <b>ALT/Option</b> key to activate 'Click-to-Source' mode",
+    message: "Press and hold the <b>ALT/Option</b> key to activate 'Click-to-Source' mode",
   },
   {
-    message:
-      "Select the title of this page while keeping the <b>ALT/Option</b> key pressed",
+    message: "Select the title of this page while keeping the <b>ALT/Option</b> key pressed",
     hint: 'Edit the title and save the changes. If your editor does not open, have a look at <a href="https://github.com/yyx990803/launch-editor#supported-editors" target="_blank">this page</a> to set the correct <code>LAUNCH_EDITOR</code> value.',
   },
   {
@@ -52,27 +50,19 @@ export default component$(() => {
       <div class={styles.gettingstarted}>
         <div
           class={styles.intro}
-          dangerouslySetInnerHTML={
-            GETTING_STARTED_STEPS[gettingStartedStep.value].message
-          }
+          dangerouslySetInnerHTML={GETTING_STARTED_STEPS[gettingStartedStep.value].message}
         />
         <span
           class={styles.hint}
-          dangerouslySetInnerHTML={
-            GETTING_STARTED_STEPS[gettingStartedStep.value].hint
-          }
+          dangerouslySetInnerHTML={GETTING_STARTED_STEPS[gettingStartedStep.value].hint}
         />
       </div>
       {gettingStartedStep.value + 1 < GETTING_STARTED_STEPS.length ? (
         <button class="button-dark" onClick$={() => gettingStartedStep.value++}>
-          Continue with Step {gettingStartedStep.value + 2} of{" "}
-          {GETTING_STARTED_STEPS.length}
+          Continue with Step {gettingStartedStep.value + 2} of {GETTING_STARTED_STEPS.length}
         </button>
       ) : (
-        <button
-          class="button-dark"
-          onClick$={() => (gettingStartedStep.value = 0)}
-        >
+        <button class="button-dark" onClick$={() => (gettingStartedStep.value = 0)}>
           Re-Start
         </button>
       )}

@@ -1,12 +1,8 @@
 {
   "description": "Add Storybook",
-  "__qwik__": {
-    "displayName": "Integration: Storybook",
-    "priority": -10,
-    "docs": [
-      "https://qwik.dev/integrations/storybook/",
-      "https://storybook.js.org/docs/qwik/get-started/why-storybook"
-    ]
+  "scripts": {
+    "build-storybook": "storybook build",
+    "storybook": "storybook dev -p 6006"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.2.8",
@@ -18,8 +14,12 @@
     "storybook": "^8.2.8",
     "storybook-framework-qwik": "^0.4.0"
   },
-  "scripts": {
-    "build-storybook": "storybook build",
-    "storybook": "storybook dev -p 6006"
+  "__qwik__": {
+    "displayName": "Integration: Storybook",
+    "priority": -10,
+    "docs": [
+      "https://qwik.dev/integrations/storybook/",
+      "https://storybook.js.org/docs/qwik/get-started/why-storybook"
+    ]
   }
 }

@@ -1,18 +1,18 @@
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { routeAction$, routeLoader$, useLocation, z, zod$, Form } from '@builder.io/qwik-city';
-import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-forms/qwik';
-import { eq } from 'drizzle-orm';
-import AppCard from '~/components/app-card';
-import { DiskIcon } from '~/components/icons/disk';
-import { applicationTable, getDB } from '~/db';
+import { component$, useSignal, useTask$ } from "@builder.io/qwik";
+import { routeAction$, routeLoader$, useLocation, z, zod$, Form } from "@builder.io/qwik-city";
+import { formAction$, useForm, zodForm$, type InitialValues } from "@modular-forms/qwik";
+import { eq } from "drizzle-orm";
+import AppCard from "~/components/app-card";
+import { DiskIcon } from "~/components/icons/disk";
+import { applicationTable, getDB } from "~/db";
 import {
   dbAddUserToApplication,
   dbGetUsersForApplication,
   dbRemoveUserFromApplication,
-} from '~/db/sql-user';
-import { appUrl } from '~/routes.config';
-import { ApplicationForm } from '../app.form';
-import { EditIcon } from '~/components/icons/edit';
+} from "~/db/sql-user";
+import { appUrl } from "~/routes.config";
+import { ApplicationForm } from "../app.form";
+import { EditIcon } from "~/components/icons/edit";
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
   const db = getDB();
@@ -45,7 +45,7 @@ export const useFormAction = formAction$<ApplicationForm>(
       .run();
     throw redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey: params.publicApiKey }));
   },
-  zodForm$(ApplicationForm)
+  zodForm$(ApplicationForm),
 );
 
 export const useRemoveUserAction = routeAction$(
@@ -54,7 +54,7 @@ export const useRemoveUserAction = routeAction$(
   },
   zod$({
     email: z.string().email(),
-  })
+  }),
 );
 
 export const useAddUserAction = routeAction$(
@@ -63,7 +63,7 @@ export const useAddUserAction = routeAction$(
   },
   zod$({
     email: z.string().email(),
-  })
+  }),
 );
 
 export default component$(() => {
@@ -77,11 +77,11 @@ export default component$(() => {
   const users = useUsers();
   const removeUserAction = useRemoveUserAction();
   const addUserAction = useAddUserAction();
-  const addEmail = useSignal('');
+  const addEmail = useSignal("");
   useTask$(({ track }) => {
     const isRunning = track(() => addUserAction.isRunning);
     if (!isRunning) {
-      addEmail.value = '';
+      addEmail.value = "";
     }
   });
 
@@ -104,7 +104,7 @@ export default component$(() => {
           <Field name="name">
             {(field, props) => (
               <>
-                <input {...props} type="text" value={field.value} />{' '}
+                <input {...props} type="text" value={field.value} />{" "}
                 {field.error && <div>{field.error}</div>}
               </>
             )}
@@ -134,7 +134,7 @@ export default component$(() => {
         </div>
         <div
           style={{
-            'margin-top': 'calc(var(--form-element-margin-bottom) * 2)',
+            "margin-top": "calc(var(--form-element-margin-bottom) * 2)",
           }}
         >
           <button type="submit" class="button bg-white">

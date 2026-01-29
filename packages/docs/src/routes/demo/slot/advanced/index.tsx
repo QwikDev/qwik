@@ -1,4 +1,4 @@
-import { Slot, component$, useSignal } from '@builder.io/qwik';
+import { Slot, component$, useSignal } from "@builder.io/qwik";
 
 export const Collapsible = component$(() => {
   const isOpen = useSignal(true);
@@ -6,7 +6,7 @@ export const Collapsible = component$(() => {
   return (
     <div>
       <h1 onClick$={() => (isOpen.value = !isOpen.value)}>
-        {isOpen.value ? '▼' : '▶︎'}
+        {isOpen.value ? "▼" : "▶︎"}
         <Slot name="title" />
       </h1>
       {isOpen.value && <Slot />}
@@ -15,10 +15,8 @@ export const Collapsible = component$(() => {
 });
 
 export default component$(() => {
-  const title = useSignal('Qwik');
-  const description = useSignal(
-    'A resumable framework for building instant web applications'
-  );
+  const title = useSignal("Qwik");
+  const description = useSignal("A resumable framework for building instant web applications");
   return (
     <>
       <label>Title</label>

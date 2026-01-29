@@ -1,10 +1,10 @@
 [workspace]
 
 members = [
-    "packages/qwik/src/napi",
-    "packages/qwik/src/wasm",
-    "packages/qwik/src/optimizer/cli",
-    "packages/qwik/src/optimizer/core",
+  "packages/qwik/src/napi",
+  "packages/qwik/src/wasm",
+  "packages/qwik/src/optimizer/cli",
+  "packages/qwik/src/optimizer/core",
 ]
 exclude = ["packages/qwik/src/wasm"]
 resolver = "2"

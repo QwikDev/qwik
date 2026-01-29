@@ -1,10 +1,10 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
+import { component$, useStyles$ } from "@builder.io/qwik";
+import { Link } from "@builder.io/qwik-city";
 
-import { Header } from '../components/header/header';
-import catVideo from '../media/images/404-cat.mp4?url';
+import { Header } from "../components/header/header";
+import catVideo from "../media/images/404-cat.mp4?url";
 
-import styles from './404.css?inline';
+import styles from "./404.css?inline";
 
 export default component$(() => {
   useStyles$(styles);

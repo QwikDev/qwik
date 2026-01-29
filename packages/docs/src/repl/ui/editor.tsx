@@ -7,17 +7,17 @@ import {
   useSignal,
   useStore,
   useTask$,
-} from '@builder.io/qwik';
-import type { IStandaloneCodeEditor } from './monaco';
+} from "@builder.io/qwik";
+import type { IStandaloneCodeEditor } from "./monaco";
 import {
   addQwikLibs,
   getEditorTheme,
   type ICodeEditorViewState,
   initMonacoEditor,
   updateMonacoEditor,
-} from './monaco';
-import type { ReplAppInput, ReplStore } from '../types';
-import { GlobalStore } from '../../context';
+} from "./monaco";
+import type { ReplAppInput, ReplStore } from "../types";
+import { GlobalStore } from "../../context";
 
 export const Editor = component$((props: EditorProps) => {
   const hostRef = useSignal<Element>();
@@ -44,9 +44,9 @@ export const Editor = component$((props: EditorProps) => {
 
   useVisibleTask$(({ track }) => {
     track(() => globalStore.theme);
-    if (globalStore.theme !== 'auto') {
+    if (globalStore.theme !== "auto") {
       store.editor?.updateOptions({
-        theme: getEditorTheme(globalStore.theme === 'dark'),
+        theme: getEditorTheme(globalStore.theme === "dark"),
       });
     }
   });
@@ -77,9 +77,9 @@ export const Editor = component$((props: EditorProps) => {
 export interface EditorProps {
   input: ReplAppInput;
   ariaLabel: string;
-  lineNumbers: 'on' | 'off';
+  lineNumbers: "on" | "off";
   onChange$: QRL<(path: string, code: string) => void>;
-  wordWrap: 'on' | 'off';
+  wordWrap: "on" | "off";
   store: ReplStore;
 }
 

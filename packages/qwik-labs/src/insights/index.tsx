@@ -1,5 +1,5 @@
-import { component$, sync$ } from '@builder.io/qwik';
-import * as z from 'zod';
+import { component$, sync$ } from "@builder.io/qwik";
+import * as z from "zod";
 
 export interface InsightsPayload {
   /** Qwik version */
@@ -121,34 +121,34 @@ const insightsPing = sync$(() =>
     navigator,
     performance,
     round,
-    JSON_stringify
+    JSON_stringify,
   ) => {
     /* eslint-disable no-var -- better minification */
     var publicApiKey = __QI_KEY__,
       postUrl = __QI_URL__,
-      getAttribute_s = 'getAttribute' as const,
-      querySelector_s = 'querySelector' as const,
-      manifest_s = 'manifest' as const,
+      getAttribute_s = "getAttribute" as const,
+      querySelector_s = "querySelector" as const,
+      manifest_s = "manifest" as const,
       manifest_hash_s = `${manifest_s}-hash` as const,
       manifestHash_s = `${manifest_s}Hash` as const,
-      version_s = 'version' as const,
-      publicApiKey_s = 'publicApiKey' as const,
-      sendBeacon_s = 'sendBeacon' as const,
-      symbol_s = 'symbol' as const,
-      length_s = 'length' as const,
-      addEventListener_s = 'addEventListener' as const,
-      route_s = 'route' as const,
-      error_s = 'error' as const,
-      stack_s = 'stack' as const,
-      message_s = 'message' as const,
+      version_s = "version" as const,
+      publicApiKey_s = "publicApiKey" as const,
+      sendBeacon_s = "sendBeacon" as const,
+      symbol_s = "symbol" as const,
+      length_s = "length" as const,
+      addEventListener_s = "addEventListener" as const,
+      route_s = "route" as const,
+      error_s = "error" as const,
+      stack_s = "stack" as const,
+      message_s = "message" as const,
       symbols_s = `${symbol_s}s` as const,
       qVersion =
         document[querySelector_s](`[q\\:${version_s}]`)?.[getAttribute_s](`q:${version_s}`) ||
-        'unknown',
+        "unknown",
       manifestHash =
         document[querySelector_s](`[q\\:${manifest_hash_s}]`)?.[getAttribute_s](
-          `q:${manifest_hash_s}`
-        ) || 'dev',
+          `q:${manifest_hash_s}`,
+        ) || "dev",
       qSymbols: InsightSymbol[] = [],
       existingSymbols: Set<string> = new Set(),
       flushSymbolIndex: number = 0,
@@ -189,8 +189,8 @@ const insightsPing = sync$(() =>
       }).observe(qRouteEl, { attributes: true });
     }
     document[addEventListener_s](
-      'visibilitychange',
-      () => document.visibilityState === 'hidden' && flush()
+      "visibilitychange",
+      () => document.visibilityState === "hidden" && flush(),
     );
     document[addEventListener_s](`q${symbol_s}`, (_event) => {
       var event = _event as CustomEvent<QSymbolDetail>,
@@ -200,7 +200,7 @@ const insightsPing = sync$(() =>
         symbol = detail[symbol_s];
       if (!existingSymbols.has(symbol)) {
         existingSymbols.add(symbol);
-        var route = qRouteEl?.[getAttribute_s](`q:${route_s}`) || '/';
+        var route = qRouteEl?.[getAttribute_s](`q:${route_s}`) || "/";
         qSymbols.push({
           [symbol_s]: symbol,
           [route_s]: route,
@@ -215,7 +215,7 @@ const insightsPing = sync$(() =>
     });
     window[addEventListener_s](error_s, (event: ErrorEvent) => {
       var error = event[error_s];
-      if (!(error && typeof error === 'object')) {
+      if (!(error && typeof error === "object")) {
         return;
       }
       var payload = {
@@ -227,11 +227,11 @@ const insightsPing = sync$(() =>
         column: event.colno,
         [message_s]: event[message_s],
         [error_s]: message_s in error ? (error as Error)[message_s] : `${error}`,
-        [stack_s]: stack_s in error ? (error as Error)[stack_s] || '' : '',
+        [stack_s]: stack_s in error ? (error as Error)[stack_s] || "" : "",
       } satisfies InsightsError;
       navigator[sendBeacon_s](`${postUrl}${error_s}/`, JSON_stringify(payload));
     });
-  })(window as any, document, location, navigator, performance, Math.round, JSON.stringify)
+  })(window as any, document, location, navigator, performance, Math.round, JSON.stringify),
 );
 
 // We don't add window. to save some bytes
@@ -251,5 +251,5 @@ export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
         dangerouslySetInnerHTML={`__QI_KEY__=${JSON.stringify(publicApiKey)};__QI_URL__=${JSON.stringify(postUrl || `https://insights.qwik.dev/api/v1/${publicApiKey}/post/`)}`}
       />
     );
-  }
+  },
 );

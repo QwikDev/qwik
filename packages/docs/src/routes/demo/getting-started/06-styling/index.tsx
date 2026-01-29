@@ -1,20 +1,10 @@
-import {
-  component$,
-  useSignal,
-  useStylesScoped$,
-  useTask$,
-} from '@builder.io/qwik';
-import {
-  routeLoader$,
-  Form,
-  routeAction$,
-  server$,
-} from '@builder.io/qwik-city';
-import styles from './index.css?inline';
+import { component$, useSignal, useStylesScoped$, useTask$ } from "@builder.io/qwik";
+import { routeLoader$, Form, routeAction$, server$ } from "@builder.io/qwik-city";
+import styles from "./index.css?inline";
 
 export const useDadJoke = routeLoader$(async () => {
-  const response = await fetch('https://icanhazdadjoke.com/', {
-    headers: { Accept: 'application/json' },
+  const response = await fetch("https://icanhazdadjoke.com/", {
+    headers: { Accept: "application/json" },
   });
   return (await response.json()) as {
     id: string;
@@ -24,7 +14,7 @@ export const useDadJoke = routeLoader$(async () => {
 });
 
 export const useJokeVoteAction = routeAction$((props) => {
-  console.log('VOTE', props);
+  console.log("VOTE", props);
 });
 
 export default component$(() => {
@@ -35,9 +25,9 @@ export default component$(() => {
   const favoriteJokeAction = useJokeVoteAction();
   useTask$(({ track }) => {
     track(() => isFavoriteSignal.value);
-    console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
+    console.log("FAVORITE (isomorphic)", isFavoriteSignal.value);
     server$(() => {
-      console.log('FAVORITE (server)', isFavoriteSignal.value);
+      console.log("FAVORITE (server)", isFavoriteSignal.value);
     })();
   });
   return (
@@ -52,10 +42,8 @@ export default component$(() => {
           👎
         </button>
       </Form>
-      <button
-        onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
-      >
-        {isFavoriteSignal.value ? '❤️' : '🤍'}
+      <button onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}>
+        {isFavoriteSignal.value ? "❤️" : "🤍"}
       </button>
     </section>
   );

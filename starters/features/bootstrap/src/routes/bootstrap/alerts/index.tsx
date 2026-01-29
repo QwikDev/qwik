@@ -8,10 +8,7 @@ export default component$(() => {
       <h2>Alerts</h2>
       <hr />
       {colorVariantsList.map((colorVariant, index) => (
-        <Alert
-          key={`${index + 1}_${colorVariant}`}
-          colorVariant={colorVariant}
-        />
+        <Alert key={`${index + 1}_${colorVariant}`} colorVariant={colorVariant} />
       ))}
     </>
   );

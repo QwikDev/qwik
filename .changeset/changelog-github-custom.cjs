@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 var __assign =
   (this && this.__assign) ||
   function () {
@@ -33,7 +33,7 @@ var __awaiter =
       }
       function rejected(value) {
         try {
-          step(generator['throw'](value));
+          step(generator["throw"](value));
         } catch (e) {
           reject(e);
         }
@@ -62,7 +62,7 @@ var __generator =
       g;
     return (
       (g = { next: verb(0), throw: verb(1), return: verb(2) }),
-      typeof Symbol === 'function' &&
+      typeof Symbol === "function" &&
         (g[Symbol.iterator] = function () {
           return this;
         }),
@@ -74,7 +74,7 @@ var __generator =
       };
     }
     function step(op) {
-      if (f) throw new TypeError('Generator is already executing.');
+      if (f) throw new TypeError("Generator is already executing.");
       while ((g && ((g = 0), op[0] && (_ = 0)), _))
         try {
           if (
@@ -82,9 +82,9 @@ var __generator =
             y &&
               (t =
                 op[0] & 2
-                  ? y['return']
+                  ? y["return"]
                   : op[0]
-                    ? y['throw'] || ((t = y['return']) && t.call(y), 0)
+                    ? y["throw"] || ((t = y["return"]) && t.call(y), 0)
                     : y.next) &&
               !(t = t.call(y, op[1])).done)
           )
@@ -156,10 +156,10 @@ var __spreadArray =
       }
     return to.concat(ar || Array.prototype.slice.call(from));
   };
-Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, "__esModule", { value: true });
 // @ts-ignore
-var get_github_info_1 = require('@changesets/get-github-info');
-var dotenv_1 = require('dotenv');
+var get_github_info_1 = require("@changesets/get-github-info");
+var dotenv_1 = require("dotenv");
 (0, dotenv_1.config)();
 var changelogFunctions = {
   getDependencyReleaseLine: function (changesets, dependenciesUpdated, options) {
@@ -170,11 +170,11 @@ var changelogFunctions = {
           case 0:
             if (!options.repo) {
               throw new Error(
-                'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
+                'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]',
               );
             }
-            if (dependenciesUpdated.length === 0) return [2 /*return*/, ''];
-            _a = '- Updated dependencies ['.concat;
+            if (dependenciesUpdated.length === 0) return [2 /*return*/, ""];
+            _a = "- Updated dependencies [".concat;
             return [
               4 /*yield*/,
               Promise.all(
@@ -200,25 +200,25 @@ var changelogFunctions = {
                       }
                     });
                   });
-                })
+                }),
               ),
             ];
           case 1:
-            changesetLink = _a.apply('- Updated dependencies [', [
+            changesetLink = _a.apply("- Updated dependencies [", [
               _b
                 .sent()
                 .filter(function (_) {
                   return _;
                 })
-                .join(', '),
-              ']:',
+                .join(", "),
+              "]:",
             ]);
             updatedDepenenciesList = dependenciesUpdated.map(function (dependency) {
-              return '  - '.concat(dependency.name, '@').concat(dependency.newVersion);
+              return "  - ".concat(dependency.name, "@").concat(dependency.newVersion);
             });
             return [
               2 /*return*/,
-              __spreadArray([changesetLink], updatedDepenenciesList, true).join('\n'),
+              __spreadArray([changesetLink], updatedDepenenciesList, true).join("\n"),
             ];
         }
       });
@@ -243,7 +243,7 @@ var changelogFunctions = {
           case 0:
             if (!options || !options.repo) {
               throw new Error(
-                'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
+                'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]',
               );
             }
             usersFromSummary = [];
@@ -251,33 +251,33 @@ var changelogFunctions = {
               .replace(/^\s*(?:pr|pull|pull\s+request):\s*#?(\d+)/im, function (_, pr) {
                 var num = Number(pr);
                 if (!isNaN(num)) prFromSummary = num;
-                return '';
+                return "";
               })
               .replace(/^\s*commit:\s*([^\s]+)/im, function (_, commit) {
                 commitFromSummary = commit;
-                return '';
+                return "";
               })
               .replace(/^\s*(?:author|user):\s*@?([^\s]+)/gim, function (_, user) {
                 usersFromSummary.push(user);
-                return '';
+                return "";
               })
               .trim();
             linkifyIssueHints = function (line) {
               return line.replace(
                 /(?<=\( ?(?:fix|fixes|see) )(#\d+)(?= ?\))/g,
                 function (issueHash) {
-                  return '['
-                    .concat(issueHash, '](https://github.com/')
-                    .concat(options.repo, '/issues/')
-                    .concat(issueHash.substring(1), ')');
-                }
+                  return "["
+                    .concat(issueHash, "](https://github.com/")
+                    .concat(options.repo, "/issues/")
+                    .concat(issueHash.substring(1), ")");
+                },
               );
             };
-            (_a = replacedChangelog.split('\n').map(function (l) {
+            ((_a = replacedChangelog.split("\n").map(function (l) {
               return linkifyIssueHints(l.trimEnd());
             })),
               (firstLine = _a[0]),
-              (futureLines = _a.slice(1));
+              (futureLines = _a.slice(1)));
             return [
               4 /*yield*/,
               (function () {
@@ -299,10 +299,10 @@ var changelogFunctions = {
                         if (commitFromSummary) {
                           shortCommitId = commitFromSummary.slice(0, 7);
                           links_1 = __assign(__assign({}, links_1), {
-                            commit: '[`'
-                              .concat(shortCommitId, '`](https://github.com/')
-                              .concat(options.repo, '/commit/')
-                              .concat(commitFromSummary, ')'),
+                            commit: "[`"
+                              .concat(shortCommitId, "`](https://github.com/")
+                              .concat(options.repo, "/commit/")
+                              .concat(commitFromSummary, ")"),
                           });
                         }
                         return [2 /*return*/, links_1];
@@ -338,35 +338,35 @@ var changelogFunctions = {
             users = usersFromSummary.length
               ? usersFromSummary
                   .map(function (userFromSummary) {
-                    return '[@'
-                      .concat(userFromSummary, '](https://github.com/')
-                      .concat(userFromSummary, ')');
+                    return "[@"
+                      .concat(userFromSummary, "](https://github.com/")
+                      .concat(userFromSummary, ")");
                   })
-                  .join(', ')
+                  .join(", ")
               : links.user;
-            suffix = '';
+            suffix = "";
             if (links.pull || links.commit || users) {
-              suffix = '('
-                .concat(users ? 'by '.concat(users, ' ') : '', 'in ')
-                .concat(links.pull || links.commit, ')');
+              suffix = "("
+                .concat(users ? "by ".concat(users, " ") : "", "in ")
+                .concat(links.pull || links.commit, ")");
             }
             emojiFirstline = firstLine
-              .replace(/feat:/i, '✨')
-              .replace(/chore:/i, '🛠')
-              .replace(/infra:/i, '🛠')
-              .replace(/fix:/i, '🐞🩹')
-              .replace(/docs:/i, '📃');
+              .replace(/feat:/i, "✨")
+              .replace(/chore:/i, "🛠")
+              .replace(/infra:/i, "🛠")
+              .replace(/fix:/i, "🐞🩹")
+              .replace(/docs:/i, "📃");
             return [
               2 /*return*/,
-              '\n\n- '
-                .concat(emojiFirstline, ' ')
-                .concat(suffix, '\n')
+              "\n\n- "
+                .concat(emojiFirstline, " ")
+                .concat(suffix, "\n")
                 .concat(
                   futureLines
                     .map(function (l) {
-                      return '  '.concat(l);
+                      return "  ".concat(l);
                     })
-                    .join('\n')
+                    .join("\n"),
                 ),
             ];
         }

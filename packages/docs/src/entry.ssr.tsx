@@ -1,9 +1,9 @@
-import type { PreloaderOptions, RenderToStreamOptions } from '@builder.io/qwik/server';
-import { renderToStream } from '@builder.io/qwik/server';
-import Root from './root';
+import type { PreloaderOptions, RenderToStreamOptions } from "@builder.io/qwik/server";
+import { renderToStream } from "@builder.io/qwik/server";
+import Root from "./root";
 
 // You can pass these as query parameters, as well as `preloadDebug`
-const preloaderSettings = ['ssrPreloads', 'ssrPreloadProbability', 'maxIdlePreloads'] as const;
+const preloaderSettings = ["ssrPreloads", "ssrPreloadProbability", "maxIdlePreloads"] as const;
 
 export default function (opts: RenderToStreamOptions) {
   const { serverData } = opts;
@@ -14,10 +14,10 @@ export default function (opts: RenderToStreamOptions) {
       const newOpts = {
         ...opts,
         preloader: {
-          ...(typeof opts.preloader === 'object' ? opts.preloader : undefined),
+          ...(typeof opts.preloader === "object" ? opts.preloader : undefined),
         },
-      } as Omit<RenderToStreamOptions, 'preloader'> & { preloader: PreloaderOptions };
-      if (searchParams.has('preloaderDebug')) {
+      } as Omit<RenderToStreamOptions, "preloader"> & { preloader: PreloaderOptions };
+      if (searchParams.has("preloaderDebug")) {
         newOpts.preloader!.debug = true;
       }
       for (const type of preloaderSettings) {
@@ -31,7 +31,7 @@ export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
     ...opts,
     containerAttributes: {
-      lang: 'en',
+      lang: "en",
       ...opts.containerAttributes,
     },
   });

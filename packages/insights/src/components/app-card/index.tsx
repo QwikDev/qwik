@@ -1,19 +1,19 @@
-import { AppLink } from '~/routes.config';
-import { CopyIcon } from '../icons/copy';
-import Gauge from '../gauge';
-import { component$ } from '@builder.io/qwik';
+import { AppLink } from "~/routes.config";
+import { CopyIcon } from "../icons/copy";
+import Gauge from "../gauge";
+import { component$ } from "@builder.io/qwik";
 
 type AppCardProps = {
-  mode: 'show' | 'create' | 'link';
+  mode: "show" | "create" | "link";
   title?: string;
   publicApiKey?: string;
   description?: string | null;
 };
 
-export default component$<AppCardProps>(({ mode, title = '', publicApiKey = '__new__' }) => {
-  const link = mode === 'show' ? `/app/[publicApiKey]/` : `/app/add/`;
-  const label = mode === 'create' ? '+' : mode === 'link' ? '~' : title;
-  const gaugeColor = mode === 'show' ? 'default' : 'gray';
+export default component$<AppCardProps>(({ mode, title = "", publicApiKey = "__new__" }) => {
+  const link = mode === "show" ? `/app/[publicApiKey]/` : `/app/add/`;
+  const label = mode === "create" ? "+" : mode === "link" ? "~" : title;
+  const gaugeColor = mode === "show" ? "default" : "gray";
 
   return (
     <AppLink route={link} param:publicApiKey={publicApiKey}>
@@ -23,7 +23,7 @@ export default component$<AppCardProps>(({ mode, title = '', publicApiKey = '__n
             <Gauge radius={40} value={70} label={label} color={gaugeColor} />
           </div>
           <div>
-            {mode === 'show' ? (
+            {mode === "show" ? (
               <>
                 <div class="h6">{title}</div>
                 <div class="flex gap-6 text-xs">

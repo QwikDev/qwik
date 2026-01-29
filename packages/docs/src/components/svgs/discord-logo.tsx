@@ -1,9 +1,9 @@
-import type { PropsOf } from '@builder.io/qwik';
+import type { PropsOf } from "@builder.io/qwik";
 
 type DiscordLogoProps = {
   width: number;
   height: number;
-} & PropsOf<'svg'>;
+} & PropsOf<"svg">;
 
 export const DiscordLogo = ({ width, height }: DiscordLogoProps) => (
   <svg

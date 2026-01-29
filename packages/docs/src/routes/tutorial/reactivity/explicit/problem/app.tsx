@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { component$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useStore, useTask$ } from "@builder.io/qwik";
 
 interface AppStore {
   count: number;
@@ -10,7 +10,7 @@ export default component$(() => {
     count: 0,
     delayCount: 0,
   });
-  console.log('Render: <App>');
+  console.log("Render: <App>");
   useTask$(({ track, cleanup }) => {
     // tracking `store.count`
     // setup a timer to copy `count => delayCount` after 2 seconds.
@@ -28,11 +28,11 @@ export default component$(() => {
 });
 
 export const DisplayCount = component$((props: { store: AppStore }) => {
-  console.log('Render: <DisplayA>');
+  console.log("Render: <DisplayA>");
   return <>{props.store.count}</>;
 });
 
 export const DisplayDelayCount = component$((props: { store: AppStore }) => {
-  console.log('Render: <DisplayB>');
+  console.log("Render: <DisplayB>");
   return <>{props.store.delayCount}</>;
 });

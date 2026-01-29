@@ -1,7 +1,7 @@
-import { component$, Slot } from '@builder.io/qwik';
-import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
-import { authors, blogArticles } from '~/routes/(blog)/data';
-import { ArticleHero } from './article-hero';
+import { component$, Slot } from "@builder.io/qwik";
+import { useDocumentHead, useLocation } from "@builder.io/qwik-city";
+import { authors, blogArticles } from "~/routes/(blog)/data";
+import { ArticleHero } from "./article-hero";
 
 type Props = { authorLink: string };
 
@@ -13,7 +13,7 @@ export const ArticleBlock = component$<Props>(({ authorLink }) => {
 
   return (
     <div class="docs">
-      <ArticleHero image={article?.image || ''} authorLinks={authorLinks} />
+      <ArticleHero image={article?.image || ""} authorLinks={authorLinks} />
       <article class="max-w-[900px] mx-auto">
         <Slot />
       </article>

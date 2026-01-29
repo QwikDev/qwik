@@ -1,10 +1,5 @@
 import { component$ } from "@builder.io/qwik";
-import {
-  type DocumentHead,
-  Link,
-  routeLoader$,
-  useLocation,
-} from "@builder.io/qwik-city";
+import { type DocumentHead, Link, routeLoader$, useLocation } from "@builder.io/qwik-city";
 
 export const useWeatherLoader = routeLoader$(({ params, query }) => {
   return {
@@ -38,9 +33,7 @@ export default component$(() => {
       </p>
       <p>
         <span>url.url.searchParams.get('unit'): </span>
-        <code data-test-params="unit">
-          {loc.url.searchParams.get("unit") || "C"}
-        </code>
+        <code data-test-params="unit">{loc.url.searchParams.get("unit") || "C"}</code>
       </p>
       <p>
         <span>resource weather.forecast: </span>

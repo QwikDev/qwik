@@ -1,9 +1,9 @@
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from "@builder.io/qwik";
 
 export default component$(() => {
   const github = useStore({
-    org: 'QwikDev',
-    repos: ['qwik', 'partytown'] as string[] | null,
+    org: "QwikDev",
+    repos: ["qwik", "partytown"] as string[] | null,
   });
 
   return (
@@ -26,7 +26,7 @@ export default component$(() => {
             ))}
           </ul>
         ) : (
-          'loading...'
+          "loading..."
         )}
       </section>
     </main>

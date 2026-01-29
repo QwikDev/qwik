@@ -1,9 +1,9 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from "@builder.io/qwik";
 
 type AvatarProps = {
   src: string;
   alt: string;
-  size?: 'small' | 'medium' | 'large';
+  size?: "small" | "medium" | "large";
 };
 
 /**

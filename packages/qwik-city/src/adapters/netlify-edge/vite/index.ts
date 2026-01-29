@@ -1,36 +1,36 @@
-import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
-import fs, { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import { basePathname } from '@qwik-city-plan';
+import type { StaticGenerateRenderOptions } from "@builder.io/qwik-city/static";
+import { getParentDir, type ServerAdapterOptions, viteAdapter } from "../../shared/vite";
+import fs, { existsSync } from "node:fs";
+import { join } from "node:path";
+import { basePathname } from "@qwik-city-plan";
 
 /** @public */
 export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
-    name: 'netlify-edge',
-    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.netlify.app',
+    name: "netlify-edge",
+    origin: env?.ORIGIN ?? env?.URL ?? "https://yoursitename.netlify.app",
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
 
     config(config) {
-      const outDir = config.build?.outDir || '.netlify/edge-functions/entry.netlify-edge';
+      const outDir = config.build?.outDir || ".netlify/edge-functions/entry.netlify-edge";
       return {
         resolve: {
-          conditions: ['webworker', 'worker'],
+          conditions: ["webworker", "worker"],
         },
         ssr: {
-          target: 'webworker',
+          target: "webworker",
           noExternal: true,
-          external: ['node:async_hooks'],
+          external: ["node:async_hooks"],
         },
         build: {
           ssr: true,
           outDir,
           rollupOptions: {
             output: {
-              format: 'es',
+              format: "es",
               hoistTransitiveImports: false,
             },
           },
@@ -44,36 +44,36 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
         // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
 
         const excludedPath: string[] = [];
-        if (typeof opts.excludedPath === 'string') {
+        if (typeof opts.excludedPath === "string") {
           excludedPath.push(opts.excludedPath);
         } else if (Array.isArray(opts.excludedPath)) {
           excludedPath.push(...opts.excludedPath);
         } else {
           excludedPath.push(
-            '/build/*',
-            '/favicon.ico',
-            '/robots.txt',
-            '/mainifest.json',
-            '/~partytown/*',
-            '/service-worker.js',
-            '/sitemap.xml'
+            "/build/*",
+            "/favicon.ico",
+            "/robots.txt",
+            "/mainifest.json",
+            "/~partytown/*",
+            "/service-worker.js",
+            "/sitemap.xml",
           );
         }
 
         const netlifyEdgeManifest = {
           functions: [
             {
-              path: basePathname + '*',
-              function: 'entry.netlify-edge',
-              cache: 'manual',
+              path: basePathname + "*",
+              function: "entry.netlify-edge",
+              cache: "manual",
               excludedPath,
             },
           ],
           version: 1,
         };
 
-        const jsPath = join(serverOutDir, 'entry.netlify-edge.js');
-        const mjsPath = join(serverOutDir, 'entry.netlify-edge.mjs');
+        const jsPath = join(serverOutDir, "entry.netlify-edge.js");
+        const mjsPath = join(serverOutDir, "entry.netlify-edge.mjs");
 
         if (existsSync(mjsPath)) {
           await fs.promises.writeFile(
@@ -81,14 +81,14 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
             [
               `import entry_netlifyEdge from './entry.netlify-edge.mjs';`,
               `export default entry_netlifyEdge;`,
-            ].join('\n')
+            ].join("\n"),
           );
         }
 
-        const netlifyEdgeFnsDir = getParentDir(serverOutDir, 'edge-functions');
+        const netlifyEdgeFnsDir = getParentDir(serverOutDir, "edge-functions");
         await fs.promises.writeFile(
-          join(netlifyEdgeFnsDir, 'manifest.json'),
-          JSON.stringify(netlifyEdgeManifest, null, 2)
+          join(netlifyEdgeFnsDir, "manifest.json"),
+          JSON.stringify(netlifyEdgeManifest, null, 2),
         );
       }
     },

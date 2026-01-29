@@ -1,16 +1,16 @@
-import type { ValueOrPromise } from './types';
+import type { ValueOrPromise } from "./types";
 
 export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
 
 export const isPromise = (value: any): value is Promise<any> => {
   // not using "value instanceof Promise" to have zone.js support
-  return value && typeof value.then === 'function';
+  return value && typeof value.then === "function";
 };
 
 export const safeCall = <T, B, C>(
   call: () => ValueOrPromise<T>,
-  thenFn: { f(arg: Awaited<T>): ValueOrPromise<B> }['f'],
-  rejectFn: { f(reason: any): ValueOrPromise<C> }['f']
+  thenFn: { f(arg: Awaited<T>): ValueOrPromise<B> }["f"],
+  rejectFn: { f(reason: any): ValueOrPromise<C> }["f"],
 ): ValueOrPromise<B | C> => {
   try {
     const promise = call();
@@ -26,13 +26,13 @@ export const safeCall = <T, B, C>(
 
 export const maybeThen = <T, B>(
   promise: ValueOrPromise<T>,
-  thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
+  thenFn: (arg: Awaited<T>) => ValueOrPromise<B>,
 ): ValueOrPromise<B> => {
   return isPromise(promise) ? promise.then(thenFn as any) : thenFn(promise as any);
 };
 
 export const promiseAll = <T extends readonly unknown[] | []>(
-  promises: T
+  promises: T,
 ): ValueOrPromise<{ -readonly [P in keyof T]: Awaited<T[P]> }> => {
   const hasPromise = promises.some(isPromise);
   if (hasPromise) {
@@ -42,7 +42,7 @@ export const promiseAll = <T extends readonly unknown[] | []>(
 };
 
 export const promiseAllLazy = <T extends readonly unknown[] | []>(
-  promises: T
+  promises: T,
 ): ValueOrPromise<void> => {
   if (promises.length > 0) {
     return Promise.all(promises) as any;

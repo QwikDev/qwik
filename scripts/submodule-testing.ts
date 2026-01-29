@@ -1,58 +1,58 @@
-import { getBanner, importPath, nodeTarget, target } from './util.ts';
-import { build, type BuildOptions } from 'esbuild';
-import { type BuildConfig, type PackageJSON } from './util.ts';
-import { join } from 'node:path';
-import { writePackageJson } from './package-json.ts';
+import { getBanner, importPath, nodeTarget, target } from "./util.ts";
+import { build, type BuildOptions } from "esbuild";
+import { type BuildConfig, type PackageJSON } from "./util.ts";
+import { join } from "node:path";
+import { writePackageJson } from "./package-json.ts";
 
 /** Builds @builder.io/testing */
 export async function submoduleTesting(config: BuildConfig) {
-  const submodule = 'testing';
+  const submodule = "testing";
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
+    entryPoints: [join(config.srcQwikDir, submodule, "index.ts")],
     outdir: join(config.distQwikPkgDir, submodule),
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: ['@builder.io/qwik/build'],
-    platform: 'node',
+    external: ["@builder.io/qwik/build"],
+    platform: "node",
     // external: [...nodeBuiltIns],
   };
 
   const esm = build({
     ...opts,
-    format: 'esm',
-    banner: { js: getBanner('@builder.io/qwik/testing', config.distVersion) },
-    outExtension: { '.js': '.mjs' },
+    format: "esm",
+    banner: { js: getBanner("@builder.io/qwik/testing", config.distVersion) },
+    outExtension: { ".js": ".mjs" },
     plugins: [
-      importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
-      importPath(/^@builder\.io\/qwik\/server$/, '../server.mjs'),
+      importPath(/^@builder\.io\/qwik$/, "../core.mjs"),
+      importPath(/^@builder\.io\/qwik\/optimizer$/, "../optimizer.mjs"),
+      importPath(/^@builder\.io\/qwik\/server$/, "../server.mjs"),
     ],
     define: {
-      'globalThis.MODULE_EXT': `"mjs"`,
-      'globalThis.RUNNER': `false`,
+      "globalThis.MODULE_EXT": `"mjs"`,
+      "globalThis.RUNNER": `false`,
     },
-    target: 'es2020' /* needed for import.meta */,
+    target: "es2020" /* needed for import.meta */,
   });
 
   const cjs = build({
     ...opts,
-    format: 'cjs',
-    outExtension: { '.js': '.cjs' },
+    format: "cjs",
+    outExtension: { ".js": ".cjs" },
     banner: {
-      js: getBanner('@builder.io/qwik/testing', config.distVersion),
+      js: getBanner("@builder.io/qwik/testing", config.distVersion),
     },
     plugins: [
-      importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
-      importPath(/^@builder\.io\/qwik\/server$/, '../server.cjs'),
+      importPath(/^@builder\.io\/qwik$/, "../core.cjs"),
+      importPath(/^@builder\.io\/qwik\/optimizer$/, "../optimizer.cjs"),
+      importPath(/^@builder\.io\/qwik\/server$/, "../server.cjs"),
     ],
     define: {
-      'globalThis.MODULE_EXT': `"cjs"`,
-      'globalThis.RUNNER': `false`,
+      "globalThis.MODULE_EXT": `"cjs"`,
+      "globalThis.RUNNER": `false`,
     },
-    platform: 'node',
+    platform: "node",
     target: nodeTarget,
   });
 
@@ -60,19 +60,19 @@ export async function submoduleTesting(config: BuildConfig) {
 
   await generateTestingPackageJson(config);
 
-  console.log('🦁', submodule);
+  console.log("🦁", submodule);
 }
 
 async function generateTestingPackageJson(config: BuildConfig) {
   const pkg: PackageJSON = {
-    name: '@builder.io/qwik/testing',
+    name: "@builder.io/qwik/testing",
     version: config.distVersion,
-    main: 'index.mjs',
-    types: 'index.d.ts',
+    main: "index.mjs",
+    types: "index.d.ts",
     private: true,
-    type: 'module',
+    type: "module",
     sideEffects: true,
   };
-  const testingDistDir = join(config.distQwikPkgDir, 'testing');
+  const testingDistDir = join(config.distQwikPkgDir, "testing");
   await writePackageJson(testingDistDir, pkg);
 }

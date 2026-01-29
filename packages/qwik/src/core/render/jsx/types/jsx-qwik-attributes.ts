@@ -1,13 +1,13 @@
-import type { QRL } from '../../../qrl/qrl.public';
-import type { Signal } from '../../../state/signal';
-import type { JSXNode } from './jsx-node';
+import type { QRL } from "../../../qrl/qrl.public";
+import type { Signal } from "../../../state/signal";
+import type { JSXNode } from "./jsx-node";
 import type {
   QwikIdleEvent,
   QwikInitEvent,
   QwikSymbolEvent,
   QwikViewTransitionEvent,
   QwikVisibleEvent,
-} from './jsx-qwik-events';
+} from "./jsx-qwik-events";
 
 /**
  * Capitalized multi-word names of some known events so we have nicer qwik attributes. For example,
@@ -17,73 +17,73 @@ import type {
  * Add any multi-word event names to this list. Single word events are automatically converted.
  */
 type PascalCaseNames =
-  | 'AnimationEnd'
-  | 'AnimationIteration'
-  | 'AnimationStart'
-  | 'AuxClick'
-  | 'BeforeToggle'
-  | 'CanPlay'
-  | 'CanPlayThrough'
-  | 'CompositionEnd'
-  | 'CompositionStart'
-  | 'CompositionUpdate'
-  | 'ContextMenu'
-  | 'DblClick'
-  | 'DragEnd'
-  | 'DragEnter'
-  | 'DragExit'
-  | 'DragLeave'
-  | 'DragOver'
-  | 'DragStart'
-  | 'DurationChange'
-  | 'FocusIn'
-  | 'FocusOut'
-  | 'FullscreenChange'
-  | 'FullscreenError'
-  | 'GotPointerCapture'
-  | 'KeyDown'
-  | 'KeyPress'
-  | 'KeyUp'
-  | 'LoadedData'
-  | 'LoadedMetadata'
-  | 'LoadEnd'
-  | 'LoadStart'
-  | 'LostPointerCapture'
-  | 'MouseDown'
-  | 'MouseEnter'
-  | 'MouseLeave'
-  | 'MouseMove'
-  | 'MouseOut'
-  | 'MouseOver'
-  | 'MouseUp'
-  | 'PointerCancel'
-  | 'PointerDown'
-  | 'PointerEnter'
-  | 'PointerLeave'
-  | 'PointerMove'
-  | 'PointerOut'
-  | 'PointerOver'
-  | 'PointerUp'
-  | 'QIdle'
-  | 'QInit'
-  | 'QSymbol'
-  | 'QVisible'
-  | 'RateChange'
-  | 'RateChange'
-  | 'SecurityPolicyViolation'
-  | 'SelectionChange'
-  | 'SelectStart'
-  | 'TimeUpdate'
-  | 'TouchCancel'
-  | 'TouchEnd'
-  | 'TouchMove'
-  | 'TouchStart'
-  | 'TransitionCancel'
-  | 'TransitionEnd'
-  | 'TransitionRun'
-  | 'TransitionStart'
-  | 'VisibilityChange'
-  | 'VolumeChange';
+  | "AnimationEnd"
+  | "AnimationIteration"
+  | "AnimationStart"
+  | "AuxClick"
+  | "BeforeToggle"
+  | "CanPlay"
+  | "CanPlayThrough"
+  | "CompositionEnd"
+  | "CompositionStart"
+  | "CompositionUpdate"
+  | "ContextMenu"
+  | "DblClick"
+  | "DragEnd"
+  | "DragEnter"
+  | "DragExit"
+  | "DragLeave"
+  | "DragOver"
+  | "DragStart"
+  | "DurationChange"
+  | "FocusIn"
+  | "FocusOut"
+  | "FullscreenChange"
+  | "FullscreenError"
+  | "GotPointerCapture"
+  | "KeyDown"
+  | "KeyPress"
+  | "KeyUp"
+  | "LoadedData"
+  | "LoadedMetadata"
+  | "LoadEnd"
+  | "LoadStart"
+  | "LostPointerCapture"
+  | "MouseDown"
+  | "MouseEnter"
+  | "MouseLeave"
+  | "MouseMove"
+  | "MouseOut"
+  | "MouseOver"
+  | "MouseUp"
+  | "PointerCancel"
+  | "PointerDown"
+  | "PointerEnter"
+  | "PointerLeave"
+  | "PointerMove"
+  | "PointerOut"
+  | "PointerOver"
+  | "PointerUp"
+  | "QIdle"
+  | "QInit"
+  | "QSymbol"
+  | "QVisible"
+  | "RateChange"
+  | "RateChange"
+  | "SecurityPolicyViolation"
+  | "SelectionChange"
+  | "SelectStart"
+  | "TimeUpdate"
+  | "TouchCancel"
+  | "TouchEnd"
+  | "TouchMove"
+  | "TouchStart"
+  | "TransitionCancel"
+  | "TransitionEnd"
+  | "TransitionRun"
+  | "TransitionStart"
+  | "VisibilityChange"
+  | "VolumeChange";
 
 type LcEventNameMap = {
   [name in PascalCaseNames as Lowercase<name>]: name;
@@ -119,8 +119,8 @@ type AllEventMapRaw = HTMLElementEventMap &
 
 /** This corrects the TS definition for ToggleEvent @public */
 export interface CorrectedToggleEvent extends Event {
-  readonly newState: 'open' | 'closed';
-  readonly prevState: 'open' | 'closed';
+  readonly newState: "open" | "closed";
+  readonly prevState: "open" | "closed";
 }
 // Corrections to the TS types
 type EventCorrectionMap = {
@@ -169,7 +169,7 @@ export type ClassList =
 export type EventHandler<EV = Event, EL = Element> = {
   // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
   bivarianceHack(event: EV, element: EL): any;
-}['bivarianceHack'];
+}["bivarianceHack"];
 
 /**
  * An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.
@@ -191,19 +191,19 @@ type QwikCustomEvents<EL> = {
 };
 type QwikCustomEventsPlain<EL> = {
   /** The handler */
-  [key: `${'document:' | 'window:' | ''}on${string}$`]:
+  [key: `${"document:" | "window:" | ""}on${string}$`]:
     | QRLEventHandlerMulti<Event, EL>
     | EventHandler<Event, EL>;
 };
 
 type QwikKnownEvents<EL> = {
   [K in keyof AllPascalEventMaps as `${
-    | 'document:'
-    | 'window:'
-    | ''}on${K}$`]?: QRLEventHandlerMulti<AllPascalEventMaps[K], EL>;
+    | "document:"
+    | "window:"
+    | ""}on${K}$`]?: QRLEventHandlerMulti<AllPascalEventMaps[K], EL>;
 };
 type QwikKnownEventsPlain<EL> = {
-  [K in keyof AllPascalEventMaps as `${'document:' | 'window:' | ''}on${K}$`]?:
+  [K in keyof AllPascalEventMaps as `${"document:" | "window:" | ""}on${K}$`]?:
     | QRLEventHandlerMulti<AllPascalEventMaps[K], EL>
     | EventHandler<AllPascalEventMaps[K], EL>;
 };
@@ -219,7 +219,7 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 /** @public */
 export interface ComponentBaseProps {
   key?: string | number | null | undefined;
-  'q:slot'?: string;
+  "q:slot"?: string;
 }
 
 /** @public */
@@ -242,9 +242,9 @@ export interface QwikIntrinsicAttributes {
   children?: JSXChildren;
 
   /** Corresponding slot name used to project the element into. */
-  'q:slot'?: string;
-  'q:shadowRoot'?: boolean;
-  fetchPriority?: 'auto' | 'high' | 'low';
+  "q:slot"?: string;
+  "q:shadowRoot"?: boolean;
+  fetchPriority?: "auto" | "high" | "low";
 }
 
 /**
@@ -261,10 +261,7 @@ interface RefAttr<EL extends Element> {
   ref?: Ref<EL> | undefined;
 }
 interface DOMAttributesBase<EL extends Element>
-  extends QwikIntrinsicAttributes,
-    PreventDefault,
-    StopPropagation,
-    RefAttr<EL> {
+  extends QwikIntrinsicAttributes, PreventDefault, StopPropagation, RefAttr<EL> {
   dangerouslySetInnerHTML?: string | undefined;
 }
 
@@ -275,7 +272,6 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
 
 /** The Qwik DOM attributes without plain handlers, for use as function parameters @public */
 export interface QwikAttributes<EL extends Element>
-  extends DOMAttributesBase<EL>,
-    QwikEvents<EL, false> {
+  extends DOMAttributesBase<EL>, QwikEvents<EL, false> {
   class?: ClassList | undefined;
 }

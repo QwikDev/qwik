@@ -1,13 +1,13 @@
-import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
-import type { BuildContext } from '../types';
-import { getImportPath } from './utils';
+import type { QwikVitePlugin } from "@builder.io/qwik/optimizer";
+import type { BuildContext } from "../types";
+import { getImportPath } from "./utils";
 
 export function createServerPlugins(
   ctx: BuildContext,
   _qwikPlugin: QwikVitePlugin,
   c: string[],
   esmImports: string[],
-  isSSR: boolean
+  isSSR: boolean,
 ) {
   c.push(`\n/** Qwik City ServerPlugins (${ctx.serverPlugins.length}) */`);
   c.push(`export const serverPlugins = [`);

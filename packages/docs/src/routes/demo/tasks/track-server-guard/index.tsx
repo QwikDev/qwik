@@ -1,8 +1,8 @@
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from "@builder.io/qwik";
+import { isServer } from "@builder.io/qwik";
 
 export default component$(() => {
-  const text = useSignal('Initial text');
+  const text = useSignal("Initial text");
   const isBold = useSignal(false);
 
   useTask$(({ track }) => {
@@ -19,9 +19,7 @@ export default component$(() => {
       <label>
         Enter text: <input bind:value={text} />
       </label>
-      <p style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>
-        Text: {text}
-      </p>
+      <p style={{ fontWeight: isBold.value ? "bold" : "normal" }}>Text: {text}</p>
     </section>
   );
 });

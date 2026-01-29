@@ -1,6 +1,6 @@
-import { QSlotS } from '../../util/markers';
-import { Virtual, _jsxC } from './jsx-runtime';
-import type { FunctionComponent } from './types/jsx-node';
+import { QSlotS } from "../../util/markers";
+import { Virtual, _jsxC } from "./jsx-runtime";
+import type { FunctionComponent } from "./types/jsx-node";
 
 /**
  * Allows to project the children of the current component. `<Slot/>` can only be used within the
@@ -14,9 +14,9 @@ export const Slot: FunctionComponent<{
   return _jsxC(
     Virtual,
     {
-      [QSlotS]: '',
+      [QSlotS]: "",
     },
     0,
-    props.name ?? ''
+    props.name ?? "",
   );
 };

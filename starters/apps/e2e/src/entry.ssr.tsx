@@ -1,7 +1,4 @@
-import {
-  renderToStream,
-  type RenderToStreamOptions,
-} from "@builder.io/qwik/server";
+import { renderToStream, type RenderToStreamOptions } from "@builder.io/qwik/server";
 import { Root } from "./root";
 
 /**
@@ -27,8 +24,7 @@ export default function (opts: RenderToStreamOptions) {
         //   },
         // },
         qwikLoader: {
-          include:
-            url.searchParams.get("loader") === "false" ? "never" : "auto",
+          include: url.searchParams.get("loader") === "false" ? "never" : "auto",
         },
         ...opts,
       },

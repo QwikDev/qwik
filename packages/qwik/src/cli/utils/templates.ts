@@ -1,7 +1,7 @@
-import fs from 'node:fs';
-import { join, sep } from 'node:path';
-import type { TemplateSet } from '../types';
-import { getFilesDeep } from './utils';
+import fs from "node:fs";
+import { join, sep } from "node:path";
+import type { TemplateSet } from "../types";
+import { getFilesDeep } from "./utils";
 
 let templates: TemplateSet[] | null = null;
 
@@ -9,7 +9,7 @@ export async function loadTemplates() {
   if (!templates) {
     const allTemplates: TemplateSet[] = [];
 
-    const templatesDir = join(__dirname, 'templates');
+    const templatesDir = join(__dirname, "templates");
     const templatesDirNames = await fs.promises.readdir(templatesDir);
 
     await Promise.all(
@@ -18,14 +18,14 @@ export async function loadTemplates() {
         const files = await readTemplates(dir);
         const template = { id: templatesDirName, ...files };
         allTemplates.push(template);
-      })
+      }),
     );
 
     // Sort qwik templates first so they can be overridden, then alphabetical
     allTemplates.sort((a, b) => {
-      if (a.id === 'qwik') {
+      if (a.id === "qwik") {
         return -1;
-      } else if (b.id === 'qwik') {
+      } else if (b.id === "qwik") {
         return 1;
       }
 
@@ -39,10 +39,10 @@ export async function loadTemplates() {
 }
 
 export async function readTemplates(rootDir: string) {
-  const componentDir = join(rootDir, 'component');
-  const routeDir = join(rootDir, 'route');
-  const markdownDir = join(rootDir, 'markdown');
-  const mdxDir = join(rootDir, 'mdx');
+  const componentDir = join(rootDir, "component");
+  const routeDir = join(rootDir, "route");
+  const markdownDir = join(rootDir, "markdown");
+  const mdxDir = join(rootDir, "mdx");
 
   const component = await getFilesDeep(componentDir);
   const route = await getFilesDeep(routeDir);
@@ -50,10 +50,10 @@ export async function readTemplates(rootDir: string) {
   const mdx = await getFilesDeep(mdxDir);
 
   return {
-    component: component.map((c) => parseTemplatePath(c, 'component')),
-    route: route.map((r) => parseTemplatePath(r, 'route')),
-    markdown: markdown.map((m) => parseTemplatePath(m, 'markdown')),
-    mdx: mdx.map((m) => parseTemplatePath(m, 'mdx')),
+    component: component.map((c) => parseTemplatePath(c, "component")),
+    route: route.map((r) => parseTemplatePath(r, "route")),
+    markdown: markdown.map((m) => parseTemplatePath(m, "markdown")),
+    mdx: mdx.map((m) => parseTemplatePath(m, "mdx")),
   };
 }
 

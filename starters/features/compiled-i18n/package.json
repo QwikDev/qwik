@@ -1,5 +1,8 @@
 {
   "description": "Add compiled-i18n to your Qwik app",
+  "devDependencies": {
+    "compiled-i18n": "latest"
+  },
   "__qwik__": {
     "displayName": "Integration: compiled-i18n (compile time translations)",
     "priority": -10,
@@ -30,8 +33,5 @@
         "   - https://github.com/wmertens/compiled-i18n/blob/main/Readme.md"
       ]
     }
-  },
-  "devDependencies": {
-    "compiled-i18n": "latest"
   }
 }

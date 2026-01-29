@@ -1,9 +1,5 @@
 import { component$ } from "@builder.io/qwik";
-import {
-  routeLoader$,
-  validator$,
-  type RequestEventAction,
-} from "@builder.io/qwik-city";
+import { routeLoader$, validator$, type RequestEventAction } from "@builder.io/qwik-city";
 
 const dataValidator = validator$((ev) => {
   if (ev.query.get("secret") === "123") {
@@ -50,16 +46,10 @@ const randomFailedLoaderQrl = ({ fail }: RequestEventAction) => {
 };
 
 export const usePetLoader = routeLoader$(petLoaderQrl);
-export const usePetWithValidationLoader = routeLoader$(
-  petLoaderQrl,
-  dataValidator,
-);
+export const usePetWithValidationLoader = routeLoader$(petLoaderQrl, dataValidator);
 
 export const useDynamicPetLoader = routeLoader$(dynamicPetLoaderQrl);
-export const useDynamicPetWithValidationLoader = routeLoader$(
-  dynamicPetLoaderQrl,
-  dataValidator,
-);
+export const useDynamicPetWithValidationLoader = routeLoader$(dynamicPetLoaderQrl, dataValidator);
 
 export const useRandomFailedLoader = routeLoader$(randomFailedLoaderQrl);
 export const useRandomFailedWithValidatorLoader = routeLoader$(

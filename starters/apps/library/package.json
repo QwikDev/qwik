@@ -1,23 +1,23 @@
 {
   "name": "qwik-library-name",
-  "description": "Create a Qwik library",
   "version": "0.0.1",
   "private": false,
-  "main": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
-  "types": "./lib-types/index.d.ts",
-  "type": "module",
-  "exports": {
-    ".": {
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs",
-      "types": "./lib-types/index.d.ts"
-    }
-  },
+  "description": "Create a Qwik library",
   "files": [
     "lib",
     "lib-types"
   ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./lib/index.qwik.mjs",
+  "types": "./lib-types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib-types/index.d.ts",
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs"
+    }
+  },
   "scripts": {
     "build": "qwik build",
     "build.lib": "vite build --mode lib",
@@ -36,23 +36,23 @@
     "@builder.io/qwik": "latest",
     "@eslint/js": "latest",
     "@types/node": "latest",
-    "typescript-eslint": "latest",
     "eslint": "latest",
     "eslint-plugin-qwik": "latest",
     "globals": "latest",
     "np": "^8.0.4",
     "prettier": "latest",
     "typescript": "latest",
+    "typescript-eslint": "latest",
     "undici": "latest",
     "vite": "latest",
     "vite-tsconfig-paths": "^4.2.1"
   },
+  "qwik": "./lib/index.qwik.mjs",
   "__qwik__": {
     "displayName": "Library (Qwik)",
     "priority": -1,
     "docs": [
       "https://qwik.dev/docs/getting-started/"
     ]
-  },
-  "sideEffects": false
+  }
 }

@@ -1,5 +1,8 @@
 {
   "description": "Use Orama in your Qwik app",
+  "devDependencies": {
+    "@orama/orama": "^1.2.11"
+  },
   "__qwik__": {
     "displayName": "Integration: Orama (full-text search engine)",
     "priority": -10,
@@ -16,8 +19,5 @@
         "   - https://docs.oramasearch.com/"
       ]
     }
-  },
-  "devDependencies": {
-    "@orama/orama": "^1.2.11"
   }
 }

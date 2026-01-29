@@ -1,6 +1,6 @@
-import type { Rollup } from 'vite';
-import type { ESLint, Linter } from 'eslint';
-import type { OptimizerSystem } from '../types';
+import type { Rollup } from "vite";
+import type { ESLint, Linter } from "eslint";
+import type { OptimizerSystem } from "../types";
 
 export interface QwikLinter {
   lint(ctx: Rollup.PluginContext, code: string, id: string): void;
@@ -9,12 +9,12 @@ export interface QwikLinter {
 export async function createLinter(
   sys: OptimizerSystem,
   rootDir: string,
-  tsconfigFileNames: string[]
+  tsconfigFileNames: string[],
 ): Promise<QwikLinter> {
-  const module: typeof import('eslint') = await sys.dynamicImport('eslint');
+  const module: typeof import("eslint") = await sys.dynamicImport("eslint");
 
   let eslint = new module.ESLint({ cache: true }) as ESLint;
-  const eslintConfig = await eslint.calculateConfigForFile('no-real-file.tsx');
+  const eslintConfig = await eslint.calculateConfigForFile("no-real-file.tsx");
   const invalidEslintConfig = eslintConfig.parser === null;
 
   if (invalidEslintConfig) {
@@ -27,7 +27,7 @@ export async function createLinter(
             tsconfigRootDir: rootDir,
             project: tsconfigFileNames,
             ecmaVersion: 2021,
-            sourceType: 'module',
+            sourceType: "module",
             ecmaFeatures: {
               jsx: true,
             },
@@ -51,7 +51,7 @@ export async function createLinter(
 
         report.forEach((file) => {
           for (const message of file.messages) {
-            if (message.ruleId != null && !message.ruleId.startsWith('qwik/')) {
+            if (message.ruleId != null && !message.ruleId.startsWith("qwik/")) {
               continue;
             }
             const err = createRollupError(file.filePath, message);
@@ -66,19 +66,19 @@ export async function createLinter(
 }
 
 function parseRequest(id: string) {
-  return id.split('?', 2)[0];
+  return id.split("?", 2)[0];
 }
 
 function createRollupError(id: string, reportMessage: Linter.LintMessage) {
   const err: Rollup.RollupError = Object.assign(new Error(reportMessage.message), {
     id,
-    plugin: 'vite-plugin-eslint',
+    plugin: "vite-plugin-eslint",
     loc: {
       file: id,
       column: reportMessage.column,
       line: reportMessage.line,
     },
-    stack: '',
+    stack: "",
   });
   return err;
 }

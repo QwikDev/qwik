@@ -1,16 +1,16 @@
-import type { NavigationType, ScrollState } from './types';
-import { isSamePath } from './utils';
+import type { NavigationType, ScrollState } from "./types";
+import { isSamePath } from "./utils";
 
 export const restoreScroll = (
   type: NavigationType,
   toUrl: URL,
   fromUrl: URL,
   scroller: Element,
-  scrollState?: ScrollState
+  scrollState?: ScrollState,
 ) => {
-  if (type === 'popstate' && scrollState) {
+  if (type === "popstate" && scrollState) {
     scroller.scrollTo(scrollState.x, scrollState.y);
-  } else if (type === 'link' || type === 'form') {
+  } else if (type === "link" || type === "form") {
     if (!hashScroll(toUrl, fromUrl)) {
       scroller.scrollTo(0, 0);
     }
@@ -51,7 +51,7 @@ export const getScrollHistory = () => {
 export const saveScrollHistory = (scrollState: ScrollState) => {
   const state: ScrollHistoryState = history.state || {};
   state._qCityScroll = scrollState;
-  history.replaceState(state, '');
+  history.replaceState(state, "");
 };
 
 export interface ScrollHistoryState {

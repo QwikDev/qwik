@@ -1,7 +1,7 @@
-import { type QRL, type Signal, Slot, SSRRaw, SSRStream } from '@builder.io/qwik';
-import { getHostProps, mainExactProps, getReactProps } from './slot';
-import { renderToString } from 'react-dom/server';
-import { isServer } from '@builder.io/qwik';
+import { type QRL, type Signal, Slot, SSRRaw, SSRStream } from "@builder.io/qwik";
+import { getHostProps, mainExactProps, getReactProps } from "./slot";
+import { renderToString } from "react-dom/server";
+import { isServer } from "@builder.io/qwik";
 
 export async function renderFromServer(
   Host: any,
@@ -10,7 +10,7 @@ export async function renderFromServer(
   props: Record<string, any>,
   ref: Signal<Element | undefined>,
   slotRef: Signal<Element | undefined>,
-  hydrationProps: Record<string, any>
+  hydrationProps: Record<string, any>,
 ) {
   if (isServer) {
     const Cmp = await reactCmp$.resolve();
@@ -18,10 +18,10 @@ export async function renderFromServer(
     const newProps = getReactProps(props);
     Object.assign(hydrationProps, newProps);
     const html = renderToString(mainExactProps(undefined, scopeId, Cmp, newProps));
-    const index = html.indexOf('<!--SLOT-->');
+    const index = html.indexOf("<!--SLOT-->");
     if (index > 0) {
       const part1 = html.slice(0, index);
-      const part2 = html.slice(index + '<!--SLOT-->'.length);
+      const part2 = html.slice(index + "<!--SLOT-->".length);
       return (
         <Host ref={ref} {...getHostProps(props)}>
           <SSRStream>

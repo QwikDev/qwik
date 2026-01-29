@@ -1,9 +1,5 @@
 import { component$ } from "@builder.io/qwik";
-import {
-  type DocumentHead,
-  type RequestHandler,
-  useLocation,
-} from "@builder.io/qwik-city";
+import { type DocumentHead, type RequestHandler, useLocation } from "@builder.io/qwik-city";
 
 export default component$(() => {
   const loc = useLocation();
@@ -28,11 +24,7 @@ export const head: DocumentHead = () => {
   };
 };
 
-export const onGet: RequestHandler = ({
-  error,
-  url,
-  exit: exitMiddlewares,
-}) => {
+export const onGet: RequestHandler = ({ error, url, exit: exitMiddlewares }) => {
   if (url.pathname === "/qwikcity-test/catchall-error/") {
     throw error(500, "ERROR: Demonstration of an error response.");
   }

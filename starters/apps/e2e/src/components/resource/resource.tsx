@@ -88,46 +88,42 @@ export const ResourceApp = component$(() => {
   );
 });
 
-export const Results = component$(
-  (props: { result: ResourceReturn<number> }) => {
-    useStyles$(`
+export const Results = component$((props: { result: ResourceReturn<number> }) => {
+  useStyles$(`
     .logs {
       white-space: pre;
     }`);
-    const logs = useContext(LOGS);
-    logs.content += "[RENDER] <Results>\n\n\n";
-    const logscontent = logs.content + "";
+  const logs = useContext(LOGS);
+  logs.content += "[RENDER] <Results>\n\n\n";
+  const logscontent = logs.content + "";
 
-    const state = useStore({
-      count: 0,
-    });
-    const resourceState = props.result.loading ? "pending" : "resolved";
-    return (
-      <div>
-        <div id="inside-state">{resourceState}</div>
-        <Resource
-          value={props.result}
-          onPending={() => <div class="resource1">loading resource 1...</div>}
-          onRejected={(reason) => (
-            <div class="resource1">error {`${reason}`}</div>
-          )}
-          onResolved={(number) => {
-            return (
-              <>
-                <div class="resource1">resource 1 is {number}</div>
-                <button class="count" onClick$={() => state.count++}>
-                  count is {mutable(state.count + 0)}
-                </button>
-              </>
-            );
-          }}
-        />
+  const state = useStore({
+    count: 0,
+  });
+  const resourceState = props.result.loading ? "pending" : "resolved";
+  return (
+    <div>
+      <div id="inside-state">{resourceState}</div>
+      <Resource
+        value={props.result}
+        onPending={() => <div class="resource1">loading resource 1...</div>}
+        onRejected={(reason) => <div class="resource1">error {`${reason}`}</div>}
+        onResolved={(number) => {
+          return (
+            <>
+              <div class="resource1">resource 1 is {number}</div>
+              <button class="count" onClick$={() => state.count++}>
+                count is {mutable(state.count + 0)}
+              </button>
+            </>
+          );
+        }}
+      />
 
-        <div class="logs">{logscontent}</div>
-      </div>
-    );
-  },
-);
+      <div class="logs">{logscontent}</div>
+    </div>
+  );
+});
 
 export function mutable(value: any) {
   return value;

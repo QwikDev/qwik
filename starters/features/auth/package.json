@@ -1,5 +1,8 @@
 {
   "description": "Authentication plugin for using battle-tested Auth.js (aka NextAuth)",
+  "devDependencies": {
+    "@auth/qwik": "0.8.0"
+  },
   "__qwik__": {
     "displayName": "Integration: Auth.js (authentication)",
     "priority": -10,
@@ -15,8 +18,5 @@
         " https://qwik.dev/docs/integrations/authjs/"
       ]
     }
-  },
-  "devDependencies": {
-    "@auth/qwik": "0.8.0"
   }
 }

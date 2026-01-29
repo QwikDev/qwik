@@ -1,4 +1,4 @@
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from "@builder.io/qwik";
 
 export default component$(() => {
   const fibonacci = useSignal<number[]>();
@@ -14,7 +14,7 @@ export default component$(() => {
     fibonacci.value = array;
   });
 
-  return <p>{fibonacci.value?.join(', ')}</p>;
+  return <p>{fibonacci.value?.join(", ")}</p>;
 });
 
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));

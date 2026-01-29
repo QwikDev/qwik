@@ -1,9 +1,4 @@
-import {
-  component$,
-  useResource$,
-  useSignal,
-  Resource,
-} from "@builder.io/qwik";
+import { component$, useResource$, useSignal, Resource } from "@builder.io/qwik";
 
 export const ResourceFn = component$(() => {
   const resource = useResource$(({ track }) => {
@@ -18,22 +13,13 @@ export const ResourceFn = component$(() => {
 
   return (
     <div>
-      <Resource
-        value={resource}
-        onResolved={(value) => <div id={value.name}>{value.name}</div>}
-      />
-      <Resource
-        value={signal}
-        onResolved={(value) => <div id={value.name}>{value.name}</div>}
-      />
+      <Resource value={resource} onResolved={(value) => <div id={value.name}>{value.name}</div>} />
+      <Resource value={signal} onResolved={(value) => <div id={value.name}>{value.name}</div>} />
       <Resource
         value={asyncSignal}
         onResolved={(value) => <div id={value.name}>{value.name}</div>}
       />
-      <Resource
-        value={promise}
-        onResolved={(value) => <div id={value.name}>{value.name}</div>}
-      />
+      <Resource value={promise} onResolved={(value) => <div id={value.name}>{value.name}</div>} />
     </div>
   );
 });

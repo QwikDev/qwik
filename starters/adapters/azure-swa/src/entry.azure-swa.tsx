@@ -7,10 +7,7 @@
  * - https://qwik.dev/docs/deployments/azure-swa/
  *
  */
-import {
-  createQwikCity,
-  type PlatformAzure,
-} from "@builder.io/qwik-city/middleware/azure-swa";
+import { createQwikCity, type PlatformAzure } from "@builder.io/qwik-city/middleware/azure-swa";
 import qwikCityPlan from "@qwik-city-plan";
 import render from "./entry.ssr";
 

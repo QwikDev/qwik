@@ -25,10 +25,7 @@ export default component$(() => {
   return (
     <div>
       <div id="pn-runcount">{runCount.value}</div>
-      <button
-        id="pn-button"
-        onClick$={() => (okToNavigate.value = !okToNavigate.value)}
-      >
+      <button id="pn-button" onClick$={() => (okToNavigate.value = !okToNavigate.value)}>
         is {!okToNavigate.value ? "dirty" : "clean"}
       </button>
       <br />

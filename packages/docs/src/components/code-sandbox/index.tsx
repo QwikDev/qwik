@@ -1,7 +1,7 @@
-import { component$, useContext, useStylesScoped$, Slot, useSignal } from '@builder.io/qwik';
-import CSS from './index.css?inline';
-import { GlobalStore } from '../../context';
-import { EditIcon } from '../svgs/edit-icon';
+import { component$, useContext, useStylesScoped$, Slot, useSignal } from "@builder.io/qwik";
+import CSS from "./index.css?inline";
+import { GlobalStore } from "../../context";
+import { EditIcon } from "../svgs/edit-icon";
 
 export default component$<{
   src?: string;
@@ -14,7 +14,7 @@ export default component$<{
   const activeTab = useSignal(0);
   useStylesScoped$(CSS);
   const state = useContext(GlobalStore);
-  const exampleUrl = (url || src) + (console ? '?console=true' : '');
+  const exampleUrl = (url || src) + (console ? "?console=true" : "");
   return (
     <>
       {tabs && (
@@ -31,7 +31,7 @@ export default component$<{
         </div>
       )}
       <div class="overflow-auto slot-container mb-4">
-        <Slot name={tabs ? String(activeTab.value) : ''} />
+        <Slot name={tabs ? String(activeTab.value) : ""} />
       </div>
       <div class="browser shadow-xl">
         <div class="bar bg-slate-200 rounded-tl-md rounded-tr-md flex flex-row justify-left px-5 py-2 gap-5">
@@ -52,13 +52,13 @@ export default component$<{
               target="_blank"
               class="url-link text-ellipsis overflow-hidden"
             >
-              {new URL(examplePath(exampleUrl), 'https://qwik.dev').toString()}
+              {new URL(examplePath(exampleUrl), "https://qwik.dev").toString()}
             </a>
           </div>
           <ul>
             <li class="edit">
               <a
-                href={'https://github.com/QwikDev/qwik/blob/main/packages/docs/' + (url || src)}
+                href={"https://github.com/QwikDev/qwik/blob/main/packages/docs/" + (url || src)}
                 rel="noopener"
                 target="_blank"
                 title="edit this snippet"
@@ -72,7 +72,7 @@ export default component$<{
           <iframe
             loading="lazy"
             src={examplePath({ path: exampleUrl, theme: state.theme, includeTheme: true })}
-            style={{ width: '100%', height: '200px', ...style }}
+            style={{ width: "100%", height: "200px", ...style }}
           />
         </div>
       </div>
@@ -87,28 +87,28 @@ function examplePath(
         theme?: string;
         includeTheme?: boolean;
       }
-    | string
+    | string,
 ) {
   const {
     path,
-    theme = 'light',
+    theme = "light",
     includeTheme = false,
-  } = typeof opts === 'string' ? ({ path: opts } as any) : opts;
+  } = typeof opts === "string" ? ({ path: opts } as any) : opts;
   const newPath = path
-    .replace('/(qwik)/', '/')
-    .replace('/(qwikcity)/', '/')
-    .replace('/src/routes/demo', '/demo')
-    .replace(/\/[\w\d]+\.tsx?$/, '/');
+    .replace("/(qwik)/", "/")
+    .replace("/(qwikcity)/", "/")
+    .replace("/src/routes/demo", "/demo")
+    .replace(/\/[\w\d]+\.tsx?$/, "/");
 
   if (!includeTheme) {
     return newPath;
   }
 
-  if (newPath.indexOf('?') > -1) {
-    return newPath + '&theme=' + theme;
+  if (newPath.indexOf("?") > -1) {
+    return newPath + "&theme=" + theme;
   }
 
-  return newPath + '?theme=' + theme;
+  return newPath + "?theme=" + theme;
 }
 
 export const CodeFile = component$<{ src: string }>((props) => {

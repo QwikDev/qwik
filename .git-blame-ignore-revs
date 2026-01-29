@@ -1,0 +1,6 @@
+# .git-blame-ignore-revs
+# This file contains commits that should be ignored when running git blame
+# Configure with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Oxfmt migration - bulk formatting changes
+# Add the commit hash here after running the initial format

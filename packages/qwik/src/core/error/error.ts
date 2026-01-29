@@ -1,49 +1,49 @@
-import { logErrorAndStop } from '../util/log';
-import { qDev } from '../util/qdev';
+import { logErrorAndStop } from "../util/log";
+import { qDev } from "../util/qdev";
 
 export const codeToText = (code: number, ...parts: any[]): string => {
   if (qDev) {
     // Keep one error, one line to make it easier to search for the error message.
     const MAP = [
-      'Error while serializing class or style attributes', // 0
-      'Can not serialize a HTML Node that is not an Element', // 1
-      'Runtime but no instance found on element.', // 2
-      'Only primitive and object literals can be serialized', // 3
-      'Crash while rendering', // 4
-      'You can render over a existing q:container. Skipping render().', // 5
-      'Set property {{0}}', // 6
+      "Error while serializing class or style attributes", // 0
+      "Can not serialize a HTML Node that is not an Element", // 1
+      "Runtime but no instance found on element.", // 2
+      "Only primitive and object literals can be serialized", // 3
+      "Crash while rendering", // 4
+      "You can render over a existing q:container. Skipping render().", // 5
+      "Set property {{0}}", // 6
       "Only function's and 'string's are supported.", // 7
       "Only objects can be wrapped in 'QObject'", // 8
       `Only objects literals can be wrapped in 'QObject'`, // 9
-      'QRL is not a function', // 10
-      'Dynamic import not found', // 11
-      'Unknown type argument', // 12
+      "QRL is not a function", // 10
+      "Dynamic import not found", // 11
+      "Unknown type argument", // 12
       `Actual value for useContext({{0}}) can not be found, make sure some ancestor component has set a value using useContextProvider(). In the browser make sure that the context was used during SSR so its state was serialized.`, // 13
       "Invoking 'use*()' method outside of invocation context.", // 14
-      'Cant access renderCtx for existing context', // 15
-      'Cant access document for existing context', // 16
-      'props are immutable', // 17
-      '<div> component can only be used at the root of a Qwik component$()', // 18
-      'Props are immutable by default.', // 19
+      "Cant access renderCtx for existing context", // 15
+      "Cant access document for existing context", // 16
+      "props are immutable", // 17
+      "<div> component can only be used at the root of a Qwik component$()", // 18
+      "Props are immutable by default.", // 19
       `Calling a 'use*()' method outside 'component$(() => { HERE })' is not allowed. 'use*()' methods provide hooks to the 'component$' state and lifecycle, ie 'use' hooks can only be called synchronously within the 'component$' function or another 'use' method.\nSee https://qwik.dev/docs/core/tasks/#use-method-rules`, // 20
-      'Container is already paused. Skipping', // 21
-      '', // 22 -- unused
-      'When rendering directly on top of Document, the root node must be a <html>', // 23
-      'A <html> node must have 2 children. The first one <head> and the second one a <body>', // 24
+      "Container is already paused. Skipping", // 21
+      "", // 22 -- unused
+      "When rendering directly on top of Document, the root node must be a <html>", // 23
+      "A <html> node must have 2 children. The first one <head> and the second one a <body>", // 24
       'Invalid JSXNode type "{{0}}". It must be either a function or a string. Found:', // 25
-      'Tracking value changes can only be done to useStore() objects and component props', // 26
-      'Missing Object ID for captured object', // 27
+      "Tracking value changes can only be done to useStore() objects and component props", // 26
+      "Missing Object ID for captured object", // 27
       'The provided Context reference "{{0}}" is not a valid context created by createContextId()', // 28
-      '<html> is the root container, it can not be rendered inside a component', // 29
-      'QRLs can not be resolved because it does not have an attached container. This means that the QRL does not know where it belongs inside the DOM, so it cant dynamically import() from a relative path.', // 30
-      'QRLs can not be dynamically resolved, because it does not have a chunk path', // 31
-      'The JSX ref attribute must be a Signal', // 32
+      "<html> is the root container, it can not be rendered inside a component", // 29
+      "QRLs can not be resolved because it does not have an attached container. This means that the QRL does not know where it belongs inside the DOM, so it cant dynamically import() from a relative path.", // 30
+      "QRLs can not be dynamically resolved, because it does not have a chunk path", // 31
+      "The JSX ref attribute must be a Signal", // 32
     ];
-    let text = MAP[code] ?? '';
+    let text = MAP[code] ?? "";
     if (parts.length) {
       text = text.replaceAll(/{{(\d+)}}/g, (_, index) => {
         let v = parts[index];
-        if (v && typeof v === 'object' && v.constructor === Object) {
+        if (v && typeof v === "object" && v.constructor === Object) {
           v = JSON.stringify(v).slice(0, 50);
         }
         return v;

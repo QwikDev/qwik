@@ -1,8 +1,8 @@
-import { component$, useSignal, useTask$, isServer } from '@builder.io/qwik';
+import { component$, useSignal, useTask$, isServer } from "@builder.io/qwik";
 
 export default component$(() => {
-  const text = useSignal('Initial text');
-  const delayText = useSignal('');
+  const text = useSignal("Initial text");
+  const delayText = useSignal("");
 
   useTask$(({ track }) => {
     track(() => text.value);

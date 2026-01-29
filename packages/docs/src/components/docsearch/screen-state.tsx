@@ -1,11 +1,11 @@
-import { component$, type Signal } from '@builder.io/qwik';
-import type { DocSearchState } from './doc-search';
-import type { ErrorScreenTranslations } from './error-screen';
-import { ErrorScreen } from './error-screen';
-import type { NoResultsScreenTranslations } from './no-results-screen';
-import { NoResultsScreen } from './no-results-screen';
-import { ResultsScreen } from './results-screen';
-import { StartScreen } from './start-screen';
+import { component$, type Signal } from "@builder.io/qwik";
+import type { DocSearchState } from "./doc-search";
+import type { ErrorScreenTranslations } from "./error-screen";
+import { ErrorScreen } from "./error-screen";
+import type { NoResultsScreenTranslations } from "./no-results-screen";
+import { NoResultsScreen } from "./no-results-screen";
+import { ResultsScreen } from "./results-screen";
+import { StartScreen } from "./start-screen";
 
 export type ScreenStateTranslations = Partial<{
   errorScreen: ErrorScreenTranslations;
@@ -19,7 +19,7 @@ export interface ScreenStateProps {
 }
 
 export const ScreenState = component$((props: ScreenStateProps) => {
-  if (props.state.status === 'error') {
+  if (props.state.status === "error") {
     return <ErrorScreen />;
   }
 

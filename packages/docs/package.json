@@ -40,10 +40,10 @@
     "leaflet": "1.9.4",
     "magic-string": "0.30.17",
     "openai": "3.3.0",
+    "playwright": "1.57.0",
     "prettier": "3.6.2",
     "prism-themes": "1.9.0",
     "prismjs": "1.30.0",
-    "playwright": "1.57.0",
     "qwik-image": "0.0.16",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -63,8 +63,8 @@
   "engines": {
     "node": ">=18.11",
     "npm": "please-use-pnpm",
-    "yarn": "please-use-pnpm",
-    "pnpm": ">=8.6.12"
+    "pnpm": ">=8.6.12",
+    "yarn": "please-use-pnpm"
   },
   "homepage": "https://qwik.dev/",
   "license": "MIT",

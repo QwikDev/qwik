@@ -3,14 +3,14 @@ import {
   getSystem,
   loadPlatformBinding,
   type PlatformBinding,
-} from './platform';
+} from "./platform";
 import type {
   TransformModulesOptions,
   TransformFsOptions,
   Optimizer,
   OptimizerSystem,
   OptimizerOptions,
-} from './types';
+} from "./types";
 
 /** @public */
 export const createOptimizer = async (optimizerOptions: OptimizerOptions = {}) => {
@@ -45,13 +45,13 @@ const transformFsSync = (binding: PlatformBinding, opts: TransformFsOptions) => 
   if (binding.transform_fs) {
     return binding.transform_fs(convertOptions(opts));
   }
-  throw new Error('Not implemented');
+  throw new Error("Not implemented");
 };
 
 const transformFsAsync = async (
   sys: OptimizerSystem,
   binding: PlatformBinding,
-  fsOpts: TransformFsOptions
+  fsOpts: TransformFsOptions,
 ) => {
   if (binding.transform_fs && !sys.getInputFiles) {
     return binding.transform_fs(convertOptions(fsOpts));
@@ -90,18 +90,18 @@ const transformFsAsync = async (
     return binding.transform_modules(convertOptions(modulesOpts));
   }
 
-  throw new Error('Not implemented');
+  throw new Error("Not implemented");
 };
 
 const convertOptions = (opts: any) => {
   const output: any = {
-    minify: 'simplify',
+    minify: "simplify",
     sourceMaps: false,
     transpileTs: false,
     transpileJsx: false,
     preserveFilenames: false,
     explicitExtensions: false,
-    mode: 'lib',
+    mode: "lib",
     manualChunks: undefined,
     scope: undefined,
     regCtxName: undefined,
@@ -116,7 +116,7 @@ const convertOptions = (opts: any) => {
       output[key] = value;
     }
   });
-  output.entryStrategy = opts.entryStrategy?.type ?? 'smart';
+  output.entryStrategy = opts.entryStrategy?.type ?? "smart";
   output.manualChunks = opts.entryStrategy?.manual ?? undefined;
   return output;
 };

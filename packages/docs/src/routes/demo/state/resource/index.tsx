@@ -1,12 +1,7 @@
-import {
-  component$,
-  Resource,
-  useResource$,
-  useSignal,
-} from '@builder.io/qwik';
+import { component$, Resource, useResource$, useSignal } from "@builder.io/qwik";
 
 export default component$(() => {
-  const postId = useSignal('23');
+  const postId = useSignal("23");
 
   const postTitle = useResource$<string>(async ({ track, cleanup }) => {
     // It will run first on mount (server), then re-run whenever postId changes (client)
@@ -16,10 +11,9 @@ export default component$(() => {
     cleanup(() => controller.abort());
 
     try {
-      const response = await fetch(
-        `https://jsonplaceholder.typicode.com/posts/${postId.value}`,
-        { signal: controller.signal }
-      );
+      const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId.value}`, {
+        signal: controller.signal,
+      });
       const data = await response.json();
       return data.title as string;
     } catch (e) {

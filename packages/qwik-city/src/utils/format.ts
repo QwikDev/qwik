@@ -1,4 +1,4 @@
-import type { BuildContext } from '../buildtime/types';
+import type { BuildContext } from "../buildtime/types";
 
 export function toTitleCase(str: string) {
   return str.replace(/\w\S*/g, (txt) => {
@@ -8,27 +8,27 @@ export function toTitleCase(str: string) {
 
 export function addError(ctx: BuildContext, e: any) {
   ctx.diagnostics.push({
-    type: 'error',
-    message: e ? String(e.stack || e) : 'Error',
+    type: "error",
+    message: e ? String(e.stack || e) : "Error",
   });
 }
 
 export function addWarning(ctx: BuildContext, message: string) {
   ctx.diagnostics.push({
-    type: 'warn',
+    type: "warn",
     message: String(message),
   });
 }
 
 export function msToString(ms: number) {
   if (ms < 1) {
-    return ms.toFixed(2) + ' ms';
+    return ms.toFixed(2) + " ms";
   }
   if (ms < 1000) {
-    return ms.toFixed(1) + ' ms';
+    return ms.toFixed(1) + " ms";
   }
   if (ms < 60000) {
-    return (ms / 1000).toFixed(1) + ' s';
+    return (ms / 1000).toFixed(1) + " s";
   }
-  return (ms / 60000).toFixed(1) + ' m';
+  return (ms / 60000).toFixed(1) + " m";
 }

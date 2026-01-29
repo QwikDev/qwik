@@ -1,5 +1,11 @@
 {
   "description": "Use Leaflet Maps in your Qwik app",
+  "dependencies": {
+    "leaflet": "1.9.4"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.6"
+  },
   "__qwik__": {
     "displayName": "Integration: Leaflet Maps",
     "priority": -10,
@@ -20,11 +26,5 @@
         "https://leafletjs.com/"
       ]
     }
-  },
-  "dependencies": {
-    "leaflet": "1.9.4"
-  },
-  "devDependencies": {
-    "@types/leaflet": "^1.9.6"
   }
 }

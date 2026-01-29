@@ -1,11 +1,11 @@
-import { type ReadonlySignal, component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
-import { getDB } from '~/db';
-import { type OutgoingEdge, dbGetOutgoingEdges } from '~/db/sql-edges';
-import { BUCKETS, vectorSum } from '~/stats/vector';
-import Histogram, { delayColors, latencyColors } from '~/components/histogram';
-import { SymbolTile } from '~/components/symbol-tile';
-import { ManifestIcon } from '~/components/icons/manifest';
+import { type ReadonlySignal, component$ } from "@builder.io/qwik";
+import { routeLoader$ } from "@builder.io/qwik-city";
+import { getDB } from "~/db";
+import { type OutgoingEdge, dbGetOutgoingEdges } from "~/db/sql-edges";
+import { BUCKETS, vectorSum } from "~/stats/vector";
+import Histogram, { delayColors, latencyColors } from "~/components/histogram";
+import { SymbolTile } from "~/components/symbol-tile";
+import { ManifestIcon } from "~/components/icons/manifest";
 
 interface OutgoingInfo {
   symbol: string;
@@ -18,7 +18,7 @@ interface OutgoingInfo {
 
 export const useData = routeLoader$<OutgoingInfo>(async ({ params, query }) => {
   const db = getDB();
-  const symbol = query.get('symbol') || '';
+  const symbol = query.get("symbol") || "";
   const publicApiKey = params.publicApiKey;
   const manifestHashes: string[] = [];
   const edges = await dbGetOutgoingEdges(db, publicApiKey, symbol, manifestHashes);

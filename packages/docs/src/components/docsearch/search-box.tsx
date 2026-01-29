@@ -1,10 +1,10 @@
-import { component$, useVisibleTask$, useContext, type Signal } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useContext, type Signal } from "@builder.io/qwik";
 
-import { MAX_QUERY_SIZE } from './constants';
-import { SearchContext } from './context';
-import type { DocSearchState } from './doc-search';
-import { LoadingIcon } from './icons/LoadingIcon';
-import { SearchIcon } from './icons/SearchIcon';
+import { MAX_QUERY_SIZE } from "./constants";
+import { SearchContext } from "./context";
+import type { DocSearchState } from "./doc-search";
+import { LoadingIcon } from "./icons/LoadingIcon";
+import { SearchIcon } from "./icons/SearchIcon";
 
 export type SearchBoxTranslations = Partial<{
   resetButtonTitle: string;
@@ -36,8 +36,8 @@ export const SearchBox = component$((props: SearchBoxProps) => {
         action=""
         preventdefault:submit
         onReset$={() => {
-          props.state.query = '';
-          props.state.status = 'idle';
+          props.state.query = "";
+          props.state.status = "idle";
           props.state.activeItemId = null;
         }}
       >
@@ -60,7 +60,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
           autoCorrect="off"
           autoCapitalize="off"
           maxLength={MAX_QUERY_SIZE}
-          enterKeyHint={props.state.activeItemId ? 'go' : 'search'}
+          enterKeyHint={props.state.activeItemId ? "go" : "search"}
           spellcheck={false}
           autoFocus={props.autoFocus}
           placeholder="Search docs"
@@ -71,19 +71,19 @@ export const SearchBox = component$((props: SearchBoxProps) => {
           }}
           // TODO: preventdefault:keydown by key's condition
           onKeyDown$={(event) => {
-            if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+            if (event.key === "ArrowUp" || event.key === "ArrowDown") {
               const nextActiveId = getNextActiveItemId(
-                event.key === 'ArrowUp' ? -1 : 1,
+                event.key === "ArrowUp" ? -1 : 1,
                 props.state.activeItemId,
                 getItemsCount(props.state),
-                null
+                null,
               );
               if (nextActiveId !== props.state.activeItemId) {
                 props.state.activeItemId = nextActiveId;
                 // scroll to if necessary
-                if (typeof document !== 'undefined') {
+                if (typeof document !== "undefined") {
                   const nodeItem = document.getElementById(
-                    `docsearch-item-${props.state.activeItemId}`
+                    `docsearch-item-${props.state.activeItemId}`,
                   );
                   if (nodeItem) {
                     if ((nodeItem as any).scrollIntoViewIfNeeded) {
@@ -95,10 +95,10 @@ export const SearchBox = component$((props: SearchBoxProps) => {
                 }
               }
             }
-            if (event.key === 'Escape') {
+            if (event.key === "Escape") {
               props.isOpen.value = false;
             }
-            if (event.key === 'Enter') {
+            if (event.key === "Enter") {
               if (props.state.activeItemId !== null) {
                 const id = `docsearch-item-${props.state.activeItemId}`;
                 const element = document.querySelector(`#${id} a, #${id} button`) as HTMLElement;
@@ -133,7 +133,7 @@ export function getNextActiveItemId(
   moveAmount: number,
   baseIndex: number | null,
   itemCount: number,
-  defaultActiveItemId: number | null
+  defaultActiveItemId: number | null,
 ) {
   if (!itemCount) {
     return null;

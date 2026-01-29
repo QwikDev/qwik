@@ -1,5 +1,5 @@
-import { normalize } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { normalize } from "node:path";
+import { pathToFileURL } from "node:url";
 
 /** @public */
 export function toFileUrl(filePath: string) {
@@ -18,8 +18,8 @@ export function normalizePath(path: string) {
     return path;
   }
 
-  path = path.replace(/\\/g, '/');
-  if (path.endsWith('/')) {
+  path = path.replace(/\\/g, "/");
+  if (path.endsWith("/")) {
     path = path.slice(0, path.length - 1);
   }
   return path;
@@ -37,7 +37,7 @@ export function html<T = any>(value: T): T {
   if (value !== null) {
     if (Array.isArray(value)) {
       return value.map(html) as any;
-    } else if (typeof value === 'object') {
+    } else if (typeof value === "object") {
       if (isElement(value)) {
         return value.outerHTML as any;
       } else if (isNode(value)) {
@@ -57,7 +57,7 @@ export function html<T = any>(value: T): T {
 }
 
 function isNode(value: any): value is Node {
-  return 'outerHTML' in value;
+  return "outerHTML" in value;
 }
 
 function isElement(value: any): value is HTMLElement {
@@ -66,11 +66,11 @@ function isElement(value: any): value is HTMLElement {
 
 export function normalizeUrl(url: string | URL | undefined | null) {
   if (url != null) {
-    if (typeof url === 'string') {
-      return new URL(url || '/', BASE_URI);
+    if (typeof url === "string") {
+      return new URL(url || "/", BASE_URI);
     }
-    if (typeof url.href === 'string') {
-      return new URL(url.href || '/', BASE_URI);
+    if (typeof url.href === "string") {
+      return new URL(url.href || "/", BASE_URI);
     }
   }
   return new URL(BASE_URI);
@@ -80,14 +80,14 @@ const BASE_URI = `http://document.qwik.dev/`;
 
 declare const WorkerGlobalScope: any;
 
-const __globalThis = typeof globalThis !== 'undefined' && globalThis;
-const __window = typeof window !== 'undefined' && window;
+const __globalThis = typeof globalThis !== "undefined" && globalThis;
+const __window = typeof window !== "undefined" && window;
 const __self =
-  typeof self !== 'undefined' &&
-  typeof WorkerGlobalScope !== 'undefined' &&
+  typeof self !== "undefined" &&
+  typeof WorkerGlobalScope !== "undefined" &&
   self instanceof WorkerGlobalScope &&
   self;
-const __global = typeof global !== 'undefined' && global;
+const __global = typeof global !== "undefined" && global;
 export const platformGlobal: { document: Document | undefined } = (__globalThis ||
   __global ||
   __window ||

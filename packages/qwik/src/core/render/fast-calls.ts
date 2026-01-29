@@ -1,4 +1,4 @@
-import type { QwikElement } from './dom/virtual-element';
+import type { QwikElement } from "./dom/virtual-element";
 
 export const directSetAttribute = (el: QwikElement, prop: string, value: string) => {
   return el.setAttribute(prop, value);

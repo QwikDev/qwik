@@ -1,4 +1,4 @@
-import { partytownSnippet } from '@qwik.dev/partytown/integration';
+import { partytownSnippet } from "@qwik.dev/partytown/integration";
 
 export const Vendor = () => {
   return (
@@ -6,7 +6,7 @@ export const Vendor = () => {
       {/*  Analytics  */}
       <script
         dangerouslySetInnerHTML={partytownSnippet({
-          forward: ['dataLayer.push'],
+          forward: ["dataLayer.push"],
         })}
       />
       <script

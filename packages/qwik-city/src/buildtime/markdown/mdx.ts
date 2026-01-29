@@ -1,19 +1,19 @@
-import { SourceMapGenerator } from 'source-map';
-import { rehypePage, rehypeSlug, renameClassname, wrapTableWithDiv } from './rehype';
-import { rehypeSyntaxHighlight } from './syntax-highlight';
-import type { BuildContext } from '../types';
-import { parseFrontmatter } from './frontmatter';
-import { getExtension } from '../../utils/fs';
-import type { CompileOptions } from '@mdx-js/mdx';
-import { createHash } from 'node:crypto';
+import { SourceMapGenerator } from "source-map";
+import { rehypePage, rehypeSlug, renameClassname, wrapTableWithDiv } from "./rehype";
+import { rehypeSyntaxHighlight } from "./syntax-highlight";
+import type { BuildContext } from "../types";
+import { parseFrontmatter } from "./frontmatter";
+import { getExtension } from "../../utils/fs";
+import type { CompileOptions } from "@mdx-js/mdx";
+import { createHash } from "node:crypto";
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
-  const { compile } = await import('@mdx-js/mdx');
-  const { default: remarkFrontmatter } = await import('remark-frontmatter');
-  const { default: remarkGfm } = await import('remark-gfm');
-  const { default: rehypeAutolinkHeadings } = await import('rehype-autolink-headings');
+  const { compile } = await import("@mdx-js/mdx");
+  const { default: remarkFrontmatter } = await import("remark-frontmatter");
+  const { default: remarkGfm } = await import("remark-gfm");
+  const { default: rehypeAutolinkHeadings } = await import("rehype-autolink-headings");
 
-  const { VFile } = await import('vfile');
+  const { VFile } = await import("vfile");
 
   const userMdxOpts = ctx.opts.mdx;
 
@@ -24,21 +24,21 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
 
   const coreRemarkPlugins = [];
 
-  if (typeof coreMdxPlugins?.remarkGfm === 'undefined' || coreMdxPlugins.remarkGfm) {
+  if (typeof coreMdxPlugins?.remarkGfm === "undefined" || coreMdxPlugins.remarkGfm) {
     coreRemarkPlugins.push(remarkGfm);
   }
 
   const coreRehypePlugins = [];
 
   if (
-    typeof coreMdxPlugins?.rehypeSyntaxHighlight === 'undefined' ||
+    typeof coreMdxPlugins?.rehypeSyntaxHighlight === "undefined" ||
     coreMdxPlugins.rehypeSyntaxHighlight
   ) {
     coreRehypePlugins.push(rehypeSyntaxHighlight);
   }
 
   if (
-    typeof coreMdxPlugins?.rehypeAutolinkHeadings === 'undefined' ||
+    typeof coreMdxPlugins?.rehypeAutolinkHeadings === "undefined" ||
     coreMdxPlugins.rehypeAutolinkHeadings
   ) {
     coreRehypePlugins.push(rehypeAutolinkHeadings);
@@ -46,9 +46,9 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
 
   const options: CompileOptions = {
     SourceMapGenerator,
-    jsxImportSource: '@builder.io/qwik',
+    jsxImportSource: "@builder.io/qwik",
     ...userMdxOpts,
-    elementAttributeNameCase: 'html',
+    elementAttributeNameCase: "html",
     remarkPlugins: [
       ...userRemarkPlugins,
       ...coreRemarkPlugins,
@@ -66,17 +66,17 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
   };
   return async function (code: string, id: string) {
     const ext = getExtension(id);
-    if (['.mdx', '.md', '.markdown'].includes(ext)) {
+    if ([".mdx", ".md", ".markdown"].includes(ext)) {
       const file = new VFile({ value: code, path: id });
       const compiled = await compile(file, options);
       const output = String(compiled.value);
-      const hasher = createHash('sha256');
+      const hasher = createHash("sha256");
       const key = hasher
         .update(output)
-        .digest('base64')
+        .digest("base64")
         .slice(0, 8)
-        .replace('+', '-')
-        .replace('/', '_');
+        .replace("+", "-")
+        .replace("/", "_");
       const addImport = `import { jsx, _jsxC, RenderOnce } from '@builder.io/qwik';\n`;
       // the _missingMdxReference call is automatically added by mdxjs
       const newDefault = `
@@ -92,9 +92,9 @@ const WrappedMdxContent = (props = {}) => {
 };
 export default WrappedMdxContent;
 `;
-      const exportIndex = output.lastIndexOf('export default ');
+      const exportIndex = output.lastIndexOf("export default ");
       if (exportIndex === -1) {
-        throw new Error('Could not find default export in mdx output');
+        throw new Error("Could not find default export in mdx output");
       }
       const wrappedOutput = addImport + output.slice(0, exportIndex) + newDefault;
       return {
@@ -107,5 +107,5 @@ export default WrappedMdxContent;
 
 export type MdxTransform = (
   code: string,
-  id: string
+  id: string,
 ) => Promise<{ code: string; map: any } | undefined>;

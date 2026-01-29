@@ -5,9 +5,7 @@ test.describe("Qwik City Adapter", () => {
     page: api,
   }) => {
     const nestedUrl = "by/pass/other-routes-for-testing";
-    const rsp = (await api.goto(
-      `/qwikcity-test/build/${nestedUrl}/a-random-file-after-that.js`,
-    ))!;
+    const rsp = (await api.goto(`/qwikcity-test/build/${nestedUrl}/a-random-file-after-that.js`))!;
     expect(rsp.status()).toBe(404);
     expect(rsp.headers()["content-type"]).toBe("text/html; charset=utf-8");
 

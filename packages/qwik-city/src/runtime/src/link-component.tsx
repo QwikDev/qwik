@@ -9,14 +9,14 @@ import {
   untrack,
   type EventHandler,
   type QwikVisibleEvent,
-} from '@builder.io/qwik';
-import { getClientNavPath, shouldPreload } from './utils';
-import { loadClientData } from './use-endpoint';
-import { useLocation, useNavigate } from './use-functions';
-import { preloadRouteBundles } from './client-navigate';
-import { isDev } from '@builder.io/qwik';
+} from "@builder.io/qwik";
+import { getClientNavPath, shouldPreload } from "./utils";
+import { loadClientData } from "./use-endpoint";
+import { useLocation, useNavigate } from "./use-functions";
+import { preloadRouteBundles } from "./client-navigate";
+import { isDev } from "@builder.io/qwik";
 // @ts-expect-error we don't have types for the preloader yet
-import { p as preload } from '@builder.io/qwik/preloader';
+import { p as preload } from "@builder.io/qwik/preloader";
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
@@ -36,7 +36,7 @@ export const Link = component$<LinkProps>((props) => {
   linkProps.href = clientNavPath || originalHref;
 
   const prefetchData =
-    (!!clientNavPath && prefetchProp !== false && prefetchProp !== 'js') || undefined;
+    (!!clientNavPath && prefetchProp !== false && prefetchProp !== "js") || undefined;
 
   const prefetch =
     prefetchData ||
@@ -52,7 +52,7 @@ export const Link = component$<LinkProps>((props) => {
           const url = new URL(elm.href);
           preloadRouteBundles(url.pathname);
 
-          if (elm.hasAttribute('data-prefetch')) {
+          if (elm.hasAttribute("data-prefetch")) {
             loadClientData(url, elm, {
               preloadRouteBundles: false,
               isPrefetch: true,
@@ -74,13 +74,13 @@ export const Link = component$<LinkProps>((props) => {
     ? $(async (event: Event, elm: HTMLAnchorElement) => {
         if (event.defaultPrevented) {
           // If default was prevented, then it is up to us to make client side navigation.
-          if (elm.hasAttribute('q:nbs')) {
+          if (elm.hasAttribute("q:nbs")) {
             // Allow bootstrapping into useNavigate.
-            await nav(location.href, { type: 'popstate' });
+            await nav(location.href, { type: "popstate" });
           } else if (elm.href) {
-            elm.setAttribute('aria-pressed', 'true');
+            elm.setAttribute("aria-pressed", "true");
             await nav(elm.href, { forceReload: reload, replaceState, scroll });
-            elm.removeAttribute('aria-pressed');
+            elm.removeAttribute("aria-pressed");
           }
         }
       })
@@ -96,13 +96,13 @@ export const Link = component$<LinkProps>((props) => {
     // We need to trigger the onQVisible$ in the visible task for it to fire on subsequent route navigations
     const handler = linkProps.onQVisible$;
     if (handler) {
-      const event = new CustomEvent('qvisible') as QwikVisibleEvent;
+      const event = new CustomEvent("qvisible") as QwikVisibleEvent;
 
       if (Array.isArray(handler)) {
         (handler as any)
           .flat(10)
           .forEach((handler: EventHandler<QwikVisibleEvent, HTMLAnchorElement>) =>
-            handler?.(event, anchorRef.value!)
+            handler?.(event, anchorRef.value!),
           );
       } else {
         handler?.(event, anchorRef.value!);
@@ -119,7 +119,7 @@ export const Link = component$<LinkProps>((props) => {
     <a
       ref={anchorRef}
       // Attr 'q:link' is used as a selector for bootstrapping into spa after context loss
-      {...{ 'q:link': !!clientNavPath }}
+      {...{ "q:link": !!clientNavPath }}
       {...linkProps}
       onClick$={[
         preventDefault,
@@ -138,7 +138,7 @@ export const Link = component$<LinkProps>((props) => {
   );
 });
 
-type AnchorAttributes = QwikIntrinsicElements['a'];
+type AnchorAttributes = QwikIntrinsicElements["a"];
 
 /** @public */
 export interface LinkProps extends AnchorAttributes {
@@ -158,7 +158,7 @@ export interface LinkProps extends AnchorAttributes {
    * Setting this value to **`"js"`** will prefetch only javascript bundles required to render this
    * page on the client, **`false`** will disable prefetching altogether.
    */
-  prefetch?: boolean | 'js';
+  prefetch?: boolean | "js";
 
   reload?: boolean;
   replaceState?: boolean;

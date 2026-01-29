@@ -1,4 +1,4 @@
-import { component$, useSignal, useVisibleTask$, useStore } from '@builder.io/qwik';
+import { component$, useSignal, useVisibleTask$, useStore } from "@builder.io/qwik";
 
 export default component$(() => {
   const store = useStore({
@@ -16,7 +16,7 @@ export default component$(() => {
 
   return (
     <main>
-      <aside style={{ border: '1px solid red', width: '100px' }}>
+      <aside style={{ border: "1px solid red", width: "100px" }}>
         Change text value here to stretch the box.
       </aside>
       <p>

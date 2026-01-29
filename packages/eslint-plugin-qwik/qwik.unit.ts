@@ -1,9 +1,9 @@
-import * as vitest from 'vitest';
-import { RuleTester, type RuleTesterConfig } from '@typescript-eslint/rule-tester';
-import { fileURLToPath } from 'node:url';
-import { rules } from './index';
-import { readdir, readFile, stat } from 'node:fs/promises';
-import { join, dirname } from 'path';
+import * as vitest from "vitest";
+import { RuleTester, type RuleTesterConfig } from "@typescript-eslint/rule-tester";
+import { fileURLToPath } from "node:url";
+import { rules } from "./index";
+import { readdir, readFile, stat } from "node:fs/promises";
+import { join, dirname } from "path";
 
 // https://typescript-eslint.io/packages/rule-tester/#vitest
 RuleTester.afterAll = vitest.afterAll;
@@ -13,20 +13,20 @@ RuleTester.describe = vitest.describe;
 
 const testConfig = {
   rules: {
-    'no-console': 'error',
+    "no-console": "error",
   },
   languageOptions: {
     parserOptions: {
       projectService: {
-        allowDefaultProject: ['*.ts*'],
+        allowDefaultProject: ["*.ts*"],
       },
-      sourceType: 'module',
+      sourceType: "module",
       ecmaFeatures: {
         jsx: true,
       },
       ecmaVersion: 2024,
-      project: ['./tests/tsconfig.json'],
-      tsconfigRootDir: fileURLToPath(new URL('.', import.meta.url)),
+      project: ["./tests/tsconfig.json"],
+      tsconfigRootDir: fileURLToPath(new URL(".", import.meta.url)),
     },
   },
 } as RuleTesterConfig;
@@ -42,9 +42,9 @@ interface InvalidTestCase extends TestCase {
 }
 await (async function setupEsLintRuleTesters() {
   // list './test' directory content and set up one RuleTester per directory
-  let testDir = join(dirname(new URL(import.meta.url).pathname), './tests');
-  const isWindows = process.platform === 'win32';
-  if (isWindows && testDir.startsWith('\\')) {
+  let testDir = join(dirname(new URL(import.meta.url).pathname), "./tests");
+  const isWindows = process.platform === "win32";
+  if (isWindows && testDir.startsWith("\\")) {
     // in Windows testDir starts with a \ causing errors
     testDir = testDir.substring(1);
   }
@@ -52,14 +52,14 @@ await (async function setupEsLintRuleTesters() {
   const ruleNames = await readdir(testDir);
   for (const ruleName of ruleNames) {
     const rule = rules[ruleName];
-    if (ruleName.endsWith('.json')) {
+    if (ruleName.endsWith(".json")) {
       continue;
     }
     if (!rule) {
       throw new Error(
         `Test directory has rule '${ruleName}' but related eslint rule is missing. Valid rules are: ${Object.keys(
-          rules
-        ).join(', ')}`
+          rules,
+        ).join(", ")}`,
       );
     }
     const ruleDir = join(testDir, ruleName);
@@ -75,20 +75,20 @@ await (async function setupEsLintRuleTesters() {
         }
         path = join(path, files[0]);
       }
-      const code = String(await readFile(path, 'utf-8'));
-      const filename = path.replace(testDir, './tests');
-      if (testCaseName.startsWith('valid-')) {
+      const code = String(await readFile(path, "utf-8"));
+      const filename = path.replace(testDir, "./tests");
+      if (testCaseName.startsWith("valid-")) {
         valid.push({ name: testCaseName, filename, code });
-      } else if (testCaseName.startsWith('invalid-')) {
-        const EXPECT_ERROR_COMMENT = '// Expect error: ';
+      } else if (testCaseName.startsWith("invalid-")) {
+        const EXPECT_ERROR_COMMENT = "// Expect error: ";
         const errors = code
-          .split('\n')
+          .split("\n")
           .map((line) => line.trim())
           .filter((line) => line.startsWith(EXPECT_ERROR_COMMENT))
           .map((line) => JSON.parse(line.substring(EXPECT_ERROR_COMMENT.length)));
         if (!errors.length) {
           throw new Error(
-            `Invalid test case '${filename}' does not have '${EXPECT_ERROR_COMMENT}' comment.`
+            `Invalid test case '${filename}' does not have '${EXPECT_ERROR_COMMENT}' comment.`,
           );
         }
         invalid.push({ name: testCaseName, filename, code, errors });

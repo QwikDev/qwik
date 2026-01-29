@@ -1,12 +1,12 @@
-import { existsSync, rmSync } from 'node:fs';
+import { existsSync, rmSync } from "node:fs";
 
 const locations = [
-  'packages/qwik/dist/',
-  'packages/qwik-city/lib/',
-  'packages/docs/dist/',
-  'packages/insights/dist/',
-  'packages/qwik-labs/lib/',
-  'packages/qwik-labs/vite/',
+  "packages/qwik/dist/",
+  "packages/qwik-city/lib/",
+  "packages/docs/dist/",
+  "packages/insights/dist/",
+  "packages/qwik-labs/lib/",
+  "packages/qwik-labs/vite/",
 ];
 
 for (const location of locations) {

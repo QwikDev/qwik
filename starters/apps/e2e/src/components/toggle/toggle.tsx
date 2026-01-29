@@ -9,9 +9,7 @@ import {
 } from "@builder.io/qwik";
 import { isBrowser, isServer } from "@builder.io/qwik";
 
-export const CTX = createContextId<{ message: string; count: number }>(
-  "toggle",
-);
+export const CTX = createContextId<{ message: string; count: number }>("toggle");
 
 export const CTX_LOCAL = createContextId<{ logs: string }>("logs");
 
@@ -45,11 +43,7 @@ export const ToggleShell = component$(() => {
     <div>
       <Logs0 store={store} />
       {!store.cond ? <ToggleA root={store} /> : <ToggleB root={store} />}
-      <button
-        type="button"
-        id="toggle"
-        onClick$={() => (store.cond = !store.cond)}
-      >
+      <button type="button" id="toggle" onClick$={() => (store.cond = !store.cond)}>
         Toggle
       </button>
     </div>

@@ -1,11 +1,5 @@
 import { component$ } from "@builder.io/qwik";
-import {
-  routeAction$,
-  routeLoader$,
-  validator$,
-  z,
-  zod$,
-} from "@builder.io/qwik-city";
+import { routeAction$, routeLoader$, validator$, z, zod$ } from "@builder.io/qwik-city";
 import type {
   CommonLoaderActionOptions,
   JSONObject,
@@ -74,11 +68,7 @@ export const useAction2 = routeAction$(actionQrl, {
 export const useAction3 = routeAction$(actionQrl, {
   validation: [dataValidator],
 } as CommonLoaderActionOptions);
-export const useAction4 = routeAction$(
-  actionQrl,
-  typedDataValidator,
-  dataValidator,
-);
+export const useAction4 = routeAction$(actionQrl, typedDataValidator, dataValidator);
 export const useAction5 = routeAction$(actionQrl, typedDataValidator);
 export const useAction6 = routeAction$(actionQrl, dataValidator);
 export const useAction7 = routeAction$(actionQrl);
@@ -105,10 +95,7 @@ export default component$(() => {
   const action2 = useAction2();
   if (action2.value) {
     if (action2.value.failed) {
-      action2.value satisfies { failed: true } & (
-        | TypedDataValidatorError
-        | ActionFailedObject
-      );
+      action2.value satisfies { failed: true } & (TypedDataValidatorError | ActionFailedObject);
     } else {
       action2.value satisfies ActionSuccessObject;
     }
@@ -118,10 +105,7 @@ export default component$(() => {
   const action3 = useAction3();
   if (action3.value) {
     if (action3.value.failed) {
-      action3.value satisfies { failed: true } & (
-        | DataValidatorError
-        | ActionFailedObject
-      );
+      action3.value satisfies { failed: true } & (DataValidatorError | ActionFailedObject);
     } else {
       action3.value satisfies ActionSuccessObject;
     }
@@ -145,10 +129,7 @@ export default component$(() => {
   const action5 = useAction5();
   if (action5.value) {
     if (action5.value.failed) {
-      action5.value satisfies { failed: true } & (
-        | TypedDataValidatorError
-        | ActionFailedObject
-      );
+      action5.value satisfies { failed: true } & (TypedDataValidatorError | ActionFailedObject);
     } else {
       action5.value satisfies ActionSuccessObject;
     }
@@ -158,10 +139,7 @@ export default component$(() => {
   const action6 = useAction6();
   if (action6.value) {
     if (action6.value.failed) {
-      action6.value satisfies { failed: true } & (
-        | DataValidatorError
-        | ActionFailedObject
-      );
+      action6.value satisfies { failed: true } & (DataValidatorError | ActionFailedObject);
     } else {
       action6.value satisfies ActionSuccessObject;
     }

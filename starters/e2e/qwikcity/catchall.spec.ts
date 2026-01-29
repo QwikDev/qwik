@@ -17,9 +17,7 @@ function tests() {
     const response = (await page.goto("/qwikcity-test/catchall/"))!;
     const status = response.status();
     expect(status).toBe(200);
-    await expect(page.locator('[data-test-params="catchall"]')).toHaveText(
-      "catchall",
-    );
+    await expect(page.locator('[data-test-params="catchall"]')).toHaveText("catchall");
   });
 
   test("Aborted Catchall", async ({ context }) => {

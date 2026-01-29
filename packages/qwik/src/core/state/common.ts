@@ -1,22 +1,22 @@
-import { assertFail, assertTrue } from '../error/assert';
-import { qError, QError_verifySerializable } from '../error/error';
-import { isNode } from '../util/element';
-import { seal } from '../util/qdev';
-import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
-import { isPromise } from '../util/promises';
-import { canSerialize } from '../container/serializers';
-import type { ContainerState, GetObject, GetObjID } from '../container/container';
+import { assertFail, assertTrue } from "../error/assert";
+import { qError, QError_verifySerializable } from "../error/error";
+import { isNode } from "../util/element";
+import { seal } from "../util/qdev";
+import { isArray, isFunction, isObject, isSerializableObject } from "../util/types";
+import { isPromise } from "../util/promises";
+import { canSerialize } from "../container/serializers";
+import type { ContainerState, GetObject, GetObjID } from "../container/container";
 import {
   isSubscriberDescriptor,
   type SubscriberEffect,
   type SubscriberHost,
-} from '../use/use-task';
-import type { QwikElement } from '../render/dom/virtual-element';
-import { notifyChange } from '../render/dom/notify-render';
-import { logError, throwErrorAndStop } from '../util/log';
-import { tryGetContext } from './context';
-import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
-import type { Signal } from './signal';
+} from "../use/use-task";
+import type { QwikElement } from "../render/dom/virtual-element";
+import { notifyChange } from "../render/dom/notify-render";
+import { logError, throwErrorAndStop } from "../util/log";
+import { tryGetContext } from "./context";
+import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from "./constants";
+import type { Signal } from "./signal";
 
 export interface SubscriptionManager {
   $groupToManagers$: GroupToManagersMap;
@@ -25,14 +25,14 @@ export interface SubscriptionManager {
   $clearSignal$: (signal: SubscriberSignal) => void;
 }
 
-export type QObject<T extends {}> = T & { __brand__: 'QObject' };
+export type QObject<T extends {}> = T & { __brand__: "QObject" };
 
 export type TargetType = Record<string | symbol, any>;
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new Set();
-  return _verifySerializable(value, seen, '_', preMessage);
+  return _verifySerializable(value, seen, "_", preMessage);
 };
 
 const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessage?: string): T => {
@@ -50,7 +50,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
     }
     const typeObj = typeof unwrapped;
     switch (typeObj) {
-      case 'object':
+      case "object":
         if (isPromise(unwrapped)) {
           return value;
         }
@@ -64,41 +64,41 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
             if (i !== expectIndex) {
               throw qError(QError_verifySerializable, unwrapped);
             }
-            _verifySerializable(v, seen, ctx + '[' + i + ']');
+            _verifySerializable(v, seen, ctx + "[" + i + "]");
             expectIndex = i + 1;
           });
           return value;
         }
         if (isSerializableObject(unwrapped)) {
           for (const [key, item] of Object.entries(unwrapped)) {
-            _verifySerializable(item, seen, ctx + '.' + key);
+            _verifySerializable(item, seen, ctx + "." + key);
           }
           return value;
         }
         break;
-      case 'boolean':
-      case 'string':
-      case 'number':
+      case "boolean":
+      case "string":
+      case "number":
         return value;
     }
-    let message = '';
+    let message = "";
     if (preMessage) {
       message = preMessage;
     } else {
-      message = 'Value cannot be serialized';
+      message = "Value cannot be serialized";
     }
-    if (ctx !== '_') {
+    if (ctx !== "_") {
       message += ` in ${ctx},`;
     }
-    if (typeObj === 'object') {
+    if (typeObj === "object") {
       message += ` because it's an instance of "${value?.constructor.name}". You might need to use 'noSerialize()' or use an object literal instead. Check out https://qwik.dev/docs/advanced/dollar/`;
-    } else if (typeObj === 'function') {
+    } else if (typeObj === "function") {
       const fnName = (value as Function).name;
       message += ` because it's a function named "${fnName}". You might need to convert it to a QRL using $(fn):\n\nconst ${fnName} = $(${String(
-        value
+        value,
       )});\n\nPlease check out https://qwik.dev/docs/advanced/qrl/ for more information.`;
     }
-    console.error('Trying to serialize', value);
+    console.error("Trying to serialize", value);
     throwErrorAndStop(message);
   }
   return value;
@@ -151,7 +151,7 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 // </docs>
 export const noSerialize = <T extends object | undefined>(input: T): NoSerialize<T> => {
   // only add supported values to the noSerializeSet, prevent console errors
-  if ((typeof input === 'object' && input !== null) || typeof input === 'function') {
+  if ((typeof input === "object" && input !== null) || typeof input === "function") {
     noSerializeSet.add(input);
   }
   return input as any;
@@ -239,11 +239,11 @@ export type GroupToManagersMap = Map<Group, LocalSubscriptionManager[]>;
 
 export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) => {
   const type = sub[0];
-  const host = typeof sub[1] === 'string' ? sub[1] : getObjId(sub[1]);
+  const host = typeof sub[1] === "string" ? sub[1] : getObjId(sub[1]);
   if (!host) {
     return undefined;
   }
-  let base = type + ' ' + host;
+  let base = type + " " + host;
   let key: string | undefined;
   if (type === 0) {
     key = sub[2];
@@ -257,10 +257,10 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
       base += ` ${signalID} ${must(getObjId(sub[3]))} ${sub[4]}`;
     } else if (type <= 4) {
       key = sub[4];
-      const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
+      const nodeID = typeof sub[3] === "string" ? sub[3] : must(getObjId(sub[3]));
       base += ` ${signalID} ${nodeID}`;
     } else {
-      assertFail('Should not get here');
+      assertFail("Should not get here");
     }
   }
   if (key) {
@@ -270,9 +270,9 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
 };
 
 export const parseSubscription = (sub: string, getObject: GetObject): Subscriptions | undefined => {
-  const parts = sub.split(' ');
+  const parts = sub.split(" ");
   const type = parseInt(parts[0], 10);
-  assertTrue(parts.length >= 2, 'At least 2 parts');
+  assertTrue(parts.length >= 2, "At least 2 parts");
   const host = getObject(parts[1]);
   if (!host) {
     return undefined;
@@ -282,13 +282,13 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
   }
   const subscription = [type, host];
   if (type === 0) {
-    assertTrue(parts.length <= 3, 'Max 3 parts');
+    assertTrue(parts.length <= 3, "Max 3 parts");
     subscription.push(safeDecode(parts[2]));
   } else if (type <= 2) {
-    assertTrue(parts.length === 5 || parts.length === 6, 'Type 1 has 5');
+    assertTrue(parts.length === 5 || parts.length === 6, "Type 1 has 5");
     subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4], safeDecode(parts[5]));
   } else if (type <= 4) {
-    assertTrue(parts.length === 4 || parts.length === 5, 'Type 2 has 4');
+    assertTrue(parts.length === 4 || parts.length === 5, "Type 2 has 4");
     subscription.push(getObject(parts[2]), getObject(parts[3]), safeDecode(parts[4]));
   }
   return subscription as any;
@@ -337,7 +337,7 @@ export class LocalSubscriptionManager {
   constructor(
     private $groupToManagers$: GroupToManagersMap,
     private $containerState$: ContainerState,
-    initialMap?: Subscriptions[]
+    initialMap?: Subscriptions[],
   ) {
     this.$subs$ = [];
 
@@ -441,7 +441,7 @@ export function getLastSubscription(): Subscriptions | undefined {
 
 const must = <T>(a: T): NonNullable<T> => {
   if (a == null) {
-    throw logError('must be non null', a);
+    throw logError("must be non null", a);
   }
   return a;
 };

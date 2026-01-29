@@ -1,15 +1,15 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
 
 export default defineConfig({
   build: {
     sourcemap: true,
     copyPublicDir: false,
     emptyOutDir: false,
-    outDir: 'public/repl',
+    outDir: "public/repl",
     lib: {
-      entry: 'src/routes/repl/repl-sw.js/entry.ts',
-      formats: ['cjs'],
-      fileName: 'repl-sw',
+      entry: "src/routes/repl/repl-sw.js/entry.ts",
+      formats: ["cjs"],
+      fileName: "repl-sw",
     },
   },
   clearScreen: false,

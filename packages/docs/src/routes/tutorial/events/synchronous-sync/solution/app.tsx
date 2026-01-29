@@ -1,4 +1,4 @@
-import { component$, sync$, $ } from '@builder.io/qwik';
+import { component$, sync$, $ } from "@builder.io/qwik";
 
 export default component$(() => {
   return (
@@ -11,7 +11,7 @@ export default component$(() => {
           }
         }),
         $(() => {
-          console.log('clicked');
+          console.log("clicked");
         }),
       ]}
     >

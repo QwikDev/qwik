@@ -1,5 +1,5 @@
-import { render, type RenderOptions } from '@builder.io/qwik';
-import { Root } from './root';
+import { render, type RenderOptions } from "@builder.io/qwik";
+import { Root } from "./root";
 
 /**
  * Development entry point using only client-side modules:

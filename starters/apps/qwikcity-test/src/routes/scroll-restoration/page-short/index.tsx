@@ -11,11 +11,7 @@ export default component$(() => {
   `);
   return (
     <>
-      <Link
-        id="to-page-long"
-        class="nav-link"
-        href="/qwikcity-test/scroll-restoration/page-long/"
-      >
+      <Link id="to-page-long" class="nav-link" href="/qwikcity-test/scroll-restoration/page-long/">
         To Page Long
       </Link>
       <div class="container">

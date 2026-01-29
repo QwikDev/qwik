@@ -1,19 +1,19 @@
-import { assertEqual, assertTrue } from '../error/assert';
-import { tryGetInvokeContext } from '../use/use-core';
-import { logWarn } from '../util/log';
-import { qDev, qSerialize } from '../util/qdev';
-import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
-import { isObject } from '../util/types';
-import type { ContainerState } from '../container/container';
+import { assertEqual, assertTrue } from "../error/assert";
+import { tryGetInvokeContext } from "../use/use-core";
+import { logWarn } from "../util/log";
+import { qDev, qSerialize } from "../util/qdev";
+import { ComputedEvent, RenderEvent, ResourceEvent } from "../util/markers";
+import { isObject } from "../util/types";
+import type { ContainerState } from "../container/container";
 import {
   getSubscriptionManager,
   getProxyTarget,
   LocalSubscriptionManager,
   type Subscriptions,
   verifySerializable,
-} from './common';
-import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
-import { _fnSignal } from '../qrl/inlined-fn';
+} from "./common";
+import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from "./constants";
+import { _fnSignal } from "../qrl/inlined-fn";
 
 /**
  * A signal is a reactive value which can be read and written. When the signal is written, all tasks
@@ -42,19 +42,19 @@ export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
   flags: number,
-  subscriptions?: Subscriptions[]
+  subscriptions?: Subscriptions[],
 ): SignalInternal<T> => {
   const manager = containerState.$subsManager$.$createManager$(subscriptions);
   const signal = new SignalImpl<T>(value, manager, flags);
   return signal;
 };
 
-export const QObjectSignalFlags = Symbol('proxy manager');
+export const QObjectSignalFlags = Symbol("proxy manager");
 
 export const SIGNAL_IMMUTABLE = 1 << 0;
 export const SIGNAL_UNASSIGNED = 1 << 1;
 
-export const SignalUnassignedException = Symbol('unassigned signal');
+export const SignalUnassignedException = Symbol("unassigned signal");
 
 export interface SignalInternal<T> extends Signal<T> {
   untrackedValue: T;
@@ -79,7 +79,7 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
   // prevent accidental use as value
   valueOf() {
     if (qDev) {
-      throw new TypeError('Cannot coerce a Signal, use `.value` instead');
+      throw new TypeError("Cannot coerce a Signal, use `.value` instead");
     }
   }
   toString() {
@@ -103,7 +103,7 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
   set value(v: T) {
     if (qDev) {
       if (this[QObjectSignalFlags] & SIGNAL_IMMUTABLE) {
-        throw new Error('Cannot mutate immutable signal');
+        throw new Error("Cannot mutate immutable signal");
       }
       if (qSerialize) {
         verifySerializable(v);
@@ -112,18 +112,18 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
       if (invokeCtx) {
         if (invokeCtx.$event$ === RenderEvent) {
           logWarn(
-            'State mutation inside render function. Use useTask$() instead.',
-            invokeCtx.$hostElement$
+            "State mutation inside render function. Use useTask$() instead.",
+            invokeCtx.$hostElement$,
           );
         } else if (invokeCtx.$event$ === ComputedEvent) {
           logWarn(
-            'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
+            "State mutation inside useComputed$() is an antipattern. Use useTask$() instead",
+            invokeCtx.$hostElement$,
           );
         } else if (invokeCtx.$event$ === ResourceEvent) {
           logWarn(
-            'State mutation inside useResource$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
+            "State mutation inside useResource$() is an antipattern. Use useTask$() instead",
+            invokeCtx.$hostElement$,
           );
         }
       }
@@ -141,7 +141,7 @@ export class SignalDerived<RETURN = unknown, ARGS extends any[] = unknown[]> ext
   constructor(
     public $func$: (...args: ARGS) => RETURN,
     public $args$: ARGS,
-    public $funcStr$?: string
+    public $funcStr$?: string,
   ) {
     super();
   }
@@ -154,7 +154,7 @@ export class SignalDerived<RETURN = unknown, ARGS extends any[] = unknown[]> ext
 export class SignalWrapper<T extends Record<string, any>, P extends keyof T> extends SignalBase {
   constructor(
     public ref: T,
-    public prop: P
+    public prop: P,
   ) {
     super();
   }
@@ -189,7 +189,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
     return obj[prop];
   }
   if (obj instanceof SignalBase) {
-    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    assertEqual(prop, "value", "Left side is a signal, prop must be value");
     return obj;
   }
   const target = getProxyTarget(obj);
@@ -213,7 +213,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
 /** @internal */
 export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   obj: T,
-  prop: P
+  prop: P,
 ): any => {
   const r = _wrapProp(obj, prop);
   if (r === _IMMUTABLE) {

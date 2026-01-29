@@ -2,9 +2,9 @@
 export class ServerError<T = any> extends Error {
   constructor(
     public status: number,
-    public data: T
+    public data: T,
   ) {
-    super(typeof data === 'string' ? data : undefined);
+    super(typeof data === "string" ? data : undefined);
   }
 }
 /** @deprecated */
@@ -12,7 +12,7 @@ export class ServerError<T = any> extends Error {
 export class ErrorResponse extends ServerError {
   constructor(
     public status: number,
-    message?: string
+    message?: string,
   ) {
     super(status, message);
   }

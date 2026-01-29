@@ -1,4 +1,4 @@
-import type { ParsedPathname, PathnameSegmentPart } from '../types';
+import type { ParsedPathname, PathnameSegmentPart } from "../types";
 
 /**
  * Adopted from SvelteKit
@@ -8,16 +8,16 @@ import type { ParsedPathname, PathnameSegmentPart } from '../types';
 export function parseRoutePathname(basePathname: string, pathname: string): ParsedPathname {
   if (pathname === basePathname) {
     return {
-      pattern: new RegExp('^' + pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'),
+      pattern: new RegExp("^" + pathname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"),
       routeName: pathname,
       paramNames: [],
-      segments: [[{ content: '', dynamic: false, rest: false }]],
+      segments: [[{ content: "", dynamic: false, rest: false }]],
     };
   }
 
   pathname = pathname.slice(1);
 
-  const segments = pathname.split('/');
+  const segments = pathname.split("/");
   const paramNames: string[] = [];
 
   const pattern = new RegExp(
@@ -30,11 +30,11 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
         const catchAll = /^\[\.\.\.(\w+)?\]$/.exec(segment);
         if (catchAll) {
           paramNames.push(catchAll[1]);
-          return '(?:/(.*))?';
+          return "(?:/(.*))?";
         }
 
         return (
-          '/' +
+          "/" +
           segment
             .split(DYNAMIC_SEGMENT)
             .map((content, i) => {
@@ -43,7 +43,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
                 if (rg) {
                   const [, rest, name] = rg;
                   paramNames.push(name);
-                  return rest ? '(.*?)' : '([^/]+?)';
+                  return rest ? "(.*?)" : "([^/]+?)";
                 }
               }
 
@@ -54,22 +54,22 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
                   // We use [ and ] to denote parameters, so users must encode these on the file
                   // system to match against them. We don't decode all characters since others
                   // can already be epressed and so that '%' can be easily used directly in filenames
-                  .replace(/%5[Bb]/g, '[')
-                  .replace(/%5[Dd]/g, ']')
+                  .replace(/%5[Bb]/g, "[")
+                  .replace(/%5[Dd]/g, "]")
                   // '#', '/', and '?' can only appear in URL path segments in an encoded manner.
                   // They will not be touched by decodeURI so need to be encoded here, so
                   // that we can match against them.
                   // We skip '/' since you can't create a file with it on any OS
-                  .replace(/#/g, '%23')
-                  .replace(/\?/g, '%3F')
+                  .replace(/#/g, "%23")
+                  .replace(/\?/g, "%3F")
                   // escape characters that have special meaning in regex
-                  .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                  .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
               );
             })
-            .join('')
+            .join("")
         );
       })
-      .join('')}/?$` // always match with and without a trailing slash
+      .join("")}/?$`, // always match with and without a trailing slash
   );
 
   return {
@@ -84,7 +84,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
           parts.push({
             content,
             dynamic,
-            rest: dynamic && content.startsWith('...'),
+            rest: dynamic && content.startsWith("..."),
           });
         }
       });

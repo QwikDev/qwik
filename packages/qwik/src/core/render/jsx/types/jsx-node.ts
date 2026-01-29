@@ -1,4 +1,4 @@
-import type { JSXChildren } from './jsx-qwik-attributes';
+import type { JSXChildren } from "./jsx-qwik-attributes";
 
 /**
  * Any valid output for a component
@@ -16,7 +16,7 @@ export type JSXOutput = JSXNode | string | number | boolean | null | undefined |
  */
 export type FunctionComponent<P = unknown> = {
   renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
-}['renderFn'];
+}["renderFn"];
 
 /** @public */
 export interface DevJSX {
@@ -44,8 +44,9 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
  *
  * @internal
  */
-export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown>
-  extends JSXNode<T> {
+export interface JSXNodeInternal<
+  T extends string | FunctionComponent | unknown = unknown,
+> extends JSXNode<T> {
   immutableProps: Record<any, unknown> | null;
   flags: number;
 }

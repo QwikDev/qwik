@@ -1,5 +1,5 @@
-import { DBSCAN } from 'density-clustering';
-import { vectorSum2 } from './vector';
+import { DBSCAN } from "density-clustering";
+import { vectorSum2 } from "./vector";
 
 export interface Symbol {
   name: string;
@@ -45,14 +45,14 @@ export function computeSymbolGraph(rows: SymbolPairs[], details?: SymbolDetail[]
   const symbols: Symbol[] = [];
   details && details.forEach((detail) => detailMap.set(detail.hash, detail));
   const symbolMap = new Map<string, Symbol>();
-  const rootSymbol = getSymbol('<synthetic.root.symbol>');
+  const rootSymbol = getSymbol("<synthetic.root.symbol>");
   for (const row of rows) {
     fixNames(row);
     const [countRelated, countUnrelated] = vectorSum2(
       row.delay,
       // If previous symbol occurred less than x ms than assume that they are related.
       // if more than x ms than assume that they are unrelated (parent is null).
-      250
+      250,
     );
     const self = getSymbol(row.to);
     self.count += countRelated + countUnrelated;
@@ -97,7 +97,7 @@ export function computeSymbolGraph(rows: SymbolPairs[], details?: SymbolDetail[]
   }
 
   function getEdge(parent: Symbol, self: Symbol): Edge {
-    const edgeName = parent.name + '->' + self.name;
+    const edgeName = parent.name + "->" + self.name;
     let edge = edgeMap.get(edgeName);
     if (!edge) {
       edge = { count: 0, from: parent, to: self };
@@ -108,9 +108,9 @@ export function computeSymbolGraph(rows: SymbolPairs[], details?: SymbolDetail[]
   }
 
   function fixNames(row: SymbolPairs) {
-    row.to = row.to.split('_').pop()!;
-    row.from = row.from == null ? null : row.from.split('_').pop()!;
-    if (row.from === 'hW') {
+    row.to = row.to.split("_").pop()!;
+    row.from = row.from == null ? null : row.from.split("_").pop()!;
+    if (row.from === "hW") {
       row.from = null;
     }
   }
@@ -216,7 +216,7 @@ export function computeBundles(symbolVectors: SymbolVectors): Bundle[] {
     const symbolNames = symbols.map((s) => s.name);
     symbolNames.sort();
     bundles.push({
-      name: 'bundle_' + hashCode(symbolNames.join(',')),
+      name: "bundle_" + hashCode(symbolNames.join(",")),
       symbols,
     });
   });

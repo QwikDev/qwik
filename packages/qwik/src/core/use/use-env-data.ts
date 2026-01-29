@@ -1,4 +1,4 @@
-import { tryGetInvokeContext } from './use-core';
+import { tryGetInvokeContext } from "./use-core";
 
 /** @public */
 export function useServerData<T>(key: string): T | undefined;

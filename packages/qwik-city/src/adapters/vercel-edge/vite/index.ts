@@ -1,29 +1,29 @@
-import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
-import fs from 'node:fs';
-import { dirname, join } from 'node:path';
+import type { StaticGenerateRenderOptions } from "@builder.io/qwik-city/static";
+import { getParentDir, type ServerAdapterOptions, viteAdapter } from "../../shared/vite";
+import fs from "node:fs";
+import { dirname, join } from "node:path";
 
 /** @public */
 export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
   return viteAdapter({
-    name: 'vercel-edge',
-    origin: process?.env?.VERCEL_URL || 'https://yoursitename.vercel.app',
+    name: "vercel-edge",
+    origin: process?.env?.VERCEL_URL || "https://yoursitename.vercel.app",
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
 
     config(config) {
       const outDir =
-        config.build?.outDir || join('.vercel', 'output', 'functions', '_qwik-city.func');
+        config.build?.outDir || join(".vercel", "output", "functions", "_qwik-city.func");
       return {
         resolve: {
           conditions:
-            opts.target === 'node'
-              ? ['node', 'import', 'module', 'browser', 'default']
-              : ['edge-light', 'webworker', 'worker', 'browser', 'module', 'main'],
+            opts.target === "node"
+              ? ["node", "import", "module", "browser", "default"]
+              : ["edge-light", "webworker", "worker", "browser", "module", "main"],
         },
         ssr: {
-          target: opts.target === 'node' ? 'node' : 'webworker',
+          target: opts.target === "node" ? "node" : "webworker",
           noExternal: true,
         },
         build: {
@@ -31,7 +31,7 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
           outDir,
           rollupOptions: {
             output: {
-              format: 'es',
+              format: "es",
               hoistTransitiveImports: false,
             },
           },
@@ -41,40 +41,40 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
     },
 
     async generate({ clientPublicOutDir, serverOutDir, basePathname, outputEntries }) {
-      const vercelOutputDir = getParentDir(serverOutDir, 'output');
+      const vercelOutputDir = getParentDir(serverOutDir, "output");
 
       if (opts.outputConfig !== false) {
         // https://vercel.com/docs/build-output-api/v3#features/edge-middleware
         const vercelOutputConfig = {
           routes: [
-            { handle: 'filesystem' },
+            { handle: "filesystem" },
             {
-              src: basePathname + '.*',
-              dest: '/_qwik-city',
+              src: basePathname + ".*",
+              dest: "/_qwik-city",
             },
           ],
           version: 3,
         };
 
         await fs.promises.writeFile(
-          join(vercelOutputDir, 'config.json'),
-          JSON.stringify(vercelOutputConfig, null, 2)
+          join(vercelOutputDir, "config.json"),
+          JSON.stringify(vercelOutputConfig, null, 2),
         );
       }
 
       let entrypoint = opts.vcConfigEntryPoint;
       if (!entrypoint) {
-        if (outputEntries.some((n) => n === 'entry.vercel-edge.mjs')) {
-          entrypoint = 'entry.vercel-edge.mjs';
+        if (outputEntries.some((n) => n === "entry.vercel-edge.mjs")) {
+          entrypoint = "entry.vercel-edge.mjs";
         } else {
-          entrypoint = 'entry.vercel-edge.js';
+          entrypoint = "entry.vercel-edge.js";
         }
       }
 
       // https://vercel.com/docs/build-output-api/v3#vercel-primitives/edge-functions/configuration
-      const vcConfigPath = join(serverOutDir, '.vc-config.json');
+      const vcConfigPath = join(serverOutDir, ".vc-config.json");
       const vcConfig = {
-        runtime: 'edge',
+        runtime: "edge",
         entrypoint,
         envVarsInUse: opts.vcConfigEnvVarsInUse,
       };
@@ -82,9 +82,9 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
 
       // vercel places all of the static files into the .vercel/output/static directory
       // move from the dist directory to vercel's output static directory
-      let vercelStaticDir = join(vercelOutputDir, 'static');
+      let vercelStaticDir = join(vercelOutputDir, "static");
 
-      const basePathnameParts = basePathname.split('/').filter((p) => p.length > 0);
+      const basePathnameParts = basePathname.split("/").filter((p) => p.length > 0);
       if (basePathnameParts.length > 0) {
         // for vercel we need to add the base path to the static dir
         vercelStaticDir = join(vercelStaticDir, ...basePathnameParts);
@@ -136,7 +136,7 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
    *
    * Defaults to `webworker`.
    */
-  target?: 'webworker' | 'node';
+  target?: "webworker" | "node";
 }
 
 /** @public */

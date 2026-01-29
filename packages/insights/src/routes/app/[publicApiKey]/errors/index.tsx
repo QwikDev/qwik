@@ -1,9 +1,9 @@
-import { type ReadonlySignal, component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
-import { getDB, errorTable, type ErrorRow } from '~/db';
-import { eq, sql } from 'drizzle-orm';
-import { ErrorIcon } from '~/components/icons/error';
-import { type PopupEvent } from '~/components/popup-manager';
+import { type ReadonlySignal, component$ } from "@builder.io/qwik";
+import { routeLoader$ } from "@builder.io/qwik-city";
+import { getDB, errorTable, type ErrorRow } from "~/db";
+import { eq, sql } from "drizzle-orm";
+import { ErrorIcon } from "~/components/icons/error";
+import { type PopupEvent } from "~/components/popup-manager";
 
 export const useErrors = routeLoader$(async ({ params }) => {
   const db = getDB();

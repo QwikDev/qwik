@@ -1,50 +1,50 @@
-import { ElementFixture, trigger } from '../../../testing/element-fixture';
-import { expectDOM } from '../../../testing/expect-dom';
-import { component$ } from '../../component/component.public';
-import { inlinedQrl } from '../../qrl/qrl';
-import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { useStore } from '../../use/use-store.public';
-import { useVisibleTask$, useTask$ } from '../../use/use-task';
-import { useOn } from '../../use/use-on';
-import { Slot } from '../jsx/slot.public';
-import { render } from './render.public';
-import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
-import { pauseContainer } from '../../container/pause';
-import { useSignal } from '../../use/use-signal';
-import { assert, test, suite } from 'vitest';
-import { createDOM } from '../../../testing/library';
-import { renderToString } from '../../../server/render';
-import { createDocument } from '../../../testing/document';
+import { ElementFixture, trigger } from "../../../testing/element-fixture";
+import { expectDOM } from "../../../testing/expect-dom";
+import { component$ } from "../../component/component.public";
+import { inlinedQrl } from "../../qrl/qrl";
+import { useLexicalScope } from "../../use/use-lexical-scope.public";
+import { useStore } from "../../use/use-store.public";
+import { useVisibleTask$, useTask$ } from "../../use/use-task";
+import { useOn } from "../../use/use-on";
+import { Slot } from "../jsx/slot.public";
+import { render } from "./render.public";
+import { useStylesQrl, useStylesScopedQrl } from "../../use/use-styles";
+import { pauseContainer } from "../../container/pause";
+import { useSignal } from "../../use/use-signal";
+import { assert, test, suite } from "vitest";
+import { createDOM } from "../../../testing/library";
+import { renderToString } from "../../../server/render";
+import { createDocument } from "../../../testing/document";
 
-test('should render basic content', async () => {
+test("should render basic content", async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <div></div>);
-  await expectRendered(fixture, '<div></div>');
-  assert.equal(fixture.host.getAttribute('q:version'), 'dev');
-  assert.equal(fixture.host.getAttribute('q:container'), 'resumed');
+  await expectRendered(fixture, "<div></div>");
+  assert.equal(fixture.host.getAttribute("q:version"), "dev");
+  assert.equal(fixture.host.getAttribute("q:container"), "resumed");
 
   await pauseContainer(fixture.host);
-  assert.equal(fixture.host.getAttribute('q:container'), 'paused');
+  assert.equal(fixture.host.getAttribute("q:container"), "paused");
 });
 
-test('should only render string/number', async () => {
+test("should only render string/number", async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
     <div>
-      {'string'}
+      {"string"}
       {123}
       {false}
       {true}
       {null}
       {undefined}
       {[]}
-    </div>
+    </div>,
   );
-  await expectRendered(fixture, '<div>string123</div>');
+  await expectRendered(fixture, "<div>string123</div>");
 });
 
-test('should serialize events correctly', async () => {
+test("should serialize events correctly", async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
@@ -59,7 +59,7 @@ test('should serialize events correctly', async () => {
       document:on-Thing$={() => {}}
       window:onScroll$={() => {}}
       window:on-Scroll$={() => {}}
-    ></div>
+    ></div>,
   );
   await expectRendered(
     fixture,
@@ -71,16 +71,16 @@ test('should serialize events correctly', async () => {
         on-window:scroll=""
         on-window:-scroll=""
     ></div>
-    `
+    `,
   );
 });
-test('should serialize boolean attributes correctly', async () => {
+test("should serialize boolean attributes correctly", async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <input required={true} disabled={false}></input>);
   await expectRendered(fixture, '<input required="" />');
 });
 
-test('should render aria', async () => {
+test("should render aria", async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
@@ -92,17 +92,17 @@ test('should render aria', async () => {
       role=""
       preventdefault:click
       aria-hidden={undefined}
-    ></div>
+    ></div>,
   );
   await expectRendered(
     fixture,
-    '<div id="abc" title="bar" aria-required="true" aria-busy="false" role="" preventdefault:click=""></div>'
+    '<div id="abc" title="bar" aria-required="true" aria-busy="false" role="" preventdefault:click=""></div>',
   );
 });
 
-test('should render into a document', async () => {
+test("should render into a document", async () => {
   const fixture = new ElementFixture();
-  fixture.document.head.appendChild(fixture.document.createElement('existing'));
+  fixture.document.head.appendChild(fixture.document.createElement("existing"));
   await render(
     fixture.document,
     <Transparent>
@@ -113,7 +113,7 @@ test('should render into a document', async () => {
         </div>
       </head>
       <body>WORKS</body>
-    </Transparent>
+    </Transparent>,
   );
   await expectDOM(
     fixture.document.documentElement,
@@ -132,24 +132,24 @@ test('should render into a document', async () => {
     </body>
     <!--/qv-->
     <!--/qv-->
-  </html>`
+  </html>`,
   );
 });
 
-test('should render attributes', async () => {
+test("should render attributes", async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <div id="abc" title="bar" preventdefault:click></div>);
   await expectRendered(fixture, '<div id="abc" title="bar" preventdefault:click=""></div>');
 });
 
-test('should render style only for defined attributes', async () => {
+test("should render style only for defined attributes", async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
-    <div id="both" style={{ color: 'red', display: 'block' }}>
-      <div id="only-color" style={{ display: undefined as unknown as string, color: 'red' }}></div>
+    <div id="both" style={{ color: "red", display: "block" }}>
+      <div id="only-color" style={{ display: undefined as unknown as string, color: "red" }}></div>
       <div id="no-style" style={{ display: undefined as unknown as string }}></div>
-    </div>
+    </div>,
   );
   await expectRendered(
     fixture,
@@ -157,59 +157,59 @@ test('should render style only for defined attributes', async () => {
       <div id="both" style="color: red; display: block">
         <div id="only-color" style="color: red"></div>
         <div id="no-style" style=""></div>
-      </div>`
+      </div>`,
   );
 });
 
-test('should render style css variables correctly', async () => {
+test("should render style css variables correctly", async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
     <div
       style={{
         top: 0,
-        '--stuff-nu': -1,
-        '--stuff-hey': 'hey',
-        '--stuffCase': 'foo',
+        "--stuff-nu": -1,
+        "--stuff-hey": "hey",
+        "--stuffCase": "foo",
       }}
-    />
+    />,
   );
   await expectRendered(
     fixture,
-    `<div style="top: 0; --stuff-nu: -1; --stuff-hey: hey; --stuffCase: foo"></div>`
+    `<div style="top: 0; --stuff-nu: -1; --stuff-hey: hey; --stuffCase: foo"></div>`,
   );
 });
 
-test('should render children', async () => {
+test("should render children", async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
     <div>
       <span>text</span>
-    </div>
+    </div>,
   );
-  await expectRendered(fixture, '<div><span>text</span></div>');
+  await expectRendered(fixture, "<div><span>text</span></div>");
 });
 
-test('should render svg', async () => {
+test("should render svg", async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
     <svg viewBox="0 0 100 100">
       <span>text</span>
-    </svg>
+    </svg>,
   );
   await expectRendered(fixture, '<svg viewBox="0 0 100 100"><span>text</span></svg>');
 });
 
-test('should render a component', async () => {
+test("should render a component", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <HelloWorld name="World" />);
-  await expectRendered(fixture, '<span>Hello World</span>');
+  await expectRendered(fixture, "<span>Hello World</span>");
 });
 
-test('should render a component with scoped styles', async () => {
+test("should render a component with scoped styles", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <HelloWorldScoped />);
@@ -233,9 +233,9 @@ test('should render a component with scoped styles', async () => {
     </div>
     <!--/qv-->
   </host>
-  `
+  `,
   );
-  await trigger(fixture.host, 'button', 'click');
+  await trigger(fixture.host, "button", "click");
   await expectDOM(
     fixture.host,
     `
@@ -256,31 +256,31 @@ test('should render a component with scoped styles', async () => {
     </div>
     <!--/qv-->
   </host>
-  `
+  `,
   );
 });
 
-test('should render component external props', async () => {
+test("should render component external props", async () => {
   const fixture = new ElementFixture();
 
   await render(
     fixture.host,
-    <RenderProps thing="World" q:slot="start" innerHTML="123" dangerouslySetInnerHTML="432" />
+    <RenderProps thing="World" q:slot="start" innerHTML="123" dangerouslySetInnerHTML="432" />,
   );
   await expectRendered(
     fixture,
-    '<render-props><span>{"thing":"World","innerHTML":"123","dangerouslySetInnerHTML":"432"}</span></render-props>'
+    '<render-props><span>{"thing":"World","innerHTML":"123","dangerouslySetInnerHTML":"432"}</span></render-props>',
   );
 });
 
-test('should render a blank component', async () => {
+test("should render a blank component", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <InnerHTMLComponent />);
   await expectRendered(fixture, `<div><span>WORKS</span></div>`);
 });
 
-test('should render a div then a component', async () => {
+test("should render a div then a component", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <ToggleRootComponent />);
@@ -294,9 +294,9 @@ test('should render a div then a component', async () => {
         <button>toggle</button>
       </div>
       <!--/qv-->
-    </host>`
+    </host>`,
   );
-  await trigger(fixture.host, 'button', 'click');
+  await trigger(fixture.host, "button", "click");
   await expectDOM(
     fixture.host,
     `
@@ -310,11 +310,11 @@ test('should render a div then a component', async () => {
       </div>
       <!--/qv-->
     </host>
-    `
+    `,
   );
 });
 
-test('should process clicks', async () => {
+test("should process clicks", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Counter step={5} />);
@@ -327,9 +327,9 @@ test('should process clicks', async () => {
       <span>0</span>
       <button class="increment">+</button>
       <!--/qv-->
-    </host>`
+    </host>`,
   );
-  await trigger(fixture.host, 'button.increment', 'click');
+  await trigger(fixture.host, "button.increment", "click");
   await expectDOM(
     fixture.host,
     `
@@ -339,11 +339,11 @@ test('should process clicks', async () => {
       <span>5</span>
       <button class="increment">+</button>
       <!--/qv-->
-    </host>`
+    </host>`,
   );
 });
 
-test('should project no content', async () => {
+test("should project no content", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Project></Project>);
@@ -357,11 +357,11 @@ test('should project no content', async () => {
         <!--/qv-->
         <!--qv q:key=description q:sref=0 q:s-->
         <!--/qv-->
-      </section>`
+      </section>`,
   );
 });
 
-test('should project un-named slot text', async () => {
+test("should project un-named slot text", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Project>projection</Project>);
@@ -376,22 +376,22 @@ test('should project un-named slot text', async () => {
         <!--/qv-->
         <!--qv q:key=description q:sref=0 q:s-->
         <!--/qv-->
-      </section>`
+      </section>`,
   );
 });
 
-test('should project un-named slot component', async () => {
+test("should project un-named slot component", async () => {
   const fixture = new ElementFixture();
 
   await render(
     fixture.host,
     <Project>
       <HelloWorld />
-    </Project>
+    </Project>,
   );
 });
 
-test('should render host events on the first element', async () => {
+test("should render host events on the first element", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <UseEvents />);
@@ -406,11 +406,11 @@ test('should render host events on the first element', async () => {
     </div>
     stuff
     <!--/qv-->
-  </host>`
+  </host>`,
   );
 });
 
-test('should project named slot component', async () => {
+test("should project named slot component", async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -419,7 +419,7 @@ test('should project named slot component', async () => {
       PROJECTION
       <span q:slot="details">DETAILS</span>
       <span q:slot="description">DESCRIPTION</span>
-    </Project>
+    </Project>,
   );
   await expectRendered(
     fixture,
@@ -434,11 +434,11 @@ test('should project named slot component', async () => {
         <!--qv q:key=description q:sref=0 q:s-->
         <span q:slot="description">DESCRIPTION</span>
         <!--/qv-->
-      </section>`
+      </section>`,
   );
 });
 
-test('should project multiple slot with same name', async () => {
+test("should project multiple slot with same name", async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -447,7 +447,7 @@ test('should project multiple slot with same name', async () => {
       <span q:slot="details">DETAILS1</span>
       <span q:slot="details">DETAILS2</span>
       <span q:slot="ignore">IGNORE</span>
-    </Project>
+    </Project>,
   );
   await expectDOM(
     fixture.host,
@@ -469,17 +469,17 @@ test('should project multiple slot with same name', async () => {
       </section>
       <!--/qv-->
     </host>
-    `
+    `,
   );
 });
-test('should not destroy projection when <Project> reruns', async () => {
+test("should not destroy projection when <Project> reruns", async () => {
   const fixture = new ElementFixture();
 
   await render(
     fixture.host,
     <SimpleProject>
       <span>PROJECTION</span>
-    </SimpleProject>
+    </SimpleProject>,
   );
   await expectRendered(
     fixture,
@@ -488,11 +488,11 @@ test('should not destroy projection when <Project> reruns', async () => {
         <!--qv q:key q:sref=0 q:s-->
         <span>PROJECTION</span>
         <!--/qv-->
-      </section>`
+      </section>`,
   );
 });
 
-test('should render into host component', async () => {
+test("should render into host component", async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -501,12 +501,12 @@ test('should render into host component', async () => {
       on:click="./lazy.js"
       onscrolling="./test.js"
       hostAttrs={JSON.stringify({
-        id: 'TEST',
+        id: "TEST",
         class: { thing: true },
-        name: 'NAME',
+        name: "NAME",
       })}
       content="CONTENT"
-    />
+    />,
   );
   await expectRendered(
     fixture,
@@ -517,17 +517,17 @@ test('should render into host component', async () => {
         hostattrs='{"id":"TEST","class":{"thing":true},"name":"NAME"}'
         content="CONTENT"
       >
-      </divfixture>`
+      </divfixture>`,
   );
 });
 
-test('should render a promise', async () => {
+test("should render a promise", async () => {
   const fixture = new ElementFixture();
-  await render(fixture.host, <div>{Promise.resolve('WORKS')}</div>);
-  await expectRendered(fixture, '<div>WORKS</div>');
+  await render(fixture.host, <div>{Promise.resolve("WORKS")}</div>);
+  await expectRendered(fixture, "<div>WORKS</div>");
 });
 
-test('should render a component with hooks', async () => {
+test("should render a component with hooks", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Hooks />);
@@ -541,7 +541,7 @@ test('should render a component with hooks', async () => {
       <div id="watch-destroy"></div>
       <div id="server-mount">false</div>
       <div id="reference">true</div>
-    </div>`
+    </div>`,
   );
 
   await pauseContainer(fixture.host);
@@ -555,33 +555,33 @@ test('should render a component with hooks', async () => {
       <div id="watch-destroy">true</div>
       <div id="server-mount">false</div>
       <div id="reference">true</div>
-    </div>`
+    </div>`,
   );
 });
 
-test('should insert a style', async () => {
+test("should insert a style", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <HelloWorld name="World" />);
   const style = fixture.document.querySelector(`style[q\\:style]`);
-  assert.include(style!.textContent!, 'color: red');
-  await expectRendered(fixture, '<span>Hello World</span>');
+  assert.include(style!.textContent!, "color: red");
+  await expectRendered(fixture, "<span>Hello World</span>");
 });
-test('should render #text nodes', async () => {
+test("should render #text nodes", async () => {
   const fixture = new ElementFixture();
 
-  const lines = ['hola', 'adios'];
+  const lines = ["hola", "adios"];
   await render(
     fixture.host,
-    <svg viewBox="0 0 100 4" class={'svg-container'}>
+    <svg viewBox="0 0 100 4" class={"svg-container"}>
       {lines.map((a) => {
         return (
-          <text class={'svg-text'} style={{ color: a }}>
+          <text class={"svg-text"} style={{ color: a }}>
             Hola {a}
           </text>
         );
       })}
-    </svg>
+    </svg>,
   );
   await expectRendered(
     fixture,
@@ -589,17 +589,17 @@ test('should render #text nodes', async () => {
       <svg viewBox="0 0 100 4" class="svg-container">
         <text class="svg-text" style="color: hola">Hola hola</text>
         <text class="svg-text" style="color: adios">Hola adios</text>
-      </svg>`
+      </svg>`,
   );
 
   // Ensure all SVG elements have the SVG namespace
-  const namespaces = Array.from(fixture.host.querySelectorAll('text')).map(
-    (e: any) => e.namespaceURI
+  const namespaces = Array.from(fixture.host.querySelectorAll("text")).map(
+    (e: any) => e.namespaceURI,
   );
-  assert.deepEqual(namespaces, ['http://www.w3.org/2000/svg', 'http://www.w3.org/2000/svg']);
+  assert.deepEqual(namespaces, ["http://www.w3.org/2000/svg", "http://www.w3.org/2000/svg"]);
 });
 
-test('should render class object correctly', async () => {
+test("should render class object correctly", async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -608,24 +608,24 @@ test('should render class object correctly', async () => {
       class={{
         stuff: true,
         other: false,
-        'm-0 p-2': true,
+        "m-0 p-2": true,
       }}
-    ></div>
+    ></div>,
   );
   await expectRendered(fixture, `<div class="stuff m-0 p-2"></div>`);
 });
 
-test('should render class array correctly', async () => {
+test("should render class array correctly", async () => {
   const fixture = new ElementFixture();
 
   await render(
     fixture.host,
-    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container']}></div>
+    <div class={["stuff", "", "m-0 p-2", null, "active", undefined, "container"]}></div>,
   );
   await expectRendered(fixture, `<div class="stuff m-0 p-2 active container"></div>`);
 });
 
-test('should re-render classes correctly', async () => {
+test("should re-render classes correctly", async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <RenderClasses></RenderClasses>);
@@ -638,10 +638,10 @@ test('should re-render classes correctly', async () => {
     <div class="stuff m-0 p-2">Div 1</div>
     <div class="stuff m-0 p-2 active container">Div 2</div>
     <!--/qv-->
-  </host>`
+  </host>`,
   );
 
-  await trigger(fixture.host, 'button', 'click');
+  await trigger(fixture.host, "button", "click");
 
   await expectDOM(
     fixture.host,
@@ -652,29 +652,29 @@ test('should re-render classes correctly', async () => {
     <div class="other">Div 1</div>
     <div class="stuff m-0 p-2 almost-null active container">Div 2</div>
     <!--/qv-->
-  </host>`
+  </host>`,
   );
 });
 
-test('should render camelCase attributes', async () => {
+test("should render camelCase attributes", async () => {
   const fixture = new ElementFixture();
 
   await render(
     fixture.host,
     <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
       <a href="/path"></a>
-    </svg>
+    </svg>,
   );
   await expectRendered(
     fixture,
     `
       <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
         <a href="/path"></a>
-      </svg>`
+      </svg>`,
   );
 });
 
-test('should render path', async () => {
+test("should render path", async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -690,7 +690,7 @@ test('should render path', async () => {
           fill-opacity="0"
         />
       </svg>
-    </div>
+    </div>,
   );
   await expectRendered(
     fixture,
@@ -706,14 +706,14 @@ test('should render path', async () => {
             fill-opacity="0"
           ></path>
         </svg>
-      </div>`
+      </div>`,
   );
 });
 
-test('should render foreignObject properly', async () => {
+test("should render foreignObject properly", async () => {
   const fixture = new ElementFixture();
 
-  const Text = 'text' as any;
+  const Text = "text" as any;
   await render(
     fixture.host,
     <div class="is-html">
@@ -739,13 +739,13 @@ test('should render foreignObject properly', async () => {
         <text class="is-svg">Bye</text>
       </svg>
       <text class="is-html">end</text>
-    </div>
+    </div>,
   );
-  for (const el of Array.from(fixture.host.querySelectorAll('.is-html'))) {
-    assert.equal(el.namespaceURI, 'http://www.w3.org/1999/xhtml', el.outerHTML);
+  for (const el of Array.from(fixture.host.querySelectorAll(".is-html"))) {
+    assert.equal(el.namespaceURI, "http://www.w3.org/1999/xhtml", el.outerHTML);
   }
-  for (const el of Array.from(fixture.host.querySelectorAll('.is-svg'))) {
-    assert.equal(el.namespaceURI, 'http://www.w3.org/2000/svg', el.outerHTML);
+  for (const el of Array.from(fixture.host.querySelectorAll(".is-svg"))) {
+    assert.equal(el.namespaceURI, "http://www.w3.org/2000/svg", el.outerHTML);
   }
 
   await expectRendered(
@@ -770,11 +770,11 @@ test('should render foreignObject properly', async () => {
         <text class="is-svg">Bye</text>
       </svg>
       <text class="is-html">end</text>
-    </div>`
+    </div>`,
   );
 });
 
-test('should clean up subscriptions after calling the returned cleanup function', async () => {
+test("should clean up subscriptions after calling the returned cleanup function", async () => {
   const fixture = new ElementFixture();
 
   const spies = {
@@ -788,7 +788,7 @@ test('should clean up subscriptions after calling the returned cleanup function'
   assert.equal(spies.cleanup, true);
 });
 
-test('should clean up nested subscriptions after calling the returned cleanup function', async () => {
+test("should clean up nested subscriptions after calling the returned cleanup function", async () => {
   const fixture = new ElementFixture();
 
   const spies = {
@@ -801,7 +801,7 @@ test('should clean up nested subscriptions after calling the returned cleanup fu
     fixture.host,
     <ParentCleanupComponent spies={spies}>
       <SlottedCleanupComponent spies={spies} />
-    </ParentCleanupComponent>
+    </ParentCleanupComponent>,
   );
 
   cleanup();
@@ -818,7 +818,7 @@ async function expectRendered(fixture: ElementFixture, expected: string) {
 
 function getFirstNode(el: Element) {
   let firstNode = el.firstElementChild!;
-  while (firstNode.nodeName === 'STYLE') {
+  while (firstNode.nodeName === "STYLE") {
     firstNode = firstNode.nextElementSibling!;
   }
   return firstNode;
@@ -828,11 +828,11 @@ function getFirstNode(el: Element) {
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$((props: { name?: string }) => {
-  useStylesQrl(inlinedQrl(`span.� { color: red; }`, 'style-1'));
-  const state = useStore({ salutation: 'Hello' });
+  useStylesQrl(inlinedQrl(`span.� { color: red; }`, "style-1"));
+  const state = useStore({ salutation: "Hello" });
   return (
     <span>
-      {state.salutation} {props.name || 'World'}
+      {state.salutation} {props.name || "World"}
     </span>
   );
 });
@@ -841,7 +841,7 @@ export const HelloWorld = component$((props: { name?: string }) => {
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HelloWorldScoped = component$(() => {
-  useStylesScopedQrl(inlinedQrl(`.stuff { color: red; }`, 'style-scoped-1'));
+  useStylesScopedQrl(inlinedQrl(`.stuff { color: red; }`, "style-scoped-1"));
   const state = useStore({ cond: false });
   return (
     <div>
@@ -883,7 +883,7 @@ export const RenderClasses = component$(() => {
     <>
       <button
         class="increment"
-        onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: 1 }])}
+        onClick$={inlinedQrl(Counter_add, "Counteradd", [state, { value: 1 }])}
       >
         +
       </button>
@@ -891,20 +891,20 @@ export const RenderClasses = component$(() => {
         class={{
           stuff: state.count % 2 === 0,
           other: state.count % 2 === 1,
-          'm-0 p-2': state.count % 2 === 0,
+          "m-0 p-2": state.count % 2 === 0,
         }}
       >
         Div 1
       </div>
       <div
         class={[
-          'stuff',
-          '',
-          'm-0 p-2',
-          state.count % 2 === 0 ? null : 'almost-null',
-          'active',
+          "stuff",
+          "",
+          "m-0 p-2",
+          state.count % 2 === 0 ? null : "almost-null",
+          "active",
           undefined,
-          'container',
+          "container",
         ]}
       >
         Div 2
@@ -924,14 +924,14 @@ export const Counter = component$((props: { step?: number }) => {
     <>
       <button
         class="decrement"
-        onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: -step }])}
+        onClick$={inlinedQrl(Counter_add, "Counteradd", [state, { value: -step }])}
       >
         -
       </button>
       <span>{state.count}</span>
       <button
         class="increment"
-        onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: step }])}
+        onClick$={inlinedQrl(Counter_add, "Counteradd", [state, { value: step }])}
       >
         +
       </button>
@@ -968,12 +968,12 @@ export const SimpleProject = component$(() => {
 // HostFixture
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HostFixture = component$((props: { hostAttrs?: string; content?: string }) => {
-  return <div {...JSON.parse(props.hostAttrs || '{}')}>{props.content}</div>;
+  return <div {...JSON.parse(props.hostAttrs || "{}")}>{props.content}</div>;
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////
 export const InnerHTMLComponent = component$(() => {
-  const html = '<span>WORKS</span>';
+  const html = "<span>WORKS</span>";
   return (
     <div dangerouslySetInnerHTML={html}>
       <div>not rendered</div>
@@ -988,7 +988,7 @@ export const ToggleRootComponent = component$(() => {
     cond: false,
   });
   return (
-    <div aria-hidden={state.cond ? 'true' : 'false'}>
+    <div aria-hidden={state.cond ? "true" : "false"}>
       {state.cond ? <ToggleChild /> : <div class="normal">Normal div</div>}
       <button onClick$={() => (state.cond = !state.cond)}>toggle</button>
     </div>
@@ -1009,13 +1009,13 @@ export const Transparent = component$(() => {
 
 export const UseEvents = component$(() => {
   useVisibleTask$(() => {
-    console.warn('hello');
+    console.warn("hello");
   });
   useOn(
-    'click',
+    "click",
     inlinedQrl(() => {
-      console.warn('click');
-    }, 'use-on-click')
+      console.warn("click");
+    }, "use-on-click"),
   );
   return (
     <>
@@ -1033,21 +1033,21 @@ export const Hooks = component$(() => {
   const visibleTaskDestroyDiv = useSignal<HTMLElement>();
 
   const state = useStore({
-    task: 'false',
-    server: 'false',
+    task: "false",
+    server: "false",
   });
 
   useTask$(() => {
-    state.task = 'true';
+    state.task = "true";
     return () => {
-      taskDestroyDiv.value!.textContent = 'true';
+      taskDestroyDiv.value!.textContent = "true";
     };
   });
 
   useVisibleTask$(() => {
-    visibleTaskDiv.value!.textContent = 'true';
+    visibleTaskDiv.value!.textContent = "true";
     return () => {
-      visibleTaskDestroyDiv.value!.textContent = 'true';
+      visibleTaskDestroyDiv.value!.textContent = "true";
     };
   });
 
@@ -1122,7 +1122,7 @@ export const SlottedCleanupComponent = component$((props: CleanupProps) => {
   );
 });
 
-suite('should properly render styles from style prop', () => {
+suite("should properly render styles from style prop", () => {
   const RenderJSX = component$(() => {
     const pStyles = {
       fontSize: 30, // auto-converted to px
@@ -1135,7 +1135,7 @@ suite('should properly render styles from style prop', () => {
             marginTop: 50, // auto-converted to px
             height: 200, // auto-converted to px
             width: 200, // auto-converted to px
-            backgroundColor: 'red',
+            backgroundColor: "red",
           }}
         >
           <p style={pStyles}>Big square</p>
@@ -1144,20 +1144,20 @@ suite('should properly render styles from style prop', () => {
     );
   });
 
-  test('SSR jsx style render', async () => {
-    const output = await renderToString(<RenderJSX />, { containerTagName: 'div' });
+  test("SSR jsx style render", async () => {
+    const output = await renderToString(<RenderJSX />, { containerTagName: "div" });
     const document = createDocument();
     document.body.innerHTML = output.html;
-    const main = document.querySelector('#root')!;
+    const main = document.querySelector("#root")!;
     const resultHTML = `<div style="margin-top:50px;height:200px;width:200px;background-color:red"><p style="font-size:30px;font-weight:800">Big square</p></div>`;
     assert.equal(main.innerHTML, resultHTML);
   });
 
-  test('CSR jsx style render', async () => {
+  test("CSR jsx style render", async () => {
     const { screen, render } = await createDOM();
 
     await render(<RenderJSX />);
-    const main = screen.querySelector('#root')!;
+    const main = screen.querySelector("#root")!;
     const resultHTML = `<div style="margin-top:50px;height:200px;width:200px;background-color:red"><p style="font-size:30px;font-weight:800">Big square</p></div>`;
     assert.equal(main.innerHTML, resultHTML);
   });
@@ -1169,10 +1169,10 @@ test('should render value="" on option', async () => {
   await render(
     <select>
       <option value="">Empty</option>
-    </select>
+    </select>,
   );
-  const option = screen.querySelector('option')!;
-  assert.isTrue(option.hasAttribute('value'));
-  assert.equal(option.getAttribute('value'), '');
+  const option = screen.querySelector("option")!;
+  assert.isTrue(option.hasAttribute("value"));
+  assert.equal(option.getAttribute("value"), "");
   assert.equal(option.outerHTML, '<option value="">Empty</option>');
 });

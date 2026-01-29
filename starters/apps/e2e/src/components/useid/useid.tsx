@@ -1,9 +1,4 @@
-import {
-  component$,
-  useVisibleTask$,
-  useSignal,
-  useId,
-} from "@builder.io/qwik";
+import { component$, useVisibleTask$, useSignal, useId } from "@builder.io/qwik";
 
 export const MIN_CHILDREN = 2;
 export const MAX_CHIDREN = 5;
@@ -11,8 +6,7 @@ export const MAX_DEPTH = 5;
 
 export const Nested = component$((props: { level: number }) => {
   const id = useId();
-  const r =
-    Math.floor(Math.random() * (MAX_CHIDREN - MIN_CHILDREN + 1)) + MIN_CHILDREN;
+  const r = Math.floor(Math.random() * (MAX_CHIDREN - MIN_CHILDREN + 1)) + MIN_CHILDREN;
   const children = [...new Array(r).keys()];
   return (
     <>
@@ -71,17 +65,13 @@ export const UseId = component$(() => {
     <>
       <h1>
         useId() Collision Test{" "}
-        <span
-          id="result"
-          style={{ visibility: resultSignal.value ? "visible" : "hidden" }}
-        >
+        <span id="result" style={{ visibility: resultSignal.value ? "visible" : "hidden" }}>
           {resultSignal.value}
         </span>
       </h1>
-      Verify there are no id collisions from useId(). This tests generates a
-      random depth and number of children each time to inject some randomness
-      and create greater coverage over time. This test does not take into
-      consideration microfrontends, but does use q:base to generate the base
+      Verify there are no id collisions from useId(). This tests generates a random depth and number
+      of children each time to inject some randomness and create greater coverage over time. This
+      test does not take into consideration microfrontends, but does use q:base to generate the base
       hash.
       <p>
         <b>Total IDs:</b> <span id="totalIds">{totalIdsSignal.value}</span>

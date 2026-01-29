@@ -24,9 +24,7 @@ test.describe("Todo", () => {
   test("should add new item", async ({ page }) => {
     await addTodoItem(page, "New Item");
     await assertItemCount(page, 4);
-    await expect(page.locator(".todo-list>li:last-child label")).toContainText(
-      "New Item",
-    );
+    await expect(page.locator(".todo-list>li:last-child label")).toContainText("New Item");
   });
 
   test("should remove item", async ({ page }) => {
@@ -52,16 +50,12 @@ test.describe("Todo", () => {
 
   test("should blur input.edit element", async ({ page }) => {
     await page.locator(".todo-list>li:first-child label").dblclick();
-    await page
-      .locator(".todo-list>li:first-child input.edit")
-      .dispatchEvent("blur");
+    await page.locator(".todo-list>li:first-child input.edit").dispatchEvent("blur");
   });
 
   test("should clear completed", async ({ page }) => {
     await assertItemCount(page, 3);
-    await page
-      .locator(".todo-list>li:first-child input[type=checkbox]")
-      .click();
+    await page.locator(".todo-list>li:first-child input[type=checkbox]").click();
     await page.locator("button.clear-completed").click();
     await assertItemCount(page, 2);
   });
@@ -93,12 +87,8 @@ test.describe("Todo", () => {
   // });
 });
 async function assertItemCount(page: Page, count: number, total?: number) {
-  await expect(page.locator(".todo-count > strong")).toContainText(
-    String(count),
-  );
-  await expect(page.locator(".todo-list>li")).toHaveCount(
-    total == undefined ? count : total,
-  );
+  await expect(page.locator(".todo-count > strong")).toContainText(String(count));
+  await expect(page.locator(".todo-list>li")).toHaveCount(total == undefined ? count : total);
 }
 
 async function addTodoItem(page: Page, text: string) {

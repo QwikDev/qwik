@@ -1,5 +1,11 @@
 {
   "description": "Boostrap 5 - Build fast, responsive sites with Bootstrap in Qwik App",
+  "dependencies": {
+    "bootstrap": "5"
+  },
+  "devDependencies": {
+    "@types/bootstrap": "5"
+  },
   "__qwik__": {
     "displayName": "Integration: Boostrap",
     "priority": -10,
@@ -23,11 +29,5 @@
         "following the main Bootstrap guide: https://getbootstrap.com/"
       ]
     }
-  },
-  "dependencies": {
-    "bootstrap": "5"
-  },
-  "devDependencies": {
-    "@types/bootstrap": "5"
   }
 }

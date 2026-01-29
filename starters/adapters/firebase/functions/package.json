@@ -1,6 +1,9 @@
 {
   "name": "functions",
+  "private": true,
   "description": "Cloud Functions for Firebase",
+  "type": "module",
+  "main": "index.js",
   "scripts": {
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
@@ -8,11 +11,6 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
-  "engines": {
-    "node": "18"
-  },
-  "type": "module",
-  "main": "index.js",
   "dependencies": {
     "@google-cloud/functions-framework": "^3.3.0",
     "firebase-admin": "^11.8.0",
@@ -22,5 +20,7 @@
   "devDependencies": {
     "firebase-functions-test": "^3.1.0"
   },
-  "private": true
+  "engines": {
+    "node": "18"
+  }
 }

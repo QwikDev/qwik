@@ -1,13 +1,13 @@
-import { readdir, stat } from 'node:fs/promises';
-import { join, sep } from 'node:path';
-import { type Plugin } from 'vite';
-import { generateRouteTypes } from './generator';
+import { readdir, stat } from "node:fs/promises";
+import { join, sep } from "node:path";
+import { type Plugin } from "vite";
+import { generateRouteTypes } from "./generator";
 
 export function qwikTypes(): Plugin {
-  const srcFolder = join(process.cwd(), 'src');
-  const routesFolder = join(srcFolder, 'routes');
+  const srcFolder = join(process.cwd(), "src");
+  const routesFolder = join(srcFolder, "routes");
   return {
-    name: 'Qwik Type Generator',
+    name: "Qwik Type Generator",
     async buildStart() {
       await regenerateRoutes(srcFolder, routesFolder);
     },
@@ -41,12 +41,12 @@ function getRouteDirectory(id: string): string | null {
   const lastSlash = id.lastIndexOf(sep);
   const filename = id.substring(lastSlash + 1);
   if (
-    filename.endsWith('index.md') ||
-    filename.endsWith('index.mdx') ||
-    filename.endsWith('index.js') ||
-    filename.endsWith('index.jsx') ||
-    filename.endsWith('index.ts') ||
-    filename.endsWith('index.tsx')
+    filename.endsWith("index.md") ||
+    filename.endsWith("index.mdx") ||
+    filename.endsWith("index.js") ||
+    filename.endsWith("index.jsx") ||
+    filename.endsWith("index.ts") ||
+    filename.endsWith("index.tsx")
   ) {
     return id.substring(0, lastSlash + 1);
   }
@@ -63,7 +63,7 @@ async function collectRoutes(base: string, directoryPath: string, routes: string
     if (fileStat.isDirectory()) {
       await collectRoutes(base, filePath, routes);
     } else if ((route = getRouteDirectory(filePath)) !== null) {
-      routes.push(route.substring(base.length).replaceAll(sep, '/'));
+      routes.push(route.substring(base.length).replaceAll(sep, "/"));
     }
   }
 }

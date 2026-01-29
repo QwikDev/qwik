@@ -1,10 +1,10 @@
-import { assertEqual, assertNumber, assertTrue } from '../error/assert';
-import { qError, QError_immutableProps } from '../error/error';
-import { tryGetInvokeContext } from '../use/use-core';
-import { qDev, qSerialize } from '../util/qdev';
-import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
-import { isArray, isObject, isSerializableObject } from '../util/types';
-import type { ContainerState } from '../container/container';
+import { assertEqual, assertNumber, assertTrue } from "../error/assert";
+import { qError, QError_immutableProps } from "../error/error";
+import { tryGetInvokeContext } from "../use/use-core";
+import { qDev, qSerialize } from "../util/qdev";
+import { ComputedEvent, RenderEvent, ResourceEvent } from "../util/markers";
+import { isArray, isObject, isSerializableObject } from "../util/types";
+import type { ContainerState } from "../container/container";
 import {
   fastSkipSerialize,
   LocalSubscriptionManager,
@@ -12,8 +12,8 @@ import {
   type Subscriptions,
   unwrapProxy,
   verifySerializable,
-} from './common';
-import { isSignal } from './signal';
+} from "./common";
+import { isSignal } from "./signal";
 import {
   QObjectFlagsSymbol,
   QObjectImmutable,
@@ -22,16 +22,16 @@ import {
   QOjectTargetSymbol,
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
-} from './constants';
-import { logError, logWarn } from '../util/log';
+} from "./constants";
+import { logError, logWarn } from "../util/log";
 
-export type QObject<T extends {}> = T & { __brand__: 'QObject' };
+export type QObject<T extends {}> = T & { __brand__: "QObject" };
 
 /** Creates a proxy that notifies of any writes. */
 export const getOrCreateProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
-  flags = 0
+  flags = 0,
 ): T => {
   const proxy = containerState.$proxyMap$.get(target);
   if (proxy) {
@@ -46,14 +46,14 @@ export const getOrCreateProxy = <T extends object>(
 export const createProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
-  subs?: Subscriptions[]
+  subs?: Subscriptions[],
 ): T => {
-  assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
-  assertTrue(!containerState.$proxyMap$.has(target), 'Proxy was already created', target);
-  assertTrue(isObject(target), 'Target must be an object');
+  assertEqual(unwrapProxy(target), target, "Unexpected proxy at this location", target);
+  assertTrue(!containerState.$proxyMap$.has(target), "Proxy was already created", target);
+  assertTrue(isObject(target), "Target must be an object");
   assertTrue(
     isSerializableObject(target) || isArray(target),
-    'Target must be a serializable object'
+    "Target must be a serializable object",
   );
 
   const manager = containerState.$subsManager$.$createManager$(subs);
@@ -88,14 +88,14 @@ export const _restProps = (props: Record<string, any>, omit: string[]) => {
 export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $containerState$: ContainerState,
-    private $manager$: LocalSubscriptionManager
+    private $manager$: LocalSubscriptionManager,
   ) {}
 
   deleteProperty(target: TargetType, prop: string | symbol): boolean {
     if (target[QObjectFlagsSymbol] & QObjectImmutable) {
       throw qError(QError_immutableProps);
     }
-    if (typeof prop != 'string' || !delete target[prop]) {
+    if (typeof prop != "string" || !delete target[prop]) {
       return false;
     }
     this.$manager$.$notifySubs$(isArray(target) ? undefined : prop);
@@ -103,7 +103,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   get(target: TargetType, prop: string | symbol): any {
-    if (typeof prop === 'symbol') {
+    if (typeof prop === "symbol") {
       if (prop === QOjectTargetSymbol) {
         return target;
       }
@@ -113,7 +113,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return target[prop];
     }
     const flags = target[QObjectFlagsSymbol] ?? 0;
-    assertNumber(flags, 'flags must be an number');
+    assertNumber(flags, "flags must be an number");
     const invokeCtx = tryGetInvokeContext();
     const recursive = (flags & QObjectRecursive) !== 0;
     const immutable = (flags & QObjectImmutable) !== 0;
@@ -127,7 +127,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       subscriber = null;
     }
     if (hiddenSignal) {
-      assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
+      assertTrue(isSignal(hiddenSignal), "$$ prop must be a signal");
       value = hiddenSignal.value;
       subscriber = null;
     } else {
@@ -141,12 +141,12 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
-    if (typeof prop === 'symbol') {
+    if (typeof prop === "symbol") {
       target[prop] = newValue;
       return true;
     }
     const flags = target[QObjectFlagsSymbol] ?? 0;
-    assertNumber(flags, 'flags must be an number');
+    assertNumber(flags, "flags must be an number");
     const immutable = (flags & QObjectImmutable) !== 0;
     if (immutable) {
       throw qError(QError_immutableProps);
@@ -161,18 +161,18 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       if (invokeCtx) {
         if (invokeCtx.$event$ === RenderEvent) {
           logError(
-            'State mutation inside render function. Move mutation to useTask$() or useVisibleTask$()',
-            prop
+            "State mutation inside render function. Move mutation to useTask$() or useVisibleTask$()",
+            prop,
           );
         } else if (invokeCtx.$event$ === ComputedEvent) {
           logWarn(
-            'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
+            "State mutation inside useComputed$() is an antipattern. Use useTask$() instead",
+            invokeCtx.$hostElement$,
           );
         } else if (invokeCtx.$event$ === ResourceEvent) {
           logWarn(
-            'State mutation inside useResource$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
+            "State mutation inside useResource$() is an antipattern. Use useTask$() instead",
+            invokeCtx.$hostElement$,
           );
         }
       }
@@ -197,7 +197,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return true;
     }
     const invokeCtx = tryGetInvokeContext();
-    if (typeof prop === 'string' && invokeCtx) {
+    if (typeof prop === "string" && invokeCtx) {
       const subscriber = invokeCtx.$subscriber$;
       if (subscriber) {
         const isA = isArray(target);
@@ -208,7 +208,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (hasOwnProperty.call(target, prop)) {
       return true;
     }
-    if (typeof prop === 'string' && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + prop)) {
+    if (typeof prop === "string" && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + prop)) {
       return true;
     }
     return false;
@@ -216,7 +216,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
     const flags = target[QObjectFlagsSymbol] ?? 0;
-    assertNumber(flags, 'flags must be an number');
+    assertNumber(flags, "flags must be an number");
     const immutable = (flags & QObjectImmutable) !== 0;
     if (!immutable) {
       let subscriber: Subscriber | null | undefined = null;
@@ -232,18 +232,18 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return Reflect.ownKeys(target);
     }
     return Reflect.ownKeys(target).map((a) => {
-      return typeof a === 'string' && a.startsWith(_IMMUTABLE_PREFIX)
+      return typeof a === "string" && a.startsWith(_IMMUTABLE_PREFIX)
         ? a.slice(_IMMUTABLE_PREFIX.length)
         : a;
     });
   }
   getOwnPropertyDescriptor(
     target: TargetType,
-    prop: string | symbol
+    prop: string | symbol,
   ): PropertyDescriptor | undefined {
     const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
 
-    if (isArray(target) || typeof prop === 'symbol') {
+    if (isArray(target) || typeof prop === "symbol") {
       return descriptor;
     }
 

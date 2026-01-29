@@ -62,12 +62,9 @@ test.describe("render", () => {
       const result = page.locator("#issue-1475-result");
 
       await button.click();
-      await expect(result).toHaveText(
-        "1. Before\n2. Some text\nMiddle\n3 After\n\nStuff",
-        {
-          useInnerText: true,
-        },
-      );
+      await expect(result).toHaveText("1. Before\n2. Some text\nMiddle\n3 After\n\nStuff", {
+        useInnerText: true,
+      });
     });
 
     test("counter toggle", async ({ page }) => {
@@ -155,19 +152,10 @@ test.describe("render", () => {
       const button = page.locator("#issue-2800-btn");
       const results = page.locator("#issue-2800-result > li");
 
-      await expect(results).toHaveText([
-        "alpha - 1",
-        "bravo - 2",
-        "charlie - 3",
-      ]);
+      await expect(results).toHaveText(["alpha - 1", "bravo - 2", "charlie - 3"]);
 
       await button.click();
-      await expect(results).toHaveText([
-        "alpha - 1",
-        "bravo - 2",
-        "charlie - 3",
-        "extra3 - 1",
-      ]);
+      await expect(results).toHaveText(["alpha - 1", "bravo - 2", "charlie - 3", "extra3 - 1"]);
       await button.click();
       await expect(results).toHaveText([
         "alpha - 1",
@@ -254,24 +242,18 @@ test.describe("render", () => {
     test("issue3398", async ({ page }) => {
       const toggle = page.locator("#issue-3398-button");
       await expect(page.locator("h1#issue-3398-tag")).toHaveText("Hello h1");
-      await expect(page.locator("h1#issue-3398-tag")).not.hasAttribute(
-        "children",
-      );
+      await expect(page.locator("h1#issue-3398-tag")).not.hasAttribute("children");
 
       await toggle.click();
       await expect(page.locator("h1#issue-3398-tag")).not.toBeVisible();
       await expect(page.locator("h2#issue-3398-tag")).toHaveText("Hello h2");
-      await expect(page.locator("h2#issue-3398-tag")).not.hasAttribute(
-        "children",
-      );
+      await expect(page.locator("h2#issue-3398-tag")).not.hasAttribute("children");
 
       await toggle.click();
       await expect(page.locator("h2#issue-3398-tag")).not.toBeVisible();
       await expect(page.locator("h1#issue-3398-tag")).toBeVisible();
       await expect(page.locator("h1#issue-3398-tag")).toHaveText("Hello h1");
-      await expect(page.locator("h1#issue-3398-tag")).not.hasAttribute(
-        "children",
-      );
+      await expect(page.locator("h1#issue-3398-tag")).not.hasAttribute("children");
     });
 
     test("issue3479", async ({ page }) => {
@@ -509,9 +491,7 @@ test.describe("render", () => {
       const toggleRender = page.locator("#rerender");
       const v = await toggleRender.getAttribute("data-v");
       await toggleRender.click();
-      await expect(page.locator("#rerenderCount")).toHaveText(
-        `Render ${Number(v) + 1}`,
-      );
+      await expect(page.locator("#rerenderCount")).toHaveText(`Render ${Number(v) + 1}`);
     });
     tests();
   });

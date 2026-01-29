@@ -1,7 +1,7 @@
-import { component$, Slot, useStore } from '@builder.io/qwik';
+import { component$, Slot, useStore } from "@builder.io/qwik";
 
 export default component$(() => {
-  console.log('Render: <App>');
+  console.log("Render: <App>");
   return (
     <Collapsable>
       <div q:slot="closed">▶ (collapsed summary)</div>
@@ -13,7 +13,7 @@ export default component$(() => {
 });
 
 export const Collapsable = component$(() => {
-  console.log('Render: <Collapsable>');
+  console.log("Render: <Collapsable>");
   const store = useStore({ open: true });
   return (
     <div onClick$={() => (store.open = !store.open)}>

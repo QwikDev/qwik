@@ -1,9 +1,4 @@
-import {
-  component$,
-  useVisibleTask$,
-  useSignal,
-  useTask$,
-} from "@builder.io/qwik";
+import { component$, useVisibleTask$, useSignal, useTask$ } from "@builder.io/qwik";
 import { routeLoader$ } from "@builder.io/qwik-city";
 import { isBrowser } from "@builder.io/qwik";
 

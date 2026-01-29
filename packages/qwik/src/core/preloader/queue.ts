@@ -1,14 +1,14 @@
-import { isBrowser } from '@builder.io/qwik/build';
-import { base, getBundle, graph } from './bundle-graph';
-import { config, doc, loadStart, rel } from './constants';
-import type { BundleImport, BundleImports } from './types';
+import { isBrowser } from "@builder.io/qwik/build";
+import { base, getBundle, graph } from "./bundle-graph";
+import { config, doc, loadStart, rel } from "./constants";
+import type { BundleImport, BundleImports } from "./types";
 import {
   BundleImportState_Loaded,
   BundleImportState_None,
   BundleImportState_Preload,
   BundleImportState_Queued,
-} from './types';
-import type { QwikSymbolEvent } from '../render/jsx/types/jsx-qwik-events';
+} from "./types";
+import type { QwikSymbolEvent } from "../render/jsx/types/jsx-qwik-events";
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
@@ -20,7 +20,7 @@ export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
   console.log(
     `Preloader ${Date.now() - loadStart}ms ${preloadCount}/${queue.length} queued>`,
-    ...args
+    ...args,
   );
 };
 
@@ -98,7 +98,7 @@ export const trigger = () => {
     const waitTime = loaded.reduce((acc, b) => acc + b.$waitedMs$, 0);
     const loadTime = loaded.reduce((acc, b) => acc + b.$loadedMs$, 0);
     log(
-      `>>>> done ${loaded.length}/${bundles.size} total: ${waitTime}ms waited, ${loadTime}ms loaded`
+      `>>>> done ${loaded.length}/${bundles.size} total: ${waitTime}ms waited, ${loadTime}ms loaded`,
     );
   }
 };
@@ -116,15 +116,15 @@ const preloadOne = (bundle: BundleImport) => {
   config.$DEBUG$ &&
     log(
       `<< load ${Math.round((1 - bundle.$inverseProbability$) * 100)}% after ${`${bundle.$waitedMs$}ms`}`,
-      bundle.$name$
+      bundle.$name$,
     );
 
-  const link = doc.createElement('link');
+  const link = doc.createElement("link");
   // Only bundles with state none are js bundles
   link.href = new URL(`${base}${bundle.$name$}`, doc.baseURI).toString();
   link.rel = rel;
   // Needed when rel is 'preload'
-  link.as = 'script';
+  link.as = "script";
   // Handle completion of the preload
   link.onload = link.onerror = () => {
     preloadCount--;
@@ -153,7 +153,7 @@ const preloadOne = (bundle: BundleImport) => {
 export const adjustProbabilities = (
   bundle: BundleImport,
   newInverseProbability: number,
-  seen?: Set<BundleImport>
+  seen?: Set<BundleImport>,
 ) => {
   if (seen?.has(bundle)) {
     return;
@@ -242,7 +242,7 @@ export const preload = (name: string | (number | string)[], probability?: number
     // We must process in reverse order to ensure first bundles are handled first
     for (let i = name.length - 1; i >= 0; i--) {
       const item = name[i];
-      if (typeof item === 'number') {
+      if (typeof item === "number") {
         inverseProbability = 1 - item / 10;
       } else {
         handleBundle(item, inverseProbability);
@@ -258,11 +258,11 @@ export const preload = (name: string | (number | string)[], probability?: number
 
 if (isBrowser) {
   // Get early hints from qwikloader
-  document.addEventListener('qsymbol', (ev) => {
+  document.addEventListener("qsymbol", (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;
     // the qrl class doesn't emit href, we don't need to preload
     if (href) {
-      const hash = symbol.slice(symbol.lastIndexOf('_') + 1);
+      const hash = symbol.slice(symbol.lastIndexOf("_") + 1);
       preload(hash, 1);
     }
   });

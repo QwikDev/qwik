@@ -1,8 +1,8 @@
-import { addError, addWarning } from '../utils/format';
-import { resolveSourceFiles } from './routing/resolve-source-file';
-import { walkRoutes } from './routing/walk-routes-dir';
-import { walkServerPlugins } from './routing/walk-server-plugins';
-import type { BuildContext, BuildRoute, RewriteRouteOption } from './types';
+import { addError, addWarning } from "../utils/format";
+import { resolveSourceFiles } from "./routing/resolve-source-file";
+import { walkRoutes } from "./routing/walk-routes-dir";
+import { walkServerPlugins } from "./routing/walk-server-plugins";
+import type { BuildContext, BuildRoute, RewriteRouteOption } from "./types";
 
 export async function build(ctx: BuildContext) {
   try {
@@ -13,7 +13,7 @@ export async function build(ctx: BuildContext) {
   }
 
   for (const d of ctx.diagnostics) {
-    if (d.type === 'error') {
+    if (d.type === "error") {
       throw new Error(d.message);
     } else {
       console.warn(d.message);
@@ -64,17 +64,17 @@ function rewriteRoutes(ctx: BuildContext, resolvedFiles: ReturnType<typeof resol
     // always push the original route
     translatedRoutes.push(route);
 
-    const currentRouteSegments = route.pathname.split('/');
+    const currentRouteSegments = route.pathname.split("/");
     const foundSegmentToTranslate = currentRouteSegments.some((segment) =>
-      segmentsToTranslate.includes(segment)
+      segmentsToTranslate.includes(segment),
     );
 
-    if (foundSegmentToTranslate || route.pathname === '/') {
+    if (foundSegmentToTranslate || route.pathname === "/") {
       ctx.opts.rewriteRoutes.forEach((config, configIndex) => {
         // In case it is the root route and there is a prefix
         // we want to create a root with that prefix
         // if it doesn't have a prefix, we'll skip it so we won't create a duplicate root route
-        if (route.pathname === '/' && !config.prefix) {
+        if (route.pathname === "/" && !config.prefix) {
           return;
         }
         const routeToPush = translateRoute(route, config, configIndex);
@@ -82,7 +82,7 @@ function rewriteRoutes(ctx: BuildContext, resolvedFiles: ReturnType<typeof resol
         if (
           !translatedRoutes.some(
             (item) =>
-              item.pathname === routeToPush.pathname && item.routeName === routeToPush.routeName
+              item.pathname === routeToPush.pathname && item.routeName === routeToPush.routeName,
           )
         ) {
           translatedRoutes.push(routeToPush);
@@ -97,39 +97,41 @@ function rewriteRoutes(ctx: BuildContext, resolvedFiles: ReturnType<typeof resol
 function translateRoute(
   route: BuildRoute,
   config: RewriteRouteOption,
-  configIndex: number
+  configIndex: number,
 ): BuildRoute {
   const replacePath = (part: string) => (config.paths || {})[part] ?? part;
 
-  const pathnamePrefix = config.prefix ? '/' + config.prefix : '';
-  const routeNamePrefix = config.prefix ? config.prefix + '/' : '';
-  const idSuffix = config.prefix?.toUpperCase().replace(/-/g, '');
+  const pathnamePrefix = config.prefix ? "/" + config.prefix : "";
+  const routeNamePrefix = config.prefix ? config.prefix + "/" : "";
+  const idSuffix = config.prefix?.toUpperCase().replace(/-/g, "");
   const patternInfix = config.prefix ? [config.prefix] : [];
 
   // PATH NAME
-  const splittedPathName = route.pathname.split('/');
+  const splittedPathName = route.pathname.split("/");
   const translatedPathParts = splittedPathName.map(replacePath);
 
   // ROUTE NAME
-  const splittedRouteName = route.routeName.split('/');
+  const splittedRouteName = route.routeName.split("/");
   const translatedRouteParts = splittedRouteName.map(replacePath);
 
   // REGEX
-  const splittedPattern = route.pattern.toString().split('\\/');
+  const splittedPattern = route.pattern.toString().split("\\/");
   const [translatedPatternFirst, ...translatedPatternOthers] = splittedPattern.map(replacePath);
   const translatedPatternParts = [
     translatedPatternFirst,
     ...patternInfix,
     ...translatedPatternOthers,
   ];
-  const translatedPatternString = translatedPatternParts.join('\\/');
+  const translatedPatternString = translatedPatternParts.join("\\/");
   const translatedRegExp = translatedPatternString.substring(
     1,
-    route.pathname === '/' ? translatedPatternString.length - 1 : translatedPatternString.length - 2
+    route.pathname === "/"
+      ? translatedPatternString.length - 1
+      : translatedPatternString.length - 2,
   );
 
   const translatedSegments = route.segments.map((segment) =>
-    segment.map((item) => ({ ...item, content: replacePath(item.content) }))
+    segment.map((item) => ({ ...item, content: replacePath(item.content) })),
   );
 
   if (config.prefix) {
@@ -142,14 +144,14 @@ function translateRoute(
     ]);
   }
 
-  const translatedPath = translatedPathParts.join('/');
-  const translatedRoute = translatedRouteParts.join('/');
+  const translatedPath = translatedPathParts.join("/");
+  const translatedRoute = translatedRouteParts.join("/");
 
   const routeToPush = {
     ...route,
     id: route.id + (idSuffix || configIndex),
     pathname: pathnamePrefix + translatedPath,
-    routeName: routeNamePrefix + (translatedRoute !== '/' ? translatedRoute : ''),
+    routeName: routeNamePrefix + (translatedRoute !== "/" ? translatedRoute : ""),
     pattern: new RegExp(translatedRegExp),
     segments: translatedSegments,
   };
@@ -166,17 +168,17 @@ function validateBuild(ctx: BuildContext) {
         ctx,
         `More than one route has been found for pathname "${pathname}". Please narrow it down to only one of these:\n${foundRoutes
           .map((r) => `  - ${r.filePath}`)
-          .join('\n')}`
+          .join("\n")}`,
       );
     }
   }
 
   ctx.layouts
-    .filter((l) => l.layoutType === 'top')
+    .filter((l) => l.layoutType === "top")
     .forEach((l) => {
       addWarning(
         ctx,
-        `The "top" layout feature, which is used by "${l.filePath}" has been deprecated and will be removed from future versions. In most cases the "group" layout feature can be used in its place: https://qwik.dev/qwikcity/layout/grouped/`
+        `The "top" layout feature, which is used by "${l.filePath}" has been deprecated and will be removed from future versions. In most cases the "group" layout feature can be used in its place: https://qwik.dev/qwikcity/layout/grouped/`,
       );
     });
 }

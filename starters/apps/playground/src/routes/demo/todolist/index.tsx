@@ -65,9 +65,7 @@ export default component$(() => {
           </button>
         </Form>
 
-        <p class={styles.hint}>
-          PS: This little app works even when JavaScript is disabled.
-        </p>
+        <p class={styles.hint}>PS: This little app works even when JavaScript is disabled.</p>
       </div>
     </>
   );

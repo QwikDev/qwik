@@ -118,13 +118,7 @@ export default component$(() => {
             <label for="email" class="label">
               Email
             </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              class="input"
-              required
-            />
+            <input id="email" name="email" type="email" class="input" required />
           </div>
 
           <div class="form-group">

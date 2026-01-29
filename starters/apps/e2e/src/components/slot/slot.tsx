@@ -46,9 +46,7 @@ export const SlotParent = component$(() => {
           </Projector>
 
           <Projector state={state} id="btn2">
-            {!state.removeContent && (
-              <div q:slot="start">START {state.count}</div>
-            )}
+            {!state.removeContent && <div q:slot="start">START {state.count}</div>}
           </Projector>
 
           <Thing state={state} id="btn3">
@@ -99,11 +97,7 @@ export const SlotParent = component$(() => {
         </button>
       </div>
       <div>
-        <button
-          id="btn-count"
-          class="border border-cyan-600"
-          onClick$={() => state.count++}
-        >
+        <button id="btn-count" class="border border-cyan-600" onClick$={() => state.count++}>
           Count
         </button>
       </div>
@@ -125,10 +119,7 @@ export const Issue1630 = component$(() => {
 
   return (
     <>
-      <button
-        id="toggle-child-slot"
-        onClick$={() => (store.open = !store.open)}
-      >
+      <button id="toggle-child-slot" onClick$={() => (store.open = !store.open)}>
         Toggle Non-Slotted Content
       </button>
       <Slot name="slot-content" />
@@ -211,10 +202,7 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
 
   return (
     <>
-      <button
-        id="issue-2688-button"
-        onClick$={() => (store.flip = !store.flip)}
-      >
+      <button id="issue-2688-button" onClick$={() => (store.flip = !store.flip)}>
         Toggle switch
       </button>
       <div id="issue-2688-result">
@@ -227,9 +215,7 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
   );
 });
 
-const Issue2751Context = createContextId<Signal<number>>(
-  "CleanupCounterContext",
-);
+const Issue2751Context = createContextId<Signal<number>>("CleanupCounterContext");
 
 export const Issue2751 = component$(() => {
   const signal = useSignal(0);
@@ -283,17 +269,15 @@ export const Issue3565Model = component$(() => {
   );
 });
 
-export const Issue3565 = component$(
-  ({ model: Model }: { model: string | FunctionComponent }) => {
-    return (
-      <>
-        <Model>
-          <div>content projected</div>
-        </Model>
-      </>
-    );
-  },
-);
+export const Issue3565 = component$(({ model: Model }: { model: string | FunctionComponent }) => {
+  return (
+    <>
+      <Model>
+        <div>content projected</div>
+      </Model>
+    </>
+  );
+});
 
 export const Issue3607 = component$(() => {
   const show = useSignal(false);
@@ -470,8 +454,7 @@ export const Issue4283 = component$(() => {
   );
 });
 
-export const Issue4658Context =
-  createContextId<Signal<boolean>>("issue-4658-context");
+export const Issue4658Context = createContextId<Signal<boolean>>("issue-4658-context");
 export const Issue4658Inner = component$(() => {
   const toggle = useContext(Issue4658Context);
   return (
@@ -479,11 +462,7 @@ export const Issue4658Inner = component$(() => {
       <main>
         <Slot />
       </main>
-      {toggle.value ? (
-        <h3 id="issue-4658-inner">CCC</h3>
-      ) : (
-        <h3 id="issue-4658-inner">DDD</h3>
-      )}
+      {toggle.value ? <h3 id="issue-4658-inner">CCC</h3> : <h3 id="issue-4658-inner">DDD</h3>}
     </>
   );
 });
@@ -494,11 +473,7 @@ export const Issue4658 = component$(() => {
   return (
     <>
       <Issue4658Inner>
-        {toggle.value ? (
-          <h1 id="issue-4658-top">AAA</h1>
-        ) : (
-          <h1 id="issue-4658-top">BBB</h1>
-        )}
+        {toggle.value ? <h1 id="issue-4658-top">AAA</h1> : <h1 id="issue-4658-top">BBB</h1>}
       </Issue4658Inner>
       <button
         id="issue-4658-toggle"
@@ -573,11 +548,7 @@ export const Issue5506 = component$(() => {
   return (
     <div id="issue-5506-div">
       <SlotParent5506 key={render.value}>
-        <Toggle5506
-          id="input-5506"
-          checked={coerceBoolean(sig.value)}
-          onClick$={onClick$}
-        />
+        <Toggle5506 id="input-5506" checked={coerceBoolean(sig.value)} onClick$={onClick$} />
         <br />
         <button onClick$={() => render.value++}>Rerender on client</button>
       </SlotParent5506>

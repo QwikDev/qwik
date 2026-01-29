@@ -1,9 +1,9 @@
 {
   "description": "Blank Qwik starter app with Partytown.",
+  "type": "module",
   "dependencies": {
     "@qwik.dev/partytown": "latest"
   },
-  "type": "module",
   "__qwik__": {
     "priority": 0
   }

@@ -1,10 +1,5 @@
 /* eslint-disable */
-import {
-  component$,
-  useComputed$,
-  useSignal,
-  useTask$,
-} from "@builder.io/qwik";
+import { component$, useComputed$, useSignal, useTask$ } from "@builder.io/qwik";
 
 export const ComputedRoot = component$(() => {
   const rerender = useSignal(0);
@@ -67,16 +62,14 @@ export const Issue3482 = component$((props) => {
   );
 });
 
-export const TextContent = component$(
-  (props: { "data-nu"?: string; class?: string }) => {
-    return (
-      <div>
-        <div id="issue-3482-datanu">data-nu: {props["data-nu"]}</div>
-        <div id="issue-3482-class">class: {props.class}</div>
-      </div>
-    );
-  },
-);
+export const TextContent = component$((props: { "data-nu"?: string; class?: string }) => {
+  return (
+    <div>
+      <div id="issue-3482-datanu">data-nu: {props["data-nu"]}</div>
+      <div id="issue-3482-class">class: {props.class}</div>
+    </div>
+  );
+});
 
 export const Issue3488 = component$(() => {
   const count = useSignal(0);

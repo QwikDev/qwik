@@ -1,5 +1,5 @@
-import { dirname } from 'node:path';
-import { resolveMenu } from '../markdown/menu';
+import { dirname } from "node:path";
+import { resolveMenu } from "../markdown/menu";
 import type {
   BuildEntry,
   BuildLayout,
@@ -7,45 +7,45 @@ import type {
   BuildServerPlugin,
   NormalizedPluginOptions,
   RouteSourceFile,
-} from '../types';
+} from "../types";
 import {
   createFileId,
   getPathnameFromDirPath,
   parseRouteIndexName,
   normalizePath,
-} from '../../utils/fs';
-import { parseRoutePathname } from './parse-pathname';
-import { routeSortCompare } from './sort-routes';
+} from "../../utils/fs";
+import { parseRoutePathname } from "./parse-pathname";
+import { routeSortCompare } from "./sort-routes";
 
 export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: RouteSourceFile[]) {
   const layouts = sourceFiles
-    .filter((s) => s.type === 'layout')
+    .filter((s) => s.type === "layout")
     .map((s) => resolveLayout(opts, s))
     .sort((a, b) => {
       return a.id < b.id ? -1 : 1;
     });
 
   const routes = sourceFiles
-    .filter((s) => s.type === 'route')
+    .filter((s) => s.type === "route")
     .map((s) => resolveRoute(opts, layouts, s))
     .sort(routeSortCompare);
 
   const entries = sourceFiles
-    .filter((s) => s.type === 'entry')
+    .filter((s) => s.type === "entry")
     .map((s) => resolveEntry(opts, s))
     .sort((a, b) => {
       return a.chunkFileName < b.chunkFileName ? -1 : 1;
     });
 
   const serviceWorkers = sourceFiles
-    .filter((s) => s.type === 'service-worker')
+    .filter((s) => s.type === "service-worker")
     .map((p) => resolveServiceWorkerEntry(opts, p))
     .sort((a, b) => {
       return a.chunkFileName < b.chunkFileName ? -1 : 1;
     });
 
   const menus = sourceFiles
-    .filter((s) => s.type === 'menu')
+    .filter((s) => s.type === "menu")
     .map((p) => resolveMenu(opts, p))
     .sort((a, b) => {
       return a.pathname < b.pathname ? -1 : 1;
@@ -78,19 +78,19 @@ export function resolveLayout(opts: NormalizedPluginOptions, layoutSourceFile: R
   const dirPath = layoutSourceFile.dirPath;
 
   let layoutName: string;
-  let layoutType: 'nested' | 'top';
+  let layoutType: "nested" | "top";
 
   if (extlessName.endsWith(LAYOUT_TOP_SUFFIX)) {
-    layoutType = 'top';
+    layoutType = "top";
     extlessName = extlessName.slice(0, extlessName.length - 1);
   } else {
-    layoutType = 'nested';
+    layoutType = "nested";
   }
 
   if (extlessName.startsWith(LAYOUT_NAMED_PREFIX)) {
     layoutName = extlessName.slice(LAYOUT_NAMED_PREFIX.length);
   } else {
-    layoutName = '';
+    layoutName = "";
   }
 
   const layout: BuildLayout = {
@@ -104,14 +104,14 @@ export function resolveLayout(opts: NormalizedPluginOptions, layoutSourceFile: R
   return layout;
 }
 
-const LAYOUT_ID = 'layout';
-const LAYOUT_NAMED_PREFIX = LAYOUT_ID + '-';
-const LAYOUT_TOP_SUFFIX = '!';
+const LAYOUT_ID = "layout";
+const LAYOUT_NAMED_PREFIX = LAYOUT_ID + "-";
+const LAYOUT_TOP_SUFFIX = "!";
 
 export function resolveRoute(
   opts: NormalizedPluginOptions,
   appLayouts: BuildLayout[],
-  sourceFile: RouteSourceFile
+  sourceFile: RouteSourceFile,
 ) {
   const filePath = sourceFile.filePath;
   const layouts: BuildLayout[] = [];
@@ -119,14 +119,14 @@ export function resolveRoute(
   const { layoutName, layoutStop } = parseRouteIndexName(sourceFile.extlessName);
   let pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
 
-  if (sourceFile.extlessName === '404') {
-    pathname += sourceFile.extlessName + '.html';
+  if (sourceFile.extlessName === "404") {
+    pathname += sourceFile.extlessName + ".html";
   }
 
   if (!layoutStop) {
     let currentDir = normalizePath(dirname(filePath));
     let hasFoundNamedLayout = false;
-    const hasNamedLayout = layoutName !== '';
+    const hasNamedLayout = layoutName !== "";
 
     for (let i = 0; i < 20; i++) {
       let layout: BuildLayout | undefined = undefined;
@@ -137,12 +137,12 @@ export function resolveRoute(
           hasFoundNamedLayout = true;
         }
       } else {
-        layout = appLayouts.find((l) => l.dirPath === currentDir && l.layoutName === '');
+        layout = appLayouts.find((l) => l.dirPath === currentDir && l.layoutName === "");
       }
 
       if (layout) {
         layouts.push(layout);
-        if (layout.layoutType === 'top') {
+        if (layout.layoutType === "top") {
           break;
         }
       }
@@ -156,7 +156,7 @@ export function resolveRoute(
   }
 
   const buildRoute: BuildRoute = {
-    id: createFileId(opts.routesDir, filePath, 'Route'),
+    id: createFileId(opts.routesDir, filePath, "Route"),
     filePath,
     pathname,
     layouts: layouts.reverse(),
@@ -170,7 +170,7 @@ export function resolveRoute(
 export function resolveServerPlugin(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
   const filePath = sourceFile.filePath;
   const buildRoute: BuildServerPlugin = {
-    id: createFileId(opts.serverPluginsDir, filePath, 'Plugin'),
+    id: createFileId(opts.serverPluginsDir, filePath, "Plugin"),
     filePath,
     ext: sourceFile.ext,
   };
@@ -182,7 +182,7 @@ function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile
   const chunkFileName = pathname.slice(opts.basePathname.length);
 
   const buildEntry: BuildEntry = {
-    id: createFileId(opts.routesDir, sourceFile.filePath, 'Route'),
+    id: createFileId(opts.routesDir, sourceFile.filePath, "Route"),
     filePath: sourceFile.filePath,
     chunkFileName,
     ...parseRoutePathname(opts.basePathname, pathname),
@@ -193,11 +193,11 @@ function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile
 
 function resolveServiceWorkerEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
   const dirPathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
-  const pathname = dirPathname + sourceFile.extlessName + '.js';
+  const pathname = dirPathname + sourceFile.extlessName + ".js";
   const chunkFileName = pathname.slice(opts.basePathname.length);
 
   const buildEntry: BuildEntry = {
-    id: createFileId(opts.routesDir, sourceFile.filePath, 'ServiceWorker'),
+    id: createFileId(opts.routesDir, sourceFile.filePath, "ServiceWorker"),
     filePath: sourceFile.filePath,
     chunkFileName,
     ...parseRoutePathname(opts.basePathname, pathname),

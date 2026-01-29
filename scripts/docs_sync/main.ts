@@ -1,10 +1,10 @@
-import { join, dirname } from 'node:path';
-import { readLines, scanFiles, writeFileLines } from './util.ts';
+import { join, dirname } from "node:path";
+import { readLines, scanFiles, writeFileLines } from "./util.ts";
 
 export function main(dir: string) {
-  console.log('DOC SYNC', dir);
+  console.log("DOC SYNC", dir);
   scanFiles(dir, async (file) => {
-    if (file.endsWith('.ts')) {
+    if (file.endsWith(".ts")) {
       await readLines(file).then((lines) => scanForDocDirective(file, lines));
     }
   });
@@ -20,30 +20,30 @@ async function scanForDocDirective(file: string, lines: string[]) {
     const match = /^(\s*)\/\/ <docs markdown="(.*)#(.*)">/.exec(line);
     if (match) {
       const prefix = match[1];
-      console.log('line', line, JSON.stringify(prefix));
+      console.log("line", line, JSON.stringify(prefix));
       const ref = match[2];
       const section = match[3];
-      let bookRef = ref.replace(/\/\/hackmd.io\//, '//hackmd.io/@qwik-docs/BkxpSz80Y/%2F');
-      if (bookRef.indexOf('hackmd.io') !== -1) {
-        bookRef += '%3Fboth';
+      let bookRef = ref.replace(/\/\/hackmd.io\//, "//hackmd.io/@qwik-docs/BkxpSz80Y/%2F");
+      if (bookRef.indexOf("hackmd.io") !== -1) {
+        bookRef += "%3Fboth";
       }
       output.push(prefix + `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!`);
       output.push(prefix + `// (edit ${bookRef}#${section} instead)`);
-      output.push(prefix + '/**');
+      output.push(prefix + "/**");
       (await resolveComment(dirname(file), ref, section)).forEach((longLine) =>
         breakLongLine(longLine).forEach((line) =>
-          output.push(prefix + ' *' + (line ? ' ' + line : ''))
-        )
+          output.push(prefix + " *" + (line ? " " + line : "")),
+        ),
       );
-      output.push(prefix + ' */');
+      output.push(prefix + " */");
       while (row < lines.length) {
         const line2 = lines[row++];
         if (!isComment(line2)) {
           throw new Error(
-            'Missing end `</doc>` tag. Got: ' + line2 + '\n' + file + '[' + row + ']'
+            "Missing end `</doc>` tag. Got: " + line2 + "\n" + file + "[" + row + "]",
           );
         }
-        if (line2.indexOf('// </docs>') != -1) {
+        if (line2.indexOf("// </docs>") != -1) {
           output.push(line2);
           break;
         }
@@ -58,7 +58,7 @@ async function scanForDocDirective(file: string, lines: string[]) {
 
 function isComment(line: string): boolean {
   line = line.trim();
-  return line.startsWith('//') || line.startsWith('/**') || line.startsWith('*');
+  return line.startsWith("//") || line.startsWith("/**") || line.startsWith("*");
 }
 
 async function resolveComment(dir: string, ref: string, section: string): Promise<string[]> {
@@ -71,11 +71,11 @@ async function resolveComment(dir: string, ref: string, section: string): Promis
     let line = lines[row++];
     const match = /<docs code="\.\/(.*)#(.*)"\/>/.exec(line);
     if (match) {
-      output.push('```tsx');
+      output.push("```tsx");
       (await resolveCodeExample(join(dirReadme, match[1]), match[2])).forEach((l) =>
-        output.push(l)
+        output.push(l),
       );
-      output.push('```');
+      output.push("```");
     } else {
       output.push(line);
     }
@@ -85,7 +85,7 @@ async function resolveComment(dir: string, ref: string, section: string): Promis
 
 async function readFileSection(file: string, section: string) {
   const lines = await readLines(file);
-  let sectionStart = '# `' + section + '`';
+  let sectionStart = "# `" + section + "`";
   let row = 0;
   let output: string[] = [];
   let inSection = false;
@@ -93,16 +93,16 @@ async function readFileSection(file: string, section: string) {
     const line = lines[row++];
     if (line === sectionStart) {
       inSection = true;
-    } else if (line.startsWith('# ')) {
+    } else if (line.startsWith("# ")) {
       inSection = false;
     } else if (inSection) {
       output.push(line);
     }
   }
-  while (output.length && output[0] == '') {
+  while (output.length && output[0] == "") {
     output.shift();
   }
-  while (output.length && output[output.length - 1] == '') {
+  while (output.length && output[output.length - 1] == "") {
     output.pop();
   }
   return output;

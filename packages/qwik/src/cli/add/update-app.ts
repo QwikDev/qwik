@@ -1,13 +1,13 @@
-import { log, spinner } from '@clack/prompts';
-import { bgRed, cyan } from 'kleur/colors';
-import fs from 'node:fs';
-import { dirname } from 'node:path';
-import type { FsUpdates, UpdateAppOptions, UpdateAppResult } from '../types';
-import { installDeps } from '../utils/install-deps';
-import { loadIntegrations } from '../utils/integrations';
-import { panic } from '../utils/utils';
-import { mergeIntegrationDir } from './update-files';
-import { updateViteConfigs } from './update-vite-config';
+import { log, spinner } from "@clack/prompts";
+import { bgRed, cyan } from "kleur/colors";
+import fs from "node:fs";
+import { dirname } from "node:path";
+import type { FsUpdates, UpdateAppOptions, UpdateAppResult } from "../types";
+import { installDeps } from "../utils/install-deps";
+import { loadIntegrations } from "../utils/integrations";
+import { panic } from "../utils/utils";
+import { mergeIntegrationDir } from "./update-files";
+import { updateViteConfigs } from "./update-vite-config";
 
 export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const integrations = await loadIntegrations();
@@ -34,7 +34,7 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
     opts,
     integration.dir,
     opts.rootDir,
-    integration.alwaysInRoot
+    integration.alwaysInRoot,
   );
 
   if ((globalThis as any).CODE_MOD) {
@@ -46,7 +46,7 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
 
     const s = spinner();
     if (showSpinner) {
-      s.start(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`);
+      s.start(`Updating app${isInstallingDeps ? " and installing dependencies" : ""}...`);
     }
 
     let passed = true;
@@ -63,7 +63,7 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
       const fsWrites = Promise.all(
         fileUpdates.files.map(async (f) => {
           await fs.promises.writeFile(f.path, f.content);
-        })
+        }),
       );
 
       if (opts.installDeps && Object.keys(fileUpdates.installedDeps).length > 0) {
@@ -73,19 +73,19 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
 
       await fsWrites;
 
-      showSpinner && s.stop('App updated');
+      showSpinner && s.stop("App updated");
 
       if (!passed) {
         const errorMessage = `${bgRed(
-          ` ${pkgManager} install failed `
+          ` ${pkgManager} install failed `,
         )}\n You might need to run "${cyan(
-          `${pkgManager} install`
+          `${pkgManager} install`,
         )}" manually inside the root of the project.`;
 
         log.error(errorMessage);
       }
     } catch (e) {
-      showSpinner && s.stop('App updated');
+      showSpinner && s.stop("App updated");
       panic(String(e));
     }
   };

@@ -16,8 +16,7 @@ export default component$(() => {
      * Very interesting when use to filter in OpenStreetMap API to take POIs
      * Example: https://qwik-osm-poc.netlify.app/
      */
-    boundaryBox:
-      "43.14658914559456,-2.4765586853027344,43.202923523094725,-2.3467826843261723",
+    boundaryBox: "43.14658914559456,-2.4765586853027344,43.202923523094725,-2.3467826843261723",
     zoom: 9,
     marker: true,
   });

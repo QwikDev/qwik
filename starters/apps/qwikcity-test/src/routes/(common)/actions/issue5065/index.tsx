@@ -9,9 +9,7 @@ interface MyObject {
   optional?: string;
 }
 
-export const useSimpleObjectAction = routeAction$(
-  async () => ({ value: 42 }) as MyObject,
-);
+export const useSimpleObjectAction = routeAction$(async () => ({ value: 42 }) as MyObject);
 
 export const useZodObjectAction = routeAction$(
   async () => ({ value: 42 }) as MyObject,

@@ -1,23 +1,23 @@
-import type { PathParams } from '../runtime/src/types';
-import { getPathnameForDynamicRoute, isSameOriginUrl, normalizePathname } from './pathname';
-import { parseRoutePathname } from '../buildtime/routing/parse-pathname';
-import { assert, test } from 'vitest';
+import type { PathParams } from "../runtime/src/types";
+import { getPathnameForDynamicRoute, isSameOriginUrl, normalizePathname } from "./pathname";
+import { parseRoutePathname } from "../buildtime/routing/parse-pathname";
+import { assert, test } from "vitest";
 
-test('isSameOriginUrl', () => {
+test("isSameOriginUrl", () => {
   const t = [
-    { url: '#hash', expect: false },
-    { url: '   #hash', expect: false },
-    { url: '', expect: false },
-    { url: '    ', expect: false },
-    { url: 'javascript://nice', expect: false },
-    { url: 'file://local', expect: false },
-    { url: 'about://blank', expect: false },
-    { url: 'HTTPS://qwik.dev', expect: false },
-    { url: 'http://qwik.dev', expect: false },
-    { url: 'relative:whatever', expect: true },
-    { url: 'relative', expect: true },
-    { url: './relative', expect: true },
-    { url: '/absolute', expect: true },
+    { url: "#hash", expect: false },
+    { url: "   #hash", expect: false },
+    { url: "", expect: false },
+    { url: "    ", expect: false },
+    { url: "javascript://nice", expect: false },
+    { url: "file://local", expect: false },
+    { url: "about://blank", expect: false },
+    { url: "HTTPS://qwik.dev", expect: false },
+    { url: "http://qwik.dev", expect: false },
+    { url: "relative:whatever", expect: true },
+    { url: "relative", expect: true },
+    { url: "./relative", expect: true },
+    { url: "/absolute", expect: true },
     { url: undefined, expect: false },
     { url: null, expect: false },
   ];
@@ -26,91 +26,91 @@ test('isSameOriginUrl', () => {
   });
 });
 
-test('normalizePathname', () => {
+test("normalizePathname", () => {
   const tests = [
     {
-      pathname: '/name/',
-      basePathname: '/',
+      pathname: "/name/",
+      basePathname: "/",
       trailingSlash: true,
-      expect: '/name/',
+      expect: "/name/",
     },
     {
-      pathname: '/name',
-      basePathname: '/',
+      pathname: "/name",
+      basePathname: "/",
       trailingSlash: true,
-      expect: '/name/',
+      expect: "/name/",
     },
     {
-      pathname: '/name/',
-      basePathname: '/',
+      pathname: "/name/",
+      basePathname: "/",
       trailingSlash: false,
-      expect: '/name',
+      expect: "/name",
     },
     {
-      pathname: '/name',
-      basePathname: '/',
+      pathname: "/name",
+      basePathname: "/",
       trailingSlash: false,
-      expect: '/name',
+      expect: "/name",
     },
     {
-      pathname: 'plz no spaces',
-      basePathname: '/',
+      pathname: "plz no spaces",
+      basePathname: "/",
       trailingSlash: false,
-      expect: '/plz%20no%20spaces',
+      expect: "/plz%20no%20spaces",
     },
     {
-      pathname: './about',
-      basePathname: '/',
+      pathname: "./about",
+      basePathname: "/",
       trailingSlash: false,
-      expect: '/about',
+      expect: "/about",
     },
     {
-      pathname: '/about.html',
-      basePathname: '/site/',
+      pathname: "/about.html",
+      basePathname: "/site/",
       trailingSlash: true,
-      expect: '/site/about.html',
+      expect: "/site/about.html",
     },
     {
-      pathname: '/about.html',
-      basePathname: '/site/',
+      pathname: "/about.html",
+      basePathname: "/site/",
       trailingSlash: false,
-      expect: '/site/about.html',
+      expect: "/site/about.html",
     },
     {
-      pathname: '/about',
-      basePathname: '/site/',
+      pathname: "/about",
+      basePathname: "/site/",
       trailingSlash: true,
-      expect: '/site/about/',
+      expect: "/site/about/",
     },
     {
-      pathname: '/about/',
-      basePathname: '/site/',
+      pathname: "/about/",
+      basePathname: "/site/",
       trailingSlash: false,
-      expect: '/site/about',
+      expect: "/site/about",
     },
     {
-      pathname: '/',
-      basePathname: '/site/',
+      pathname: "/",
+      basePathname: "/site/",
       trailingSlash: true,
-      expect: '/site/',
+      expect: "/site/",
     },
     {
-      pathname: '/',
-      basePathname: '/site/',
+      pathname: "/",
+      basePathname: "/site/",
       trailingSlash: false,
-      expect: '/site/',
+      expect: "/site/",
     },
     {
-      pathname: '/',
-      basePathname: '/',
+      pathname: "/",
+      basePathname: "/",
       trailingSlash: true,
-      expect: '/',
+      expect: "/",
     },
     {
-      pathname: '/',
-      basePathname: '/',
+      pathname: "/",
+      basePathname: "/",
       trailingSlash: false,
-      expect: '/',
+      expect: "/",
     },
   ];
 
@@ -120,64 +120,64 @@ test('normalizePathname', () => {
   });
 });
 
-test('dynamic, rest pathname in segment', () => {
+test("dynamic, rest pathname in segment", () => {
   const p = getPathname({
-    originalPathname: '/blog/start-[...slugId]-end',
-    basePathname: '/',
+    originalPathname: "/blog/start-[...slugId]-end",
+    basePathname: "/",
     params: {
-      slugId: 'what-is-resumability',
+      slugId: "what-is-resumability",
     },
   });
-  assert.equal(p, '/blog/start-what-is-resumability-end');
+  assert.equal(p, "/blog/start-what-is-resumability-end");
 });
 
-test('dynamic rest pathname', () => {
+test("dynamic rest pathname", () => {
   const p = getPathname({
-    originalPathname: '/blog/[...slugId]',
-    basePathname: '/',
+    originalPathname: "/blog/[...slugId]",
+    basePathname: "/",
     params: {
-      slugId: 'what-is-resumability',
+      slugId: "what-is-resumability",
     },
   });
-  assert.equal(p, '/blog/what-is-resumability');
+  assert.equal(p, "/blog/what-is-resumability");
 });
 
-test('dynamic, empty rest pathname in root', () => {
+test("dynamic, empty rest pathname in root", () => {
   const p = getPathname({
-    originalPathname: '/[...id]',
-    basePathname: '/',
+    originalPathname: "/[...id]",
+    basePathname: "/",
     params: {
-      id: '',
+      id: "",
     },
   });
-  assert.equal(p, '/');
+  assert.equal(p, "/");
 });
 
-test('dynamic, empty rest pathname in root with nested page', () => {
+test("dynamic, empty rest pathname in root with nested page", () => {
   const p = getPathname({
-    originalPathname: '/[...id]/page',
-    basePathname: '/',
+    originalPathname: "/[...id]/page",
+    basePathname: "/",
     params: {
-      id: '',
+      id: "",
     },
   });
-  assert.equal(p, '/page');
+  assert.equal(p, "/page");
 });
 
-test('dynamic pathname', () => {
+test("dynamic pathname", () => {
   const p = getPathname({
-    originalPathname: '/docs/[category]/[slugId]',
-    basePathname: '/',
+    originalPathname: "/docs/[category]/[slugId]",
+    basePathname: "/",
     params: {
-      category: 'introduction',
-      slugId: 'basics',
+      category: "introduction",
+      slugId: "basics",
     },
   });
-  assert.equal(p, '/docs/introduction/basics');
+  assert.equal(p, "/docs/introduction/basics");
 });
 
 function getPathname(t: { originalPathname: string; basePathname: string; params?: PathParams }) {
   const p = parseRoutePathname(t.basePathname, t.originalPathname);
   const d = getPathnameForDynamicRoute(t.originalPathname, p.paramNames, t.params);
-  return normalizePathname(d, '/', false);
+  return normalizePathname(d, "/", false);
 }

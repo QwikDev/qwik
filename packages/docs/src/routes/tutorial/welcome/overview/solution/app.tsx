@@ -1,4 +1,4 @@
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from "@builder.io/qwik";
 
 export default component$(() => {
   return (
@@ -8,7 +8,7 @@ export default component$(() => {
       <br />
       Qwik will never download me to the client. I am only rendered on the server.
       <br />
-      <button onClick$={() => alert('Hello')}>greet!</button>
+      <button onClick$={() => alert("Hello")}>greet!</button>
       <hr />
       <Counter />
     </>

@@ -6,10 +6,10 @@
     "deploy": "serverless deploy"
   },
   "devDependencies": {
-    "source-map-support": "^0.5.21",
     "serverless": "^3.38.0",
     "serverless-http": "^3.2.0",
-    "serverless-offline": "^13.3.2"
+    "serverless-offline": "^13.3.2",
+    "source-map-support": "^0.5.21"
   },
   "__qwik__": {
     "priority": 30,

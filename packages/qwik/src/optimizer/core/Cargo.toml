@@ -13,7 +13,16 @@ categories = ["development-tools", "development-tools::cargo-plugins"]
 crate-type = ["rlib"]
 
 [dependencies]
-swc_ecmascript = { version = "*", features = ["codegen", "utils", "visit", "parser", "transforms", "typescript",  "react", "optimization"] }
+swc_ecmascript = { version = "*", features = [
+  "codegen",
+  "utils",
+  "visit",
+  "parser",
+  "transforms",
+  "typescript",
+  "react",
+  "optimization",
+] }
 swc_common = { version = "*", features = ["sourcemap"] }
 swc_atoms = "*"
 serde = "1.0.160"
@@ -27,11 +36,11 @@ lazy_static = "1.4.0"
 anyhow = "1.0.70"
 derivative = "2.2.0"
 rayon = "1.7.0"
-path-slash="0.2.1"
+path-slash = "0.2.1"
 
 [dev-dependencies]
 insta = "1.29.0"
 
 [features]
-fs=[]
-parallel=[]
+fs = []
+parallel = []

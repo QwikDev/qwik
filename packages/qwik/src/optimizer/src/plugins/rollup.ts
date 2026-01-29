@@ -1,4 +1,4 @@
-import type { Rollup } from 'vite';
+import type { Rollup } from "vite";
 import type {
   Diagnostic,
   EntryStrategy,
@@ -7,7 +7,7 @@ import type {
   QwikManifest,
   TransformModule,
   TransformModuleInput,
-} from '../types';
+} from "../types";
 import {
   createQwikPlugin,
   type ExperimentalFeatures,
@@ -16,8 +16,8 @@ import {
   type QwikBuildTarget,
   type QwikPlugin,
   type QwikPluginOptions,
-} from './plugin';
-import { findDepPkgJsonPath } from './utils';
+} from "./plugin";
+import { findDepPkgJsonPath } from "./utils";
 
 type QwikRollupPluginApi = {
   getOptimizer: () => Optimizer;
@@ -29,7 +29,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   const qwikPlugin = createQwikPlugin(qwikRollupOpts.optimizerOptions);
 
   const rollupPlugin: QwikRollupPlugin = {
-    name: 'rollup-plugin-qwik',
+    name: "rollup-plugin-qwik",
 
     api: {
       getOptimizer: () => qwikPlugin.getOptimizer(),
@@ -41,7 +41,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
       const origOnwarn = inputOpts.onwarn;
       inputOpts.onwarn = (warning, warn) => {
-        if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
+        if (warning.plugin === "typescript" && warning.message.includes("outputToFilesystem")) {
           return;
         }
         origOnwarn ? origOnwarn(warning, warn) : warn(warning);
@@ -83,7 +83,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
-          if (d.category === 'error') {
+          if (d.category === "error") {
             this.error(createRollupError(id, d));
           } else {
             this.warn(createRollupError(id, d));
@@ -95,21 +95,21 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     resolveId(id, importer) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith("\0")) {
         return null;
       }
       return qwikPlugin.resolveId(this, id, importer);
     },
 
     load(id) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith("\0")) {
         return null;
       }
       return qwikPlugin.load(this, id);
     },
 
     transform(code, id) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith("\0")) {
         return null;
       }
       return qwikPlugin.transform(this, code, id);
@@ -118,7 +118,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     async generateBundle(_, rollupBundle) {
       const opts = qwikPlugin.getOptions();
 
-      if (opts.target === 'client') {
+      if (opts.target === "client") {
         await qwikPlugin.generateManifest(this, rollupBundle);
       }
     },
@@ -131,7 +131,7 @@ export async function normalizeRollupOutputOptions(
   qwikPlugin: QwikPlugin,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
   useAssetsDir: boolean,
-  outDir?: string
+  outDir?: string,
 ): Promise<Rollup.OutputOptions | Rollup.OutputOptions[]> {
   if (Array.isArray(rollupOutputOpts)) {
     // make sure at least one output is present in every case
@@ -143,7 +143,7 @@ export async function normalizeRollupOutputOptions(
       rollupOutputOpts.map(async (outputOptsObj) => ({
         ...(await normalizeRollupOutputOptionsObject(qwikPlugin, outputOptsObj, useAssetsDir)),
         dir: outDir || outputOptsObj.dir,
-      }))
+      })),
     );
   }
 
@@ -156,37 +156,37 @@ export async function normalizeRollupOutputOptions(
 export async function normalizeRollupOutputOptionsObject(
   qwikPlugin: QwikPlugin,
   rollupOutputOptsObj: Rollup.OutputOptions | undefined,
-  useAssetsDir: boolean
+  useAssetsDir: boolean,
 ): Promise<Rollup.OutputOptions> {
   const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
   const opts = qwikPlugin.getOptions();
   const optimizer = qwikPlugin.getOptimizer();
   const manualChunks = qwikPlugin.manualChunks;
-  if (opts.target === 'client') {
+  if (opts.target === "client") {
     // client output
     if (!outputOpts.assetFileNames) {
       // SEO likes readable asset names
-      const assetFileNames = 'assets/[hash]-[name].[ext]';
+      const assetFileNames = "assets/[hash]-[name].[ext]";
       outputOpts.assetFileNames = useAssetsDir
         ? `${opts.assetsDir}/${assetFileNames}`
         : assetFileNames;
     }
 
     let fileName: string | ((chunkInfo: Rollup.PreRenderedChunk) => string) | undefined;
-    if (opts.buildMode === 'production' && !opts.debug) {
-      fileName = 'build/q-[hash].js';
+    if (opts.buildMode === "production" && !opts.debug) {
+      fileName = "build/q-[hash].js";
     } else {
       // Friendlier names in dev or preview with debug mode
       fileName = (chunkInfo) => {
         if (
           chunkInfo.moduleIds?.some(
-            (id) => id.endsWith('core.prod.mjs') || id.endsWith('core.min.mjs')
+            (id) => id.endsWith("core.prod.mjs") || id.endsWith("core.min.mjs"),
           )
         ) {
-          return 'build/core.js';
+          return "build/core.js";
         }
-        if (chunkInfo.moduleIds?.some((id) => id.endsWith('qwik-city/lib/index.qwik.mjs'))) {
-          return 'build/qwik-city.js';
+        if (chunkInfo.moduleIds?.some((id) => id.endsWith("qwik-city/lib/index.qwik.mjs"))) {
+          return "build/qwik-city.js";
         }
 
         // The chunk name can often be a path. We sanitize it to use dashes instead of slashes, to keep the same folder structure as without debug:true.
@@ -194,15 +194,15 @@ export async function normalizeRollupOutputOptionsObject(
         const path = optimizer.sys.path;
         const relativePath = path.relative(optimizer.sys.cwd(), chunkInfo.name);
         const sanitized = relativePath
-          .replace(/^(\.\.\/)+/, '')
-          .replace(/^\/+/, '')
-          .replace(/\//g, '-');
+          .replace(/^(\.\.\/)+/, "")
+          .replace(/^\/+/, "")
+          .replace(/\//g, "-");
         return `build/${sanitized}.js`;
       };
     }
     // client development/debug output
     const getFilePath = (fileNamePattern: string | ((info: Rollup.PreRenderedChunk) => string)) =>
-      typeof fileNamePattern === 'string'
+      typeof fileNamePattern === "string"
         ? useAssetsDir
           ? `${opts.assetsDir}/${fileNamePattern}`
           : fileNamePattern
@@ -217,24 +217,24 @@ export async function normalizeRollupOutputOptionsObject(
     if (!outputOpts.chunkFileNames) {
       outputOpts.chunkFileNames = getFilePath(fileName);
     }
-  } else if (opts.buildMode === 'production') {
+  } else if (opts.buildMode === "production") {
     // server production output
     // everything in same dir so './@qwik-city...' imports work from entry and chunks
     if (!outputOpts.chunkFileNames) {
-      outputOpts.chunkFileNames = 'q-[hash].js';
+      outputOpts.chunkFileNames = "q-[hash].js";
     }
   }
   // all other cases, like lib output
   if (!outputOpts.assetFileNames) {
-    outputOpts.assetFileNames = 'assets/[hash]-[name].[ext]';
+    outputOpts.assetFileNames = "assets/[hash]-[name].[ext]";
   }
 
-  if (opts.target === 'client') {
+  if (opts.target === "client") {
     // client should always be es
-    outputOpts.format = 'es';
+    outputOpts.format = "es";
     const prevManualChunks = outputOpts.manualChunks;
-    if (prevManualChunks && typeof prevManualChunks !== 'function') {
-      throw new Error('manualChunks must be a function');
+    if (prevManualChunks && typeof prevManualChunks !== "function") {
+      throw new Error("manualChunks must be a function");
     }
     outputOpts.manualChunks = prevManualChunks
       ? (id, meta) => prevManualChunks(id, meta) || manualChunks(id, meta)
@@ -245,8 +245,8 @@ export async function normalizeRollupOutputOptionsObject(
     outputOpts.dir = opts.outDir;
   }
 
-  if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {
-    outputOpts.exports = 'auto';
+  if (outputOpts.format === "cjs" && typeof outputOpts.exports !== "string") {
+    outputOpts.exports = "auto";
   }
 
   /**
@@ -256,14 +256,14 @@ export async function normalizeRollupOutputOptionsObject(
   outputOpts.hoistTransitiveImports = false;
 
   // V2 official release TODO: remove below checks and just keep `outputOpts.onlyExplicitManualChunks = true;`
-  const userPkgJsonPath = await findDepPkgJsonPath(optimizer.sys, 'rollup', optimizer.sys.cwd());
+  const userPkgJsonPath = await findDepPkgJsonPath(optimizer.sys, "rollup", optimizer.sys.cwd());
   if (userPkgJsonPath) {
     try {
-      const fs: typeof import('fs') = await optimizer.sys.dynamicImport('node:fs');
-      const pkgJsonStr = await fs.promises.readFile(userPkgJsonPath, 'utf-8');
+      const fs: typeof import("fs") = await optimizer.sys.dynamicImport("node:fs");
+      const pkgJsonStr = await fs.promises.readFile(userPkgJsonPath, "utf-8");
       const pkgJson = JSON.parse(pkgJsonStr);
-      const version = String(pkgJson?.version || '');
-      const [major, minor, patch] = version.split('.').map((n: string) => parseInt(n, 10)) as [
+      const version = String(pkgJson?.version || "");
+      const [major, minor, patch] = version.split(".").map((n: string) => parseInt(n, 10)) as [
         number,
         number,
         number,
@@ -275,7 +275,7 @@ export async function normalizeRollupOutputOptionsObject(
         outputOpts.onlyExplicitManualChunks = true;
       } else {
         console.warn(
-          `⚠️ We detected that you're using a Rollup version prior to 4.52.0 (${version}). For the latest and greatest, we recommend to let Vite install the latest version for you, or manually install the latest version of Rollup in your project if that doesn't work. It will enable the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`
+          `⚠️ We detected that you're using a Rollup version prior to 4.52.0 (${version}). For the latest and greatest, we recommend to let Vite install the latest version for you, or manually install the latest version of Rollup in your project if that doesn't work. It will enable the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`,
         );
       }
     } catch {
@@ -290,12 +290,12 @@ export function createRollupError(id: string, diagnostic: Diagnostic) {
   const loc = diagnostic.highlights[0] ?? {};
   const err: Rollup.RollupError = Object.assign(new Error(diagnostic.message), {
     id,
-    plugin: 'qwik',
+    plugin: "qwik",
     loc: {
       column: loc.startCol,
       line: loc.startLine,
     },
-    stack: '',
+    stack: "",
   });
   return err;
 }
@@ -381,6 +381,6 @@ export interface QwikRollupPluginOptions {
    */
   experimental?: (keyof typeof ExperimentalFeatures)[];
 }
-export { ExperimentalFeatures } from './plugin';
+export { ExperimentalFeatures } from "./plugin";
 type P<T> = Rollup.Plugin<T> & { api: T };
 export interface QwikRollupPlugin extends P<QwikRollupPluginApi> {}

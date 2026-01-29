@@ -1,20 +1,20 @@
-import { $, type PropFnInterface, type QRL } from '../qrl/qrl.public';
-import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
-import { OnRenderProp, QSlot } from '../util/markers';
+import { $, type PropFnInterface, type QRL } from "../qrl/qrl.public";
+import type { JSXNode, JSXOutput } from "../render/jsx/types/jsx-node";
+import { OnRenderProp, QSlot } from "../util/markers";
 import type {
   ComponentBaseProps,
   EventHandler,
   JSXChildren,
   QRLEventHandlerMulti,
-} from '../render/jsx/types/jsx-qwik-attributes';
-import type { FunctionComponent } from '../render/jsx/types/jsx-node';
-import { Virtual, _jsxC } from '../render/jsx/jsx-runtime';
-import { SERIALIZABLE_STATE } from '../container/serializers';
-import { qTest } from '../util/qdev';
-import { assertQrl } from '../qrl/qrl-class';
-import { _IMMUTABLE } from '../state/constants';
-import { assertNumber } from '../error/assert';
-import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
+} from "../render/jsx/types/jsx-qwik-attributes";
+import type { FunctionComponent } from "../render/jsx/types/jsx-node";
+import { Virtual, _jsxC } from "../render/jsx/jsx-runtime";
+import { SERIALIZABLE_STATE } from "../container/serializers";
+import { qTest } from "../util/qdev";
+import { assertQrl } from "../qrl/qrl-class";
+import { _IMMUTABLE } from "../state/constants";
+import { assertNumber } from "../error/assert";
+import type { QwikIntrinsicElements } from "../render/jsx/types/jsx-qwik-elements";
 
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;
@@ -51,7 +51,7 @@ export type PropsOf<COMP> = COMP extends string
   ? COMP extends keyof QwikIntrinsicElements
     ? QwikIntrinsicElements[COMP]
     : // `<span/>` has no special attributes
-      QwikIntrinsicElements['span']
+      QwikIntrinsicElements["span"]
   : NonNullable<COMP> extends never
     ? never
     : COMP extends FunctionComponent<infer PROPS>
@@ -183,14 +183,14 @@ export type _Only$<P> = {
  */
 // </docs>
 export const componentQrl = <PROPS extends Record<any, any>>(
-  componentQrl: QRL<OnRenderFn<PROPS>>
+  componentQrl: QRL<OnRenderFn<PROPS>>,
 ): Component<PROPS> => {
   // Return a QComponent Factory function.
   function QwikComponent(props: PublicProps<PROPS>, key: string | null, flags: number): JSXNode {
     assertQrl(componentQrl);
-    assertNumber(flags, 'The Qwik Component was not invoked correctly');
-    const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
-    const finalKey = hash + ':' + (key ? key : '');
+    assertNumber(flags, "The Qwik Component was not invoked correctly");
+    const hash = qTest ? "sX" : componentQrl.$hash$.slice(0, 4);
+    const finalKey = hash + ":" + (key ? key : "");
     return _jsxC(
       Virtual,
       {
@@ -201,7 +201,7 @@ export const componentQrl = <PROPS extends Record<any, any>>(
         props,
       },
       flags,
-      finalKey
+      finalKey,
     ) as any;
   }
   (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
@@ -209,7 +209,7 @@ export const componentQrl = <PROPS extends Record<any, any>>(
 };
 
 export const isQwikComponent = <T extends Component<any>>(component: unknown): component is T => {
-  return typeof component == 'function' && (component as any)[SERIALIZABLE_STATE] !== undefined;
+  return typeof component == "function" && (component as any)[SERIALIZABLE_STATE] !== undefined;
 };
 
 /** @public @deprecated Use `QRL<>` on your function props instead */

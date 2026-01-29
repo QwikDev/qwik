@@ -1,4 +1,4 @@
-import { component$, sync$, useSignal, $ } from '@builder.io/qwik';
+import { component$, sync$, useSignal, $ } from "@builder.io/qwik";
 
 type Item = {
   id: number;
@@ -7,15 +7,15 @@ type Item = {
 
 export default component$(() => {
   const items1 = useSignal<Item[]>([
-    { id: 1, content: '📱 Phone' },
-    { id: 2, content: '💻 Laptop' },
-    { id: 3, content: '🎧 Headphones' },
+    { id: 1, content: "📱 Phone" },
+    { id: 2, content: "💻 Laptop" },
+    { id: 3, content: "🎧 Headphones" },
   ]);
 
   const items2 = useSignal<Item[]>([
-    { id: 4, content: '⌚️ Watch' },
-    { id: 5, content: '🖱 Mouse' },
-    { id: 6, content: '⌨️ Keyboard' },
+    { id: 4, content: "⌚️ Watch" },
+    { id: 5, content: "🖱 Mouse" },
+    { id: 6, content: "⌨️ Keyboard" },
   ]);
 
   return (
@@ -26,20 +26,20 @@ export default component$(() => {
         preventdefault:dragover
         preventdefault:drop
         onDragOver$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
-          currentTarget.setAttribute('data-over', 'true');
+          currentTarget.setAttribute("data-over", "true");
         })}
         onDragLeave$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
-          currentTarget.removeAttribute('data-over');
+          currentTarget.removeAttribute("data-over");
         })}
         onDrop$={[
           sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
-            const id = e.dataTransfer?.getData('text/plain');
+            const id = e.dataTransfer?.getData("text/plain");
             currentTarget.dataset.droppedId = id;
-            currentTarget.removeAttribute('data-over');
+            currentTarget.removeAttribute("data-over");
           }),
           $((e, currentTarget) => {
             const draggedElementId = currentTarget.dataset.droppedId;
-            const isDropZone = currentTarget.hasAttribute('data-dropzone');
+            const isDropZone = currentTarget.hasAttribute("data-dropzone");
 
             if (draggedElementId) {
               const itemId = parseInt(draggedElementId);
@@ -50,19 +50,13 @@ export default component$(() => {
                 items1.value = [...items1.value, item];
               } else {
                 const newItems = [...items1.value];
-                const targetId = parseInt(
-                  (e.target as HTMLDivElement).dataset.id || '0'
-                );
+                const targetId = parseInt((e.target as HTMLDivElement).dataset.id || "0");
                 if (targetId === 0) {
                   return;
                 }
 
-                const targetIndex = items1.value.findIndex(
-                  (i) => i.id === targetId
-                );
-                const draggedIndex = items1.value.findIndex(
-                  (i) => i.id === itemId
-                );
+                const targetIndex = items1.value.findIndex((i) => i.id === targetId);
+                const draggedIndex = items1.value.findIndex((i) => i.id === itemId);
 
                 if (draggedIndex !== -1) {
                   // Sorting in the same container
@@ -89,14 +83,12 @@ export default component$(() => {
             data-id={item.id}
             class="min-h-[62px] mb-3 cursor-move select-none rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-md active:scale-95"
             draggable
-            onDragStart$={sync$(
-              (e: DragEvent, currentTarget: HTMLDivElement) => {
-                const itemId = currentTarget.getAttribute('data-id');
-                if (e.dataTransfer && itemId) {
-                  e.dataTransfer.setData('text/plain', itemId);
-                }
+            onDragStart$={sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
+              const itemId = currentTarget.getAttribute("data-id");
+              if (e.dataTransfer && itemId) {
+                e.dataTransfer.setData("text/plain", itemId);
               }
-            )}
+            })}
           >
             <span class="text-lg text-gray-700">{item.content}</span>
           </div>
@@ -109,22 +101,22 @@ export default component$(() => {
         preventdefault:dragover
         preventdefault:drop
         onDragOver$={(_: DragEvent, currentTarget: HTMLDivElement) => {
-          currentTarget.setAttribute('data-over', 'true');
+          currentTarget.setAttribute("data-over", "true");
         }}
         onDragLeave$={[
           sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
-            currentTarget.removeAttribute('data-over');
+            currentTarget.removeAttribute("data-over");
           }),
         ]}
         onDrop$={[
           sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
-            const id = e.dataTransfer?.getData('text/plain');
+            const id = e.dataTransfer?.getData("text/plain");
             currentTarget.dataset.droppedId = id;
-            currentTarget.removeAttribute('data-over');
+            currentTarget.removeAttribute("data-over");
           }),
           $((e, currentTarget) => {
             const draggedElementId = currentTarget.dataset.droppedId;
-            const isDropZone = currentTarget.hasAttribute('data-dropzone');
+            const isDropZone = currentTarget.hasAttribute("data-dropzone");
 
             if (draggedElementId) {
               const itemId = parseInt(draggedElementId);
@@ -134,19 +126,13 @@ export default component$(() => {
                 items1.value = items1.value.filter((i) => i.id !== itemId);
                 items2.value = [...items2.value, item];
               } else {
-                const targetId = parseInt(
-                  (e.target as HTMLDivElement).dataset.id || '0'
-                );
+                const targetId = parseInt((e.target as HTMLDivElement).dataset.id || "0");
                 if (targetId === 0) {
                   return;
                 }
                 const newItems = [...items2.value];
-                const draggedIndex = items2.value.findIndex(
-                  (i) => i.id === itemId
-                );
-                const targetIndex = items2.value.findIndex(
-                  (i) => i.id === targetId
-                );
+                const draggedIndex = items2.value.findIndex((i) => i.id === itemId);
+                const targetIndex = items2.value.findIndex((i) => i.id === targetId);
                 if (draggedIndex !== -1) {
                   // Sorting in the same container
                   swapElements(newItems, targetIndex, draggedIndex);
@@ -172,14 +158,12 @@ export default component$(() => {
             data-id={item.id}
             class="min-h-[62px] mb-3 cursor-move select-none rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-md active:scale-95"
             draggable
-            onDragStart$={sync$(
-              (e: DragEvent, currentTarget: HTMLDivElement) => {
-                const itemId = currentTarget.getAttribute('data-id');
-                if (e.dataTransfer && itemId) {
-                  e.dataTransfer.setData('text/plain', itemId);
-                }
+            onDragStart$={sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
+              const itemId = currentTarget.getAttribute("data-id");
+              if (e.dataTransfer && itemId) {
+                e.dataTransfer.setData("text/plain", itemId);
               }
-            )}
+            })}
           >
             <span class="text-lg text-gray-700">{item.content}</span>
           </div>

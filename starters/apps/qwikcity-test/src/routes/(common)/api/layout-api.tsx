@@ -11,10 +11,7 @@ export default component$(() => {
         <h2>API</h2>
         <ul>
           <li>
-            <a
-              href="/qwikcity-test/api/builder.io/oss.json"
-              data-test-link="api-org-user"
-            >
+            <a href="/qwikcity-test/api/builder.io/oss.json" data-test-link="api-org-user">
               Org/User
             </a>
           </li>

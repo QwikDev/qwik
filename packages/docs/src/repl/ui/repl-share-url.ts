@@ -1,43 +1,43 @@
-import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-options';
+import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from "./repl-options";
 // We use deflate because it has no metadata, just raw compression
-import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
+import { deflateSync, inflateSync, strFromU8, strToU8 } from "fflate";
 
 const dataDefaults: PlaygroundShareUrl = {
-  version: '',
-  buildMode: 'development',
-  entryStrategy: 'segment',
+  version: "",
+  buildMode: "development",
+  entryStrategy: "segment",
   files: [],
 };
 export const parsePlaygroundShareUrl = (shareable: string) => {
-  if (typeof shareable === 'string' && shareable.length > 0) {
+  if (typeof shareable === "string" && shareable.length > 0) {
     try {
       const params = new URLSearchParams(shareable);
       const data = { ...dataDefaults };
 
-      const version = params.get('v')! || params.get('version')!;
+      const version = params.get("v")! || params.get("version")!;
       data.version =
-        typeof version === 'string' && version.split('.').length > 2 ? version : 'bundled';
+        typeof version === "string" && version.split(".").length > 2 ? version : "bundled";
 
-      const buildMode = params.get('buildMode')!;
+      const buildMode = params.get("buildMode")!;
       if (BUILD_MODE_OPTIONS.includes(buildMode)) {
         data.buildMode = buildMode;
       }
 
-      const entryStrategy = params.get('entryStrategy')!;
+      const entryStrategy = params.get("entryStrategy")!;
       if (ENTRY_STRATEGY_OPTIONS.includes(entryStrategy)) {
         data.entryStrategy = entryStrategy;
       }
 
-      if (params.has('files')) {
+      if (params.has("files")) {
         // Old URLs that didn't compress
         // the files, used the `files` key
-        const filesBase64 = params.get('files')!;
-        if (typeof filesBase64 === 'string') {
+        const filesBase64 = params.get("files")!;
+        if (typeof filesBase64 === "string") {
           data.files = parseUncompressedFiles(filesBase64);
         }
-      } else if (params.has('f')) {
-        const filesBase64 = params.get('f');
-        if (typeof filesBase64 === 'string') {
+      } else if (params.has("f")) {
+        const filesBase64 = params.get("f");
+        if (typeof filesBase64 === "string") {
           data.files = parseCompressedFiles(filesBase64);
         }
       }
@@ -52,16 +52,16 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
 };
 
 export const filesToStr = (files: any[]) =>
-  files.map((f) => `${f.path.length}|${f.path}|${f.code.length}|${f.code}`).join('|');
+  files.map((f) => `${f.path.length}|${f.path}|${f.code.length}|${f.code}`).join("|");
 const readChunk = (str: string) => {
-  const sepIdx = str.indexOf('|');
+  const sepIdx = str.indexOf("|");
   if (sepIdx < 1) {
     console.error(str);
     throw new Error(`corrupt string`);
   }
   const length = Number(str.slice(0, sepIdx));
   if (isNaN(length) || str.length < sepIdx + length + 1) {
-    throw new Error('string too short');
+    throw new Error("string too short");
   }
   const chunk = str.slice(sepIdx + 1, sepIdx + 1 + length);
   const rest = str.slice(sepIdx + length + 2);
@@ -86,11 +86,11 @@ export const strToFiles = (str: string) => {
 export const dictionary = strToU8(
   filesToStr([
     {
-      path: '/app.tsx',
+      path: "/app.tsx",
       code: `import { component$ } from '@qwik.dev/core';\n\nexport default component$(() => {\n  return (\n    <div>\n      <h1>Hello from Qwik!</h1>\n    </div>\n  );\n`,
     },
     {
-      path: '',
+      path: "",
       // Extra words to help with compression
       // generated with
       // cat packages/docs/src/routes/examples/apps/*/*/app.tsx|sed -E 's/[^a-zA-Z0-9$_]+/\n/g'|sort|uniq -c|sort -rn|awk '$1>=2&&length($2)>2{printf $2 " "}'
@@ -104,33 +104,33 @@ export const dictionary = strToU8(
     },
     // The old default hello world app + supporting files
     {
-      path: '/app.tsx',
+      path: "/app.tsx",
       code: `import { component$ } from '@builder.io/qwik';\n\nexport default component$(() => {\n  return <p>Hello Qwik</p>;\n});\n`,
     },
     {
-      path: '/entry.server.tsx',
+      path: "/entry.server.tsx",
       code: `import { renderToString, type RenderOptions } from '@builder.io/qwik/server';\nimport { Root } from './root';\n\nexport default function (opts: RenderOptions) {\n  return renderToString(<Root />, opts);\n}\n`,
     },
     {
-      path: '/root.tsx',
+      path: "/root.tsx",
       code: `import App from './app';\n\nexport const Root = () => {\n  return (\n    <>\n      <head>\n        <title>Hello Qwik</title>\n      </head>\n      <body>\n        <App />\n      </body>\n    </>\n  );\n};\n`,
     },
-  ])
+  ]),
 );
 
-export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/playground/') => {
+export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = "/playground/") => {
   const params = new URLSearchParams();
-  if (data.version !== 'bundled') {
-    params.set('v', data.version);
+  if (data.version !== "bundled") {
+    params.set("v", data.version);
   }
   if (data.buildMode !== dataDefaults.buildMode) {
-    params.set('buildMode', data.buildMode);
+    params.set("buildMode", data.buildMode);
   }
   if (data.entryStrategy !== dataDefaults.entryStrategy) {
-    params.set('entryStrategy', data.entryStrategy);
+    params.set("entryStrategy", data.entryStrategy);
   }
 
-  params.set('f', compressFiles(data.files));
+  params.set("f", compressFiles(data.files));
 
   return `${pathname}#${params.toString()}`;
 };
@@ -142,9 +142,9 @@ export function compressFiles(files: any[]) {
   const compressedString = strFromU8(compressedUint8Array, true);
   let filesBase64 = btoa(compressedString);
   // We can remove the padding
-  if (filesBase64.endsWith('==')) {
+  if (filesBase64.endsWith("==")) {
     filesBase64 = filesBase64.slice(0, -2);
-  } else if (filesBase64.endsWith('=')) {
+  } else if (filesBase64.endsWith("=")) {
     filesBase64 = filesBase64.slice(0, -1);
   }
   return filesBase64;
@@ -156,7 +156,7 @@ function parseUncompressedFiles(filesBase64: string) {
   const files = JSON.parse(filesStr);
 
   if (Array.isArray(files)) {
-    return files.filter((f) => typeof f.code === 'string' && typeof f.path === 'string');
+    return files.filter((f) => typeof f.code === "string" && typeof f.path === "string");
   }
 
   return [];
@@ -166,13 +166,13 @@ export function parseCompressedFiles(filesBase64: string) {
   const encoded = atob(filesBase64);
   const compressedUint8Array = strToU8(encoded, true);
 
-  let filesStr = '';
+  let filesStr = "";
 
   try {
     const filesBuf = inflateSync(compressedUint8Array, { dictionary });
     filesStr = strFromU8(filesBuf);
   } catch (error) {
-    console.error('Could not decode URL, falling back to uncompressed');
+    console.error("Could not decode URL, falling back to uncompressed");
     // Treat string as not compressed
     filesStr = decodeURIComponent(encoded);
   }

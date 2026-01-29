@@ -1,9 +1,9 @@
-import { Resource, component$, useResource$, useStore } from '@builder.io/qwik';
-import { server$, useLocation } from '@builder.io/qwik-city';
-import { and, eq } from 'drizzle-orm';
-import { getDB, symbolDetailTable } from '~/db';
-import { SymbolIcon } from '../icons/symbol';
-import { type PopupEvent } from '../popup-manager';
+import { Resource, component$, useResource$, useStore } from "@builder.io/qwik";
+import { server$, useLocation } from "@builder.io/qwik-city";
+import { and, eq } from "drizzle-orm";
+import { getDB, symbolDetailTable } from "~/db";
+import { SymbolIcon } from "../icons/symbol";
+import { type PopupEvent } from "../popup-manager";
 
 export const SymbolPopup = component$<{ symbolHash: string }>(({ symbolHash }) => (
   <div class="min-w-[500px] max-w-[75vw]">
@@ -15,24 +15,24 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
   const location = useLocation();
   const state = useStore({
     symbolHash: symbolHash,
-    fullName: '',
-    origin: '',
-    originUrl: '',
+    fullName: "",
+    origin: "",
+    originUrl: "",
     lo: 0,
     hi: 0,
   });
   const source = useResource$(async ({ track }) => {
     state.symbolHash = track(() => symbolHash);
     if (state.symbolHash) {
-      state.fullName = '...';
-      state.origin = '...';
+      state.fullName = "...";
+      state.origin = "...";
       const data = await serverGetSourceSnippet(location.params.publicApiKey, state.symbolHash);
       state.fullName = data.fullName;
       state.origin = data.origin;
       state.originUrl = data.originUrl;
       return data.source;
     } else {
-      return { preamble: '', highlight: '', postamble: '' };
+      return { preamble: "", highlight: "", postamble: "" };
     }
   });
   return (
@@ -111,29 +111,29 @@ const serverGetSourceSnippet = server$(async function (publicApiKey: string, sym
         and(
           //
           eq(symbolDetailTable.publicApiKey, publicApiKey),
-          eq(symbolDetailTable.hash, symbolHash)
-        )
+          eq(symbolDetailTable.hash, symbolHash),
+        ),
       )
       .get(),
   ]);
   if (!symbolDetail) {
     symbolDetail = {
-      fullName: 'unknown',
-      origin: 'unknown',
+      fullName: "unknown",
+      origin: "unknown",
       lo: 0,
       hi: 0,
     };
   }
-  let source = '...';
+  let source = "...";
   let url: URL | null = null;
   let rawUrl: URL | null = null;
-  if (publicApiKey == '221smyuj5gl') {
-    const rawGithub = 'https://raw.githubusercontent.com/QwikDev/qwik/main/packages/docs/src/';
-    const github = 'https://github.com/QwikDev/qwik/blob/main/packages/docs/src/';
+  if (publicApiKey == "221smyuj5gl") {
+    const rawGithub = "https://raw.githubusercontent.com/QwikDev/qwik/main/packages/docs/src/";
+    const github = "https://github.com/QwikDev/qwik/blob/main/packages/docs/src/";
     rawUrl = new URL(rawGithub);
     url = new URL(github);
-    if (symbolDetail.origin.startsWith('./')) {
-      console.log('ORIGIN:', symbolDetail.origin);
+    if (symbolDetail.origin.startsWith("./")) {
+      console.log("ORIGIN:", symbolDetail.origin);
     } else {
       rawUrl.pathname += symbolDetail.origin;
       url.pathname += symbolDetail.origin;
@@ -144,7 +144,7 @@ const serverGetSourceSnippet = server$(async function (publicApiKey: string, sym
   return {
     fullName: symbolDetail.fullName,
     origin: symbolDetail.origin,
-    originUrl: url ? url.toString() : '',
+    originUrl: url ? url.toString() : "",
     source: codeHighlight(source, symbolDetail.lo, symbolDetail.hi),
   };
 });
@@ -152,17 +152,17 @@ const serverGetSourceSnippet = server$(async function (publicApiKey: string, sym
 function codeHighlight(
   code: string,
   lo: number,
-  hi: number
+  hi: number,
 ): { preamble: string; highlight: string; postamble: string } {
   const pre = code.substring(0, lo - 1);
-  let preNlIdx = pre.lastIndexOf('\n', pre.length - 1);
-  preNlIdx = pre.lastIndexOf('\n', preNlIdx - 1);
-  preNlIdx = pre.lastIndexOf('\n', preNlIdx - 1);
+  let preNlIdx = pre.lastIndexOf("\n", pre.length - 1);
+  preNlIdx = pre.lastIndexOf("\n", preNlIdx - 1);
+  preNlIdx = pre.lastIndexOf("\n", preNlIdx - 1);
   const highlight = code.substring(lo - 1, hi - 1);
   const post = code.substring(hi - 1);
-  let postNlIdx = post.indexOf('\n', 1);
-  postNlIdx = post.indexOf('\n', postNlIdx + 1);
-  postNlIdx = post.indexOf('\n', postNlIdx + 1);
+  let postNlIdx = post.indexOf("\n", 1);
+  postNlIdx = post.indexOf("\n", postNlIdx + 1);
+  postNlIdx = post.indexOf("\n", postNlIdx + 1);
   return {
     preamble: pre.substring(preNlIdx + 1),
     highlight,

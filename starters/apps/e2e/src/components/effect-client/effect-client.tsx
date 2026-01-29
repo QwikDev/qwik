@@ -263,20 +263,16 @@ export const CleanupEffects = component$(() => {
   );
 });
 
-export const CleanupEffectsChild = component$(
-  (props: { nuCleanups: Signal<number> }) => {
-    useVisibleTask$(({ cleanup }) => {
-      cleanup(() => {
-        props.nuCleanups.value++;
-      });
+export const CleanupEffectsChild = component$((props: { nuCleanups: Signal<number> }) => {
+  useVisibleTask$(({ cleanup }) => {
+    cleanup(() => {
+      props.nuCleanups.value++;
     });
-    return <div>Hello</div>;
-  },
-);
+  });
+  return <div>Hello</div>;
+});
 
-const ContextIssue4432 = createContextId<{ url: URL; logs: string }>(
-  "issue-4432",
-);
+const ContextIssue4432 = createContextId<{ url: URL; logs: string }>("issue-4432");
 
 export const Issue4432 = component$(() => {
   const loc = useStore({

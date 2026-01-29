@@ -9,6 +9,6 @@
  */
 export declare const self: ServiceWorkerGlobalScope;
 
-addEventListener('install', () => self.skipWaiting());
+addEventListener("install", () => self.skipWaiting());
 
-addEventListener('activate', () => self.clients.claim());
+addEventListener("activate", () => self.clients.claim());

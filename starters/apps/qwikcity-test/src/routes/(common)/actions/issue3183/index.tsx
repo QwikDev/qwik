@@ -27,9 +27,7 @@ export default component$(() => {
         </button>
       </Form>
       {dotNotation.value?.success && (
-        <div id="issue3183-success">
-          {JSON.stringify(dotNotation.value.payload)}
-        </div>
+        <div id="issue3183-success">{JSON.stringify(dotNotation.value.payload)}</div>
       )}
     </>
   );

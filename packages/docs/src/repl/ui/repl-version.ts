@@ -1,16 +1,16 @@
-import { bundled } from '../bundler/bundled';
-import { QWIK_PKG_NAME_V1 } from '../repl-constants';
+import { bundled } from "../bundler/bundled";
+import { QWIK_PKG_NAME_V1 } from "../repl-constants";
 
 const bundledVersion = bundled[QWIK_PKG_NAME_V1].version;
 
 // The golden oldies
-const keepList = new Set('1.0.0,1.1.5,1.2.13,1.4.5'.split(','));
+const keepList = new Set("1.0.0,1.1.5,1.2.13,1.4.5".split(","));
 
 // The bad apples - add versions that break the REPL here
 const blockList = new Set(
-  '1.2.0,1.2.1,1.2.2,1.2.3,1.2.4,1.2.5,1.2.6,1.2.7,1.2.8,1.2.9,1.2.10,1.2.11,1.2.14,1.2.15,1.3.0,1.6.0'.split(
-    ','
-  )
+  "1.2.0,1.2.1,1.2.2,1.2.3,1.2.4,1.2.5,1.2.6,1.2.7,1.2.8,1.2.9,1.2.10,1.2.11,1.2.14,1.2.15,1.3.0,1.6.0".split(
+    ",",
+  ),
 );
 
 export const getReplVersion = async (version: string | undefined, offline: boolean) => {
@@ -30,7 +30,7 @@ export const getReplVersion = async (version: string | undefined, offline: boole
       console.debug(`Qwik REPL, using cached npm data`);
     }
   } catch (e) {
-    console.warn('getReplVersion', e);
+    console.warn("getReplVersion", e);
   }
   const npmVersions = npmData?.versions || [];
 
@@ -52,13 +52,13 @@ export const getReplVersion = async (version: string | undefined, offline: boole
       // always include "latest"
       return true;
     }
-    const parts = v.split('.');
+    const parts = v.split(".");
     if (!parts[2] || /-(dev|alpha)/.test(parts[2])) {
       // exclude dev and alpha versions
       return false;
     }
     // mini-semver check, must be >= than 0.0.100
-    if (parts[0] === '0' && parts[1] === '0') {
+    if (parts[0] === "0" && parts[1] === "0") {
       if (parseInt(parts[2], 10) < 100) {
         return false;
       }
@@ -74,8 +74,8 @@ export const getReplVersion = async (version: string | undefined, offline: boole
   }
   // sort by version number
   versions.sort((a, b) => {
-    const aParts = a.split('.');
-    const bParts = b.split('.');
+    const aParts = a.split(".");
+    const bParts = b.split(".");
     for (let i = 0; i < 3; i++) {
       const aNum = parseInt(aParts[i], 10);
       const bNum = parseInt(bParts[i], 10);
@@ -89,16 +89,16 @@ export const getReplVersion = async (version: string | undefined, offline: boole
     return 0;
   });
 
-  versions.unshift('bundled');
+  versions.unshift("bundled");
   if (!hasVersion || !version) {
-    version = 'bundled';
+    version = "bundled";
   }
 
   return { version, versions };
 };
 
 const isExpiredNpmData = (npmData: NpmData | null) => {
-  if (npmData && typeof npmData.timestamp === 'number') {
+  if (npmData && typeof npmData.timestamp === "number") {
     if (npmData.timestamp + 1000 * 60 * 60 * 2 > Date.now()) {
       return false;
     }

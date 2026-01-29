@@ -6,13 +6,9 @@ import {
   useStore,
   type NoSerialize,
   type JSXOutput,
-} from '@builder.io/qwik';
-import {
-  Portal,
-  PortalAPI,
-  PortalProvider,
-} from '../cookbook/portal/portal-provider';
-import { UnderstandingResumability } from './component';
+} from "@builder.io/qwik";
+import { Portal, PortalAPI, PortalProvider } from "../cookbook/portal/portal-provider";
+import { UnderstandingResumability } from "./component";
 
 export default component$(() => {
   return (
@@ -44,16 +40,16 @@ export const HoverProvider = component$(() => {
             return;
           }
           target.dispatchEvent(
-            new CustomEvent('hover', {
+            new CustomEvent("hover", {
               bubbles: true,
               detail: async (jsx: JSXOutput) => {
                 if (state.close) {
                   return;
                 }
                 state.currentTarget = e.target as HTMLElement;
-                state.close = noSerialize(await portal('popup', jsx));
+                state.close = noSerialize(await portal("popup", jsx));
               },
-            })
+            }),
           );
         }
       }}
@@ -82,7 +78,7 @@ function isHTMLElement(node: any): node is HTMLElement {
 }
 
 function isPortal(element: HTMLElement) {
-  return element.closest('[data-portal]') != null;
+  return element.closest("[data-portal]") != null;
 }
 
 export type HoverEvent = CustomEvent<(jsx: JSXOutput) => void>;

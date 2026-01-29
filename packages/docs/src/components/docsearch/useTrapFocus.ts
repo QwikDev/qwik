@@ -1,4 +1,4 @@
-import { useTask$, type Signal } from '@builder.io/qwik';
+import { useTask$, type Signal } from "@builder.io/qwik";
 
 interface UseTrapFocusProps {
   containerRef: Signal<Element>;
@@ -12,13 +12,13 @@ export function useTrapFocus(props: UseTrapFocusProps) {
     }
 
     const focusableElements = container.querySelectorAll<HTMLElement>(
-      'a[href]:not([disabled]), button:not([disabled]), input:not([disabled])'
+      "a[href]:not([disabled]), button:not([disabled]), input:not([disabled])",
     );
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
 
     function trapFocus(event: KeyboardEvent) {
-      if (event.key !== 'Tab') {
+      if (event.key !== "Tab") {
         return;
       }
 
@@ -33,10 +33,10 @@ export function useTrapFocus(props: UseTrapFocusProps) {
       }
     }
 
-    container.addEventListener('keydown', trapFocus);
+    container.addEventListener("keydown", trapFocus);
 
     return () => {
-      container.removeEventListener('keydown', trapFocus);
+      container.removeEventListener("keydown", trapFocus);
     };
   });
 }

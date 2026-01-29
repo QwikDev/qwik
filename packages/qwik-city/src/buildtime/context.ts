@@ -1,12 +1,12 @@
-import type { NormalizedPluginOptions, BuildContext, PluginOptions } from './types';
-import { isAbsolute, resolve } from 'node:path';
-import { normalizePath } from '../utils/fs';
+import type { NormalizedPluginOptions, BuildContext, PluginOptions } from "./types";
+import { isAbsolute, resolve } from "node:path";
+import { normalizePath } from "../utils/fs";
 
 export function createBuildContext(
   rootDir: string,
   viteBasePath: string,
   userOpts?: PluginOptions,
-  target?: 'ssr' | 'client'
+  target?: "ssr" | "client",
 ) {
   const ctx: BuildContext = {
     rootDir: normalizePath(rootDir),
@@ -19,7 +19,7 @@ export function createBuildContext(
     menus: [],
     diagnostics: [],
     frontmatter: new Map(),
-    target: target || 'ssr',
+    target: target || "ssr",
     isDevServer: false,
     isDevServerClientOnly: false,
     isDirty: true,
@@ -43,56 +43,56 @@ export function resetBuildContext(ctx: BuildContext | null) {
 function normalizeOptions(
   rootDir: string,
   viteBasePath: string,
-  userOpts: PluginOptions | undefined
+  userOpts: PluginOptions | undefined,
 ) {
-  if (!(viteBasePath.startsWith('/') && viteBasePath.endsWith('/'))) {
+  if (!(viteBasePath.startsWith("/") && viteBasePath.endsWith("/"))) {
     // TODO v2: make this an error
     console.error(
-      `warning: vite's config.base must begin and end with /. This will be an error in v2. If you have a valid use case, please open an issue.`
+      `warning: vite's config.base must begin and end with /. This will be an error in v2. If you have a valid use case, please open an issue.`,
     );
-    if (!viteBasePath.endsWith('/')) {
-      viteBasePath += '/';
+    if (!viteBasePath.endsWith("/")) {
+      viteBasePath += "/";
     }
   }
   const opts: NormalizedPluginOptions = { ...userOpts } as any;
 
-  if (typeof opts.routesDir !== 'string') {
-    opts.routesDir = resolve(rootDir, 'src', 'routes');
+  if (typeof opts.routesDir !== "string") {
+    opts.routesDir = resolve(rootDir, "src", "routes");
   } else if (!isAbsolute(opts.routesDir)) {
     opts.routesDir = resolve(rootDir, opts.routesDir);
   }
   opts.routesDir = normalizePath(opts.routesDir);
 
-  if (typeof opts.serverPluginsDir !== 'string') {
+  if (typeof opts.serverPluginsDir !== "string") {
     opts.serverPluginsDir = opts.routesDir;
   } else if (!isAbsolute(opts.serverPluginsDir)) {
     opts.serverPluginsDir = resolve(rootDir, opts.serverPluginsDir);
   }
   opts.serverPluginsDir = normalizePath(opts.serverPluginsDir);
 
-  if (typeof (opts as any).baseUrl === 'string') {
+  if (typeof (opts as any).baseUrl === "string") {
     // baseUrl deprecated
     opts.basePathname = (opts as any).baseUrl;
   }
 
-  if (typeof opts.basePathname !== 'string') {
+  if (typeof opts.basePathname !== "string") {
     // opts.basePathname is used internally
     // but in most cases should be passed in by the vite config "base" property
     opts.basePathname = viteBasePath;
   }
-  if (!opts.basePathname.endsWith('/')) {
+  if (!opts.basePathname.endsWith("/")) {
     // TODO v2: make this an error
     console.error(
-      `Warning: qwik-city plugin basePathname must end with /. This will be an error in v2`
+      `Warning: qwik-city plugin basePathname must end with /. This will be an error in v2`,
     );
-    opts.basePathname += '/';
+    opts.basePathname += "/";
   }
 
   // cleanup basePathname
-  const url = new URL(opts.basePathname, 'https://qwik.dev/');
+  const url = new URL(opts.basePathname, "https://qwik.dev/");
   opts.basePathname = url.pathname;
 
-  if (typeof opts.trailingSlash !== 'boolean') {
+  if (typeof opts.trailingSlash !== "boolean") {
     opts.trailingSlash = true;
   }
 

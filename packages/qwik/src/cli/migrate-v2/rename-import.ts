@@ -1,15 +1,15 @@
-import { Project, ts } from 'ts-morph';
-import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
-import { log } from '@clack/prompts';
+import { Project, ts } from "ts-morph";
+import { visitNotIgnoredFiles } from "./tools/visit-not-ignored-files";
+import { log } from "@clack/prompts";
 
 export function replaceImportInFiles(
   changes: [oldImport: string, newImport: string][],
-  library: string
+  library: string,
 ) {
   const project = new Project();
 
-  visitNotIgnoredFiles('.', (path) => {
-    if (!path.endsWith('.ts') && !path.endsWith('.tsx')) {
+  visitNotIgnoredFiles(".", (path) => {
+    if (!path.endsWith(".ts") && !path.endsWith(".tsx")) {
       return;
     }
     project.addSourceFileAtPath(path);

@@ -1,25 +1,25 @@
-import { isDocument } from '../../util/element';
-import { jsx } from '../jsx/jsx-runtime';
-import type { JSXOutput, FunctionComponent } from '../jsx/types/jsx-node';
-import { cleanupTree, domToVnode, smartUpdateChildren } from './visitor';
-import { getDocument } from '../../util/dom';
-import { qDev } from '../../util/qdev';
-import { version } from '../../version';
-import { QContainerAttr } from '../../util/markers';
-import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
-import { directRemoveAttribute, directSetAttribute } from '../fast-calls';
-import { processData, wrapJSX } from './render-dom';
+import { isDocument } from "../../util/element";
+import { jsx } from "../jsx/jsx-runtime";
+import type { JSXOutput, FunctionComponent } from "../jsx/types/jsx-node";
+import { cleanupTree, domToVnode, smartUpdateChildren } from "./visitor";
+import { getDocument } from "../../util/dom";
+import { qDev } from "../../util/qdev";
+import { version } from "../../version";
+import { QContainerAttr } from "../../util/markers";
+import { qError, QError_cannotRenderOverExistingContainer } from "../../error/error";
+import { directRemoveAttribute, directSetAttribute } from "../fast-calls";
+import { processData, wrapJSX } from "./render-dom";
 import {
   type ContainerState,
   removeContainerState,
   _getContainerState,
-} from '../../container/container';
-import { postRendering } from './notify-render';
-import { createRenderContext } from '../execute-component';
-import { executeDOMRender, printRenderStats } from './operations';
-import { logError } from '../../util/log';
-import { appendQwikDevTools } from '../../container/resume';
-import type { RenderContext } from '../types';
+} from "../../container/container";
+import { postRendering } from "./notify-render";
+import { createRenderContext } from "../execute-component";
+import { executeDOMRender, printRenderStats } from "./operations";
+import { logError } from "../../util/log";
+import { appendQwikDevTools } from "../../container/resume";
+import type { RenderContext } from "../types";
 
 /** @public */
 export interface RenderOptions {
@@ -47,10 +47,10 @@ export interface RenderResult {
 export const render = async (
   parent: Element | Document,
   jsxOutput: JSXOutput | FunctionComponent<any>,
-  opts?: RenderOptions
+  opts?: RenderOptions,
 ): Promise<RenderResult> => {
   // If input is a component, convert it
-  if (typeof jsxOutput === 'function') {
+  if (typeof jsxOutput === "function") {
     jsxOutput = jsx(jsxOutput, null);
   }
   const doc = getDocument(parent);
@@ -90,7 +90,7 @@ const renderRoot = async (
   jsxOutput: JSXOutput,
   doc: Document,
   containerState: ContainerState,
-  containerEl: Element
+  containerEl: Element,
 ) => {
   const staticCtx = rCtx.$static$;
 
@@ -117,9 +117,9 @@ export const getElement = (docOrElm: Document | Element): Element => {
 };
 
 export const injectQContainer = (containerEl: Element) => {
-  directSetAttribute(containerEl, 'q:version', version ?? 'dev');
-  directSetAttribute(containerEl, QContainerAttr, 'resumed');
-  directSetAttribute(containerEl, 'q:render', qDev ? 'dom-dev' : 'dom');
+  directSetAttribute(containerEl, "q:version", version ?? "dev");
+  directSetAttribute(containerEl, QContainerAttr, "resumed");
+  directSetAttribute(containerEl, "q:render", qDev ? "dom-dev" : "dom");
 };
 
 function cleanupContainer(renderCtx: RenderContext, container: Element) {
@@ -129,9 +129,9 @@ function cleanupContainer(renderCtx: RenderContext, container: Element) {
   removeContainerState(container);
 
   // Clean up attributes
-  directRemoveAttribute(container, 'q:version');
+  directRemoveAttribute(container, "q:version");
   directRemoveAttribute(container, QContainerAttr);
-  directRemoveAttribute(container, 'q:render');
+  directRemoveAttribute(container, "q:render");
 
   // Remove children
   container.replaceChildren();

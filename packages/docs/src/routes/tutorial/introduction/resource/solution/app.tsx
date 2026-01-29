@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
+import { component$, useStore, Resource, useResource$ } from "@builder.io/qwik";
 
 export default component$(() => {
   const github = useStore({
-    org: 'QwikDev',
+    org: "QwikDev",
   });
 
   const reposResource = useResource$<string[]>(({ track, cleanup }) => {
@@ -21,7 +21,7 @@ export default component$(() => {
     return getRepositories(github.org, controller);
   });
 
-  console.log('Render');
+  console.log("Render");
   return (
     <main>
       <p>
@@ -52,13 +52,13 @@ export default component$(() => {
 
 export async function getRepositories(
   username: string,
-  controller?: AbortController
+  controller?: AbortController,
 ): Promise<string[]> {
-  console.log('FETCH', `https://api.github.com/users/${username}/repos`);
+  console.log("FETCH", `https://api.github.com/users/${username}/repos`);
   const resp = await fetch(`https://api.github.com/users/${username}/repos`, {
     signal: controller?.signal,
   });
-  console.log('FETCH resolved');
+  console.log("FETCH resolved");
   const json = await resp.json();
   return Array.isArray(json)
     ? json.map((repo: { name: string }) => repo.name)

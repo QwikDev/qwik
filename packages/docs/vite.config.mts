@@ -1,39 +1,39 @@
-import { qwikCity } from '@builder.io/qwik-city/vite';
-import { qwikInsights } from '@builder.io/qwik-labs/vite';
-import { qwikReact } from '@builder.io/qwik-react/vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
-import { partytownVite } from '@qwik.dev/partytown/utils';
-import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
-import shikiRehype from '@shikijs/rehype';
-import darkPlus from '@shikijs/themes/dark-plus';
-import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
-import type { ShikiTransformer } from '@shikijs/types';
-import tailwindcss from '@tailwindcss/vite';
-import path, { resolve } from 'node:path';
-import { defineConfig, loadEnv, type Plugin, type Rollup } from 'vite';
-import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
-import { sourceResolver } from './vite.source-resolver';
-import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
+import { qwikCity } from "@builder.io/qwik-city/vite";
+import { qwikInsights } from "@builder.io/qwik-labs/vite";
+import { qwikReact } from "@builder.io/qwik-react/vite";
+import { qwikVite } from "@builder.io/qwik/optimizer";
+import { partytownVite } from "@qwik.dev/partytown/utils";
+import { transformerColorizedBrackets } from "@shikijs/colorized-brackets";
+import shikiRehype from "@shikijs/rehype";
+import darkPlus from "@shikijs/themes/dark-plus";
+import { transformerMetaHighlight, transformerMetaWordHighlight } from "@shikijs/transformers";
+import type { ShikiTransformer } from "@shikijs/types";
+import tailwindcss from "@tailwindcss/vite";
+import path, { resolve } from "node:path";
+import { defineConfig, loadEnv, type Plugin, type Rollup } from "vite";
+import { examplesData, playgroundData, rawSource, tutorialData } from "./vite.repl-apps";
+import { sourceResolver } from "./vite.source-resolver";
+import { compiledStringPlugin } from "../../scripts/compiled-string-plugin.js";
 
-const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
+const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv("", ".", "PUBLIC").PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
 
 // https://github.com/vitejs/vite/issues/15012#issuecomment-1825035992
 const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
   const mutedMessages = new Set();
   return {
-    name: 'mute-warnings',
-    enforce: 'pre',
+    name: "mute-warnings",
+    enforce: "pre",
     config: (userConfig) => {
       const origOnLog = userConfig.build?.rollupOptions?.onLog;
       return {
         build: {
           rollupOptions: {
             onLog(type, warning, defaultHandler) {
-              if (type === 'warn') {
+              if (type === "warn") {
                 if (warning.code) {
                   const muted = warningsToIgnore.find(
-                    ([code, message]) => code == warning.code && warning.message.includes(message)
+                    ([code, message]) => code == warning.code && warning.message.includes(message),
                   );
 
                   if (muted) {
@@ -51,8 +51,8 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
     closeBundle() {
       const diff = warningsToIgnore.filter((x) => !mutedMessages.has(x.join()));
       if (diff.length > 0) {
-        this.warn('Some of your muted warnings never appeared during the build process:');
-        diff.forEach((m) => this.warn(`- ${m.join(': ')}`));
+        this.warn("Some of your muted warnings never appeared during the build process:");
+        diff.forEach((m) => this.warn(`- ${m.join(": ")}`));
       }
     },
   };
@@ -62,7 +62,7 @@ function transformerShowEmptyLines(): ShikiTransformer {
   return {
     line(node) {
       if (node.children.length === 0) {
-        node.children = [{ type: 'text', value: ' ' }];
+        node.children = [{ type: "text", value: " " }];
         return node;
       }
     },
@@ -80,26 +80,26 @@ function transformerMetaShowTitle(): ShikiTransformer {
       if (!titleMatch) {
         return;
       }
-      const title = titleMatch[1] ?? '';
+      const title = titleMatch[1] ?? "";
       if (title.length > 0) {
         node.children.unshift({
-          type: 'element',
-          tagName: 'div',
+          type: "element",
+          tagName: "div",
           properties: {
-            class: 'shiki-title',
+            class: "shiki-title",
           },
-          children: [{ type: 'text', value: title }],
+          children: [{ type: "text", value: title }],
         });
       }
-      meta.replace(titleMatch[0], '');
+      meta.replace(titleMatch[0], "");
     },
   };
 }
 
 function overrideManualChunksForRepl(): Plugin {
   return {
-    name: 'override-manual-chunks-for-repl',
-    enforce: 'post',
+    name: "override-manual-chunks-for-repl",
+    enforce: "post",
     config(userConfig) {
       const prevOutput = userConfig.build?.rollupOptions?.output;
       const prevManualChunks: Rollup.ManualChunksOption | undefined =
@@ -115,12 +115,12 @@ function overrideManualChunksForRepl(): Plugin {
                 const moduleInfo = meta.getModuleInfo(id);
                 if (moduleInfo) {
                   // Prevent the similar optimizer plugin logic from running on the repl
-                  if (id.includes('repl') && (moduleInfo as any).meta?.qwikdeps?.length === 0) {
+                  if (id.includes("repl") && (moduleInfo as any).meta?.qwikdeps?.length === 0) {
                     return null;
                   }
                 }
 
-                if (typeof prevManualChunks === 'function') {
+                if (typeof prevManualChunks === "function") {
                   return prevManualChunks(id, meta);
                 }
               },
@@ -133,61 +133,61 @@ function overrideManualChunksForRepl(): Plugin {
 }
 
 export default defineConfig(() => {
-  const routesDir = resolve('src', 'routes');
+  const routesDir = resolve("src", "routes");
   return {
     preview: {
       headers: {
-        'Cache-Control': 'public, max-age=600',
+        "Cache-Control": "public, max-age=600",
       },
     },
     define: {
       // The rolldown deps use this
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+      "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
     },
     resolve: {
       alias: [
         {
-          find: '~',
-          replacement: path.resolve(__dirname, 'src'),
+          find: "~",
+          replacement: path.resolve(__dirname, "src"),
         },
         {
           // HACK: For some reason supabase imports node-fetch but only in CloudFlare build
           // This hack is here to prevent the import from happening since we don't need to
           // polyfill fetch in the edge.
-          find: '@supabase/node-fetch',
-          replacement: path.resolve(__dirname, 'src', 'empty.ts'),
+          find: "@supabase/node-fetch",
+          replacement: path.resolve(__dirname, "src", "empty.ts"),
         },
         {
-          find: '@docsearch/css',
-          replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
+          find: "@docsearch/css",
+          replacement: path.resolve(__dirname, "node_modules/@docsearch/css/dist/style.css"),
         },
       ],
       // Make sure to get the browser version of @rolldown/browser
-      conditions: ['browser', 'worker', 'import', 'default'],
+      conditions: ["browser", "worker", "import", "default"],
     },
     ssr: {
       noExternal: [
-        '@mui/material',
-        '@mui/system',
-        '@emotion/react',
-        '@algolia/autocomplete-core/dist/esm/resolve',
-        '@algolia/autocomplete-core',
-        '@algolia/autocomplete-shared',
-        'algoliasearch/lite',
-        'algoliasearch',
-        '@algolia/autocomplete-core/dist/esm/reshape',
-        'algoliasearch/dist/algoliasearch-lite.esm.browser',
+        "@mui/material",
+        "@mui/system",
+        "@emotion/react",
+        "@algolia/autocomplete-core/dist/esm/resolve",
+        "@algolia/autocomplete-core",
+        "@algolia/autocomplete-shared",
+        "algoliasearch/lite",
+        "algoliasearch",
+        "@algolia/autocomplete-core/dist/esm/reshape",
+        "algoliasearch/dist/algoliasearch-lite.esm.browser",
       ],
       resolve: {
-        conditions: ['import', 'worker', 'default'],
+        conditions: ["import", "worker", "default"],
       },
     },
 
     plugins: [
       // some imported react code has sourcemap issues
       muteWarningsPlugin([
-        ['SOURCEMAP_ERROR', "Can't resolve original location of error"],
-        ['MODULE_LEVEL_DIRECTIVE', 'use client'],
+        ["SOURCEMAP_ERROR", "Can't resolve original location of error"],
+        ["MODULE_LEVEL_DIRECTIVE", "use client"],
       ]),
       rawSource(),
       compiledStringPlugin(),
@@ -217,7 +217,7 @@ export default defineConfig(() => {
       }),
       qwikVite({ debug: false }),
       partytownVite({
-        dest: resolve('dist', '~partytown'),
+        dest: resolve("dist", "~partytown"),
       }),
       examplesData(routesDir),
       playgroundData(routesDir),
@@ -229,31 +229,31 @@ export default defineConfig(() => {
       overrideManualChunksForRepl(),
     ],
     optimizeDeps: {
-      include: ['@docsearch/css'],
+      include: ["@docsearch/css"],
       exclude: [
         // optimizing breaks the wasm import
-        '@rolldown/browser',
+        "@rolldown/browser",
       ],
     },
     build: {
       sourcemap: true,
       rollupOptions: {
         output: {
-          assetFileNames: 'assets/[hash]-[name].[ext]',
+          assetFileNames: "assets/[hash]-[name].[ext]",
         },
-        external: ['@docsearch/css'],
+        external: ["@docsearch/css"],
       },
     },
     worker: {
-      format: 'es' as const,
+      format: "es" as const,
     },
     clearScreen: false,
     server: {
       port: 3000,
       // Needed for the REPL SharedArrayBuffer
       headers: {
-        'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp',
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
       },
     },
   };

@@ -1,26 +1,26 @@
-import { assertType, describe, expectTypeOf, test } from 'vitest';
-import { component$, type PropsOf, type PublicProps } from '../../../component/component.public';
-import { $, type PropFunction } from '../../../qrl/qrl.public';
-import type { JSX } from '../jsx-runtime';
-import type { QwikHTMLElements, QwikSVGElements, Size } from './jsx-generated';
-import type { FunctionComponent, JSXOutput } from './jsx-node';
-import type { EventHandler, JSXChildren, QRLEventHandlerMulti } from './jsx-qwik-attributes';
-import type { QwikIntrinsicElements } from './jsx-qwik-elements';
+import { assertType, describe, expectTypeOf, test } from "vitest";
+import { component$, type PropsOf, type PublicProps } from "../../../component/component.public";
+import { $, type PropFunction } from "../../../qrl/qrl.public";
+import type { JSX } from "../jsx-runtime";
+import type { QwikHTMLElements, QwikSVGElements, Size } from "./jsx-generated";
+import type { FunctionComponent, JSXOutput } from "./jsx-node";
+import type { EventHandler, JSXChildren, QRLEventHandlerMulti } from "./jsx-qwik-attributes";
+import type { QwikIntrinsicElements } from "./jsx-qwik-elements";
 
-describe('types', () => {
+describe("types", () => {
   // Note, these type checks happen at compile time. We don't need to call anything, so we do ()=>()=>. We just need to
   // make sure the type check runs.
-  test('basic', () => () => {
+  test("basic", () => () => {
     expectTypeOf(<div />).toEqualTypeOf<JSXOutput>();
     expectTypeOf<QRLEventHandlerMulti<PointerEvent, HTMLDivElement>>().toMatchTypeOf<
-      QwikIntrinsicElements['div']['onAuxClick$']
+      QwikIntrinsicElements["div"]["onAuxClick$"]
     >();
-    expectTypeOf<QwikIntrinsicElements['li']['children']>().toEqualTypeOf<JSXChildren>();
-    expectTypeOf<QwikIntrinsicElements['link']['children']>().toEqualTypeOf<undefined>();
-    expectTypeOf<QwikIntrinsicElements['svg']['width']>().toEqualTypeOf<Size | undefined>();
+    expectTypeOf<QwikIntrinsicElements["li"]["children"]>().toEqualTypeOf<JSXChildren>();
+    expectTypeOf<QwikIntrinsicElements["link"]["children"]>().toEqualTypeOf<undefined>();
+    expectTypeOf<QwikIntrinsicElements["svg"]["width"]>().toEqualTypeOf<Size | undefined>();
   });
 
-  test('untyped components', () => () => {
+  test("untyped components", () => () => {
     const WithP = component$((p) => {
       expectTypeOf(p).toEqualTypeOf<unknown>();
       return <div />;
@@ -48,7 +48,7 @@ describe('types', () => {
     expectTypeOf(Cmp).not.toEqualTypeOf<FunctionComponent<{ foo: string }>>();
   });
 
-  test('inferring FunctionComponent', () => () => {
+  test("inferring FunctionComponent", () => () => {
     const makeFC = <T,>(fn: (p: T) => JSX.Element): FunctionComponent<T> => fn;
 
     const FCNoP = makeFC(() => <div />);
@@ -63,7 +63,7 @@ describe('types', () => {
     expectTypeOf<PropsOf<typeof FCWithP>>().toEqualTypeOf<never>();
   });
 
-  test('accepting FunctionComponent', () => () => {
+  test("accepting FunctionComponent", () => () => {
     const f = <P,>(fn: FunctionComponent<P>) => null as P;
     expectTypeOf(f(() => <div />)).toEqualTypeOf<unknown>();
     expectTypeOf(
@@ -71,16 +71,16 @@ describe('types', () => {
         expectTypeOf(p).not.toBeAny();
         expectTypeOf(p).toEqualTypeOf<unknown>();
         return <div />;
-      })
+      }),
     ).toEqualTypeOf<unknown>();
     expectTypeOf(f(component$<{ foo: string }>(() => <div />))).toEqualTypeOf<
       PublicProps<{ foo: string }>
     >();
   });
 
-  test('component', () => () => {
-    const Cmp = component$((props: PropsOf<'svg'>) => {
-      const { width = '240', height = '56', onClick$, ...rest } = props;
+  test("component", () => () => {
+    const Cmp = component$((props: PropsOf<"svg">) => {
+      const { width = "240", height = "56", onClick$, ...rest } = props;
       expectTypeOf(onClick$).toEqualTypeOf<QRLEventHandlerMulti<PointerEvent, SVGSVGElement>>();
       return (
         <svg
@@ -92,7 +92,7 @@ describe('types', () => {
         />
       );
     });
-    expectTypeOf<Parameters<typeof Cmp>[0]['onClick$']>().toMatchTypeOf<
+    expectTypeOf<Parameters<typeof Cmp>[0]["onClick$"]>().toMatchTypeOf<
       EventHandler<PointerEvent, SVGSVGElement> | QRLEventHandlerMulti<PointerEvent, SVGSVGElement>
     >();
 
@@ -102,15 +102,15 @@ describe('types', () => {
       </p>
     );
   });
-  test('PropFunction', () => () => {
+  test("PropFunction", () => () => {
     const CmpButton = component$<{
       onClick$?: PropFunction<() => void>;
     }>((props) => <button onClick$={props.onClick$} />);
 
-    <CmpButton onClick$={() => alert('CLICKED!')}>click me!</CmpButton>;
+    <CmpButton onClick$={() => alert("CLICKED!")}>click me!</CmpButton>;
   });
 
-  test('unknown string component', () => () => {
+  test("unknown string component", () => () => {
     const t = (
       <hello-there
         class="hi"
@@ -125,15 +125,15 @@ describe('types', () => {
     expectTypeOf(t).toEqualTypeOf<JSX.Element>();
   });
 
-  test('inferring', () => () => {
+  test("inferring", () => () => {
     // Popover API
-    expectTypeOf<PropsOf<'button'>>().toMatchTypeOf<{
+    expectTypeOf<PropsOf<"button">>().toMatchTypeOf<{
       popovertarget?: string;
     }>();
     expectTypeOf<{
-      type: 'button';
+      type: "button";
       popovertarget?: string;
-    }>().toMatchTypeOf<PropsOf<'input'>>();
+    }>().toMatchTypeOf<PropsOf<"input">>();
     <>
       <button popovertarget="meep" />
       <input type="button" popovertarget="meep" />
@@ -188,24 +188,24 @@ describe('types', () => {
     </>;
   });
 
-  test('polymorphic component', () => () => {
+  test("polymorphic component", () => () => {
     const Poly = component$(
-      <C extends string | FunctionComponent = 'div'>({
+      <C extends string | FunctionComponent = "div">({
         as,
         ...props
-      }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
-        const Cmp = as || 'div';
+      }: { as?: C } & PropsOf<string extends C ? "div" : C>) => {
+        const Cmp = as || "div";
         return <Cmp {...props}>hi</Cmp>;
-      }
+      },
     );
-    expectTypeOf<Parameters<typeof Poly<'button'>>[0]['popovertarget']>().toEqualTypeOf<
+    expectTypeOf<Parameters<typeof Poly<"button">>[0]["popovertarget"]>().toEqualTypeOf<
       string | undefined
     >();
-    expectTypeOf<Parameters<typeof Poly<'a'>>[0]['href']>().toEqualTypeOf<string | undefined>();
-    expectTypeOf<Parameters<typeof Poly<'button'>>[0]>().not.toHaveProperty('href');
-    expectTypeOf<Parameters<typeof Poly<'a'>>[0]>().not.toHaveProperty('popovertarget');
+    expectTypeOf<Parameters<typeof Poly<"a">>[0]["href"]>().toEqualTypeOf<string | undefined>();
+    expectTypeOf<Parameters<typeof Poly<"button">>[0]>().not.toHaveProperty("href");
+    expectTypeOf<Parameters<typeof Poly<"a">>[0]>().not.toHaveProperty("popovertarget");
     expectTypeOf<
-      Parameters<Extract<Parameters<typeof Poly>[0]['onClick$'], EventHandler>>[1]
+      Parameters<Extract<Parameters<typeof Poly>[0]["onClick$"], EventHandler>>[1]
     >().toEqualTypeOf<HTMLDivElement>();
 
     const MyCmp = component$((p: { name: string }) => <span>Hi {p.name}</span>);
@@ -253,7 +253,7 @@ describe('types', () => {
     );
   });
 
-  test('FunctionComponent', () => () => {
+  test("FunctionComponent", () => () => {
     const Cmp = component$((props: { foo: string }) => null);
     expectTypeOf(Cmp).toMatchTypeOf<FunctionComponent<{ foo: string }>>();
     expectTypeOf<FunctionComponent<{ foo: string }>>().toMatchTypeOf(Cmp);
@@ -280,12 +280,12 @@ describe('types', () => {
     expectTypeOf(() => new Date()).not.toMatchTypeOf<FunctionComponent>();
   });
 
-  test('PropsOf', () => () => {
+  test("PropsOf", () => () => {
     // tags
-    expectTypeOf<PropsOf<'div'>>().toEqualTypeOf<QwikHTMLElements['div']>();
-    expectTypeOf<PropsOf<'div'>>().not.toEqualTypeOf<QwikIntrinsicElements['li']>();
-    expectTypeOf<PropsOf<'path'>>().toEqualTypeOf<QwikSVGElements['path']>();
-    expectTypeOf<PropsOf<'not-exist'>>().toEqualTypeOf<QwikHTMLElements['span']>();
+    expectTypeOf<PropsOf<"div">>().toEqualTypeOf<QwikHTMLElements["div"]>();
+    expectTypeOf<PropsOf<"div">>().not.toEqualTypeOf<QwikIntrinsicElements["li"]>();
+    expectTypeOf<PropsOf<"path">>().toEqualTypeOf<QwikSVGElements["path"]>();
+    expectTypeOf<PropsOf<"not-exist">>().toEqualTypeOf<QwikHTMLElements["span"]>();
 
     // functions
     const NoProps = () => <div />;
@@ -296,11 +296,11 @@ describe('types', () => {
     expectTypeOf<PropsOf<typeof AnyProps>>().toEqualTypeOf<any>();
     const DefProps = (props: { foo: string }) => <div />;
     expectTypeOf<PropsOf<typeof DefProps>>().toEqualTypeOf<{ foo: string }>();
-    const PolyProps = <C extends string = ''>(
-      p: { as?: C; b: boolean } & (C extends 'hi' ? { foo: boolean } : never)
+    const PolyProps = <C extends string = "">(
+      p: { as?: C; b: boolean } & (C extends "hi" ? { foo: boolean } : never),
     ) => <div />;
-    expectTypeOf<PropsOf<typeof PolyProps<'hi'>>>().toMatchTypeOf<{
-      as?: 'hi';
+    expectTypeOf<PropsOf<typeof PolyProps<"hi">>>().toMatchTypeOf<{
+      as?: "hi";
       b: boolean;
       foo: boolean;
     }>();
@@ -315,8 +315,8 @@ describe('types', () => {
     const DefProps$ = component$(DefProps);
     expectTypeOf<PropsOf<typeof DefProps$>>().toEqualTypeOf<{ foo: string }>();
     const PolyProps$ = component$(PolyProps);
-    expectTypeOf<PropsOf<typeof PolyProps$<'hi'>>>().toMatchTypeOf<{
-      as?: 'hi';
+    expectTypeOf<PropsOf<typeof PolyProps$<"hi">>>().toMatchTypeOf<{
+      as?: "hi";
       b: boolean;
       foo: boolean;
     }>();
@@ -327,18 +327,18 @@ describe('types', () => {
     expectTypeOf<PropsOf<17>>().toEqualTypeOf<never>();
   });
 
-  test('CSSProperties', () => () => {
+  test("CSSProperties", () => () => {
     return (
       <div
         style={{
-          color: 'red',
-          backgroundColor: 'blue',
+          color: "red",
+          backgroundColor: "blue",
           // Using a CSS variable
-          '--my-variable': '10px',
+          "--my-variable": "10px",
           // Using a number value
           marginTop: 10,
           // Using a string value
-          padding: '5px',
+          padding: "5px",
         }}
       />
     );

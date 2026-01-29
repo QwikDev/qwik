@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from "@builder.io/qwik-city";
 
 export const onGet: RequestHandler = async ({ html }) => {
   html(
@@ -8,6 +8,6 @@ export const onGet: RequestHandler = async ({ html }) => {
         <body>
           <h1>HTML response</h1>
         </body>
-      </html>`
+      </html>`,
   );
 };

@@ -1,8 +1,8 @@
-import { assertDefined, assertTrue } from '../../error/assert';
-import { executeContextWithScrollAndTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
-import { getDocument } from '../../util/dom';
-import { logError, logWarn } from '../../util/log';
-import { getWrappingContainer } from '../../use/use-core';
+import { assertDefined, assertTrue } from "../../error/assert";
+import { executeContextWithScrollAndTransition, IS_HEAD, IS_SVG, SVG_NS } from "./visitor";
+import { getDocument } from "../../util/dom";
+import { logError, logWarn } from "../../util/log";
+import { getWrappingContainer } from "../../use/use-core";
 import {
   runSubscriber,
   type SubscriberEffect,
@@ -11,24 +11,24 @@ import {
   TaskFlagsIsResource,
   TaskFlagsIsTask,
   isSubscriberDescriptor,
-} from '../../use/use-task';
-import { maybeThen } from '../../util/promises';
-import type { ValueOrPromise } from '../../util/types';
-import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { renderComponent } from './render-dom';
-import type { RenderContext } from '../types';
-import { type ContainerState, _getContainerState } from '../../container/container';
-import { createRenderContext } from '../execute-component';
-import { getRootNode, type QwikElement } from './virtual-element';
-import { appendChild, printRenderStats } from './operations';
-import { executeSignalOperation } from './signals';
-import { getPlatform, isServerPlatform } from '../../platform/platform';
-import { qDev } from '../../util/qdev';
-import type { SubscriberSignal, Subscriptions } from '../../state/common';
-import { resumeIfNeeded } from '../../container/resume';
-import { getContext, HOST_FLAG_DIRTY, type QContext } from '../../state/context';
-import { directGetAttribute } from '../fast-calls';
-import { QStyle } from '../../util/markers';
+} from "../../use/use-task";
+import { maybeThen } from "../../util/promises";
+import type { ValueOrPromise } from "../../util/types";
+import { useLexicalScope } from "../../use/use-lexical-scope.public";
+import { renderComponent } from "./render-dom";
+import type { RenderContext } from "../types";
+import { type ContainerState, _getContainerState } from "../../container/container";
+import { createRenderContext } from "../execute-component";
+import { getRootNode, type QwikElement } from "./virtual-element";
+import { appendChild, printRenderStats } from "./operations";
+import { executeSignalOperation } from "./signals";
+import { getPlatform, isServerPlatform } from "../../platform/platform";
+import { qDev } from "../../util/qdev";
+import type { SubscriberSignal, Subscriptions } from "../../state/common";
+import { resumeIfNeeded } from "../../container/resume";
+import { getContext, HOST_FLAG_DIRTY, type QContext } from "../../state/context";
+import { directGetAttribute } from "../fast-calls";
+import { QStyle } from "../../util/markers";
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {
@@ -66,7 +66,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
   assertDefined(
     elCtx.$componentQrl$,
     `render: notified host element must have a defined $renderQrl$`,
-    elCtx
+    elCtx,
   );
   if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
     return;
@@ -77,7 +77,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     containerState.$hostsStaging$.add(elCtx);
   } else {
     if (server) {
-      logWarn('Can not rerender in server platform');
+      logWarn("Can not rerender in server platform");
       return undefined;
     }
     containerState.$hostsNext$.add(elCtx);
@@ -150,7 +150,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
     if (!containerState.$styleMoved$ && renderingQueue.length > 0) {
       containerState.$styleMoved$ = true;
       const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
-      parentJSON.querySelectorAll('style[q\\:style]').forEach((el) => {
+      parentJSON.querySelectorAll("style[q\\:style]").forEach((el) => {
         containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
         appendChild(staticCtx, doc.head, el);
       });
@@ -160,7 +160,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       const el = elCtx.$element$;
       if (!staticCtx.$hostElements$.has(el)) {
         if (elCtx.$componentQrl$) {
-          assertTrue(el.isConnected, 'element must be connected to the dom');
+          assertTrue(el.isConnected, "element must be connected to the dom");
           staticCtx.$roots$.push(elCtx);
           try {
             await renderComponent(rCtx, elCtx, getFlags(el.parentElement));
@@ -203,7 +203,7 @@ const getFlags = (el: Element | null) => {
     if (el.namespaceURI === SVG_NS) {
       flags |= IS_SVG;
     }
-    if (el.tagName === 'HEAD') {
+    if (el.tagName === "HEAD") {
       flags |= IS_HEAD;
     }
   }
@@ -281,7 +281,7 @@ const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderCo
       await Promise.all(
         tasks.map((task) => {
           return runSubscriber(task, containerState, rCtx);
-        })
+        }),
       );
       taskPromises.length = 0;
     }
@@ -325,7 +325,7 @@ export const executeSSRTasks = (containerState: ContainerState, rCtx: RenderCont
         await Promise.all(
           tasks.map((task) => {
             return runSubscriber(task, containerState, rCtx);
-          })
+          }),
         );
         taskPromises.length = 0;
         if (--tries && staging.size > 0) {
@@ -335,7 +335,7 @@ export const executeSSRTasks = (containerState: ContainerState, rCtx: RenderCont
           logWarn(
             `Infinite task loop detected. Tasks:\n${Array.from(staging)
               .map((task) => `  ${task.$qrl$.$symbol$}`)
-              .join('\n')}`
+              .join("\n")}`,
           );
         }
       });
@@ -347,7 +347,7 @@ export const executeSSRTasks = (containerState: ContainerState, rCtx: RenderCont
 const executeTasksAfter = async (
   containerState: ContainerState,
   rCtx: RenderContext,
-  taskPred: (task: SubscriberEffect, staging: boolean) => boolean
+  taskPred: (task: SubscriberEffect, staging: boolean) => boolean,
 ) => {
   const taskPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const containerEl = containerState.$containerEl$;
@@ -387,7 +387,7 @@ const executeTasksAfter = async (
 
 const sortNodes = (elements: QContext[]) => {
   elements.sort((a, b) =>
-    a.$element$.compareDocumentPosition(getRootNode(b.$element$)) & 2 ? 1 : -1
+    a.$element$.compareDocumentPosition(getRootNode(b.$element$)) & 2 ? 1 : -1,
   );
 };
 

@@ -4,6 +4,9 @@
     "build.server": "qwik check-client src dist && vite build -c adapters/bun/vite.config.ts",
     "serve": "bun server/entry.bun.js"
   },
+  "devDependencies": {
+    "@types/bun": "*"
+  },
   "__qwik__": {
     "priority": 20,
     "displayName": "Adapter: Bun Server",
@@ -20,8 +23,5 @@
         "- bun run serve: runs the production server locally"
       ]
     }
-  },
-  "devDependencies": {
-    "@types/bun": "*"
   }
 }

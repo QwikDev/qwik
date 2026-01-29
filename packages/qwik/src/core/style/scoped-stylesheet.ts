@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import { ComponentStylesPrefixContent } from '../util/markers';
-import { qDev } from '../util/qdev';
+import { ComponentStylesPrefixContent } from "../util/markers";
+import { qDev } from "../util/qdev";
 
 // Make sure this is always set to `false` in production, but it is useful to set for `true` in development for debugging.
 const DEBUG: boolean = false;
@@ -26,11 +26,11 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
   let lastIdx = idx;
   let mode: number = rule;
   let lastCh = 0;
-  DEBUG && console.log('--------------------------');
+  DEBUG && console.log("--------------------------");
   while (idx < end) {
     DEBUG && console.log(css);
-    DEBUG && console.log(new Array(idx).fill(' ').join('') + '^');
-    DEBUG && console.log('MODE', ...stack.map(modeToString), modeToString(mode));
+    DEBUG && console.log(new Array(idx).fill(" ").join("") + "^");
+    DEBUG && console.log("MODE", ...stack.map(modeToString), modeToString(mode));
     const chIdx = idx;
     let ch = css.charCodeAt(idx++);
     if (ch === BACKSLASH) {
@@ -61,10 +61,10 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
             }
             DEBUG &&
               console.log(
-                'MATCH',
+                "MATCH",
                 charToString(expectLastCh),
                 charToString(expectCh),
-                modeToString(newMode)
+                modeToString(newMode),
               );
             // We found a match!
             if (newMode === EXIT || newMode == EXIT_INSERT_SCOPE) {
@@ -123,11 +123,11 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
     lastCh = ch;
   }
   flush(idx);
-  return out.join('');
+  return out.join("");
 
   function flush(idx: number) {
     out.push(css.substring(lastIdx, idx));
-    DEBUG && console.log('FLUSH', out.join(''));
+    DEBUG && console.log("FLUSH", out.join(""));
     lastIdx = idx;
   }
   function insertScopingSelector(idx: number) {
@@ -136,8 +136,8 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
     }
 
     flush(idx);
-    out.push('.', ComponentStylesPrefixContent, scopeId);
-    DEBUG && console.log('INSERT', out.join(''));
+    out.push(".", ComponentStylesPrefixContent, scopeId);
+    DEBUG && console.log("INSERT", out.join(""));
   }
   function lookAhead(arc: StateArc): boolean {
     let prefix = 0; // Ignore vendor prefixes such as `-webkit-`.
@@ -196,30 +196,30 @@ const isWhiteSpace = (ch: number): boolean => {
 
 const modeToString = (mode: number): string => {
   return [
-    'rule',
-    'elementClassIdSelector',
-    'starSelector',
-    'pseudoClassWithSelector',
-    'pseudoClass',
-    'pseudoGlobal',
-    'pseudoElement',
-    'attrSelector',
-    'inertParenthesis',
-    'inertBlock',
-    'atRuleSelector',
-    'atRuleBlock',
-    'atInert',
-    'body',
-    'stringSingle',
-    'stringDouble',
-    'commentMultiline',
-    'EXIT',
-    'EXIT_INSERT_SCOPE',
+    "rule",
+    "elementClassIdSelector",
+    "starSelector",
+    "pseudoClassWithSelector",
+    "pseudoClass",
+    "pseudoGlobal",
+    "pseudoElement",
+    "attrSelector",
+    "inertParenthesis",
+    "inertBlock",
+    "atRuleSelector",
+    "atRuleBlock",
+    "atInert",
+    "body",
+    "stringSingle",
+    "stringDouble",
+    "commentMultiline",
+    "EXIT",
+    "EXIT_INSERT_SCOPE",
   ][mode];
 };
 
 const charToString = (ch: number): string => {
-  return ['ANY', 'IDENT', 'NOT_IDENT', 'WHITESPACE'][ch] || String.fromCharCode(ch);
+  return ["ANY", "IDENT", "NOT_IDENT", "WHITESPACE"][ch] || String.fromCharCode(ch);
 };
 
 const rule = 0; // top level initial space.
@@ -299,7 +299,7 @@ type StateArc = [
 const STRINGS_COMMENTS: StateArc[] = /*__PURE__*/ (() => [
   [ANY, SINGLE_QUOTE, stringSingle],
   [ANY, DOUBLE_QUOTE, stringDouble],
-  [ANY, FORWARD_SLASH, commentMultiline, '*'],
+  [ANY, FORWARD_SLASH, commentMultiline, "*"],
 ])();
 
 const STATE_MACHINE: StateArc[][] = /*__PURE__*/ (() => [
@@ -307,26 +307,26 @@ const STATE_MACHINE: StateArc[][] = /*__PURE__*/ (() => [
     /// rule
     [ANY, STAR, starSelector],
     [ANY, OPEN_BRACKET, attrSelector],
-    [ANY, COLON, pseudoElement, ':', 'before', 'after', 'first-letter', 'first-line'],
-    [ANY, COLON, pseudoGlobal, 'global'],
+    [ANY, COLON, pseudoElement, ":", "before", "after", "first-letter", "first-line"],
+    [ANY, COLON, pseudoGlobal, "global"],
     [
       ANY,
       COLON,
       pseudoClassWithSelector,
-      'has',
-      'host-context',
-      'not',
-      'where',
-      'is',
-      'matches',
-      'any',
+      "has",
+      "host-context",
+      "not",
+      "where",
+      "is",
+      "matches",
+      "any",
     ],
     [ANY, COLON, pseudoClass],
     [ANY, IDENT, elementClassIdSelector],
     [ANY, DOT, elementClassIdSelector],
     [ANY, HASH, elementClassIdSelector],
-    [ANY, AT, atRuleSelector, 'keyframe'],
-    [ANY, AT, atRuleBlock, 'media', 'supports', 'container'],
+    [ANY, AT, atRuleSelector, "keyframe"],
+    [ANY, AT, atRuleBlock, "media", "supports", "container"],
     [ANY, AT, atRuleInert],
     [ANY, OPEN_BRACE, body],
     [FORWARD_SLASH, STAR, commentMultiline],
@@ -382,7 +382,7 @@ const STATE_MACHINE: StateArc[][] = /*__PURE__*/ (() => [
     /// atRuleSelector
     [ANY, CLOSE_BRACE, EXIT],
     [WHITESPACE, IDENT, elementClassIdSelector],
-    [ANY, COLON, pseudoGlobal, 'global'],
+    [ANY, COLON, pseudoGlobal, "global"],
     [ANY, OPEN_BRACE, body],
     ...STRINGS_COMMENTS,
   ],

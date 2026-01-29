@@ -1,9 +1,9 @@
-import type { CreateAppResult, IntegrationData } from '../../qwik/src/cli/types';
-import fs from 'node:fs';
-import { isAbsolute, join } from 'node:path';
-import { cleanPackageJson, writePackageJson } from '../../qwik/src/cli/utils/utils';
-import { updateApp } from '../../qwik/src/cli/add/update-app';
-import { type TemplateManager } from './helpers/templateManager';
+import type { CreateAppResult, IntegrationData } from "../../qwik/src/cli/types";
+import fs from "node:fs";
+import { isAbsolute, join } from "node:path";
+import { cleanPackageJson, writePackageJson } from "../../qwik/src/cli/utils/utils";
+import { updateApp } from "../../qwik/src/cli/add/update-app";
+import { type TemplateManager } from "./helpers/templateManager";
 
 type Options = {
   appId: string;
@@ -20,7 +20,7 @@ type CreateFromStarterOptions = {
 };
 
 function isValidOption(value: any) {
-  return typeof value === 'string' && value.trim().length > 0;
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function validateOptions(opts: Options) {
@@ -70,8 +70,8 @@ async function createFromStarter({
 
   await writePackageJson(outDir, appPkgJson);
 
-  const readmePath = join(outDir, 'README.md');
-  await fs.promises.writeFile(readmePath, '');
+  const readmePath = join(outDir, "README.md");
+  await fs.promises.writeFile(readmePath, "");
 
   const baseUpdate = await updateApp(pkgManager, {
     rootDir: outDir,

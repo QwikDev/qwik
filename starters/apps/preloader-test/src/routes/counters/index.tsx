@@ -107,9 +107,9 @@ export default component$(() => {
     <div>
       <h1>Counters</h1>
       <p>
-        This page has 100 counters. Each counter is a separate component that is
-        preloaded. You can click on the "Say what?" button to see a reprio of
-        the say-what bundle and its transitive dependencies.
+        This page has 100 counters. Each counter is a separate component that is preloaded. You can
+        click on the "Say what?" button to see a reprio of the say-what bundle and its transitive
+        dependencies.
       </p>
       <br />
       <Counter1 />

@@ -1,9 +1,9 @@
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from "@builder.io/qwik/build";
 
 // Browser-specific setup
 export const doc = isBrowser ? document : undefined!;
-export const modulePreloadStr = 'modulepreload';
-export const preloadStr = 'preload';
+export const modulePreloadStr = "modulepreload";
+export const preloadStr = "preload";
 
 export const config = {
   $DEBUG$: false,
@@ -13,7 +13,7 @@ export const config = {
 
 // Determine which rel attribute to use based on browser support
 export const rel =
-  isBrowser && doc.createElement('link').relList.supports(modulePreloadStr)
+  isBrowser && doc.createElement("link").relList.supports(modulePreloadStr)
     ? modulePreloadStr
     : preloadStr;
 

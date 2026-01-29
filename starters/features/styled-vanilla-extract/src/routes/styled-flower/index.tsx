@@ -1,9 +1,4 @@
-import {
-  component$,
-  FunctionComponent,
-  useVisibleTask$,
-  useStore,
-} from "@builder.io/qwik";
+import { component$, FunctionComponent, useVisibleTask$, useStore } from "@builder.io/qwik";
 import { DocumentHead, useLocation } from "@builder.io/qwik-city";
 import { Host, odd, pride, Range, Square } from "./flower.css";
 
@@ -59,11 +54,7 @@ export default component$(() => {
         class={loc.url.searchParams.get("pride") && pride}
       >
         {Array.from({ length: state.number }, (_, i) => (
-          <Square
-            key={i}
-            class={{ [odd]: i % 2 === 0 }}
-            style={{ "--index": `${i + 1}` }}
-          />
+          <Square key={i} class={{ [odd]: i % 2 === 0 }} style={{ "--index": `${i + 1}` }} />
         )).reverse()}
       </Host>
     </>

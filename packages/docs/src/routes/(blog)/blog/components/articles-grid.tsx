@@ -1,8 +1,8 @@
-import { component$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
-import { Image } from 'qwik-image';
-import { blogArticles } from '../../data';
-import { ClockIcon } from '../icons/clock-icon';
+import { component$ } from "@builder.io/qwik";
+import { Link } from "@builder.io/qwik-city";
+import { Image } from "qwik-image";
+import { blogArticles } from "../../data";
+import { ClockIcon } from "../icons/clock-icon";
 
 export const ArticlesGrid = component$(() => {
   return (
@@ -40,7 +40,7 @@ export const ArticlesGrid = component$(() => {
               <div class="flex items-center space-x-4 text-sm text-[color:var(--bg-color)]">
                 <div class="flex items-center">
                   <ClockIcon />
-                  <span>{post.readingTime || '5'} min read</span>
+                  <span>{post.readingTime || "5"} min read</span>
                 </div>
               </div>
             </div>

@@ -1,7 +1,7 @@
-import tutorialSections from '@tutorial-data';
-import { component$ } from '@builder.io/qwik';
-import type { TutorialStore } from './layout';
-import { useNavigate } from '@builder.io/qwik-city';
+import tutorialSections from "@tutorial-data";
+import { component$ } from "@builder.io/qwik";
+import type { TutorialStore } from "./layout";
+import { useNavigate } from "@builder.io/qwik-city";
 
 export const TutorialContentHeader = component$(({ store }: TutorialContentHeaderProps) => {
   const nav = useNavigate();

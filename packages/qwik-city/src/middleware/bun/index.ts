@@ -3,18 +3,18 @@ import type {
   ServerRenderOptions,
   ServerRequestEvent,
   ClientConn,
-} from '@builder.io/qwik-city/middleware/request-handler';
+} from "@builder.io/qwik-city/middleware/request-handler";
 import {
   mergeHeadersCookies,
   requestHandler,
   _TextEncoderStream_polyfill,
-} from '@builder.io/qwik-city/middleware/request-handler';
-import { getNotFound } from '@qwik-city-not-found-paths';
-import { isStaticPath } from '@qwik-city-static-paths';
-import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
-import { setServerPlatform } from '@builder.io/qwik/server';
-import { MIME_TYPES } from '../request-handler/mime-types';
-import { join, extname } from 'node:path';
+} from "@builder.io/qwik-city/middleware/request-handler";
+import { getNotFound } from "@qwik-city-not-found-paths";
+import { isStaticPath } from "@qwik-city-static-paths";
+import { _deserializeData, _serializeData, _verifySerializable } from "@builder.io/qwik";
+import { setServerPlatform } from "@builder.io/qwik/server";
+import { MIME_TYPES } from "../request-handler/mime-types";
+import { join, extname } from "node:path";
 
 function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
   const url = new URL(request.url);
@@ -41,14 +41,14 @@ export function createQwikCity(opts: QwikCityBunOptions) {
   }
 
   const staticFolder =
-    opts.static?.root ?? join(Bun.fileURLToPath(import.meta.url), '..', '..', 'dist');
+    opts.static?.root ?? join(Bun.fileURLToPath(import.meta.url), "..", "..", "dist");
 
   async function router(request: Request) {
     try {
       const url = getRequestUrl(request, opts);
 
       const serverRequestEv: ServerRequestEvent<Response> = {
-        mode: 'server',
+        mode: "server",
         locale: undefined,
         url,
         env: {
@@ -87,7 +87,7 @@ export function createQwikCity(opts: QwikCityBunOptions) {
           // bun fails to redirect if there is a body.
           // remove the body if there a redirect.
           const status = response.status;
-          const location = response.headers.get('Location');
+          const location = response.headers.get("Location");
           const isRedirect = status >= 301 && status <= 308 && location;
           if (isRedirect) {
             return new Response(null, response);
@@ -100,9 +100,9 @@ export function createQwikCity(opts: QwikCityBunOptions) {
       return null;
     } catch (e: any) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(String(e || "Error"), {
         status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'bun-server' },
+        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Error": "bun-server" },
       });
     }
   }
@@ -114,32 +114,32 @@ export function createQwikCity(opts: QwikCityBunOptions) {
       // In the development server, we replace the getNotFound function
       // For static paths, we assign a static "Not Found" message.
       // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml = isStaticPath(request.method || 'GET', url)
-        ? 'Not Found'
+      const notFoundHtml = isStaticPath(request.method || "GET", url)
+        ? "Not Found"
         : getNotFound(url.pathname);
       return new Response(notFoundHtml, {
         status: 404,
-        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
+        headers: { "Content-Type": "text/html; charset=utf-8", "X-Not-Found": url.pathname },
       });
     } catch (e) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(String(e || "Error"), {
         status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'bun-server' },
+        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Error": "bun-server" },
       });
     }
   };
 
   const openStaticFile = async (url: URL) => {
     const pathname = url.pathname;
-    const fileName = pathname.slice(url.pathname.lastIndexOf('/'));
+    const fileName = pathname.slice(url.pathname.lastIndexOf("/"));
     let filePath: string;
-    if (fileName.includes('.')) {
+    if (fileName.includes(".")) {
       filePath = join(staticFolder, pathname);
     } else if (opts.qwikCityPlan.trailingSlash) {
-      filePath = join(staticFolder, pathname + 'index.html');
+      filePath = join(staticFolder, pathname + "index.html");
     } else {
-      filePath = join(staticFolder, pathname, 'index.html');
+      filePath = join(staticFolder, pathname, "index.html");
     }
     return {
       filePath,
@@ -151,24 +151,24 @@ export function createQwikCity(opts: QwikCityBunOptions) {
     try {
       const url = getRequestUrl(request, opts);
 
-      if (isStaticPath(request.method || 'GET', url)) {
+      if (isStaticPath(request.method || "GET", url)) {
         const { filePath, content } = await openStaticFile(url);
         // We know that it's in the static folder, but it could still be missing
         // If we start the stream with a missing file, it will throw a 500 error during the stream
         if (!(await content.exists())) {
-          return new Response('Not Found', {
+          return new Response("Not Found", {
             status: 404,
-            headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Not-Found': url.pathname },
+            headers: { "Content-Type": "text/plain; charset=utf-8", "X-Not-Found": url.pathname },
           });
         }
 
-        const ext = extname(filePath).replace(/^\./, '');
+        const ext = extname(filePath).replace(/^\./, "");
 
         return new Response(await content.stream(), {
           status: 200,
           headers: {
-            'content-type': MIME_TYPES[ext] || 'text/plain; charset=utf-8',
-            'Cache-Control': opts.static?.cacheControl || 'max-age=3600',
+            "content-type": MIME_TYPES[ext] || "text/plain; charset=utf-8",
+            "Cache-Control": opts.static?.cacheControl || "max-age=3600",
           },
         });
       }
@@ -176,9 +176,9 @@ export function createQwikCity(opts: QwikCityBunOptions) {
       return null;
     } catch (e) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(String(e || "Error"), {
         status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'bun-server' },
+        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Error": "bun-server" },
       });
     }
   };

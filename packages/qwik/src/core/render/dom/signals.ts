@@ -1,16 +1,16 @@
-import { getLastSubscription, type SubscriberSignal } from '../../state/common';
-import { getContext, tryGetContext } from '../../state/context';
-import { trackSignal } from '../../use/use-core';
-import { logError } from '../../util/log';
-import { serializeClassWithHost, stringifyStyle } from '../execute-component';
-import type { RenderContext } from '../types';
-import { insertBefore, removeNode } from './operations';
-import { getVdom, processData, type ProcessedJSXNode } from './render-dom';
-import type { QwikElement } from './virtual-element';
-import { SVG_NS, createElm, diffVnode, getVnodeFromEl, smartSetProperty } from './visitor';
-import { Virtual, JSXNodeImpl } from '../jsx/jsx-runtime';
-import { isPromise } from '../../util/promises';
-import { isQwikElement } from '../../util/element';
+import { getLastSubscription, type SubscriberSignal } from "../../state/common";
+import { getContext, tryGetContext } from "../../state/context";
+import { trackSignal } from "../../use/use-core";
+import { logError } from "../../util/log";
+import { serializeClassWithHost, stringifyStyle } from "../execute-component";
+import type { RenderContext } from "../types";
+import { insertBefore, removeNode } from "./operations";
+import { getVdom, processData, type ProcessedJSXNode } from "./render-dom";
+import type { QwikElement } from "./virtual-element";
+import { SVG_NS, createElm, diffVnode, getVnodeFromEl, smartSetProperty } from "./visitor";
+import { Virtual, JSXNodeImpl } from "../jsx/jsx-runtime";
+import { isPromise } from "../../util/promises";
+import { isQwikElement } from "../../util/element";
 
 export const executeSignalOperation = (rCtx: RenderContext, operation: SubscriberSignal) => {
   try {
@@ -38,9 +38,9 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
         const isSVG = elm.namespaceURI === SVG_NS;
         staticCtx.$containerState$.$subsManager$.$clearSignal$(operation);
         let value = trackSignal(operation[2], operation.slice(0, -1) as any) as any;
-        if (prop === 'class') {
+        if (prop === "class") {
           value = serializeClassWithHost(value, tryGetContext(hostElm));
-        } else if (prop === 'style') {
+        } else if (prop === "style") {
           value = stringifyStyle(value);
         }
         const vdom = getVdom(elCtx);
@@ -69,10 +69,10 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
             | ProcessedJSXNode
             | undefined;
           if (isPromise(newVnode)) {
-            logError('Rendering promises in JSX signals is not supported');
+            logError("Rendering promises in JSX signals is not supported");
           } else {
             if (newVnode === undefined) {
-              newVnode = processData('', invocationContext) as ProcessedJSXNode;
+              newVnode = processData("", invocationContext) as ProcessedJSXNode;
             }
             const oldVnode = getVnodeFromEl(elm);
             const element = getQwikElement(operation[1]);
@@ -88,7 +88,7 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
               const oldNode = oldVnode.$elm$;
               const newElm = createElm(rCtx, newVnode, 0, promises);
               if (promises.length) {
-                logError('Rendering promises in JSX signals is not supported');
+                logError("Rendering promises in JSX signals is not supported");
               }
               subscription[3] = newElm;
               insertBefore(rCtx.$static$, elm.parentElement!, newElm, oldNode);
@@ -109,5 +109,5 @@ function getQwikElement(element: QwikElement | Text): QwikElement {
     }
     element = element.parentElement!;
   }
-  throw new Error('Not found');
+  throw new Error("Not found");
 }

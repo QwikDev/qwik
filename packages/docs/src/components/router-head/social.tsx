@@ -1,6 +1,6 @@
 export const Social = ({ title, description, href, ogImage }: SocialProps) => {
   const imgAlt =
-    'Image of Qwik Framework Logo, Framework reimagined for the edge. Code snippet npm create qwik@latest';
+    "Image of Qwik Framework Logo, Framework reimagined for the edge. Code snippet npm create qwik@latest";
 
   return (
     <>

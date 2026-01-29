@@ -4,10 +4,10 @@ import {
   type QRL,
   _getContextElement,
   _serializeData,
-} from '@builder.io/qwik';
+} from "@builder.io/qwik";
 
 //@ts-ignore
-import workerUrl from './worker.js?worker&url';
+import workerUrl from "./worker.js?worker&url";
 
 export interface ServerFunction {
   (...args: any[]): any;
@@ -31,8 +31,8 @@ const getWorker = (qrl: QRL) => {
       qrl.getHash(),
       (worker = new Worker(workerUrl, {
         name: `worker$(${qrl.getSymbol()})`,
-        type: 'module',
-      }))
+        type: "module",
+      })),
     );
   }
   return worker;
@@ -41,11 +41,11 @@ const getWorker = (qrl: QRL) => {
 export const workerQrl: WorkerConstructorQRL = (qrl) => {
   return $(async (...args: any[]) => {
     const containerEl =
-      (_getContextElement() as HTMLElement | undefined)?.closest('[q\\:container]') ??
+      (_getContextElement() as HTMLElement | undefined)?.closest("[q\\:container]") ??
       document.documentElement;
     const worker = getWorker(qrl);
     const requestId = getWorkerRequest();
-    const qbase = containerEl.getAttribute('q:base') ?? '/';
+    const qbase = containerEl.getAttribute("q:base") ?? "/";
     const baseURI = document.baseURI;
     const filtered = args.map((arg) => {
       if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
@@ -61,7 +61,7 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
     return new Promise((resolve, reject) => {
       const handler = ({ data }: MessageEvent) => {
         if (Array.isArray(data) && data.length === 3 && data[0] === requestId) {
-          worker.removeEventListener('message', handler);
+          worker.removeEventListener("message", handler);
           if (data[1] === true) {
             resolve(data[2]);
           } else {
@@ -69,7 +69,7 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
           }
         }
       };
-      worker.addEventListener('message', handler);
+      worker.addEventListener("message", handler);
       worker.postMessage([requestId, baseURI, qbase, data]);
     });
   }) as any;

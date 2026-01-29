@@ -20,10 +20,7 @@ test.describe("context", () => {
         "ROOT / state2 = 0",
         "ROOT / state2 = 0",
       ]);
-      expect(await level2SSlot.allTextContents()).toEqual([
-        "bar = 0",
-        "bar = 0",
-      ]);
+      expect(await level2SSlot.allTextContents()).toEqual(["bar = 0", "bar = 0"]);
 
       await btnRootIncrement1.click();
       await expect(level2State1.first()).toHaveText("ROOT / state1 = 1");
@@ -36,10 +33,7 @@ test.describe("context", () => {
         "ROOT / state2 = 0",
         "ROOT / state2 = 0",
       ]);
-      expect(await level2SSlot.allTextContents()).toEqual([
-        "bar = 0",
-        "bar = 0",
-      ]);
+      expect(await level2SSlot.allTextContents()).toEqual(["bar = 0", "bar = 0"]);
       await btnRootIncrement2.click();
       await expect(level2State2.first()).toHaveText("ROOT / state2 = 1");
 
@@ -51,10 +45,7 @@ test.describe("context", () => {
         "ROOT / state2 = 1",
         "ROOT / state2 = 1",
       ]);
-      expect(await level2SSlot.allTextContents()).toEqual([
-        "bar = 0",
-        "bar = 0",
-      ]);
+      expect(await level2SSlot.allTextContents()).toEqual(["bar = 0", "bar = 0"]);
       await btnLevel2Increment.click();
       await btnLevel2Increment.click();
       await btnLevel2Increment2.click();
@@ -73,10 +64,7 @@ test.describe("context", () => {
         "ROOT / state2 = 1",
         "ROOT / state2 = 1",
       ]);
-      expect(await level2SSlot.allTextContents()).toEqual([
-        "bar = 0",
-        "bar = 0",
-      ]);
+      expect(await level2SSlot.allTextContents()).toEqual(["bar = 0", "bar = 0"]);
 
       expect(await level3State1.allTextContents()).toEqual([
         "Level2 / state1 = 0",
@@ -93,11 +81,7 @@ test.describe("context", () => {
         "Level2 / state3 = 2",
         "Level2 / state3 = 1",
       ]);
-      expect(await level3Slot.allTextContents()).toEqual([
-        "bar = 0",
-        "bar = 0",
-        "bar = 0",
-      ]);
+      expect(await level3Slot.allTextContents()).toEqual(["bar = 0", "bar = 0", "bar = 0"]);
     });
 
     test("issue 1971", async ({ page }) => {

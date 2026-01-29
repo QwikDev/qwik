@@ -10,10 +10,7 @@ export default component$(() => {
       <hr />
       {colorVariantsList.map((colorVariant, index) => (
         <>
-          <Button
-            key={`${index + 1}_${colorVariant}`}
-            colorVariant={colorVariant}
-          />
+          <Button key={`${index + 1}_${colorVariant}`} colorVariant={colorVariant} />
           <span class="me-3"></span>
         </>
       ))}

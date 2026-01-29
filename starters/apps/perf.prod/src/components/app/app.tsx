@@ -110,9 +110,7 @@ export const App = component$(() => {
                   id="add"
                   class="btn btn-primary btn-block"
                   type="button"
-                  onClick$={() =>
-                    (state.data = state.data.concat(buildData(1000)))
-                  }
+                  onClick$={() => (state.data = state.data.concat(buildData(1000)))}
                 >
                   Append 1,000 rows
                 </button>
@@ -121,11 +119,7 @@ export const App = component$(() => {
                   class="btn btn-primary btn-block"
                   type="button"
                   onClick$={() => {
-                    for (
-                      let i = 0, d = state.data, len = d.length;
-                      i < len;
-                      i += 10
-                    ) {
+                    for (let i = 0, d = state.data, len = d.length; i < len; i += 10) {
                       d[i].label += " !!!";
                     }
                   }}
@@ -180,10 +174,7 @@ export const App = component$(() => {
                   //   );
                   // }}
                   >
-                    <span
-                      class="glyphicon glyphicon-remove"
-                      ariaHidden="true"
-                    />
+                    <span class="glyphicon glyphicon-remove" ariaHidden="true" />
                   </a>
                 </td>
                 <td class="col-md-6" />

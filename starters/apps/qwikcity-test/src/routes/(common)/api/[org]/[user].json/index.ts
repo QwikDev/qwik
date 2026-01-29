@@ -17,8 +17,6 @@ export const onPost: RequestHandler = async ({ request, headers, send }) => {
   headers.set("Content-Type", "text/plain");
   send(
     200,
-    `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${
-      request.method
-    }`,
+    `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${request.method}`,
   );
 };

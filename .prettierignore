@@ -1,3 +1,13 @@
+# JS/TS files are now formatted by oxfmt
+**/*.js
+**/*.jsx
+**/*.ts
+**/*.tsx
+**/*.mjs
+**/*.cjs
+**/*.mts
+**/*.cts
+
 **/**.api.md
 **/*.log
 **/.DS_Store

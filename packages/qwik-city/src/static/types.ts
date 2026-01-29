@@ -1,11 +1,11 @@
-import type { StreamWriter } from '@builder.io/qwik';
-import type { RenderOptions } from '@builder.io/qwik/server';
-import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
+import type { StreamWriter } from "@builder.io/qwik";
+import type { RenderOptions } from "@builder.io/qwik/server";
+import type { ServerRenderOptions } from "@builder.io/qwik-city/middleware/request-handler";
 
 export interface System {
   createMainProcess: (() => Promise<MainContext>) | null;
   createWorkerProcess: (
-    onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
+    onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>,
   ) => void;
   createLogger: () => Promise<Logger>;
   getOptions: () => StaticGenerateOptions;
@@ -22,7 +22,7 @@ export interface System {
 export interface StaticStreamWriter extends StreamWriter {
   write: (chunk: string | Buffer) => void;
   end(callback?: () => void): void;
-  on(event: 'error', callback: (err: Error) => void): void;
+  on(event: "error", callback: (err: Error) => void): void;
 }
 
 export interface MainContext {
@@ -67,7 +67,7 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    */
   sitemapOutFile?: string | null;
   /** Log level. */
-  log?: 'debug';
+  log?: "debug";
   /**
    * Set to `false` if the generated static HTML files should not be written to disk. Setting to
    * `false` is useful if the SSG should only write the `q-data.json` files to disk. Defaults to
@@ -114,15 +114,14 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
 }
 
 export interface StaticGenerateHandlerOptions
-  extends StaticGenerateRenderOptions,
-    ServerRenderOptions {}
+  extends StaticGenerateRenderOptions, ServerRenderOptions {}
 
 export type WorkerInputMessage = StaticRenderInput | WorkerCloseMessage;
 
 export type WorkerOutputMessage = StaticWorkerRenderResult | WorkerCloseMessage;
 
 export interface StaticRenderInput extends StaticRoute {
-  type: 'render';
+  type: "render";
 }
 
 export interface StaticRoute {
@@ -131,18 +130,18 @@ export interface StaticRoute {
 }
 
 export interface WorkerCloseMessage {
-  type: 'close';
+  type: "close";
 }
 
 export interface StaticWorkerRenderResult {
-  type: 'render';
+  type: "render";
   pathname: string;
   url: string;
   ok: boolean;
   error: { message: string; stack: string | undefined } | null;
   filePath: string | null;
   contentType: string | null;
-  resourceType: 'page' | '404' | null;
+  resourceType: "page" | "404" | null;
 }
 
 /** @public */

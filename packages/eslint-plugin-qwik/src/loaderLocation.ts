@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import { QwikEslintExamples } from '../examples';
+import type { Rule } from "eslint";
+import { QwikEslintExamples } from "../examples";
 
 export const ROUTE_FNS: Record<string, boolean> = {
   loader$: true,
@@ -16,19 +16,19 @@ export const LINTER_FNS: Record<string, boolean> = {
 
 export const loaderLocation: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description: 'Detect declaration location of loader$.',
+      description: "Detect declaration location of loader$.",
       recommended: true,
-      url: 'https://qwik.dev/docs/advanced/eslint/#loader-location',
+      url: "https://qwik.dev/docs/advanced/eslint/#loader-location",
     },
     schema: [
       {
-        type: 'object',
+        type: "object",
         properties: {
           routesDir: {
-            type: 'string',
-            default: 'src/routes',
+            type: "string",
+            default: "src/routes",
           },
         },
         additionalProperties: false,
@@ -45,15 +45,15 @@ If you understand this, you can disable this warning with:
 // eslint-disable-next-line qwik/loader-location
 `,
       missingExport:
-        'The return of `{{fnName}}()` needs to be exported in the same module, like this\n```\nexport const {{id}} = {{fnName}}(() => { ... });\n```',
+        "The return of `{{fnName}}()` needs to be exported in the same module, like this\n```\nexport const {{id}} = {{fnName}}(() => { ... });\n```",
       wrongName:
-        'The named export of `{{fnName}}()` needs to follow the `use*` naming convention. It must start with `use`, like this:\n```\nexport const {{fixed}} = {{fnName}}(() => { ... });\n```\nInstead it was named:\n```\nexport const {{id}} = ...\n```',
+        "The named export of `{{fnName}}()` needs to follow the `use*` naming convention. It must start with `use`, like this:\n```\nexport const {{fixed}} = {{fnName}}(() => { ... });\n```\nInstead it was named:\n```\nexport const {{id}} = ...\n```",
       recommendedValue:
-        'For `{{fnName}}()` it is recommended to inline the arrow function. Instead of:\n```\nexport const {{id}} = {{fnName}}({{arg}});\n```\nDo this:\n```\nexport const {{id}} = {{fnName}}(() => { ...logic here... });\n```\nThis will help the optimizer make sure that no server code is leaked to the client build.',
+        "For `{{fnName}}()` it is recommended to inline the arrow function. Instead of:\n```\nexport const {{id}} = {{fnName}}({{arg}});\n```\nDo this:\n```\nexport const {{id}} = {{fnName}}(() => { ...logic here... });\n```\nThis will help the optimizer make sure that no server code is leaked to the client build.",
     },
   },
   create(context) {
-    const routesDir = context.options?.[0]?.routesDir ?? 'src/routes';
+    const routesDir = context.options?.[0]?.routesDir ?? "src/routes";
     const path = normalizePath(context.filename ?? context.getFilename());
     const isLayout = /\/layout(|!|-.+)\.(j|t)sx?$/.test(path);
     const isIndex = /\/index(|!|@.+)\.(j|t)sx?$/.test(path);
@@ -63,7 +63,7 @@ If you understand this, you can disable this warning with:
     const canContainLoader = isInsideRoutes && (isIndex || isLayout || isPlugin);
     return {
       CallExpression(node) {
-        if (node.callee.type !== 'Identifier') {
+        if (node.callee.type !== "Identifier") {
           return;
         }
         const fnName = node.callee.name;
@@ -73,7 +73,7 @@ If you understand this, you can disable this warning with:
         if (!canContainLoader && ROUTE_FNS[fnName]) {
           context.report({
             node: node.callee,
-            messageId: 'invalidLoaderLocation',
+            messageId: "invalidLoaderLocation",
             data: {
               routesDir,
               fnName,
@@ -83,36 +83,36 @@ If you understand this, you can disable this warning with:
           return;
         }
         const variableDeclarator = node.parent;
-        if (variableDeclarator.type !== 'VariableDeclarator') {
+        if (variableDeclarator.type !== "VariableDeclarator") {
           context.report({
             node: node.callee,
-            messageId: 'missingExport',
+            messageId: "missingExport",
             data: {
               fnName,
-              id: 'useStuff',
+              id: "useStuff",
             },
           });
           return;
         }
-        if (variableDeclarator.id.type !== 'Identifier') {
+        if (variableDeclarator.id.type !== "Identifier") {
           context.report({
             node: node.callee,
-            messageId: 'missingExport',
+            messageId: "missingExport",
             data: {
               fnName,
-              id: 'useStuff',
+              id: "useStuff",
             },
           });
           return;
         }
         if (!/^use/.test(variableDeclarator.id.name)) {
           const fixed =
-            'use' +
+            "use" +
             variableDeclarator.id.name[0].toUpperCase() +
             variableDeclarator.id.name.slice(1);
           context.report({
             node: variableDeclarator.id,
-            messageId: 'wrongName',
+            messageId: "wrongName",
             data: {
               fnName,
               id: variableDeclarator.id.name,
@@ -124,7 +124,7 @@ If you understand this, you can disable this warning with:
         if (!isExported(variableDeclarator)) {
           context.report({
             node: variableDeclarator.id,
-            messageId: 'missingExport',
+            messageId: "missingExport",
             data: {
               fnName,
               id: variableDeclarator.id.name,
@@ -132,10 +132,10 @@ If you understand this, you can disable this warning with:
           });
           return;
         }
-        if (node.arguments.length > 0 && node.arguments[0].type === 'Identifier') {
+        if (node.arguments.length > 0 && node.arguments[0].type === "Identifier") {
           context.report({
             node: node.arguments[0],
-            messageId: 'recommendedValue',
+            messageId: "recommendedValue",
             data: {
               fnName,
               id: variableDeclarator.id.name,
@@ -159,8 +159,8 @@ export function normalizePath(path: string) {
     return path;
   }
 
-  path = path.replace(/\\/g, '/');
-  if (path.endsWith('/')) {
+  path = path.replace(/\\/g, "/");
+  if (path.endsWith("/")) {
     path = path.slice(0, path.length - 1);
   }
   return path;
@@ -217,85 +217,85 @@ export const loaderLocationExamples: QwikEslintExamples = {
   invalidLoaderLocation: {
     good: [
       {
-        codeTitle: 'src/routes/product/[productId]/index.tsx',
-        codeHighlight: '{3} /routeLoader$/#a',
+        codeTitle: "src/routes/product/[productId]/index.tsx",
+        codeHighlight: "{3} /routeLoader$/#a",
         code: invalidLoaderLocationGood,
       },
     ],
     bad: [
       {
-        codeTitle: 'src/components/product/product.tsx',
-        codeHighlight: '{3} /routeLoader$/#a',
+        codeTitle: "src/components/product/product.tsx",
+        codeHighlight: "{3} /routeLoader$/#a",
         code: invalidLoaderLocationBad,
         description:
-          'This is not a valid location for a route loader. It only can be used inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file.',
+          "This is not a valid location for a route loader. It only can be used inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file.",
       },
     ],
   },
   missingExport: {
     good: [
       {
-        codeHighlight: '{3} /export/#a',
+        codeHighlight: "{3} /export/#a",
         code: missingExportGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{3}',
+        codeHighlight: "{3}",
         code: missingExportBad,
-        description: 'The route loader function must be exported.',
+        description: "The route loader function must be exported.",
       },
     ],
   },
   wrongName: {
     good: [
       {
-        codeHighlight: '{3} /use/#a',
+        codeHighlight: "{3} /use/#a",
         code: wrongNameGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{3} /get/#a',
+        codeHighlight: "{3} /get/#a",
         code: wrongNameBad,
-        description: 'The route loader function name must start with `use`.',
+        description: "The route loader function name must start with `use`.",
       },
     ],
   },
   recommendedValue: {
     good: [
       {
-        codeHighlight: '{3} /=>/#a',
+        codeHighlight: "{3} /=>/#a",
         code: recommendedValueGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{9} /fetcher/#a',
+        codeHighlight: "{9} /fetcher/#a",
         code: recommendedValueBad,
         description:
-          'It is recommended to inline the arrow function. This will help the optimizer make sure that no server code is leaked to the client build.',
+          "It is recommended to inline the arrow function. This will help the optimizer make sure that no server code is leaked to the client build.",
       },
     ],
   },
 };
 function isExported(variableDeclarator: Rule.Node): boolean {
-  if (variableDeclarator.parent.parent.type === 'ExportNamedDeclaration') {
+  if (variableDeclarator.parent.parent.type === "ExportNamedDeclaration") {
     return true;
   }
-  if (variableDeclarator.type === 'VariableDeclarator') {
+  if (variableDeclarator.type === "VariableDeclarator") {
     const id = variableDeclarator.id;
-    if ('name' in id) {
+    if ("name" in id) {
       const name = id.name;
       const body = getProgramBody(variableDeclarator);
       for (let idx = 0; idx < body.length; idx++) {
         const node = body[idx];
-        if (node.type == 'ExportNamedDeclaration') {
+        if (node.type == "ExportNamedDeclaration") {
           const specifiers = node.specifiers;
           for (let specIdx = 0; specIdx < specifiers.length; specIdx++) {
             const exportNode = specifiers[specIdx];
-            if (exportNode.type == 'ExportSpecifier') {
-              if (exportNode.exported.type == 'Identifier' && exportNode.exported.name === name) {
+            if (exportNode.type == "ExportSpecifier") {
+              if (exportNode.exported.type == "Identifier" && exportNode.exported.name === name) {
                 return true;
               }
             }
@@ -309,7 +309,7 @@ function isExported(variableDeclarator: Rule.Node): boolean {
 
 function getProgramBody(variableDeclarator) {
   let program: Rule.Node = variableDeclarator;
-  while (program.type !== 'Program') {
+  while (program.type !== "Program") {
     program = program.parent;
   }
   const body = program.body;

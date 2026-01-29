@@ -1,4 +1,4 @@
-import { component$, useErrorBoundary, Slot, type QRL, useOnWindow, $ } from '@builder.io/qwik';
+import { component$, useErrorBoundary, Slot, type QRL, useOnWindow, $ } from "@builder.io/qwik";
 
 /** @public */
 export interface ErrorBoundaryProps {
@@ -10,10 +10,10 @@ export const ErrorBoundary = component$((props: ErrorBoundaryProps) => {
   const store = useErrorBoundary();
 
   useOnWindow(
-    'qerror',
+    "qerror",
     $((e: CustomEvent) => {
       store.error = e.detail.error;
-    })
+    }),
   );
 
   if (store.error && props.fallback$) {

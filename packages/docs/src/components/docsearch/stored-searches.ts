@@ -1,11 +1,11 @@
-import { noSerialize } from '@builder.io/qwik';
-import type { DocSearchHit, StoredDocSearchHit } from './types';
+import { noSerialize } from "@builder.io/qwik";
+import type { DocSearchHit, StoredDocSearchHit } from "./types";
 
 function isLocalStorageSupported() {
-  const key = '__TEST_KEY__';
+  const key = "__TEST_KEY__";
 
   try {
-    localStorage.setItem(key, '');
+    localStorage.setItem(key, "");
     localStorage.removeItem(key);
     return true;
   } catch (error) {
@@ -34,7 +34,7 @@ function createStorage<TItem>(key: string) {
     getItem(): TItem[] {
       let item = [];
       try {
-        const value = window.localStorage.getItem(key) || '[]';
+        const value = window.localStorage.getItem(key) || "[]";
         item = JSON.parse(value);
       } catch (err) {
         //

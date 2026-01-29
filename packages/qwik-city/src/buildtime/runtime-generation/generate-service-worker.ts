@@ -1,8 +1,8 @@
-import type { BuildContext } from '../types';
+import type { BuildContext } from "../types";
 
 export function generateServiceWorkerRegister(ctx: BuildContext, swRegister: string) {
   let swReg: string;
-  let swUrl = '/service-worker.js';
+  let swUrl = "/service-worker.js";
 
   // Also unregister if the developer removed the service-worker.ts file since Qwik 1.14.0 and above now use modulepreload by default
   if (ctx.isDevServer || ctx.serviceWorkers.length === 0) {
@@ -11,11 +11,11 @@ export function generateServiceWorkerRegister(ctx: BuildContext, swRegister: str
     swReg = swRegister;
 
     const sw = ctx.serviceWorkers.sort((a, b) =>
-      a.chunkFileName.length < b.chunkFileName.length ? -1 : 1
+      a.chunkFileName.length < b.chunkFileName.length ? -1 : 1,
     )[0];
     swUrl = ctx.opts.basePathname + sw.chunkFileName;
   }
-  swReg = swReg.replace('__url', swUrl);
+  swReg = swReg.replace("__url", swUrl);
 
   return `export default ${JSON.stringify(swReg)};`;
 }

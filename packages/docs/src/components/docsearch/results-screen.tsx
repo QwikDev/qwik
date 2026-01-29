@@ -1,9 +1,9 @@
-import { component$ } from '@builder.io/qwik';
-import { Result } from './result';
-import { removeHighlightTags } from './utils';
-import { SelectIcon } from './icons/SelectIcon';
-import { SourceIcon } from './icons/SourceIcon';
-import type { DocSearchState } from './doc-search';
+import { component$ } from "@builder.io/qwik";
+import { Result } from "./result";
+import { removeHighlightTags } from "./utils";
+import { SelectIcon } from "./icons/SelectIcon";
+import { SourceIcon } from "./icons/SourceIcon";
+import type { DocSearchState } from "./doc-search";
 
 export const ResultsScreen = component$((props: { state: DocSearchState }) => {
   return (

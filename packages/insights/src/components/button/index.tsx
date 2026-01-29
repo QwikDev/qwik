@@ -1,9 +1,9 @@
-import { type QwikIntrinsicElements, Slot, component$ } from '@builder.io/qwik';
+import { type QwikIntrinsicElements, Slot, component$ } from "@builder.io/qwik";
 
-type ButtonProps = QwikIntrinsicElements['button'] & {
-  theme?: 'primary' | 'secondary' | 'danger' | 'success' | 'warning' | 'info' | 'github';
-  size?: 'small' | 'medium' | 'large';
-  variant?: 'outlined' | 'contained';
+type ButtonProps = QwikIntrinsicElements["button"] & {
+  theme?: "primary" | "secondary" | "danger" | "success" | "warning" | "info" | "github";
+  size?: "small" | "medium" | "large";
+  variant?: "outlined" | "contained";
 };
 
 /**
@@ -19,9 +19,9 @@ export default component$<ButtonProps>((props) => {
     <button
       {...props}
       class={[
-        'button',
-        props.theme === 'primary' && 'border-slate-300 bg-white  text-black',
-        props.theme === 'github' && 'bg-black text-white',
+        "button",
+        props.theme === "primary" && "border-slate-300 bg-white  text-black",
+        props.theme === "github" && "bg-black text-white",
       ]}
     >
       <Slot />

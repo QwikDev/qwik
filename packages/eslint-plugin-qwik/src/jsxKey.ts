@@ -1,12 +1,12 @@
-import jsxAstUtils from 'jsx-ast-utils';
-import { QwikEslintExamples } from '../examples';
+import jsxAstUtils from "jsx-ast-utils";
+import { QwikEslintExamples } from "../examples";
 
 // ------------------------------------------------------------------------------
 // Rule Definition
 // ------------------------------------------------------------------------------
 
 function isFunctionLikeExpression(node) {
-  return node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression';
+  return node.type === "FunctionExpression" || node.type === "ArrowFunctionExpression";
 }
 
 const defaultOptions = {
@@ -23,34 +23,34 @@ const messages = {
     'Missing "key" prop for element in array. The key prop allows for improved rendering performance.',
   missingArrayKeyUsePrag:
     'Missing "key" prop for element in array. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use <Fragment> instead',
-  nonUniqueKeys: '`key` prop must be unique',
+  nonUniqueKeys: "`key` prop must be unique",
 };
 
 export const jsxKey = {
   meta: {
     docs: {
-      description: 'Disallow missing `key` props in iterators/collection literals',
-      category: 'Possible Errors',
+      description: "Disallow missing `key` props in iterators/collection literals",
+      category: "Possible Errors",
       recommended: true,
-      url: 'https://qwik.dev/docs/advanced/eslint/#jsx-key',
+      url: "https://qwik.dev/docs/advanced/eslint/#jsx-key",
     },
 
     messages,
 
     schema: [
       {
-        type: 'object',
+        type: "object",
         properties: {
           checkFragmentShorthand: {
-            type: 'boolean',
+            type: "boolean",
             default: defaultOptions.checkFragmentShorthand,
           },
           checkKeyMustBeforeSpread: {
-            type: 'boolean',
+            type: "boolean",
             default: defaultOptions.checkKeyMustBeforeSpread,
           },
           warnOnDuplicates: {
-            type: 'boolean',
+            type: "boolean",
             default: defaultOptions.warnOnDuplicates,
           },
         },
@@ -63,7 +63,7 @@ export const jsxKey = {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const modifyJsxSource = sourceCode
       .getAllComments()
-      .some((c) => c.value.includes('@jsxImportSource'));
+      .some((c) => c.value.includes("@jsxImportSource"));
     if (modifyJsxSource) {
       return {};
     }
@@ -74,23 +74,23 @@ export const jsxKey = {
 
     function checkIteratorElement(node) {
       if (
-        node.type === 'JSXElement' &&
-        !jsxAstUtils.hasProp(node.openingElement.attributes, 'key')
+        node.type === "JSXElement" &&
+        !jsxAstUtils.hasProp(node.openingElement.attributes, "key")
       ) {
         context.report({
           node,
-          messageId: 'missingIterKey',
+          messageId: "missingIterKey",
         });
-      } else if (checkFragmentShorthand && node.type === 'JSXFragment') {
+      } else if (checkFragmentShorthand && node.type === "JSXFragment") {
         context.report({
           node,
-          messageId: 'missingIterKeyUsePrag',
+          messageId: "missingIterKeyUsePrag",
         });
       }
     }
 
     function getReturnStatements(node, returnStatements: any[] = []) {
-      if (node.type === 'IfStatement') {
+      if (node.type === "IfStatement") {
         if (node.consequent) {
           getReturnStatements(node.consequent, returnStatements);
         }
@@ -99,11 +99,11 @@ export const jsxKey = {
         }
       } else if (Array.isArray(node.body)) {
         node.body.forEach((item) => {
-          if (item.type === 'IfStatement') {
+          if (item.type === "IfStatement") {
             getReturnStatements(item, returnStatements);
           }
 
-          if (item.type === 'ReturnStatement') {
+          if (item.type === "ReturnStatement") {
             returnStatements.push(item);
           }
         });
@@ -115,14 +115,14 @@ export const jsxKey = {
     function isKeyAfterSpread(attributes) {
       let hasFoundSpread = false;
       return attributes.some((attribute) => {
-        if (attribute.type === 'JSXSpreadAttribute') {
+        if (attribute.type === "JSXSpreadAttribute") {
           hasFoundSpread = true;
           return false;
         }
-        if (attribute.type !== 'JSXAttribute') {
+        if (attribute.type !== "JSXAttribute") {
           return false;
         }
-        return hasFoundSpread && jsxAstUtils.propName(attribute) === 'key';
+        return hasFoundSpread && jsxAstUtils.propName(attribute) === "key";
       });
     }
 
@@ -134,7 +134,7 @@ export const jsxKey = {
      */
     function checkFunctionsBlockStatement(node) {
       if (isFunctionLikeExpression(node)) {
-        if (node.body.type === 'BlockStatement') {
+        if (node.body.type === "BlockStatement") {
           getReturnStatements(node.body)
             .filter((returnStatement) => returnStatement && returnStatement.argument)
             .forEach((returnStatement) => {
@@ -151,19 +151,19 @@ export const jsxKey = {
      * @param {ASTNode} node
      */
     function checkArrowFunctionWithJSX(node) {
-      const isArrFn = node && node.type === 'ArrowFunctionExpression';
-      const shouldCheckNode = (n) => n && (n.type === 'JSXElement' || n.type === 'JSXFragment');
+      const isArrFn = node && node.type === "ArrowFunctionExpression";
+      const shouldCheckNode = (n) => n && (n.type === "JSXElement" || n.type === "JSXFragment");
       if (isArrFn && shouldCheckNode(node.body)) {
         checkIteratorElement(node.body);
       }
-      if (node.body.type === 'ConditionalExpression') {
+      if (node.body.type === "ConditionalExpression") {
         if (shouldCheckNode(node.body.consequent)) {
           checkIteratorElement(node.body.consequent);
         }
         if (shouldCheckNode(node.body.alternate)) {
           checkIteratorElement(node.body.alternate);
         }
-      } else if (node.body.type === 'LogicalExpression' && shouldCheckNode(node.body.right)) {
+      } else if (node.body.type === "LogicalExpression" && shouldCheckNode(node.body.right)) {
         checkIteratorElement(node.body.right);
       }
     }
@@ -176,7 +176,7 @@ export const jsxKey = {
       CallExpression
         [callee.object.name=Children]
         [callee.property.name=toArray]
-    )`.replace(/\s/g, '');
+    )`.replace(/\s/g, "");
     let isWithinChildrenToArray = false;
 
     const seen = new WeakSet();
@@ -190,13 +190,13 @@ export const jsxKey = {
         isWithinChildrenToArray = false;
       },
 
-      'ArrayExpression, JSXElement > JSXElement'(node) {
+      "ArrayExpression, JSXElement > JSXElement"(node) {
         if (isWithinChildrenToArray) {
           return;
         }
 
-        const jsx = (node.type === 'ArrayExpression' ? node.elements : node.parent.children).filter(
-          (x) => x && x.type === 'JSXElement'
+        const jsx = (node.type === "ArrayExpression" ? node.elements : node.parent.children).filter(
+          (x) => x && x.type === "JSXElement",
         );
         if (jsx.length === 0) {
           return;
@@ -205,13 +205,13 @@ export const jsxKey = {
         const map = {};
         jsx.forEach((element) => {
           const attrs = element.openingElement.attributes;
-          const keys = attrs.filter((x) => x.name && x.name.name === 'key');
+          const keys = attrs.filter((x) => x.name && x.name.name === "key");
 
           if (keys.length === 0) {
-            if (node.type === 'ArrayExpression') {
+            if (node.type === "ArrayExpression") {
               context.report({
                 node: element,
-                messageId: 'missingArrayKey',
+                messageId: "missingArrayKey",
               });
             }
           }
@@ -226,7 +226,7 @@ export const jsxKey = {
                   seen.add(n);
                   context.report({
                     node: n,
-                    messageId: 'nonUniqueKeys',
+                    messageId: "nonUniqueKeys",
                   });
                 }
               });
@@ -239,10 +239,10 @@ export const jsxKey = {
           return;
         }
 
-        if (node.parent.type === 'ArrayExpression') {
+        if (node.parent.type === "ArrayExpression") {
           context.report({
             node,
-            messageId: 'missingArrayKeyUsePrag',
+            messageId: "missingArrayKeyUsePrag",
           });
         }
       },
@@ -253,7 +253,7 @@ export const jsxKey = {
        CallExpression[callee.type="OptionalMemberExpression"][callee.property.name="map"],\
        OptionalCallExpression[callee.type="MemberExpression"][callee.property.name="map"],\
        OptionalCallExpression[callee.type="OptionalMemberExpression"][callee.property.name="map"]'(
-        node
+        node,
       ) {
         if (isWithinChildrenToArray) {
           return;
@@ -453,78 +453,78 @@ export const jsxKeyExamples: QwikEslintExamples = {
   missingIterKey: {
     good: [
       {
-        codeHighlight: '{13} /key=/#a',
+        codeHighlight: "{13} /key=/#a",
         code: missingIterKeyGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{13}',
+        codeHighlight: "{13}",
         code: missingIterKeyBad,
-        description: 'Missing `key` prop for element in iterator.',
+        description: "Missing `key` prop for element in iterator.",
       },
     ],
   },
   missingIterKeyUsePrag: {
     good: [
       {
-        codeHighlight: '{14} /Fragment/#a',
+        codeHighlight: "{14} /Fragment/#a",
         code: missingIterKeyUsePragGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{14}',
+        codeHighlight: "{14}",
         code: missingIterKeyUsePragBad,
         description:
-          'Missing `key` prop for element in iterator. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use `<Fragment>` instead',
+          "Missing `key` prop for element in iterator. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use `<Fragment>` instead",
       },
     ],
   },
   missingArrayKey: {
     good: [
       {
-        codeHighlight: '{9} /key=/#a',
+        codeHighlight: "{9} /key=/#a",
         code: missingArrayKeyGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{9}',
+        codeHighlight: "{9}",
         code: missingArrayKeyBad,
         description:
-          'Missing `key` prop for element in array. The key prop allows for improved rendering performance.',
+          "Missing `key` prop for element in array. The key prop allows for improved rendering performance.",
       },
     ],
   },
   missingArrayKeyUsePrag: {
     good: [
       {
-        codeHighlight: '{8,11} /Fragment/#a',
+        codeHighlight: "{8,11} /Fragment/#a",
         code: missingArrayKeyUsePragGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{8,11}',
+        codeHighlight: "{8,11}",
         code: missingArrayKeyUsePragBad,
         description:
-          'Missing `key` prop for element in array. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use `<Fragment>` instead',
+          "Missing `key` prop for element in array. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use `<Fragment>` instead",
       },
     ],
   },
   nonUniqueKeys: {
     good: [
       {
-        codeHighlight: '{9} /key=/#a',
+        codeHighlight: "{9} /key=/#a",
         code: nonUniqueKeysGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{9} /key=/#a /not-a-good-idea/#b',
+        codeHighlight: "{9} /key=/#a /not-a-good-idea/#b",
         code: nonUniqueKeysBad,
-        description: 'The `key` prop must be unique.',
+        description: "The `key` prop must be unique.",
       },
     ],
   },

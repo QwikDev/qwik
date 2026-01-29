@@ -5,11 +5,7 @@ export const Attributes = component$(() => {
   return (
     <>
       <h1>Most of the changes happen in the input attributes</h1>
-      <button
-        id="force-rerender"
-        data-v={render.value}
-        onClick$={() => render.value++}
-      >
+      <button id="force-rerender" data-v={render.value} onClick$={() => render.value++}>
         Rerender
       </button>
       <AttributesChild v={render.value} key={render.value} />
@@ -117,12 +113,7 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
           </>
         ) : (
           <>
-            <label
-              id="label"
-              for={state.label}
-              form="my-form"
-              title={title.value}
-            ></label>
+            <label id="label" for={state.label} form="my-form" title={title.value}></label>
             <input
               id="input"
               required={required.value}

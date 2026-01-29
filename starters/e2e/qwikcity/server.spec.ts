@@ -48,9 +48,7 @@ test.describe("server$", () => {
         ["a", "b", "c"].map(async (letter) => {
           const result = await page.locator(`#${letter}`);
 
-          await expect(result).toHaveText([
-            "/qwikcity-test/server-func/resource/" + letter,
-          ]);
+          await expect(result).toHaveText(["/qwikcity-test/server-func/resource/" + letter]);
         }),
       );
     });
@@ -76,12 +74,8 @@ test.describe("server$", () => {
       const user1Context = await browser.newContext();
       const user2Context = await browser.newContext();
 
-      const user1Cookies = [
-        { name: "user", value: "user1", url: "http://localhost:3301" },
-      ];
-      const user2Cookies = [
-        { name: "user", value: "user2", url: "http://localhost:3301" },
-      ];
+      const user1Cookies = [{ name: "user", value: "user1", url: "http://localhost:3301" }];
+      const user2Cookies = [{ name: "user", value: "user2", url: "http://localhost:3301" }];
       await user1Context.addCookies(user1Cookies);
       await user2Context.addCookies(user2Cookies);
 
@@ -102,23 +96,17 @@ test.describe("server$", () => {
       await expect(usersContainer1).toContainText("user1user1");
       await expect(usersContainer2).toContainText("user2user2");
     });
-    test("should work with config custom header and GET on client", async ({
-      page,
-    }) => {
+    test("should work with config custom header and GET on client", async ({ page }) => {
       await page.goto("/qwikcity-test/server-func/server-configs");
       const serverConfigContainer = page.locator("#server-configs");
 
-      await expect(serverConfigContainer).toContainText(
-        "POST--MyCustomValue-GET--MyCustomValue",
-      );
+      await expect(serverConfigContainer).toContainText("POST--MyCustomValue-GET--MyCustomValue");
     });
     test("should modify ServerError in middleware", async ({ page }) => {
       await page.goto("/qwikcity-test/server-func/server-error");
       const serverConfigContainer = page.locator("#server-error");
 
-      await expect(serverConfigContainer).toContainText(
-        "my errorserver-error-caughtPOST",
-      );
+      await expect(serverConfigContainer).toContainText("my errorserver-error-caughtPOST");
     });
     test("should catch ServerError in routeLoader", async ({ page }) => {
       await page.goto("/qwikcity-test/server-func/server-error/loader");

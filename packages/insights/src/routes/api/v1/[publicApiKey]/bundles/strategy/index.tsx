@@ -1,12 +1,12 @@
-import { type RequestHandler } from '@builder.io/qwik-city';
-import { getEdges } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
-import { getDB } from '../../../../../../db';
-import { computeSymbolGraph, computeSymbolVectors, computeBundles } from '~/stats/edges';
-import { getRoutes } from '~/db/sql-routes';
+import { type RequestHandler } from "@builder.io/qwik-city";
+import { getEdges } from "~/db/query";
+import { dbGetManifestHashes } from "~/db/sql-manifest";
+import { getDB } from "../../../../../../db";
+import { computeSymbolGraph, computeSymbolVectors, computeBundles } from "~/stats/edges";
+import { getRoutes } from "~/db/sql-routes";
 
 interface Strategy {
-  type: 'smart';
+  type: "smart";
   manual: Record<string, string>;
   prefetch: Prefetch[];
 }
@@ -19,7 +19,7 @@ export const onGet: RequestHandler = async ({ json, params }) => {
   const publicApiKey = params.publicApiKey;
   const db = getDB();
   const strategy: Strategy = {
-    type: 'smart',
+    type: "smart",
     manual: {},
     prefetch: [],
   };

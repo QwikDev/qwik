@@ -1,36 +1,36 @@
-import { rmSync } from 'fs';
-import { copyFile, watch } from 'fs/promises';
-import { join } from 'path';
-import { apiExtractorQwik, apiExtractorQwikCity } from './api.ts';
-import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform.ts';
-import { buildWasmBinding } from './binding-wasm.ts';
-import { buildCreateQwikCli } from './create-qwik-cli.ts';
-import { buildEslint } from './eslint.ts';
-import { buildQwikAuth } from './qwik-auth.ts';
-import { buildQwikCity } from './qwik-city.ts';
-import { buildQwikLabs } from './qwik-labs.ts';
-import { buildQwikReact } from './qwik-react.ts';
-import { buildQwikWorker } from './qwik-worker.ts';
+import { rmSync } from "fs";
+import { copyFile, watch } from "fs/promises";
+import { join } from "path";
+import { apiExtractorQwik, apiExtractorQwikCity } from "./api.ts";
+import { buildPlatformBinding, copyPlatformBindingWasm } from "./binding-platform.ts";
+import { buildWasmBinding } from "./binding-wasm.ts";
+import { buildCreateQwikCli } from "./create-qwik-cli.ts";
+import { buildEslint } from "./eslint.ts";
+import { buildQwikAuth } from "./qwik-auth.ts";
+import { buildQwikCity } from "./qwik-city.ts";
+import { buildQwikLabs } from "./qwik-labs.ts";
+import { buildQwikReact } from "./qwik-react.ts";
+import { buildQwikWorker } from "./qwik-worker.ts";
 import {
   commitPrepareReleaseVersion,
   prepareReleaseVersion,
   publish,
   setDistVersion,
   setReleaseVersion,
-} from './release.ts';
-import { submoduleBuild } from './submodule-build.ts';
-import { submoduleCli } from './submodule-cli.ts';
-import { submoduleCore } from './submodule-core.ts';
-import { submoduleOptimizer } from './submodule-optimizer.ts';
-import { submoduleQwikLoader } from './submodule-qwikloader.ts';
-import { submoduleServer } from './submodule-server.ts';
-import { submoduleTesting } from './submodule-testing.ts';
-import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
-import { tsc, tscQwik, tscQwikCity } from './tsc.ts';
-import { tscDocs } from './tsc-docs.ts';
-import { emptyDir, ensureDir, panic, type BuildConfig } from './util.ts';
-import { validateBuild } from './validate-build.ts';
-import { submodulePreloader } from './submodule-preloader.ts';
+} from "./release.ts";
+import { submoduleBuild } from "./submodule-build.ts";
+import { submoduleCli } from "./submodule-cli.ts";
+import { submoduleCore } from "./submodule-core.ts";
+import { submoduleOptimizer } from "./submodule-optimizer.ts";
+import { submoduleQwikLoader } from "./submodule-qwikloader.ts";
+import { submoduleServer } from "./submodule-server.ts";
+import { submoduleTesting } from "./submodule-testing.ts";
+import { buildSupabaseAuthHelpers } from "./supabase-auth-helpers.ts";
+import { tsc, tscQwik, tscQwikCity } from "./tsc.ts";
+import { tscDocs } from "./tsc-docs.ts";
+import { emptyDir, ensureDir, panic, type BuildConfig } from "./util.ts";
+import { validateBuild } from "./validate-build.ts";
+import { submodulePreloader } from "./submodule-preloader.ts";
 
 /**
  * Complete a full build for all of the package's submodules. Passed in config has all the correct
@@ -39,7 +39,7 @@ import { submodulePreloader } from './submodule-preloader.ts';
  * Terser for the core submodule.
  */
 export async function build(config: BuildConfig) {
-  config.devRelease = config.devRelease || (!!config.release && config.setDistTag === 'dev');
+  config.devRelease = config.devRelease || (!!config.release && config.setDistTag === "dev");
   try {
     if (config.prepareRelease) {
       // locally set the version for the upcoming release
@@ -54,7 +54,7 @@ export async function build(config: BuildConfig) {
 
     console.log(
       `🌎 Qwik v${config.distVersion}`,
-      `[node ${process.version}, ${process.platform}/${process.arch}]`
+      `[node ${process.version}, ${process.platform}/${process.arch}]`,
     );
 
     if (config.tsc || (!config.dev && config.qwik)) {
@@ -85,9 +85,9 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.api || (!config.dev && config.qwik)) {
-      rmSync(join(config.rootDir, 'dist-dev', 'api'), { recursive: true, force: true });
-      rmSync(join(config.rootDir, 'dist-dev', 'api-docs'), { recursive: true, force: true });
-      rmSync(join(config.rootDir, 'dist-dev', 'api-extractor'), { recursive: true, force: true });
+      rmSync(join(config.rootDir, "dist-dev", "api"), { recursive: true, force: true });
+      rmSync(join(config.rootDir, "dist-dev", "api-docs"), { recursive: true, force: true });
+      rmSync(join(config.rootDir, "dist-dev", "api-extractor"), { recursive: true, force: true });
     }
     if (config.api || ((!config.dev || config.tsc) && config.qwik)) {
       await apiExtractorQwik(config);
@@ -166,25 +166,25 @@ export async function build(config: BuildConfig) {
 
     if (config.watch) {
       await watchDirectories({
-        [join(config.srcQwikDir, 'core')]: async () => {
+        [join(config.srcQwikDir, "core")]: async () => {
           await submoduleCore({ ...config, dev: true });
           await copyFile(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
+            join(config.srcQwikDir, "..", "dist", "core.cjs"),
+            join(config.srcQwikDir, "..", "dist", "core.prod.cjs"),
           );
           await copyFile(
-            join(config.srcQwikDir, '..', 'dist', 'core.mjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.mjs')
+            join(config.srcQwikDir, "..", "dist", "core.mjs"),
+            join(config.srcQwikDir, "..", "dist", "core.prod.mjs"),
           );
           console.log(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
+            join(config.srcQwikDir, "..", "dist", "core.cjs"),
+            join(config.srcQwikDir, "..", "dist", "core.prod.cjs"),
           );
         },
-        [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
-        [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
-        [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
-        [join(config.srcQwikCityDir, 'runtime/src')]: () => buildQwikCity(config),
+        [join(config.srcQwikDir, "cli")]: () => submoduleCli(config),
+        [join(config.srcQwikDir, "optimizer")]: () => submoduleOptimizer(config),
+        [join(config.srcQwikDir, "server")]: () => submoduleServer(config),
+        [join(config.srcQwikCityDir, "runtime/src")]: () => buildQwikCity(config),
       });
     }
   } catch (e: any) {
@@ -200,13 +200,13 @@ async function watchDirectories(dirs: Record<string, () => Promise<any>>) {
   return Promise.all(promises);
 }
 async function watchDirectory(dir: string, reactionFn: () => Promise<void>) {
-  console.log('👀 watching', dir);
+  console.log("👀 watching", dir);
   for await (const change of watch(dir, { recursive: true })) {
-    console.log('👀 change in', dir, '=>', change.filename);
+    console.log("👀 change in", dir, "=>", change.filename);
     try {
       await reactionFn();
     } catch (e) {
-      console.error('👀 error', dir, '=>', e);
+      console.error("👀 error", dir, "=>", e);
     }
   }
 }

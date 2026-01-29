@@ -1,31 +1,31 @@
-import { $, component$, sync$, useContext, useOnDocument, useStyles$ } from '@builder.io/qwik';
+import { $, component$, sync$, useContext, useOnDocument, useStyles$ } from "@builder.io/qwik";
 import {
   type ContentMenu,
   useContent,
   useLocation,
   routeLoader$,
   Link,
-} from '@builder.io/qwik-city';
-import { GlobalStore } from '../../context';
-import { CloseIcon } from '../svgs/close-icon';
-import styles from './sidebar.css?inline';
+} from "@builder.io/qwik-city";
+import { GlobalStore } from "../../context";
+import { CloseIcon } from "../svgs/close-icon";
+import styles from "./sidebar.css?inline";
 
 export const useMarkdownItems = routeLoader$(async () => {
   const rawData = await Promise.all(
-    Object.entries(import.meta.glob<{ frontmatter?: MDX }>('../../routes/**/*.{md,mdx}')).map(
+    Object.entries(import.meta.glob<{ frontmatter?: MDX }>("../../routes/**/*.{md,mdx}")).map(
       async ([k, v]) => {
         return [
           k
-            .replace('../../routes', '')
-            .replace('(qwikcity)/', '')
-            .replace('(qwik)/', '')
-            .replaceAll(/([()])/g, '')
-            .replace('index.mdx', '')
-            .replace('index.md', ''),
+            .replace("../../routes", "")
+            .replace("(qwikcity)/", "")
+            .replace("(qwik)/", "")
+            .replaceAll(/([()])/g, "")
+            .replace("index.mdx", "")
+            .replace("index.md", ""),
           await v(),
         ] as const;
-      }
-    )
+      },
+    ),
   );
   const markdownItems: MarkdownItems = {};
   rawData.map(([k, v]) => {
@@ -57,23 +57,23 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
   const { menu } = useContent();
   const { url } = useLocation();
   const markdownItems = useMarkdownItems();
-  const allOpen = url.pathname.startsWith('/qwikcity/') || props.allOpen;
+  const allOpen = url.pathname.startsWith("/qwikcity/") || props.allOpen;
 
   useOnDocument(
-    'DOMContentLoaded',
+    "DOMContentLoaded",
     sync$(() => {
       try {
-        const val = sessionStorage.getItem('qwik-sidebar');
+        const val = sessionStorage.getItem("qwik-sidebar");
         const savedScroll = !val || /null|NaN/.test(val) ? 0 : +val;
-        const el = document.getElementById('qwik-sidebar');
+        const el = document.getElementById("qwik-sidebar");
         if (el) {
           el.scrollTop = savedScroll;
-          el.style.visibility = 'visible';
+          el.style.visibility = "visible";
         }
       } catch (err) {
         //
       }
-    })
+    }),
   );
 
   const closeSideMenuOpen = $(() => {
@@ -134,9 +134,9 @@ export function Items({
               <Link
                 href={item.href}
                 class={[
-                  'flex relative',
+                  "flex relative",
                   {
-                    'is-active': pathname === item.href,
+                    "is-active": pathname === item.href,
                   },
                 ]}
                 onClick$={onLinkClick$}

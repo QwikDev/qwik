@@ -1,8 +1,8 @@
-import type { AutocompleteApi } from '@algolia/autocomplete-core';
-import { useTask$ } from '@builder.io/qwik';
+import type { AutocompleteApi } from "@algolia/autocomplete-core";
+import { useTask$ } from "@builder.io/qwik";
 
 interface UseTouchEventsProps {
-  getEnvironmentProps: AutocompleteApi<any>['getEnvironmentProps'];
+  getEnvironmentProps: AutocompleteApi<any>["getEnvironmentProps"];
   panelElement: HTMLDivElement | null;
   formElement: HTMLDivElement | null;
   inputElement: HTMLInputElement | null;

@@ -1,13 +1,13 @@
-import { component$, useStore, useStyles$, useVisibleTask$ } from '@builder.io/qwik';
-import styles from './clock.css?inline';
+import { component$, useStore, useStyles$, useVisibleTask$ } from "@builder.io/qwik";
+import styles from "./clock.css?inline";
 
 export default component$(() => {
-  const items = new Array(60).fill(null).map((_, index) => 'item ' + index);
+  const items = new Array(60).fill(null).map((_, index) => "item " + index);
 
-  console.log('PARENT');
+  console.log("PARENT");
   return (
     <div>
-      <p onClick$={() => console.log('test')}>
+      <p onClick$={() => console.log("test")}>
         This is an example of Lazy executing code on component when component becomes visible.
       </p>
 
@@ -47,7 +47,7 @@ export const Clock = component$(() => {
     return () => clearInterval(tmrId);
   });
 
-  console.log('Render Clock');
+  console.log("Render Clock");
   return (
     <div class="clock">
       <div class="twelve"></div>

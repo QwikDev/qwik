@@ -1,6 +1,6 @@
-import { component$, useComputed$ } from '@builder.io/qwik';
-import { useDocumentHead } from '@builder.io/qwik-city';
-import { useLocation as exampleTest } from '@builder.io/qwik-city';
+import { component$, useComputed$ } from "@builder.io/qwik";
+import { useDocumentHead } from "@builder.io/qwik-city";
+import { useLocation as exampleTest } from "@builder.io/qwik-city";
 const loc = exampleTest();
 
 export default component$(() => {

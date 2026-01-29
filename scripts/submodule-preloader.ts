@@ -1,8 +1,8 @@
-import { join } from 'node:path';
-import { build } from 'vite';
-import { fileSize, type BuildConfig } from './util.ts';
-import { minify } from 'terser';
-import type { Plugin } from 'vite';
+import { join } from "node:path";
+import { build } from "vite";
+import { fileSize, type BuildConfig } from "./util.ts";
+import { minify } from "terser";
+import type { Plugin } from "vite";
 
 /**
  * Custom plugin to apply terser during the bundle generation. Vite doesn't minify library ES
@@ -10,10 +10,10 @@ import type { Plugin } from 'vite';
  */
 function customTerserPlugin(): Plugin {
   return {
-    name: 'custom-terser',
+    name: "custom-terser",
     async renderChunk(code, chunk) {
       // Only process JavaScript chunks
-      if (!chunk.fileName.endsWith('.mjs') && !chunk.fileName.endsWith('.js')) {
+      if (!chunk.fileName.endsWith(".mjs") && !chunk.fileName.endsWith(".js")) {
         return null;
       }
 
@@ -30,7 +30,7 @@ function customTerserPlugin(): Plugin {
           toplevel: false,
           properties: {
             // use short attribute names for internal properties
-            regex: '^\\$.+\\$$|^[A-Z][a-zA-Z]+$',
+            regex: "^\\$.+\\$$|^[A-Z][a-zA-Z]+$",
           },
         },
         format: {
@@ -54,12 +54,12 @@ export async function submodulePreloader(config: BuildConfig) {
       emptyOutDir: false,
       copyPublicDir: false,
       lib: {
-        entry: join(config.srcQwikDir, 'core/preloader'),
-        formats: ['es', 'cjs'],
-        fileName: (format) => (format === 'es' ? 'preloader.mjs' : 'preloader.cjs'),
+        entry: join(config.srcQwikDir, "core/preloader"),
+        formats: ["es", "cjs"],
+        fileName: (format) => (format === "es" ? "preloader.mjs" : "preloader.cjs"),
       },
       rollupOptions: {
-        external: ['@builder.io/qwik/build'],
+        external: ["@builder.io/qwik/build"],
       },
       minify: false, // This is the default, just to be explicit
       outDir: config.distQwikPkgDir,
@@ -67,6 +67,6 @@ export async function submodulePreloader(config: BuildConfig) {
     plugins: [customTerserPlugin()],
   });
 
-  const preloaderSize = await fileSize(join(config.distQwikPkgDir, 'preloader.mjs'));
+  const preloaderSize = await fileSize(join(config.distQwikPkgDir, "preloader.mjs"));
   console.log(`🐮 preloader:`, preloaderSize);
 }

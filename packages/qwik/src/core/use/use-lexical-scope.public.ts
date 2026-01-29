@@ -1,10 +1,10 @@
-import { assertDefined } from '../error/assert';
-import { inflateQrl, parseQRL } from '../qrl/qrl';
-import { getWrappingContainer, getInvokeContext } from './use-core';
-import { assertQrl } from '../qrl/qrl-class';
-import { getContext } from '../state/context';
-import { resumeIfNeeded } from '../container/resume';
-import { _getContainerState } from '../container/container';
+import { assertDefined } from "../error/assert";
+import { inflateQrl, parseQRL } from "../qrl/qrl";
+import { getWrappingContainer, getInvokeContext } from "./use-core";
+import { assertQrl } from "../qrl/qrl-class";
+import { getContext } from "../state/context";
+import { resumeIfNeeded } from "../container/resume";
+import { _getContainerState } from "../container/container";
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -25,7 +25,7 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
   let qrl = context.$qrl$;
   if (!qrl) {
     const el = context.$element$;
-    assertDefined(el, 'invoke: element must be defined inside useLexicalScope()', context);
+    assertDefined(el, "invoke: element must be defined inside useLexicalScope()", context);
     const container = getWrappingContainer(el);
     assertDefined(container, `invoke: cant find parent q:container of`, el);
     qrl = parseQRL(decodeURIComponent(String(context.$url$)), container);
@@ -37,8 +37,8 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
     assertQrl(qrl);
     assertDefined(
       qrl.$captureRef$,
-      'invoke: qrl $captureRef$ must be defined inside useLexicalScope()',
-      qrl
+      "invoke: qrl $captureRef$ must be defined inside useLexicalScope()",
+      qrl,
     );
   }
   return qrl.$captureRef$ as VARS;

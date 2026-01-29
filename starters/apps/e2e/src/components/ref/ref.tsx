@@ -1,10 +1,4 @@
-import {
-  component$,
-  useStore,
-  useVisibleTask$,
-  useSignal,
-  type PropsOf,
-} from "@builder.io/qwik";
+import { component$, useStore, useVisibleTask$, useSignal, type PropsOf } from "@builder.io/qwik";
 
 export const RefRoot = component$(() => {
   const state = useStore({
@@ -57,9 +51,7 @@ export const Ref2 = component$((props: { id: string }) => {
 });
 
 export const Ref3 = component$(
-  <C extends "div" | "span">(
-    props: { as?: C } & PropsOf<unknown extends C ? "div" : C>,
-  ) => {
+  <C extends "div" | "span">(props: { as?: C } & PropsOf<unknown extends C ? "div" : C>) => {
     const { as = "div", ...rest } = props;
     const ref = useSignal<HTMLElement>();
 

@@ -1,8 +1,8 @@
 // keep this import from qwik/build so the cjs build works
-import { isDev } from '@builder.io/qwik/build';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
-import { _jsxC } from '../internal';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
+import { isDev } from "@builder.io/qwik/build";
+import type { JSXNode } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "../internal";
+import type { JSXOutput } from "../render/jsx/types/jsx-node";
 
 /**
  * @deprecated This is no longer needed as the preloading happens automatically in qrl-class.ts.
@@ -17,23 +17,23 @@ export const PrefetchServiceWorker = (opts: {
   verbose?: boolean;
   fetchBundleGraph?: boolean;
   nonce?: string;
-}): JSXNode<'script'> => {
+}): JSXNode<"script"> => {
   const isTest = import.meta.env.TEST;
   if (isDev && !isTest) {
     const props = {
-      dangerouslySetInnerHTML: '<!-- PrefetchServiceWorker is disabled in dev mode. -->',
+      dangerouslySetInnerHTML: "<!-- PrefetchServiceWorker is disabled in dev mode. -->",
     };
-    return _jsxC('script', props, 0, 'prefetch-service-worker');
+    return _jsxC("script", props, 0, "prefetch-service-worker");
   }
 
   // if an MFE app has a custom BASE_URL then this will be the correct value
   // if you're not using MFE from another codebase then you want to override this value to your custom setup
-  const baseUrl = import.meta.env.BASE_URL || '/';
+  const baseUrl = import.meta.env.BASE_URL || "/";
   const resolvedOpts = {
-    path: 'qwik-prefetch-service-worker.js',
+    path: "qwik-prefetch-service-worker.js",
     ...opts,
   };
-  if (opts?.path?.startsWith?.('/')) {
+  if (opts?.path?.startsWith?.("/")) {
     // allow different path and base
     resolvedOpts.path = opts.path;
   } else {
@@ -42,43 +42,43 @@ export const PrefetchServiceWorker = (opts: {
     // the file 'qwik-prefetch-service-worker.js' is not located in /build/
     resolvedOpts.path = baseUrl + resolvedOpts.path;
   }
-  let code = PREFETCH_CODE.replace('"_URL_"', JSON.stringify(resolvedOpts.path.split('/').pop()));
+  let code = PREFETCH_CODE.replace('"_URL_"', JSON.stringify(resolvedOpts.path.split("/").pop()));
   if (!isDev) {
     // consecutive spaces are indentation
-    code = code.replaceAll(/\s\s+/gm, '');
+    code = code.replaceAll(/\s\s+/gm, "");
   }
   const props = {
     dangerouslySetInnerHTML: [
-      '(' + code + ')(',
+      "(" + code + ")(",
       [
-        'navigator.serviceWorker', // Service worker container
-      ].join(','),
-      ');',
-    ].join(''),
+        "navigator.serviceWorker", // Service worker container
+      ].join(","),
+      ");",
+    ].join(""),
     nonce: resolvedOpts.nonce,
   };
-  return _jsxC('script', props, 0, 'prefetch-service-worker');
+  return _jsxC("script", props, 0, "prefetch-service-worker");
 };
 
 const PREFETCH_CODE = /*#__PURE__*/ ((
-  c: ServiceWorkerContainer // Service worker container
+  c: ServiceWorkerContainer, // Service worker container
 ) => {
-  if ('getRegistrations' in c) {
+  if ("getRegistrations" in c) {
     c.getRegistrations().then((registrations) => {
       registrations.forEach((registration) => {
         if (registration.active) {
-          if (registration.active.scriptURL.endsWith('_URL_')) {
+          if (registration.active.scriptURL.endsWith("_URL_")) {
             registration.unregister().catch(console.error);
           }
         }
       });
     });
   }
-  if ('caches' in window) {
+  if ("caches" in window) {
     caches
       .keys()
       .then((names) => {
-        const cacheName = names.find((name) => name.startsWith('QwikBundles'));
+        const cacheName = names.find((name) => name.startsWith("QwikBundles"));
         if (cacheName) {
           caches.delete(cacheName).catch(console.error);
         }
@@ -93,5 +93,5 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
  * @alpha
  */
 export const PrefetchGraph = (
-  opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
+  opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {},
 ): JSXOutput => null;

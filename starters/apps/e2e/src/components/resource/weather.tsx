@@ -38,19 +38,17 @@ export const Weather = component$(() => {
     };
   });
 
-  const weather = useResource$<WeatherData | undefined>(
-    async ({ track, cleanup }) => {
-      const city = track(() => state.debouncedCity);
-      cleanup(() => console.log("abort request for ", city));
-      if (city.length < 2) {
-        return undefined;
-      }
-      const controller = new AbortController();
-      cleanup(() => controller.abort());
-      const value = await fetchWeather(city, controller.signal);
-      return value;
-    },
-  );
+  const weather = useResource$<WeatherData | undefined>(async ({ track, cleanup }) => {
+    const city = track(() => state.debouncedCity);
+    cleanup(() => console.log("abort request for ", city));
+    if (city.length < 2) {
+      return undefined;
+    }
+    const controller = new AbortController();
+    cleanup(() => controller.abort());
+    const value = await fetchWeather(city, controller.signal);
+    return value;
+  });
 
   return (
     <div>
@@ -67,31 +65,29 @@ export const Weather = component$(() => {
   );
 });
 
-export const WeatherResults = component$(
-  (props: { weather: ResourceReturn<WeatherData> }) => {
-    console.log("rerender");
-    return (
-      <div>
-        <Resource
-          value={props.weather}
-          onPending={() => <div>loading data...</div>}
-          onRejected={() => <div>error</div>}
-          onResolved={(resolved) => (
-            <ul>
-              <li>name: {resolved.name}</li>
-              <li>temp: {resolved.temp}</li>
-              <li>feels_like: {resolved.feels_like}</li>
-              <li>humidity: {resolved.humidity}</li>
-              <li>temp_max: {resolved.temp_max}</li>
-              <li>temp_min: {resolved.temp_min}</li>
-              <li>visibility: {resolved.visibility}</li>
-            </ul>
-          )}
-        />
-      </div>
-    );
-  },
-);
+export const WeatherResults = component$((props: { weather: ResourceReturn<WeatherData> }) => {
+  console.log("rerender");
+  return (
+    <div>
+      <Resource
+        value={props.weather}
+        onPending={() => <div>loading data...</div>}
+        onRejected={() => <div>error</div>}
+        onResolved={(resolved) => (
+          <ul>
+            <li>name: {resolved.name}</li>
+            <li>temp: {resolved.temp}</li>
+            <li>feels_like: {resolved.feels_like}</li>
+            <li>humidity: {resolved.humidity}</li>
+            <li>temp_max: {resolved.temp_max}</li>
+            <li>temp_min: {resolved.temp_min}</li>
+            <li>visibility: {resolved.visibility}</li>
+          </ul>
+        )}
+      />
+    </div>
+  );
+});
 
 export const WeatherResults2 = component$(
   (props: { weather: ResourceReturn<WeatherData | undefined> }) => {
@@ -124,10 +120,7 @@ export const WeatherResults2 = component$(
   },
 );
 
-export async function fetchWeather(
-  city: string,
-  signal: AbortSignal,
-): Promise<WeatherData> {
+export async function fetchWeather(city: string, signal: AbortSignal): Promise<WeatherData> {
   const url = new URL("https://api.openweathermap.org/data/2.5/weather");
   url.searchParams.set("q", city);
   url.searchParams.set("appid", "796dc66c4335ab39e43f882c0098b076");

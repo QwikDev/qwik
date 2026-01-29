@@ -22,11 +22,7 @@ export const Render = component$(() => {
   const rerender = useSignal(0);
   return (
     <>
-      <button
-        id="rerender"
-        data-v={rerender.value}
-        onClick$={() => rerender.value++}
-      >
+      <button id="rerender" data-v={rerender.value} onClick$={() => rerender.value++}>
         Rerender
       </button>
       <RenderChildren v={rerender.value} key={rerender.value} />
@@ -70,11 +66,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
         id="props-destructuring"
         aria-hidden="true"
       />
-      <PropsDestructuringNo
-        count={state.count}
-        id="props-destructuring-no"
-        aria-hidden="true"
-      />
+      <PropsDestructuringNo count={state.count} id="props-destructuring-no" aria-hidden="true" />
       <PropsDestructuring
         message="Count"
         count={state.count}
@@ -129,10 +121,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
       <>
         <span id="rerenders">Rerender {count}</span>
         <div id="attributes">
-          <button
-            id="toggle"
-            onClick$={() => (state.hideAttributes = !state.hideAttributes)}
-          >
+          <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
             Toggle attributes
           </button>
         </div>
@@ -155,10 +144,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
           hidden: false,
         }}
       >
-        <button
-          id="toggle"
-          onClick$={() => (state.hideAttributes = !state.hideAttributes)}
-        >
+        <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
           Toggle attributes
         </button>
       </div>
@@ -207,17 +193,10 @@ export const CounterToggle = component$(() => {
   const cond = useSignal({ cond: true });
   return (
     <>
-      <button
-        id="counter-toggle-btn"
-        onClick$={() => (cond.value = { cond: !cond.value.cond })}
-      >
+      <button id="counter-toggle-btn" onClick$={() => (cond.value = { cond: !cond.value.cond })}>
         Toggle
       </button>
-      {cond.value.cond ? (
-        <CounterToggleShow text="even" />
-      ) : (
-        <CounterToggleShow text="odd" />
-      )}
+      {cond.value.cond ? <CounterToggleShow text="even" /> : <CounterToggleShow text="odd" />}
       <CounterToggleShow2 cond={cond.value.cond} />
     </>
   );
@@ -355,17 +334,13 @@ export const Issue2889 = component$(() => {
 
   useTask$(({ track }) => {
     const list = track(() => appState.events);
-    filteredEvents.value = list.filter(
-      (x) => x.created >= new Date(2022, 1, 20),
-    );
+    filteredEvents.value = list.filter((x) => x.created >= new Date(2022, 1, 20));
   });
 
   return (
     <>
       <h2 id="issue-2889-result1">Deeds: {appState.events.length}</h2>
-      <h2 id="issue-2889-result2">
-        Filtered Deeds: {(filteredEvents.value || []).length}
-      </h2>
+      <h2 id="issue-2889-result2">Filtered Deeds: {(filteredEvents.value || []).length}</h2>
     </>
   );
 });
@@ -384,9 +359,7 @@ export const Issue3116 = component$(() => {
   return (
     <>
       <ProductRelations
-        render$={(products) => (
-          <div id="issue-3116-result">{products.join("hi")}</div>
-        )}
+        render$={(products) => <div id="issue-3116-result">{products.join("hi")}</div>}
       />
     </>
   );
@@ -445,9 +418,7 @@ const Issue2414 = component$(() => {
 
   useTask$(({ track }) => {
     track(() => sort.value);
-    table.value = table.value
-      .sort((a, b) => a[sort.value] - b[sort.value])
-      .slice();
+    table.value = table.value.sort((a, b) => a[sort.value] - b[sort.value]).slice();
   });
 
   return (
@@ -488,9 +459,7 @@ const Issue2414 = component$(() => {
         )}
         <tfoot>
           <tr>
-            <td colSpan={3}>
-              {table.value === undefined ? "" : table.value.length}
-            </td>
+            <td colSpan={3}>{table.value === undefined ? "" : table.value.length}</td>
           </tr>
         </tfoot>
       </table>
@@ -629,8 +598,7 @@ export const Issue3561 = component$(() => {
       },
     },
   });
-  const { currentVariant: { variantImage, variantNumber, setContents } = {} } =
-    props.product;
+  const { currentVariant: { variantImage, variantNumber, setContents } = {} } = props.product;
 
   return (
     <div>
@@ -659,16 +627,11 @@ export const Issue3643 = component$(() => {
   const toggle = useSignal(false);
   return (
     <div>
-      <button
-        id="issue-3643-button"
-        onClick$={() => (toggle.value = !toggle.value)}
-      >
+      <button id="issue-3643-button" onClick$={() => (toggle.value = !toggle.value)}>
         Toggle
       </button>
       <div id="issue-3643-result">
-        {toggle.value
-          ? h("div", {}, "World")
-          : h("div", { dangerouslySetInnerHTML: "Hello" })}
+        {toggle.value ? h("div", {}, "World") : h("div", { dangerouslySetInnerHTML: "Hello" })}
       </div>
       <div id="issue-3643-result-2">
         {toggle.value
@@ -755,9 +718,7 @@ export const Issue3702 = component$(({ description = "", other }: any) => {
     <div
       id="issue-3702-result"
       data-title={
-        description && "description" in other
-          ? `Hello ${counter.value}`
-          : `Bye ${counter.value}`
+        description && "description" in other ? `Hello ${counter.value}` : `Bye ${counter.value}`
       }
     >
       Issue3702
@@ -813,10 +774,7 @@ export const SkipRenderTest = component$(() => {
 
 export const SSRRawTest = component$(() => {
   return (
-    <div
-      id="ssr-raw-test-result"
-      data-mounted={isServer ? "server" : "browser"}
-    >
+    <div id="ssr-raw-test-result" data-mounted={isServer ? "server" : "browser"}>
       <SSRRaw data="<b>ssr raw test</b>" />
     </div>
   );
@@ -824,10 +782,7 @@ export const SSRRawTest = component$(() => {
 
 export const HTMLFragmentTest = component$(() => {
   return (
-    <div
-      id="html-fragment-test-result"
-      data-mounted={isServer ? "server" : "browser"}
-    >
+    <div id="html-fragment-test-result" data-mounted={isServer ? "server" : "browser"}>
       <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
     </div>
   );
@@ -884,10 +839,7 @@ export const Issue4346 = component$(() => {
       <div id="issue-4346-result" ref={toggle.value ? ref : undefined}>
         {toggle.value ? "Hello" : "world"}
       </div>
-      <button
-        id="issue-4346-toggle"
-        onClick$={() => (toggle.value = false)}
-      ></button>
+      <button id="issue-4346-toggle" onClick$={() => (toggle.value = false)}></button>
     </>
   );
 });
@@ -908,37 +860,21 @@ export const Issue4386 = component$(() => {
 export const Issue4455 = component$(() => {
   return (
     <>
-      <input
-        id="issue-4455-input1"
-        type="range"
-        value="0.5"
-        step="0.1"
-        min="0"
-        max="1"
-      />
-      <input
-        id="issue-4455-input2"
-        type="range"
-        step="0.1"
-        value="0.5"
-        min="0"
-        max="1"
-      />
+      <input id="issue-4455-input1" type="range" value="0.5" step="0.1" min="0" max="1" />
+      <input id="issue-4455-input2" type="range" step="0.1" value="0.5" min="0" max="1" />
     </>
   );
 });
 
-export const DynamicComponent = component$<{ b?: boolean; v: string }>(
-  ({ b, v }) => {
-    // Make the tag dynamic
-    const Tag = b ? "button" : "div";
-    return (
-      <Tag id="issue-5266-tag" data-v={v}>
-        hello
-      </Tag>
-    );
-  },
-);
+export const DynamicComponent = component$<{ b?: boolean; v: string }>(({ b, v }) => {
+  // Make the tag dynamic
+  const Tag = b ? "button" : "div";
+  return (
+    <Tag id="issue-5266-tag" data-v={v}>
+      hello
+    </Tag>
+  );
+});
 export const Issue5266 = component$(() => {
   const show = useSignal(false);
   const state = useSignal("foo");
@@ -955,18 +891,16 @@ export const Issue5266 = component$(() => {
 
 // needs to be a variable outside component scope to trigger the bug
 const buttonStyle = "btn";
-export const DynamicButton = component$<any>(
-  ({ isWhite, href, onClick$, id }: any) => {
-    const ComponentName = href ? "a" : "button";
-    return (
-      <ComponentName
-        id={id}
-        class={[buttonStyle, { white: isWhite }]}
-        href={href}
-        onClick$={onClick$}
-      >
-        <Slot />
-      </ComponentName>
-    );
-  },
-);
+export const DynamicButton = component$<any>(({ isWhite, href, onClick$, id }: any) => {
+  const ComponentName = href ? "a" : "button";
+  return (
+    <ComponentName
+      id={id}
+      class={[buttonStyle, { white: isWhite }]}
+      href={href}
+      onClick$={onClick$}
+    >
+      <Slot />
+    </ComponentName>
+  );
+});

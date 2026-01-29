@@ -1,4 +1,4 @@
-import type { PrefetchResource } from './types';
+import type { PrefetchResource } from "./types";
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {
   const urls: string[] = [];

@@ -1,17 +1,17 @@
-import { cancel, intro, log, spinner as spinnerPrompt } from '@clack/prompts';
+import { cancel, intro, log, spinner as spinnerPrompt } from "@clack/prompts";
 
-import type { CreateAppResult } from 'packages/qwik/src/cli/types';
-import { bgBlue } from 'kleur/colors';
-import { clearDir } from './helpers/clearDir';
-import { createApp } from './create-app';
-import fs from 'node:fs';
-import { getPackageManager } from '../../qwik/src/cli/utils/utils';
-import { installDepsCli } from './helpers/installDepsCli';
-import { installDeps as installDepsFn } from 'packages/qwik/src/cli/utils/install-deps';
-import { logAppCreated } from './helpers/logAppCreated';
-import { makeTemplateManager } from './helpers/templateManager';
-import { resolveRelativeDir } from './helpers/resolveRelativeDir';
-import yargs from 'yargs';
+import type { CreateAppResult } from "packages/qwik/src/cli/types";
+import { bgBlue } from "kleur/colors";
+import { clearDir } from "./helpers/clearDir";
+import { createApp } from "./create-app";
+import fs from "node:fs";
+import { getPackageManager } from "../../qwik/src/cli/utils/utils";
+import { installDepsCli } from "./helpers/installDepsCli";
+import { installDeps as installDepsFn } from "packages/qwik/src/cli/utils/install-deps";
+import { logAppCreated } from "./helpers/logAppCreated";
+import { makeTemplateManager } from "./helpers/templateManager";
+import { resolveRelativeDir } from "./helpers/resolveRelativeDir";
+import yargs from "yargs";
 
 type Args = {
   outDir: string;
@@ -23,30 +23,30 @@ type Args = {
 function parseArgs(args: string[], templates: string[]) {
   const parsedArgs = yargs(args)
     .strict()
-    .command('* <template> <outDir>', 'Create a new project powered by qwik', (yargs) => {
+    .command("* <template> <outDir>", "Create a new project powered by qwik", (yargs) => {
       return yargs
-        .positional('template', {
-          type: 'string',
-          desc: 'Starter template',
+        .positional("template", {
+          type: "string",
+          desc: "Starter template",
           choices: templates,
         })
-        .positional('outDir', {
-          type: 'string',
-          desc: 'Directory of the project',
+        .positional("outDir", {
+          type: "string",
+          desc: "Directory of the project",
         })
-        .option('force', {
-          alias: 'f',
-          type: 'boolean',
+        .option("force", {
+          alias: "f",
+          type: "boolean",
           default: false,
-          desc: 'Overwrite target directory if it exists',
+          desc: "Overwrite target directory if it exists",
         })
-        .option('installDeps', {
-          alias: 'i',
+        .option("installDeps", {
+          alias: "i",
           default: false,
-          type: 'boolean',
-          desc: 'Install dependencies',
+          type: "boolean",
+          desc: "Install dependencies",
         })
-        .usage('npm create qwik@latest base ./my-project <options>');
+        .usage("npm create qwik@latest base ./my-project <options>");
     }).argv as unknown as Args;
 
   return parsedArgs;
@@ -55,7 +55,7 @@ function parseArgs(args: string[], templates: string[]) {
 /** @param args Pass here process.argv.slice(2) */
 export async function runCreateCli(...args: string[]): Promise<CreateAppResult> {
   const pkgManager = getPackageManager();
-  const templateManager = await makeTemplateManager('app');
+  const templateManager = await makeTemplateManager("app");
   const templateVariants = templateManager.standaloneTemplates.map(({ id }) => id);
 
   const parsedArgs = parseArgs(args, templateVariants);
@@ -63,7 +63,7 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
 
   let outDir = parsedArgs.outDir;
 
-  intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
+  intro(`Let's create a ${bgBlue(" Qwik App ")} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   if (writeToCwd()) {
     // write to the current working directory
@@ -78,7 +78,7 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
       } else {
         log.error(`Directory "${outDir}" already exists.`);
         log.info(
-          `Please either remove this directory, choose another location or run the command again with '--force | -f' flag.`
+          `Please either remove this directory, choose another location or run the command again with '--force | -f' flag.`,
         );
         cancel();
         process.exit(1);
@@ -94,7 +94,7 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
   if (installDeps) {
     isDepsInstalled = await installDepsCli(
       async () => await installDepsFn(pkgManager, outDir).install,
-      { pkgManager, spinner }
+      { pkgManager, spinner },
     );
   }
 
@@ -110,7 +110,7 @@ function writeToCwd() {
 function isStackBlitz() {
   try {
     // /home/projects/abc123
-    return process.cwd().startsWith('/home/projects/');
+    return process.cwd().startsWith("/home/projects/");
   } catch {
     // ignore
   }

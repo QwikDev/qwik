@@ -5,7 +5,7 @@ import {
   useServerData,
   useVisibleTask$,
   type QRL,
-} from '@builder.io/qwik';
+} from "@builder.io/qwik";
 import {
   ContentContext,
   DocumentHeadContext,
@@ -13,7 +13,7 @@ import {
   RouteLocationContext,
   RouteNavigateContext,
   RoutePreventNavigateContext,
-} from './contexts';
+} from "./contexts";
 import type {
   RouteLocation,
   ResolvedDocumentHead,
@@ -21,7 +21,7 @@ import type {
   QwikCityEnvData,
   RouteAction,
   PreventNavigateCallback,
-} from './types';
+} from "./types";
 
 /** @public */
 export const useContent = () => useContext(ContentContext);
@@ -45,7 +45,7 @@ export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext)
 export const usePreventNavigateQrl = (fn: QRL<PreventNavigateCallback>): void => {
   if (!__EXPERIMENTAL__.preventNavigate) {
     throw new Error(
-      'usePreventNavigate$ is experimental and must be enabled with `experimental: ["preventNavigate"]` in the `qwikVite` plugin.'
+      'usePreventNavigate$ is experimental and must be enabled with `experimental: ["preventNavigate"]` in the `qwikVite` plugin.',
     );
   }
   const registerPreventNav = useContext(RoutePreventNavigateContext);
@@ -94,4 +94,4 @@ export const usePreventNavigate$ = implicit$FirstArg(usePreventNavigateQrl);
 
 export const useAction = (): RouteAction => useContext(RouteActionContext);
 
-export const useQwikCityEnv = () => noSerialize(useServerData<QwikCityEnvData>('qwikcity'));
+export const useQwikCityEnv = () => noSerialize(useServerData<QwikCityEnvData>("qwikcity"));

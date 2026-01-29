@@ -414,11 +414,7 @@ test.describe("signals", () => {
     test("issue 3440", async ({ page }) => {
       const results = page.locator(".issue-3440-results");
       const remove = page.locator("#issue-3440-remove");
-      await expect(results).toHaveText([
-        "my first blog",
-        "my second blogs",
-        "my third blog",
-      ]);
+      await expect(results).toHaveText(["my first blog", "my second blogs", "my third blog"]);
       await remove.click();
       await expect(results).toHaveText(["my first blog", "my second blogs"]);
       await remove.click();
@@ -522,36 +518,24 @@ test.describe("signals", () => {
       const props = page.locator("#issue-4868-props");
       const usecomputed = page.locator("#issue-4868-usecomputed");
 
-      await expect(json).toHaveText(
-        `{"src":"https://placehold.co/400x400?text=1","id":1}`,
-      );
-      await expect(props).toHaveText(
-        `Card props.src: https://placehold.co/400x400?text=1`,
-      );
+      await expect(json).toHaveText(`{"src":"https://placehold.co/400x400?text=1","id":1}`);
+      await expect(props).toHaveText(`Card props.src: https://placehold.co/400x400?text=1`);
       await expect(usecomputed).toHaveText(
         `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`,
       );
 
       await btn2.click();
 
-      await expect(json).toHaveText(
-        `{"src":"https://placehold.co/500x500?text=2","id":2}`,
-      );
-      await expect(props).toHaveText(
-        `Card props.src: https://placehold.co/500x500?text=2`,
-      );
+      await expect(json).toHaveText(`{"src":"https://placehold.co/500x500?text=2","id":2}`);
+      await expect(props).toHaveText(`Card props.src: https://placehold.co/500x500?text=2`);
       await expect(usecomputed).toHaveText(
         `Card useComputed$: https://placehold.co/500x500?text=2&useComputed$`,
       );
 
       await btn1.click();
 
-      await expect(json).toHaveText(
-        `{"src":"https://placehold.co/400x400?text=1","id":1}`,
-      );
-      await expect(props).toHaveText(
-        `Card props.src: https://placehold.co/400x400?text=1`,
-      );
+      await expect(json).toHaveText(`{"src":"https://placehold.co/400x400?text=1","id":1}`);
+      await expect(props).toHaveText(`Card props.src: https://placehold.co/400x400?text=1`);
       await expect(usecomputed).toHaveText(
         `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`,
       );

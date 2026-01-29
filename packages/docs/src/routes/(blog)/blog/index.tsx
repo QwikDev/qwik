@@ -1,7 +1,7 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
-import type { DocumentHead } from '@builder.io/qwik-city';
-import { FeaturedArticle } from './components/featured-article';
-import { ArticlesGrid } from './components/articles-grid';
+import { component$, useStyles$ } from "@builder.io/qwik";
+import type { DocumentHead } from "@builder.io/qwik-city";
+import { FeaturedArticle } from "./components/featured-article";
+import { ArticlesGrid } from "./components/articles-grid";
 
 export default component$(() => {
   useStyles$(`
@@ -49,5 +49,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: 'Qwik Blog',
+  title: "Qwik Blog",
 };

@@ -1,15 +1,15 @@
-import type { AppCommand } from '../utils/app-command';
+import type { AppCommand } from "../utils/app-command";
 // Removed non-critical logging to keep command output silent unless there are serious issues
-import { red } from 'kleur/colors';
-import { runInPkg } from '../utils/install-deps';
-import { getPackageManager, panic } from '../utils/utils';
-import fs from 'fs/promises';
-import type { Stats } from 'fs';
-import path from 'path';
+import { red } from "kleur/colors";
+import { runInPkg } from "../utils/install-deps";
+import { getPackageManager, panic } from "../utils/utils";
+import fs from "fs/promises";
+import type { Stats } from "fs";
+import path from "path";
 
 const getDiskPath = (dist: string) => path.resolve(dist);
 const getSrcPath = (src: string) => path.resolve(src);
-const getManifestPath = (dist: string) => path.resolve(dist, 'q-manifest.json');
+const getManifestPath = (dist: string) => path.resolve(dist, "q-manifest.json");
 
 export async function runQwikClientCommand(app: AppCommand) {
   try {
@@ -53,9 +53,9 @@ async function checkClientCommand(app: AppCommand, src: string, dist: string): P
 
 async function goBuild(app: AppCommand) {
   const pkgManager = getPackageManager();
-  const { install } = await runInPkg(pkgManager, ['run', 'build.client'], app.rootDir);
+  const { install } = await runInPkg(pkgManager, ["run", "build.client"], app.rootDir);
   if (!(await install)) {
-    throw new Error('Client build command reported failure.');
+    throw new Error("Client build command reported failure.");
   }
 }
 
@@ -73,7 +73,7 @@ async function getManifestTs(manifestPath: string) {
     return stats.mtimeMs;
   } catch (err: any) {
     // Handle errors accessing the manifest file
-    if (err.code !== 'ENOENT') {
+    if (err.code !== "ENOENT") {
       panic(`Error accessing manifest file ${manifestPath}: ${err.message}`);
     }
     return null;
@@ -91,7 +91,7 @@ export async function clientDirExists(path: string): Promise<boolean> {
     await fs.access(getDiskPath(path));
     return true; // Directory exists
   } catch (err: any) {
-    if (!(err.code === 'ENOENT')) {
+    if (!(err.code === "ENOENT")) {
       panic(`Error accessing disk directory ${path}: ${err.message}`);
     }
     return false; // Directory doesn't exist or there was an error
@@ -111,7 +111,7 @@ export async function hasNewer(srcPath: string, timestamp: number): Promise<bool
     if (returnValue) {
       return;
     }
-    let items: Array<import('fs').Dirent>;
+    let items: Array<import("fs").Dirent>;
     try {
       items = await fs.readdir(dir, { withFileTypes: true });
     } catch (err: any) {

@@ -1,6 +1,6 @@
 /** @jsxImportSource react */
-import { useEffect, useState } from 'react';
-import { qwikify$ } from '@builder.io/qwik-react';
+import { useEffect, useState } from "react";
+import { qwikify$ } from "@builder.io/qwik-react";
 
 interface IProps {
   onMount(): void;
@@ -25,4 +25,4 @@ function Counter({ onMount, onUnmount }: IProps) {
   );
 }
 
-export const QCounter = qwikify$(Counter, { eagerness: 'hover' });
+export const QCounter = qwikify$(Counter, { eagerness: "hover" });

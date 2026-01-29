@@ -8,14 +8,7 @@ import type { NextFunction, Request, Response } from "express";
 import express from "express";
 import { build, type InlineConfig, type PluginOption } from "vite";
 import { join, relative, resolve } from "node:path";
-import {
-  readdirSync,
-  statSync,
-  unlinkSync,
-  rmSync,
-  existsSync,
-  readFileSync,
-} from "node:fs";
+import { readdirSync, statSync, unlinkSync, rmSync, existsSync, readFileSync } from "node:fs";
 import type { QwikManifest } from "@builder.io/qwik/optimizer";
 import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
 import type { PackageJSON } from "../scripts/types.ts";
@@ -114,11 +107,7 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function buildApp(
-  appDir: string,
-  appName: string,
-  enableCityServer: boolean,
-) {
+async function buildApp(appDir: string, appName: string, enableCityServer: boolean) {
   const optimizer = await import("@builder.io/qwik/optimizer");
   const appSrcDir = join(appDir, "src");
   const appDistDir = join(appDir, "dist");
@@ -167,9 +156,7 @@ export {
         }
         if (id.endsWith(qwikCityNotFoundPaths)) {
           const notFoundHtml = getErrorHtml(404, "Resource Not Found");
-          return `export function getNotFound(){ return ${JSON.stringify(
-            notFoundHtml,
-          )}; };`;
+          return `export function getNotFound(){ return ${JSON.stringify(notFoundHtml)}; };`;
         }
       },
     });
@@ -239,9 +226,7 @@ export {
     getInlineConf({
       build: {
         minify: false,
-        ssr: enableCityServer
-          ? qwikCityVirtualEntry
-          : resolve(appSrcDir, entrySsrFileName),
+        ssr: enableCityServer ? qwikCityVirtualEntry : resolve(appSrcDir, entrySsrFileName),
       },
       plugins: [
         ...plugins,
@@ -277,12 +262,7 @@ function removeDir(dir: string) {
   }
 }
 
-async function cityApp(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-  appDir: string,
-) {
+async function cityApp(req: Request, res: Response, next: NextFunction, appDir: string) {
   const ssrPath = join(appDir, "server", `${qwikCityVirtualEntry}.js`);
 
   const mod = await import(file(ssrPath));
@@ -401,9 +381,7 @@ async function patchGlobalFetch() {
     process.versions.node
   ) {
     if (!globalThis.fetch) {
-      const { fetch, Headers, Request, Response, FormData } = await import(
-        "undici"
-      );
+      const { fetch, Headers, Request, Response, FormData } = await import("undici");
       globalThis.fetch = fetch as any;
       globalThis.Headers = Headers as any;
       globalThis.Request = Request as any;

@@ -40,9 +40,7 @@ export default component$(() => {
         </button>
       </Form>
       {dotNotation.value?.success && (
-        <div id="multiple-handlers-success">
-          {JSON.stringify(dotNotation.value.payload)}
-        </div>
+        <div id="multiple-handlers-success">{JSON.stringify(dotNotation.value.payload)}</div>
       )}
       <div id="multiple-handlers-finished">{String(finished.value)}</div>
     </>

@@ -1,8 +1,8 @@
-import { getClientDataPath } from './utils';
-import { CLIENT_DATA_CACHE } from './constants';
-import type { ClientPageData, RouteActionValue } from './types';
-import { _deserializeData } from '@builder.io/qwik';
-import { preloadRouteBundles } from './client-navigate';
+import { getClientDataPath } from "./utils";
+import { CLIENT_DATA_CACHE } from "./constants";
+import type { ClientPageData, RouteActionValue } from "./types";
+import { _deserializeData } from "@builder.io/qwik";
+import { preloadRouteBundles } from "./client-navigate";
 
 export const loadClientData = async (
   url: URL,
@@ -12,7 +12,7 @@ export const loadClientData = async (
     clearCache?: boolean;
     preloadRouteBundles?: boolean;
     isPrefetch?: boolean;
-  }
+  },
 ) => {
   const pagePathname = url.pathname;
   const pageSearch = url.search;
@@ -35,7 +35,7 @@ export const loadClientData = async (
     qData = fetch(clientDataPath, fetchOptions).then((rsp) => {
       if (rsp.redirected) {
         const redirectedURL = new URL(rsp.url);
-        const isQData = redirectedURL.pathname.endsWith('/q-data.json');
+        const isQData = redirectedURL.pathname.endsWith("/q-data.json");
         if (!isQData || redirectedURL.origin !== location.origin) {
           // Captive portal etc. We can't talk to the server, so redirect as asked, except when prefetching
           if (!opts?.isPrefetch) {
@@ -44,7 +44,7 @@ export const loadClientData = async (
           return;
         }
       }
-      if ((rsp.headers.get('content-type') || '').includes('json')) {
+      if ((rsp.headers.get("content-type") || "").includes("json")) {
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
           const clientData = _deserializeData(text, element) as ClientPageData | null;
@@ -92,16 +92,16 @@ export const loadClientData = async (
 
 const getFetchOptions = (
   action: RouteActionValue | undefined,
-  noCache: boolean | undefined
+  noCache: boolean | undefined,
 ): RequestInit | undefined => {
   const actionData = action?.data;
   if (!actionData) {
     if (noCache) {
       return {
-        cache: 'no-cache',
+        cache: "no-cache",
         headers: {
-          'Cache-Control': 'no-cache',
-          Pragma: 'no-cache',
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
         },
       };
     }
@@ -109,15 +109,15 @@ const getFetchOptions = (
   }
   if (actionData instanceof FormData) {
     return {
-      method: 'POST',
+      method: "POST",
       body: actionData,
     };
   } else {
     return {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(actionData),
       headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
+        "Content-Type": "application/json; charset=UTF-8",
       },
     };
   }

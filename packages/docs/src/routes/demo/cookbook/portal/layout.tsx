@@ -1,5 +1,5 @@
-import { Slot, component$ } from '@builder.io/qwik';
-import { Portal, PortalProvider } from './portal-provider';
+import { Slot, component$ } from "@builder.io/qwik";
+import { Portal, PortalProvider } from "./portal-provider";
 
 export default component$(() => {
   // 1. Wrap a root component with a <PortalProvider> to enable portal API.

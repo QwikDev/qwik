@@ -1,11 +1,11 @@
-import { component$, useContextProvider, useStore, useStyles$ } from '@builder.io/qwik';
-import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
-import { Insights } from '@builder.io/qwik-labs';
-import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
-import { RouterHead } from './components/router-head/router-head';
-import { BUILDER_PUBLIC_API_KEY } from './constants';
-import { GlobalStore, type SiteStore } from './context';
-import styles from './global.css?inline';
+import { component$, useContextProvider, useStore, useStyles$ } from "@builder.io/qwik";
+import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from "@builder.io/qwik-city";
+import { Insights } from "@builder.io/qwik-labs";
+import RealMetricsOptimization from "./components/real-metrics-optimization/real-metrics-optimization";
+import { RouterHead } from "./components/router-head/router-head";
+import { BUILDER_PUBLIC_API_KEY } from "./constants";
+import { GlobalStore, type SiteStore } from "./context";
+import styles from "./global.css?inline";
 
 export const uwu = /*javascript*/ `
 ;(function () {
@@ -45,8 +45,8 @@ export default component$(() => {
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,
-    theme: 'auto',
-    pkgManager: 'pnpm',
+    theme: "auto",
+    pkgManager: "pnpm",
   });
 
   useContextProvider(GlobalStore, store);
@@ -65,8 +65,8 @@ export default component$(() => {
       </head>
       <body
         class={{
-          'header-open': store.headerMenuOpen,
-          'menu-open': store.sideMenuOpen,
+          "header-open": store.headerMenuOpen,
+          "menu-open": store.sideMenuOpen,
         }}
       >
         <RouterOutlet />
@@ -78,7 +78,7 @@ export default component$(() => {
 
 export function collectSymbols() {
   (window as any).symbols = [];
-  document.addEventListener('qsymbol', (e) =>
-    (window as any).symbols.push((e as any).detail.symbol)
+  document.addEventListener("qsymbol", (e) =>
+    (window as any).symbols.push((e as any).detail.symbol),
   );
 }

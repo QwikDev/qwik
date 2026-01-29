@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from "@builder.io/qwik";
 
 type AlgoliaLogoTranslations = Partial<{
   searchByText: string;
@@ -9,7 +9,7 @@ export type AlgoliaLogoProps = {
 };
 
 export const AlgoliaLogo = component$(({ translations = {} }: AlgoliaLogoProps) => {
-  const { searchByText = 'Search by' } = translations;
+  const { searchByText = "Search by" } = translations;
 
   return (
     <a

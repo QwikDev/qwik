@@ -1,10 +1,5 @@
 import { component$, useStore } from "@builder.io/qwik";
-import {
-  Link,
-  useLocation,
-  type DocumentHead,
-  routeLoader$,
-} from "@builder.io/qwik-city";
+import { Link, useLocation, type DocumentHead, routeLoader$ } from "@builder.io/qwik-city";
 import os from "node:os";
 
 export default component$(() => {
@@ -50,10 +45,7 @@ export default component$(() => {
 
       <ul>
         <li>
-          <Link
-            href="/qwikcity-test/products/jacket/"
-            data-test-link="products-jacket"
-          >
+          <Link href="/qwikcity-test/products/jacket/" data-test-link="products-jacket">
             Jacket
           </Link>
         </li>
@@ -61,10 +53,7 @@ export default component$(() => {
           <Link href="/qwikcity-test/products/hat/">Hat</Link>
         </li>
         <li>
-          <Link
-            href="/qwikcity-test/products/shirt/"
-            data-test-link="products-shirt"
-          >
+          <Link href="/qwikcity-test/products/shirt/" data-test-link="products-shirt">
             T-Shirt (Redirect to /products/tshirt)
           </Link>
         </li>
@@ -89,8 +78,7 @@ export default component$(() => {
             href="/qwikcity-test/products/shirt-rewrite"
             data-test-link="products-shirt-rewrite-no-trailing-slash"
           >
-            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
-            added.
+            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be added.
           </Link>
         </li>
         <li>
@@ -98,32 +86,22 @@ export default component$(() => {
             href="/qwikcity-test/products/shirt-rewrite-absolute-url/"
             data-test-link="products-shirt-rewrite-absolute-url"
           >
-            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
-            added.
+            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be added.
           </Link>
         </li>
         <li>
-          <Link
-            href="/qwikcity-test/products/hoodie/"
-            data-test-link="products-hoodie"
-          >
+          <Link href="/qwikcity-test/products/hoodie/" data-test-link="products-hoodie">
             Hoodie (404 Not Found)
           </Link>
         </li>
         <li>
-          <a
-            href="/qwikcity-test/products/hat/?json=true"
-            data-test-link="products-hat-json"
-          >
+          <a href="/qwikcity-test/products/hat/?json=true" data-test-link="products-hat-json">
             Hat (200 json)
           </a>
         </li>
 
         <li>
-          <a
-            href="/qwikcity-test/products/error"
-            data-test-link="products-error"
-          >
+          <a href="/qwikcity-test/products/error" data-test-link="products-error">
             Error
           </a>
         </li>
@@ -146,17 +124,7 @@ export const PRODUCT_DB: Record<string, string> = {
 };
 
 export const useProductLoader = routeLoader$(
-  async ({
-    headers,
-    json,
-    error,
-    params,
-    query,
-    redirect,
-    rewrite,
-    status,
-    url,
-  }) => {
+  async ({ headers, json, error, params, query, redirect, rewrite, status, url }) => {
     // Serverside Endpoint
     // During SSR, this method is called directly on the server and returns the data object
     // On the client, this same data can be requested with fetch() at the same URL, but also

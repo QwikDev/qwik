@@ -9,7 +9,7 @@ export interface BuildContext {
   menus: BuildMenu[];
   frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
-  target: 'ssr' | 'client' | undefined;
+  target: "ssr" | "client" | undefined;
   isDevServer: boolean;
   isDevServerClientOnly: boolean;
   isDirty: boolean;
@@ -23,7 +23,7 @@ export interface FrontmatterAttrs {
 }
 
 export interface Diagnostic {
-  type: 'error' | 'warn';
+  type: "error" | "warn";
   message: string;
 }
 
@@ -42,7 +42,7 @@ export interface RouteSourceFileName {
   ext: string;
 }
 
-export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'service-worker';
+export type RouteSourceType = "route" | "layout" | "entry" | "menu" | "service-worker";
 
 export interface BuildRoute extends ParsedPathname {
   /** Unique id built from its relative file system path */
@@ -82,7 +82,7 @@ export interface BuildLayout {
   filePath: string;
   dirPath: string;
   id: string;
-  layoutType: 'top' | 'nested';
+  layoutType: "top" | "nested";
   layoutName: string;
 }
 

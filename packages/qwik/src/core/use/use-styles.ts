@@ -1,12 +1,12 @@
-import { styleContent, styleKey } from '../style/qrl-styles';
-import type { QRL } from '../qrl/qrl.public';
-import { implicit$FirstArg } from '../util/implicit_dollar';
-import { getScopedStyles } from '../style/scoped-stylesheet';
-import { useSequentialScope } from './use-sequential-scope';
-import { assertQrl } from '../qrl/qrl-class';
-import { isPromise } from '../util/promises';
-import { assertDefined } from '../error/assert';
-import { ComponentStylesPrefixContent } from '../util/markers';
+import { styleContent, styleKey } from "../style/qrl-styles";
+import type { QRL } from "../qrl/qrl.public";
+import { implicit$FirstArg } from "../util/implicit_dollar";
+import { getScopedStyles } from "../style/scoped-stylesheet";
+import { useSequentialScope } from "./use-sequential-scope";
+import { assertQrl } from "../qrl/qrl-class";
+import { isPromise } from "../util/promises";
+import { assertDefined } from "../error/assert";
+import { ComponentStylesPrefixContent } from "../util/markers";
 
 /** @public */
 export interface UseStylesScoped {
@@ -122,7 +122,7 @@ export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQ
 const _useStyles = (
   styleQrl: QRL<string>,
   transform: (str: string, styleId: string) => string,
-  scoped: boolean
+  scoped: boolean,
 ): string => {
   assertQrl(styleQrl);
 
@@ -149,7 +149,7 @@ const _useStyles = (
   containerState.$styleIds$.add(styleId);
   const value = styleQrl.$resolveLazy$(containerState.$containerEl$);
   const appendStyle = (styleText: string) => {
-    assertDefined(elCtx.$appendStyles$, 'appendStyles must be defined');
+    assertDefined(elCtx.$appendStyles$, "appendStyles must be defined");
     elCtx.$appendStyles$.push({
       styleId,
       content: transform(styleText, styleId),

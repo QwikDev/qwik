@@ -1,8 +1,8 @@
-import { describe, expect, test } from 'vitest';
-import { createMdxTransformer } from './mdx';
+import { describe, expect, test } from "vitest";
+import { createMdxTransformer } from "./mdx";
 
 // It could be that new MDX versions change the output used for snapshot matching. Change as needed.
-describe('mdx', async () => {
+describe("mdx", async () => {
   const ctx = {
     frontmatter: new Map(),
     opts: {
@@ -16,13 +16,13 @@ describe('mdx', async () => {
 
   const transformer = await createMdxTransformer(ctx as any);
 
-  test('convert flat mdx', async () => {
+  test("convert flat mdx", async () => {
     const mdx = `
 # Hello
 <a href="http://example.com">Hello</a>
 <div>World</div>
 `;
-    const result = await transformer(mdx, 'file.mdx');
+    const result = await transformer(mdx, "file.mdx");
 
     expect(result).toMatchInlineSnapshot(`
       {
@@ -86,7 +86,7 @@ describe('mdx', async () => {
     `);
   });
 
-  test('convert layout mdx', async () => {
+  test("convert layout mdx", async () => {
     const mdx = `
 # Hello
 
@@ -97,7 +97,7 @@ export default function Layout({ children: content }) {
 <a href="http://example.com">Hello</a>
 <div>World</div>
 `;
-    const result = await transformer(mdx, 'file.mdx');
+    const result = await transformer(mdx, "file.mdx");
 
     expect(result).toMatchInlineSnapshot(`
       {

@@ -1,32 +1,32 @@
-import type { Rule } from 'eslint';
-import { QwikEslintExamples } from '../examples';
+import type { Rule } from "eslint";
+import { QwikEslintExamples } from "../examples";
 
 export const unusedServer: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description: 'Detect unused server$() functions.',
+      description: "Detect unused server$() functions.",
       recommended: true,
-      url: 'https://qwik.dev/docs/advanced/eslint/#unused-server',
+      url: "https://qwik.dev/docs/advanced/eslint/#unused-server",
     },
     messages: {
       unusedServer:
-        'Unused server$(). Seems like you are declaring a new server$ function, but you are never calling it. You might want to do:\n\n{{ suggestion }}',
+        "Unused server$(). Seems like you are declaring a new server$ function, but you are never calling it. You might want to do:\n\n{{ suggestion }}",
     },
   },
   create(context) {
     return {
       CallExpression(node) {
-        if (node.callee.type !== 'Identifier') {
+        if (node.callee.type !== "Identifier") {
           return;
         }
         const fnName = node.callee.name;
-        if (fnName === 'server$') {
+        if (fnName === "server$") {
           let unused = false;
-          if (node.parent.type === 'ExpressionStatement') {
+          if (node.parent.type === "ExpressionStatement") {
             unused = true;
-          } else if (node.parent.type === 'AwaitExpression') {
-            if (node.parent.parent.type === 'ExpressionStatement') {
+          } else if (node.parent.type === "AwaitExpression") {
+            if (node.parent.parent.type === "ExpressionStatement") {
               unused = true;
             }
           }
@@ -34,7 +34,7 @@ export const unusedServer: Rule.RuleModule = {
             const suggestion = `const serverFn = server$(...);\nawait serverFn(...);`;
             context.report({
               node: node.callee,
-              messageId: 'unusedServer',
+              messageId: "unusedServer",
               data: { suggestion },
             });
           }
@@ -90,15 +90,15 @@ export const unusedServerExamples: QwikEslintExamples = {
   unusedServer: {
     good: [
       {
-        codeHighlight: '{4,12} /serverGreeter/#a',
+        codeHighlight: "{4,12} /serverGreeter/#a",
         code: unusedServerGood,
       },
     ],
     bad: [
       {
-        codeHighlight: '{4,12} /serverGreeter/#a',
+        codeHighlight: "{4,12} /serverGreeter/#a",
         code: unusedServerBad,
-        description: 'A `server$` function is declared, but never used.',
+        description: "A `server$` function is declared, but never used.",
       },
     ],
   },

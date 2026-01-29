@@ -11,13 +11,13 @@ import {
   useStore,
   type QRL,
   type ValueOrPromise,
-} from '@builder.io/qwik';
+} from "@builder.io/qwik";
 
-import * as v from 'valibot';
-import * as z from 'zod';
-import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
-import { RouteStateContext } from './contexts';
+import * as v from "valibot";
+import * as z from "zod";
+import type { RequestEventLoader } from "../../middleware/request-handler/types";
+import { QACTION_KEY, QDATA_KEY, QFN_KEY } from "./constants";
+import { RouteStateContext } from "./contexts";
 import type {
   ActionConstructor,
   ActionConstructorQRL,
@@ -47,12 +47,12 @@ import type {
   ZodConstructor,
   ZodConstructorQRL,
   ZodDataValidator,
-} from './types';
-import { useAction, useLocation, useQwikCityEnv } from './use-functions';
+} from "./types";
+import { useAction, useLocation, useQwikCityEnv } from "./use-functions";
 
-import { isDev, isServer } from '@builder.io/qwik';
+import { isDev, isServer } from "@builder.io/qwik";
 
-import type { FormSubmitCompletedDetail } from './form-component';
+import type { FormSubmitCompletedDetail } from "./form-component";
 
 /** @public */
 export const routeActionQrl = ((
@@ -126,17 +126,17 @@ Action.run() can only be called on the browser, for example when a user clicks a
         state.status = status;
         state.value = result;
         if (form) {
-          if (form.getAttribute('data-spa-reset') === 'true') {
+          if (form.getAttribute("data-spa-reset") === "true") {
             form.reset();
           }
           const detail = { status, value: result } satisfies FormSubmitCompletedDetail<unknown>;
           form.dispatchEvent(
-            new CustomEvent('submitcompleted', {
+            new CustomEvent("submitcompleted", {
               bubbles: false,
               cancelable: false,
               composed: false,
               detail: detail,
-            })
+            }),
           );
         }
         return {
@@ -149,7 +149,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
 
     return state;
   }
-  action.__brand = 'server_action' as const;
+  action.__brand = "server_action" as const;
   action.__validators = validators;
   action.__qrl = actionQrl;
   action.__id = id;
@@ -165,7 +165,7 @@ export const globalActionQrl = ((
 ) => {
   const action = routeActionQrl(actionQrl, ...(rest as any));
   if (isServer) {
-    if (typeof globalThis._qwikActionsMap === 'undefined') {
+    if (typeof globalThis._qwikActionsMap === "undefined") {
       globalThis._qwikActionsMap = new Map();
     }
     globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
@@ -175,12 +175,12 @@ export const globalActionQrl = ((
 
 /** @public */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
-  routeActionQrl
+  routeActionQrl,
 ) as any;
 
 /** @public */
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
-  globalActionQrl
+  globalActionQrl,
 ) as any;
 
 /** @public */
@@ -202,7 +202,7 @@ export const routeLoaderQrl = ((
       return _wrapProp(state, id);
     });
   }
-  loader.__brand = 'server_loader' as const;
+  loader.__brand = "server_loader" as const;
   loader.__qrl = loaderQrl;
   loader.__validators = validators;
   loader.__id = id;
@@ -216,7 +216,7 @@ export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(r
 
 /** @public */
 export const validatorQrl = ((
-  validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
+  validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>,
 ): DataValidator => {
   if (isServer) {
     return {
@@ -232,21 +232,21 @@ export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(
 const flattenValibotIssues = (issues: v.GenericIssue[]) => {
   return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
     if (issue.path) {
-      const hasArrayType = issue.path.some((path) => path.type === 'array');
+      const hasArrayType = issue.path.some((path) => path.type === "array");
       if (hasArrayType) {
-        const keySuffix = issue.expected === 'Array' ? '[]' : '';
+        const keySuffix = issue.expected === "Array" ? "[]" : "";
         const key =
           issue.path
-            .map((item) => (item.type === 'array' ? '*' : item.key))
-            .join('.')
-            .replace(/\.\*/g, '[]') + keySuffix;
+            .map((item) => (item.type === "array" ? "*" : item.key))
+            .join(".")
+            .replace(/\.\*/g, "[]") + keySuffix;
         acc[key] = acc[key] || [];
         if (Array.isArray(acc[key])) {
           (acc[key] as string[]).push(issue.message);
         }
         return acc;
       } else {
-        acc[issue.path.map((item) => item.key).join('.')] = issue.message;
+        acc[issue.path.map((item) => item.key).join(".")] = issue.message;
       }
     }
     return acc;
@@ -259,20 +259,20 @@ export const valibotQrl: ValibotConstructorQRL = (
     | v.GenericSchema
     | v.GenericSchemaAsync
     | ((ev: RequestEvent) => v.GenericSchema | v.GenericSchemaAsync)
-  >
+  >,
 ): ValibotDataValidator => {
   if (!__EXPERIMENTAL__.valibot) {
     throw new Error(
-      'Valibot is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["valibot"]` to your qwikVite plugin options.'
+      'Valibot is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["valibot"]` to your qwikVite plugin options.',
     );
   }
   if (isServer) {
     return {
-      __brand: 'valibot',
+      __brand: "valibot",
       async validate(ev, inputData) {
         const schema: v.GenericSchema | v.GenericSchemaAsync = await qrl
           .resolve()
-          .then((obj) => (typeof obj === 'function' ? obj(ev) : obj));
+          .then((obj) => (typeof obj === "function" ? obj(ev) : obj));
         const data = inputData ?? (await ev.parseBody());
         const result = await v.safeParseAsync(schema, data);
         if (result.success) {
@@ -282,7 +282,7 @@ export const valibotQrl: ValibotConstructorQRL = (
           };
         } else {
           if (isDev) {
-            console.error('ERROR: Valibot validation failed', result.issues);
+            console.error("ERROR: Valibot validation failed", result.issues);
           }
           return {
             success: false,
@@ -305,22 +305,22 @@ export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(vali
 const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
   issues = Array.isArray(issues) ? issues : [issues];
   return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
-    const isExpectingArray = 'expected' in issue && issue.expected === 'array';
-    const hasArrayType = issue.path.some((path) => typeof path === 'number') || isExpectingArray;
+    const isExpectingArray = "expected" in issue && issue.expected === "array";
+    const hasArrayType = issue.path.some((path) => typeof path === "number") || isExpectingArray;
     if (hasArrayType) {
-      const keySuffix = 'expected' in issue && issue.expected === 'array' ? '[]' : '';
+      const keySuffix = "expected" in issue && issue.expected === "array" ? "[]" : "";
       const key =
         issue.path
-          .map((path) => (typeof path === 'number' ? '*' : path))
-          .join('.')
-          .replace(/\.\*/g, '[]') + keySuffix;
+          .map((path) => (typeof path === "number" ? "*" : path))
+          .join(".")
+          .replace(/\.\*/g, "[]") + keySuffix;
       acc[key] = acc[key] || [];
       if (Array.isArray(acc[key])) {
         (acc[key] as string[]).push(issue.message);
       }
       return acc;
     } else {
-      acc[issue.path.join('.')] = issue.message;
+      acc[issue.path.join(".")] = issue.message;
     }
     return acc;
   }, {});
@@ -329,15 +329,15 @@ const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
 /** @public */
 export const zodQrl: ZodConstructorQRL = (
   qrl: QRL<
-    z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
-  >
+    z.ZodRawShape | z.Schema | ((z: typeof import("zod").z, ev: RequestEvent) => z.ZodRawShape)
+  >,
 ): ZodDataValidator => {
   if (isServer) {
     return {
-      __brand: 'zod',
+      __brand: "zod",
       async validate(ev, inputData) {
         const schema: z.Schema = await qrl.resolve().then((obj) => {
-          if (typeof obj === 'function') {
+          if (typeof obj === "function") {
             obj = obj(z, ev);
           }
           if (obj instanceof z.Schema) {
@@ -352,7 +352,7 @@ export const zodQrl: ZodConstructorQRL = (
           return result;
         } else {
           if (isDev) {
-            console.error('ERROR: Zod validation failed', result.error.issues);
+            console.error("ERROR: Zod validation failed", result.error.issues);
           }
           return {
             success: false,
@@ -376,7 +376,7 @@ const deepFreeze = (obj: any) => {
   Object.getOwnPropertyNames(obj).forEach((prop) => {
     const value = obj[prop];
     // we assume that a frozen object is a circular reference and fully deep frozen
-    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+    if (value && typeof value === "object" && !Object.isFrozen(value)) {
       deepFreeze(value);
     }
   });
@@ -386,18 +386,18 @@ const deepFreeze = (obj: any) => {
 /** @public */
 export const serverQrl = <T extends ServerFunction>(
   qrl: QRL<T>,
-  options?: ServerConfig
+  options?: ServerConfig,
 ): ServerQRL<T> => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
-      throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
+      throw new Error("For security reasons, we cannot serialize QRLs that capture lexical scope.");
     }
   }
 
-  const method = options?.method?.toUpperCase?.() || 'POST';
+  const method = options?.method?.toUpperCase?.() || "POST";
   const headers = options?.headers || {};
-  const origin = options?.origin || '';
+  const origin = options?.origin || "";
   const fetchOptions = options?.fetchOptions || {};
 
   function rpc() {
@@ -417,8 +417,8 @@ export const serverQrl = <T extends ServerFunction>(
           requestEvent = contexts.find(
             (v) =>
               v &&
-              Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
-              Object.prototype.hasOwnProperty.call(v, 'cookie')
+              Object.prototype.hasOwnProperty.call(v, "sharedMap") &&
+              Object.prototype.hasOwnProperty.call(v, "cookie"),
           );
         }
 
@@ -438,21 +438,21 @@ export const serverQrl = <T extends ServerFunction>(
         });
         const qrlHash = qrl.getHash();
         // Handled by `pureServerFunction` middleware
-        let query = '';
+        let query = "";
         const config = {
           ...fetchOptions,
           method,
           headers: {
             ...headers,
-            'Content-Type': 'application/qwik-json',
-            Accept: 'application/json, application/qwik-json, text/qwik-json-stream, text/plain',
+            "Content-Type": "application/qwik-json",
+            Accept: "application/json, application/qwik-json, text/qwik-json-stream, text/plain",
             // Required so we don't call accidentally
-            'X-QRL': qrlHash,
+            "X-QRL": qrlHash,
           },
           signal: abortSignal,
         };
         const body = await _serializeData([qrl, ...filteredArgs], false);
-        if (method === 'GET') {
+        if (method === "GET") {
           query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
         } else {
           // PatrickJS: sorry Ryan Florence I prefer const still
@@ -460,14 +460,14 @@ export const serverQrl = <T extends ServerFunction>(
         }
         const res = await fetch(`${origin}?${QFN_KEY}=${qrlHash}${query}`, config);
 
-        const contentType = res.headers.get('Content-Type');
-        if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
+        const contentType = res.headers.get("Content-Type");
+        if (res.ok && contentType === "text/qwik-json-stream" && res.body) {
           return (async function* () {
             try {
               for await (const result of deserializeStream(
                 res.body!,
                 ctxElm ?? document.documentElement,
-                abortSignal
+                abortSignal,
               )) {
                 yield result;
               }
@@ -477,20 +477,20 @@ export const serverQrl = <T extends ServerFunction>(
               }
             }
           })();
-        } else if (contentType === 'application/qwik-json') {
+        } else if (contentType === "application/qwik-json") {
           const str = await res.text();
           const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
           if (res.status >= 400) {
             throw obj;
           }
           return obj;
-        } else if (contentType === 'application/json') {
+        } else if (contentType === "application/json") {
           const obj = await res.json();
           if (res.status >= 400) {
             throw obj;
           }
           return obj;
-        } else if (contentType === 'text/plain' || contentType === 'text/html') {
+        } else if (contentType === "text/plain" || contentType === "text/html") {
           const str = await res.text();
           if (res.status >= 400) {
             throw str;
@@ -511,8 +511,8 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
   const validators: DataValidator[] = [];
   if (rest.length === 1) {
     const options = rest[0];
-    if (options && typeof options === 'object') {
-      if ('validate' in options) {
+    if (options && typeof options === "object") {
+      if ("validate" in options) {
         validators.push(options);
       } else {
         id = options.id;
@@ -525,7 +525,7 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
     validators.push(...(rest.filter((v) => !!v) as DataValidator[]));
   }
 
-  if (typeof id === 'string') {
+  if (typeof id === "string") {
     if (isDev) {
       if (!/^[\w/.-]+$/.test(id)) {
         throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
@@ -544,11 +544,11 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
 const deserializeStream = async function* (
   stream: ReadableStream<Uint8Array>,
   ctxElm: unknown,
-  abortSignal?: AbortSignal
+  abortSignal?: AbortSignal,
 ) {
   const reader = stream.getReader();
   try {
-    let buffer = '';
+    let buffer = "";
     const decoder = new TextDecoder();
     while (!abortSignal?.aborted) {
       const result = await reader.read();

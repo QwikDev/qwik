@@ -1,11 +1,5 @@
 /* eslint-disable */
-import {
-  component$,
-  useStore,
-  useResource$,
-  Resource,
-  useSignal,
-} from "@builder.io/qwik";
+import { component$, useStore, useResource$, Resource, useSignal } from "@builder.io/qwik";
 import { delay } from "./resource";
 
 export const ResourceSerialization = component$(() => {
@@ -97,10 +91,7 @@ export const Issue2014 = component$(() => {
   return (
     <div>
       <button id="issue-2014-btn" onClick$={() => count.value++}>
-        <Resource
-          value={resource}
-          onResolved={(data) => <>{data.timestamp}</>}
-        />
+        <Resource value={resource} onResolved={(data) => <>{data.timestamp}</>} />
         (count is here: {count.value})
       </button>
     </div>

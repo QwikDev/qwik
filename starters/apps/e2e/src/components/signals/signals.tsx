@@ -288,11 +288,7 @@ export const Issue2176 = component$(() => {
       <h2>Signal</h2>
       <ul>
         <li>
-          <Test1
-            text={data.value.text}
-            flag={data.value.flag}
-            num={data.value.num}
-          >
+          <Test1 text={data.value.text} flag={data.value.flag} num={data.value.num}>
             Nested value
           </Test1>
         </li>
@@ -301,9 +297,7 @@ export const Issue2176 = component$(() => {
         </li>
         <li>
           <Test2
-            text={`${data.value.text} flag=${data.value.flag ? "T" : "F"} num=${
-              data.value.num
-            }`}
+            text={`${data.value.text} flag=${data.value.flag ? "T" : "F"} num=${data.value.num}`}
           >
             Computed prop
           </Test2>
@@ -324,9 +318,7 @@ export const Issue2176 = component$(() => {
           <Test2Child>
             Computed + Slot{" "}
             <span class="issue-2176-result">
-              {`${data.value.text} flag=${data.value.flag ? "T" : "F"} num=${
-                data.value.num
-              }`}
+              {`${data.value.text} flag=${data.value.flag ? "T" : "F"} num=${data.value.num}`}
             </span>
           </Test2Child>
         </li>
@@ -343,11 +335,7 @@ export const Issue2176 = component$(() => {
           <TestStore store={store}>Raw</TestStore>
         </li>
         <li>
-          <Test2
-            text={`${store.text} flag=${store.flag ? "T" : "F"} num=${
-              store.num
-            }`}
-          >
+          <Test2 text={`${store.text} flag=${store.flag ? "T" : "F"} num=${store.num}`}>
             Computed prop
           </Test2>
         </li>
@@ -375,18 +363,16 @@ export const Issue2176 = component$(() => {
   );
 });
 
-export const Test1 = component$(
-  (props: { text: string; flag: boolean; num: number }) => {
-    return (
-      <p>
-        <Slot />{" "}
-        <span class="issue-2176-result">
-          {props.text} flag={props.flag ? "T" : "F"} num={props.num}
-        </span>
-      </p>
-    );
-  },
-);
+export const Test1 = component$((props: { text: string; flag: boolean; num: number }) => {
+  return (
+    <p>
+      <Slot />{" "}
+      <span class="issue-2176-result">
+        {props.text} flag={props.flag ? "T" : "F"} num={props.num}
+      </span>
+    </p>
+  );
+});
 export const Test1Sig = component$((props: { sig: Signal }) => {
   return (
     <p>
@@ -433,9 +419,7 @@ export const Test2Store = component$((props: { store: any }) => {
     <p>
       <Slot />{" "}
       <span class="issue-2176-result">
-        {`${props.store.text} flag=${props.store.flag ? "T" : "F"} num=${
-          props.store.num
-        }`}
+        {`${props.store.text} flag=${props.store.flag ? "T" : "F"} num=${props.store.num}`}
       </span>
     </p>
   );
@@ -492,9 +476,7 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
 
           <h3>Store - className</h3>
           <TestCN color={store.color}>ClassName = OK</TestCN>
-          <TestACN color={store.color}>
-            [ClassName] = OK (though JSX complains
-          </TestACN>
+          <TestACN color={store.color}>[ClassName] = OK (though JSX complains</TestACN>
           <TestCNStr color={store.color}>{`{ClassName}`} = OK</TestCNStr>
           <TestACNStr color={store.color}>{`[{ClassName}]`} = OK</TestACNStr>
         </div>
@@ -508,13 +490,9 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
 
           <h3>Signal - className</h3>
           <TestCN color={colorSignal.value}>ClassName = Fail</TestCN>
-          <TestACN color={colorSignal.value}>
-            [ClassName] = OK (JSX complains)
-          </TestACN>
+          <TestACN color={colorSignal.value}>[ClassName] = OK (JSX complains)</TestACN>
           <TestCNStr color={colorSignal.value}>{`{ClassName}`} = OK</TestCNStr>
-          <TestACNStr color={colorSignal.value}>
-            {`[{ClassName}]`} = OK (JSX complains)
-          </TestACNStr>
+          <TestACNStr color={colorSignal.value}>{`[{ClassName}]`} = OK (JSX complains)</TestACNStr>
         </div>
       </div>
     </div>
@@ -739,11 +717,9 @@ export const Stringify = component$<{
   return <pre class="issue-2930-result">{JSON.stringify(props.data)}</pre>;
 });
 
-export const Issue3212Child = component$(
-  (props: { signal: Signal<number> }) => {
-    return <>{props.signal.value}</>;
-  },
-);
+export const Issue3212Child = component$((props: { signal: Signal<number> }) => {
+  return <>{props.signal.value}</>;
+});
 
 export function useMySignal() {
   const signal = useSignal<number>(1);
@@ -783,11 +759,7 @@ export const FineGrainedTextSub = component$(() => {
         {computed}
       </div>
       <div>
-        <button
-          id="fine-grained-signal"
-          data-value={count.value}
-          onClick$={() => count.value++}
-        >
+        <button id="fine-grained-signal" data-value={count.value} onClick$={() => count.value++}>
           Increment {count.value}
         </button>
       </div>
@@ -993,9 +965,7 @@ export const Issue4249 = component$(() => {
       <div
         id="issue-4249-result"
         data-value={
-          first.value && second.value && first.value === second.value
-            ? "collision"
-            : "no-collision"
+          first.value && second.value && first.value === second.value ? "collision" : "no-collision"
         }
       >
         {"Status: "}
@@ -1022,9 +992,7 @@ export const DisplayA = component$<Props>(({ counters }) => {
     <>
       Display A:{" "}
       <span id="issue-4228-result-a">{`${counters.countA}:${
-        typeof (globalThis as any).countA === "number"
-          ? (window as any).countA++
-          : 0
+        typeof (globalThis as any).countA === "number" ? (window as any).countA++ : 0
       }`}</span>
     </>
   );
@@ -1034,9 +1002,7 @@ export const DisplayB = component$<Props>(({ counters }) => {
     <>
       Display B:{" "}
       <span id="issue-4228-result-b">{`${counters.countB}:${
-        typeof (globalThis as any).countB === "number"
-          ? (window as any).countB++
-          : 0
+        typeof (globalThis as any).countB === "number" ? (window as any).countB++ : 0
       }`}</span>
     </>
   );
@@ -1046,9 +1012,7 @@ export const DisplaySignal = component$<Props>(({ counters }) => {
     <>
       Display C:{" "}
       <span id="issue-4228-result-c">{`${counters.signal.value}:${
-        typeof (globalThis as any).countC === "number"
-          ? (window as any).countC++
-          : 0
+        typeof (globalThis as any).countC === "number" ? (window as any).countC++ : 0
       }`}</span>
     </>
   );
@@ -1059,11 +1023,7 @@ export const DisplayTotal = component$<Props>(({ counters }) => {
       Display Total:{" "}
       <span id="issue-4228-result-total">{`${
         counters.countA + counters.countB + counters.signal.value
-      }:${
-        typeof (globalThis as any).countD === "number"
-          ? (window as any).countD++
-          : 0
-      }`}</span>
+      }:${typeof (globalThis as any).countD === "number" ? (window as any).countD++ : 0}`}</span>
     </>
   );
 });
@@ -1120,21 +1080,17 @@ export const Issue4228 = component$(() => {
   );
 });
 
-const MyButton = component$<QwikIntrinsicElements["button"]>(
-  ({ type, ...rest }) => {
-    return (
-      <button id="issue-4368-button" type={type || "button"} {...rest}>
-        <Slot />
-      </button>
-    );
-  },
-);
+const MyButton = component$<QwikIntrinsicElements["button"]>(({ type, ...rest }) => {
+  return (
+    <button id="issue-4368-button" type={type || "button"} {...rest}>
+      <Slot />
+    </button>
+  );
+});
 
 const MyTextButton = component$<{ text: string }>((props) => {
   return (
-    <MyButton disabled={!props.text}>
-      {props.text ? "Example button" : "Text is empty"}
-    </MyButton>
+    <MyButton disabled={!props.text}>{props.text ? "Example button" : "Text is empty"}</MyButton>
   );
 });
 
@@ -1147,11 +1103,7 @@ export const Issue4368 = component$(() => {
 
   return (
     <>
-      <input
-        id="issue-4368-input"
-        bind:value={text}
-        placeholder="type something here"
-      />
+      <input id="issue-4368-input" bind:value={text} placeholder="type something here" />
 
       <Resource
         value={textResource}

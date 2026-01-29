@@ -1,6 +1,6 @@
-import type { MockDocumentOptions, MockWindow } from './types';
-import domino from 'domino';
-import { normalizeUrl } from './util';
+import type { MockDocumentOptions, MockWindow } from "./types";
+import domino from "domino";
+import { normalizeUrl } from "./util";
 
 /**
  * Create emulated `Document` for server environment. Does not implement the full browser `document`
@@ -36,7 +36,7 @@ export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
 
   const loc = normalizeUrl(opts?.url);
 
-  Object.defineProperty(doc, 'baseURI', {
+  Object.defineProperty(doc, "baseURI", {
     get: () => loc.href,
     set: (url: string) => (loc.href = normalizeUrl(url).href),
   });

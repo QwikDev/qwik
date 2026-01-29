@@ -1,6 +1,6 @@
-import prismjs from 'prismjs';
-import 'prismjs/components/prism-jsx';
-import 'prismjs/components/prism-tsx';
+import prismjs from "prismjs";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-tsx";
 
 export const highlight = (code?: string, language?: string) => {
   if (!code || !language || !prismjs.languages[language]) {

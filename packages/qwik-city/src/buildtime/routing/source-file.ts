@@ -1,4 +1,4 @@
-import type { RouteSourceFileName, RouteSourceType } from '../types';
+import type { RouteSourceFileName, RouteSourceType } from "../types";
 import {
   isModuleExt,
   isEntryName,
@@ -11,7 +11,7 @@ import {
   removeExtension,
   isIndexModule,
   isLayoutModule,
-} from '../../utils/fs';
+} from "../../utils/fs";
 
 export function getSourceFile(fileName: string) {
   const ext = getExtension(fileName);
@@ -27,19 +27,19 @@ export function getSourceFile(fileName: string) {
   ) {
     // route page or endpoint
     // index@layoutname or index! - ts|tsx|js|jsx|md|mdx
-    type = 'route';
+    type = "route";
   } else if (isLayoutModule(extlessName) && (isPageModule || isModule)) {
     // layout-name or layout! - ts|tsx|js|jsx
-    type = 'layout';
+    type = "layout";
   } else if (isEntryName(extlessName) && isModule) {
     // entry module - ts|js
-    type = 'entry';
+    type = "entry";
   } else if (isMenuFileName(fileName)) {
     // menu.md
-    type = 'menu';
+    type = "menu";
   } else if (isModule && isServiceWorkerName(extlessName)) {
     // service-worker.ts|js
-    type = 'service-worker';
+    type = "service-worker";
   }
 
   if (type !== null) {

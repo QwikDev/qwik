@@ -1,9 +1,4 @@
-import {
-  component$,
-  useStyles$,
-  useStore,
-  useContextProvider,
-} from "@builder.io/qwik";
+import { component$, useStyles$, useStore, useContextProvider } from "@builder.io/qwik";
 import { Footer } from "../footer/footer";
 import { Header } from "../header/header";
 import { Body } from "../body/body";

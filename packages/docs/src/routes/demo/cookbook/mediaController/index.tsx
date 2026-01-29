@@ -1,15 +1,10 @@
-import {
-  component$,
-  useSignal,
-  useStylesScoped$,
-  useVisibleTask$,
-} from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
+import { component$, useSignal, useStylesScoped$, useVisibleTask$ } from "@builder.io/qwik";
+import { useLocation } from "@builder.io/qwik-city";
 
 const AUDIO_SRC =
-  'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2Fafe011812da146a5b2263196cb25f263?alt=media&token=c017cd87-0598-4af2-8afd-e9b5a3fba078&apiKey=5b8073f890b043be81574f96cfd1250b';
+  "https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2Fafe011812da146a5b2263196cb25f263?alt=media&token=c017cd87-0598-4af2-8afd-e9b5a3fba078&apiKey=5b8073f890b043be81574f96cfd1250b";
 const VIDEO_SRC =
-  'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2F8b210c56974440649a0a78d4a3a0ddc5%2Fcompressed?apiKey=5b8073f890b043be81574f96cfd1250b&token=8b210c56974440649a0a78d4a3a0ddc5&alt=media&optimized=true';
+  "https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2F8b210c56974440649a0a78d4a3a0ddc5%2Fcompressed?apiKey=5b8073f890b043be81574f96cfd1250b&token=8b210c56974440649a0a78d4a3a0ddc5&alt=media&optimized=true";
 
 export default component$(() => {
   const audioElementSignal = useSignal<HTMLAudioElement | undefined>();
@@ -21,8 +16,7 @@ export default component$(() => {
   const playsInlineSignal = useSignal(true);
   const location = useLocation();
 
-  const videoPoster =
-    location.url.origin + '/sample-media/qwik-koi-poster.jpg';
+  const videoPoster = location.url.origin + "/sample-media/qwik-koi-poster.jpg";
 
   useStylesScoped$(`
         segment {
@@ -82,11 +76,10 @@ export default component$(() => {
         ? audioElementSignal.value?.pause()
         : audioElementSignal.value?.play();
 
-    audioPlayButtonSignal.value?.removeEventListener('click', play);
-    audioPlayButtonSignal.value?.addEventListener('click', play);
+    audioPlayButtonSignal.value?.removeEventListener("click", play);
+    audioPlayButtonSignal.value?.addEventListener("click", play);
 
-    return () =>
-      audioPlayButtonSignal.value?.removeEventListener('click', play);
+    return () => audioPlayButtonSignal.value?.removeEventListener("click", play);
   });
 
   useVisibleTask$(({ track }) => {
@@ -98,9 +91,8 @@ export default component$(() => {
         ? videoElementSignal.value?.pause()
         : videoElementSignal.value?.play();
 
-    videoPlayButtonSignal.value?.addEventListener('click', play);
-    return () =>
-      videoPlayButtonSignal.value?.removeEventListener('click', play);
+    videoPlayButtonSignal.value?.addEventListener("click", play);
+    return () => videoPlayButtonSignal.value?.removeEventListener("click", play);
   });
 
   return (
@@ -146,12 +138,12 @@ export default component$(() => {
 
         <br />
         <button ref={videoPlayButtonSignal}>
-          {videoIsPlayingSignal.value ? 'Pause' : 'Play'} Video
+          {videoIsPlayingSignal.value ? "Pause" : "Play"} Video
         </button>
         <br />
         <br />
         <button ref={audioPlayButtonSignal}>
-          {audioIsPlayingSignal.value ? 'Pause' : 'Play'} Audio
+          {audioIsPlayingSignal.value ? "Pause" : "Play"} Audio
         </button>
       </div>
     </segment>

@@ -1,19 +1,19 @@
-import { noSerialize } from '@builder.io/qwik';
-import type { Diagnostic } from '@builder.io/qwik/optimizer';
-import type MonacoTypes from 'monaco-editor';
-import type { EditorProps, EditorStore } from './editor';
-import type { ReplStore } from '../types';
-import { getColorPreference } from '../../components/theme-toggle/theme-toggle';
-import { bundled, getDeps, getNpmCdnUrl } from '../bundler/bundled';
-import { isServer } from '@builder.io/qwik';
-import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
-import cssTypes from '../../../../qwik/node_modules/csstype/index.d.ts?raw';
+import { noSerialize } from "@builder.io/qwik";
+import type { Diagnostic } from "@builder.io/qwik/optimizer";
+import type MonacoTypes from "monaco-editor";
+import type { EditorProps, EditorStore } from "./editor";
+import type { ReplStore } from "../types";
+import { getColorPreference } from "../../components/theme-toggle/theme-toggle";
+import { bundled, getDeps, getNpmCdnUrl } from "../bundler/bundled";
+import { isServer } from "@builder.io/qwik";
+import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from "../repl-constants";
+import cssTypes from "../../../../qwik/node_modules/csstype/index.d.ts?raw";
 
 export const initMonacoEditor = async (
   containerElm: any,
   props: EditorProps,
   editorStore: EditorStore,
-  replStore: ReplStore
+  replStore: ReplStore,
 ) => {
   const monaco = await getMonaco();
   const ts = monaco.languages.typescript;
@@ -25,7 +25,7 @@ export const initMonacoEditor = async (
     esModuleInterop: true,
     isolatedModules: true,
     jsx: ts.JsxEmit.ReactJSX,
-    jsxImportSource: '@builder.io/qwik',
+    jsxImportSource: "@builder.io/qwik",
     moduleResolution: ts.ModuleResolutionKind.NodeJs,
     noEmit: true,
     skipLibCheck: true,
@@ -50,7 +50,7 @@ export const initMonacoEditor = async (
     lineNumbers: props.lineNumbers,
     wordWrap: props.wordWrap,
     model: null,
-    theme: getEditorTheme(getColorPreference() === 'dark'),
+    theme: getEditorTheme(getColorPreference() === "dark"),
   });
 
   ts.typescriptDefaults.setEagerModelSync(true);
@@ -70,7 +70,7 @@ export const initMonacoEditor = async (
         diagnosticsTmrId = setTimeout(() => {
           checkDiagnostics(monaco, editor, replStore);
         }, 50);
-      })
+      }),
     );
   }
 
@@ -137,13 +137,13 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
 };
 
 export const getEditorTheme = (isDark: boolean) => {
-  return isDark ? 'vs-dark' : 'vs';
+  return isDark ? "vs-dark" : "vs";
 };
 
 const checkDiagnostics = async (
   monaco: Monaco,
   editor: IStandaloneCodeEditor,
-  replStore: ReplStore
+  replStore: ReplStore,
 ) => {
   if (!monacoCtx.tsWorker) {
     const getTsWorker = await monaco.languages.typescript.getTypeScriptWorker();
@@ -161,18 +161,18 @@ const checkDiagnostics = async (
       const synPromise = tsWorker.getSyntacticDiagnostics(filePath);
       tsDiagnostics.push(...(await semPromise));
       tsDiagnostics.push(...(await synPromise));
-    })
+    }),
   );
 
   if (tsDiagnostics.length > 0) {
     replStore.monacoDiagnostics = tsDiagnostics.map((tsd) => {
       const d: Diagnostic = {
         message: getTsDiagnosticMessage(tsd.messageText),
-        category: 'error',
+        category: "error",
         highlights: [],
         code: `TSC: ${tsd.code}`,
-        file: tsd.file?.fileName || '',
-        scope: 'monaco',
+        file: tsd.file?.fileName || "",
+        scope: "monaco",
         suggestions: null,
       };
       return d;
@@ -180,20 +180,20 @@ const checkDiagnostics = async (
   } else if (replStore.monacoDiagnostics.length > 0) {
     replStore.monacoDiagnostics = [];
 
-    if (replStore.selectedOutputPanel === 'diagnostics' && replStore.diagnostics.length === 0) {
-      replStore.selectedOutputPanel = 'app';
+    if (replStore.selectedOutputPanel === "diagnostics" && replStore.diagnostics.length === 0) {
+      replStore.selectedOutputPanel = "app";
     }
   }
 };
 
 const getTsDiagnosticMessage = (m: string | DiagnosticMessageChain) => {
   if (m) {
-    if (typeof m === 'string') {
+    if (typeof m === "string") {
       return m;
     }
     return m.messageText;
   }
-  return '';
+  return "";
 };
 
 export const addQwikLibs = async (version: string) => {
@@ -202,19 +202,19 @@ export const addQwikLibs = async (version: string) => {
 
   const deps = await loadDeps(version);
   deps.forEach((dep) => {
-    if (dep && typeof dep.code === 'string') {
+    if (dep && typeof dep.code === "string") {
       typescriptDefaults.addExtraLib(
         `declare module '${dep.pkgName}${dep.import}' { ${dep.code}\n }`,
-        `/node_modules/${dep.pkgName}${dep.pkgPath}`
+        `/node_modules/${dep.pkgName}${dep.pkgPath}`,
       );
     }
   });
   typescriptDefaults.addExtraLib(
     `declare module '@builder.io/qwik/jsx-runtime' { export * from '@builder.io/qwik' }`,
-    '/node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts'
+    "/node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts",
   );
   typescriptDefaults.addExtraLib(CLIENT_LIB);
-  typescriptDefaults.addExtraLib(cssTypes, '/node_modules/csstype/index.d.ts');
+  typescriptDefaults.addExtraLib(cssTypes, "/node_modules/csstype/index.d.ts");
 };
 
 const loadDeps = async (pkgVersion: string) => {
@@ -224,42 +224,42 @@ const loadDeps = async (pkgVersion: string) => {
       pkgName: QWIK_PKG_NAME_V1,
       pkgVersion,
       pkgPath: `/dist/core.d.ts`,
-      import: '',
+      import: "",
     },
     // server API
     {
       pkgName: QWIK_PKG_NAME_V1,
       pkgVersion,
       pkgPath: `/dist/server.d.ts`,
-      import: '/server',
+      import: "/server",
     },
     // build constants
     {
       pkgName: QWIK_PKG_NAME_V1,
       pkgVersion,
       pkgPath: `/dist/build/index.d.ts`,
-      import: '/build',
+      import: "/build",
     },
     // qwik
     {
       pkgName: QWIK_PKG_NAME_V2,
       pkgVersion,
       pkgPath: `/dist/core.d.ts`,
-      import: '',
+      import: "",
     },
     // server API
     {
       pkgName: QWIK_PKG_NAME_V2,
       pkgVersion,
       pkgPath: `/dist/server.d.ts`,
-      import: '/server',
+      import: "/server",
     },
     // build constants
     {
       pkgName: QWIK_PKG_NAME_V2,
       pkgVersion,
       pkgPath: `/dist/build/index.d.ts`,
-      import: '/build',
+      import: "/build",
     },
   ];
 
@@ -268,7 +268,7 @@ const loadDeps = async (pkgVersion: string) => {
   for (const dep of deps) {
     let storedDep = monacoCtx.deps.find(
       (d) =>
-        d.pkgName === dep.pkgName && d.pkgPath === dep.pkgPath && d.pkgVersion === dep.pkgVersion
+        d.pkgName === dep.pkgName && d.pkgPath === dep.pkgPath && d.pkgVersion === dep.pkgVersion,
     );
     if (!storedDep) {
       storedDep = {
@@ -291,7 +291,7 @@ const loadDeps = async (pkgVersion: string) => {
         },
         (error) => {
           console.error(error);
-        }
+        },
       );
     }
   }
@@ -302,18 +302,18 @@ const loadDeps = async (pkgVersion: string) => {
 
 const getMonaco = async (): Promise<Monaco> => {
   if (isServer) {
-    throw new Error('Monaco cannot be used on the server');
+    throw new Error("Monaco cannot be used on the server");
   }
   if (!monacoCtx.loader) {
     // lazy-load the monaco AMD script ol' school
     monacoCtx.loader = new Promise<Monaco>((resolve, reject) => {
-      const script = document.createElement('script');
-      script.addEventListener('error', reject);
-      script.addEventListener('load', () => {
+      const script = document.createElement("script");
+      script.addEventListener("error", reject);
+      script.addEventListener("load", () => {
         require.config({ paths: { vs: MONACO_VS_URL } });
 
         // https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/editor/editor.main.js
-        require(['vs/editor/editor.main'], () => {
+        require(["vs/editor/editor.main"], () => {
           resolve((globalThis as any).monaco);
         });
       });
@@ -345,8 +345,8 @@ const monacoCtx: MonacoContext = {
   tsWorker: null,
 };
 
-const MONACO_VERSION = '0.45.0';
-const MONACO_VS_URL = getNpmCdnUrl(bundled, 'monaco-editor', MONACO_VERSION, '/min/vs');
+const MONACO_VERSION = "0.45.0";
+const MONACO_VS_URL = getNpmCdnUrl(bundled, "monaco-editor", MONACO_VERSION, "/min/vs");
 const MONACO_LOADER_URL = `${MONACO_VS_URL}/loader.js`;
 
 const CLIENT_LIB = `

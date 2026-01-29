@@ -1,12 +1,12 @@
-import { blue, gray, green, magenta, red, reset, white } from 'kleur/colors';
-import { log, outro } from '@clack/prompts';
+import { blue, gray, green, magenta, red, reset, white } from "kleur/colors";
+import { log, outro } from "@clack/prompts";
 
-import type { ChildProcess } from 'node:child_process';
-import type { IntegrationPackageJson } from '../types';
-import detectPackageManager from 'which-pm-runs';
-import fs from 'node:fs';
-import { join } from 'node:path';
-import spawn from 'cross-spawn';
+import type { ChildProcess } from "node:child_process";
+import type { IntegrationPackageJson } from "../types";
+import detectPackageManager from "which-pm-runs";
+import fs from "node:fs";
+import { join } from "node:path";
+import spawn from "cross-spawn";
 
 export function runCommand(cmd: string, args: string[], cwd: string) {
   let child: ChildProcess;
@@ -15,10 +15,10 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
     try {
       child = spawn(cmd, args, {
         cwd,
-        stdio: 'ignore',
+        stdio: "ignore",
       });
 
-      child.on('error', (e) => {
+      child.on("error", (e) => {
         if (e) {
           if (e.message) {
             log.error(red(String(e.message)) + `\n\n`);
@@ -29,7 +29,7 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
         resolve(false);
       });
 
-      child.on('close', (code) => {
+      child.on("close", (code) => {
         if (code === 0) {
           resolve(true);
         } else {
@@ -43,7 +43,7 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
 
   const abort = async () => {
     if (child) {
-      child.kill('SIGINT');
+      child.kill("SIGINT");
     }
   };
 
@@ -51,14 +51,14 @@ export function runCommand(cmd: string, args: string[], cwd: string) {
 }
 
 export async function readPackageJson(dir: string) {
-  const path = join(dir, 'package.json');
-  const pkgJson: IntegrationPackageJson = JSON.parse(await fs.promises.readFile(path, 'utf-8'));
+  const path = join(dir, "package.json");
+  const pkgJson: IntegrationPackageJson = JSON.parse(await fs.promises.readFile(path, "utf-8"));
   return pkgJson;
 }
 
 export async function writePackageJson(dir: string, pkgJson: IntegrationPackageJson) {
-  const path = join(dir, 'package.json');
-  await fs.promises.writeFile(path, JSON.stringify(pkgJson, null, 2) + '\n');
+  const path = join(dir, "package.json");
+  await fs.promises.writeFile(path, JSON.stringify(pkgJson, null, 2) + "\n");
 }
 
 export function wait(ms: number) {
@@ -81,7 +81,7 @@ export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
     types: srcPkg.types,
     exports: srcPkg.exports,
     files: srcPkg.files,
-    engines: { node: '^18.17.0 || ^20.3.0 || >=21.0.0' },
+    engines: { node: "^18.17.0 || ^20.3.0 || >=21.0.0" },
   };
 
   Object.keys(cleanedPkg).forEach((prop) => {
@@ -100,29 +100,29 @@ export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
 export function dashToTitleCase(str: string) {
   return str
     .toLocaleLowerCase()
-    .split('-')
+    .split("-")
     .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(' ');
+    .join(" ");
 }
 
 export function toDashCase(str: string) {
-  return str.toLocaleLowerCase().replace(/ /g, '-');
+  return str.toLocaleLowerCase().replace(/ /g, "-");
 }
 
 export function limitLength(hint: string, maxLength: number = 50) {
   if (hint.length > maxLength) {
-    return hint.substring(0, maxLength - 3) + '...';
+    return hint.substring(0, maxLength - 3) + "...";
   }
   return hint;
 }
 
 export function getPackageManager() {
-  return detectPackageManager()?.name || 'pnpm';
+  return detectPackageManager()?.name || "pnpm";
 }
 
 export function pmRunCmd() {
   const pm = getPackageManager();
-  if (pm !== 'npm') {
+  if (pm !== "npm") {
     return pm;
   }
   return `${pm} run`;
@@ -134,7 +134,7 @@ export function panic(msg: string) {
 }
 
 export function bye(): never {
-  outro('Take care, see you soon! 👋');
+  outro("Take care, see you soon! 👋");
   process.exit(0);
 }
 
@@ -142,20 +142,20 @@ export function printHeader() {
   /* eslint-disable no-console */
   console.log(
     blue(`
-      ${magenta('............')}
-    .::: ${magenta(':--------:.')}
-   .::::  ${magenta('.:-------:.')}
-  .:::::.   ${magenta('.:-------.')}
-  ::::::.     ${magenta('.:------.')}
- ::::::.        ${magenta(':-----:')}
- ::::::.       ${magenta('.:-----.')}
-  :::::::.     ${magenta('.-----.')}
-   ::::::::..   ${magenta('---:.')}
-    .:::::::::. ${magenta(':-:.')}
+      ${magenta("............")}
+    .::: ${magenta(":--------:.")}
+   .::::  ${magenta(".:-------:.")}
+  .:::::.   ${magenta(".:-------.")}
+  ::::::.     ${magenta(".:------.")}
+ ::::::.        ${magenta(":-----:")}
+ ::::::.       ${magenta(".:-----.")}
+  :::::::.     ${magenta(".-----.")}
+   ::::::::..   ${magenta("---:.")}
+    .:::::::::. ${magenta(":-:.")}
      ..::::::::::::
              ...::::
     `),
-    '\n'
+    "\n",
   );
 }
 
@@ -185,45 +185,45 @@ export async function getFilesDeep(root: string) {
 
 // Used from https://github.com/sindresorhus/is-unicode-supported/blob/main/index.js
 export default function isUnicodeSupported() {
-  if (process.platform !== 'win32') {
-    return process.env.TERM !== 'linux'; // Linux console (kernel)
+  if (process.platform !== "win32") {
+    return process.env.TERM !== "linux"; // Linux console (kernel)
   }
 
   return (
     Boolean(process.env.CI) ||
     Boolean(process.env.WT_SESSION) || // Windows Terminal
     Boolean(process.env.TERMINUS_SUBLIME) || // Terminus (<0.2.27)
-    process.env.ConEmuTask === '{cmd::Cmder}' || // ConEmu and cmder
-    process.env.TERM_PROGRAM === 'Terminus-Sublime' ||
-    process.env.TERM_PROGRAM === 'vscode' ||
-    process.env.TERM === 'xterm-256color' ||
-    process.env.TERM === 'alacritty' ||
-    process.env.TERMINAL_EMULATOR === 'JetBrains-JediTerm'
+    process.env.ConEmuTask === "{cmd::Cmder}" || // ConEmu and cmder
+    process.env.TERM_PROGRAM === "Terminus-Sublime" ||
+    process.env.TERM_PROGRAM === "vscode" ||
+    process.env.TERM === "xterm-256color" ||
+    process.env.TERM === "alacritty" ||
+    process.env.TERMINAL_EMULATOR === "JetBrains-JediTerm"
   );
 }
 
 // Used from https://github.com/natemoo-re/clack/blob/main/packages/prompts/src/index.ts
 const unicode = isUnicodeSupported();
 const s = (c: string, fallback: string) => (unicode ? c : fallback);
-const S_BAR = s('│', '|');
-const S_BAR_H = s('─', '-');
-const S_CORNER_TOP_RIGHT = s('╮', '+');
-const S_CONNECT_LEFT = s('├', '+');
-const S_CORNER_BOTTOM_RIGHT = s('╯', '+');
-const S_STEP_SUBMIT = s('◇', 'o');
+const S_BAR = s("│", "|");
+const S_BAR_H = s("─", "-");
+const S_CORNER_TOP_RIGHT = s("╮", "+");
+const S_CONNECT_LEFT = s("├", "+");
+const S_CORNER_BOTTOM_RIGHT = s("╯", "+");
+const S_STEP_SUBMIT = s("◇", "o");
 
 function ansiRegex() {
   const pattern = [
-    '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
-    '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))',
-  ].join('|');
+    "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
+    "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))",
+  ].join("|");
 
-  return new RegExp(pattern, 'g');
+  return new RegExp(pattern, "g");
 }
 
-const strip = (str: string) => str.replace(ansiRegex(), '');
-export const note = (message = '', title = '') => {
-  const lines = `\n${message}\n`.split('\n');
+const strip = (str: string) => str.replace(ansiRegex(), "");
+export const note = (message = "", title = "") => {
+  const lines = `\n${message}\n`.split("\n");
   const titleLen = strip(title).length;
   const len =
     Math.max(
@@ -231,15 +231,15 @@ export const note = (message = '', title = '') => {
         ln = strip(ln);
         return ln.length > sum ? ln.length : sum;
       }, 0),
-      titleLen
+      titleLen,
     ) + 2;
   const msg = lines
-    .map((ln) => `${gray(S_BAR)}  ${white(ln)}${' '.repeat(len - strip(ln).length)}${gray(S_BAR)}`)
-    .join('\n');
+    .map((ln) => `${gray(S_BAR)}  ${white(ln)}${" ".repeat(len - strip(ln).length)}${gray(S_BAR)}`)
+    .join("\n");
   process.stdout.write(
     `${gray(S_BAR)}\n${green(S_STEP_SUBMIT)}  ${reset(title)} ${gray(
-      S_BAR_H.repeat(Math.max(len - titleLen - 1, 1)) + S_CORNER_TOP_RIGHT
-    )}\n${msg}\n${gray(S_CONNECT_LEFT + S_BAR_H.repeat(len + 2) + S_CORNER_BOTTOM_RIGHT)}\n`
+      S_BAR_H.repeat(Math.max(len - titleLen - 1, 1)) + S_CORNER_TOP_RIGHT,
+    )}\n${msg}\n${gray(S_CONNECT_LEFT + S_BAR_H.repeat(len + 2) + S_CORNER_BOTTOM_RIGHT)}\n`,
   );
 };
 // End of used code from clack

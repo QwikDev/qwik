@@ -1,7 +1,7 @@
-import type { BuildContext } from '../types';
+import type { BuildContext } from "../types";
 
 export function createEntries(ctx: BuildContext, c: string[]) {
-  const isClient = ctx.target === 'client';
+  const isClient = ctx.target === "client";
 
   const entries = [...ctx.entries, ...ctx.serviceWorkers];
 
@@ -26,5 +26,5 @@ export function generateQwikCityEntries(ctx: BuildContext) {
     c.push(`export const ${entry.id} = () => import(${JSON.stringify(entry.filePath)});`);
   }
 
-  return c.join('\n') + '\n';
+  return c.join("\n") + "\n";
 }

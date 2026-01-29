@@ -1,5 +1,5 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
-import styles from './panel-toggle.css?inline';
+import { component$, useStyles$ } from "@builder.io/qwik";
+import styles from "./panel-toggle.css?inline";
 
 export interface PanelToggleProps {
   panelStore: {

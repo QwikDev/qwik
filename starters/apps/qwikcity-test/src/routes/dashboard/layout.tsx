@@ -5,11 +5,7 @@ import Footer from "../../components/footer/footer";
 import Header from "../../components/header/header";
 import styles from "./dashboard.css?inline";
 
-export const onGet: RequestHandler = async ({
-  cacheControl,
-  redirect,
-  cookie,
-}) => {
+export const onGet: RequestHandler = async ({ cacheControl, redirect, cookie }) => {
   const isAuthenticated = await isUserAuthenticated(cookie);
   if (!isAuthenticated) {
     throw redirect(302, "/qwikcity-test/sign-in");
@@ -31,26 +27,17 @@ export default component$(() => {
           <h5>Dashboard Menu</h5>
           <ul>
             <li>
-              <a
-                href="/qwikcity-test/dashboard/profile"
-                data-test-link="dashboard-profile"
-              >
+              <a href="/qwikcity-test/dashboard/profile" data-test-link="dashboard-profile">
                 Profile
               </a>
             </li>
             <li>
-              <a
-                href="/qwikcity-test/dashboard/settings"
-                data-test-link="dashboard-settings"
-              >
+              <a href="/qwikcity-test/dashboard/settings" data-test-link="dashboard-settings">
                 Settings
               </a>
             </li>
             <li>
-              <a
-                href="/qwikcity-test/sign-out"
-                data-test-link="dashboard-sign-out"
-              >
+              <a href="/qwikcity-test/sign-out" data-test-link="dashboard-sign-out">
                 Sign Out
               </a>
             </li>

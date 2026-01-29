@@ -1,5 +1,5 @@
-import { join } from 'node:path';
-import { build } from 'vite';
+import { join } from "node:path";
+import { build } from "vite";
 import {
   type BuildConfig,
   ensureDir,
@@ -7,9 +7,9 @@ import {
   type PackageJSON,
   readFile,
   writeFile,
-} from './util.ts';
-import { minify } from 'terser';
-import { writePackageJson } from './package-json.ts';
+} from "./util.ts";
+import { minify } from "terser";
+import { writePackageJson } from "./package-json.ts";
 
 /**
  * Builds the qwikloader javascript files. These files can be used by other tooling, and are
@@ -22,11 +22,11 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     build: {
       emptyOutDir: false,
       copyPublicDir: false,
-      target: 'es2020',
+      target: "es2020",
       lib: {
-        entry: join(config.srcQwikDir, 'qwikloader.ts'),
-        formats: ['es'],
-        fileName: () => 'qwikloader.debug.js',
+        entry: join(config.srcQwikDir, "qwikloader.ts"),
+        formats: ["es"],
+        fileName: () => "qwikloader.debug.js",
       },
       minify: false,
       outDir: config.distQwikPkgDir,
@@ -34,14 +34,14 @@ export async function submoduleQwikLoader(config: BuildConfig) {
   });
 
   // Read the debug version
-  const debugFilePath = join(config.distQwikPkgDir, 'qwikloader.debug.js');
-  const debugContent = await readFile(debugFilePath, 'utf-8');
+  const debugFilePath = join(config.distQwikPkgDir, "qwikloader.debug.js");
+  const debugContent = await readFile(debugFilePath, "utf-8");
 
   // Create the minified version using terser
   const minifyResult = await minify(debugContent, {
     compress: {
       global_defs: {
-        'window.BuildEvents': false,
+        "window.BuildEvents": false,
       },
       keep_fargs: false,
       unsafe: true,
@@ -57,21 +57,21 @@ export async function submoduleQwikLoader(config: BuildConfig) {
   });
 
   // Write the minified version
-  const minifiedFilePath = join(config.distQwikPkgDir, 'qwikloader.js');
-  await writeFile(minifiedFilePath, minifyResult.code || '');
+  const minifiedFilePath = join(config.distQwikPkgDir, "qwikloader.js");
+  await writeFile(minifiedFilePath, minifyResult.code || "");
 
   await generateLoaderSubmodule(config);
 
-  const loaderSize = await fileSize(join(config.distQwikPkgDir, 'qwikloader.js'));
+  const loaderSize = await fileSize(join(config.distQwikPkgDir, "qwikloader.js"));
   console.log(`🐸 qwikloader:`, loaderSize);
 }
 
 const getLoaderJsonString = async (config: BuildConfig, name: string) => {
   const filePath = join(config.distQwikPkgDir, name);
-  const content = await readFile(filePath, 'utf-8');
+  const content = await readFile(filePath, "utf-8");
   // Remove vite comments and leading/trailing whitespace
-  let cleaned = content.trim().replace(/\n?\/\*\s*@vite[^*]+\*\/\n?/g, '');
-  if (cleaned.endsWith(';')) {
+  let cleaned = content.trim().replace(/\n?\/\*\s*@vite[^*]+\*\/\n?/g, "");
+  if (cleaned.endsWith(";")) {
     cleaned = cleaned.slice(0, -1);
   }
   return JSON.stringify(cleaned);
@@ -80,8 +80,8 @@ const getLoaderJsonString = async (config: BuildConfig, name: string) => {
 /** Load each of the qwik scripts to be inlined with esbuild "define" as const variables. */
 export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
   const variableToFileMap = [
-    ['QWIK_LOADER_DEFAULT_MINIFIED', 'qwikloader.js'],
-    ['QWIK_LOADER_DEFAULT_DEBUG', 'qwikloader.debug.js'],
+    ["QWIK_LOADER_DEFAULT_MINIFIED", "qwikloader.js"],
+    ["QWIK_LOADER_DEFAULT_DEBUG", "qwikloader.debug.js"],
   ];
 
   const define: { [varName: string]: string } = {};
@@ -90,18 +90,18 @@ export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
     variableToFileMap.map(async (varToFile) => {
       const varName = `globalThis.${varToFile[0]}`;
       define[varName] = await getLoaderJsonString(config, varToFile[1]);
-    })
+    }),
   );
 
   return define;
 }
 
 async function generateLoaderSubmodule(config: BuildConfig) {
-  const loaderDistDir = join(config.distQwikPkgDir, 'loader');
+  const loaderDistDir = join(config.distQwikPkgDir, "loader");
 
   const code = [
-    `const QWIK_LOADER = ${await getLoaderJsonString(config, 'qwikloader.js')};`,
-    `const QWIK_LOADER_DEBUG = ${await getLoaderJsonString(config, 'qwikloader.debug.js')};`,
+    `const QWIK_LOADER = ${await getLoaderJsonString(config, "qwikloader.js")};`,
+    `const QWIK_LOADER_DEBUG = ${await getLoaderJsonString(config, "qwikloader.debug.js")};`,
   ];
 
   const esmCode = [...code, `export { QWIK_LOADER, QWIK_LOADER_DEBUG };`];
@@ -116,9 +116,9 @@ async function generateLoaderSubmodule(config: BuildConfig) {
   ];
 
   ensureDir(loaderDistDir);
-  await writeFile(join(loaderDistDir, 'index.mjs'), esmCode.join('\n') + '\n');
-  await writeFile(join(loaderDistDir, 'index.cjs'), cjsCode.join('\n') + '\n');
-  await writeFile(join(loaderDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
+  await writeFile(join(loaderDistDir, "index.mjs"), esmCode.join("\n") + "\n");
+  await writeFile(join(loaderDistDir, "index.cjs"), cjsCode.join("\n") + "\n");
+  await writeFile(join(loaderDistDir, "index.d.ts"), dtsCode.join("\n") + "\n");
 
   const loaderPkg: PackageJSON = {
     name: `@builder.io/qwik/loader`,
@@ -126,7 +126,7 @@ async function generateLoaderSubmodule(config: BuildConfig) {
     main: `index.mjs`,
     types: `index.d.ts`,
     private: true,
-    type: 'module',
+    type: "module",
   };
   await writePackageJson(loaderDistDir, loaderPkg);
 }

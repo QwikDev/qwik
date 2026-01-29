@@ -59,12 +59,7 @@ export const SecretForm = component$(() => {
         <div>
           <label id="label-code">
             Code:
-            <input
-              type="text"
-              name="code"
-              placeholder="123"
-              value={action.formData?.get("code")}
-            />
+            <input type="text" name="code" placeholder="123" value={action.formData?.get("code")} />
             {action.value?.fieldErrors?.code && (
               <p class={styles.error}>{action.value.fieldErrors.code}</p>
             )}
@@ -80,12 +75,7 @@ export const SecretForm = component$(() => {
             {action.value.secret}
           </p>
         )}
-        <button
-          value="hello"
-          name="button"
-          id="submit"
-          disabled={action.isRunning}
-        >
+        <button value="hello" name="button" id="submit" disabled={action.isRunning}>
           Submit
         </button>
       </Form>

@@ -1,7 +1,7 @@
-import { ChangelogFunctions } from '@changesets/types';
+import { ChangelogFunctions } from "@changesets/types";
 // @ts-ignore
-import { getInfo, getInfoFromPullRequest } from '@changesets/get-github-info';
-import { config } from 'dotenv';
+import { getInfo, getInfoFromPullRequest } from "@changesets/get-github-info";
+import { config } from "dotenv";
 
 config();
 
@@ -9,11 +9,11 @@ const changelogFunctions: ChangelogFunctions = {
   getDependencyReleaseLine: async (changesets, dependenciesUpdated, options) => {
     if (!options.repo) {
       throw new Error(
-        'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
+        'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]',
       );
     }
     if (dependenciesUpdated.length === 0) {
-      return '';
+      return "";
     }
 
     const changesetLink = `- Updated dependencies [${(
@@ -26,22 +26,22 @@ const changelogFunctions: ChangelogFunctions = {
             });
             return links.commit;
           }
-        })
+        }),
       )
     )
       .filter((_) => _)
-      .join(', ')}]:`;
+      .join(", ")}]:`;
 
     const updatedDepenenciesList = dependenciesUpdated.map(
-      (dependency) => `  - ${dependency.name}@${dependency.newVersion}`
+      (dependency) => `  - ${dependency.name}@${dependency.newVersion}`,
     );
 
-    return [changesetLink, ...updatedDepenenciesList].join('\n');
+    return [changesetLink, ...updatedDepenenciesList].join("\n");
   },
   getReleaseLine: async (changeset, type, options) => {
     if (!options || !options.repo) {
       throw new Error(
-        'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
+        'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]',
       );
     }
 
@@ -55,15 +55,15 @@ const changelogFunctions: ChangelogFunctions = {
         if (!isNaN(num)) {
           prFromSummary = num;
         }
-        return '';
+        return "";
       })
       .replace(/^\s*commit:\s*([^\s]+)/im, (_, commit) => {
         commitFromSummary = commit;
-        return '';
+        return "";
       })
       .replace(/^\s*(?:author|user):\s*@?([^\s]+)/gim, (_, user) => {
         usersFromSummary.push(user);
-        return '';
+        return "";
       })
       .trim();
 
@@ -75,7 +75,7 @@ const changelogFunctions: ChangelogFunctions = {
       });
 
     const [firstLine, ...futureLines] = replacedChangelog
-      .split('\n')
+      .split("\n")
       .map((l) => linkifyIssueHints(l.trimEnd()));
 
     const links = await (async () => {
@@ -111,22 +111,22 @@ const changelogFunctions: ChangelogFunctions = {
     const users = usersFromSummary.length
       ? usersFromSummary
           .map((userFromSummary) => `[@${userFromSummary}](https://github.com/${userFromSummary})`)
-          .join(', ')
+          .join(", ")
       : links.user;
 
-    let suffix = '';
+    let suffix = "";
     if (links.pull || links.commit || users) {
-      suffix = `(${users ? `by ${users} ` : ''}in ${links.pull || links.commit})`;
+      suffix = `(${users ? `by ${users} ` : ""}in ${links.pull || links.commit})`;
     }
 
     const emojiFirstline = firstLine
-      .replace(/feat:/i, '✨')
-      .replace(/chore:/i, '🛠')
-      .replace(/infra:/i, '🛠')
-      .replace(/fix:/i, '🐞🩹')
-      .replace(/docs:/i, '📃');
+      .replace(/feat:/i, "✨")
+      .replace(/chore:/i, "🛠")
+      .replace(/infra:/i, "🛠")
+      .replace(/fix:/i, "🐞🩹")
+      .replace(/docs:/i, "📃");
 
-    return `\n\n- ${emojiFirstline} ${suffix}\n${futureLines.map((l) => `  ${l}`).join('\n')}`;
+    return `\n\n- ${emojiFirstline} ${suffix}\n${futureLines.map((l) => `  ${l}`).join("\n")}`;
   },
 };
 

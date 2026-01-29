@@ -1,6 +1,6 @@
-import type { Plugin } from 'esbuild';
-import { execa, type Options } from 'execa';
-import mri from 'mri';
+import type { Plugin } from "esbuild";
+import { execa, type Options } from "execa";
+import mri from "mri";
 import {
   access as fsAccess,
   copyFile as fsCopyFile,
@@ -12,58 +12,58 @@ import {
   writeFile as fsWriteFile,
   mkdirSync,
   rmSync,
-} from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import type { Plugin as RollupPlugin } from 'rollup';
-import { minify, type MinifyOptions } from 'terser';
-import { promisify } from 'util';
-import { readPackageJson } from './package-json.ts';
+} from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import type { Plugin as RollupPlugin } from "rollup";
+import { minify, type MinifyOptions } from "terser";
+import { promisify } from "util";
+import { readPackageJson } from "./package-json.ts";
 
 const stringOptions = [
-  'distBindingsDir',
-  'distQwikCityPkgDir',
-  'distQwikPkgDir',
-  'distVersion',
-  'dtsDir',
-  'packagesDir',
-  'platformTarget',
-  'rootDir',
-  'scriptsDir',
-  'setDistTag',
-  'srcNapiDir',
-  'srcQwikCityDir',
-  'srcQwikDir',
-  'srcQwikLabsDir',
-  'startersDir',
-  'tmpDir',
-  'tscDir',
+  "distBindingsDir",
+  "distQwikCityPkgDir",
+  "distQwikPkgDir",
+  "distVersion",
+  "dtsDir",
+  "packagesDir",
+  "platformTarget",
+  "rootDir",
+  "scriptsDir",
+  "setDistTag",
+  "srcNapiDir",
+  "srcQwikCityDir",
+  "srcQwikDir",
+  "srcQwikLabsDir",
+  "startersDir",
+  "tmpDir",
+  "tscDir",
 ] as const;
 const booleanOptions = [
-  'api',
-  'cli',
-  'commit',
-  'dev',
-  'devRelease',
-  'dryRun',
-  'eslint',
-  'esmNode',
-  'platformBinding',
-  'platformBindingWasmCopy',
-  'prepareRelease',
-  'qwik',
-  'qwikauth',
-  'qwikcity',
-  'qwiklabs',
-  'qwikreact',
-  'qwikworker',
-  'release',
-  'supabaseauthhelpers',
-  'tsc',
-  'tscDocs',
-  'validate',
-  'wasm',
-  'watch',
+  "api",
+  "cli",
+  "commit",
+  "dev",
+  "devRelease",
+  "dryRun",
+  "eslint",
+  "esmNode",
+  "platformBinding",
+  "platformBindingWasmCopy",
+  "prepareRelease",
+  "qwik",
+  "qwikauth",
+  "qwikcity",
+  "qwiklabs",
+  "qwikreact",
+  "qwikworker",
+  "release",
+  "supabaseauthhelpers",
+  "tsc",
+  "tscDocs",
+  "validate",
+  "wasm",
+  "watch",
 ] as const;
 
 /**
@@ -81,20 +81,20 @@ const kebab = (str: string) => str.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}
  * reading from and writing to.
  */
 export function loadConfig(args: string[] = []) {
-  const __dirname = fileURLToPath(new URL('.', import.meta.url));
-  const rootDir = join(__dirname, '..');
-  const packagesDir = join(rootDir, 'packages');
-  const srcQwikDir = join(packagesDir, 'qwik', 'src');
-  const distQwikPkgDir = join(packagesDir, 'qwik', 'dist');
-  const tmpDir = join(rootDir, 'dist-dev');
+  const __dirname = fileURLToPath(new URL(".", import.meta.url));
+  const rootDir = join(__dirname, "..");
+  const packagesDir = join(rootDir, "packages");
+  const srcQwikDir = join(packagesDir, "qwik", "src");
+  const distQwikPkgDir = join(packagesDir, "qwik", "dist");
+  const tmpDir = join(rootDir, "dist-dev");
   const knownOptions = [...stringOptions, ...booleanOptions] as const;
   const kebabOptions = knownOptions.map(kebab);
   // Add _ to known options
-  kebabOptions.push('_');
+  kebabOptions.push("_");
   const alias = Object.fromEntries(knownOptions.map((k, i) => [kebabOptions[i], k]));
   // rename qwik to build
-  (alias as any).build = 'qwik';
-  kebabOptions.push('build');
+  (alias as any).build = "qwik";
+  kebabOptions.push("build");
   const config = mri<BuildConfig>(args, {
     boolean: [...booleanOptions],
     string: [...stringOptions],
@@ -104,36 +104,36 @@ export function loadConfig(args: string[] = []) {
       packagesDir,
       srcQwikDir,
       tmpDir,
-      srcQwikCityDir: join(packagesDir, 'qwik-city', 'src'),
-      srcQwikLabsDir: join(packagesDir, 'qwik-labs'),
-      srcNapiDir: join(srcQwikDir, 'napi'),
-      scriptsDir: join(rootDir, 'scripts'),
-      startersDir: join(rootDir, 'starters'),
+      srcQwikCityDir: join(packagesDir, "qwik-city", "src"),
+      srcQwikLabsDir: join(packagesDir, "qwik-labs"),
+      srcNapiDir: join(srcQwikDir, "napi"),
+      scriptsDir: join(rootDir, "scripts"),
+      startersDir: join(rootDir, "starters"),
       distQwikPkgDir,
-      distQwikCityPkgDir: join(packagesDir, 'qwik-city', 'lib'),
-      distBindingsDir: join(packagesDir, 'qwik', 'bindings'),
-      tscDir: join(tmpDir, 'tsc-out'),
-      dtsDir: join(tmpDir, 'dts-out'),
-      esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,
+      distQwikCityPkgDir: join(packagesDir, "qwik-city", "lib"),
+      distBindingsDir: join(packagesDir, "qwik", "bindings"),
+      tscDir: join(tmpDir, "tsc-out"),
+      dtsDir: join(tmpDir, "dts-out"),
+      esmNode: parseInt(process.version.slice(1).split(".")[0], 10) >= 14,
     } as BuildConfig,
   });
   const parseError =
     config._.length > 0
-      ? `!!! Extra non-args: ${config._.join(' ')}\n\n`
+      ? `!!! Extra non-args: ${config._.join(" ")}\n\n`
       : process.argv.length === 2
         ? `No args provided. `
         : Object.keys(config).some((k) => !kebabOptions.includes(kebab(k)))
           ? `!!! Unknown args: ${Object.keys(config)
               .filter((k) => !kebabOptions.includes(kebab(k)))
-              .join(' ')}\n\n`
+              .join(" ")}\n\n`
           : undefined;
   if (parseError) {
     console.error(
       `\n${parseError}Known args:\n${booleanOptions
         .map((k) => `  --${kebab(k)}\n`)
-        .join('')}${stringOptions
+        .join("")}${stringOptions
         .map((k) => `  --${kebab(k)} <string>\n`)
-        .join('')}\n=== Use pnpm build.local for initial build. ===\n\n`
+        .join("")}\n=== Use pnpm build.local for initial build. ===\n\n`,
     );
     process.exit(1);
   }
@@ -143,11 +143,11 @@ export function loadConfig(args: string[] = []) {
 
 export function terser(opts: MinifyOptions): RollupPlugin {
   return {
-    name: 'terser',
+    name: "terser",
     async generateBundle(_, bundle) {
       for (const fileName in bundle) {
         const chunk = bundle[fileName];
-        if (chunk.type === 'chunk') {
+        if (chunk.type === "chunk") {
           const result = await minify(chunk.code, opts);
           chunk.code = result.code!;
         }
@@ -159,7 +159,7 @@ export function terser(opts: MinifyOptions): RollupPlugin {
 /** Esbuild plugin to change an import path, but keep it an external path. */
 export function importPath(filter: RegExp, newModulePath: string) {
   const plugin: Plugin = {
-    name: 'importPathPlugin',
+    name: "importPathPlugin",
     setup(build) {
       build.onResolve({ filter }, () => ({
         path: newModulePath,
@@ -187,24 +187,24 @@ export const getBanner = (moduleName: string, version: string) => {
  * The JavaScript target we're going for. Reusing a constant just to make sure all the builds are
  * using the same target.
  */
-export const target = 'es2020';
+export const target = "es2020";
 
-export const nodeTarget = 'node16';
+export const nodeTarget = "node16";
 
 /** Helper just to know which Node.js modules that should stay external. */
 export const nodeBuiltIns = [
-  'assert',
-  'async_hooks',
-  'child_process',
-  'crypto',
-  'fs',
-  'module',
-  'net',
-  'os',
-  'path',
-  'tty',
-  'url',
-  'util',
+  "assert",
+  "async_hooks",
+  "child_process",
+  "crypto",
+  "fs",
+  "module",
+  "net",
+  "os",
+  "path",
+  "tty",
+  "url",
+  "util",
 ];
 
 /** Utility just to ignore certain rollup warns we already know aren't issues. */
@@ -220,7 +220,7 @@ export function rollupOnWarn(warning: any, warn: any) {
 /** Helper just to get and format a file's size for logging. */
 export async function fileSize(filePath: string) {
   const text = await readFile(filePath);
-  const { default: compress } = await import('brotli/compress.js');
+  const { default: compress } = await import("brotli/compress.js");
 
   const data = compress(text, {
     mode: 1,
@@ -233,12 +233,12 @@ export async function fileSize(filePath: string) {
 }
 
 function formatFileSize(bytes: number) {
-  if (bytes === 0) return '0b';
+  if (bytes === 0) return "0b";
   const k = 1024;
   const dm = bytes < k ? 0 : 1;
-  const sizes = ['b', 'kb'];
+  const sizes = ["b", "kb"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + "" + sizes[i];
 }
 
 export const access = /*#__PURE__*/ promisify(fsAccess);
@@ -268,13 +268,13 @@ export async function run(
   args: string[],
   skipExecution?: boolean,
   dryRunCliFlag?: boolean,
-  opts?: Options
+  opts?: Options,
 ) {
   if (dryRunCliFlag) {
-    args = [...args, '--dry-run'];
+    args = [...args, "--dry-run"];
   }
-  const bash = `   ${cmd} ${args.join(' ')}`;
-  console.log(bash, opts ? JSON.stringify(opts) : '');
+  const bash = `   ${cmd} ${args.join(" ")}`;
+  console.log(bash, opts ? JSON.stringify(opts) : "");
   if (!skipExecution) {
     const result = await execa(cmd, args, opts);
     if (result.failed) {
@@ -284,7 +284,7 @@ export async function run(
 }
 
 export function panic(msg: string | Error) {
-  const err = typeof msg === 'string' ? new Error(msg) : msg;
+  const err = typeof msg === "string" ? new Error(msg) : msg;
   console.error(`\n❌ `, err);
   process.exit(1);
 }
@@ -319,7 +319,7 @@ export async function copyDir(config: BuildConfig, srcDir: string, destDir: stri
   const items = await readdir(srcDir);
   await Promise.all(
     items.map(async (itemName) => {
-      if (!IGNORE[itemName] && !itemName.includes('.test')) {
+      if (!IGNORE[itemName] && !itemName.includes(".test")) {
         const srcPath = join(srcDir, itemName);
         const destPath = join(destDir, itemName);
         const itemStat = await stat(srcPath);
@@ -329,40 +329,40 @@ export async function copyDir(config: BuildConfig, srcDir: string, destDir: stri
           await copyFile(srcPath, destPath);
         }
       }
-    })
+    }),
   );
 }
 
 const IGNORE: { [path: string]: boolean } = {
-  '.rollup.cache': true,
+  ".rollup.cache": true,
   build: true,
   server: true,
   e2e: true,
   node_modules: true,
-  'package-lock.json': true,
-  'starter.tsconfig.json': true,
-  'tsconfig.tsbuildinfo': true,
-  'yarn.lock': true,
-  'pnpm-lock.yaml': true,
+  "package-lock.json": true,
+  "starter.tsconfig.json": true,
+  "tsconfig.tsbuildinfo": true,
+  "yarn.lock": true,
+  "pnpm-lock.yaml": true,
 };
 
 export const recursiveChangePrefix = <T>(obj: T, prefix: string, replace: string): T => {
-  if (typeof obj === 'string') {
+  if (typeof obj === "string") {
     return (obj.startsWith(prefix) ? replace + obj.slice(prefix.length) : obj) as T;
   }
   if (Array.isArray(obj)) {
     return obj.map((v) => recursiveChangePrefix(v, prefix, replace)) as T;
   }
-  if (obj && typeof obj === 'object') {
+  if (obj && typeof obj === "object") {
     return Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => [k, recursiveChangePrefix(v, prefix, replace)])
+      Object.entries(obj).map(([k, v]) => [k, recursiveChangePrefix(v, prefix, replace)]),
     ) as T;
   }
   return obj;
 };
 
 export async function getQwikVersion(config: BuildConfig) {
-  const qwikDir = join(config.packagesDir, 'qwik');
+  const qwikDir = join(config.packagesDir, "qwik");
   const qwikPkgJson = await readPackageJson(qwikDir);
   return qwikPkgJson.version;
 }

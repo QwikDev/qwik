@@ -15,11 +15,7 @@ test.describe("Qwik City Auth", () => {
 
 function tests() {
   test("Qwik City Auth", async ({ context, javaScriptEnabled }) => {
-    const ctx = await load(
-      context,
-      javaScriptEnabled,
-      "/qwikcity-test/sign-in/",
-    );
+    const ctx = await load(context, javaScriptEnabled, "/qwikcity-test/sign-in/");
 
     /***********  Sign In  ***********/
     await assertPage(ctx, {

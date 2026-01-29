@@ -1,0 +1,13 @@
+{
+  "$schema": "https://oxc.rs/schemas/oxfmt.json",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "experimentalTailwindcss": {
+    "attributes": ["class", "className"],
+    "functions": ["clsx", "cn", "cva"]
+  }
+}

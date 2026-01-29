@@ -10,9 +10,7 @@ import {
 } from "@builder.io/qwik-city";
 import { delay } from "../../actions/login";
 
-export const useDateLoader = routeLoader$(
-  () => new Date("2021-01-01T00:00:00.000Z"),
-);
+export const useDateLoader = routeLoader$(() => new Date("2021-01-01T00:00:00.000Z"));
 
 export const useDependencyLoader = routeLoader$(
   async ({ params, redirect, json, resolveValue }) => {
@@ -138,10 +136,7 @@ export default component$(() => {
           </Link>
         </li>
         <li>
-          <Link
-            href="/qwikcity-test/loaders/redirect-welcome/"
-            id="link-welcome"
-          >
+          <Link href="/qwikcity-test/loaders/redirect-welcome/" id="link-welcome">
             To Redirect /loaders/welcome/
           </Link>
         </li>

@@ -1,4 +1,4 @@
-import { tryGetInvokeContext } from './use-core';
+import { tryGetInvokeContext } from "./use-core";
 
 let _locale: string | undefined = undefined;
 
@@ -19,7 +19,7 @@ export function getLocale(defaultLocale?: string): string {
     if (defaultLocale !== undefined) {
       return defaultLocale;
     }
-    throw new Error('Reading `locale` outside of context.');
+    throw new Error("Reading `locale` outside of context.");
   }
   return _locale;
 }

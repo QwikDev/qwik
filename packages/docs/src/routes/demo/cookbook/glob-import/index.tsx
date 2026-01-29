@@ -1,13 +1,8 @@
-import {
-  type Component,
-  component$,
-  useSignal,
-  useTask$,
-} from '@builder.io/qwik';
+import { type Component, component$, useSignal, useTask$ } from "@builder.io/qwik";
 
 const metaGlobComponents: Record<string, any> = import.meta.glob(
-  '/src/routes/demo/cookbook/glob-import/examples/*',
-  { import: 'default' }
+  "/src/routes/demo/cookbook/glob-import/examples/*",
+  { import: "default" },
 );
 
 export default component$(() => {

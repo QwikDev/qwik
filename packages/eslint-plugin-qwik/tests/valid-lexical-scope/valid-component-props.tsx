@@ -1,4 +1,4 @@
-import { type QRL, component$ } from '@builder.io/qwik';
+import { type QRL, component$ } from "@builder.io/qwik";
 
 export interface Props {
   method$: QRL<() => void>;

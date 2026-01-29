@@ -1,8 +1,8 @@
-import { component$ } from '@builder.io/qwik';
-import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
-import { Social } from './social';
-import { Vendor } from './vendor';
-import { ThemeScript } from '../theme-toggle/theme-script';
+import { component$ } from "@builder.io/qwik";
+import { useDocumentHead, useLocation } from "@builder.io/qwik-city";
+import { Social } from "./social";
+import { Vendor } from "./vendor";
+import { ThemeScript } from "../theme-toggle/theme-script";
 
 export const RouterHead = component$(() => {
   const { url } = useLocation();
@@ -11,24 +11,24 @@ export const RouterHead = component$(() => {
     ? `${head.title} 📚 Qwik Documentation`
     : `Qwik - Framework reimagined for the edge`;
   const description =
-    head.meta.find((m) => m.name === 'description')?.content ||
+    head.meta.find((m) => m.name === "description")?.content ||
     `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;
 
   const OGImage = {
-    imageURL: '',
-    ogImgTitle: '',
-    ogImgSubTitle: '' as string | undefined,
+    imageURL: "",
+    ogImgTitle: "",
+    ogImgSubTitle: "" as string | undefined,
 
     get URL() {
       //turn the title into array with [0] -> Title [1] -> subTitle
-      const arrayedTitle = title.split(' | ');
-      const ogImageUrl = new URL('https://opengraphqwik.vercel.app/api/og?level=1');
+      const arrayedTitle = title.split(" | ");
+      const ogImageUrl = new URL("https://opengraphqwik.vercel.app/api/og?level=1");
 
       // biggerTitle
       this.ogImgTitle = arrayedTitle[0];
       //smallerTitle
       this.ogImgSubTitle = arrayedTitle[1]
-        ? arrayedTitle[1].replace(' 📚 Qwik Documentation', '')
+        ? arrayedTitle[1].replace(" 📚 Qwik Documentation", "")
         : undefined;
 
       //decide whether or not to show dynamic OGimage or use docs default social card
@@ -37,8 +37,8 @@ export const RouterHead = component$(() => {
 
         return this.imageURL;
       } else {
-        ogImageUrl.searchParams.set('title', this.ogImgTitle);
-        ogImageUrl.searchParams.set('subtitle', this.ogImgSubTitle);
+        ogImageUrl.searchParams.set("title", this.ogImgTitle);
+        ogImageUrl.searchParams.set("subtitle", this.ogImgSubTitle);
         // ogImageUrl.searchParams.set('level', this.routeLevel.toString());
 
         this.imageURL = ogImageUrl.toString();
@@ -72,7 +72,7 @@ export const RouterHead = component$(() => {
 
       {head.meta
         // Skip description because that was already added at the top
-        .filter((s) => s.name !== 'description')
+        .filter((s) => s.name !== "description")
         .map((m, key) => (
           <meta key={key} {...m} />
         ))}

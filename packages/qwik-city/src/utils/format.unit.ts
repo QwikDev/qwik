@@ -1,26 +1,26 @@
-import { assert, test } from 'vitest';
-import { msToString } from './format';
+import { assert, test } from "vitest";
+import { msToString } from "./format";
 
 [
   {
     ms: 0.05,
-    expect: '0.05 ms',
+    expect: "0.05 ms",
   },
   {
     ms: 10.5,
-    expect: '10.5 ms',
+    expect: "10.5 ms",
   },
   {
     ms: 100,
-    expect: '100.0 ms',
+    expect: "100.0 ms",
   },
   {
     ms: 2000,
-    expect: '2.0 s',
+    expect: "2.0 s",
   },
   {
     ms: 120000,
-    expect: '2.0 m',
+    expect: "2.0 m",
   },
 ].forEach((t) => {
   test(`msToString(${t.ms})`, () => {

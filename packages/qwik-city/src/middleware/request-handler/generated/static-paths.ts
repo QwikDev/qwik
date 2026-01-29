@@ -6,10 +6,10 @@
  * @returns
  */
 export function isStaticPath(method: string, url: URL) {
-  if (method !== 'GET') {
+  if (method !== "GET") {
     return false;
   }
-  if (url.search !== '') {
+  if (url.search !== "") {
     return false;
   }
 

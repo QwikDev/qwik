@@ -9,10 +9,7 @@ export default component$(() => {
           A
         </Link>
 
-        <Link
-          href="/qwikcity-test/issue7732/b/?shouldOverrideRedirect=no"
-          id="issue7732-link-b"
-        >
+        <Link href="/qwikcity-test/issue7732/b/?shouldOverrideRedirect=no" id="issue7732-link-b">
           B
         </Link>
         <Link href="/issue7732/c/" id="issue7732-link-c">

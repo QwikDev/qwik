@@ -1,11 +1,11 @@
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from "@builder.io/qwik";
 
 export default component$(() => {
   const store = useStore({
     nested: {
-      fields: { are: 'also tracked' },
+      fields: { are: "also tracked" },
     },
-    list: ['Item 1'],
+    list: ["Item 1"],
   });
 
   return (
@@ -14,7 +14,7 @@ export default component$(() => {
       <button
         onClick$={() => {
           // Even though we are mutating a nested object, this will trigger a re-render
-          store.nested.fields.are = 'tracked';
+          store.nested.fields.are = "tracked";
         }}
       >
         Clicking me works because store is deep watched

@@ -1,6 +1,6 @@
-import { stat, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { prettify } from './prettify';
+import { stat, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { prettify } from "./prettify";
 
 export async function generateRouteTypes(srcDir: string, routesDir: string, routes: string[]) {
   // console.log(routes);
@@ -45,9 +45,9 @@ export function AppLink(props: AppLinkProps & QwikIntrinsicElements['a']) {
 }
 `;
 
-  const file = join(srcDir, 'routes.config.tsx');
+  const file = join(srcDir, "routes.config.tsx");
   const fileExists = await exists(file);
-  console.log('File exists', file, fileExists);
+  console.log("File exists", file, fileExists);
   if (!fileExists) {
     writeFile(file, CONFIG_FILE);
   }
@@ -63,38 +63,38 @@ async function exists(file: string): Promise<boolean> {
 
 async function generateSrcRoutesGen(srcDir: string, routes: string[]) {
   await writeFile(
-    join(srcDir, 'routes.gen.d.ts'),
+    join(srcDir, "routes.gen.d.ts"),
     await prettify`
 ${GENERATED_HEADER}
 
-export type AppRoutes = ${routes.map((r) => s(r)).join('|')};
+export type AppRoutes = ${routes.map((r) => s(r)).join("|")};
 
 export interface AppRouteMap {
-  ${routes.map((r) => s(r) + ':' + toInterface('', r))}
+  ${routes.map((r) => s(r) + ":" + toInterface("", r))}
 };
 
 export interface AppRouteParamsFunction {
-  ${routes.map((r) => `(route: ${s(r)}, ${toInterface('params', r)}): string`).join(';')}
+  ${routes.map((r) => `(route: ${s(r)}, ${toInterface("params", r)}): string`).join(";")}
 }
 
 export type AppLinkProps = ${routes
       .map(
         (route) =>
           `{ route: ${s(route)}, ${toParams(route)
-            .map((param) => s('param:' + param) + ': string')
-            .join(';')}}`
+            .map((param) => s("param:" + param) + ": string")
+            .join(";")}}`,
       )
-      .join('|')}
-`
+      .join("|")}
+`,
   );
 }
 
 function toParams(route: string) {
   const params: string[] = [];
-  const parts = route.split('/');
+  const parts = route.split("/");
   parts.forEach((part) => {
-    if (part.startsWith('[') && part.endsWith(']')) {
-      params.push(part.substring(part.startsWith('[...') ? 4 : 1, part.length - 1));
+    if (part.startsWith("[") && part.endsWith("]")) {
+      params.push(part.substring(part.startsWith("[...") ? 4 : 1, part.length - 1));
     }
   });
   return params;
@@ -103,10 +103,10 @@ function toParams(route: string) {
 function toInterface(paramName: string, route: string): string {
   const params: string[] = toParams(route);
   return (
-    (paramName ? paramName + (params.length ? ':' : '?:') : '') +
-    '{' +
-    params.map((param) => param + ': string').join(';') +
-    '}'
+    (paramName ? paramName + (params.length ? ":" : "?:") : "") +
+    "{" +
+    params.map((param) => param + ": string").join(";") +
+    "}"
   );
 }
 

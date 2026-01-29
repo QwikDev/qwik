@@ -3,10 +3,10 @@ import type {
   SystemEnvironment,
   TransformModuleInput,
   TransformOutput,
-} from './types';
-import { createPath } from './path';
-import { QWIK_BINDING_MAP } from './qwik-binding-map';
-import { versions } from './versions';
+} from "./types";
+import { createPath } from "./path";
+import { QWIK_BINDING_MAP } from "./qwik-binding-map";
+import { versions } from "./versions";
 
 export async function getSystem() {
   const sysEnv = getEnv();
@@ -14,17 +14,17 @@ export async function getSystem() {
   const sys: OptimizerSystem = {
     dynamicImport: (path) => {
       throw new Error(
-        `Qwik Optimizer sys.dynamicImport() not implemented, trying to import: "${path}"`
+        `Qwik Optimizer sys.dynamicImport() not implemented, trying to import: "${path}"`,
       );
     },
     strictDynamicImport: (path) => {
       throw new Error(
-        `Qwik Optimizer sys.strictDynamicImport() not implemented, trying to import: "${path}"`
+        `Qwik Optimizer sys.strictDynamicImport() not implemented, trying to import: "${path}"`,
       );
     },
     path: null as any,
-    cwd: () => '/',
-    os: 'unknown',
+    cwd: () => "/",
+    os: "unknown",
     env: sysEnv,
   };
 
@@ -35,35 +35,35 @@ export async function getSystem() {
   }
 
   if (globalThis.IS_CJS) {
-    if (sysEnv === 'node' || sysEnv === 'bun') {
+    if (sysEnv === "node" || sysEnv === "bun") {
       // using this api object as a way to ensure bundlers
       // do not try to inline or rewrite require()
       sys.dynamicImport = (path) => require(path);
       sys.strictDynamicImport = (path) => import(path);
 
-      if (typeof TextEncoder === 'undefined') {
+      if (typeof TextEncoder === "undefined") {
         // TextEncoder/TextDecoder needs to be on the global scope for the WASM file
         // https://nodejs.org/api/util.html#class-utiltextdecoder
-        const nodeUtil: typeof import('util') = await sys.dynamicImport('node:util');
+        const nodeUtil: typeof import("util") = await sys.dynamicImport("node:util");
         globalThis.TextEncoder = nodeUtil.TextEncoder;
         globalThis.TextDecoder = nodeUtil.TextDecoder;
       }
-    } else if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
+    } else if (sysEnv === "webworker" || sysEnv === "browsermain") {
       sys.strictDynamicImport = (path) => import(path);
       sys.dynamicImport = async (path: string) => {
         const cjsRsp = await fetch(path);
         const cjsCode = await cjsRsp.text();
         const cjsModule: any = { exports: {} };
         // eslint-disable-next-line no-new-func
-        const cjsRun = new Function('module', 'exports', cjsCode);
+        const cjsRun = new Function("module", "exports", cjsCode);
         cjsRun(cjsModule, cjsModule.exports);
         return cjsModule.exports;
       };
     }
   }
-  if (sysEnv !== 'webworker' && sysEnv !== 'browsermain') {
+  if (sysEnv !== "webworker" && sysEnv !== "browsermain") {
     try {
-      sys.path = await sys.dynamicImport('node:path');
+      sys.path = await sys.dynamicImport("node:path");
       sys.cwd = () => process.cwd();
       sys.os = process.platform;
     } catch {
@@ -75,12 +75,12 @@ export async function getSystem() {
 }
 
 export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
-  if (typeof sys.getInputFiles === 'function') {
+  if (typeof sys.getInputFiles === "function") {
     return sys.getInputFiles;
   }
 
-  if (sys.env === 'node') {
-    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+  if (sys.env === "node") {
+    const fs: typeof import("fs") = await sys.dynamicImport("node:fs");
 
     return async (rootDir: string) => {
       const getChildFilePaths = async (dir: string): Promise<string[]> => {
@@ -94,7 +94,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
               const resolvedPath = sys.path.resolve(dir, subdir);
               const stats = await fs.promises.stat(resolvedPath);
               return stats.isDirectory() ? getChildFilePaths(resolvedPath) : [resolvedPath];
-            })
+            }),
           );
           for (const file of files) {
             flatted.push(...file);
@@ -111,11 +111,11 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
         await Promise.all(
           filePaths.map(async (filePath) => {
             const input: TransformModuleInput = {
-              code: await fs.promises.readFile(filePath, 'utf8'),
+              code: await fs.promises.readFile(filePath, "utf8"),
               path: filePath,
             };
             return input;
-          })
+          }),
         )
       ).sort((a, b) => {
         if (a.path < b.path) {
@@ -138,7 +138,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
   const sysEnv = getEnv();
 
   // Try native build
-  if (sysEnv === 'node' || sysEnv === 'bun') {
+  if (sysEnv === "node" || sysEnv === "bun") {
     // Node.js
     const platform = (QWIK_BINDING_MAP as any)[process.platform];
     if (platform) {
@@ -148,9 +148,9 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
           // Node.js - Native Binding
           try {
             if (globalThis.IS_ESM) {
-              const module = await sys.dynamicImport('node:module');
+              const module = await sys.dynamicImport("node:module");
               const mod = module.default.createRequire(import.meta.url)(
-                `../bindings/${triple.platformArchABI}`
+                `../bindings/${triple.platformArchABI}`,
               );
               return mod;
             }
@@ -159,7 +159,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
           } catch (e) {
             console.warn(
               `Unable to load native binding ${triple.platformArchABI}. Falling back to wasm build.`,
-              (e as Error)?.message
+              (e as Error)?.message,
             );
           }
         }
@@ -170,11 +170,11 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
   if (globalThis.IS_CJS) {
     // CJS WASM
 
-    if (sysEnv === 'node' || sysEnv === 'bun') {
+    if (sysEnv === "node" || sysEnv === "bun") {
       // CJS WASM Node.js
-      const wasmPath = sys.path.join(__dirname, '..', 'bindings', 'qwik_wasm_bg.wasm');
+      const wasmPath = sys.path.join(__dirname, "..", "bindings", "qwik_wasm_bg.wasm");
       const mod = await sys.dynamicImport(`../bindings/qwik.wasm.cjs`);
-      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+      const fs: typeof import("fs") = await sys.dynamicImport("node:fs");
 
       return new Promise<Buffer>((resolve, reject) => {
         fs.readFile(wasmPath, (err, buf) => {
@@ -190,7 +190,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
         .then(() => mod);
     }
 
-    if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
+    if (sysEnv === "webworker" || sysEnv === "browsermain") {
       // CJS WASM Browser
       let version = versions.qwik;
       const cachedCjsCode = `qwikWasmCjs${version}`;
@@ -200,7 +200,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
       let wasmRsp: Response = (globalThis as any)[cachedWasmRsp];
 
       if (!cjsCode || !wasmRsp) {
-        version = versions.qwik.split('-dev')[0];
+        version = versions.qwik.split("-dev")[0];
         const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${version}/bindings/`;
         const cjsModuleUrl = new URL(`./qwik.wasm.cjs`, cdnUrl).href;
         const wasmUrl = new URL(`./qwik_wasm_bg.wasm`, cdnUrl).href;
@@ -220,7 +220,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
       const cjsModule: any = { exports: {} };
       // eslint-disable-next-line no-new-func
-      const cjsRun = new Function('module', 'exports', cjsCode);
+      const cjsRun = new Function("module", "exports", cjsCode);
       cjsRun(cjsModule, cjsModule.exports);
       const mod = cjsModule.exports;
 
@@ -232,13 +232,13 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
   }
 
   if (globalThis.IS_ESM) {
-    if (sysEnv === 'node' || sysEnv === 'bun') {
+    if (sysEnv === "node" || sysEnv === "bun") {
       // CJS WASM Node.js
-      const url: typeof import('url') = await sys.dynamicImport('node:url');
+      const url: typeof import("url") = await sys.dynamicImport("node:url");
       const __dirname = sys.path.dirname(url.fileURLToPath(import.meta.url));
-      const wasmPath = sys.path.join(__dirname, '..', 'bindings', 'qwik_wasm_bg.wasm');
+      const wasmPath = sys.path.join(__dirname, "..", "bindings", "qwik_wasm_bg.wasm");
       const mod = await sys.dynamicImport(`../bindings/qwik.wasm.mjs`);
-      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+      const fs: typeof import("fs") = await sys.dynamicImport("node:fs");
 
       return new Promise<Buffer>((resolve, reject) => {
         fs.readFile(wasmPath, (err, buf) => {
@@ -268,54 +268,54 @@ export interface PlatformBinding {
 }
 
 const getEnv = (): SystemEnvironment => {
-  if (typeof Deno !== 'undefined') {
-    return 'deno';
+  if (typeof Deno !== "undefined") {
+    return "deno";
   }
 
-  if (typeof Bun !== 'undefined') {
-    return 'bun';
+  if (typeof Bun !== "undefined") {
+    return "bun";
   }
 
   if (
-    typeof process !== 'undefined' &&
-    typeof global !== 'undefined' &&
+    typeof process !== "undefined" &&
+    typeof global !== "undefined" &&
     process.versions &&
     process.versions.node
   ) {
-    return 'node';
+    return "node";
   }
 
   if (
-    typeof self !== 'undefined' &&
-    typeof location !== 'undefined' &&
-    typeof navigator !== 'undefined' &&
-    typeof fetch === 'function' &&
-    typeof WorkerGlobalScope === 'function' &&
-    typeof (self as any).importScripts === 'function'
+    typeof self !== "undefined" &&
+    typeof location !== "undefined" &&
+    typeof navigator !== "undefined" &&
+    typeof fetch === "function" &&
+    typeof WorkerGlobalScope === "function" &&
+    typeof (self as any).importScripts === "function"
   ) {
-    return 'webworker';
+    return "webworker";
   }
 
   if (
-    typeof window !== 'undefined' &&
-    typeof document !== 'undefined' &&
-    typeof location !== 'undefined' &&
-    typeof navigator !== 'undefined' &&
-    typeof Window === 'function' &&
-    typeof fetch === 'function'
+    typeof window !== "undefined" &&
+    typeof document !== "undefined" &&
+    typeof location !== "undefined" &&
+    typeof navigator !== "undefined" &&
+    typeof Window === "function" &&
+    typeof fetch === "function"
   ) {
-    return 'browsermain';
+    return "browsermain";
   }
 
-  return 'unknown';
+  return "unknown";
 };
 
 const extensions: { [ext: string]: boolean } = {
-  '.js': true,
-  '.ts': true,
-  '.tsx': true,
-  '.jsx': true,
-  '.mjs': true,
+  ".js": true,
+  ".ts": true,
+  ".tsx": true,
+  ".jsx": true,
+  ".mjs": true,
 };
 
 declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean; [key: string]: any };

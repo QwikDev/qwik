@@ -14,8 +14,8 @@ export default component$(() => {
       <div class="container">
         <div class="row mb-2 mt-4">
           <p>
-            Bootstrap is a powerful, feature-packed frontend toolkit. Build
-            anything—from prototype to production—in minutes.
+            Bootstrap is a powerful, feature-packed frontend toolkit. Build anything—from prototype
+            to production—in minutes.
           </p>
         </div>
         <Slot />

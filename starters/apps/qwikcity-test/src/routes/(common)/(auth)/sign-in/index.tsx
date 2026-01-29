@@ -67,9 +67,7 @@ export default component$(() => {
       <h1>Sign In</h1>
 
       <Form action={signIn} spaReset>
-        {signIn.value?.message && (
-          <p style="color:red">{signIn.value.message}</p>
-        )}
+        {signIn.value?.message && <p style="color:red">{signIn.value.message}</p>}
         <label>
           <span>Username</span>
           <input name="username" type="text" autoComplete="username" required />
@@ -79,28 +77,16 @@ export default component$(() => {
         </label>
         <label>
           <span>Password</span>
-          <input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
+          <input name="password" type="password" autoComplete="current-password" required />
           {signIn.value?.fieldErrors?.password && (
             <p style="color:red">{signIn.value?.fieldErrors?.password}</p>
           )}
         </label>
         <label>
           <span>Confirm password</span>
-          <input
-            name="confirmPassword"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
+          <input name="confirmPassword" type="password" autoComplete="current-password" required />
           {signIn.value?.fieldErrors?.confirmPassword && (
-            <p style="color:red">
-              {signIn.value?.fieldErrors?.confirmPassword}
-            </p>
+            <p style="color:red">{signIn.value?.fieldErrors?.confirmPassword}</p>
           )}
         </label>
         <button data-test-sign-in>Sign In</button>

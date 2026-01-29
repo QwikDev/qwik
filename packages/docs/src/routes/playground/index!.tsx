@@ -1,14 +1,14 @@
-import { $, component$, useStyles$, useStore, useVisibleTask$, useTask$ } from '@builder.io/qwik';
-import type { RequestHandler, DocumentHead } from '@builder.io/qwik-city';
-import { Repl } from '../../repl/ui';
-import { Header } from '../../components/header/header';
-import styles from './playground.css?inline';
-import playgroundApp from '@playground-data';
-import type { ReplAppInput } from '../../repl/types';
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/ui/repl-share-url';
-import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
-import { isBrowser } from '@builder.io/qwik';
-import { setReplCorsHeaders } from '~/utils/utils';
+import { $, component$, useStyles$, useStore, useVisibleTask$, useTask$ } from "@builder.io/qwik";
+import type { RequestHandler, DocumentHead } from "@builder.io/qwik-city";
+import { Repl } from "../../repl/ui";
+import { Header } from "../../components/header/header";
+import styles from "./playground.css?inline";
+import playgroundApp from "@playground-data";
+import type { ReplAppInput } from "../../repl/types";
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from "../../repl/ui/repl-share-url";
+import { PanelToggle } from "../../components/panel-toggle/panel-toggle";
+import { isBrowser } from "@builder.io/qwik";
+import { setReplCorsHeaders } from "~/utils/utils";
 
 export default component$(() => {
   useStyles$(styles);
@@ -16,9 +16,9 @@ export default component$(() => {
   const store = useStore<PlaygroundStore>(() => {
     const initStore: PlaygroundStore = {
       files: playgroundApp.inputs,
-      version: '',
-      buildMode: 'development',
-      entryStrategy: 'segment',
+      version: "",
+      buildMode: "development",
+      entryStrategy: "segment",
       colResizeActive: false,
       colLeft: 50,
       shareUrlTmr: null,
@@ -27,8 +27,8 @@ export default component$(() => {
   });
 
   const panelStore = useStore(() => ({
-    active: 'Input',
-    list: ['Input', 'Output', 'Console'],
+    active: "Input",
+    list: ["Input", "Output", "Console"],
   }));
 
   useVisibleTask$(() => {
@@ -54,7 +54,7 @@ export default component$(() => {
 
         store.shareUrlTmr = setTimeout(() => {
           const shareUrl = createPlaygroundShareUrl(store);
-          history.replaceState({}, '', shareUrl);
+          history.replaceState({}, "", shareUrl);
         }, 1000);
       }
     }
@@ -80,17 +80,17 @@ export default component$(() => {
     <div
       class={{
         playground: true,
-        'full-width': true,
-        'fixed-header': true,
-        'repl-resize-active': store.colResizeActive,
+        "full-width": true,
+        "fixed-header": true,
+        "repl-resize-active": store.colResizeActive,
       }}
     >
       <Header />
 
       <div
         class={{
-          'repl-panel-output': panelStore.active === 'Output',
-          'repl-panel-console': panelStore.active === 'Console',
+          "repl-panel-output": panelStore.active === "Output",
+          "repl-panel-console": panelStore.active === "Console",
           repl: true,
         }}
         style={{
@@ -121,7 +121,7 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: 'Playground',
+  title: "Playground",
 };
 
 export interface PlaygroundStore extends ReplAppInput {

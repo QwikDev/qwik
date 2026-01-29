@@ -29,16 +29,12 @@ export default component$(() => {
 
   type ConfirmType = Partial<
     Record<
-      | "credentials.username"
-      | "credentials.password"
-      | "evenMoreComplex.deep.firstName",
+      "credentials.username" | "credentials.password" | "evenMoreComplex.deep.firstName",
       string
     >
   >;
 
-  const errors = dotNotation.value?.fieldErrors satisfies
-    | ConfirmType
-    | undefined;
+  const errors = dotNotation.value?.fieldErrors satisfies ConfirmType | undefined;
 
   return (
     <>
@@ -65,10 +61,7 @@ export default component$(() => {
           name="credentials.password"
           value="pass"
           class={{
-            error:
-              dotNotation.value?.fieldErrors?.[
-                "evenMoreComplex.deep.firstName"
-              ],
+            error: dotNotation.value?.fieldErrors?.["evenMoreComplex.deep.firstName"],
           }}
         />
         {errors?.["credentials.password"] ?? "no error"}
@@ -78,10 +71,7 @@ export default component$(() => {
           name="evenMoreComplex.deep.firstName"
           value="John"
           class={{
-            error:
-              dotNotation.value?.fieldErrors?.[
-                "evenMoreComplex.deep.firstName"
-              ],
+            error: dotNotation.value?.fieldErrors?.["evenMoreComplex.deep.firstName"],
           }}
         />
 

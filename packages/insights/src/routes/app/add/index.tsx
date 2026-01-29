@@ -1,13 +1,13 @@
-import { component$, useSignal } from '@builder.io/qwik';
-import { formAction$, useForm, zodForm$ } from '@modular-forms/qwik';
-import Container from '~/components/container';
-import { DiskIcon } from '~/components/icons/disk';
-import Layout from '~/components/layout';
-import { applicationTable, getDB, userApplicationMap } from '~/db';
-import { appUrl } from '~/routes.config';
-import { ApplicationForm } from '../[publicApiKey]/app.form';
-import styles from './styles.module.css';
-import { getInsightUser } from '~/routes/app/layout';
+import { component$, useSignal } from "@builder.io/qwik";
+import { formAction$, useForm, zodForm$ } from "@modular-forms/qwik";
+import Container from "~/components/container";
+import { DiskIcon } from "~/components/icons/disk";
+import Layout from "~/components/layout";
+import { applicationTable, getDB, userApplicationMap } from "~/db";
+import { appUrl } from "~/routes.config";
+import { ApplicationForm } from "../[publicApiKey]/app.form";
+import styles from "./styles.module.css";
+import { getInsightUser } from "~/routes/app/layout";
 
 export const useFormAction = formAction$<ApplicationForm>(
   async ({ name, description, url }, { redirect, sharedMap }) => {
@@ -38,19 +38,19 @@ export const useFormAction = formAction$<ApplicationForm>(
 
     redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey }));
   },
-  zodForm$(ApplicationForm)
+  zodForm$(ApplicationForm),
 );
 
 export default component$(() => {
   const [, { Form, Field }] = useForm<ApplicationForm>({
-    loader: useSignal({ name: '', description: '', url: '' }),
+    loader: useSignal({ name: "", description: "", url: "" }),
     action: useFormAction(),
     validate: zodForm$(ApplicationForm),
   });
   return (
     <Layout mode="bright">
       <Container position="center" width="small"></Container>
-      <div class={[styles['add-app-wrapper'], 'p-6']}>
+      <div class={[styles["add-app-wrapper"], "p-6"]}>
         <h1 class="h3">Create Application</h1>
         <Form>
           <div>
@@ -103,7 +103,7 @@ export default component$(() => {
           </div>
           <div
             style={{
-              'margin-top': 'calc(var(--form-element-margin-bottom) * 2)',
+              "margin-top": "calc(var(--form-element-margin-bottom) * 2)",
             }}
           >
             <button type="submit" class="button">

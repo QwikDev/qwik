@@ -1,109 +1,109 @@
-import { type QwikBundle, type QwikManifest } from '@builder.io/qwik/optimizer';
-import path from 'node:path';
-import { describe, expect, test } from 'vitest';
-import { generateManifestFromBundles } from '../manifest';
-import { convertManifestToBundleGraph } from './bundle-graph';
+import { type QwikBundle, type QwikManifest } from "@builder.io/qwik/optimizer";
+import path from "node:path";
+import { describe, expect, test } from "vitest";
+import { generateManifestFromBundles } from "../manifest";
+import { convertManifestToBundleGraph } from "./bundle-graph";
 // You can generate this file by uncommenting the writing code in manifest.ts, building, running `pnpm build.client` in the starters/apps/preload-test dir and moving the output
-import outputBundles from './fixture-output-bundles.json';
+import outputBundles from "./fixture-output-bundles.json";
 
-describe('convertManifestToBundleGraph', () => {
+describe("convertManifestToBundleGraph", () => {
   const size = 0,
     total = 0;
   const fakeManifest = {
     bundles: {
-      'app.js': { size, total, imports: ['static-dep.js', '@external-dep'] },
-      'static-dep.js': {
+      "app.js": { size, total, imports: ["static-dep.js", "@external-dep"] },
+      "static-dep.js": {
         size,
         total,
-        dynamicImports: ['@other', 'transitive-dep.js', 'dynamic-dep.js', 'no-symbols.js'],
+        dynamicImports: ["@other", "transitive-dep.js", "dynamic-dep.js", "no-symbols.js"],
       },
-      'dynamic-dep.js': {
+      "dynamic-dep.js": {
         size,
         total,
-        imports: ['static-dep.js', 'transitive-dep.js', '@external-dep'],
-        dynamicImports: ['has-a-symbol.js', 'boring-dep.js', 'no-symbols.js'],
-        origins: ['dynamic-dep.js'],
-        symbols: ['sym1'],
+        imports: ["static-dep.js", "transitive-dep.js", "@external-dep"],
+        dynamicImports: ["has-a-symbol.js", "boring-dep.js", "no-symbols.js"],
+        origins: ["dynamic-dep.js"],
+        symbols: ["sym1"],
       },
-      'transitive-dep.js': { size, total, symbols: ['sym4'] },
-      'not-used.js': { size, total },
-      'has-a-symbol.js': {
+      "transitive-dep.js": { size, total, symbols: ["sym4"] },
+      "not-used.js": { size, total },
+      "has-a-symbol.js": {
         size,
         total,
-        dynamicImports: ['large-file.js'],
-        symbols: ['sym2'],
-        origins: ['dynamic-dep.js_handleClick_sym2.js'],
+        dynamicImports: ["large-file.js"],
+        symbols: ["sym2"],
+        origins: ["dynamic-dep.js_handleClick_sym2.js"],
       },
-      'no-symbols.js': { size, total },
-      'boring-dep.js': { size, total, symbols: ['sym5'], origins: ['boring-dep.js'] },
-      'large-file.js': { size: 100000, total: 100000, symbols: ['sym3'] },
+      "no-symbols.js": { size, total },
+      "boring-dep.js": { size, total, symbols: ["sym5"], origins: ["boring-dep.js"] },
+      "large-file.js": { size: 100000, total: 100000, symbols: ["sym3"] },
     } as Record<string, QwikBundle>,
-    mapping: { sym1: 'dynamic-dep.js', sym2: 'has-a-symbol.js', sym3: 'large-file.js' },
+    mapping: { sym1: "dynamic-dep.js", sym2: "has-a-symbol.js", sym3: "large-file.js" },
     symbols: {},
-    preloader: 'no-symbols.js',
-    manifestHash: '123',
-    version: '1.0.0',
+    preloader: "no-symbols.js",
+    manifestHash: "123",
+    version: "1.0.0",
   } as QwikManifest;
 
-  test('trivial example', () => {
+  test("trivial example", () => {
     expect(convertManifestToBundleGraph(fakeManifest)).toEqual([
-      'app.js', // 0
+      "app.js", // 0
       2,
-      'static-dep.js', // 2
+      "static-dep.js", // 2
       -7,
       5,
       // doesn't list 13 because it's also statically imported by dynamic-dep.js
-      'dynamic-dep.js', // 5
+      "dynamic-dep.js", // 5
       2,
       12,
       -9,
       13,
       -7,
       16,
-      'transitive-dep.js', // 12
-      'has-a-symbol.js', // 13
+      "transitive-dep.js", // 12
+      "has-a-symbol.js", // 13
       -5,
       17,
-      'boring-dep.js', // 16
-      'large-file.js', // 17
-      'sym1', // 18
+      "boring-dep.js", // 16
+      "large-file.js", // 17
+      "sym1", // 18
       -7,
       5,
-      'sym2', // 21
+      "sym2", // 21
       -7,
       13,
-      'sym3', // 24
+      "sym3", // 24
       -5,
       17,
     ]);
   });
 
-  test('empty', () => {
+  test("empty", () => {
     expect(convertManifestToBundleGraph({} as any)).toEqual([]);
   });
 
-  test('simple file set', () => {
+  test("simple file set", () => {
     const manifest = {
       bundles: {
-        'a.js': { size, total, imports: ['b.js'], dynamicImports: ['c.js'] },
-        'b.js': { size, total, dynamicImports: ['c.js'] },
-        'c.js': { size, total, symbols: ['sym1'] },
+        "a.js": { size, total, imports: ["b.js"], dynamicImports: ["c.js"] },
+        "b.js": { size, total, dynamicImports: ["c.js"] },
+        "c.js": { size, total, symbols: ["sym1"] },
       } as Record<string, QwikBundle>,
       mapping: {},
     } as QwikManifest;
     expect(convertManifestToBundleGraph(manifest)).toEqual([
-      'a.js', // 0
+      "a.js", // 0
       4,
       -7,
       7,
-      'b.js', // 4
+      "b.js", // 4
       -7,
       7,
-      'c.js', // 7
+      "c.js", // 7
     ]);
   });
 
-  test('adder', () => {
+  test("adder", () => {
     expect(
       convertManifestToBundleGraph(
         fakeManifest,
@@ -111,44 +111,44 @@ describe('convertManifestToBundleGraph', () => {
           (manifest) => {
             return {
               // Remove dynamic imports from dynamic-dep.js
-              'dynamic-dep.js': { ...manifest.bundles['dynamic-dep.js'], dynamicImports: [] },
+              "dynamic-dep.js": { ...manifest.bundles["dynamic-dep.js"], dynamicImports: [] },
             };
           },
           (_manifest) => {
             return {
               // Add a route
-              'dashboard/': {
-                imports: ['static-dep.js'],
-                dynamicImports: ['transitive-dep.js'],
+              "dashboard/": {
+                imports: ["static-dep.js"],
+                dynamicImports: ["transitive-dep.js"],
               },
             };
           },
-        ])
-      )
+        ]),
+      ),
     ).toEqual([
-      'app.js', // 0
+      "app.js", // 0
       2,
-      'static-dep.js', // 2
+      "static-dep.js", // 2
       -7,
       5,
-      'dynamic-dep.js', // 5
+      "dynamic-dep.js", // 5
       2,
       8,
-      'transitive-dep.js', // 8
-      'has-a-symbol.js', // 9
+      "transitive-dep.js", // 8
+      "has-a-symbol.js", // 9
       -5,
       12,
-      'large-file.js', // 12
-      'sym1', // 13
+      "large-file.js", // 12
+      "sym1", // 13
       -7,
       5,
-      'sym2', // 16
+      "sym2", // 16
       -7,
       9,
-      'sym3', // 19
+      "sym3", // 19
       -5,
       12,
-      'dashboard/', // 22
+      "dashboard/", // 22
       2,
       -7,
       8,
@@ -161,9 +161,9 @@ describe('convertManifestToBundleGraph', () => {
       outputBundles.segments as any,
       [],
       outputBundles.bundles as any,
-      { rootDir: '/', outDir: '/' } as any,
+      { rootDir: "/", outDir: "/" } as any,
       console.error,
-      (p) => path.relative('build', p)
+      (p) => path.relative("build", p),
     );
 
     // Interactivity scores
@@ -172,8 +172,8 @@ describe('convertManifestToBundleGraph', () => {
         Object.entries(manifest.bundles).map(([k, v]) => [
           k,
           `${v.interactivity} (${v.size}/${v.total})`,
-        ])
-      )
+        ]),
+      ),
     ).toMatchInlineSnapshot(`
       {
         "@qwik-city-plan.js": "0 (4886/7301)",

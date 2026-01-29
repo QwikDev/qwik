@@ -1,14 +1,14 @@
-import { assertDefined, assertTrue } from '../error/assert';
-import { getDocument } from '../util/dom';
-import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
-import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, QContainerAttr, QInstance, getQFuncs } from '../util/markers';
+import { assertDefined, assertTrue } from "../error/assert";
+import { getDocument } from "../util/dom";
+import { isComment, isElement, isNode, isQwikElement, isText } from "../util/element";
+import { logDebug, logWarn } from "../util/log";
+import { ELEMENT_ID, QContainerAttr, QInstance, getQFuncs } from "../util/markers";
 
-import { emitEvent } from '../util/event';
+import { emitEvent } from "../util/event";
 
-import { isArray, isSerializableObject, isString } from '../util/types';
-import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { createParser, OBJECT_TRANSFORMS, type Parser, UNDEFINED_PREFIX } from './serializers';
+import { isArray, isSerializableObject, isString } from "../util/types";
+import { directGetAttribute, directSetAttribute } from "../render/fast-calls";
+import { createParser, OBJECT_TRANSFORMS, type Parser, UNDEFINED_PREFIX } from "./serializers";
 import {
   type ContainerState,
   _getContainerState,
@@ -17,19 +17,19 @@ import {
   SHOW_COMMENT,
   type SnapshotState,
   strToInt,
-} from './container';
-import { getVirtualElement } from '../render/dom/virtual-element';
-import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
-import { createProxy, setObjectFlags } from '../state/store';
-import { qDev, qSerialize } from '../util/qdev';
-import { pauseContainer } from './pause';
-import { isPrimitive } from '../render/dom/render-dom';
-import { getWrappingContainer } from '../use/use-core';
-import { getContext } from '../state/context';
+} from "./container";
+import { getVirtualElement } from "../render/dom/virtual-element";
+import { getSubscriptionManager, parseSubscription, type Subscriptions } from "../state/common";
+import { createProxy, setObjectFlags } from "../state/store";
+import { qDev, qSerialize } from "../util/qdev";
+import { pauseContainer } from "./pause";
+import { isPrimitive } from "../render/dom/render-dom";
+import { getWrappingContainer } from "../use/use-core";
+import { getContext } from "../state/context";
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
-  if (isResumed === 'paused') {
+  if (isResumed === "paused") {
     resumeContainer(containerEl);
     if (qSerialize) {
       appendQwikDevTools(containerEl);
@@ -41,21 +41,21 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
   const doc = getDocument(containerEl);
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
-  const script = getQwikJSON(parentJSON, 'type');
+  const script = getQwikJSON(parentJSON, "type");
   if (script) {
     const data = (script.firstChild! as any).data;
-    return JSON.parse(unescapeText(data) || '{}') as SnapshotState;
+    return JSON.parse(unescapeText(data) || "{}") as SnapshotState;
   }
 };
 
 /** @internal */
 export const _deserializeData = (data: string, element?: unknown) => {
   const obj = JSON.parse(data);
-  if (typeof obj !== 'object') {
+  if (typeof obj !== "object") {
     return null;
   }
   const { _objs, _entry } = obj;
-  if (typeof _objs === 'undefined' || typeof _entry === 'undefined') {
+  if (typeof _objs === "undefined" || typeof _entry === "undefined") {
     return null;
   }
   let doc = {} as Document;
@@ -85,16 +85,16 @@ export const _deserializeData = (data: string, element?: unknown) => {
 
 export const resumeContainer = (containerEl: Element) => {
   if (!isContainer(containerEl)) {
-    logWarn('Skipping resuming because parent element is not q:container');
+    logWarn("Skipping resuming because parent element is not q:container");
     return;
   }
 
   const pauseState =
-    (containerEl as any)['_qwikjson_'] ?? (getPauseState(containerEl) as SnapshotState);
+    (containerEl as any)["_qwikjson_"] ?? (getPauseState(containerEl) as SnapshotState);
 
-  (containerEl as any)['_qwikjson_'] = null;
+  (containerEl as any)["_qwikjson_"] = null;
   if (!pauseState) {
-    logWarn('Skipping resuming qwik/json metadata was not found.');
+    logWarn("Skipping resuming qwik/json metadata was not found.");
     return;
   }
 
@@ -103,9 +103,9 @@ export const resumeContainer = (containerEl: Element) => {
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
   if (qDev) {
-    const script = getQwikJSON(parentJSON, 'type');
+    const script = getQwikJSON(parentJSON, "type");
     if (!script) {
-      logWarn('Skipping resuming qwik/json metadata was not found.');
+      logWarn("Skipping resuming qwik/json metadata was not found.");
       return;
     }
   }
@@ -125,12 +125,12 @@ export const resumeContainer = (containerEl: Element) => {
   while ((node = elementWalker.nextNode() as Comment)) {
     const data = node.data;
     if (container === 0) {
-      if (data.startsWith('qv ')) {
+      if (data.startsWith("qv ")) {
         const id = getID(data); // TODO: remove
         if (id >= 0) {
           elements.set(id, node);
         }
-      } else if (data.startsWith('t=')) {
+      } else if (data.startsWith("t=")) {
         const id = data.slice(2);
         const index = strToInt(id);
         const textNode = getTextNode(node);
@@ -138,9 +138,9 @@ export const resumeContainer = (containerEl: Element) => {
         text.set(index, textNode.data);
       }
     }
-    if (data === 'cq') {
+    if (data === "cq") {
       container++;
-    } else if (data === '/cq') {
+    } else if (data === "/cq") {
       container--;
     }
   }
@@ -149,9 +149,9 @@ export const resumeContainer = (containerEl: Element) => {
   // If there are nested container, we are forced to take a slower path.
   // In order to check if there are nested containers, we use the `'qc📦'` class.
   // This is because checking for class is the fastest way for the browser to find it.
-  const slotPath = containerEl.getElementsByClassName('qc📦').length !== 0;
-  containerEl.querySelectorAll('[q\\:id]').forEach((el) => {
-    if (slotPath && el.closest('[q\\:container]') !== containerEl) {
+  const slotPath = containerEl.getElementsByClassName("qc📦").length !== 0;
+  containerEl.querySelectorAll("[q\\:id]").forEach((el) => {
+    if (slotPath && el.closest("[q\\:container]") !== containerEl) {
       return;
     }
     const id = directGetAttribute(el, ELEMENT_ID);
@@ -166,9 +166,9 @@ export const resumeContainer = (containerEl: Element) => {
 
   const getObject: GetObject = (id) => {
     assertTrue(
-      typeof id === 'string' && id.length > 0,
-      'resume: id must be an non-empty string, got:',
-      id
+      typeof id === "string" && id.length > 0,
+      "resume: id must be an non-empty string, got:",
+      id,
     );
     if (finalized.has(id)) {
       return finalized.get(id);
@@ -178,7 +178,7 @@ export const resumeContainer = (containerEl: Element) => {
 
   const computeObject: GetObject = (id) => {
     // Handle elements
-    if (id.startsWith('#')) {
+    if (id.startsWith("#")) {
       const elementId = id.slice(1);
       const index = strToInt(elementId);
       assertTrue(elements.has(index), `missing element for id:`, elementId);
@@ -200,13 +200,13 @@ export const resumeContainer = (containerEl: Element) => {
       }
       finalized.set(id, rawElement);
       return rawElement;
-    } else if (id.startsWith('@')) {
+    } else if (id.startsWith("@")) {
       const funcId = id.slice(1);
       const index = strToInt(funcId);
       const func = inlinedFunctions[index];
       assertDefined(func, `missing inlined function for id:`, funcId);
       return func;
-    } else if (id.startsWith('*')) {
+    } else if (id.startsWith("*")) {
       const elementId = id.slice(1);
       const index = strToInt(elementId);
       assertTrue(elements.has(index), `missing element for id:`, elementId);
@@ -217,7 +217,7 @@ export const resumeContainer = (containerEl: Element) => {
     }
     const index = strToInt(id);
     const objs = pauseState.objs;
-    assertTrue(objs.length > index, 'resume: index is out of bounds', id);
+    assertTrue(objs.length > index, "resume: index is out of bounds", id);
     let value = objs[index];
     if (isString(value)) {
       value = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
@@ -248,9 +248,9 @@ export const resumeContainer = (containerEl: Element) => {
     refs: pauseState.refs,
   };
 
-  directSetAttribute(containerEl, QContainerAttr, 'resumed');
-  logDebug('Container resumed');
-  emitEvent(containerEl, 'qresume', undefined, true);
+  directSetAttribute(containerEl, QContainerAttr, "resumed");
+  logDebug("Container resumed");
+  emitEvent(containerEl, "qresume", undefined, true);
 };
 
 const reviveSubscriptions = (
@@ -259,14 +259,14 @@ const reviveSubscriptions = (
   objsSubs: any[],
   getObject: GetObject,
   containerState: ContainerState,
-  parser: Parser
+  parser: Parser,
 ) => {
   const subs = objsSubs[i] as string[];
   if (subs) {
     const converted: Subscriptions[] = [];
     let flag = 0;
     for (const sub of subs) {
-      if (sub.startsWith('_')) {
+      if (sub.startsWith("_")) {
         flag = parseInt(sub.slice(1), 10);
       } else {
         const parsed = parseSubscription(sub, getObject);
@@ -294,7 +294,7 @@ const reviveNestedObjects = (obj: unknown, getObject: GetObject, parser: Parser)
     return;
   }
 
-  if (obj && typeof obj == 'object') {
+  if (obj && typeof obj == "object") {
     if (isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
         obj[i] = getObject(obj[i] as string);
@@ -308,16 +308,16 @@ const reviveNestedObjects = (obj: unknown, getObject: GetObject, parser: Parser)
 };
 
 const unescapeText = (str: string) => {
-  return str.replace(/\\x3C(\/?script)/gi, '<$1');
+  return str.replace(/\\x3C(\/?script)/gi, "<$1");
 };
 
 export const getQwikJSON = (
   parentElm: Element,
-  attribute: string
+  attribute: string,
 ): HTMLScriptElement | undefined => {
   let child = parentElm.lastElementChild;
   while (child) {
-    if (child.tagName === 'SCRIPT' && directGetAttribute(child, attribute) === 'qwik/json') {
+    if (child.tagName === "SCRIPT" && directGetAttribute(child, attribute) === "qwik/json") {
       return child as HTMLScriptElement;
     }
     child = child.previousElementSibling;
@@ -330,21 +330,21 @@ const getTextNode = (mark: Comment) => {
   if (isText(nextNode)) {
     return nextNode;
   } else {
-    const textNode = mark.ownerDocument.createTextNode('');
+    const textNode = mark.ownerDocument.createTextNode("");
     mark.parentElement!.insertBefore(textNode, mark);
     return textNode;
   }
 };
 
 export const appendQwikDevTools = (containerEl: Element) => {
-  (containerEl as any)['qwik'] = {
+  (containerEl as any)["qwik"] = {
     pause: () => pauseContainer(containerEl),
     state: _getContainerState(containerEl),
   };
 };
 
 export const getID = (stuff: string) => {
-  const index = stuff.indexOf('q:id=');
+  const index = stuff.indexOf("q:id=");
   if (index > 0) {
     return strToInt(stuff.slice(index + 5));
   }

@@ -1,2 +1,2 @@
-export { jsx, jsxs, jsxDEV, Fragment } from './core';
-export type { JSX, JSXNode, FunctionComponent } from './core';
+export { jsx, jsxs, jsxDEV, Fragment } from "./core";
+export type { JSX, JSXNode, FunctionComponent } from "./core";

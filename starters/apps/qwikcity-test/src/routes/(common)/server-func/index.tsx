@@ -69,10 +69,7 @@ export default component$(() => {
   });
   return (
     <>
-      <Resource
-        value={resource}
-        onResolved={(value) => <div class="server-host">{value}</div>}
-      />
+      <Resource value={resource} onResolved={(value) => <div class="server-host">{value}</div>} />
       <div class="server-host">{userAgent.value}</div>
       <div class="server-host">{userAgent.value}</div>
       <div class="server-host">{loader.value}</div>

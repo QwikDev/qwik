@@ -1,6 +1,6 @@
-import type { ContainerState } from '../container/container';
-import type { QContext } from '../state/context';
-import type { QwikElement } from './dom/virtual-element';
+import type { ContainerState } from "../container/container";
+import type { QContext } from "../state/context";
+import type { QwikElement } from "./dom/virtual-element";
 
 /** @public */
 export interface RenderOperation {

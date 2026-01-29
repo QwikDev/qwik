@@ -33,9 +33,7 @@ export default component$(() => {
       </MUIButton>
 
       <button onClick$={() => (show.value = true)}>Show table</button>
-      {show.value && (
-        <TableApp client:visible>Slider is {count.value}</TableApp>
-      )}
+      {show.value && <TableApp client:visible>Slider is {count.value}</TableApp>}
     </>
   );
 });

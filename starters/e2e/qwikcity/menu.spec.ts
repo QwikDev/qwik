@@ -35,10 +35,7 @@ function tests() {
     }
 
     /***********  Docs: overview  ***********/
-    await linkNavigate(
-      ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/overview/"]',
-    );
+    await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/overview/"]');
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/overview/",
       title: "Docs: Overview - Qwik",
@@ -57,10 +54,7 @@ function tests() {
     expect(await breadcrumb1.innerText()).toBe("Overview");
 
     /***********  Docs: getting-started  ***********/
-    await linkNavigate(
-      ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/getting-started/"]',
-    );
+    await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/getting-started/"]');
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/getting-started/",
       title: "Docs: @builder.io/qwik Getting Started - Qwik",
@@ -79,10 +73,7 @@ function tests() {
     expect(await breadcrumb1.innerText()).toBe("Getting Started");
 
     /***********  Docs: core/basics  ***********/
-    await linkNavigate(
-      ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/core/basics/"]',
-    );
+    await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/core/basics/"]');
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/core/basics/",
       title: "Docs: core basics - Qwik",
@@ -101,10 +92,7 @@ function tests() {
     expect(await breadcrumb1.innerText()).toBe("Basics");
 
     /***********  Docs: core/listeners  ***********/
-    await linkNavigate(
-      ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/core/listeners/"]',
-    );
+    await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/core/listeners/"]');
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/core/listeners/",
       title: "Docs: core listeners - Qwik",

@@ -37,9 +37,7 @@ test.describe("actions", () => {
     });
 
     test.describe("scroll-restoration", () => {
-      test("should not refresh again on popstate after manual refresh", async ({
-        page,
-      }) => {
+      test("should not refresh again on popstate after manual refresh", async ({ page }) => {
         await page.goto("/qwikcity-test/scroll-restoration/page-long/");
         const link = page.locator("#to-page-short");
         await link.click();
@@ -60,9 +58,7 @@ test.describe("actions", () => {
         const link = page.locator("#hash-1");
         await link.click();
 
-        await expect(page).toHaveURL(
-          "/qwikcity-test/scroll-restoration/hash/#hash-2",
-        );
+        await expect(page).toHaveURL("/qwikcity-test/scroll-restoration/hash/#hash-2");
         let scrollY1;
         do {
           await page.waitForTimeout(10);
@@ -75,9 +71,7 @@ test.describe("actions", () => {
         await scrollTo(page, 0, 1000);
         await link2.click();
 
-        await expect(page).toHaveURL(
-          "/qwikcity-test/scroll-restoration/hash/#hash-1",
-        );
+        await expect(page).toHaveURL("/qwikcity-test/scroll-restoration/hash/#hash-1");
         await page.waitForTimeout(50);
         let scrollY2;
         do {
@@ -100,9 +94,7 @@ test.describe("actions", () => {
         } while (scrollY3 > 1000);
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
       });
-      test("should restore scroll on back and forward navigations", async ({
-        page,
-      }) => {
+      test("should restore scroll on back and forward navigations", async ({ page }) => {
         await page.goto("/qwikcity-test/scroll-restoration/page-long/");
         const link = page.locator("#to-page-short");
         const scrollHeightLong = await getScrollHeight(page);
@@ -130,10 +122,7 @@ test.describe("actions", () => {
         await scrollDetector2;
         await expect(page.locator("h1")).toHaveText("Page Long");
         expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-long/");
-        expect(await getWindowScrollXY(page)).toStrictEqual([
-          0,
-          scrollHeightLong,
-        ]);
+        expect(await getWindowScrollXY(page)).toStrictEqual([0, scrollHeightLong]);
 
         const scrollDetector3 = scrollDetector(page);
         await page.goForward();
@@ -141,10 +130,7 @@ test.describe("actions", () => {
         await scrollDetector3;
         await expect(page.locator("h1")).toHaveText("Page Short");
         expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-short/");
-        expect(await getWindowScrollXY(page)).toStrictEqual([
-          0,
-          scrollHeightShort,
-        ]);
+        expect(await getWindowScrollXY(page)).toStrictEqual([0, scrollHeightShort]);
       });
 
       test("issue4502 (link)", async ({ page }) => {
@@ -155,16 +141,12 @@ test.describe("actions", () => {
         await expect(count).toHaveText("Count: 1");
         await page.locator("#link").click();
         await page.waitForURL("/qwikcity-test/issue4502/broken/route/");
-        await expect(page.locator("#route")).toHaveText(
-          "welcome to /broken/route",
-        );
+        await expect(page.locator("#route")).toHaveText("welcome to /broken/route");
         await expect(count).toHaveText("Count: 1");
       });
     });
 
-    test("issue 6660 internal params should not trigger navigation", async ({
-      page,
-    }) => {
+    test("issue 6660 internal params should not trigger navigation", async ({ page }) => {
       await page.goto("/qwikcity-test/issue6660/");
       await expect(page.locator("#status")).toBeHidden();
 
@@ -227,19 +209,13 @@ test.describe("actions", () => {
       await expect(count).toHaveText("1");
       await link.click();
       await expect(count).toHaveText("2");
-      expect(new URL(page.url()).pathname).toBe(
-        "/qwikcity-test/prevent-navigate/",
-      );
+      expect(new URL(page.url()).pathname).toBe("/qwikcity-test/prevent-navigate/");
       await expect(confirmText).toContainText("/qwikcity-test/?");
       await itemLink.click();
-      await expect(confirmText).toContainText(
-        "/qwikcity-test/prevent-navigate/5/?",
-      );
+      await expect(confirmText).toContainText("/qwikcity-test/prevent-navigate/5/?");
       await confirmYes.click();
       await expect(page.locator("#pn-main")).toBeVisible();
-      expect(new URL(page.url()).pathname).toBe(
-        "/qwikcity-test/prevent-navigate/5/",
-      );
+      expect(new URL(page.url()).pathname).toBe("/qwikcity-test/prevent-navigate/5/");
 
       // dirty browser nav w/ prevent
       await toggleDirty.click();
@@ -263,12 +239,8 @@ test.describe("actions", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Profile");
-        await expect(page.locator("#issue2829-context")).toHaveText(
-          "context: __CONTEXT_VALUE__",
-        );
-        await expect(new URL(page.url()).pathname).toBe(
-          "/qwikcity-test/issue2829/b/",
-        );
+        await expect(page.locator("#issue2829-context")).toHaveText("context: __CONTEXT_VALUE__");
+        await expect(new URL(page.url()).pathname).toBe("/qwikcity-test/issue2829/b/");
       });
     });
     test.describe("issue2890", () => {
@@ -279,13 +251,9 @@ test.describe("actions", () => {
 
         await expect(page.locator("h1")).toHaveText("Query");
         await expect(toPath(page.url())).toEqual("/qwikcity-test/issue2890/b/");
-        await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"NONE","hash":"NONE"}',
-        );
+        await expect(page.locator("#loader")).toHaveText('LOADER: {"query":"NONE","hash":"NONE"}');
         if (javaScriptEnabled) {
-          await expect(page.locator("#browser")).toHaveText(
-            'BROWSER: {"query":"NONE","hash":""}',
-          );
+          await expect(page.locator("#browser")).toHaveText('BROWSER: {"query":"NONE","hash":""}');
         } else {
           await expect(page.locator("#browser")).toHaveText("BROWSER: {}");
         }
@@ -297,16 +265,10 @@ test.describe("actions", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/issue2890/b/?query=123",
-        );
-        await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"123","hash":"NONE"}',
-        );
+        await expect(toPath(page.url())).toEqual("/qwikcity-test/issue2890/b/?query=123");
+        await expect(page.locator("#loader")).toHaveText('LOADER: {"query":"123","hash":"NONE"}');
         if (javaScriptEnabled) {
-          await expect(page.locator("#browser")).toHaveText(
-            'BROWSER: {"query":"123","hash":""}',
-          );
+          await expect(page.locator("#browser")).toHaveText('BROWSER: {"query":"123","hash":""}');
         } else {
           await expect(page.locator("#browser")).toHaveText("BROWSER: {}");
         }
@@ -317,16 +279,10 @@ test.describe("actions", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/issue2890/b/?query=321",
-        );
-        await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"321","hash":"NONE"}',
-        );
+        await expect(toPath(page.url())).toEqual("/qwikcity-test/issue2890/b/?query=321");
+        await expect(page.locator("#loader")).toHaveText('LOADER: {"query":"321","hash":"NONE"}');
         if (javaScriptEnabled) {
-          await expect(page.locator("#browser")).toHaveText(
-            'BROWSER: {"query":"321","hash":""}',
-          );
+          await expect(page.locator("#browser")).toHaveText('BROWSER: {"query":"321","hash":""}');
         } else {
           await expect(page.locator("#browser")).toHaveText("BROWSER: {}");
         }
@@ -340,9 +296,7 @@ test.describe("actions", () => {
         await expect(toPath(page.url())).toEqual(
           "/qwikcity-test/issue2890/b/?query=321&hash=true#h2",
         );
-        await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"321","hash":"true"}',
-        );
+        await expect(page.locator("#loader")).toHaveText('LOADER: {"query":"321","hash":"true"}');
         if (javaScriptEnabled) {
           await expect(page.locator("#browser")).toHaveText(
             'BROWSER: {"query":"321","hash":"#h2"}',
@@ -360,9 +314,7 @@ test.describe("actions", () => {
         await expect(toPath(page.url())).toEqual(
           "/qwikcity-test/issue2890/b/?query=321&hash=true#h2",
         );
-        await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"321","hash":"true"}',
-        );
+        await expect(page.locator("#loader")).toHaveText('LOADER: {"query":"321","hash":"true"}');
         if (javaScriptEnabled) {
           await expect(page.locator("#browser")).toHaveText(
             'BROWSER: {"query":"321","hash":"#h2"}',
@@ -374,15 +326,8 @@ test.describe("actions", () => {
     });
 
     test.describe("issue 2751", () => {
-      test("should navigate without crash", async ({
-        context,
-        javaScriptEnabled,
-      }) => {
-        const ctx = await load(
-          context,
-          javaScriptEnabled,
-          "/qwikcity-test/actions/",
-        );
+      test("should navigate without crash", async ({ context, javaScriptEnabled }) => {
+        const ctx = await load(context, javaScriptEnabled, "/qwikcity-test/actions/");
 
         await linkNavigate(ctx, '[data-test-link="docs-home"]');
         await assertPage(ctx, {
@@ -414,9 +359,7 @@ test.describe("actions", () => {
       await page.goto("/qwikcity-test/issue4502/");
       await page.locator("#anchor").click();
       await page.waitForURL("/qwikcity-test/issue4502/broken/route/");
-      await expect(page.locator("#route")).toHaveText(
-        "welcome to /broken/route",
-      );
+      await expect(page.locator("#route")).toHaveText("welcome to /broken/route");
     });
 
     test("issue4956", async ({ page }) => {
@@ -460,55 +403,31 @@ test.describe("actions", () => {
       await page.goto("/qwikcity-test/issue7732/a/");
       const link = page.locator("#issue7732-link-b");
       await link.click();
-      await expect(page).toHaveURL(
-        "/qwikcity-test/issue7732/c/?redirected=true",
-      );
+      await expect(page).toHaveURL("/qwikcity-test/issue7732/c/?redirected=true");
     });
     test("action with redirect without query params in a route with query param should redirect to route without query params", async ({
       page,
     }) => {
-      await page.goto(
-        "/qwikcity-test/action-redirect-without-search-params/?test=test",
-      );
+      await page.goto("/qwikcity-test/action-redirect-without-search-params/?test=test");
       const button = page.locator("button");
       await button.click();
-      await page.waitForURL(
-        "/qwikcity-test/action-redirect-without-search-params-target/",
-      );
+      await page.waitForURL("/qwikcity-test/action-redirect-without-search-params-target/");
       const searchParams = new URL(page.url()).searchParams;
       expect(searchParams.size).toBe(0);
     });
     test("media in home page", async ({ page }) => {
       await page.goto("/qwikcity-test/");
 
-      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
-        "naturalWidth",
-        520,
-      );
-      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
-        "naturalHeight",
-        520,
-      );
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty("naturalWidth", 520);
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty("naturalHeight", 520);
 
-      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
-        "loading",
-        "eager",
-      );
-      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
-        "decoding",
-        "auto",
-      );
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty("loading", "eager");
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty("decoding", "auto");
 
       await expect(page.locator("#image-avif")).toHaveJSProperty("width", 100);
       await expect(page.locator("#image-avif")).toHaveJSProperty("height", 100);
-      await expect(page.locator("#image-avif")).toHaveJSProperty(
-        "naturalWidth",
-        520,
-      );
-      await expect(page.locator("#image-avif")).toHaveJSProperty(
-        "naturalHeight",
-        520,
-      );
+      await expect(page.locator("#image-avif")).toHaveJSProperty("naturalWidth", 520);
+      await expect(page.locator("#image-avif")).toHaveJSProperty("naturalHeight", 520);
     });
 
     test("redirects, re-runs loaders and changes the url within the same page when search params changed", async ({
@@ -516,9 +435,7 @@ test.describe("actions", () => {
     }) => {
       await page.goto("/qwikcity-test/search-params-redirect/");
       await page.getByText("Submit").click();
-      await page.waitForURL(
-        "**/qwikcity-test/search-params-redirect/?redirected=true",
-      );
+      await page.waitForURL("**/qwikcity-test/search-params-redirect/?redirected=true");
 
       const url = new URL(page.url());
 
@@ -529,18 +446,13 @@ test.describe("actions", () => {
       await expect(page.locator("#redirected-result")).toHaveText("true");
     });
 
-    test("server plugin q-data redirect from /redirectme to /", async ({
-      baseURL,
-    }) => {
-      const res = await fetch(
-        new URL("/qwikcity-test/redirectme/q-data.json", baseURL),
-        {
-          redirect: "manual",
-          headers: {
-            Accept: "application/json",
-          },
+    test("server plugin q-data redirect from /redirectme to /", async ({ baseURL }) => {
+      const res = await fetch(new URL("/qwikcity-test/redirectme/q-data.json", baseURL), {
+        redirect: "manual",
+        headers: {
+          Accept: "application/json",
         },
-      );
+      });
       expect(res.status).toBe(301);
       expect(res.headers.get("Location")).toBe("/qwikcity-test/q-data.json");
     });

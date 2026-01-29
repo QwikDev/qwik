@@ -1,9 +1,7 @@
 import { routeAction$, routeLoader$, Form } from "@builder.io/qwik-city";
 import { component$ } from "@builder.io/qwik";
 
-export const useLoader = routeLoader$(
-  ({ query }) => `${query.has("redirected")}`,
-);
+export const useLoader = routeLoader$(({ query }) => `${query.has("redirected")}`);
 
 export const useAction = routeAction$((_, { redirect, url }) => {
   const dest = new URL(url.pathname, url);

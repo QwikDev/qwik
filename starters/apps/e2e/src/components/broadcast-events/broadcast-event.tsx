@@ -1,11 +1,4 @@
-import {
-  component$,
-  useOnDocument,
-  useStore,
-  $,
-  useOnWindow,
-  useOn,
-} from "@builder.io/qwik";
+import { component$, useOnDocument, useStore, $, useOnWindow, useOn } from "@builder.io/qwik";
 
 export function useDocumentMouse() {
   const mousePosition = useStore({ x: 0, y: 0, inside: "false" });
@@ -97,11 +90,7 @@ export const BroadcastEvents = component$(() => {
         <li>1</li>
         <li>1</li>
       </ul>
-      <button
-        id="btn-toggle-render"
-        type="button"
-        onClick$={() => state.count++}
-      >
+      <button id="btn-toggle-render" type="button" onClick$={() => state.count++}>
         Rerender
       </button>
       <MouseEvents key={state.count} />

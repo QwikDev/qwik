@@ -33,10 +33,7 @@ test.describe("loaders", () => {
       await expect(slow).toHaveText("slow: 123");
       await expect(nestedDate).toHaveText("date: 2021-01-01T00:00:00.000Z");
       await expect(nestedDep).toHaveText("dep: 84");
-      await expect(metaDate).toHaveAttribute(
-        "content",
-        "2021-01-01T00:00:00.000Z",
-      );
+      await expect(metaDate).toHaveAttribute("content", "2021-01-01T00:00:00.000Z");
       await expect(metaDep).toHaveAttribute("content", "42");
 
       await expect(nestedName).toHaveText("name: hola");
@@ -129,12 +126,8 @@ test.describe("loaders", () => {
       const body = page.locator("body");
       await expect(body).toContainText("loader-error-caught");
     });
-    test("should return html with uncaught ServerErrors thrown in loaders", async ({
-      page,
-    }) => {
-      const response = await page.goto(
-        "/qwikcity-test/loaders/loader-error/uncaught-server",
-      );
+    test("should return html with uncaught ServerErrors thrown in loaders", async ({ page }) => {
+      const response = await page.goto("/qwikcity-test/loaders/loader-error/uncaught-server");
       const contentType = await response?.headerValue("Content-Type");
       const status = response?.status();
 

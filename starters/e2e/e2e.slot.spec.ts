@@ -180,9 +180,7 @@ test.describe("slot", () => {
       });
     });
 
-    test("should project cmp correctly into their selected slot", async ({
-      page,
-    }) => {
+    test("should project cmp correctly into their selected slot", async ({ page }) => {
       const toggleBtn = page.locator("#toggle-child-slot");
       const slotChild = page.locator("#slot-child");
       const slotP = page.locator("#slot-p");
@@ -288,30 +286,21 @@ test.describe("slot", () => {
       const toggle = page.locator("#issue-4215-toggle");
       async function getNamespaceURI() {
         return (
-          await (
-            await svg.locator("path").elementHandle()
-          )?.getProperty("namespaceURI")
+          await (await svg.locator("path").elementHandle())?.getProperty("namespaceURI")
         )?.jsonValue();
       }
 
-      await expect(getNamespaceURI()).resolves.toBe(
-        "http://www.w3.org/2000/svg",
-      );
+      await expect(getNamespaceURI()).resolves.toBe("http://www.w3.org/2000/svg");
       await toggle.click();
       await toggle.click();
-      await expect(getNamespaceURI()).resolves.toBe(
-        "http://www.w3.org/2000/svg",
-      );
+      await expect(getNamespaceURI()).resolves.toBe("http://www.w3.org/2000/svg");
     });
 
     test("issue 4283", async ({ page }) => {
       const result = page.locator("#issue-4283-result");
-      await expect(result).toHaveText(
-        `Hide until visible\n\nContent\n\nindex page`,
-        {
-          useInnerText: true,
-        },
-      );
+      await expect(result).toHaveText(`Hide until visible\n\nContent\n\nindex page`, {
+        useInnerText: true,
+      });
     });
 
     test("issue 4658", async ({ page }) => {

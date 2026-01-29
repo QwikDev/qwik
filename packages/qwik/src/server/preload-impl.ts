@@ -1,24 +1,24 @@
-import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
-import type { ResolvedManifest } from '../optimizer/src/types';
-import { expandBundles } from './preload-strategy';
-import type { PreloaderOptions, RenderToStreamOptions, SnapshotResult } from './types';
-import { initPreloader } from '../core/preloader/bundle-graph';
-import { getPreloadPaths } from './preload-strategy';
+import { Fragment, jsx, type JSXNode } from "@builder.io/qwik";
+import type { ResolvedManifest } from "../optimizer/src/types";
+import { expandBundles } from "./preload-strategy";
+import type { PreloaderOptions, RenderToStreamOptions, SnapshotResult } from "./types";
+import { initPreloader } from "../core/preloader/bundle-graph";
+import { getPreloadPaths } from "./preload-strategy";
 
 const simplifyPath = (base: string, path: string | null | undefined) => {
   if (path == null) {
     return null;
   }
-  const segments = `${base}${path}`.split('/');
+  const segments = `${base}${path}`.split("/");
   const simplified = [];
   for (const segment of segments) {
-    if (segment === '..' && simplified.length > 0) {
+    if (segment === ".." && simplified.length > 0) {
       simplified.pop();
     } else {
       simplified.push(segment);
     }
   }
-  return simplified.join('/');
+  return simplified.join("/");
 };
 
 export const preloaderPre = (
@@ -26,15 +26,15 @@ export const preloaderPre = (
   resolvedManifest: ResolvedManifest | undefined,
   options: PreloaderOptions | false | undefined,
   beforeContent: JSXNode<string>[],
-  nonce?: string
+  nonce?: string,
 ) => {
   const preloaderPath = simplifyPath(base, resolvedManifest?.manifest?.preloader);
   const bundleGraphPath =
-    (import.meta.env.BASE_URL || '/') + resolvedManifest?.manifest.bundleGraphAsset;
+    (import.meta.env.BASE_URL || "/") + resolvedManifest?.manifest.bundleGraphAsset;
   if (preloaderPath && bundleGraphPath && options !== false) {
     // Initialize the SSR preloader
     const preloaderOpts: Parameters<typeof initPreloader>[1] =
-      typeof options === 'object'
+      typeof options === "object"
         ? {
             debug: options.debug,
             preloadProbability: options.ssrPreloadProbability,
@@ -45,7 +45,7 @@ export const preloaderPre = (
     // Add the preloader script to the head
     const opts: string[] = [];
     if (options?.debug) {
-      opts.push('d:1');
+      opts.push("d:1");
     }
     if (options?.maxIdlePreloads) {
       opts.push(`P:${options.maxIdlePreloads}`);
@@ -53,7 +53,7 @@ export const preloaderPre = (
     if (options?.preloadProbability) {
       opts.push(`Q:${options.preloadProbability}`);
     }
-    const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
+    const optsStr = opts.length ? `,{${opts.join(",")}}` : "";
 
     const script =
       `let b=fetch("${bundleGraphPath}");` +
@@ -66,26 +66,26 @@ export const preloaderPre = (
        * We add modulepreloads even when the script is at the top because they already fire during
        * html download
        */
-      jsx('link', { rel: 'modulepreload', href: preloaderPath, nonce, crossorigin: 'anonymous' }),
-      jsx('link', {
-        rel: 'preload',
+      jsx("link", { rel: "modulepreload", href: preloaderPath, nonce, crossorigin: "anonymous" }),
+      jsx("link", {
+        rel: "preload",
         href: bundleGraphPath,
-        as: 'fetch',
-        crossorigin: 'anonymous',
+        as: "fetch",
+        crossorigin: "anonymous",
         nonce,
       }),
-      jsx('script', {
-        type: 'module',
+      jsx("script", {
+        type: "module",
         async: true,
         dangerouslySetInnerHTML: script,
         nonce,
-      })
+      }),
     );
   }
 
   const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
   if (corePath) {
-    beforeContent.push(jsx('link', { rel: 'modulepreload', href: corePath, nonce }));
+    beforeContent.push(jsx("link", { rel: "modulepreload", href: corePath, nonce }));
   }
 };
 
@@ -94,13 +94,13 @@ export const includePreloader = (
   resolvedManifest: ResolvedManifest | undefined,
   options: PreloaderOptions | boolean | undefined,
   referencedBundles: string[],
-  nonce?: string
+  nonce?: string,
 ): JSXNode | null => {
   if (referencedBundles.length === 0 || options === false) {
     return null;
   }
   const { ssrPreloads, ssrPreloadProbability } = normalizePreLoaderOptions(
-    typeof options === 'boolean' ? undefined : options
+    typeof options === "boolean" ? undefined : options,
   );
   let allowed = ssrPreloads;
 
@@ -110,7 +110,7 @@ export const includePreloader = (
     // Vite dev server active
     // in dev, all bundles are absolute paths from the base url, not /build
     base = import.meta.env.BASE_URL;
-    if (base.endsWith('/')) {
+    if (base.endsWith("/")) {
       base = base.slice(0, -1);
     }
   }
@@ -126,7 +126,7 @@ export const includePreloader = (
     let probability = 4;
     const tenXMinProbability = ssrPreloadProbability * 10;
     for (const hrefOrProbability of expandedBundles) {
-      if (typeof hrefOrProbability === 'string') {
+      if (typeof hrefOrProbability === "string") {
         if (probability < tenXMinProbability) {
           break;
         }
@@ -157,7 +157,7 @@ export const includePreloader = (
       `e.href=${JSON.stringify(base)}+l;` +
       `document.head.appendChild(e)` +
       `});`
-    : '';
+    : "";
   // We are super careful not to interfere with the page loading.
   let script = insertLinks;
   if (preloaderPath) {
@@ -182,9 +182,9 @@ export const includePreloader = (
    */
   if (script) {
     nodes.push(
-      jsx('script', {
-        type: 'module',
-        'q:type': 'preload',
+      jsx("script", {
+        type: "module",
+        "q:type": "preload",
         /**
          * This async allows the preloader to be executed before the DOM is fully parsed even though
          * it's at the bottom of the body
@@ -192,7 +192,7 @@ export const includePreloader = (
         async: true,
         dangerouslySetInnerHTML: script,
         nonce,
-      })
+      }),
     );
   }
 
@@ -208,7 +208,7 @@ export const preloaderPost = (
   snapshotResult: SnapshotResult,
   opts: RenderToStreamOptions,
   resolvedManifest: ResolvedManifest | undefined,
-  output: (JSXNode | null)[]
+  output: (JSXNode | null)[],
 ) => {
   if (opts.preloader !== false) {
     // skip prefetch implementation if prefetchStrategy === null
@@ -220,7 +220,7 @@ export const preloaderPost = (
         resolvedManifest,
         opts.preloader,
         preloadBundles,
-        opts.serverData?.nonce
+        opts.serverData?.nonce,
       );
       if (result) {
         output.push(result);
@@ -230,7 +230,7 @@ export const preloaderPost = (
 };
 
 function normalizePreLoaderOptions(
-  input: PreloaderOptions | undefined
+  input: PreloaderOptions | undefined,
 ): Required<PreloaderOptions> {
   return { ...PreLoaderOptionsDefault, ...input };
 }

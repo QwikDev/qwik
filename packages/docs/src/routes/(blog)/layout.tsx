@@ -1,9 +1,9 @@
-import { $, component$, Slot, useStyles$ } from '@builder.io/qwik';
-import { Header } from '../../components/header/header';
-import { Footer } from '../../components/footer/footer';
-import { type RequestHandler } from '@builder.io/qwik-city';
-import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
-import docsStyles from '../docs/docs.css?inline';
+import { $, component$, Slot, useStyles$ } from "@builder.io/qwik";
+import { Header } from "../../components/header/header";
+import { Footer } from "../../components/footer/footer";
+import { type RequestHandler } from "@builder.io/qwik-city";
+import { useImageProvider, type ImageTransformerProps } from "qwik-image";
+import docsStyles from "../docs/docs.css?inline";
 
 export const onRequest: RequestHandler = async (request) => {
   request.cacheControl(600);

@@ -41,10 +41,7 @@ test.describe("actions", () => {
         await page.goto("/qwikcity-test/actions/");
       });
 
-      test("should run actions programmatically", async ({
-        page,
-        javaScriptEnabled,
-      }) => {
+      test("should run actions programmatically", async ({ page, javaScriptEnabled }) => {
         if (javaScriptEnabled) {
           const success = page.locator("#other-success");
           const btn = page.locator("#other-button");
@@ -52,9 +49,7 @@ test.describe("actions", () => {
           await expect(success).toBeHidden();
           await btn.click();
           await expect(success).toHaveText("Success");
-          await expect(page.locator("#other-store")).toHaveText(
-            'false:::{"success":true}',
-          );
+          await expect(page.locator("#other-store")).toHaveText('false:::{"success":true}');
         }
       });
 
@@ -71,9 +66,7 @@ test.describe("actions", () => {
 
         await expect(other).toHaveText("false:::");
         await submit.click();
-        await expect(usernameError).toHaveText(
-          "String must contain at least 3 character(s)",
-        );
+        await expect(usernameError).toHaveText("String must contain at least 3 character(s)");
         await expect(codeError).toBeHidden();
         await expect(other).toHaveText("false:::");
 
@@ -89,9 +82,7 @@ test.describe("actions", () => {
         await username.clear();
         await username.fill("Ma");
         await submit.click();
-        await expect(usernameError).toHaveText(
-          "String must contain at least 3 character(s)",
-        );
+        await expect(usernameError).toHaveText("String must contain at least 3 character(s)");
         await expect(codeError).toHaveText("Expected number, received nan");
         await expect(username).toHaveValue("Ma");
         await expect(code).toHaveValue("text");
@@ -154,10 +145,7 @@ test.describe("actions", () => {
         await page.locator("#issue2644-submit").click();
         expect(page).toHaveURL(new RegExp("/qwikcity-test/issue2644/other/"));
 
-        await expect(page.locator("#issue2644-list > li")).toHaveText([
-          "AAA",
-          "BBB",
-        ]);
+        await expect(page.locator("#issue2644-list > li")).toHaveText(["AAA", "BBB"]);
       });
     });
 
@@ -176,9 +164,7 @@ test.describe("actions", () => {
     });
 
     test.describe("issue3183", () => {
-      test("should parse dot notation index array formdata", async ({
-        page,
-      }) => {
+      test("should parse dot notation index array formdata", async ({ page }) => {
         await page.goto("/qwikcity-test/actions/issue3183/");
         const success = page.locator("#issue3183-success");
 

@@ -1,16 +1,16 @@
-import { component$, sync$, useSignal, $ } from '@builder.io/qwik';
+import { component$, sync$, useSignal, $ } from "@builder.io/qwik";
 
 export default component$(() => {
   const items1 = useSignal([
-    { id: 1, content: '📱 Phone' },
-    { id: 2, content: '💻 Laptop' },
-    { id: 3, content: '🎧 Headphones' },
+    { id: 1, content: "📱 Phone" },
+    { id: 2, content: "💻 Laptop" },
+    { id: 3, content: "🎧 Headphones" },
   ]);
 
   const items2 = useSignal([
-    { id: 4, content: '⌚️ Watch' },
-    { id: 5, content: '🖱 Mouse' },
-    { id: 6, content: '⌨️ Keyboard' },
+    { id: 4, content: "⌚️ Watch" },
+    { id: 5, content: "🖱 Mouse" },
+    { id: 6, content: "⌨️ Keyboard" },
   ]);
 
   return (
@@ -20,16 +20,16 @@ export default component$(() => {
         preventdefault:dragover
         preventdefault:drop
         onDragOver$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
-          currentTarget.setAttribute('data-over', 'true');
+          currentTarget.setAttribute("data-over", "true");
         })}
         onDragLeave$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
-          currentTarget.removeAttribute('data-over');
+          currentTarget.removeAttribute("data-over");
         })}
         onDrop$={[
           sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
-            const id = e.dataTransfer?.getData('text');
+            const id = e.dataTransfer?.getData("text");
             currentTarget.dataset.droppedId = id;
-            currentTarget.removeAttribute('data-over');
+            currentTarget.removeAttribute("data-over");
           }),
           $((_, currentTarget) => {
             const id = currentTarget.dataset.droppedId;
@@ -51,14 +51,12 @@ export default component$(() => {
             data-id={item.id}
             class="min-h-[62px] mb-3 cursor-move select-none rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-md active:scale-95"
             draggable
-            onDragStart$={sync$(
-              (e: DragEvent, currentTarget: HTMLDivElement) => {
-                const itemId = currentTarget.getAttribute('data-id');
-                if (e.dataTransfer && itemId) {
-                  e.dataTransfer?.setData('text/plain', itemId);
-                }
+            onDragStart$={sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
+              const itemId = currentTarget.getAttribute("data-id");
+              if (e.dataTransfer && itemId) {
+                e.dataTransfer?.setData("text/plain", itemId);
               }
-            )}
+            })}
           >
             <span class="text-lg text-gray-700">{item.content}</span>
           </div>
@@ -70,16 +68,16 @@ export default component$(() => {
         preventdefault:dragover
         preventdefault:drop
         onDragOver$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
-          currentTarget.setAttribute('data-over', 'true');
+          currentTarget.setAttribute("data-over", "true");
         })}
         onDragLeave$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
-          currentTarget.removeAttribute('data-over');
+          currentTarget.removeAttribute("data-over");
         })}
         onDrop$={[
           sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
-            const id = e.dataTransfer?.getData('text');
+            const id = e.dataTransfer?.getData("text");
             currentTarget.dataset.droppedId = id;
-            currentTarget.removeAttribute('data-over');
+            currentTarget.removeAttribute("data-over");
           }),
           $((_, currentTarget) => {
             const id = currentTarget.dataset.droppedId;
@@ -101,14 +99,12 @@ export default component$(() => {
             data-id={item.id}
             class="min-h-[62px] mb-3 cursor-move select-none rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-md active:scale-95"
             draggable
-            onDragStart$={sync$(
-              (e: DragEvent, currentTarget: HTMLDivElement) => {
-                const itemId = currentTarget.getAttribute('data-id');
-                if (e.dataTransfer && itemId) {
-                  e.dataTransfer?.setData('text/plain', itemId);
-                }
+            onDragStart$={sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
+              const itemId = currentTarget.getAttribute("data-id");
+              if (e.dataTransfer && itemId) {
+                e.dataTransfer?.setData("text/plain", itemId);
               }
-            )}
+            })}
           >
             <span class="text-lg text-gray-700">{item.content}</span>
           </div>

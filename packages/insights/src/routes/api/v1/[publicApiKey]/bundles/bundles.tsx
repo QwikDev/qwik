@@ -1,7 +1,7 @@
-import { type AppDatabase } from '~/db';
-import { getEdges } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
-import { computeBundles, computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
+import { type AppDatabase } from "~/db";
+import { getEdges } from "~/db/query";
+import { dbGetManifestHashes } from "~/db/sql-manifest";
+import { computeBundles, computeSymbolGraph, computeSymbolVectors } from "~/stats/edges";
 
 export async function getBundleGrouping({
   publicApiKey,

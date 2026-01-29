@@ -10,8 +10,7 @@ expect.extend({
     }, attribute);
 
     return {
-      message: () =>
-        `expected ${recieved} to have attribute \`${attribute}\` (${pass})`,
+      message: () => `expected ${recieved} to have attribute \`${attribute}\` (${pass})`,
       pass: pass !== null,
     };
   },
@@ -34,8 +33,7 @@ const config: PlaywrightTestConfig = {
   // retries: inGithubCI ? 0 : 1,
   expect: { timeout: inGithubCI ? 120000 : 3000 },
   webServer: {
-    command:
-      "pnpm node --require ./scripts/runBefore.ts starters/dev-server.ts 3301",
+    command: "pnpm node --require ./scripts/runBefore.ts starters/dev-server.ts 3301",
     port: 3301,
     reuseExistingServer: !process.env.CI,
   },

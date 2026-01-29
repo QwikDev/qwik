@@ -1,6 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import type { PackageJSON } from '../../../../../scripts/types.ts';
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import type { PackageJSON } from "../../../../../scripts/types.ts";
 
 export class AppCommand {
   args: string[];
@@ -18,10 +18,10 @@ export class AppCommand {
 
   get rootDir() {
     if (!this._rootDir) {
-      const fsRoot = resolve('/');
+      const fsRoot = resolve("/");
       let testDir = process.cwd();
       for (let i = 0; i < 20; i++) {
-        const pkgPath = join(testDir, 'package.json');
+        const pkgPath = join(testDir, "package.json");
         if (existsSync(pkgPath)) {
           this._rootDir = testDir;
           break;
@@ -44,8 +44,8 @@ export class AppCommand {
 
   get packageJson(): PackageJSON {
     if (!this._rootPkgJson) {
-      const pkgJsonPath = join(this.rootDir, 'package.json');
-      this._rootPkgJson = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'));
+      const pkgJsonPath = join(this.rootDir, "package.json");
+      this._rootPkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf-8"));
     }
     return this._rootPkgJson!;
   }
@@ -58,8 +58,8 @@ export class AppCommand {
       return;
     }
 
-    if (this.args[index].includes('=')) {
-      return this.args[index].split('=')[1];
+    if (this.args[index].includes("=")) {
+      return this.args[index].split("=")[1];
     }
     return this.args[index + 1];
   }

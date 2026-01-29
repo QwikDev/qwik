@@ -1,2 +1,2 @@
 // re-export for typescript in old resolution mode
-export * from '../lib/middleware/aws-lambda';
+export * from "../lib/middleware/aws-lambda";

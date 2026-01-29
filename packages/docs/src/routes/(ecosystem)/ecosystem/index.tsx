@@ -1,14 +1,14 @@
-import { component$, useStyles$, type FunctionComponent } from '@builder.io/qwik';
-import type { DocumentHead } from '@builder.io/qwik-city';
-import { Link } from '@builder.io/qwik-city';
-import ImgQwikNewsletter from '~/media/ecosystem/qwik-newsletter.svg?jsx';
-import styles from '../ecosystem.css?inline';
-import data from '../ecosystem.json';
-import { MEDIA, type MediaEntry } from '../media/index';
-import SHOWCASE from '../showcase/generated-pages.json';
-import { EcosystemMenu } from './ecosystem-menu';
-import { MobileEcosystemMenu } from './mobile-ecosystem-menu';
-import { QwikPlusLogo } from './qwik-plus-logo';
+import { component$, useStyles$, type FunctionComponent } from "@builder.io/qwik";
+import type { DocumentHead } from "@builder.io/qwik-city";
+import { Link } from "@builder.io/qwik-city";
+import ImgQwikNewsletter from "~/media/ecosystem/qwik-newsletter.svg?jsx";
+import styles from "../ecosystem.css?inline";
+import data from "../ecosystem.json";
+import { MEDIA, type MediaEntry } from "../media/index";
+import SHOWCASE from "../showcase/generated-pages.json";
+import { EcosystemMenu } from "./ecosystem-menu";
+import { MobileEcosystemMenu } from "./mobile-ecosystem-menu";
+import { QwikPlusLogo } from "./qwik-plus-logo";
 
 const getRandomSites = (sites: typeof SHOWCASE) => {
   return sites
@@ -285,7 +285,7 @@ export default component$(() => {
                   target="_blank"
                 >
                   Please apply here
-                </a>{' '}
+                </a>{" "}
                 for the Qwik Community Leaders program
               </p>
             </aside>
@@ -308,7 +308,7 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: 'Qwik Ecosystem',
+  title: "Qwik Ecosystem",
 };
 
 export const GridItem: FunctionComponent<GridItemProps> = (props) => {

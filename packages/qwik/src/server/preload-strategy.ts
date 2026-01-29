@@ -1,10 +1,10 @@
-import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
-import { getQueue, preload, resetQueue } from '../core/preloader/queue';
-import type { QRLInternal } from '../core/qrl/qrl-class';
-import { flattenPrefetchResources } from './preload-utils';
-import type { RenderToStringOptions, SnapshotResult } from './types';
-import { getPlatform } from '@builder.io/qwik';
-import { getSymbolHash } from './platform';
+import type { ResolvedManifest } from "@builder.io/qwik/optimizer";
+import { getQueue, preload, resetQueue } from "../core/preloader/queue";
+import type { QRLInternal } from "../core/qrl/qrl-class";
+import { flattenPrefetchResources } from "./preload-utils";
+import type { RenderToStringOptions, SnapshotResult } from "./types";
+import { getPlatform } from "@builder.io/qwik";
+import { getSymbolHash } from "./platform";
 
 const getBundles = (snapshotResult: SnapshotResult | null) => {
   const platform = getPlatform();
@@ -25,7 +25,7 @@ const getBundles = (snapshotResult: SnapshotResult | null) => {
 export function getPreloadPaths(
   snapshotResult: SnapshotResult | null,
   opts: RenderToStringOptions,
-  resolvedManifest: ResolvedManifest | undefined
+  resolvedManifest: ResolvedManifest | undefined,
 ): string[] {
   const prefetchStrategy = opts.prefetchStrategy;
   if (prefetchStrategy === null) {
@@ -36,7 +36,7 @@ export function getPreloadPaths(
   }
 
   // TODO should we deprecate this?
-  if (typeof prefetchStrategy?.symbolsToPrefetch === 'function') {
+  if (typeof prefetchStrategy?.symbolsToPrefetch === "function") {
     // call user option symbolsToPrefetch()
     try {
       const prefetchResources = prefetchStrategy.symbolsToPrefetch({
@@ -44,7 +44,7 @@ export function getPreloadPaths(
       });
       return flattenPrefetchResources(prefetchResources);
     } catch (e) {
-      console.error('getPrefetchUrls, symbolsToPrefetch()', e);
+      console.error("getPrefetchUrls, symbolsToPrefetch()", e);
     }
   }
 

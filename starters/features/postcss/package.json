@@ -1,5 +1,10 @@
 {
   "description": "Use PostCSS in your Qwik app",
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.31",
+    "postcss-preset-env": "^9.1.0"
+  },
   "__qwik__": {
     "displayName": "Integration: PostCSS (styling)",
     "priority": -10,
@@ -11,10 +16,5 @@
     "alwaysInRoot": [
       ".vscode"
     ]
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.31",
-    "postcss-preset-env": "^9.1.0"
   }
 }

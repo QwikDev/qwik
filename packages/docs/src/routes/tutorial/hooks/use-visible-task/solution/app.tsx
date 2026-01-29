@@ -1,5 +1,5 @@
-import { component$, useStore, useStyles$, useVisibleTask$ } from '@builder.io/qwik';
-import styles from './clock.css?inline';
+import { component$, useStore, useStyles$, useVisibleTask$ } from "@builder.io/qwik";
+import styles from "./clock.css?inline";
 
 interface ClockStore {
   hour: number;
@@ -45,7 +45,7 @@ export default component$(() => {
     <main>
       <p>This is an example of Lazy executing code on component when component becomes visible.</p>
 
-      <p style={{ height: '800px' }}>
+      <p style={{ height: "800px" }}>
         ⬇️ <strong>Scroll down</strong> until the clock is in view.
       </p>
 

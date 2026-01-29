@@ -1,8 +1,8 @@
-import { isBrowser } from '@builder.io/qwik/build';
-import { config, isJSRegex } from './constants';
-import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
-import type { BundleGraph, BundleImport, ImportProbability } from './types';
-import { BundleImportState_None, BundleImportState_Alias } from './types';
+import { isBrowser } from "@builder.io/qwik/build";
+import { config, isJSRegex } from "./constants";
+import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from "./queue";
+import type { BundleGraph, BundleImport, ImportProbability } from "./types";
+import { BundleImportState_None, BundleImportState_Alias } from "./types";
 
 export let base: string | undefined;
 export let graph: BundleGraph;
@@ -27,7 +27,7 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
     const deps: ImportProbability[] = [];
     let idx: number | string;
     let probability = 1;
-    while (((idx = serialized[i]), typeof idx === 'number')) {
+    while (((idx = serialized[i]), typeof idx === "number")) {
       if (idx < 0) {
         probability = -idx / 10;
       } else {
@@ -74,17 +74,17 @@ export const loadBundleGraph = (
     P?: number;
     /** Minimum probability for a bundle to be added to the preload queue */
     Q?: number;
-  }
+  },
 ) => {
   if (opts) {
-    if ('d' in opts) {
+    if ("d" in opts) {
       config.$DEBUG$ = !!opts.d;
     }
-    if ('P' in opts) {
-      config.$maxIdlePreloads$ = opts['P'] as number;
+    if ("P" in opts) {
+      config.$maxIdlePreloads$ = opts["P"] as number;
     }
-    if ('Q' in opts) {
-      config.$invPreloadProbability$ = 1 - (opts['Q'] as number);
+    if ("Q" in opts) {
+      config.$invPreloadProbability$ = 1 - (opts["Q"] as number);
     }
   }
   if (!isBrowser || basePath == null) {
@@ -123,19 +123,19 @@ export const initPreloader = (
   opts?: {
     debug?: boolean;
     preloadProbability?: number;
-  }
+  },
 ) => {
   if (opts) {
-    if ('debug' in opts) {
+    if ("debug" in opts) {
       config.$DEBUG$ = !!opts.debug;
     }
-    if (typeof opts.preloadProbability === 'number') {
+    if (typeof opts.preloadProbability === "number") {
       config.$invPreloadProbability$ = 1 - opts.preloadProbability;
     }
   }
   if (base != null || !serializedBundleGraph) {
     return;
   }
-  base = '';
+  base = "";
   graph = parseBundleGraph(serializedBundleGraph);
 };

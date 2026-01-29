@@ -1,14 +1,14 @@
-import type { TransformModule } from '@builder.io/qwik/optimizer';
-import { CodeBlock } from '../../components/code-block/code-block';
-import { $, component$, useSignal } from '@builder.io/qwik';
-const FILE_MODULE_DIV_ID = 'file-modules-symbol';
+import type { TransformModule } from "@builder.io/qwik/optimizer";
+import { CodeBlock } from "../../components/code-block/code-block";
+import { $, component$, useSignal } from "@builder.io/qwik";
+const FILE_MODULE_DIV_ID = "file-modules-symbol";
 
 type TransformModuleV2 = TransformModule & {
   segment?: { canonicalFilename: string; paramNames: string[]; captureNames: string[] };
 };
 
 export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps) => {
-  const selectedPath = useSignal(outputs.length ? outputs[0].path : '');
+  const selectedPath = useSignal(outputs.length ? outputs[0].path : "");
   const pathInView$ = $((path: string) => {
     selectedPath.value = path;
   });
@@ -28,10 +28,10 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
                   const fileItem = document.querySelector(`[data-symbol-item="${i}"]`);
                   if (fileItem) {
                     selectedPath.value = o.path;
-                    fileItem.scrollIntoView({ behavior: 'smooth' });
+                    fileItem.scrollIntoView({ behavior: "smooth" });
                   }
                 }}
-                class={{ 'in-view': selectedPath.value === o.path }}
+                class={{ "in-view": selectedPath.value === o.path }}
                 preventdefault:click
                 title={o.segment?.canonicalFilename}
               >
@@ -48,12 +48,12 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
               <span>{o.segment?.canonicalFilename}</span>
               {o.segment!.paramNames && (
                 <div>
-                  Params: <code>{o.segment!.paramNames.join(', ')}</code>
+                  Params: <code>{o.segment!.paramNames.join(", ")}</code>
                 </div>
               )}
               {o.segment!.captureNames && (
                 <div>
-                  Captures: <code>{o.segment!.captureNames.join(', ')}</code>
+                  Captures: <code>{o.segment!.captureNames.join(", ")}</code>
                 </div>
               )}
             </div>

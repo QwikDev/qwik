@@ -1,5 +1,16 @@
 {
   "description": "Use React components into your Qwik app",
+  "devDependencies": {
+    "@builder.io/qwik-react": "0.5.0",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.13.0",
+    "@mui/x-data-grid": "^6.4.0",
+    "@types/react": "^18.2.28",
+    "@types/react-dom": "^18.2.13",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
   "__qwik__": {
     "displayName": "Framework: React",
     "priority": -20,
@@ -26,16 +37,5 @@
         "qwikReact()"
       ]
     }
-  },
-  "devDependencies": {
-    "@builder.io/qwik-react": "0.5.0",
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "@mui/material": "^5.13.0",
-    "@mui/x-data-grid": "^6.4.0",
-    "@types/react": "^18.2.28",
-    "@types/react-dom": "^18.2.13",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
   }
 }

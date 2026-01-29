@@ -1,8 +1,8 @@
 // SSR Worker - handles server-side rendering execution
 // MUST be served from /repl/ so that its imports are intercepted by the REPL service worker
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { RenderToString } from '@builder.io/qwik/server';
-import type { ReplEvent } from '../types';
+import type { QwikManifest } from "@builder.io/qwik/optimizer";
+import type { RenderToString } from "@builder.io/qwik/server";
+import type { ReplEvent } from "../types";
 
 // Worker message types
 interface MessageBase {
@@ -10,7 +10,7 @@ interface MessageBase {
 }
 
 export interface InitSSRMessage extends MessageBase {
-  type: 'run-ssr';
+  type: "run-ssr";
   replId: string;
   entry: string;
   baseUrl: string;
@@ -18,17 +18,17 @@ export interface InitSSRMessage extends MessageBase {
 }
 
 export interface SSRReadyMessage extends MessageBase {
-  type: 'ready';
+  type: "ready";
 }
 
 export interface SSRResultMessage extends MessageBase {
-  type: 'ssr-result';
+  type: "ssr-result";
   html: string;
   events: any[];
 }
 
 export interface SSRErrorMessage extends MessageBase {
-  type: 'ssr-error';
+  type: "ssr-error";
   error: string;
   stack?: string;
 }
@@ -42,12 +42,12 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
   const { type } = e.data;
 
   switch (type) {
-    case 'run-ssr':
+    case "run-ssr":
       replId = e.data.replId;
       try {
         const result = await executeSSR(e.data);
         const message: SSRResultMessage = {
-          type: 'ssr-result',
+          type: "ssr-result",
           html: result.html,
           events: result.events,
         };
@@ -55,7 +55,7 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
       } catch (error) {
         console.error(`SSR worker for %s failed`, replId, error);
         const message: SSRErrorMessage = {
-          type: 'ssr-error',
+          type: "ssr-error",
           error: (error as Error)?.message || String(error),
           stack: (error as Error)?.stack,
         };
@@ -64,7 +64,7 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
       break;
 
     default:
-      console.warn('Unknown SSR worker message type:', type);
+      console.warn("Unknown SSR worker message type:", type);
   }
 };
 
@@ -81,30 +81,30 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
   const module = await importFrom(`/repl/ssr/${replId}/${entry}`);
   const server = module.default;
 
-  const render: RenderToString = typeof server === 'function' ? server : server?.render;
-  if (typeof render !== 'function') {
+  const render: RenderToString = typeof server === "function" ? server : server?.render;
+  if (typeof render !== "function") {
     throw new Error(`Server module ${entry} does not export default render function`);
   }
 
   const events: ReplEvent[] = [];
   const orig: Record<string, any> = {};
 
-  const wrapConsole = (kind: 'log' | 'warn' | 'error' | 'debug') => {
+  const wrapConsole = (kind: "log" | "warn" | "error" | "debug") => {
     orig[kind] = console[kind];
     console[kind] = (...args: any[]) => {
       events.push({
         kind: `console-${kind}` as any,
-        scope: 'ssr',
+        scope: "ssr",
         message: args.map((a) => String(a)),
         start: performance.now(),
       });
       orig[kind](...args);
     };
   };
-  wrapConsole('log');
-  wrapConsole('warn');
-  wrapConsole('error');
-  wrapConsole('debug');
+  wrapConsole("log");
+  wrapConsole("warn");
+  wrapConsole("error");
+  wrapConsole("debug");
 
   const ssrResult = await render({
     base: baseUrl,
@@ -114,8 +114,8 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
   });
 
   events.push({
-    kind: 'console-log',
-    scope: 'build',
+    kind: "console-log",
+    scope: "build",
     message: [`SSR: ${Math.round(performance.now() - start)}ms`],
     start,
     end: performance.now(),
@@ -133,4 +133,4 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
   };
 }
 
-self.postMessage({ type: 'ready' } as SSRReadyMessage);
+self.postMessage({ type: "ready" } as SSRReadyMessage);

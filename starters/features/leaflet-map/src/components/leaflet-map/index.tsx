@@ -1,10 +1,4 @@
-import {
-  component$,
-  noSerialize,
-  useSignal,
-  useStyles$,
-  useVisibleTask$,
-} from "@builder.io/qwik";
+import { component$, noSerialize, useSignal, useStyles$, useVisibleTask$ } from "@builder.io/qwik";
 import { Map } from "leaflet";
 import type { MapProps } from "~/models/map";
 
@@ -32,27 +26,19 @@ export const LeafletMap = component$<MapProps>(({ location }: MapProps) => {
 
     const { value: locationData } = location;
 
-    const centerPosition: [number, number] = locationData.point as [
-      number,
-      number,
-    ];
+    const centerPosition: [number, number] = locationData.point as [number, number];
 
-    const map: any = new Map("map").setView(
-      centerPosition,
-      locationData.zoom || 14,
-    );
+    const map: any = new Map("map").setView(centerPosition, locationData.zoom || 14);
 
     tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
-      attribution:
-        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
 
     // Assign select boundary box to use in OSM API if you want
     locationData.boundaryBox = getBoundaryBox(map);
 
-    locationData.marker &&
-      marker(centerPosition).bindPopup(`Soraluze (Gipuzkoa) :)`).addTo(map);
+    locationData.marker && marker(centerPosition).bindPopup(`Soraluze (Gipuzkoa) :)`).addTo(map);
 
     mapContainer$.value = noSerialize(map);
   });

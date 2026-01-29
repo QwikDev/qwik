@@ -1,8 +1,8 @@
-import { component$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
-import { Image } from 'qwik-image';
-import { ClockIcon } from '../icons/clock-icon';
-import { blogArticles } from '../../data';
+import { component$ } from "@builder.io/qwik";
+import { Link } from "@builder.io/qwik-city";
+import { Image } from "qwik-image";
+import { ClockIcon } from "../icons/clock-icon";
+import { blogArticles } from "../../data";
 
 export const FeaturedArticle = component$(() => {
   return (
@@ -20,10 +20,10 @@ export const FeaturedArticle = component$(() => {
 
         <div
           class={{
-            'hidden md:block absolute p-14 text-white': true,
-            'bottom-0': blogArticles[0].featuredTitlePosition === 'bottom',
-            'top-0': blogArticles[0].featuredTitlePosition === 'top',
-            hidden: blogArticles[0].featuredTitlePosition === 'none',
+            "hidden md:block absolute p-14 text-white": true,
+            "bottom-0": blogArticles[0].featuredTitlePosition === "bottom",
+            "top-0": blogArticles[0].featuredTitlePosition === "top",
+            hidden: blogArticles[0].featuredTitlePosition === "none",
           }}
         >
           <h2 class="pb-4 text-3xl font-bold leading-tight hover:text-slate-200 transition-colors">
@@ -42,7 +42,7 @@ export const FeaturedArticle = component$(() => {
           <div class="mb-4 flex items-center space-x-4 text-sm">
             <div class="flex items-center">
               <ClockIcon />
-              <span>{blogArticles[0].readingTime || '5'} min read</span>
+              <span>{blogArticles[0].readingTime || "5"} min read</span>
             </div>
           </div>
         </div>

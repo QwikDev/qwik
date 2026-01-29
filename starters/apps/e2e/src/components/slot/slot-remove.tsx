@@ -18,9 +18,7 @@ export const SlotCleanup = component$(() => {
   );
 });
 
-const CleanupCounterContext = createContextId<Signal<number>>(
-  "CleanupCounterContext",
-);
+const CleanupCounterContext = createContextId<Signal<number>>("CleanupCounterContext");
 
 export const SlotCleanupChildren = component$(() => {
   const signal = useSignal(0);

@@ -1,17 +1,17 @@
 /** Maintains the state for a REPL instance */
 
-import { isServer, unwrapStore } from '@builder.io/qwik';
-import { getBundler } from './bundler';
-import { registerReplSW } from './register-repl-sw';
-import type { RequestMessage, ResponseMessage } from './repl-sw';
-import type { ReplAppInput, ReplResult, ReplStore } from './types';
-import { updateReplOutput } from './ui/repl-output-update';
+import { isServer, unwrapStore } from "@builder.io/qwik";
+import { getBundler } from "./bundler";
+import { registerReplSW } from "./register-repl-sw";
+import type { RequestMessage, ResponseMessage } from "./repl-sw";
+import type { ReplAppInput, ReplResult, ReplStore } from "./types";
+import { updateReplOutput } from "./ui/repl-output-update";
 import type {
   InitSSRMessage,
   OutgoingMessage as SSROutgoingMessage,
-} from './bundler/repl-ssr-worker';
-import ssrWorkerUrl from './bundler/repl-ssr-worker?worker&url';
-import listenerScript from './bundler/client-events-listener?compiled-string';
+} from "./bundler/repl-ssr-worker";
+import ssrWorkerUrl from "./bundler/repl-ssr-worker?worker&url";
+import listenerScript from "./bundler/client-events-listener?compiled-string";
 
 let channel: BroadcastChannel;
 let registered = false;
@@ -23,17 +23,17 @@ export class ReplInstance {
 
   constructor(
     public store: ReplStore,
-    public input: ReplAppInput
+    public input: ReplAppInput,
   ) {
     this.replId = store.replId;
     if (isServer) {
       return;
     }
     if (!channel!) {
-      channel = new BroadcastChannel('qwik-docs-repl');
+      channel = new BroadcastChannel("qwik-docs-repl");
     }
     channel.onmessage = (ev: MessageEvent<RequestMessage>) => {
-      if (ev.data?.type === 'repl-request' && ev.data.replId === this.replId) {
+      if (ev.data?.type === "repl-request" && ev.data.replId === this.replId) {
         this.handleReplRequest(ev.data);
       }
     };
@@ -52,17 +52,17 @@ export class ReplInstance {
 
       this.lastResult = await this.rebuild().catch((e) => {
         return {
-          html: `<html><h1>Build Error</h1><pre><code>${String(e).replaceAll('<', '&lt;')}</code></pre></html>`,
+          html: `<html><h1>Build Error</h1><pre><code>${String(e).replaceAll("<", "&lt;")}</code></pre></html>`,
           clientBundles: [],
           ssrModules: [],
           diagnostics: [
             {
-              scope: 'rollup-ssr',
+              scope: "rollup-ssr",
               code: null,
               message: e.message,
-              category: 'warning' as const,
+              category: "warning" as const,
               highlights: [],
-              file: '',
+              file: "",
               suggestions: null,
             },
           ],
@@ -106,7 +106,7 @@ export class ReplInstance {
         .then(() => this._ensureSsr())
         .catch((e) => {
           console.error(e);
-          this.lastResult!.html = errorHtml(e.message, 'Build');
+          this.lastResult!.html = errorHtml(e.message, "Build");
           updateReplOutput(this.store, this.lastResult!);
         })
         .finally(() => {
@@ -114,9 +114,9 @@ export class ReplInstance {
           clearTimeout(showLoader);
           this.store.isLoading = false;
           console.log(
-            this.lastResult!.events.filter((e) => e.scope === 'build')
+            this.lastResult!.events.filter((e) => e.scope === "build")
               .map((e) => e.message)
-              .join(' | ')
+              .join(" | "),
           );
         });
     }
@@ -131,7 +131,7 @@ export class ReplInstance {
       // You can't pass proxies to web workers
       srcInputs: this.input.files.map(unwrapStore),
       buildMode: this.input.buildMode,
-      entryStrategy: { type: (this.input.entryStrategy as any) || 'component' },
+      entryStrategy: { type: (this.input.entryStrategy as any) || "component" },
       debug: this.input.debug,
     });
 
@@ -149,54 +149,54 @@ export class ReplInstance {
     });
     const status = fileContent === null ? 404 : error ? 500 : 200;
     const statusText =
-      status === 200 ? 'OK' : status === 404 ? 'Not Found' : 'Internal Server Error';
+      status === 200 ? "OK" : status === 404 ? "Not Found" : "Internal Server Error";
     const headers: Record<string, string> = {
-      'Cache-Control': 'no-store, no-cache, max-age=0',
+      "Cache-Control": "no-store, no-cache, max-age=0",
       // Needed for SharedArrayBuffer
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
     };
     if (status === 200) {
-      headers['Content-Type'] = this.getContentType(url);
+      headers["Content-Type"] = this.getContentType(url);
     }
 
     const message: ResponseMessage = {
-      type: 'repl-response',
+      type: "repl-response",
       requestId,
       response: {
         status,
         statusText,
         headers,
-        body: fileContent || '',
+        body: fileContent || "",
       },
     };
     channel!.postMessage(message);
   };
 
   getContentType = (url: string): string => {
-    const noQuery = url.split('?')[0];
-    if (noQuery.endsWith('/')) {
-      return 'text/html';
+    const noQuery = url.split("?")[0];
+    if (noQuery.endsWith("/")) {
+      return "text/html";
     }
-    const ext = noQuery.split('.').pop()?.toLowerCase();
+    const ext = noQuery.split(".").pop()?.toLowerCase();
     if (ext) {
       switch (ext) {
-        case 'js':
-        case 'mjs':
-        case 'cjs':
-          return 'application/javascript';
-        case 'json':
-          return 'application/json';
-        case 'css':
-          return 'text/css';
-        case 'html':
-        case 'htm':
-          return 'text/html';
-        case 'svg':
-          return 'image/svg+xml';
+        case "js":
+        case "mjs":
+        case "cjs":
+          return "application/javascript";
+        case "json":
+          return "application/json";
+        case "css":
+          return "text/css";
+        case "html":
+        case "htm":
+          return "text/html";
+        case "svg":
+          return "image/svg+xml";
       }
     }
-    return 'text/plain';
+    return "text/plain";
   };
 
   async getFile(path: string): Promise<string | null> {
@@ -214,9 +214,9 @@ export class ReplInstance {
     }
 
     // Serve SSR modules at /server/* path
-    if (target === 'ssr') {
+    if (target === "ssr") {
       // vite adds ?import to some imports, remove it for matching
-      const serverPath = filePath.replace(/\?import$/, '');
+      const serverPath = filePath.replace(/\?import$/, "");
       for (const module of this.lastResult.ssrModules) {
         if (serverPath === module.path) {
           return module.code;
@@ -232,14 +232,14 @@ export class ReplInstance {
       }
     }
 
-    if (filePath === 'index.html' || filePath === '') {
+    if (filePath === "index.html" || filePath === "") {
       // Here, also wait for SSR
       await ssrPromise.catch(() => {});
       if (this.lastResult.html) {
         // Inject the event listener script
         return this.lastResult.html + `<script>${listenerScript}</script>`;
       }
-      return errorHtml('No HTML generated', 'REPL');
+      return errorHtml("No HTML generated", "REPL");
     }
 
     return null;
@@ -251,43 +251,43 @@ export class ReplInstance {
      * for routed apps, and to allow importing from the generated build with proxied import()
      */
     return new Promise((resolve, reject) => {
-      const entryModule = result.ssrModules.find((m) => m.path.endsWith('.js'));
-      if (!entryModule || typeof entryModule.code !== 'string') {
-        return resolve({ html: errorHtml('No SSR module found', 'SSR') });
+      const entryModule = result.ssrModules.find((m) => m.path.endsWith(".js"));
+      if (!entryModule || typeof entryModule.code !== "string") {
+        return resolve({ html: errorHtml("No SSR module found", "SSR") });
       }
 
       // Start from /repl so repl-sw can intercept the requests
-      const ssrWorker = new Worker(`/repl${ssrWorkerUrl}`, { type: 'module' });
+      const ssrWorker = new Worker(`/repl${ssrWorkerUrl}`, { type: "module" });
 
       ssrWorker.onmessage = (e: MessageEvent<SSROutgoingMessage>) => {
         const { type } = e.data;
 
-        if (type === 'ready') {
+        if (type === "ready") {
           const initMessage: InitSSRMessage = {
-            type: 'run-ssr',
+            type: "run-ssr",
             replId: this.replId,
             entry: entryModule.path,
             baseUrl: `/repl/client/${this.replId}/build/`,
             manifest: result.manifest,
           };
           ssrWorker.postMessage(initMessage);
-        } else if (type === 'ssr-result') {
+        } else if (type === "ssr-result") {
           resolve({
             html: e.data.html,
             events: e.data.events,
           });
           ssrWorker.terminate();
-        } else if (type === 'ssr-error') {
-          resolve({ html: errorHtml(e.data.error, 'SSR') });
+        } else if (type === "ssr-error") {
+          resolve({ html: errorHtml(e.data.error, "SSR") });
           ssrWorker.terminate();
         } else {
-          resolve({ html: errorHtml(`Unknown SSR worker response: ${type}`, 'SSR') });
+          resolve({ html: errorHtml(`Unknown SSR worker response: ${type}`, "SSR") });
           ssrWorker.terminate();
         }
       };
 
       ssrWorker.onerror = (error) => {
-        resolve({ html: errorHtml('Worker failed to load', 'SSR ') });
+        resolve({ html: errorHtml("Worker failed to load", "SSR ") });
         ssrWorker.terminate();
       };
     });
@@ -300,5 +300,5 @@ export class ReplInstance {
 }
 
 function errorHtml(error: any, type: string) {
-  return `<html><h1>${type} Error</h1><pre><code>${String(error).replaceAll('<', '&lt;')}</code></pre></html>`;
+  return `<html><h1>${type} Error</h1><pre><code>${String(error).replaceAll("<", "&lt;")}</code></pre></html>`;
 }

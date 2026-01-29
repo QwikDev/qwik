@@ -63,22 +63,20 @@ export const Watch = component$(() => {
   return <WatchShell nav={nav} store={store} />;
 });
 
-export const WatchShell = component$(
-  ({ store }: { nav: any; store: State }) => {
-    return (
-      <div>
-        <div id="server-content">{store.server}</div>
-        <div id="parent">{store.count + 0}</div>
-        <Child state={store} />
-        <button id="add" onClick$={() => store.count++}>
-          +
-        </button>
-        <Issue1766Root />
-        <Issue2972 />
-      </div>
-    );
-  },
-);
+export const WatchShell = component$(({ store }: { nav: any; store: State }) => {
+  return (
+    <div>
+      <div id="server-content">{store.server}</div>
+      <div id="parent">{store.count + 0}</div>
+      <Child state={store} />
+      <button id="add" onClick$={() => store.count++}>
+        +
+      </button>
+      <Issue1766Root />
+      <Issue2972 />
+    </div>
+  );
+});
 
 export const Child = component$<{ state: State }>((props) => {
   console.log("CHILD renders");

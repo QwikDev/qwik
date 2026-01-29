@@ -2,10 +2,7 @@ import { routeAction$, Form } from "@builder.io/qwik-city";
 import { component$ } from "@builder.io/qwik";
 
 export const useAction = routeAction$((_, event) => {
-  throw event.redirect(
-    302,
-    "/qwikcity-test/action-redirect-without-search-params-target/",
-  );
+  throw event.redirect(302, "/qwikcity-test/action-redirect-without-search-params-target/");
 });
 
 export default component$(() => {

@@ -19,9 +19,7 @@ test.describe("resuming", () => {
     await input.click();
     await expect(input).toBeChecked();
 
-    await input.evaluate((el) =>
-      el.setAttribute("shouldPreventDefault", "true"),
-    );
+    await input.evaluate((el) => el.setAttribute("shouldPreventDefault", "true"));
 
     // clicking checkbox does not toggles the checked state, because default is prevented.
     await input.click();

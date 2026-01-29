@@ -18,11 +18,7 @@ export default component$(() => {
         To Hash 1
       </Link>
       <div class="spacer" />
-      <Link
-        id="no-hash"
-        class="hash-link"
-        href="/qwikcity-test/scroll-restoration/hash/"
-      >
+      <Link id="no-hash" class="hash-link" href="/qwikcity-test/scroll-restoration/hash/">
         To No Hash
       </Link>
     </div>

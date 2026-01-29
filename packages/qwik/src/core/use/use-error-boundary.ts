@@ -1,6 +1,6 @@
-import { type ErrorBoundaryStore, ERROR_CONTEXT } from '../render/error-handling';
-import { useContextProvider } from './use-context';
-import { useStore } from './use-store.public';
+import { type ErrorBoundaryStore, ERROR_CONTEXT } from "../render/error-handling";
+import { useContextProvider } from "./use-context";
+import { useStore } from "./use-store.public";
 
 /** @public */
 export const useErrorBoundary = () => {

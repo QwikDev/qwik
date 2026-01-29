@@ -13,11 +13,7 @@ export default component$(() => {
     <header>
       <div class="header-inner">
         <section class="logo">
-          <Link
-            href="/qwikcity-test/"
-            prefetch={true}
-            data-test-link="header-home"
-          >
+          <Link href="/qwikcity-test/" prefetch={true} data-test-link="header-home">
             Qwik City 🏙
           </Link>
         </section>

@@ -1,11 +1,4 @@
-import {
-  component$,
-  useStore,
-  type QRL,
-  useSignal,
-  useOnWindow,
-  $,
-} from "@builder.io/qwik";
+import { component$, useStore, type QRL, useSignal, useOnWindow, $ } from "@builder.io/qwik";
 
 export const Events = component$(() => {
   const store = useStore({
@@ -68,9 +61,7 @@ export const Events = component$(() => {
       <p id="count-transparent">countTransparent: {store.countTransparent}</p>
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
       <p id="count-anchor">countAnchor: {store.countAnchor}</p>
-      <p id="count-propagation">
-        countPropagationStopped: {store.propagationStoppedCount}
-      </p>
+      <p id="count-propagation">countPropagationStopped: {store.propagationStoppedCount}</p>
       <Issue3948 />
     </div>
   );
@@ -126,12 +117,8 @@ export const Issue3948 = component$(() => {
     <>
       <Listener name="always" />
       <label for="toggle">
-        <input
-          id="issue-3948-toggle"
-          type="checkbox"
-          bind:checked={showingToggle}
-        />{" "}
-        Show conditional
+        <input id="issue-3948-toggle" type="checkbox" bind:checked={showingToggle} /> Show
+        conditional
       </label>
       {showingToggle.value && <Listener name="conditional" />}
     </>

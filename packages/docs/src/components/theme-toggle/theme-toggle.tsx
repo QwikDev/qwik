@@ -1,33 +1,33 @@
-import { component$, event$, isServer, useSignal, useStyles$ } from '@builder.io/qwik';
-import { themeStorageKey } from './theme-script';
-import themeToggle from './theme-toggle.css?inline';
-import { SunIcon } from './Sun';
-import { MoonIcon } from './Moon';
-import { BrillianceIcon } from './Brilliance';
-export type ThemePreference = 'dark' | 'light' | 'auto';
+import { component$, event$, isServer, useSignal, useStyles$ } from "@builder.io/qwik";
+import { themeStorageKey } from "./theme-script";
+import themeToggle from "./theme-toggle.css?inline";
+import { SunIcon } from "./Sun";
+import { MoonIcon } from "./Moon";
+import { BrillianceIcon } from "./Brilliance";
+export type ThemePreference = "dark" | "light" | "auto";
 
 export const getSystemIsDark = (): boolean =>
-  window.matchMedia('(prefers-color-scheme: dark)').matches;
+  window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-export const getEffectiveTheme = (preference: ThemePreference): 'light' | 'dark' => {
-  if (preference === 'auto') {
-    return getSystemIsDark() ? 'dark' : 'light';
+export const getEffectiveTheme = (preference: ThemePreference): "light" | "dark" => {
+  if (preference === "auto") {
+    return getSystemIsDark() ? "dark" : "light";
   }
   return preference;
 };
 export const setPreference = (theme: ThemePreference) => {
-  if (theme === 'auto') {
+  if (theme === "auto") {
     const el = document.firstElementChild;
     if (!el) {
       return;
     }
-    el.setAttribute('data-theme', getEffectiveTheme('auto'));
+    el.setAttribute("data-theme", getEffectiveTheme("auto"));
   } else {
     const el = document.firstElementChild;
     if (!el) {
       return;
     }
-    el.setAttribute('data-theme', theme!);
+    el.setAttribute("data-theme", theme!);
   }
 
   localStorage.setItem(themeStorageKey, theme);
@@ -35,7 +35,7 @@ export const setPreference = (theme: ThemePreference) => {
 
 export const getColorPreference = (): ThemePreference => {
   if (isServer) {
-    return 'auto';
+    return "auto";
   }
   let theme;
   try {
@@ -43,7 +43,7 @@ export const getColorPreference = (): ThemePreference => {
   } catch {
     //
   }
-  return (theme as ThemePreference) || 'auto';
+  return (theme as ThemePreference) || "auto";
 };
 
 export const ThemeToggle = component$(() => {
@@ -51,12 +51,12 @@ export const ThemeToggle = component$(() => {
   const preference = useSignal<ThemePreference>(getColorPreference());
   const onClick$ = event$(() => {
     let currentTheme = preference.value;
-    if (currentTheme === 'dark') {
-      currentTheme = 'light';
-    } else if (currentTheme === 'light') {
-      currentTheme = 'auto';
-    } else if (currentTheme === 'auto') {
-      currentTheme = 'dark';
+    if (currentTheme === "dark") {
+      currentTheme = "light";
+    } else if (currentTheme === "light") {
+      currentTheme = "auto";
+    } else if (currentTheme === "auto") {
+      currentTheme = "dark";
     }
     setPreference(currentTheme);
     preference.value = currentTheme;
@@ -67,11 +67,11 @@ export const ThemeToggle = component$(() => {
       <button
         onClick$={onClick$}
         class={[
-          'group relative flex h-8 m-auto items-center justify-center rounded-md bg-background text-foreground hover:opacity-60 sm:w-8 sm:px-0',
+          "group relative flex h-8 m-auto items-center justify-center rounded-md bg-background text-foreground hover:opacity-60 sm:w-8 sm:px-0",
           {
-            'pref-light': preference.value === 'light',
-            'pref-dark': preference.value === 'dark',
-            'pref-auto': preference.value === 'auto',
+            "pref-light": preference.value === "light",
+            "pref-dark": preference.value === "dark",
+            "pref-auto": preference.value === "auto",
           },
         ]}
       >
@@ -81,11 +81,11 @@ export const ThemeToggle = component$(() => {
           <BrillianceIcon class="themeIcon auto col-start-1 row-start-1" />
         </div>
         <div class="lg:hidden font-medium leading-none">
-          {preference.value === 'light'
-            ? 'Light theme'
-            : preference.value === 'dark'
-              ? 'Dark theme'
-              : 'Auto'}
+          {preference.value === "light"
+            ? "Light theme"
+            : preference.value === "dark"
+              ? "Dark theme"
+              : "Auto"}
         </div>
       </button>
     </>

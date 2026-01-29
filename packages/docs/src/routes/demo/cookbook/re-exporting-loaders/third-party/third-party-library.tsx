@@ -10,17 +10,17 @@ export const ThirdPartyPaymentComponent = component$(() => {
   return (
     <div
       class={[
-        'w-96 h-56 m-auto rounded-xl relative text-white font-bold shadow-2xl',
-        'transition-transform transform hover:scale-110 bg-gray-600',
+        'relative m-auto h-56 w-96 rounded-xl font-bold text-white shadow-2xl',
+        'transform bg-gray-600 transition-transform hover:scale-110',
       ]}
     >
-      <div class="w-full px-8 absolute top-8">
+      <div class="absolute top-8 w-full px-8">
         <div class="flex justify-between">
           <div class="">
             <p>Name</p>
             <p class="tracking-widest">{thirdPartyPaymentLoader.value.name}</p>
           </div>
-          <img class="w-12 h-12" src="/logos/qwik-logo.svg" />
+          <img class="h-12 w-12" src="/logos/qwik-logo.svg" />
         </div>
         <div class="pt-1">
           <p class="font-medium">Card Number</p>

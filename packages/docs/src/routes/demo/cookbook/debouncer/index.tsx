@@ -1,10 +1,4 @@
-import {
-  $,
-  useSignal,
-  component$,
-  type QRL,
-  useStylesScoped$,
-} from '@qwik.dev/core';
+import { $, useSignal, component$, type QRL, useStylesScoped$ } from '@qwik.dev/core';
 
 export const useDebouncer = (fn: QRL<(args: any) => void>, delay: number) => {
   const timeoutId = useSignal<number>();
@@ -54,11 +48,7 @@ export default component$(() => {
       <br />
       <br />
       <label>Debounced Value</label>
-      {debouncedValue.value ? (
-        debouncedValue.value
-      ) : (
-        <span>Waiting for input to debounce.</span>
-      )}
+      {debouncedValue.value ? debouncedValue.value : <span>Waiting for input to debounce.</span>}
     </>
   );
 });

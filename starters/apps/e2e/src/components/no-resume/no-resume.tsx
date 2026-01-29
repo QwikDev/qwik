@@ -1,4 +1,4 @@
-import { component$, useSignal } from "@qwik.dev/core";
+import { component$, useSignal } from '@qwik.dev/core';
 
 export const NoResume = component$(() => {
   const sig = useSignal(0);
@@ -9,10 +9,10 @@ export const NoResume = component$(() => {
         document:onQResume$={() => {
           // this should not crash
           void sig.value;
-          document.body.style.color = "red";
+          document.body.style.color = 'red';
         }}
         onClick$={() => {
-          document.body.style.background = "black";
+          document.body.style.background = 'black';
         }}
         onDblClick$={() => {
           sig.value++;

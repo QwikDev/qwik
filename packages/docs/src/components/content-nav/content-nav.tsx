@@ -24,10 +24,10 @@ export const ContentNav = component$(() => {
   });
 
   return (
-    <nav class="content-nav border-t border-slate-300 flex flex-wrap py-4">
+    <nav class="content-nav flex flex-wrap border-t border-slate-300 py-4">
       <div class="flex-1">
         {prev.value ? (
-          <Link class="px-3 py-1 prev" href={prev.value?.href}>
+          <Link class="prev px-3 py-1" href={prev.value?.href}>
             {prev.value?.text}
           </Link>
         ) : null}
@@ -35,7 +35,7 @@ export const ContentNav = component$(() => {
 
       <div class="flex-1 text-right">
         {next.value ? (
-          <Link class="px-3 py-1 next" href={next.value?.href}>
+          <Link class="next px-3 py-1" href={next.value?.href}>
             {next.value?.text}
           </Link>
         ) : null}

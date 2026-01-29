@@ -7,13 +7,10 @@
  * - https://qwik.dev/docs/deployments/aws/
  *
  */
-import {
-  createQwikRouter,
-  type PlatformAwsLambda,
-} from "@qwik.dev/router/middleware/aws-lambda";
-import serverless from "serverless-http";
-import "source-map-support/register";
-import render from "./entry.ssr";
+import { createQwikRouter, type PlatformAwsLambda } from '@qwik.dev/router/middleware/aws-lambda';
+import serverless from 'serverless-http';
+import 'source-map-support/register';
+import render from './entry.ssr';
 
 declare global {
   type QwikRouterPlatform = PlatformAwsLambda;

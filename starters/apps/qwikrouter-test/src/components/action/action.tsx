@@ -1,5 +1,5 @@
-import { Form, globalAction$ } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
+import { Form, globalAction$ } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
 
 export const useAction = globalAction$(() => {
   return true;

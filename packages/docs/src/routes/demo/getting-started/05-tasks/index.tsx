@@ -40,9 +40,7 @@ export default component$(() => {
           👎
         </button>
       </Form>
-      <button
-        onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
-      >
+      <button onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}>
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
     </section>

@@ -58,7 +58,7 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   const build = await rollup(input);
 
-  await Promise.all([build.write(esmOutput)]);
+  [await build.write(esmOutput)];
 
   console.log('🦊 core.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.mjs')));
 
@@ -218,7 +218,7 @@ async function submoduleCoreDev(config: BuildConfig) {
     outExtension: { '.js': '.mjs' },
   });
 
-  await Promise.all([esm]);
+  [await esm];
 
   // Point the minified and prod versions to the dev versions
   await writeFile(join(config.distQwikPkgDir, 'core.prod.mjs'), `export * from './core.mjs';\n`);

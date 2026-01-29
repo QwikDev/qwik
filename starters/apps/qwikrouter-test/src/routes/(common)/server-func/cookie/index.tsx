@@ -1,23 +1,23 @@
-import { server$ } from "@qwik.dev/router";
-import { component$, useSignal, useTask$ } from "@qwik.dev/core";
-import { delay } from "../../actions/login";
+import { server$ } from '@qwik.dev/router';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+import { delay } from '../../actions/login';
 
 const serverHost = server$(function () {
-  return this.request.headers.get("host")!;
+  return this.request.headers.get('host')!;
 });
 const serverFunctionA = server$(async function a() {
-  const user = (await this.cookie.get("user")?.value) || "";
+  const user = (await this.cookie.get('user')?.value) || '';
   return user;
 });
 const serverFunctionB = server$(async function b() {
-  const user = (await this.cookie.get("user")?.value) || "";
+  const user = (await this.cookie.get('user')?.value) || '';
   return user;
 });
 
 export const MultipleServerFunctionsInvokedInTask = component$(() => {
-  const host = useSignal("");
-  const user1 = useSignal("");
-  const user2 = useSignal("");
+  const host = useSignal('');
+  const user1 = useSignal('');
+  const user2 = useSignal('');
   useTask$(async () => {
     host.value = await serverHost();
     await delay(1);

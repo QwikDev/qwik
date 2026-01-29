@@ -7,9 +7,9 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { createQwikRouter } from "@qwik.dev/router/middleware/node";
-import { createServer } from "node:http";
-import render from "./entry.ssr";
+import { createQwikRouter } from '@qwik.dev/router/middleware/node';
+import { createServer } from 'node:http';
+import render from './entry.ssr';
 
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3004;
@@ -18,13 +18,13 @@ const PORT = process.env.PORT ?? 3004;
 const { router, notFound, staticFile } = createQwikRouter({
   render,
   static: {
-    cacheControl: "public, max-age=31536000, immutable",
+    cacheControl: 'public, max-age=31536000, immutable',
   },
 });
 
 const server = createServer();
 
-server.on("request", (req, res) => {
+server.on('request', (req, res) => {
   staticFile(req, res, () => {
     router(req, res, () => {
       notFound(req, res, () => {});

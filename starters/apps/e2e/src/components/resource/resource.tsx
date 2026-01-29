@@ -9,7 +9,7 @@ import {
   useStyles$,
   useTask$,
   type ResourceReturn,
-} from "@qwik.dev/core";
+} from '@qwik.dev/core';
 
 export interface WeatherData {
   name: string;
@@ -27,11 +27,11 @@ interface LogsContext {
   content: string;
 }
 
-export const LOGS = createContextId<LogsContext>("qwik.logs.resource");
+export const LOGS = createContextId<LogsContext>('qwik.logs.resource');
 
 export const ResourceApp = component$(() => {
   const logs = useStore({
-    content: "",
+    content: '',
   });
   useContextProvider(LOGS, logs);
 
@@ -42,27 +42,27 @@ export const ResourceApp = component$(() => {
   });
 
   useTask$(async ({ track }) => {
-    logs.content += "[WATCH] 1 before\n";
+    logs.content += '[WATCH] 1 before\n';
     const count = track(() => state.count);
     await delay(100);
     state.countDouble = count * 2;
-    logs.content += "[WATCH] 1 after\n";
+    logs.content += '[WATCH] 1 after\n';
   });
 
   useTask$(async ({ track }) => {
-    logs.content += "[WATCH] 2 before\n";
+    logs.content += '[WATCH] 2 before\n';
     const city = track(() => state.countDouble);
     await delay(100);
     state.countDoubleDouble = city * 2;
-    logs.content += "[WATCH] 2 after\n";
+    logs.content += '[WATCH] 2 after\n';
   });
 
   const resource = useResource$<number>(async ({ track }) => {
-    logs.content += "[RESOURCE] 1 before\n";
+    logs.content += '[RESOURCE] 1 before\n';
     const count = track(() => state.countDoubleDouble);
     await delay(1000);
 
-    logs.content += "[RESOURCE] 1 after\n\n";
+    logs.content += '[RESOURCE] 1 after\n\n';
     return count * 2;
   });
 
@@ -71,50 +71,46 @@ export const ResourceApp = component$(() => {
       <button type="button" class="increment" onClick$={() => state.count++}>
         Increment
       </button>
-      <div id="outside-state">{resource.loading ? "pending" : "resolved"}</div>
+      <div id="outside-state">{resource.loading ? 'pending' : 'resolved'}</div>
       <Results result={resource} />
     </div>
   );
 });
 
-export const Results = component$(
-  (props: { result: ResourceReturn<number> }) => {
-    useStyles$(`
+export const Results = component$((props: { result: ResourceReturn<number> }) => {
+  useStyles$(`
     .logs {
       white-space: pre;
     }`);
-    const logs = useContext(LOGS);
+  const logs = useContext(LOGS);
 
-    const state = useStore({
-      count: 0,
-    });
-    const resourceState = props.result.loading ? "pending" : "resolved";
-    return (
-      <div>
-        <div id="inside-state">{resourceState}</div>
-        <Resource
-          value={props.result}
-          onPending={() => <div class="resource1">loading resource 1...</div>}
-          onRejected={(reason) => (
-            <div class="resource1">error {`${reason}`}</div>
-          )}
-          onResolved={(number) => {
-            return (
-              <>
-                <div class="resource1">resource 1 is {number}</div>
-                <button class="count" onClick$={() => state.count++}>
-                  count is {mutable(state.count + 0)}
-                </button>
-              </>
-            );
-          }}
-        />
+  const state = useStore({
+    count: 0,
+  });
+  const resourceState = props.result.loading ? 'pending' : 'resolved';
+  return (
+    <div>
+      <div id="inside-state">{resourceState}</div>
+      <Resource
+        value={props.result}
+        onPending={() => <div class="resource1">loading resource 1...</div>}
+        onRejected={(reason) => <div class="resource1">error {`${reason}`}</div>}
+        onResolved={(number) => {
+          return (
+            <>
+              <div class="resource1">resource 1 is {number}</div>
+              <button class="count" onClick$={() => state.count++}>
+                count is {mutable(state.count + 0)}
+              </button>
+            </>
+          );
+        }}
+      />
 
-        <div class="logs">{logs.content + ""}</div>
-      </div>
-    );
-  },
-);
+      <div class="logs">{logs.content + ''}</div>
+    </div>
+  );
+});
 
 export function mutable(value: any) {
   return value;

@@ -154,7 +154,7 @@ export const OnThisPage = component$(() => {
   const activeId = useActiveItem(contentHeadings.map((h) => h.id));
 
   return (
-    <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
+    <aside class="on-this-page hidden overflow-y-auto text-sm xl:block">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>

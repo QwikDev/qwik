@@ -1,5 +1,5 @@
-import { component$ } from "@qwik.dev/core";
-import Dynamic9 from "./dynamic9";
+import { component$ } from '@qwik.dev/core';
+import Dynamic9 from './dynamic9';
 
 export default component$(() => {
   return (

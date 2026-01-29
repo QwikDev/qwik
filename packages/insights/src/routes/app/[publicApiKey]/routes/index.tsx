@@ -23,13 +23,13 @@ export default component$(() => {
         <RoutesIcon />
         Routes
       </h1>
-      <table class="w-full text-sm text-left">
+      <table class="w-full text-left text-sm">
         <thead class="text-xs text-slate-700 uppercase">
           <tr class="border-b border-slate-200">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Path
             </th>
-            <th scope="col" class="px-6 py-3  bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Action
             </th>
           </tr>
@@ -40,7 +40,7 @@ export default component$(() => {
               <th scope="col" class="px-6 py-3">
                 <code>{route.route}</code>
               </th>
-              <td scope="col" class="px-6 py-3 w-32">
+              <td scope="col" class="w-32 px-6 py-3">
                 <a href={baseLink + route.route + '/'}>View details</a>
               </td>
             </tr>

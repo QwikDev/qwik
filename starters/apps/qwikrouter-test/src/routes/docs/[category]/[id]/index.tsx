@@ -1,5 +1,5 @@
-import { useLocation, type DocumentHead } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
+import { useLocation, type DocumentHead } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const { url, params } = useLocation();

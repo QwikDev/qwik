@@ -1,6 +1,6 @@
-import { component$ } from "@qwik.dev/core";
+import { component$ } from '@qwik.dev/core';
 
-import "./global.css";
+import './global.css';
 
 export default component$(() => {
   /**

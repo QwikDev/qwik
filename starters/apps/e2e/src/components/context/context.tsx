@@ -7,19 +7,19 @@ import {
   useSignal,
   useStore,
   useVisibleTask$,
-} from "@qwik.dev/core";
+} from '@qwik.dev/core';
 
 export interface ContextI {
   displayName: string;
   count: number;
 }
 
-export const Context1 = createContextId<ContextI>("ctx");
-export const Context2 = createContextId<ContextI>("ctx1");
-export const Context3 = createContextId<ContextI>("ctx2");
-export const ContextSlot = createContextId<ContextI>("slot");
-export const Unset = createContextId<ContextI>("unset");
-export const ContextString = createContextId<string>("ctx-string");
+export const Context1 = createContextId<ContextI>('ctx');
+export const Context2 = createContextId<ContextI>('ctx1');
+export const Context3 = createContextId<ContextI>('ctx2');
+export const ContextSlot = createContextId<ContextI>('slot');
+export const Unset = createContextId<ContextI>('unset');
+export const ContextString = createContextId<string>('ctx-string');
 
 export const ContextRoot = component$(() => {
   const count = useSignal(0);
@@ -35,8 +35,8 @@ export const ContextRoot = component$(() => {
 });
 
 export const ContextApp = component$(({ count }: { count: number }) => {
-  const state1 = useStore({ displayName: "ROOT / state1", count: 0 });
-  const state2 = useStore({ displayName: "ROOT / state2", count: 0 });
+  const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
+  const state2 = useStore({ displayName: 'ROOT / state2', count: 0 });
 
   useContextProvider(Context1, state1);
   useContextProvider(Context2, state2);
@@ -67,7 +67,7 @@ export const ContextApp = component$(({ count }: { count: number }) => {
 
 export const ContextFromSlot = component$(() => {
   const store = useStore({
-    displayName: "bar",
+    displayName: 'bar',
     count: 0,
   });
   useContextProvider(ContextSlot, store);
@@ -76,13 +76,13 @@ export const ContextFromSlot = component$(() => {
 
 // This code will not work because its async before reading subs
 export const Level2 = component$(() => {
-  const level2State1 = useStore({ displayName: "Level2 / state1", count: 0 });
+  const level2State1 = useStore({ displayName: 'Level2 / state1', count: 0 });
   // read context1 before changing it
   const state1 = useContext(Context1);
   // change context1
   useContextProvider(Context1, level2State1);
 
-  const state3 = useStore({ displayName: "Level2 / state3", count: 0 });
+  const state3 = useStore({ displayName: 'Level2 / state3', count: 0 });
   useContextProvider(Context3, state3);
 
   const state2 = useContext(Context2);
@@ -119,7 +119,7 @@ export const Level3 = component$(() => {
   const stateSlot = useContext(ContextSlot);
 
   if (useContext(Unset, null) !== null) {
-    throw new Error("ERROR");
+    throw new Error('ERROR');
   }
 
   return (
@@ -149,11 +149,11 @@ export const Issue1971 = component$(() => {
   );
 });
 
-export const Issue1971Context = createContextId<any>("issue-1971");
+export const Issue1971Context = createContextId<any>('issue-1971');
 
 export const Issue1971Provider = component$(() => {
   useContextProvider(Issue1971Context, {
-    value: "hello!",
+    value: 'hello!',
   });
 
   return <Slot></Slot>;
@@ -176,7 +176,7 @@ export const Issue1971Consumer = component$(() => {
   return <div id="issue1971-value">Value: {ctx.value}</div>;
 });
 
-export const Ctx = createContextId<{ t: string }>("issue-2087");
+export const Ctx = createContextId<{ t: string }>('issue-2087');
 
 export const Issue2087 = component$(() => {
   return (
@@ -223,14 +223,14 @@ export const Symbol = component$(({ id }: any) => {
 });
 
 export const Provider = component$(() => {
-  const s = useStore({ t: "yes" });
+  const s = useStore({ t: 'yes' });
   useContextProvider(Ctx, s);
   return <Slot />;
 });
 
-export const CTX_2894 = createContextId<{ foo: string }>("issue-2894");
+export const CTX_2894 = createContextId<{ foo: string }>('issue-2894');
 export const Issue2894 = component$(() => {
-  useContextProvider(CTX_2894, { foo: "bar" });
+  useContextProvider(CTX_2894, { foo: 'bar' });
   return (
     <>
       <Issue2894_Projector>
@@ -263,7 +263,7 @@ export const Issue2894_Consumer = component$(() => {
   return <div id="issue2894-value">Value: {ctx.foo}</div>;
 });
 
-export const Issue5356Context = createContextId<object>("issue-5356");
+export const Issue5356Context = createContextId<object>('issue-5356');
 export const Issue5356 = component$(() => {
   useContextProvider(Issue5356Context, {});
 
@@ -286,11 +286,7 @@ export const Issue5356_Parent = component$(() => {
 
       <>
         {children.map((value) => (
-          <Issue5356_Child
-            key={value}
-            value={value}
-            active={signal.value === value}
-          />
+          <Issue5356_Child key={value} value={value} active={signal.value === value} />
         ))}
       </>
       <>
@@ -303,20 +299,18 @@ export const Issue5356_Parent = component$(() => {
   );
 });
 
-export const Issue5356_Child = component$<{ value: number; active: boolean }>(
-  (props) => {
-    useContext(Issue5356Context);
+export const Issue5356_Child = component$<{ value: number; active: boolean }>((props) => {
+  useContext(Issue5356Context);
 
-    return (
-      <div id={`issue5356-child-${props.value}`}>
-        Child {props.value}, active: {props.active ? "true" : "false"}
-      </div>
-    );
-  },
-);
+  return (
+    <div id={`issue5356-child-${props.value}`}>
+      Child {props.value}, active: {props.active ? 'true' : 'false'}
+    </div>
+  );
+});
 
 export const Issue5793 = component$(() => {
-  useContextProvider(ContextString, "yes");
+  useContextProvider(ContextString, 'yes');
   return <Issue5793_Child />;
 });
 

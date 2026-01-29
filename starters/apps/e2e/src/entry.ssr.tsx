@@ -1,8 +1,5 @@
-import {
-  renderToStream,
-  type RenderToStreamOptions,
-} from "@qwik.dev/core/server";
-import { Root } from "./root";
+import { renderToStream, type RenderToStreamOptions } from '@qwik.dev/core/server';
+import { Root } from './root';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -13,25 +10,24 @@ export default function (opts: RenderToStreamOptions) {
   const url = new URL(opts.serverData!.url);
 
   // Render segment instead
-  if (url.searchParams.has("fragment")) {
+  if (url.searchParams.has('fragment')) {
     return renderToStream(
       <>
         <Root pathname={url.pathname} />
       </>,
       {
         debug: true,
-        containerTagName: "container",
+        containerTagName: 'container',
         // streaming: {
         //   inOrder: {
         //     buffering: 'marks',
         //   },
         // },
         qwikLoader: {
-          include:
-            url.searchParams.get("loader") === "false" ? "never" : "auto",
+          include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
         },
         ...opts,
-      },
+      }
     );
   }
 
@@ -48,6 +44,6 @@ export default function (opts: RenderToStreamOptions) {
     {
       debug: true,
       ...opts,
-    },
+    }
   );
 }

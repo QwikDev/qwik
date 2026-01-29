@@ -273,11 +273,11 @@ var changelogFunctions = {
                 }
               );
             };
-            (_a = replacedChangelog.split('\n').map(function (l) {
+            ((_a = replacedChangelog.split('\n').map(function (l) {
               return linkifyIssueHints(l.trimEnd());
             })),
               (firstLine = _a[0]),
-              (futureLines = _a.slice(1));
+              (futureLines = _a.slice(1)));
             return [
               4 /*yield*/,
               (function () {

@@ -1,8 +1,8 @@
-import { component$ } from "@qwik.dev/core";
-import { useQwikRouter, RouterOutlet } from "@qwik.dev/router";
-import { RouterHead } from "./components/router-head/router-head";
+import { component$ } from '@qwik.dev/core';
+import { useQwikRouter, RouterOutlet } from '@qwik.dev/router';
+import { RouterHead } from './components/router-head/router-head';
 
-import "./global.css";
+import './global.css';
 
 export default component$(() => {
   useQwikRouter();

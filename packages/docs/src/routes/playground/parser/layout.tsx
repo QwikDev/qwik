@@ -6,13 +6,13 @@ export default component$(() => {
   const selectedTab = useSignal(location.url.pathname.includes('/html') ? 'html' : 'state');
 
   return (
-    <div class="min-h-screen p-4 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-slate-800">
-      <div class="max-w-7xl mx-auto">
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-gray-900 dark:to-slate-800">
+      <div class="mx-auto max-w-7xl">
         {/* Header with improved styling */}
-        <div class="text-center mb-8">
-          <div class="inline-flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="mb-8 text-center">
+          <div class="mb-4 inline-flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600">
+              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -21,28 +21,28 @@ export default component$(() => {
                 />
               </svg>
             </div>
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            <h1 class="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-4xl font-bold text-transparent dark:from-white dark:to-gray-300">
               Code Parser
             </h1>
           </div>
-          <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300">
+          <p class="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-300">
             Transform your code data into beautifully formatted and syntax-highlighted output
           </p>
         </div>
 
         {/* Navigation Links */}
-        <div class="flex justify-center mb-8">
-          <div class="gap-1 inline-flex space-x-0.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-0.5 shadow-lg border border-white/20 dark:border-gray-700">
+        <div class="mb-8 flex justify-center">
+          <div class="inline-flex gap-1 space-x-0.5 rounded-xl border border-white/20 bg-white/80 p-0.5 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
             <a
               href="/playground/parser/state"
-              class={`px-2 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+              class={`rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 ${
                 selectedTab.value === 'state'
                   ? 'bg-blue-500 text-gray-900 shadow-md'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
               }`}
             >
               <span class="flex items-center gap-1.5">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -55,14 +55,14 @@ export default component$(() => {
             </a>
             <a
               href="/playground/parser/html"
-              class={`px-2 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+              class={`rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 ${
                 selectedTab.value === 'html'
                   ? 'bg-green-500 text-gray-900 shadow-md'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
               }`}
             >
               <span class="flex items-center gap-1.5">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -83,9 +83,9 @@ export default component$(() => {
 
         {/* Enhanced Footer */}
         <div class="mt-8 text-center">
-          <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full border border-white/20 dark:border-gray-600">
+          <div class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/60 px-4 py-2 backdrop-blur-sm dark:border-gray-600 dark:bg-gray-800/60">
             <svg
-              class="w-4 h-4 text-blue-500"
+              class="h-4 w-4 text-blue-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

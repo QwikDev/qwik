@@ -1,4 +1,4 @@
-import { component$, useStore } from "@qwik.dev/core";
+import { component$, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   const nakedState: [number] = [0];
@@ -30,12 +30,10 @@ export const Parent = component$<{ nakedState: [number] }>(({ nakedState }) => {
   );
 });
 
-export const Button = component$<{ unusedValue?: [number]; state: [number] }>(
-  ({ state }) => {
-    return (
-      <div>
-        <button onClick$={() => state[0]++}>+1</button>
-      </div>
-    );
-  },
-);
+export const Button = component$<{ unusedValue?: [number]; state: [number] }>(({ state }) => {
+  return (
+    <div>
+      <button onClick$={() => state[0]++}>+1</button>
+    </div>
+  );
+});

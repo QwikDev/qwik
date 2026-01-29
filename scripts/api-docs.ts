@@ -307,7 +307,7 @@ function getMdFile(subPkgName: string, hierarchy: string[]) {
 
 function getSafeFilenameForName(name: string): string {
   // https://github.com/microsoft/rushstack/blob/d0f8f10a9ce1ce4158ca2da5b79c54c71d028d89/apps/api-documenter/src/utils/Utilities.ts
-  return name.replace(/[^a-z0-9_\-\.]/gi, '_').toLowerCase();
+  return name.replace(/[^a-z0-9_\-.]/gi, '_').toLowerCase();
 }
 
 function getEditUrl(config: BuildConfig, fileUrlPath: string | undefined) {

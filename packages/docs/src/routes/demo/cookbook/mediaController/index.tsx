@@ -1,9 +1,4 @@
-import {
-  component$,
-  useSignal,
-  useStylesScoped$,
-  useVisibleTask$,
-} from '@qwik.dev/core';
+import { component$, useSignal, useStylesScoped$, useVisibleTask$ } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 
 const AUDIO_SRC =
@@ -21,8 +16,7 @@ export default component$(() => {
   const playsInlineSignal = useSignal(true);
   const location = useLocation();
 
-  const videoPoster =
-    location.url.origin + '/sample-media/qwik-koi-poster.jpg';
+  const videoPoster = location.url.origin + '/sample-media/qwik-koi-poster.jpg';
 
   useStylesScoped$(`
         segment {
@@ -85,8 +79,7 @@ export default component$(() => {
     audioPlayButtonSignal.value?.removeEventListener('click', play);
     audioPlayButtonSignal.value?.addEventListener('click', play);
 
-    return () =>
-      audioPlayButtonSignal.value?.removeEventListener('click', play);
+    return () => audioPlayButtonSignal.value?.removeEventListener('click', play);
   });
 
   useVisibleTask$(({ track }) => {
@@ -99,8 +92,7 @@ export default component$(() => {
         : videoElementSignal.value?.play();
 
     videoPlayButtonSignal.value?.addEventListener('click', play);
-    return () =>
-      videoPlayButtonSignal.value?.removeEventListener('click', play);
+    return () => videoPlayButtonSignal.value?.removeEventListener('click', play);
   });
 
   return (

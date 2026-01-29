@@ -46,7 +46,7 @@ export default component$(() => {
       <Tabs.List>
         <Tabs.Tab
           tabId="pnpm"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'pnpm' ? activeClass : ''}`}
+          class={`rounded-md px-4 pt-2 ${globalStore.pkgManager === 'pnpm' ? activeClass : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <PnpmIcon />
@@ -55,7 +55,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="npm"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'npm' ? activeClass : ''}`}
+          class={`rounded-md px-4 pt-2 ${globalStore.pkgManager === 'npm' ? activeClass : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <NpmIcon />
@@ -64,7 +64,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="yarn"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'yarn' ? activeClass : ''}`}
+          class={`rounded-md px-4 pt-2 ${globalStore.pkgManager === 'yarn' ? activeClass : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <YarnIcon />
@@ -73,7 +73,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="bun"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'bun' ? activeClass : ''}`}
+          class={`rounded-md px-4 pt-2 ${globalStore.pkgManager === 'bun' ? activeClass : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <BunIcon />
@@ -123,15 +123,15 @@ const CopyButton = component$(() => {
   return (
     <button
       onClick$={copyToClipboard$}
-      class="px-5 rounded-sm absolute right-0 top-0 text-white h-full group"
+      class="group absolute top-0 right-0 h-full rounded-sm px-5 text-white"
       aria-label={isClickedSig.value ? 'Copied to clipboard' : 'Copy to clipboard'}
       title={isClickedSig.value ? 'Copied!' : 'Copy to clipboard'}
     >
       {isClickedSig.value ? (
-        <CheckIcon class="w-6 h-6" aria-hidden="true" />
+        <CheckIcon class="h-6 w-6" aria-hidden="true" />
       ) : (
         <CopyIcon
-          class="w-6 h-6 transition duration-300 ease group-hover:opacity-100 text-white opacity-50"
+          class="ease h-6 w-6 text-white opacity-50 transition duration-300 group-hover:opacity-100"
           aria-hidden="true"
         />
       )}

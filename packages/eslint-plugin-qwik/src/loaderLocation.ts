@@ -105,7 +105,7 @@ If you understand this, you can disable this warning with:
           });
           return;
         }
-        if (!/^use/.test(variableDeclarator.id.name)) {
+        if (!variableDeclarator.id.name.startsWith('use')) {
           const fixed =
             'use' +
             variableDeclarator.id.name[0].toUpperCase() +
@@ -152,8 +152,8 @@ If you understand this, you can disable this warning with:
 export function normalizePath(path: string) {
   // MIT https://github.com/sindresorhus/slash/blob/main/license
   // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
-  const isExtendedLengthPath = /^\\\\\?\\/.test(path);
-  const hasNonAscii = /[^\u0000-\u0080]+/.test(path); // eslint-disable-line no-control-regex
+  const isExtendedLengthPath = path.startsWith('\\\\?\\');
+  const hasNonAscii = /[^\u0000-\u0080]+/.test(path);
 
   if (isExtendedLengthPath || hasNonAscii) {
     return path;

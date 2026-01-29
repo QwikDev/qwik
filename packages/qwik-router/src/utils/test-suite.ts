@@ -1,4 +1,3 @@
-/* eslint-disable no-empty-pattern */
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -49,7 +49,7 @@ export default component$(() => {
           <div
             key={item.id}
             data-id={item.id}
-            class="min-h-[62px] mb-3 cursor-move select-none rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-md active:scale-95"
+            class="mb-3 min-h-[62px] cursor-move rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 select-none hover:-translate-y-1 hover:shadow-md active:scale-95"
             draggable
             onDragStart$={sync$((e, currentTarget) => {
               const itemId = currentTarget.getAttribute('data-id');
@@ -97,7 +97,7 @@ export default component$(() => {
           <div
             key={item.id}
             data-id={item.id}
-            class="min-h-[62px] mb-3 cursor-move select-none rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-md active:scale-95"
+            class="mb-3 min-h-[62px] cursor-move rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 select-none hover:-translate-y-1 hover:shadow-md active:scale-95"
             draggable
             onDragStart$={sync$((e, currentTarget) => {
               const itemId = currentTarget.getAttribute('data-id');

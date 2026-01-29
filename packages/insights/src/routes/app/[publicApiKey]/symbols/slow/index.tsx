@@ -48,19 +48,19 @@ export default component$(() => {
       <table>
         <thead class="text-xs text-slate-700 uppercase">
           <tr class="border-b border-slate-200">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Manifest
             </th>
             <th scope="col" class="px-6 py-3">
               Symbol
             </th>
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Count
             </th>
             <th scope="col" class="px-6 py-3">
               Latency
             </th>
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Histogram
             </th>
           </tr>
@@ -70,16 +70,16 @@ export default component$(() => {
             const detail = data.value.detailsMap[edge.to];
             return (
               <tr key={edge.to} class="border-b border-slate-200 text-xs">
-                <td class="px-6 py-3 bg-slate-50 font-bold">{edge.manifestHash}</td>
+                <td class="bg-slate-50 px-6 py-3 font-bold">{edge.manifestHash}</td>
                 <td class="px-6 py-3">
                   <span class="font-bold">
                     <SymbolTile symbol={edge.to} />
                   </span>
                   <span class="block text-slate-500">{detail?.fullName}</span>
                 </td>
-                <td class="px-6 py-3 bg-slate-50">{vectorSum(edge.latency)}</td>
+                <td class="bg-slate-50 px-6 py-3">{vectorSum(edge.latency)}</td>
                 <td class="px-6 py-2">{Math.round(vectorAvg(edge.latency))}ms</td>
-                <td class="px-6 py-3 bg-slate-50">
+                <td class="bg-slate-50 px-6 py-3">
                   <Histogram vector={edge.latency} colors={latencyColors} buckets={BUCKETS} />
                 </td>
               </tr>

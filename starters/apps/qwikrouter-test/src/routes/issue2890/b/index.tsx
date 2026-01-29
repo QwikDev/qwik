@@ -1,5 +1,5 @@
-import { routeLoader$ } from "@qwik.dev/router";
-import { component$, useSignal, useVisibleTask$ } from "@qwik.dev/core";
+import { routeLoader$ } from '@qwik.dev/router';
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 
 export const useUndefined = routeLoader$(() => {
   return undefined;
@@ -7,8 +7,8 @@ export const useUndefined = routeLoader$(() => {
 
 export const useGetQuery = routeLoader$(({ query }) => {
   return {
-    query: query.get("query") ?? "NONE",
-    hash: query.get("hash") ?? "NONE",
+    query: query.get('query') ?? 'NONE',
+    hash: query.get('hash') ?? 'NONE',
   };
 });
 
@@ -20,7 +20,7 @@ export default component$(() => {
   useVisibleTask$(() => {
     const url = new URL(window.location.href);
     signal.value = {
-      query: url.searchParams.get("query") ?? "NONE",
+      query: url.searchParams.get('query') ?? 'NONE',
       hash: url.hash,
     };
   });

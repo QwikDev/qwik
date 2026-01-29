@@ -1,0 +1,33 @@
+# Prettier handles non-JS/TS files
+**/*.json
+**/*.yaml
+**/*.yml
+**/*.md
+**/*.mdx
+**/*.css
+**/*.html
+
+# Existing ignore patterns from .prettierignore
+**/**.api.md
+**/*.log
+**/.DS_Store
+pnpm-lock.yaml
+dist
+dist-dev
+lib
+target
+node_modules
+tsconfig.tsbuildinfo
+packages/docs/public/repl/repl-sw.js*
+packages/*/lib
+packages/*/dist
+packages/*/server
+packages/docs/src/routes/api
+packages/insights/drizzle
+packages/insights/.netlify
+packages/insights/scripts
+packages/insights/**/*.gen.d.ts
+packages/qwik-labs/lib-types
+packages/qwik-labs/vite
+**/q-insights.json
+packages/docs/public/builder

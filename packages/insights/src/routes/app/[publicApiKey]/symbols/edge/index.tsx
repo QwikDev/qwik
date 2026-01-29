@@ -42,7 +42,7 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
     <>
       {depth === 0 && (
         <div>
-          <span class="bg-purple-500 text-white px-4 py-1 text-xs rounded-full whitespace-nowrap">
+          <span class="rounded-full bg-purple-500 px-4 py-1 text-xs whitespace-nowrap text-white">
             App
           </span>
         </div>
@@ -50,18 +50,18 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
 
       {symbol.count > 0 && (
         <div class="whitespace-nowrap">
-          <span class="bg-white inline-block py-1 min-w-[120px] text-xs text-center rounded-full whitespace-nowrap">
+          <span class="inline-block min-w-[120px] rounded-full bg-white py-1 text-center text-xs whitespace-nowrap">
             {count} / {symbol.count}
           </span>
-          <code class="text-xs ml-3 whitespace-nowrap">
+          <code class="ml-3 text-xs whitespace-nowrap">
             <span class="font-bold">{(symbol.name as string | undefined) ?? 'n/A'}</span>
-            <span class="text-purple-500 mx-2">|</span>
+            <span class="mx-2 text-purple-500">|</span>
             {symbol.fullName ?? 'n/A'}
-            <span class="text-purple-500 mx-2">|</span>
+            <span class="mx-2 text-purple-500">|</span>
             {symbol.fileSrc || 'n/A'}
-            <span class="text-purple-500 mx-2">|</span>
+            <span class="mx-2 text-purple-500">|</span>
             Depth:{' '}
-            <span class="bg-slate-200 inline-block py-[2px] px-2 text-xs text-center rounded-full">
+            <span class="inline-block rounded-full bg-slate-200 px-2 py-[2px] text-center text-xs">
               {symbol.depth}
             </span>
           </code>
@@ -72,7 +72,7 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
           {symbol.children.map((edge) => (
             <li
               key={edge.to.name}
-              class="relative pt-2 pl-14 before:absolute before:top-[1px] before:left-6 before:border-l before:border-l-slate-400 before:border-dashed before:h-full before:w-[1px] last:before:h-[19px] after:absolute after:top-5 after:left-6 after:border-t after:border-t-slate-400 after:border-dashed after:h-[1px] after:w-6"
+              class="relative pt-2 pl-14 before:absolute before:top-[1px] before:left-6 before:h-full before:w-[1px] before:border-l before:border-dashed before:border-l-slate-400 after:absolute after:top-5 after:left-6 after:h-[1px] after:w-6 after:border-t after:border-dashed after:border-t-slate-400 last:before:h-[19px]"
             >
               <SymbolTree symbol={edge.to} depth={nextDepth} count={edge.count} />
             </li>

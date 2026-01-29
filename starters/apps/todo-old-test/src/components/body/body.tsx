@@ -1,6 +1,6 @@
-import { component$ } from "@qwik.dev/core";
-import { FILTERS, Todos } from "../../state/state";
-import { Item } from "../item/item";
+import { component$ } from '@qwik.dev/core';
+import { FILTERS, Todos } from '../../state/state';
+import { Item } from '../item/item';
 
 interface BodyProps {
   todos: Todos;

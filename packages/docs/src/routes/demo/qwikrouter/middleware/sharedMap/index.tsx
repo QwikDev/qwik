@@ -1,8 +1,4 @@
-import {
-  routeLoader$,
-  type Cookie,
-  type RequestHandler,
-} from '@qwik.dev/router';
+import { routeLoader$, type Cookie, type RequestHandler } from '@qwik.dev/router';
 import { component$ } from '@qwik.dev/core';
 
 interface User {
@@ -10,11 +6,7 @@ interface User {
   email: string;
 }
 
-export const onRequest: RequestHandler = async ({
-  sharedMap,
-  cookie,
-  send,
-}) => {
+export const onRequest: RequestHandler = async ({ sharedMap, cookie, send }) => {
   const user = loadUserFromCookie(cookie);
   if (user) {
     sharedMap.set('user', user);

@@ -25,16 +25,16 @@ export default component$(() => {
         <ErrorIcon />
         Errors
       </h1>
-      <table class="w-full text-sm text-left">
+      <table class="w-full text-left text-sm">
         <thead class="text-xs text-slate-700 uppercase">
           <tr class="border-b border-slate-200">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Timestamp
             </th>
             <th scope="col" class="px-6 py-3">
               URL
             </th>
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Message
             </th>
           </tr>
@@ -46,15 +46,15 @@ export default component$(() => {
               onPopup$={(e: PopupEvent) => e.detail.show(Popup, error)}
               class="border-b border-slate-200 text-xs"
             >
-              <td scope="col" class="px-6 py-3 bg-slate-50 whitespace-nowrap">
+              <td scope="col" class="bg-slate-50 px-6 py-3 whitespace-nowrap">
                 {new Date(error.timestamp).toLocaleString()}
               </td>
-              <td scope="col" class="px-6 py-3 max-w-lg break-words">
+              <td scope="col" class="max-w-lg px-6 py-3 break-words">
                 <a href={error.url} target="_blank">
                   {error.url}
                 </a>
               </td>
-              <td scope="col" class="px-6 py-3 bg-slate-50">
+              <td scope="col" class="bg-slate-50 px-6 py-3">
                 {error.message}
               </td>
             </tr>
@@ -76,10 +76,10 @@ export const Popup = component$<{
   return (
     <div class="max-w-[75vw] min-w-[300px] overflow-scroll">
       <h2 class="h5 px-6 py-3">Details</h2>
-      <table class="w-full text-sm text-left mb-6">
+      <table class="mb-6 w-full text-left text-sm">
         <tbody>
           <tr class="border-y border-slate-200 text-xs">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Timestamp
             </th>
             <td scope="col" class="px-6 py-3">
@@ -87,7 +87,7 @@ export const Popup = component$<{
             </td>
           </tr>
           <tr class="border-b border-slate-200 text-xs">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               URL
             </th>
             <td scope="col" class="px-6 py-3">
@@ -95,7 +95,7 @@ export const Popup = component$<{
             </td>
           </tr>
           <tr class="border-b border-slate-200 text-xs">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Manifest
             </th>
             <td scope="col" class="px-6 py-3">
@@ -103,7 +103,7 @@ export const Popup = component$<{
             </td>
           </tr>
           <tr class="border-b border-slate-200 text-xs">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Message
             </th>
             <td scope="col" class="px-6 py-3">
@@ -111,7 +111,7 @@ export const Popup = component$<{
             </td>
           </tr>
           <tr class="border-b border-slate-200 text-xs">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Error
             </th>
             <td scope="col" class="px-6 py-3">
@@ -119,7 +119,7 @@ export const Popup = component$<{
             </td>
           </tr>
           <tr class="border-b border-slate-200 text-xs">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Stack
             </th>
             <td scope="col" class="px-6 py-3">

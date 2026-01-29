@@ -1,6 +1,6 @@
-import type { RequestHandler } from "@qwik.dev/router";
+import type { RequestHandler } from '@qwik.dev/router';
 
 export const onRequest: RequestHandler<void> = async (onRequestArgs) => {
   const { headers } = onRequestArgs;
-  headers.set("x-qwikrouter-test", "issue4531");
+  headers.set('x-qwikrouter-test', 'issue4531');
 };

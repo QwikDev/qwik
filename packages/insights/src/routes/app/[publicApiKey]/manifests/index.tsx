@@ -22,22 +22,22 @@ export default component$(() => {
         <ManifestIcon />
         Manifests
       </h1>
-      <table class="w-full text-sm text-left">
+      <table class="w-full text-left text-sm">
         <thead class="text-xs text-slate-700 uppercase">
           <tr class="border-b border-slate-200">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Manifest
             </th>
             <th scope="col" class="px-6 py-3">
               Timestamp
             </th>
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Samples
             </th>
             <th scope="col" class="px-6 py-3">
               Avg. Latency
             </th>
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Histogram
             </th>
           </tr>
@@ -45,19 +45,19 @@ export default component$(() => {
         <tbody>
           {data.value.map((row) => (
             <tr key={row.hash} class="border-b border-slate-200 text-xs">
-              <th scope="col" class="px-6 py-3 bg-slate-50">
+              <th scope="col" class="bg-slate-50 px-6 py-3">
                 <ManifestTile hash={row.hash} />
               </th>
               <td scope="col" class="px-6 py-3">
                 {row.timestamp.toLocaleString()}
               </td>
-              <td scope="col" class="px-6 py-3 bg-slate-50">
+              <td scope="col" class="bg-slate-50 px-6 py-3">
                 {vectorSum(row.latency)}
               </td>
               <td scope="col" class="px-6 py-3">
                 {Math.round(vectorAvg(row.latency))}
               </td>
-              <td scope="col" class="px-6 py-3 bg-slate-50">
+              <td scope="col" class="bg-slate-50 px-6 py-3">
                 <Histogram vector={row.latency} colors={latencyColors} buckets={BUCKETS} />
               </td>
             </tr>

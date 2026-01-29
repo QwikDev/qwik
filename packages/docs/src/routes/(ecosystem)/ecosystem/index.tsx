@@ -30,7 +30,7 @@ export default component$(() => {
 
   return (
     <>
-      <div class="ecosystem lg:grid grid-cols-[240px,1fr] m-auto max-w-screen-xl gap-8 custom-grid-cols-240px-1fr-tailwind-workaround">
+      <div class="ecosystem custom-grid-cols-240px-1fr-tailwind-workaround m-auto max-w-screen-xl grid-cols-[240px,1fr] gap-8 lg:grid">
         <EcosystemMenu />
         <MobileEcosystemMenu />
 
@@ -44,7 +44,7 @@ export default component$(() => {
             <h2>
               <Link href="/docs/deployments/">Deployments</Link>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-3">
               {data.deployments.map((item, i) => (
                 <GridItem
                   title={item.title}
@@ -72,7 +72,7 @@ export default component$(() => {
                 </Link>
               </span>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-3">
               {data.integrations.map((item, i) => (
                 <GridItem
                   title={item.title}
@@ -94,7 +94,7 @@ export default component$(() => {
               <span>Libraries</span>
               <span></span>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-3">
               {data.libraries.map((item, i) => (
                 <LibraryGridItem
                   title={item.title}
@@ -115,10 +115,7 @@ export default component$(() => {
             <h2>Newsletter</h2>
             <a href="https://qwiknewsletter.com" target="_blank">
               <div class="flex flex-col items-center gap-8">
-                <div
-                  class="flex justify-center p-4 w-full bg-[--qwik-dark-purple]
-        bg-gradient-to-r from-[--qwik-dark-purple-bg] via-purple-500 to-[--qwik-dark-purple-bg]"
-                >
+                <div class="flex w-full justify-center bg-[--qwik-dark-purple] bg-gradient-to-r from-[--qwik-dark-purple-bg] via-purple-500 to-[--qwik-dark-purple-bg] p-4">
                   <ImgQwikNewsletter />
                 </div>
                 <div class="text-2xl font-bold">Qwikly Newsletter - Weekly news about Qwik</div>
@@ -137,7 +134,7 @@ export default component$(() => {
                 </Link>
               </span>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-3">
               {courses.map((item, i) => (
                 <GridItem
                   title={item.title}
@@ -169,7 +166,7 @@ export default component$(() => {
                 </a>
               </span>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-3">
               {videos.map((item, i) => (
                 <GridItem
                   title={item.title}
@@ -194,7 +191,7 @@ export default component$(() => {
                 </Link>
               </span>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-3">
               {podcasts.map((item, i) => (
                 <GridItem
                   title={item.title}
@@ -223,7 +220,7 @@ export default component$(() => {
                 </Link>
               </span>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-3">
               {showcaseSites.map((item, i) => (
                 <GridItem
                   title={item.title}
@@ -248,7 +245,7 @@ export default component$(() => {
                 </Link>
               </span>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-3">
               {presentations.map((item, i) => (
                 <GridItem
                   title={item.title}
@@ -270,7 +267,7 @@ export default component$(() => {
             <h2>
               <Link href="/community/groups/">Community</Link>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-4">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-4">
               {data.communities.map((item, i) => (
                 <GridItem title={item.title} href={item.href} imgSrc={item.imgSrc} key={i} />
               ))}
@@ -280,7 +277,7 @@ export default component$(() => {
               <p>Interested in starting a local Qwik community as well?</p>
               <p>
                 <a
-                  class="text-blue-600 font-bold"
+                  class="font-bold text-blue-600"
                   href="https://forms.gle/S1rxiKiVdhZqkk8RA"
                   target="_blank"
                 >
@@ -295,7 +292,7 @@ export default component$(() => {
             <h2>
               <Link href="/community/groups/">Social</Link>
             </h2>
-            <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
+            <ul class="grid grid-cols-2 gap-8 md:grid-cols-3">
               {data.social.map((item, i) => (
                 <GridItem title={item.title} href={item.href} imgSrc={item.imgSrc} key={i} />
               ))}

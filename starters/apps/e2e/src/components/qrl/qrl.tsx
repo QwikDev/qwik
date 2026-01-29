@@ -1,4 +1,4 @@
-import { $, component$, useComputed$, useSignal } from "@qwik.dev/core";
+import { $, component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export const QRL = component$(() => {
   return (

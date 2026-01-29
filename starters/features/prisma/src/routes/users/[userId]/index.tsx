@@ -1,9 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { routeLoader$ } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
+import { PrismaClient } from '@prisma/client';
+import { routeLoader$ } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
 
 export const useGetUser = routeLoader$(async ({ params, status }) => {
-  const userId = parseInt(params["userId"], 10);
+  const userId = parseInt(params['userId'], 10);
   const prisma = new PrismaClient();
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {

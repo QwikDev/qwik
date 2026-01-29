@@ -1,5 +1,5 @@
-import { component$, useSignal } from "@qwik.dev/core";
-import Dynamic1 from "./dynamic1";
+import { component$, useSignal } from '@qwik.dev/core';
+import Dynamic1 from './dynamic1';
 
 export default component$(() => {
   const showDynamic = useSignal(false);
@@ -22,7 +22,7 @@ SHOW DYNAMIC CLICKED
 ************************************************
 ************************************************
 ************************************************
-`,
+`
           );
         }}
       >

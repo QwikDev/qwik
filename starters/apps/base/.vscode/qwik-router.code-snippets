@@ -3,11 +3,7 @@
     "scope": "javascriptreact,typescriptreact",
     "prefix": "qonRequest",
     "description": "onRequest function for a route index",
-    "body": [
-      "export const onRequest: RequestHandler = (request) => {",
-      "  $0",
-      "};",
-    ],
+    "body": ["export const onRequest: RequestHandler = (request) => {", "  $0", "};"],
   },
   "loader$": {
     "scope": "javascriptreact,typescriptreact",

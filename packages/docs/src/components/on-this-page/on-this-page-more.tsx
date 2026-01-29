@@ -44,7 +44,7 @@ export const OnThisPageMore = component$<OnThisPageMoreProps>(({ editUrl }) => {
         {OnThisPageMore.map((el, index) => {
           return (
             <li
-              class="hover:bg-(--on-this-page-hover-bg-color) rounded-lg"
+              class="rounded-lg hover:bg-(--on-this-page-hover-bg-color)"
               key={`more-items-on-this-page-${index}`}
             >
               <a class="more-item" href={el.href} rel="noopener" target="_blank">

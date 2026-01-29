@@ -482,7 +482,7 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?
           />
           <div class="flex flex-col">
             <p class="line-clamp-2">{props.entry.title}</p>
-            <p class={`text-gray-400 text-xs`}>by {props.entry.author}</p>
+            <p class={`text-xs text-gray-400`}>by {props.entry.author}</p>
           </div>
         </div>
       </a>

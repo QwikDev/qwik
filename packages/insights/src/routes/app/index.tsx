@@ -43,7 +43,7 @@ export default component$(() => {
           Filter:
           <input
             type="text"
-            class="border border-gray-300 rounded-md px-4 py-2 w-1/2 ml-5"
+            class="ml-5 w-1/2 rounded-md border border-gray-300 px-4 py-2"
             onInput$={(_e, target) => (filter.value = target.value.toLocaleLowerCase())}
           />
         </div>

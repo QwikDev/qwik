@@ -16,9 +16,7 @@ export const Collapsible = component$(() => {
 
 export default component$(() => {
   const title = useSignal('Qwik');
-  const description = useSignal(
-    'A resumable framework for building instant web applications'
-  );
+  const description = useSignal('A resumable framework for building instant web applications');
   return (
     <>
       <label>Title</label>

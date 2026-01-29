@@ -1,5 +1,5 @@
-import { component$ } from "@qwik.dev/core";
-import { Link } from "@qwik.dev/router";
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 
 export default component$(() => {
   return (

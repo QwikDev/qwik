@@ -1,16 +1,14 @@
-import { Form, routeAction$, routeLoader$ } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
+import { Form, routeAction$, routeLoader$ } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
 
-export const useLoader = routeLoader$(
-  ({ query }) => `${query.has("redirected")}`,
-);
+export const useLoader = routeLoader$(({ query }) => `${query.has('redirected')}`);
 
 export const useAction = routeAction$((_, { redirect, url }) => {
   const dest = new URL(url.pathname, url);
 
-  dest.search = new URLSearchParams([["redirected", "true"]]).toString();
+  dest.search = new URLSearchParams([['redirected', 'true']]).toString();
 
-  throw redirect(302, dest.href.replace(dest.origin, ""));
+  throw redirect(302, dest.href.replace(dest.origin, ''));
 });
 
 export default component$(() => {

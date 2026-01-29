@@ -1,5 +1,5 @@
-import { component$, useStylesScoped$ } from "@qwik.dev/core";
-import { Link } from "@qwik.dev/router";
+import { component$, useStylesScoped$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 
 export default component$(() => {
   useStylesScoped$(`
@@ -18,11 +18,7 @@ export default component$(() => {
         To Hash 1
       </Link>
       <div class="spacer" />
-      <Link
-        id="no-hash"
-        class="hash-link"
-        href="/qwikrouter-test/scroll-restoration/hash/"
-      >
+      <Link id="no-hash" class="hash-link" href="/qwikrouter-test/scroll-restoration/hash/">
         To No Hash
       </Link>
     </div>

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "rules": {
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "curly": "error",
+    "no-new-func": "error",
+    "no-only-tests/no-only-tests": "error"
+  },
+  "settings": {
+    "jsdoc": {
+      "ignorePrivate": true,
+      "ignoreInternal": true
+    }
+  },
+  "overrides": [
+    {
+      "files": ["packages/docs/**/*.ts", "packages/docs/**/*.tsx"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "**/.history",
+    "**/dist",
+    "**/dist-dev",
+    "**/lib",
+    "**/node_modules",
+    "**/tsc-out",
+    "**/external",
+    "**/target",
+    "**/temp",
+    "scripts",
+    "**/server/**/*.js",
+    "packages/docs/api",
+    "packages/docs/public/repl/repl-sw.js*",
+    "packages/qwik/src/optimizer/core/src/fixtures",
+    "packages/qwik/bindings",
+    "packages/qwik-labs",
+    "packages/insights",
+    "**/eslint.config.mjs",
+    "**/eslint.config.js",
+    ".changeset",
+    "packages/docs/public/builder"
+  ]
+}

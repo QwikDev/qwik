@@ -1,11 +1,7 @@
-import { component$ } from "@qwik.dev/core";
-import {
-  DocumentHeadTags,
-  useDocumentHead,
-  useLocation,
-} from "@qwik.dev/router";
-import { Social } from "./social";
-import { Vendor } from "./vendor";
+import { component$ } from '@qwik.dev/core';
+import { DocumentHeadTags, useDocumentHead, useLocation } from '@qwik.dev/router';
+import { Social } from './social';
+import { Vendor } from './vendor';
 
 export const RouterHead = component$(() => {
   const loc = useLocation();

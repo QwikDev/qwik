@@ -80,7 +80,7 @@ export function normalizePathSlash(path: string) {
   // MIT https://github.com/sindresorhus/slash/blob/main/license
   // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
   const isExtendedLengthPath = path.startsWith('\\\\?\\');
-  const hasNonAscii = /[^\u0000-\u0080]+/.test(path); // eslint-disable-line no-control-regex
+  const hasNonAscii = /[^\u0000-\u0080]+/.test(path);
 
   if (isExtendedLengthPath || hasNonAscii) {
     return path;

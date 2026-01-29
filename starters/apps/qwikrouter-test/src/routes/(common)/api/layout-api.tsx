@@ -1,6 +1,6 @@
-import { component$, Slot, useStyles$ } from "@qwik.dev/core";
-import type { DocumentHead } from "@qwik.dev/router";
-import styles from "./layout-api.css?inline";
+import { component$, Slot, useStyles$ } from '@qwik.dev/core';
+import type { DocumentHead } from '@qwik.dev/router';
+import styles from './layout-api.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
@@ -11,10 +11,7 @@ export default component$(() => {
         <h2>API</h2>
         <ul>
           <li>
-            <a
-              href="/qwikrouter-test/api/builder.io/oss.json"
-              data-test-link="api-org-user"
-            >
+            <a href="/qwikrouter-test/api/builder.io/oss.json" data-test-link="api-org-user">
               Org/User
             </a>
           </li>

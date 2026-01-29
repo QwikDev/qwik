@@ -84,17 +84,17 @@ export const ThemeToggle = component$(() => {
     <>
       <button
         onClick$={toggleTheme$}
-        class="group relative flex h-8 m-auto items-center justify-center rounded-md bg-background text-foreground hover:opacity-60 sm:w-8 sm:px-0"
+        class="group bg-background text-foreground relative m-auto flex h-8 items-center justify-center rounded-md hover:opacity-60 sm:w-8 sm:px-0"
         type="button"
         title="Toggle theme - light, system, dark"
       >
-        <span class="inset-0 hidden sm:grid place-items-center transition-transform duration-200 ease-out group-hover:scale-110 group-active:scale-75">
+        <span class="inset-0 hidden place-items-center transition-transform duration-200 ease-out group-hover:scale-110 group-active:scale-75 sm:grid">
           <SunIcon class="themeIcon light col-start-1 row-start-1" />
           <MoonIcon class="themeIcon dark col-start-1 row-start-1" />
           <BrillianceIcon class="themeIcon auto col-start-1 row-start-1" />
         </span>
         {/* theme-name is provided by global.css */}
-        <span class="lg:hidden font-medium leading-none ">
+        <span class="leading-none font-medium lg:hidden">
           &nbsp;<span class="theme-name">&nbsp;Theme</span>
         </span>
       </button>

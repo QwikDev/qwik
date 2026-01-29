@@ -12,7 +12,7 @@ import {
   type FunctionComponent,
   type JSXNode,
   type Signal,
-} from "@qwik.dev/core";
+} from '@qwik.dev/core';
 
 export const SlotParent = component$(() => {
   const state = useStore({
@@ -47,9 +47,7 @@ export const SlotParent = component$(() => {
           </Projector>
 
           <Projector state={state} id="btn2">
-            {!state.removeContent && (
-              <span q:slot="start">START {state.count}</span>
-            )}
+            {!state.removeContent && <span q:slot="start">START {state.count}</span>}
           </Projector>
 
           <Thing state={state} id="btn3">
@@ -100,11 +98,7 @@ export const SlotParent = component$(() => {
         </button>
       </div>
       <div>
-        <button
-          id="btn-count"
-          class="border border-cyan-600"
-          onClick$={() => state.count++}
-        >
+        <button id="btn-count" class="border border-cyan-600" onClick$={() => state.count++}>
           Count
         </button>
       </div>
@@ -130,10 +124,7 @@ export const Issue1630 = component$(() => {
 
   return (
     <>
-      <button
-        id="toggle-child-slot"
-        onClick$={() => (store.open = !store.open)}
-      >
+      <button id="toggle-child-slot" onClick$={() => (store.open = !store.open)}>
         Toggle Non-Slotted Content
       </button>
       <Slot name="slot-content" />
@@ -216,14 +207,11 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
 
   return (
     <>
-      <button
-        id="issue-2688-button"
-        onClick$={() => (store.flip = !store.flip)}
-      >
+      <button id="issue-2688-button" onClick$={() => (store.flip = !store.flip)}>
         Toggle switch
       </button>
       <div id="issue-2688-result">
-        <Switch name={store.flip ? "b" : "a"}>
+        <Switch name={store.flip ? 'b' : 'a'}>
           <div q:slot="a">Alpha {count}</div>
           <div q:slot="b">Bravo {count}</div>
         </Switch>
@@ -232,9 +220,7 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
   );
 });
 
-const Issue2751Context = createContextId<Signal<number>>(
-  "CleanupCounterContext",
-);
+const Issue2751Context = createContextId<Signal<number>>('CleanupCounterContext');
 
 export const Issue2751 = component$(() => {
   const signal = useSignal(0);
@@ -288,17 +274,15 @@ export const Issue3565Model = component$(() => {
   );
 });
 
-export const Issue3565 = component$(
-  ({ model: Model }: { model: string | FunctionComponent }) => {
-    return (
-      <>
-        <Model>
-          <div>content projected</div>
-        </Model>
-      </>
-    );
-  },
-);
+export const Issue3565 = component$(({ model: Model }: { model: string | FunctionComponent }) => {
+  return (
+    <>
+      <Model>
+        <div>content projected</div>
+      </Model>
+    </>
+  );
+});
 
 export const Issue3607 = component$(() => {
   const show = useSignal(false);
@@ -309,7 +293,7 @@ export const Issue3607 = component$(() => {
         show.value = !show.value;
       }}
     >
-      {show.value ? "Loading..." : "Load more"}
+      {show.value ? 'Loading...' : 'Load more'}
     </Issue3607Button>
   );
 });
@@ -324,7 +308,7 @@ export const Issue3607Button = component$(({ onClick$ }: any) => {
   );
 });
 
-const CTX = createContextId<Signal<any[]>>("content-Issue3727");
+const CTX = createContextId<Signal<any[]>>('content-Issue3727');
 
 export const Issue3727 = component$(() => {
   const content = useSignal<any[]>([Issue3727ParentA, Issue3727ChildA]);
@@ -404,7 +388,7 @@ export const QwikSvgWithSlot = component$(() => {
       id="issue-4215-svg"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ width: "24px", height: "24px" }}
+      style={{ width: '24px', height: '24px' }}
     >
       <Slot />
     </svg>
@@ -448,8 +432,8 @@ export const HideUntilVisible = component$(() => {
       }
     },
     {
-      strategy: "document-ready",
-    },
+      strategy: 'document-ready',
+    }
   );
 
   // NOTE: if you comment the line below,
@@ -475,8 +459,7 @@ export const Issue4283 = component$(() => {
   );
 });
 
-export const Issue4658Context =
-  createContextId<Signal<boolean>>("issue-4658-context");
+export const Issue4658Context = createContextId<Signal<boolean>>('issue-4658-context');
 export const Issue4658Inner = component$(() => {
   const toggle = useContext(Issue4658Context);
   return (
@@ -484,11 +467,7 @@ export const Issue4658Inner = component$(() => {
       <main>
         <Slot />
       </main>
-      {toggle.value ? (
-        <h3 id="issue-4658-inner">CCC</h3>
-      ) : (
-        <h3 id="issue-4658-inner">DDD</h3>
-      )}
+      {toggle.value ? <h3 id="issue-4658-inner">CCC</h3> : <h3 id="issue-4658-inner">DDD</h3>}
     </>
   );
 });
@@ -499,11 +478,7 @@ export const Issue4658 = component$(() => {
   return (
     <>
       <Issue4658Inner>
-        {toggle.value ? (
-          <h1 id="issue-4658-top">AAA</h1>
-        ) : (
-          <h1 id="issue-4658-top">BBB</h1>
-        )}
+        {toggle.value ? <h1 id="issue-4658-top">AAA</h1> : <h1 id="issue-4658-top">BBB</h1>}
       </Issue4658Inner>
       <button
         id="issue-4658-toggle"
@@ -517,9 +492,9 @@ export const Issue4658 = component$(() => {
   );
 });
 
-const Issue5270Context = createContextId<{ hi: string }>("5270");
+const Issue5270Context = createContextId<{ hi: string }>('5270');
 export const ProviderParent = component$(() => {
-  useContextProvider(Issue5270Context, { hi: "hello" });
+  useContextProvider(Issue5270Context, { hi: 'hello' });
   const s = useSignal(false);
   return (
     <div>
@@ -536,7 +511,7 @@ const ContextChild = component$(() => {
   return <div id="issue-5270-div">Ctx: {t.hi}</div>;
 });
 export const Issue5270 = component$(() => {
-  useContextProvider(Issue5270Context, { hi: "wrong" });
+  useContextProvider(Issue5270Context, { hi: 'wrong' });
   return (
     <ProviderParent>
       <ContextChild />
@@ -564,25 +539,21 @@ export const SlotParent5506 = component$(() => <Slot />);
 
 // This breaks signal propagation, if you put this expression directly in the JSX prop it works
 function coerceBoolean(value: string) {
-  return value === "true";
+  return value === 'true';
 }
 
 export const Issue5506 = component$(() => {
-  const sig = useSignal("true");
+  const sig = useSignal('true');
   const render = useSignal(0);
   const onClick$ = $(() => {
-    const newValue = sig.value === "true" ? "false" : "true";
+    const newValue = sig.value === 'true' ? 'false' : 'true';
     sig.value = newValue;
   });
 
   return (
     <div id="issue-5506-div">
       <SlotParent5506 key={render.value}>
-        <Toggle5506
-          id="input-5506"
-          checked={coerceBoolean(sig.value)}
-          onClick$={onClick$}
-        />
+        <Toggle5506 id="input-5506" checked={coerceBoolean(sig.value)} onClick$={onClick$} />
         <br />
         <button onClick$={() => render.value++}>Rerender on client</button>
       </SlotParent5506>

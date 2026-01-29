@@ -95,14 +95,14 @@ export default component$(() => {
   });
 
   return (
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 h-[calc(100vh-400px)]">
+    <div class="grid h-[calc(100vh-400px)] grid-cols-1 gap-8 xl:grid-cols-2">
       {/* Left Column - Input with enhanced styling */}
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-gray-700 overflow-hidden flex flex-col">
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 px-6 py-4 border-b border-blue-100 dark:border-gray-600">
+      <div class="flex flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/80 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
+        <div class="border-b border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 dark:border-gray-600 dark:from-gray-700 dark:to-gray-600">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500">
               <svg
-                class="w-4 h-4 text-gray-900"
+                class="h-4 w-4 text-gray-900"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -121,24 +121,24 @@ export default component$(() => {
             </div>
           </div>
         </div>
-        <div class="p-6 flex-1 flex flex-col">
+        <div class="flex flex-1 flex-col p-6">
           <textarea
             bind:value={inputState}
             placeholder="Paste your state here..."
-            class="w-full flex-1 p-4 text-sm font-mono bg-gray-50/50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all duration-200 placeholder:text-gray-600 dark:placeholder:text-gray-400 placeholder:opacity-100 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+            class="w-full flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50/50 p-4 font-mono text-sm text-gray-900 transition-all duration-200 placeholder:text-gray-600 placeholder:opacity-100 hover:bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50 dark:text-white dark:placeholder:text-gray-400 dark:hover:bg-gray-700"
             spellcheck={false}
           />
         </div>
       </div>
 
       {/* Right Column - Output with enhanced styling */}
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-gray-700 overflow-hidden flex flex-col">
-        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-700 dark:to-gray-600 px-6 py-4 border-b border-green-100 dark:border-gray-600">
+      <div class="flex flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/80 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
+        <div class="border-b border-green-100 bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 dark:border-gray-600 dark:from-gray-700 dark:to-gray-600">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-500">
                 <svg
-                  class="w-4 h-4 text-gray-900"
+                  class="h-4 w-4 text-gray-900"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -159,9 +159,9 @@ export default component$(() => {
               </div>
             </div>
             {parsingTime.value !== null && (
-              <div class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-lg">
+              <div class="flex items-center gap-2 rounded-lg bg-green-100 px-3 py-1 dark:bg-green-900/30">
                 <svg
-                  class="w-4 h-4 text-green-600 dark:text-green-400"
+                  class="h-4 w-4 text-green-600 dark:text-green-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -182,8 +182,8 @@ export default component$(() => {
             )}
           </div>
         </div>
-        <div class="p-6 flex-1 code-output-container">
-          <div class="rounded-xl border border-gray-200 dark:border-gray-600 text-sm shadow-inner bg-gray-900 p-4">
+        <div class="code-output-container flex-1 p-6">
+          <div class="rounded-xl border border-gray-200 bg-gray-900 p-4 text-sm shadow-inner dark:border-gray-600">
             <pre>{parsedState.value}</pre>
           </div>
         </div>

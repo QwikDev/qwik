@@ -118,16 +118,16 @@ export default component$(() => {
         <SymbolIcon />
         Manifests
       </h1>
-      <table class="w-full text-sm text-left">
+      <table class="w-full text-left text-sm">
         <thead class="text-xs text-slate-700 uppercase">
           <tr class="border-b border-slate-200">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Delay
             </th>
             <th scope="col" class="px-6 py-3">
               Latency
             </th>
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Manifest
             </th>
           </tr>
@@ -136,21 +136,21 @@ export default component$(() => {
           {data.value.manifests.map((manifest, idx) => {
             return (
               <tr key={idx} class="border-b border-slate-200 text-xs">
-                <td scope="col" class="px-6 py-3 bg-slate-50 w-96">
+                <td scope="col" class="w-96 bg-slate-50 px-6 py-3">
                   <Histogram
                     vector={manifest.delay}
                     colors={delayColors}
                     buckets={data.value.buckets}
                   />
                 </td>
-                <td scope="col" class="px-6 py-3 w-96">
+                <td scope="col" class="w-96 px-6 py-3">
                   <Histogram
                     vector={manifest.latency}
                     colors={latencyColors}
                     buckets={data.value.buckets}
                   />
                 </td>
-                <td scope="col" class="px-6 py-3 bg-slate-50">
+                <td scope="col" class="bg-slate-50 px-6 py-3">
                   <code>
                     <ManifestIcon />
                     {manifest.hash}
@@ -166,16 +166,16 @@ export default component$(() => {
         <SymbolIcon />
         Symbols
       </h1>
-      <table class="w-full text-sm text-left">
+      <table class="w-full text-left text-sm">
         <thead class="text-xs text-slate-700 uppercase">
           <tr class="border-b border-slate-200">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Delay
             </th>
             <th scope="col" class="px-6 py-3">
               Latency
             </th>
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Symbol
             </th>
           </tr>
@@ -183,21 +183,21 @@ export default component$(() => {
         <tbody>
           {data.value.symbols.map((symbol) => (
             <tr key={symbol.hash} class="border-b border-slate-200 text-xs">
-              <td scope="col" class="px-6 py-3 bg-slate-50 w-96">
+              <td scope="col" class="w-96 bg-slate-50 px-6 py-3">
                 <Histogram
                   vector={symbol.delay}
                   buckets={data.value.buckets}
                   colors={delayColors}
                 />
               </td>
-              <td scope="col" class="px-6 py-3 w-96">
+              <td scope="col" class="w-96 px-6 py-3">
                 <Histogram
                   vector={symbol.latency}
                   colors={latencyColors}
                   buckets={data.value.buckets}
                 />
               </td>
-              <td scope="col" class="px-6 py-3 bg-slate-50">
+              <td scope="col" class="bg-slate-50 px-6 py-3">
                 <SymbolTile symbol={symbol.hash} />
                 <span class="block text-slate-500">
                   {symbol.origin}

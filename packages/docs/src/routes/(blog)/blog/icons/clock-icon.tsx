@@ -9,7 +9,7 @@ export const ClockIcon = () => (
     stroke-width="2"
     stroke-linecap="round"
     stroke-linejoin="round"
-    class="w-4 h-4 mr-1"
+    class="mr-1 h-4 w-4"
   >
     <circle cx="12" cy="12" r="10"></circle>
     <polyline points="12 6 12 12 16 14"></polyline>

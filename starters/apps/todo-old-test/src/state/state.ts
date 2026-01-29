@@ -14,9 +14,9 @@ export interface Todos {
   nextItemId: number;
 }
 
-export type FilterStates = "all" | "active" | "completed";
+export type FilterStates = 'all' | 'active' | 'completed';
 
-export const FilterStates: FilterStates[] = ["all", "active", "completed"];
+export const FilterStates: FilterStates[] = ['all', 'active', 'completed'];
 
 export const FILTERS = {
   all: () => true,

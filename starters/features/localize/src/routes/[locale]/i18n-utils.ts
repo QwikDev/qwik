@@ -1,14 +1,14 @@
-import { loadTranslations } from "@angular/localize";
-import "@angular/localize/init";
-import { $, getLocale, useOnDocument, withLocale } from "@qwik.dev/core";
-import type { RenderOptions } from "@qwik.dev/core/server";
+import { loadTranslations } from '@angular/localize';
+import '@angular/localize/init';
+import { $, getLocale, useOnDocument, withLocale } from '@qwik.dev/core';
+import type { RenderOptions } from '@qwik.dev/core/server';
 
 // You must declare all your locales here
-import EN from "../../locales/message.en.json";
-import IT from "../../locales/message.it.json";
+import EN from '../../locales/message.en.json';
+import IT from '../../locales/message.it.json';
 
 // Make sure it's obvious when the default locale was selected
-const DEFAULT_LOCALE = "en";
+const DEFAULT_LOCALE = 'en';
 
 /**
  * This file is left for the developer to customize to get the behavior they want for localization.
@@ -28,8 +28,8 @@ const $localizeFn = $localize as any as {
  */
 
 if (!$localizeFn.TRANSLATION_BY_LOCALE) {
-  $localizeFn.TRANSLATION_BY_LOCALE = new Map([["", {}]]);
-  Object.defineProperty($localize, "TRANSLATIONS", {
+  $localizeFn.TRANSLATION_BY_LOCALE = new Map([['', {}]]);
+  Object.defineProperty($localize, 'TRANSLATIONS', {
     get: function () {
       const locale = getLocale(DEFAULT_LOCALE);
       let translations = $localizeFn.TRANSLATION_BY_LOCALE.get(locale);
@@ -58,9 +58,7 @@ export function initTranslations() {
  * @returns The locale to use which will be stored in the `useEnvData('locale')`.
  */
 export function extractLang(locale: string): string {
-  return locale && $localizeFn.TRANSLATION_BY_LOCALE.has(locale)
-    ? locale
-    : DEFAULT_LOCALE;
+  return locale && $localizeFn.TRANSLATION_BY_LOCALE.has(locale) ? locale : DEFAULT_LOCALE;
 }
 
 /**
@@ -84,7 +82,7 @@ export function useI18n() {
   if (import.meta.env.DEV) {
     // During development only, load all translations in memory when the app starts on the client.
 
-    useOnDocument("qinit", $(initTranslations));
+    useOnDocument('qinit', $(initTranslations));
   }
 }
 

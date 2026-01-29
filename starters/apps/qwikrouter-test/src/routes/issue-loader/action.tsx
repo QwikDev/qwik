@@ -1,9 +1,9 @@
-import { Form, globalAction$ } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
+import { Form, globalAction$ } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
 
 export const useOtherAction = globalAction$(() => {
   return {
-    secret: "this is the secret",
+    secret: 'this is the secret',
     date: new Date(),
   };
 });

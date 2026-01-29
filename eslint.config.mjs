@@ -2,6 +2,7 @@ import globals from 'globals';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import noOnlyTests from 'eslint-plugin-no-only-tests';
+import oxlint from 'eslint-plugin-oxlint';
 import { globalIgnores } from 'eslint/config';
 // import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
 
@@ -56,6 +57,7 @@ export default tseslint.config(
   globalIgnores(ignores),
   js.configs.recommended,
   tseslint.configs.recommended,
+  oxlint.configs['flat/recommended'],
   // qwikEslint9Plugin.configs.recommended,
   {
     languageOptions: {

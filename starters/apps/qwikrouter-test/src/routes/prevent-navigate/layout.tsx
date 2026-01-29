@@ -1,5 +1,5 @@
-import { Slot, component$, useSignal } from "@qwik.dev/core";
-import { Link, useNavigate, usePreventNavigate$ } from "@qwik.dev/router";
+import { Slot, component$, useSignal } from '@qwik.dev/core';
+import { Link, useNavigate, usePreventNavigate$ } from '@qwik.dev/router';
 
 export default component$(() => {
   const okToNavigate = useSignal(true);
@@ -25,11 +25,8 @@ export default component$(() => {
   return (
     <div>
       <div id="pn-runcount">{runCount.value}</div>
-      <button
-        id="pn-button"
-        onClick$={() => (okToNavigate.value = !okToNavigate.value)}
-      >
-        is {!okToNavigate.value ? "dirty" : "clean"}
+      <button id="pn-button" onClick$={() => (okToNavigate.value = !okToNavigate.value)}>
+        is {!okToNavigate.value ? 'dirty' : 'clean'}
       </button>
       <br />
       <Link id="pn-link" href="/qwikrouter-test/">

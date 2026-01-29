@@ -9,65 +9,65 @@ import {
   useContextProvider,
   untrack,
   type PropsOf,
-} from "@qwik.dev/core";
+} from '@qwik.dev/core';
 
 type Item = { id: number; label: string; selected: boolean };
 
 let idCounter = 1;
 const adjectives = [
-    "pretty",
-    "large",
-    "big",
-    "small",
-    "tall",
-    "short",
-    "long",
-    "handsome",
-    "plain",
-    "quaint",
-    "clean",
-    "elegant",
-    "easy",
-    "angry",
-    "crazy",
-    "helpful",
-    "mushy",
-    "odd",
-    "unsightly",
-    "adorable",
-    "important",
-    "inexpensive",
-    "cheap",
-    "expensive",
-    "fancy",
+    'pretty',
+    'large',
+    'big',
+    'small',
+    'tall',
+    'short',
+    'long',
+    'handsome',
+    'plain',
+    'quaint',
+    'clean',
+    'elegant',
+    'easy',
+    'angry',
+    'crazy',
+    'helpful',
+    'mushy',
+    'odd',
+    'unsightly',
+    'adorable',
+    'important',
+    'inexpensive',
+    'cheap',
+    'expensive',
+    'fancy',
   ],
   colours = [
-    "red",
-    "yellow",
-    "blue",
-    "green",
-    "pink",
-    "brown",
-    "purple",
-    "brown",
-    "white",
-    "black",
-    "orange",
+    'red',
+    'yellow',
+    'blue',
+    'green',
+    'pink',
+    'brown',
+    'purple',
+    'brown',
+    'white',
+    'black',
+    'orange',
   ],
   nouns = [
-    "table",
-    "chair",
-    "house",
-    "bbq",
-    "desk",
-    "car",
-    "pony",
-    "cookie",
-    "sandwich",
-    "burger",
-    "pizza",
-    "mouse",
-    "keyboard",
+    'table',
+    'chair',
+    'house',
+    'bbq',
+    'desk',
+    'car',
+    'pony',
+    'cookie',
+    'sandwich',
+    'burger',
+    'pizza',
+    'mouse',
+    'keyboard',
   ];
 
 function _random(max: number) {
@@ -95,9 +95,9 @@ const helpers = createContextId<{
   swap$: () => void;
   select$: (item: Item) => void;
   delete$: (item: Item) => void;
-}>("h");
+}>('h');
 
-const Button: FunctionComponent<PropsOf<"button">> = (props) => (
+const Button: FunctionComponent<PropsOf<'button'>> = (props) => (
   <div class="col-sm-6 smallpad">
     <button type="button" class="btn btn-primary btn-block" {...props} />
   </div>
@@ -108,7 +108,7 @@ const Row = component$<{
 }>(({ item }) => {
   const { select$, delete$ } = useContext(helpers);
   return (
-    <tr class={item.selected ? "danger" : ""}>
+    <tr class={item.selected ? 'danger' : ''}>
       <td class="col-md-1">{item.id}</td>
       <td class="col-md-4">
         <a onClick$={() => select$(item)}>{item.label}</a>
@@ -126,7 +126,7 @@ const Row = component$<{
 const Table = component$<{
   data: Item[];
 }>(({ data }) => (
-  <table class="table table-hover table-striped test-data">
+  <table class="table-hover table-striped test-data table">
     <tbody>
       {data.map((item) => (
         <Row key={item.id} item={item} />
@@ -176,7 +176,7 @@ export default component$(() => {
     }),
     update$: $(() => {
       for (let i = 0, d = state.data, len = d.length; i < len; i += 10) {
-        d[i].label += " !!!";
+        d[i].label += ' !!!';
       }
     }),
     add$: $(() => state.data.push(...buildData(1000))),

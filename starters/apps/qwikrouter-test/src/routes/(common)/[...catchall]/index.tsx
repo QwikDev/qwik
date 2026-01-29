@@ -1,9 +1,5 @@
-import { component$ } from "@qwik.dev/core";
-import {
-  type DocumentHead,
-  type RequestHandler,
-  useLocation,
-} from "@qwik.dev/router";
+import { component$ } from '@qwik.dev/core';
+import { type DocumentHead, type RequestHandler, useLocation } from '@qwik.dev/router';
 
 export default component$(() => {
   const loc = useLocation();
@@ -24,20 +20,16 @@ export default component$(() => {
 
 export const head: DocumentHead = () => {
   return {
-    title: "Catch All",
+    title: 'Catch All',
   };
 };
 
-export const onGet: RequestHandler = ({
-  error,
-  url,
-  exit: exitMiddlewares,
-}) => {
-  if (url.pathname === "/qwikrouter-test/catchall-error/") {
-    throw error(500, "ERROR: Demonstration of an error response.");
+export const onGet: RequestHandler = ({ error, url, exit: exitMiddlewares }) => {
+  if (url.pathname === '/qwikrouter-test/catchall-error/') {
+    throw error(500, 'ERROR: Demonstration of an error response.');
   }
 
-  if (url.pathname === "/qwikrouter-test/catchall/") {
+  if (url.pathname === '/qwikrouter-test/catchall/') {
     // special case catchall
     return;
   }

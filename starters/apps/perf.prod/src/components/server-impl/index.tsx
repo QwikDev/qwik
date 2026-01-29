@@ -5,11 +5,63 @@ import {
   useSignal,
   type QRL,
   type Signal,
-} from "@qwik.dev/core";
+} from '@qwik.dev/core';
 
-const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
-const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore
-const nouns = ["table", "chair", "house", "bbq", "desk", "car", "pony", "cookie", "sandwich", "burger", "pizza", "mouse", "keyboard"]; // prettier-ignore
+const adjectives = [
+  'pretty',
+  'large',
+  'big',
+  'small',
+  'tall',
+  'short',
+  'long',
+  'handsome',
+  'plain',
+  'quaint',
+  'clean',
+  'elegant',
+  'easy',
+  'angry',
+  'crazy',
+  'helpful',
+  'mushy',
+  'odd',
+  'unsightly',
+  'adorable',
+  'important',
+  'inexpensive',
+  'cheap',
+  'expensive',
+  'fancy',
+]; // prettier-ignore
+const colors = [
+  'red',
+  'yellow',
+  'blue',
+  'green',
+  'pink',
+  'brown',
+  'purple',
+  'brown',
+  'white',
+  'black',
+  'orange',
+]; // prettier-ignore
+const nouns = [
+  'table',
+  'chair',
+  'house',
+  'bbq',
+  'desk',
+  'car',
+  'pony',
+  'cookie',
+  'sandwich',
+  'burger',
+  'pizza',
+  'mouse',
+  'keyboard',
+]; // prettier-ignore
 
 const random = (max: number) => Math.round(Math.random() * 1000) % max;
 
@@ -24,7 +76,7 @@ const buildData = (count: number) => {
   const data = new Array(count);
   for (let i = 0; i < count; i++) {
     const label = createSignal(
-      `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`,
+      `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`
     );
     data[i] = createSignal({ id: nextId++, label });
   }
@@ -40,12 +92,7 @@ type ButtonProps = {
 const Button = component$<ButtonProps>(({ id, text, click$ }) => {
   return (
     <div class="col-sm-6 smallpad">
-      <button
-        id={id}
-        class="btn btn-primary btn-block"
-        type="button"
-        onClick$={click$}
-      >
+      <button id={id} class="btn btn-primary btn-block" type="button" onClick$={click$}>
         {text}
       </button>
     </div>
@@ -78,29 +125,19 @@ export default component$(() => {
               <Button
                 id="add"
                 text="Append 1,000 rows"
-                click$={() =>
-                  (data.value = [...data.value, ...buildData(1_000)])
-                }
+                click$={() => (data.value = [...data.value, ...buildData(1_000)])}
               />
               <Button
                 id="update"
                 text="Update every 10th row"
                 click$={() => {
                   const dataValue = untrack(() => data.value);
-                  for (
-                    let i = 0, d = dataValue, len = d.length;
-                    i < len;
-                    i += 10
-                  ) {
-                    d[i].value.label.value += " !!!";
+                  for (let i = 0, d = dataValue, len = d.length; i < len; i += 10) {
+                    d[i].value.label.value += ' !!!';
                   }
                 }}
               />
-              <Button
-                id="clear"
-                text="Clear"
-                click$={() => (data.value = [])}
-              />
+              <Button id="clear" text="Clear" click$={() => (data.value = [])} />
               <Button
                 id="swaprows"
                 text="Swap Rows"
@@ -117,19 +154,17 @@ export default component$(() => {
           </div>
         </div>
       </div>
-      <table class="table table-hover table-striped test-data">
+      <table class="table-hover table-striped test-data table">
         <tbody>
           {data.value.map((row) => {
             return (
               <tr
                 key={untrack(() => row.value.id)}
-                class={selected.value === row.value.id ? "danger" : ""}
+                class={selected.value === row.value.id ? 'danger' : ''}
               >
                 <td class="col-md-1">{row.value.id}</td>
                 <td class="col-md-4">
-                  <a onClick$={() => (selected.value = row.value.id)}>
-                    {row.value.label.value}
-                  </a>
+                  <a onClick$={() => (selected.value = row.value.id)}>{row.value.label.value}</a>
                 </td>
                 <td class="col-md-1">
                   <a
@@ -137,10 +172,8 @@ export default component$(() => {
                       const dataValue = untrack(() => data.value);
                       const currentRow = row.value;
                       data.value = dataValue.toSpliced(
-                        dataValue.findIndex(
-                          (d) => d.value.id === currentRow.id,
-                        ),
-                        1,
+                        dataValue.findIndex((d) => d.value.id === currentRow.id),
+                        1
                       );
                     }}
                   >

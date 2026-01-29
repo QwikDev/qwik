@@ -1,4 +1,4 @@
-import { component$, sync$ } from "@qwik.dev/core";
+import { component$, sync$ } from '@qwik.dev/core';
 
 export const SyncQRL = component$(() => {
   return (
@@ -9,10 +9,10 @@ export const SyncQRL = component$(() => {
         type="checkbox"
         onClick$={[
           sync$((e: Event, target: Element) => {
-            if (target.getAttribute("shouldPreventDefault")) {
+            if (target.getAttribute('shouldPreventDefault')) {
               e.preventDefault();
             }
-            target.setAttribute("prevented", String(e.defaultPrevented));
+            target.setAttribute('prevented', String(e.defaultPrevented));
           }),
         ]}
       />

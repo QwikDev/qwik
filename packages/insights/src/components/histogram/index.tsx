@@ -47,7 +47,7 @@ export default component$<{
     <div class="inline-block" style={{ height: height + 18 + 'px' }}>
       {name && <h2>{name}</h2>}
       <ol
-        class="flex order-last items-end justify-between w-[400px] box-content border-b border-b-slate-200"
+        class="order-last box-content flex w-[400px] items-end justify-between border-b border-b-slate-200"
         style={{ height: height + 'px' }}
         onMouseEnter$={() => (callout.show = true)}
         onMouseLeave$={() => (callout.show = false)}

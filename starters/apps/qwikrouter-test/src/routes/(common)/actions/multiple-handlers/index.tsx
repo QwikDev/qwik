@@ -1,5 +1,5 @@
-import { Form, routeAction$ } from "@qwik.dev/router";
-import { $, component$, useSignal } from "@qwik.dev/core";
+import { Form, routeAction$ } from '@qwik.dev/router';
+import { $, component$, useSignal } from '@qwik.dev/core';
 
 export const useDotNotationAction = routeAction$(async (payload) => {
   return {
@@ -40,9 +40,7 @@ export default component$(() => {
         </button>
       </Form>
       {dotNotation.value?.success && (
-        <div id="multiple-handlers-success">
-          {JSON.stringify(dotNotation.value.payload)}
-        </div>
+        <div id="multiple-handlers-success">{JSON.stringify(dotNotation.value.payload)}</div>
       )}
       <div id="multiple-handlers-finished">{String(finished.value)}</div>
     </>

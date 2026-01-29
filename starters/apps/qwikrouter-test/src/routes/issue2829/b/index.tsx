@@ -1,5 +1,5 @@
-import { component$, useContext } from "@qwik.dev/core";
-import { SomeContext } from "../../../components/provider/provider";
+import { component$, useContext } from '@qwik.dev/core';
+import { SomeContext } from '../../../components/provider/provider';
 
 export default component$(() => {
   const someContext = useContext(SomeContext);

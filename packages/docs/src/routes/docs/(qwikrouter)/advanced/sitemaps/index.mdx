@@ -20,21 +20,21 @@ By default, when Static Site Generated (SSG) pages are built, a [sitemap](https:
 
 ### Configuration
 
-The sitemap can be configured using the adapter's vite config file. The example below is configuring the Cloudflare adapter. The default sitemap file path is `sitemap.xml`, but you can use the `sitemapOutFile` option to change the file path. 
+The sitemap can be configured using the adapter's vite config file. The example below is configuring the Cloudflare adapter. The default sitemap file path is `sitemap.xml`, but you can use the `sitemapOutFile` option to change the file path.
 
 ```ts
-  plugins: [
-    cloudflarePagesAdapter({
-      ssg: {
-        include: ['/*'],
-        origin: 'https://qwik.dev',
-        sitemapOutFile: 'sitemap.xml',
-      },
-    }),
-  ]
+plugins: [
+  cloudflarePagesAdapter({
+    ssg: {
+      include: ['/*'],
+      origin: 'https://qwik.dev',
+      sitemapOutFile: 'sitemap.xml',
+    },
+  }),
+];
 ```
 
-The `include` option is used to specify which pages should be built, which also adds them to the sitemap. Any pages added to the `exclude` option will also exclude them from the sitemap. 
+The `include` option is used to specify which pages should be built, which also adds them to the sitemap. Any pages added to the `exclude` option will also exclude them from the sitemap.
 
 The `origin` option is used to specify the origin of the site and is used to generate the absolute URLs for the sitemap.
 
@@ -70,16 +70,16 @@ export interface SitemapEntry {
 }
 
 export function createSitemap(entries: SitemapEntry[]) {
-  const baseUrl = "https://<YOUR_HOSTNAME>";
+  const baseUrl = 'https://<YOUR_HOSTNAME>';
 
   return `
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 ${entries.map(
   (entry) => `
     <url>
-        <loc>${baseUrl}${entry.loc.startsWith("/") ? "" : "/"}${entry.loc}</loc>
+        <loc>${baseUrl}${entry.loc.startsWith('/') ? '' : '/'}${entry.loc}</loc>
         <priority>${entry.priority}</priority>
-    </url>`,
+    </url>`
 )}
 </urlset>`.trim();
 }
@@ -92,26 +92,24 @@ Next, set up a route that will use the sitemap function to generate the sitemap 
 ```tsx
 // src/routes/dynamic-sitemap.xml/index.tsx
 
-import type { RequestHandler } from "@qwik.dev/router";
-import { routes } from "@qwik-router-config";
-import { createSitemap } from "./create-sitemap";
+import type { RequestHandler } from '@qwik.dev/router';
+import { routes } from '@qwik-router-config';
+import { createSitemap } from './create-sitemap';
 
 export const onGet: RequestHandler = (ev) => {
-  const siteRoutes = routes
-    .map(([route]) => route as string)
-    .filter(route => route !== "/");  // Exclude the '/' route
+  const siteRoutes = routes.map(([route]) => route as string).filter((route) => route !== '/'); // Exclude the '/' route
 
   const sitemap = createSitemap([
-    { loc: "/", priority: 1 },  // Manually include the root route
+    { loc: '/', priority: 1 }, // Manually include the root route
     ...siteRoutes.map((route) => ({
       loc: route,
-      priority: 0.9,  // Default priority, adjust as needed
+      priority: 0.9, // Default priority, adjust as needed
     })),
   ]);
 
   const response = new Response(sitemap, {
     status: 200,
-    headers: { "Content-Type": "text/xml" },
+    headers: { 'Content-Type': 'text/xml' },
   });
 
   ev.send(response);
@@ -123,7 +121,6 @@ This route dynamically creates the sitemap XML based on the routes in your Qwik 
 ### robots.txt
 
 To ensure that search engines know where to find your dynamic sitemap, you should also add or update your robots.txt file. Add the following line to your robots.txt file, which is typically located in your public directory:
-
 
 ```bash
 User-agent: *

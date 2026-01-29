@@ -52,18 +52,18 @@ Now we can write a React component with `framer-motion`.
 It’s pretty straightforward. Let’s say we have this code:
 
 ```tsx
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
 const MyComponent = () => {
   return (
     <motion.div
       animate={{
-      scale: [1, 2, 2, 1, 1],
-      rotate: [0, 0, 270, 270, 0],
-      borderRadius: ['20%', '20%', '50%', '50%', '20%'],
-      backgroundColor: ['#ff008c', '#d309e1', '#9c1aff', '#7700ff', '#ff008c'],
-      transition: { duration: 2 },
-    }}
+        scale: [1, 2, 2, 1, 1],
+        rotate: [0, 0, 270, 270, 0],
+        borderRadius: ['20%', '20%', '50%', '50%', '20%'],
+        backgroundColor: ['#ff008c', '#d309e1', '#9c1aff', '#7700ff', '#ff008c'],
+        transition: { duration: 2 },
+      }}
       className="h-52 w-52 rounded-sm bg-green-500"
     />
   );
@@ -79,9 +79,9 @@ All we need to do to “Qwikify” it is:
 // 👇🏽 this tells Qwik that the JSX here is React
 /** @jsxImportSource react */
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
-// one function to import 
+// one function to import
 import { qwikify$ } from '@builder.io/qwik-react';
 
 const MyComponent = () => (
@@ -196,7 +196,7 @@ export const Example = () => {
   };
 
   return (
-    <div className='framer-gallery'>
+    <div className="framer-gallery">
       <AnimatePresence initial={false} custom={direction}>
         <motion.img
           key={page}
@@ -267,7 +267,10 @@ with a `className` just to make styling easier. Otherwise, in case of the compon
 This is what it looks like:
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fc0bae22d9a4c40ec8029514921b30ccc%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=c0bae22d9a4c40ec8029514921b30ccc&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fc0bae22d9a4c40ec8029514921b30ccc%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=c0bae22d9a4c40ec8029514921b30ccc&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 Everything works!
@@ -277,7 +280,10 @@ One of the coolest parts here (at least to nerdy me 😅) is that the code for t
 Check it out (notice the Network tab):
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe285870471984c5c9b9614087358294b%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=e285870471984c5c9b9614087358294b&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe285870471984c5c9b9614087358294b%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=e285870471984c5c9b9614087358294b&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 ## Bonus: “Motion One” an alternative to `framer-motion`
@@ -314,13 +320,7 @@ export default component$(() => {
         scale: [1, 2, 2, 1, 1],
         rotate: [0, 0, 270, 270, 0],
         borderRadius: ['20%', '20%', '50%', '50%', '20%'],
-        backgroundColor: [
-          '#ff008c',
-          '#d309e1',
-          '#9c1aff',
-          '#7700ff',
-          '#ff008c',
-        ],
+        backgroundColor: ['#ff008c', '#d309e1', '#9c1aff', '#7700ff', '#ff008c'],
       },
       {
         duration: 2,
@@ -339,7 +339,7 @@ export default component$(() => {
   );
 });
 
-function yuval() { }
+function yuval() {}
 ```
 
 We’re using the same values for the animation, as in the `framer-motion` example. However, we pass the values as an object.

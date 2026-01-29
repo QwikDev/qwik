@@ -23,10 +23,10 @@ These steps only work for SSR approach. If you are using the Server Side Generat
 
 ### Add a route plugin
 
-To add the middleware plugin to your application, simply add a file named ```plugin@your-plugin-name.ts``` to the routes folder. 
+To add the middleware plugin to your application, simply add a file named `plugin@your-plugin-name.ts` to the routes folder.
 This file will be loaded with every request, allowing you to add headers, modify the response, and more.
 
-```bash  {3} /plugin@csp\.ts/ title="Add the plugin"
+```bash {3} /plugin@csp.ts/ title="Add the plugin"
 src/
 └── routes/
     ├── plugin@csp.ts         # The plugin which runs on every request (route middleware)
@@ -41,19 +41,19 @@ src/
 
 #### Example
 
-> This template provides very permissive backward-compatible defaults. 
+> This template provides very permissive backward-compatible defaults.
 > It is highly recommended that you customize it to better suit your specific use case.
 > As this is an advanced topic, you should take a closer look at [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) or [web.dev](https://web.dev/csp/) to get a better understanding of CSP.
 > Please note that in dev mode the Vite scripts have no nonce and will report. For this reason, the example will not add csp in dev mode.
 
 ```typescript title="src/routes/plugin@csp.ts"
-import type { RequestHandler } from "@qwik.dev/router";
-import { isDev } from "@qwik.dev/core";
+import type { RequestHandler } from '@qwik.dev/router';
+import { isDev } from '@qwik.dev/core';
 
-export const onRequest: RequestHandler = event => {
+export const onRequest: RequestHandler = (event) => {
   if (isDev) return; // Will not return CSP headers in dev mode
   const nonce = Date.now().toString(36); // Your custom nonce logic here
-  event.sharedMap.set("@nonce", nonce);
+  event.sharedMap.set('@nonce', nonce);
   const csp = [
     `default-src 'self' 'unsafe-inline'`,
     `font-src 'self'`,
@@ -65,7 +65,7 @@ export const onRequest: RequestHandler = event => {
     `base-uri 'self'`,
   ];
 
-  event.headers.set("Content-Security-Policy", csp.join("; "));
+  event.headers.set('Content-Security-Policy', csp.join('; '));
 };
 ```
 
@@ -75,7 +75,7 @@ If you have custom script tags that you need to add the nonce to, you can use th
 
 ```tsx {2,5} /nonce/ title="src/components/some-component.tsx"
 export default component$(() => {
-  const nonce = useServerData<string | undefined>("nonce");
+  const nonce = useServerData<string | undefined>('nonce');
   return (
     <div>
       <script nonce={nonce}>alert("Hello world")</script>
@@ -83,7 +83,6 @@ export default component$(() => {
   );
 });
 ```
-
 
 ## Validate your CSP
 

@@ -46,7 +46,7 @@ Qwik uses proxies for a few reasons:
 
 Because of the above constraints, Qwik uses proxies to keep track of the reactivity graph.
 
-- Use [`useStore()`](/docs/(qwik)/core/state/index.mdx#usestore) to create a store proxy.
+- Use [`useStore()`](</docs/(qwik)/core/state/index.mdx#usestore>) to create a store proxy.
 - The proxy notices the reads and creates subscriptions that are serializable.
 - The proxy notices the writes and uses the subscription information to invalidate the relevant components.
 
@@ -106,18 +106,20 @@ So far, the examples show the store (`useStore()`) was a simple object with prim
 export const MyComp = component$(() => {
   const store = useStore({
     person: { first: null, last: null },
-    location: null
+    location: null,
   });
 
-  store.location = {street: 'main st'};
+  store.location = { street: 'main st' };
 
   return (
     <section>
-      <p>{store.person.last}, {store.person.first}</p>
+      <p>
+        {store.person.last}, {store.person.first}
+      </p>
       <p>{store.location.street}</p>
     </section>
   );
-})
+});
 ```
 
 In the above examples, Qwik will automatically wrap child objects `person` and `location` into a proxy and correctly create subscriptions on all deep properties.

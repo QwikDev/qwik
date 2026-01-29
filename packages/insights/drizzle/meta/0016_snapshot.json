@@ -46,9 +46,7 @@
       "indexes": {
         "publicApiKeyIndex": {
           "name": "publicApiKeyIndex",
-          "columns": [
-            "public_api_key"
-          ],
+          "columns": ["public_api_key"],
           "isUnique": true
         }
       },
@@ -806,27 +804,17 @@
       "indexes": {
         "edgeIndex_PublicApiKey": {
           "name": "edgeIndex_PublicApiKey",
-          "columns": [
-            "public_api_key"
-          ],
+          "columns": ["public_api_key"],
           "isUnique": false
         },
         "idx_edge_publicApiKey_manifestHash": {
           "name": "idx_edge_publicApiKey_manifestHash",
-          "columns": [
-            "public_api_key",
-            "manifest_hash"
-          ],
+          "columns": ["public_api_key", "manifest_hash"],
           "isUnique": false
         },
         "idx_edge_apiKey_manifestHash_from_to": {
           "name": "idx_edge_apiKey_manifestHash_from_to",
-          "columns": [
-            "public_api_key",
-            "manifest_hash",
-            "from",
-            "to"
-          ],
+          "columns": ["public_api_key", "manifest_hash", "from", "to"],
           "isUnique": true
         }
       },
@@ -835,12 +823,8 @@
           "name": "edges_public_api_key_applications_public_api_key_fk",
           "tableFrom": "edges",
           "tableTo": "applications",
-          "columnsFrom": [
-            "public_api_key"
-          ],
-          "columnsTo": [
-            "public_api_key"
-          ],
+          "columnsFrom": ["public_api_key"],
+          "columnsTo": ["public_api_key"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -936,12 +920,8 @@
           "name": "errors_public_api_key_applications_public_api_key_fk",
           "tableFrom": "errors",
           "tableTo": "applications",
-          "columnsFrom": [
-            "public_api_key"
-          ],
-          "columnsTo": [
-            "public_api_key"
-          ],
+          "columnsFrom": ["public_api_key"],
+          "columnsTo": ["public_api_key"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -949,12 +929,8 @@
           "name": "errors_manifest_hash_manifests_hash_fk",
           "tableFrom": "errors",
           "tableTo": "manifests",
-          "columnsFrom": [
-            "manifest_hash"
-          ],
-          "columnsTo": [
-            "hash"
-          ],
+          "columnsFrom": ["manifest_hash"],
+          "columnsTo": ["hash"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -998,24 +974,17 @@
       "indexes": {
         "idx_manifests_apiKey_hash": {
           "name": "idx_manifests_apiKey_hash",
-          "columns": [
-            "hash",
-            "public_api_key"
-          ],
+          "columns": ["hash", "public_api_key"],
           "isUnique": true
         },
         "idx_manifests_public_apiKey": {
           "name": "idx_manifests_public_apiKey",
-          "columns": [
-            "public_api_key"
-          ],
+          "columns": ["public_api_key"],
           "isUnique": false
         },
         "idx_manifests_hash": {
           "name": "idx_manifests_hash",
-          "columns": [
-            "hash"
-          ],
+          "columns": ["hash"],
           "isUnique": false
         }
       },
@@ -1024,12 +993,8 @@
           "name": "manifests_public_api_key_applications_public_api_key_fk",
           "tableFrom": "manifests",
           "tableTo": "applications",
-          "columnsFrom": [
-            "public_api_key"
-          ],
-          "columnsTo": [
-            "public_api_key"
-          ],
+          "columnsFrom": ["public_api_key"],
+          "columnsTo": ["public_api_key"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1430,20 +1395,12 @@
       "indexes": {
         "routeIndex_Symbol": {
           "name": "routeIndex_Symbol",
-          "columns": [
-            "public_api_key",
-            "manifest_hash",
-            "route",
-            "symbol"
-          ],
+          "columns": ["public_api_key", "manifest_hash", "route", "symbol"],
           "isUnique": true
         },
         "idx_routes_publicApiKey_manifestHash": {
           "name": "idx_routes_publicApiKey_manifestHash",
-          "columns": [
-            "public_api_key",
-            "manifest_hash"
-          ],
+          "columns": ["public_api_key", "manifest_hash"],
           "isUnique": false
         }
       },
@@ -1452,12 +1409,8 @@
           "name": "routes_public_api_key_applications_public_api_key_fk",
           "tableFrom": "routes",
           "tableTo": "applications",
-          "columnsFrom": [
-            "public_api_key"
-          ],
-          "columnsTo": [
-            "public_api_key"
-          ],
+          "columnsFrom": ["public_api_key"],
+          "columnsTo": ["public_api_key"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1529,10 +1482,7 @@
       "indexes": {
         "idx_symbolDetail_apiKey_manifestHash": {
           "name": "idx_symbolDetail_apiKey_manifestHash",
-          "columns": [
-            "public_api_key",
-            "manifest_hash"
-          ],
+          "columns": ["public_api_key", "manifest_hash"],
           "isUnique": true
         }
       },
@@ -1541,12 +1491,8 @@
           "name": "symbolDetail_public_api_key_applications_public_api_key_fk",
           "tableFrom": "symbolDetail",
           "tableTo": "applications",
-          "columnsFrom": [
-            "public_api_key"
-          ],
-          "columnsTo": [
-            "public_api_key"
-          ],
+          "columnsFrom": ["public_api_key"],
+          "columnsTo": ["public_api_key"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1554,14 +1500,8 @@
           "name": "symbolDetail_public_api_key_manifest_hash_manifests_public_api_key_hash_fk",
           "tableFrom": "symbolDetail",
           "tableTo": "manifests",
-          "columnsFrom": [
-            "public_api_key",
-            "manifest_hash"
-          ],
-          "columnsTo": [
-            "public_api_key",
-            "hash"
-          ],
+          "columnsFrom": ["public_api_key", "manifest_hash"],
+          "columnsTo": ["public_api_key", "hash"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1636,12 +1576,8 @@
           "name": "symbols_public_api_key_applications_public_api_key_fk",
           "tableFrom": "symbols",
           "tableTo": "applications",
-          "columnsFrom": [
-            "public_api_key"
-          ],
-          "columnsTo": [
-            "public_api_key"
-          ],
+          "columnsFrom": ["public_api_key"],
+          "columnsTo": ["public_api_key"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1671,10 +1607,7 @@
       "indexes": {
         "userApplicationIndex": {
           "name": "userApplicationIndex",
-          "columns": [
-            "application_id",
-            "user_id"
-          ],
+          "columns": ["application_id", "user_id"],
           "isUnique": true
         }
       },
@@ -1683,12 +1616,8 @@
           "name": "userApplicationMap_application_id_applications_id_fk",
           "tableFrom": "userApplicationMap",
           "tableTo": "applications",
-          "columnsFrom": [
-            "application_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["application_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1696,12 +1625,8 @@
           "name": "userApplicationMap_user_id_users_user_id_fk",
           "tableFrom": "userApplicationMap",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1745,9 +1670,7 @@
       "indexes": {
         "emailIndex": {
           "name": "emailIndex",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },

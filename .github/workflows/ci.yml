@@ -715,7 +715,7 @@ jobs:
           name: playwright-report
           path: test-results/ # or test-results/ depending on your config
           retention-days: 30
- 
+
       - name: Print E2E Builds
         run: tree -a starters/apps/e2e/dist starters/apps/e2e/server starters/apps/qwikrouter-test/dist starters/apps/qwikrouter-test/server
         if: failure()
@@ -800,7 +800,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: "Verify pnpm dedupe"
+      - name: 'Verify pnpm dedupe'
         if: always()
         run: pnpm dedupe --check
 

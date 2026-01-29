@@ -1,20 +1,23 @@
 {
   "name": "@qwik.dev/react",
-  "description": "Qwik React allows adding React components into existing Qwik application",
   "version": "2.0.0-beta.17",
+  "description": "Qwik React allows adding React components into existing Qwik application",
+  "homepage": "https://qwik.dev/",
   "bugs": "https://github.com/QwikDev/qwik/issues",
-  "devDependencies": {
-    "@qwik.dev/core": "workspace:*",
-    "@types/react": "19.2.7",
-    "@types/react-dom": "19.2.3",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "typescript": "5.9.3",
-    "vite": "7.3.1"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/qwik-react"
   },
-  "engines": {
-    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
-  },
+  "files": [
+    "lib",
+    "vite"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./lib/index.qwik.mjs",
+  "types": "./lib/types/index.qwik.d.ts",
   "exports": {
     ".": {
       "types": "./lib/types/index.qwik.d.ts",
@@ -25,29 +28,8 @@
       "import": "./lib/vite.mjs"
     }
   },
-  "files": [
-    "lib",
-    "vite"
-  ],
-  "homepage": "https://qwik.dev/",
-  "license": "MIT",
-  "main": "./lib/index.qwik.mjs",
-  "peerDependencies": {
-    "@qwik.dev/core": "workspace:^",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "react": "^18",
-    "react-dom": "^18",
-    "vite": ">=5 <8"
-  },
   "publishConfig": {
     "access": "public"
-  },
-  "qwik": "./lib/index.qwik.mjs",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/QwikDev/qwik.git",
-    "directory": "packages/qwik-react"
   },
   "scripts": {
     "build": "npm run build.lib",
@@ -59,13 +41,31 @@
     "dev.ssr": "vite --mode ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
-    "lint.fix": "eslint --fix \"src/**/*.ts*\"",
+    "lint": "oxlint \"src/**/*.ts*\"",
+    "lint.fix": "oxlint --fix \"src/**/*.ts*\"",
     "release": "pnpm run -w build.local && pnpm publish",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"
   },
-  "sideEffects": false,
-  "type": "module",
-  "types": "./lib/types/index.qwik.d.ts"
+  "devDependencies": {
+    "@qwik.dev/core": "workspace:*",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "typescript": "5.9.3",
+    "vite": "7.3.1"
+  },
+  "peerDependencies": {
+    "@qwik.dev/core": "workspace:^",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "react": "^18",
+    "react-dom": "^18",
+    "vite": ">=5 <8"
+  },
+  "engines": {
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
+  },
+  "qwik": "./lib/index.qwik.mjs"
 }

@@ -55,8 +55,8 @@ As a workaround for now, you can use the build time `isDev` boolean from `"@qwik
 import { component$, type Component } from '@qwik.dev/core';
 
 const metaGlobComponents = import.meta.glob<Component>(
-  '/src/routes/demo/cookbook/glob-import/examples/*',
-  { import: 'default' }
+'/src/routes/demo/cookbook/glob-import/examples/\*',
+{ import: 'default' }
 );
 
 export default component$(() => {
@@ -74,11 +74,13 @@ export const MetaGlobExample = component$<{ name: string }>(({ name }) => {
   const Cmp = loaded[name];
   if (!Cmp) {
     const componentPath = `/src/routes/demo/cookbook/glob-import/examples/${name}.tsx`;
-    const promise = metaGlobComponents[componentPath]();
-    throw promise.then((c) => (loaded[name] = c));
-  }
+const promise = metaGlobComponents[componentPath]();
+throw promise.then((c) => (loaded[name] = c));
+}
 
-  return <Cmp />;
+return <Cmp />;
 });
+
 ```
 </CodeSandbox>
+```

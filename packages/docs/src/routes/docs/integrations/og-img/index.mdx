@@ -19,26 +19,10 @@ With [`og-img`](https://github.com/fabian-hiller/og-img) you can easily add dyna
 To get started, install the `og-img` package:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm install og-img
-```
-</span>
-<span q:slot="npm">
-```shell
-npm install og-img
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn add og-img
-```
-</span>
-<span q:slot="bun">
-```shell
-bun install og-img
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm install og-img ```</span>
+  <span q:slot="npm">```shell npm install og-img ```</span>
+  <span q:slot="yarn">```shell yarn add og-img ```</span>
+  <span q:slot="bun">```shell bun install og-img ```</span>
 </PackageManagerTabs>
 
 ## How it works
@@ -55,11 +39,7 @@ export const onGet: RequestHandler = async ({ send }) => {
   send(
     new ImageResponse(
       // Use Tailwind CSS or style attribute
-      html`
-        <div tw="text-4xl text-green-700" style="background-color: tan">
-          Hello, world!
-        </div>
-      `,
+      html` <div tw="text-4xl text-green-700" style="background-color: tan">Hello, world!</div> `,
       {
         width: 1200,
         height: 600,
@@ -67,9 +47,7 @@ export const onGet: RequestHandler = async ({ send }) => {
           {
             name: 'Roboto',
             // Use `fs` (Node.js only) or `fetch` to read font file
-            data: await fetchFont(
-              'https://www.example.com/fonts/roboto-400.ttf'
-            ),
+            data: await fetchFont('https://www.example.com/fonts/roboto-400.ttf'),
             weight: 400,
             style: 'normal',
           },

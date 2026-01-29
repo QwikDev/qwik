@@ -211,9 +211,7 @@ A promise that resolves when the value is computed.
 
 ```typescript
 export type AsyncComputedReturnType<T> =
-  T extends Promise<infer T>
-    ? AsyncComputedReadonlySignal<T>
-    : AsyncComputedReadonlySignal<T>;
+  T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;
 ```
 
 **References:** [AsyncComputedReadonlySignal](#asynccomputedreadonlysignal)
@@ -298,11 +296,9 @@ Type representing the Qwik component.
 interface MyComponentProps {
   someProp: string;
 }
-const MyComponent: Component<MyComponentProps> = component$(
-  (props: MyComponentProps) => {
-    return <span>{props.someProp}</span>;
-  },
-);
+const MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {
+  return <span>{props.someProp}</span>;
+});
 ```
 
 ```typescript
@@ -516,8 +512,7 @@ _(Optional)_
 ## ComputedReturnType
 
 ```typescript
-export type ComputedReturnType<T> =
-  T extends Promise<any> ? never : ComputedSignal<T>;
+export type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;
 ```
 
 **References:** [ComputedSignal](#computedsignal)
@@ -582,15 +577,15 @@ interface TodosStore {
 }
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContextId<TodosStore>("Todos");
+export const TodosContext = createContextId<TodosStore>('Todos');
 
 // Example of providing context to child components.
 export const App = component$(() => {
   useContextProvider(
     TodosContext,
     useStore<TodosStore>({
-      items: ["Learn Qwik", "Build Qwik app", "Profit"],
-    }),
+      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
+    })
   );
 
   return <Items />;
@@ -895,8 +890,7 @@ The QRL must be a function which returns the value of the signal. The function m
 If you need the function to be async, use `useAsyncComputed$` instead.
 
 ```typescript
-createComputed$: <T>(qrl: () => T, options?: ComputedOptions) =>
-  ComputedReturnType<T>;
+createComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>;
 ```
 
 <table><thead><tr><th>
@@ -961,15 +955,15 @@ interface TodosStore {
 }
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContextId<TodosStore>("Todos");
+export const TodosContext = createContextId<TodosStore>('Todos');
 
 // Example of providing context to child components.
 export const App = component$(() => {
   useContextProvider(
     TodosContext,
     useStore<TodosStore>({
-      items: ["Learn Qwik", "Build Qwik app", "Profit"],
-    }),
+      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
+    })
   );
 
   return <Items />;
@@ -1313,7 +1307,7 @@ any \| undefined
 ## event$
 
 ```typescript
-event$: <T>(qrl: T) => import("./qrl.public").QRL<T>;
+event$: <T>(qrl: T) => import('./qrl.public').QRL<T>;
 ```
 
 <table><thead><tr><th>
@@ -1355,7 +1349,7 @@ A DOM event handler
 ```typescript
 export type EventHandler<EV = Event, EL = Element> = {
   bivarianceHack(event: EV, element: EL): any;
-}["bivarianceHack"];
+}['bivarianceHack'];
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
@@ -1442,13 +1436,8 @@ The `key`, `flags` and `dev` parameters are for internal use.
 
 ```typescript
 export type FunctionComponent<P = unknown> = {
-  renderFn(
-    props: P,
-    key: string | null,
-    flags: number,
-    dev?: DevJSX,
-  ): JSXOutput;
-}["renderFn"];
+  renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
+}['renderFn'];
 ```
 
 **References:** [DevJSX](#devjsx), [JSXOutput](#jsxoutput)
@@ -1560,10 +1549,11 @@ getPlatform: () => CorePlatform;
 The legacy transform, used by some JSX transpilers. The optimizer normally replaces this with optimized calls, with the same caveat as `jsx()`.
 
 ```typescript
-export declare function h<
-  TYPE extends string | FunctionComponent<PROPS>,
-  PROPS extends {} = {},
->(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
+export declare function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(
+  type: TYPE,
+  props?: PROPS | null,
+  ...children: any[]
+): JSXNode<TYPE>;
 ```
 
 <table><thead><tr><th>
@@ -1653,20 +1643,18 @@ export const myApi$ = implicit$FirstArg(myApi);
 // type of myApi$: (callback: () => void): void
 
 // can be used as:
-myApi$(() => console.log("callback"));
+myApi$(() => console.log('callback'));
 
 // will be transpiled to:
 // FILE: <current file>
-myApi(qrl("./chunk-abc.js", "callback"));
+myApi(qrl('./chunk-abc.js', 'callback'));
 
 // FILE: chunk-abc.js
-export const callback = () => console.log("callback");
+export const callback = () => console.log('callback');
 ```
 
 ```typescript
-implicit$FirstArg: <FIRST, REST extends any[], RET>(
-    fn: (qrl: QRL<FIRST>, ...rest: REST) => RET,
-  ) =>
+implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) =>
   (qrl: FIRST, ...rest: REST) =>
     RET;
 ```
@@ -1710,11 +1698,7 @@ A function that should have its first argument automatically `$`.
 Create an inlined QRL. This is mostly useful on the server side for serialization.
 
 ```typescript
-inlinedQrl: <T>(
-  symbol: T | null,
-  symbolName: string,
-  lexicalScopeCapture?: any[],
-) => QRL<T>;
+inlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 ```
 
 <table><thead><tr><th>
@@ -1857,7 +1841,7 @@ jsx: <T extends string | FunctionComponent<any>>(
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
   key?: string | number | null,
   _isStatic?: boolean,
-  dev?: JsxDevOpts,
+  dev?: JsxDevOpts
 ) => JSXNode<T>;
 ```
 
@@ -1974,7 +1958,7 @@ jsxDEV: <T extends string | FunctionComponent<any>>(
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
   key?: string | number | null,
   _isStatic?: boolean,
-  dev?: JsxDevOpts,
+  dev?: JsxDevOpts
 ) => JSXNode<T>;
 ```
 
@@ -2161,14 +2145,7 @@ T
 Any valid output for a component
 
 ```typescript
-export type JSXOutput =
-  | JSXNode
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | JSXOutput[];
+export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 ```
 
 **References:** [JSXNode](#jsxnode), [JSXOutput](#jsxoutput)
@@ -2185,7 +2162,7 @@ jsxs: <T extends string | FunctionComponent<any>>(
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
   key?: string | number | null,
   _isStatic?: boolean,
-  dev?: JsxDevOpts,
+  dev?: JsxDevOpts
 ) => JSXNode<T>;
 ```
 
@@ -2274,9 +2251,7 @@ _(Optional)_
 ## JSXTagName
 
 ```typescript
-export type JSXTagName =
-  | keyof HTMLElementTagNameMap
-  | Omit<string, keyof HTMLElementTagNameMap>;
+export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
@@ -2661,7 +2636,7 @@ Infers `Props` from the component or tag.
 export type PropsOf<COMP> = COMP extends string
   ? COMP extends keyof QwikIntrinsicElements
     ? QwikIntrinsicElements[COMP]
-    : QwikIntrinsicElements["span"]
+    : QwikIntrinsicElements['span']
   : NonNullable<COMP> extends never
     ? never
     : COMP extends FunctionComponent<infer PROPS>
@@ -2678,21 +2653,17 @@ export type PropsOf<COMP> = COMP extends string
 **References:** [QwikIntrinsicElements](#qwikintrinsicelements), [FunctionComponent](#functioncomponent), [Component](#component)
 
 ```tsx
-const Desc = component$(
-  ({ desc, ...props }: { desc: string } & PropsOf<"div">) => {
-    return <div {...props}>{desc}</div>;
-  },
-);
+const Desc = component$(({ desc, ...props }: { desc: string } & PropsOf<'div'>) => {
+  return <div {...props}>{desc}</div>;
+});
 
-const TitleBox = component$(
-  ({ title, ...props }: { title: string } & PropsOf<Box>) => {
-    return (
-      <Box {...props}>
-        <h1>{title}</h1>
-      </Box>
-    );
-  },
-);
+const TitleBox = component$(({ title, ...props }: { title: string } & PropsOf<Box>) => {
+  return (
+    <Box {...props}>
+      <h1>{title}</h1>
+    </Box>
+  );
+});
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
@@ -2731,8 +2702,8 @@ Creating `QRL` is done using `$(...)` function. `$(...)` is a special marker for
 
 ```tsx
 useOnDocument(
-  "mousemove",
-  $((event) => console.log("mousemove", event)),
+  'mousemove',
+  $((event) => console.log('mousemove', event))
 );
 ```
 
@@ -2740,10 +2711,10 @@ In the above code, the Qwik Optimizer detects `$(...)` and transforms the code a
 
 ```tsx
 // FILE: <current file>
-useOnDocument("mousemove", qrl("./chunk-abc.js", "onMousemove"));
+useOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
 
 // FILE: chunk-abc.js
-export const onMousemove = () => console.log("mousemove");
+export const onMousemove = () => console.log('mousemove');
 ```
 
 NOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.
@@ -2757,7 +2728,7 @@ Use `QRL` type in your application when you want to get a lazy-loadable referenc
 export function useMyFunction(callback: QRL<() => void>) {
   doExtraStuff();
   // The callback passed to `onDocument` requires `QRL`.
-  useOnDocument("mousemove", callback);
+  useOnDocument('mousemove', callback);
 }
 ```
 
@@ -2769,7 +2740,7 @@ At times it may be necessary to resolve a `QRL` reference to the actual value. T
 
 ```tsx
 // Assume you have QRL reference to a greet function
-const lazyGreet: QRL<() => void> = $(() => console.log("Hello World!"));
+const lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));
 
 // Use `qrlImport` to load / resolve the reference.
 const greet: () => void = await lazyGreet.resolve();
@@ -2839,8 +2810,8 @@ Creating `QRL` is done using `$(...)` function. `$(...)` is a special marker for
 
 ```tsx
 useOnDocument(
-  "mousemove",
-  $((event) => console.log("mousemove", event)),
+  'mousemove',
+  $((event) => console.log('mousemove', event))
 );
 ```
 
@@ -2848,10 +2819,10 @@ In the above code, the Qwik Optimizer detects `$(...)` and transforms the code a
 
 ```tsx
 // FILE: <current file>
-useOnDocument("mousemove", qrl("./chunk-abc.js", "onMousemove"));
+useOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
 
 // FILE: chunk-abc.js
-export const onMousemove = () => console.log("mousemove");
+export const onMousemove = () => console.log('mousemove');
 ```
 
 NOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.
@@ -2865,7 +2836,7 @@ Use `QRL` type in your application when you want to get a lazy-loadable referenc
 export function useMyFunction(callback: QRL<() => void>) {
   doExtraStuff();
   // The callback passed to `onDocument` requires `QRL`.
-  useOnDocument("mousemove", callback);
+  useOnDocument('mousemove', callback);
 }
 ```
 
@@ -2877,7 +2848,7 @@ At times it may be necessary to resolve a `QRL` reference to the actual value. T
 
 ```tsx
 // Assume you have QRL reference to a greet function
-const lazyGreet: QRL<() => void> = $(() => console.log("Hello World!"));
+const lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));
 
 // Use `qrlImport` to load / resolve the reference.
 const greet: () => void = await lazyGreet.resolve();
@@ -3091,10 +3062,7 @@ The DOM props without plain handlers, for use inside functions
 
 ```typescript
 export type QwikHTMLElements = {
-  [tag in keyof HTMLElementTagNameMap]: Augmented<
-    HTMLElementTagNameMap[tag],
-    SpecialAttrs[tag]
-  > &
+  [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> &
     HTMLElementAttrs &
     QwikAttributes<HTMLElementTagNameMap[tag]>;
 };
@@ -3129,10 +3097,10 @@ export type QwikInitEvent = CustomEvent<{}>;
 The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:
 
 ```tsx
-import { component$, Slot, type QwikIntrinsicElements } from "@qwik.dev/core";
+import { component$, Slot, type QwikIntrinsicElements } from '@qwik.dev/core';
 
 type WrapperProps = {
-  attributes?: QwikIntrinsicElements["div"];
+  attributes?: QwikIntrinsicElements['div'];
 };
 
 export default component$<WrapperProps>(({ attributes }) => {
@@ -3301,10 +3269,9 @@ The SVG props without plain handlers, for use inside functions
 
 ```typescript
 export type QwikSVGElements = {
-  [K in keyof Omit<
-    SVGElementTagNameMap,
-    keyof HTMLElementTagNameMap
-  >]: SVGProps<SVGElementTagNameMap[K]>;
+  [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<
+    SVGElementTagNameMap[K]
+  >;
 };
 ```
 
@@ -3458,7 +3425,7 @@ Use this method to render JSX. This function does reconciling which means it alw
 render: (
   parent: Element | Document,
   jsxNode: JSXOutput | FunctionComponent<any>,
-  opts?: RenderOptions,
+  opts?: RenderOptions
 ) => Promise<RenderResult>;
 ```
 
@@ -3730,12 +3697,12 @@ Example showing how `useResource` to perform a fetch to request the weather, whe
 
 ```tsx
 const Cmp = component$(() => {
-  const cityS = useSignal("");
+  const cityS = useSignal('');
 
   const weatherResource = useResource$(async ({ track, cleanup }) => {
     const cityName = track(cityS);
     const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
+    cleanup(() => abortController.abort('cleanup'));
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
       signal: abortController.signal,
     });
@@ -4188,10 +4155,7 @@ Promise&lt;T&gt;
 ## ResourceReturn
 
 ```typescript
-export type ResourceReturn<T> =
-  | ResourcePending<T>
-  | ResourceResolved<T>
-  | ResourceRejected<T>;
+export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 ```
 
 **References:** [ResourcePending](#resourcepending), [ResourceResolved](#resourceresolved), [ResourceRejected](#resourcerejected)
@@ -4201,7 +4165,7 @@ export type ResourceReturn<T> =
 ## SerializationStrategy
 
 ```typescript
-export type SerializationStrategy = "never" | "always";
+export type SerializationStrategy = 'never' | 'always';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/types.ts)
@@ -8997,10 +8961,8 @@ Creates a computed signal which is calculated from the given function. A compute
 The function must be synchronous and must not have any side effects.
 
 ```typescript
-useAsyncComputed$: <T>(
-  qrl: AsyncComputedFn<T>,
-  options?: ComputedOptions | undefined,
-) => AsyncComputedReturnType<T>;
+useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>, options?: ComputedOptions | undefined) =>
+  AsyncComputedReturnType<T>;
 ```
 
 <table><thead><tr><th>
@@ -9161,15 +9123,15 @@ interface TodosStore {
 }
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContextId<TodosStore>("Todos");
+export const TodosContext = createContextId<TodosStore>('Todos');
 
 // Example of providing context to child components.
 export const App = component$(() => {
   useContextProvider(
     TodosContext,
     useStore<TodosStore>({
-      items: ["Learn Qwik", "Build Qwik app", "Profit"],
-    }),
+      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
+    })
   );
 
   return <Items />;
@@ -9211,15 +9173,15 @@ interface TodosStore {
 }
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContextId<TodosStore>("Todos");
+export const TodosContext = createContextId<TodosStore>('Todos');
 
 // Example of providing context to child components.
 export const App = component$(() => {
   useContextProvider(
     TodosContext,
     useStore<TodosStore>({
-      items: ["Learn Qwik", "Build Qwik app", "Profit"],
-    }),
+      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
+    })
   );
 
   return <Items />;
@@ -9494,12 +9456,12 @@ Example showing how `useResource` to perform a fetch to request the weather, whe
 
 ```tsx
 const Cmp = component$(() => {
-  const cityS = useSignal("");
+  const cityS = useSignal('');
 
   const weatherResource = useResource$(async ({ track, cleanup }) => {
     const cityName = track(cityS);
     const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
+    cleanup(() => abortController.abort('cleanup'));
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
       signal: abortController.signal,
     });
@@ -9522,8 +9484,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) =>
-  ResourceReturn<T>;
+useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
 ```
 
 <table><thead><tr><th>
@@ -9692,10 +9653,10 @@ const Stores = component$(() => {
 
   // Reactivity happens even for nested objects and arrays
   const userData = useStore({
-    name: "Manu",
+    name: 'Manu',
     address: {
-      address: "",
-      city: "",
+      address: '',
+      city: '',
     },
     orgs: [],
   });
@@ -9734,10 +9695,8 @@ function useCounter(step: number) {
 ```
 
 ```typescript
-useStore: <STATE extends object>(
-  initialState: STATE | (() => STATE),
-  opts?: UseStoreOptions,
-) => STATE;
+useStore: <STATE extends object>(initialState: STATE | (() => STATE), opts?: UseStoreOptions) =>
+  STATE;
 ```
 
 <table><thead><tr><th>
@@ -9849,7 +9808,7 @@ A lazy-loadable reference to a component's styles.
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import styles from "./code-block.css?inline";
+import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {
   useStyles$(styles);
@@ -9941,7 +9900,7 @@ A lazy-loadable reference to a component's styles, that is scoped to the compone
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import scoped from "./code-block.css?inline";
+import scoped from './code-block.css?inline';
 
 export const CmpScopedStyles = component$(() => {
   useStylesScoped$(scoped);
@@ -10137,10 +10096,7 @@ version: string;
 ## VisibleTaskStrategy
 
 ```typescript
-export type VisibleTaskStrategy =
-  | "intersection-observer"
-  | "document-ready"
-  | "document-idle";
+export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts)

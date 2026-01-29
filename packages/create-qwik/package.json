@@ -1,10 +1,30 @@
 {
   "name": "create-qwik",
-  "description": "Interactive CLI for create Qwik projects and adding features.",
   "version": "2.0.0-beta.17",
-  "author": "Qwik Team",
-  "bin": "./create-qwik.mjs",
+  "description": "Interactive CLI for create Qwik projects and adding features.",
+  "keywords": [
+    "generator",
+    "qwik",
+    "starters",
+    "template"
+  ],
+  "homepage": "https://qwik.dev/",
   "bugs": "https://github.com/QwikDev/qwik/issues",
+  "license": "MIT",
+  "author": "Qwik Team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/create-qwik"
+  },
+  "bin": "./create-qwik.mjs",
+  "files": [
+    "README.md",
+    "create-qwik.mjs",
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
   "dependencies": {
     "execa": "9.6.1"
   },
@@ -20,25 +40,5 @@
     "pnpm": ">=8.0.0",
     "yarn": ">=3.0.0"
   },
-  "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime",
-  "files": [
-    "README.md",
-    "create-qwik.mjs",
-    "dist"
-  ],
-  "homepage": "https://qwik.dev/",
-  "keywords": [
-    "generator",
-    "qwik",
-    "starters",
-    "template"
-  ],
-  "license": "MIT",
-  "main": "./dist/index.mjs",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/QwikDev/qwik.git",
-    "directory": "packages/create-qwik"
-  },
-  "type": "module"
+  "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime"
 }

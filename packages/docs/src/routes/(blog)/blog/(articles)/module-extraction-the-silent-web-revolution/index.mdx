@@ -64,9 +64,7 @@ Like in the early days of the web, developers today are **forced** to separate s
 It was not always that way, even good old [ASP.NET](http://asp.net/) has concepts to collocate Client and Server code next to each other. What if we could have the best of both worlds?
 
 ```tsx
-<button onClick={server$(() => console.log('runs in the server'))}>
-   Runs in server
-</button>
+<button onClick={server$(() => console.log('runs in the server'))}>Runs in server</button>
 ```
 
 ### Refactoring
@@ -95,7 +93,11 @@ Up until this time, module extraction was an internal trick mostly used by meta-
 
 Qwik uses module extraction extensively; for example, each event handler is extracted so that when a user interacts, we can run that single piece of the original module in isolation, enabling apps that are instantly interactive regardless of complexity!
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fb48bdfe207bb49ccb9bf0a404dafaad9?width=800" alt='a slide with a graph showing a figurative x-axis showing how Qwik enables O(1) apps. Text on the right: "Correlation between functionality and amount of JS is broken' />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fb48bdfe207bb49ccb9bf0a404dafaad9?width=800"
+  alt='a slide with a graph showing a figurative x-axis showing how Qwik enables O(1) apps. Text on the right: "Correlation between functionality and amount of JS is broken'
+/>
 
 Module extraction is the main primitive of how [Qwik achieves resumability](https://www.builder.io/blog/resumability-vs-hydration); not only that, it can even [make React resumable](https://www.builder.io/blog/resumable-react-how-to-use-react-inside-qwik) 🤯.
 
@@ -189,13 +191,13 @@ If you want to know more, check out the 1-hour video below, where I explain all 
 - [The dollar $ sign](https://qwik.dev/docs/advanced/dollar/)
 - [QRL](https://qwik.dev/docs/advanced/qrl/)
 
-<div style='position:relative;padding-bottom:56.25%;height:0;'>
-	<iframe
-		src='https://www.youtube.com/embed/cL9DLUCrDx0?rel=0'
-		style='position:absolute;top:0;left:0;width:100%;height:100%;border:0;'
-		allowfullscreen
-		allow='accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;'
-	></iframe>
+<div style="position:relative;padding-bottom:56.25%;height:0;">
+  <iframe
+    src="https://www.youtube.com/embed/cL9DLUCrDx0?rel=0"
+    style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+    allowfullscreen
+    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;"
+  ></iframe>
 </div>
 
 ## Closing notes

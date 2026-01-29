@@ -21,28 +21,17 @@ The `Supabase` JS library plays nicely with the server-side APIs from Qwik such 
 
 First, install supabase in your Qwik project:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm install @supabase/supabase-js supabase-auth-helpers-qwik
-```
-</span>
-<span q:slot="npm">
-```shell
-npm install @supabase/supabase-js supabase-auth-helpers-qwik
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn add @supabase/supabase-js supabase-auth-helpers-qwik
-```
-</span>
-<span q:slot="bun">
-```shell
-bun install @supabase/supabase-js supabase-auth-helpers-qwik
-```
-</span>
+  <span q:slot="pnpm">
+    ```shell pnpm install @supabase/supabase-js supabase-auth-helpers-qwik ```
+  </span>
+  <span q:slot="npm">
+    ```shell npm install @supabase/supabase-js supabase-auth-helpers-qwik ```
+  </span>
+  <span q:slot="yarn">```shell yarn add @supabase/supabase-js supabase-auth-helpers-qwik ```</span>
+  <span q:slot="bun">
+    ```shell bun install @supabase/supabase-js supabase-auth-helpers-qwik ```
+  </span>
 </PackageManagerTabs>
 
 The second step would be to add the `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` environment variables to `.env` file, the "anon" key is safe to be exposed in the client-side.
@@ -66,11 +55,11 @@ import { createServerClient } from 'supabase-auth-helpers-qwik';
 
 export const useDBTest = routeLoader$(async (requestEv) => {
   const supabaseClient = createServerClient(
-    requestEv.env.get("PUBLIC_SUPABASE_URL")!,
-    requestEv.env.get("PUBLIC_SUPABASE_ANON_KEY")!,
+    requestEv.env.get('PUBLIC_SUPABASE_URL')!,
+    requestEv.env.get('PUBLIC_SUPABASE_ANON_KEY')!,
     requestEv
   );
-  const { data } = await supabaseClient.from('test').select('*')
+  const { data } = await supabaseClient.from('test').select('*');
   return { data };
 });
 ```

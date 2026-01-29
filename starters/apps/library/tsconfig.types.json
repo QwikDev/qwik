@@ -6,10 +6,5 @@
     "declarationDir": "lib",
     "noEmit": false
   },
-  "exclude": [
-    "src/routes/**",
-    "src/root.tsx",
-    "src/entry.ssr.tsx",
-    "src/entry.dev.tsx"
-  ]
+  "exclude": ["src/routes/**", "src/root.tsx", "src/entry.ssr.tsx", "src/entry.dev.tsx"]
 }

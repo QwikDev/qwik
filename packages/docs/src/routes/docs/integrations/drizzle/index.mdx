@@ -22,44 +22,27 @@ Drizzle can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` fu
 The easiest way to add Drizzle to Qwik is using the Qwik CLI command. This will install the required dependencies and create a `db` folder with the drizzle schema.
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add drizzle
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add drizzle
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add drizzle
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add drizzle
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add drizzle ```</span>
+  <span q:slot="npm">```shell npm run qwik add drizzle ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add drizzle ```</span>
+  <span q:slot="bun">```shell bun run qwik add drizzle ```</span>
 </PackageManagerTabs>
 
 > Drizzle is an ORM that embraces SQL. Unlike other ORMs, it doesn't deviate from SQL, eliminating the double learning curve of SQL and the framework's API. If you know SQL, you can easily use Drizzle to its full potential.
-
 
 ## Listing all the users
 
 We will use `routeLoader$` to query all users in the DB, using `db.query.users.findMany()`, and returning the result.
 
 ```tsx {7} /Drizzle/ title="src/routes/users/index.tsx"
-import { component$ } from "@qwik.dev/core";
-import { routeLoader$ } from "@qwik.dev/router";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
-import { schema } from "../../../drizzle/schema";
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import Database from 'better-sqlite3';
+import { schema } from '../../../drizzle/schema';
 
 export const useGetUsers = routeLoader$(async () => {
-  const sqlite = new Database("./drizzle/db/db.sqlite");
+  const sqlite = new Database('./drizzle/db/db.sqlite');
   const db = drizzle(sqlite, { schema });
   const users = await db.query.users.findMany();
   return users;
@@ -82,7 +65,6 @@ export default component$(() => {
     </section>
   );
 });
-
 ```
 
 ## Show user detail
@@ -90,15 +72,15 @@ export default component$(() => {
 We will use `routeLoader$` to query specific users based on the `userId` URL param, using `db.query.users.findFirst({ where: (users, { eq }) => eq(users.id, userId), })`, and returning the result.
 
 ```tsx {8} /Drizzle/ title="src/routes/users/[userId]/index.tsx"
-import { component$ } from "@qwik.dev/core";
-import { routeLoader$ } from "@qwik.dev/router";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
-import { schema } from "../../../../drizzle/schema";
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import Database from 'better-sqlite3';
+import { schema } from '../../../../drizzle/schema';
 
 export const useGetUser = routeLoader$(async (requestEvent) => {
-  const userId = parseInt(requestEvent.params["userId"], 10);
-  const sqlite = new Database("./drizzle/db/db.sqlite");
+  const userId = parseInt(requestEvent.params['userId'], 10);
+  const sqlite = new Database('./drizzle/db/db.sqlite');
   const db = drizzle(sqlite, { schema });
   const user = await db.query.users.findFirst({
     where: (users, { eq }) => eq(users.id, userId),
@@ -126,7 +108,6 @@ export default component$(() => {
     </section>
   );
 });
-
 ```
 
 ## Adding a user
@@ -134,14 +115,14 @@ export default component$(() => {
 We will use `routeAction$` and `Form` to create a progressive form to add a new user to the DB. We will use `db.insert(schema.users).values(data)` to create the user.
 
 ```tsx {7-9} /Drizzle/ title="src/routes/create/index.tsx"
-import { component$ } from "@qwik.dev/core";
-import { routeAction$, zod$, z, Form } from "@qwik.dev/router";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
-import { schema } from "../../../drizzle/schema";
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, zod$, z, Form } from '@qwik.dev/router';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import Database from 'better-sqlite3';
+import { schema } from '../../../drizzle/schema';
 export const useCreateUser = routeAction$(
   async (data) => {
-    const sqlite = new Database("./drizzle/db/db.sqlite");
+    const sqlite = new Database('./drizzle/db/db.sqlite');
     const db = drizzle(sqlite, { schema });
     const user = await db.insert(schema.users).values(data);
     return user;
@@ -149,7 +130,7 @@ export const useCreateUser = routeAction$(
   zod$({
     name: z.string(),
     email: z.string().email(),
-  }),
+  })
 );
 
 export default component$(() => {
@@ -160,11 +141,11 @@ export default component$(() => {
       <Form action={createUserAction}>
         <label>
           Name
-          <input name="name" value={createUserAction.formData?.get("name")} />
+          <input name="name" value={createUserAction.formData?.get('name')} />
         </label>
         <label>
           Email
-          <input name="email" value={createUserAction.formData?.get("email")} />
+          <input name="email" value={createUserAction.formData?.get('email')} />
         </label>
         <button type="submit">Create</button>
       </Form>
@@ -176,5 +157,4 @@ export default component$(() => {
     </section>
   );
 });
-
 ```

@@ -1,8 +1,8 @@
 {
   "description": "Qwik E2E",
+  "type": "module",
   "__qwik__": {
     "priority": 0,
     "featureOptions": []
-  },
-  "type": "module"
+  }
 }

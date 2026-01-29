@@ -61,13 +61,12 @@ export default component$(() => {
 </CodeSandbox>
 
 > The `component$` function, marked by the trailing `$`, enables the Optimizer to split components into separate chunks.
-This allows each chunk to be loaded independently as needed, rather than loading all components whenever the parent component is loaded.
+> This allows each chunk to be loaded independently as needed, rather than loading all components whenever the parent component is loaded.
 > Note: index.tsx, layout.tsx in routes folder, root.tsx and all entry files need **export default**. For other components you can use export const and export function.
 
 ### Composing Components
 
 Components can be composed together to create more complex components.
-
 
 <CodeSandbox src="/src/routes/demo/component/child/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}
@@ -83,9 +82,10 @@ export default component$(() => {
 });
 
 const Child = component$(() => {
-  return <p>Child Text</p>;
+return <p>Child Text</p>;
 });
-```
+
+````
 </CodeSandbox>
 
 > Notice that Qwik components are already lazy loaded thanks to the `$` sign. That means that you don't need to dynamically import the child component manually, Qwik will do it for you.
@@ -108,7 +108,8 @@ export default component$(() => {
     </>
   );
 });
-```
+````
+
 </CodeSandbox>
 
 ## Props
@@ -129,37 +130,39 @@ import { component$, useSignal } from "@qwik.dev/core";
 import type { Signal } from "@qwik.dev/core";
 
 interface ItemProps {
-  name?: string;
-  quantity?: number;
-  description?: string;
-  price?: Signal<number>;
+name?: string;
+quantity?: number;
+description?: string;
+price?: Signal<number>;
 }
 
 export const Item = component$<ItemProps>((props) => {
   const localQuantity = useSignal(props.quantity);
 
-  return (
-    <ul>
-      <li>name: {props.name}</li>
-      <li>quantity: {localQuantity}</li>
-      <li>description: {props.description}</li>
-      <li>price: {props.price}</li>
-    </ul>
-  );
+return (
+
+<ul>
+<li>name: {props.name}</li>
+<li>quantity: {localQuantity}</li>
+<li>description: {props.description}</li>
+<li>price: {props.price}</li>
+</ul>
+);
 });
 
 export default component$(() => {
   const price = useSignal(9.99);
 
-  return (
-    <>
-      <h1>Props</h1>
-      <Item name="hammer" price={price} quantity={5} />
-    </>
-  );
+return (
+
+<>
+<h1>Props</h1>
+<Item name="hammer" price={price} quantity={5} />
+</>
+);
 });
 
-```
+````
 </CodeSandbox>
 
 In this second example, the props are passed as a single details object containing the data, instead of individual primitive values. This allows the data inside to be mutated without the use of signals. However, the details object storing the data is still immutable and cannot be changed once passed.
@@ -198,7 +201,8 @@ export default component$(() => {
   );
 });
 
-```
+````
+
 </CodeSandbox>
 
 > In the examples above, we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional, but it allows the TypeScript compiler to check that the props are used correctly.
@@ -214,10 +218,8 @@ interface Props {
 }
 
 // We can use JS's destructuring of props to provide a default value.
-export default component$<Props>(({enabled = true, placeholder = ''}) => {
-  return (
-    <input disabled={!enabled} placeholder={placeholder} />
-  );
+export default component$<Props>(({ enabled = true, placeholder = '' }) => {
+  return <input disabled={!enabled} placeholder={placeholder} />;
 });
 ```
 
@@ -247,30 +249,31 @@ export default component$(() => {
   const height = useSignal(0);
   const outputRef = useSignal<Element>();
 
-  useVisibleTask$(() => {
-    if (outputRef.value) {
-      const rect = outputRef.value.getBoundingClientRect();
-      width.value = Math.round(rect.width);
-      height.value = Math.round(rect.height);
-    }
-  });
-
-  return (
-    <section>
-      <article
-        ref={outputRef}
-        style={{ border: '1px solid red', width: '100px' }}
-      >
-        Change text value here to stretch the box.
-      </article>
-      <p>
-        The above red box is {height.value} pixels high and {width.value}{' '}
-        pixels wide.
-      </p>
-    </section>
-  );
+useVisibleTask$(() => {
+if (outputRef.value) {
+const rect = outputRef.value.getBoundingClientRect();
+width.value = Math.round(rect.width);
+height.value = Math.round(rect.height);
+}
 });
-```
+
+return (
+
+<section>
+<article
+ref={outputRef}
+style={{ border: '1px solid red', width: '100px' }} >
+Change text value here to stretch the box.
+</article>
+<p>
+The above red box is {height.value} pixels high and {width.value}{' '}
+pixels wide.
+</p>
+</section>
+);
+});
+
+````
 </CodeSandbox>
 
 ## Accessing Elements by `id` Across Server and Client Environments
@@ -314,7 +317,8 @@ export default component$(() => {
     </section>
   );
 });
-```
+````
+
 </CodeSandbox>
 
 ## Lazy Loading
@@ -377,9 +381,7 @@ So what happens when the `Parent` component needs to render a `Child` component,
 
 ```html
 <main>
-  <section>
-    <!--qv--><!--/qv-->
-  </section>
+  <section><!--qv--><!--/qv--></section>
 </main>
 ```
 
@@ -397,19 +399,21 @@ import { component$ } from '@qwik.dev/core';
 
 // Inline component: declared using a standard function.
 export const MyButton = (props: { text: string }) => {
-  return <button>{props.text}</button>;
+return <button>{props.text}</button>;
 };
 
 // Component: declared using `component$()`.
 export default component$(() => {
-  return (
-    <p>
-      Some text:
-      <MyButton text="Click me" />
-    </p>
-  );
+return (
+
+<p>
+Some text:
+<MyButton text="Click me" />
+</p>
+);
 });
-```
+
+````
 </CodeSandbox>
 
 In the above example, `MyButton` is an inline component.
@@ -464,7 +468,7 @@ export const TestComponent = component$(() => {
     </>
   );
 });
-```
+````
 
 Note the `string extends C`, this is only true when TypeScript cannot infer the type from the `as` prop allowing you to specify the default type.
 
@@ -508,6 +512,7 @@ Note the `string extends C`, this is only true when TypeScript cannot infer the 
 - `<SSRStreamBlock>` - declares a stream block
 - `<SSRStream>` - declares a stream
 - `<Fragment>` - declares a JSX fragment
+
 ## See Also
 
 - [Inline components](../overview/index.mdx#inline-components)

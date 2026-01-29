@@ -1,5 +1,6 @@
 {
   "description": "Vercel Edge Functions",
+  "type": "module",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/vercel-edge/vite.config.ts",
     "deploy": "vercel deploy"
@@ -24,6 +25,5 @@
         "- pnpm run deploy: it will use the Vercel CLI to deploy your site"
       ]
     }
-  },
-  "type": "module"
+  }
 }

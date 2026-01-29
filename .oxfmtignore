@@ -1,13 +1,4 @@
-# Prettier handles non-JS/TS files
-**/*.json
-**/*.yaml
-**/*.yml
-**/*.md
-**/*.mdx
-**/*.css
-**/*.html
-
-# Existing ignore patterns from .prettierignore
+# Ignore patterns
 **/**.api.md
 **/*.log
 **/.DS_Store

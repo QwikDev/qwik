@@ -28,32 +28,14 @@ Prisma can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` fun
 
 The easiest way to add Prisma to Qwik is using the Qwik CLI command. This will install the required dependencies and create a `prisma` folder with the Prisma schema and the migrations.
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add prisma
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add prisma
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add prisma
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add prisma
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add prisma ```</span>
+  <span q:slot="npm">```shell npm run qwik add prisma ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add prisma ```</span>
+  <span q:slot="bun">```shell bun run qwik add prisma ```</span>
 </PackageManagerTabs>
 
 > Prisma makes it easy to use different databases such as Postgres, MySQL, SQLite and MongoDB.
-
 
 ## Listing all the users
 
@@ -62,12 +44,12 @@ We will use `routeLoader$` to query all users in the DB, using `prisma.user.find
 ```tsx {7} /PrismaClient/ title="src/routes/users/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
 export const useGetUsers = routeLoader$(async () => {
   const prisma = new PrismaClient();
   // example read from SQLite
-  const users = await prisma.user.findMany()
+  const users = await prisma.user.findMany();
   return users;
 });
 
@@ -77,14 +59,16 @@ export default component$(() => {
     <section>
       <h1>User's directory</h1>
       <ul>
-        {users.value.map(user => (
+        {users.value.map((user) => (
           <li key={user.id}>
-            <a href={`/users/${user.id}`}>{user.name} ({user.email})</a>
+            <a href={`/users/${user.id}`}>
+              {user.name} ({user.email})
+            </a>
           </li>
         ))}
       </ul>
     </section>
-  )
+  );
 });
 ```
 
@@ -92,16 +76,15 @@ export default component$(() => {
 
 We will use `routeLoader$` to query specific users based on the `userId` URL param, using `prisma.user.findUnique()`, and returning the result.
 
-
 ```tsx {8} /PrismaClient/ title="src/routes/users/[userId]/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-export const useGetUser = routeLoader$(async ({params, status}) => {
+export const useGetUser = routeLoader$(async ({ params, status }) => {
   const userId = parseInt(params['userId'], 10);
   const prisma = new PrismaClient();
-  const user = await prisma.user.findUnique({where: {id: userId}});
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     // Set the status to 404 if the user is not found
     status(404);
@@ -123,7 +106,7 @@ export default component$(() => {
         <p>User not found</p>
       )}
     </section>
-  )
+  );
 });
 ```
 
@@ -134,18 +117,21 @@ We will use `routeAction$` and `Form` to create a progressive form to add a new 
 ```tsx {7-9} /PrismaClient/ title="src/routes/create/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeAction$, zod$, z, Form } from '@qwik.dev/router';
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-export const useCreateUser = routeAction$(async (data) => {
-  const prisma = new PrismaClient();
-  const user = await prisma.user.create({
-    data,
-  });
-  return user;
-}, zod$({
-  name: z.string(),
-  email: z.string().email(),
-}));
+export const useCreateUser = routeAction$(
+  async (data) => {
+    const prisma = new PrismaClient();
+    const user = await prisma.user.create({
+      data,
+    });
+    return user;
+  },
+  zod$({
+    name: z.string(),
+    email: z.string().email(),
+  })
+);
 
 export default component$(() => {
   const createUserAction = useCreateUser();
@@ -153,10 +139,12 @@ export default component$(() => {
     <section>
       <h1>Create User</h1>
       <Form action={createUserAction}>
-        <label>Name
+        <label>
+          Name
           <input name="name" value={createUserAction.formData?.get('name')} />
         </label>
-        <label>Email
+        <label>
+          Email
           <input name="email" value={createUserAction.formData?.get('email')} />
         </label>
         <button type="submit">Create</button>
@@ -167,6 +155,6 @@ export default component$(() => {
         </div>
       )}
     </section>
-  )
+  );
 });
 ```

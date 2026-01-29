@@ -75,4 +75,3 @@ The preloading happens with the `_preload` function, which is an internal Qwik A
 ## During Development
 
 Speculative module fetching only really works in preview or on a production build. In development, we don't have the bundle graph available, so we can't prevent waterfalls from happening. However, we do ask the browser to preload the bundles that are most likely to be requested after SSR.
-

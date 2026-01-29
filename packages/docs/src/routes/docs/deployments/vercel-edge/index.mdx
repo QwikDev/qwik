@@ -22,28 +22,11 @@ Qwik Router Vercel Edge adapter allows you to connect Qwik Router to [Vercel Edg
 
 To integrate the `vercel-edge` adapter, use the `add` command:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add vercel-edge
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add vercel-edge
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add vercel-edge
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add vercel-edge
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add vercel-edge ```</span>
+  <span q:slot="npm">```shell npm run qwik add vercel-edge ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add vercel-edge ```</span>
+  <span q:slot="bun">```shell bun run qwik add vercel-edge ```</span>
 </PackageManagerTabs>
 
 > It will automatically install the required dependencies, including the [Vercel CLI](https://vercel.com/docs/cli).
@@ -65,26 +48,10 @@ Additionally, within the `package.json`, the `build.server` and `deploy` scripts
 To build the application for production, use the `build` command, this command will automatically run `build.server` and `build.client`:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run build
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run build
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run build
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run build
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run build ```</span>
+  <span q:slot="npm">```shell npm run build ```</span>
+  <span q:slot="yarn">```shell yarn run build ```</span>
+  <span q:slot="bun">```shell bun run build ```</span>
 </PackageManagerTabs>
 
 [Read the full guide here](https://github.com/QwikDev/qwik/blob/main/starters/adapters/vercel-edge/README.md)
@@ -94,26 +61,10 @@ bun run build
 To deploy the application for development:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run deploy
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run deploy
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run deploy
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run deploy
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run deploy ```</span>
+  <span q:slot="npm">```shell npm run deploy ```</span>
+  <span q:slot="yarn">```shell yarn run deploy ```</span>
+  <span q:slot="bun">```shell bun run deploy ```</span>
 </PackageManagerTabs>
 
 Notice that you might need a [Vercel account](https://vercel.com/docs/concepts/get-started) in order to complete this step!
@@ -153,12 +104,12 @@ Edge Functions run after the cache, and can both cache and return responses.
 
 ### Drizzle with Vercel Edge Functions
 
-Running Postgres on edge requires edge-compatible drivers since Postgres relies on Node.js APIs. 
+Running Postgres on edge requires edge-compatible drivers since Postgres relies on Node.js APIs.
 When no adapter is used, the below errors might appear during the deployment process:
-```tsx 
+
+```tsx
 └── The Edge Function "_qwik-router" is referencing unsupported modules
 └── Cannot bundle Node.js built-in "node:events" imported from "node_modules\postgres\cf\polyfills.js"
 ```
+
 Luckily, drizzle has a [section](https://orm.drizzle.team/learn/tutorials/drizzle-with-vercel-edge-functions#edge-compatible-driver) that can be followed to implement the right adapter of choice.
-
-

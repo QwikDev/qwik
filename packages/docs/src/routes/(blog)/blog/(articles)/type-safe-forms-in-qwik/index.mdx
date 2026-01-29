@@ -23,7 +23,10 @@ If you have been paying attention to all the TypeScript nerds lately, you’ve p
 And I’m not talking about the villain from Superman 2 (which appeared also in more recent movies from the franchise).
 
 <video muted loop autoplay class="mx-auto">
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fafcc097ba4844f6da51ffab34457c457%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=afcc097ba4844f6da51ffab34457c457&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fafcc097ba4844f6da51ffab34457c457%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=afcc097ba4844f6da51ffab34457c457&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 In case you haven’t, Zod is a TypeScript-first schema declaration and validation library.
@@ -52,7 +55,7 @@ Take this code as an example:
 // FILE: src/routes/index.tsx
 
 import { routeAction$ } from '@builder.io/qwik-city';
- 
+
 export const useAddUser = routeAction$(async (user) => {
   // `user` is typed Record<string, any>
   const userID = await db.users.add(user);
@@ -60,7 +63,7 @@ export const useAddUser = routeAction$(async (user) => {
     success: true,
     userID,
   };
-}); 
+});
 ```
 
 Qwik does a decent job of giving us a type of `Record<string, any>`, but that is not ideal. There’s no validation that the `user` payload actually has what is needed to create a user inside our database.
@@ -71,7 +74,7 @@ This is where Zod comes into play:
 // FILE: src/routes/index.tsx
 
 import { routeAction$, zod$, z } from '@builder.io/qwik-city';
- 
+
 export const useAddUser = routeAction$(
   async (user) => {
     // `user` is typed { name: string }
@@ -107,7 +110,18 @@ Notable mentions are: <a href="https://github.com/jaredpalmer/formik" rel="noope
 
 ## Modular Forms
 
-<a href="https://modularforms.dev/" rel="noopener noreferrer" target="_blank">Modular Forms</a> is a form library for Qwik and <a href="https://www.solidjs.com/" rel="noopener noreferrer" target="_blank">SolidJS</a> created by <a href="https://twitter.com/FabianHiller" rel="noopener noreferrer" target="_blank"><strong>Fabian Hiller</strong></a><strong>.</strong>
+<a href="https://modularforms.dev/" rel="noopener noreferrer" target="_blank">
+  Modular Forms
+</a>
+is a form library for Qwik and
+<a href="https://www.solidjs.com/" rel="noopener noreferrer" target="_blank">
+  SolidJS
+</a>
+created by
+<a href="https://twitter.com/FabianHiller" rel="noopener noreferrer" target="_blank">
+  <strong>Fabian Hiller</strong>
+</a>
+<strong>.</strong>
 
 Fabian created a complex form for his SaaS business in 2018, but found that manually handling all the form validation was tiring and prone to errors. He decided to create a `useForm` hook to offload the repetitive code and make it reusable.
 
@@ -132,7 +146,7 @@ const formSchema = z.object({
   password: z.string().min(8),
 });
 
-// Note: you can also use z.input 
+// Note: you can also use z.input
 // since Zod supports data transformation.
 type LoginForm = z.infer<typeof formSchema>;
 
@@ -176,15 +190,11 @@ export default component$(() => {
 
   return (
     <Form>
-      <Field name="email">
-        {(field, props) => <input {...props} type="email" />}
-      </Field>
-      <Field name="password">
-        {(field, props) => <input {...props} type="password" />}
-      </Field>
+      <Field name="email">{(field, props) => <input {...props} type="email" />}</Field>
+      <Field name="password">{(field, props) => <input {...props} type="password" />}</Field>
       <button class="w-max" type="submit">
         Login
-       </button>
+      </button>
     </Form>
   );
 });
@@ -204,10 +214,7 @@ To add Zod validations we need to change our schema a bit, like so:
 const formSchema = z.object({
   email: z.string().nonempty(),
   password: z.string().min(8),
-  email: z
-    .string()
-    .nonempty('please enter your email')
-    .email('enter a valid email'),
+  email: z.string().nonempty('please enter your email').email('enter a valid email'),
   password: z
     .string()
     .min(1, 'please enter a password')
@@ -244,12 +251,7 @@ export default component$(() => {
         <Field name="email">
           {(field, props) => (
             <>
-              <input
-                class="w-96"
-                placeholder="enter email"
-                {...props}
-                type="email"
-              />
+              <input class="w-96" placeholder="enter email" {...props} type="email" />
               {field.error && <div>{field.error}</div>}
             </>
           )}
@@ -257,12 +259,7 @@ export default component$(() => {
         <Field name="password">
           {(field, props) => (
             <>
-              <input
-                class={'w-96'}
-                placeholder="enter password"
-                {...props}
-                type="password"
-              />
+              <input class={'w-96'} placeholder="enter password" {...props} type="password" />
               {field.error && <div>{field.error}</div>}
             </>
           )}
@@ -279,7 +276,10 @@ export default component$(() => {
 The result is that the error messages will render underneath the field, in case the field is invalid:
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fc4d52092565c47df90169c863f825718%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=c4d52092565c47df90169c863f825718&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fc4d52092565c47df90169c863f825718%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=c4d52092565c47df90169c863f825718&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 ### Handling submissions
@@ -297,7 +297,7 @@ export const useFormAction = formAction$<LoginForm>((values) => {
   // Runs on server
   console.log(values);
   // This validates the values on the server side.
-  // And cannot be manipulated by an attacker. ✅ 
+  // And cannot be manipulated by an attacker. ✅
 }, zodForm$(formSchema));
 
 export default component$(() => {
@@ -315,7 +315,7 @@ To optionally process the form values client-side as well, we can add a function
 
 ```tsx
 export default component$(() => {
-  // ... 
+  // ...
 
   const handleSubmit: SubmitHandler<LoginForm> = $((values, event) => {
     // Runs on client
@@ -340,33 +340,35 @@ As the library is both for SolidJS and Qwik, the intention is to keep a similar 
 To get our end to end types correct, we now need to add a return type as a second generic to our `formAction$` call:
 
 ```tsx
-export const useFormAction = formAction$<LoginForm, LoginResponse>(
-  async ({ email, password }) => {
-    // Runs on server
-    // simulating adding a user to the DB.
-    const createdUserID = await db.users.add({ email, password })
-    return {
-      status: 'success',
-      message: 'User added successfully',
-      data: { createdUserID },
-    };
-  },
-  zodForm$(formSchema)
-);
+export const useFormAction = formAction$<LoginForm, LoginResponse>(async ({ email, password }) => {
+  // Runs on server
+  // simulating adding a user to the DB.
+  const createdUserID = await db.users.add({ email, password });
+  return {
+    status: 'success',
+    message: 'User added successfully',
+    data: { createdUserID },
+  };
+}, zodForm$(formSchema));
 ```
 
 Now we get that sweet auto complete in our client-side code:
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F66df5ff3e04c4ded80408ec28eb4b8ce%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=66df5ff3e04c4ded80408ec28eb4b8ce&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F66df5ff3e04c4ded80408ec28eb4b8ce%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=66df5ff3e04c4ded80408ec28eb4b8ce&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 Notice that we also get a loading state through the `submitting` property as well as the response data once the server responds:
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F71557150d6d74bf6ab6eac654c55b27c%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=71557150d6d74bf6ab6eac654c55b27c&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F71557150d6d74bf6ab6eac654c55b27c%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=71557150d6d74bf6ab6eac654c55b27c&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
-
 
 ### Bonus: Progressively enhanced form out of the box
 
@@ -375,7 +377,10 @@ This is more a feature of Qwik than the Modular Forms library, however, it’s w
 Once deactivated, the form will still work as below:
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F5d090afa01ba40e3b9f5e2395c004deb%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=5d090afa01ba40e3b9f5e2395c004deb&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F5d090afa01ba40e3b9f5e2395c004deb%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=5d090afa01ba40e3b9f5e2395c004deb&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 ## TL;DR

@@ -36,7 +36,7 @@ export const Field = component$(() => {
 
   const context = {
     isDescription,
-  }
+  };
 
   useContextProvider(fieldContextId, context);
 
@@ -47,8 +47,8 @@ export const Field = component$(() => {
       {/* If the description component is not passed, it is a broken aria reference without backpatching, as the input would try to describe an element that does not exist */}
       <Description />
     </>
-  )
-})
+  );
+});
 
 export const Label = component$(() => {
   return <label>Label</label>;
@@ -57,7 +57,7 @@ export const Label = component$(() => {
 export const Input = component$(() => {
   const context = useContext(fieldContextId);
 
-  return <input aria-describedby={context.isDescription.value ? "description" : undefined} />;
+  return <input aria-describedby={context.isDescription.value ? 'description' : undefined} />;
 });
 
 export const Description = component$(() => {
@@ -65,7 +65,7 @@ export const Description = component$(() => {
 
   useTask$(() => {
     context.isDescription = true;
-  })
+  });
 
   return <div id="description">Description</div>;
 });
@@ -92,4 +92,3 @@ Here's how backpatching works under the hood:
 4. **Browser Execution**: On page load, this script uses efficient DOM traversal to find and update the target elements with their correct attribute values.
 
 5. **Zero Runtime Impact**: This all happens without waking up the Qwik framework, keeping your app fast and lightweight.
-

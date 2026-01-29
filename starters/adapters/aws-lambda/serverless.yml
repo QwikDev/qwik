@@ -1,5 +1,5 @@
 service: qwik-lambda-app
-frameworkVersion: "3"
+frameworkVersion: '3'
 
 provider:
   name: aws
@@ -13,7 +13,7 @@ functions:
   qwik:
     handler: server/entry_aws-lambda.qwikApp
     events:
-      - httpApi: "*"
+      - httpApi: '*'
 
 custom:
   serverless-offline:
@@ -22,25 +22,25 @@ custom:
     # Make sure serverless-http serves files correctly
     binary:
       contentTypes:
-        - "application/javascript"
-        - "text/javascript"
-        - "application/json"
-        - "text/html"
-        - "text/css"
-        - "image/*"
-        - "font/*"
+        - 'application/javascript'
+        - 'text/javascript'
+        - 'application/json'
+        - 'text/html'
+        - 'text/css'
+        - 'image/*'
+        - 'font/*'
     # the js files under build have hash names and are immutable
     cacheControl:
-      - pattern: "build/**/*.js"
-        value: "public, max-age=31536000, immutable"
+      - pattern: 'build/**/*.js'
+        value: 'public, max-age=31536000, immutable'
 
 package:
   excludeDevDependencies: true
   patterns:
-    - "!*"
-    - "!*/**"
-    - "server/**"
-    - "dist/**"
+    - '!*'
+    - '!*/**'
+    - 'server/**'
+    - 'dist/**'
 
 plugins:
   - serverless-offline

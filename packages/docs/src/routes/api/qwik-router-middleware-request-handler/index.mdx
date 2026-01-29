@@ -82,13 +82,13 @@ void
 export type CacheControl =
   | CacheControlOptions
   | number
-  | "day"
-  | "week"
-  | "month"
-  | "year"
-  | "no-cache"
-  | "immutable"
-  | "private";
+  | 'day'
+  | 'week'
+  | 'month'
+  | 'year'
+  | 'no-cache'
+  | 'immutable'
+  | 'private';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
@@ -1480,7 +1480,7 @@ Description
 
 ```typescript
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
-  ev: RequestEvent<PLATFORM>,
+  ev: RequestEvent<PLATFORM>
 ) => Promise<void> | void;
 ```
 
@@ -1492,7 +1492,7 @@ export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
 
 ```typescript
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
-  ev: RequestEvent<PLATFORM>,
+  ev: RequestEvent<PLATFORM>
 ) => Promise<void> | void;
 ```
 
@@ -1896,7 +1896,7 @@ URL
 ## ServerRequestMode
 
 ```typescript
-export type ServerRequestMode = "dev" | "static" | "server";
+export type ServerRequestMode = 'dev' | 'static' | 'server';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
@@ -1909,7 +1909,7 @@ export type ServerResponseHandler<T = any> = (
   headers: Headers,
   cookies: Cookie,
   resolve: (response: T) => void,
-  requestEv: RequestEventInternal,
+  requestEv: RequestEventInternal
 ) => WritableStream<Uint8Array>;
 ```
 

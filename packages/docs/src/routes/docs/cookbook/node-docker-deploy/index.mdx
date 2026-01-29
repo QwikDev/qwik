@@ -19,8 +19,8 @@ Once the dependencies are installed, we proceed to build, setting the NODE_ENV a
 
 We finally specify the default command to run our Qwik application with `yarn serve`, exposing the port 3000: Please note that port number should match the one you chose on your entry adapter (e.g.: `src/entry.express.tsx`).
 
- ```docker
- ARG NODE_VERSION=18.18.2
+```docker
+ARG NODE_VERSION=18.18.2
 
 ################################################################################
 # Use node image for base image for all stages.
@@ -38,9 +38,9 @@ FROM base as deps
 # Leverage bind mounts to package.json and yarn.lock to avoid having to copy them
 # into this layer.
 RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=yarn.lock,target=yarn.lock \
-    --mount=type=cache,target=/root/.yarn \
-    yarn install --frozen-lockfile
+   --mount=type=bind,source=yarn.lock,target=yarn.lock \
+   --mount=type=cache,target=/root/.yarn \
+   yarn install --frozen-lockfile
 
 ################################################################################
 # Create a stage for building the application.
@@ -83,16 +83,16 @@ EXPOSE 3000
 
 # Run the application.
 CMD yarn serve
- ```
+```
 
- You can now build your docker image:
+You can now build your docker image:
 
- ```shell
- docker build -t your-image .
- ```
+```shell
+docker build -t your-image .
+```
 
 And start a Docker container:
 
- ```shell
+```shell
 docker run -dp 127.0.0.1:3000:3000 your-image
- ```
+```

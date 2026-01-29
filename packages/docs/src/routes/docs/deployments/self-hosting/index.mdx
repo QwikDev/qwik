@@ -44,7 +44,7 @@ When using the static adapter, make sure to update your `adapters/static/vite.co
 ```ts
 staticAdapter({
   origin: 'https://your-actual-domain.com',
-})
+});
 ```
 
 ## Building for Production
@@ -52,26 +52,10 @@ staticAdapter({
 After adding the appropriate adapter, build your application. This will create a `dist/` directory with all the necessary files for deployment:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run build
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run build
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run build
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run build
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run build ```</span>
+  <span q:slot="npm">```shell npm run build ```</span>
+  <span q:slot="yarn">```shell yarn run build ```</span>
+  <span q:slot="bun">```shell bun run build ```</span>
 </PackageManagerTabs>
 
 The build process will generate:
@@ -106,26 +90,10 @@ For Express or Fastify adapters, the build process generates a server entry file
 2. Install production dependencies on the server:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm install --prod
-```
-</span>
-<span q:slot="npm">
-```shell
-npm install --omit=dev
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn install --production
-```
-</span>
-<span q:slot="bun">
-```shell
-bun install --production
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm install --prod ```</span>
+  <span q:slot="npm">```shell npm install --omit=dev ```</span>
+  <span q:slot="yarn">```shell yarn install --production ```</span>
+  <span q:slot="bun">```shell bun install --production ```</span>
 </PackageManagerTabs>
 
 3. Set the required environment variables:
@@ -185,6 +153,7 @@ WantedBy=multi-user.target
 ```
 
 Enable and start the service:
+
 ```shell
 sudo systemctl enable qwik-app
 sudo systemctl start qwik-app
@@ -323,7 +292,7 @@ server {
         add_header Cache-Control "public, max-age=31536000, immutable";
         access_log off;
     }
-    
+
     # Security headers
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -353,21 +322,21 @@ server {
     ssl_certificate_key /path/to/key.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
-    
+
     # Document root
     root /path/to/your/app/dist;
     index index.html;
-    
+
     # Security headers
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
-    
+
     # Main location block
     location / {
         try_files $uri $uri/ /index.html;
     }
-    
+
     # Cache settings for static assets (build and assets directories)
     location ~ ^/(build|assets)/ {
         expires 1y;
@@ -377,21 +346,21 @@ server {
         gzip_static on;
         brotli_static on;
     }
-    
+
     # Route loader data caching
     location ~ /[^/]+/q-data\.json$ {
         expires 30s;
         add_header Cache-Control "public, must-revalidate";
         try_files $uri =404;
     }
-    
+
     # Security: Deny access to hidden files
     location ~ /\. {
         deny all;
         access_log off;
         log_not_found off;
     }
-    
+
     # Security: Deny access to .git directory
     location ^~ /.git/ {
         deny all;
@@ -417,38 +386,38 @@ For Apache with mod_proxy enabled, use this configuration:
 # Main server block
 <VirtualHost *:443>
     ServerName your-domain.com
-    
+
     # SSL Configuration
     SSLEngine on
     SSLCertificateFile /path/to/cert.pem
     SSLCertificateKeyFile /path/to/key.pem
-    
+
     # Proxy to Node.js server
     ProxyPreserveHost On
     ProxyPass / http://localhost:3000/
     ProxyPassReverse / http://localhost:3000/
-    
+
     # Serve static assets directly (build and assets directories)
     <Directory /path/to/your/app/dist/build>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
-        
+
         <IfModule mod_expires.c>
             ExpiresActive On
             ExpiresDefault "access plus 1 year"
             Header append Cache-Control "public, immutable"
         </IfModule>
     </Directory>
-    
+
     # Alias for both build and assets directories
     AliasMatch ^/(build|assets)/(.*)$ /path/to/your/app/dist/$1/$2
-    
+
     # Security headers
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
-    
+
     # SPA fallback
     <IfModule mod_rewrite.c>
         RewriteEngine On
@@ -482,7 +451,7 @@ Qwik Router applications are protected against CSRF (Cross-Site Request Forgery)
 const { router, notFound } = createQwikRouter({
   render,
   // CSRF protection is enabled by default when ORIGIN is set
-  checkOrigin: true
+  checkOrigin: true,
 });
 ```
 
@@ -493,7 +462,7 @@ When behind a reverse proxy (Nginx, CloudFront, etc.), use `'lax-proto'` to hand
 ```tsx
 const { router, notFound } = createQwikRouter({
   render,
-  checkOrigin: 'lax-proto' // Required for proper proxy support
+  checkOrigin: 'lax-proto', // Required for proper proxy support
 });
 ```
 
@@ -502,7 +471,7 @@ const { router, notFound } = createQwikRouter({
 ```tsx
 const { router, notFound } = createQwikRouter({
   render,
-  checkOrigin: false // Disables CSRF protection (not recommended for production)
+  checkOrigin: false, // Disables CSRF protection (not recommended for production)
 });
 ```
 
@@ -582,6 +551,7 @@ pm2-web --config pm2-webrc.json
 #### 2. Web Server Logs
 
 **Nginx**
+
 ```bash
 # Access logs
 /var/log/nginx/access.log
@@ -630,6 +600,7 @@ iostat -x 1
    - Resource utilization
 
 **Alternative APM Solutions**
+
 - [New Relic](https://newrelic.com/)
 - [Datadog](https://www.datadoghq.com/)
 - [Sentry](https://sentry.io/)
@@ -657,6 +628,7 @@ iostat -x 1
 ### Asset Optimization
 
 1. **Caching Strategy**
+
    ```nginx
    # Immutable assets (hashed filenames)
    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot)$ {
@@ -698,6 +670,7 @@ iostat -x 1
 Enable efficient compression for static assets:
 
 1. Pre-compress static files during build:
+
 ```shell
 # Install compression tools
 npm install -g brotli-cli gzip-cli
@@ -709,6 +682,7 @@ wait
 ```
 
 2. Configure Nginx to serve pre-compressed files:
+
 ```nginx
 location ~ ^/(build|assets)/ {
     root /path/to/your/app/dist;
@@ -734,32 +708,33 @@ For high-traffic applications:
 
 ## Troubleshooting Common Issues
 
-1. **404 Not Found**: 
+1. **404 Not Found**:
    - Check your Nginx/Apache configuration paths
    - Verify that URL rewriting is properly configured
    - **Check file permissions**: Ensure the web server user has read access to all files and execute permission on all parent directories
+
      ```shell
      # Check permissions for a specific file
      sudo -u nginx ls -ld /path/to/static/file
-     
+
      # Check directory permissions (go up the path to find where access is denied)
      sudo -u nginx ls -ld /path/to/static/
      sudo -u nginx ls -ld /path/to/
      sudo -u nginx ls -ld /path/
-     
+
      # NixOS-specific: Web server users typically don't have access to /home by default
      # You may need to adjust the permissions or move the files to /var/www or similar
      ```
 
-2. **503 Service Unavailable**: 
+2. **503 Service Unavailable**:
    - Verify the Node process is running (`pm2 list` or `ps aux | grep node`)
    - Check server logs for memory issues or crashes
 
-3. **CSRF Errors**: 
+3. **CSRF Errors**:
    - Ensure the `ORIGIN` environment variable is correctly set
    - Check that form submissions include the correct CSRF token
 
-4. **Performance Issues**: 
+4. **Performance Issues**:
    - Enable compression in your web server
    - Check for memory leaks using Node.js profiling
    - Verify that static assets are served with proper cache headers

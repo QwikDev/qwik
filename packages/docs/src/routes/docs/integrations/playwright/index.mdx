@@ -22,28 +22,11 @@ Playwright enables reliable end-to-end testing for modern web apps supporting al
 
 You can add Playwright easily by using the following Qwik starter script:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add playwright
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add playwright
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add playwright
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add playwright
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add playwright ```</span>
+  <span q:slot="npm">```shell npm run qwik add playwright ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add playwright ```</span>
+  <span q:slot="bun">```shell bun run qwik add playwright ```</span>
 </PackageManagerTabs>
 
 The previous command adds playwright to your dependencies, appends a `test.e2e` command in your `package.json` scripts section and creates a default configuration within the `playwright.config.ts` file on the application root level.

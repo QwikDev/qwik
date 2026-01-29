@@ -19,45 +19,28 @@ To achieve this we are also using tailwindcss for styling.
 First we have to install tailwindcss in our website. To add tailwind in Qwik project is very simple. You have to just run this command in terminal.
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add tailwind
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add tailwind
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add tailwind
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add tailwind
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add tailwind ```</span>
+  <span q:slot="npm">```shell npm run qwik add tailwind ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add tailwind ```</span>
+  <span q:slot="bun">```shell bun run qwik add tailwind ```</span>
 </PackageManagerTabs>
 
-You have to enable the darkmode from your ```tailwind.config.js``` file. It should look like this.
+You have to enable the darkmode from your `tailwind.config.js` file. It should look like this.
 
 ```js
 module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
-  darkMode: "class",
+  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
+  darkMode: 'class',
   theme: {},
   plugins: [],
 };
-
 ```
 
-Then we have to add this code in the head tag of our ```root.tsx``` file.
+Then we have to add this code in the head tag of our `root.tsx` file.
 
 ```js
-       <script
-          dangerouslySetInnerHTML={`
+<script
+  dangerouslySetInnerHTML={`
         (function() {
           function setTheme(theme) {
             document.documentElement.className = theme;
@@ -79,7 +62,7 @@ Then we have to add this code in the head tag of our ```root.tsx``` file.
         }
         );
       `}
-        ></script>
+></script>
 ```
 
 You can change the variable name "hide-checkbox" to any name that you want. It need to be same as we have in our html file.
@@ -87,8 +70,8 @@ You can change the variable name "hide-checkbox" to any name that you want. It n
 Then in any component you can add your theme toggle code.
 
 ```tsx
-import { component$, useStylesScoped$ } from "@qwik.dev/core";
-import styles from "./style.css?inline";
+import { component$, useStylesScoped$ } from '@qwik.dev/core';
+import styles from './style.css?inline';
 
 export const ThemeSwitch = component$(() => {
   useStylesScoped$(styles);
@@ -100,12 +83,12 @@ export const ThemeSwitch = component$(() => {
           id="hide-checkbox"
           onClick$={() => {
             const theme = document.documentElement.className;
-            if (theme === "light") {
-              document.documentElement.className = "dark";
-              localStorage.setItem("theme", "dark");
+            if (theme === 'light') {
+              document.documentElement.className = 'dark';
+              localStorage.setItem('theme', 'dark');
             } else {
-              document.documentElement.className = "light";
-              localStorage.setItem("theme", "light");
+              document.documentElement.className = 'light';
+              localStorage.setItem('theme', 'light');
             }
           }}
         />
@@ -114,14 +97,12 @@ export const ThemeSwitch = component$(() => {
     </div>
   );
 });
-
 ```
 
 For styling of theme switch.
 
-
 ```css
-.switch{
+.switch {
   position: relative;
   display: inline-block;
   width: 50px;
@@ -131,22 +112,22 @@ For styling of theme switch.
   cursor: pointer;
 }
 
-.switch input{
+.switch input {
   display: none;
 }
 
-.slider{
+.slider {
   width: 50px;
   height: 25px;
   border-radius: 25px;
   background-color: #ccc;
   position: relative;
   cursor: pointer;
-  transition: all .3s linear;
+  transition: all 0.3s linear;
 }
 
-.slider:before{
-  content: "";
+.slider:before {
+  content: '';
   position: absolute;
   width: 25px;
   height: 25px;
@@ -157,14 +138,14 @@ For styling of theme switch.
   left: 5px;
   bottom: 0;
   margin: auto;
-  transition: all .3s linear;
+  transition: all 0.3s linear;
 }
 
-input:checked + .slider{
-  background-color: #2196F3;
+input:checked + .slider {
+  background-color: #2196f3;
 }
 
-input:checked + .slider:before{
+input:checked + .slider:before {
   left: 22px;
 }
 ```

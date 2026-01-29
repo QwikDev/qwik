@@ -15,10 +15,10 @@ The NavLink component enhances Qwik `<Link>` component by adding:
 
 This allows styling the active state for navigation.
 
-## How it Works 
+## How it Works
 
 Under the hood, NavLink uses the `useLocation` hook to get navigation status.
-It checks if the link href matches the current URL pathname to set activeClass. 
+It checks if the link href matches the current URL pathname to set activeClass.
 This allows NavLink to know the active state automatically based on navigation.
 
 <CodeFile src="/src/routes/demo/cookbook/nav-link/index.tsx">
@@ -52,14 +52,16 @@ export const NavLink = component$(
       <Link
         {...props}
         class={[props.class, isActive && activeClass ? activeClass : ""]}
-        
+
       >
         <Slot />
       </Link>
     );
-  }
+
+}
 );
-```
+
+````
 </CodeFile>
 
 
@@ -92,9 +94,10 @@ export default component$(() => {
     </>
   );
 });
-```
+````
+
 </CodeSandbox>
 
-## Tailwind 
-If you are using Tailwind CSS make sure to edit your tailwind config file, and add `important=true` to your export, then add `!` before the CSS classes you're using `activeClass="!text-green-600"` to make them important when the link is active.
+## Tailwind
 
+If you are using Tailwind CSS make sure to edit your tailwind config file, and add `important=true` to your export, then add `!` before the CSS classes you're using `activeClass="!text-green-600"` to make them important when the link is active.

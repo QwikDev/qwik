@@ -27,19 +27,19 @@ Both methods have drawbacks. FOIT withholds text from the user, while FOUT can c
 
 Luckily, we can make use of the [font-display](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display) property to control how the browser handles font loading. This allows us to strike a balance between the two strategies.
 
-> We suggest playing around with the different loading strategies, as well as how the font display timeline works. 
+> We suggest playing around with the different loading strategies, as well as how the font display timeline works.
 
 The two most common values for the `font-display` property are `swap` and `fallback`.
 
 ## Google Fonts
 
-Google Fonts is a popular open source library, offering over 1500 font families. 
+Google Fonts is a popular open source library, offering over 1500 font families.
 
-While they are easy to use, they involve downloading a CSS file and fonts from different domains, causing a noticeable delay and switch in font loading despite using `swap`. 
+While they are easy to use, they involve downloading a CSS file and fonts from different domains, causing a noticeable delay and switch in font loading despite using `swap`.
 
-Here's what happens: 
+Here's what happens:
 
-1. The browser spots the `<link href="https://fonts.googleapis.com/css2">` tag, which prompts it to request a CSS file. 
+1. The browser spots the `<link href="https://fonts.googleapis.com/css2">` tag, which prompts it to request a CSS file.
 2. After analyzing the file, it realizes a web font from https://fonts.gstatic.com is needed, leading to another request.
 
 To mitigate this, we can **self host** our fonts.
@@ -50,7 +50,7 @@ Rather than using a third-party provider like Google Fonts, we can self-host our
 
 Some benefits include:
 
-- Improved performance 
+- Improved performance
 - More privacy as Google tracks font usage.
 - Self-hosted fonts load offline, useful for PWA's or low connectivity situations.
 
@@ -71,10 +71,10 @@ Next we need to create an `@font-face` rule in our CSS. We want to create a new 
 ```css
 @font-face {
   font-display: swap;
-  font-family: "Peace Sans";
+  font-family: 'Peace Sans';
   font-style: normal;
   font-weight: 400;
-  src: url("../assets/fonts/peace-sans.woff2") format("woff2");
+  src: url('../assets/fonts/peace-sans.woff2') format('woff2');
 }
 ```
 
@@ -118,7 +118,7 @@ You can use the `size-adjust`, `ascent-override`, and `descent-override` propert
 
 The most performant option is system fonts. This is because the user already has the font installed on their machine, and the browser can render the text immediately.
 
-System fonts often are often called *"font stacks"*, which are a collection of system fonts that are similar enough to each other. If the first font is not available, the browser can use the next one in the stack.
+System fonts often are often called _"font stacks"_, which are a collection of system fonts that are similar enough to each other. If the first font is not available, the browser can use the next one in the stack.
 
 Tailwind CSS also provides [utility classes](https://tailwindcss.com/docs/font-family) for common system fonts. [Modern Font Stacks](https://github.com/system-fonts/modern-font-stacks) is an example tool you can use to test out different font stacks, including a [Tailwind CSS plugin](https://github.com/BorisAnthony/mfs-tailwind) from a community member.
 
@@ -139,6 +139,3 @@ Different units each have their own [accessibility concerns](https://www.joshwco
 ### Line height recommendations
 
 The browser's default line height is not preferable for reading. With body fonts, we want to have a line height around 1.5. For headings, we want to have a line height around 1.2.
-
-
-

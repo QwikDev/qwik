@@ -11,14 +11,12 @@ export const logError = (message?: any, ...optionalParams: any[]) => {
 export const throwErrorAndStop = (message?: any, ...optionalParams: any[]): never => {
   const error = createAndLogError(false, message, ...optionalParams);
 
-  debugger;
   throw error;
 };
 
 export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
   const err = createAndLogError(qDev, message, ...optionalParams);
 
-  debugger;
   return err;
 };
 

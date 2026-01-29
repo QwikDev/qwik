@@ -78,14 +78,14 @@ export default component$(() => {
       <h1 class="overview">API Reference</h1>
 
       <h2>Filters</h2>
-      <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-10">
+      <div class="mb-10 grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {Array.from(getUniqueKinds()).map((kind) => (
           <button
             key={`filter-${kind}`}
             onClick$={() => {
               filters[kind] = !filters[kind];
             }}
-            class={`filter-item block text-sm rounded-md text-left ${
+            class={`filter-item block rounded-md text-left text-sm ${
               filters[kind] ? 'active' : ''
             }`}
             data-kind-label={kind.substring(0, 1).toUpperCase()}
@@ -97,7 +97,12 @@ export default component$(() => {
 
       <h2>References</h2>
       {Object.keys(apiData).map((key) => (
-        <ApiMemberWrapper key={`api-member-wrapper-${apiData[key as keyof typeof apiData].id}`} id={apiData[key as keyof typeof apiData].id} data={apiData[key as keyof typeof apiData]} filters={filters} />
+        <ApiMemberWrapper
+          key={`api-member-wrapper-${apiData[key as keyof typeof apiData].id}`}
+          id={apiData[key as keyof typeof apiData].id}
+          data={apiData[key as keyof typeof apiData]}
+          filters={filters}
+        />
       ))}
     </>
   );
@@ -106,7 +111,7 @@ export default component$(() => {
 export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
   const isCollapsed = useSignal(true);
 
-  useTask$(({track}) => {
+  useTask$(({ track }) => {
     track(filters);
     if (isBrowser) {
       isCollapsed.value = false;
@@ -114,11 +119,14 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
   });
 
   // TODO: find a solution to get this work
-  useOn('beforematch', $(() => {
-    isCollapsed.value = false;
-  }));
+  useOn(
+    'beforematch',
+    $(() => {
+      isCollapsed.value = false;
+    })
+  );
 
-  if(!data.members.length) {
+  if (!data.members.length) {
     return null;
   }
 
@@ -127,7 +135,7 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
       <h2
         data-icon={isCollapsed.value ? '→' : '↓'}
         class="section-title cursor-pointer"
-        onClick$={() => isCollapsed.value = !isCollapsed.value }
+        onClick$={() => (isCollapsed.value = !isCollapsed.value)}
       >
         <span>{data.id}</span>
       </h2>
@@ -138,9 +146,8 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
   );
 });
 
-
 export const ApiMemberList = component$(({ id, data, filters }: any) => (
-  <ul class="grid sm:grid-cols-2 lg:grid-cols-3 pb-5">
+  <ul class="grid pb-5 sm:grid-cols-2 lg:grid-cols-3">
     {data.members.map((member: any) => {
       const kind = toSnakeCase(member.kind);
 
@@ -148,10 +155,10 @@ export const ApiMemberList = component$(({ id, data, filters }: any) => (
         return;
       }
 
-      const name = member.name.toLowerCase()
+      const name = member.name
+        .toLowerCase()
         .replace(/[^a-zA-Z0-9]/g, '')
         .replace(/ /g, '-');
-
 
       return (
         <li

@@ -7,11 +7,7 @@ title: \@qwik.dev/qwik-router API Reference
 ## Action
 
 ```typescript
-export type Action<
-  RETURN,
-  INPUT = Record<string, unknown>,
-  OPTIONAL extends boolean = true,
-> = {
+export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {
   (): ActionStore<RETURN, INPUT, OPTIONAL>;
 };
 ```
@@ -31,12 +27,12 @@ export type ActionConstructor = {
   >(
     actionQrl: (
       data: GetValidatorOutputType<VALIDATOR>,
-      event: RequestEventAction,
+      event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
     options: {
       readonly id?: string;
       readonly validation: [VALIDATOR, ...REST];
-    },
+    }
   ): Action<
     StrictUnion<
       | OBJ
@@ -46,37 +42,26 @@ export type ActionConstructor = {
     GetValidatorInputType<VALIDATOR>,
     false
   >;
-  <
-    OBJ extends Record<string, any> | void | null,
-    VALIDATOR extends TypedDataValidator,
-  >(
+  <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
     actionQrl: (
       data: GetValidatorOutputType<VALIDATOR>,
-      event: RequestEventAction,
+      event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
     options: {
       readonly id?: string;
       readonly validation: [VALIDATOR];
-    },
+    }
   ): Action<
-    StrictUnion<
-      OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-    >,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
-  <
-    OBJ extends Record<string, any> | void | null,
-    REST extends [DataValidator, ...DataValidator[]],
-  >(
-    actionQrl: (
-      data: JSONObject,
-      event: RequestEventAction,
-    ) => ValueOrPromise<OBJ>,
+  <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
+    actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
     options: {
       readonly id?: string;
       readonly validation: REST;
-    },
+    }
   ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
   <
     OBJ extends Record<string, any> | void | null,
@@ -85,7 +70,7 @@ export type ActionConstructor = {
   >(
     actionQrl: (
       data: GetValidatorOutputType<VALIDATOR>,
-      event: RequestEventAction,
+      event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR,
     ...rest: REST
@@ -98,40 +83,26 @@ export type ActionConstructor = {
     GetValidatorInputType<VALIDATOR>,
     false
   >;
-  <
-    OBJ extends Record<string, any> | void | null,
-    VALIDATOR extends TypedDataValidator,
-  >(
+  <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
     actionQrl: (
       data: GetValidatorOutputType<VALIDATOR>,
-      event: RequestEventAction,
+      event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
-    options: VALIDATOR,
+    options: VALIDATOR
   ): Action<
-    StrictUnion<
-      OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
-    >,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
     GetValidatorInputType<VALIDATOR>,
     false
   >;
-  <
-    OBJ extends Record<string, any> | void | null,
-    REST extends [DataValidator, ...DataValidator[]],
-  >(
-    actionQrl: (
-      form: JSONObject,
-      event: RequestEventAction,
-    ) => ValueOrPromise<OBJ>,
+  <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
+    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
     ...rest: REST
   ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
   <OBJ>(
-    actionQrl: (
-      form: JSONObject,
-      event: RequestEventAction,
-    ) => ValueOrPromise<OBJ>,
+    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
     options?: {
       readonly id?: string;
-    },
+    }
   ): Action<StrictUnion<OBJ>>;
 };
 ```
@@ -330,7 +301,7 @@ createRenderer: (
   getOptions: (options: RendererOptions) => {
     jsx: JSXOutput;
     options: RendererOutputOptions;
-  },
+  }
 ) => Render;
 ```
 
@@ -366,7 +337,7 @@ Render
 
 ```tsx
 const renderer = createRenderer((opts) => {
-  if (opts.requestHeaders["x-hello"] === "world") {
+  if (opts.requestHeaders['x-hello'] === 'world') {
     return { jsx: <Hello />, options: opts };
   }
   return {
@@ -376,7 +347,7 @@ const renderer = createRenderer((opts) => {
       serverData: {
         ...opts.serverData,
         documentHead: {
-          meta: [{ name: "renderedAt", content: new Date().toISOString() }],
+          meta: [{ name: 'renderedAt', content: new Date().toISOString() }],
         },
       },
     },
@@ -401,9 +372,7 @@ export type DataValidator<T extends Record<string, any> = {}> = {
 ## DocumentHead
 
 ```typescript
-export type DocumentHead =
-  | DocumentHeadValue
-  | ((props: DocumentHeadProps) => DocumentHeadValue);
+export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 ```
 
 **References:** [DocumentHeadValue](#documentheadvalue), [DocumentHeadProps](#documentheadprops)
@@ -491,7 +460,7 @@ This renders all the tags collected from `head`.
 You can partially override the head, for example if you want to change the title:
 
 ```tsx
-import { DocumentHeadTags, useDocumentHead } from "@qwik.dev/router";
+import { DocumentHeadTags, useDocumentHead } from '@qwik.dev/router';
 
 export default component$(() => {
   const head = useDocumentHead();
@@ -504,9 +473,7 @@ You don't have to use this component, you can also do it yourself for full contr
 Note that this component normally only runs once, during SSR. You can use Signals in your `src/root.tsx` to make runtime changes to `<head>` if needed.
 
 ```typescript
-DocumentHeadTags: import("@qwik.dev/core").Component<
-  DocumentHeadValue<Record<string, unknown>>
->;
+DocumentHeadTags: import('@qwik.dev/core').Component<DocumentHeadValue<Record<string, unknown>>>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/document-head-tags-component.tsx)
@@ -643,7 +610,7 @@ _(Optional)_ Sets `document.title`.
 ## DocumentLink
 
 ```typescript
-export type DocumentLink = QwikIntrinsicElements["link"];
+export type DocumentLink = QwikIntrinsicElements['link'];
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -651,7 +618,7 @@ export type DocumentLink = QwikIntrinsicElements["link"];
 ## DocumentMeta
 
 ```typescript
-export type DocumentMeta = QwikIntrinsicElements["meta"];
+export type DocumentMeta = QwikIntrinsicElements['meta'];
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -660,12 +627,12 @@ export type DocumentMeta = QwikIntrinsicElements["meta"];
 
 ```typescript
 export type DocumentScript = (
-  | (Omit<QwikIntrinsicElements["script"], "dangerouslySetInnerHTML"> & {
+  | (Omit<QwikIntrinsicElements['script'], 'dangerouslySetInnerHTML'> & {
       props?: never;
     })
   | {
       key?: string;
-      props: Readonly<QwikIntrinsicElements["script"]>;
+      props: Readonly<QwikIntrinsicElements['script']>;
     }
 ) &
   (
@@ -687,12 +654,12 @@ export type DocumentScript = (
 ```typescript
 export type DocumentStyle = Readonly<
   (
-    | (Omit<QwikIntrinsicElements["style"], "dangerouslySetInnerHTML"> & {
+    | (Omit<QwikIntrinsicElements['style'], 'dangerouslySetInnerHTML'> & {
         props?: never;
       })
     | {
         key?: string;
-        props: Readonly<QwikIntrinsicElements["style"]>;
+        props: Readonly<QwikIntrinsicElements['style']>;
       }
   ) &
     (
@@ -713,7 +680,7 @@ export type DocumentStyle = Readonly<
 ## ErrorBoundary
 
 ```typescript
-ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
+ErrorBoundary: import('@qwik.dev/core').Component<ErrorBoundaryProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/error-boundary.tsx)
@@ -721,8 +688,11 @@ ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
 ## FailOfRest
 
 ```typescript
-export type FailOfRest<REST extends readonly DataValidator[]> =
-  REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
+export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
+  infer ERROR
+>[]
+  ? ERROR
+  : never;
 ```
 
 **References:** [DataValidator](#datavalidator)
@@ -742,8 +712,8 @@ export type FailReturn<T> = T & Failed;
 ```typescript
 Form: <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
-  key: string | null,
-) => import("@qwik.dev/core").JSXOutput;
+  key: string | null
+) => import('@qwik.dev/core').JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -1044,7 +1014,7 @@ export type JSONValue =
 ## Link
 
 ```typescript
-Link: import("@qwik.dev/core").Component<LinkProps>;
+Link: import('@qwik.dev/core').Component<LinkProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx)
@@ -1163,12 +1133,10 @@ export type Loader<RETURN> = {
 ## LoaderSignal
 
 ```typescript
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
-  infer VALIDATOR
->
+export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
   : ReadonlySignal<TYPE>) &
-  Pick<AsyncComputedReadonlySignal, "promise" | "loading" | "error">;
+  Pick<AsyncComputedReadonlySignal, 'promise' | 'loading' | 'error'>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -1184,7 +1152,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 ## NavigationType_2
 
 ```typescript
-export type NavigationType = "initial" | "form" | "link" | "popstate";
+export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -1196,10 +1164,7 @@ export type NavigationType = "initial" | "form" | "link" | "popstate";
 Creates a new object from `obj` by omitting a set of `keys`.
 
 ```typescript
-export declare function omitProps<T, KEYS extends keyof T>(
-  obj: T,
-  keys: KEYS[],
-): Omit<T, KEYS>;
+export declare function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T, KEYS>;
 ```
 
 <table><thead><tr><th>
@@ -1351,9 +1316,7 @@ export declare type PathParams = Record<string, string>;
 ## PreventNavigateCallback
 
 ```typescript
-export type PreventNavigateCallback = (
-  url?: number | URL,
-) => ValueOrPromise<boolean>;
+export type PreventNavigateCallback = (url?: number | URL) => ValueOrPromise<boolean>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -1361,7 +1324,7 @@ export type PreventNavigateCallback = (
 ## Q_ROUTE
 
 ```typescript
-Q_ROUTE = "q:route";
+Q_ROUTE = 'q:route';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/constants.ts)
@@ -1373,7 +1336,7 @@ Q_ROUTE = "q:route";
 > Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
 
 ```typescript
-QWIK_CITY_SCROLLER = "_qCityScroller";
+QWIK_CITY_SCROLLER = '_qCityScroller';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
@@ -1381,7 +1344,7 @@ QWIK_CITY_SCROLLER = "_qCityScroller";
 ## QWIK_ROUTER_SCROLLER
 
 ```typescript
-QWIK_ROUTER_SCROLLER = "_qRouterScroller";
+QWIK_ROUTER_SCROLLER = '_qRouterScroller';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
@@ -1407,7 +1370,7 @@ export type QwikCityMockProps = QwikRouterMockProps;
 > Use `useQwikMockRouter()` instead. Will be removed in V3
 
 ```typescript
-QwikCityMockProvider: import("@qwik.dev/core").Component<QwikRouterMockProps>;
+QwikCityMockProvider: import('@qwik.dev/core').Component<QwikRouterMockProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
@@ -1447,7 +1410,7 @@ export type QwikCityProps = QwikRouterProps;
 > Use `useQwikRouter()` instead. Will be removed in v3.
 
 ```typescript
-QwikCityProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
+QwikCityProvider: import('@qwik.dev/core').Component<QwikRouterProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
@@ -1746,7 +1709,7 @@ _(Optional)_
 ## QwikRouterMockProvider
 
 ```typescript
-QwikRouterMockProvider: import("@qwik.dev/core").Component<QwikRouterMockProps>;
+QwikRouterMockProvider: import('@qwik.dev/core').Component<QwikRouterMockProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
@@ -1800,7 +1763,7 @@ Default: `true`
 This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component, unless you have a good reason to make your root component reactive.
 
 ```typescript
-QwikRouterProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
+QwikRouterProvider: import('@qwik.dev/core').Component<QwikRouterProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
@@ -1808,7 +1771,7 @@ QwikRouterProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
 ## RendererOptions
 
 ```typescript
-export type RendererOptions = Omit<RenderOptions, "serverData"> & {
+export type RendererOptions = Omit<RenderOptions, 'serverData'> & {
   serverData: ServerData;
 };
 ```
@@ -1820,7 +1783,7 @@ export type RendererOptions = Omit<RenderOptions, "serverData"> & {
 ## RendererOutputOptions
 
 ```typescript
-export type RendererOutputOptions = Omit<RenderOptions, "serverData"> & {
+export type RendererOutputOptions = Omit<RenderOptions, 'serverData'> & {
   serverData: ServerData & {
     documentHead?: DocumentHeadValue;
   } & Record<string, unknown>;
@@ -1969,12 +1932,12 @@ export type RouteNavigate = QRL<
     path?: string | number | URL,
     options?:
       | {
-          type?: Exclude<NavigationType, "initial">;
+          type?: Exclude<NavigationType, 'initial'>;
           forceReload?: boolean;
           replaceState?: boolean;
           scroll?: boolean;
         }
-      | boolean,
+      | boolean
   ) => Promise<void>
 >;
 ```
@@ -1986,7 +1949,7 @@ export type RouteNavigate = QRL<
 ## RouterOutlet
 
 ```typescript
-RouterOutlet: import("@qwik.dev/core").Component<unknown>;
+RouterOutlet: import('@qwik.dev/core').Component<unknown>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/router-outlet-component.tsx)
@@ -1994,10 +1957,7 @@ RouterOutlet: import("@qwik.dev/core").Component<unknown>;
 ## server$
 
 ```typescript
-server$: <T extends ServerFunction>(
-  qrl: T,
-  options?: ServerConfig | undefined,
-) => ServerQRL<T>;
+server$: <T extends ServerFunction>(qrl: T, options?: ServerConfig | undefined) => ServerQRL<T>;
 ```
 
 <table><thead><tr><th>
@@ -2099,8 +2059,7 @@ Loads the service workers that are defined in the routes. Any file named `servic
 Qwik 1.14.0 and above now use `<link rel="modulepreload">` by default. If you didn't add custom service-worker logic, you should remove your service-worker.ts file(s) for the `ServiceWorkerRegister` Component to actually unregister the service-worker.js and delete its related cache. Make sure to keep the `ServiceWorkerRegister` Component in your app (without any service-worker.ts file) as long as you want to unregister the service-worker.js for your users.
 
 ```typescript
-ServiceWorkerRegister: (props: { nonce?: string }) =>
-  import("packages/qwik/public").JSXOutput;
+ServiceWorkerRegister: (props: { nonce?: string }) => import('packages/qwik/public').JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -2212,11 +2171,7 @@ export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
 > This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 ```typescript
-untypedAppUrl: (
-  route: string,
-  params?: Record<string, string>,
-  paramsPrefix?: string,
-) => string;
+untypedAppUrl: (route: string, params?: Record<string, string>, paramsPrefix?: string) => string;
 ```
 
 <table><thead><tr><th>
@@ -2280,7 +2235,7 @@ string
 ## useContent
 
 ```typescript
-useContent: () => import("./types").ContentState;
+useContent: () => import('./types').ContentState;
 ```
 
 **Returns:**
@@ -2294,9 +2249,8 @@ import("./types").ContentState
 Returns the document head for the current page. The generic type describes the front matter.
 
 ```typescript
-useDocumentHead: <
-  FrontMatter extends Record<string, unknown> = Record<string, any>,
->() => Required<ResolvedDocumentHead<FrontMatter>>;
+useDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() =>
+  Required<ResolvedDocumentHead<FrontMatter>>;
 ```
 
 **Returns:**
@@ -2452,7 +2406,7 @@ validator$: ValidatorConstructor;
 ## ValidatorErrorKeyDotNotation
 
 ```typescript
-export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ""> =
+export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> =
   IsAny<T> extends true
     ? never
     : T extends object
@@ -2463,9 +2417,7 @@ export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ""> =
               ? IsAny<U> extends true
                 ? never
                 : U extends object
-                  ?
-                      | `${Prefix}${K}[]`
-                      | ValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`>
+                  ? `${Prefix}${K}[]` | ValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`>
                   : `${Prefix}${K}[]`
               : T[K] extends object
                 ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
@@ -2519,12 +2471,10 @@ zod$: ZodConstructor;
 export type ZodConstructor = {
   <T extends z.ZodRawShape>(schema: T): ZodDataValidator<z.ZodObject<T>>;
   <T extends z.ZodRawShape>(
-    schema: (zod: typeof z.z, ev: RequestEvent) => T,
+    schema: (zod: typeof z.z, ev: RequestEvent) => T
   ): ZodDataValidator<z.ZodObject<T>>;
   <T extends z.Schema>(schema: T): ZodDataValidator<T>;
-  <T extends z.Schema>(
-    schema: (zod: typeof z.z, ev: RequestEvent) => T,
-  ): ZodDataValidator<T>;
+  <T extends z.Schema>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 ```
 

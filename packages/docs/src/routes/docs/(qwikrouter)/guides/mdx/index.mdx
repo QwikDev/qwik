@@ -39,7 +39,6 @@ title: Hello World Title
 ---
 
 This is a simple hello world component.
-
 ```
 
 The above component will be rendered at `https://example.com/some/path`.
@@ -63,12 +62,12 @@ src/
 ---
 title: Hello World Title
 ---
+
 import { Counter } from "../../../components/counter/counter";
 
 This is a simple hello world component.
 
 <Counter />
-
 ```
 
 ```tsx title="src/components/counter/counter.tsx"
@@ -159,6 +158,7 @@ The above example will generate the following HTML code.
 ```
 
 ## Reading frontmatter data
+
 Frontmatter keys are accessible by leveraging the `useDocumentHead()` hook.
 
 ```markdown title="src/routes/some/path/index.mdx"
@@ -169,6 +169,7 @@ tags:
   - exiting
   - docs
 ---
+
 import { Tags } from "../../../components/tags/tags";
 
 This is a simple hello world component.
@@ -182,11 +183,11 @@ import { useDocumentHead } from '@qwik.dev/router';
 
 export const Tags = component$(() => {
   const { frontmatter } = useDocumentHead();
-  
+
   if (frontmatter.tags.length === 0) {
     return null;
   }
-  
+
   return (
     <ul>
       {frontmatter.tags.map((tag: string) => (
@@ -199,7 +200,7 @@ export const Tags = component$(() => {
 
 ## `useContent()`
 
-The [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) function retrieves the nearest content information for the current route. The returned object includes:
+The [`useContent()`](</docs/(qwikrouter)/api/index.mdx#usecontent>) function retrieves the nearest content information for the current route. The returned object includes:
 
 ```ts
 headings: ContentHeading[] | undefined;
@@ -208,5 +209,4 @@ menu: ContentMenu | undefined;
 
 The `headings` array includes data about a markdown file's `<h1>` to `<h6>` [html heading elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements).
 
-Menus are contextual data declared with `menu.md` files. See [menus file definition](/docs/(qwikrouter)/advanced/menu/index.mdx) for more information on the file format and location.
-
+Menus are contextual data declared with `menu.md` files. See [menus file definition](</docs/(qwikrouter)/advanced/menu/index.mdx>) for more information on the file format and location.

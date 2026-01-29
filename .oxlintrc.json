@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["jsdoc", "import", "unicorn", "vitest"],
+  "rules": {
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "curly": "error",
+    "no-new-func": "error",
+    "jsdoc/check-property-names": "warn",
+    "jsdoc/check-tag-names": "warn",
+    "jsdoc/require-property": "warn",
+    "jsdoc/require-yields": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["packages/docs/**/*.ts", "packages/docs/**/*.tsx"],
+      "rules": {
+        "no-console": "off",
+        "curly": "off"
+      }
+    },
+    {
+      "files": ["packages/qwik/src/server/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              { "group": ["packages/*"], "message": "Absolute imports are not allowed." },
+              { "group": ["../**"], "message": "Relative imports are not allowed." }
+            ]
+          }
+        ],
+        "no-duplicate-imports": "error"
+      }
+    },
+    {
+      "files": ["packages/qwik/src/server/qwik-copy.ts", "packages/qwik/src/server/qwik-types.ts"],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "**/.history",
+    "**/dist",
+    "**/dist-dev",
+    "**/lib",
+    "**/node_modules",
+    "**/tsc-out",
+    "**/external",
+    "**/target",
+    "**/temp",
+    "scripts",
+    "**/server/**/*.js",
+    "packages/docs/api",
+    "packages/docs/public/repl/repl-sw.js*",
+    "packages/qwik/src/optimizer/core/src/fixtures",
+    "packages/qwik/bindings",
+    "packages/qwik/src/napi",
+    "packages/qwik-labs",
+    "packages/insights",
+    "**/eslint.config.mjs",
+    "**/eslint.config.js",
+    ".changeset",
+    "packages/docs/public/builder",
+    "packages/eslint-plugin-qwik/tests"
+  ]
+}

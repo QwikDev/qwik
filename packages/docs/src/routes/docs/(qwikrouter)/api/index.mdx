@@ -31,7 +31,7 @@ created_at: '2023-03-20T23:45:13Z'
 
 ## `useContent()`
 
-The [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) function retrieves the nearest content information for the current route. The returned object includes:
+The [`useContent()`](</docs/(qwikrouter)/api/index.mdx#usecontent>) function retrieves the nearest content information for the current route. The returned object includes:
 
 ```ts
 headings: ContentHeading[] | undefined;
@@ -40,11 +40,11 @@ menu: ContentMenu | undefined;
 
 The `headings` array includes data about a markdown file's `<h1>` to `<h6>` [html heading elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements).
 
-Menus are contextual data declared with `menu.md` files. See [menus file definition](/docs/(qwikrouter)/advanced/menu/index.mdx) for more information on the file format and location.
+Menus are contextual data declared with `menu.md` files. See [menus file definition](</docs/(qwikrouter)/advanced/menu/index.mdx>) for more information on the file format and location.
 
 ## `useDocumentHead()`
 
-Use the `useDocumentHead()` function to read the document [head metadata](/docs/(qwikrouter)/pages/index.mdx#head-export) that is generated from `head` exports and markdown files.
+Use the `useDocumentHead()` function to read the document [head metadata](</docs/(qwikrouter)/pages/index.mdx#head-export>) that is generated from `head` exports and markdown files.
 
 `useDocumentHead()` retrieves a readonly `DocumentHeadValue` object:
 
@@ -74,8 +74,8 @@ export interface DocumentHeadValue<
 To get this data into the `<head>` element of the document, you can do it manually, for example:
 
 ```tsx
-import { component$ } from "@qwik.dev/core";
-import { useDocumentHead } from "@qwik.dev/router";
+import { component$ } from '@qwik.dev/core';
+import { useDocumentHead } from '@qwik.dev/router';
 
 /** Use inside of the `<head>` element in `src/root.tsx` */
 export const RouterHead = component$(() => {
@@ -127,15 +127,15 @@ Place it inside of the `<head>` element in `src/root.tsx`:
 
 ```tsx
 // ...
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        <link rel="canonical" href={loc.url.href} />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="canonical" href={loc.url.href} />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-        <DocumentHeadTags />
-      </head>
+  <DocumentHeadTags />
+</head>
 // ...
 ```
 
@@ -156,7 +156,7 @@ Note that this component normally only runs once, during SSR. You can use Signal
 
 ## `useLocation()`
 
-Use the [`useLocation()`](/docs/(qwikrouter)/api/index.mdx#uselocation) function to retrieve a `RouteLocation` object for the current location.
+Use the [`useLocation()`](</docs/(qwikrouter)/api/index.mdx#uselocation>) function to retrieve a `RouteLocation` object for the current location.
 
 The `useLocation()` function provides the current URL and params. It also determines if the app is currently navigating, which is useful for showing a loading indicator.
 
@@ -177,11 +177,11 @@ export interface RouteLocation {
 }
 ```
 
-The return value of [`useLocation()`](/docs/(qwikrouter)/api/index.mdx#uselocation) is similar to `document.location`, but it is safe to use on the server where there is no global `location` object, and it's reactive so it can be tracked.
+The return value of [`useLocation()`](</docs/(qwikrouter)/api/index.mdx#uselocation>) is similar to `document.location`, but it is safe to use on the server where there is no global `location` object, and it's reactive so it can be tracked.
 
 ### Path Route Parameters
 
-`useLocation()` encodes the [Route Parameters](/docs/(qwikrouter)/routing/index.mdx) as params.
+`useLocation()` encodes the [Route Parameters](</docs/(qwikrouter)/routing/index.mdx>) as params.
 
 Assume you have:
 
@@ -218,6 +218,7 @@ The above code would generate:
 ### `useLocation` in `root.tsx` is not supported
 
 To access the current url from `root.tsx` use this pattern:
+
 ```ts
 const serverDataUrl = useServerData<string>('url');
 const url = new URL(serverDataUrl || 'https://unknown');
@@ -248,7 +249,7 @@ export default component$(() => {
       </button>
 
       <button
-        onClick$={async() => {
+        onClick$={async () => {
           // refresh page: call without arguments
           await nav();
         }}
@@ -276,19 +277,13 @@ export const BackButton = component$(() => {
   const nav = useNavigate();
   const loc = useLocation();
 
-  return (
-    <button onClick$={() => loc.prevUrl ? window.history.back() : nav('/')}>
-      Go Back
-    </button>
-  );
+  return <button onClick$={() => (loc.prevUrl ? window.history.back() : nav('/'))}>Go Back</button>;
 });
-
 ```
 
 The fallback in the nav function ensures that if the previous URL (loc.prevUrl) is not available, the user is redirected to a default path (eg. the root path /). This is useful in scenarios where the navigation history might not include a previous URL, such as when the user directly lands on a specific page without navigating from another page within the app.
 
 > Notice that the **loc.prevUrl** is only available when the user navigates to a page using the [`useNavigate()`](#usenavigate) or [`<Link>`](/docs/cookbook/nav-link). It is not available when the user navigates to a page using [`the anchor element`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a).
-
 
 ## `routeLoader$()`
 
@@ -310,13 +305,13 @@ export default component$(() => {
 });
 ```
 
-Please refer to the [Route Loader](/docs/(qwikrouter)/route-loader/index.mdx) section for more information.
+Please refer to the [Route Loader](</docs/(qwikrouter)/route-loader/index.mdx>) section for more information.
 
 ## `routeAction$()`
 
 The `routeAction$()` function is used to declare a new Server Action in the given page/middleware or layout. Qwik Router will execute only the invoked action after some user interaction (such as a button click or a form submission).
 
-Please refer to the [Server Actions](/docs/(qwikrouter)/action/index.mdx) section for more information.
+Please refer to the [Server Actions](</docs/(qwikrouter)/action/index.mdx>) section for more information.
 
 ## List all routes with qwikRouterConfig.routes
 
@@ -327,13 +322,13 @@ import qwikRouterConfig from '@qwik-router-config';
 
 const routes = qwikRouterConfig.routes;
 for (const route of routes) {
-	// your logic here
+  // your logic here
 }
 ```
 
 ## `useQwikRouter()`
 
-The `useQwikRouter()` function is used to initialize Qwik Router in the existing document, providing the necessary context for Qwik Router to work, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent), `useLocation()` and `<RouterOutlet />`.
+The `useQwikRouter()` function is used to initialize Qwik Router in the existing document, providing the necessary context for Qwik Router to work, such as [`useContent()`](</docs/(qwikrouter)/api/index.mdx#usecontent>), `useLocation()` and `<RouterOutlet />`.
 
 This hook should be located at the very root of your application. In most of the starters, you will find it in the `src/root.tsx` file.
 
@@ -345,9 +340,7 @@ export default component$(() => {
 
   return (
     <>
-      <head>
-        {/* ... */}
-      </head>
+      <head>{/* ... */}</head>
       <body>
         <RouterOutlet />
       </body>
@@ -367,9 +360,7 @@ import { QwikRouterProvider, RouterOutlet } from '@qwik.dev/router';
 
 export default component$(() => (
   <QwikRouterProvider>
-    <head>
-      {/* ... */}
-    </head>
+    <head>{/* ... */}</head>
     <body>
       <RouterOutlet />
     </body>
@@ -379,7 +370,7 @@ export default component$(() => (
 
 ## `<QwikRouterMockProvider>`
 
-The `QwikRouterMockProvider` component initializes a Qwik Router context for testing. It provides the necessary context for Qwik Router code to work in tests, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent). Vice versa for `useNavigate()`, `<Link>`, `useLocation()` and so on.
+The `QwikRouterMockProvider` component initializes a Qwik Router context for testing. It provides the necessary context for Qwik Router code to work in tests, such as [`useContent()`](</docs/(qwikrouter)/api/index.mdx#usecontent>). Vice versa for `useNavigate()`, `<Link>`, `useLocation()` and so on.
 It is recommended that you use this in your test files.
 
 > `QwikRouterMockProvider` does not render any DOM elements, meaning it won't be visible in snapshots
@@ -395,16 +386,16 @@ import { test, expect } from 'vitest';
 import { Card } from './card';
 
 const cases = [
-  {text: 'qwik', link:'https://qwik.dev/docs/api'}, 
-  {text: 'vitest', link: 'https://vitest.dev'}
+  { text: 'qwik', link: 'https://qwik.dev/docs/api' },
+  { text: 'vitest', link: 'https://vitest.dev' },
 ];
 
-test.each(cases)('should render card with %s %s', async ({text, link}) => {
+test.each(cases)('should render card with %s %s', async ({ text, link }) => {
   const { screen, render } = await createDOM();
   await render(
     <QwikRouterMockProvider>
       <Card text={text} link={link} />
-    </QwikRouterMockProvider>,
+    </QwikRouterMockProvider>
   );
   expect(screen.innerHTML).toMatchSnapshot();
 });
@@ -430,7 +421,7 @@ test('should render the button and navigate', async () => {
   await render(
     <QwikRouterMockProvider goto={goto$}>
       <Button id="button" />
-    </QwikRouterMockProvider>,
+    </QwikRouterMockProvider>
   );
   expect(screen.innerHTML).toMatchSnapshot();
   await userEvent('#button', 'click');
@@ -440,13 +431,13 @@ test('should render the button and navigate', async () => {
 
 ## `<RouterOutlet>`
 
-The `RouterOutlet` component is responsible for rendering the matched route at a given moment, it internally uses the [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) to render the current page, as well as all of the nested layouts.
+The `RouterOutlet` component is responsible for rendering the matched route at a given moment, it internally uses the [`useContent()`](</docs/(qwikrouter)/api/index.mdx#usecontent>) to render the current page, as well as all of the nested layouts.
 
 This component is usually located as a child of `<body>`, in most of the starters you will find it in the `src/root.tsx` file (refer to the example in `QwikRouterProvider`).
 
 ## `<Form>`
 
-The `Form` component is a wrapper around the native `<form>` element, and it's designed to work side by side with [Server Actions](/docs/(qwikrouter)/action/index.mdx#using-actions-with-form).
+The `Form` component is a wrapper around the native `<form>` element, and it's designed to work side by side with [Server Actions](</docs/(qwikrouter)/action/index.mdx#using-actions-with-form>).
 
 Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled. In addition, it enhances the native `<form>` element by capturing the `submit` event and preventing the default behavior, so it will behave like an SPA (Single Page Application) instead of a full page reload.
 
@@ -481,7 +472,7 @@ The `Link` component works like the `<a>` anchor element, but instead of causing
 
 > Notice that full-page reloads in Qwik are extremely cheap. Other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. Through investigation of internal testing, using `<a>` usually leads to the most snappy interactions.
 
-Under the hood, the `<Link>` component uses the [`useNavigate()`](/docs/(qwikrouter)/api/index.mdx#usenavigate) API and prevents the default behavior of the native `<a>`:
+Under the hood, the `<Link>` component uses the [`useNavigate()`](</docs/(qwikrouter)/api/index.mdx#usenavigate>) API and prevents the default behavior of the native `<a>`:
 
 ```tsx
 import { component$ } from '@qwik.dev/core';
@@ -551,9 +542,7 @@ export default component$(() => {
       <Link href="/b" prefetch="js">
         page js will be prefetched
       </Link>
-      <Link href="/c">
-        page content & js will be prefetched
-      </Link>
+      <Link href="/c">page content & js will be prefetched</Link>
     </div>
   );
 });

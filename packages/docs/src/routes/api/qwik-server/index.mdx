@@ -9,9 +9,7 @@ title: \@qwik.dev/qwik/server API Reference
 Provides the `backpatch-executor.js` executor script as a string.
 
 ```typescript
-export declare function getQwikBackpatchExecutorScript(opts?: {
-  debug?: boolean;
-}): string;
+export declare function getQwikBackpatchExecutorScript(opts?: { debug?: boolean }): string;
 ```
 
 <table><thead><tr><th>
@@ -95,9 +93,7 @@ string
 Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the qwik-prefetch-service-worker script into HTML.
 
 ```typescript
-export declare function getQwikPrefetchWorkerScript(opts?: {
-  debug?: boolean;
-}): string;
+export declare function getQwikPrefetchWorkerScript(opts?: { debug?: boolean }): string;
 ```
 
 <table><thead><tr><th>
@@ -590,12 +586,12 @@ Defaults to `5`
 
 ```typescript
 export type QwikLoaderOptions =
-  | "module"
-  | "inline"
-  | "never"
+  | 'module'
+  | 'inline'
+  | 'never'
   | {
-      include?: "always" | "never" | "auto";
-      position?: "top" | "bottom";
+      include?: 'always' | 'never' | 'auto';
+      position?: 'top' | 'bottom';
     };
 ```
 
@@ -856,9 +852,7 @@ SnapshotResult \| undefined
 ## renderToStream
 
 ```typescript
-export type RenderToStream = (
-  opts: RenderToStreamOptions,
-) => Promise<RenderToStreamResult>;
+export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 ```
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
@@ -868,9 +862,7 @@ export type RenderToStream = (
 ## RenderToStream
 
 ```typescript
-export type RenderToStream = (
-  opts: RenderToStreamOptions,
-) => Promise<RenderToStreamResult>;
+export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 ```
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
@@ -1005,9 +997,7 @@ number
 ## renderToString
 
 ```typescript
-export type RenderToString = (
-  opts: RenderToStringOptions,
-) => Promise<RenderToStringResult>;
+export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 ```
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
@@ -1017,9 +1007,7 @@ export type RenderToString = (
 ## RenderToString
 
 ```typescript
-export type RenderToString = (
-  opts: RenderToStringOptions,
-) => Promise<RenderToStringResult>;
+export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 ```
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
@@ -1097,7 +1085,7 @@ Merges a given manifest with the built manifest and provides mappings for symbol
 
 ```typescript
 export declare function resolveManifest(
-  manifest?: Partial<QwikManifest | ResolvedManifest> | undefined,
+  manifest?: Partial<QwikManifest | ResolvedManifest> | undefined
 ): ResolvedManifest | undefined;
 ```
 
@@ -1211,7 +1199,7 @@ _(Optional)_
 
 ```typescript
 export declare function setServerPlatform(
-  manifest?: Partial<QwikManifest | ResolvedManifest>,
+  manifest?: Partial<QwikManifest | ResolvedManifest>
 ): Promise<void>;
 ```
 
@@ -1297,7 +1285,7 @@ Auto: Prefetch all possible QRLs used by the document. Default
 
 ```typescript
 export type SymbolsToPrefetch =
-  | "auto"
+  | 'auto'
   | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
 ```
 

@@ -1,5 +1,6 @@
 {
   "description": "Firebase",
+  "type": "module",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/firebase/vite.config.ts",
     "serve": "qwik build && firebase emulators:start",
@@ -20,6 +21,5 @@
         "- cd functions && pnpm i"
       ]
     }
-  },
-  "type": "module"
+  }
 }

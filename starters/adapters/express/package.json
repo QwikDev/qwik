@@ -1,5 +1,6 @@
 {
   "description": "Express.js server",
+  "type": "module",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/express/vite.config.ts",
     "serve": "node server/entry.express"
@@ -29,6 +30,5 @@
         "- pnpm run serve: runs the production server locally"
       ]
     }
-  },
-  "type": "module"
+  }
 }

@@ -1,5 +1,5 @@
-import type { RequestHandler } from "@qwik.dev/router";
-import os from "node:os";
+import type { RequestHandler } from '@qwik.dev/router';
+import os from 'node:os';
 
 export const onGet: RequestHandler = ({ request, params, json }) => {
   json(200, {
@@ -14,11 +14,9 @@ export const onGet: RequestHandler = ({ request, params, json }) => {
 };
 
 export const onPost: RequestHandler = async ({ request, headers, send }) => {
-  headers.set("Content-Type", "text/plain");
+  headers.set('Content-Type', 'text/plain');
   send(
     200,
-    `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${
-      request.method
-    }`,
+    `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${request.method}`
   );
 };

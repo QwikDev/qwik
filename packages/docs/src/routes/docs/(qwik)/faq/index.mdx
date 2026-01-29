@@ -60,7 +60,7 @@ The short answer is that Qwik solves a problem that other frameworks can't solve
 
 ## Is Qwik hard to learn?
 
-Qwik is designed with React (and other JSX based frameworks) in mind, ensuring it is [effortless to learn](/docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx) and promotes rapid productivity. Developing components is pretty much the same as React, and routing is inspired by Nextjs and others.
+Qwik is designed with React (and other JSX based frameworks) in mind, ensuring it is [effortless to learn](</docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx>) and promotes rapid productivity. Developing components is pretty much the same as React, and routing is inspired by Nextjs and others.
 
 However, there are fundamentally [new concepts](../concepts/think-qwik/index.mdx) to learn, such as [Resumability](../concepts/resumable/index.mdx) and fine-grained reactivity, but we think the learning curve is not steep.
 
@@ -68,7 +68,7 @@ We also have an interactive [tutorial](../../tutorial/welcome/overview/) to get 
 
 ## What are all those `$` signs?
 
-You might have noticed there are more [`$`](../advanced/dollar/index.mdx) signs than usual in Qwik apps, such as: [`component$()`](/docs/(qwik)/core/overview/index.mdx#component), [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask), and `<div onClick$={() => console.log('click')} />`. It serves as a marker for a lazy-load boundary. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, etc. The `$` signals to both the [optimizer](../advanced/optimizer/index.mdx) and the developer when it's happening.
+You might have noticed there are more [`$`](../advanced/dollar/index.mdx) signs than usual in Qwik apps, such as: [`component$()`](</docs/(qwik)/core/overview/index.mdx#component>), [`useTask$()`](</docs/(qwik)/core/tasks/index.mdx#usetask>), and `<div onClick$={() => console.log('click')} />`. It serves as a marker for a lazy-load boundary. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, etc. The `$` signals to both the [optimizer](../advanced/optimizer/index.mdx) and the developer when it's happening.
 
 **Example:**
 
@@ -118,7 +118,7 @@ export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 
 Only if you _download_ it on user interaction. Instead, Qwik _prefetches_ the current page's JS modules in a background thread through the [service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers) and _retrieves_ those modules from the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) when the user interacts with the application.
 
-This strategy is called [Speculative Module Fetching](../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx), and it is enabled by Resumability. Hydration frameworks must eagerly download and execute the code on page load to retrieve the event handlers, and therefore can't take advantage of speculative module fetching.
+This strategy is called [Speculative Module Fetching](<../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx>), and it is enabled by Resumability. Hydration frameworks must eagerly download and execute the code on page load to retrieve the event handlers, and therefore can't take advantage of speculative module fetching.
 
 ## How does Qwik know what to prefetch, and in which order?
 
@@ -126,7 +126,7 @@ In production, Qwik uses a lot of information generated during SSR (Server-Side 
 
 In addition, [Qwik insights](../../labs/insights/index.mdx) can be used to prioritize the important parts of interactivity before the less important parts.
 
-For example, the "*Buy Now*" button is more important than the "*Add to Cart*" button, so Qwik will prefetch the "*Buy Now*" button first, and then the "*Add to Cart*" button.
+For example, the "_Buy Now_" button is more important than the "_Add to Cart_" button, so Qwik will prefetch the "_Buy Now_" button first, and then the "_Add to Cart_" button.
 
 ## Are Qwik apps slow on slow networks?
 
@@ -134,7 +134,7 @@ Quite the opposite.
 
 Qwik does not need to prefetch everything to start running, while other frameworks do need to download the whole critical path to become interactive because of [hydration](https://www.builder.io/blog/hydration-is-pure-overhead).
 
-In fact, thanks to Qwik's ability to [reduce network waterfalls](../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx#reducing-network-waterfalls), it is likely that the requested modules have already been downloaded and stored in the browser's cache at the time of interaction. And even if they haven't yet been cached, Qwik can [avoid duplicating the requests](../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx#avoiding-duplicate-requests) and can instead keep fetching the modules that are being requested to start executing them as soon as possible. 
+In fact, thanks to Qwik's ability to [reduce network waterfalls](<../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx#reducing-network-waterfalls>), it is likely that the requested modules have already been downloaded and stored in the browser's cache at the time of interaction. And even if they haven't yet been cached, Qwik can [avoid duplicating the requests](<../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx#avoiding-duplicate-requests>) and can instead keep fetching the modules that are being requested to start executing them as soon as possible.
 
 As a result, Qwik apps get to be responsive much faster, especially on slow networks.
 
@@ -159,7 +159,8 @@ Qwik uses vDOM only sometimes, and other times it does what SolidJS does (direct
 
 The way to think about it is as follows:
 
-If the change in state does not have a structural change then Qwik will most likely not use vDOM. For example: 
+If the change in state does not have a structural change then Qwik will most likely not use vDOM. For example:
+
 ```ts title="No DOM structure change, only update value"
 export const NoStructuralChange = component$(() => {
   const count = useSignal(0);
@@ -175,6 +176,7 @@ export const NoStructuralChange = component$(() => {
 ```
 
 When there is a structural change, Qwik utilizes the virtual DOM (vDOM). In the following example, the DOM structure needs to be updated (replace `<h1>` with `<button>`), so vDOM will be used for rendering:
+
 ```ts title="DOM structure change"
 export const StructuralChange = component$(() => {
   const isLoggedIn = useSignal(false);
@@ -187,19 +189,21 @@ export const StructuralChange = component$(() => {
 
 ```
 
-The important thing to understand is that vDOM doesn't cause performance issues in Qwik. In React, however, invalidating a root component results in vDOM for the whole tree getting created. In Qwik, the decision is made on a per-component basis.  And only for components that have structural change AND are changing their structure. If a component is structural (vDOM) but no change in structure is detected, then Qwik skips the component. You can think of it as auto-memoization of all components, this means that vDOM is only employed when the view is changing structurally. This is rare because in most cases the view only changes its values. 
+The important thing to understand is that vDOM doesn't cause performance issues in Qwik. In React, however, invalidating a root component results in vDOM for the whole tree getting created. In Qwik, the decision is made on a per-component basis. And only for components that have structural change AND are changing their structure. If a component is structural (vDOM) but no change in structure is detected, then Qwik skips the component. You can think of it as auto-memoization of all components, this means that vDOM is only employed when the view is changing structurally. This is rare because in most cases the view only changes its values.
 
 > In short, Qwik uses vDOM, but significantly less than React in comparable situations.
 
 ### Why use a vDOM despite its negative reputation?
 
 The question of whether or not to use a vDOM can be seen as a spectrum:
+
 - On one extreme is React which uses vDOM for everything all the time. (Good argument can be made that [vDOM is slow](https://svelte.dev/blog/virtual-dom-is-pure-overhead).)
 - On the other extreme is SolidJS which does not use vDOM at all. (Resulting in a very impressive performance.)
 
 Qwik on the other hand uses a vDOM sparingly for two reasons:
+
 1. Because non-vDOM solution would require executing code at least once on startup to learn about the component structure. (Something which Qwik explicitly avoids.)
-2. Because vDOM has attractive DX properties, especially when you need dynamic components. 
+2. Because vDOM has attractive DX properties, especially when you need dynamic components.
 
 For example:
 
@@ -209,23 +213,23 @@ export const DynamicExample = component$(() => {
   const idx = Math.floor(Math.random() * DynamicList.length);
   const Component = DynamicList[idx];
   {/* Dynamically chose which component to render */}
-  return <Component/>; 
+  return <Component/>;
 })
 ```
+
 The above code `<Component/>` is super easy to understand. We are dynamically choosing a component to place there. But in [Solid](https://www.solidjs.com/docs/latest/api#dynamic), [Svelte](https://svelte.dev/tutorial/svelte-component), [Vue](https://v2.vuejs.org/v2/guide/components-dynamic-async.html), and [Angular](https://angular.io/api/common/NgTemplateOutlet), this gets complex (see links).
 
 We have the best of both worlds by using a vDOM sparingly. During creation, we employ SSR, and most client updates are non-structural. When structural updates are necessary, they are localized to the specific component without affecting its children, thus containing any potential slowdown caused by vDOM.
 
-
 ## Is there a Router for Qwik?
 
-Yes! [Qwik Router](../../(qwikrouter)/qwikrouter/index.mdx) includes a directory-based router, inspired by Next.js and others.
+Yes! [Qwik Router](<../../(qwikrouter)/qwikrouter/index.mdx>) includes a directory-based router, inspired by Next.js and others.
 
 ## Do I need a server to deploy Qwik apps?
 
 You can easily deploy a Qwik app in any [serverless environment thanks to our adapters](/docs/deployments/index.mdx). We also support a [vanilla-node adapter](/docs/deployments/node/index.mdx) for Node.js-based servers, such as Express.
 
-If there is no need for SSR, you can deploy your Qwik app as a static site thanks to our [SSG (Static Site Generation) adapter](/docs/(qwikrouter)/guides/static-site-generation/index.mdx).
+If there is no need for SSR, you can deploy your Qwik app as a static site thanks to our [SSG (Static Site Generation) adapter](</docs/(qwikrouter)/guides/static-site-generation/index.mdx>).
 
 ## Which is faster: SPAs (Single-Page Application) or MPAs (Multi-Page Application)?
 
@@ -237,14 +241,14 @@ Qwik is a unique framework that is both an MPA and an SPA at the same time.
 
 ## Can Qwik do SPA?
 
-Of course! [Qwik Router](/docs/(qwikrouter)/qwikrouter/index.mdx) includes the `<Link>` component which triggers an SPA navigation.
+Of course! [Qwik Router](</docs/(qwikrouter)/qwikrouter/index.mdx>) includes the `<Link>` component which triggers an SPA navigation.
 With Qwik, developers don't need to choose between an SPA or an MPA, every app is both at the same time.
 
 MPA vs SPA is no longer an architectural decision taken at the beginning of the project, but a decision made for every link.
 
 ## Can Qwik do Static Site Generation (SSG)?
 
-Yes! It's part of all Qwik Router starters. Learn how to do [Static Site Generation here](/docs/(qwikrouter)/guides/static-site-generation/index.mdx).
+Yes! It's part of all Qwik Router starters. Learn how to do [Static Site Generation here](</docs/(qwikrouter)/guides/static-site-generation/index.mdx>).
 
 ## Can't I create an MPA or SPA with other frameworks?
 

@@ -17,46 +17,46 @@ Throwing a `ServerError` instance allows you to return custom errors to the brow
 ```tsx
 // Throw ServerErrors from a routerLoader$
 const useProduct = routeLoader$(async (ev) => {
-  const product = await fetch('api/product/1')
+  const product = await fetch('api/product/1');
 
   if (!product) {
     // Throw a 404 with a custom payload
-    throw new ServerError(404, 'Product not found')
+    throw new ServerError(404, 'Product not found');
 
     // Or use the existing helper function
-    throw ev.error(404, 'Product not found')
+    throw ev.error(404, 'Product not found');
   }
 
-  return product
-})
+  return product;
+});
 
 // Throw ServerErrors from a server$
 const getPrices = server$(() => {
   if (!isAuthenticated()) {
-    throw new ServerError(401, { code: 401 })
+    throw new ServerError(401, { code: 401 });
   }
 
-  return fetch('api/product/1/prices')
-})
+  return fetch('api/product/1/prices');
+});
 
 export default component$(() => {
-  const product = useProduct()
+  const product = useProduct();
 
   useVisibleTask(() => {
     getPrices()
       .then()
-      .catch(err => {
+      .catch((err) => {
         // The payload from a ServerError is deserialised as the error caught in the client
         if (err.code === 401) {
           // Navigate to login page
         }
 
         // Show generic error
-      })
-  })
+      });
+  });
 
-  return <div>Product page</div>
-})
+  return <div>Product page</div>;
+});
 ```
 
 ## Error interceptor
@@ -65,9 +65,9 @@ Intercepting errors with middleware has a few usecases: you might want to hide e
 
 ```tsx
 // src/routes/plugin@errors.ts
-import { type RequestHandler } from '@qwik.dev/router'
-import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler'
-import { isDev } from '@qwik.dev/core/build'
+import { type RequestHandler } from '@qwik.dev/router';
+import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { isDev } from '@qwik.dev/core/build';
 
 export const onRequest: RequestHandler = async ({ next }) => {
   try {
@@ -75,25 +75,22 @@ export const onRequest: RequestHandler = async ({ next }) => {
   } catch (err) {
     // Pass through 3xx redirects
     if (err instanceof RedirectMessage) {
-      throw err
+      throw err;
     }
 
     // Pass through ServerErrors
     if (err instanceof ServerError) {
-      throw err
+      throw err;
     }
 
     // Log unknown errors
-    console.error('unknown error', err)
+    console.error('unknown error', err);
 
     if (isDev) {
-      throw err
+      throw err;
     } else {
       throw new ServerError(500, 'Internal server error');
     }
   }
 };
-
-
-
 ```

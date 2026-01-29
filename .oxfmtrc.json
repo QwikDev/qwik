@@ -1,5 +1,6 @@
 {
   "$schema": "https://oxc.rs/schemas/oxfmt.json",
+  "experimentalPrettierFallback": true,
   "printWidth": 100,
   "tabWidth": 2,
   "useTabs": false,

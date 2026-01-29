@@ -21,18 +21,16 @@ created_at: '2023-03-20T23:45:13Z'
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 
-
 # Endpoints
 
+A [middleware function](/docs/middleware) that returns a response is called an endpoint. Endpoints are useful for returning data such as RESTful API, GraphQL API, JSON, XML, reverse proxy or any other type of API where you need to control all aspects of the HTTP response. Returning a response (using `json` for example) will stop the execution of subsequent middleware functions past this point in the middleware chain.
 
-A [middleware function](/docs/middleware) that returns a response is called an endpoint. Endpoints are useful for returning data such as  RESTful API, GraphQL API, JSON, XML, reverse proxy or any other type of API where you need to control all aspects of the HTTP response. Returning a response (using `json` for example) will stop the execution of subsequent middleware functions past this point in the middleware chain. 
-
-All endpoints receive a [`RequestEvent`](/docs/middleware/#requestevent) API for controlling the response of the endpoint. 
-
+All endpoints receive a [`RequestEvent`](/docs/middleware/#requestevent) API for controlling the response of the endpoint.
 
 For example, when navigating to `/greet/` URL this endpoint will return `{"hello":"world"}`.
 
 File: `src/routes/greet/index.tsx`
+
 <CodeSandbox src="/src/routes/demo/qwikrouter/middleware/json/index.tsx">
 ```tsx
 import { type RequestHandler } from '@qwik.dev/router';
@@ -44,8 +42,6 @@ export const onGet: RequestHandler = async ({ json }) => {
 </CodeSandbox>
 
 > Sending a response is what differentiates an endpoint from a middleware. Sending a response (using `json()` for example) will therefore implicitly halt the middleware chain.
-
-
 
 ## Create a reverse proxy using a fetch
 
@@ -77,17 +73,18 @@ export const onGet: RequestHandler = async (requestEvent) => {
   const writer = writableStream.getWriter();
   const encoder = new TextEncoder();
 
-  writer.write(encoder.encode('Hello World\n'));
-  await wait(100);
-  writer.write(encoder.encode('After 100ms\n'));
-  await wait(100);
-  writer.write(encoder.encode('After 200ms\n'));
-  await wait(100);
-  writer.write(encoder.encode('END'));
-  writer.close();
+writer.write(encoder.encode('Hello World\n'));
+await wait(100);
+writer.write(encoder.encode('After 100ms\n'));
+await wait(100);
+writer.write(encoder.encode('After 200ms\n'));
+await wait(100);
+writer.write(encoder.encode('END'));
+writer.close();
 };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 ```
 </CodeSandbox>
 
@@ -97,3 +94,4 @@ Endpoints are low level APIs that give developers full control over the HTTP res
 
 The [`server$`](/docs/(qwikrouter)/server$/index.mdx) functions are usually a better option when you need to run some code on the server and return a response back to the app. The `server$` is strongly typed and provides a more convenient API for returning data.
 
+```

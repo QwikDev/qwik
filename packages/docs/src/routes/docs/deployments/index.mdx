@@ -17,28 +17,11 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 When it's time to deploy your application, Qwik comes with ready-to-use integration that make this so easy!
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add ```</span>
+  <span q:slot="npm">```shell npm run qwik add ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add ```</span>
+  <span q:slot="bun">```shell bun run qwik add ```</span>
 </PackageManagerTabs>
 
 ## Adapters and Middleware
@@ -52,26 +35,10 @@ When a new integration is added to the project, a `build.server` script is added
 The only thing you need to do is to run the following command:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run build
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run build
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run build
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run build
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run build ```</span>
+  <span q:slot="npm">```shell npm run build ```</span>
+  <span q:slot="yarn">```shell yarn run build ```</span>
+  <span q:slot="bun">```shell bun run build ```</span>
 </PackageManagerTabs>
 
 > Under the hood, the `build` script will execute, `build.server` and `build.client` scripts.
@@ -98,7 +65,7 @@ The adapter is really a Vite config, that's extending the base config. The base 
 
 ### Add Middleware
 
-Middleware is the glue code that connects the server rendering framework (such as Cloudflare, Netlify, Vercel, Express etc. Each middleware is responsible for handling the request and response from the server and translating it to a standard format for Qwik Router to use. 
+Middleware is the glue code that connects the server rendering framework (such as Cloudflare, Netlify, Vercel, Express etc. Each middleware is responsible for handling the request and response from the server and translating it to a standard format for Qwik Router to use.
 
 Luckily Qwik Router uses the standardized [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) interfaces, so the middleware is usually pretty minimal.
 
@@ -126,7 +93,7 @@ The various deployment platforms have different ways of configuring this, and th
 
 To verify proper caching, you can visit your site and open the developer tools to inspect the network requests. When you reload the page, you should see that all requests for assets are coming from the browser cache and are not contacting the server. Even a `304 Not Modified` response is not good enough, because it means that the browser is still unsure that the content is cached.
 
- ⚠️ **Note**: If your app uses [`compiled-i18n`](https://github.com/wmertens/compiled-i18n) or [`qwik-speak`](https://github.com/robisim74/qwik-speak), then translated bundles (`build/[locale]/*.js`) can retain identical filenames between builds even when translations change. Consider how long you want to cache these files for so users get the latest translations.
+⚠️ **Note**: If your app uses [`compiled-i18n`](https://github.com/wmertens/compiled-i18n) or [`qwik-speak`](https://github.com/robisim74/qwik-speak), then translated bundles (`build/[locale]/*.js`) can retain identical filenames between builds even when translations change. Consider how long you want to cache these files for so users get the latest translations.
 
 ## Origin
 
@@ -134,10 +101,9 @@ We recommend setting the `ORIGIN` environment variable to the origin of your sit
 
 However, if the origin of your application is not static because you're hosting multiple sites, the Node.js based middleware provides a `getOrigin()` callback option to reliably reconstruct the origin (scheme + host + optional port).
 
-
 ### Examples
 
-1) Simple static origin from environment (recommended for production if you know the origin):
+1. Simple static origin from environment (recommended for production if you know the origin):
 
 ```ts
 // Provide ORIGIN=https://example.com in your environment
@@ -146,20 +112,22 @@ createQwikCity({
 });
 ```
 
-2) Compute origin using forwarded headers (common when behind proxies). Use the headers your proxy provides, e.g. `X-Forwarded-Proto` and `X-Forwarded-Host`:
+2. Compute origin using forwarded headers (common when behind proxies). Use the headers your proxy provides, e.g. `X-Forwarded-Proto` and `X-Forwarded-Host`:
 
 ```ts
 createQwikCity({
   getOrigin(req) {
     const proto = req.headers['x-forwarded-proto'] as string | undefined;
-    const host = req.headers['x-forwarded-host'] as string | undefined || (req.headers.host as string | undefined);
+    const host =
+      (req.headers['x-forwarded-host'] as string | undefined) ||
+      (req.headers.host as string | undefined);
     if (!host) return null;
     return `${proto ?? 'https'}://${host}`;
-  }
+  },
 });
 ```
 
-3) Example: Cloud Run adapter (reconstructs the origin from forwarded headers)
+3. Example: Cloud Run adapter (reconstructs the origin from forwarded headers)
 
 ```ts
 // starters/adapters/cloud-run entry (illustrative)
@@ -170,7 +138,7 @@ createQwikCity({
     const host = (req.headers['host'] || req.headers['x-forwarded-host']) as string | undefined;
     if (!host) return null;
     return `${proto ?? 'https'}://${host}`;
-  }
+  },
 });
 ```
 

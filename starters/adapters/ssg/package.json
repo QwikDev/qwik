@@ -1,5 +1,6 @@
 {
   "description": "Static Site Generator",
+  "type": "module",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/ssg/vite.config.ts"
   },
@@ -15,6 +16,5 @@
         "inside './adapters/ssg/vite.config.ts'"
       ]
     }
-  },
-  "type": "module"
+  }
 }

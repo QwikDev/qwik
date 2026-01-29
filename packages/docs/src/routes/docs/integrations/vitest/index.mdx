@@ -22,32 +22,15 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 You can add vitest easily by using the following Qwik starter script:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add vitest
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add vitest
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add vitest
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add vitest
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add vitest ```</span>
+  <span q:slot="npm">```shell npm run qwik add vitest ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add vitest ```</span>
+  <span q:slot="bun">```shell bun run qwik add vitest ```</span>
 </PackageManagerTabs>
 
 After running the command, vitest will be installed and a new component will be added to your project. The component will be added to the `src/components/example` directory as well as a new unit test named `example.spec.tsx`.
-If you are looking for an example for a Component with Qwik Router, see [QwikRouterMockProvider](/docs/(qwikrouter)/api/index.mdx#qwikroutermockprovider).
+If you are looking for an example for a Component with Qwik Router, see [QwikRouterMockProvider](</docs/(qwikrouter)/api/index.mdx#qwikroutermockprovider>).
 
 ```tsx title="example.spec.tsx"
 import { createDOM } from '@qwik.dev/core/testing';

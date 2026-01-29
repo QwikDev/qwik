@@ -33,7 +33,6 @@ export default component$(() => {
 
 > The only difference between a page and an endpoint is that an endpoint only exports an `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, or `onHead` function, which will be used to handle the incoming request.
 
-
 ## `head` export
 
 Every page can export a `head` property (or function) that returns a `DocumentHead` object. The `DocumentHead` object is used to resolve the `title` of the page, as well as the `meta`, `links`, `styles` and `scripts`.
@@ -74,15 +73,15 @@ export const head: DocumentHead = {
   ],
   styles: [
     {
-        style: '.error { background-color: red; }',
+      style: '.error { background-color: red; }',
     },
   ],
   scripts: [
     {
-      type: "application/ld+json",
+      type: 'application/ld+json',
       script: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "ItemList",
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
       }),
     },
   ],
@@ -117,7 +116,7 @@ export const useJoke = routeLoader$(async (requestEvent) => {
 });
 
 // Now we can export a function that returns a DocumentHead object
-export const head: DocumentHead = ({resolveValue, params}) => {
+export const head: DocumentHead = ({ resolveValue, params }) => {
   const joke = resolveValue(useJoke);
   return {
     title: `Joke "${joke.title}"`,
@@ -182,7 +181,7 @@ export default createRenderer((opts) => {
 
 ### Nested Layouts and Head
 
-In an advanced case, a [layout](/docs/(qwikrouter)/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. The containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.
+In an advanced case, a [layout](</docs/(qwikrouter)/layout/index.mdx>) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. The containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.
 
 ```bash
 ──src/
@@ -224,23 +223,24 @@ export const head: DocumentHead = {
   scripts: [
     {
       props: {
-        type: "application/ld+json",
+        type: 'application/ld+json',
       },
       script: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "ItemList",
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
       }),
     },
   ],
 };
 ```
+
 The example above sets some [Structured Data Markup](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=en).
 
 > **Note**: You need to change `router-head` component to render `head.scripts`.
 
 ```tsx {8} /head/ title="src\components\router-head\router-head.tsx"
-import { component$ } from "@qwik.dev/core";
-import { useDocumentHead, useLocation } from "@qwik.dev/router";
+import { component$ } from '@qwik.dev/core';
+import { useDocumentHead, useLocation } from '@qwik.dev/router';
 
 export const RouterHead = component$(() => {
   const head = useDocumentHead();
@@ -257,6 +257,4 @@ export const RouterHead = component$(() => {
     </>
   );
 });
-
 ```
-

@@ -22,28 +22,11 @@ around the world.
 
 You can easily add Turso by using the following Qwik starter script:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add turso
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add turso
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add turso
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add turso
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add turso ```</span>
+  <span q:slot="npm">```shell npm run qwik add turso ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add turso ```</span>
+  <span q:slot="bun">```shell bun run qwik add turso ```</span>
 </PackageManagerTabs>
 
 This command will add the necessary dependencies to use Turso.
@@ -96,7 +79,7 @@ inside `.env.local`.
 PRIVATE_TURSO_DATABASE_URL=file:foo.db
 ```
 
-> ***Note***: A database token is not needed when working with file databases and `createClient` must be imported from `@libsql/client` since importing from `@libsql/client/web` [does not support local file URLs](https://docs.turso.tech/sdk/ts/reference#local-development).
+> **_Note_**: A database token is not needed when working with file databases and `createClient` must be imported from `@libsql/client` since importing from `@libsql/client/web` [does not support local file URLs](https://docs.turso.tech/sdk/ts/reference#local-development).
 
 ## Using a Turso database
 
@@ -152,19 +135,17 @@ within Qwik's server-side APIs that expose the `RequestEvent` object, such as
 `onGet`, `onPost`, `onRequest`.
 
 ```ts
-import { tursoClient } from "~/utils/turso";
+import { tursoClient } from '~/utils/turso';
 
-export const useRouteLoader = routeLoader$(
-  async (requestEvent: RequestEventBase) => {
-    const client = tursoClient(requestEvent);
+export const useRouteLoader = routeLoader$(async (requestEvent: RequestEventBase) => {
+  const client = tursoClient(requestEvent);
 
-    const items = await client.execute("select * from table");
+  const items = await client.execute('select * from table');
 
-    return {
-      items: items.rows,
-    };
-  }
-);
+  return {
+    items: items.rows,
+  };
+});
 ```
 
 For more information, please visit the [Turso docs].
@@ -172,8 +153,6 @@ For more information, please visit the [Turso docs].
 [Turso]: https://turso.tech
 [libSQL]: https://turso.tech/libsql
 [this link for installation instructions]: https://sqlite.org/download.html
-[install the Turso CLI]:
-    https://docs.turso.tech/reference/turso-cli#installation
-[create a Turso database]:
-    https://docs.turso.tech/quickstart
+[install the Turso CLI]: https://docs.turso.tech/reference/turso-cli#installation
+[create a Turso database]: https://docs.turso.tech/quickstart
 [Turso docs]: https://docs.turso.tech

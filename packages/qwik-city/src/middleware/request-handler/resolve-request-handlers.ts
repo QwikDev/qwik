@@ -452,14 +452,19 @@ function csrfLaxProtoCheckMiddleware(requestEv: RequestEvent) {
 function csrfCheckMiddleware(requestEv: RequestEvent) {
   checkCSRF(requestEv);
 }
-function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
-  const isForm = isContentType(
-    requestEv.request.headers,
-    'application/x-www-form-urlencoded',
-    'multipart/form-data',
-    'text/plain'
-  );
-  if (isForm) {
+export function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
+  const contentType = requestEv.request.headers.get('content-type');
+
+  const isSimpleRequest =
+    !contentType ||
+    isContentType(
+      requestEv.request.headers,
+      'application/x-www-form-urlencoded',
+      'multipart/form-data',
+      'text/plain'
+    );
+
+  if (isSimpleRequest) {
     const inputOrigin = requestEv.request.headers.get('origin');
     const origin = requestEv.url.origin;
     let forbidden = inputOrigin !== origin;
@@ -638,7 +643,16 @@ export async function measure<T>(
   }
 }
 
+export function getContentType(headers: Headers): string {
+  return (headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '').toLowerCase();
+}
+
 export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(/;/, 1)[0].trim() ?? '';
-  return types.includes(type);
+  const type = getContentType(headers);
+  for (let i = 0; i < types.length; i++) {
+    if (types[i].toLowerCase() === type) {
+      return true;
+    }
+  }
+  return false;
 }

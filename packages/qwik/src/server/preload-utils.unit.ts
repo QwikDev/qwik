@@ -1,42 +1,42 @@
-import { assert, test } from "vitest";
-import { flattenPrefetchResources } from "./preload-utils";
+import { assert, test } from 'vitest';
+import { flattenPrefetchResources } from './preload-utils';
 
-test("flattenPrefetchResources, no imports", () => {
+test('flattenPrefetchResources, no imports', () => {
   const p = [
-    { url: "a.js", imports: [], priority: false },
-    { url: "b.js", imports: [], priority: true },
-    { url: "c.js", imports: [], priority: false },
+    { url: 'a.js', imports: [], priority: false },
+    { url: 'b.js', imports: [], priority: true },
+    { url: 'c.js', imports: [], priority: false },
   ];
-  assert.deepEqual(flattenPrefetchResources(p), ["a.js", "b.js", "c.js"]);
+  assert.deepEqual(flattenPrefetchResources(p), ['a.js', 'b.js', 'c.js']);
 });
 
-test("flattenPrefetchResources, w/ imports", () => {
+test('flattenPrefetchResources, w/ imports', () => {
   const p = [
     {
-      url: "a.js",
+      url: 'a.js',
       imports: [
-        { url: "x.js", imports: [{ url: "y.js", imports: [], priority: false }], priority: false },
-        { url: "y.js", imports: [], priority: false },
+        { url: 'x.js', imports: [{ url: 'y.js', imports: [], priority: false }], priority: false },
+        { url: 'y.js', imports: [], priority: false },
       ],
       priority: false,
     },
     {
-      url: "b.js",
+      url: 'b.js',
       imports: [
-        { url: "x.js", imports: [{ url: "y.js", imports: [], priority: false }], priority: false },
-        { url: "y.js", imports: [], priority: false },
+        { url: 'x.js', imports: [{ url: 'y.js', imports: [], priority: false }], priority: false },
+        { url: 'y.js', imports: [], priority: false },
       ],
       priority: true,
     },
     {
-      url: "c.js",
+      url: 'c.js',
       imports: [
         {
-          url: "z.js",
+          url: 'z.js',
           imports: [
             {
-              url: "x.js",
-              imports: [{ url: "y.js", imports: [], priority: false }],
+              url: 'x.js',
+              imports: [{ url: 'y.js', imports: [], priority: false }],
               priority: false,
             },
           ],
@@ -46,5 +46,5 @@ test("flattenPrefetchResources, w/ imports", () => {
       priority: false,
     },
   ];
-  assert.deepEqual(flattenPrefetchResources(p), ["a.js", "x.js", "y.js", "b.js", "c.js", "z.js"]);
+  assert.deepEqual(flattenPrefetchResources(p), ['a.js', 'x.js', 'y.js', 'b.js', 'c.js', 'z.js']);
 });

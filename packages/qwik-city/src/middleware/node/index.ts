@@ -1,20 +1,20 @@
 import type {
   ServerRenderOptions,
   ClientConn,
-} from "@builder.io/qwik-city/middleware/request-handler";
-import { requestHandler } from "@builder.io/qwik-city/middleware/request-handler";
-import { setServerPlatform } from "@builder.io/qwik/server";
-import { getNotFound } from "@qwik-city-not-found-paths";
-import { isStaticPath } from "@qwik-city-static-paths";
-import { createReadStream } from "node:fs";
-import type { IncomingMessage, ServerResponse } from "node:http";
-import { extname, join, basename } from "node:path";
-import { fileURLToPath } from "node:url";
-import { computeOrigin, fromNodeHttp, getUrl } from "./http";
-import { MIME_TYPES } from "../request-handler/mime-types";
-import { patchGlobalThis } from "./node-fetch";
-import { _deserializeData, _serializeData, _verifySerializable } from "@builder.io/qwik";
-import type { Http2ServerRequest } from "node:http2";
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import { setServerPlatform } from '@builder.io/qwik/server';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
+import { createReadStream } from 'node:fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { extname, join, basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { computeOrigin, fromNodeHttp, getUrl } from './http';
+import { MIME_TYPES } from '../request-handler/mime-types';
+import { patchGlobalThis } from './node-fetch';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import type { Http2ServerRequest } from 'node:http2';
 
 // @builder.io/qwik-city/middleware/node
 
@@ -32,12 +32,12 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     setServerPlatform(opts.manifest);
   }
   const staticFolder =
-    opts.static?.root ?? join(fileURLToPath(import.meta.url), "..", "..", "dist");
+    opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 
   const router = async (
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
-    next: NodeRequestNextFunction,
+    next: NodeRequestNextFunction
   ) => {
     try {
       const origin = computeOrigin(req, opts);
@@ -45,8 +45,8 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
         getUrl(req, origin),
         req,
         res,
-        "server",
-        opts.getClientConn,
+        'server',
+        opts.getClientConn
       );
       const handled = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handled) {
@@ -68,7 +68,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   const notFound = async (
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
-    next: (e: any) => void,
+    next: (e: any) => void
   ) => {
     try {
       if (!res.headersSent) {
@@ -78,12 +78,12 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
         // In the development server, we replace the getNotFound function
         // For static paths, we assign a static "Not Found" message.
         // This ensures consistency between development and production environments for specific URLs.
-        const notFoundHtml = isStaticPath(req.method || "GET", url)
-          ? "Not Found"
+        const notFoundHtml = isStaticPath(req.method || 'GET', url)
+          ? 'Not Found'
           : getNotFound(url.pathname);
         res.writeHead(404, {
-          "Content-Type": "text/html; charset=utf-8",
-          "X-Not-Found": url.pathname,
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Not-Found': url.pathname,
         });
         res.end(notFoundHtml);
       }
@@ -96,33 +96,33 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   const staticFile = async (
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
-    next: (e?: any) => void,
+    next: (e?: any) => void
   ) => {
     try {
       const origin = computeOrigin(req, opts);
       const url = getUrl(req, origin);
-      if (isStaticPath(req.method || "GET", url)) {
+      if (isStaticPath(req.method || 'GET', url)) {
         const pathname = url.pathname;
         let filePath: string;
-        if (basename(pathname).includes(".")) {
+        if (basename(pathname).includes('.')) {
           filePath = join(staticFolder, pathname);
         } else if (opts.qwikCityPlan.trailingSlash) {
-          filePath = join(staticFolder, pathname + "index.html");
+          filePath = join(staticFolder, pathname + 'index.html');
         } else {
-          filePath = join(staticFolder, pathname, "index.html");
+          filePath = join(staticFolder, pathname, 'index.html');
         }
-        const ext = extname(filePath).replace(/^\./, "");
+        const ext = extname(filePath).replace(/^\./, '');
         const stream = createReadStream(filePath);
-        stream.on("error", next);
+        stream.on('error', next);
 
         const contentType = MIME_TYPES[ext];
 
         if (contentType) {
-          res.setHeader("Content-Type", contentType);
+          res.setHeader('Content-Type', contentType);
         }
 
         if (opts.static?.cacheControl) {
-          res.setHeader("Cache-Control", opts.static.cacheControl);
+          res.setHeader('Cache-Control', opts.static.cacheControl);
         }
 
         stream.pipe(res);

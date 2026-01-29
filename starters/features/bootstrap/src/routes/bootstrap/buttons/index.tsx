@@ -1,7 +1,7 @@
-import { component$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
-import { Button } from "~/components/bootstrap";
-import { colorVariantsList } from "~/constants/data";
+import { component$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
+import { Button } from '~/components/bootstrap';
+import { colorVariantsList } from '~/constants/data';
 
 export default component$(() => {
   return (
@@ -19,11 +19,11 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Qwik - Bootstrap v5 - Buttons",
+  title: 'Qwik - Bootstrap v5 - Buttons',
   meta: [
     {
-      name: "description",
-      content: "Buttons with Boostrap in Qwik",
+      name: 'description',
+      content: 'Buttons with Boostrap in Qwik',
     },
   ],
 };

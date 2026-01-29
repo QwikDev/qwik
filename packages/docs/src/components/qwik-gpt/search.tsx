@@ -1,6 +1,6 @@
 // import { server$ } from '@builder.io/qwik-city';
 // import { createClient } from '@supabase/supabase-js';
-import gpt from "./gpt.md?raw";
+import gpt from './gpt.md?raw';
 // import { chatCompletion } from './streaming-gpt';
 
 const files = new Map<string, Promise<string>>();
@@ -114,25 +114,25 @@ const files = new Map<string, Promise<string>>();
 // });
 
 export function normalizeLine(line: string) {
-  line = line.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+  line = line.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
   line = line.toLowerCase();
-  line = line.replaceAll("`", "");
-  line = line.replaceAll("*", "");
-  line = line.replaceAll("_", " ");
-  line = line.replaceAll("#", "");
-  line = line.replaceAll("-", " ");
-  line = line.replaceAll("...", ".");
-  line = line.replaceAll(">", "");
-  line = line.replaceAll("<", "");
-  line = line.replaceAll("..", ".");
-  line = line.replaceAll("  ", " ");
+  line = line.replaceAll('`', '');
+  line = line.replaceAll('*', '');
+  line = line.replaceAll('_', ' ');
+  line = line.replaceAll('#', '');
+  line = line.replaceAll('-', ' ');
+  line = line.replaceAll('...', '.');
+  line = line.replaceAll('>', '');
+  line = line.replaceAll('<', '');
+  line = line.replaceAll('..', '.');
+  line = line.replaceAll('  ', ' ');
   line = line.trim();
   return line;
 }
 
 export async function getResultsHash(docsData: any[]) {
-  const key = docsData.map((result) => `${result.commit_hash}:${result.file}`).join(",");
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(key));
+  const key = docsData.map((result) => `${result.commit_hash}:${result.file}`).join(',');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
   const hash = new Uint32Array(digest);
   return `${hash[0]}'${hash[1]}`;
 }
@@ -148,7 +148,7 @@ export async function resolveContext(docsData: any[]) {
       if (!files.has(url)) {
         files.set(
           url,
-          fetch(url).then((r) => r.text()),
+          fetch(url).then((r) => r.text())
         );
       }
       const copied = {
@@ -167,14 +167,14 @@ export async function resolveContext(docsData: any[]) {
       if (!range) {
         docsRanges[result.url] = range = [];
       }
-      get_docs_ranges(range, file, result["line"]);
+      get_docs_ranges(range, file, result['line']);
     }
 
     const docsLines: string[] = [];
 
     for (const [url, ranges] of Object.entries(docsRanges)) {
       const file = await files.get(url)!;
-      const lines = file.split("\n").filter((_, index) => {
+      const lines = file.split('\n').filter((_, index) => {
         for (const [start, end] of ranges) {
           if (index >= start && index < end) {
             return true;
@@ -184,26 +184,26 @@ export async function resolveContext(docsData: any[]) {
       });
       if (lines.length > 0) {
         const parts = new URL(url).pathname
-          .split("/")
+          .split('/')
           .slice(8, -1)
-          .filter((a) => !a.startsWith("("))
-          .join("/");
+          .filter((a) => !a.startsWith('('))
+          .join('/');
         const docsURL = `https://qwik.dev/${parts}/`;
-        docsLines.push("FROM (" + docsURL + "):\n");
+        docsLines.push('FROM (' + docsURL + '):\n');
         docsLines.push(...lines);
-        docsLines.push("");
+        docsLines.push('');
       }
     }
-    const docsStr = gpt + "\n\n" + docsLines.filter((a) => !a.includes("CodeSandbox")).join("\n");
+    const docsStr = gpt + '\n\n' + docsLines.filter((a) => !a.includes('CodeSandbox')).join('\n');
     return docsStr;
   } catch (e) {
     console.error(e);
   }
-  return "";
+  return '';
 }
 
 function get_docs_ranges(ranges: [number, number][], fileContent: string, line: number) {
-  const lines = fileContent.split("\n");
+  const lines = fileContent.split('\n');
 
   // find top header
   let current_level = 0;
@@ -221,18 +221,18 @@ function get_docs_ranges(ranges: [number, number][], fileContent: string, line: 
   }
   // find bottom header
   for (let i = line + 1; i < lines.length; i++) {
-    if (lines[i].startsWith("#")) {
+    if (lines[i].startsWith('#')) {
       bottom_header = i;
       break;
     }
   }
   ranges.push([top_header, bottom_header]);
   if (current_level > 1) {
-    const find_top_header = "#".repeat(current_level - 1) + " ";
+    const find_top_header = '#'.repeat(current_level - 1) + ' ';
     for (let i = top_header - 1; i >= 0; i--) {
       if (lines[i].startsWith(find_top_header)) {
         for (let j = i + 1; j < top_header; j++) {
-          if (lines[j].startsWith("#")) {
+          if (lines[j].startsWith('#')) {
             ranges.push([i, j]);
             return;
           }

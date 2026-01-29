@@ -9,16 +9,16 @@
  * require-corp`, and it also allows us to still use vite for worker bundling.
  */
 
-const channel = new BroadcastChannel("qwik-docs-repl");
+const channel = new BroadcastChannel('qwik-docs-repl');
 
 export type RequestMessage = {
-  type: "repl-request";
+  type: 'repl-request';
   requestId: number;
   replId: string;
   url: string;
 };
 export type ResponseMessage = {
-  type: "repl-response";
+  type: 'repl-response';
   requestId: number;
   response: {
     status: number;
@@ -33,9 +33,9 @@ const pendingRequests = new Map<number, { resolve: (r: Response) => void; timeou
 let nextId = 1;
 
 /** Intercept requests for `/repl/[id]/*` and request them over the broadcast channel */
-(self as any as ServiceWorkerGlobalScope).addEventListener("fetch", (ev: FetchEvent) => {
+(self as any as ServiceWorkerGlobalScope).addEventListener('fetch', (ev: FetchEvent) => {
   // Only GET requests
-  if (ev.request.method === "GET") {
+  if (ev.request.method === 'GET') {
     const reqUrl = new URL(ev.request.url);
     const origin = self.location.origin;
     if (reqUrl.origin === origin) {
@@ -51,7 +51,7 @@ let nextId = 1;
             const timeoutId = setTimeout(() => {
               if (pendingRequests.has(requestId)) {
                 pendingRequests.delete(requestId);
-                resolve(new Response("504 - Request timeout - try reloading", { status: 504 }));
+                resolve(new Response('504 - Request timeout - try reloading', { status: 504 }));
               }
             }, 10000);
 
@@ -59,7 +59,7 @@ let nextId = 1;
 
             // Send request to main thread
             channel.postMessage({
-              type: "repl-request",
+              type: 'repl-request',
               requestId,
               replId,
               url: pathname + reqUrl.search,
@@ -67,29 +67,29 @@ let nextId = 1;
               // method: ev.request.method,
               // headers: Object.fromEntries(ev.request.headers.entries()),
             });
-          }),
+          })
         );
         return;
       } else {
         // Proxy other requests to / and return COEP headers
-        const url = pathname.replace(/^\/repl\//, "/") + reqUrl.search;
+        const url = pathname.replace(/^\/repl\//, '/') + reqUrl.search;
         const req = new Request(url, {
           method: ev.request.method,
           headers: ev.request.headers,
-          redirect: "manual",
+          redirect: 'manual',
         });
         ev.respondWith(
           fetch(req).then((res) => {
             // Create a new response so we can modify headers
             const newHeaders = new Headers(res.headers);
-            newHeaders.set("Cross-Origin-Embedder-Policy", "require-corp");
-            newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+            newHeaders.set('Cross-Origin-Embedder-Policy', 'require-corp');
+            newHeaders.set('Cross-Origin-Opener-Policy', 'same-origin');
             return new Response(res.body, {
               status: res.status,
               statusText: res.statusText,
               headers: newHeaders,
             });
-          }),
+          })
         );
         return;
       }
@@ -104,7 +104,7 @@ let nextId = 1;
 channel.onmessage = (ev: MessageEvent<ResponseMessage>) => {
   const msg = ev.data;
 
-  if (msg.type === "repl-response") {
+  if (msg.type === 'repl-response') {
     const { requestId, response } = msg;
 
     if (pendingRequests.has(requestId)) {
@@ -120,16 +120,16 @@ channel.onmessage = (ev: MessageEvent<ResponseMessage>) => {
         });
         resolve(res);
       } else {
-        resolve(new Response("404 - Not found", { status: 404 }));
+        resolve(new Response('404 - Not found', { status: 404 }));
       }
     }
   }
 };
 
-self.addEventListener("install", (ev) => {
+self.addEventListener('install', (ev) => {
   (self as any as ServiceWorkerGlobalScope).skipWaiting();
 });
 
-self.addEventListener("activate", (ev) => {
+self.addEventListener('activate', (ev) => {
   (self as any as ServiceWorkerGlobalScope).clients.claim();
 });

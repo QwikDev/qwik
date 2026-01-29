@@ -1,5 +1,5 @@
-import type { QwikCityEnvData } from "../../runtime/src/types";
-import type { RequestEvent } from "./types";
+import type { QwikCityEnvData } from '../../runtime/src/types';
+import type { RequestEvent } from './types';
 import {
   getRequestLoaders,
   getRequestRoute,
@@ -7,7 +7,7 @@ import {
   RequestEvSharedActionId,
   RequestEvSharedNonce,
   RequestRouteName,
-} from "./request-event";
+} from './request-event';
 
 export function getQwikCityServerData(requestEv: RequestEvent) {
   const { params, request, status, locale, originalUrl } = requestEv;
@@ -20,10 +20,10 @@ export function getQwikCityServerData(requestEv: RequestEvent) {
   const nonce = requestEv.sharedMap.get(RequestEvSharedNonce);
   const headers = requestEv.request.headers;
   const reconstructedUrl = new URL(originalUrl.pathname + originalUrl.search, originalUrl);
-  const host = headers.get("X-Forwarded-Host")!;
-  const protocol = headers.get("X-Forwarded-Proto")!;
+  const host = headers.get('X-Forwarded-Host')!;
+  const protocol = headers.get('X-Forwarded-Proto')!;
   if (host) {
-    reconstructedUrl.port = "";
+    reconstructedUrl.port = '';
     reconstructedUrl.host = host;
   }
   if (protocol) {
@@ -36,7 +36,7 @@ export function getQwikCityServerData(requestEv: RequestEvent) {
     locale: locale(),
     nonce,
     containerAttributes: {
-      "q:route": routeName,
+      'q:route': routeName,
     },
     qwikcity: {
       routeName,

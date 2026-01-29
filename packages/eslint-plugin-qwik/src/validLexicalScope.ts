@@ -1,38 +1,38 @@
-import * as ESLintUtils from "@typescript-eslint/utils/eslint-utils";
-import ts from "typescript";
-import type { Identifier } from "estree";
-import redent from "redent";
-import type { RuleContext, Scope } from "@typescript-eslint/utils/dist/ts-eslint";
-import { QwikEslintExamples } from "../examples";
+import * as ESLintUtils from '@typescript-eslint/utils/eslint-utils';
+import ts from 'typescript';
+import type { Identifier } from 'estree';
+import redent from 'redent';
+import type { RuleContext, Scope } from '@typescript-eslint/utils/dist/ts-eslint';
+import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(
-  (name) => `https://qwik.dev/docs/advanced/eslint/#${name}`,
+  (name) => `https://qwik.dev/docs/advanced/eslint/#${name}`
 );
 
 interface DetectorOptions {
   allowAny: boolean;
 }
 export const validLexicalScope = createRule({
-  name: "valid-lexical-scope",
+  name: 'valid-lexical-scope',
   defaultOptions: [
     {
       allowAny: true,
     },
   ],
   meta: {
-    type: "problem",
+    type: 'problem',
     docs: {
       description:
-        "Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.",
-      recommended: "recommended",
+        'Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.',
+      recommended: 'recommended',
     },
 
     schema: [
       {
-        type: "object",
+        type: 'object',
         properties: {
           allowAny: {
-            type: "boolean",
+            type: 'boolean',
           },
         },
         additionalProperties: false,
@@ -69,10 +69,10 @@ export const validLexicalScope = createRule({
         const declaredScope = ref.resolved?.scope as Scope.Scope;
         if (declaredVariable && declaredScope) {
           const variableType = declaredVariable.defs.at(0)?.type;
-          if (variableType === "Type") {
+          if (variableType === 'Type') {
             return;
           }
-          if (variableType === "ImportBinding") {
+          if (variableType === 'ImportBinding') {
             return;
           }
 
@@ -92,10 +92,10 @@ export const validLexicalScope = createRule({
           if (dollarScope && dollarIdentifier) {
             // Variable used inside $
             const scopeType = declaredScope.type;
-            if (scopeType === "global") {
+            if (scopeType === 'global') {
               return;
             }
-            if (scopeType === "module") {
+            if (scopeType === 'module') {
               return;
             }
             const identifier = ref.identifier;
@@ -109,10 +109,10 @@ export const validLexicalScope = createRule({
             }
 
             if (ownerDeclared !== dollarScope) {
-              if (identifier.parent && identifier.parent.type === "AssignmentExpression") {
+              if (identifier.parent && identifier.parent.type === 'AssignmentExpression') {
                 if (identifier.parent.left === identifier) {
                   context.report({
-                    messageId: "mutableIdentifier",
+                    messageId: 'mutableIdentifier',
                     node: ref.identifier,
                     data: {
                       varName: ref.identifier.name,
@@ -125,7 +125,7 @@ export const validLexicalScope = createRule({
               const reason = canCapture(context, typeChecker, tsNode, ref.identifier, opts);
               if (reason) {
                 context.report({
-                  messageId: "referencesOutside",
+                  messageId: 'referencesOutside',
                   node: ref.identifier,
                   data: {
                     varName: ref.identifier.name,
@@ -143,10 +143,10 @@ export const validLexicalScope = createRule({
 
     return {
       CallExpression(node) {
-        if (node.callee.type === "Identifier") {
-          if (node.callee.name.endsWith("$")) {
+        if (node.callee.type === 'Identifier') {
+          if (node.callee.name.endsWith('$')) {
             const firstArg = node.arguments.at(0);
-            if (firstArg && firstArg.type === "ArrowFunctionExpression") {
+            if (firstArg && firstArg.type === 'ArrowFunctionExpression') {
               const scope = scopeManager.acquire(firstArg);
               if (scope) {
                 relevantScopes.set(scope, node.callee.name);
@@ -157,15 +157,15 @@ export const validLexicalScope = createRule({
       },
       JSXAttribute(node) {
         const jsxName = node.name;
-        const name = jsxName.type === "JSXIdentifier" ? jsxName.name : jsxName.name.name;
+        const name = jsxName.type === 'JSXIdentifier' ? jsxName.name : jsxName.name.name;
 
-        if (name.endsWith("$")) {
+        if (name.endsWith('$')) {
           const firstArg = node.value;
-          if (firstArg && firstArg.type === "JSXExpressionContainer") {
+          if (firstArg && firstArg.type === 'JSXExpressionContainer') {
             const scope = scopeManager.acquire(firstArg.expression);
             if (scope) {
               relevantScopes.set(scope, name);
-            } else if (firstArg.expression.type === "Identifier") {
+            } else if (firstArg.expression.type === 'Identifier') {
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
               const type = typeChecker.getTypeAtLocation(tsNode).getNonNullableType();
 
@@ -174,13 +174,13 @@ export const validLexicalScope = createRule({
                   if (
                     !type.types.every((t) => {
                       if (t.symbol) {
-                        return t.symbol.name === "Component" || t.symbol.name === "PropFnInterface";
+                        return t.symbol.name === 'Component' || t.symbol.name === 'PropFnInterface';
                       }
                       return false;
                     })
                   ) {
                     context.report({
-                      messageId: "invalidJsxDollar",
+                      messageId: 'invalidJsxDollar',
                       node: firstArg.expression,
                       data: {
                         varName: firstArg.expression.name,
@@ -190,17 +190,17 @@ export const validLexicalScope = createRule({
                   }
                 } else {
                   const symbolName = type.symbol?.name;
-                  if (symbolName === "PropFnInterface") {
+                  if (symbolName === 'PropFnInterface') {
                     return;
                   }
                   context.report({
-                    messageId: "invalidJsxDollar",
+                    messageId: 'invalidJsxDollar',
                     node: firstArg.expression,
                     data: {
                       varName: firstArg.expression.name,
                       solution: `const ${firstArg.expression.name} = $(\n${getContent(
                         type.symbol,
-                        context.sourceCode.text,
+                        context.sourceCode.text
                       )}\n);\n`,
                     },
                   });
@@ -222,7 +222,7 @@ export const validLexicalScope = createRule({
           exports = typeChecker.getExportsOfModule(moduleSymbol);
         }
       },
-      "Program:exit"() {
+      'Program:exit'() {
         walkScope(scopeManager.globalScope! as any);
       },
     };
@@ -234,7 +234,7 @@ function canCapture(
   checker: ts.TypeChecker,
   node: ts.Node,
   ident: Identifier,
-  opts: DetectorOptions,
+  opts: DetectorOptions
 ) {
   const type = checker.getTypeAtLocation(node);
   const seen = new Set<any>();
@@ -249,11 +249,11 @@ interface TypeReason {
 }
 
 function humanizeTypeReason(reason: TypeReason) {
-  let message = "";
+  let message = '';
   if (reason.location) {
     message += `"${reason.location}" `;
   } else {
-    message += "it ";
+    message += 'it ';
   }
   message += `${reason.reason}`;
   return message;
@@ -266,7 +266,7 @@ function isTypeCapturable(
   tsnode: ts.Node,
   ident: Identifier,
   opts: DetectorOptions,
-  seen: Set<any>,
+  seen: Set<any>
 ): TypeReason | undefined {
   const result = _isTypeCapturable(context, checker, type, tsnode, opts, 0, seen);
   if (result) {
@@ -285,14 +285,14 @@ function _isTypeCapturable(
   node: ts.Node,
   opts: DetectorOptions,
   level: number,
-  seen: Set<any>,
+  seen: Set<any>
 ): TypeReason | undefined {
   // NoSerialize is ok
   if (seen.has(type)) {
     return;
   }
   seen.add(type);
-  if (type.getProperty("__no_serialize__") || type.getProperty("__qwik_serializable__")) {
+  if (type.getProperty('__no_serialize__') || type.getProperty('__qwik_serializable__')) {
     return;
   }
   const isUnknown = type.flags & ts.TypeFlags.Unknown;
@@ -300,7 +300,7 @@ function _isTypeCapturable(
     return {
       type,
       typeStr: checker.typeToString(type),
-      reason: "is unknown, which could be serializable or not, please make the type more specific",
+      reason: 'is unknown, which could be serializable or not, please make the type more specific',
     };
   }
   const isAny = type.flags & ts.TypeFlags.Any;
@@ -308,7 +308,7 @@ function _isTypeCapturable(
     return {
       type,
       typeStr: checker.typeToString(type),
-      reason: "is any, which is not serializable",
+      reason: 'is any, which is not serializable',
     };
   }
   const isSymbol = type.flags & ts.TypeFlags.ESSymbolLike;
@@ -316,7 +316,7 @@ function _isTypeCapturable(
     return {
       type,
       typeStr: checker.typeToString(type),
-      reason: "is Symbol, which is not serializable",
+      reason: 'is Symbol, which is not serializable',
     };
   }
   const isEnum = type.flags & ts.TypeFlags.Enum;
@@ -324,13 +324,13 @@ function _isTypeCapturable(
     return {
       type,
       typeStr: checker.typeToString(type),
-      reason: "is an enum, use an string or a number instead",
+      reason: 'is an enum, use an string or a number instead',
     };
   }
   if (isTypeQRL(type)) {
     return;
   }
-  if (type.symbol?.name === "JSXNode") {
+  if (type.symbol?.name === 'JSXNode') {
     return;
   }
 
@@ -338,18 +338,18 @@ function _isTypeCapturable(
   if (canBeCalled) {
     const symbolName = type.symbol.name;
     if (
-      symbolName === "PropFnInterface" ||
-      symbolName === "RefFnInterface" ||
-      symbolName === "bivarianceHack" ||
-      symbolName === "FunctionComponent"
+      symbolName === 'PropFnInterface' ||
+      symbolName === 'RefFnInterface' ||
+      symbolName === 'bivarianceHack' ||
+      symbolName === 'FunctionComponent'
     ) {
       return;
     }
-    let reason = "is a function, which is not serializable";
+    let reason = 'is a function, which is not serializable';
     if (level === 0 && ts.isIdentifier(node)) {
       const solution = `const ${node.text} = $(\n${getContent(
         type.symbol,
-        context.sourceCode.text,
+        context.sourceCode.text
       )}\n);`;
       reason += `.\nDid you mean to wrap it in \`$()\`?\n\n${solution}\n`;
     }
@@ -391,11 +391,11 @@ function _isTypeCapturable(
     const symbolName = type.symbol.name;
 
     // Element is ok
-    if (type.getProperty("nextElementSibling")) {
+    if (type.getProperty('nextElementSibling')) {
       return;
     }
     // Document is ok
-    if (type.getProperty("activeElement")) {
+    if (type.getProperty('activeElement')) {
       return;
     }
     if (symbolName in ALLOWED_CLASSES) {
@@ -409,19 +409,19 @@ function _isTypeCapturable(
       };
     }
 
-    const prototype = type.getProperty("prototype");
+    const prototype = type.getProperty('prototype');
     if (prototype) {
       const type = checker.getTypeOfSymbolAtLocation(prototype, node);
       if (type.isClass()) {
         return {
           type,
           typeStr: checker.typeToString(type),
-          reason: "is a class constructor, which is not serializable",
+          reason: 'is a class constructor, which is not serializable',
         };
       }
     }
 
-    if (!symbolName.startsWith("__") && type.symbol.valueDeclaration) {
+    if (!symbolName.startsWith('__') && type.symbol.valueDeclaration) {
       return {
         type,
         typeStr: checker.typeToString(type),
@@ -433,7 +433,7 @@ function _isTypeCapturable(
       const result = isSymbolCapturable(context, checker, symbol, node, opts, level + 1, seen);
       if (result) {
         const loc = result.location;
-        result.location = `${symbol.name}${loc ? `.${loc}` : ""}`;
+        result.location = `${symbol.name}${loc ? `.${loc}` : ''}`;
         return result;
       }
     }
@@ -448,7 +448,7 @@ function isSymbolCapturable(
   node: ts.Node,
   opts: DetectorOptions,
   level: number,
-  seen: Set<any>,
+  seen: Set<any>
 ) {
   const type = checker.getTypeOfSymbolAtLocation(symbol, node);
   return _isTypeCapturable(context, checker, type, node, opts, level, seen);
@@ -460,7 +460,7 @@ function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.T
 
 function getTypesOfTupleType(
   type: ts.Type,
-  checker: ts.TypeChecker,
+  checker: ts.TypeChecker
 ): readonly ts.Type[] | undefined {
   return (checker as any).isTupleType(type)
     ? checker.getTypeArguments(type as ts.TupleType)
@@ -469,7 +469,7 @@ function getTypesOfTupleType(
 
 function isTypeQRL(type: ts.Type): boolean {
   return (
-    !!(type.flags & ts.TypeFlags.Any) || !!type.getNonNullableType().getProperty("__brand__QRL__")
+    !!(type.flags & ts.TypeFlags.Any) || !!type.getNonNullableType().getProperty('__brand__QRL__')
   );
 }
 
@@ -477,22 +477,22 @@ function getContent(symbol: ts.Symbol, sourceCode: string) {
   if (symbol && symbol.declarations && symbol.declarations.length > 0) {
     const decl = symbol.declarations[0];
     // Remove empty lines
-    const text = sourceCode.slice(decl.pos, decl.end).replace(/^\s*$/gm, "");
+    const text = sourceCode.slice(decl.pos, decl.end).replace(/^\s*$/gm, '');
     return redent(text, 2);
   }
-  return "";
+  return '';
 }
 
 function isQwikHook(variable, context) {
   const def = variable.defs[0];
-  if (!def || def.type !== "Variable") {
+  if (!def || def.type !== 'Variable') {
     return false;
   }
 
   const init = def.node.init;
   if (
-    init?.type === "CallExpression" &&
-    init.callee.type === "Identifier" &&
+    init?.type === 'CallExpression' &&
+    init.callee.type === 'Identifier' &&
     /^use[A-Z]/.test(init.callee.name)
   ) {
     const hookName = init.callee.name;
@@ -506,14 +506,14 @@ function isQwikHook(variable, context) {
 
 function isFromQwikModule(resolvedVar) {
   return resolvedVar.defs.some((def) => {
-    if (def.type !== "ImportBinding") {
+    if (def.type !== 'ImportBinding') {
       return false;
     }
     const importSource = def.parent.source.value;
 
     return (
-      importSource.startsWith("@builder.io/qwik") ||
-      importSource.startsWith("@builder.io/qwik-city")
+      importSource.startsWith('@builder.io/qwik') ||
+      importSource.startsWith('@builder.io/qwik-city')
     );
   });
 }
@@ -624,38 +624,38 @@ export const validLexicalScopeExamples: QwikEslintExamples = {
         codeHighlight: `{1,4} /print/#a /(msg: string)/#b)`,
         code: referencesOutsideBad,
         description:
-          "Since Expressions are not serializable, they must be wrapped with `$( ... )` so that the optimizer can split the code into small chunks.",
+          'Since Expressions are not serializable, they must be wrapped with `$( ... )` so that the optimizer can split the code into small chunks.',
       },
     ],
   },
   invalidJsxDollar: {
     good: [
       {
-        codeHighlight: "{1} /click/#a",
+        codeHighlight: '{1} /click/#a',
         code: invalidJsxDollarGood,
       },
     ],
     bad: [
       {
-        codeHighlight: "{1} /click/#a",
+        codeHighlight: '{1} /click/#a',
         code: invalidJsxDollarBad,
-        description: "Event handler must be wrapped with `${ ... }`.",
+        description: 'Event handler must be wrapped with `${ ... }`.',
       },
     ],
   },
   mutableIdentifier: {
     good: [
       {
-        codeHighlight: "{4} /person/#a",
+        codeHighlight: '{4} /person/#a',
         code: mutableIdentifierGood,
       },
     ],
     bad: [
       {
-        codeHighlight: "{4} /personName/#a",
+        codeHighlight: '{4} /personName/#a',
         code: mutableIdentifierBad,
         description:
-          "Simple values are not allowed to be mutated. Use an Object instead and edit one of its property.",
+          'Simple values are not allowed to be mutated. Use an Object instead and edit one of its property.',
       },
     ],
   },

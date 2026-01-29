@@ -1,32 +1,32 @@
-import { format } from "prettier";
+import { format } from 'prettier';
 
-import { expect, test, vi } from "vitest";
-import type { StreamWriter } from "../../../server/types";
-import { component$ } from "../../component/component.public";
-import { inlinedQrl } from "../../qrl/qrl";
-import { $ } from "../../qrl/qrl.public";
-import { createContextId, useContext, useContextProvider } from "../../use/use-context";
-import { useOn, useOnDocument, useOnWindow } from "../../use/use-on";
-import { Resource, useResource$ } from "../../use/use-resource";
-import { useSignal } from "../../use/use-signal";
-import { useStore } from "../../use/use-store.public";
-import { useStylesQrl, useStylesScopedQrl } from "../../use/use-styles";
-import { useTask$, useVisibleTask$ } from "../../use/use-task";
-import { delay } from "../../util/promises";
-import { HTMLFragment, jsx } from "../jsx/jsx-runtime";
-import { Slot } from "../jsx/slot.public";
-import type { JSXOutput } from "../jsx/types/jsx-node";
-import { SSRComment, SSRRaw } from "../jsx/utils.public";
-import { _renderSSR, type RenderSSROptions } from "./render-ssr";
+import { expect, test, vi } from 'vitest';
+import type { StreamWriter } from '../../../server/types';
+import { component$ } from '../../component/component.public';
+import { inlinedQrl } from '../../qrl/qrl';
+import { $ } from '../../qrl/qrl.public';
+import { createContextId, useContext, useContextProvider } from '../../use/use-context';
+import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
+import { Resource, useResource$ } from '../../use/use-resource';
+import { useSignal } from '../../use/use-signal';
+import { useStore } from '../../use/use-store.public';
+import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
+import { useTask$, useVisibleTask$ } from '../../use/use-task';
+import { delay } from '../../util/promises';
+import { HTMLFragment, jsx } from '../jsx/jsx-runtime';
+import { Slot } from '../jsx/slot.public';
+import type { JSXOutput } from '../jsx/types/jsx-node';
+import { SSRComment, SSRRaw } from '../jsx/utils.public';
+import { _renderSSR, type RenderSSROptions } from './render-ssr';
 
-test("render attributes", async () => {
+test('render attributes', async () => {
   await testSSR(
     <body id="stuff" aria-required="true" role=""></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body id="stuff" aria-required="true" role=""></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body id="stuff" aria-required="true" role=""></body></html>'
   );
 });
 
-test("render aria value", async () => {
+test('render aria value', async () => {
   await testSSR(
     <body
       id="stuff"
@@ -40,18 +40,18 @@ test("render aria value", async () => {
         <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
           <body id="stuff" aria-required="true" aria-busy="false" role="" preventdefault:click></body>
         </html>
-        `,
+        `
   );
 });
 
-test("render className", async () => {
+test('render className', async () => {
   await testSSR(
     <body class="stuff"></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="stuff"></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="stuff"></body></html>'
   );
 });
 
-test("should not allow div inside p", async () => {
+test('should not allow div inside p', async () => {
   await throws(async () => {
     await testSSR(
       <body>
@@ -59,7 +59,7 @@ test("should not allow div inside p", async () => {
           <div></div>
         </p>
       </body>,
-      "",
+      ''
     );
   });
   await throws(async () => {
@@ -71,12 +71,12 @@ test("should not allow div inside p", async () => {
           </span>
         </p>
       </body>,
-      "",
+      ''
     );
   });
 });
 
-test("should not allow button inside button", async () => {
+test('should not allow button inside button', async () => {
   await throws(async () => {
     await testSSR(
       <body>
@@ -84,7 +84,7 @@ test("should not allow button inside button", async () => {
           <button></button>
         </button>
       </body>,
-      "",
+      ''
     );
   });
   await throws(async () => {
@@ -96,12 +96,12 @@ test("should not allow button inside button", async () => {
           </span>
         </button>
       </body>,
-      "",
+      ''
     );
   });
 });
 
-test("should not allow a inside a", async () => {
+test('should not allow a inside a', async () => {
   await throws(async () => {
     await testSSR(
       <body>
@@ -109,7 +109,7 @@ test("should not allow a inside a", async () => {
           <a></a>
         </a>
       </body>,
-      "",
+      ''
     );
   });
   await throws(async () => {
@@ -121,43 +121,43 @@ test("should not allow a inside a", async () => {
           </span>
         </a>
       </body>,
-      "",
+      ''
     );
   });
 });
 
-test("should not allow div inside html", async () => {
+test('should not allow div inside html', async () => {
   await throws(async () => {
-    await testSSR(<div></div>, "");
+    await testSSR(<div></div>, '');
   });
 });
 
-test("should not allow div inside head", async () => {
+test('should not allow div inside head', async () => {
   await throws(async () => {
     await testSSR(
       <head>
         <div></div>
       </head>,
-      "",
+      ''
     );
   });
 });
 
-test("render class", async () => {
+test('render class', async () => {
   await testSSR(
     <body
       class={{
         stuff: true,
         other: false,
-        "m-0 p-2": true,
+        'm-0 p-2': true,
       }}
     ></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="stuff m-0 p-2"></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="stuff m-0 p-2"></body></html>'
   );
 
   const Test = component$(() => {
     // Extra spaces to ensure signal hasn't changed
-    const sigClass = useSignal(" myClass ");
+    const sigClass = useSignal(' myClass ');
     return <div class={sigClass} />;
   });
   await testSSR(
@@ -170,27 +170,27 @@ test("render class", async () => {
         <div class="myClass" q:id="1"></div>
         <!--/qv-->
       </body>
-    </html>`,
+    </html>`
   );
 
   await testSSR(
     <body
-      class={["stuff", "", "m-0 p-2", null, { active: 1 }, undefined, [{ container: "yup" }]]}
+      class={['stuff', '', 'm-0 p-2', null, { active: 1 }, undefined, [{ container: 'yup' }]]}
     ></body>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body class="stuff m-0 p-2 active container"></body>
-    </html>`,
+    </html>`
   );
 });
 
-test("render contentEditable", async () => {
+test('render contentEditable', async () => {
   await testSSR(
     <body contentEditable="true"></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body contentEditable="true"></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body contentEditable="true"></body></html>'
   );
 });
 
-test("render draggable", async () => {
+test('render draggable', async () => {
   await testSSR(
     <body>
       <div draggable={true}></div>
@@ -205,11 +205,11 @@ test("render draggable", async () => {
         <div></div>
       </body>
     </html>
-    `,
+    `
   );
 });
 
-test("render <textarea>", async () => {
+test('render <textarea>', async () => {
   await testSSR(
     <body>
       <textarea value="some text"></textarea>
@@ -220,11 +220,11 @@ test("render <textarea>", async () => {
         <textarea>some text</textarea>
       </body>
     </html>
-    `,
+    `
   );
 });
 
-test("render spellcheck", async () => {
+test('render spellcheck', async () => {
   await testSSR(
     <body>
       <div spellcheck={true}></div>
@@ -239,20 +239,20 @@ test("render spellcheck", async () => {
         <div></div>
       </body>
     </html>
-    `,
+    `
   );
 });
 
-test("render styles", async () => {
+test('render styles', async () => {
   await testSSR(
     <body
       style={{
-        "padding-top": "10px",
-        paddingBottom: "10px",
+        'padding-top': '10px',
+        paddingBottom: '10px',
         top: 0,
-        "--stuff-nu": -1,
-        "--stuff-hey": "hey",
-        "--stuffCase": "foo",
+        '--stuff-nu': -1,
+        '--stuff-hey': 'hey',
+        '--stuffCase': 'foo',
       }}
     ></body>,
     `
@@ -266,21 +266,21 @@ test("render styles", async () => {
           --stuffCase: foo;
         "
       ></body>
-    </html>`,
+    </html>`
   );
 });
 
-test("render fake click handler", async () => {
-  const Div = "body" as any;
+test('render fake click handler', async () => {
+  const Div = 'body' as any;
   await testSSR(
     <Div on:click="true" onScroll="text"></Div>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body on:click="true" onScroll="text"></body>
-    </html>`,
+    </html>`
   );
 });
 
-test("self closing elements", async () => {
+test('self closing elements', async () => {
   await testSSR(
     <body>
       <input></input>
@@ -289,45 +289,45 @@ test("self closing elements", async () => {
       <body>
         <input>
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("single simple children", async () => {
+test('single simple children', async () => {
   await testSSR(
     <body>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body>hola</body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body>hola</body></html>'
   );
   await testSSR(
     <body>{0}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body>0</body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body>0</body></html>'
   );
   await testSSR(
     <body>{true}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
   await testSSR(
     <body>{false}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
   await testSSR(
     <body>{null}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
   await testSSR(
     <body>{undefined}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
 });
 
-test("valid phrasing content", async () => {
+test('valid phrasing content', async () => {
   await testSSR(
     <body>
       <p>
         <del>Del</del>
       </p>
     </body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p><del>Del</del></p></body>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p><del>Del</del></p></body>'
   );
   await testSSR(
     <body>
@@ -338,7 +338,7 @@ test("valid phrasing content", async () => {
         </select>
       </p>
     </body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p><select><option>A</option><option>B</option></select></p></body>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p><select><option>A</option><option>B</option></select></p></body>'
   );
   await testSSR(
     <body>
@@ -346,7 +346,7 @@ test("valid phrasing content", async () => {
         <link rel="example" />
       </p>
     </body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p><link rel="example"/></p></body>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p><link rel="example"/></p></body>'
   );
   await testSSR(
     <body>
@@ -366,7 +366,7 @@ test("valid phrasing content", async () => {
           <img usemap="#my-map" src="/example.png" alt="Example">
         </p>
         </body>
-      </html>`,
+      </html>`
   );
   await testSSR(
     <body>
@@ -390,7 +390,7 @@ test("valid phrasing content", async () => {
           </svg>
         </p>
       </body>
-    </html>`,
+    </html>`
   );
   await testSSR(
     <body>
@@ -420,52 +420,52 @@ test("valid phrasing content", async () => {
           </math>
         </p>
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("events", async () => {
+test('events', async () => {
   await testSSR(
-    <body onClick$={() => console.warn("hol")}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>',
+    <body onClick$={() => console.warn('hol')}>hola</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
-    <body onClick$={[undefined, $(() => console.warn("hol"))]}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>',
+    <body onClick$={[undefined, $(() => console.warn('hol'))]}>hola</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
-    <body onClick$={[undefined, [$(() => console.warn("hol"))]]}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>',
+    <body onClick$={[undefined, [$(() => console.warn('hol'))]]}>hola</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
-    <body document:onClick$={() => console.warn("hol")}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on-document:click="/runtimeQRL#_">hola</body></html>',
+    <body document:onClick$={() => console.warn('hol')}>hola</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on-document:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
-    <body window:onClick$={() => console.warn("hol")}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on-window:click="/runtimeQRL#_">hola</body></html>',
+    <body window:onClick$={() => console.warn('hol')}>hola</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on-window:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
     <body>
-      <input onInput$={() => console.warn("hol")} />
+      <input onInput$={() => console.warn('hol')} />
     </body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><input on:input="/runtimeQRL#_"></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><input on:input="/runtimeQRL#_"></body></html>'
   );
 });
 
-test("innerHTML", async () => {
+test('innerHTML', async () => {
   await testSSR(
     <body dangerouslySetInnerHTML="<p>hola</p>"></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p>hola</p></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p>hola</p></body></html>'
   );
   await testSSR(
     <body dangerouslySetInnerHTML=""></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
-  const Div = "body" as any;
+  const Div = 'body' as any;
   await testSSR(
     <Div dangerouslySetInnerHTML={0}></Div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body>0</body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body>0</body></html>'
   );
   await testSSR(
     <body>
@@ -477,19 +477,19 @@ test("innerHTML", async () => {
           () => null
         </script>
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("single complex children", async () => {
+test('single complex children', async () => {
   await testSSR(
     <div>
       <p>hola</p>
     </div>,
     '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦"><div><p>hola</p></div></container>',
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
   await testSSR(
     <div>
@@ -498,12 +498,12 @@ test("single complex children", async () => {
     </div>,
     '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦"><div>hola 2<p>hola</p></div></container>',
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("single multiple children", async () => {
+test('single multiple children', async () => {
   await testSSR(
     <ul>
       <li>1</li>
@@ -517,12 +517,12 @@ test("single multiple children", async () => {
     </ul>,
     '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></container>',
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("sanity", async () => {
+test('sanity', async () => {
   await testSSR(
     <body>
       <div>{`.rule > thing{}`}</div>
@@ -531,11 +531,11 @@ test("sanity", async () => {
       <body>
         <div>.rule &gt; thing{}</div>
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("using fragment", async () => {
+test('using fragment', async () => {
   await testSSR(
     <ul>
       <>
@@ -559,19 +559,19 @@ test("using fragment", async () => {
     </ul>,
     '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></container>',
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("using promises", async () => {
+test('using promises', async () => {
   await testSSR(
-    <body>{Promise.resolve("hola")}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><!--qkssr-f-->hola</body></html>',
+    <body>{Promise.resolve('hola')}</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><!--qkssr-f-->hola</body></html>'
   );
   await testSSR(
     <body>{Promise.resolve(<p>hola</p>)}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><!--qkssr-f--><p>hola</p></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><!--qkssr-f--><p>hola</p></body></html>'
   );
 
   await testSSR(
@@ -587,32 +587,32 @@ test("using promises", async () => {
     </ul>,
     [
       '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">',
-      "<ul>",
-      "<!--qkssr-f-->",
-      "<li>",
-      "1",
-      "</li>",
-      "<li>",
-      "2",
-      "</li>",
-      "<!--qkssr-f-->",
-      "<li>",
-      "3",
-      "</li>",
-      "<!--qkssr-f-->",
-      "<li>",
-      "4",
-      "</li>",
-      "</ul>",
-      "</container>",
+      '<ul>',
+      '<!--qkssr-f-->',
+      '<li>',
+      '1',
+      '</li>',
+      '<li>',
+      '2',
+      '</li>',
+      '<!--qkssr-f-->',
+      '<li>',
+      '3',
+      '</li>',
+      '<!--qkssr-f-->',
+      '<li>',
+      '4',
+      '</li>',
+      '</ul>',
+      '</container>',
     ],
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("mixed children", async () => {
+test('mixed children', async () => {
   await testSSR(
     <ul>
       <li>0</li>
@@ -643,12 +643,12 @@ test("mixed children", async () => {
         </ul>
         </container>`,
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("DelayResource", async () => {
+test('DelayResource', async () => {
   await testSSR(
     <body>
       <ul>
@@ -668,11 +668,11 @@ test("DelayResource", async () => {
         <!--/qv-->
       </ul>
     </body>
-  </html>`,
+  </html>`
   );
 });
 
-test("using promises with DelayResource", async () => {
+test('using promises with DelayResource', async () => {
   await testSSR(
     <body>
       <ul>
@@ -693,11 +693,11 @@ test("using promises with DelayResource", async () => {
         <!--/qv-->
       </ul>
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("using component", async () => {
+test('using component', async () => {
   await testSSR(
     <MyCmp />,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
@@ -706,12 +706,12 @@ test("using component", async () => {
       <!--/qv-->
     </container>`,
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("using component with key", async () => {
+test('using component with key', async () => {
   await testSSR(
     <body>
       <MyCmp key="hola" />
@@ -722,11 +722,11 @@ test("using component with key", async () => {
         <section><div>MyCmp{}</div></section>
         <!--/qv-->
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("using element with key", async () => {
+test('using element with key', async () => {
   await testSSR(
     <body>
       <div key="hola" />
@@ -735,11 +735,11 @@ test("using element with key", async () => {
       <body>
         <div q:key="hola"></div>
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("using element with key containing double quotes", async () => {
+test('using element with key containing double quotes', async () => {
   await testSSR(
     <body>
       <div key={'"hola"'} />
@@ -748,11 +748,11 @@ test("using element with key containing double quotes", async () => {
       <body>
         <div q:key="&quot;hola&quot;"></div>
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("using component props", async () => {
+test('using component props', async () => {
   await testSSR(
     <MyCmp
       id="12"
@@ -776,12 +776,12 @@ test("using component props", async () => {
     </container>
     `,
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("using component project content", async () => {
+test('using component project content', async () => {
   await testSSR(
     <MyCmp>
       <div>slot</div>
@@ -795,12 +795,12 @@ test("using component project content", async () => {
   </container>
 `,
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("using complex component", async () => {
+test('using complex component', async () => {
   await testSSR(
     <body>
       <MyCmpComplex></MyCmpComplex>
@@ -814,11 +814,11 @@ test("using complex component", async () => {
         </div>
         <!--/qv-->
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("using complex component with slot", async () => {
+test('using complex component with slot', async () => {
   await testSSR(
     <MyCmpComplex>Hola</MyCmpComplex>,
     `
@@ -833,12 +833,12 @@ test("using complex component with slot", async () => {
       <!--/qv-->
     </container>`,
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("<head>", async () => {
+test('<head>', async () => {
   await testSSR(
     <head>
       <title>hola</title>
@@ -852,11 +852,11 @@ test("<head>", async () => {
       <title q:head>hola</title>
       <meta q:head>
     </head>
-  </html>`,
+  </html>`
   );
 });
 
-test("named slots", async () => {
+test('named slots', async () => {
   await testSSR(
     <NamedSlot>
       Text
@@ -887,12 +887,12 @@ test("named slots", async () => {
     </container>
 `,
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("nested slots", async () => {
+test('nested slots', async () => {
   await testSSR(
     <SimpleSlot name="root">
       <SimpleSlot name="level 1">
@@ -934,12 +934,12 @@ test("nested slots", async () => {
       <!--/qv-->
     </container>`,
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("mixes slots", async () => {
+test('mixes slots', async () => {
   await testSSR(
     <MixedSlot>Content</MixedSlot>,
     `
@@ -958,13 +958,13 @@ test("mixes slots", async () => {
       <!--/qv-->
     </container>`,
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("component RenderSignals()", async () => {
-  vi.spyOn(console, "warn");
+test('component RenderSignals()', async () => {
+  vi.spyOn(console, 'warn');
   await testSSR(
     <RenderSignals />,
     `
@@ -980,12 +980,12 @@ test("component RenderSignals()", async () => {
         </script>
       </head>
       <!--/qv-->
-    </html>`,
+    </html>`
   );
   expect(console.warn).toHaveBeenCalledTimes(2);
 });
 
-test("component useContextProvider()", async () => {
+test('component useContextProvider()', async () => {
   await testSSR(
     <Context>
       <ContextConsumer />
@@ -997,20 +997,20 @@ test("component useContextProvider()", async () => {
         <!--/qv-->
         <!--qv q:id=2 q:key=sX:-->hello bye<!--/qv-->
       <!--/qv-->
-    </html>`,
+    </html>`
   );
 });
 
-test("component useContextProvider() + useContext()", async () => {
+test('component useContextProvider() + useContext()', async () => {
   await testSSR(
     <ContextWithValueAndUse value="hello bye" />,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <!--qv q:id=0 q:key=sX:-->hello bye<!--/qv-->
-    </html>`,
+    </html>`
   );
 });
 
-test("component slotted context", async () => {
+test('component slotted context', async () => {
   await testSSR(
     <body>
       <VariadicContext>
@@ -1052,11 +1052,11 @@ test("component slotted context", async () => {
         <!--/qv-->
         <!--/qv-->
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("component useOn()", async () => {
+test('component useOn()', async () => {
   await testSSR(
     <body>
       <Events />
@@ -1067,11 +1067,11 @@ test("component useOn()", async () => {
       <div on:click="/runtimeQRL#_\n/runtimeQRL#_" on-window:click="/runtimeQRL#_" on-document:click="/runtimeQRL#_"></div>
       <!--/qv-->
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("component useOn([array])", async () => {
+test('component useOn([array])', async () => {
   await testSSR(
     <body>
       <UseOnMultiple />
@@ -1089,11 +1089,11 @@ test("component useOn([array])", async () => {
         ></div>
         <!--/qv-->
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("component useStyles()", async () => {
+test('component useStyles()', async () => {
   await testSSR(
     <>
       <body>
@@ -1109,11 +1109,11 @@ test("component useStyles()", async () => {
           </div>
         <!--/qv-->
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("component useStylesScoped()", async () => {
+test('component useStylesScoped()', async () => {
   await testSSR(
     <>
       <body>
@@ -1169,11 +1169,11 @@ test("component useStylesScoped()", async () => {
         <!--/qv-->
       </body>
     </html>
-    `,
+    `
   );
 });
 
-test("component useStylesScoped() + slot", async () => {
+test('component useStylesScoped() + slot', async () => {
   await testSSR(
     <>
       <RootStyles></RootStyles>
@@ -1200,11 +1200,11 @@ test("component useStylesScoped() + slot", async () => {
       </body>
       <!--/qv-->
     </html>
-    `,
+    `
   );
 });
 
-test("component useBrowserVisibleTask()", async () => {
+test('component useBrowserVisibleTask()', async () => {
   await testSSR(
     <UseClientEffect />,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
@@ -1214,12 +1214,12 @@ test("component useBrowserVisibleTask()", async () => {
       <!--/qv-->
     </container>`,
     {
-      containerTagName: "container",
-    },
+      containerTagName: 'container',
+    }
   );
 });
 
-test("component useBrowserVisibleTask() without elements", async () => {
+test('component useBrowserVisibleTask() without elements', async () => {
   await testSSR(
     <body>
       <UseEmptyClientEffect />
@@ -1233,11 +1233,11 @@ test("component useBrowserVisibleTask() without elements", async () => {
         <!--/qv-->
       </body>
     </html>
-    `,
+    `
   );
 });
 
-test("component useBrowserVisibleTask() inside <head>", async () => {
+test('component useBrowserVisibleTask() inside <head>', async () => {
   await testSSR(
     <head>
       <UseEmptyClientEffect />
@@ -1254,20 +1254,20 @@ test("component useBrowserVisibleTask() inside <head>", async () => {
         <style on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]" q:id="3" q:head></style>
         <!--/qv-->
       </head>
-    </html>`,
+    </html>`
   );
 });
 
-test("nested html", async () => {
+test('nested html', async () => {
   await testSSR(
     <>
       <body></body>
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>`,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>`
   );
 });
 
-test("root html component", async () => {
+test('root html component', async () => {
   await testSSR(
     <HeadCmp host:aria-hidden="true">
       <link></link>
@@ -1283,11 +1283,11 @@ test("root html component", async () => {
       </head>
       <!--/qv-->
     </html>
-    `,
+    `
   );
 });
 
-test("containerTagName", async () => {
+test('containerTagName', async () => {
   await testSSR(
     <>
       <Styles />
@@ -1307,14 +1307,14 @@ test("containerTagName", async () => {
       <section></section>
     </container>`,
     {
-      containerTagName: "container",
-      base: "/manu/folder",
-      beforeContent: [jsx("link", { rel: "stylesheet", href: "/global.css" })],
-    },
+      containerTagName: 'container',
+      base: '/manu/folder',
+      beforeContent: [jsx('link', { rel: 'stylesheet', href: '/global.css' })],
+    }
   );
 });
 
-test("containerAttributes", async () => {
+test('containerAttributes', async () => {
   await testSSR(
     <>
       <body></body>
@@ -1326,9 +1326,9 @@ test("containerAttributes", async () => {
     `,
     {
       containerAttributes: {
-        prefix: "something",
+        prefix: 'something',
       },
-    },
+    }
   );
   await testSSR(
     <>
@@ -1340,16 +1340,16 @@ test("containerAttributes", async () => {
     </app>
     `,
     {
-      containerTagName: "app",
+      containerTagName: 'app',
       containerAttributes: {
-        prefix: "something",
-        class: "thing",
+        prefix: 'something',
+        class: 'thing',
       },
-    },
+    }
   );
 });
 
-test("custom q:render", async () => {
+test('custom q:render', async () => {
   await testSSR(
     <>
       <body></body>
@@ -1361,9 +1361,9 @@ test("custom q:render", async () => {
     `,
     {
       containerAttributes: {
-        "q:render": "static",
+        'q:render': 'static',
       },
-    },
+    }
   );
   await testSSR(
     <>
@@ -1376,13 +1376,13 @@ test("custom q:render", async () => {
     `,
     {
       containerAttributes: {
-        "q:render": "",
+        'q:render': '',
       },
-    },
+    }
   );
 });
 
-test("ssr marks", async () => {
+test('ssr marks', async () => {
   await testSSR(
     <body>
       {delay(100).then(() => (
@@ -1412,11 +1412,11 @@ test("ssr marks", async () => {
         <!--qkssr-f-->
         <li>3</li>
       </body>
-    </html>`,
+    </html>`
   );
 });
 
-test("ssr raw", async () => {
+test('ssr raw', async () => {
   await testSSR(
     <body>
       <SSRRaw data="<div>hello</div>" />
@@ -1426,11 +1426,11 @@ test("ssr raw", async () => {
     <body>
       <div>hello</div>
     </body>
-  </html>`,
+  </html>`
   );
 });
 
-test("html fragment", async () => {
+test('html fragment', async () => {
   await testSSR(
     <body>
       <HTMLFragment dangerouslySetInnerHTML="<div>hello</div>" />
@@ -1442,11 +1442,11 @@ test("html fragment", async () => {
       <div>hello</div>
       <!--/qv-->
     </body>
-  </html>`,
+  </html>`
   );
 });
 
-test("html slot", async () => {
+test('html slot', async () => {
   await testSSR(
     <HtmlContext>
       <head>
@@ -1478,52 +1478,52 @@ test("html slot", async () => {
       <!--/qv-->
     </html>`,
     {
-      beforeContent: [jsx("link", { rel: "stylesheet", href: "/global.css" })],
-      base: "/manu/folder",
-    },
+      beforeContent: [jsx('link', { rel: 'stylesheet', href: '/global.css' })],
+      base: '/manu/folder',
+    }
   );
 });
 
-test("null component", async () => {
+test('null component', async () => {
   await testSSR(
     <>
       <NullCmp />
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><!--qv q:id=0 q:key=sX:--><!--/qv--></html>`,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><!--qv q:id=0 q:key=sX:--><!--/qv--></html>`
   );
 });
 
-test("cleanse attribute name", async () => {
+test('cleanse attribute name', async () => {
   const o = {
-    '"><script>alert("ಠ~ಠ")</script>': "xss",
+    '"><script>alert("ಠ~ಠ")</script>': 'xss',
   };
   await testSSR(
     <body {...o}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
 });
 
-test("cleanse class attribute", async () => {
+test('cleanse class attribute', async () => {
   const o = {
     class: '"><script>alert("ಠ~ಠ")</script>',
   };
   await testSSR(
     <body {...o}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="&quot;&gt;&lt;script&gt;alert(&quot;ಠ~ಠ&quot;)&lt;/script&gt;"></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="&quot;&gt;&lt;script&gt;alert(&quot;ಠ~ಠ&quot;)&lt;/script&gt;"></body></html>'
   );
 });
 
-test("class emoji valid", async () => {
+test('class emoji valid', async () => {
   const o = {
-    class: "package📦",
+    class: 'package📦',
   };
   await testSSR(
     <body {...o}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="package📦"></body></html>',
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="package📦"></body></html>'
   );
 });
 
-test("issue 4283", async () => {
+test('issue 4283', async () => {
   await testSSR(
     <body>
       <Issue4283>
@@ -1546,11 +1546,11 @@ test("issue 4283", async () => {
         <!--/qv-->
       </body>
     </html>
-    `,
+    `
   );
 });
 
-test("AsyncResource", async () => {
+test('AsyncResource', async () => {
   await testSSR(
     <body>
       <ul>
@@ -1565,7 +1565,7 @@ test("AsyncResource", async () => {
         <!--/qv-->
       </ul>
     </body>
-  </html>`,
+  </html>`
   );
 });
 
@@ -1593,8 +1593,8 @@ export const MyCmp = component$((props: Record<string, any>) => {
 export const MyCmpComplex = component$(() => {
   const ref = useSignal<HTMLElement>();
   return (
-    <div ref={ref} onClick$={() => console.warn("from component")}>
-      <button onClick$={() => console.warn("click")}>Click</button>
+    <div ref={ref} onClick$={() => console.warn('from component')}>
+      <button onClick$={() => console.warn('click')}>Click</button>
       <Slot></Slot>
     </div>
   );
@@ -1632,47 +1632,47 @@ export const NamedSlot = component$(() => {
 
 export const Events = component$(() => {
   useOn(
-    "click",
-    $(() => console.warn("click")),
+    'click',
+    $(() => console.warn('click'))
   );
   useOnWindow(
-    "click",
-    $(() => console.warn("window:click")),
+    'click',
+    $(() => console.warn('window:click'))
   );
   useOnDocument(
-    "click",
-    $(() => console.warn("document:click")),
+    'click',
+    $(() => console.warn('document:click'))
   );
 
-  return <div onClick$={() => console.warn("scroll")}></div>;
+  return <div onClick$={() => console.warn('scroll')}></div>;
 });
 
 export const UseOnMultiple = component$(() => {
   useOn(
-    ["click", "scroll"],
-    $(() => console.warn("click or scroll")),
+    ['click', 'scroll'],
+    $(() => console.warn('click or scroll'))
   );
   useOnWindow(
-    ["click", "scroll"],
-    $(() => console.warn("window:click or scroll")),
+    ['click', 'scroll'],
+    $(() => console.warn('window:click or scroll'))
   );
   useOnDocument(
-    ["click", "scroll"],
-    $(() => console.warn("document:click or scroll")),
+    ['click', 'scroll'],
+    $(() => console.warn('document:click or scroll'))
   );
 
-  return <div onClick$={() => console.warn("scroll")}></div>;
+  return <div onClick$={() => console.warn('scroll')}></div>;
 });
 
 export const Styles = component$(() => {
-  useStylesQrl(inlinedQrl(".host {color: red}", "styles_987"));
+  useStylesQrl(inlinedQrl('.host {color: red}', 'styles_987'));
 
   return <div class="host">Text</div>;
 });
 
 export const ScopedStyles1 = component$(() => {
-  useStylesScopedQrl(inlinedQrl(".host {color: red}", "styles_scoped_1"));
-  useStylesScopedQrl(inlinedQrl(".blue {color: blue}", "styles_scoped_2"));
+  useStylesScopedQrl(inlinedQrl('.host {color: red}', 'styles_scoped_1'));
+  useStylesScopedQrl(inlinedQrl('.blue {color: blue}', 'styles_scoped_2'));
 
   return (
     <div class="host">
@@ -1688,7 +1688,7 @@ export const ScopedStyles1 = component$(() => {
 });
 
 export const ScopedStyles2 = component$(() => {
-  useStylesScopedQrl(inlinedQrl(".host {color: blue}", "20_styles_scoped"));
+  useStylesScopedQrl(inlinedQrl('.host {color: blue}', '20_styles_scoped'));
 
   return (
     <div class="host">
@@ -1701,7 +1701,7 @@ export const ScopedStyles2 = component$(() => {
 });
 
 export const RootStyles = component$(() => {
-  useStylesScopedQrl(inlinedQrl(".host {background: blue}", "20_stylesscopedblue"));
+  useStylesScopedQrl(inlinedQrl('.host {background: blue}', '20_stylesscopedblue'));
 
   return (
     <body>
@@ -1714,7 +1714,7 @@ export const RootStyles = component$(() => {
 });
 
 export const ComponentA = component$(() => {
-  useStylesScopedQrl(inlinedQrl(".host {background: green}", "20_stylesscopedgreen"));
+  useStylesScopedQrl(inlinedQrl('.host {background: green}', '20_stylesscopedgreen'));
 
   return (
     <div>
@@ -1723,9 +1723,9 @@ export const ComponentA = component$(() => {
   );
 });
 
-const CTX_INTERNAL = createContextId<{ value: string }>("internal");
-const CTX_QWIK_CITY = createContextId<{ value: string }>("qwikcity");
-const CTX_VALUE = createContextId<{ value: string }>("value");
+const CTX_INTERNAL = createContextId<{ value: string }>('internal');
+const CTX_QWIK_CITY = createContextId<{ value: string }>('qwikcity');
+const CTX_VALUE = createContextId<{ value: string }>('value');
 
 export const VariadicContext = component$(() => {
   return (
@@ -1771,10 +1771,10 @@ export const ContextWithValueAndUse = component$((props: { value: string }) => {
 
 export const Context = component$(() => {
   useContextProvider(CTX_INTERNAL, {
-    value: "hello",
+    value: 'hello',
   });
   useContextProvider(CTX_QWIK_CITY, {
-    value: "bye",
+    value: 'bye',
   });
   return (
     <>
@@ -1797,25 +1797,25 @@ export const ContextConsumer = component$(() => {
 
 export const UseClientEffect = component$((props: any) => {
   useVisibleTask$(() => {
-    console.warn("client effect");
+    console.warn('client effect');
   });
   useVisibleTask$(() => {
-    console.warn("second client effect");
+    console.warn('second client effect');
   });
   useTask$(async () => {
     await delay(10);
   });
 
-  const Div = props.as ?? "div";
+  const Div = props.as ?? 'div';
   return <Div />;
 });
 
 export const UseEmptyClientEffect = component$(() => {
   useVisibleTask$(() => {
-    console.warn("client effect");
+    console.warn('client effect');
   });
   useVisibleTask$(() => {
-    console.warn("second client effect");
+    console.warn('second client effect');
   });
   useTask$(async () => {
     await delay(10);
@@ -1826,7 +1826,7 @@ export const UseEmptyClientEffect = component$(() => {
 
 export const HeadCmp = component$(() => {
   useVisibleTask$(() => {
-    console.warn("client effect");
+    console.warn('client effect');
   });
   return (
     <head>
@@ -1837,7 +1837,7 @@ export const HeadCmp = component$(() => {
 });
 
 export const RenderSignals = component$(() => {
-  const signal = useSignal("value");
+  const signal = useSignal('value');
   return (
     <>
       <head>
@@ -1851,7 +1851,7 @@ export const RenderSignals = component$(() => {
 
 export const HtmlContext = component$(() => {
   const store = useStore({});
-  useStylesQrl(inlinedQrl(`body {background: blue}`, "styles_DelayResource"));
+  useStylesQrl(inlinedQrl(`body {background: blue}`, 'styles_DelayResource'));
   useContextProvider(CTX_INTERNAL, store);
 
   return <Slot />;
@@ -1860,7 +1860,7 @@ export const HtmlContext = component$(() => {
 async function testSSR(
   node: JSXOutput,
   expected: string | string[],
-  opts?: Partial<RenderSSROptions>,
+  opts?: Partial<RenderSSROptions>
 ) {
   let chunks: string[] = [];
   const stream: StreamWriter = {
@@ -1870,16 +1870,16 @@ async function testSSR(
   };
   await _renderSSR(node, {
     stream,
-    containerTagName: "html",
+    containerTagName: 'html',
     containerAttributes: {},
-    manifestHash: "test",
+    manifestHash: 'test',
     ...opts,
   });
-  chunks = chunks.map((c) => c.replace(/ q:instance="[^"]+"/, ""));
-  if (typeof expected === "string") {
-    const options = { parser: "html", htmlWhitespaceSensitivity: "ignore" } as const;
-    expect(await format(chunks.join(""), options)).toBe(
-      await format(expected.replace(/(\n|^)\s+/gm, ""), options),
+  chunks = chunks.map((c) => c.replace(/ q:instance="[^"]+"/, ''));
+  if (typeof expected === 'string') {
+    const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' } as const;
+    expect(await format(chunks.join(''), options)).toBe(
+      await format(expected.replace(/(\n|^)\s+/gm, ''), options)
     );
   } else {
     expect(chunks).toEqual(expected);
@@ -1887,7 +1887,7 @@ async function testSSR(
 }
 
 export const DelayResource = component$((props: { text: string; delay: number }) => {
-  useStylesQrl(inlinedQrl(`.cmp {background: blue}`, "styles_DelayResource"));
+  useStylesQrl(inlinedQrl(`.cmp {background: blue}`, 'styles_DelayResource'));
 
   const resource = useResource$<string>(async ({ track }) => {
     track(() => props.text);
@@ -1926,14 +1926,14 @@ export const NullCmp = component$(() => {
 
 export const EffectTransparent = component$(() => {
   useVisibleTask$(() => {
-    console.warn("log");
+    console.warn('log');
   });
   return <Slot />;
 });
 
 export const EffectTransparentRoot = component$(() => {
   useVisibleTask$(() => {
-    console.warn("log");
+    console.warn('log');
   });
   return (
     <EffectTransparent>
@@ -1977,7 +1977,7 @@ export const Issue4283 = component$(() => {
 async function throws<T>(fn: () => T, expected?: string | RegExp): Promise<void> {
   try {
     await fn();
-    expect.unreachable("Expression should throw");
+    expect.unreachable('Expression should throw');
   } catch (e) {
     if (expected) {
       expect(String(e)).toBe(expected);

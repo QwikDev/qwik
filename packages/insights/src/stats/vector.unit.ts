@@ -1,4 +1,4 @@
-import { assert, test } from "vitest";
+import { assert, test } from 'vitest';
 import {
   MAX_VALUE,
   NUMBER_OF_BUCKETS,
@@ -6,9 +6,9 @@ import {
   fromBucket,
   toBucket,
   toBucketTimeline,
-} from "./vector";
+} from './vector';
 
-test("bucketize values", () => {
+test('bucketize values', () => {
   // let previousBucket = -1;
   // let value = 0;
   // while (previousBucket < NUMBER_OF_BUCKETS - 1) {
@@ -35,13 +35,13 @@ test("bucketize values", () => {
   assert.equal(toBucket(MAX_VALUE - 1), NUMBER_OF_BUCKETS - 2);
 });
 
-test("debucketize", () => {
+test('debucketize', () => {
   assert.deepEqual(fromBucket(0), { min: 0, max: 1, avg: 0.5 });
   assert.deepEqual(fromBucket(1), { min: 1, max: 2, avg: 1.5 });
   assert.deepEqual(fromBucket(NUMBER_OF_BUCKETS - 1).min, MAX_VALUE);
 });
 
-test("bucketize timeline values", () => {
+test('bucketize timeline values', () => {
   // let previousBucket = -1;
   // let value = 0;
   // while (previousBucket < NUMBER_OF_BUCKETS - 1) {

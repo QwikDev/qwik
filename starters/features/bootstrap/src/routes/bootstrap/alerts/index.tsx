@@ -1,7 +1,7 @@
-import { component$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
-import { Alert } from "~/components/bootstrap";
-import { colorVariantsList } from "~/constants/data";
+import { component$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
+import { Alert } from '~/components/bootstrap';
+import { colorVariantsList } from '~/constants/data';
 export default component$(() => {
   return (
     <>
@@ -15,11 +15,11 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Qwik - Bootstrap v5 - Alerts",
+  title: 'Qwik - Bootstrap v5 - Alerts',
   meta: [
     {
-      name: "description",
-      content: "Alerts with Boostrap in Qwik",
+      name: 'description',
+      content: 'Alerts with Boostrap in Qwik',
     },
   ],
 };

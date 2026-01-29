@@ -1,6 +1,6 @@
-import { type PropsOf, component$, useStylesScoped$, Slot } from "@builder.io/qwik";
-import CSS from "./component.css?inline";
-import { type HoverEvent } from "./index";
+import { type PropsOf, component$, useStylesScoped$, Slot } from '@builder.io/qwik';
+import CSS from './component.css?inline';
+import { type HoverEvent } from './index';
 
 export const UnderstandingResumability = component$(() => {
   useStylesScoped$(CSS);
@@ -21,7 +21,7 @@ export const UnderstandingResumability = component$(() => {
                     <ul>
                       <li>HTML from CDN (or SSG)</li>
                     </ul>
-                  </Callout>,
+                  </Callout>
                 )
               }
             />
@@ -38,7 +38,7 @@ export const UnderstandingResumability = component$(() => {
                         exist.)
                       </li>
                     </ul>
-                  </Callout>,
+                  </Callout>
                 )
               }
             />
@@ -55,7 +55,7 @@ export const UnderstandingResumability = component$(() => {
                       <li>This is a recursive process which starts with root component.</li>
                       <li>The code is executed in slow interpretive mode (no JIT.)</li>
                     </ul>
-                  </Callout>,
+                  </Callout>
                 )
               }
             />
@@ -65,7 +65,7 @@ export const UnderstandingResumability = component$(() => {
                 e.detail(
                   <Callout target={e.target as HTMLElement}>
                     <p>Events are attached to make the application interactive.</p>
-                  </Callout>,
+                  </Callout>
                 )
               }
             />
@@ -74,7 +74,7 @@ export const UnderstandingResumability = component$(() => {
                 e.detail(
                   <Callout target={e.target as HTMLElement}>
                     <p>Application can now be interacted with.</p>
-                  </Callout>,
+                  </Callout>
                 )
               }
             >
@@ -99,7 +99,7 @@ export const UnderstandingResumability = component$(() => {
                       <li>HTML from CDN (or SSG)</li>
                       <li>Contains QwikLoader global listener (1kb / ~1ms)</li>
                     </ul>
-                  </Callout>,
+                  </Callout>
                 )
               }
             ></div>
@@ -115,7 +115,7 @@ export const UnderstandingResumability = component$(() => {
                         be small delay. (But always less than hydration cost.)
                       </li>
                     </ul>
-                  </Callout>,
+                  </Callout>
                 )
               }
             >
@@ -127,7 +127,7 @@ export const UnderstandingResumability = component$(() => {
           <div class="thread-label">(worker)</div>
           <div
             class="group"
-            style={{ "margin-left": "120px" }}
+            style={{ 'margin-left': '120px' }}
             onHover$={(e: HoverEvent) =>
               e.detail(
                 <Callout target={e.target as HTMLElement}>
@@ -152,7 +152,7 @@ export const UnderstandingResumability = component$(() => {
                       what is needed to process user interaction.
                     </li>
                   </ul>
-                </Callout>,
+                </Callout>
               )
             }
           >
@@ -193,7 +193,7 @@ export const UnderstandingResumability = component$(() => {
   );
 });
 
-export function ReadyIcon(props: PropsOf<"svg">, key: string) {
+export function ReadyIcon(props: PropsOf<'svg'>, key: string) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -225,13 +225,13 @@ export const Callout = component$<{ target: HTMLElement }>(({ target }) => {
   return (
     <div
       style={{
-        position: "absolute",
-        top: y + "px",
-        left: x + "px",
-        border: "1px solid black",
-        backgroundColor: "white",
-        color: "black",
-        padding: ".5em",
+        position: 'absolute',
+        top: y + 'px',
+        left: x + 'px',
+        border: '1px solid black',
+        backgroundColor: 'white',
+        color: 'black',
+        padding: '.5em',
       }}
     >
       <Slot />

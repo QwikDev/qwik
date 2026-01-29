@@ -23,14 +23,14 @@
 
 export function createPath(opts: { cwd?: () => string } = {}): Path {
   function assertPath(path: any) {
-    if (typeof path !== "string") {
-      throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
+    if (typeof path !== 'string') {
+      throw new TypeError('Path must be a string. Received ' + JSON.stringify(path));
     }
   }
 
   // Resolves . and .. elements in a path with directory names
   function normalizeStringPosix(path: string, allowAboveRoot: boolean): string {
-    let res = "";
+    let res = '';
     let lastSegmentLength = 0;
     let lastSlash = -1;
     let dots = 0;
@@ -54,21 +54,21 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
             res.charCodeAt(res.length - 2) !== 46 /*.*/
           ) {
             if (res.length > 2) {
-              const lastSlashIndex = res.lastIndexOf("/");
+              const lastSlashIndex = res.lastIndexOf('/');
               if (lastSlashIndex !== res.length - 1) {
                 if (lastSlashIndex === -1) {
-                  res = "";
+                  res = '';
                   lastSegmentLength = 0;
                 } else {
                   res = res.slice(0, lastSlashIndex);
-                  lastSegmentLength = res.length - 1 - res.lastIndexOf("/");
+                  lastSegmentLength = res.length - 1 - res.lastIndexOf('/');
                 }
                 lastSlash = i;
                 dots = 0;
                 continue;
               }
             } else if (res.length === 2 || res.length === 1) {
-              res = "";
+              res = '';
               lastSegmentLength = 0;
               lastSlash = i;
               dots = 0;
@@ -77,15 +77,15 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
           }
           if (allowAboveRoot) {
             if (res.length > 0) {
-              res += "/..";
+              res += '/..';
             } else {
-              res = "..";
+              res = '..';
             }
             lastSegmentLength = 2;
           }
         } else {
           if (res.length > 0) {
-            res += "/" + path.slice(lastSlash + 1, i);
+            res += '/' + path.slice(lastSlash + 1, i);
           } else {
             res = path.slice(lastSlash + 1, i);
           }
@@ -104,7 +104,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
 
   function _format(sep: string, pathObject: any) {
     const dir = pathObject.dir || pathObject.root;
-    const base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
+    const base = pathObject.base || (pathObject.name || '') + (pathObject.ext || '');
     if (!dir) {
       return base;
     }
@@ -116,7 +116,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
 
   // path.resolve([from ...], to)
   const resolve = function resolve(...paths: string[]) {
-    let resolvedPath = "";
+    let resolvedPath = '';
     let resolvedAbsolute = false;
     let cwd;
 
@@ -126,12 +126,12 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
         path = paths[i];
       } else {
         if (cwd === undefined) {
-          if (opts && typeof opts.cwd === "function") {
+          if (opts && typeof opts.cwd === 'function') {
             cwd = opts.cwd();
-          } else if (typeof process !== "undefined" && typeof process.cwd === "function") {
+          } else if (typeof process !== 'undefined' && typeof process.cwd === 'function') {
             cwd = process.cwd();
           } else {
-            cwd = "/";
+            cwd = '/';
           }
         }
         path = cwd;
@@ -144,7 +144,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
         continue;
       }
 
-      resolvedPath = path + "/" + resolvedPath;
+      resolvedPath = path + '/' + resolvedPath;
       resolvedAbsolute = path.charCodeAt(0) === 47 /*/*/;
     }
 
@@ -156,14 +156,14 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
 
     if (resolvedAbsolute) {
       if (resolvedPath.length > 0) {
-        return "/" + resolvedPath;
+        return '/' + resolvedPath;
       } else {
-        return "/";
+        return '/';
       }
     } else if (resolvedPath.length > 0) {
       return resolvedPath;
     } else {
-      return ".";
+      return '.';
     }
   };
 
@@ -171,7 +171,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     assertPath(path);
 
     if (path.length === 0) {
-      return ".";
+      return '.';
     }
 
     const isAbsolute = path.charCodeAt(0) === 47; /*/*/
@@ -181,14 +181,14 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     path = normalizeStringPosix(path, !isAbsolute);
 
     if (path.length === 0 && !isAbsolute) {
-      path = ".";
+      path = '.';
     }
     if (path.length > 0 && trailingSeparator) {
-      path += "/";
+      path += '/';
     }
 
     if (isAbsolute) {
-      return "/" + path;
+      return '/' + path;
     }
     return path;
   };
@@ -200,7 +200,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
 
   const join = function join(...paths: string[]) {
     if (paths.length === 0) {
-      return ".";
+      return '.';
     }
     let joined;
     for (let i = 0; i < paths.length; ++i) {
@@ -210,12 +210,12 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
         if (joined === undefined) {
           joined = arg;
         } else {
-          joined += "/" + arg;
+          joined += '/' + arg;
         }
       }
     }
     if (joined === undefined) {
-      return ".";
+      return '.';
     }
     return normalize(joined);
   };
@@ -225,14 +225,14 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     assertPath(to);
 
     if (from === to) {
-      return "";
+      return '';
     }
 
     from = resolve(from);
     to = resolve(to);
 
     if (from === to) {
-      return "";
+      return '';
     }
 
     // Trim any leading backslashes
@@ -293,15 +293,15 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       }
     }
 
-    let out = "";
+    let out = '';
     // Generate the relative path based on the path difference between `to`
     // and `from`
     for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
       if (i === fromEnd || from.charCodeAt(i) === 47 /*/*/) {
         if (out.length === 0) {
-          out += "..";
+          out += '..';
         } else {
-          out += "/..";
+          out += '/..';
         }
       }
     }
@@ -322,7 +322,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
   const dirname = function dirname(path: string) {
     assertPath(path);
     if (path.length === 0) {
-      return ".";
+      return '.';
     }
     let code = path.charCodeAt(0);
     const hasRoot = code === 47; /*/*/
@@ -342,16 +342,16 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     }
 
     if (end === -1) {
-      return hasRoot ? "/" : ".";
+      return hasRoot ? '/' : '.';
     }
     if (hasRoot && end === 1) {
-      return "//";
+      return '//';
     }
     return path.slice(0, end);
   };
 
   const basename = function basename(path: string, ext: string) {
-    if (ext !== undefined && typeof ext !== "string") {
+    if (ext !== undefined && typeof ext !== 'string') {
       throw new TypeError('"ext" argument must be a string');
     }
     assertPath(path);
@@ -363,7 +363,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
 
     if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
       if (ext.length === path.length && ext === path) {
-        return "";
+        return '';
       }
       let extIdx = ext.length - 1;
       let firstNonSlashEnd = -1;
@@ -425,7 +425,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       }
 
       if (end === -1) {
-        return "";
+        return '';
       }
       return path.slice(start, end);
     }
@@ -479,29 +479,29 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       // The (right-most) trimmed path component is exactly '..'
       (preDotState === 1 && startDot === end - 1 && startDot === startPart + 1)
     ) {
-      return "";
+      return '';
     }
     return path.slice(startDot, end);
   };
 
   const format = function format(pathObject: FormatInputPathObject) {
-    if (pathObject === null || typeof pathObject !== "object") {
+    if (pathObject === null || typeof pathObject !== 'object') {
       throw new TypeError(
-        'The "pathObject" argument must be of type Object. Received type ' + typeof pathObject,
+        'The "pathObject" argument must be of type Object. Received type ' + typeof pathObject
       );
     }
-    return _format("/", pathObject);
+    return _format('/', pathObject);
   };
 
   const parse = function parse(path: string): ParsedPath {
     assertPath(path);
 
     const ret = {
-      root: "",
-      dir: "",
-      base: "",
-      ext: "",
-      name: "",
+      root: '',
+      dir: '',
+      base: '',
+      ext: '',
+      name: '',
     };
     if (path.length === 0) {
       return ret;
@@ -510,7 +510,7 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     let start;
     const isAbsolute = code === 47; /*/*/
     if (isAbsolute) {
-      ret.root = "/";
+      ret.root = '/';
       start = 1;
     } else {
       start = 0;
@@ -586,14 +586,14 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
     if (startPart > 0) {
       ret.dir = path.slice(0, startPart - 1);
     } else if (isAbsolute) {
-      ret.dir = "/";
+      ret.dir = '/';
     }
 
     return ret;
   };
 
-  const sep = "/";
-  const delimiter = ":";
+  const sep = '/';
+  const delimiter = ':';
 
   return {
     relative,

@@ -3,28 +3,28 @@ let promise: Promise<ServiceWorkerRegistration | null> | null = null;
 const _registerReplSW = async (retries = 5) => {
   // We provide repl-sw.js via /routes/repl/repl-sw.js/entry.ts
   try {
-    const reg = await navigator.serviceWorker.register("/repl/repl-sw.js", {
-      scope: "/repl/",
+    const reg = await navigator.serviceWorker.register('/repl/repl-sw.js', {
+      scope: '/repl/',
     });
 
     // Always listen for updates. A new installing worker can appear at any time.
-    reg.addEventListener("updatefound", () => {
+    reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       if (!newWorker) {
         return;
       }
       let isRefreshing = false;
-      newWorker.addEventListener("statechange", (ev: any) => {
+      newWorker.addEventListener('statechange', (ev: any) => {
         const state = ev?.target?.state;
         // console.debug('Qwik REPL service worker installing state: %s', state);
-        if (state === "activated") {
+        if (state === 'activated') {
           // Wait for the new worker to take control of the page before reloading.
           const reloadWhenControlled = () => {
             if (isRefreshing) {
               return;
             }
             isRefreshing = true;
-            navigator.serviceWorker.removeEventListener("controllerchange", reloadWhenControlled);
+            navigator.serviceWorker.removeEventListener('controllerchange', reloadWhenControlled);
             window.location.reload();
           };
 
@@ -33,9 +33,9 @@ const _registerReplSW = async (retries = 5) => {
             reloadWhenControlled();
           } else {
             // Otherwise wait for controllerchange which signals the new worker controls the page.
-            navigator.serviceWorker.addEventListener("controllerchange", reloadWhenControlled);
+            navigator.serviceWorker.addEventListener('controllerchange', reloadWhenControlled);
           }
-        } else if (state === "redundant") {
+        } else if (state === 'redundant') {
           // console.warn('Qwik REPL service worker became redundant during installation');
           // If no active worker remains, try re-registering to get a new one
           if (!reg.active) {
@@ -45,7 +45,7 @@ const _registerReplSW = async (retries = 5) => {
               // );
               return _registerReplSW(retries - 1);
             }
-            console.warn("Max retries reached, not attempting to re-register service worker");
+            console.warn('Max retries reached, not attempting to re-register service worker');
             return null;
           }
         }
@@ -64,7 +64,7 @@ const _registerReplSW = async (retries = 5) => {
       // console.debug('Qwik REPL service worker waiting');
       try {
         // Ask the waiting worker to skip waiting so it can activate immediately.
-        reg.waiting.postMessage?.({ type: "SKIP_WAITING" });
+        reg.waiting.postMessage?.({ type: 'SKIP_WAITING' });
       } catch (e) {
         // ignore
       }
@@ -73,10 +73,10 @@ const _registerReplSW = async (retries = 5) => {
       // the page from reloading too early and creating redundant workers.
       await new Promise<void>((resolve) => {
         const onControllerChange = () => {
-          navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+          navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
           resolve();
         };
-        navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+        navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
       });
 
       return reg;
@@ -86,11 +86,11 @@ const _registerReplSW = async (retries = 5) => {
     if (reg.installing) {
       await new Promise<void>((resolve) => {
         const installing = reg.installing!;
-        installing.addEventListener("statechange", function listener(ev: any) {
+        installing.addEventListener('statechange', function listener(ev: any) {
           const state = ev?.target?.state;
           // console.debug('Qwik REPL service worker installing state (wait): %s', state);
-          if (state === "activated" || state === "redundant") {
-            installing.removeEventListener("statechange", listener as any);
+          if (state === 'activated' || state === 'redundant') {
+            installing.removeEventListener('statechange', listener as any);
             resolve();
           }
         });
@@ -102,15 +102,15 @@ const _registerReplSW = async (retries = 5) => {
     const readyReg = await navigator.serviceWorker.ready;
     return readyReg;
   } catch (err) {
-    console.error("Qwik REPL service worker registration failed:", err);
+    console.error('Qwik REPL service worker registration failed:', err);
     return null;
   }
 };
 export const registerReplSW = () => {
   if (
-    typeof window === "undefined" ||
-    !("navigator" in window) ||
-    !("serviceWorker" in navigator)
+    typeof window === 'undefined' ||
+    !('navigator' in window) ||
+    !('serviceWorker' in navigator)
   ) {
     return Promise.resolve(null);
   }

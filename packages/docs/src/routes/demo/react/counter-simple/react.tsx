@@ -1,6 +1,6 @@
 /** @jsxImportSource react */
-import { qwikify$ } from "@builder.io/qwik-react";
-import { useState } from "react";
+import { qwikify$ } from '@builder.io/qwik-react';
+import { useState } from 'react';
 
 // Create React component standard way
 function Counter() {

@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import Dynamic4 from "./dynamic4";
+import { component$ } from '@builder.io/qwik';
+import Dynamic4 from './dynamic4';
 
 export default component$(() => {
   return (

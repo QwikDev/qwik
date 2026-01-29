@@ -10,9 +10,9 @@
  * - npm run build
  *
  */
-import { renderToStream, type RenderToStreamOptions } from "@builder.io/qwik/server";
-import { extractBase, setSsrLocaleGetter } from "compiled-i18n/qwik";
-import Root from "./root";
+import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
+import { extractBase, setSsrLocaleGetter } from 'compiled-i18n/qwik';
+import Root from './root';
 
 setSsrLocaleGetter();
 

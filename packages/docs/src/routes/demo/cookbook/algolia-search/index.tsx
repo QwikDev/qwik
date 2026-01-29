@@ -1,4 +1,4 @@
-import { $, component$, useSignal, useStylesScoped$ } from "@builder.io/qwik";
+import { $, component$, useSignal, useStylesScoped$ } from '@builder.io/qwik';
 
 type AlgoliaResult = {
   hits: {
@@ -90,20 +90,20 @@ export default component$(() => {
       color: black;
     }    
 	`);
-  const termSignal = useSignal("");
-  const hitsSig = useSignal<AlgoliaResult["hits"]>([]);
+  const termSignal = useSignal('');
+  const hitsSig = useSignal<AlgoliaResult['hits']>([]);
 
   const onSearch = $(async (query: string) => {
     const algoliaURL = new URL(
       `/1/indexes/${import.meta.env.VITE_ALGOLIA_INDEX}/query`,
-      `https://${import.meta.env.VITE_ALGOLIA_APP_ID}-dsn.algolia.net`,
+      `https://${import.meta.env.VITE_ALGOLIA_APP_ID}-dsn.algolia.net`
     );
     const response = await fetch(algoliaURL, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "X-Algolia-Application-Id": import.meta.env.VITE_ALGOLIA_APP_ID!,
-        "X-Algolia-API-Key": import.meta.env.VITE_ALGOLIA_SEARCH_KEY!,
+        'Content-Type': 'application/json',
+        'X-Algolia-Application-Id': import.meta.env.VITE_ALGOLIA_APP_ID!,
+        'X-Algolia-API-Key': import.meta.env.VITE_ALGOLIA_SEARCH_KEY!,
       },
       body: JSON.stringify({ query }),
     });
@@ -120,7 +120,7 @@ export default component$(() => {
             placeholder="Algolia search: type here and press enter"
             bind:value={termSignal}
             onKeyDown$={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === 'Enter') {
                 onSearch(termSignal.value);
               }
             }}
@@ -137,9 +137,9 @@ export default component$(() => {
       </div>
       <div class="list">
         {hitsSig.value.map(({ anchor, content, url }, key) => (
-          <li key={key} style={`--cardColor:${key % 2 === 0 ? "#19b6f6" : "#ac7ef4"}`}>
+          <li key={key} style={`--cardColor:${key % 2 === 0 ? '#19b6f6' : '#ac7ef4'}`}>
             <div class="content">
-              <div class="title">{(anchor || content || url || "").substring(0, 30)}</div>
+              <div class="title">{(anchor || content || url || '').substring(0, 30)}</div>
               <a class="text" href={url}>
                 Documentation link
               </a>

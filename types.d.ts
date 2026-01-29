@@ -1,8 +1,8 @@
-declare module "*?jsx" {
-  const Cmp: import("./packages/qwik/").FunctionComponent<
+declare module '*?jsx' {
+  const Cmp: import('./packages/qwik/').FunctionComponent<
     Omit<
-      import("./packages/qwik/").QwikIntrinsicElements["img"],
-      "src" | "width" | "height" | "srcSet"
+      import('./packages/qwik/').QwikIntrinsicElements['img'],
+      'src' | 'width' | 'height' | 'srcSet'
     >
   >;
   export default Cmp;

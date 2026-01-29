@@ -1,23 +1,23 @@
-import type { SymbolMapper, SymbolMapperFn } from "../../optimizer/src/types";
-import { componentQrl } from "../component/component.public";
-import { useComputedQrl } from "../use/use-task";
-import { useSignal } from "../use/use-signal";
-import { renderToString } from "../../server/render";
-import { assert, test } from "vitest";
-import { inlinedQrl } from "../qrl/qrl";
+import type { SymbolMapper, SymbolMapperFn } from '../../optimizer/src/types';
+import { componentQrl } from '../component/component.public';
+import { useComputedQrl } from '../use/use-task';
+import { useSignal } from '../use/use-signal';
+import { renderToString } from '../../server/render';
+import { assert, test } from 'vitest';
+import { inlinedQrl } from '../qrl/qrl';
 
 const symbolMapper: SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => {
   return [symbolName, `q-${symbolName}.js`];
 };
 
-test("issue-4979", async () => {
+test('issue-4979', async () => {
   await renderToString(<Issue4979 />, {
-    containerTagName: "div",
+    containerTagName: 'div',
     symbolMapper: symbolMapper,
     manifest: {} as any,
   });
 
-  assert(true, "Serialized successfully");
+  assert(true, 'Serialized successfully');
 });
 
 export const Issue4979Inner = componentQrl<{ value: number }>(
@@ -28,16 +28,16 @@ export const Issue4979Inner = componentQrl<{ value: number }>(
           () => {
             return Object.entries(props);
           },
-          "s_foo",
-          [props],
-        ),
+          's_foo',
+          [props]
+        )
       );
 
       return <span {...foo.value} />;
     },
-    "s_issue4979Inner",
-    [],
-  ),
+    's_issue4979Inner',
+    []
+  )
 );
 
 export const Issue4979 = componentQrl(
@@ -50,14 +50,14 @@ export const Issue4979 = componentQrl(
           () => {
             return [pageSig.value];
           },
-          "s_currentData",
-          [pageSig],
-        ),
+          's_currentData',
+          [pageSig]
+        )
       );
 
       return (
         <>
-          <button onClick$={inlinedQrl(() => (pageSig.value += 1), "s_click", [pageSig])}>
+          <button onClick$={inlinedQrl(() => (pageSig.value += 1), 's_click', [pageSig])}>
             Next
           </button>
           {currentDataSig.value.map((o) => (
@@ -66,7 +66,7 @@ export const Issue4979 = componentQrl(
         </>
       );
     },
-    "s_issue4979",
-    [],
-  ),
+    's_issue4979',
+    []
+  )
 );

@@ -1,4 +1,4 @@
-import { withLocale } from "@builder.io/qwik";
+import { withLocale } from '@builder.io/qwik';
 import type {
   ContentModule,
   RouteLocation,
@@ -11,28 +11,28 @@ import type {
   Editable,
   ResolveSyncValue,
   ActionInternal,
-} from "./types";
-import { isPromise } from "./utils";
+} from './types';
+import { isPromise } from './utils';
 
 export const resolveHead = (
   endpoint: EndpointResponse | ClientPageData,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
-  locale: string,
+  locale: string
 ) => {
   const head = createDocumentHead();
   const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
     const id = loaderOrAction.__id;
-    if (loaderOrAction.__brand === "server_loader") {
+    if (loaderOrAction.__brand === 'server_loader') {
       if (!(id in endpoint.loaders)) {
         throw new Error(
-          "You can not get the returned data of a loader that has not been executed for this request.",
+          'You can not get the returned data of a loader that has not been executed for this request.'
         );
       }
     }
     const data = endpoint.loaders[id];
     if (isPromise(data)) {
-      throw new Error("Loaders returning a promise can not be resolved for the head function.");
+      throw new Error('Loaders returning a promise can not be resolved for the head function.');
     }
     return data;
   }) as any as ResolveSyncValue;
@@ -46,12 +46,12 @@ export const resolveHead = (
   for (let i = contentModules.length - 1; i >= 0; i--) {
     const contentModuleHead = contentModules[i] && contentModules[i].head;
     if (contentModuleHead) {
-      if (typeof contentModuleHead === "function") {
+      if (typeof contentModuleHead === 'function') {
         resolveDocumentHead(
           head,
-          withLocale(locale, () => contentModuleHead(headProps)),
+          withLocale(locale, () => contentModuleHead(headProps))
         );
-      } else if (typeof contentModuleHead === "object") {
+      } else if (typeof contentModuleHead === 'object') {
         resolveDocumentHead(head, contentModuleHead);
       }
     }
@@ -62,9 +62,9 @@ export const resolveHead = (
 
 const resolveDocumentHead = (
   resolvedHead: Editable<ResolvedDocumentHead>,
-  updatedHead: DocumentHeadValue,
+  updatedHead: DocumentHeadValue
 ) => {
-  if (typeof updatedHead.title === "string") {
+  if (typeof updatedHead.title === 'string') {
     resolvedHead.title = updatedHead.title;
   }
   mergeArray(resolvedHead.meta as any, updatedHead.meta);
@@ -76,11 +76,11 @@ const resolveDocumentHead = (
 
 const mergeArray = (
   existingArr: { key?: string }[],
-  newArr: readonly { key?: string }[] | undefined,
+  newArr: readonly { key?: string }[] | undefined
 ) => {
   if (Array.isArray(newArr)) {
     for (const newItem of newArr) {
-      if (typeof newItem.key === "string") {
+      if (typeof newItem.key === 'string') {
         const existingIndex = existingArr.findIndex((i) => i.key === newItem.key);
         if (existingIndex > -1) {
           existingArr[existingIndex] = newItem;
@@ -93,7 +93,7 @@ const mergeArray = (
 };
 
 export const createDocumentHead = (): ResolvedDocumentHead => ({
-  title: "",
+  title: '',
   meta: [],
   links: [],
   styles: [],

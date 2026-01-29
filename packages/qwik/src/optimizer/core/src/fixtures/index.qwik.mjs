@@ -30,38 +30,38 @@ import {
   _serializeData,
   _restProps,
   _fnSignal,
-} from "@builder.io/qwik";
-import { isBrowser, isServer, isDev } from "@builder.io/qwik/build";
-import * as qwikCity from "@qwik-city-plan";
-import swRegister from "@qwik-city-sw-register";
-import { z } from "zod";
-import { z as z2 } from "zod";
-const RouteStateContext = /* @__PURE__ */ createContextId("qc-s");
-const ContentContext = /* @__PURE__ */ createContextId("qc-c");
-const ContentInternalContext = /* @__PURE__ */ createContextId("qc-ic");
-const DocumentHeadContext = /* @__PURE__ */ createContextId("qc-h");
-const RouteLocationContext = /* @__PURE__ */ createContextId("qc-l");
-const RouteNavigateContext = /* @__PURE__ */ createContextId("qc-n");
-const RouteActionContext = /* @__PURE__ */ createContextId("qc-a");
+} from '@builder.io/qwik';
+import { isBrowser, isServer, isDev } from '@builder.io/qwik/build';
+import * as qwikCity from '@qwik-city-plan';
+import swRegister from '@qwik-city-sw-register';
+import { z } from 'zod';
+import { z as z2 } from 'zod';
+const RouteStateContext = /* @__PURE__ */ createContextId('qc-s');
+const ContentContext = /* @__PURE__ */ createContextId('qc-c');
+const ContentInternalContext = /* @__PURE__ */ createContextId('qc-ic');
+const DocumentHeadContext = /* @__PURE__ */ createContextId('qc-h');
+const RouteLocationContext = /* @__PURE__ */ createContextId('qc-l');
+const RouteNavigateContext = /* @__PURE__ */ createContextId('qc-n');
+const RouteActionContext = /* @__PURE__ */ createContextId('qc-a');
 const RouterOutlet = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl(() => {
     _jsxBranch();
     useOnDocument(
-      "qinit",
+      'qinit',
       eventQrl(
         /* @__PURE__ */ inlinedQrl(() => {
-          const POPSTATE_FALLBACK_INITIALIZED = "_qCityPopstateFallback";
-          const CLIENT_HISTORY_INITIALIZED = "_qCityHistory";
+          const POPSTATE_FALLBACK_INITIALIZED = '_qCityPopstateFallback';
+          const CLIENT_HISTORY_INITIALIZED = '_qCityHistory';
           if (!window[POPSTATE_FALLBACK_INITIALIZED]) {
             window[POPSTATE_FALLBACK_INITIALIZED] = () => {
               if (!window[CLIENT_HISTORY_INITIALIZED]) location.reload();
             };
             setTimeout(() => {
-              addEventListener("popstate", window[POPSTATE_FALLBACK_INITIALIZED]);
+              addEventListener('popstate', window[POPSTATE_FALLBACK_INITIALIZED]);
             }, 0);
           }
-        }, "RouterOutlet_component_useOnDocument_event_KnNE9eL0qfc"),
-      ),
+        }, 'RouterOutlet_component_useOnDocument_event_KnNE9eL0qfc')
+      )
     );
     const context = useContext(ContentInternalContext);
     if (context.value && context.value.length > 0) {
@@ -74,16 +74,16 @@ const RouterOutlet = /* @__PURE__ */ componentQrl(
             children: cmp,
           },
           1,
-          "k8_0",
+          'k8_0'
         );
       return cmp;
     }
     return SkipRender;
-  }, "RouterOutlet_component_AKetNByE5TM"),
+  }, 'RouterOutlet_component_AKetNByE5TM')
 );
 const MODULE_CACHE = /* @__PURE__ */ new WeakMap();
 const CLIENT_DATA_CACHE = /* @__PURE__ */ new Map();
-const QACTION_KEY = "qaction";
+const QACTION_KEY = 'qaction';
 const toPath = (url) => url.pathname + url.search + url.hash;
 const toUrl = (url, baseUrl) => new URL(url, baseUrl.href);
 const isSameOrigin = (a, b) => a.origin === b.origin;
@@ -91,27 +91,27 @@ const isSamePath = (a, b) => a.pathname + a.search === b.pathname + b.search;
 const isSamePathname = (a, b) => a.pathname === b.pathname;
 const isSameOriginDifferentPathname = (a, b) => isSameOrigin(a, b) && !isSamePath(a, b);
 const getClientDataPath = (pathname, pageSearch, action) => {
-  let search = pageSearch ?? "";
-  if (action) search += (search ? "&" : "?") + QACTION_KEY + "=" + encodeURIComponent(action.id);
-  return pathname + (pathname.endsWith("/") ? "" : "/") + "q-data.json" + search;
+  let search = pageSearch ?? '';
+  if (action) search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(action.id);
+  return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
 };
 const getClientNavPath = (props, baseUrl) => {
   const href = props.href;
-  if (typeof href === "string" && href.trim() !== "" && typeof props.target !== "string")
+  if (typeof href === 'string' && href.trim() !== '' && typeof props.target !== 'string')
     try {
       const linkUrl = toUrl(href, baseUrl.url);
-      const currentUrl = toUrl("", baseUrl.url);
+      const currentUrl = toUrl('', baseUrl.url);
       if (isSameOrigin(linkUrl, currentUrl)) return toPath(linkUrl);
     } catch (e) {
       console.error(e);
     }
-  else if (props.reload) return toPath(toUrl("", baseUrl.url));
+  else if (props.reload) return toPath(toUrl('', baseUrl.url));
   return null;
 };
 const getPrefetchDataset = (props, clientNavPath, currentLoc) => {
   if (props.prefetch === true && clientNavPath) {
     const prefetchUrl = toUrl(clientNavPath, currentLoc.url);
-    if (!isSamePathname(prefetchUrl, toUrl("", currentLoc.url))) return "";
+    if (!isSamePathname(prefetchUrl, toUrl('', currentLoc.url))) return '';
   }
   return null;
 };
@@ -119,11 +119,11 @@ const clientNavigate = (win, newUrl, routeNavigate) => {
   const currentUrl = win.location;
   if (isSameOriginDifferentPathname(currentUrl, newUrl)) {
     handleScroll(win, currentUrl, newUrl);
-    win.history.pushState("", "", toPath(newUrl));
+    win.history.pushState('', '', toPath(newUrl));
   }
   if (!win._qCityHistory) {
     win._qCityHistory = 1;
-    win.addEventListener("popstate", () => {
+    win.addEventListener('popstate', () => {
       const currentUrl2 = win.location;
       const previousUrl = toUrl(routeNavigate.value, currentUrl2);
       if (isSameOriginDifferentPathname(currentUrl2, previousUrl)) {
@@ -131,7 +131,7 @@ const clientNavigate = (win, newUrl, routeNavigate) => {
         routeNavigate.value = toPath(new URL(currentUrl2.href));
       }
     });
-    win.removeEventListener("popstate", win._qCityPopstateFallback);
+    win.removeEventListener('popstate', win._qCityPopstateFallback);
   }
 };
 const handleScroll = async (win, previousUrl, newUrl) => {
@@ -163,26 +163,26 @@ const scrollToHashId = (doc, hash) => {
   return elm;
 };
 const dispatchPrefetchEvent = (prefetchData) => {
-  if (typeof document !== "undefined")
+  if (typeof document !== 'undefined')
     document.dispatchEvent(
-      new CustomEvent("qprefetch", {
+      new CustomEvent('qprefetch', {
         detail: prefetchData,
-      }),
+      })
     );
 };
 const resolveHead = (endpoint, routeLocation, contentModules, locale) => {
   const head = createDocumentHead();
   const getData = (loaderOrAction) => {
     const id = loaderOrAction.__id;
-    if (loaderOrAction.__brand === "server_loader") {
+    if (loaderOrAction.__brand === 'server_loader') {
       if (!(id in endpoint.loaders))
         throw new Error(
-          "You can not get the returned data of a loader that has not been executed for this request.",
+          'You can not get the returned data of a loader that has not been executed for this request.'
         );
     }
     const data = endpoint.loaders[id];
     if (data instanceof Promise)
-      throw new Error("Loaders returning a function can not be referred to in the head function.");
+      throw new Error('Loaders returning a function can not be referred to in the head function.');
     return data;
   };
   const headProps = {
@@ -194,18 +194,18 @@ const resolveHead = (endpoint, routeLocation, contentModules, locale) => {
   for (let i = contentModules.length - 1; i >= 0; i--) {
     const contentModuleHead = contentModules[i] && contentModules[i].head;
     if (contentModuleHead) {
-      if (typeof contentModuleHead === "function")
+      if (typeof contentModuleHead === 'function')
         resolveDocumentHead(
           head,
-          withLocale(locale, () => contentModuleHead(headProps)),
+          withLocale(locale, () => contentModuleHead(headProps))
         );
-      else if (typeof contentModuleHead === "object") resolveDocumentHead(head, contentModuleHead);
+      else if (typeof contentModuleHead === 'object') resolveDocumentHead(head, contentModuleHead);
     }
   }
   return headProps.head;
 };
 const resolveDocumentHead = (resolvedHead, updatedHead) => {
-  if (typeof updatedHead.title === "string") resolvedHead.title = updatedHead.title;
+  if (typeof updatedHead.title === 'string') resolvedHead.title = updatedHead.title;
   mergeArray(resolvedHead.meta, updatedHead.meta);
   mergeArray(resolvedHead.links, updatedHead.links);
   mergeArray(resolvedHead.styles, updatedHead.styles);
@@ -214,7 +214,7 @@ const resolveDocumentHead = (resolvedHead, updatedHead) => {
 const mergeArray = (existingArr, newArr) => {
   if (Array.isArray(newArr))
     for (const newItem of newArr) {
-      if (typeof newItem.key === "string") {
+      if (typeof newItem.key === 'string') {
         const existingIndex = existingArr.findIndex((i) => i.key === newItem.key);
         if (existingIndex > -1) {
           existingArr[existingIndex] = newItem;
@@ -225,7 +225,7 @@ const mergeArray = (existingArr, newArr) => {
     }
 };
 const createDocumentHead = () => ({
-  title: "",
+  title: '',
   meta: [],
   links: [],
   styles: [],
@@ -248,14 +248,14 @@ const loadRoute = async (routes, menus, cacheModules, pathname) => {
             moduleLoader,
             pendingLoads,
             (routeModule) => (mods[i] = routeModule),
-            cacheModules,
+            cacheModules
           );
         });
         loadModule(
           menuLoader,
           pendingLoads,
           (menuModule) => (menu = menuModule?.default),
-          cacheModules,
+          cacheModules
         );
         if (pendingLoads.length > 0) await Promise.all(pendingLoads);
         return [params, mods, menu, routeBundleNames];
@@ -264,17 +264,17 @@ const loadRoute = async (routes, menus, cacheModules, pathname) => {
   return null;
 };
 const loadModule = (moduleLoader, pendingLoads, moduleSetter, cacheModules) => {
-  if (typeof moduleLoader === "function") {
+  if (typeof moduleLoader === 'function') {
     const loadedModule = MODULE_CACHE.get(moduleLoader);
     if (loadedModule) moduleSetter(loadedModule);
     else {
       const l = moduleLoader();
-      if (typeof l.then === "function")
+      if (typeof l.then === 'function')
         pendingLoads.push(
           l.then((loadedModule2) => {
             if (cacheModules !== false) MODULE_CACHE.set(moduleLoader, loadedModule2);
             moduleSetter(loadedModule2);
-          }),
+          })
         );
       else if (l) moduleSetter(l);
     }
@@ -282,9 +282,9 @@ const loadModule = (moduleLoader, pendingLoads, moduleSetter, cacheModules) => {
 };
 const getMenuLoader = (menus, pathname) => {
   if (menus) {
-    pathname = pathname.endsWith("/") ? pathname : pathname + "/";
+    pathname = pathname.endsWith('/') ? pathname : pathname + '/';
     const menu = menus.find(
-      (m) => m[0] === pathname || pathname.startsWith(m[0] + (pathname.endsWith("/") ? "" : "/")),
+      (m) => m[0] === pathname || pathname.startsWith(m[0] + (pathname.endsWith('/') ? '' : '/'))
     );
     if (menu) return menu[1];
   }
@@ -293,8 +293,8 @@ const getPathParams = (paramNames, match) => {
   const params = {};
   if (paramNames)
     for (let i = 0; i < paramNames.length; i++) {
-      const param = match?.[i + 1] ?? "";
-      const v = param.endsWith("/") ? param.slice(0, -1) : param;
+      const param = match?.[i + 1] ?? '';
+      const v = param.endsWith('/') ? param.slice(0, -1) : param;
       params[paramNames[i]] = decodeURIComponent(v);
     }
   return params;
@@ -317,7 +317,7 @@ const loadClientData = async (url, element, clearCache, action) => {
         location.href = redirectedURL.href;
         return;
       }
-      if ((rsp.headers.get("content-type") || "").includes("json"))
+      if ((rsp.headers.get('content-type') || '').includes('json'))
         return rsp.text().then((text) => {
           const clientData = _deserializeData(text, element);
           if (!clientData) {
@@ -352,39 +352,39 @@ const getFetchOptions = (action) => {
   if (!actionData) return void 0;
   if (actionData instanceof FormData)
     return {
-      method: "POST",
+      method: 'POST',
       body: actionData,
     };
   else
     return {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(actionData),
       headers: {
-        "Content-Type": "application/json, charset=UTF-8",
+        'Content-Type': 'application/json, charset=UTF-8',
       },
     };
 };
 const isQDataJson = (pathname) => {
   return pathname.endsWith(QDATA_JSON);
 };
-const QDATA_JSON = "/q-data.json";
+const QDATA_JSON = '/q-data.json';
 const useContent = () => useContext(ContentContext);
 const useDocumentHead = () => useContext(DocumentHeadContext);
 const useLocation = () => useContext(RouteLocationContext);
 const useNavigate = () => useContext(RouteNavigateContext);
 const useAction = () => useContext(RouteActionContext);
-const useQwikCityEnv = () => noSerialize(useServerData("qwikcity"));
+const useQwikCityEnv = () => noSerialize(useServerData('qwikcity'));
 const QwikCityProvider = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
     useStylesQrl(
       /* @__PURE__ */ inlinedQrl(
         `:root{view-transition-name: none}`,
-        "QwikCityProvider_component_useStyles_RPDJAz33WLA",
-      ),
+        'QwikCityProvider_component_useStyles_RPDJAz33WLA'
+      )
     );
     const env = useQwikCityEnv();
     if (!env?.params) throw new Error(`Missing Qwik City Env Data`);
-    const urlEnv = useServerData("url");
+    const urlEnv = useServerData('url');
     if (!urlEnv) throw new Error(`Missing Qwik URL Env Data`);
     const url = new URL(urlEnv);
     const routeLocation = useStore(
@@ -395,12 +395,12 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
       },
       {
         deep: false,
-      },
+      }
     );
     const loaderState = _weakSerialize(
       useStore(env.response.loaders, {
         deep: false,
-      }),
+      })
     );
     const navPath = useSignal(toPath(url));
     const documentHead = useStore(createDocumentHead);
@@ -421,7 +421,7 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
               status: env.response.status,
             },
           }
-        : void 0,
+        : void 0
     );
     const goto = eventQrl(
       /* @__PURE__ */ inlinedQrl(
@@ -429,8 +429,8 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
           const [actionState2, navPath2, routeLocation2] = useLexicalScope();
           if (path === void 0) {
             path = navPath2.value;
-            navPath2.value = "";
-          } else if (forceReload) navPath2.value = "";
+            navPath2.value = '';
+          } else if (forceReload) navPath2.value = '';
           const resolvedURL = new URL(path, routeLocation2.url);
           path = toPath(resolvedURL);
           if (!forceReload && navPath2.value === path) return;
@@ -442,9 +442,9 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
           actionState2.value = void 0;
           routeLocation2.isNavigating = true;
         },
-        "QwikCityProvider_component_goto_event_cBcjROynRVg",
-        [actionState, navPath, routeLocation],
-      ),
+        'QwikCityProvider_component_goto_event_cBcjROynRVg',
+        [actionState, navPath, routeLocation]
+      )
     );
     useContextProvider(ContentContext, content);
     useContextProvider(ContentInternalContext, contentInternal);
@@ -470,7 +470,7 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
           ] = useLexicalScope();
           async function run() {
             const [path, action] = track(() => [navPath2.value, actionState2.value]);
-            const locale = getLocale("");
+            const locale = getLocale('');
             let trackUrl;
             let clientPageData;
             let loadedRoute = null;
@@ -480,21 +480,21 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
               clientPageData = env2.response;
             } else {
               trackUrl = new URL(path, location);
-              if (trackUrl.pathname.endsWith("/")) {
+              if (trackUrl.pathname.endsWith('/')) {
                 if (!qwikCity.trailingSlash) trackUrl.pathname = trackUrl.pathname.slice(0, -1);
-              } else if (qwikCity.trailingSlash) trackUrl.pathname += "/";
+              } else if (qwikCity.trailingSlash) trackUrl.pathname += '/';
               let loadRoutePromise = loadRoute(
                 qwikCity.routes,
                 qwikCity.menus,
                 qwikCity.cacheModules,
-                trackUrl.pathname,
+                trackUrl.pathname
               );
               const element = _getContextElement();
               const pageData = (clientPageData = await loadClientData(
                 trackUrl,
                 element,
                 true,
-                action,
+                action
               ));
               if (!pageData) {
                 navPath2.untrackedValue = toPath(trackUrl);
@@ -508,7 +508,7 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
                   qwikCity.routes,
                   qwikCity.menus,
                   qwikCity.cacheModules,
-                  trackUrl.pathname,
+                  trackUrl.pathname
                 );
               }
               loadedRoute = await loadRoutePromise;
@@ -526,7 +526,7 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
                 clientPageData,
                 routeLocation2,
                 contentModules,
-                locale,
+                locale
               );
               content2.headings = pageModule.headings;
               content2.menu = menu;
@@ -554,7 +554,7 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
           if (isServer) return promise;
           else return;
         },
-        "QwikCityProvider_component_useTask_02wMImzEAbk",
+        'QwikCityProvider_component_useTask_02wMImzEAbk',
         [
           actionState,
           content,
@@ -566,15 +566,15 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
           props,
           routeLocation,
           url,
-        ],
-      ),
+        ]
+      )
     );
-    return /* @__PURE__ */ _jsxC(Slot, null, 3, "qY_0");
-  }, "QwikCityProvider_component_TxCFOy819ag"),
+    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_0');
+  }, 'QwikCityProvider_component_TxCFOy819ag')
 );
 const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
-    const urlEnv = props.url ?? "http://localhost/";
+    const urlEnv = props.url ?? 'http://localhost/';
     const url = new URL(urlEnv);
     const routeLocation = useStore(
       {
@@ -584,12 +584,12 @@ const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
       },
       {
         deep: false,
-      },
+      }
     );
     const loaderState = useSignal({});
     const goto = /* @__PURE__ */ inlinedQrl(async (path) => {
-      throw new Error("Not implemented");
-    }, "QwikCityMockProvider_component_goto_BUbtvTyvVRE");
+      throw new Error('Not implemented');
+    }, 'QwikCityMockProvider_component_goto_BUbtvTyvVRE');
     const documentHead = useStore(createDocumentHead, {
       deep: false,
     });
@@ -600,7 +600,7 @@ const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
       },
       {
         deep: false,
-      },
+      }
     );
     const contentInternal = useSignal();
     useContextProvider(ContentContext, content);
@@ -609,8 +609,8 @@ const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
     useContextProvider(RouteLocationContext, routeLocation);
     useContextProvider(RouteNavigateContext, goto);
     useContextProvider(RouteStateContext, loaderState);
-    return /* @__PURE__ */ _jsxC(Slot, null, 3, "qY_1");
-  }, "QwikCityMockProvider_component_WmYC5H00wtI"),
+    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_1');
+  }, 'QwikCityMockProvider_component_WmYC5H00wtI')
 );
 const Link = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
@@ -622,27 +622,27 @@ const Link = /* @__PURE__ */ componentQrl(
     const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
     const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
     const reload = !!linkProps.reload;
-    linkProps["preventdefault:click"] = !!clientNavPath;
+    linkProps['preventdefault:click'] = !!clientNavPath;
     linkProps.href = clientNavPath || props.href;
     const event = eventQrl(
       /* @__PURE__ */ inlinedQrl(
-        (ev, elm) => prefetchLinkResources(elm, ev.type === "qvisible"),
-        "Link_component_event_event_5g4B0Gd1Wck",
-      ),
+        (ev, elm) => prefetchLinkResources(elm, ev.type === 'qvisible'),
+        'Link_component_event_event_5g4B0Gd1Wck'
+      )
     );
     return /* @__PURE__ */ _jsxS(
-      "a",
+      'a',
       {
         ...linkProps,
-        "data-prefetch": prefetchDataset,
-        children: /* @__PURE__ */ _jsxC(Slot, null, 3, "AD_0"),
+        'data-prefetch': prefetchDataset,
+        children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'AD_0'),
         onClick$: /* @__PURE__ */ inlinedQrl(
           (_, elm) => {
             const [nav2, reload2] = useLexicalScope();
             if (elm.href) nav2(elm.href, reload2);
           },
-          "Link_component_a_onClick_kzjavhDI3L0",
-          [nav, reload],
+          'Link_component_a_onClick_kzjavhDI3L0',
+          [nav, reload]
         ),
         onMouseOver$: event,
         onFocus$: event,
@@ -650,12 +650,12 @@ const Link = /* @__PURE__ */ componentQrl(
       },
       null,
       0,
-      "AD_1",
+      'AD_1'
     );
-  }, "Link_component_8gdLBszqbaM"),
+  }, 'Link_component_8gdLBszqbaM')
 );
 const prefetchLinkResources = (elm, isOnVisible) => {
-  if (elm && elm.href && elm.hasAttribute("data-prefetch")) {
+  if (elm && elm.href && elm.hasAttribute('data-prefetch')) {
     if (!windowInnerWidth) windowInnerWidth = innerWidth;
     if (!isOnVisible || (isOnVisible && windowInnerWidth < 520))
       loadClientData(new URL(elm.href), elm);
@@ -664,16 +664,16 @@ const prefetchLinkResources = (elm, isOnVisible) => {
 let windowInnerWidth = 0;
 const ServiceWorkerRegister = (props) =>
   _jsxQ(
-    "script",
+    'script',
     {
-      nonce: _wrapSignal(props, "nonce"),
+      nonce: _wrapSignal(props, 'nonce'),
     },
     {
       dangerouslySetInnerHTML: swRegister,
     },
     null,
     3,
-    "1Z_0",
+    '1Z_0'
   );
 const routeActionQrl = (actionQrl, ...rest) => {
   const { id, validators } = getValidators(rest, actionQrl);
@@ -733,18 +733,18 @@ Action.run() can only be called on the browser, for example when a user clicks a
           state2.status = status;
           state2.value = result;
           if (form) {
-            if (form.getAttribute("data-spa-reset") === "true") form.reset();
+            if (form.getAttribute('data-spa-reset') === 'true') form.reset();
             const detail = {
               status,
               value: result,
             };
             form.dispatchEvent(
-              new CustomEvent("submitcompleted", {
+              new CustomEvent('submitcompleted', {
                 bubbles: false,
                 cancelable: false,
                 composed: false,
                 detail,
-              }),
+              })
             );
           }
           return {
@@ -753,13 +753,13 @@ Action.run() can only be called on the browser, for example when a user clicks a
           };
         });
       },
-      "routeActionQrl_action_submit_A5bZC7WO00A",
-      [currentAction, id, loc, state],
+      'routeActionQrl_action_submit_A5bZC7WO00A',
+      [currentAction, id, loc, state]
     );
     initialState.submit = submit;
     return state;
   }
-  action.__brand = "server_action";
+  action.__brand = 'server_action';
   action.__validators = validators;
   action.__qrl = actionQrl;
   action.__id = id;
@@ -769,7 +769,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
 const globalActionQrl = (actionQrl, ...rest) => {
   const action = routeActionQrl(actionQrl, ...rest);
   if (isServer) {
-    if (typeof globalThis._qwikActionsMap === "undefined")
+    if (typeof globalThis._qwikActionsMap === 'undefined')
       globalThis._qwikActionsMap = /* @__PURE__ */ new Map();
     globalThis._qwikActionsMap.set(action.__id, action);
   }
@@ -788,7 +788,7 @@ const routeLoaderQrl = (loaderQrl, ...rest) => {
       return _wrapSignal(state, id);
     });
   }
-  loader.__brand = "server_loader";
+  loader.__brand = 'server_loader';
   loader.__qrl = loaderQrl;
   loader.__validators = validators;
   loader.__id = id;
@@ -807,7 +807,7 @@ const validator$ = /* @__PURE__ */ implicit$FirstArg(validatorQrl);
 const zodQrl = (qrl) => {
   if (isServer) {
     const schema = qrl.resolve().then((obj) => {
-      if (typeof obj === "function") obj = obj(z);
+      if (typeof obj === 'function') obj = obj(z);
       if (obj instanceof z.Schema) return obj;
       else return z.object(obj);
     });
@@ -819,9 +819,9 @@ const zodQrl = (qrl) => {
         else {
           if (isDev)
             console.error(
-              "\nVALIDATION ERROR\naction$() zod validated failed",
-              "\n  - Issues:",
-              result.error.issues,
+              '\nVALIDATION ERROR\naction$() zod validated failed',
+              '\n  - Issues:',
+              result.error.issues
             );
           return {
             success: false,
@@ -839,7 +839,7 @@ const serverQrl = (qrl) => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement())
-      throw new Error("For security reasons, we cannot serialize QRLs that capture lexical scope.");
+      throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
   }
   function stuff() {
     return /* @__PURE__ */ inlinedQrl(
@@ -861,19 +861,19 @@ const serverQrl = (qrl) => {
           const path = `?qfunc=${qrl2.getHash()}`;
           const body = await _serializeData([qrl2, ...filtered], false);
           const res = await fetch(path, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/qwik-json",
-              "X-QRL": hash,
+              'Content-Type': 'application/qwik-json',
+              'X-QRL': hash,
             },
             body,
           });
-          const contentType = res.headers.get("Content-Type");
-          if (res.ok && contentType === "text/event-stream") {
+          const contentType = res.headers.get('Content-Type');
+          if (res.ok && contentType === 'text/event-stream') {
             const { writable, readable } = getSSETransformer();
             res.body?.pipeTo(writable);
             return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
-          } else if (contentType === "application/qwik-json") {
+          } else if (contentType === 'application/qwik-json') {
             const str = await res.text();
             const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
             if (res.status === 500) throw obj;
@@ -881,8 +881,8 @@ const serverQrl = (qrl) => {
           }
         }
       },
-      "serverQrl_stuff_wOIPfiQ04l4",
-      [qrl],
+      'serverQrl_stuff_wOIPfiQ04l4',
+      [qrl]
     );
   }
   return stuff();
@@ -893,15 +893,15 @@ const getValidators = (rest, qrl) => {
   const validators = [];
   if (rest.length === 1) {
     const options = rest[0];
-    if (options && typeof options === "object") {
-      if ("validate" in options) validators.push(options);
+    if (options && typeof options === 'object') {
+      if ('validate' in options) validators.push(options);
       else {
         id = options.id;
         if (options.validation) validators.push(...options.validation);
       }
     }
   } else if (rest.length > 1) validators.push(...rest.filter((v) => !!v));
-  if (typeof id === "string") {
+  if (typeof id === 'string') {
     if (isDev) {
       if (!/^[\w/.-]+$/.test(id))
         throw new Error(`Invalid id: ${id}, id can only contain [a-zA-Z0-9_.-]`);
@@ -914,11 +914,11 @@ const getValidators = (rest, qrl) => {
   };
 };
 const getSSETransformer = () => {
-  let currentLine = "";
+  let currentLine = '';
   const encoder = new TextDecoder();
   const transformer = new TransformStream({
     transform(chunk, controller) {
-      const lines = encoder.decode(chunk).split("\n\n");
+      const lines = encoder.decode(chunk).split('\n\n');
       for (let i = 0; i < lines.length - 1; i++) {
         const line = currentLine + lines[i];
         if (line.length === 0) {
@@ -926,7 +926,7 @@ const getSSETransformer = () => {
           break;
         } else {
           controller.enqueue(parseEvent(line));
-          currentLine = "";
+          currentLine = '';
         }
       }
       currentLine += lines[lines.length - 1];
@@ -935,16 +935,16 @@ const getSSETransformer = () => {
   return transformer;
 };
 const parseEvent = (message) => {
-  const lines = message.split("\n");
+  const lines = message.split('\n');
   const event = {
-    data: "",
+    data: '',
   };
-  let data = "";
+  let data = '';
   for (const line of lines)
-    if (line.startsWith("data: ")) data += line.slice(6) + "\n";
+    if (line.startsWith('data: ')) data += line.slice(6) + '\n';
     else {
-      const [key, value] = line.split(":");
-      if (typeof key === "string" && typeof value === "string") event[key] = value.trim();
+      const [key, value] = line.split(':');
+      if (typeof key === 'string' && typeof value === 'string') event[key] = value.trim();
     }
   event.data = data;
   return event;
@@ -966,19 +966,19 @@ const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => 
   _jsxBranch();
   if (action)
     return _jsxS(
-      "form",
+      'form',
       {
         ...rest,
-        action: _wrapSignal(action, "actionPath"),
-        "preventdefault:submit": !reloadDocument,
-        ["data-spa-reset"]: spaReset ? "true" : void 0,
+        action: _wrapSignal(action, 'actionPath'),
+        'preventdefault:submit': !reloadDocument,
+        ['data-spa-reset']: spaReset ? 'true' : void 0,
         onSubmit$: [!reloadDocument ? action.submit : void 0, onSubmit$],
       },
       {
-        method: "post",
+        method: 'post',
       },
       0,
-      key,
+      key
     );
   else
     return /* @__PURE__ */ _jsxC(
@@ -990,61 +990,61 @@ const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => 
         ...rest,
       },
       0,
-      key,
+      key
     );
 };
 const GetForm = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
-    const rest = _restProps(props, ["action", "spaReset", "reloadDocument", "onSubmit$"]);
+    const rest = _restProps(props, ['action', 'spaReset', 'reloadDocument', 'onSubmit$']);
     const nav = useNavigate();
     return /* @__PURE__ */ _jsxS(
-      "form",
+      'form',
       {
         ...rest,
-        children: /* @__PURE__ */ _jsxC(Slot, null, 3, "BC_0"),
+        children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'BC_0'),
         onSubmit$: /* @__PURE__ */ inlinedQrl(
           async (_, form) => {
             const [nav2] = useLexicalScope();
             const formData = new FormData(form);
             const params = new URLSearchParams();
             formData.forEach((value, key) => {
-              if (typeof value === "string") params.append(key, value);
+              if (typeof value === 'string') params.append(key, value);
             });
-            nav2("?" + params.toString(), true).then(() => {
-              if (form.getAttribute("data-spa-reset") === "true") form.reset();
+            nav2('?' + params.toString(), true).then(() => {
+              if (form.getAttribute('data-spa-reset') === 'true') form.reset();
               form.dispatchEvent(
-                new CustomEvent("submitcompleted", {
+                new CustomEvent('submitcompleted', {
                   bubbles: false,
                   cancelable: false,
                   composed: false,
                   detail: {
                     status: 200,
                   },
-                }),
+                })
               );
             });
           },
-          "GetForm_component_form_onSubmit_p9MSze0ojs4",
-          [nav],
+          'GetForm_component_form_onSubmit_p9MSze0ojs4',
+          [nav]
         ),
       },
       {
-        action: "get",
-        "preventdefault:submit": _fnSignal(
+        action: 'get',
+        'preventdefault:submit': _fnSignal(
           (p0) => !p0.reloadDocument,
           [props],
-          "!p0.reloadDocument",
+          '!p0.reloadDocument'
         ),
-        "data-spa-reset": _fnSignal(
-          (p0) => (p0.spaReset ? "true" : void 0),
+        'data-spa-reset': _fnSignal(
+          (p0) => (p0.spaReset ? 'true' : void 0),
           [props],
-          'p0.spaReset?"true":undefined',
+          'p0.spaReset?"true":undefined'
         ),
       },
       0,
-      "BC_1",
+      'BC_1'
     );
-  }, "GetForm_component_Nk9PlpjQm9Y"),
+  }, 'GetForm_component_Nk9PlpjQm9Y')
 );
 export {
   Form,

@@ -1,20 +1,20 @@
-import type { OnRenderFn } from "../component/component.public";
-import { destroyTask, type SubscriberEffect } from "../use/use-task";
-import type { QRLInternal } from "../qrl/qrl-class";
-import type { QRL } from "../qrl/qrl.public";
-import type { StyleAppend } from "../use/use-core";
-import type { ProcessedJSXNode } from "../render/dom/render-dom";
-import type { QwikElement, VirtualElement } from "../render/dom/virtual-element";
-import { getProxyTarget, type SubscriptionManager } from "./common";
-import type { ContainerState } from "../container/container";
-import { getDomListeners, type Listener } from "./listeners";
-import { seal } from "../util/qdev";
-import { directGetAttribute } from "../render/fast-calls";
-import { isElement } from "../../testing/html";
-import { assertQwikElement } from "../error/assert";
-import { QScopedStyle } from "../util/markers";
-import { createPropsState, createProxy, setObjectFlags } from "./store";
-import { _IMMUTABLE, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from "./constants";
+import type { OnRenderFn } from '../component/component.public';
+import { destroyTask, type SubscriberEffect } from '../use/use-task';
+import type { QRLInternal } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import type { StyleAppend } from '../use/use-core';
+import type { ProcessedJSXNode } from '../render/dom/render-dom';
+import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import { getProxyTarget, type SubscriptionManager } from './common';
+import type { ContainerState } from '../container/container';
+import { getDomListeners, type Listener } from './listeners';
+import { seal } from '../util/qdev';
+import { directGetAttribute } from '../render/fast-calls';
+import { isElement } from '../../testing/html';
+import { assertQwikElement } from '../error/assert';
+import { QScopedStyle } from '../util/markers';
+import { createPropsState, createProxy, setObjectFlags } from './store';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from './constants';
 
 export interface QContextEvents {
   [eventName: string]: QRL | undefined;
@@ -73,7 +73,7 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
     return ctx;
   }
   const elCtx = createContext(el);
-  const elementID = directGetAttribute(el, "q:id");
+  const elementID = directGetAttribute(el, 'q:id');
   if (elementID) {
     const pauseCtx = containerState.$pauseCtx$;
     elCtx.$id$ = elementID;
@@ -82,12 +82,12 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
       if (isElement(el)) {
         const refMap = refs[elementID];
         if (refMap) {
-          elCtx.$refMap$ = refMap.split(" ").map(getObject);
+          elCtx.$refMap$ = refMap.split(' ').map(getObject);
           elCtx.li = getDomListeners(elCtx, containerState.$containerEl$);
         }
       } else {
         const styleIds = el.getAttribute(QScopedStyle);
-        elCtx.$scopeIds$ = styleIds ? styleIds.split("|") : null;
+        elCtx.$scopeIds$ = styleIds ? styleIds.split('|') : null;
 
         const ctxMeta = meta[elementID];
         if (ctxMeta) {
@@ -96,22 +96,22 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           const contexts = ctxMeta.c;
           const tasks = ctxMeta.w;
           if (seq) {
-            elCtx.$seq$ = seq.split(" ").map(getObject);
+            elCtx.$seq$ = seq.split(' ').map(getObject);
           }
           if (tasks) {
-            elCtx.$tasks$ = tasks.split(" ").map(getObject);
+            elCtx.$tasks$ = tasks.split(' ').map(getObject);
           }
           if (contexts) {
             elCtx.$contexts$ = new Map();
-            for (const part of contexts.split(" ")) {
-              const [key, value] = part.split("=");
+            for (const part of contexts.split(' ')) {
+              const [key, value] = part.split('=');
               elCtx.$contexts$.set(key, getObject(value));
             }
           }
 
           // Restore sequence scoping
           if (host) {
-            const [renderQrl, props] = host.split(" ") as [string | undefined, string | undefined];
+            const [renderQrl, props] = host.split(' ') as [string | undefined, string | undefined];
             elCtx.$flags$ = HOST_FLAG_MOUNTED;
             if (renderQrl) {
               elCtx.$componentQrl$ = getObject(renderQrl);
@@ -147,7 +147,7 @@ const getImmutableFromProps = (props: Record<string, any>): Record<string, any> 
 export const createContext = (element: Element | VirtualElement): QContext => {
   const ctx = {
     $flags$: 0,
-    $id$: "",
+    $id$: '',
     $element$: element,
     $refMap$: [],
     li: [],

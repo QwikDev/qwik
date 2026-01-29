@@ -1,60 +1,60 @@
-import { component$, useStore } from "@builder.io/qwik";
+import { component$, useStore } from '@builder.io/qwik';
 
 let idCounter = 1;
 const adjectives = [
-    "pretty",
-    "large",
-    "big",
-    "small",
-    "tall",
-    "short",
-    "long",
-    "handsome",
-    "plain",
-    "quaint",
-    "clean",
-    "elegant",
-    "easy",
-    "angry",
-    "crazy",
-    "helpful",
-    "mushy",
-    "odd",
-    "unsightly",
-    "adorable",
-    "important",
-    "inexpensive",
-    "cheap",
-    "expensive",
-    "fancy",
+    'pretty',
+    'large',
+    'big',
+    'small',
+    'tall',
+    'short',
+    'long',
+    'handsome',
+    'plain',
+    'quaint',
+    'clean',
+    'elegant',
+    'easy',
+    'angry',
+    'crazy',
+    'helpful',
+    'mushy',
+    'odd',
+    'unsightly',
+    'adorable',
+    'important',
+    'inexpensive',
+    'cheap',
+    'expensive',
+    'fancy',
   ],
   colours = [
-    "red",
-    "yellow",
-    "blue",
-    "green",
-    "pink",
-    "brown",
-    "purple",
-    "brown",
-    "white",
-    "black",
-    "orange",
+    'red',
+    'yellow',
+    'blue',
+    'green',
+    'pink',
+    'brown',
+    'purple',
+    'brown',
+    'white',
+    'black',
+    'orange',
   ],
   nouns = [
-    "table",
-    "chair",
-    "house",
-    "bbq",
-    "desk",
-    "car",
-    "pony",
-    "cookie",
-    "sandwich",
-    "burger",
-    "pizza",
-    "mouse",
-    "keyboard",
+    'table',
+    'chair',
+    'house',
+    'bbq',
+    'desk',
+    'car',
+    'pony',
+    'cookie',
+    'sandwich',
+    'burger',
+    'pizza',
+    'mouse',
+    'keyboard',
   ];
 
 function _random(max: number) {
@@ -120,7 +120,7 @@ export const App = component$(() => {
                   type="button"
                   onClick$={() => {
                     for (let i = 0, d = state.data, len = d.length; i < len; i += 10) {
-                      d[i].label += " !!!";
+                      d[i].label += ' !!!';
                     }
                   }}
                 >
@@ -159,7 +159,7 @@ export const App = component$(() => {
         <tbody>
           {state.data.map(({ id, label }) => {
             return (
-              <tr key={id} class={id === state.selected ? "danger" : ""}>
+              <tr key={id} class={id === state.selected ? 'danger' : ''}>
                 <td class="col-md-1">{id}</td>
                 <td class="col-md-4">
                   <a onClick$={() => alert(label)}>{label}</a>

@@ -1,8 +1,8 @@
-import { component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useThirdPartyPaymentLoader = routeLoader$(() => {
-  return { name: "John Doe" };
+  return { name: 'John Doe' };
 });
 
 export const ThirdPartyPaymentComponent = component$(() => {
@@ -10,8 +10,8 @@ export const ThirdPartyPaymentComponent = component$(() => {
   return (
     <div
       class={[
-        "w-96 h-56 m-auto rounded-xl relative text-white font-bold shadow-2xl",
-        "transition-transform transform hover:scale-110 bg-gray-600",
+        'w-96 h-56 m-auto rounded-xl relative text-white font-bold shadow-2xl',
+        'transition-transform transform hover:scale-110 bg-gray-600',
       ]}
     >
       <div class="w-full px-8 absolute top-8">

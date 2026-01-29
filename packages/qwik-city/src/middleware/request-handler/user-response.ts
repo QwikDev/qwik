@@ -1,21 +1,21 @@
-import type { RequestEvent, RequestHandler } from "@builder.io/qwik-city";
-import type { LoadedRoute, RebuildRouteInfoInternal } from "../../runtime/src/types";
-import { getErrorHtml } from "./error-handler";
+import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
+import type { LoadedRoute, RebuildRouteInfoInternal } from '../../runtime/src/types';
+import { getErrorHtml } from './error-handler';
 import {
   RequestEvQwikSerializer,
   createRequestEvent,
   getRequestMode,
   type RequestEventInternal,
-} from "./request-event";
-import { encoder } from "./resolve-request-handlers";
-import type { QwikSerializer, ServerRequestEvent, StatusCodes } from "./types";
+} from './request-event';
+import { encoder } from './resolve-request-handlers';
+import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
 // Import separately to avoid duplicate imports in the vite dev server
 import {
   AbortMessage,
   RedirectMessage,
   ServerError,
   RewriteMessage,
-} from "@builder.io/qwik-city/middleware/request-handler";
+} from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
@@ -24,7 +24,7 @@ export interface QwikCityRun<T> {
 }
 
 let asyncStore: AsyncStore | undefined;
-import("node:async_hooks")
+import('node:async_hooks')
   .then((module) => {
     const AsyncLocalStorage = module.AsyncLocalStorage;
     asyncStore = new AsyncLocalStorage<RequestEventInternal>();
@@ -32,8 +32,8 @@ import("node:async_hooks")
   })
   .catch((err) => {
     console.warn(
-      "AsyncLocalStorage not available, continuing without it. This might impact concurrent server calls.",
-      err,
+      'AsyncLocalStorage not available, continuing without it. This might impact concurrent server calls.',
+      err
     );
   });
 
@@ -43,8 +43,8 @@ export function runQwikCity<T>(
   requestHandlers: RequestHandler<any>[],
   rebuildRouteInfo: RebuildRouteInfoInternal,
   trailingSlash = true,
-  basePathname = "/",
-  qwikSerializer: QwikSerializer,
+  basePathname = '/',
+  qwikSerializer: QwikSerializer
 ): QwikCityRun<T> {
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
@@ -55,7 +55,7 @@ export function runQwikCity<T>(
     trailingSlash,
     basePathname,
     qwikSerializer,
-    resolve!,
+    resolve!
   );
 
   return {
@@ -70,14 +70,14 @@ export function runQwikCity<T>(
 async function runNext(
   requestEv: RequestEventInternal,
   rebuildRouteInfo: RebuildRouteInfoInternal,
-  resolve: (value: any) => void,
+  resolve: (value: any) => void
 ) {
   try {
     const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
     isValidURL(requestEv.originalUrl);
   } catch {
     const status = 404;
-    const message = "Resource Not Found";
+    const message = 'Resource Not Found';
     requestEv.status(status);
     const html = getErrorHtml(status, message);
     requestEv.html(status, html);
@@ -108,10 +108,10 @@ async function runNext(
       } else if (e instanceof ServerError) {
         if (!requestEv.headersSent) {
           const status = e.status as StatusCodes;
-          const accept = requestEv.request.headers.get("Accept");
-          if (accept && !accept.includes("text/html")) {
+          const accept = requestEv.request.headers.get('Accept');
+          if (accept && !accept.includes('text/html')) {
             const qwikSerializer = requestEv[RequestEvQwikSerializer];
-            requestEv.headers.set("Content-Type", "application/qwik-json");
+            requestEv.headers.set('Content-Type', 'application/qwik-json');
             requestEv.send(status, await qwikSerializer._serializeData(e.data, true));
           } else {
             const html = getErrorHtml(e.status, e.data);
@@ -119,21 +119,21 @@ async function runNext(
           }
         }
       } else if (!(e instanceof AbortMessage)) {
-        if (getRequestMode(requestEv) !== "dev") {
+        if (getRequestMode(requestEv) !== 'dev') {
           try {
             if (!requestEv.headersSent) {
-              requestEv.headers.set("content-type", "text/html; charset=utf-8");
+              requestEv.headers.set('content-type', 'text/html; charset=utf-8');
               requestEv.cacheControl({ noCache: true });
               requestEv.status(500);
             }
             const stream = requestEv.getWritableStream();
             if (!stream.locked) {
               const writer = stream.getWriter();
-              await writer.write(encoder.encode(getErrorHtml(500, "Internal Server Error")));
+              await writer.write(encoder.encode(getErrorHtml(500, 'Internal Server Error')));
               await writer.close();
             }
           } catch {
-            console.error("Unable to render error page");
+            console.error('Unable to render error page');
           }
         }
 
@@ -162,12 +162,12 @@ export function getRouteMatchPathname(pathname: string, trailingSlash: boolean |
   if (isInternal) {
     const trimEnd = pathname.length - QDATA_JSON.length + (trailingSlash ? 1 : 0);
     pathname = pathname.slice(0, trimEnd);
-    if (pathname === "") {
-      pathname = "/";
+    if (pathname === '') {
+      pathname = '/';
     }
   }
   return { pathname, isInternal };
 }
 
-export const IsQData = "@isQData";
-export const QDATA_JSON = "/q-data.json";
+export const IsQData = '@isQData';
+export const QDATA_JSON = '/q-data.json';

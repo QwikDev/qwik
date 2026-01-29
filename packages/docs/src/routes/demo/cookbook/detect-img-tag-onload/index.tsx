@@ -1,10 +1,10 @@
-import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
+import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 
 export default component$(() => {
   const imgRef = useSignal<HTMLImageElement>();
   useVisibleTask$(() => {
     imgRef.value!.decode().then(() => {
-      alert("loaded and ready!");
+      alert('loaded and ready!');
     });
   });
 

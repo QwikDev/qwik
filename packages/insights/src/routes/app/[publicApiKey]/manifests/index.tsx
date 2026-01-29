@@ -1,11 +1,11 @@
-import { type ReadonlySignal, component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import Histogram, { latencyColors } from "~/components/histogram";
-import { ManifestIcon } from "~/components/icons/manifest";
-import { ManifestTile } from "~/components/minifest-tile";
-import { getDB } from "~/db";
-import { type ManifestStatsRow, dbGetManifestStats } from "~/db/sql-manifest";
-import { vectorAvg, vectorSum, BUCKETS } from "~/stats/vector";
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import Histogram, { latencyColors } from '~/components/histogram';
+import { ManifestIcon } from '~/components/icons/manifest';
+import { ManifestTile } from '~/components/minifest-tile';
+import { getDB } from '~/db';
+import { type ManifestStatsRow, dbGetManifestStats } from '~/db/sql-manifest';
+import { vectorAvg, vectorSum, BUCKETS } from '~/stats/vector';
 
 export const useData = routeLoader$(async ({ params }) => {
   const publicApiKey = params.publicApiKey;

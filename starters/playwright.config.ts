@@ -1,5 +1,5 @@
-import { expect } from "@playwright/test";
-import type { Locator, PlaywrightTestConfig } from "@playwright/test";
+import { expect } from '@playwright/test';
+import type { Locator, PlaywrightTestConfig } from '@playwright/test';
 
 const inGithubCI = !!process.env.GITHUB_ACTIONS;
 
@@ -33,7 +33,7 @@ const config: PlaywrightTestConfig = {
   // retries: inGithubCI ? 0 : 1,
   expect: { timeout: inGithubCI ? 120000 : 3000 },
   webServer: {
-    command: "pnpm node --require ./scripts/runBefore.ts starters/dev-server.ts 3301",
+    command: 'pnpm node --require ./scripts/runBefore.ts starters/dev-server.ts 3301',
     port: 3301,
     reuseExistingServer: !process.env.CI,
   },

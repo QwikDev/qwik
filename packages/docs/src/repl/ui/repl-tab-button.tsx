@@ -1,11 +1,11 @@
-import type { PropsOf, Component } from "@builder.io/qwik";
-import { CloseIcon } from "../../components/svgs/close-icon";
+import type { PropsOf, Component } from '@builder.io/qwik';
+import { CloseIcon } from '../../components/svgs/close-icon';
 
 export const ReplTabButton: Component<ReplTabButtonProps> = (props) => {
   return (
     <div
       key={props.text}
-      class={{ "active-tab": props.isActive, "repl-tab-button": true, ...props.cssClass }}
+      class={{ 'active-tab': props.isActive, 'repl-tab-button': true, ...props.cssClass }}
     >
       <button
         class="repl-tab-button-select"
@@ -32,8 +32,8 @@ export const ReplTabButton: Component<ReplTabButtonProps> = (props) => {
 interface ReplTabButtonProps {
   text: string;
   isActive: boolean;
-  onClick$: PropsOf<"button">["onClick$"];
-  onClose$?: PropsOf<"button">["onClick$"];
+  onClick$: PropsOf<'button'>['onClick$'];
+  onClose$?: PropsOf<'button'>['onClick$'];
   cssClass?: Record<string, boolean>;
   enableInputDelete?: boolean;
 }

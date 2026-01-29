@@ -1,24 +1,24 @@
-import { $, component$, useContext, useStylesScoped$, useTask$ } from "@builder.io/qwik";
-import { PortalCloseAPIContextId, PortalAPI } from "./portal-provider";
-import PopupExampleCSS from "./popup-example.css?inline";
-import { useLocation } from "@builder.io/qwik-city";
+import { $, component$, useContext, useStylesScoped$, useTask$ } from '@builder.io/qwik';
+import { PortalCloseAPIContextId, PortalAPI } from './portal-provider';
+import PopupExampleCSS from './popup-example.css?inline';
+import { useLocation } from '@builder.io/qwik-city';
 
 export default component$(() => {
   // Retrieve the portal API
   const portal = useContext(PortalAPI);
   // This function is used to open the modal.
   // Portals can be named and each portal can have multiple items rendered into it.
-  const openModal = $(() => portal("modal", <PopupExample name="World" />));
+  const openModal = $(() => portal('modal', <PopupExample name="World" />));
 
   // Conditionally open the <Portal/> on the server to demonstrate SSR of portals.
   const location = useLocation();
   useTask$(() => {
-    location.url.searchParams.get("modal") && openModal();
+    location.url.searchParams.get('modal') && openModal();
   });
   return (
     <>
       <div>
-        [ <a href="?modal=true">render portal as part of SSR</a> |{" "}
+        [ <a href="?modal=true">render portal as part of SSR</a> |{' '}
         <a href="?">render portal as part of client interaction</a> ]
       </div>
       <button onClick$={openModal}>Show Modal</button>

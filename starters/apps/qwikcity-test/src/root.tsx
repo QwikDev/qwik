@@ -1,7 +1,7 @@
-import { QwikCityProvider, RouterOutlet } from "@builder.io/qwik-city";
-import { SomeProvider } from "./components/provider/provider";
-import { RouterHead } from "./components/router-head/router-head";
-import "./global.css";
+import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
+import { SomeProvider } from './components/provider/provider';
+import { RouterHead } from './components/router-head/router-head';
+import './global.css';
 
 export default function Root() {
   return (

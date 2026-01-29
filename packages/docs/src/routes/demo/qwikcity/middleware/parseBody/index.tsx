@@ -1,4 +1,4 @@
-import { type RequestHandler } from "@builder.io/qwik-city";
+import { type RequestHandler } from '@builder.io/qwik-city';
 
 export const onGet: RequestHandler = async ({ html }) => {
   html(
@@ -8,7 +8,7 @@ export const onGet: RequestHandler = async ({ html }) => {
         <input type="text" name="project" value="Qwik"/>
         <input type="text" name="url" value="http://qwik.dev"/>
       </form>
-      <script>myForm.submit()</script>`,
+      <script>myForm.submit()</script>`
   );
 };
 

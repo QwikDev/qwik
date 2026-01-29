@@ -1,7 +1,7 @@
-import { createQwikCity as createQwikCityNode } from "@builder.io/qwik-city/middleware/node";
-import type { ServerRenderOptions } from "@builder.io/qwik-city/middleware/request-handler";
-import type { QwikCityPlan } from "packages/qwik-city/src/runtime/src/types";
-import type { QwikManifest, Render } from "packages/qwik/src/server/types";
+import { createQwikCity as createQwikCityNode } from '@builder.io/qwik-city/middleware/node';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
+import type { QwikCityPlan } from 'packages/qwik-city/src/runtime/src/types';
+import type { QwikManifest, Render } from 'packages/qwik/src/server/types';
 
 interface AwsOpt {
   render: Render;
@@ -17,7 +17,7 @@ export function createQwikCity(opts: AwsOpt) {
       qwikCityPlan: opts.qwikCityPlan,
       manifest: opts.manifest,
       static: {
-        cacheControl: "public, max-age=31557600",
+        cacheControl: 'public, max-age=31557600',
       },
       getOrigin(req) {
         if (process.env.IS_OFFLINE) {
@@ -29,12 +29,12 @@ export function createQwikCity(opts: AwsOpt) {
 
     const fixPath = (pathT: string) => {
       if (opts.qwikCityPlan.trailingSlash) {
-        const url = new URL(pathT, "http://aws-qwik.local");
-        if (url.pathname.includes(".", url.pathname.lastIndexOf("/"))) {
+        const url = new URL(pathT, 'http://aws-qwik.local');
+        if (url.pathname.includes('.', url.pathname.lastIndexOf('/'))) {
           return pathT;
         }
-        if (!url.pathname.endsWith("/")) {
-          return url.pathname + "/" + url.search;
+        if (!url.pathname.endsWith('/')) {
+          return url.pathname + '/' + url.search;
         }
       }
       return pathT;

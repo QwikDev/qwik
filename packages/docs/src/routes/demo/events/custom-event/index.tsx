@@ -1,7 +1,7 @@
-import { component$, type QRL, Slot, useStore } from "@builder.io/qwik";
+import { component$, type QRL, Slot, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <Button onTripleClick$={() => alert("TRIPLE CLICKED!")}>Triple Click me!</Button>;
+  return <Button onTripleClick$={() => alert('TRIPLE CLICKED!')}>Triple Click me!</Button>;
 });
 
 type ButtonProps = {

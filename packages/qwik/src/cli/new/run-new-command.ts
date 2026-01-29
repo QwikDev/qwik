@@ -1,59 +1,59 @@
-import { green, bgMagenta, dim } from "kleur/colors";
-import fs from "node:fs";
-import { join } from "path";
-import { isCancel, select, text, log, intro } from "@clack/prompts";
-import { bye } from "../utils/utils";
-import type { Template } from "../types";
-import type { AppCommand } from "../utils/app-command";
-import { loadTemplates } from "../utils/templates";
-import { printNewHelp } from "./print-new-help";
-import { POSSIBLE_TYPES } from "./utils";
+import { green, bgMagenta, dim } from 'kleur/colors';
+import fs from 'node:fs';
+import { join } from 'path';
+import { isCancel, select, text, log, intro } from '@clack/prompts';
+import { bye } from '../utils/utils';
+import type { Template } from '../types';
+import type { AppCommand } from '../utils/app-command';
+import { loadTemplates } from '../utils/templates';
+import { printNewHelp } from './print-new-help';
+import { POSSIBLE_TYPES } from './utils';
 
-const SLUG_KEY = "[slug]";
-const NAME_KEY = "[name]";
-const MARKDOWN_SUFFIX = ".md";
-const MDX_SUFFIX = ".mdx";
+const SLUG_KEY = '[slug]';
+const NAME_KEY = '[name]';
+const MARKDOWN_SUFFIX = '.md';
+const MDX_SUFFIX = '.mdx';
 
 export async function runNewCommand(app: AppCommand) {
   try {
     // render help
-    if (app.args.length > 1 && app.args[1] === "help") {
-      intro(`🔭  ${bgMagenta(" Qwik Help ")}`);
+    if (app.args.length > 1 && app.args[1] === 'help') {
+      intro(`🔭  ${bgMagenta(' Qwik Help ')}`);
       await printNewHelp();
       bye();
     } else {
-      intro(`✨  ${bgMagenta(" Create a new Qwik component or route ")}`);
+      intro(`✨  ${bgMagenta(' Create a new Qwik component or route ')}`);
     }
 
-    const args = app.args.filter((a) => !a.startsWith("--"));
+    const args = app.args.filter((a) => !a.startsWith('--'));
 
-    const mainInput = args.slice(1).join(" ");
-    let typeArg: "route" | "component" | "markdown" | "mdx" | undefined = undefined;
+    const mainInput = args.slice(1).join(' ');
+    let typeArg: 'route' | 'component' | 'markdown' | 'mdx' | undefined = undefined;
     let nameArg: string | undefined;
     let outDir: string | undefined;
-    if (mainInput && mainInput.startsWith("/")) {
+    if (mainInput && mainInput.startsWith('/')) {
       if (mainInput.endsWith(MARKDOWN_SUFFIX)) {
-        typeArg = "markdown";
-        nameArg = mainInput.replace(MARKDOWN_SUFFIX, "");
+        typeArg = 'markdown';
+        nameArg = mainInput.replace(MARKDOWN_SUFFIX, '');
       } else if (mainInput.endsWith(MDX_SUFFIX)) {
-        typeArg = "mdx";
-        nameArg = mainInput.replace(MDX_SUFFIX, "");
+        typeArg = 'mdx';
+        nameArg = mainInput.replace(MDX_SUFFIX, '');
       } else {
-        typeArg = "route";
+        typeArg = 'route';
         nameArg = mainInput;
       }
     } else if (mainInput) {
-      typeArg = "component";
+      typeArg = 'component';
       nameArg = mainInput;
     }
 
     let templateArg = app.args
-      .filter((a) => a.startsWith("--"))
+      .filter((a) => a.startsWith('--'))
       .map((a) => a.substring(2))
-      .join("");
+      .join('');
 
     if (!templateArg && mainInput) {
-      templateArg = "qwik";
+      templateArg = 'qwik';
     }
 
     if (!typeArg) {
@@ -76,7 +76,7 @@ export async function runNewCommand(app: AppCommand) {
     } else {
       const allTemplates = await loadTemplates();
       const templates = allTemplates.filter(
-        (i) => i.id === templateArg && i[typeArg!] && i[typeArg!].length,
+        (i) => i.id === templateArg && i[typeArg!] && i[typeArg!].length
       );
 
       if (!templates.length) {
@@ -87,10 +87,10 @@ export async function runNewCommand(app: AppCommand) {
       template = templates[0][typeArg][0];
     }
 
-    if (typeArg === "route" || typeArg === "markdown" || typeArg === "mdx") {
-      outDir = join(app.rootDir, "src", `routes`, nameArg);
+    if (typeArg === 'route' || typeArg === 'markdown' || typeArg === 'mdx') {
+      outDir = join(app.rootDir, 'src', `routes`, nameArg);
     } else {
-      outDir = join(app.rootDir, "src", `components`, nameArg);
+      outDir = join(app.rootDir, 'src', `components`, nameArg);
     }
 
     const fileOutput = await writeToFile(name, slug, template, outDir);
@@ -106,12 +106,12 @@ export async function runNewCommand(app: AppCommand) {
 
 async function selectType() {
   const typeAnswer = await select({
-    message: "What would you like to create?",
+    message: 'What would you like to create?',
     options: [
-      { value: "component", label: "Component" },
-      { value: "route", label: "Route" },
-      { value: "markdown", label: "Route (Markdown)" },
-      { value: "mdx", label: "Route (MDX)" },
+      { value: 'component', label: 'Component' },
+      { value: 'route', label: 'Route' },
+      { value: 'markdown', label: 'Route (Markdown)' },
+      { value: 'mdx', label: 'Route (MDX)' },
     ],
   });
 
@@ -122,20 +122,20 @@ async function selectType() {
   return typeAnswer as (typeof POSSIBLE_TYPES)[number];
 }
 
-async function selectName(type: "route" | "component" | "markdown" | "mdx") {
+async function selectName(type: 'route' | 'component' | 'markdown' | 'mdx') {
   const messages = {
-    route: "New route path",
-    markdown: "New Markdown route path",
-    mdx: "New MDX route path",
-    component: "Name your component",
+    route: 'New route path',
+    markdown: 'New Markdown route path',
+    mdx: 'New MDX route path',
+    component: 'Name your component',
   };
   const message = messages[type];
 
   const placeholders = {
-    route: "/product/[id]",
-    markdown: "/some/page" + MARKDOWN_SUFFIX,
-    mdx: "/some/page" + MDX_SUFFIX,
-    component: "my-component",
+    route: '/product/[id]',
+    markdown: '/some/page' + MARKDOWN_SUFFIX,
+    mdx: '/some/page' + MDX_SUFFIX,
+    component: 'my-component',
   };
   const placeholder = placeholders[type];
 
@@ -144,7 +144,7 @@ async function selectName(type: "route" | "component" | "markdown" | "mdx") {
     placeholder,
     validate: (v) => {
       if (v.length < 1) {
-        return "Value can not be empty";
+        return 'Value can not be empty';
       }
     },
   });
@@ -152,20 +152,20 @@ async function selectName(type: "route" | "component" | "markdown" | "mdx") {
   if (isCancel(nameAnswer)) {
     bye();
   }
-  if (typeof nameAnswer !== "string") {
+  if (typeof nameAnswer !== 'string') {
     bye();
   }
 
   let result = nameAnswer;
 
-  if (type !== "component" && !nameAnswer.startsWith("/")) {
+  if (type !== 'component' && !nameAnswer.startsWith('/')) {
     result = `/${result}`;
   }
 
-  if (type === "markdown") {
-    result = result.replace(MARKDOWN_SUFFIX, "");
-  } else if (type === "mdx") {
-    result = result.replace(MDX_SUFFIX, "");
+  if (type === 'markdown') {
+    result = result.replace(MARKDOWN_SUFFIX, '');
+  } else if (type === 'mdx') {
+    result = result.replace(MDX_SUFFIX, '');
   }
 
   return result;
@@ -184,7 +184,7 @@ async function selectTemplate(typeArg: (typeof POSSIBLE_TYPES)[number]) {
     return templates[0][typeArg][0];
   }
   const templateAnswer = await select({
-    message: "Which template would you like to use?",
+    message: 'Which template would you like to use?',
     options: templates.map((t) => ({ value: t[typeArg][0], label: t.id })),
   });
 
@@ -202,17 +202,17 @@ async function writeToFile(name: string, slug: string, template: Template, outDi
   // String replace the file path
   const fileOutput = inject(outFile, [
     [SLUG_KEY, slug],
-    [".template", ""],
+    ['.template', ''],
   ]);
 
   // Exit if the module already exists
   if (fs.existsSync(fileOutput)) {
-    const filename = fileOutput.split("/").pop();
+    const filename = fileOutput.split('/').pop();
     throw new Error(`"${filename}" already exists in "${outDir}"`);
   }
 
   // Get the template content
-  const text = await fs.promises.readFile(template.absolute, { encoding: "utf-8" });
+  const text = await fs.promises.readFile(template.absolute, { encoding: 'utf-8' });
 
   // String replace the template content
   const templateOut = inject(text, [
@@ -224,7 +224,7 @@ async function writeToFile(name: string, slug: string, template: Template, outDi
   await fs.promises.mkdir(outDir, { recursive: true });
 
   // Write to file
-  await fs.promises.writeFile(fileOutput, templateOut, { encoding: "utf-8" });
+  await fs.promises.writeFile(fileOutput, templateOut, { encoding: 'utf-8' });
 
   return fileOutput;
 }
@@ -249,9 +249,9 @@ function parseInputName(input: string) {
 }
 
 function toSlug(list: string[]) {
-  return list.join("-");
+  return list.join('-');
 }
 
 function toPascal(list: string[]) {
-  return list.map((p) => p[0].toUpperCase() + p.substring(1)).join("");
+  return list.map((p) => p[0].toUpperCase() + p.substring(1)).join('');
 }

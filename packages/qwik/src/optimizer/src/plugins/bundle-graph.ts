@@ -1,4 +1,4 @@
-import type { QwikBundle, QwikBundleGraph, QwikManifest } from "../types";
+import type { QwikBundle, QwikBundleGraph, QwikManifest } from '../types';
 
 const minimumSpeed = 300; // kbps
 // size that takes 0.5 seconds to download at minimumSpeed
@@ -10,11 +10,11 @@ const slowSize = 0.5 / ((minimumSpeed * 1024) / 8);
  * @public
  */
 export type BundleGraphAdder = (
-  manifest: QwikManifest,
+  manifest: QwikManifest
 ) => Record<string, { imports?: string[]; dynamicImports?: string[] }>;
 
 const getSymbolHash = (symbolName: string) => {
-  const index = symbolName.lastIndexOf("_");
+  const index = symbolName.lastIndexOf('_');
   if (index > -1) {
     return symbolName.slice(index + 1);
   }
@@ -36,7 +36,7 @@ const getSymbolHash = (symbolName: string) => {
  */
 export function convertManifestToBundleGraph(
   manifest: QwikManifest,
-  bundleGraphAdders?: Set<BundleGraphAdder>,
+  bundleGraphAdders?: Set<BundleGraphAdder>
 ): QwikBundleGraph {
   const bundleGraph: QwikBundleGraph = [];
   if (!manifest.bundles) {
@@ -78,7 +78,7 @@ export function convertManifestToBundleGraph(
           // either there are qrls
           (graph[dep].symbols ||
             // or it's a dynamic import from the app source
-            graph[dep].origins?.some((o) => !o.includes("node_modules"))),
+            graph[dep].origins?.some((o) => !o.includes('node_modules')))
       ) || [];
 
     /**
@@ -114,7 +114,7 @@ export function convertManifestToBundleGraph(
   const clearTransitiveDeps = (
     parentDeps: Set<string>,
     bundleName: string,
-    seen: Set<string> = new Set(),
+    seen: Set<string> = new Set()
   ) => {
     const bundle = graph[bundleName];
     for (const dep of bundle.imports!) {
@@ -177,7 +177,7 @@ export function convertManifestToBundleGraph(
 
     if (dynDeps.size > 0) {
       const sorted = Array.from(dynDeps).sort(
-        (a, b) => depProbability.get(b)! - depProbability.get(a)!,
+        (a, b) => depProbability.get(b)! - depProbability.get(a)!
       );
       let lastProbability = -1;
       // We rely on the Set keeping the items in order, everything after this is dynamic
@@ -205,7 +205,7 @@ export function convertManifestToBundleGraph(
     let { index, deps } = bundle;
     index++;
     for (const depName of deps) {
-      if (typeof depName === "number") {
+      if (typeof depName === 'number') {
         // negative number means dynamic import
         bundleGraph[index++] = depName;
         continue;

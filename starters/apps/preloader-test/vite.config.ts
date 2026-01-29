@@ -2,18 +2,18 @@
  * This is the base config for vite.
  * When building, the adapter config is used which loads this file and extends it.
  */
-import { defineConfig, type UserConfig, type Plugin } from "vite";
-import { qwikVite } from "@builder.io/qwik/optimizer";
-import { qwikCity } from "@builder.io/qwik-city/vite";
-import crypto from "crypto";
-import tsconfigPaths from "vite-tsconfig-paths";
-import basicSsl from "@vitejs/plugin-basic-ssl";
+import { defineConfig, type UserConfig, type Plugin } from 'vite';
+import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikCity } from '@builder.io/qwik-city/vite';
+import crypto from 'crypto';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 /**
  * Note that Vite normally starts from `index.html` but the qwikCity plugin makes start at `src/entry.ssr.tsx` instead.
  */
 function createBulkPlugin(): Plugin {
   return {
-    name: "add-bulk-and-track",
+    name: 'add-bulk-and-track',
     transform(code, id) {
       // Only process JavaScript/TypeScript files
       if (!id.match(/(\.[cm]?[jt]sx?$|@qwik)/)) {
@@ -21,7 +21,7 @@ function createBulkPlugin(): Plugin {
       }
 
       // Generate deterministic bulk based on filename
-      const hash = crypto.createHash("sha256").update(id).digest();
+      const hash = crypto.createHash('sha256').update(id).digest();
 
       // Create bulk with an exponential-like distribution between 0kb and 50kb
       // Most files will be closer to 0kb, with a few reaching 50kb
@@ -31,16 +31,16 @@ function createBulkPlugin(): Plugin {
       const bulkSize = Math.floor(maxSize * exp);
 
       // Create repeatable random bulk using the hash as seed
-      const prng = crypto.createHash("sha512").update(id).digest();
+      const prng = crypto.createHash('sha512').update(id).digest();
       const bulk = Array.from({ length: Math.ceil(bulkSize / 64) }, (_, i) => {
         // Use the hash as a seed to generate new random blocks
         const block = crypto
-          .createHash("sha512")
+          .createHash('sha512')
           .update(prng)
           .update(Buffer.from([i]))
-          .digest("base64");
+          .digest('base64');
         return block;
-      }).join("");
+      }).join('');
 
       // Add tracking code and bulk assignment at the start of each module
       const trackingCode = `
@@ -66,7 +66,7 @@ export default defineConfig((): UserConfig => {
       qwikCity(),
       qwikVite({ debug: true }),
       createBulkPlugin(),
-      tsconfigPaths({ root: "." }),
+      tsconfigPaths({ root: '.' }),
       basicSsl(),
     ],
     build: {
@@ -75,7 +75,7 @@ export default defineConfig((): UserConfig => {
         output: {
           manualChunks: (id) => {
             // Put library code in separate chunks
-            if (id.includes("vendor-lib")) {
+            if (id.includes('vendor-lib')) {
               return id;
             }
           },

@@ -1,4 +1,4 @@
-import { component$, useVisibleTask$, useSignal } from "@builder.io/qwik";
+import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
   const width = useSignal(0);
@@ -15,7 +15,7 @@ export default component$(() => {
 
   return (
     <section>
-      <article ref={outputRef} style={{ border: "1px solid red", width: "100px" }}>
+      <article ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
         Change text value here to stretch the box.
       </article>
       <p>

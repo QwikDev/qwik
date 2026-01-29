@@ -1,30 +1,30 @@
 /* eslint-disable */
-import type { BrowserContext, Page, Response } from "@playwright/test";
-import { expect } from "@playwright/test";
+import type { BrowserContext, Page, Response } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 export async function assertPage(ctx: TestContext, test: AssertPage) {
   const page = getPage(ctx);
   const pageUrl = new URL(page.url());
-  const html = page.locator("html");
+  const html = page.locator('html');
 
-  expect(await html.getAttribute("q:version")).toBeDefined();
-  expect(await html.getAttribute("q:base")).toBeDefined();
-  expect(await html.getAttribute("q:id")).toBeDefined();
+  expect(await html.getAttribute('q:version')).toBeDefined();
+  expect(await html.getAttribute('q:base')).toBeDefined();
+  expect(await html.getAttribute('q:id')).toBeDefined();
 
-  const head = html.locator("head");
-  expect(await head.getAttribute("q:id")).toBeDefined();
+  const head = html.locator('head');
+  expect(await head.getAttribute('q:id')).toBeDefined();
 
   if (test.pathname) {
     expect(pageUrl.pathname).toBe(test.pathname);
 
     const canonical = head.locator('link[rel="canonical"]');
-    const href = await canonical.getAttribute("href");
+    const href = await canonical.getAttribute('href');
     const canonicalUrl = new URL(href!);
     expect(canonicalUrl.pathname).toBe(test.pathname);
   }
 
   if (test.searchParams) {
-    if (test.searchParams === "empty") {
+    if (test.searchParams === 'empty') {
       expect(pageUrl.searchParams.size).toBe(0);
     } else {
       for (const [key, value] of Object.entries(test.searchParams)) {
@@ -34,38 +34,38 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
   }
 
   if (test.title) {
-    const title = head.locator("title");
+    const title = head.locator('title');
     expect(await title.innerText()).toBe(test.title);
   }
 
-  let parentLocator = page.locator("body");
+  let parentLocator = page.locator('body');
   if (test.layoutHierarchy) {
     for (const layoutName of test.layoutHierarchy) {
       const selector = `[data-test-layout="${layoutName}"]`;
       parentLocator = parentLocator.locator(selector);
       expect(
         await parentLocator.isVisible(),
-        `Incorrect layout hierarchy, did not find "${selector}", pathname: ${pageUrl.pathname}`,
+        `Incorrect layout hierarchy, did not find "${selector}", pathname: ${pageUrl.pathname}`
       ).toBe(true);
     }
 
     const noFindChildLayout = parentLocator.locator(`[data-test-layout]`);
     if (await noFindChildLayout.isVisible()) {
-      const layoutName = await noFindChildLayout.getAttribute("data-test-layout")!;
+      const layoutName = await noFindChildLayout.getAttribute('data-test-layout')!;
       expect(
         layoutName,
-        `Should not be another nested layout, but found [data-test-layout="${layoutName}"], pathname: ${pageUrl.pathname}`,
+        `Should not be another nested layout, but found [data-test-layout="${layoutName}"], pathname: ${pageUrl.pathname}`
       ).toBe(null);
     }
   }
 
   if (test.h1) {
-    const h1 = parentLocator.locator("h1");
+    const h1 = parentLocator.locator('h1');
     expect(await h1.innerText()).toBe(test.h1);
   }
 
   const activeLink = locator(ctx, `header [data-test-header-links] a[class="active"]`);
-  if (typeof test.activeHeaderLink === "string") {
+  if (typeof test.activeHeaderLink === 'string') {
     if (await activeLink.isVisible()) {
       expect(await activeLink.innerText()).toBe(test.activeHeaderLink);
     } else {
@@ -80,7 +80,7 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
 
 interface AssertPage {
   pathname?: string;
-  searchParams?: Record<string, string> | "empty";
+  searchParams?: Record<string, string> | 'empty';
   title?: string;
   h1?: string;
   layoutHierarchy?: string[];
@@ -95,7 +95,7 @@ export async function linkNavigate(ctx: TestContext, linkSelector: string, respo
     expect(true, `Link selector ${linkSelector} not found`).toBe(false);
   }
 
-  const href = await link.getAttribute("href")!;
+  const href = await link.getAttribute('href')!;
   console.log(`       ${href}`);
 
   if (ctx.javaScriptEnabled) {
@@ -130,8 +130,8 @@ export async function scrollDetector(page: Page) {
   return page.evaluate(
     () =>
       new Promise<void>((resolve) =>
-        document.addEventListener("scroll", () => resolve(), { once: true }),
-      ),
+        document.addEventListener('scroll', () => resolve(), { once: true })
+      )
   );
 }
 
@@ -139,7 +139,7 @@ export async function scrollDebounceDetector(page: Page) {
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
       const checkInterval = setInterval(() => {
-        if (!window["_qCityScrollDebounce"]) {
+        if (!window['_qCityScrollDebounce']) {
           clearInterval(checkInterval);
           resolve();
         }
@@ -170,9 +170,9 @@ export async function setPage(ctx: TestContext, pathname: string) {
 export async function load(
   browserContext: BrowserContext,
   javaScriptEnabled: boolean | undefined,
-  pathname: string,
+  pathname: string
 ): Promise<TestContext> {
-  console.log(`Load: ${pathname} (js ${javaScriptEnabled ? "enabled" : "disabled"})`);
+  console.log(`Load: ${pathname} (js ${javaScriptEnabled ? 'enabled' : 'disabled'})`);
 
   const page = await browserContext.newPage();
   const response = (await page.goto(pathname))!;

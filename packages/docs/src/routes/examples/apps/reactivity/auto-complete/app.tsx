@@ -1,4 +1,4 @@
-import { component$, useStore, useTask$ } from "@builder.io/qwik";
+import { component$, useStore, useTask$ } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
@@ -6,7 +6,7 @@ export default component$(() => {
       This example features an auto-complete component with a debounce of 150 ms.
       <br />
       <br />
-      Go ahead, search for Star Wars characters such as "Luke Skywalker", it uses the{" "}
+      Go ahead, search for Star Wars characters such as "Luke Skywalker", it uses the{' '}
       <a href="https://swapi.py4e.com/">Star Wars API</a>:
       <br />
       <br />
@@ -23,9 +23,9 @@ interface IState {
 
 export const AutoComplete = component$(() => {
   const state = useStore<IState>({
-    searchInput: "",
+    searchInput: '',
     searchResults: [],
-    selectedValue: "",
+    selectedValue: '',
   });
 
   useTask$(async ({ track }) => {
@@ -77,7 +77,7 @@ const getPeople = (searchInput: string, controller?: AbortController): Promise<s
     .then((parsedResponse) => {
       return parsedResponse.results.map((people: { name: string }) => people.name);
     })
-    .catch((e) => console.error("fetch failed", e));
+    .catch((e) => console.error('fetch failed', e));
 
 function debounce<F extends (...args: any) => any>(fn: F, delay = 500) {
   let timeoutId: ReturnType<typeof setTimeout>;

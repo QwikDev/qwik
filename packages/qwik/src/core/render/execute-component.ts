@@ -1,24 +1,24 @@
-import { assertDefined } from "../error/assert";
-import { RenderEvent } from "../util/markers";
-import { maybeThen, promiseAllLazy, safeCall } from "../util/promises";
-import { newInvokeContext } from "../use/use-core";
-import { isArray, isFunction, isString, type ValueOrPromise } from "../util/types";
-import type { JSXNode, JSXOutput } from "./jsx/types/jsx-node";
-import type { ClassList } from "./jsx/types/jsx-qwik-attributes";
-import type { RenderContext } from "./types";
-import { type ContainerState, intToStr } from "../container/container";
-import { fromCamelToKebabCase } from "../util/case";
-import { qError, QError_stringifyClassOrStyle } from "../error/error";
-import { seal } from "../util/qdev";
-import { SkipRender } from "./jsx/utils.public";
-import { handleError } from "./error-handling";
-import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from "../state/context";
-import { isSignal, SignalUnassignedException } from "../state/signal";
-import { isJSXNode } from "./jsx/jsx-runtime";
-import { isUnitlessNumber } from "../util/unitless_number";
-import { isServerPlatform } from "../platform/platform";
-import { executeSSRTasks } from "./dom/notify-render";
-import { logWarn } from "../util/log";
+import { assertDefined } from '../error/assert';
+import { RenderEvent } from '../util/markers';
+import { maybeThen, promiseAllLazy, safeCall } from '../util/promises';
+import { newInvokeContext } from '../use/use-core';
+import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
+import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
+import type { ClassList } from './jsx/types/jsx-qwik-attributes';
+import type { RenderContext } from './types';
+import { type ContainerState, intToStr } from '../container/container';
+import { fromCamelToKebabCase } from '../util/case';
+import { qError, QError_stringifyClassOrStyle } from '../error/error';
+import { seal } from '../util/qdev';
+import { SkipRender } from './jsx/utils.public';
+import { handleError } from './error-handling';
+import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/context';
+import { isSignal, SignalUnassignedException } from '../state/signal';
+import { isJSXNode } from './jsx/jsx-runtime';
+import { isUnitlessNumber } from '../util/unitless_number';
+import { isServerPlatform } from '../platform/platform';
+import { executeSSRTasks } from './dom/notify-render';
+import { logWarn } from '../util/log';
 
 export interface ExecuteComponentOutput {
   node: JSXOutput;
@@ -28,7 +28,7 @@ export interface ExecuteComponentOutput {
 export const executeComponent = (
   rCtx: RenderContext,
   elCtx: QContext,
-  attempt?: number,
+  attempt?: number
 ): ValueOrPromise<ExecuteComponentOutput> => {
   elCtx.$flags$ &= ~HOST_FLAG_DIRTY;
   elCtx.$flags$ |= HOST_FLAG_MOUNTED;
@@ -64,8 +64,8 @@ export const executeComponent = (
           ? maybeThen(promiseAllLazy(waitOn), () =>
               // Run dirty tasks before SSR output is generated.
               maybeThen(executeSSRTasks(rCtx.$static$.$containerState$, rCtx), () =>
-                promiseAllLazy(waitOn),
-              ),
+                promiseAllLazy(waitOn)
+              )
             )
           : promiseAllLazy(waitOn),
         () => {
@@ -80,7 +80,7 @@ export const executeComponent = (
             node: jsxNode,
             rCtx: newCtx,
           };
-        },
+        }
       );
     },
     (err) => {
@@ -98,13 +98,13 @@ export const executeComponent = (
         node: SkipRender,
         rCtx: newCtx,
       };
-    },
+    }
   );
 };
 
 export const createRenderContext = (
   doc: Document,
-  containerState: ContainerState,
+  containerState: ContainerState
 ): RenderContext => {
   const ctx: RenderContext = {
     $static$: {
@@ -138,17 +138,17 @@ export const pushRenderContext = (ctx: RenderContext): RenderContext => {
 
 export const serializeClassWithHost = (
   obj: ClassList,
-  hostCtx: QContext | undefined | null,
+  hostCtx: QContext | undefined | null
 ): string => {
   if (hostCtx?.$scopeIds$?.length) {
-    return hostCtx.$scopeIds$.join(" ") + " " + serializeClass(obj);
+    return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
   }
   return serializeClass(obj);
 };
 
 export const serializeClass = (obj: ClassList): string => {
   if (!obj) {
-    return "";
+    return '';
   }
   if (isString(obj)) {
     return obj.trim();
@@ -171,39 +171,39 @@ export const serializeClass = (obj: ClassList): string => {
     }
   }
 
-  return classes.join(" ");
+  return classes.join(' ');
 };
 
 export const stringifyStyle = (obj: any): string => {
   if (obj == null) {
-    return "";
+    return '';
   }
-  if (typeof obj == "object") {
+  if (typeof obj == 'object') {
     if (isArray(obj)) {
-      throw qError(QError_stringifyClassOrStyle, obj, "style");
+      throw qError(QError_stringifyClassOrStyle, obj, 'style');
     } else {
       const chunks: string[] = [];
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
-          if (value != null && typeof value !== "function") {
-            if (key.startsWith("--")) {
-              chunks.push(key + ":" + value);
+          if (value != null && typeof value !== 'function') {
+            if (key.startsWith('--')) {
+              chunks.push(key + ':' + value);
             } else {
-              chunks.push(fromCamelToKebabCase(key) + ":" + setValueForStyle(key, value));
+              chunks.push(fromCamelToKebabCase(key) + ':' + setValueForStyle(key, value));
             }
           }
         }
       }
-      return chunks.join(";");
+      return chunks.join(';');
     }
   }
   return String(obj);
 };
 
 export const setValueForStyle = (styleName: string, value: any) => {
-  if (typeof value === "number" && value !== 0 && !isUnitlessNumber(styleName)) {
-    return value + "px";
+  if (typeof value === 'number' && value !== 0 && !isUnitlessNumber(styleName)) {
+    return value + 'px';
   }
   return value;
 };
@@ -221,11 +221,11 @@ export const jsxToString = (data: any): string => {
   if (isSignal(data)) {
     return jsxToString(data.value);
   }
-  return data == null || typeof data === "boolean" ? "" : String(data);
+  return data == null || typeof data === 'boolean' ? '' : String(data);
 };
 
 export function isAriaAttribute(prop: string): boolean {
-  return prop.startsWith("aria-");
+  return prop.startsWith('aria-');
 }
 
 export const shouldWrapFunctional = (res: unknown, node: JSXNode) => {
@@ -237,4 +237,4 @@ export const shouldWrapFunctional = (res: unknown, node: JSXNode) => {
 
 export const static_listeners = 1 << 0;
 export const static_subtree = 1 << 1;
-export const dangerouslySetInnerHTML = "dangerouslySetInnerHTML";
+export const dangerouslySetInnerHTML = 'dangerouslySetInnerHTML';

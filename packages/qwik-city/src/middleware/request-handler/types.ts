@@ -1,10 +1,10 @@
-import type { _deserializeData, _serializeData, _verifySerializable } from "@builder.io/qwik";
-import type { Action, FailReturn, Loader, QwikCityPlan } from "@builder.io/qwik-city";
-import type { Render, RenderOptions } from "@builder.io/qwik/server";
-import type { ServerError } from "./server-error";
-import type { AbortMessage, RedirectMessage } from "./redirect-handler";
-import type { RequestEventInternal } from "./request-event";
-import type { RewriteMessage } from "./rewrite-handler";
+import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import type { Action, FailReturn, Loader, QwikCityPlan } from '@builder.io/qwik-city';
+import type { Render, RenderOptions } from '@builder.io/qwik/server';
+import type { ServerError } from './server-error';
+import type { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { RequestEventInternal } from './request-event';
+import type { RewriteMessage } from './rewrite-handler';
 
 /** @public */
 export interface EnvGetter {
@@ -33,7 +33,7 @@ export interface ServerRequestEvent<T = unknown> {
 }
 
 /** @public */
-export type ServerRequestMode = "dev" | "static" | "server";
+export type ServerRequestMode = 'dev' | 'static' | 'server';
 
 /** @public */
 export type ServerResponseHandler<T = any> = (
@@ -41,7 +41,7 @@ export type ServerResponseHandler<T = any> = (
   headers: Headers,
   cookies: Cookie,
   resolve: (response: T) => void,
-  requestEv: RequestEventInternal,
+  requestEv: RequestEventInternal
 ) => WritableStream<Uint8Array>;
 
 /** @public */
@@ -58,12 +58,12 @@ export interface ServerRenderOptions extends RenderOptions {
    *
    * Defaults to `true`.
    */
-  checkOrigin?: boolean | "lax-proto";
+  checkOrigin?: boolean | 'lax-proto';
 }
 
 /** @public */
 export type RequestHandler<PLATFORM = QwikCityPlatform> = (
-  ev: RequestEvent<PLATFORM>,
+  ev: RequestEvent<PLATFORM>
 ) => Promise<void> | void;
 
 /** @public */
@@ -365,13 +365,13 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
 export type CacheControl =
   | CacheControlOptions
   | number
-  | "day"
-  | "week"
-  | "month"
-  | "year"
-  | "no-cache"
-  | "immutable"
-  | "private";
+  | 'day'
+  | 'week'
+  | 'month'
+  | 'year'
+  | 'no-cache'
+  | 'immutable'
+  | 'private';
 
 /** @public */
 export interface CacheControlOptions {
@@ -448,11 +448,11 @@ export interface CacheControlOptions {
 
 /** @public */
 export type CacheControlTarget =
-  | "Cache-Control"
-  | "CDN-Cache-Control"
-  | "Cloudflare-CDN-Cache-Control"
-  | "Vercel-CDN-Cache-Control"
-  | "~ANY-OTHER-STRING"
+  | 'Cache-Control'
+  | 'CDN-Cache-Control'
+  | 'Cloudflare-CDN-Cache-Control'
+  | 'Vercel-CDN-Cache-Control'
+  | '~ANY-OTHER-STRING'
   | (string & {});
 
 /** @public */
@@ -529,7 +529,7 @@ export interface Cookie {
    */
   append(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
   /** Deletes cookie value by name using the `Response` cookie header. */
-  delete(name: string, options?: Pick<CookieOptions, "path" | "domain" | "sameSite">): void;
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;
   /** Returns an array of all the set `Response` `Set-Cookie` header values. */
   headers(): string[];
 }
@@ -563,7 +563,7 @@ export interface CookieOptions {
    * can also use the array syntax to set the max-age using minutes, hours, days or weeks. For
    * example, `{ maxAge: [3, "days"] }` would set the cookie to expire in 3 days.
    */
-  maxAge?: number | [number, "seconds" | "minutes" | "hours" | "days" | "weeks"];
+  maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
   /**
    * Indicates the path that must exist in the requested URL for the browser to send the Cookie
    * header.
@@ -573,7 +573,7 @@ export interface CookieOptions {
    * Controls whether or not a cookie is sent with cross-site requests, providing some protection
    * against cross-site request forgery attacks (CSRF).
    */
-  sameSite?: "strict" | "lax" | "none" | "Strict" | "Lax" | "None" | boolean;
+  sameSite?: 'strict' | 'lax' | 'none' | 'Strict' | 'Lax' | 'None' | boolean;
   /**
    * Indicates that the cookie is sent to the server only when a request is made with the `https:`
    * scheme (except on localhost)
@@ -597,12 +597,12 @@ export interface QwikSerializer {
 
 /** @public */
 export type HttpMethod =
-  | "GET"
-  | "POST"
-  | "PUT"
-  | "DELETE"
-  | "PATCH"
-  | "HEAD"
-  | "OPTIONS"
-  | "CONNECT"
-  | "TRACE";
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'PATCH'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'CONNECT'
+  | 'TRACE';

@@ -6,9 +6,9 @@ import {
   $,
   type QwikJSX,
   type QRLEventHandlerMulti,
-} from "@builder.io/qwik";
-import type { ActionStore } from "./types";
-import { useNavigate } from "./use-functions";
+} from '@builder.io/qwik';
+import type { ActionStore } from './types';
+import { useNavigate } from './use-functions';
 
 /** @public */
 export interface FormSubmitCompletedDetail<T> {
@@ -18,8 +18,8 @@ export interface FormSubmitCompletedDetail<T> {
 
 /** @public */
 export interface FormProps<O, I> extends Omit<
-  QwikJSX.IntrinsicElements["form"],
-  "action" | "method"
+  QwikJSX.IntrinsicElements['form'],
+  'action' | 'method'
 > {
   /** Reference to the action returned by `action()`. */
   action?: ActionStore<O, I, true | false>;
@@ -52,18 +52,18 @@ export interface FormProps<O, I> extends Omit<
 /** @public */
 export const Form = <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
-  key: string | null,
+  key: string | null
 ) => {
   if (action) {
     const isArrayApi = Array.isArray(onSubmit$);
     // if you pass an array you can choose where you want action.submit in it
     if (isArrayApi) {
       return jsx(
-        "form",
+        'form',
         {
           ...rest,
           action: action.actionPath,
-          "preventdefault:submit": !reloadDocument,
+          'preventdefault:submit': !reloadDocument,
           onSubmit$: [
             ...onSubmit$,
             // action.submit "submitcompleted" event for onSubmitCompleted$ events
@@ -75,28 +75,28 @@ export const Form = <O, I>(
                 })
               : undefined,
           ],
-          method: "post",
-          ["data-spa-reset"]: spaReset ? "true" : undefined,
+          method: 'post',
+          ['data-spa-reset']: spaReset ? 'true' : undefined,
         },
-        key,
+        key
       );
     }
     return jsx(
-      "form",
+      'form',
       {
         ...rest,
         action: action.actionPath,
-        "preventdefault:submit": !reloadDocument,
+        'preventdefault:submit': !reloadDocument,
         onSubmit$: [
           // action.submit "submitcompleted" event for onSubmitCompleted$ events
           !reloadDocument ? action.submit : undefined,
           // TODO: v2 breaking change this should fire before the action.submit
           onSubmit$,
         ],
-        method: "post",
-        ["data-spa-reset"]: spaReset ? "true" : undefined,
+        method: 'post',
+        ['data-spa-reset']: spaReset ? 'true' : undefined,
       },
-      key,
+      key
     );
   } else {
     return (
@@ -118,7 +118,7 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
       <form
         action="get"
         preventdefault:submit={!reloadDocument}
-        data-spa-reset={spaReset ? "true" : undefined}
+        data-spa-reset={spaReset ? 'true' : undefined}
         {...rest}
         onSubmit$={[
           ...(Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]),
@@ -126,25 +126,25 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
             const formData = new FormData(form);
             const params = new URLSearchParams();
             formData.forEach((value, key) => {
-              if (typeof value === "string") {
+              if (typeof value === 'string') {
                 params.append(key, value);
               }
             });
-            await nav("?" + params.toString(), { type: "form", forceReload: true });
+            await nav('?' + params.toString(), { type: 'form', forceReload: true });
           }),
           $((_evt, form) => {
-            if (form.getAttribute("data-spa-reset") === "true") {
+            if (form.getAttribute('data-spa-reset') === 'true') {
               form.reset();
             }
             form.dispatchEvent(
-              new CustomEvent("submitcompleted", {
+              new CustomEvent('submitcompleted', {
                 bubbles: false,
                 cancelable: false,
                 composed: false,
                 detail: {
                   status: 200,
                 },
-              }),
+              })
             );
             //
           }),
@@ -154,5 +154,5 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
         <Slot />
       </form>
     );
-  },
+  }
 );

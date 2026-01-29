@@ -2,24 +2,24 @@ import type {
   ServerRenderOptions,
   ServerRequestEvent,
   ClientConn,
-} from "@builder.io/qwik-city/middleware/request-handler";
+} from '@builder.io/qwik-city/middleware/request-handler';
 import {
   mergeHeadersCookies,
   requestHandler,
-} from "@builder.io/qwik-city/middleware/request-handler";
-import { getNotFound } from "@qwik-city-not-found-paths";
-import { isStaticPath } from "@qwik-city-static-paths";
-import { _deserializeData, _serializeData, _verifySerializable } from "@builder.io/qwik";
-import { setServerPlatform } from "@builder.io/qwik/server";
-import { MIME_TYPES } from "../request-handler/mime-types";
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { setServerPlatform } from '@builder.io/qwik/server';
+import { MIME_TYPES } from '../request-handler/mime-types';
 // @ts-ignore
-import { extname, fromFileUrl, join } from "https://deno.land/std/path/mod.ts";
+import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 
 // @builder.io/qwik-city/middleware/deno
 
 /** @public */
 export interface NetAddr {
-  transport: "tcp" | "udp";
+  transport: 'tcp' | 'udp';
   hostname: string;
   port: number;
 }
@@ -31,7 +31,7 @@ export interface ServeHandlerInfo {
 
 function getRequestUrl(request: Request, opts: QwikCityDenoOptions, info?: ServeHandlerInfo) {
   const url = new URL(request.url);
-  const origin = opts.getOrigin?.(request, info) ?? Deno.env?.get?.("ORIGIN");
+  const origin = opts.getOrigin?.(request, info) ?? Deno.env?.get?.('ORIGIN');
   if (!origin) {
     return url;
   }
@@ -49,14 +49,14 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
     setServerPlatform(opts.manifest);
   }
 
-  const staticFolder = opts.static?.root ?? join(fromFileUrl(import.meta.url), "..", "..", "dist");
+  const staticFolder = opts.static?.root ?? join(fromFileUrl(import.meta.url), '..', '..', 'dist');
 
   async function router(request: Request, info: ServeHandlerInfo) {
     try {
       const url = getRequestUrl(request, opts, info);
 
       const serverRequestEv: ServerRequestEvent<Response> = {
-        mode: "server",
+        mode: 'server',
         locale: undefined,
         url,
         // @ts-ignore
@@ -101,9 +101,9 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
       return null;
     } catch (e: any) {
       console.error(e);
-      return new Response(String(e || "Error"), {
+      return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Error": "deno-server" },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'deno-server' },
       });
     }
   }
@@ -115,32 +115,32 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
       // In the development server, we replace the getNotFound function
       // For static paths, we assign a static "Not Found" message.
       // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml = isStaticPath(request.method || "GET", url)
-        ? "Not Found"
+      const notFoundHtml = isStaticPath(request.method || 'GET', url)
+        ? 'Not Found'
         : getNotFound(url.pathname);
       return new Response(notFoundHtml, {
         status: 404,
-        headers: { "Content-Type": "text/html; charset=utf-8", "X-Not-Found": url.pathname },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
       });
     } catch (e) {
       console.error(e);
-      return new Response(String(e || "Error"), {
+      return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Error": "deno-server" },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'deno-server' },
       });
     }
   };
 
   const openStaticFile = async (url: URL) => {
     const pathname = url.pathname;
-    const fileName = pathname.slice(url.pathname.lastIndexOf("/"));
+    const fileName = pathname.slice(url.pathname.lastIndexOf('/'));
     let filePath: string;
-    if (fileName.includes(".")) {
+    if (fileName.includes('.')) {
       filePath = join(staticFolder, pathname);
     } else if (opts.qwikCityPlan.trailingSlash) {
-      filePath = join(staticFolder, pathname + "index.html");
+      filePath = join(staticFolder, pathname + 'index.html');
     } else {
-      filePath = join(staticFolder, pathname, "index.html");
+      filePath = join(staticFolder, pathname, 'index.html');
     }
     return {
       filePath,
@@ -153,15 +153,15 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
     try {
       const url = getRequestUrl(request, opts);
 
-      if (isStaticPath(request.method || "GET", url)) {
+      if (isStaticPath(request.method || 'GET', url)) {
         const { filePath, content } = await openStaticFile(url);
-        const ext = extname(filePath).replace(/^\./, "");
+        const ext = extname(filePath).replace(/^\./, '');
 
         return new Response(content.readable, {
           status: 200,
           headers: {
-            "content-type": MIME_TYPES[ext] || "text/plain; charset=utf-8",
-            "Cache-Control": opts.static?.cacheControl || "max-age=3600",
+            'content-type': MIME_TYPES[ext] || 'text/plain; charset=utf-8',
+            'Cache-Control': opts.static?.cacheControl || 'max-age=3600',
           },
         });
       }
@@ -169,9 +169,9 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
       return null;
     } catch (e) {
       console.error(e);
-      return new Response(String(e || "Error"), {
+      return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Error": "deno-server" },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'deno-server' },
       });
     }
   };

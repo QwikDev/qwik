@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import { BuilderLogo } from "../svgs/builder-logo";
+import { component$ } from '@builder.io/qwik';
+import { BuilderLogo } from '../svgs/builder-logo';
 
 export const Sponsors = component$(() => {
   // the margin tops are to counterract the margin in the builder block

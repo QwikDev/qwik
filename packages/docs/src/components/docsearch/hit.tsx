@@ -1,6 +1,6 @@
-import { component$, Slot } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
-import type { InternalDocSearchHit, StoredDocSearchHit } from "./types";
+import { component$, Slot } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
+import type { InternalDocSearchHit, StoredDocSearchHit } from './types';
 
 interface HitProps {
   hit: InternalDocSearchHit | StoredDocSearchHit;

@@ -1,8 +1,8 @@
-import { build, type BuildOptions, type Plugin } from "esbuild";
-import { join } from "node:path";
-import { type BuildConfig, getBanner, importPath, nodeTarget, target } from "./util.ts";
-import { inlineQwikScriptsEsBuild } from "./submodule-qwikloader.ts";
-import { readPackageJson } from "./package-json.ts";
+import { build, type BuildOptions, type Plugin } from 'esbuild';
+import { join } from 'node:path';
+import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util.ts';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
+import { readPackageJson } from './package-json.ts';
 
 /**
  * Builds @builder.io/server
@@ -11,82 +11,82 @@ import { readPackageJson } from "./package-json.ts";
  * utilities for prerendering and unit testing.
  */
 export async function submoduleServer(config: BuildConfig) {
-  const submodule = "server";
+  const submodule = 'server';
 
   const qwikDomPlugin = await bundleQwikDom(config);
   const qwikDomVersion = await getQwikDomVersion(config);
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcQwikDir, submodule, "index.ts")],
-    entryNames: "server",
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
+    entryNames: 'server',
     outdir: config.distQwikPkgDir,
     sourcemap: config.dev,
     bundle: true,
-    platform: "node",
+    platform: 'node',
     target,
     external: [
       /* no Node.js built-in externals allowed! */
-      "@builder.io/qwik/build",
-      "@builder.io/qwik/preloader",
-      "@qwik-client-manifest",
+      '@builder.io/qwik/build',
+      '@builder.io/qwik/preloader',
+      '@qwik-client-manifest',
     ],
   };
 
   const esm = build({
     ...opts,
-    format: "esm",
-    banner: { js: getBanner("@builder.io/qwik/server", config.distVersion) },
-    outExtension: { ".js": ".mjs" },
-    plugins: [importPath(/^@builder\.io\/qwik$/, "@builder.io/qwik"), qwikDomPlugin],
+    format: 'esm',
+    banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) },
+    outExtension: { '.js': '.mjs' },
+    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
-      "globalThis.IS_CJS": "false",
-      "globalThis.IS_ESM": "true",
-      "globalThis.QWIK_VERSION": JSON.stringify(config.distVersion),
-      "globalThis.QWIK_DOM_VERSION": JSON.stringify(qwikDomVersion),
+      'globalThis.IS_CJS': 'false',
+      'globalThis.IS_ESM': 'true',
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
     },
   });
 
   const cjsBanner = [
-    getBanner("@builder.io/qwik/server", config.distVersion),
+    getBanner('@builder.io/qwik/server', config.distVersion),
     `globalThis.qwikServer = (function (module) {`,
     browserCjsRequireShim,
-  ].join("\n");
+  ].join('\n');
 
   const cjs = build({
     ...opts,
-    format: "cjs",
+    format: 'cjs',
     banner: {
       js: cjsBanner,
     },
     footer: {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
     },
-    outExtension: { ".js": ".cjs" },
-    plugins: [importPath(/^@builder\.io\/qwik$/, "@builder.io/qwik"), qwikDomPlugin],
+    outExtension: { '.js': '.cjs' },
+    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
     target: nodeTarget,
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
-      "globalThis.IS_CJS": "true",
-      "globalThis.IS_ESM": "false",
-      "globalThis.QWIK_VERSION": JSON.stringify(config.distVersion),
-      "globalThis.QWIK_DOM_VERSION": JSON.stringify(qwikDomVersion),
+      'globalThis.IS_CJS': 'true',
+      'globalThis.IS_ESM': 'false',
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
       // We need to get rid of the import.meta.env values
       // Vite's base url
-      "import.meta.env.BASE_URL": "\"globalThis.BASE_URL||'/'\"",
+      'import.meta.env.BASE_URL': '"globalThis.BASE_URL||\'/\'"',
       // Vite's devserver mode
-      "import.meta.env.DEV": "false",
+      'import.meta.env.DEV': 'false',
     },
   });
 
   await Promise.all([esm, cjs]);
 
-  console.log("🐰", submodule);
+  console.log('🐰', submodule);
 }
 
 async function bundleQwikDom(config: BuildConfig) {
-  const input = join(config.packagesDir, "qwik-dom", "lib", "index.js");
-  const outfile = join(config.tmpDir, "qwikdom.mjs");
+  const input = join(config.packagesDir, 'qwik-dom', 'lib', 'index.js');
+  const outfile = join(config.tmpDir, 'qwikdom.mjs');
 
   const opts: BuildOptions = {
     entryPoints: [input],
@@ -95,13 +95,13 @@ async function bundleQwikDom(config: BuildConfig) {
     bundle: true,
     target,
     outfile,
-    format: "esm",
+    format: 'esm',
   };
 
   await build(opts);
 
   const qwikDomPlugin: Plugin = {
-    name: "qwikDomPlugin",
+    name: 'qwikDomPlugin',
     setup(build) {
       build.onResolve({ filter: /@builder.io\/qwik-dom/ }, () => {
         return {
@@ -115,7 +115,7 @@ async function bundleQwikDom(config: BuildConfig) {
 }
 
 async function getQwikDomVersion(config: BuildConfig) {
-  const pkgJsonPath = join(config.packagesDir, "qwik-dom");
+  const pkgJsonPath = join(config.packagesDir, 'qwik-dom');
   const pkgJson = await readPackageJson(pkgJsonPath);
   return pkgJson.version;
 }

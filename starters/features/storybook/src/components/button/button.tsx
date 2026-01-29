@@ -1,9 +1,9 @@
-import { component$, useStylesScoped$, Slot } from "@builder.io/qwik";
+import { component$, useStylesScoped$, Slot } from '@builder.io/qwik';
 
 export interface ButtonProps {
-  size?: "small" | "medium" | "large";
+  size?: 'small' | 'medium' | 'large';
 }
-export const Button = component$<ButtonProps>(({ size = "medium" }) => {
+export const Button = component$<ButtonProps>(({ size = 'medium' }) => {
   useStylesScoped$(`
     .size-small {
       font-size: 10px;

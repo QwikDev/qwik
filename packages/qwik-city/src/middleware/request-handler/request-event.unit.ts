@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
-import { createRequestEvent } from "./request-event";
-import { RedirectMessage } from "./redirect-handler";
-import type { ServerRequestEvent, QwikSerializer } from "./types";
+import { describe, it, expect, vi } from 'vitest';
+import { createRequestEvent } from './request-event';
+import { RedirectMessage } from './redirect-handler';
+import type { ServerRequestEvent, QwikSerializer } from './types';
 
 const mockQwikSerializer: QwikSerializer = {
   _deserializeData: vi.fn(),
@@ -9,11 +9,11 @@ const mockQwikSerializer: QwikSerializer = {
   _verifySerializable: vi.fn(),
 };
 
-function createMockServerRequestEvent(url = "http://localhost:3000/test"): ServerRequestEvent {
+function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
 
   return {
-    mode: "server",
+    mode: 'server',
     url: new URL(url),
     locale: undefined,
     platform: {},
@@ -21,7 +21,7 @@ function createMockServerRequestEvent(url = "http://localhost:3000/test"): Serve
     env: {
       get: vi.fn(),
     },
-    getClientConn: vi.fn(() => ({ ip: "127.0.0.1" })),
+    getClientConn: vi.fn(() => ({ ip: '127.0.0.1' })),
     getWritableStream: vi.fn(() => {
       const writer = {
         write: vi.fn(),
@@ -36,58 +36,58 @@ function createMockServerRequestEvent(url = "http://localhost:3000/test"): Serve
   };
 }
 
-function createMockRequestEvent(url = "http://localhost:3000/test") {
+function createMockRequestEvent(url = 'http://localhost:3000/test') {
   const serverRequestEv = createMockServerRequestEvent(url);
-  return createRequestEvent(serverRequestEv, null, [], true, "/", mockQwikSerializer, vi.fn());
+  return createRequestEvent(serverRequestEv, null, [], true, '/', mockQwikSerializer, vi.fn());
 }
 
-describe("request-event redirect", () => {
-  it("should not cache redirects by default", () => {
+describe('request-event redirect', () => {
+  it('should not cache redirects by default', () => {
     const requestEv = createMockRequestEvent();
 
-    requestEv.headers.set("Cache-Control", "max-age=3600, public");
+    requestEv.headers.set('Cache-Control', 'max-age=3600, public');
 
-    const result = requestEv.redirect(301, "/new-location");
+    const result = requestEv.redirect(301, '/new-location');
 
     expect(result).toBeInstanceOf(RedirectMessage);
-    expect(requestEv.headers.get("Location")).toBe("/new-location");
-    expect(requestEv.headers.get("Cache-Control")).toBeNull();
+    expect(requestEv.headers.get('Location')).toBe('/new-location');
+    expect(requestEv.headers.get('Cache-Control')).toBeNull();
     expect(requestEv.status()).toBe(301);
   });
 
-  it("should set Cache-Control to no-store for redirects with status > 301", () => {
+  it('should set Cache-Control to no-store for redirects with status > 301', () => {
     const requestEv = createMockRequestEvent();
 
-    const result = requestEv.redirect(307, "/new-location");
+    const result = requestEv.redirect(307, '/new-location');
 
     expect(result).toBeInstanceOf(RedirectMessage);
-    expect(requestEv.headers.get("Location")).toBe("/new-location");
-    expect(requestEv.headers.get("Cache-Control")).toBe("no-store");
+    expect(requestEv.headers.get('Location')).toBe('/new-location');
+    expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
     expect(requestEv.status()).toBe(307);
   });
 
-  it("should fix invalid redirect URLs with multiple slashes", () => {
+  it('should fix invalid redirect URLs with multiple slashes', () => {
     const requestEv = createMockRequestEvent();
 
-    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    const result = requestEv.redirect(302, "/path//with///multiple////slashes");
+    const result = requestEv.redirect(302, '/path//with///multiple////slashes');
 
     expect(result).toBeInstanceOf(RedirectMessage);
-    expect(requestEv.headers.get("Location")).toBe("/path/with/multiple/slashes");
+    expect(requestEv.headers.get('Location')).toBe('/path/with/multiple/slashes');
     expect(consoleSpy).toHaveBeenCalledWith(
-      "Redirect URL /path//with///multiple////slashes is invalid, fixing to /path/with/multiple/slashes",
+      'Redirect URL /path//with///multiple////slashes is invalid, fixing to /path/with/multiple/slashes'
     );
   });
 
-  it("should throw error when trying to redirect after headers are sent", () => {
+  it('should throw error when trying to redirect after headers are sent', () => {
     const requestEv = createMockRequestEvent();
 
     // Trigger getWritableStream to simulate headers being sent
     requestEv.getWritableStream();
 
     expect(() => {
-      requestEv.redirect(302, "/should-fail");
-    }).toThrow("Response already sent");
+      requestEv.redirect(302, '/should-fail');
+    }).toThrow('Response already sent');
   });
 });

@@ -1,4 +1,4 @@
-import { component$ } from "@builder.io/qwik";
+import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
@@ -8,7 +8,7 @@ export default component$(() => {
         if (event.ctrlKey) {
           event.preventDefault();
         }
-        console.log("clicked");
+        console.log('clicked');
       }}
     >
       click me!

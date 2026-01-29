@@ -1,10 +1,10 @@
-import { component$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import { component$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
 
 export default component$(() => {
   const d = new Date();
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: '20px' }}>
       <h1>MIT License</h1>
 
       <p>Copyright {d.getUTCFullYear()} Builder.io</p>
@@ -35,5 +35,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "MIT License",
+  title: 'MIT License',
 };

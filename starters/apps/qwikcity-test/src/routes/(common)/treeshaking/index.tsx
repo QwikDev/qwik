@@ -1,15 +1,15 @@
-import { component$, useSignal } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { component$, useSignal } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const neverUsed = routeLoader$(() => {
   // console.log('neverUsed');
-  return ["SHOULD NOT BE SERIALIZED"];
+  return ['SHOULD NOT BE SERIALIZED'];
 });
 
 export const useUsed = routeLoader$(() => {
   // console.log('used');
 
-  return ["USED, but not serialized"];
+  return ['USED, but not serialized'];
 });
 
 export default component$(() => {

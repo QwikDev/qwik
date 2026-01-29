@@ -1,4 +1,4 @@
-import { component$ } from "@builder.io/qwik";
+import { component$ } from '@builder.io/qwik';
 
 // Inline component: declared using a standard function.
 export const MyButton = (props: { text: string }) => {

@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
-import { component$, useStore } from "@builder.io/qwik";
+import { component$, useStore } from '@builder.io/qwik';
 
 interface CountStore {
   count: number;
 }
 export default component$(() => {
   const store = useStore<CountStore>({ count: 0 });
-  console.log("Render: <App/>");
+  console.log('Render: <App/>');
   return (
     <>
       <code>&lt;App&gt;</code>
@@ -22,7 +22,7 @@ export default component$(() => {
 });
 
 export const Child = component$((props: { store: CountStore }) => {
-  console.log("Render: <Child/>");
+  console.log('Render: <Child/>');
   return (
     <>
       <code>&lt;Child&gt;</code>
@@ -34,7 +34,7 @@ export const Child = component$((props: { store: CountStore }) => {
 });
 
 export const GrandChild = component$((props: { store: CountStore }) => {
-  console.log("Render: <GrandChild/>");
+  console.log('Render: <GrandChild/>');
   return (
     <>
       <code>&lt;GrandChild&gt;</code>

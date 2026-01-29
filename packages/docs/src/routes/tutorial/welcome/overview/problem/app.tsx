@@ -1,4 +1,4 @@
-import { component$, useStore } from "@builder.io/qwik";
+import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
@@ -6,7 +6,7 @@ export default component$(() => {
       <h1>Hello World!</h1>I am a static component, there is no reason to ever download me to the
       client.
       <br />
-      <button onClick$={() => alert("Hello")}>greet!</button>
+      <button onClick$={() => alert('Hello')}>greet!</button>
       <hr />
       <Counter />
     </>

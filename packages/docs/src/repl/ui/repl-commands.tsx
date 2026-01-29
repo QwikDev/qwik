@@ -1,5 +1,5 @@
-import { createPlaygroundShareUrl } from "./repl-share-url";
-import type { ReplAppInput } from "../types";
+import { createPlaygroundShareUrl } from './repl-share-url';
+import type { ReplAppInput } from '../types';
 
 export const ReplCommands = ({ input, enableCopyToPlayground }: ReplCommandProps) => {
   return (

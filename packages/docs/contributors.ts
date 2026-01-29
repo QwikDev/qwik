@@ -1,23 +1,23 @@
-import { fetch } from "undici";
-import fs from "node:fs";
-import path from "node:path";
-import url from "node:url";
-import matter from "gray-matter";
-import { loadEnv } from "vite";
+import { fetch } from 'undici';
+import fs from 'node:fs';
+import path from 'node:path';
+import url from 'node:url';
+import matter from 'gray-matter';
+import { loadEnv } from 'vite';
 
-const rootDir = path.join(path.dirname(url.fileURLToPath(import.meta.url)), "..", "..");
+const rootDir = path.join(path.dirname(url.fileURLToPath(import.meta.url)), '..', '..');
 export const PRIVATE_GITHUB_ACCESS_TOKEN =
-  process.env.GITHUB_TOKEN || loadEnv("", ".", "PRIVATE").PRIVATE_GITHUB_ACCESS_TOKEN;
+  process.env.GITHUB_TOKEN || loadEnv('', '.', 'PRIVATE').PRIVATE_GITHUB_ACCESS_TOKEN;
 
 async function updateContributors() {
-  const routesDir = path.join(rootDir, "packages", "docs", "src", "routes");
+  const routesDir = path.join(rootDir, 'packages', 'docs', 'src', 'routes');
   await updateDocsDir(routesDir);
 }
 
 async function updateDocsDir(dir: string) {
   const items = fs.readdirSync(dir);
   for (const itemName of items) {
-    if (itemName === "index.mdx") {
+    if (itemName === 'index.mdx') {
       await updateGithubCommits(path.join(dir, itemName));
     } else {
       const itemPath = path.join(dir, itemName);
@@ -30,35 +30,35 @@ async function updateDocsDir(dir: string) {
 }
 
 async function updateGithubCommits(filePath: string) {
-  console.log("update:", filePath);
+  console.log('update:', filePath);
 
   const gm = matter.read(filePath);
 
-  const repoPath = path.relative(rootDir, filePath).replace(/\\/g, "/");
+  const repoPath = path.relative(rootDir, filePath).replace(/\\/g, '/');
   const url = new URL(`https://api.github.com/repos/QwikDev/qwik/commits`);
-  url.searchParams.set("since", new Date("2022-01-01").toISOString());
-  url.searchParams.set("path", repoPath);
+  url.searchParams.set('since', new Date('2022-01-01').toISOString());
+  url.searchParams.set('path', repoPath);
 
   const response = await fetch(url.href, {
     headers: {
-      "User-Agent": "Qwik Workshop",
-      "X-GitHub-Api-Version": "2022-11-28",
+      'User-Agent': 'Qwik Workshop',
+      'X-GitHub-Api-Version': '2022-11-28',
       ...(PRIVATE_GITHUB_ACCESS_TOKEN
         ? {
-            Authorization: "Bearer " + PRIVATE_GITHUB_ACCESS_TOKEN,
+            Authorization: 'Bearer ' + PRIVATE_GITHUB_ACCESS_TOKEN,
           }
         : {}),
     },
   });
   if (response.status !== 200) {
-    console.log("error", response.status, response.statusText, await response.text());
+    console.log('error', response.status, response.statusText, await response.text());
     await new Promise((resolve) => setTimeout(resolve, 5000));
     return;
   }
 
   const commits: any = await response.json();
   if (!Array.isArray(commits)) {
-    console.log("error", JSON.stringify(commits));
+    console.log('error', JSON.stringify(commits));
     await new Promise((resolve) => setTimeout(resolve, 5000));
     return;
   }
@@ -108,12 +108,12 @@ async function updateGithubCommits(filePath: string) {
 
   console.log(repoPath, contributors.length);
 
-  if (response.headers.get("x-ratelimit-remaining") === "0") {
-    const resetHeader = response.headers.get("x-ratelimit-reset");
+  if (response.headers.get('x-ratelimit-remaining') === '0') {
+    const resetHeader = response.headers.get('x-ratelimit-reset');
     const resetTime = resetHeader ? parseInt(resetHeader) * 1000 : Date.now() + 1000;
     const waitTime = resetTime - Date.now();
     console.log(
-      `next request is rate limited, waiting ${Math.round(waitTime / 1000 / 60)} minutes`,
+      `next request is rate limited, waiting ${Math.round(waitTime / 1000 / 60)} minutes`
     );
     await new Promise((resolve) => setTimeout(resolve, waitTime));
   }

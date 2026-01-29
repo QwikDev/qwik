@@ -1,15 +1,15 @@
-import type { PageModule, QwikCityPlan, RouteData, PathParams } from "@builder.io/qwik-city";
-import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from "./types";
-import { createRouteTester } from "./routes";
-import { generateNotFoundPages } from "./not-found";
-import { getPathnameForDynamicRoute } from "../utils/pathname";
-import { msToString } from "../utils/format";
-import { pathToFileURL } from "node:url";
-import { relative } from "node:path";
-import { bold, green, dim, red, magenta } from "kleur/colors";
-import { formatError } from "../buildtime/vite/format-error";
-import { buildErrorMessage } from "vite";
-import { extractParamNames } from "./extract-params";
+import type { PageModule, QwikCityPlan, RouteData, PathParams } from '@builder.io/qwik-city';
+import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
+import { createRouteTester } from './routes';
+import { generateNotFoundPages } from './not-found';
+import { getPathnameForDynamicRoute } from '../utils/pathname';
+import { msToString } from '../utils/format';
+import { pathToFileURL } from 'node:url';
+import { relative } from 'node:path';
+import { bold, green, dim, red, magenta } from 'kleur/colors';
+import { formatError } from '../buildtime/vite/format-error';
+import { buildErrorMessage } from 'vite';
+import { extractParamNames } from './extract-params';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -17,7 +17,7 @@ export async function mainThread(sys: System) {
 
   const main = await sys.createMainProcess!();
   const log = await sys.createLogger();
-  log.info("\n" + bold(green("Starting Qwik City SSG...")));
+  log.info('\n' + bold(green('Starting Qwik City SSG...')));
 
   const qwikCityPlan: QwikCityPlan = (await import(pathToFileURL(opts.qwikCityPlanModulePath).href))
     .default;
@@ -26,7 +26,7 @@ export async function mainThread(sys: System) {
   const active = new Set<string>();
   const routes = qwikCityPlan.routes || [];
   const trailingSlash = !!qwikCityPlan.trailingSlash;
-  const includeRoute = createRouteTester(opts.basePathname || "/", opts.include, opts.exclude);
+  const includeRoute = createRouteTester(opts.basePathname || '/', opts.include, opts.exclude);
 
   return new Promise<StaticGenerateResult>((resolve, reject) => {
     try {
@@ -49,12 +49,12 @@ export async function mainThread(sys: System) {
         generatorResult.duration = timer();
 
         if (generatorResult.errors === 0) {
-          log.info(`\n${green("SSG results")}`);
+          log.info(`\n${green('SSG results')}`);
           if (generatorResult.rendered > 0) {
             log.info(
               `- Generated: ${dim(
-                `${generatorResult.rendered} page${generatorResult.rendered === 1 ? "" : "s"}`,
-              )}`,
+                `${generatorResult.rendered} page${generatorResult.rendered === 1 ? '' : 's'}`
+              )}`
             );
           }
 
@@ -63,7 +63,7 @@ export async function mainThread(sys: System) {
           const total = generatorResult.rendered + generatorResult.errors;
           if (total > 0) {
             log.info(
-              `- Average: ${dim(msToString(generatorResult.duration / total) + " per page")}`,
+              `- Average: ${dim(msToString(generatorResult.duration / total) + ' per page')}`
             );
           }
           log.info(``);
@@ -105,7 +105,7 @@ export async function mainThread(sys: System) {
         try {
           active.add(staticRoute.pathname);
 
-          const result = await main.render({ type: "render", ...staticRoute });
+          const result = await main.render({ type: 'render', ...staticRoute });
 
           active.delete(staticRoute.pathname);
 
@@ -116,7 +116,7 @@ export async function mainThread(sys: System) {
             log.error(red(err.message));
             log.error(`  Pathname: ${magenta(staticRoute.pathname)}`);
             Object.assign(formatError(err), {
-              plugin: "qwik-ssg",
+              plugin: 'qwik-ssg',
             });
             log.error(buildErrorMessage(err));
 
@@ -128,7 +128,7 @@ export async function mainThread(sys: System) {
             generatorResult.staticPaths.push(result.pathname);
             const base = opts.rootDir ?? opts.outDir;
             const path = relative(base, result.filePath);
-            const lastSlash = path.lastIndexOf("/");
+            const lastSlash = path.lastIndexOf('/');
             log.info(`${dim(path.slice(0, lastSlash + 1))}${path.slice(lastSlash + 1)}`);
           }
 
@@ -145,16 +145,16 @@ export async function mainThread(sys: System) {
 
           if (pathname !== opts.basePathname) {
             if (trailingSlash) {
-              if (!pathname.endsWith("/")) {
-                const segments = pathname.split("/");
+              if (!pathname.endsWith('/')) {
+                const segments = pathname.split('/');
                 const lastSegment = segments[segments.length - 1];
 
-                if (!lastSegment.includes(".")) {
-                  pathname += "/";
+                if (!lastSegment.includes('.')) {
+                  pathname += '/';
                 }
               }
             } else {
-              if (pathname.endsWith("/")) {
+              if (pathname.endsWith('/')) {
                 pathname = pathname.slice(0, pathname.length - 1);
               }
             }
@@ -183,7 +183,7 @@ export async function mainThread(sys: System) {
 
         if (isValidStaticModule) {
           if (Array.isArray(paramNames) && paramNames.length > 0) {
-            if (typeof pageModule.onStaticGenerate === "function" && paramNames.length > 0) {
+            if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
               // dynamic route page module
               const staticGenerate = await pageModule.onStaticGenerate({
                 env: {
@@ -197,7 +197,7 @@ export async function mainThread(sys: System) {
                   const pathname = getPathnameForDynamicRoute(
                     originalPathname!,
                     paramNames,
-                    params,
+                    params
                   );
                   addToQueue(pathname, params);
                 }
@@ -217,7 +217,7 @@ export async function mainThread(sys: System) {
       };
 
       loadStaticRoutes().catch((e) => {
-        console.error("SSG route loading failed", e);
+        console.error('SSG route loading failed', e);
         reject(e);
       });
     } catch (e) {
@@ -235,13 +235,13 @@ function validateOptions(opts: StaticGenerateOptions) {
   }
 
   let siteOrigin = opts.origin;
-  if (typeof siteOrigin !== "string" || siteOrigin.trim().length === 0) {
+  if (typeof siteOrigin !== 'string' || siteOrigin.trim().length === 0) {
     throw new Error(`Missing "origin" option`);
   }
   siteOrigin = siteOrigin.trim();
-  if (!/:\/\//.test(siteOrigin) || siteOrigin.startsWith("://")) {
+  if (!/:\/\//.test(siteOrigin) || siteOrigin.startsWith('://')) {
     throw new Error(
-      `"origin" must start with a valid protocol, such as "https://" or "http://", received "${siteOrigin}"`,
+      `"origin" must start with a valid protocol, such as "https://" or "http://", received "${siteOrigin}"`
     );
   }
   try {

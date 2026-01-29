@@ -1,4 +1,4 @@
-import { Link, useLocation } from "@builder.io/qwik-city";
+import { Link, useLocation } from '@builder.io/qwik-city';
 import {
   component$,
   useStyles$,
@@ -7,31 +7,31 @@ import {
   type PropsOf,
   useSignal,
   $,
-} from "@builder.io/qwik";
-import { DocSearch } from "../docsearch/doc-search";
-import { CloseIcon } from "../svgs/close-icon";
-import { DiscordLogo } from "../svgs/discord-logo";
-import { GithubLogo } from "../svgs/github-logo";
-import { MoreIcon } from "../svgs/more-icon";
-import { QwikLogo } from "../svgs/qwik-logo";
-import { TwitterLogo } from "../svgs/twitter-logo";
-import styles from "./header.css?inline";
-import { GlobalStore } from "../../context";
+} from '@builder.io/qwik';
+import { DocSearch } from '../docsearch/doc-search';
+import { CloseIcon } from '../svgs/close-icon';
+import { DiscordLogo } from '../svgs/discord-logo';
+import { GithubLogo } from '../svgs/github-logo';
+import { MoreIcon } from '../svgs/more-icon';
+import { QwikLogo } from '../svgs/qwik-logo';
+import { TwitterLogo } from '../svgs/twitter-logo';
+import styles from './header.css?inline';
+import { GlobalStore } from '../../context';
 import {
   getColorPreference,
   setPreference,
   ThemeToggle,
   getEffectiveTheme,
-} from "../theme-toggle/theme-toggle";
-import { SearchIcon } from "../docsearch/icons/SearchIcon";
-import { getPkgManagerPreference } from "../package-manager-tabs";
-import { colorSchemeChangeListener } from "../theme-toggle/theme-script";
+} from '../theme-toggle/theme-toggle';
+import { SearchIcon } from '../docsearch/icons/SearchIcon';
+import { getPkgManagerPreference } from '../package-manager-tabs';
+import { colorSchemeChangeListener } from '../theme-toggle/theme-script';
 
-export const SearchButton = component$<PropsOf<"button">>(({ ...props }) => {
+export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
   return (
     <button
       {...props}
-      class={["DocSearch-Button", props.class]}
+      class={['DocSearch-Button', props.class]}
       type="button"
       title="Search"
       aria-label="Search"
@@ -54,9 +54,9 @@ export const Header = component$(() => {
     globalStore.theme = getEffectiveTheme(pref);
     return colorSchemeChangeListener((isDark) => {
       const currentPref = getColorPreference();
-      if (currentPref === "auto") {
-        globalStore.theme = isDark ? "dark" : "light";
-        setPreference("auto");
+      if (currentPref === 'auto') {
+        globalStore.theme = isDark ? 'dark' : 'light';
+        setPreference('auto');
       }
     });
   });
@@ -69,8 +69,8 @@ export const Header = component$(() => {
     <>
       <header
         class={{
-          "header-container": true,
-          "home-page-header": pathname === "/",
+          'header-container': true,
+          'home-page-header': pathname === '/',
         }}
       >
         <div class="header-inner">
@@ -108,7 +108,7 @@ export const Header = component$(() => {
             <li>
               <Link
                 href="/docs/"
-                class={{ active: pathname.startsWith("/docs") }}
+                class={{ active: pathname.startsWith('/docs') }}
                 onClick$={closeHeaderMenuOpen}
               >
                 <span>Docs</span>
@@ -117,7 +117,7 @@ export const Header = component$(() => {
             <li>
               <Link
                 href="/ecosystem/"
-                class={{ active: pathname.startsWith("/ecosystem") }}
+                class={{ active: pathname.startsWith('/ecosystem') }}
                 onClick$={closeHeaderMenuOpen}
               >
                 <span>Ecosystem</span>
@@ -126,7 +126,7 @@ export const Header = component$(() => {
             <li>
               <a
                 href="/tutorial/welcome/overview/"
-                class={{ active: pathname.startsWith("/tutorial") }}
+                class={{ active: pathname.startsWith('/tutorial') }}
               >
                 <span>Tutorial</span>
               </a>
@@ -134,7 +134,7 @@ export const Header = component$(() => {
             <li>
               <a
                 href="/examples/introduction/hello-world/"
-                class={{ active: pathname.startsWith("/examples") }}
+                class={{ active: pathname.startsWith('/examples') }}
                 aria-label="Qwik playground"
               >
                 <span class="qwiksand" aria-hidden="true">
@@ -145,7 +145,7 @@ export const Header = component$(() => {
             <li>
               <Link
                 href="/blog/"
-                class={{ active: pathname.startsWith("/blog") }}
+                class={{ active: pathname.startsWith('/blog') }}
                 aria-label="Qwik blog"
                 onClick$={closeHeaderMenuOpen}
               >

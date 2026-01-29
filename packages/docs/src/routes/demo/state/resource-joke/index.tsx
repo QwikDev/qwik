@@ -1,7 +1,7 @@
-import { component$, useResource$, Resource, useSignal } from "@builder.io/qwik";
+import { component$, useResource$, Resource, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
-  const query = useSignal("busy");
+  const query = useSignal('busy');
   const jokes = useResource$<{ value: string }[]>(async ({ track, cleanup }) => {
     track(() => query.value);
     // A good practice is to use `AbortController` to abort the fetching of data if
@@ -14,8 +14,8 @@ export default component$(() => {
       return [];
     }
 
-    const url = new URL("https://api.chucknorris.io/jokes/search");
-    url.searchParams.set("query", query.value);
+    const url = new URL('https://api.chucknorris.io/jokes/search');
+    url.searchParams.set('query', query.value);
 
     const resp = await fetch(url, { signal: controller.signal });
     const json = (await resp.json()) as { result: { value: string }[] };

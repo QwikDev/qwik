@@ -1,30 +1,30 @@
-import { component$ } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
+import { component$ } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
 
-import { QwikLogo } from "~/components/svgs/qwik-logo";
-import { DiscordLogo } from "~/components/svgs/discord-logo";
-import { GithubLogo } from "~/components/svgs/github-logo";
-import { TwitterLogo } from "~/components/svgs/twitter-logo";
-import { BlueskyLogo } from "~/components/svgs/bluesky-logo";
+import { QwikLogo } from '~/components/svgs/qwik-logo';
+import { DiscordLogo } from '~/components/svgs/discord-logo';
+import { GithubLogo } from '~/components/svgs/github-logo';
+import { TwitterLogo } from '~/components/svgs/twitter-logo';
+import { BlueskyLogo } from '~/components/svgs/bluesky-logo';
 
 const linkColumns = [
   [
-    { title: "Docs", href: `/docs/` },
-    { title: "Qwik City", href: `/docs/qwikcity/` },
-    { title: "Ecosystem", href: `/ecosystem/` },
-    { title: "Playground", href: `/playground/` },
+    { title: 'Docs', href: `/docs/` },
+    { title: 'Qwik City', href: `/docs/qwikcity/` },
+    { title: 'Ecosystem', href: `/ecosystem/` },
+    { title: 'Playground', href: `/playground/` },
   ],
   [
-    { title: "Integrations", href: `/ecosystem/#integrations` },
-    { title: "Deployments", href: `/ecosystem/#deployments` },
-    { title: "Media", href: `/ecosystem/#videos` },
-    { title: "Showcase", href: `/showcase/` },
+    { title: 'Integrations', href: `/ecosystem/#integrations` },
+    { title: 'Deployments', href: `/ecosystem/#deployments` },
+    { title: 'Media', href: `/ecosystem/#videos` },
+    { title: 'Showcase', href: `/showcase/` },
   ],
   [
-    { title: "Tutorial", href: `/ecosystem/#courses` },
-    { title: "Presentations", href: `/ecosystem/#presentations` },
-    { title: "Community", href: `/ecosystem/#community` },
-    { title: "Press", href: `/press/` },
+    { title: 'Tutorial', href: `/ecosystem/#courses` },
+    { title: 'Presentations', href: `/ecosystem/#presentations` },
+    { title: 'Community', href: `/ecosystem/#community` },
+    { title: 'Press', href: `/press/` },
   ],
 ];
 
@@ -84,10 +84,10 @@ export const FooterLinks = component$(() => {
 
 export const FooterSocialLinks = component$(() => {
   const socialLinks = [
-    { href: "https://qwik.dev/chat", title: "Discord", Logo: DiscordLogo },
-    { href: "https://github.com/QwikDev/qwik", title: "GitHub", Logo: GithubLogo },
-    { href: "https://twitter.com/QwikDev", title: "Twitter", Logo: TwitterLogo },
-    { href: "https://bsky.app/profile/qwik.dev", title: "Bluesky", Logo: BlueskyLogo },
+    { href: 'https://qwik.dev/chat', title: 'Discord', Logo: DiscordLogo },
+    { href: 'https://github.com/QwikDev/qwik', title: 'GitHub', Logo: GithubLogo },
+    { href: 'https://twitter.com/QwikDev', title: 'Twitter', Logo: TwitterLogo },
+    { href: 'https://bsky.app/profile/qwik.dev', title: 'Bluesky', Logo: BlueskyLogo },
   ];
 
   return (

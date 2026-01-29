@@ -1,23 +1,23 @@
-import { component$ } from "@builder.io/qwik";
+import { component$ } from '@builder.io/qwik';
 
 type GaugeProps = {
   value?: number;
   label?: string;
   radius?: number;
-  color?: "default" | "gray";
+  color?: 'default' | 'gray';
 };
 
 export const getLabel = (title: string) => title.substring(0, 2).toUpperCase();
 
 export default component$<GaugeProps>(
-  ({ value = 50, radius = 120, label = `${value}`, color = "default" }) => {
+  ({ value = 50, radius = 120, label = `${value}`, color = 'default' }) => {
     const GRADIENT_ID = `svg-gauge-gradient-${Math.floor(Math.random() * 10000)}`;
 
     const safeValue = value < 0 || value > 100 ? 50 : value;
     const safeLabel = label.length > 2 ? getLabel(label) : label;
     const progressBorderWidth = radius / 6;
-    const startColor = color === "default" ? "#18B6F6" : "#BDBDBD";
-    const stopColor = color === "default" ? "#AC7FF4" : "#BDBDBD";
+    const startColor = color === 'default' ? '#18B6F6' : '#BDBDBD';
+    const stopColor = color === 'default' ? '#AC7FF4' : '#BDBDBD';
 
     return (
       <div class="relative" style={{ width: `${radius * 2}px`, height: `${radius * 2}px` }}>
@@ -55,5 +55,5 @@ export default component$<GaugeProps>(
         </span>
       </div>
     );
-  },
+  }
 );

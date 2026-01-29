@@ -9,7 +9,7 @@ import {
   useContext,
   useStyles$,
   type ResourceReturn,
-} from "@builder.io/qwik";
+} from '@builder.io/qwik';
 
 export interface WeatherData {
   name: string;
@@ -27,15 +27,15 @@ interface LogsContext {
   content: string;
 }
 
-export const LOGS = createContextId<LogsContext>("qwik.logs.resource");
+export const LOGS = createContextId<LogsContext>('qwik.logs.resource');
 
 export const ResourceApp = component$(() => {
   const logs = {
-    content: "",
+    content: '',
   };
   useContextProvider(LOGS, logs);
 
-  logs.content += "[RENDER] <ResourceApp>\n";
+  logs.content += '[RENDER] <ResourceApp>\n';
   const state = useStore({
     count: 10,
     countDouble: 0,
@@ -43,27 +43,27 @@ export const ResourceApp = component$(() => {
   });
 
   useTask$(async ({ track }) => {
-    logs.content += "[WATCH] 1 before\n";
+    logs.content += '[WATCH] 1 before\n';
     const count = track(() => state.count);
     await delay(100);
     state.countDouble = count * 2;
-    logs.content += "[WATCH] 1 after\n";
+    logs.content += '[WATCH] 1 after\n';
   });
 
   useTask$(async ({ track }) => {
-    logs.content += "[WATCH] 2 before\n";
+    logs.content += '[WATCH] 2 before\n';
     const city = track(() => state.countDouble);
     await delay(100);
     state.countDoubleDouble = city * 2;
-    logs.content += "[WATCH] 2 after\n";
+    logs.content += '[WATCH] 2 after\n';
   });
 
   const resource = useResource$<number>(async ({ track }) => {
-    logs.content += "[RESOURCE] 1 before\n";
+    logs.content += '[RESOURCE] 1 before\n';
     const count = track(() => state.countDoubleDouble);
     await delay(2000);
 
-    logs.content += "[RESOURCE] 1 after\n";
+    logs.content += '[RESOURCE] 1 after\n';
     return count * 2;
   });
 
@@ -75,7 +75,7 @@ export const ResourceApp = component$(() => {
   //   logs.content += '[RESOURCE] 2 after\n';
   //   return count * 4;
   // });
-  const resourceState = resource.loading ? "pending" : "resolved";
+  const resourceState = resource.loading ? 'pending' : 'resolved';
 
   return (
     <div>
@@ -94,13 +94,13 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
       white-space: pre;
     }`);
   const logs = useContext(LOGS);
-  logs.content += "[RENDER] <Results>\n\n\n";
-  const logscontent = logs.content + "";
+  logs.content += '[RENDER] <Results>\n\n\n';
+  const logscontent = logs.content + '';
 
   const state = useStore({
     count: 0,
   });
-  const resourceState = props.result.loading ? "pending" : "resolved";
+  const resourceState = props.result.loading ? 'pending' : 'resolved';
   return (
     <div>
       <div id="inside-state">{resourceState}</div>

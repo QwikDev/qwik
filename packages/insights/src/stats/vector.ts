@@ -43,7 +43,7 @@ export function toBucket(value: number): number {
   value = Math.max(0, value);
   return Math.min(
     NUMBER_OF_BUCKETS - 1, // Make sure we never return a value greater than number of buckets
-    Math.floor(SCALE * Math.log2(value + VALUE_OFFSET)) - RESULT_OFFSET,
+    Math.floor(SCALE * Math.log2(value + VALUE_OFFSET)) - RESULT_OFFSET
   );
 }
 
@@ -51,7 +51,7 @@ export function toBucketTimeline(value: number): number {
   value = Math.max(0, value);
   return Math.min(
     NUMBER_OF_BUCKETS - 1, // Make sure we never return a value greater than number of buckets
-    Math.floor(TIMELINE_SCALE * Math.log2(value + TIMELINE_VALUE_OFFSET)) - TIMELINE_RESULT_OFFSET,
+    Math.floor(TIMELINE_SCALE * Math.log2(value + TIMELINE_VALUE_OFFSET)) - TIMELINE_RESULT_OFFSET
   );
 }
 

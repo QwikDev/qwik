@@ -1,30 +1,30 @@
-import type { BuildRoute } from "../types";
-import { createFileId } from "../../utils/fs";
-import { parseRoutePathname } from "./parse-pathname";
-import { routeSortCompare } from "./sort-routes";
-import { test, assert } from "vitest";
+import type { BuildRoute } from '../types';
+import { createFileId } from '../../utils/fs';
+import { parseRoutePathname } from './parse-pathname';
+import { routeSortCompare } from './sort-routes';
+import { test, assert } from 'vitest';
 
-test("routeSortCompare", () => {
+test('routeSortCompare', () => {
   const pathnames = [
-    "/",
-    "/about",
-    "/blog",
-    "/blog/bar",
-    "/blog/foo",
-    "/blog/p[yyy].json",
-    "/blog/p[xxx]",
-    "/blog/p[yyy]",
-    "/blog/p[zzz]",
-    "/blog/[slug]",
-    "/[aaa]",
-    "/[bbb]",
-    "/[ccc]",
-    "/[...rest1]/lmn/[...deep_rest]/xyz",
-    "/[...rest1]/lmn/[...deep_rest]",
-    "/[...rest1]/abc",
-    "/[...rest1]/lmn",
-    "/[...rest2]",
-    "/[...rest]",
+    '/',
+    '/about',
+    '/blog',
+    '/blog/bar',
+    '/blog/foo',
+    '/blog/p[yyy].json',
+    '/blog/p[xxx]',
+    '/blog/p[yyy]',
+    '/blog/p[zzz]',
+    '/blog/[slug]',
+    '/[aaa]',
+    '/[bbb]',
+    '/[ccc]',
+    '/[...rest1]/lmn/[...deep_rest]/xyz',
+    '/[...rest1]/lmn/[...deep_rest]',
+    '/[...rest1]/abc',
+    '/[...rest1]/lmn',
+    '/[...rest2]',
+    '/[...rest]',
   ];
 
   const routesSame = [...pathnames].map((p) => route({ pathname: p }));
@@ -43,14 +43,14 @@ test("routeSortCompare", () => {
 });
 
 function route(r: TestRoute) {
-  const pathname = r.pathname || "/";
+  const pathname = r.pathname || '/';
   const route: BuildRoute = {
-    id: createFileId("", pathname, "Route"),
+    id: createFileId('', pathname, 'Route'),
     filePath: pathname,
     pathname,
-    ext: ".tsx",
+    ext: '.tsx',
     layouts: [],
-    ...parseRoutePathname("/", pathname),
+    ...parseRoutePathname('/', pathname),
   };
   return route;
 }

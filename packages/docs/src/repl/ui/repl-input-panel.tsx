@@ -1,9 +1,9 @@
-import type { QRL } from "@builder.io/qwik";
-import { Editor } from "./editor";
-import { ReplCommands } from "./repl-commands";
-import { ReplTabButton } from "./repl-tab-button";
-import { ReplTabButtons } from "./repl-tab-buttons";
-import type { ReplAppInput, ReplStore } from "../types";
+import type { QRL } from '@builder.io/qwik';
+import { Editor } from './editor';
+import { ReplCommands } from './repl-commands';
+import { ReplTabButton } from './repl-tab-button';
+import { ReplTabButtons } from './repl-tab-buttons';
+import type { ReplAppInput, ReplStore } from '../types';
 
 export const ReplInputPanel = ({
   input,
@@ -34,7 +34,7 @@ export const ReplInputPanel = ({
               }}
               enableInputDelete={enableInputDelete}
             />
-          ),
+          )
         )}
         <ReplCommands
           input={input}
@@ -58,7 +58,7 @@ export const ReplInputPanel = ({
 };
 
 const formatFilePath = (path: string) => {
-  const parts = path.split("/");
+  const parts = path.split('/');
   return parts[parts.length - 1];
 };
 

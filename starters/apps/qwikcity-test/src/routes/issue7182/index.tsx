@@ -1,4 +1,4 @@
-import { component$, useSignal } from "@builder.io/qwik";
+import { component$, useSignal } from '@builder.io/qwik';
 export default component$(() => {
   const a = useSignal(1);
   const b = useSignal(2);

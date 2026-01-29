@@ -1,7 +1,7 @@
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const usePlugin = routeLoader$(() => {
   return {
-    message: "works",
+    message: 'works',
   };
 });

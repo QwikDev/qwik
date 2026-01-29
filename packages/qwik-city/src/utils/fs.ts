@@ -1,20 +1,20 @@
-import { basename, dirname, normalize, relative } from "node:path";
-import type { NormalizedPluginOptions } from "../buildtime/types";
-import { toTitleCase } from "./format";
-import { normalizePathname } from "./pathname";
+import { basename, dirname, normalize, relative } from 'node:path';
+import type { NormalizedPluginOptions } from '../buildtime/types';
+import { toTitleCase } from './format';
+import { normalizePathname } from './pathname';
 
 export function parseRouteIndexName(extlessName: string) {
-  let layoutName = "";
-  const layoutStop = extlessName.endsWith("!");
+  let layoutName = '';
+  const layoutStop = extlessName.endsWith('!');
 
   if (layoutStop) {
     extlessName = extlessName.slice(0, extlessName.length - 1);
   }
 
-  const namedLayoutParts = extlessName.split("@");
+  const namedLayoutParts = extlessName.split('@');
   if (namedLayoutParts.length > 1) {
     namedLayoutParts.shift();
-    layoutName = namedLayoutParts.join("@");
+    layoutName = namedLayoutParts.join('@');
   }
 
   return { layoutName, layoutStop };
@@ -29,12 +29,12 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
   let pathname = normalizePath(relFilePath);
 
   pathname = normalizePathname(pathname, opts.basePathname, opts.trailingSlash)!
-    .split("/")
+    .split('/')
     // remove grouped layout segments
     .filter((segment) => !isGroupedLayoutName(segment))
-    .join("/");
-  if (pathname === "") {
-    return "/";
+    .join('/');
+  if (pathname === '') {
+    return '/';
   }
   return pathname;
 }
@@ -46,26 +46,26 @@ export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string)
 }
 
 export function getExtension(fileName: string) {
-  if (typeof fileName === "string") {
-    const parts = fileName.trim().toLowerCase().split(".");
+  if (typeof fileName === 'string') {
+    const parts = fileName.trim().toLowerCase().split('.');
     if (parts.length > 1) {
-      const ext = parts.pop()!.split("?")[0].split("#")[0];
-      if (ext === "ts" && parts.pop() === "d") {
-        return ".d.ts";
+      const ext = parts.pop()!.split('?')[0].split('#')[0];
+      if (ext === 'ts' && parts.pop() === 'd') {
+        return '.d.ts';
       }
-      return "." + ext;
+      return '.' + ext;
     }
   }
-  return "";
+  return '';
 }
 
 export function removeExtension(fileName: string) {
-  if (typeof fileName === "string") {
+  if (typeof fileName === 'string') {
     fileName = fileName.trim();
     const ext = getExtension(fileName);
     return fileName.slice(0, fileName.length - ext.length);
   }
-  return "";
+  return '';
 }
 
 export function normalizePath(path: string) {
@@ -82,8 +82,8 @@ export function normalizePathSlash(path: string) {
     return path;
   }
 
-  path = path.replace(/\\/g, "/");
-  if (path.endsWith("/")) {
+  path = path.replace(/\\/g, '/');
+  if (path.endsWith('/')) {
     path = path.slice(0, path.length - 1);
   }
   return path;
@@ -100,18 +100,18 @@ export function normalizePathSlash(path: string) {
 export function createFileId(
   routesDir: string,
   fsPath: string,
-  explicitFileType?: "Route" | "Plugin" | "ServiceWorker",
+  explicitFileType?: 'Route' | 'Plugin' | 'ServiceWorker'
 ) {
   const ids: string[] = [];
 
   for (let i = 0; i < 25; i++) {
     let baseName = removeExtension(basename(fsPath));
 
-    baseName = baseName.replace(/[\W_]+/g, "");
-    if (baseName === "") {
-      baseName = "Q" + i;
+    baseName = baseName.replace(/[\W_]+/g, '');
+    if (baseName === '') {
+      baseName = 'Q' + i;
     } else if (!isNaN(baseName.charAt(0) as any)) {
-      baseName = "Q" + baseName;
+      baseName = 'Q' + baseName;
     }
     ids.push(toTitleCase(baseName));
 
@@ -122,29 +122,29 @@ export function createFileId(
     }
   }
 
-  if (ids.length > 1 && ids[0] === "Index") {
+  if (ids.length > 1 && ids[0] === 'Index') {
     ids.shift();
   }
 
   return ids
     .reverse()
-    .join("")
-    .concat(explicitFileType || "");
+    .join('')
+    .concat(explicitFileType || '');
 }
 
 const PAGE_MODULE_EXTS: { [type: string]: boolean } = {
-  ".tsx": true,
-  ".jsx": true,
+  '.tsx': true,
+  '.jsx': true,
 };
 
 const MODULE_EXTS: { [type: string]: boolean } = {
-  ".ts": true,
-  ".js": true,
+  '.ts': true,
+  '.js': true,
 };
 
 const MARKDOWN_EXTS: { [type: string]: boolean } = {
-  ".md": true,
-  ".mdx": true,
+  '.md': true,
+  '.mdx': true,
 };
 
 export function isIndexModule(extlessName: string) {
@@ -176,15 +176,15 @@ export function isPageExt(ext: string) {
 }
 
 export function isMenuFileName(fileName: string) {
-  return fileName === "menu.md";
+  return fileName === 'menu.md';
 }
 
 export function isServiceWorkerName(extlessName: string) {
-  return extlessName === "service-worker";
+  return extlessName === 'service-worker';
 }
 
 export function isEntryName(extlessName: string) {
-  return extlessName === "entry";
+  return extlessName === 'entry';
 }
 
 export function isErrorName(extlessName: string) {
@@ -198,15 +198,15 @@ export function isErrorName(extlessName: string) {
 }
 
 export function isGroupedLayoutName(dirName: string, warn = true) {
-  if (dirName.startsWith("__")) {
+  if (dirName.startsWith('__')) {
     if (warn) {
       console.warn(
         `Grouped (pathless) layout "${dirName}" should use the "(${dirName.slice(
-          2,
-        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future versions.`,
+          2
+        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future versions.`
       );
     }
     return true;
   }
-  return dirName.startsWith("(") && dirName.endsWith(")");
+  return dirName.startsWith('(') && dirName.endsWith(')');
 }

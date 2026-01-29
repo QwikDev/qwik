@@ -1,19 +1,19 @@
-import { defineConfig } from "vite";
-import { qwikVite } from "@builder.io/qwik/optimizer";
-import dtsPlugin from "vite-plugin-dts";
-import { compiledStringPlugin } from "../../scripts/compiled-string-plugin.js";
+import { defineConfig } from 'vite';
+import { qwikVite } from '@builder.io/qwik/optimizer';
+import dtsPlugin from 'vite-plugin-dts';
+import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 
 export default defineConfig(() => {
   return {
     build: {
-      target: "es2021",
+      target: 'es2021',
       lib: {
-        entry: "./src/index.ts",
-        formats: ["es", "cjs"],
-        fileName: (format) => `index.qwik.${format === "es" ? "mjs" : "cjs"}`,
+        entry: './src/index.ts',
+        formats: ['es', 'cjs'],
+        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
       rollupOptions: {
-        external: ["zod"],
+        external: ['zod'],
       },
     },
     plugins: [qwikVite(), dtsPlugin(), compiledStringPlugin()],

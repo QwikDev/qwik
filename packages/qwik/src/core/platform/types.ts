@@ -1,4 +1,4 @@
-import type { ValueOrPromise } from "../util/types";
+import type { ValueOrPromise } from '../util/types';
 
 // <docs markdown="./readme.md#CorePlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -57,7 +57,7 @@ export interface CorePlatform {
   importSymbol: (
     containerEl: Element | undefined,
     url: string | URL | undefined | null,
-    symbol: string,
+    symbol: string
   ) => ValueOrPromise<any>;
   // <docs markdown="./readme.md#CorePlatform.raf">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -98,7 +98,7 @@ export interface CorePlatform {
   chunkForSymbol: (
     symbolName: string,
     chunk: string | null,
-    parent?: string,
+    parent?: string
   ) => readonly [symbol: string, chunk: string] | undefined;
 }
 

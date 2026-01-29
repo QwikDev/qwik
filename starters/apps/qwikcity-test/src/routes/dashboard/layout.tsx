@@ -1,14 +1,14 @@
-import { component$, Slot, useStyles$ } from "@builder.io/qwik";
-import type { RequestHandler, DocumentHead } from "@builder.io/qwik-city";
-import { isUserAuthenticated } from "../../auth/auth";
-import Footer from "../../components/footer/footer";
-import Header from "../../components/header/header";
-import styles from "./dashboard.css?inline";
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
+import type { RequestHandler, DocumentHead } from '@builder.io/qwik-city';
+import { isUserAuthenticated } from '../../auth/auth';
+import Footer from '../../components/footer/footer';
+import Header from '../../components/header/header';
+import styles from './dashboard.css?inline';
 
 export const onGet: RequestHandler = async ({ cacheControl, redirect, cookie }) => {
   const isAuthenticated = await isUserAuthenticated(cookie);
   if (!isAuthenticated) {
-    throw redirect(302, "/qwikcity-test/sign-in");
+    throw redirect(302, '/qwikcity-test/sign-in');
   }
   cacheControl({
     noCache: true,

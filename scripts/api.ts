@@ -1,8 +1,8 @@
-import { Extractor, ExtractorConfig } from "@microsoft/api-extractor";
-import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { generateQwikApiMarkdownDocs, generateQwikCityApiMarkdownDocs } from "./api-docs.ts";
-import { type BuildConfig, panic, copyFile, ensureDir } from "./util.ts";
+import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { generateQwikApiMarkdownDocs, generateQwikCityApiMarkdownDocs } from './api-docs.ts';
+import { type BuildConfig, panic, copyFile, ensureDir } from './util.ts';
 
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
@@ -13,203 +13,203 @@ export async function apiExtractorQwik(config: BuildConfig) {
   // Run the api extractor for each of the submodules
   createTypesApi(
     config,
-    join(config.srcQwikDir, "core"),
-    join(config.distQwikPkgDir, "core.d.ts"),
-    ".",
+    join(config.srcQwikDir, 'core'),
+    join(config.distQwikPkgDir, 'core.d.ts'),
+    '.'
   );
   writeFileSync(
-    join(config.distQwikPkgDir, "index.d.ts"),
-    `// re-export to make TS happy when not using nodenext import resolution\nexport * from './core';`,
+    join(config.distQwikPkgDir, 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\nexport * from './core';`
   );
   // Special case for jsx-runtime:
   // It only re-exports JSX. Don't duplicate the types
-  const jsxContent = readFileSync(join(config.srcQwikDir, "jsx-runtime.ts"), "utf-8");
+  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');
   writeFileSync(
-    join(config.distQwikPkgDir, "jsx-runtime.d.ts"),
-    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`,
+    join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
   );
-  ensureDir(join(config.distQwikPkgDir, "jsx-runtime"));
+  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
   writeFileSync(
-    join(config.distQwikPkgDir, "jsx-runtime", "index.d.ts"),
-    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`,
+    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
   );
   createTypesApi(
     config,
-    join(config.srcQwikDir, "optimizer"),
-    join(config.distQwikPkgDir, "optimizer.d.ts"),
-    ".",
+    join(config.srcQwikDir, 'optimizer'),
+    join(config.distQwikPkgDir, 'optimizer.d.ts'),
+    '.'
   );
   createTypesApi(
     config,
-    join(config.srcQwikDir, "server"),
-    join(config.distQwikPkgDir, "server.d.ts"),
-    ".",
+    join(config.srcQwikDir, 'server'),
+    join(config.distQwikPkgDir, 'server.d.ts'),
+    '.'
   );
   createTypesApi(
     config,
-    join(config.srcQwikDir, "testing"),
-    join(config.distQwikPkgDir, "testing", "index.d.ts"),
-    "..",
+    join(config.srcQwikDir, 'testing'),
+    join(config.distQwikPkgDir, 'testing', 'index.d.ts'),
+    '..'
   );
   createTypesApi(
     config,
-    join(config.srcQwikDir, "build"),
-    join(config.distQwikPkgDir, "build", "index.d.ts"),
-    "..",
+    join(config.srcQwikDir, 'build'),
+    join(config.distQwikPkgDir, 'build', 'index.d.ts'),
+    '..'
   );
   generateServerReferenceModules(config);
 
-  const apiJsonInputDir = join(config.rootDir, "dist-dev", "api");
+  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
   await generateQwikApiMarkdownDocs(config, apiJsonInputDir);
 
-  console.log("🥶", "qwik d.ts API files generated");
+  console.log('🥶', 'qwik d.ts API files generated');
 }
 
 export async function apiExtractorQwikCity(config: BuildConfig) {
   // qwik-city
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "runtime", "src"),
-    join(config.packagesDir, "qwik-city", "lib", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'runtime', 'src'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "runtime", "src", "service-worker"),
-    join(config.packagesDir, "qwik-city", "lib", "service-worker.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'runtime', 'src', 'service-worker'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'service-worker.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "buildtime", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'buildtime', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "azure-swa", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "adapters", "azure-swa", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'azure-swa', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'azure-swa', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "cloudflare-pages", "vite"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'cloudflare-pages', 'vite'),
     join(
       config.packagesDir,
-      "qwik-city",
-      "lib",
-      "adapters",
-      "cloudflare-pages",
-      "vite",
-      "index.d.ts",
-    ),
+      'qwik-city',
+      'lib',
+      'adapters',
+      'cloudflare-pages',
+      'vite',
+      'index.d.ts'
+    )
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "cloud-run", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "adapters", "cloud-run", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'cloud-run', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'cloud-run', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "deno-server", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "adapters", "deno-server", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'deno-server', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'deno-server', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "bun-server", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "adapters", "bun-server", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'bun-server', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'bun-server', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "node-server", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "adapters", "node-server", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'node-server', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'node-server', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "netlify-edge", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "adapters", "netlify-edge", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'netlify-edge', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'netlify-edge', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "shared", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "adapters", "shared", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'shared', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'shared', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "static", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "adapters", "static", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'static', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'static', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "adapters", "vercel-edge", "vite"),
-    join(config.packagesDir, "qwik-city", "lib", "adapters", "vercel-edge", "vite", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'vercel-edge', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'vercel-edge', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "azure-swa"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "azure-swa", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'azure-swa'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'azure-swa', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "aws-lambda"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "aws-lambda", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'aws-lambda'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'aws-lambda', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "cloudflare-pages"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "cloudflare-pages", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'cloudflare-pages'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "bun"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "bun", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'bun'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'bun', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "deno"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "deno", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'deno'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'deno', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "netlify-edge"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "netlify-edge", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'netlify-edge'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'netlify-edge', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "node"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "node", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'node'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'node', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "request-handler"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "request-handler", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'request-handler'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'request-handler', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "firebase"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "firebase", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'firebase'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'firebase', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "static"),
-    join(config.packagesDir, "qwik-city", "lib", "static", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'static'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'static', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, "qwik-city", "src", "middleware", "vercel-edge"),
-    join(config.packagesDir, "qwik-city", "lib", "middleware", "vercel-edge", "index.d.ts"),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'vercel-edge'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'vercel-edge', 'index.d.ts')
   );
   generateQwikCityReferenceModules(config);
 
-  const apiJsonInputDir = join(config.rootDir, "dist-dev", "api");
+  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
   await generateQwikCityApiMarkdownDocs(config, apiJsonInputDir);
 
-  console.log("🥶", "qwik-city d.ts API files generated");
+  console.log('🥶', 'qwik-city d.ts API files generated');
 }
 
 function createTypesApi(
   config: BuildConfig,
   inPath: string,
   outPath: string,
-  relativePath?: string,
+  relativePath?: string
 ) {
-  const extractorConfigPath = join(inPath, "api-extractor.json");
+  const extractorConfigPath = join(inPath, 'api-extractor.json');
   const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,
@@ -217,24 +217,24 @@ function createTypesApi(
     showDiagnostics: true,
     messageCallback(msg) {
       msg.handled = true;
-      if (msg.logLevel === "verbose") {
+      if (msg.logLevel === 'verbose') {
         return;
       }
-      if (msg.text.includes("Analysis will use")) {
+      if (msg.text.includes('Analysis will use')) {
         return;
       }
-      if (msg.messageId === "console-api-report-copied") {
+      if (msg.messageId === 'console-api-report-copied') {
         if (config.dev) {
           return;
         }
         console.error(
-          `❌ API Extractor, submodule: "${inPath}"\n${extractorConfigPath} has API changes.\n`,
+          `❌ API Extractor, submodule: "${inPath}"\n${extractorConfigPath} has API changes.\n`
         );
         return;
       }
       if (
-        msg.messageId === "console-compiler-version-notice" ||
-        msg.messageId === "ae-undocumented"
+        msg.messageId === 'console-compiler-version-notice' ||
+        msg.messageId === 'ae-undocumented'
       ) {
         return;
       }
@@ -243,15 +243,15 @@ function createTypesApi(
   });
   if (!result.succeeded) {
     console.log(
-      "API build results: API changed",
+      'API build results: API changed',
       result.apiReportChanged,
-      "errors",
+      'errors',
       result.errorCount,
-      "warnings",
-      result.warningCount,
+      'warnings',
+      result.warningCount
     );
     panic(
-      `Use "pnpm api.update" to automatically update the .md files if the api changes were expected`,
+      `Use "pnpm api.update" to automatically update the .md files if the api changes were expected`
     );
   }
   const srcPath = result.extractorConfig.untrimmedFilePath;
@@ -260,15 +260,15 @@ function createTypesApi(
 }
 
 function generateQwikCityReferenceModules(config: BuildConfig) {
-  const srcModulesPath = join(config.packagesDir, "qwik-city", "lib");
+  const srcModulesPath = join(config.packagesDir, 'qwik-city', 'lib');
 
-  const destModulesPath = join(srcModulesPath, "modules.d.ts");
-  copyFile(join(config.packagesDir, "qwik-city", "modules.d.ts"), destModulesPath);
+  const destModulesPath = join(srcModulesPath, 'modules.d.ts');
+  copyFile(join(config.packagesDir, 'qwik-city', 'modules.d.ts'), destModulesPath);
 
   // manually prepend the ts reference since api extractor removes it
   const prependReferenceDts = `/// <reference path="./modules.d.ts" />\n\n`;
-  const distIndexPath = join(srcModulesPath, "index.d.ts");
-  let serverDts = readFileSync(distIndexPath, "utf-8");
+  const distIndexPath = join(srcModulesPath, 'index.d.ts');
+  let serverDts = readFileSync(distIndexPath, 'utf-8');
   serverDts = prependReferenceDts + serverDts;
   writeFileSync(distIndexPath, serverDts);
 }
@@ -315,13 +315,13 @@ declare module '*&jsx' {
 }
 `;
 
-  const destServerModulesPath = join(config.distQwikPkgDir, "server-modules.d.ts");
+  const destServerModulesPath = join(config.distQwikPkgDir, 'server-modules.d.ts');
   writeFileSync(destServerModulesPath, referenceDts);
 
   // manually prepend the ts reference since api extractor removes it
   const prependReferenceDts = `/// <reference path="./server-modules.d.ts" />\n\n`;
-  const distServerPath = join(config.distQwikPkgDir, "server.d.ts");
-  let serverDts = readFileSync(distServerPath, "utf-8");
+  const distServerPath = join(config.distQwikPkgDir, 'server.d.ts');
+  let serverDts = readFileSync(distServerPath, 'utf-8');
   serverDts = prependReferenceDts + serverDts;
   writeFileSync(distServerPath, serverDts);
 }
@@ -331,7 +331,7 @@ declare module '*&jsx' {
  * file, rather than node resolving it.
  */
 function fixDtsContent(config: BuildConfig, srcPath: string, relativePath?: string) {
-  let dts = readFileSync(srcPath, "utf-8");
+  let dts = readFileSync(srcPath, 'utf-8');
 
   // ensure we're just using a relative path
   if (relativePath) {

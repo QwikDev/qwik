@@ -6,18 +6,18 @@ import {
   useVisibleTask$,
   type QRL,
   type Signal,
-} from "@builder.io/qwik";
+} from '@builder.io/qwik';
 
-import { CopyCode } from "../copy-code/copy-code-block";
-import styles from "./code-block.css?inline";
-import { highlight } from "./prismjs";
-import { format } from "prettier/standalone";
-import parserHtml from "prettier/plugins/html";
-import parserTs from "prettier/plugins/typescript";
-import parserEstree from "prettier/plugins/estree";
+import { CopyCode } from '../copy-code/copy-code-block';
+import styles from './code-block.css?inline';
+import { highlight } from './prismjs';
+import { format } from 'prettier/standalone';
+import parserHtml from 'prettier/plugins/html';
+import parserTs from 'prettier/plugins/typescript';
+import parserEstree from 'prettier/plugins/estree';
 interface CodeBlockProps {
   path?: string;
-  language?: "markup" | "css" | "javascript" | "json" | "jsx" | "tsx";
+  language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx';
   code: string;
   format?: boolean;
   pathInView$?: QRL<(name: string) => void>;
@@ -34,11 +34,11 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
     props.language ||
     (props.path
       ? /\.([cm]?[jt]sx?|json)$/.test(props.path)
-        ? "javascript"
-        : props.path.endsWith(".html")
-          ? "markup"
-          : props.path.endsWith(".css")
-            ? "css"
+        ? 'javascript'
+        : props.path.endsWith('.html')
+          ? 'markup'
+          : props.path.endsWith('.css')
+            ? 'css'
             : null
       : null);
 
@@ -51,15 +51,15 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
     if (formatSig.value) {
       try {
         // simple formatting for html and js
-        if (language === "markup") {
+        if (language === 'markup') {
           codeSig.value = await format(props.code, {
-            parser: "html",
+            parser: 'html',
             plugins: [parserHtml],
-            htmlWhitespaceSensitivity: "ignore",
+            htmlWhitespaceSensitivity: 'ignore',
           });
-        } else if (language === "javascript") {
+        } else if (language === 'javascript') {
           codeSig.value = await format(props.code, {
-            parser: "typescript",
+            parser: 'typescript',
             plugins: [parserTs, parserEstree],
           });
         }
@@ -82,7 +82,7 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
         {
           //to avoid any edge case
           root: observerRootId ? document.getElementById(observerRootId) : null,
-        },
+        }
       );
       intersectionObserver.observe(el);
       return () => {
@@ -99,7 +99,7 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
       <pre class={className} ref={listSig}>
         {highlighted && <code class={className} dangerouslySetInnerHTML={highlighted} />}
       </pre>
-      {(language === "markup" || language === "javascript") && (
+      {(language === 'markup' || language === 'javascript') && (
         <PrettierToggle bind:value={formatSig} />
       )}
       <CopyCode code={props.code} />
@@ -107,15 +107,15 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
   );
 });
 
-const PrettierToggle = component$((props: { "bind:value": Signal<boolean>; error?: string }) => {
+const PrettierToggle = component$((props: { 'bind:value': Signal<boolean>; error?: string }) => {
   return (
     <label
       class="prettier-toggle"
-      title={`Toggle Prettier ${props.error ? `\n${props.error}` : ""}`}
+      title={`Toggle Prettier ${props.error ? `\n${props.error}` : ''}`}
       aria-label="Toggle Prettier"
     >
-      <input type="checkbox" bind:checked={props["bind:value"]} style="display: none;" />
-      <span class={[props["bind:value"].value ? "checked" : "", props.error ? "error" : ""]}>
+      <input type="checkbox" bind:checked={props['bind:value']} style="display: none;" />
+      <span class={[props['bind:value'].value ? 'checked' : '', props.error ? 'error' : '']}>
         P
       </span>
     </label>

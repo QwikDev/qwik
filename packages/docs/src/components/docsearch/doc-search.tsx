@@ -1,4 +1,4 @@
-import type { SearchClient } from "algoliasearch/lite";
+import type { SearchClient } from 'algoliasearch/lite';
 import {
   component$,
   useStore,
@@ -9,12 +9,12 @@ import {
   type Signal,
   $,
   sync$,
-} from "@builder.io/qwik";
-import { Modal } from "@qwik-ui/headless";
-import type { DocSearchHit, InternalDocSearchHit } from "./types";
-import { type ButtonTranslations } from "./doc-search-button";
-import { DocSearchModal, type ModalTranslations } from "./doc-search-modal";
-import styles from "./doc-search.css?inline";
+} from '@builder.io/qwik';
+import { Modal } from '@qwik-ui/headless';
+import type { DocSearchHit, InternalDocSearchHit } from './types';
+import { type ButtonTranslations } from './doc-search-button';
+import { DocSearchModal, type ModalTranslations } from './doc-search-modal';
+import styles from './doc-search.css?inline';
 
 export type DocSearchTranslations = Partial<{
   button: ButtonTranslations;
@@ -31,7 +31,7 @@ export type DocSearchState = {
   };
   activeItemId: null | number;
   snippetLength: number;
-  status: "idle" | "loading" | "stalled" | "error";
+  status: 'idle' | 'loading' | 'stalled' | 'error';
   initialQuery?: string;
 };
 export interface DocSearchProps {
@@ -48,10 +48,10 @@ export interface DocSearchProps {
 export function isEditingContent(event: KeyboardEvent): boolean {
   const { isContentEditable, tagName } = event.target as HTMLElement;
 
-  return isContentEditable || tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA";
+  return isContentEditable || tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
 }
 
-export const AiResultOpenContext = createContextId<Signal<boolean>>("aiResultOpen");
+export const AiResultOpenContext = createContextId<Signal<boolean>>('aiResultOpen');
 
 export const DocSearch = component$((props: DocSearchProps) => {
   useStyles$(styles);
@@ -61,24 +61,24 @@ export const DocSearch = component$((props: DocSearchProps) => {
   useContextProvider(AiResultOpenContext, aiResultOpen);
 
   const state = useStore<DocSearchState>({
-    initialQuery: "",
-    query: "",
+    initialQuery: '',
+    query: '',
     collections: [],
     context: {
       searchSuggestions: [],
     },
     activeItemId: null,
-    status: "idle",
+    status: 'idle',
     snippetLength: 10,
   });
 
   const searchButtonRef = useSignal<Element>();
   return (
     <div
-      class={{ docsearch: true, "ai-result-open": aiResultOpen.value }}
+      class={{ docsearch: true, 'ai-result-open': aiResultOpen.value }}
       window:onKeyDown$={[
         sync$((event: KeyboardEvent) => {
-          if (event.key === "k" && (event.metaKey || event.ctrlKey)) {
+          if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
             event.preventDefault();
           }
         }),
@@ -86,22 +86,22 @@ export const DocSearch = component$((props: DocSearchProps) => {
           function open() {
             // We check that no other DocSearch modal is showing before opening
             // another one.
-            if (!document.body.classList.contains("DocSearch--active")) {
+            if (!document.body.classList.contains('DocSearch--active')) {
               props.isOpen.value = true;
             }
           }
           if (
-            (event.key === "Escape" && props.isOpen.value) ||
+            (event.key === 'Escape' && props.isOpen.value) ||
             // The `Cmd+K` shortcut both opens and closes the modal.
-            (event.key === "k" && (event.metaKey || event.ctrlKey)) ||
+            (event.key === 'k' && (event.metaKey || event.ctrlKey)) ||
             // The `/` shortcut opens but doesn't close the modal because it's
             // a character.
-            (!isEditingContent(event) && event.key === "/" && !props.isOpen.value)
+            (!isEditingContent(event) && event.key === '/' && !props.isOpen.value)
           ) {
             event.preventDefault();
             if (props.isOpen.value) {
               props.isOpen.value = false;
-            } else if (!document.body.classList.contains("DocSearch--active")) {
+            } else if (!document.body.classList.contains('DocSearch--active')) {
               open();
             }
           }

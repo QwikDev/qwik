@@ -1,16 +1,16 @@
-import { assertEqual, assertFail, assertTrue } from "../../error/assert";
-import { VIRTUAL_SYMBOL } from "../../state/constants";
+import { assertEqual, assertFail, assertTrue } from '../../error/assert';
+import { VIRTUAL_SYMBOL } from '../../state/constants';
 import {
   isComment,
   isElement,
   isNodeElement,
   isQwikElement,
   isVirtualElement,
-} from "../../util/element";
-import { qSerialize, seal } from "../../util/qdev";
-import { directGetAttribute } from "../fast-calls";
-import { createElement } from "./operations";
-import { SVG_NS, getChildren } from "./visitor";
+} from '../../util/element';
+import { qSerialize, seal } from '../../util/qdev';
+import { directGetAttribute } from '../fast-calls';
+import { createElement } from './operations';
+import { SVG_NS, getChildren } from './visitor';
 
 export interface VirtualElement {
   readonly open: Comment;
@@ -48,8 +48,8 @@ export interface VirtualElement {
 export type QwikElement = Element | VirtualElement;
 
 export const newVirtualElement = (doc: Document, isSvg: boolean): VirtualElement => {
-  const open = doc.createComment("qv ");
-  const close = doc.createComment("/qv");
+  const open = doc.createComment('qv ');
+  const close = doc.createComment('/qv');
   return new VirtualElementImpl(open, close, isSvg);
 };
 
@@ -57,16 +57,16 @@ export const parseVirtualAttributes = (str: string): Record<string, string> => {
   if (!str) {
     return {};
   }
-  const attributes = str.split(" ");
+  const attributes = str.split(' ');
   return Object.fromEntries(
     attributes.map((attr) => {
-      const index = attr.indexOf("=");
+      const index = attr.indexOf('=');
       if (index >= 0) {
         return [attr.slice(0, index), unescape(attr.slice(index + 1))];
       } else {
-        return [attr, ""];
+        return [attr, ''];
       }
-    }),
+    })
   );
 };
 
@@ -79,7 +79,7 @@ export const serializeVirtualAttributes = (map: Record<string, string>) => {
       attributes.push(`${key}=${escape(value)}`);
     }
   });
-  return attributes.join(" ");
+  return attributes.join(' ');
 };
 
 const SHOW_COMMENT = 128;
@@ -118,14 +118,14 @@ export const queryAllVirtualByAttribute = (el: Element, prop: string, value: str
 };
 
 export const escape = (s: string) => {
-  return s.replace(/ /g, "+");
+  return s.replace(/ /g, '+');
 };
 
 export const unescape = (s: string) => {
-  return s.replace(/\+/g, " ");
+  return s.replace(/\+/g, ' ');
 };
 
-export const VIRTUAL = ":virtual";
+export const VIRTUAL = ':virtual';
 
 export class VirtualElementImpl implements VirtualElement {
   ownerDocument: Document;
@@ -141,12 +141,12 @@ export class VirtualElementImpl implements VirtualElement {
   constructor(
     readonly open: Comment,
     readonly close: Comment,
-    readonly isSvg: boolean,
+    readonly isSvg: boolean
   ) {
     const doc = (this.ownerDocument = open.ownerDocument);
-    this.$template$ = createElement(doc, "template", false) as HTMLTemplateElement;
+    this.$template$ = createElement(doc, 'template', false) as HTMLTemplateElement;
     this.$attributes$ = parseVirtualAttributes(open.data.slice(3));
-    assertTrue(open.data.startsWith("qv "), "comment is not a qv");
+    assertTrue(open.data.startsWith('qv '), 'comment is not a qv');
     (open as any)[VIRTUAL_SYMBOL] = this;
     (close as any)[VIRTUAL_SYMBOL] = this;
     seal(this);
@@ -167,7 +167,7 @@ export class VirtualElementImpl implements VirtualElement {
     const parent = this.parentElement;
     if (parent) {
       const ch = this.childNodes;
-      assertEqual(this.$template$.childElementCount, 0, "children should be empty");
+      assertEqual(this.$template$.childElementCount, 0, 'children should be empty');
       parent.removeChild(this.open);
       for (let i = 0; i < ch.length; i++) {
         this.$template$.appendChild(ch[i]);
@@ -192,7 +192,7 @@ export class VirtualElementImpl implements VirtualElement {
       newParent.insertBefore(c, child);
     }
     newParent.insertBefore(this.close, child);
-    assertEqual(this.$template$.childElementCount, 0, "children should be empty");
+    assertEqual(this.$template$.childElementCount, 0, 'children should be empty');
   }
 
   appendTo(newParent: QwikElement) {
@@ -200,7 +200,7 @@ export class VirtualElementImpl implements VirtualElement {
   }
 
   get namespaceURI() {
-    return this.parentElement?.namespaceURI ?? "";
+    return this.parentElement?.namespaceURI ?? '';
   }
 
   removeChild(child: Node) {
@@ -279,7 +279,7 @@ export class VirtualElementImpl implements VirtualElement {
   }
 
   get innerHTML() {
-    return "";
+    return '';
   }
 
   set innerHTML(html: string) {
@@ -361,9 +361,9 @@ const findClose = (open: Comment): Comment => {
       if (virtual) {
         // This is not our existing virtual node because otherwise findClose wouldn't have been called
         node = virtual;
-      } else if (node.data.startsWith("qv ")) {
+      } else if (node.data.startsWith('qv ')) {
         stack++;
-      } else if (node.data === "/qv") {
+      } else if (node.data === '/qv') {
         stack--;
         if (stack === 0) {
           return node;
@@ -371,7 +371,7 @@ const findClose = (open: Comment): Comment => {
       }
     }
   }
-  assertFail("close not found");
+  assertFail('close not found');
 };
 
 export const getVirtualElement = (open: Comment): VirtualElement | null => {
@@ -379,7 +379,7 @@ export const getVirtualElement = (open: Comment): VirtualElement | null => {
   if (virtual) {
     return virtual;
   }
-  if (open.data.startsWith("qv ")) {
+  if (open.data.startsWith('qv ')) {
     const close = findClose(open);
     return new VirtualElementImpl(open, close, open.parentElement?.namespaceURI === SVG_NS);
   }

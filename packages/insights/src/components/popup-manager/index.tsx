@@ -6,8 +6,8 @@ import {
   useSignal,
   $,
   type NoSerialize,
-} from "@builder.io/qwik";
-import { CloseIcon } from "../icons/close";
+} from '@builder.io/qwik';
+import { CloseIcon } from '../icons/close';
 
 export const PopupManager = component$(() => {
   const popupTarget = useSignal<HTMLElement>();
@@ -28,7 +28,7 @@ export const PopupManager = component$(() => {
             return;
           }
           target.dispatchEvent(
-            new CustomEvent("popup", {
+            new CustomEvent('popup', {
               bubbles: false,
               detail: {
                 show<T extends {}>(component: Component<T>, props: T) {
@@ -37,8 +37,8 @@ export const PopupManager = component$(() => {
                   popup.props = props;
                   popup.currentTarget = target;
                 },
-              } satisfies PopupEvent["detail"],
-            }),
+              } satisfies PopupEvent['detail'],
+            })
           );
         }
       }}
@@ -69,8 +69,8 @@ export const PopupManager = component$(() => {
           ref={popupTarget}
           class="fixed inline-block border border-slate-200 bg-white shadow-lg z-10"
           style={{
-            top: popup.y + 4 + "px",
-            left: popup.x + 4 + "px",
+            top: popup.y + 4 + 'px',
+            left: popup.x + 4 + 'px',
           }}
         >
           <CloseIcon

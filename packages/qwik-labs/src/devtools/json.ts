@@ -22,7 +22,7 @@ function runQwikJsonDebug(window: Window, document: Document, debug: typeof qwik
   if (document.querySelector('script[type="qwik/json"]')) {
     parseQwikJSON();
   } else {
-    document.addEventListener("DOMContentLoaded", parseQwikJSON);
+    document.addEventListener('DOMContentLoaded', parseQwikJSON);
   }
 }
 
@@ -30,14 +30,14 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
   class Base {
     constructor(
       public __id: number,
-      public __backRefs: any[] = [],
+      public __backRefs: any[] = []
     ) {}
   }
 
   class number_ extends Base {
     constructor(
       public __id: number,
-      public __value: number,
+      public __value: number
     ) {
       super(__id);
     }
@@ -46,7 +46,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
   class boolean_ extends Base {
     constructor(
       public __id: number,
-      public __value: boolean,
+      public __value: boolean
     ) {
       super(__id);
     }
@@ -55,7 +55,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
   class string_ extends Base {
     constructor(
       public __id: number,
-      public __value: string,
+      public __value: string
     ) {
       super(__id);
     }
@@ -86,7 +86,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
       public __id: number,
       public flags: string,
       public index: number,
-      public obj: any,
+      public obj: any
     ) {
       super(__id);
     }
@@ -95,7 +95,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
   class Listener {
     constructor(
       public event: string,
-      public qrl: QRL,
+      public qrl: QRL
     ) {}
   }
 
@@ -126,14 +126,14 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
     constructor(
       public element: Element,
       public refMap: any[],
-      public listeners: Listener[],
+      public listeners: Listener[]
     ) {}
   }
 
   class Component extends Base {
     constructor(
       public __id: number,
-      public qrl: string,
+      public qrl: string
     ) {
       super(__id);
     }
@@ -143,7 +143,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
     constructor(
       public __id: number,
       public id: string,
-      public prop: string,
+      public prop: string
     ) {
       super(__id);
     }
@@ -153,7 +153,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
     constructor(
       public __id: number,
       public fn: Function,
-      public args: any[],
+      public args: any[]
     ) {
       super(__id);
     }
@@ -164,7 +164,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
       public __id: number,
       public chunk: string,
       public symbol: string,
-      public capture: any[],
+      public capture: any[]
     ) {
       super(__id);
     }
@@ -192,36 +192,36 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
     const node = (ctx.element = nodeMap.get(idx) || null);
     if (isElement(node)) {
       const rawRefs = qwikJson.refs[idx];
-      const refMap = splitParse(rawRefs, " ", (id) => getObject(id, node));
+      const refMap = splitParse(rawRefs, ' ', (id) => getObject(id, node));
       ctx.listeners = getDomListeners(refMap, node);
     } else if (isComment(node)) {
       const attrs = new Map<string, string>();
-      node.textContent!.split(" ").forEach((keyValue) => {
-        const [key, value] = keyValue.split("=");
+      node.textContent!.split(' ').forEach((keyValue) => {
+        const [key, value] = keyValue.split('=');
         attrs.set(key, value);
       });
-      const sstyle = attrs.get("q:sstyle");
+      const sstyle = attrs.get('q:sstyle');
       if (sstyle) {
-        ctx.scopeIds = sstyle.split("|");
+        ctx.scopeIds = sstyle.split('|');
       }
     }
     if (rawCtx.h) {
-      const [qrl, props] = rawCtx.h.split(" ").map((h: string) => (h ? getObject(h, ctx) : null));
+      const [qrl, props] = rawCtx.h.split(' ').map((h: string) => (h ? getObject(h, ctx) : null));
       ctx.componentQrl = qrl;
       ctx.props = props;
     }
     if (rawCtx.c) {
       const contexts = (ctx.contexts = new Map());
-      for (const part of rawCtx.c.split(" ")) {
-        const [key, value] = part.split("=");
+      for (const part of rawCtx.c.split(' ')) {
+        const [key, value] = part.split('=');
         contexts.set(key, getObject(value, ctx));
       }
     }
     if (rawCtx.s) {
-      ctx.seq = rawCtx.s.split(" ").map((s) => getObject(parseNumber(s), ctx));
+      ctx.seq = rawCtx.s.split(' ').map((s) => getObject(parseNumber(s), ctx));
     }
     if (rawCtx.w) {
-      ctx.tasks = rawCtx.w.split(" ").map((s) => getObject(parseNumber(s), ctx));
+      ctx.tasks = rawCtx.w.split(' ').map((s) => getObject(parseNumber(s), ctx));
     }
   }
   //////////////////////////////////////////////////////////////////////////////////
@@ -229,15 +229,15 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
     const rawRefs = qwikJson.refs[idx];
     const node = nodeMap.get(idx) || null;
     if (isElement(node)) {
-      const refMap = splitParse(rawRefs, " ", (id) => getObject(id, node));
+      const refMap = splitParse(rawRefs, ' ', (id) => getObject(id, node));
       const listeners = getDomListeners(refMap, node);
       refs[idx] = new QRefs(node, refMap, listeners);
     }
   }
   //////////////////////////////////////////////////////////////////////////////////
   function getObject(idx: number | string, parent: any): any {
-    if (typeof idx == "string") {
-      if (idx.startsWith("#")) {
+    if (typeof idx == 'string') {
+      if (idx.startsWith('#')) {
         const node = nodeMap.get(idx.substring(1));
         if (!(node as unknown as Base).__backRefs) {
           (node as unknown as Base).__backRefs = [];
@@ -249,7 +249,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
       }
       const num = parseNumber(idx);
       if (isNaN(num)) {
-        throw new Error("Invalid index: " + idx);
+        throw new Error('Invalid index: ' + idx);
       }
       idx = num;
     }
@@ -260,20 +260,20 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
     if (!obj) {
       const rawValue = qwikJson.objs[idx];
       let value: any = rawValue;
-      if (typeof value === "number") {
+      if (typeof value === 'number') {
         obj = new number_(idx, value);
-      } else if (typeof value === "boolean") {
+      } else if (typeof value === 'boolean') {
         obj = new boolean_(idx, value);
-      } else if (typeof value === "undefined") {
+      } else if (typeof value === 'undefined') {
         obj = new undefined_(idx);
-      } else if (typeof value === "object") {
+      } else if (typeof value === 'object') {
         obj = Array.isArray(value) ? new Array_(idx) : new Object_(idx);
         for (const key in value) {
           if (Object.prototype.hasOwnProperty.call(value, key)) {
             (obj as any)[key] = getObject(parseNumber(value[key]), obj);
           }
         }
-      } else if (typeof rawValue === "string") {
+      } else if (typeof rawValue === 'string') {
         const data = rawValue.substring(1);
         switch (rawValue.charCodeAt(0)) {
           case 0x01: // UndefinedSerializer, ///////// \u0001
@@ -285,33 +285,33 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
               idx,
               chunk,
               symbol,
-              capture.map((id) => getObject(parseNumber(id), parent)),
+              capture.map((id) => getObject(parseNumber(id), parent))
             );
             break;
           case 0x03: // TaskSerializer, ///////////// \u0003
-            const [flags, index, objId] = data.split(" ");
+            const [flags, index, objId] = data.split(' ');
             const flagString = [
-              parseNumber(flags) & (1 << 0) ? "Visible" : "",
-              parseNumber(flags) & (1 << 1) ? "Task" : "",
-              parseNumber(flags) & (1 << 2) ? "Resource" : "",
-              parseNumber(flags) & (1 << 3) ? "Computed" : "",
-              parseNumber(flags) & (1 << 4) ? "Dirty" : "",
-              parseNumber(flags) & (1 << 5) ? "Cleanup" : "",
+              parseNumber(flags) & (1 << 0) ? 'Visible' : '',
+              parseNumber(flags) & (1 << 1) ? 'Task' : '',
+              parseNumber(flags) & (1 << 2) ? 'Resource' : '',
+              parseNumber(flags) & (1 << 3) ? 'Computed' : '',
+              parseNumber(flags) & (1 << 4) ? 'Dirty' : '',
+              parseNumber(flags) & (1 << 5) ? 'Cleanup' : '',
             ]
               .filter(Boolean)
-              .join("|");
+              .join('|');
             obj = new Task(idx, flagString, parseNumber(index), getObject(objId, parent));
             break;
           case 0x12: // SignalSerializer, /////////// \u0012
             obj = getObject(data, parent);
             break;
           case 0x11: // DerivedSignalSerializer, //// \u0011
-            const fnParts = data.split(" ");
+            const fnParts = data.split(' ');
             const fn = derivedFns[parseNumber(fnParts.pop()!.substring(1))];
             obj = new DerivedSignal(
               idx,
               fn,
-              fnParts.map((id) => getObject(id, parent)),
+              fnParts.map((id) => getObject(id, parent))
             );
             break;
           case 0x05: // URLSerializer, ////////////// \u0005
@@ -323,7 +323,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
             obj = new Component(idx, data);
             break;
           case 0x13: // SignalWrapperSerializer, //// \u0013
-            const [id, prop] = data.split(" ");
+            const [id, prop] = data.split(' ');
             obj = new SignalWrapper(idx, id as any, prop);
             break;
           case 0x04: // ResourceSerializer, ///////// \u0004
@@ -339,10 +339,10 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
           case 0x1a: // MapSerializer, ////////////// \u001a
           case 0x0f: // DocumentSerializer, ///////// \u000F
             throw new Error(
-              "Not Implemented: " +
+              'Not Implemented: ' +
                 rawValue.charCodeAt(0).toString(16) +
-                " " +
-                JSON.stringify(rawValue),
+                ' ' +
+                JSON.stringify(rawValue)
             );
           // console.error((value = 'Not Implemented: ' + rawValue.charCodeAt(0)));
           // break;
@@ -350,7 +350,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
             obj = new string_(idx, rawValue);
         }
       } else {
-        throw new Error("Unexpected type: " + JSON.stringify(rawValue));
+        throw new Error('Unexpected type: ' + JSON.stringify(rawValue));
       }
       objs[idx] = obj;
     }
@@ -364,7 +364,7 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
     const map = new Map<string, Node>();
     const walker = document.createTreeWalker(
       document.firstElementChild!,
-      NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_ELEMENT,
+      NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_ELEMENT
     );
     for (let node = walker.firstChild(); node !== null; node = walker.nextNode()) {
       const id = getId(node);
@@ -375,31 +375,31 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
 
   function getId(node: Node): string | null {
     if (isElement(node)) {
-      return node.getAttribute("q:id");
+      return node.getAttribute('q:id');
     } else if (isComment(node)) {
-      const text = node.nodeValue || "";
-      if (text.startsWith("t=")) {
+      const text = node.nodeValue || '';
+      if (text.startsWith('t=')) {
         return text.substring(2);
-      } else if (text.startsWith("qv ")) {
-        const parts = text.split(" ");
+      } else if (text.startsWith('qv ')) {
+        const parts = text.split(' ');
         for (let i = 0; i < parts.length; i++) {
           const part = parts[i];
-          if (part.startsWith("q:id=")) {
+          if (part.startsWith('q:id=')) {
             return part.substring(5);
           }
         }
       }
       return null;
     } else {
-      throw new Error("Unexpected node type: " + node.nodeType);
+      throw new Error('Unexpected node type: ' + node.nodeType);
     }
   }
 
   function isElement(node: any): node is Element {
-    return node && typeof node == "object" && node.nodeType === Node.ELEMENT_NODE;
+    return node && typeof node == 'object' && node.nodeType === Node.ELEMENT_NODE;
   }
   function isComment(node: any): node is Comment {
-    return node && typeof node == "object" && node.nodeType === Node.COMMENT_NODE;
+    return node && typeof node == 'object' && node.nodeType === Node.COMMENT_NODE;
   }
 
   function splitParse(text: string | null, sep: string, fn: (part: string) => any): any[] {
@@ -415,18 +415,18 @@ function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Funct
     for (let i = 0; i < attributes.length; i++) {
       const { name, value } = attributes.item(i)!;
       if (
-        name.startsWith("on:") ||
-        name.startsWith("on-window:") ||
-        name.startsWith("on-document:")
+        name.startsWith('on:') ||
+        name.startsWith('on-window:') ||
+        name.startsWith('on-document:')
       ) {
-        const urls = value.split("\n");
+        const urls = value.split('\n');
         for (const url of urls) {
           const [chunk, symbol, capture] = url.split(/[#[\]]/);
           const qrl = new QRL(
             -1,
             chunk,
             symbol,
-            (capture || "").split(" ").map((id) => refMap[parseInt(id, 10)]),
+            (capture || '').split(' ').map((id) => refMap[parseInt(id, 10)])
           );
           listeners.push(new Listener(name, qrl));
         }

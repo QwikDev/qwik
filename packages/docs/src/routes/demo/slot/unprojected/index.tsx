@@ -1,10 +1,10 @@
-import { Slot, component$, useSignal } from "@builder.io/qwik";
+import { Slot, component$, useSignal } from '@builder.io/qwik';
 
 const Accordion = component$(() => {
   const isOpen = useSignal(false);
   return (
     <div>
-      <h1 onClick$={() => (isOpen.value = !isOpen.value)}>{isOpen.value ? "▼" : "▶︎"}</h1>
+      <h1 onClick$={() => (isOpen.value = !isOpen.value)}>{isOpen.value ? '▼' : '▶︎'}</h1>
       {isOpen.value && <Slot />}
     </div>
   );

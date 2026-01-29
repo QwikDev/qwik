@@ -1,10 +1,10 @@
-import { unwrapStore } from "@builder.io/qwik";
-import type { ReplResult, ReplStore } from "../types";
+import { unwrapStore } from '@builder.io/qwik';
+import type { ReplResult, ReplStore } from '../types';
 
 // Maybe we should change useStore to recursively notify subscribers when a top-level property changes
 const deepUpdate = (prev: any, next: any) => {
   for (const key in next) {
-    if (prev[key] && typeof next[key] === "object" && typeof prev[key] === "object") {
+    if (prev[key] && typeof next[key] === 'object' && typeof prev[key] === 'object') {
       deepUpdate(prev[key], next[key]);
     } else {
       if (unwrapStore(prev[key]) !== next[key]) {
@@ -39,7 +39,7 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
     }
   }
 
-  if (store.selectedOutputPanel === "diagnostics" && store.monacoDiagnostics.length === 0) {
-    store.selectedOutputPanel = "app";
+  if (store.selectedOutputPanel === 'diagnostics' && store.monacoDiagnostics.length === 0) {
+    store.selectedOutputPanel = 'app';
   }
 };

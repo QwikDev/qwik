@@ -16,7 +16,7 @@ export class _TextEncoderStream_polyfill {
       // https://encoding.spec.whatwg.org/#encode-and-enqueue-a-chunk
       chunk = String(chunk);
 
-      let finalChunk = "";
+      let finalChunk = '';
       for (let i = 0; i < chunk.length; i++) {
         const item = chunk[i];
         const codeUnit = item.charCodeAt(0);
@@ -31,7 +31,7 @@ export class _TextEncoderStream_polyfill {
             continue;
           }
 
-          finalChunk += "\uFFFD";
+          finalChunk += '\uFFFD';
         }
 
         if (0xd800 <= codeUnit && codeUnit <= 0xdbff) {
@@ -40,7 +40,7 @@ export class _TextEncoderStream_polyfill {
         }
 
         if (0xdc00 <= codeUnit && codeUnit <= 0xdfff) {
-          finalChunk += "\uFFFD";
+          finalChunk += '\uFFFD';
           continue;
         }
 
@@ -73,6 +73,6 @@ export class _TextEncoderStream_polyfill {
   }
 
   get [Symbol.toStringTag]() {
-    return "TextEncoderStream";
+    return 'TextEncoderStream';
   }
 }

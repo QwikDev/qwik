@@ -11,7 +11,7 @@ export interface PackageJSON {
   main?: string;
   module?: string;
   types?: string;
-  type?: "module" | "commonjs";
+  type?: 'module' | 'commonjs';
   exports?: Record<string, any>;
   scripts?: Record<string, string>;
   dependencies?: Record<string, string>;

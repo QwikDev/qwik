@@ -1,4 +1,4 @@
-import { component$, useStore, type QRL, $ } from "@builder.io/qwik";
+import { component$, useStore, type QRL, $ } from '@builder.io/qwik';
 
 interface ParentStore {
   name: string;
@@ -11,13 +11,13 @@ interface ChildStore {
 }
 export default component$(() => {
   const parent: ParentStore = {
-    name: "Builder.io",
+    name: 'Builder.io',
     children: [],
     greetNames: $((parent) => alert(parent.name)),
   };
   parent.children = [
-    { name: "Qwik", parent },
-    { name: "Partytown", parent },
+    { name: 'Qwik', parent },
+    { name: 'Partytown', parent },
   ];
   const parentStore = useStore<ParentStore>(parent, { deep: true });
   return (

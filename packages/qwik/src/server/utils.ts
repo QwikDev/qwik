@@ -1,11 +1,11 @@
-import type { RenderToStringOptions } from "./types";
+import type { RenderToStringOptions } from './types';
 
 /**
  * Utility timer function for performance profiling. Returns a duration of 0 in environments that do
  * not support performance.
  */
 export function createTimer() {
-  if (typeof performance === "undefined") {
+  if (typeof performance === 'undefined') {
     return () => 0;
   }
   const start = performance.now();
@@ -18,16 +18,16 @@ export function createTimer() {
 
 export function getBuildBase(opts: RenderToStringOptions) {
   let base = opts.base;
-  if (typeof opts.base === "function") {
+  if (typeof opts.base === 'function') {
     base = opts.base(opts);
   }
-  if (typeof base === "string") {
-    if (!base.endsWith("/")) {
-      base += "/";
+  if (typeof base === 'string') {
+    if (!base.endsWith('/')) {
+      base += '/';
     }
     return base;
   }
-  return `${import.meta.env.BASE_URL || "/"}build/`;
+  return `${import.meta.env.BASE_URL || '/'}build/`;
 }
 
 /** @public */

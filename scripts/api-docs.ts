@@ -1,30 +1,30 @@
-import { execa } from "execa";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { format } from "prettier";
-import { type BuildConfig } from "./util.ts";
+import { execa } from 'execa';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { format } from 'prettier';
+import { type BuildConfig } from './util.ts';
 
 export async function generateQwikApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ["qwik"]);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
 }
 
 export async function generateQwikCityApiMarkdownDocs(
   config: BuildConfig,
-  apiJsonInputDir: string,
+  apiJsonInputDir: string
 ) {
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ["qwik-city"]);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ["qwik-city", "middleware"]);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ["qwik-city", "static"]);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ["qwik-city", "vite"]);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'middleware']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'static']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'vite']);
 
   // doesn't really belong here, ah well
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ["qwik-react"]);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-react']);
 }
 
 async function generateApiMarkdownPackageDocs(
   config: BuildConfig,
   apiJsonInputDir: string,
-  pkgNames: string[],
+  pkgNames: string[]
 ) {
   const pkgDirNames = join(apiJsonInputDir, ...pkgNames);
   if (existsSync(pkgDirNames)) {
@@ -41,33 +41,33 @@ async function generateApiMarkdownPackageDocs(
 async function generateApiMarkdownSubPackageDocs(
   config: BuildConfig,
   apiJsonInputDir: string,
-  names: string[],
+  names: string[]
 ) {
   const subPkgInputDir = join(apiJsonInputDir, ...names);
-  const docsApiJsonPath = join(subPkgInputDir, "docs.api.json");
+  const docsApiJsonPath = join(subPkgInputDir, 'docs.api.json');
   if (!existsSync(docsApiJsonPath)) {
     return;
   }
 
-  const subPkgName = ["@builder.io", ...names].filter((n) => n !== "core").join("/");
-  console.log("📚", `Generate API ${subPkgName} markdown docs`);
+  const subPkgName = ['@builder.io', ...names].filter((n) => n !== 'core').join('/');
+  console.log('📚', `Generate API ${subPkgName} markdown docs`);
 
   const apiOuputDir = join(
     config.rootDir,
-    "dist-dev",
-    "api-docs",
-    names.filter((n) => n !== "core").join("-"),
+    'dist-dev',
+    'api-docs',
+    names.filter((n) => n !== 'core').join('-')
   );
   mkdirSync(apiOuputDir, { recursive: true });
   console.log(apiOuputDir);
 
   await execa(
-    "api-documenter",
-    ["markdown", "--input-folder", subPkgInputDir, "--output-folder", apiOuputDir],
+    'api-documenter',
+    ['markdown', '--input-folder', subPkgInputDir, '--output-folder', apiOuputDir],
     {
-      stdio: "inherit",
-      cwd: join(config.rootDir, "node_modules", ".bin"),
-    },
+      stdio: 'inherit',
+      cwd: join(config.rootDir, 'node_modules', '.bin'),
+    }
   );
 
   await createApiData(config, docsApiJsonPath, apiOuputDir, subPkgName);
@@ -77,32 +77,32 @@ async function createApiData(
   config: BuildConfig,
   docsApiJsonPath: string,
   apiOuputDir: string,
-  subPkgName: string,
+  subPkgName: string
 ) {
-  const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, "utf-8"));
+  const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, 'utf-8'));
 
   const apiData: ApiData = {
-    id: subPkgName.replace("@builder.io/", "").replace(/\//g, "-"),
+    id: subPkgName.replace('@builder.io/', '').replace(/\//g, '-'),
     package: subPkgName,
     members: [],
   };
 
   function addMember(apiExtract: any, hierarchyStr: string) {
-    const apiName = apiExtract.name || "";
-    const apiKind = apiExtract.kind || "";
+    const apiName = apiExtract.name || '';
+    const apiKind = apiExtract.kind || '';
     if (apiName.length === 0) {
       return;
     }
 
-    if (apiKind === "PropertySignature") {
-      if (!apiName.includes(":")) {
+    if (apiKind === 'PropertySignature') {
+      if (!apiName.includes(':')) {
         // do not include PropertySignatures unless they are namespaced
         // like q:slot or preventdefault:click
         return;
       }
     }
 
-    const hierarchySplit = hierarchyStr.split("/").filter((m) => m.length > 0);
+    const hierarchySplit = hierarchyStr.split('/').filter((m) => m.length > 0);
     hierarchySplit.push(apiName);
 
     const hierarchy = hierarchySplit.map((h) => {
@@ -120,25 +120,25 @@ async function createApiData(
     const content: string[] = [];
 
     if (existsSync(mdPath)) {
-      const mdSrcLines = readFileSync(mdPath, "utf-8").split(/\r?\n/);
+      const mdSrcLines = readFileSync(mdPath, 'utf-8').split(/\r?\n/);
 
       for (const line of mdSrcLines) {
-        if (line.startsWith("## ")) {
+        if (line.startsWith('## ')) {
           continue;
         }
-        if (line.startsWith("[Home]")) {
+        if (line.startsWith('[Home]')) {
           continue;
         }
-        if (line.startsWith("<!-- ")) {
+        if (line.startsWith('<!-- ')) {
           continue;
         }
-        if (line.startsWith("**Signature:**")) {
+        if (line.startsWith('**Signature:**')) {
           continue;
         }
         content.push(line);
       }
     } else {
-      console.log("Unable to find md for", mdFile);
+      console.log('Unable to find md for', mdFile);
     }
 
     apiData.members.push({
@@ -146,7 +146,7 @@ async function createApiData(
       id,
       hierarchy,
       kind: apiKind,
-      content: content.join("\n").trim(),
+      content: content.join('\n').trim(),
       editUrl: getEditUrl(config, apiExtract.fileUrlPath),
       mdFile,
     });
@@ -155,8 +155,8 @@ async function createApiData(
   function addMembers(apiExtract: any, hierarchyStr: string) {
     if (Array.isArray(apiExtract?.members)) {
       for (const member of apiExtract.members) {
-        addMembers(member, hierarchyStr + "/" + member.name);
-        if (member.kind === "Package" || member.kind === "EntryPoint") {
+        addMembers(member, hierarchyStr + '/' + member.name);
+        if (member.kind === 'Package' || member.kind === 'EntryPoint') {
           continue;
         }
         if (apiData.members.some((m) => member.name === m.name && member.kind === m.kind)) {
@@ -167,7 +167,7 @@ async function createApiData(
     }
   }
 
-  addMembers(apiExtractedJson, "");
+  addMembers(apiExtractedJson, '');
 
   apiData.members.forEach((m1) => {
     apiData.members.forEach((m2) => {
@@ -178,14 +178,14 @@ async function createApiData(
   });
 
   apiData.members.forEach((m) => {
-    m.content = m.content.replace(/\.\/qwik(.*)\.md/g, "#");
+    m.content = m.content.replace(/\.\/qwik(.*)\.md/g, '#');
   });
 
   apiData.members.sort((a, b) => {
     return a.name.localeCompare(b.name);
   });
 
-  const docsDir = join(config.packagesDir, "docs", "src", "routes", "api", apiData.id);
+  const docsDir = join(config.packagesDir, 'docs', 'src', 'routes', 'api', apiData.id);
   mkdirSync(docsDir, { recursive: true });
 
   const apiJsonPath = join(docsDir, `api.json`);
@@ -213,51 +213,51 @@ async function createApiMarkdown(a: ApiData) {
     // sanitize / adjust output
 
     // Process the content to escape { characters only outside code blocks
-    let processedContent = "";
+    let processedContent = '';
     let inCodeBlock = false;
     let inInlineCode = false;
 
-    const lines = m.content.split("\n");
+    const lines = m.content.split('\n');
 
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i]
-        .replace(/<!--(.|\s)*?-->/g, "")
+        .replace(/<!--(.|\s)*?-->/g, '')
         // .replace(/<Slot\/>/g, ''
-        .replace(/\\#\\#\\# (\w+)/gm, "### $1")
-        .replace(/\\\[/gm, "[")
-        .replace(/\\\]/gm, "]");
+        .replace(/\\#\\#\\# (\w+)/gm, '### $1')
+        .replace(/\\\[/gm, '[')
+        .replace(/\\\]/gm, ']');
 
       // Check for triple backtick code blocks
-      if (line.trim().startsWith("```")) {
+      if (line.trim().startsWith('```')) {
         inCodeBlock = !inCodeBlock;
-        processedContent += line + "\n";
+        processedContent += line + '\n';
         continue;
       }
 
       if (!inCodeBlock) {
         // Process line character by character for inline code
-        let newLine = "";
+        let newLine = '';
         for (let j = 0; j < line.length; j++) {
           const char = line[j];
 
           // Toggle inline code state when we see a backtick
-          if (char === "`") {
+          if (char === '`') {
             inInlineCode = !inInlineCode;
             newLine += char;
             continue;
           }
 
           // Escape { when not in any code context
-          if (char === "{" && !inInlineCode) {
-            newLine += "\\{";
+          if (char === '{' && !inInlineCode) {
+            newLine += '\\{';
           } else {
             newLine += char;
           }
         }
-        processedContent += newLine + "\n";
+        processedContent += newLine + '\n';
       } else {
         // In code block, don't change anything
-        processedContent += line + "\n";
+        processedContent += line + '\n';
       }
     }
 
@@ -270,8 +270,8 @@ async function createApiMarkdown(a: ApiData) {
     }
   }
 
-  const mdOutput = await format(md.join("\n"), {
-    parser: "markdown",
+  const mdOutput = await format(md.join('\n'), {
+    parser: 'markdown',
   });
   return mdOutput;
 }
@@ -293,25 +293,25 @@ interface ApiMember {
 }
 
 function getCanonical(hierarchy: string[]) {
-  return hierarchy.map((h) => getSafeFilenameForName(h)).join("-");
+  return hierarchy.map((h) => getSafeFilenameForName(h)).join('-');
 }
 
 function getMdFile(subPkgName: string, hierarchy: string[]) {
-  let mdFile = "";
+  let mdFile = '';
   for (const h of hierarchy) {
-    mdFile += "." + getSafeFilenameForName(h);
+    mdFile += '.' + getSafeFilenameForName(h);
   }
-  return `qwik${subPkgName.includes("city") ? "-city" : ""}${mdFile}.md`;
+  return `qwik${subPkgName.includes('city') ? '-city' : ''}${mdFile}.md`;
 }
 
 function getSafeFilenameForName(name: string): string {
   // https://github.com/microsoft/rushstack/blob/d0f8f10a9ce1ce4158ca2da5b79c54c71d028d89/apps/api-documenter/src/utils/Utilities.ts
-  return name.replace(/[^a-z0-9_\-\.]/gi, "_").toLowerCase();
+  return name.replace(/[^a-z0-9_\-\.]/gi, '_').toLowerCase();
 }
 
 function getEditUrl(config: BuildConfig, fileUrlPath: string | undefined) {
   if (fileUrlPath) {
-    const rootRelPath = fileUrlPath.slice(fileUrlPath.indexOf("dts-out") + "dts-out".length + 1);
+    const rootRelPath = fileUrlPath.slice(fileUrlPath.indexOf('dts-out') + 'dts-out'.length + 1);
 
     const tsxPath = join(config.rootDir, rootRelPath).replace(`.d.ts`, `.tsx`);
     if (existsSync(tsxPath)) {

@@ -1,12 +1,12 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { chromium, devices, type Page } from "playwright";
-import { fetch } from "undici";
-import pages from "./pages.json" with { type: "json" };
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { chromium, devices, type Page } from 'playwright';
+import { fetch } from 'undici';
+import pages from './pages.json' with { type: 'json' };
 
 type InputPageData = {
   href: string;
   tags?: string[];
-  size?: "small" | "large";
+  size?: 'small' | 'large';
   repo?: string;
 };
 type PageData = InputPageData & {
@@ -28,10 +28,10 @@ type PageData = InputPageData & {
   version?: string;
   ts: number;
 };
-const OUTPUT_JSON = "src/routes/(ecosystem)/showcase/generated-pages.json";
+const OUTPUT_JSON = 'src/routes/(ecosystem)/showcase/generated-pages.json';
 async function captureMultipleScreenshots() {
-  if (!existsSync("public/showcases")) {
-    mkdirSync("public/showcases");
+  if (!existsSync('public/showcases')) {
+    mkdirSync('public/showcases');
   }
 
   let browser = null;
@@ -42,11 +42,11 @@ async function captureMultipleScreenshots() {
     });
     const context = await browser.newContext({
       // pretend to be a desktop browser
-      ...devices["Desktop Chrome"],
+      ...devices['Desktop Chrome'],
     });
     let existingJson: PageData[] = [];
     try {
-      const data = readFileSync(OUTPUT_JSON, "utf8");
+      const data = readFileSync(OUTPUT_JSON, 'utf8');
       existingJson = JSON.parse(data) as PageData[];
     } catch {
       // ignore
@@ -70,27 +70,27 @@ async function captureMultipleScreenshots() {
           existingJson.push(existing);
         }
         if (Date.now() - existing.ts < 1000 * 60 * 60 * 24 * 7) {
-          console.log("Skipping recently updated", href);
+          console.log('Skipping recently updated', href);
           continue;
         }
-        console.log("Opening page", href);
+        console.log('Opening page', href);
         await page.goto(href);
 
         const title = await page.title();
-        const html = page.locator("html");
-        const hasContainer = await html.evaluate((node) => node.hasAttribute("q:container"));
+        const html = page.locator('html');
+        const hasContainer = await html.evaluate((node) => node.hasAttribute('q:container'));
         if (!hasContainer) {
-          console.warn("❌ Not a Qwik Site", href, await html.getAttribute("q:container"));
+          console.warn('❌ Not a Qwik Site', href, await html.getAttribute('q:container'));
           existingJson.splice(existingJson.indexOf(existing), 1);
-          writeFileSync(OUTPUT_JSON, JSON.stringify(existingJson, undefined, 2) + "\n");
+          writeFileSync(OUTPUT_JSON, JSON.stringify(existingJson, undefined, 2) + '\n');
           continue;
         }
-        const version = await html.getAttribute("q:version");
+        const version = await html.getAttribute('q:version');
         const filename = href
-          .replace("https://", "")
-          .replace("/", "_")
-          .replace(".", "_")
-          .replace(".", "_")
+          .replace('https://', '')
+          .replace('/', '_')
+          .replace('.', '_')
+          .replace('.', '_')
           .toLowerCase();
 
         await wait(5000);
@@ -99,19 +99,19 @@ async function captureMultipleScreenshots() {
           getPagespeedData(href),
           page.screenshot({
             path: path,
-            type: "jpeg",
+            type: 'jpeg',
             quality: 50,
           }),
         ]);
         const fcpDisplay =
-          pagespeedOutput.lighthouseResult?.audits?.["first-contentful-paint"]?.displayValue;
+          pagespeedOutput.lighthouseResult?.audits?.['first-contentful-paint']?.displayValue;
         const fcpScore =
-          pagespeedOutput?.lighthouseResult?.audits?.["first-contentful-paint"]?.score;
+          pagespeedOutput?.lighthouseResult?.audits?.['first-contentful-paint']?.score;
 
         const lcpDisplay =
-          pagespeedOutput?.lighthouseResult?.audits?.["largest-contentful-paint"]?.displayValue;
+          pagespeedOutput?.lighthouseResult?.audits?.['largest-contentful-paint']?.displayValue;
         const lcpScore =
-          pagespeedOutput?.lighthouseResult?.audits?.["largest-contentful-paint"]?.score;
+          pagespeedOutput?.lighthouseResult?.audits?.['largest-contentful-paint']?.score;
 
         const loadExpMetrics = pagespeedOutput.loadingExperience?.metrics;
         // ms score of the 75th percentile of the page users
@@ -148,7 +148,7 @@ async function captureMultipleScreenshots() {
           perf,
           version,
         });
-        writeFileSync(OUTPUT_JSON, JSON.stringify(existingJson, undefined, 2) + "\n");
+        writeFileSync(OUTPUT_JSON, JSON.stringify(existingJson, undefined, 2) + '\n');
         console.log(`✅ ${title} - (${href})`);
       } catch (err) {
         console.error(err);
@@ -170,11 +170,11 @@ async function captureMultipleScreenshots() {
 
 async function getPagespeedData(url: string) {
   const requestURL = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
-    url,
+    url
   )}&key=AIzaSyApBC9gblaCzWrtEBgHnZkd_B37OF49BfM&category=PERFORMANCE&strategy=MOBILE`;
   return await fetch(requestURL, {
     headers: {
-      referer: "https://www.builder.io/",
+      referer: 'https://www.builder.io/',
     },
   }).then(async (res) => {
     if (!res.ok) {

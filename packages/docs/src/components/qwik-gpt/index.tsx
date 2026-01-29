@@ -1,56 +1,56 @@
-import { component$, useComputed$, useSignal } from "@builder.io/qwik";
+import { component$, useComputed$, useSignal } from '@builder.io/qwik';
 // import { qwikGPT, rateResponse } from './search';
-import { CodeBlock } from "../code-block/code-block";
+import { CodeBlock } from '../code-block/code-block';
 // import { isBrowser } from '@builder.io/qwik';
-import snarkdown from "snarkdown";
+import snarkdown from 'snarkdown';
 
 const snarkdownEnhanced = (md: string) => {
   const htmls = md
     .split(/(?:\r?\n){2,}/)
     .map((l) =>
-      [" ", "\t", "#", "-", "*"].some((ch) => l.startsWith(ch))
+      [' ', '\t', '#', '-', '*'].some((ch) => l.startsWith(ch))
         ? snarkdown(l)
-        : `<p>${snarkdown(l)}</p>`,
+        : `<p>${snarkdown(l)}</p>`
     );
 
-  return htmls.join("\n\n");
+  return htmls.join('\n\n');
 };
 
 export const QwikGPT = component$((props: { query: string }) => {
-  const message = useSignal("");
+  const message = useSignal('');
   // const done = useSignal(false);
   // const id = useSignal<string>();
   // const rated = useSignal(false);
 
   const process = useComputed$(() => {
-    const rawLines = message.value.split("\n");
+    const rawLines = message.value.split('\n');
     const lines: { type: any; [key: string]: any }[] = [];
     let insideCode = false;
-    let accumulated = "";
+    let accumulated = '';
     for (const line of rawLines) {
       const lineParsed = line.trim();
       if (insideCode) {
-        if (lineParsed.startsWith("```")) {
+        if (lineParsed.startsWith('```')) {
           insideCode = false;
           lines.push({
             type: CodeBlock,
             code: accumulated,
-            language: "tsx",
+            language: 'tsx',
           });
-          accumulated = "";
+          accumulated = '';
         } else {
-          accumulated += line + "\n";
+          accumulated += line + '\n';
         }
       } else {
-        if (lineParsed.startsWith("```")) {
+        if (lineParsed.startsWith('```')) {
           lines.push({
-            type: "div",
+            type: 'div',
             dangerouslySetInnerHTML: snarkdownEnhanced(accumulated),
           });
-          accumulated = "";
+          accumulated = '';
           insideCode = true;
         } else {
-          accumulated += line + "\n";
+          accumulated += line + '\n';
         }
       }
     }
@@ -58,11 +58,11 @@ export const QwikGPT = component$((props: { query: string }) => {
       lines.push({
         type: CodeBlock,
         code: accumulated,
-        language: "tsx",
+        language: 'tsx',
       });
     } else {
       lines.push({
-        type: "div",
+        type: 'div',
         dangerouslySetInnerHTML: snarkdownEnhanced(accumulated),
       });
     }
@@ -95,7 +95,7 @@ export const QwikGPT = component$((props: { query: string }) => {
   //   }
   // });
 
-  if (message.value === "" && props.query !== "") {
+  if (message.value === '' && props.query !== '') {
     return (
       <div class="indeterminate-progress-bar">
         <div class="indeterminate-progress-bar__progress"></div>

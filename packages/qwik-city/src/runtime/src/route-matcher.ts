@@ -1,4 +1,4 @@
-import type { PathParams } from "./types";
+import type { PathParams } from './types';
 
 /**
  * Match a given route against a path.
@@ -21,9 +21,9 @@ function matchRoutePart(
   routeLength: number,
   path: string,
   pathIdx: number,
-  pathLength: number,
+  pathLength: number
 ): PathParams | null {
-  if (path.startsWith("/build/")) {
+  if (path.startsWith('/build/')) {
     return null;
   }
 
@@ -56,7 +56,7 @@ function matchRoutePart(
           pathLength,
           route,
           routeIdx + suffix.length + 1,
-          routeLength,
+          routeLength
         );
         if (match) {
           return Object.assign(params || (params = {}), match);
@@ -113,7 +113,7 @@ function isThreeDots(text: string, idx: number): boolean {
   );
 }
 
-function scan(text: string, idx: number, end: number, ch: Char, suffix: string = ""): number {
+function scan(text: string, idx: number, end: number, ch: Char, suffix: string = ''): number {
   while (idx < end && text.charCodeAt(idx) !== ch) {
     idx++;
   }
@@ -141,13 +141,13 @@ function recursiveScan(
   pathLength: number,
   route: string,
   routeStart: number,
-  routeLength: number,
+  routeLength: number
 ) {
   if (path.charCodeAt(pathStart) === Char.SLASH) {
     pathStart++;
   }
   let pathIdx = pathLength;
-  const sep = suffix + "/";
+  const sep = suffix + '/';
   while (pathIdx >= pathStart) {
     const match = matchRoutePart(route, routeStart, routeLength, path, pathIdx, pathLength);
     if (match) {
@@ -172,7 +172,7 @@ function lastIndexOf(
   start: number,
   match: string,
   searchIdx: number,
-  notFoundIdx: number,
+  notFoundIdx: number
 ): number {
   let idx = text.lastIndexOf(match, searchIdx);
   if (idx == searchIdx - match.length) {

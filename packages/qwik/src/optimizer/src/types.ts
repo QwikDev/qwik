@@ -38,12 +38,12 @@ export interface OptimizerSystem {
 }
 
 /** @public */
-export type SystemEnvironment = "node" | "deno" | "bun" | "webworker" | "browsermain" | "unknown";
+export type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';
 
 // OPTIONS ***************
 
 /** @public */
-export type SourceMapsOption = "external" | "inline" | undefined | null;
+export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
 /** @public */
 export type TranspileOption = boolean | undefined | null;
@@ -107,7 +107,7 @@ export interface SegmentAnalysis {
   canonicalFilename: string;
   extension: string;
   parent: string | null;
-  ctxKind: "eventHandler" | "function";
+  ctxKind: 'eventHandler' | 'function';
   ctxName: string;
   captures: boolean;
   loc: [number, number];
@@ -149,7 +149,7 @@ export interface SourceLocation {
 }
 
 /** @public */
-export type DiagnosticCategory = "error" | "warning" | "sourceError";
+export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
 // ENTRY STRATEGY ***************
 
@@ -164,48 +164,48 @@ export type EntryStrategy =
   | SmartEntryStrategy;
 
 /** @public */
-export type MinifyMode = "simplify" | "none";
+export type MinifyMode = 'simplify' | 'none';
 
 /** @public */
-export type EmitMode = "dev" | "prod" | "lib";
+export type EmitMode = 'dev' | 'prod' | 'lib';
 
 /** @public */
 export interface InlineEntryStrategy {
-  type: "inline";
+  type: 'inline';
 }
 
 /** @public */
 export interface HoistEntryStrategy {
-  type: "hoist";
+  type: 'hoist';
 }
 
 /** @deprecated Use SegmentStrategy instead */
 export interface HookEntryStrategy {
-  type: "hook";
+  type: 'hook';
   manual?: Record<string, string>;
 }
 
 /** @public */
 export interface SegmentEntryStrategy {
-  type: "segment";
+  type: 'segment';
   manual?: Record<string, string>;
 }
 
 /** @public */
 export interface SingleEntryStrategy {
-  type: "single";
+  type: 'single';
   manual?: Record<string, string>;
 }
 
 /** @public */
 export interface ComponentEntryStrategy {
-  type: "component";
+  type: 'component';
   manual?: Record<string, string>;
 }
 
 /** @public */
 export interface SmartEntryStrategy {
-  type: "smart";
+  type: 'smart';
   manual?: Record<string, string>;
 }
 
@@ -246,7 +246,7 @@ export interface QwikManifest {
   options?: {
     target?: string;
     buildMode?: string;
-    entryStrategy?: { type: EntryStrategy["type"] };
+    entryStrategy?: { type: EntryStrategy['type'] };
   };
   /** The platform used to build the manifest */
   platform?: { [name: string]: string };
@@ -258,14 +258,14 @@ export interface QwikManifest {
  */
 export type ServerQwikManifest = Pick<
   QwikManifest,
-  | "manifestHash"
-  | "injections"
-  | "bundleGraph"
-  | "bundleGraphAsset"
-  | "mapping"
-  | "preloader"
-  | "core"
-  | "qwikLoader"
+  | 'manifestHash'
+  | 'injections'
+  | 'bundleGraph'
+  | 'bundleGraphAsset'
+  | 'mapping'
+  | 'preloader'
+  | 'core'
+  | 'qwikLoader'
 >;
 
 /**
@@ -285,7 +285,7 @@ export type SymbolMapper = Record<string, readonly [symbol: string, chunk: strin
 export type SymbolMapperFn = (
   symbolName: string,
   mapper: SymbolMapper | undefined,
-  parent?: string,
+  parent?: string
 ) => readonly [symbol: string, chunk: string] | undefined;
 
 /** @public */
@@ -294,7 +294,7 @@ export interface QwikSymbol {
   displayName: string;
   hash: string;
   canonicalFilename: string;
-  ctxKind: "function" | "eventHandler";
+  ctxKind: 'function' | 'eventHandler';
   ctxName: string;
   captures: boolean;
   parent: string | null;
@@ -331,7 +331,7 @@ export interface QwikAsset {
 export interface GlobalInjections {
   tag: string;
   attributes?: { [key: string]: string };
-  location: "head" | "body";
+  location: 'head' | 'body';
 }
 
 // PATH UTIL  ***************

@@ -1,9 +1,9 @@
-import type { ClientSPAWindow } from "./qwik-city-component";
-import type { ScrollHistoryState } from "./scroll-restoration";
-import type { ScrollState } from "./types";
+import type { ClientSPAWindow } from './qwik-city-component';
+import type { ScrollHistoryState } from './scroll-restoration';
+import type { ScrollState } from './types';
 
-import { isDev } from "@builder.io/qwik";
-import { event$ } from "@builder.io/qwik";
+import { isDev } from '@builder.io/qwik';
+import { event$ } from '@builder.io/qwik';
 
 // TODO Dedupe handler code from here and QwikCityProvider?
 // TODO Navigation API; check for support & simplify.
@@ -16,11 +16,11 @@ import { event$ } from "@builder.io/qwik";
 // ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
 export default event$((_: Event, el: Element) => {
   const win: ClientSPAWindow = window;
-  const spa = "_qCitySPA";
-  const initPopstate = "_qCityInitPopstate";
-  const initAnchors = "_qCityInitAnchors";
-  const initVisibility = "_qCityInitVisibility";
-  const initScroll = "_qCityInitScroll";
+  const spa = '_qCitySPA';
+  const initPopstate = '_qCityInitPopstate';
+  const initAnchors = '_qCityInitAnchors';
+  const initVisibility = '_qCityInitVisibility';
+  const initScroll = '_qCityInitScroll';
   if (
     !win[spa] &&
     !win[initPopstate] &&
@@ -30,11 +30,11 @@ export default event$((_: Event, el: Element) => {
   ) {
     const currentPath = location.pathname + location.search;
 
-    const historyPatch = "_qCityHistoryPatch";
-    const bootstrap = "_qCityBootstrap";
-    const scrollEnabled = "_qCityScrollEnabled";
-    const debounceTimeout = "_qCityScrollDebounce";
-    const scrollHistory = "_qCityScroll";
+    const historyPatch = '_qCityHistoryPatch';
+    const bootstrap = '_qCityBootstrap';
+    const scrollEnabled = '_qCityScrollEnabled';
+    const debounceTimeout = '_qCityScrollDebounce';
+    const scrollHistory = '_qCityScroll';
 
     const checkAndScroll = (scrollState: ScrollState | undefined) => {
       if (scrollState) {
@@ -55,7 +55,7 @@ export default event$((_: Event, el: Element) => {
     const saveScrollState = (scrollState?: ScrollState) => {
       const state: ScrollHistoryState = history.state || {};
       state[scrollHistory] = scrollState || currentScrollState();
-      history.replaceState(state, "");
+      history.replaceState(state, '');
     };
 
     saveScrollState();
@@ -70,18 +70,18 @@ export default event$((_: Event, el: Element) => {
       clearTimeout(win[debounceTimeout]);
 
       if (currentPath !== location.pathname + location.search) {
-        const getContainer = (el: Element) => el.closest("[q\\:container]");
+        const getContainer = (el: Element) => el.closest('[q\\:container]');
         // Hook into useNavigate context, if available.
         // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
         // TODO Will only work with <Link>, is there a better way?
-        const link = getContainer(el)?.querySelector("a[q\\:link]");
+        const link = getContainer(el)?.querySelector('a[q\\:link]');
 
         if (link) {
           // Re-acquire container, link may be in a nested container.
           const container = getContainer(link)!;
           const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
-          bootstrapLink.setAttribute("q:nbs", "");
-          bootstrapLink.style.display = "none";
+          bootstrapLink.setAttribute('q:nbs', '');
+          bootstrapLink.style.display = 'none';
 
           container.appendChild(bootstrapLink);
           win[bootstrap] = bootstrapLink;
@@ -91,7 +91,7 @@ export default event$((_: Event, el: Element) => {
           location.reload();
         }
       } else {
-        if (history.scrollRestoration === "manual") {
+        if (history.scrollRestoration === 'manual') {
           const scrollState = (history.state as ScrollHistoryState)?.[scrollHistory];
           checkAndScroll(scrollState);
           win[scrollEnabled] = true;
@@ -105,17 +105,17 @@ export default event$((_: Event, el: Element) => {
       const replaceState = history.replaceState;
 
       const prepareState = (state: any) => {
-        if (state === null || typeof state === "undefined") {
+        if (state === null || typeof state === 'undefined') {
           state = {};
         } else if (state?.constructor !== Object) {
           state = { _data: state };
 
           if (isDev) {
             console.warn(
-              "In a Qwik SPA context, `history.state` is used to store scroll state. " +
-                "Direct calls to `pushState()` and `replaceState()` must supply an actual Object type. " +
-                "We need to be able to automatically attach the scroll state to your state object. " +
-                "A new state object has been created, your data has been moved to: `history.state._data`",
+              'In a Qwik SPA context, `history.state` is used to store scroll state. ' +
+                'Direct calls to `pushState()` and `replaceState()` must supply an actual Object type. ' +
+                'We need to be able to automatically attach the scroll state to your state object. ' +
+                'A new state object has been created, your data has been moved to: `history.state._data`'
             );
           }
         }
@@ -141,10 +141,10 @@ export default event$((_: Event, el: Element) => {
         return;
       }
 
-      const target = (event.target as HTMLElement).closest("a[href]");
+      const target = (event.target as HTMLElement).closest('a[href]');
 
-      if (target && !target.hasAttribute("preventdefault:click")) {
-        const href = target.getAttribute("href")!;
+      if (target && !target.hasAttribute('preventdefault:click')) {
+        const href = target.getAttribute('href')!;
         const prev = new URL(location.href);
         const dest = new URL(href, prev);
         const sameOrigin = dest.origin === prev.origin;
@@ -155,11 +155,11 @@ export default event$((_: Event, el: Element) => {
 
           // Check href because empty hashes don't register.
           if (dest.href !== prev.href) {
-            history.pushState(null, "", dest);
+            history.pushState(null, '', dest);
           }
 
           if (!dest.hash) {
-            if (dest.href.endsWith("#")) {
+            if (dest.href.endsWith('#')) {
               window.scrollTo(0, 0);
             } else {
               // Simulate same-page (no hash) anchor reload.
@@ -181,7 +181,7 @@ export default event$((_: Event, el: Element) => {
     };
 
     win[initVisibility] = () => {
-      if (!win[spa] && win[scrollEnabled] && document.visibilityState === "hidden") {
+      if (!win[spa] && win[scrollEnabled] && document.visibilityState === 'hidden') {
         saveScrollState();
       }
     };
@@ -202,12 +202,12 @@ export default event$((_: Event, el: Element) => {
     win[scrollEnabled] = true;
 
     setTimeout(() => {
-      win.addEventListener("popstate", win[initPopstate]!);
-      win.addEventListener("scroll", win[initScroll]!, { passive: true });
-      document.addEventListener("click", win[initAnchors]!);
+      win.addEventListener('popstate', win[initPopstate]!);
+      win.addEventListener('scroll', win[initScroll]!, { passive: true });
+      document.addEventListener('click', win[initAnchors]!);
 
       if (!(win as any).navigation) {
-        document.addEventListener("visibilitychange", win[initVisibility]!, {
+        document.addEventListener('visibilitychange', win[initVisibility]!, {
           passive: true,
         });
       }

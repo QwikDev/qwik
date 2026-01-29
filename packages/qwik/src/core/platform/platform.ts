@@ -1,10 +1,10 @@
 // keep this import from qwik/build so the cjs build works
-import { isServer } from "@builder.io/qwik/build";
-import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from "../error/error";
-import { getSymbolHash } from "../qrl/qrl-class";
-import type { QwikElement } from "../render/dom/virtual-element";
-import { qDynamicPlatform } from "../util/qdev";
-import type { CorePlatform } from "./types";
+import { isServer } from '@builder.io/qwik/build';
+import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
+import { getSymbolHash } from '../qrl/qrl-class';
+import type { QwikElement } from '../render/dom/virtual-element';
+import { qDynamicPlatform } from '../util/qdev';
+import type { CorePlatform } from './types';
 
 export const createPlatform = (): CorePlatform => {
   return {
@@ -25,7 +25,7 @@ export const createPlatform = (): CorePlatform => {
       }
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url).toString();
       const urlCopy = new URL(urlDoc);
-      urlCopy.hash = "";
+      urlCopy.hash = '';
       const importURL = urlCopy.href;
       return import(/* @vite-ignore */ importURL).then((mod) => {
         return mod[symbolName];
@@ -46,7 +46,7 @@ export const createPlatform = (): CorePlatform => {
       });
     },
     chunkForSymbol(symbolName, chunk) {
-      return [symbolName, chunk ?? "_"];
+      return [symbolName, chunk ?? '_'];
     },
   };
 };
@@ -66,7 +66,7 @@ export const createPlatform = (): CorePlatform => {
  */
 export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL): URL => {
   const baseURI = doc.baseURI;
-  const base = new URL(containerEl.getAttribute("q:base") ?? baseURI, baseURI);
+  const base = new URL(containerEl.getAttribute('q:base') ?? baseURI, baseURI);
   return new URL(url, base);
 };
 

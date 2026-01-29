@@ -1,5 +1,5 @@
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useExampleLoader = routeLoader$(() => {
-  return "This is example loader data.";
+  return 'This is example loader data.';
 });

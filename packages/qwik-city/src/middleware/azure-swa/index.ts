@@ -1,14 +1,14 @@
-import type { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { setServerPlatform } from "@builder.io/qwik/server";
-import { requestHandler } from "@builder.io/qwik-city/middleware/request-handler";
+import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { setServerPlatform } from '@builder.io/qwik/server';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
-} from "@builder.io/qwik-city/middleware/request-handler";
-import { getNotFound } from "@qwik-city-not-found-paths";
-import { _deserializeData, _serializeData, _verifySerializable } from "@builder.io/qwik";
-import { parseString } from "set-cookie-parser";
-import { isStaticPath } from "@qwik-city-static-paths";
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { parseString } from 'set-cookie-parser';
+import { isStaticPath } from '@qwik-city-static-paths';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
@@ -59,15 +59,15 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   }
   async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     try {
-      const url = new URL(req.headers["x-ms-original-url"]!);
+      const url = new URL(req.headers['x-ms-original-url']!);
       const options: RequestInit = {
-        method: req.method || "GET",
+        method: req.method || 'GET',
         headers: req.headers,
         body: req.bufferBody || req.rawBody || req.body,
       };
 
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
-        mode: "server",
+        mode: 'server',
         locale: undefined,
         url,
         platform: context,
@@ -102,7 +102,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
 
         getClientConn: () => {
           return {
-            ip: req.headers["x-forwarded-client-Ip"],
+            ip: req.headers['x-forwarded-client-Ip'],
             country: undefined,
           };
         },
@@ -128,19 +128,19 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
       // In the development server, we replace the getNotFound function
       // For static paths, we assign a static "Not Found" message.
       // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml = isStaticPath(req.method || "GET", url)
-        ? "Not Found"
+      const notFoundHtml = isStaticPath(req.method || 'GET', url)
+        ? 'Not Found'
         : getNotFound(url.pathname);
       return {
         status: 404,
-        headers: { "Content-Type": "text/html; charset=utf-8", "X-Not-Found": url.pathname },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
         body: notFoundHtml,
       };
     } catch (e: any) {
       console.error(e);
       return {
         status: 500,
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       };
     }
   }

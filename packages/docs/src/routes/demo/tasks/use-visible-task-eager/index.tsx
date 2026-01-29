@@ -1,4 +1,4 @@
-import { component$, useSignal, useVisibleTask$, type Signal } from "@builder.io/qwik";
+import { component$, useSignal, useVisibleTask$, type Signal } from '@builder.io/qwik';
 
 export default component$(() => {
   const isClockRunning = useSignal(false);
@@ -7,7 +7,7 @@ export default component$(() => {
     <>
       <div style="position: sticky; top:0">
         Scroll to see clock. (Currently clock is
-        {isClockRunning.value ? " running" : " not running"}.)
+        {isClockRunning.value ? ' running' : ' not running'}.)
       </div>
       <div style="height: 200vh" />
       <Clock isRunning={isClockRunning} />
@@ -16,7 +16,7 @@ export default component$(() => {
 });
 
 const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
-  const time = useSignal("paused");
+  const time = useSignal('paused');
   useVisibleTask$(
     ({ cleanup }) => {
       isRunning.value = true;
@@ -24,7 +24,7 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
       const id = setInterval(update, 1000);
       cleanup(() => clearInterval(id));
     },
-    { strategy: "document-ready" },
+    { strategy: 'document-ready' }
   );
   return <div>{time}</div>;
 });

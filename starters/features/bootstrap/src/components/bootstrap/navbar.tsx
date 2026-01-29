@@ -1,9 +1,9 @@
-import { component$, useOn, $ } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
+import { component$, useOn, $ } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
 export const Navbar = component$(() => {
   useOn(
-    "qvisible",
-    $(() => import("bootstrap")),
+    'qvisible',
+    $(() => import('bootstrap'))
   );
 
   return (
@@ -21,19 +21,19 @@ export const Navbar = component$(() => {
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-          <Link class="navbar-brand" href={"/bootstrap/"}>
+          <Link class="navbar-brand" href={'/bootstrap/'}>
             Boostrap in Qwik
           </Link>
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <Link class="nav-link" href={"/bootstrap/alerts"}>
+              <Link class="nav-link" href={'/bootstrap/alerts'}>
                 Alerts
               </Link>
             </li>
-            <Link class="nav-link" href={"/bootstrap/buttons"}>
+            <Link class="nav-link" href={'/bootstrap/buttons'}>
               Buttons
             </Link>
-            <Link class="nav-link" href={"/bootstrap/spinners"}>
+            <Link class="nav-link" href={'/bootstrap/spinners'}>
               Spinners
             </Link>
           </ul>

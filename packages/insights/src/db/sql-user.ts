@@ -1,6 +1,6 @@
-import { and, eq, sql } from "drizzle-orm";
-import { getDB } from "./index";
-import { applicationTable, userApplicationMap, usersTable } from "./schema";
+import { and, eq, sql } from 'drizzle-orm';
+import { getDB } from './index';
+import { applicationTable, userApplicationMap, usersTable } from './schema';
 
 export class InsightsUser {
   userId: number;
@@ -12,7 +12,7 @@ export class InsightsUser {
     userId: number,
     email: string,
     superUser: boolean,
-    applicationPublicApiKeys: string[],
+    applicationPublicApiKeys: string[]
   ) {
     this.userId = userId;
     this.email = email;
@@ -58,7 +58,7 @@ export const dbGetInsightUser = async (email: string): Promise<InsightsUser> => 
           keys.push(user.publicApiKey);
         }
         return keys;
-      }, []),
+      }, [])
     );
   }
 };
@@ -79,20 +79,20 @@ export const dbGetUsersForApplication = async (publicApiKey: string) => {
 };
 
 export const dbRemoveUserFromApplication = async (email: string, publicApiKey: string) => {
-  console.log("dbRemoveUserFromApplication", email, publicApiKey);
+  console.log('dbRemoveUserFromApplication', email, publicApiKey);
   await getDB()
     .delete(userApplicationMap)
     .where(
       and(
         eq(
           userApplicationMap.applicationId,
-          sql`(select ${applicationTable.id} from ${applicationTable} where ${applicationTable.publicApiKey} = ${publicApiKey})`,
+          sql`(select ${applicationTable.id} from ${applicationTable} where ${applicationTable.publicApiKey} = ${publicApiKey})`
         ),
         eq(
           userApplicationMap.userId,
-          sql`(select ${usersTable.id} from ${usersTable} where ${usersTable.email} = ${email})`,
-        ),
-      ),
+          sql`(select ${usersTable.id} from ${usersTable} where ${usersTable.email} = ${email})`
+        )
+      )
     );
 };
 
@@ -111,6 +111,6 @@ export const dbAddUserToApplication = async (email: string, publicApiKey: string
       .values({ userId: user.userId, applicationId: app?.applicationId })
       .execute();
   } catch (e) {
-    console.warn("User already exists", email, publicApiKey);
+    console.warn('User already exists', email, publicApiKey);
   }
 };

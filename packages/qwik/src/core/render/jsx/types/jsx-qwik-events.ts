@@ -1,4 +1,4 @@
-import type { AllEventKeys } from "./jsx-qwik-attributes";
+import type { AllEventKeys } from './jsx-qwik-attributes';
 
 /** Emitted by qwik-loader when an element becomes visible. Used by `useVisibleTask$` @public */
 export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
@@ -21,9 +21,9 @@ export type QwikViewTransitionEvent = CustomEvent<ViewTransition>;
 /** Emitted by qwik-loader on document when there was an error loading a module @public */
 export type QwikErrorEvent = CustomEvent<
   {
-    importError?: "sync" | "async" | "no-symbol";
+    importError?: 'sync' | 'async' | 'no-symbol';
     error: unknown;
-  } & QwikSymbolEvent["detail"]
+  } & QwikSymbolEvent['detail']
 >;
 
 // Utility types for supporting autocompletion in union types

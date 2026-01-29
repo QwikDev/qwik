@@ -1,7 +1,7 @@
-import type { QwikElement, VirtualElement } from "../render/dom/virtual-element";
+import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 
 export const isNode = (value: any): value is Node => {
-  return value && typeof value.nodeType === "number";
+  return value && typeof value.nodeType === 'number';
 };
 
 export const isDocument = (value: Node): value is Document => {
@@ -27,7 +27,7 @@ export const isVirtualElement = (value: object): value is VirtualElement => {
 };
 
 export const isVirtualElementOpenComment = (value: Node | VirtualElement): value is Comment => {
-  return isComment(value) && value.data.startsWith("qv ");
+  return isComment(value) && value.data.startsWith('qv ');
 };
 
 export const isText = (value: Node | QwikElement): value is Text => {

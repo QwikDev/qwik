@@ -2,20 +2,20 @@
  * Simple Auth For Testing Only!!!
  */
 
-import { component$ } from "@builder.io/qwik";
+import { component$ } from '@builder.io/qwik';
 import {
   type DocumentHead,
   Form,
   type RequestHandler,
   globalAction$,
   zod$,
-} from "@builder.io/qwik-city";
-import { isUserAuthenticated, signIn } from "../../../../auth/auth";
-import * as z from "zod";
+} from '@builder.io/qwik-city';
+import { isUserAuthenticated, signIn } from '../../../../auth/auth';
+import * as z from 'zod';
 
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {
-    throw redirect(302, "/qwikcity-test/dashboard/");
+    throw redirect(302, '/qwikcity-test/dashboard/');
   }
 };
 
@@ -23,12 +23,12 @@ export const useSigninAction = globalAction$(
   async (data, { cookie, redirect, status, fail }) => {
     const result = await signIn(data, cookie);
 
-    if (result.status === "signed-in") {
-      throw redirect(302, "/qwikcity-test/dashboard/");
+    if (result.status === 'signed-in') {
+      throw redirect(302, '/qwikcity-test/dashboard/');
     }
 
     return fail(403, {
-      message: ["Invalid username or password"],
+      message: ['Invalid username or password'],
     });
   },
   zod$(
@@ -41,21 +41,21 @@ export const useSigninAction = globalAction$(
       .superRefine(({ confirmPassword, password }, ctx) => {
         if (confirmPassword !== password) {
           ctx.addIssue({
-            code: "custom",
-            message: "The passwords did not match",
+            code: 'custom',
+            message: 'The passwords did not match',
           });
         }
-      }),
-  ),
+      })
+  )
 );
 
 export const useResetPasswordAction = globalAction$(
   ({ email }) => {
-    console.warn("resetPasswordAction", email);
+    console.warn('resetPasswordAction', email);
   },
   zod$({
     email: z.string().email(),
-  }),
+  })
 );
 
 export default component$(() => {
@@ -107,5 +107,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Sign In",
+  title: 'Sign In',
 };

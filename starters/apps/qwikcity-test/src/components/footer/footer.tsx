@@ -1,9 +1,9 @@
-import { component$, useStyles$, useTask$ } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
-import { useUserLoader } from "../../routes/layout";
-import { useRootLoader } from "../../routes/plugin@header";
-import styles from "./footer.css?inline";
-import { usePlugin } from "../../routes/plugin@issue4722";
+import { component$, useStyles$, useTask$ } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
+import { useUserLoader } from '../../routes/layout';
+import { useRootLoader } from '../../routes/plugin@header';
+import styles from './footer.css?inline';
+import { usePlugin } from '../../routes/plugin@issue4722';
 
 export default component$(() => {
   const serverData = useRootLoader();

@@ -1,7 +1,7 @@
-import { implicit$FirstArg } from "../util/implicit_dollar";
-import { qDev, qRuntimeQrl } from "../util/qdev";
-import type { QRLDev } from "./qrl";
-import { SYNC_QRL, createQRL } from "./qrl-class";
+import { implicit$FirstArg } from '../util/implicit_dollar';
+import { qDev, qRuntimeQrl } from '../util/qdev';
+import type { QRLDev } from './qrl';
+import { SYNC_QRL, createQRL } from './qrl-class';
 
 // We use `unknown` instead of `never` when it's not a function so we allow assigning QRL<function> to QRL<any>
 export type QrlArgs<T> = T extends (...args: infer ARGS) => any ? ARGS : unknown[];
@@ -158,7 +158,7 @@ type BivariantQrlFn<ARGS extends any[], RETURN> = {
    * @returns A promise of the return value of the closure.
    */
   bivarianceHack(...args: ARGS): Promise<RETURN>;
-}["bivarianceHack"];
+}['bivarianceHack'];
 
 /**
  * @deprecated Use `QRL<>` instead
@@ -258,11 +258,11 @@ export type PropFunction<T> = QRL<T>;
 export const $ = <T>(expression: T): QRL<T> => {
   if (!qRuntimeQrl && qDev) {
     throw new Error(
-      "Optimizer should replace all usages of $() with some special syntax. If you need to create a QRL manually, use inlinedQrl() instead.",
+      'Optimizer should replace all usages of $() with some special syntax. If you need to create a QRL manually, use inlinedQrl() instead.'
     );
   }
 
-  return createQRL<T>(null, "s" + runtimeSymbolId++, expression, null, null, null, null);
+  return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null, null, null);
 };
 
 /** @public */
@@ -303,16 +303,16 @@ export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
 export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
   if (!qRuntimeQrl && qDev) {
     throw new Error(
-      "Optimizer should replace all usages of sync$() with some special syntax. If you need to create a QRL manually, use inlinedSyncQrl() instead.",
+      'Optimizer should replace all usages of sync$() with some special syntax. If you need to create a QRL manually, use inlinedSyncQrl() instead.'
     );
   }
   if (qDev) {
     // To make sure that in dev mode we don't accidentally capture context in `sync$()` we serialize and deserialize the function.
     // eslint-disable-next-line no-new-func
-    fn = new Function("return " + fn.toString())() as any;
+    fn = new Function('return ' + fn.toString())() as any;
   }
 
-  return createQRL<T>("", SYNC_QRL, fn, null, null, null, null) as any;
+  return createQRL<T>('', SYNC_QRL, fn, null, null, null, null) as any;
 };
 
 /**
@@ -327,11 +327,11 @@ export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
  */
 export const _qrlSync = function <TYPE extends Function>(
   fn: TYPE,
-  serializedFn?: string,
+  serializedFn?: string
 ): SyncQRL<TYPE> {
   if (serializedFn === undefined) {
     serializedFn = fn.toString();
   }
   (fn as any).serialized = serializedFn;
-  return createQRL<TYPE>("", SYNC_QRL, fn, null, null, null, null) as any;
+  return createQRL<TYPE>('', SYNC_QRL, fn, null, null, null, null) as any;
 };

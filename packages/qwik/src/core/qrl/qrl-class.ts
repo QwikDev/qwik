@@ -1,8 +1,8 @@
-import { assertDefined } from "../error/assert";
-import { qError, QError_qrlIsNotFunction } from "../error/error";
-import { getPlatform, isServerPlatform } from "../platform/platform";
-import { verifySerializable } from "../state/common";
-import { isSignal, type SignalInternal } from "../state/signal";
+import { assertDefined } from '../error/assert';
+import { qError, QError_qrlIsNotFunction } from '../error/error';
+import { getPlatform, isServerPlatform } from '../platform/platform';
+import { verifySerializable } from '../state/common';
+import { isSignal, type SignalInternal } from '../state/signal';
 import {
   invoke,
   newInvokeContext,
@@ -10,23 +10,23 @@ import {
   tryGetInvokeContext,
   type InvokeContext,
   type InvokeTuple,
-} from "../use/use-core";
-import { getQFuncs, QInstance } from "../util/markers";
-import { isPromise, maybeThen } from "../util/promises";
-import { qDev, qSerialize, qTest, seal } from "../util/qdev";
-import { isArray, isFunction, type ValueOrPromise } from "../util/types";
+} from '../use/use-core';
+import { getQFuncs, QInstance } from '../util/markers';
+import { isPromise, maybeThen } from '../util/promises';
+import { qDev, qSerialize, qTest, seal } from '../util/qdev';
+import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 // @ts-expect-error we don't have types for the preloader
-import { p as preload } from "@builder.io/qwik/preloader";
-import type { QRLDev } from "./qrl";
-import type { QRL, QrlArgs, QrlReturn } from "./qrl.public";
-import { isBrowser } from "@builder.io/qwik/build";
+import { p as preload } from '@builder.io/qwik/preloader';
+import type { QRLDev } from './qrl';
+import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
+import { isBrowser } from '@builder.io/qwik/build';
 
 export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
-  return typeof value === "function" && typeof (value as any).getSymbol === "function";
+  return typeof value === 'function' && typeof (value as any).getSymbol === 'function';
 };
 
 // Make sure this value is same as value in `platform.ts`
-export const SYNC_QRL = "<sync>";
+export const SYNC_QRL = '<sync>';
 
 /** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */
 export const isSyncQrl = (value: any): value is QRLInternal => {
@@ -51,7 +51,7 @@ export type QRLInternalMethods<TYPE> = {
   getCaptured(): unknown[] | null;
   getFn(
     currentCtx?: InvokeContext | InvokeTuple,
-    beforeFn?: () => void,
+    beforeFn?: () => void
   ): TYPE extends (...args: any) => any
     ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE>>
     : // unknown so we allow assigning function QRLs to any
@@ -70,12 +70,12 @@ export const createQRL = <TYPE>(
   symbolFn: null | (() => Promise<Record<string, TYPE>>),
   capture: null | Readonly<string[]>,
   captureRef: Readonly<unknown[]> | null,
-  refSymbol: string | null,
+  refSymbol: string | null
 ): QRLInternal<TYPE> => {
   if (qDev && qSerialize) {
     if (captureRef) {
       for (const item of captureRef) {
-        verifySerializable(item, "Captured variable in the closure can not be serialized");
+        verifySerializable(item, 'Captured variable in the closure can not be serialized');
       }
     }
   }
@@ -97,7 +97,7 @@ export const createQRL = <TYPE>(
 
   // Wrap functions to provide their lexical scope
   const wrapFn = (fn: TYPE): TYPE => {
-    if (typeof fn !== "function" || (!capture?.length && !captureRef?.length)) {
+    if (typeof fn !== 'function' || (!capture?.length && !captureRef?.length)) {
       return fn;
     }
     return function (this: unknown, ...args: QrlArgs<TYPE>) {
@@ -131,9 +131,9 @@ export const createQRL = <TYPE>(
     if (containerEl) {
       setContainer(containerEl);
     }
-    if (chunk === "") {
+    if (chunk === '') {
       // Sync QRL
-      assertDefined(_containerEl, "Sync QRL must have container element");
+      assertDefined(_containerEl, 'Sync QRL must have container element');
       const hash = _containerEl.getAttribute(QInstance)!;
       const doc = _containerEl.ownerDocument!;
       const qFuncs = getQFuncs(doc, hash);
@@ -154,14 +154,14 @@ export const createQRL = <TYPE>(
       const imported = getPlatform().importSymbol(_containerEl, chunk, symbol);
       symbolRef = maybeThen(imported, (ref) => (qrl.resolved = symbolRef = wrapFn(ref)));
     }
-    if (typeof symbolRef === "object" && isPromise(symbolRef)) {
+    if (typeof symbolRef === 'object' && isPromise(symbolRef)) {
       symbolRef.then(
         () => emitUsedSymbol(symbol, ctx?.$element$, start),
         (err) => {
           console.error(`qrl ${symbol} failed to load`, err);
           // We shouldn't cache rejections, we can try again later
           symbolRef = null;
-        },
+        }
       );
     }
     return symbolRef;
@@ -174,7 +174,7 @@ export const createQRL = <TYPE>(
   function invokeFn(
     this: unknown,
     currentCtx?: InvokeContext | InvokeTuple,
-    beforeFn?: () => void | boolean,
+    beforeFn?: () => void | boolean
   ) {
     // Note that we bind the current `this`
     return (...args: QrlArgs<TYPE>): QrlReturn<TYPE> =>
@@ -239,7 +239,7 @@ export const createQRL = <TYPE>(
 };
 
 export const getSymbolHash = (symbolName: string) => {
-  const index = symbolName.lastIndexOf("_");
+  const index = symbolName.lastIndexOf('_');
   if (index > -1) {
     return symbolName.slice(index + 1);
   }
@@ -249,7 +249,7 @@ export const getSymbolHash = (symbolName: string) => {
 export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   if (qDev) {
     if (!isQrl(qrl)) {
-      throw new Error("Not a QRL");
+      throw new Error('Not a QRL');
     }
   }
 }
@@ -257,7 +257,7 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
 export function assertSignal<T>(obj: unknown): asserts obj is SignalInternal<T> {
   if (qDev) {
     if (!isSignal(obj)) {
-      throw new Error("Not a Signal");
+      throw new Error('Not a Signal');
     }
   }
 }
@@ -267,7 +267,7 @@ const EMITTED = /*#__PURE__*/ new Set();
 export const emitUsedSymbol = (symbol: string, element: Element | undefined, reqTime: number) => {
   if (!EMITTED.has(symbol)) {
     EMITTED.add(symbol);
-    emitEvent("qsymbol", {
+    emitEvent('qsymbol', {
       symbol,
       element,
       reqTime,
@@ -275,13 +275,13 @@ export const emitUsedSymbol = (symbol: string, element: Element | undefined, req
   }
 };
 
-export const emitEvent = <T extends CustomEvent = any>(eventName: string, detail: T["detail"]) => {
-  if (!qTest && !isServerPlatform() && typeof document === "object") {
+export const emitEvent = <T extends CustomEvent = any>(eventName: string, detail: T['detail']) => {
+  if (!qTest && !isServerPlatform() && typeof document === 'object') {
     document.dispatchEvent(
       new CustomEvent(eventName, {
         bubbles: false,
         detail,
-      }) as T,
+      }) as T
     );
   }
 };
@@ -290,7 +290,7 @@ const now = () => {
   if (qTest || isServerPlatform()) {
     return 0;
   }
-  if (typeof performance === "object") {
+  if (typeof performance === 'object') {
     return performance.now();
   }
   return 0;

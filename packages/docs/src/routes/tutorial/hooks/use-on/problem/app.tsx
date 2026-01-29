@@ -1,4 +1,4 @@
-import { $, component$, useOn, useStore } from "@builder.io/qwik";
+import { $, component$, useOn, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const store = useStore(
@@ -7,14 +7,14 @@ export default component$(() => {
       window: { x: 0, y: 0 },
       document: { x: 0, y: 0 },
     },
-    { deep: true },
+    { deep: true }
   );
   useOn(
-    "mousemove",
+    'mousemove',
     $((event) => {
       store.element.x = event.x;
       store.element.y = event.y;
-    }),
+    })
   );
   return (
     <ul>

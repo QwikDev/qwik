@@ -9,7 +9,7 @@ export const isSerializableObject = (v: unknown): v is Record<string, unknown> =
 };
 
 export const isObject = (v: unknown): v is object => {
-  return !!v && typeof v === "object";
+  return !!v && typeof v === 'object';
 };
 
 export const isArray = (v: unknown): v is unknown[] => {
@@ -17,11 +17,11 @@ export const isArray = (v: unknown): v is unknown[] => {
 };
 
 export const isString = (v: unknown): v is string => {
-  return typeof v === "string";
+  return typeof v === 'string';
 };
 
 export const isFunction = <T extends (...args: any) => any>(v: unknown): v is T => {
-  return typeof v === "function";
+  return typeof v === 'function';
 };
 
 /**

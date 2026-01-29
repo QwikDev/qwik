@@ -1,4 +1,4 @@
-import { component$, useStore, type QRL, useSignal, useOnWindow, $ } from "@builder.io/qwik";
+import { component$, useStore, type QRL, useSignal, useOnWindow, $ } from '@builder.io/qwik';
 
 export const Events = component$(() => {
   const store = useStore({
@@ -26,7 +26,7 @@ export const Events = component$(() => {
       <div>
         <div
           onClick$={() => {
-            throw new Error("event was not stopped");
+            throw new Error('event was not stopped');
           }}
         >
           <a
@@ -44,7 +44,7 @@ export const Events = component$(() => {
         <div
           onClick$={() => {
             store.propagationStoppedCount++;
-            throw new Error("event was not stopped");
+            throw new Error('event was not stopped');
           }}
         >
           <button
@@ -54,7 +54,7 @@ export const Events = component$(() => {
               store.propagationStoppedCount++;
             }}
           >
-            Should stop propagation{" "}
+            Should stop propagation{' '}
           </button>
         </div>
       </div>
@@ -97,10 +97,10 @@ export const Listener = component$((props: { name: string }) => {
   const count = useSignal(0);
 
   useOnWindow(
-    "click",
+    'click',
     $(() => {
       count.value++;
-    }),
+    })
   );
 
   return (

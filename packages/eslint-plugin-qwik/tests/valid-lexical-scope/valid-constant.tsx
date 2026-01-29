@@ -1,7 +1,7 @@
-import { component$, useTask$ } from "@builder.io/qwik";
+import { component$, useTask$ } from '@builder.io/qwik';
 export const HelloWorld = component$(() => {
   async function getValue() {
-    return "ffg";
+    return 'ffg';
   }
   const a = getValue();
   return (

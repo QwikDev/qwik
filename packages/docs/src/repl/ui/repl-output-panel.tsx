@@ -1,10 +1,10 @@
-import { component$ } from "@builder.io/qwik";
-import { CodeBlock } from "../../components/code-block/code-block";
-import type { ReplAppInput, ReplStore } from "../types";
-import { ReplOutputModules } from "./repl-output-modules";
-import { ReplOutputSymbols } from "./repl-output-segments";
-import { ReplTabButton } from "./repl-tab-button";
-import { ReplTabButtons } from "./repl-tab-buttons";
+import { component$ } from '@builder.io/qwik';
+import { CodeBlock } from '../../components/code-block/code-block';
+import type { ReplAppInput, ReplStore } from '../types';
+import { ReplOutputModules } from './repl-output-modules';
+import { ReplOutputSymbols } from './repl-output-segments';
+import { ReplTabButton } from './repl-tab-button';
+import { ReplTabButtons } from './repl-tab-buttons';
 
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
   const diagnosticsLen = store.diagnostics.length + store.monacoDiagnostics.length;
@@ -14,18 +14,18 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
       <ReplTabButtons>
         <ReplTabButton
           text="App"
-          isActive={store.selectedOutputPanel === "app"}
+          isActive={store.selectedOutputPanel === 'app'}
           onClick$={async () => {
-            store.selectedOutputPanel = "app";
+            store.selectedOutputPanel = 'app';
           }}
         />
 
         {store.enableHtmlOutput ? (
           <ReplTabButton
             text="HTML"
-            isActive={store.selectedOutputPanel === "html"}
+            isActive={store.selectedOutputPanel === 'html'}
             onClick$={async () => {
-              store.selectedOutputPanel = "html";
+              store.selectedOutputPanel = 'html';
             }}
           />
         ) : null}
@@ -33,9 +33,9 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         {store.enableClientOutput ? (
           <ReplTabButton
             text="Segments"
-            isActive={store.selectedOutputPanel === "segments"}
+            isActive={store.selectedOutputPanel === 'segments'}
             onClick$={async () => {
-              store.selectedOutputPanel = "segments";
+              store.selectedOutputPanel = 'segments';
             }}
           />
         ) : null}
@@ -43,9 +43,9 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         {store.enableClientOutput ? (
           <ReplTabButton
             text="Client Bundles"
-            isActive={store.selectedOutputPanel === "clientBundles"}
+            isActive={store.selectedOutputPanel === 'clientBundles'}
             onClick$={async () => {
-              store.selectedOutputPanel = "clientBundles";
+              store.selectedOutputPanel = 'clientBundles';
             }}
           />
         ) : null}
@@ -53,35 +53,35 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         {store.enableSsrOutput ? (
           <ReplTabButton
             text="SSR Module"
-            isActive={store.selectedOutputPanel === "serverModules"}
+            isActive={store.selectedOutputPanel === 'serverModules'}
             onClick$={async () => {
-              store.selectedOutputPanel = "serverModules";
+              store.selectedOutputPanel = 'serverModules';
             }}
           />
         ) : null}
 
         <ReplTabButton
           text={`Diagnostics${diagnosticsLen > 0 ? ` (${diagnosticsLen})` : ``}`}
-          cssClass={{ "repl-tab-diagnostics": true, "has-errors": diagnosticsLen > 0 }}
-          isActive={store.selectedOutputPanel === "diagnostics"}
+          cssClass={{ 'repl-tab-diagnostics': true, 'has-errors': diagnosticsLen > 0 }}
+          isActive={store.selectedOutputPanel === 'diagnostics'}
           onClick$={async () => {
-            store.selectedOutputPanel = "diagnostics";
+            store.selectedOutputPanel = 'diagnostics';
           }}
         />
       </ReplTabButtons>
 
       <div
         class={{
-          "repl-tab": true,
-          "repl-mode-production": input.buildMode === "production",
-          "repl-mode-development": input.buildMode !== "production",
+          'repl-tab': true,
+          'repl-mode-production': input.buildMode === 'production',
+          'repl-mode-development': input.buildMode !== 'production',
         }}
       >
         <div
           class={{
-            "output-result": true,
-            "output-app": true,
-            "output-app-active": store.selectedOutputPanel === "app",
+            'output-result': true,
+            'output-app': true,
+            'output-app-active': store.selectedOutputPanel === 'app',
           }}
         >
           {store.isLoading && (
@@ -109,25 +109,25 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
           )}
         </div>
 
-        {store.selectedOutputPanel === "html" ? (
+        {store.selectedOutputPanel === 'html' ? (
           <div class="output-result output-html">
             <CodeBlock language="markup" format code={store.html} />
           </div>
         ) : null}
 
-        {store.selectedOutputPanel === "segments" ? (
+        {store.selectedOutputPanel === 'segments' ? (
           <ReplOutputSymbols outputs={store.transformedModules} />
         ) : null}
 
-        {store.selectedOutputPanel === "clientBundles" ? (
+        {store.selectedOutputPanel === 'clientBundles' ? (
           <ReplOutputModules headerText="/dist/" outputs={store.clientBundles} />
         ) : null}
 
-        {store.selectedOutputPanel === "serverModules" ? (
+        {store.selectedOutputPanel === 'serverModules' ? (
           <ReplOutputModules headerText="/server/" outputs={store.ssrModules} />
         ) : null}
 
-        {store.selectedOutputPanel === "diagnostics" ? (
+        {store.selectedOutputPanel === 'diagnostics' ? (
           <div class="output-result output-diagnostics">
             {diagnosticsLen === 0 ? (
               <p class="no-diagnostics">- No Reported Diagnostics -</p>

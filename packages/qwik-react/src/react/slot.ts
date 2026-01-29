@@ -1,14 +1,14 @@
-import { $, useOn, useOnDocument, useSignal } from "@builder.io/qwik";
-import { isServer } from "@builder.io/qwik";
-import { Component, createContext, createElement, createRef } from "react";
-import type { QwikifyOptions, QwikifyProps } from "./types";
+import { $, useOn, useOnDocument, useSignal } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik';
+import { Component, createContext, createElement, createRef } from 'react';
+import type { QwikifyOptions, QwikifyProps } from './types';
 
 interface SlotState {
   el?: Element;
   scopeId: string;
   attachedEl?: Element;
 }
-const SlotCtx = createContext<SlotState>({ scopeId: "" });
+const SlotCtx = createContext<SlotState>({ scopeId: '' });
 
 export function main(slotEl: Element | undefined, scopeId: string, RootCmp: any, props: any) {
   const newProps = getReactProps(props);
@@ -19,7 +19,7 @@ export function mainExactProps(
   slotEl: Element | undefined,
   scopeId: string,
   RootCmp: any,
-  props: any,
+  props: any
 ) {
   return createElement(SlotCtx.Provider, {
     value: {
@@ -52,17 +52,17 @@ export class SlotElement extends Component {
         if (!attachedEl) {
           slotC.appendChild(el);
         } else if (attachedEl !== slotC) {
-          throw new Error("already attached");
+          throw new Error('already attached');
         }
       }
     }
   }
 
   render() {
-    return createElement("q-slotc", {
+    return createElement('q-slotc', {
       class: this.context.scopeId,
       suppressHydrationWarning: true,
-      dangerouslySetInnerHTML: { __html: "<!--SLOT-->" },
+      dangerouslySetInnerHTML: { __html: '<!--SLOT-->' },
       ref: this.slotC,
     });
   }
@@ -71,8 +71,8 @@ export class SlotElement extends Component {
 export const getReactProps = (props: Record<string, any>): Record<string, any> => {
   const obj: Record<string, any> = {};
   Object.keys(props).forEach((key) => {
-    if (!key.startsWith("client:") && !key.startsWith("qwik:") && !key.startsWith(HOST_PREFIX)) {
-      const normalizedKey = key.endsWith("$") ? key.slice(0, -1) : key;
+    if (!key.startsWith('client:') && !key.startsWith('qwik:') && !key.startsWith(HOST_PREFIX)) {
+      const normalizedKey = key.endsWith('$') ? key.slice(0, -1) : key;
       obj[normalizedKey] = props[key];
     }
   });
@@ -92,35 +92,35 @@ export const getHostProps = (props: Record<string, any>): Record<string, any> =>
 export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = {}) => {
   const signal = useSignal(false);
   const activate = $(() => (signal.value = true));
-  const clientOnly = !!(props["client:only"] || props["qwik:only"] || opts?.clientOnly);
+  const clientOnly = !!(props['client:only'] || props['qwik:only'] || opts?.clientOnly);
 
   /*
     qwik:* is an alias so that it can be used in meta-frameworks that also use client:* directives.
   */
   const clientVisible =
-    props["client:visible"] || props["qwik:visible"] || opts?.eagerness === "visible";
+    props['client:visible'] || props['qwik:visible'] || opts?.eagerness === 'visible';
 
-  const clientIdle = props["client:idle"] || props["qwik:idle"] || opts?.eagerness === "idle";
+  const clientIdle = props['client:idle'] || props['qwik:idle'] || opts?.eagerness === 'idle';
 
   const clientLoad =
-    props["client:load"] || props["qwik:load"] || clientOnly || opts?.eagerness === "load";
+    props['client:load'] || props['qwik:load'] || clientOnly || opts?.eagerness === 'load';
 
-  const clientHover = props["client:hover"] || props["qwik:hover"] || opts?.eagerness === "hover";
+  const clientHover = props['client:hover'] || props['qwik:hover'] || opts?.eagerness === 'hover';
 
-  const clientEvent = props["client:event"] || props["qwik:event"];
+  const clientEvent = props['client:event'] || props['qwik:event'];
 
   if (isServer) {
     if (clientVisible) {
-      useOn("qvisible", activate);
+      useOn('qvisible', activate);
     }
     if (clientIdle) {
-      useOnDocument("qidle", activate);
+      useOnDocument('qidle', activate);
     }
     if (clientLoad) {
-      useOnDocument("qinit", activate);
+      useOnDocument('qinit', activate);
     }
     if (clientHover) {
-      useOn("mouseover", activate);
+      useOn('mouseover', activate);
     }
     if (clientEvent) {
       useOn(clientEvent, activate);
@@ -132,4 +132,4 @@ export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = 
   return [signal, clientOnly, activate] as const;
 };
 
-const HOST_PREFIX = "host:";
+const HOST_PREFIX = 'host:';

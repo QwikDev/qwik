@@ -1,6 +1,6 @@
-import { component$ } from "@builder.io/qwik";
-import type { DocSearchState } from "./doc-search";
-import { NoResultsIcon } from "./icons/NoResultsIcon";
+import { component$ } from '@builder.io/qwik';
+import type { DocSearchState } from './doc-search';
+import { NoResultsIcon } from './icons/NoResultsIcon';
 
 export type NoResultsScreenTranslations = Partial<{
   noResultsText: string;

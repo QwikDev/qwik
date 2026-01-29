@@ -1,5 +1,5 @@
-import { strFromU8 } from "fflate";
-import { assert, expect, test } from "vitest";
+import { strFromU8 } from 'fflate';
+import { assert, expect, test } from 'vitest';
 import {
   compressFiles,
   createPlaygroundShareUrl,
@@ -8,63 +8,63 @@ import {
   parseCompressedFiles,
   parsePlaygroundShareUrl,
   strToFiles,
-} from "./repl-share-url";
+} from './repl-share-url';
 
 const data = {
-  version: "1.2.3",
-  buildMode: "development",
-  entryStrategy: "segment",
+  version: '1.2.3',
+  buildMode: 'development',
+  entryStrategy: 'segment',
   files: [
     {
-      path: "foo.js",
+      path: 'foo.js',
       code: 'console.log("foo");',
     },
     {
-      path: "bar.js",
+      path: 'bar.js',
       code: 'console.log("bar");',
     },
   ],
 };
-test("filesToStr", () => {
+test('filesToStr', () => {
   assert.equal(
     filesToStr(data.files),
-    '6|foo.js|19|console.log("foo");|6|bar.js|19|console.log("bar");',
+    '6|foo.js|19|console.log("foo");|6|bar.js|19|console.log("bar");'
   );
 });
-test("round trip str", () => {
+test('round trip str', () => {
   assert.deepEqual(strToFiles(filesToStr(data.files)), data.files);
 });
-test("compressFiles", () => {
-  assert.equal(compressFiles(data.files), "M6tJy8/XyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA+UB");
+test('compressFiles', () => {
+  assert.equal(compressFiles(data.files), 'M6tJy8/XyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA+UB');
 });
-test("parseCompressedFiles", () => {
+test('parseCompressedFiles', () => {
   assert.deepEqual(
-    parseCompressedFiles("M6tJy8/XyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA+UB"),
-    data.files,
+    parseCompressedFiles('M6tJy8/XyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA+UB'),
+    data.files
   );
 });
-test("round trip compressed", () => {
+test('round trip compressed', () => {
   assert.deepEqual(parseCompressedFiles(compressFiles(data.files)), data.files);
 });
-test("createPlaygroundShareUrl", () => {
+test('createPlaygroundShareUrl', () => {
   assert.deepEqual(
     createPlaygroundShareUrl(data),
-    "/playground/#v=1.2.3&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB",
+    '/playground/#v=1.2.3&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB'
   );
 });
-test("createPlaygroundShareUrl 2", () => {
+test('createPlaygroundShareUrl 2', () => {
   assert.equal(
     createPlaygroundShareUrl({
       ...data,
-      buildMode: "production",
-      entryStrategy: "module",
+      buildMode: 'production',
+      entryStrategy: 'module',
       files: [],
     }),
-    "/playground/#v=1.2.3&buildMode=production&entryStrategy=module&f=AwA",
+    '/playground/#v=1.2.3&buildMode=production&entryStrategy=module&f=AwA'
   );
 });
 
-test("dictionary is unchanged", () => {
+test('dictionary is unchanged', () => {
   const dictionaryAsString = strFromU8(dictionary);
   // !!! THIS DICTIONARY MUST NEVER CHANGE - ONLY ALLOW PREPENDING !!!
   expect(dictionaryAsString).toMatchInlineSnapshot(`
@@ -105,27 +105,27 @@ test("dictionary is unchanged", () => {
   `);
 });
 
-test("previous URLs still work", () => {
-  expect(parsePlaygroundShareUrl("f=G000o4mG5EQDAA")).toHaveProperty(
-    "files",
+test('previous URLs still work', () => {
+  expect(parsePlaygroundShareUrl('f=G000o4mG5EQDAA')).toHaveProperty(
+    'files',
     // DO NOT UPDATE THIS TEST - all these URLs must work forever
     expect.arrayContaining([
       expect.objectContaining({
-        path: "/app.tsx",
+        path: '/app.tsx',
         code: "import { component$ } from '@builder.io/qwik';\n\nexport default component$(() => {\n  return <p>Hello Qwik</p>;\n});\n",
       }),
-    ]),
+    ])
   );
   expect(
     parsePlaygroundShareUrl(
-      "f=Q0o0xgaW2BKNDrDkqNCB15QUpyFIgKTl51uBeGA%2BKO%2BBIwaW0W1A6SI%2FDWQzyKm1wKBDVwyU0lAqUNJRqE4GFc3AqLNSCnENDlGq1QTpAGJ43a5RDa6oa0FOgBsDbxkAXQIMCqAWMIktXqqBSvRgNoNMRg7C0XQ%2FJNM9AA",
-    ),
+      'f=Q0o0xgaW2BKNDrDkqNCB15QUpyFIgKTl51uBeGA%2BKO%2BBIwaW0W1A6SI%2FDWQzyKm1wKBDVwyU0lAqUNJRqE4GFc3AqLNSCnENDlGq1QTpAGJ43a5RDa6oa0FOgBsDbxkAXQIMCqAWMIktXqqBSvRgNoNMRg7C0XQ%2FJNM9AA'
+    )
   ).toHaveProperty(
-    "files",
+    'files',
     // DO NOT UPDATE THIS TEST - all these URLs must work forever
     expect.arrayContaining([
       expect.objectContaining({
-        path: "/app.tsx",
+        path: '/app.tsx',
         code: `import { component$, jsx, useTask$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -145,6 +145,6 @@ export default component$(() => {
 });
 `,
       }),
-    ]),
+    ])
   );
 });

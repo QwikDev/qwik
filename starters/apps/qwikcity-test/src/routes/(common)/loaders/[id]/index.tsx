@@ -1,4 +1,4 @@
-import { component$, Resource } from "@builder.io/qwik";
+import { component$, Resource } from '@builder.io/qwik';
 import {
   type DocumentHead,
   Form,
@@ -7,27 +7,27 @@ import {
   routeAction$,
   z,
   zod$,
-} from "@builder.io/qwik-city";
-import { delay } from "../../actions/login";
+} from '@builder.io/qwik-city';
+import { delay } from '../../actions/login';
 
-export const useDateLoader = routeLoader$(() => new Date("2021-01-01T00:00:00.000Z"));
+export const useDateLoader = routeLoader$(() => new Date('2021-01-01T00:00:00.000Z'));
 
 export const useDependencyLoader = routeLoader$(
   async ({ params, redirect, json, resolveValue }) => {
     const formData = await resolveValue(useForm);
     await delay(100);
-    if (params.id === "redirect") {
-      throw redirect(302, "/qwikcity-test/");
-    } else if (params.id === "redirect-welcome") {
-      throw redirect(302, "/qwikcity-test/loaders/welcome/");
-    } else if (params.id === "json") {
+    if (params.id === 'redirect') {
+      throw redirect(302, '/qwikcity-test/');
+    } else if (params.id === 'redirect-welcome') {
+      throw redirect(302, '/qwikcity-test/loaders/welcome/');
+    } else if (params.id === 'json') {
       throw json(200, { nu: 42 });
     }
     return {
       nu: 42,
       name: formData?.name ?? params.id,
     };
-  },
+  }
 );
 
 const useLoader = routeLoader$(() => {
@@ -35,8 +35,8 @@ const useLoader = routeLoader$(() => {
     {
       id: 1,
       product: {
-        name: "test",
-        options: [{ name: "first" }, { name: "second" }],
+        name: 'test',
+        options: [{ name: 'first' }, { name: 'second' }],
       },
     },
   ];
@@ -46,10 +46,10 @@ export const useAsyncLoader = routeLoader$(async ({ resolveValue }) => {
   const p1 = resolveValue(useDateLoader);
   const p2 = resolveValue(useDependencyLoader);
   if (!(p1 instanceof Promise)) {
-    throw new Error("Expected date to be a promise");
+    throw new Error('Expected date to be a promise');
   }
   if (!(p2 instanceof Promise)) {
-    throw new Error("Expected dep to be a promise");
+    throw new Error('Expected dep to be a promise');
   }
 
   const date = await p1;
@@ -94,7 +94,7 @@ export default component$(() => {
       reversed: item.product.options.reverse(),
     };
   });
-  console.warn("items3", items3);
+  console.warn('items3', items3);
 
   return (
     <div class="loaders">
@@ -151,13 +151,13 @@ export const useForm = routeAction$(
   },
   zod$({
     name: z.string(),
-  }),
+  })
 );
 
 export const useFormWithError = routeAction$(async (stuff, { fail }) => {
   if (Math.random() > 2) {
     return fail(500, {
-      message: "Random error",
+      message: 'Random error',
     });
   }
   return {
@@ -170,7 +170,7 @@ export const head: DocumentHead = ({ resolveValue }) => {
   const dep = resolveValue(useDependencyLoader);
   const action = resolveValue(useForm);
   const actionWithError = resolveValue(useFormWithError);
-  let title = "Loaders";
+  let title = 'Loaders';
   if (action) {
     title += ` - ACTION: ${action.name}`;
   }
@@ -180,8 +180,8 @@ export const head: DocumentHead = ({ resolveValue }) => {
   return {
     title,
     meta: [
-      { content: date.toISOString(), name: "date" },
-      { content: `${dep.nu}`, name: "dep" },
+      { content: date.toISOString(), name: 'date' },
+      { content: `${dep.nu}`, name: 'dep' },
     ],
   };
 };

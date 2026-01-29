@@ -1,17 +1,17 @@
-import type { Context } from "@netlify/edge-functions";
+import type { Context } from '@netlify/edge-functions';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
-} from "@builder.io/qwik-city/middleware/request-handler";
+} from '@builder.io/qwik-city/middleware/request-handler';
 
 import {
   mergeHeadersCookies,
   requestHandler,
-} from "@builder.io/qwik-city/middleware/request-handler";
-import { getNotFound } from "@qwik-city-not-found-paths";
-import { isStaticPath } from "@qwik-city-static-paths";
-import { _deserializeData, _serializeData, _verifySerializable } from "@builder.io/qwik";
-import { setServerPlatform } from "@builder.io/qwik/server";
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -30,13 +30,13 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
     try {
       const url = new URL(request.url);
 
-      if (isStaticPath(request.method, url) || url.pathname.startsWith("/.netlify")) {
+      if (isStaticPath(request.method, url) || url.pathname.startsWith('/.netlify')) {
         // known static path, let netlify handle it
         return context.next();
       }
 
       const serverRequestEv: ServerRequestEvent<Response> = {
-        mode: "server",
+        mode: 'server',
         locale: undefined,
         url,
         env: Deno.env,
@@ -79,18 +79,18 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
       // In the development server, we replace the getNotFound function
       // For static paths, we assign a static "Not Found" message.
       // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml = isStaticPath(request.method || "GET", url)
-        ? "Not Found"
+      const notFoundHtml = isStaticPath(request.method || 'GET', url)
+        ? 'Not Found'
         : getNotFound(url.pathname);
       return new Response(notFoundHtml, {
         status: 404,
-        headers: { "Content-Type": "text/html; charset=utf-8", "X-Not-Found": url.pathname },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
       });
     } catch (e: any) {
       console.error(e);
-      return new Response(String(e || "Error"), {
+      return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Error": "netlify-edge" },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'netlify-edge' },
       });
     }
   }
@@ -102,4 +102,4 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
 export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 
 /** @public */
-export interface PlatformNetlify extends Partial<Omit<Context, "next" | "cookies">> {}
+export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {}

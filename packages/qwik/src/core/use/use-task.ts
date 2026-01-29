@@ -1,21 +1,21 @@
-import { type ContainerState, intToStr, type MustGetObjID, strToInt } from "../container/container";
-import { assertDefined, assertEqual } from "../error/assert";
-import { codeToText, QError_trackUseStore } from "../error/error";
-import { isServerPlatform } from "../platform/platform";
-import { assertQrl, assertSignal, createQRL, type QRLInternal } from "../qrl/qrl-class";
-import type { QRL } from "../qrl/qrl.public";
-import { _hW, notifyTask } from "../render/dom/notify-render";
-import type { QwikElement } from "../render/dom/virtual-element";
-import { handleError } from "../render/error-handling";
-import type { RenderContext } from "../render/types";
+import { type ContainerState, intToStr, type MustGetObjID, strToInt } from '../container/container';
+import { assertDefined, assertEqual } from '../error/assert';
+import { codeToText, QError_trackUseStore } from '../error/error';
+import { isServerPlatform } from '../platform/platform';
+import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import { _hW, notifyTask } from '../render/dom/notify-render';
+import type { QwikElement } from '../render/dom/virtual-element';
+import { handleError } from '../render/error-handling';
+import type { RenderContext } from '../render/types';
 import {
   getSubscriptionManager,
   noSerialize,
   type NoSerialize,
   unwrapProxy,
-} from "../state/common";
-import { QObjectManagerSymbol } from "../state/constants";
-import { getContext } from "../state/context";
+} from '../state/common';
+import { QObjectManagerSymbol } from '../state/constants';
+import { getContext } from '../state/context';
 import {
   _createSignal,
   isSignal,
@@ -25,16 +25,16 @@ import {
   SIGNAL_IMMUTABLE,
   SIGNAL_UNASSIGNED,
   type SignalInternal,
-} from "../state/signal";
-import { implicit$FirstArg } from "../util/implicit_dollar";
-import { logError, logErrorAndStop, logOnceWarn } from "../util/log";
-import { ComputedEvent, TaskEvent } from "../util/markers";
-import { delay, isPromise, maybeThen, safeCall } from "../util/promises";
-import { isFunction, isObject, type ValueOrPromise } from "../util/types";
-import { invoke, newInvokeContext, untrack, useInvokeContext, waitAndRun } from "./use-core";
-import { useOn, useOnDocument } from "./use-on";
-import { useSequentialScope } from "./use-sequential-scope";
-import { useConstant } from "./use-signal";
+} from '../state/signal';
+import { implicit$FirstArg } from '../util/implicit_dollar';
+import { logError, logErrorAndStop, logOnceWarn } from '../util/log';
+import { ComputedEvent, TaskEvent } from '../util/markers';
+import { delay, isPromise, maybeThen, safeCall } from '../util/promises';
+import { isFunction, isObject, type ValueOrPromise } from '../util/types';
+import { invoke, newInvokeContext, untrack, useInvokeContext, waitAndRun } from './use-core';
+import { useOn, useOnDocument } from './use-on';
+import { useSequentialScope } from './use-sequential-scope';
+import { useConstant } from './use-signal';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
 export const TaskFlagsIsTask = 1 << 1;
@@ -132,7 +132,7 @@ export interface TaskCtx {
 export interface ResourceCtx<T> {
   readonly track: Tracker;
   cleanup(callback: () => void): void;
-  cache(policyOrMilliseconds: number | "immutable"): void;
+  cache(policyOrMilliseconds: number | 'immutable'): void;
   readonly previous: T | undefined;
 }
 
@@ -167,8 +167,8 @@ export interface ResourceRejected<T> {
 }
 
 export interface ResourceReturnInternal<T> {
-  __brand: "resource";
-  _state: "pending" | "resolved" | "rejected";
+  __brand: 'resource';
+  _state: 'pending' | 'resolved' | 'rejected';
   _resolved: T | undefined;
   _error: Error | undefined;
   _cache: number;
@@ -187,10 +187,10 @@ export interface DescriptorBase<T = unknown, B = unknown> {
 }
 
 /** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running tasks as part of the initial SSR render */
-export type EagernessOptions = "visible" | "load" | "idle";
+export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 /** @public */
-export type VisibleTaskStrategy = "intersection-observer" | "document-ready" | "document-idle";
+export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
 /** @public */
 export interface OnVisibleTaskOptions {
@@ -309,7 +309,7 @@ export const createComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>
     undefined as Awaited<T>,
     containerState,
     SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
-    undefined,
+    undefined
   );
 
   const task = new Task(
@@ -318,7 +318,7 @@ export const createComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>
     0,
     elCtx.$element$,
     qrl,
-    signal,
+    signal
   );
   qrl.$resolveLazy$(containerState.$containerEl$);
   (elCtx.$tasks$ ||= []).push(task);
@@ -452,7 +452,7 @@ export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
 // </docs>
 export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
   const { val, set, i, iCtx, elCtx } = useSequentialScope<Task<TaskFn>>();
-  const eagerness = opts?.strategy ?? "intersection-observer";
+  const eagerness = opts?.strategy ?? 'intersection-observer';
   if (val) {
     if (isServerPlatform()) {
       useRunTask(val, eagerness);
@@ -529,9 +529,9 @@ export const isComputedTask = (task: SubscriberEffect): task is ComputedDescript
 export const runSubscriber = async (
   task: SubscriberEffect,
   containerState: ContainerState,
-  rCtx: RenderContext,
+  rCtx: RenderContext
 ) => {
-  assertEqual(!!(task.$flags$ & TaskFlagsIsDirty), true, "Resource is not dirty", task);
+  assertEqual(!!(task.$flags$ & TaskFlagsIsDirty), true, 'Resource is not dirty', task);
   if (isResourceTask(task)) {
     return runResource(task, containerState, rCtx);
   } else if (isComputedTask(task)) {
@@ -545,7 +545,7 @@ export const runResource = <T>(
   task: ResourceDescriptor<T>,
   containerState: ContainerState,
   rCtx: RenderContext,
-  waitOn?: Promise<unknown>,
+  waitOn?: Promise<unknown>
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlagsIsDirty;
   cleanupTask(task);
@@ -563,7 +563,7 @@ export const runResource = <T>(
   assertDefined(
     resource,
     'useResource: when running a resource, "task.r" must be a defined.',
-    task,
+    task
   );
 
   const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
@@ -595,7 +595,7 @@ export const runResource = <T>(
     },
     cache(policy) {
       let milliseconds = 0;
-      if (policy === "immutable") {
+      if (policy === 'immutable') {
         milliseconds = Infinity;
       } else {
         milliseconds = policy;
@@ -615,7 +615,7 @@ export const runResource = <T>(
       if (resolved) {
         done = true;
         resource.loading = false;
-        resource._state = "resolved";
+        resource._state = 'resolved';
         resource._resolved = value as T;
         resource._error = undefined;
 
@@ -623,7 +623,7 @@ export const runResource = <T>(
       } else {
         done = true;
         resource.loading = false;
-        resource._state = "rejected";
+        resource._state = 'rejected';
         resource._error = value as Error;
         reject(value as Error);
       }
@@ -634,7 +634,7 @@ export const runResource = <T>(
 
   // Execute mutation inside empty invocation
   invoke(iCtx, () => {
-    resource._state = "pending";
+    resource._state = 'pending';
     resource.loading = !isServerPlatform();
     resource.value = new Promise((r, re) => {
       resolve = r;
@@ -654,7 +654,7 @@ export const runResource = <T>(
     },
     (reason) => {
       setState(false, reason);
-    },
+    }
   );
 
   const timeout = resourceTarget._timeout;
@@ -662,7 +662,7 @@ export const runResource = <T>(
     return Promise.race([
       promise,
       delay(timeout).then(() => {
-        if (setState(false, new Error("timeout"))) {
+        if (setState(false, new Error('timeout'))) {
           cleanupTask(task);
         }
       }),
@@ -674,7 +674,7 @@ export const runResource = <T>(
 export const runTask = (
   task: TaskDescriptor | ComputedDescriptor<unknown>,
   containerState: ContainerState,
-  rCtx: RenderContext,
+  rCtx: RenderContext
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlagsIsDirty;
 
@@ -726,14 +726,14 @@ export const runTask = (
     },
     (reason) => {
       handleError(reason, hostElement, rCtx);
-    },
+    }
   );
 };
 
 export const runComputed = (
   task: ComputedDescriptor<unknown>,
   containerState: ContainerState,
-  rCtx: RenderContext,
+  rCtx: RenderContext
 ): ValueOrPromise<void> => {
   assertSignal(task.$state$);
   task.$flags$ &= ~TaskFlagsIsDirty;
@@ -766,12 +766,12 @@ export const runComputed = (
       const result = taskFn();
       if (isPromise(result)) {
         const warningMessage =
-          "useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useTask$ or useResource$ instead.";
+          'useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useTask$ or useResource$ instead.';
         const stack = new Error(warningMessage).stack;
         if (!stack) {
           logOnceWarn(warningMessage);
         } else {
-          const lessScaryStack = stack.replace(/^Error:\s*/, "");
+          const lessScaryStack = stack.replace(/^Error:\s*/, '');
           logOnceWarn(lessScaryStack);
         }
 
@@ -809,14 +809,14 @@ export const destroyTask = (task: SubscriberEffect) => {
 
 const useRunTask = (
   task: SubscriberEffect,
-  eagerness: VisibleTaskStrategy | EagernessOptions | undefined,
+  eagerness: VisibleTaskStrategy | EagernessOptions | undefined
 ) => {
-  if (eagerness === "visible" || eagerness === "intersection-observer") {
-    useOn("qvisible", getTaskHandlerQrl(task));
-  } else if (eagerness === "load" || eagerness === "document-ready") {
-    useOnDocument("qinit", getTaskHandlerQrl(task));
-  } else if (eagerness === "idle" || eagerness === "document-idle") {
-    useOnDocument("qidle", getTaskHandlerQrl(task));
+  if (eagerness === 'visible' || eagerness === 'intersection-observer') {
+    useOn('qvisible', getTaskHandlerQrl(task));
+  } else if (eagerness === 'load' || eagerness === 'document-ready') {
+    useOnDocument('qinit', getTaskHandlerQrl(task));
+  } else if (eagerness === 'idle' || eagerness === 'document-idle') {
+    useOnDocument('qidle', getTaskHandlerQrl(task));
   }
 };
 
@@ -824,12 +824,12 @@ const getTaskHandlerQrl = (task: SubscriberEffect): QRL<(ev: Event) => void> => 
   const taskQrl = task.$qrl$;
   const taskHandler = createQRL<(ev: Event) => void>(
     taskQrl.$chunk$,
-    "_hW",
+    '_hW',
     _hW,
     null,
     null,
     [task],
-    taskQrl.$symbol$,
+    taskQrl.$symbol$
   );
   // Needed for chunk lookup in dev mode
   if (taskQrl.dev) {
@@ -848,7 +848,7 @@ export const isSubscriberDescriptor = (obj: unknown): obj is SubscriberEffect =>
 
 export const serializeTask = (task: SubscriberEffect, getObjId: MustGetObjID) => {
   let value = `${intToStr(task.$flags$)} ${intToStr(task.$index$)} ${getObjId(
-    task.$qrl$,
+    task.$qrl$
   )} ${getObjId(task.$el$)}`;
   if (task.$state$) {
     value += ` ${getObjId(task.$state$)}`;
@@ -857,7 +857,7 @@ export const serializeTask = (task: SubscriberEffect, getObjId: MustGetObjID) =>
 };
 
 export const parseTask = (data: string) => {
-  const [flags, index, qrl, el, resource] = data.split(" ");
+  const [flags, index, qrl, el, resource] = data.split(' ');
   return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any);
 };
 
@@ -867,6 +867,6 @@ export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<
     public $index$: number,
     public $el$: QwikElement,
     public $qrl$: QRLInternal<T>,
-    public $state$: Signal<B> | undefined,
+    public $state$: Signal<B> | undefined
   ) {}
 }

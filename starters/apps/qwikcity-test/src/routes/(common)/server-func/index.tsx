@@ -5,9 +5,9 @@ import {
   useResource$,
   useSignal,
   useTask$,
-} from "@builder.io/qwik";
-import { routeLoader$, server$ } from "@builder.io/qwik-city";
-import { delay } from "../actions/login";
+} from '@builder.io/qwik';
+import { routeLoader$, server$ } from '@builder.io/qwik-city';
+import { delay } from '../actions/login';
 
 export const useGetUserAgent = routeLoader$(() => {
   return getUserAgent();
@@ -15,9 +15,9 @@ export const useGetUserAgent = routeLoader$(() => {
 
 export const getUserAgentForReal = server$(function () {
   if (!this) {
-    return "failed";
+    return 'failed';
   }
-  const header = this.request.headers.get("host")!;
+  const header = this.request.headers.get('host')!;
   return header;
 });
 
@@ -40,8 +40,8 @@ const serverFunctionB = server$(async function b() {
 });
 
 export const MultipleServerFunctionsInvokedInTask = component$(() => {
-  const methodA = useSignal("");
-  const methodB = useSignal("");
+  const methodA = useSignal('');
+  const methodB = useSignal('');
   useTask$(async () => {
     methodA.value = await serverFunctionA();
     await delay(1);
@@ -58,11 +58,11 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
 
 export default component$(() => {
   const resource = useResource$(() => getUserAgent());
-  const userAgent = useSignal("");
-  const userAgentEvent = useSignal("");
+  const userAgent = useSignal('');
+  const userAgentEvent = useSignal('');
   const userAgentComputed = useComputed$(() => getUserAgent());
   const loader = useGetUserAgent();
-  const streamingLogs = useSignal("");
+  const streamingLogs = useSignal('');
 
   useTask$(async () => {
     userAgent.value = await getUserAgent();

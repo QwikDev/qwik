@@ -1,7 +1,7 @@
-import { component$, useStore } from "@builder.io/qwik";
+import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
-  const state = useStore({ count: 0, name: "Qwik" });
+  const state = useStore({ count: 0, name: 'Qwik' });
 
   return (
     <>

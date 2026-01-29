@@ -1,6 +1,6 @@
-import { component$ } from "@builder.io/qwik";
-import { Form, routeLoader$, routeAction$ } from "@builder.io/qwik-city";
-import { data } from "../data";
+import { component$ } from '@builder.io/qwik';
+import { Form, routeLoader$, routeAction$ } from '@builder.io/qwik-city';
+import { data } from '../data';
 
 export const useGetData = routeLoader$(() => {
   return data;

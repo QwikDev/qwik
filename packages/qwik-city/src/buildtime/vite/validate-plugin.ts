@@ -1,15 +1,15 @@
-import fs from "node:fs";
-import { isAbsolute } from "node:path";
-import type { NormalizedPluginOptions } from "../types";
+import fs from 'node:fs';
+import { isAbsolute } from 'node:path';
+import type { NormalizedPluginOptions } from '../types';
 
 export async function validatePlugin(opts: NormalizedPluginOptions) {
-  if (typeof opts.routesDir !== "string") {
+  if (typeof opts.routesDir !== 'string') {
     throw new Error(`qwikCity plugin "routesDir" option missing`);
   }
 
   if (!isAbsolute(opts.routesDir)) {
     throw new Error(
-      `qwikCity plugin "routesDir" option must be an absolute path: ${opts.routesDir}`,
+      `qwikCity plugin "routesDir" option must be an absolute path: ${opts.routesDir}`
     );
   }
 

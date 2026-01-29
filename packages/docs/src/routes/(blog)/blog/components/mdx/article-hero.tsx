@@ -1,6 +1,6 @@
-import { component$ } from "@builder.io/qwik";
-import { Link, useDocumentHead } from "@builder.io/qwik-city";
-import { Image } from "qwik-image";
+import { component$ } from '@builder.io/qwik';
+import { Link, useDocumentHead } from '@builder.io/qwik-city';
+import { Image } from 'qwik-image';
 
 type Props = { image: string; authorLinks: string[] };
 
@@ -53,7 +53,7 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
             <h4 class="font-semibold uppercase text-center">{frontmatter.date}</h4>
             <div class="border border-[color:var(--text-color)] mx-4"></div>
             <div class="font-semibold uppercase text-center">
-              {frontmatter.authors.length > 1 && "Co-"}Written by{" "}
+              {frontmatter.authors.length > 1 && 'Co-'}Written by{' '}
               {frontmatter.authors.map((author: string, index: number) => (
                 <span key={author}>
                   <a
@@ -65,7 +65,7 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
                     {author}
                   </a>
                   {index < frontmatter.authors.length - 1 &&
-                    (index === frontmatter.authors.length - 2 ? " & " : ", ")}
+                    (index === frontmatter.authors.length - 2 ? ' & ' : ', ')}
                 </span>
               ))}
             </div>

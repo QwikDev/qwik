@@ -1,4 +1,4 @@
-export { isBrowser, isServer } from ".";
+export { isBrowser, isServer } from '.';
 
 /**
  * True when build is in dev mode.

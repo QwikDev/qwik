@@ -1,15 +1,15 @@
-import type { StaticGenerateRenderOptions } from "@builder.io/qwik-city/static";
-import { type ServerAdapterOptions, viteAdapter } from "../../shared/vite";
-import fs from "node:fs";
-import { join, relative } from "node:path";
-import { normalizePathSlash } from "../../../utils/fs";
+import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
+import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import fs from 'node:fs';
+import { join, relative } from 'node:path';
+import { normalizePathSlash } from '../../../utils/fs';
 
 /** @public */
 export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
-    name: "cloudflare-pages",
-    origin: env?.CF_PAGES_URL ?? env?.ORIGIN ?? "https://your.cloudflare.pages.dev",
+    name: 'cloudflare-pages',
+    origin: env?.CF_PAGES_URL ?? env?.ORIGIN ?? 'https://your.cloudflare.pages.dev',
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
@@ -17,18 +17,18 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
     config() {
       return {
         resolve: {
-          conditions: ["webworker", "worker"],
+          conditions: ['webworker', 'worker'],
         },
         ssr: {
-          target: "webworker",
+          target: 'webworker',
           noExternal: true,
-          external: ["node:async_hooks"],
+          external: ['node:async_hooks'],
         },
         build: {
           ssr: true,
           rollupOptions: {
             output: {
-              format: "es",
+              format: 'es',
               hoistTransitiveImports: false,
             },
           },
@@ -38,28 +38,28 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
     },
 
     async generate({ clientOutDir, serverOutDir, basePathname, assetsDir }) {
-      const routesJsonPath = join(clientOutDir, "_routes.json");
+      const routesJsonPath = join(clientOutDir, '_routes.json');
       const hasRoutesJson = fs.existsSync(routesJsonPath);
       if (!hasRoutesJson && opts.functionRoutes !== false) {
         let pathName = assetsDir ? join(basePathname, assetsDir) : basePathname;
-        if (!pathName.endsWith("/")) {
-          pathName += "/";
+        if (!pathName.endsWith('/')) {
+          pathName += '/';
         }
         const routesJson = {
           version: 1,
-          include: [basePathname + "*"],
-          exclude: [pathName + "build/*", pathName + "assets/*"],
+          include: [basePathname + '*'],
+          exclude: [pathName + 'build/*', pathName + 'assets/*'],
         };
         await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson, undefined, 2));
       }
       // https://developers.cloudflare.com/pages/platform/functions/advanced-mode/
-      const workerJsPath = join(clientOutDir, "_worker.js");
+      const workerJsPath = join(clientOutDir, '_worker.js');
       const hasWorkerJs = fs.existsSync(workerJsPath);
       if (!hasWorkerJs) {
-        const importPath = relative(clientOutDir, join(serverOutDir, "entry.cloudflare-pages"));
+        const importPath = relative(clientOutDir, join(serverOutDir, 'entry.cloudflare-pages'));
         await fs.promises.writeFile(
           workerJsPath,
-          `import { fetch } from "${normalizePathSlash(importPath)}"; export default { fetch };`,
+          `import { fetch } from "${normalizePathSlash(importPath)}"; export default { fetch };`
         );
       }
     },

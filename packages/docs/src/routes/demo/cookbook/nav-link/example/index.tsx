@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import { NavLink } from "..";
+import { component$ } from '@builder.io/qwik';
+import { NavLink } from '..';
 
 export default component$(() => {
   return (

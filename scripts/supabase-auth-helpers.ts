@@ -1,14 +1,14 @@
-import { type BuildConfig, copyDir, panic } from "./util.ts";
-import { join } from "node:path";
-import { execa } from "execa";
+import { type BuildConfig, copyDir, panic } from './util.ts';
+import { join } from 'node:path';
+import { execa } from 'execa';
 
-const PACKAGE = "supabase-auth-helpers-qwik";
+const PACKAGE = 'supabase-auth-helpers-qwik';
 
 export async function buildSupabaseAuthHelpers(config: BuildConfig) {
   const input = join(config.packagesDir, PACKAGE);
 
-  const result = await execa("pnpm", ["build"], {
-    stdout: "inherit",
+  const result = await execa('pnpm', ['build'], {
+    stdout: 'inherit',
     cwd: input,
   });
 
@@ -17,8 +17,8 @@ export async function buildSupabaseAuthHelpers(config: BuildConfig) {
   }
   await copyDir(
     config,
-    join(config.dtsDir, "packages", PACKAGE, "src"),
-    join(input, "lib", "types"),
+    join(config.dtsDir, 'packages', PACKAGE, 'src'),
+    join(input, 'lib', 'types')
   );
   console.log(`⚛️  ${PACKAGE}`);
 }

@@ -1,10 +1,10 @@
-import { component$, $, type QRL } from "@builder.io/qwik";
+import { component$, $, type QRL } from '@builder.io/qwik';
 
 export default component$(() => {
-  const goodbye$ = $(() => alert("Good Bye!"));
+  const goodbye$ = $(() => alert('Good Bye!'));
   return (
     <main>
-      <MyComponent goodbye$={goodbye$} hello$={async (name) => alert("Hello " + name)} />
+      <MyComponent goodbye$={goodbye$} hello$={async (name) => alert('Hello ' + name)} />
     </main>
   );
 });
@@ -17,7 +17,7 @@ export const MyComponent = component$((props: MyComponentProps) => {
   return (
     <p>
       <button onClick$={props.goodbye$}>good bye</button>
-      <button onClick$={async () => await props.hello$("World")}>hello</button>
+      <button onClick$={async () => await props.hello$('World')}>hello</button>
     </p>
   );
 });

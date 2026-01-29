@@ -1,11 +1,11 @@
-import type { SnapshotResult, StreamWriter } from "@builder.io/qwik";
+import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
 import type {
   QwikManifest,
   ServerQwikManifest,
   ResolvedManifest,
   SymbolMapper,
   SymbolMapperFn,
-} from "@builder.io/qwik/optimizer";
+} from '@builder.io/qwik/optimizer';
 
 /** @public */
 export interface SerializeDocumentOptions {
@@ -73,15 +73,15 @@ export interface PreloaderOptions {
 /** @public @deprecated Use `preloader` instead */
 export interface PrefetchImplementation {
   /** @deprecated No longer used. */
-  linkRel?: "prefetch" | "preload" | "modulepreload" | null;
+  linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
   /** @deprecated No longer used. */
-  linkFetchPriority?: "auto" | "low" | "high" | null;
+  linkFetchPriority?: 'auto' | 'low' | 'high' | null;
   /** @deprecated No longer used. */
-  linkInsert?: "js-append" | "html-append" | null;
+  linkInsert?: 'js-append' | 'html-append' | null;
   /** @deprecated No longer used. */
-  workerFetchInsert?: "always" | "no-link-support" | null;
+  workerFetchInsert?: 'always' | 'no-link-support' | null;
   /** @deprecated No longer used. */
-  prefetchEvent?: "always" | null;
+  prefetchEvent?: 'always' | null;
 }
 
 /**
@@ -90,7 +90,7 @@ export interface PrefetchImplementation {
  * @public
  */
 export type SymbolsToPrefetch =
-  | "auto"
+  | 'auto'
   | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
 
 /** @public */
@@ -129,14 +129,14 @@ export interface RenderResult {
 
 /** @public */
 export type QwikLoaderOptions =
-  | "module"
-  | "inline"
-  | "never"
+  | 'module'
+  | 'inline'
+  | 'never'
   | {
       /** @deprecated No longer used. */
-      include?: "always" | "never" | "auto";
+      include?: 'always' | 'never' | 'auto';
       /** @deprecated No longer used. */
-      position?: "top" | "bottom";
+      position?: 'top' | 'bottom';
     };
 
 /**
@@ -147,7 +147,7 @@ export interface QwikPrefetchServiceWorkerOptions {
   /** @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts. */
   include?: boolean;
   /** @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts. */
-  position?: "top" | "bottom";
+  position?: 'top' | 'bottom';
 }
 
 /** @public */
@@ -207,19 +207,19 @@ export interface RenderToStringOptions extends RenderOptions {}
 
 /** @public */
 export interface InOrderAuto {
-  strategy: "auto";
+  strategy: 'auto';
   maximunInitialChunk?: number;
   maximunChunk?: number;
 }
 
 /** @public */
 export interface InOrderDisabled {
-  strategy: "disabled";
+  strategy: 'disabled';
 }
 
 /** @public */
 export interface InOrderDirect {
-  strategy: "direct";
+  strategy: 'direct';
 }
 
 /** @public */

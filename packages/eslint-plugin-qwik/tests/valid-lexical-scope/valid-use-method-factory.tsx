@@ -1,4 +1,4 @@
-import { component$, useTask$ } from "@builder.io/qwik";
+import { component$, useTask$ } from '@builder.io/qwik';
 
 export const HelloWorld = component$(() => {
   const getMethod = () => {
@@ -10,10 +10,10 @@ export const HelloWorld = component$(() => {
     b: false,
     n: null,
     date: new Date(),
-    url: new URL("http://localhost:8080/"),
-    regex: new RegExp("dfdf"),
+    url: new URL('http://localhost:8080/'),
+    regex: new RegExp('dfdf'),
     u: undefined,
-    manu: "string",
+    manu: 'string',
     complex: {
       s: true,
     },

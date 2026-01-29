@@ -1,1 +1,1 @@
-export { qwikTypes } from "./vite";
+export { qwikTypes } from './vite';

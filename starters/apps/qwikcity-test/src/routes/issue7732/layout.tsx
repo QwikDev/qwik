@@ -1,10 +1,10 @@
-import { component$, Slot } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
+import { component$, Slot } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
 
 export default component$(() => {
   return (
     <>
-      <div style={{ display: "flex", gap: "10px" }}>
+      <div style={{ display: 'flex', gap: '10px' }}>
         <Link href="/issue7732/a/" id="issue7732-link-a">
           A
         </Link>

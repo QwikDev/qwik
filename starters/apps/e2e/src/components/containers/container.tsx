@@ -1,4 +1,4 @@
-import { component$, useStyles$, useResource$, Resource, useSignal } from "@builder.io/qwik";
+import { component$, useStyles$, useResource$, Resource, useSignal } from '@builder.io/qwik';
 
 interface ContainerProps {
   url: string;
@@ -60,7 +60,7 @@ export const Container = component$((props: ContainerProps) => {
           }}
         />
       </div>
-      <div style={{ border: "1px solid red" }}>
+      <div style={{ border: '1px solid red' }}>
         Shadow DOM
         <div q:shadowRoot>
           <template shadowRootMode="open">

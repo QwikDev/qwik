@@ -1,11 +1,11 @@
-import { component$, useStore, type ReadonlySignal, type JSXOutput } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import { BundleCmp } from "~/components/bundle";
-import { BundleIcon } from "~/components/icons/bundle";
-import { SymbolTile } from "~/components/symbol-tile";
-import { getDB } from "~/db";
-import { getEdges, getSymbolDetails } from "~/db/query";
-import { dbGetManifestHashes } from "~/db/sql-manifest";
+import { component$, useStore, type ReadonlySignal, type JSXOutput } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import { BundleCmp } from '~/components/bundle';
+import { BundleIcon } from '~/components/icons/bundle';
+import { SymbolTile } from '~/components/symbol-tile';
+import { getDB } from '~/db';
+import { getEdges, getSymbolDetails } from '~/db/query';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
 import {
   computeBundles,
   computeSymbolGraph,
@@ -13,8 +13,8 @@ import {
   type SymbolVectors,
   type Symbol,
   type Bundle,
-} from "~/stats/edges";
-import { vectorSum } from "~/stats/vector";
+} from '~/stats/edges';
+import { vectorSum } from '~/stats/vector';
 
 interface BundleInfo {
   vectors: SymbolVectors;
@@ -23,8 +23,8 @@ interface BundleInfo {
 
 export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
   const db = getDB();
-  const limit = url.searchParams.get("limit")
-    ? parseInt(url.searchParams.get("limit")!)
+  const limit = url.searchParams.get('limit')
+    ? parseInt(url.searchParams.get('limit')!)
     : undefined;
 
   const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
@@ -89,8 +89,8 @@ export const CorrelationMatrix = component$<{
   const callout = useStore({
     visible: false,
     value: 0,
-    rowSymbol: "",
-    colSymbol: "",
+    rowSymbol: '',
+    colSymbol: '',
     x: 0,
     y: 0,
   });
@@ -114,9 +114,9 @@ export const CorrelationMatrix = component$<{
       </div>
       <div
         style={{
-          display: callout.visible && !isNaN(callout.value) ? "inline-block" : "none",
-          top: callout.y + 5 + "px",
-          left: callout.x + 5 + "px",
+          display: callout.visible && !isNaN(callout.value) ? 'inline-block' : 'none',
+          top: callout.y + 5 + 'px',
+          left: callout.x + 5 + 'px',
         }}
         class="fixed bg-white border border-slate-200 text-xs"
       >
@@ -129,19 +129,19 @@ export const CorrelationMatrix = component$<{
               <td scope="col" class="px-6 py-3">
                 <code
                   class={[
-                    "rounded-xs px-8 py-1 inline-block",
-                    { "bg-lime-500": Math.round(callout.value * 100) >= 70 },
+                    'rounded-xs px-8 py-1 inline-block',
+                    { 'bg-lime-500': Math.round(callout.value * 100) >= 70 },
                     {
-                      "bg-lime-300":
+                      'bg-lime-300':
                         Math.round(callout.value * 100) >= 50 &&
                         Math.round(callout.value * 100) < 70,
                     },
                     {
-                      "bg-yellow-500":
+                      'bg-yellow-500':
                         Math.round(callout.value * 100) >= 30 &&
                         Math.round(callout.value * 100) < 50,
                     },
-                    { "bg-slate-200": Math.round(callout.value * 100) < 30 },
+                    { 'bg-slate-200': Math.round(callout.value * 100) < 30 },
                   ]}
                 >
                   {Math.round(callout.value * 100)}%
@@ -181,7 +181,7 @@ export const MatrixCells = component$<{
       {matrix.map((row, rowIdx) => (
         <div
           class="flex"
-          style={{ height: 100 / size + "%" }}
+          style={{ height: 100 / size + '%' }}
           key={rowIdx}
           data-row-symbol={symbols[rowIdx].name}
         >
@@ -202,7 +202,7 @@ function cells(row: number[], symbols: Symbol[]) {
     if (value / total > 0.05) {
       if (sparseSize) {
         cells.push(
-          <div class="h-full inline-block" style={{ width: (sparseSize * 100) / size + "%" }} />,
+          <div class="h-full inline-block" style={{ width: (sparseSize * 100) / size + '%' }} />
         );
         sparseSize = 0;
       }
@@ -210,12 +210,12 @@ function cells(row: number[], symbols: Symbol[]) {
         <div
           key={colIdx}
           style={{
-            width: 100 / size + "%",
+            width: 100 / size + '%',
             backgroundColor: toRGB(value),
           }}
           data-col-symbol={symbols[colIdx].name}
           data-value={value}
-        ></div>,
+        ></div>
       );
     } else {
       sparseSize++;

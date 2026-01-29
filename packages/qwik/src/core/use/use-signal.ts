@@ -1,8 +1,8 @@
-import { isQwikComponent } from "../component/component.public";
-import { _createSignal, type Signal } from "../state/signal";
-import { isFunction } from "../util/types";
-import { invoke, useContainerState } from "./use-core";
-import { useSequentialScope } from "./use-sequential-scope";
+import { isQwikComponent } from '../component/component.public';
+import { _createSignal, type Signal } from '../state/signal';
+import { isFunction } from '../util/types';
+import { invoke, useContainerState } from './use-core';
+import { useSequentialScope } from './use-sequential-scope';
 
 /** @public */
 export interface UseSignal {

@@ -1,20 +1,20 @@
-import { qError, QError_invalidRefValue } from "../error/error";
-import type { ResourceReturnInternal, SubscriberEffect } from "../use/use-task";
-import { seal } from "../util/qdev";
-import { isFunction } from "../util/types";
-import type { QRL } from "../qrl/qrl.public";
-import { fromKebabToCamelCase } from "../util/case";
-import { QContainerAttr } from "../util/markers";
-import { isElement } from "../util/element";
+import { qError, QError_invalidRefValue } from '../error/error';
+import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
+import { seal } from '../util/qdev';
+import { isFunction } from '../util/types';
+import type { QRL } from '../qrl/qrl.public';
+import { fromKebabToCamelCase } from '../util/case';
+import { QContainerAttr } from '../util/markers';
+import { isElement } from '../util/element';
 import {
   createSubscriptionManager,
   type SubscriberSignal,
   type SubscriptionManager,
-} from "../state/common";
-import { isSignal, type Signal, type SignalImpl } from "../state/signal";
-import { directGetAttribute } from "../render/fast-calls";
-import type { QContext } from "../state/context";
-import { isServerPlatform } from "../platform/platform";
+} from '../state/common';
+import { isSignal, type Signal, type SignalImpl } from '../state/signal';
+import { directGetAttribute } from '../render/fast-calls';
+import type { QContext } from '../state/context';
+import { isServerPlatform } from '../platform/platform';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -53,7 +53,7 @@ export interface SnapshotResult {
   qrls: QRL[];
   objs: any[];
   resources: ResourceReturnInternal<any>[];
-  mode: "render" | "listeners" | "static";
+  mode: 'render' | 'listeners' | 'static';
 }
 
 export type ObjToProxyMap = WeakMap<any, any>;
@@ -94,7 +94,7 @@ export interface ContainerState {
   readonly $inlineFns$: Map<string, number>;
 }
 
-const CONTAINER_STATE = Symbol("ContainerState");
+const CONTAINER_STATE = Symbol('ContainerState');
 
 /** @internal */
 export const _getContainerState = (containerEl: Element): ContainerState => {
@@ -102,7 +102,7 @@ export const _getContainerState = (containerEl: Element): ContainerState => {
   if (!state) {
     (containerEl as any)[CONTAINER_STATE] = state = createContainerState(
       containerEl,
-      directGetAttribute(containerEl, "q:base") ?? "/",
+      directGetAttribute(containerEl, 'q:base') ?? '/'
     );
   }
   return state;
@@ -189,7 +189,7 @@ export const strToInt = (nu: string) => {
 };
 
 export const getEventName = (attribute: string) => {
-  const colonPos = attribute.indexOf(":");
+  const colonPos = attribute.indexOf(':');
   if (attribute) {
     return fromKebabToCamelCase(attribute.slice(colonPos + 1));
   } else {

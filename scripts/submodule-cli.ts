@@ -1,31 +1,31 @@
-import { build } from "esbuild";
-import { existsSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { copyStartersDir } from "./create-qwik-cli.ts";
-import { type BuildConfig, copyDir, getBanner, nodeTarget } from "./util.ts";
+import { build } from 'esbuild';
+import { existsSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { copyStartersDir } from './create-qwik-cli.ts';
+import { type BuildConfig, copyDir, getBanner, nodeTarget } from './util.ts';
 
 /** Builds @builder.io/qwik/cli */
 export async function submoduleCli(config: BuildConfig) {
-  const submodule = "cli";
+  const submodule = 'cli';
 
   await build({
-    entryPoints: [join(config.srcQwikDir, submodule, "index.ts")],
-    outfile: join(config.distQwikPkgDir, "cli.cjs"),
-    format: "cjs",
-    platform: "node",
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
+    outfile: join(config.distQwikPkgDir, 'cli.cjs'),
+    format: 'cjs',
+    platform: 'node',
     target: nodeTarget,
     sourcemap: false,
     bundle: true,
-    banner: { js: getBanner("@builder.io/qwik/cli", config.distVersion) },
-    outExtension: { ".js": ".cjs" },
+    banner: { js: getBanner('@builder.io/qwik/cli', config.distVersion) },
+    outExtension: { '.js': '.cjs' },
     plugins: [
       {
-        name: "colorAlias",
+        name: 'colorAlias',
         setup(build) {
           build.onResolve({ filter: /^chalk$/ }, async (args) => {
-            const result = await build.resolve("kleur", {
+            const result = await build.resolve('kleur', {
               resolveDir: args.resolveDir,
-              kind: "import-statement",
+              kind: 'import-statement',
             });
             if (result.errors.length > 0) {
               return { errors: result.errors };
@@ -35,17 +35,17 @@ export async function submoduleCli(config: BuildConfig) {
         },
       },
     ],
-    external: ["prettier", "typescript", "ts-morph", "semver", "ignore"],
+    external: ['prettier', 'typescript', 'ts-morph', 'semver', 'ignore'],
     define: {
-      "globalThis.CODE_MOD": "true",
-      "globalThis.QWIK_VERSION": JSON.stringify(config.distVersion),
+      'globalThis.CODE_MOD': 'true',
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
     },
   });
 
-  await copyStartersDir(config, config.distQwikPkgDir, ["features", "adapters"]);
+  await copyStartersDir(config, config.distQwikPkgDir, ['features', 'adapters']);
 
-  const tmplSrc = join(config.startersDir, "templates");
-  const tmplDist = join(config.distQwikPkgDir, "templates");
+  const tmplSrc = join(config.startersDir, 'templates');
+  const tmplDist = join(config.distQwikPkgDir, 'templates');
 
   if (existsSync(tmplDist)) {
     rmSync(tmplDist, { recursive: true });
@@ -53,5 +53,5 @@ export async function submoduleCli(config: BuildConfig) {
 
   await copyDir(config, tmplSrc, tmplDist);
 
-  console.log("📠", submodule);
+  console.log('📠', submodule);
 }

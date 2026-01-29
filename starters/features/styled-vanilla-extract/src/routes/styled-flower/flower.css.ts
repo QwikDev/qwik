@@ -1,4 +1,4 @@
-import { style, styled } from "styled-vanilla-extract/qwik";
+import { style, styled } from 'styled-vanilla-extract/qwik';
 
 export const header = style({});
 

@@ -7,18 +7,18 @@ import {
   _jsxBranch,
   useServerData,
   sync$,
-} from "@builder.io/qwik";
+} from '@builder.io/qwik';
 
-import { ContentInternalContext } from "./contexts";
-import spaInit from "./spa-init";
-import type { ClientSPAWindow } from "./qwik-city-component";
-import type { ScrollHistoryState } from "./scroll-restoration";
+import { ContentInternalContext } from './contexts';
+import spaInit from './spa-init';
+import type { ClientSPAWindow } from './qwik-city-component';
+import type { ScrollHistoryState } from './scroll-restoration';
 
 /** @public */
 export const RouterOutlet = component$(() => {
-  const serverData = useServerData<Record<string, string>>("containerAttributes");
+  const serverData = useServerData<Record<string, string>>('containerAttributes');
   if (!serverData) {
-    throw new Error("PrefetchServiceWorker component must be rendered on the server.");
+    throw new Error('PrefetchServiceWorker component must be rendered on the server.');
   }
   _jsxBranch();
 
@@ -43,7 +43,7 @@ export const RouterOutlet = component$(() => {
               // Minify window and history
               // Write this as minified as possible, the optimizer does not really minify this code.
               ((w: ClientSPAWindow, h: History & { state?: ScrollHistoryState }) => {
-                if (!w._qcs && h.scrollRestoration === "manual") {
+                if (!w._qcs && h.scrollRestoration === 'manual') {
                   // true
                   w._qcs = !0;
 
@@ -52,7 +52,7 @@ export const RouterOutlet = component$(() => {
                   if (s) {
                     w.scrollTo(s.x, s.y);
                   }
-                  document.dispatchEvent(new Event("qcinit"));
+                  document.dispatchEvent(new Event('qcinit'));
                 }
               })(window, history);
             })}

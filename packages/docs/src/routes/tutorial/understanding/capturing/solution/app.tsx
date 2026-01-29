@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { component$, useStore } from "@builder.io/qwik";
+import { component$, useStore } from '@builder.io/qwik';
 
 interface AppStore {
   counter: { count: number };
@@ -9,11 +9,11 @@ export default component$(() => {
   const store = useStore<AppStore>(
     {
       counter: { count: 1 },
-      largeData: { data: "PRETEND THIS IS A LARGE DATASET" },
+      largeData: { data: 'PRETEND THIS IS A LARGE DATASET' },
     },
-    { deep: true },
+    { deep: true }
   );
-  console.log("Render: <App/>");
+  console.log('Render: <App/>');
   const counter = store.counter;
   return (
     <>
@@ -26,8 +26,8 @@ export default component$(() => {
   );
 });
 
-export const Child = component$((props: { counter: AppStore["counter"] }) => {
-  console.log("Render: <Child/>");
+export const Child = component$((props: { counter: AppStore['counter'] }) => {
+  console.log('Render: <Child/>');
   return (
     <>
       <code>&lt;Child&gt;</code> {props.counter.count}

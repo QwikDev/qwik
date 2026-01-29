@@ -1,6 +1,6 @@
-import { component$, useStore, useTask$, useContext, useSignal } from "@builder.io/qwik";
+import { component$, useStore, useTask$, useContext, useSignal } from '@builder.io/qwik';
 
-import { type TodoItem, TODOS } from "../../state/state";
+import { type TodoItem, TODOS } from '../../state/state';
 
 /**
  * Individual items of the component.
@@ -62,7 +62,7 @@ export const Item = component$((props: ItemProps) => {
           onKeyUp$={(event: any) => {
             const inputValue = (event.target as HTMLInputElement).value;
             props.item.title = inputValue;
-            if (event.key === "Enter") {
+            if (event.key === 'Enter') {
               state.editing = false;
             }
           }}

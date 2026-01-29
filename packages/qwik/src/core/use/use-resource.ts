@@ -1,5 +1,5 @@
-import { $, type QRL } from "../qrl/qrl.public";
-import { assertQrl } from "../qrl/qrl-class";
+import { $, type QRL } from '../qrl/qrl.public';
+import { assertQrl } from '../qrl/qrl-class';
 import {
   type ResourceReturn,
   type ResourceDescriptor,
@@ -9,19 +9,19 @@ import {
   TaskFlagsIsResource,
   Task,
   type ResourceReturnInternal,
-} from "./use-task";
-import { Fragment, jsx } from "../render/jsx/jsx-runtime";
-import { isServerPlatform } from "../platform/platform";
-import { untrack, useBindInvokeContext } from "./use-core";
+} from './use-task';
+import { Fragment, jsx } from '../render/jsx/jsx-runtime';
+import { isServerPlatform } from '../platform/platform';
+import { untrack, useBindInvokeContext } from './use-core';
 
-import type { ContainerState, GetObjID } from "../container/container";
-import { useSequentialScope } from "./use-sequential-scope";
-import { createProxy } from "../state/store";
-import { getProxyTarget } from "../state/common";
-import { isSignal, type Signal } from "../state/signal";
-import { isObject } from "../util/types";
-import { isPromise } from "../util/promises";
-import type { JSXOutput } from "../render/jsx/types/jsx-node";
+import type { ContainerState, GetObjID } from '../container/container';
+import { useSequentialScope } from './use-sequential-scope';
+import { createProxy } from '../state/store';
+import { getProxyTarget } from '../state/common';
+import { isSignal, type Signal } from '../state/signal';
+import { isObject } from '../util/types';
+import { isPromise } from '../util/promises';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 /**
  * Options to pass to `useResource$()`
@@ -97,7 +97,7 @@ export interface ResourceOptions {
 // </docs>
 export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
-  opts?: ResourceOptions,
+  opts?: ResourceOptions
 ): ResourceReturn<T> => {
   const { val, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
   if (val != null) {
@@ -113,7 +113,7 @@ export const useResourceQrl = <T>(
     i,
     el,
     qrl,
-    resource,
+    resource
   ) as ResourceDescriptor<any>;
   const previousWait = Promise.all(iCtx.$waitOn$.slice());
   runResource(task, containerState, iCtx.$renderCtx$, previousWait);
@@ -183,7 +183,7 @@ export const useResourceQrl = <T>(
 // </docs>
 export const useResource$ = <T>(
   generatorFn: ResourceFn<T>,
-  opts?: ResourceOptions,
+  opts?: ResourceOptions
 ): ResourceReturn<T> => {
   return useResourceQrl<T>($(generatorFn), opts);
 };
@@ -264,17 +264,17 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
     if (isBrowser) {
       if (props.onRejected) {
         resource.value.catch(() => {});
-        if (resource._state === "rejected") {
+        if (resource._state === 'rejected') {
           return Promise.resolve(resource._error!).then(useBindInvokeContext(props.onRejected));
         }
       }
       if (props.onPending) {
         const state = resource._state;
-        if (state === "resolved") {
+        if (state === 'resolved') {
           return Promise.resolve(resource._resolved!).then(useBindInvokeContext(props.onResolved));
-        } else if (state === "pending") {
+        } else if (state === 'pending') {
           return Promise.resolve().then(useBindInvokeContext(props.onPending));
-        } else if (state === "rejected") {
+        } else if (state === 'rejected') {
           throw resource._error;
         }
       }
@@ -286,7 +286,7 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
     if (value) {
       return value.then(
         useBindInvokeContext(props.onResolved),
-        useBindInvokeContext(props.onRejected),
+        useBindInvokeContext(props.onRejected)
       );
     } else {
       // this is temporary value until the `runResource` is executed and promise is assigned to the value
@@ -295,29 +295,29 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
   } else if (isPromise(resource)) {
     return resource.then(
       useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected),
+      useBindInvokeContext(props.onRejected)
     );
   } else if (isSignal(resource)) {
     return Promise.resolve(resource.value).then(
       useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected),
+      useBindInvokeContext(props.onRejected)
     );
   } else {
     return Promise.resolve(resource as T).then(
       useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected),
+      useBindInvokeContext(props.onRejected)
     );
   }
 }
 
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
   const resource: ResourceReturnInternal<T> = {
-    __brand: "resource",
+    __brand: 'resource',
     value: undefined as never,
     loading: isServerPlatform() ? false : true,
     _resolved: undefined as never,
     _error: undefined as never,
-    _state: "pending",
+    _state: 'pending',
     _timeout: opts?.timeout ?? -1,
     _cache: 0,
   };
@@ -327,7 +327,7 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
 export const createResourceReturn = <T>(
   containerState: ContainerState,
   opts?: ResourceOptions,
-  initialPromise?: Promise<T>,
+  initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
   result.value = initialPromise as any;
@@ -340,17 +340,17 @@ export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceRet
 };
 
 export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
-  return isObject(obj) && (obj as any).__brand === "resource";
+  return isObject(obj) && (obj as any).__brand === 'resource';
 };
 
 export const serializeResource = (
   resource: ResourceReturnInternal<unknown>,
-  getObjId: GetObjID,
+  getObjId: GetObjID
 ) => {
   const state = resource._state;
-  if (state === "resolved") {
+  if (state === 'resolved') {
     return `0 ${getObjId(resource._resolved)}`;
-  } else if (state === "pending") {
+  } else if (state === 'pending') {
     return `1`;
   } else {
     return `2 ${getObjId(resource._error)}`;
@@ -358,19 +358,19 @@ export const serializeResource = (
 };
 
 export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
-  const [first, id] = data.split(" ");
+  const [first, id] = data.split(' ');
   const result = _createResourceReturn<T>(undefined);
   result.value = Promise.resolve() as any;
-  if (first === "0") {
-    result._state = "resolved";
+  if (first === '0') {
+    result._state = 'resolved';
     result._resolved = id as any;
     result.loading = false;
-  } else if (first === "1") {
-    result._state = "pending";
+  } else if (first === '1') {
+    result._state = 'pending';
     result.value = new Promise(() => {});
     result.loading = true;
-  } else if (first === "2") {
-    result._state = "rejected";
+  } else if (first === '2') {
+    result._state = 'rejected';
     result._error = id as any;
     result.loading = false;
   }

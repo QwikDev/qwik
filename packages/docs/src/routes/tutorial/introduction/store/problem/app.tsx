@@ -1,11 +1,11 @@
-import { component$ } from "@builder.io/qwik";
+import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
   // `github` is just a constant object.
   // Convert it to a Store that can be serialized to JSON on application pause.
   const github = {
-    org: "QwikDev",
-    repos: ["qwik", "partytown"] as string[] | null,
+    org: 'QwikDev',
+    repos: ['qwik', 'partytown'] as string[] | null,
   };
 
   return (
@@ -28,7 +28,7 @@ export default component$(() => {
             ))}
           </ul>
         ) : (
-          "loading..."
+          'loading...'
         )}
       </section>
     </main>

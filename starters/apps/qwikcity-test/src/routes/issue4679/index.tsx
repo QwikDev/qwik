@@ -1,5 +1,5 @@
-import { component$, useSignal } from "@builder.io/qwik";
-import { Form, routeAction$ } from "@builder.io/qwik-city";
+import { component$, useSignal } from '@builder.io/qwik';
+import { Form, routeAction$ } from '@builder.io/qwik-city';
 
 export const useAction = routeAction$(() => true);
 export default component$((props) => {

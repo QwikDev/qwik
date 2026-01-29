@@ -1,14 +1,14 @@
-import { type Signal, component$, useSignal } from "@builder.io/qwik";
-import { useContext, useContextProvider, createContextId } from "@builder.io/qwik";
+import { type Signal, component$, useSignal } from '@builder.io/qwik';
+import { useContext, useContextProvider, createContextId } from '@builder.io/qwik';
 
-export const ThemeContext = createContextId<Signal<string>>("docs.theme-context");
+export const ThemeContext = createContextId<Signal<string>>('docs.theme-context');
 
 export default component$(() => {
-  const theme = useSignal("dark");
+  const theme = useSignal('dark');
   useContextProvider(ThemeContext, theme);
   return (
     <>
-      <button onClick$={() => (theme.value = theme.value == "dark" ? "light" : "dark")}>
+      <button onClick$={() => (theme.value = theme.value == 'dark' ? 'light' : 'dark')}>
         Flip
       </button>
       <Child />

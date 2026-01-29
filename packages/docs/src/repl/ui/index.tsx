@@ -7,14 +7,14 @@ import {
   useVisibleTask$,
   $,
   useOnWindow,
-} from "@builder.io/qwik";
-import { ReplInputPanel } from "./repl-input-panel";
-import { ReplOutputPanel } from "./repl-output-panel";
-import styles from "./repl.css?inline";
-import type { ReplStore, ReplAppInput } from "../types";
-import { ReplDetailPanel } from "./repl-detail-panel";
-import { getReplVersion } from "./repl-version";
-import { ReplInstance } from "../repl-instance";
+} from '@builder.io/qwik';
+import { ReplInputPanel } from './repl-input-panel';
+import { ReplOutputPanel } from './repl-output-panel';
+import styles from './repl.css?inline';
+import type { ReplStore, ReplAppInput } from '../types';
+import { ReplDetailPanel } from './repl-detail-panel';
+import { getReplVersion } from './repl-version';
+import { ReplInstance } from '../repl-instance';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -26,7 +26,7 @@ export const Repl = component$((props: ReplProps) => {
       replId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
         .toString(36)
         .toLowerCase(),
-      html: "",
+      html: '',
       transformedModules: [],
       clientBundles: [],
       ssrModules: [],
@@ -35,9 +35,9 @@ export const Repl = component$((props: ReplProps) => {
       enableClientOutput: props.enableClientOutput !== false,
       enableHtmlOutput: props.enableHtmlOutput !== false,
       enableSsrOutput: props.enableSsrOutput !== false,
-      selectedInputPath: "",
-      selectedOutputPanel: "app",
-      selectedOutputDetail: "console",
+      selectedInputPath: '',
+      selectedOutputPanel: 'app',
+      selectedOutputDetail: 'console',
       ssrBuild: true,
       debug: false,
       versions: [],
@@ -72,7 +72,7 @@ export const Repl = component$((props: ReplProps) => {
       if (input.files.length > 0) {
         store.selectedInputPath = input.files[0].path;
       } else {
-        store.selectedInputPath = "";
+        store.selectedInputPath = '';
       }
     }
   });
@@ -84,7 +84,7 @@ export const Repl = component$((props: ReplProps) => {
       // Get the version asap, most likely it will be cached.
       const v = await getReplVersion(input.version, true);
       store.versions = v.versions;
-      input.version = v.version || "bundled";
+      input.version = v.version || 'bundled';
 
       store.instance!.markDirty();
 
@@ -95,7 +95,7 @@ export const Repl = component$((props: ReplProps) => {
         input.version = v.version;
       }
     },
-    { strategy: "document-ready" },
+    { strategy: 'document-ready' }
   );
 
   useVisibleTask$(({ track }) => {
@@ -106,17 +106,17 @@ export const Repl = component$((props: ReplProps) => {
 
   // Messages from ../bundler/client-events-listener.ts
   useOnWindow(
-    "message",
+    'message',
     $((event: MessageEvent) => {
       if (
         event.data &&
-        event.data.type === "event" &&
+        event.data.type === 'event' &&
         event.data.replId === store.replId &&
         event.data.event
       ) {
         store.events.push(event.data.event);
       }
-    }),
+    })
   );
 
   return (

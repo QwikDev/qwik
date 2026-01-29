@@ -1,3 +1,3 @@
-export { qwikify$, qwikifyQrl } from "./react/qwikify";
+export { qwikify$, qwikifyQrl } from './react/qwikify';
 
-export type { QwikifyProps } from "./react/types";
+export type { QwikifyProps } from './react/types';

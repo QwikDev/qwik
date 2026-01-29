@@ -1,28 +1,28 @@
-import { version as qwikVersion } from "@builder.io/qwik";
-import type { PkgUrls } from "../types";
+import { version as qwikVersion } from '@builder.io/qwik';
+import type { PkgUrls } from '../types';
 
-import qBuild from "../../../node_modules/@builder.io/qwik/dist/build/index.d.ts?raw-source";
-import qCoreDts from "../../../node_modules/@builder.io/qwik/dist/core.d.ts?raw-source";
-import qCoreMinMjs from "../../../node_modules/@builder.io/qwik/dist/core.min.mjs?raw-source";
-import qCoreMjs from "../../../node_modules/@builder.io/qwik/dist/core.mjs?raw-source";
-import qOptimizerMjs from "../../../node_modules/@builder.io/qwik/dist/optimizer.mjs?raw-source";
-import qPreloaderMjs from "../../../node_modules/@builder.io/qwik/dist/preloader.mjs?raw-source";
+import qBuild from '../../../node_modules/@builder.io/qwik/dist/build/index.d.ts?raw-source';
+import qCoreDts from '../../../node_modules/@builder.io/qwik/dist/core.d.ts?raw-source';
+import qCoreMinMjs from '../../../node_modules/@builder.io/qwik/dist/core.min.mjs?raw-source';
+import qCoreMjs from '../../../node_modules/@builder.io/qwik/dist/core.mjs?raw-source';
+import qOptimizerMjs from '../../../node_modules/@builder.io/qwik/dist/optimizer.mjs?raw-source';
+import qPreloaderMjs from '../../../node_modules/@builder.io/qwik/dist/preloader.mjs?raw-source';
 // we use the debug version for the repl so it's understandable
-import qQwikLoaderJs from "../../../node_modules/@builder.io/qwik/dist/qwikloader.debug.js?raw-source";
-import qServerMjs from "../../../node_modules/@builder.io/qwik/dist/server.mjs?raw-source";
-import qServerDts from "../../../node_modules/@builder.io/qwik/dist/server.d.ts?raw-source";
-import qWasmMjs from "../../../node_modules/@builder.io/qwik/bindings/qwik.wasm.mjs?raw-source";
-import qWasmBinUrl from "../../../node_modules/@builder.io/qwik/bindings/qwik_wasm_bg.wasm?raw-source";
+import qQwikLoaderJs from '../../../node_modules/@builder.io/qwik/dist/qwikloader.debug.js?raw-source';
+import qServerMjs from '../../../node_modules/@builder.io/qwik/dist/server.mjs?raw-source';
+import qServerDts from '../../../node_modules/@builder.io/qwik/dist/server.d.ts?raw-source';
+import qWasmMjs from '../../../node_modules/@builder.io/qwik/bindings/qwik.wasm.mjs?raw-source';
+import qWasmBinUrl from '../../../node_modules/@builder.io/qwik/bindings/qwik_wasm_bg.wasm?raw-source';
 
-import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from "../repl-constants";
+import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
 
 export const getNpmCdnUrl = (
   bundled: PkgUrls,
   pkgName: string,
   pkgVersion: string,
-  pkgPath: string,
+  pkgPath: string
 ) => {
-  if (pkgVersion === "bundled") {
+  if (pkgVersion === 'bundled') {
     const files = bundled[pkgName];
     if (files) {
       pkgVersion = files.version;
@@ -34,27 +34,27 @@ export const getNpmCdnUrl = (
       // fall back to latest
       pkgVersion =
         pkgName === QWIK_PKG_NAME_V1 || pkgName === QWIK_PKG_NAME_V2
-          ? qwikVersion.split("-dev")[0]
-          : "";
+          ? qwikVersion.split('-dev')[0]
+          : '';
     }
   }
-  return `https://cdn.jsdelivr.net/npm/${pkgName}${pkgVersion ? "@" + pkgVersion : ""}${pkgPath}`;
+  return `https://cdn.jsdelivr.net/npm/${pkgName}${pkgVersion ? '@' + pkgVersion : ''}${pkgPath}`;
 };
 
 const qwikUrls: PkgUrls[string] = {
   version: qwikVersion,
   // For bundled version, use local files
-  "/dist/build/index.d.ts": qBuild,
-  "/dist/core.d.ts": qCoreDts,
-  "/dist/core.min.mjs": qCoreMinMjs,
-  "/dist/core.mjs": qCoreMjs,
-  "/dist/optimizer.mjs": qOptimizerMjs,
-  "/dist/server.mjs": qServerMjs,
-  "/dist/server.d.ts": qServerDts,
-  "/dist/preloader.mjs": qPreloaderMjs,
-  "/dist/qwikloader.js": qQwikLoaderJs,
-  "/bindings/qwik.wasm.mjs": qWasmMjs,
-  "/bindings/qwik_wasm_bg.wasm": qWasmBinUrl,
+  '/dist/build/index.d.ts': qBuild,
+  '/dist/core.d.ts': qCoreDts,
+  '/dist/core.min.mjs': qCoreMinMjs,
+  '/dist/core.mjs': qCoreMjs,
+  '/dist/optimizer.mjs': qOptimizerMjs,
+  '/dist/server.mjs': qServerMjs,
+  '/dist/server.d.ts': qServerDts,
+  '/dist/preloader.mjs': qPreloaderMjs,
+  '/dist/qwikloader.js': qQwikLoaderJs,
+  '/bindings/qwik.wasm.mjs': qWasmMjs,
+  '/bindings/qwik_wasm_bg.wasm': qWasmBinUrl,
 };
 export const bundled: PkgUrls = {
   [QWIK_PKG_NAME_V1]: qwikUrls,
@@ -63,10 +63,10 @@ export const bundled: PkgUrls = {
 
 export const getDeps = (qwikVersion: string) => {
   const out = { ...bundled };
-  if (qwikVersion !== "bundled") {
-    const [M, m, p] = qwikVersion.split("-")[0].split(".").map(Number);
-    const prefix = M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? "/dist/" : "/";
-    const isV2 = qwikVersion >= "2";
+  if (qwikVersion !== 'bundled') {
+    const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
+    const prefix = M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? '/dist/' : '/';
+    const isV2 = qwikVersion >= '2';
     const pkgName = isV2 ? QWIK_PKG_NAME_V2 : QWIK_PKG_NAME_V1;
     out[QWIK_PKG_NAME_V1] = {
       version: qwikVersion,
@@ -80,20 +80,20 @@ export const getDeps = (qwikVersion: string) => {
       `/bindings/qwik_wasm_bg.wasm`,
       `/dist/qwikloader.js`,
       `/dist/preloader.mjs`,
-      "/handlers.mjs",
+      '/handlers.mjs',
     ]) {
       out[QWIK_PKG_NAME_V1][p] = getNpmCdnUrl(
         bundled,
         pkgName,
         qwikVersion,
-        p.replace("/dist/", prefix),
+        p.replace('/dist/', prefix)
       );
     }
-    out[QWIK_PKG_NAME_V1]["/dist/core.d.ts"] = getNpmCdnUrl(
+    out[QWIK_PKG_NAME_V1]['/dist/core.d.ts'] = getNpmCdnUrl(
       bundled,
       pkgName,
       qwikVersion,
-      isV2 ? "/dist/core-internal.d.ts" : `${prefix}core.d.ts`,
+      isV2 ? '/dist/core-internal.d.ts' : `${prefix}core.d.ts`
     );
     out[QWIK_PKG_NAME_V2] = out[QWIK_PKG_NAME_V1];
   }

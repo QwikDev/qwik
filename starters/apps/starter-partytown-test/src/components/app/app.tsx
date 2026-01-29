@@ -1,11 +1,11 @@
-import { component$, useStore } from "@builder.io/qwik";
+import { component$, useStore } from '@builder.io/qwik';
 
 export const App = component$(() => {
-  const state = useStore({ name: "World", running: true });
+  const state = useStore({ name: 'World', running: true });
 
   return (
     <div id="my-app" document:on-expensiveComputationDone$={() => (state.running = false)}>
-      <p style={{ "text-align": "center" }}>
+      <p style={{ 'text-align': 'center' }}>
         <a href="https://github.com/QwikDev/qwik">
           <img
             alt="Qwik Logo"
@@ -15,19 +15,19 @@ export const App = component$(() => {
         </a>
       </p>
       <p class="congrats">
-        Congratulations <a href="https://github.com/QwikDev/qwik">Qwik</a> with{" "}
+        Congratulations <a href="https://github.com/QwikDev/qwik">Qwik</a> with{' '}
         <a href="https://partytown.qwik.dev/">Partytown</a> is working!
       </p>
 
       <p>
-        Expensive script running in <a href="https://partytown.qwik.dev/">Partytown</a> is{" "}
+        Expensive script running in <a href="https://partytown.qwik.dev/">Partytown</a> is{' '}
         {state.running ? (
           <span
             id="state"
             style={{
-              "background-color": "red",
-              color: "white",
-              padding: ".1em",
+              'background-color': 'red',
+              color: 'white',
+              padding: '.1em',
             }}
           >
             running
@@ -36,9 +36,9 @@ export const App = component$(() => {
           <span
             id="state"
             style={{
-              "background-color": "green",
-              color: "white",
-              padding: ".1em",
+              'background-color': 'green',
+              color: 'white',
+              padding: '.1em',
             }}
           >
             finished
@@ -67,7 +67,7 @@ export const App = component$(() => {
           tab.)
         </li>
         <li>
-          Try interacting with this component by changing{" "}
+          Try interacting with this component by changing{' '}
           <input
             value={state.name}
             onInput$={(event, input) => {
@@ -91,8 +91,8 @@ export const App = component$(() => {
         <li>Build amazing web-sites with unbeatable startup performance.</li>
       </ol>
       <hr />
-      <p style={{ "text-align": "center" }}>
-        Made with ❤️ by{" "}
+      <p style={{ 'text-align': 'center' }}>
+        Made with ❤️ by{' '}
         <a target="_blank" href="https://www.builder.io/">
           Builder.io
         </a>

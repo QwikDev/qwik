@@ -1,5 +1,5 @@
-import type { Plugin } from "vite";
-import { minify } from "terser";
+import type { Plugin } from 'vite';
+import { minify } from 'terser';
 
 const isCompiledStringId = (id: string) => /[?&]compiled-string/.test(id);
 
@@ -7,23 +7,23 @@ const isCompiledStringId = (id: string) => /[?&]compiled-string/.test(id);
 export function compiledStringPlugin(): Plugin {
   let devServer: any;
   return {
-    name: "compiled-string-plugin",
-    enforce: "pre",
+    name: 'compiled-string-plugin',
+    enforce: 'pre',
 
     configureServer(server) {
       devServer = server;
     },
 
     resolveId: {
-      order: "pre",
+      order: 'pre',
       async handler(id, importer, options) {
         if (isCompiledStringId(id)) {
-          const cleanId = id.replace(/([?&])compiled-string/, "$1").replace(/[?&]$/, "");
+          const cleanId = id.replace(/([?&])compiled-string/, '$1').replace(/[?&]$/, '');
           const resolved = await this.resolve(cleanId, importer, { skipSelf: true });
           if (resolved) {
             return `virtual:compiled-string:${resolved.id}`;
           }
-        } else if (id.startsWith("virtual:compiled-string:")) {
+        } else if (id.startsWith('virtual:compiled-string:')) {
           return id;
         }
         return null;
@@ -31,10 +31,10 @@ export function compiledStringPlugin(): Plugin {
     },
 
     load: {
-      order: "pre",
+      order: 'pre',
       async handler(id) {
-        if (id.startsWith("virtual:compiled-string:")) {
-          const originalId = id.slice("virtual:compiled-string:".length);
+        if (id.startsWith('virtual:compiled-string:')) {
+          const originalId = id.slice('virtual:compiled-string:'.length);
 
           const result = await this.load({
             id: originalId,
@@ -42,7 +42,7 @@ export function compiledStringPlugin(): Plugin {
           });
 
           let code: string;
-          if (result && "code" in result && result.code) {
+          if (result && 'code' in result && result.code) {
             // If this.load provides code, use it
             code = result.code;
           } else if (devServer) {
@@ -60,7 +60,7 @@ export function compiledStringPlugin(): Plugin {
           if (!minified.code) {
             throw new Error(`Unable to minify code for ${originalId}`);
           }
-          const withoutExports = minified.code.replace("export{}", "").replace(/;+$/g, "");
+          const withoutExports = minified.code.replace('export{}', '').replace(/;+$/g, '');
           return {
             code: `export default ${JSON.stringify(withoutExports)};`,
             map: null,

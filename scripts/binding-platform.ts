@@ -1,8 +1,8 @@
-import spawn from "cross-spawn";
-import { copyFile, writeFile } from "fs/promises";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { ensureDir, type BuildConfig } from "./util.ts";
+import spawn from 'cross-spawn';
+import { copyFile, writeFile } from 'fs/promises';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { ensureDir, type BuildConfig } from './util.ts';
 
 export async function buildPlatformBinding(config: BuildConfig) {
   await new Promise((resolve, reject) => {
@@ -14,7 +14,7 @@ export async function buildPlatformBinding(config: BuildConfig) {
       const args = [
         `build`,
         `--cargo-name`,
-        "qwik_napi",
+        'qwik_napi',
         `--platform`,
         `--config=packages/qwik/src/napi/napi.config.json`,
         config.distBindingsDir,
@@ -30,10 +30,10 @@ export async function buildPlatformBinding(config: BuildConfig) {
 
       const napiCwd = join(config.rootDir);
 
-      const child = spawn(cmd, args, { stdio: "inherit", cwd: napiCwd });
-      child.on("error", reject);
+      const child = spawn(cmd, args, { stdio: 'inherit', cwd: napiCwd });
+      child.on('error', reject);
 
-      child.on("close", (code) => {
+      child.on('close', (code) => {
         if (code === 0) {
           resolve(child.stdout);
         } else {
@@ -45,7 +45,7 @@ export async function buildPlatformBinding(config: BuildConfig) {
     }
   });
 
-  console.log("🐯 native binding");
+  console.log('🐯 native binding');
 }
 
 // TODO only download current target and wasm
@@ -55,18 +55,18 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
   const cacheDir = join(config.tmpDir, `cached-bindings`);
 
   let version = config.distVersion;
-  const isDev = version.includes("-dev");
-  let cdnUrl = "https://cdn.jsdelivr.net/npm/";
+  const isDev = version.includes('-dev');
+  let cdnUrl = 'https://cdn.jsdelivr.net/npm/';
   let packageName: string;
   if (isDev) {
     cdnUrl = `https://pkg.pr.new/QwikDev/qwik/`;
-    version = version.split("-dev")[0];
+    version = version.split('-dev')[0];
   }
-  if (version.startsWith("2")) {
+  if (version.startsWith('2')) {
     // 6903 is the PR that builds v2
-    packageName = `@qwik.dev/core@${isDev ? "6903" : version}`;
+    packageName = `@qwik.dev/core@${isDev ? '6903' : version}`;
   } else {
-    packageName = `@builder.io/qwik@${isDev ? "main" : version}`;
+    packageName = `@builder.io/qwik@${isDev ? 'main' : version}`;
   }
 
   let cacheVersionDir: string;
@@ -81,7 +81,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
     }
     const url = rsp.url;
     // get the package name from the url
-    const realPackageName = url.split("/").pop()!;
+    const realPackageName = url.split('/').pop()!;
     // now check if we already have this package in the cache
     const cachedPath = join(cacheDir, realPackageName);
     if (!existsSync(cachedPath)) {
@@ -99,12 +99,12 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
     const unpackedPath = join(cacheDir, `${realPackageName}-unpacked`);
     ensureDir(unpackedPath);
     await new Promise((resolve, reject) => {
-      const child = spawn("tar", ["-xvf", cachedPath, "-C", unpackedPath]);
-      child.on("error", (e) => {
+      const child = spawn('tar', ['-xvf', cachedPath, '-C', unpackedPath]);
+      child.on('error', (e) => {
         console.error(e);
         reject(e);
       });
-      child.on("close", (code) => {
+      child.on('close', (code) => {
         if (code === 0) {
           resolve(child.stdout);
         } else {
@@ -115,7 +115,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
     });
 
     // now we need to find the bindings in the package
-    cacheVersionDir = join(unpackedPath, "package", "bindings");
+    cacheVersionDir = join(unpackedPath, 'package', 'bindings');
   } else {
     cdnUrl = `${cdnUrl}${packageName}/bindings/`;
     cacheVersionDir = join(cacheDir, version);
@@ -124,13 +124,13 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
 
   try {
     const bindingFilenames = [
-      "qwik.darwin-arm64.node",
-      "qwik.darwin-x64.node",
-      "qwik.linux-x64-gnu.node",
-      "qwik.wasm.cjs",
-      "qwik.wasm.mjs",
-      "qwik.win32-x64-msvc.node",
-      "qwik_wasm_bg.wasm",
+      'qwik.darwin-arm64.node',
+      'qwik.darwin-x64.node',
+      'qwik.linux-x64-gnu.node',
+      'qwik.wasm.cjs',
+      'qwik.wasm.mjs',
+      'qwik.win32-x64-msvc.node',
+      'qwik_wasm_bg.wasm',
     ];
 
     await Promise.all(
@@ -152,7 +152,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
         }
 
         await copyFile(cachedPath, distPath);
-      }),
+      })
     );
 
     console.log(`🦉 native binding / wasm (copied from npm v${version})`);

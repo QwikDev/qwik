@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import { Form, globalAction$, zod$ } from "@builder.io/qwik-city";
+import { component$ } from '@builder.io/qwik';
+import { Form, globalAction$, zod$ } from '@builder.io/qwik-city';
 
 export const useDotNotationAction = globalAction$(
   async (payload) => {
@@ -20,8 +20,8 @@ export const useDotNotationAction = globalAction$(
         }),
       }),
       persons: z.array(z.object({ name: z.string() })),
-    }),
-  ),
+    })
+  )
 );
 
 export default component$(() => {
@@ -29,7 +29,7 @@ export default component$(() => {
 
   type ConfirmType = Partial<
     Record<
-      "credentials.username" | "credentials.password" | "evenMoreComplex.deep.firstName",
+      'credentials.username' | 'credentials.password' | 'evenMoreComplex.deep.firstName',
       string
     >
   >;
@@ -45,7 +45,7 @@ export default component$(() => {
           name="credentials.username"
           value="user"
           class={{
-            error: dotNotation.value?.fieldErrors?.["credentials.username"],
+            error: dotNotation.value?.fieldErrors?.['credentials.username'],
           }}
         />
         <input
@@ -53,7 +53,7 @@ export default component$(() => {
           name="credentials.password"
           value="pass"
           class={{
-            error: dotNotation.value?.fieldErrors?.["credentials.password"],
+            error: dotNotation.value?.fieldErrors?.['credentials.password'],
           }}
         />
         <input
@@ -61,17 +61,17 @@ export default component$(() => {
           name="credentials.password"
           value="pass"
           class={{
-            error: dotNotation.value?.fieldErrors?.["evenMoreComplex.deep.firstName"],
+            error: dotNotation.value?.fieldErrors?.['evenMoreComplex.deep.firstName'],
           }}
         />
-        {errors?.["credentials.password"] ?? "no error"}
+        {errors?.['credentials.password'] ?? 'no error'}
 
         <input
           type="hidden"
           name="evenMoreComplex.deep.firstName"
           value="John"
           class={{
-            error: dotNotation.value?.fieldErrors?.["evenMoreComplex.deep.firstName"],
+            error: dotNotation.value?.fieldErrors?.['evenMoreComplex.deep.firstName'],
           }}
         />
 
@@ -80,7 +80,7 @@ export default component$(() => {
           name="persons.0.name"
           value="John"
           class={{
-            error: dotNotation.value?.fieldErrors?.["persons[].name"]?.[0],
+            error: dotNotation.value?.fieldErrors?.['persons[].name']?.[0],
           }}
         />
 

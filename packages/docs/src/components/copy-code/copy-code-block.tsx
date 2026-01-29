@@ -1,6 +1,6 @@
-import { component$, useSignal, useStyles$ } from "@builder.io/qwik";
-import { CopyCode as CopyCodeIcon } from "../svgs/copy-code-icon";
-import styles from "./copy-code.css?inline";
+import { component$, useSignal, useStyles$ } from '@builder.io/qwik';
+import { CopyCode as CopyCodeIcon } from '../svgs/copy-code-icon';
+import styles from './copy-code.css?inline';
 
 const Check = component$(({ height = 12, width = 12 }: { height?: number; width?: number }) => {
   useStyles$(styles);

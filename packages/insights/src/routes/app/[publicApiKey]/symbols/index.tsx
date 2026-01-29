@@ -1,13 +1,13 @@
-import { type ReadonlySignal, component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import Histogram, { delayColors, latencyColors } from "~/components/histogram";
-import { ManifestIcon } from "~/components/icons/manifest";
-import { SymbolIcon } from "~/components/icons/symbol";
-import { SymbolTile } from "~/components/symbol-tile";
-import { getDB } from "~/db";
-import { getEdges, getSymbolDetails } from "~/db/query";
-import { dbGetManifestHashes } from "~/db/sql-manifest";
-import { BUCKETS, vectorAdd, vectorNew } from "~/stats/vector";
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import Histogram, { delayColors, latencyColors } from '~/components/histogram';
+import { ManifestIcon } from '~/components/icons/manifest';
+import { SymbolIcon } from '~/components/icons/symbol';
+import { SymbolTile } from '~/components/symbol-tile';
+import { getDB } from '~/db';
+import { getEdges, getSymbolDetails } from '~/db/query';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
+import { BUCKETS, vectorAdd, vectorNew } from '~/stats/vector';
 
 interface Symbol {
   hash: string;
@@ -32,8 +32,8 @@ interface SymbolsInfo {
 
 export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
   const db = getDB();
-  const limit = url.searchParams.get("limit")
-    ? parseInt(url.searchParams.get("limit")!)
+  const limit = url.searchParams.get('limit')
+    ? parseInt(url.searchParams.get('limit')!)
     : undefined;
   const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
   const [edges, details] = await Promise.all([
@@ -44,9 +44,9 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
   const symbolMap = new Map<string, Symbol>();
   const manifests = new Map<string, Manifest>();
   edges.forEach((edge) => {
-    const manifest = getManifest("<UNKNOWN>");
+    const manifest = getManifest('<UNKNOWN>');
     const symbol = getSymbol(edge.to);
-    const symbolManifest = getSymbolManifest(symbol, "<UNKNOWN>");
+    const symbolManifest = getSymbolManifest(symbol, '<UNKNOWN>');
     vectorAdd(manifest.delay, edge.delay);
     vectorAdd(manifest.latency, edge.latency);
     vectorAdd(symbolManifest.delay, edge.delay);
@@ -72,9 +72,9 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     if (!symbol) {
       symbol = {
         hash: name,
-        fullName: "",
-        origin: "",
-        manifests: {} as Symbol["manifests"],
+        fullName: '',
+        origin: '',
+        manifests: {} as Symbol['manifests'],
         delay: vectorNew(),
         latency: vectorNew(),
       };

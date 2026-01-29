@@ -1,8 +1,8 @@
 /* eslint-disable */
-import { jsx } from "./jsx-runtime";
-import type { QwikJSX as JSX } from "./types/jsx-qwik";
-import type { FunctionComponent, JSXNode } from "./types/jsx-node";
-import { isArray } from "../../util/types";
+import { jsx } from './jsx-runtime';
+import type { QwikJSX as JSX } from './types/jsx-qwik';
+import type { FunctionComponent, JSXNode } from './types/jsx-node';
+import { isArray } from '../../util/types';
 
 export const flattenArray = <T>(array: (T | T[])[], dst?: T[]): T[] => {
   // Yes this function is just Array.flat, but we need to run on old versions of Node.
@@ -36,12 +36,12 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
   let i: any;
 
   for (i in props) {
-    if (i == "key") key = (props as Record<string, any>)[i];
+    if (i == 'key') key = (props as Record<string, any>)[i];
     else normalizedProps[i] = (props as Record<string, any>)[i];
   }
 
-  if (typeof type === "string" && !key && "dangerouslySetInnerHTML" in normalizedProps) {
-    key = "innerhtml";
+  if (typeof type === 'string' && !key && 'dangerouslySetInnerHTML' in normalizedProps) {
+    key = 'innerhtml';
   }
   return jsx(type, normalizedProps, key);
 }
@@ -56,7 +56,7 @@ export declare namespace h {
   export function h(
     type: any,
     data: any,
-    children: Array<JSXNode<any> | undefined | null>,
+    children: Array<JSXNode<any> | undefined | null>
   ): JSXNode<any>;
   export function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
 

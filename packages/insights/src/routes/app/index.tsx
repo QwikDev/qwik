@@ -1,11 +1,11 @@
-import { component$, useSignal, type ReadonlySignal, useComputed$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import { inArray } from "drizzle-orm";
-import AppCard from "~/components/app-card";
-import Container from "~/components/container";
-import Layout from "~/components/layout";
-import { applicationTable, getDB, type ApplicationRow } from "~/db";
-import { getInsightUser } from "./layout";
+import { component$, useSignal, type ReadonlySignal, useComputed$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import { inArray } from 'drizzle-orm';
+import AppCard from '~/components/app-card';
+import Container from '~/components/container';
+import Layout from '~/components/layout';
+import { applicationTable, getDB, type ApplicationRow } from '~/db';
+import { getInsightUser } from './layout';
 
 export const useApps = routeLoader$<ApplicationRow[]>(async ({ sharedMap }) => {
   const insightUser = getInsightUser(sharedMap);
@@ -15,7 +15,7 @@ export const useApps = routeLoader$<ApplicationRow[]>(async ({ sharedMap }) => {
     // Select everything
   } else if (insightUser.applicationPublicApiKeys.length) {
     query = query.where(
-      inArray(applicationTable.publicApiKey, insightUser.applicationPublicApiKeys),
+      inArray(applicationTable.publicApiKey, insightUser.applicationPublicApiKeys)
     ) as typeof query;
   } else {
     // The user has nothing attached to it.
@@ -26,14 +26,14 @@ export const useApps = routeLoader$<ApplicationRow[]>(async ({ sharedMap }) => {
 
 export default component$(() => {
   const apps: ReadonlySignal<ApplicationRow[]> = useApps();
-  const filter = useSignal("");
+  const filter = useSignal('');
   const filteredApps = useComputed$(() => {
     return apps.value.filter(
       (app) =>
         app.name.toLowerCase().includes(filter.value) ||
         app.publicApiKey.toLowerCase().includes(filter.value) ||
         app.description?.toLowerCase().includes(filter.value) ||
-        app.url?.toLowerCase().includes(filter.value),
+        app.url?.toLowerCase().includes(filter.value)
     );
   });
   return (

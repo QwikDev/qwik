@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import { routeLoader$, type RequestHandler, type Cookie } from "@builder.io/qwik-city";
+import { component$ } from '@builder.io/qwik';
+import { routeLoader$, type RequestHandler, type Cookie } from '@builder.io/qwik-city';
 
 interface User {
   username: string;
@@ -9,9 +9,9 @@ interface User {
 export const onRequest: RequestHandler = async ({ sharedMap, cookie, send }) => {
   const user = loadUserFromCookie(cookie);
   if (user) {
-    sharedMap.set("user", user);
+    sharedMap.set('user', user);
   } else {
-    throw send(401, "NOT_AUTHORIZED");
+    throw send(401, 'NOT_AUTHORIZED');
   }
 };
 
@@ -29,7 +29,7 @@ function loadUserFromCookie(cookie: Cookie): User | null {
 }
 
 export const useUser = routeLoader$(({ sharedMap }) => {
-  return sharedMap.get("user") as User;
+  return sharedMap.get('user') as User;
 });
 
 export default component$(() => {

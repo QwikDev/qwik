@@ -1,10 +1,10 @@
-import type { TSESLint } from "@typescript-eslint/utils";
-import jsxAstUtils from "jsx-ast-utils";
-import { QwikEslintExamples } from "../examples";
+import type { TSESLint } from '@typescript-eslint/utils';
+import jsxAstUtils from 'jsx-ast-utils';
+import { QwikEslintExamples } from '../examples';
 
 const reactSpecificProps = [
-  { from: "className", to: "class" },
-  { from: "htmlFor", to: "for" },
+  { from: 'className', to: 'class' },
+  { from: 'htmlFor', to: 'for' },
 ];
 
 const domElementRegex = /^[a-z]/;
@@ -12,22 +12,22 @@ export const isDOMElementName = (name: string): boolean => domElementRegex.test(
 
 export const noReactProps = {
   meta: {
-    type: "problem",
+    type: 'problem',
     docs: {
-      recommended: "warn",
-      description: "Disallow usage of React-specific `className`/`htmlFor` props.",
-      url: "https://qwik.dev/docs/advanced/eslint/#no-react-props",
+      recommended: 'warn',
+      description: 'Disallow usage of React-specific `className`/`htmlFor` props.',
+      url: 'https://qwik.dev/docs/advanced/eslint/#no-react-props',
     },
-    fixable: "code",
+    fixable: 'code',
     schema: [],
     messages: {
-      prefer: "Prefer the `{{ to }}` prop over the deprecated `{{ from }}` prop.",
+      prefer: 'Prefer the `{{ to }}` prop over the deprecated `{{ from }}` prop.',
     },
   },
   create(context) {
     const modifyJsxSource = context.sourceCode
       .getAllComments()
-      .some((c) => c.value.includes("@jsxImportSource"));
+      .some((c) => c.value.includes('@jsxImportSource'));
     if (modifyJsxSource) {
       return {};
     }
@@ -43,7 +43,7 @@ export const noReactProps = {
 
             context.report({
               node: classNameAttribute,
-              messageId: "prefer",
+              messageId: 'prefer',
               data: { from, to },
               fix,
             });
@@ -64,15 +64,15 @@ export const noReactPropsExamples: QwikEslintExamples = {
   prefer: {
     good: [
       {
-        codeHighlight: "/class/#a /for/#b",
+        codeHighlight: '/class/#a /for/#b',
         code: preferGood,
       },
     ],
     bad: [
       {
-        codeHighlight: "/className/#a /htmlFor/#b",
+        codeHighlight: '/className/#a /htmlFor/#b',
         code: preferBad,
-        description: "Prefer `class` and `for` props over `className` and `htmlFor`.",
+        description: 'Prefer `class` and `for` props over `className` and `htmlFor`.',
       },
     ],
   },

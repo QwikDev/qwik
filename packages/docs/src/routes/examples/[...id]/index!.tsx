@@ -1,21 +1,21 @@
-import { component$, useStyles$, useTask$, useStore, useVisibleTask$ } from "@builder.io/qwik";
-import type { RequestHandler, PathParams, StaticGenerateHandler } from "@builder.io/qwik-city";
-import { Repl } from "../../../repl/ui";
-import styles from "./examples.css?inline";
-import { Header } from "../../../components/header/header";
-import exampleSections, { type ExampleApp } from "@examples-data";
-import type { ReplAppInput } from "../../../repl/types";
-import { type DocumentHead, useLocation } from "@builder.io/qwik-city";
-import { PanelToggle } from "../../../components/panel-toggle/panel-toggle";
-import { isBrowser } from "@builder.io/qwik";
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from "../../../repl/ui/repl-share-url";
-import { setReplCorsHeaders } from "~/utils/utils";
+import { component$, useStyles$, useTask$, useStore, useVisibleTask$ } from '@builder.io/qwik';
+import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder.io/qwik-city';
+import { Repl } from '../../../repl/ui';
+import styles from './examples.css?inline';
+import { Header } from '../../../components/header/header';
+import exampleSections, { type ExampleApp } from '@examples-data';
+import type { ReplAppInput } from '../../../repl/types';
+import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
+import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
+import { isBrowser } from '@builder.io/qwik';
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/ui/repl-share-url';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
 
   const panelStore = useStore(() => ({
-    active: "Input",
+    active: 'Input',
     list: PANELS,
   }));
 
@@ -23,11 +23,11 @@ export default component$(() => {
   const store = useStore<ExamplesStore>(() => {
     const app = getExampleApp(loc.params.id);
     const initStore: ExamplesStore = {
-      appId: app ? app.id : "",
-      buildMode: "development",
-      entryStrategy: "segment",
+      appId: app ? app.id : '',
+      buildMode: 'development',
+      entryStrategy: 'segment',
       files: app?.inputs || [],
-      version: "",
+      version: '',
       shareUrlTmr: undefined,
     };
     return initStore;
@@ -48,7 +48,7 @@ export default component$(() => {
       }
     }
     store.files = app?.inputs || [];
-    if (typeof document !== "undefined") {
+    if (typeof document !== 'undefined') {
       document.title = `${app?.title} - Qwik`;
     }
   });
@@ -77,7 +77,7 @@ export default component$(() => {
 
         store.shareUrlTmr = setTimeout(() => {
           const shareUrl = createPlaygroundShareUrl(store, location.pathname);
-          history.replaceState({}, "", shareUrl);
+          history.replaceState({}, '', shareUrl);
         }, 1000);
       }
     }
@@ -89,10 +89,10 @@ export default component$(() => {
 
       <div
         class={{
-          "examples-menu-container": true,
-          "examples-panel-input": panelStore.active === "Input",
-          "examples-panel-output": panelStore.active === "Output",
-          "examples-panel-console": panelStore.active === "Console",
+          'examples-menu-container': true,
+          'examples-panel-input': panelStore.active === 'Input',
+          'examples-panel-output': panelStore.active === 'Output',
+          'examples-panel-console': panelStore.active === 'Console',
         }}
       >
         <div class="examples-menu">
@@ -107,11 +107,11 @@ export default component$(() => {
                   preventdefault:click
                   onClick$={() => {
                     store.appId = app.id;
-                    panelStore.active === "Input";
-                    history.replaceState({}, "", `/examples/${app.id}/`);
+                    panelStore.active === 'Input';
+                    history.replaceState({}, '', `/examples/${app.id}/`);
                   }}
                   class={{
-                    "example-button": true,
+                    'example-button': true,
                     selected: store.appId === app.id,
                   }}
                 >
@@ -145,7 +145,7 @@ export default component$(() => {
 });
 
 export const getExampleApp = (id: string): ExampleApp | undefined => {
-  if (id.endsWith("/")) {
+  if (id.endsWith('/')) {
     id = id.slice(0, id.length - 1);
   }
   for (const exampleSection of exampleSections) {
@@ -160,18 +160,18 @@ export const getExampleApp = (id: string): ExampleApp | undefined => {
 export const head: DocumentHead = ({ params }) => {
   const app = getExampleApp(params.id);
   return {
-    title: app?.title || "Example",
+    title: app?.title || 'Example',
   };
 };
 
-export const PANELS: ActivePanel[] = ["Examples", "Input", "Output", "Console"];
+export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
 
 interface ExamplesStore extends ReplAppInput {
   appId: string;
   shareUrlTmr: any;
 }
 
-type ActivePanel = "Examples" | "Input" | "Output" | "Console";
+type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';
 
 export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({

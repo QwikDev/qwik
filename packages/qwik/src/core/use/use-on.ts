@@ -1,14 +1,14 @@
-import { assertQrl } from "../qrl/qrl-class";
-import type { QRL } from "../qrl/qrl.public";
-import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from "../state/context";
-import { type Listener, normalizeOnProp } from "../state/listeners";
-import { useInvokeContext } from "./use-core";
-import { type KnownEventNames } from "../render/jsx/types/jsx-qwik-events";
+import { assertQrl } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
+import { type Listener, normalizeOnProp } from '../state/listeners';
+import { useInvokeContext } from './use-core';
+import { type KnownEventNames } from '../render/jsx/types/jsx-qwik-events';
 import type {
   EventHandler,
   EventFromName,
   AllEventKeys,
-} from "../render/jsx/types/jsx-qwik-attributes";
+} from '../render/jsx/types/jsx-qwik-attributes';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -61,7 +61,7 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  */
 // </docs>
 export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, "document"), eventQrl);
+  _useOn(createEventName(event, 'document'), eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -95,14 +95,14 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  */
 // </docs>
 export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, "window"), eventQrl);
+  _useOn(createEventName(event, 'window'), eventQrl);
 };
 
 const createEventName = (
   event: KnownEventNames | KnownEventNames[],
-  eventType: "window" | "document" | undefined,
+  eventType: 'window' | 'document' | undefined
 ) => {
-  const formattedEventType = eventType !== undefined ? eventType + ":" : "";
+  const formattedEventType = eventType !== undefined ? eventType + ':' : '';
   const res = Array.isArray(event)
     ? event.map((e) => `${formattedEventType}on-${e}`)
     : `${formattedEventType}on-${event}`;
@@ -114,10 +114,10 @@ const _useOn = (eventName: string | string[], eventQrl: EventQRL) => {
     const invokeCtx = useInvokeContext();
     const elCtx = getContext(
       invokeCtx.$hostElement$,
-      invokeCtx.$renderCtx$.$static$.$containerState$,
+      invokeCtx.$renderCtx$.$static$.$containerState$
     );
     assertQrl(eventQrl as any);
-    if (typeof eventName === "string") {
+    if (typeof eventName === 'string') {
       elCtx.li.push([normalizeOnProp(eventName), eventQrl] as Listener);
     } else {
       elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));

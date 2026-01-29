@@ -1,58 +1,58 @@
-import * as fs from "fs";
-import { resolve } from "path";
-import { rules, configs } from "../packages/eslint-plugin-qwik/index";
-import { examples, type QwikEslintExample } from "../packages/eslint-plugin-qwik/examples";
+import * as fs from 'fs';
+import { resolve } from 'path';
+import { rules, configs } from '../packages/eslint-plugin-qwik/index';
+import { examples, type QwikEslintExample } from '../packages/eslint-plugin-qwik/examples';
 
 const mdx = [];
 
 const outputPathMdx = resolve(
   process.cwd(),
-  "packages/docs/src/routes/docs/(qwik)/advanced/eslint/index.mdx",
+  'packages/docs/src/routes/docs/(qwik)/advanced/eslint/index.mdx'
 );
 
 function escapeHtml(htmlStr: string) {
   return htmlStr
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function kebabToCamel(str: string) {
   return str
     .toLowerCase()
-    .replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace("-", "").replace("_", ""));
+    .replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''));
 }
 
-function renderExample(example: QwikEslintExample, state: "good" | "bad" = "good") {
+function renderExample(example: QwikEslintExample, state: 'good' | 'bad' = 'good') {
   mdx.push('<div class="code-wrapper">');
-  if (state === "good") {
+  if (state === 'good') {
     mdx.push('<span class="badge good">✓</span>');
   } else {
     mdx.push('<span class="badge bad">✕</span>');
   }
   mdx.push(
-    "```tsx" +
-      ((example.codeHighlight && ` ${example.codeHighlight}`) || "") +
-      ((example.codeTitle && ` title="${example.codeTitle}"`) || ""),
+    '```tsx' +
+      ((example.codeHighlight && ` ${example.codeHighlight}`) || '') +
+      ((example.codeTitle && ` title="${example.codeTitle}"`) || '')
   );
   mdx.push(example.code);
-  mdx.push("```");
+  mdx.push('```');
   if (example.description) {
     mdx.push(`<p class="code-description">${example.description}</p>`);
   }
-  mdx.push("</div>");
+  mdx.push('</div>');
 }
 
 const rulesMap = Object.keys(rules).map((ruleName) => {
   const rule = ruleName as keyof typeof rules;
   return {
     name: rule,
-    description: escapeHtml(rules[rule]?.meta?.docs?.description || ""),
+    description: escapeHtml(rules[rule]?.meta?.docs?.description || ''),
     recommended: configs?.recommended?.rules[`qwik/${rule}`] || false,
     strict: configs.strict.rules[`qwik/${rule}`] || false,
-    messages: rules[rule]?.meta?.messages || "",
+    messages: rules[rule]?.meta?.messages || '',
     examples: examples[rule],
   };
 });
@@ -69,11 +69,11 @@ mdx.push(`
 
 mdx.push(`import './styles.css';\n\n`);
 
-mdx.push("<div>");
+mdx.push('<div>');
 
 mdx.push('<h1 id="smth">ESLint-Rules</h1>');
 mdx.push(
-  "<p>Qwik comes with its own set of ESLint rules to help developers write better code.</p>",
+  '<p>Qwik comes with its own set of ESLint rules to help developers write better code.</p>'
 );
 
 mdx.push(`
@@ -112,7 +112,7 @@ rulesMap.forEach((rule) => {
         <span
           class={{
             'icon': ${rule.recommended === false},
-            'icon icon-inactive': ${rule.recommended === "warn"},
+            'icon icon-inactive': ${rule.recommended === 'warn'},
           }}
         >
           ✅
@@ -120,7 +120,7 @@ rulesMap.forEach((rule) => {
         <span
           class={{
             'icon': ${rule.strict === false},
-            'icon icon-inactive': ${rule.strict === "warn"},
+            'icon icon-inactive': ${rule.strict === 'warn'},
           }}
         >
           🔔
@@ -146,23 +146,23 @@ rulesMap.forEach((rule) => {
     const badExamples: QwikEslintExample[] = rule?.examples?.[messageKey]?.bad || [];
 
     if (goodExamples.length > 0) {
-      mdx.push("<p>Examples of <b>correct</b> code for this rule:</p>");
+      mdx.push('<p>Examples of <b>correct</b> code for this rule:</p>');
       goodExamples.map((example) => {
         renderExample(example);
       });
     }
 
     if (badExamples.length > 0) {
-      mdx.push("<p>Examples of <b>incorrect</b> code for this rule:</p>");
+      mdx.push('<p>Examples of <b>incorrect</b> code for this rule:</p>');
       badExamples.map((example) => {
-        renderExample(example, "bad");
+        renderExample(example, 'bad');
       });
     }
 
     mdx.push(
       `<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/${kebabToCamel(
-        rule.name,
-      )}.ts" target="_blank" class="edit-btn">Edit examples</a></div>`,
+        rule.name
+      )}.ts" target="_blank" class="edit-btn">Edit examples</a></div>`
     );
   });
   mdx.push(`
@@ -175,4 +175,4 @@ mdx.push(`</div>`);
 
 // TODO: format mdx breaks every odd code block
 // fs.writeFileSync(outputPathMdx, format(mdx.join('\n'), { parser: 'mdx' }));
-fs.writeFileSync(outputPathMdx, mdx.join("\n"));
+fs.writeFileSync(outputPathMdx, mdx.join('\n'));

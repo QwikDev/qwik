@@ -1,13 +1,13 @@
-import { assert, test } from "vitest";
+import { assert, test } from 'vitest';
 import {
   type SymbolPairs,
   type SymbolVectors,
   computeSymbolGraph,
   computeSymbolVectors,
-} from "./edges";
+} from './edges';
 
-test("simple paths", () => {
-  const graph = computeSymbolGraph([edge("->a"), edge("a->b"), edge("b->c"), edge("c->d")]);
+test('simple paths', () => {
+  const graph = computeSymbolGraph([edge('->a'), edge('a->b'), edge('b->c'), edge('c->d')]);
   const symbolVectors = computeSymbolVectors(graph);
   const result = toResult(symbolVectors);
   assert.deepEqual(result, {
@@ -27,14 +27,14 @@ test("simple paths", () => {
   });
 });
 
-test("diamond", () => {
+test('diamond', () => {
   const graph = computeSymbolGraph([
-    edge("->a"),
-    edge("->a"),
-    edge("a->b"),
-    edge("a->c"),
-    edge("b->d"),
-    edge("c->d"),
+    edge('->a'),
+    edge('->a'),
+    edge('a->b'),
+    edge('a->c'),
+    edge('b->d'),
+    edge('c->d'),
   ]);
   const symbolVectors = computeSymbolVectors(graph);
   const result = toResult(symbolVectors);
@@ -55,17 +55,17 @@ test("diamond", () => {
   });
 });
 
-test("lopsided diamond", () => {
+test('lopsided diamond', () => {
   const graph = computeSymbolGraph([
-    edge("->a"),
-    edge("->a"),
-    edge("->a"),
-    edge("a->b"),
-    edge("a->b"),
-    edge("a->c"),
-    edge("b->d"),
-    edge("b->d"),
-    edge("c->d"),
+    edge('->a'),
+    edge('->a'),
+    edge('->a'),
+    edge('a->b'),
+    edge('a->b'),
+    edge('a->c'),
+    edge('b->d'),
+    edge('b->d'),
+    edge('c->d'),
   ]);
   const symbolVectors = computeSymbolVectors(graph);
   const result = toResult(symbolVectors);
@@ -86,13 +86,13 @@ test("lopsided diamond", () => {
   });
 });
 
-test("incomplete diamond", () => {
+test('incomplete diamond', () => {
   const graph = computeSymbolGraph([
-    edge("->a"),
-    edge("->a"),
-    edge("a->b"),
-    edge("a->c"),
-    edge("b->d"),
+    edge('->a'),
+    edge('->a'),
+    edge('a->b'),
+    edge('a->c'),
+    edge('b->d'),
   ]);
   const symbolVectors = computeSymbolVectors(graph);
   const result = toResult(symbolVectors);
@@ -114,7 +114,7 @@ test("incomplete diamond", () => {
 });
 
 function edge(name: string): SymbolPairs {
-  const parts = name.split("->");
+  const parts = name.split('->');
   return {
     from: parts[0] || null,
     to: parts[1],

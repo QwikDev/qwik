@@ -1,6 +1,6 @@
-import fs from "node:fs";
-import { join } from "node:path";
-import type { BuildServerPlugin, NormalizedPluginOptions } from "../types";
+import fs from 'node:fs';
+import { join } from 'node:path';
+import type { BuildServerPlugin, NormalizedPluginOptions } from '../types';
 import {
   createFileId,
   getExtension,
@@ -9,7 +9,7 @@ import {
   isPluginModule,
   normalizePath,
   removeExtension,
-} from "../../utils/fs";
+} from '../../utils/fs';
 
 export async function walkServerPlugins(opts: NormalizedPluginOptions) {
   const dirPath = opts.serverPluginsDir;
@@ -23,12 +23,12 @@ export async function walkServerPlugins(opts: NormalizedPluginOptions) {
 
       if ((isModuleExt(ext) || isPageModuleExt(ext)) && isPluginModule(extlessName)) {
         sourceFiles.push({
-          id: createFileId(opts.serverPluginsDir, itemPath, "Plugin"),
+          id: createFileId(opts.serverPluginsDir, itemPath, 'Plugin'),
           filePath: itemPath,
           ext,
         });
       }
-    }),
+    })
   );
   return sourceFiles;
 }

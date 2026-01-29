@@ -6,7 +6,7 @@ import {
   Resource,
   useTask$,
   type ResourceReturn,
-} from "@builder.io/qwik";
+} from '@builder.io/qwik';
 
 export interface WeatherData {
   name: string;
@@ -22,8 +22,8 @@ export interface WeatherData {
 
 export const Weather = component$(() => {
   const state = useStore({
-    city: "",
-    debouncedCity: "",
+    city: '',
+    debouncedCity: '',
     weather: undefined,
   });
 
@@ -40,7 +40,7 @@ export const Weather = component$(() => {
 
   const weather = useResource$<WeatherData | undefined>(async ({ track, cleanup }) => {
     const city = track(() => state.debouncedCity);
-    cleanup(() => console.log("abort request for ", city));
+    cleanup(() => console.log('abort request for ', city));
     if (city.length < 2) {
       return undefined;
     }
@@ -66,7 +66,7 @@ export const Weather = component$(() => {
 });
 
 export const WeatherResults = component$((props: { weather: ResourceReturn<WeatherData> }) => {
-  console.log("rerender");
+  console.log('rerender');
   return (
     <div>
       <Resource
@@ -91,7 +91,7 @@ export const WeatherResults = component$((props: { weather: ResourceReturn<Weath
 
 export const WeatherResults2 = component$(
   (props: { weather: ResourceReturn<WeatherData | undefined> }) => {
-    console.log("rerender");
+    console.log('rerender');
     return (
       <div>
         <Resource
@@ -117,19 +117,19 @@ export const WeatherResults2 = component$(
         />
       </div>
     );
-  },
+  }
 );
 
 export async function fetchWeather(city: string, signal: AbortSignal): Promise<WeatherData> {
-  const url = new URL("https://api.openweathermap.org/data/2.5/weather");
-  url.searchParams.set("q", city);
-  url.searchParams.set("appid", "796dc66c4335ab39e43f882c0098b076");
+  const url = new URL('https://api.openweathermap.org/data/2.5/weather');
+  url.searchParams.set('q', city);
+  url.searchParams.set('appid', '796dc66c4335ab39e43f882c0098b076');
 
   await delay(500);
   const res = await fetch(url, { signal });
   const json = await res.json();
   if (json.cod !== 200) {
-    throw new Error("City not found");
+    throw new Error('City not found');
   }
   return {
     name: json.name,

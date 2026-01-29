@@ -1,14 +1,14 @@
-import { component$, useSignal, useTask$ } from "@builder.io/qwik";
-import { isServer } from "@builder.io/qwik";
+import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik';
 
 export default component$(() => {
   const isUppercase = useSignal(false);
-  const text = useSignal("");
-  const delayText = useSignal("");
+  const text = useSignal('');
+  const delayText = useSignal('');
 
   useTask$(({ track }) => {
     const value = track(() =>
-      isUppercase.value ? text.value.toUpperCase() : text.value.toLowerCase(),
+      isUppercase.value ? text.value.toUpperCase() : text.value.toLowerCase()
     );
     const update = () => (delayText.value = value);
     isServer

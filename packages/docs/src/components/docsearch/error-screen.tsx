@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import { ErrorIcon } from "./icons/ErrorIcon";
+import { component$ } from '@builder.io/qwik';
+import { ErrorIcon } from './icons/ErrorIcon';
 
 export type ErrorScreenTranslations = Partial<{
   titleText: string;

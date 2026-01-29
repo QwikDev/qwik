@@ -1,13 +1,13 @@
-import { component$, useStyles$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
-import pages from "./generated-pages.json";
-import styles from "./styles.css?inline";
+import { component$, useStyles$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
+import pages from './generated-pages.json';
+import styles from './styles.css?inline';
 
 export interface MediaEntry {
   title: string;
   href: string;
   imgSrc: string;
-  size: "small" | "large";
+  size: 'small' | 'large';
   perf: {
     score: number;
     inpMs: number;
@@ -47,11 +47,11 @@ export default component$(() => {
       <section>
         <h2>How are the scores calculated?</h2>
         <p>
-          The scores are calculated using the{" "}
+          The scores are calculated using the{' '}
           <a href="https://developers.google.com/speed/docs/insights/v5/get-started">
             PageSpeed Insights API
           </a>
-          , analyzed with the{" "}
+          , analyzed with the{' '}
           <a href="https://developers.google.com/speed/docs/insights/rest/v5/pagespeedapi/runpagespeed#strategy">
             MOBILE strategy
           </a>
@@ -74,7 +74,7 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
             {perf.inpMs ? (
               <div
                 style={{
-                  "--color": getLighthouseColorForMs(perf.inpMs, 200, 500),
+                  '--color': getLighthouseColorForMs(perf.inpMs, 200, 500),
                 }}
               >
                 <h3>INP</h3>
@@ -83,7 +83,7 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
             ) : (
               <div
                 style={{
-                  "--color": getLighthouseColorForScore(perf.ttiScore),
+                  '--color': getLighthouseColorForScore(perf.ttiScore),
                 }}
               >
                 <h3>TTI</h3>
@@ -93,7 +93,7 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
             {perf.lcpDisplay ? (
               <div
                 style={{
-                  "--color": getLighthouseColorForScore(perf.lcpScore),
+                  '--color': getLighthouseColorForScore(perf.lcpScore),
                 }}
               >
                 <h3>LCP</h3>
@@ -102,7 +102,7 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
             ) : (
               <div
                 style={{
-                  "--color": getLighthouseColorForScore(perf.fcpScore),
+                  '--color': getLighthouseColorForScore(perf.fcpScore),
                 }}
               >
                 <h3>FCP</h3>
@@ -112,7 +112,7 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
             {perf.clsScore != null && (
               <div
                 style={{
-                  "--color": getLighthouseColorForCls(perf.clsScore),
+                  '--color': getLighthouseColorForCls(perf.clsScore),
                 }}
               >
                 <h3>CLS</h3>
@@ -122,7 +122,7 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
             {perf.ttfbMs && (
               <div
                 style={{
-                  "--color": getLighthouseColorForMs(perf.ttfbMs, 800, 1800),
+                  '--color': getLighthouseColorForMs(perf.ttfbMs, 800, 1800),
                 }}
               >
                 <h3>TTFB</h3>
@@ -142,7 +142,7 @@ export const Score = ({ speedScore, url }: { speedScore: number; url: string }) 
     <a
       class="score"
       style={{
-        "--color": getLighthouseColorForScore(speedScore),
+        '--color': getLighthouseColorForScore(speedScore),
       }}
       title="Mobile perf score from PageSpeed Insights"
       target="_blank"
@@ -170,9 +170,9 @@ export const Score = ({ speedScore, url }: { speedScore: number; url: string }) 
   );
 };
 
-const lighthouseRed = "#f33";
-const lighthouseOrange = "#ffaa32";
-const lighthouseGreen = "#0c6";
+const lighthouseRed = '#f33';
+const lighthouseOrange = '#ffaa32';
+const lighthouseGreen = '#0c6';
 
 function getLighthouseColorForScore(score: number) {
   return score < 0.5 ? lighthouseRed : score < 0.9 ? lighthouseOrange : lighthouseGreen;
@@ -188,5 +188,5 @@ function getPagespeedInsightsUrl(url: string) {
 }
 
 export const head: DocumentHead = {
-  title: "Qwik Sites Showcase",
+  title: 'Qwik Sites Showcase',
 };

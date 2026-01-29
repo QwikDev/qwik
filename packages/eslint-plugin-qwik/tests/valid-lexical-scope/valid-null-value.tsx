@@ -1,4 +1,4 @@
-import { component$ } from "@builder.io/qwik";
+import { component$ } from '@builder.io/qwik';
 interface Value {
   value: 12;
 }
@@ -9,8 +9,8 @@ function useMethod(foo: string, bar: () => string) {
 }
 
 export const HelloWorld = component$(() => {
-  const bar = () => "bar";
-  const foo = "bar";
+  const bar = () => 'bar';
+  const foo = 'bar';
   const a: Value = { value: 12 };
   const b: NullValue = null;
   useMethod(foo, bar);

@@ -1,16 +1,16 @@
-import { readFileSync } from "fs";
-import { expect, test } from "vitest";
-import compress from "brotli/compress.js";
-import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
+import { readFileSync } from 'fs';
+import { expect, test } from 'vitest';
+import compress from 'brotli/compress.js';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Run `pnpm build --qwik --dev` to update
-test("preloader script", () => {
-  let preLoader: string = "";
+test('preloader script', () => {
+  let preLoader: string = '';
   try {
-    preLoader = readFileSync(resolve(__dirname, "../../../dist/preloader.mjs"), "utf-8");
+    preLoader = readFileSync(resolve(__dirname, '../../../dist/preloader.mjs'), 'utf-8');
   } catch {
     // ignore, we didn't build yet
   }

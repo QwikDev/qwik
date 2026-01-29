@@ -1,16 +1,16 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { createServerClient as serverClient } from "@supabase/ssr";
-import type { CookieMethodsBrowser, CookieOptionsWithName } from "@supabase/ssr";
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createServerClient as serverClient } from '@supabase/ssr';
+import type { CookieMethodsBrowser, CookieOptionsWithName } from '@supabase/ssr';
 import type {
   GenericSchema,
   SupabaseClientOptions,
-} from "@supabase/supabase-js/dist/module/lib/types";
-import type { RequestEventBase } from "packages/qwik-city/lib";
+} from '@supabase/supabase-js/dist/module/lib/types';
+import type { RequestEventBase } from 'packages/qwik-city/lib';
 
 export function createServerClient<
   Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
+  SchemaName extends string & keyof Database = 'public' extends keyof Database
+    ? 'public'
     : string & keyof Database,
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
     ? Database[SchemaName]
@@ -22,13 +22,13 @@ export function createServerClient<
   options?: SupabaseClientOptions<SchemaName> & {
     cookies?: CookieMethodsBrowser;
     cookieOptions?: CookieOptionsWithName;
-    cookieEncoding?: "raw" | "base64url";
+    cookieEncoding?: 'raw' | 'base64url';
     isSingleton?: boolean;
-  },
+  }
 ): SupabaseClient<Database, SchemaName, Schema> {
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      "supabaseUrl and supabaseKey are required to create a Supabase client! Find these under `Settings` > `API` in your Supabase dashboard.",
+      'supabaseUrl and supabaseKey are required to create a Supabase client! Find these under `Settings` > `API` in your Supabase dashboard.'
     );
   }
 
@@ -38,7 +38,7 @@ export function createServerClient<
       ...options?.global,
       headers: {
         ...options?.global?.headers,
-        "X-Client-Info": "supabase-auth-helpers-qwik@0.0.3",
+        'X-Client-Info': 'supabase-auth-helpers-qwik@0.0.3',
       },
     },
     auth: {

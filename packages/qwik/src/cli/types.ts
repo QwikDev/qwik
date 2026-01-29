@@ -1,4 +1,4 @@
-import type { AppCommand } from "./utils/app-command";
+import type { AppCommand } from './utils/app-command';
 
 export interface CreateAppOptions {
   starterId: string;
@@ -28,7 +28,7 @@ export interface FsUpdates {
   files: {
     path: string;
     content: string | Buffer;
-    type: "create" | "overwrite" | "modify";
+    type: 'create' | 'overwrite' | 'modify';
   }[];
   installedDeps: { [dep: string]: string };
   installedScripts: string[];
@@ -48,7 +48,7 @@ export interface IntegrationData {
   alwaysInRoot?: string[];
 }
 
-export type IntegrationType = "app" | "feature" | "adapter";
+export type IntegrationType = 'app' | 'feature' | 'adapter';
 
 export interface Feature {
   id: string;

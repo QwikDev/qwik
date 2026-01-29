@@ -1,4 +1,4 @@
-import { HackerNews } from "./app";
+import { HackerNews } from './app';
 
 export const Root = () => {
   return (

@@ -2,7 +2,7 @@ import type {
   StaticGenerateRenderOptions,
   StaticGenerateOptions,
   StaticGenerateResult,
-} from "./types";
+} from './types';
 
 // @builder.io/qwik-city/static
 
@@ -22,13 +22,13 @@ export type { StaticGenerateOptions, StaticGenerateRenderOptions, StaticGenerate
 
 function getEntryModulePath() {
   if (isDeno()) {
-    return "./deno.mjs";
+    return './deno.mjs';
   }
   if (isNode() || isBun()) {
     if (isCjs()) {
-      return "./node.cjs";
+      return './node.cjs';
     }
-    return "./node.mjs";
+    return './node.mjs';
   }
   throw new Error(`Unsupported platform`);
 }
@@ -42,20 +42,20 @@ function getEntryModule() {
 }
 
 function isDeno() {
-  return typeof Deno !== "undefined";
+  return typeof Deno !== 'undefined';
 }
 
 function isBun() {
-  return typeof Bun !== "undefined";
+  return typeof Bun !== 'undefined';
 }
 
 function isNode() {
-  return !isBun() && !isDeno() && typeof process !== "undefined" && !!process.versions?.node;
+  return !isBun() && !isDeno() && typeof process !== 'undefined' && !!process.versions?.node;
 }
 
 function isCjs() {
-  const req = "require";
-  return isNode() && typeof globalThis[req] === "function";
+  const req = 'require';
+  return isNode() && typeof globalThis[req] === 'function';
 }
 
 declare const Deno: any;

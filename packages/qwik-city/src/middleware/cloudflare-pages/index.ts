@@ -1,16 +1,16 @@
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
-} from "@builder.io/qwik-city/middleware/request-handler";
+} from '@builder.io/qwik-city/middleware/request-handler';
 import {
   mergeHeadersCookies,
   requestHandler,
   _TextEncoderStream_polyfill,
-} from "@builder.io/qwik-city/middleware/request-handler";
-import { getNotFound } from "@qwik-city-not-found-paths";
-import { isStaticPath } from "@qwik-city-static-paths";
-import { _deserializeData, _serializeData, _verifySerializable } from "@builder.io/qwik";
-import { setServerPlatform } from "@builder.io/qwik/server";
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
@@ -33,9 +33,9 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     setServerPlatform(opts.manifest);
   }
   async function onCloudflarePagesFetch(
-    request: PlatformCloudflarePages["request"],
-    env: PlatformCloudflarePages["env"] & { ASSETS: { fetch: (req: Request) => Response } },
-    ctx: PlatformCloudflarePages["ctx"],
+    request: PlatformCloudflarePages['request'],
+    env: PlatformCloudflarePages['env'] & { ASSETS: { fetch: (req: Request) => Response } },
+    ctx: PlatformCloudflarePages['ctx']
   ) {
     try {
       const url = new URL(request.url);
@@ -47,12 +47,12 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
 
       // https://developers.cloudflare.com/workers/runtime-apis/cache/
       const useCache =
-        url.hostname !== "127.0.0.1" &&
-        url.hostname !== "localhost" &&
-        url.port === "" &&
-        request.method === "GET";
+        url.hostname !== '127.0.0.1' &&
+        url.hostname !== 'localhost' &&
+        url.port === '' &&
+        request.method === 'GET';
       const cacheKey = new Request(url.href, request);
-      const cache = useCache ? await caches.open("custom:qwikcity") : null;
+      const cache = useCache ? await caches.open('custom:qwikcity') : null;
       if (cache) {
         const cachedResponse = await cache.match(cacheKey);
         if (cachedResponse) {
@@ -61,7 +61,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       }
 
       const serverRequestEv: ServerRequestEvent<Response> = {
-        mode: "server",
+        mode: 'server',
         locale: undefined,
         url,
         request,
@@ -81,8 +81,8 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         },
         getClientConn: () => {
           return {
-            ip: request.headers.get("CF-connecting-ip") || "",
-            country: request.headers.get("CF-IPCountry") || "",
+            ip: request.headers.get('CF-connecting-ip') || '',
+            country: request.headers.get('CF-IPCountry') || '',
           };
         },
         platform: {
@@ -102,7 +102,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         });
         const response = await handledResponse.response;
         if (response) {
-          if (response.ok && cache && response.headers.has("Cache-Control")) {
+          if (response.ok && cache && response.headers.has('Cache-Control')) {
             // Store the fetched response as cacheKey
             // Use waitUntil so you can return the response without blocking on
             // writing to cache
@@ -118,18 +118,18 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       // In the development server, we replace the getNotFound function
       // For static paths, we assign a static "Not Found" message.
       // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml = isStaticPath(request.method || "GET", url)
-        ? "Not Found"
+      const notFoundHtml = isStaticPath(request.method || 'GET', url)
+        ? 'Not Found'
         : getNotFound(url.pathname);
       return new Response(notFoundHtml, {
         status: 404,
-        headers: { "Content-Type": "text/html; charset=utf-8", "X-Not-Found": url.pathname },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
       });
     } catch (e: any) {
       console.error(e);
-      return new Response(String(e || "Error"), {
+      return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Error": "cloudflare-pages" },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'cloudflare-pages' },
       });
     }
   }

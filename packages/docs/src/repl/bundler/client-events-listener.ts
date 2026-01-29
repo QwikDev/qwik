@@ -1,14 +1,14 @@
-import type { QwikSymbolEvent } from "@builder.io/qwik";
-import type { ReplEvent } from "../types";
+import type { QwikSymbolEvent } from '@builder.io/qwik';
+import type { ReplEvent } from '../types';
 
 (() => {
-  const replId = location.pathname.split("/")[3];
+  const replId = location.pathname.split('/')[3];
   const origConsole: Record<string, any> = {};
 
-  const sendToServerWindow = (data: Omit<ReplEvent, "start">) => {
+  const sendToServerWindow = (data: Omit<ReplEvent, 'start'>) => {
     try {
       parent.postMessage({
-        type: "event",
+        type: 'event',
         replId,
         event: { ...data, start: performance.now() },
       });
@@ -17,59 +17,59 @@ import type { ReplEvent } from "../types";
     }
   };
 
-  const wrapConsole = (kind: "log" | "warn" | "error" | "debug") => {
+  const wrapConsole = (kind: 'log' | 'warn' | 'error' | 'debug') => {
     origConsole[kind] = console[kind];
     console[kind] = (...args: any[]) => {
       sendToServerWindow({
         kind: `console-${kind}` as any,
-        scope: "client",
+        scope: 'client',
         message: args.map((a) => String(a)),
       });
       origConsole[kind](...args);
     };
   };
-  wrapConsole("log");
-  wrapConsole("warn");
-  wrapConsole("error");
+  wrapConsole('log');
+  wrapConsole('warn');
+  wrapConsole('error');
   // wrapConsole('debug');
 
-  document.addEventListener("qsymbol", (ev) => {
+  document.addEventListener('qsymbol', (ev) => {
     const customEv: QwikSymbolEvent = ev as any;
     const symbolName = customEv.detail?.symbol;
     sendToServerWindow({
-      kind: "symbol",
-      scope: "client",
+      kind: 'symbol',
+      scope: 'client',
       message: [symbolName],
     });
   });
 
-  document.addEventListener("qresume", () => {
+  document.addEventListener('qresume', () => {
     sendToServerWindow({
-      kind: "resume",
-      scope: "client",
-      message: [""],
+      kind: 'resume',
+      scope: 'client',
+      message: [''],
     });
   });
 
   // Ensure all external links open in a new tab
   document.addEventListener(
-    "click",
+    'click',
     (ev) => {
       try {
-        if (ev.target && (ev.target as Element).tagName === "A") {
+        if (ev.target && (ev.target as Element).tagName === 'A') {
           const anchor = ev.target as HTMLAnchorElement;
           const href = anchor.href;
-          if (href && href !== "#") {
+          if (href && href !== '#') {
             const url = new URL(anchor.href, origin);
             if (url.origin !== origin) {
-              anchor.setAttribute("target", "_blank");
+              anchor.setAttribute('target', '_blank');
             }
           }
         }
       } catch (e) {
-        console.error("repl-request-handler", e);
+        console.error('repl-request-handler', e);
       }
     },
-    true,
+    true
   );
 })();

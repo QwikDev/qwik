@@ -5,21 +5,21 @@ import {
   useContextProvider,
   useTask$,
   type Signal,
-} from "@builder.io/qwik";
-import { MAX_QUERY_SIZE } from "./constants";
-import { SearchContext } from "./context";
-import type { DocSearchProps, DocSearchState } from "./doc-search";
-import { handleSearch } from "./handleSearch";
-import type { ScreenStateTranslations } from "./screen-state";
-import { ScreenState } from "./screen-state";
-import type { SearchBoxTranslations } from "./search-box";
-import { SearchBox } from "./search-box";
-import type { DocSearchHit } from "./types";
+} from '@builder.io/qwik';
+import { MAX_QUERY_SIZE } from './constants';
+import { SearchContext } from './context';
+import type { DocSearchProps, DocSearchState } from './doc-search';
+import { handleSearch } from './handleSearch';
+import type { ScreenStateTranslations } from './screen-state';
+import { ScreenState } from './screen-state';
+import type { SearchBoxTranslations } from './search-box';
+import { SearchBox } from './search-box';
+import type { DocSearchHit } from './types';
 
-import { identity } from "./utils";
-import { clearStalled, setStalled } from "./utils/stalledControl";
-import { AIButton } from "./result";
-import { isBrowser } from "@builder.io/qwik";
+import { identity } from './utils';
+import { clearStalled, setStalled } from './utils/stalledControl';
+import { AIButton } from './result';
+import { isBrowser } from '@builder.io/qwik';
 
 export type ModalTranslations = Partial<{
   searchBox: SearchBoxTranslations;
@@ -64,10 +64,10 @@ export const DocSearchModal = component$(
       const query = (event.target as HTMLInputElement).value.slice(0, MAX_QUERY_SIZE);
       state.query = query;
       state.activeItemId = null;
-      state.status = "loading";
+      state.status = 'loading';
       // set new stalledId
       setStalled(() => {
-        state.status = "stalled";
+        state.status = 'stalled';
       });
       handleSearch(query, {
         state: state,
@@ -80,7 +80,7 @@ export const DocSearchModal = component$(
         },
       })
         .then(({ collections }) => {
-          state.status = "idle";
+          state.status = 'idle';
           state.collections = collections.reverse().map((c) => ({
             ...c,
             source: {
@@ -94,7 +94,7 @@ export const DocSearchModal = component$(
         })
         .finally(() => {
           clearStalled();
-          state.status = "idle";
+          state.status = 'idle';
         });
     });
     useContextProvider(SearchContext, {
@@ -114,11 +114,11 @@ export const DocSearchModal = component$(
 
     useTask$(() => {
       if (isBrowser) {
-        document.body.classList.add("DocSearch--active");
+        document.body.classList.add('DocSearch--active');
 
         return () => {
-          document.body.classList.remove("DocSearch--active");
-          document.body.style.overflow = "";
+          document.body.classList.remove('DocSearch--active');
+          document.body.style.overflow = '';
         };
       }
     });
@@ -141,16 +141,16 @@ export const DocSearchModal = component$(
           if (modalRef.value) {
             const vh = window.innerHeight * 0.01;
             // @ts-ignore
-            modalRef.value.style.setProperty("--docsearch-vh", `${vh}px`);
+            modalRef.value.style.setProperty('--docsearch-vh', `${vh}px`);
           }
         };
 
         setFullViewportHeight();
 
-        window.addEventListener("resize", setFullViewportHeight);
+        window.addEventListener('resize', setFullViewportHeight);
 
         return () => {
-          window.removeEventListener("resize", setFullViewportHeight);
+          window.removeEventListener('resize', setFullViewportHeight);
         };
       }
     });
@@ -163,10 +163,10 @@ export const DocSearchModal = component$(
         aria-owns="docsearch-list"
         aria-labelledby="docsearch-list"
         class={[
-          "DocSearch",
-          "DocSearch-Container",
-          state.status === "stalled" && "DocSearch-Container--Stalled",
-          state.status === "error" && "DocSearch-Container--Errored",
+          'DocSearch',
+          'DocSearch-Container',
+          state.status === 'stalled' && 'DocSearch-Container--Stalled',
+          state.status === 'error' && 'DocSearch-Container--Errored',
         ]}
         role="button"
         tabIndex={0}
@@ -198,5 +198,5 @@ export const DocSearchModal = component$(
         </div>
       </div>
     );
-  },
+  }
 );

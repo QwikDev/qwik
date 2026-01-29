@@ -1,22 +1,22 @@
-import { type BuildConfig, ensureDir, target, copyFile, type PackageJSON } from "./util.ts";
-import { join } from "node:path";
-import { type BuildOptions, build } from "esbuild";
-import { writePackageJson } from "./package-json.ts";
+import { type BuildConfig, ensureDir, target, copyFile, type PackageJSON } from './util.ts';
+import { join } from 'node:path';
+import { type BuildOptions, build } from 'esbuild';
+import { writePackageJson } from './package-json.ts';
 
 export async function submoduleBuild(config: BuildConfig) {
-  const submodule = "build";
-  const buildSrcDtsDir = join(config.dtsDir, "packages", "qwik", "src", submodule);
+  const submodule = 'build';
+  const buildSrcDtsDir = join(config.dtsDir, 'packages', 'qwik', 'src', submodule);
   const buildDestDir = join(config.distQwikPkgDir, submodule);
 
   ensureDir(buildDestDir);
 
-  bundleIndex(config, "index");
-  bundleIndex(config, "index.dev");
-  bundleIndex(config, "index.prod");
+  bundleIndex(config, 'index');
+  bundleIndex(config, 'index.dev');
+  bundleIndex(config, 'index.prod');
 
-  console.log("🐨", submodule);
+  console.log('🐨', submodule);
 
-  await copyFile(join(buildSrcDtsDir, "index.d.ts"), join(buildDestDir, "index.d.ts"));
+  await copyFile(join(buildSrcDtsDir, 'index.d.ts'), join(buildDestDir, 'index.d.ts'));
 
   const loaderPkg: PackageJSON = {
     name: `@builder.io/qwik/build`,
@@ -24,19 +24,19 @@ export async function submoduleBuild(config: BuildConfig) {
     main: `index.mjs`,
     types: `index.d.ts`,
     private: true,
-    type: "module",
+    type: 'module',
   };
   await writePackageJson(buildDestDir, loaderPkg);
 }
 
 export async function bundleIndex(config: BuildConfig, entryName: string) {
-  const submodule = "build";
+  const submodule = 'build';
   const buildDestDir = join(config.distQwikPkgDir, submodule);
 
   ensureDir(buildDestDir);
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcQwikDir, "build", `${entryName}.ts`)],
+    entryPoints: [join(config.srcQwikDir, 'build', `${entryName}.ts`)],
     entryNames: entryName,
     outdir: buildDestDir,
     bundle: true,
@@ -46,13 +46,13 @@ export async function bundleIndex(config: BuildConfig, entryName: string) {
 
   const esm = build({
     ...opts,
-    format: "esm",
-    outExtension: { ".js": ".mjs" },
+    format: 'esm',
+    outExtension: { '.js': '.mjs' },
   });
 
   const cjs = build({
     ...opts,
-    format: "cjs",
+    format: 'cjs',
 
     banner: {
       js: `globalThis.qwikBuild = (function (module) {`,
@@ -60,7 +60,7 @@ export async function bundleIndex(config: BuildConfig, entryName: string) {
     footer: {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
     },
-    outExtension: { ".js": ".cjs" },
+    outExtension: { '.js': '.cjs' },
   });
 
   await Promise.all([esm, cjs]);

@@ -1,6 +1,6 @@
 /** @jsxImportSource react */
 
-import { qwikify$ } from "../react/qwikify";
+import { qwikify$ } from '../react/qwikify';
 
 export const App = qwikify$(() => {
   return (

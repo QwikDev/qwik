@@ -1,5 +1,5 @@
-import { component$, $ } from "@builder.io/qwik";
-import { ErrorBoundary } from "@builder.io/qwik-city";
+import { component$, $ } from '@builder.io/qwik';
+import { ErrorBoundary } from '@builder.io/qwik-city';
 
 export default component$(() => {
   return <Issue7227 />;
@@ -16,7 +16,7 @@ const Issue7227 = component$(() => {
         All good
         <button
           onClick$={$(() => {
-            throw new Error("Boom!");
+            throw new Error('Boom!');
           })}
         >
           Throw error

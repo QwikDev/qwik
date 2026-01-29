@@ -1,5 +1,5 @@
-import { ASTUtils } from "@typescript-eslint/utils";
-import { QwikEslintExamples } from "../examples";
+import { ASTUtils } from '@typescript-eslint/utils';
+import { QwikEslintExamples } from '../examples';
 const { getStaticValue } = ASTUtils;
 
 // A javascript: URL can contain leading C0 control or \u0020 SPACE,
@@ -19,11 +19,11 @@ const isJavaScriptProtocol =
  */
 export const jsxNoScriptUrl = {
   meta: {
-    type: "problem",
+    type: 'problem',
     docs: {
-      recommended: "error",
-      description: "Disallow javascript: URLs.",
-      url: "https://qwik.dev/docs/advanced/eslint/#jsx-no-script-url",
+      recommended: 'error',
+      description: 'Disallow javascript: URLs.',
+      url: 'https://qwik.dev/docs/advanced/eslint/#jsx-no-script-url',
     },
     schema: [],
     messages: {
@@ -34,15 +34,15 @@ export const jsxNoScriptUrl = {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     return {
       JSXAttribute(node) {
-        if (node.name.type === "JSXIdentifier" && node.value) {
+        if (node.name.type === 'JSXIdentifier' && node.value) {
           const link = getStaticValue(
-            node.value.type === "JSXExpressionContainer" ? node.value.expression : node.value,
-            sourceCode.getScope ? sourceCode.getScope(node) : context.getScope(),
+            node.value.type === 'JSXExpressionContainer' ? node.value.expression : node.value,
+            sourceCode.getScope ? sourceCode.getScope(node) : context.getScope()
           );
-          if (link && typeof link.value === "string" && isJavaScriptProtocol.test(link.value)) {
+          if (link && typeof link.value === 'string' && isJavaScriptProtocol.test(link.value)) {
             context.report({
               node: node.value,
-              messageId: "noJSURL",
+              messageId: 'noJSURL',
             });
           }
         }
@@ -66,7 +66,7 @@ export const jsxNoScriptUrlExamples: QwikEslintExamples = {
     ],
     bad: [
       {
-        codeHighlight: "/javascript:/#a",
+        codeHighlight: '/javascript:/#a',
         code: noJSURLBad,
       },
     ],

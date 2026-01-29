@@ -1,4 +1,4 @@
-import { component$, useTask$ } from "@builder.io/qwik";
+import { component$, useTask$ } from '@builder.io/qwik';
 export const HelloWorld = component$(() => {
   function getValue(): number | string | null | undefined | { prop: string } {
     return (window as any).aaa;

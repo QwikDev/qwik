@@ -1,10 +1,10 @@
-import { jsx, RenderOnce } from "../jsx/jsx-runtime";
-import type { StreamWriter } from "../ssr/render-ssr";
-import type { FunctionComponent, JSXNode } from "./types/jsx-node";
-import type { JSXChildren } from "./types/jsx-qwik-attributes";
+import { jsx, RenderOnce } from '../jsx/jsx-runtime';
+import type { StreamWriter } from '../ssr/render-ssr';
+import type { FunctionComponent, JSXNode } from './types/jsx-node';
+import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 /** @public */
-export const SkipRender: JSXNode = Symbol("skip render") as any;
+export const SkipRender: JSXNode = Symbol('skip render') as any;
 
 /** @public */
 export const SSRRaw: FunctionComponent<{ data: string }> = (() => null) as any;
@@ -16,9 +16,9 @@ export const SSRComment: FunctionComponent<{ data: string }> = (props) =>
 /** @public */
 export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => {
   return [
-    jsx(SSRComment, { data: "qkssr-pu" }),
+    jsx(SSRComment, { data: 'qkssr-pu' }),
     props.children,
-    jsx(SSRComment, { data: "qkssr-po" }),
+    jsx(SSRComment, { data: 'qkssr-po' }),
   ] as any;
 };
 

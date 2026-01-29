@@ -1,24 +1,24 @@
-import { assert, test } from "vitest";
-import { clientNavigate, newScrollState } from "./client-navigate";
+import { assert, test } from 'vitest';
+import { clientNavigate, newScrollState } from './client-navigate';
 
-test("initialize and push empty scroll history state on navigate", () => {
-  const [win, urlOf] = createTestWindow("http://qwik.dev/");
+test('initialize and push empty scroll history state on navigate', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/');
   assert.equal(win.history.state, null);
 
   const scrollState = newScrollState();
 
-  clientNavigate(win, "link", urlOf("/"), urlOf("/page-a"));
+  clientNavigate(win, 'link', urlOf('/'), urlOf('/page-a'));
   assert.deepEqual(win.history.state, { _qCityScroll: scrollState });
 
-  clientNavigate(win, "link", urlOf("/page-a"), urlOf("/page-b"));
-  assert.deepEqual(win.history.state, { _qCityScroll: scrollState });
-
-  win.history.popState(-1);
-  clientNavigate(win, "popstate", urlOf("/page-b"), urlOf("/page-a"));
+  clientNavigate(win, 'link', urlOf('/page-a'), urlOf('/page-b'));
   assert.deepEqual(win.history.state, { _qCityScroll: scrollState });
 
   win.history.popState(-1);
-  clientNavigate(win, "popstate", urlOf("/page-a"), urlOf("/"));
+  clientNavigate(win, 'popstate', urlOf('/page-b'), urlOf('/page-a'));
+  assert.deepEqual(win.history.state, { _qCityScroll: scrollState });
+
+  win.history.popState(-1);
+  clientNavigate(win, 'popstate', urlOf('/page-a'), urlOf('/'));
   // This will be null, upgrading state only happens in QwikCityProvider.
   // ClientNavigate only pushes new empty states for the scroll handler to use.
   assert.equal(win.history.state, null);
@@ -26,53 +26,53 @@ test("initialize and push empty scroll history state on navigate", () => {
   assert.deepEqual(win.events(), []);
 });
 
-test("pushState for different routes", () => {
-  const [win, urlOf] = createTestWindow("http://qwik.dev/page-a?search=123");
+test('pushState for different routes', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123');
   assert.equal(win.history.state, null);
 
   const scrollState = newScrollState();
 
-  clientNavigate(win, "link", urlOf("/page-a?search=123"), urlOf("/page-b?search=123"));
+  clientNavigate(win, 'link', urlOf('/page-a?search=123'), urlOf('/page-b?search=123'));
   assert.deepEqual(win.history.state, { _qCityScroll: scrollState });
 
-  clientNavigate(win, "link", urlOf("/page-b?search=123"), urlOf("/page-b?param=456"));
+  clientNavigate(win, 'link', urlOf('/page-b?search=123'), urlOf('/page-b?param=456'));
   assert.deepEqual(win.history.state, { _qCityScroll: scrollState });
 
   assert.deepEqual(win.events(), []);
 });
 
-test("when passing replaceState", () => {
-  const [win, urlOf] = createTestWindow("http://qwik.dev/page-a?search=123");
+test('when passing replaceState', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123');
   assert.equal(win.history.state, null);
 
   const scrollState = newScrollState();
 
   const length = win.history.length;
-  clientNavigate(win, "link", urlOf("/page-a?search=123"), urlOf("/page-a?search=456"), true);
+  clientNavigate(win, 'link', urlOf('/page-a?search=123'), urlOf('/page-a?search=456'), true);
   assert.deepEqual(win.history.state, { _qCityScroll: scrollState });
   assert.equal(win.history.length, length);
 });
 
-test("pushState for different hash", () => {
-  const [win, urlOf] = createTestWindow("http://qwik.dev/page-a?search=123#hash-1");
+test('pushState for different hash', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123#hash-1');
   assert.equal(win.history.state, null);
 
   const scrollState = newScrollState();
 
   clientNavigate(
     win,
-    "link",
-    urlOf("/page-a?search=123#hash-1"),
-    urlOf("/page-b?search=123#hash-2"),
+    'link',
+    urlOf('/page-a?search=123#hash-1'),
+    urlOf('/page-b?search=123#hash-2')
   );
   assert.deepEqual(win.history.state, { _qCityScroll: scrollState });
   assert.deepEqual(win.events(), []);
 
   clientNavigate(
     win,
-    "link",
-    urlOf("/page-b?search=123#hash-2"),
-    urlOf("/page-b?search=123#hash-3"),
+    'link',
+    urlOf('/page-b?search=123#hash-2'),
+    urlOf('/page-b?search=123#hash-3')
   );
   assert.deepEqual(win.history.state, { _qCityScroll: scrollState });
 });
@@ -85,10 +85,10 @@ function createTestWindow<T>(href: string): [testWindow: TestWindow, urlOf: (pat
   return [
     {
       HashChangeEvent: class {
-        type: "hashchange";
+        type: 'hashchange';
         newURL: string;
         oldURL: string;
-        constructor(type: "hashchange", { newURL, oldURL }: { newURL: string; oldURL: string }) {
+        constructor(type: 'hashchange', { newURL, oldURL }: { newURL: string; oldURL: string }) {
           this.type = type;
           this.newURL = newURL;
           this.oldURL = oldURL;
@@ -106,7 +106,7 @@ function createTestWindow<T>(href: string): [testWindow: TestWindow, urlOf: (pat
           const newIndex = index + delta;
           if (newIndex < 0 || newIndex > historyEntries.length - 1) {
             throw new Error(
-              `Invalid change to history position. current: ${index}, delta: ${delta}, length: ${historyEntries.length}`,
+              `Invalid change to history position. current: ${index}, delta: ${delta}, length: ${historyEntries.length}`
             );
           }
           index = newIndex;

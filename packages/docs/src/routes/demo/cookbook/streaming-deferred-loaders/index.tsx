@@ -1,10 +1,10 @@
-import { Resource, component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { Resource, component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useMyData = routeLoader$(() => {
   return async () => {
     await delay(4_000);
-    return "MyData " + Math.random();
+    return 'MyData ' + Math.random();
   };
 });
 

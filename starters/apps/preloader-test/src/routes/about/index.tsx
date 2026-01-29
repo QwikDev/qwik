@@ -1,5 +1,5 @@
-import { component$, useStyles$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import { component$, useStyles$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
 
 export default component$(() => {
   useStyles$(`
@@ -67,11 +67,11 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "About - Preloader Test",
+  title: 'About - Preloader Test',
   meta: [
     {
-      name: "description",
-      content: "Learn about the Preloader Test application and its features",
+      name: 'description',
+      content: 'Learn about the Preloader Test application and its features',
     },
   ],
 };

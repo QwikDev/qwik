@@ -1,4 +1,4 @@
-import type { spinner } from "@clack/prompts";
+import type { spinner } from '@clack/prompts';
 
 type Sinner = ReturnType<typeof spinner>;
 
@@ -12,7 +12,7 @@ export async function installDepsCli(fn: () => Promise<boolean>, { pkgManager, s
 
   const success = await fn();
 
-  spinner.stop(`${success ? "Installed" : "Failed to install"} ${pkgManager} dependencies 📋`);
+  spinner.stop(`${success ? 'Installed' : 'Failed to install'} ${pkgManager} dependencies 📋`);
 
   return success;
 }

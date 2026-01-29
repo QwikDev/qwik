@@ -5,9 +5,9 @@ import {
   useStyles$,
   useVisibleTask$,
   type Signal,
-} from "@builder.io/qwik";
-import * as L from "leaflet";
-import leafletStyles from "leaflet/dist/leaflet.css?inline";
+} from '@builder.io/qwik';
+import * as L from 'leaflet';
+import leafletStyles from 'leaflet/dist/leaflet.css?inline';
 
 export default component$(() => {
   useStyles$(
@@ -17,43 +17,43 @@ export default component$(() => {
       color: red;
       font-weight: 700;
     }
-  `,
+  `
   );
 
   const markers: Record<string, MarkersProps[]> = {
     FDA: [
       {
         name: "Terzo d'Aquileia",
-        label: "TRZ",
-        lat: "45.770946",
-        lon: "13.31338",
+        label: 'TRZ',
+        lat: '45.770946',
+        lon: '13.31338',
       },
       {
-        name: "Musi",
-        label: "MUS",
-        lat: "46.312663",
-        lon: "13.274682",
+        name: 'Musi',
+        label: 'MUS',
+        lat: '46.312663',
+        lon: '13.274682',
       },
     ],
     FVG: [
       {
-        name: "Borgo Grotta Gigante",
-        label: "BGG",
-        lat: "45.709385",
-        lon: "13.764681",
+        name: 'Borgo Grotta Gigante',
+        label: 'BGG',
+        lat: '45.709385',
+        lon: '13.764681',
       },
       {
-        name: "Muggia",
-        label: "MGG",
-        lat: "45.610495",
-        lon: "13.752682",
+        name: 'Muggia',
+        label: 'MGG',
+        lat: '45.610495',
+        lon: '13.752682',
       },
     ],
   };
 
-  const groupSig = useSignal("FDA");
+  const groupSig = useSignal('FDA');
   const currentLocation = useSignal<LocationsProps>({
-    name: "Udine",
+    name: 'Udine',
     point: [46.06600881056668, 13.237724558490601],
     zoom: 10,
     marker: true,
@@ -61,7 +61,7 @@ export default component$(() => {
 
   return (
     <>
-      Change markers:{"  "}
+      Change markers:{'  '}
       <select name="group" class="leaflet-ctrl" bind:value={groupSig}>
         <option value="FDA">FDA</option>
         <option value="FVG">FVG</option>
@@ -124,10 +124,10 @@ export const LeafletMap = component$<MapProps>(({ location, markers, group }) =>
     const bordersLayer = new L.LayerGroup();
 
     // map
-    const map = L.map("map", {
+    const map = L.map('map', {
       layers: [markersLayer, bordersLayer],
     }).setView(centerPosition, locationData.zoom || 14);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
@@ -144,7 +144,7 @@ export const LeafletMap = component$<MapProps>(({ location, markers, group }) =>
             <path fill="#FFF" d="M182.746 118.763L82.353 9.358l14.266 85.695l-25.55 24.773L175.08 223.065l-9.368-85.696z" />
           </svg>
         `,
-      className: "",
+      className: '',
       iconSize: [24, 40],
     });
 
@@ -156,7 +156,7 @@ export const LeafletMap = component$<MapProps>(({ location, markers, group }) =>
     markersList &&
       markersList.map((m) => {
         const myIcon = L.divIcon({
-          className: "marker-point",
+          className: 'marker-point',
           html: `<div class="marker-label" title="${m.name}" >${m.label}</div>`,
         });
         L.marker([+m.lat, +m.lon], { icon: myIcon }).addTo(markersLayer);
@@ -165,5 +165,5 @@ export const LeafletMap = component$<MapProps>(({ location, markers, group }) =>
     mapContainerSig.value = noSerialize(map);
   });
 
-  return <div id="map" style={{ height: "25rem" }}></div>;
+  return <div id="map" style={{ height: '25rem' }}></div>;
 });

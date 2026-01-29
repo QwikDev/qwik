@@ -1,8 +1,8 @@
-import { component$ } from "@builder.io/qwik";
-import { routeLoader$, validator$, type RequestEventAction } from "@builder.io/qwik-city";
+import { component$ } from '@builder.io/qwik';
+import { routeLoader$, validator$, type RequestEventAction } from '@builder.io/qwik-city';
 
 const dataValidator = validator$((ev) => {
-  if (ev.query.get("secret") === "123") {
+  if (ev.query.get('secret') === '123') {
     return {
       success: true,
     };
@@ -10,38 +10,38 @@ const dataValidator = validator$((ev) => {
   return {
     success: false,
     error: {
-      validationFailReason: "Secret not found",
+      validationFailReason: 'Secret not found',
     },
   };
 });
 
 const petLoaderQrl = () => {
   return {
-    pet: "guinea pig",
+    pet: 'guinea pig',
   };
 };
 
 const dynamicPetLoaderQrl = () => {
   if (Math.random() > 0.5) {
     return {
-      dog: "malamute",
+      dog: 'malamute',
     };
   }
 
   return {
-    rat: "guinea pig",
+    rat: 'guinea pig',
   };
 };
 
 const randomFailedLoaderQrl = ({ fail }: RequestEventAction) => {
   if (Math.random() > 0.5) {
     return fail(500, {
-      loaderFailedReason: "Reach Limit",
+      loaderFailedReason: 'Reach Limit',
     });
   }
 
   return {
-    pet: "guinea pig",
+    pet: 'guinea pig',
   };
 };
 
@@ -54,7 +54,7 @@ export const useDynamicPetWithValidationLoader = routeLoader$(dynamicPetLoaderQr
 export const useRandomFailedLoader = routeLoader$(randomFailedLoaderQrl);
 export const useRandomFailedWithValidatorLoader = routeLoader$(
   randomFailedLoaderQrl,
-  dataValidator,
+  dataValidator
 );
 
 export default component$(() => {

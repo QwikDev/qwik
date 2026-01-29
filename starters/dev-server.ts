@@ -4,18 +4,18 @@
 
 /* eslint-disable no-console */
 
-import type { NextFunction, Request, Response } from "express";
-import express from "express";
-import { build, type InlineConfig, type PluginOption } from "vite";
-import { join, relative, resolve } from "node:path";
-import { readdirSync, statSync, unlinkSync, rmSync, existsSync, readFileSync } from "node:fs";
-import type { QwikManifest } from "@builder.io/qwik/optimizer";
-import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
-import type { PackageJSON } from "../scripts/types.ts";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler.ts";
+import type { NextFunction, Request, Response } from 'express';
+import express from 'express';
+import { build, type InlineConfig, type PluginOption } from 'vite';
+import { join, relative, resolve } from 'node:path';
+import { readdirSync, statSync, unlinkSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { PackageJSON } from '../scripts/types.ts';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { getErrorHtml } from '../packages/qwik-city/src/middleware/request-handler/error-handler.ts';
 
-const isWindows = process.platform === "win32";
+const isWindows = process.platform === 'win32';
 
 // map the file path to a url for windows only
 const file = (filePath: string) => {
@@ -24,28 +24,28 @@ const file = (filePath: string) => {
 
 // Escape path for imports in windows
 const escapeChars = (filePath: string) => {
-  return isWindows ? filePath.replace(/\\/g, "\\\\") : filePath;
+  return isWindows ? filePath.replace(/\\/g, '\\\\') : filePath;
 };
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
 const address = `http://localhost:${port}/`;
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const startersDir = __dirname;
-const startersAppsDir = join(startersDir, "apps");
+const startersAppsDir = join(startersDir, 'apps');
 const appNames = readdirSync(startersAppsDir).filter(
-  (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== "base",
+  (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== 'base'
 );
 
-const rootDir = resolve(__dirname, "..");
-const packagesDir = resolve(rootDir, "packages");
-const qwikCityMjs = join(packagesDir, "qwik-city", "lib", "index.qwik.mjs");
+const rootDir = resolve(__dirname, '..');
+const packagesDir = resolve(rootDir, 'packages');
+const qwikCityMjs = join(packagesDir, 'qwik-city', 'lib', 'index.qwik.mjs');
 
 /** Used when qwik-city server is enabled */
-const qwikCityVirtualEntry = "@city-ssr-entry";
-const entrySsrFileName = "entry.ssr.tsx";
-const qwikCityNotFoundPaths = "@qwik-city-not-found-paths";
-const qwikCityStaticPaths = "@qwik-city-static-paths";
+const qwikCityVirtualEntry = '@city-ssr-entry';
+const entrySsrFileName = 'entry.ssr.tsx';
+const qwikCityNotFoundPaths = '@qwik-city-not-found-paths';
+const qwikCityStaticPaths = '@qwik-city-static-paths';
 
 Error.stackTraceLimit = 1000;
 
@@ -62,11 +62,11 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     }
     if (existsSync(url.pathname)) {
       const relPath = relative(startersAppsDir, url.pathname);
-      if (!relPath.startsWith(".")) {
+      if (!relPath.startsWith('.')) {
         url.pathname = relPath;
       }
     }
-    const paths = url.pathname.split("/");
+    const paths = url.pathname.split('/');
     const appName = paths[1];
     const appDir = join(startersAppsDir, appName);
     if (!existsSync(appDir)) {
@@ -76,8 +76,8 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     console.log(req.method, req.url, `[${appName} build/ssr]`);
 
-    const pkgPath = join(appDir, "package.json");
-    const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    const pkgPath = join(appDir, 'package.json');
+    const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     const enableCityServer = !!pkgJson.__qwik__?.qwikCity;
 
     let clientManifest = cache.get(appDir);
@@ -87,10 +87,10 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     }
 
     const resolved = await clientManifest;
-    if (url.pathname.endsWith(".js")) {
-      res.set("Content-Type", "text/javascript");
+    if (url.pathname.endsWith('.js')) {
+      res.set('Content-Type', 'text/javascript');
     } else {
-      res.set("Content-Type", "text/html");
+      res.set('Content-Type', 'text/html');
     }
     if (enableCityServer) {
       await cityApp(req, res, next, appDir);
@@ -101,19 +101,19 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
   } catch (e: any) {
     console.error(e);
     if (!res.headersSent) {
-      res.set("Content-Type", "text/plain; charset=utf-8");
+      res.set('Content-Type', 'text/plain; charset=utf-8');
       res.send(`❌ ${e.stack || e}`);
     }
   }
 }
 
 async function buildApp(appDir: string, appName: string, enableCityServer: boolean) {
-  const optimizer = await import("@builder.io/qwik/optimizer");
-  const appSrcDir = join(appDir, "src");
-  const appDistDir = join(appDir, "dist");
-  const appServerDir = join(appDir, "server");
+  const optimizer = await import('@builder.io/qwik/optimizer');
+  const appSrcDir = join(appDir, 'src');
+  const appDistDir = join(appDir, 'dist');
+  const appServerDir = join(appDir, 'server');
   const basePath = `/${appName}/`;
-  const isProd = appName.includes(".prod");
+  const isProd = appName.includes('.prod');
 
   // always clean the build directory
   removeDir(appDistDir);
@@ -126,20 +126,20 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
     // 1. export router
     // 2. set basePath
     plugins.push({
-      name: "devPlugin",
+      name: 'devPlugin',
       resolveId(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
           return qwikCityVirtualEntry;
         }
         if (id === qwikCityStaticPaths || id === qwikCityNotFoundPaths) {
-          return "./" + id;
+          return './' + id;
         }
       },
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
           return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
-import render from '${escapeChars(resolve(appSrcDir, "entry.ssr"))}';
+import render from '${escapeChars(resolve(appSrcDir, 'entry.ssr'))}';
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
@@ -155,34 +155,34 @@ export {
           return `export function isStaticPath(method, url){ return false; };`;
         }
         if (id.endsWith(qwikCityNotFoundPaths)) {
-          const notFoundHtml = getErrorHtml(404, "Resource Not Found");
+          const notFoundHtml = getErrorHtml(404, 'Resource Not Found');
           return `export function getNotFound(){ return ${JSON.stringify(notFoundHtml)}; };`;
         }
       },
     });
-    const qwikCityVite = await import("@builder.io/qwik-city/vite");
+    const qwikCityVite = await import('@builder.io/qwik-city/vite');
 
     plugins.push(
       qwikCityVite.qwikCity({
         rewriteRoutes: [
           {
             paths: {
-              projects: "projekte",
+              projects: 'projekte',
             },
           },
         ],
-      }) as PluginOption,
+      }) as PluginOption
     );
   }
 
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
-    mode: "development",
+    mode: 'development',
     configFile: false,
     base: basePath,
     ...extra,
     resolve: {
-      conditions: ["development"],
+      conditions: ['development'],
       mainFields: [],
     },
   });
@@ -193,10 +193,10 @@ export {
         minify: false,
       },
       define: {
-        "globalThis.qSerialize": true,
-        "globalThis.qDev": !isProd,
-        "globalThis.qInspector": false,
-        "globalThis.PORT": port,
+        'globalThis.qSerialize': true,
+        'globalThis.qDev': !isProd,
+        'globalThis.qInspector': false,
+        'globalThis.PORT': port,
       },
       plugins: [
         ...plugins,
@@ -209,17 +209,17 @@ export {
           disableVendorScan: true,
           vendorRoots: enableCityServer ? [qwikCityMjs] : [],
           entryStrategy: {
-            type: "segment",
+            type: 'segment',
           },
           client: {
             manifestOutput(manifest) {
               clientManifest = manifest;
             },
           },
-          experimental: ["preventNavigate", "enableRequestRewrite"],
+          experimental: ['preventNavigate', 'enableRequestRewrite'],
         }),
       ],
-    }),
+    })
   );
 
   await build(
@@ -231,15 +231,15 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ["preventNavigate", "enableRequestRewrite"],
+          experimental: ['preventNavigate', 'enableRequestRewrite'],
         }),
       ],
       define: {
-        "globalThis.qDev": !isProd,
-        "globalThis.qInspector": false,
-        "globalThis.PORT": port,
+        'globalThis.qDev': !isProd,
+        'globalThis.qInspector': false,
+        'globalThis.PORT': port,
       },
-    }),
+    })
   );
 
   return clientManifest!;
@@ -263,7 +263,7 @@ function removeDir(dir: string) {
 }
 
 async function cityApp(req: Request, res: Response, next: NextFunction, appDir: string) {
-  const ssrPath = join(appDir, "server", `${qwikCityVirtualEntry}.js`);
+  const ssrPath = join(appDir, 'server', `${qwikCityVirtualEntry}.js`);
 
   const mod = await import(file(ssrPath));
   const router: any = mod.router;
@@ -279,9 +279,9 @@ async function ssrApp(
   res: Response,
   appName: string,
   appDir: string,
-  manifest: QwikManifest,
+  manifest: QwikManifest
 ) {
-  const ssrPath = join(appDir, "server", "entry.ssr.js");
+  const ssrPath = join(appDir, 'server', 'entry.ssr.js');
   const mod = await import(file(ssrPath));
   const render: Render = mod.default ?? mod.render;
 
@@ -302,7 +302,7 @@ async function ssrApp(
 }
 
 function startersHomepage(_: Request, res: Response) {
-  res.set("Content-Type", "text/html; charset=utf-8");
+  res.set('Content-Type', 'text/html; charset=utf-8');
   res.send(`<!-- Some comment --><!DOCTYPE html>
   <html>
     <head>
@@ -320,7 +320,7 @@ function startersHomepage(_: Request, res: Response) {
     <body>
       <h1>⚡️ Starters Dev Server ⚡️</h1>
       <ul>
-        ${appNames.map((a) => `<li><a href="/${a}/">${a}</a></li>`).join("")}
+        ${appNames.map((a) => `<li><a href="/${a}/">${a}</a></li>`).join('')}
       </ul>
     </body>
   </html>
@@ -328,7 +328,7 @@ function startersHomepage(_: Request, res: Response) {
 }
 
 function favicon(_: Request, res: Response) {
-  const path = join(startersAppsDir, "base", "public", "favicon.svg");
+  const path = join(startersAppsDir, 'base', 'public', 'favicon.svg');
   res.sendFile(path);
 }
 
@@ -337,25 +337,25 @@ async function main() {
 
   const partytownPath = resolve(
     startersDir,
-    "..",
-    "node_modules",
-    "@builder.io",
-    "partytown",
-    "lib",
+    '..',
+    'node_modules',
+    '@builder.io',
+    'partytown',
+    'lib'
   );
   app.use(`/~partytown`, express.static(partytownPath));
 
   appNames.forEach((appName) => {
-    const buildPath = join(startersAppsDir, appName, "dist", appName);
+    const buildPath = join(startersAppsDir, appName, 'dist', appName);
     app.use(`/${appName}`, express.static(buildPath));
 
-    const publicPath = join(startersAppsDir, appName, "public");
+    const publicPath = join(startersAppsDir, appName, 'public');
     app.use(`/${appName}`, express.static(publicPath));
   });
 
-  app.get("/", startersHomepage);
-  app.get("/favicon*", favicon);
-  app.all("/*", handleApp);
+  app.get('/', startersHomepage);
+  app.get('/favicon*', favicon);
+  app.all('/*', handleApp);
 
   const server = app.listen(port, () => {
     console.log(`Starter Dir: ${startersDir}`);
@@ -368,20 +368,20 @@ async function main() {
     console.log(``);
   });
 
-  process.on("SIGTERM", () => server.close());
+  process.on('SIGTERM', () => server.close());
 }
 
 main();
 
 async function patchGlobalFetch() {
   if (
-    typeof global !== "undefined" &&
-    typeof globalThis.fetch !== "function" &&
-    typeof process !== "undefined" &&
+    typeof global !== 'undefined' &&
+    typeof globalThis.fetch !== 'function' &&
+    typeof process !== 'undefined' &&
     process.versions.node
   ) {
     if (!globalThis.fetch) {
-      const { fetch, Headers, Request, Response, FormData } = await import("undici");
+      const { fetch, Headers, Request, Response, FormData } = await import('undici');
       globalThis.fetch = fetch as any;
       globalThis.Headers = Headers as any;
       globalThis.Request = Request as any;

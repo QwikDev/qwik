@@ -1,9 +1,9 @@
-import { component$, useTask$, useStore } from "@builder.io/qwik";
+import { component$, useTask$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const store = useStore({
-    value: "",
-    debouncedValue: "",
+    value: '',
+    debouncedValue: '',
   });
   useTask$(({ track, cleanup }) => {
     // Use track to rerun this function when store's `value` property changes.

@@ -1,11 +1,11 @@
-import { component$, useSignal } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
-import { MUIButton, MUISlider, TableApp } from "~/integrations/react/mui";
+import { component$, useSignal } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
+import { MUIButton, MUISlider, TableApp } from '~/integrations/react/mui';
 
 export default component$(() => {
   const show = useSignal(false);
   const count = useSignal(0);
-  const variant = useSignal<"contained" | "outlined" | "text">("contained");
+  const variant = useSignal<'contained' | 'outlined' | 'text'>('contained');
 
   return (
     <>
@@ -28,7 +28,7 @@ export default component$(() => {
         }}
       />
 
-      <MUIButton variant={variant.value} host:onClick$={() => alert("click")}>
+      <MUIButton variant={variant.value} host:onClick$={() => alert('click')}>
         Slider is {count.value}
       </MUIButton>
 
@@ -39,5 +39,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Qwik React",
+  title: 'Qwik React',
 };

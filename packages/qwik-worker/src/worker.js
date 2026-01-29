@@ -1,4 +1,4 @@
-import { _deserializeData } from "@builder.io/qwik";
+import { _deserializeData } from '@builder.io/qwik';
 
 globalThis.document = {
   nodeType: 9,
@@ -26,7 +26,7 @@ globalThis.onmessage = async ({ data }) => {
       return containerEl;
     },
     getAttribute(name) {
-      return name === "q:base" ? qBase : undefined;
+      return name === 'q:base' ? qBase : undefined;
     },
   };
   try {

@@ -1,11 +1,11 @@
-import { test, expect, Locator } from "@playwright/test";
+import { test, expect, Locator } from '@playwright/test';
 
-test.describe("use-id", () => {
+test.describe('use-id', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/e2e/use-id");
-    page.on("pageerror", (err) => expect(err).toEqual(undefined));
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
+    await page.goto('/e2e/use-id');
+    page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
         expect(msg.text()).toEqual(undefined);
       }
     });
@@ -13,20 +13,20 @@ test.describe("use-id", () => {
     await page.waitForTimeout(500); // Wait for useVisibleTask$
   });
 
-  test("Creates unique ids and ensure no collisions", async ({ page }) => {
-    const totalIdsLocator = page.locator("#totalIds");
+  test('Creates unique ids and ensure no collisions', async ({ page }) => {
+    const totalIdsLocator = page.locator('#totalIds');
     await totalIdsLocator.isVisible();
     const totalIdsText = await totalIdsLocator.textContent();
-    const totalIds = parseInt(totalIdsText || "-1");
+    const totalIds = parseInt(totalIdsText || '-1');
     await expect(totalIds).toBeGreaterThan(0); // MAKE SURE WE HAVE SOME IDS
 
-    const validIdsLocator = page.locator("#validIds");
+    const validIdsLocator = page.locator('#validIds');
     const validIdsText = await validIdsLocator.textContent();
-    const validIds = parseInt(validIdsText || "-1");
+    const validIds = parseInt(validIdsText || '-1');
 
-    const collisionsLocator = page.locator("#collisions");
+    const collisionsLocator = page.locator('#collisions');
     const collisionsText = await collisionsLocator.textContent();
-    const collisions = parseInt(collisionsText || "-1");
+    const collisions = parseInt(collisionsText || '-1');
 
     //
     // COMPARE VALUES AS AN OBJECT TO SHOW THE ACTUAL RESULTS IN THE TEST REPORT

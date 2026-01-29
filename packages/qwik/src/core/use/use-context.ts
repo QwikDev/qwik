@@ -1,20 +1,20 @@
-import { fromCamelToKebabCase } from "../util/case";
-import { qError, QError_invalidContext, QError_notFoundContext } from "../error/error";
-import { qDev, qSerialize } from "../util/qdev";
-import { isObject } from "../util/types";
-import { useSequentialScope } from "./use-sequential-scope";
-import { assertTrue } from "../error/assert";
-import { verifySerializable } from "../state/common";
-import { getContext, type QContext } from "../state/context";
-import type { ContainerState } from "../container/container";
-import { invoke } from "./use-core";
+import { fromCamelToKebabCase } from '../util/case';
+import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
+import { qDev, qSerialize } from '../util/qdev';
+import { isObject } from '../util/types';
+import { useSequentialScope } from './use-sequential-scope';
+import { assertTrue } from '../error/assert';
+import { verifySerializable } from '../state/common';
+import { getContext, type QContext } from '../state/context';
+import type { ContainerState } from '../container/container';
+import { invoke } from './use-core';
 import {
   type QwikElement,
   type VirtualElement,
   getVirtualElement,
-} from "../render/dom/virtual-element";
-import { isComment } from "../util/element";
-import { Q_CTX, VIRTUAL_SYMBOL } from "../state/constants";
+} from '../render/dom/virtual-element';
+import { isComment } from '../util/element';
+import { Q_CTX, VIRTUAL_SYMBOL } from '../state/constants';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -131,7 +131,7 @@ export interface ContextId<STATE> {
  */
 // </docs>
 export const createContextId = <STATE = unknown>(name: string): ContextId<STATE> => {
-  assertTrue(/^[\w/.-]+$/.test(name), "Context name must only contain A-Z,a-z,0-9, _", name);
+  assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
@@ -266,7 +266,7 @@ export interface UseContext {
 // </docs>
 export const useContext: UseContext = <STATE>(
   context: ContextId<STATE>,
-  defaultValue?: STATE | ((current: STATE | undefined) => STATE),
+  defaultValue?: STATE | ((current: STATE | undefined) => STATE)
 ) => {
   const { val, set, iCtx, elCtx } = useSequentialScope<STATE>();
   if (val !== undefined) {
@@ -277,7 +277,7 @@ export const useContext: UseContext = <STATE>(
   }
 
   const value = resolveContext(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
-  if (typeof defaultValue === "function") {
+  if (typeof defaultValue === 'function') {
     return set(invoke(undefined, defaultValue as any, value));
   }
   if (value !== undefined) {
@@ -293,7 +293,7 @@ export const useContext: UseContext = <STATE>(
 const findParentCtx = (el: QwikElement | null, containerState: ContainerState) => {
   let node = el;
   let stack = 1;
-  while (node && !node.hasAttribute?.("q:container")) {
+  while (node && !node.hasAttribute?.('q:container')) {
     // Walk the siblings backwards, each comment might be the Virtual wrapper component
     while ((node = node.previousSibling as QwikElement | null)) {
       if (isComment(node)) {
@@ -312,9 +312,9 @@ const findParentCtx = (el: QwikElement | null, containerState: ContainerState) =
           node = virtual;
           continue;
         }
-        if (node.data === "/qv") {
+        if (node.data === '/qv') {
           stack++;
-        } else if (node.data.startsWith("qv ")) {
+        } else if (node.data.startsWith('qv ')) {
           stack--;
           if (stack === 0) {
             return getContext(getVirtualElement(node)!, containerState);
@@ -347,7 +347,7 @@ const getParentProvider = (ctx: QContext, containerState: ContainerState): QCont
 export const resolveContext = <STATE>(
   context: ContextId<STATE>,
   hostCtx: QContext,
-  containerState: ContainerState,
+  containerState: ContainerState
 ): STATE | undefined => {
   const contextID = context.id;
   if (!hostCtx) {
@@ -364,7 +364,7 @@ export const resolveContext = <STATE>(
 };
 
 export const validateContext = (context: ContextId<any>) => {
-  if (!isObject(context) || typeof context.id !== "string" || context.id.length === 0) {
+  if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {
     throw qError(QError_invalidContext, context);
   }
 };

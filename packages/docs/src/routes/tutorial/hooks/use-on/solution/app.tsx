@@ -1,4 +1,4 @@
-import { component$, useOnDocument, $, useStore, useOn, useOnWindow } from "@builder.io/qwik";
+import { component$, useOnDocument, $, useStore, useOn, useOnWindow } from '@builder.io/qwik';
 
 export default component$(() => {
   const store = useStore(
@@ -7,28 +7,28 @@ export default component$(() => {
       window: { x: 0, y: 0 },
       document: { x: 0, y: 0 },
     },
-    { deep: true },
+    { deep: true }
   );
   useOn(
-    "mousemove",
+    'mousemove',
     $((event) => {
       store.element.x = event.x;
       store.element.y = event.y;
-    }),
+    })
   );
   useOnDocument(
-    "mousemove",
+    'mousemove',
     $((event) => {
       store.document.x = event.x;
       store.document.y = event.y;
-    }),
+    })
   );
   useOnWindow(
-    "mousemove",
+    'mousemove',
     $((event) => {
       store.window.x = event.x;
       store.window.y = event.y;
-    }),
+    })
   );
 
   return (

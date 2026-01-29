@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import { ActionStandalone } from "../../../../components/action/action";
+import { component$ } from '@builder.io/qwik';
+import { ActionStandalone } from '../../../../components/action/action';
 
 export default component$(() => {
   return (

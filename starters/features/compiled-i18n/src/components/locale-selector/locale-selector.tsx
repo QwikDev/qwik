@@ -1,5 +1,5 @@
-import { component$, getLocale } from "@builder.io/qwik";
-import { _, locales } from "compiled-i18n";
+import { component$, getLocale } from '@builder.io/qwik';
+import { _, locales } from 'compiled-i18n';
 
 export const LocaleSelector = component$(() => {
   const currentLocale = getLocale();
@@ -15,10 +15,10 @@ export const LocaleSelector = component$(() => {
             href={`?locale=${locale}`}
             aria-disabled={isCurrent}
             class={
-              "btn btn-ghost btn-sm" +
+              'btn btn-ghost btn-sm' +
               (isCurrent
-                ? " bg-neutralContent text-neutral pointer-events-none"
-                : " bg-base-100 text-base-content")
+                ? ' bg-neutralContent text-neutral pointer-events-none'
+                : ' bg-base-100 text-base-content')
             }
           >
             {locale}

@@ -1,18 +1,18 @@
-import { type ReadonlySignal, component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import Histogram, { latencyColors } from "~/components/histogram";
-import { SlowIcon } from "~/components/icons/slow";
-import { SymbolTile } from "~/components/symbol-tile";
-import { type ApplicationRow, getDB } from "~/db";
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import Histogram, { latencyColors } from '~/components/histogram';
+import { SlowIcon } from '~/components/icons/slow';
+import { SymbolTile } from '~/components/symbol-tile';
+import { type ApplicationRow, getDB } from '~/db';
 import {
   getSlowEdges,
   getSymbolDetails,
   getAppInfo,
   type SlowEdge,
   type SymbolDetailForApp,
-} from "~/db/query";
-import { dbGetManifestHashes } from "~/db/sql-manifest";
-import { BUCKETS, vectorAvg, vectorSum } from "~/stats/vector";
+} from '~/db/query';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
+import { BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
 
 interface SlowSymbol {
   app: ApplicationRow;
@@ -21,8 +21,8 @@ interface SlowSymbol {
 }
 
 export const useData = routeLoader$<SlowSymbol>(async ({ params, query }) => {
-  const manifest = query.get("manifest");
-  const manifests = manifest ? manifest.split(",") : [];
+  const manifest = query.get('manifest');
+  const manifests = manifest ? manifest.split(',') : [];
   const db = getDB();
   const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
   const [app, edges, details] = await Promise.all([

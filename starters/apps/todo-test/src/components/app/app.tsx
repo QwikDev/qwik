@@ -1,9 +1,9 @@
-import { component$, useStyles$, useStore, useContextProvider } from "@builder.io/qwik";
-import { Footer } from "../footer/footer";
-import { Header } from "../header/header";
-import { Body } from "../body/body";
-import { TODOS, type Todos } from "../../state/state";
-import styles from "./index.css?inline";
+import { component$, useStyles$, useStore, useContextProvider } from '@builder.io/qwik';
+import { Footer } from '../footer/footer';
+import { Header } from '../header/header';
+import { Body } from '../body/body';
+import { TODOS, type Todos } from '../../state/state';
+import styles from './index.css?inline';
 
 /**
  * Overall application component.
@@ -17,15 +17,15 @@ export const App = component$(() => {
 
   const todos = useStore<Todos>(
     {
-      filter: "all",
+      filter: 'all',
       items: [
-        { completed: false, title: "Read Qwik docs", id: "0" },
-        { completed: false, title: "Build HelloWorld", id: "1" },
-        { completed: false, title: "Profit", id: "2" },
+        { completed: false, title: 'Read Qwik docs', id: '0' },
+        { completed: false, title: 'Build HelloWorld', id: '1' },
+        { completed: false, title: 'Profit', id: '2' },
       ],
       nextItemId: 3,
     },
-    { deep: true },
+    { deep: true }
   );
   useContextProvider(TODOS, todos);
 

@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import { SearchIcon } from "./icons/SearchIcon";
+import { component$ } from '@builder.io/qwik';
+import { SearchIcon } from './icons/SearchIcon';
 
 export function isAppleDevice() {
   return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform);
@@ -20,7 +20,7 @@ export const DocSearchButton = component$((props: DocSearchButtonProps) => {
   // const ACTION_KEY_DEFAULT = 'Ctrl' as const;
   // const ACTION_KEY_APPLE = '⌘' as const;
   // const { translations = {} } = props;
-  const { buttonText = "Search", buttonAriaLabel = "Search" } = props.translations ?? {};
+  const { buttonText = 'Search', buttonAriaLabel = 'Search' } = props.translations ?? {};
   return (
     <button
       ref={props.ref}

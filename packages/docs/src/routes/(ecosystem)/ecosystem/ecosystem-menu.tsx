@@ -1,4 +1,4 @@
-import { MenuItems } from "./menu-items";
+import { MenuItems } from './menu-items';
 
 export const EcosystemMenu = () => {
   return (

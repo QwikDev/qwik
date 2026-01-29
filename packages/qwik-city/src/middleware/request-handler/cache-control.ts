@@ -1,33 +1,33 @@
-import type { CacheControl } from "./types";
+import type { CacheControl } from './types';
 
 export function createCacheControl(cacheControl: CacheControl) {
   const controls: string[] = [];
-  if (cacheControl === "day") {
+  if (cacheControl === 'day') {
     cacheControl = 60 * 60 * 24;
-  } else if (cacheControl === "week") {
+  } else if (cacheControl === 'week') {
     cacheControl = 60 * 60 * 24 * 7;
-  } else if (cacheControl === "month") {
+  } else if (cacheControl === 'month') {
     cacheControl = 60 * 60 * 24 * 30;
-  } else if (cacheControl === "year") {
+  } else if (cacheControl === 'year') {
     cacheControl = 60 * 60 * 24 * 365;
-  } else if (cacheControl === "private") {
+  } else if (cacheControl === 'private') {
     cacheControl = {
       private: true,
       noCache: true,
     };
-  } else if (cacheControl === "immutable") {
+  } else if (cacheControl === 'immutable') {
     cacheControl = {
       public: true,
       immutable: true,
       maxAge: 60 * 60 * 24 * 365,
     };
-  } else if (cacheControl === "no-cache") {
+  } else if (cacheControl === 'no-cache') {
     cacheControl = {
       noCache: true,
     };
   }
 
-  if (typeof cacheControl === "number") {
+  if (typeof cacheControl === 'number') {
     cacheControl = {
       maxAge: cacheControl,
       sMaxAge: cacheControl,
@@ -35,7 +35,7 @@ export function createCacheControl(cacheControl: CacheControl) {
   }
 
   if (cacheControl.immutable) {
-    controls.push("immutable");
+    controls.push('immutable');
   }
   if (cacheControl.maxAge) {
     controls.push(`max-age=${cacheControl.maxAge}`);
@@ -44,16 +44,16 @@ export function createCacheControl(cacheControl: CacheControl) {
     controls.push(`s-maxage=${cacheControl.sMaxAge}`);
   }
   if (cacheControl.noStore) {
-    controls.push("no-store");
+    controls.push('no-store');
   }
   if (cacheControl.noCache) {
-    controls.push("no-cache");
+    controls.push('no-cache');
   }
   if (cacheControl.private) {
-    controls.push("private");
+    controls.push('private');
   }
   if (cacheControl.public) {
-    controls.push("public");
+    controls.push('public');
   }
   if (cacheControl.staleWhileRevalidate) {
     controls.push(`stale-while-revalidate=${cacheControl.staleWhileRevalidate}`);
@@ -61,5 +61,5 @@ export function createCacheControl(cacheControl: CacheControl) {
   if (cacheControl.staleIfError) {
     controls.push(`stale-if-error=${cacheControl.staleIfError}`);
   }
-  return controls.join(", ");
+  return controls.join(', ');
 }

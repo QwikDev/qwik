@@ -6,7 +6,7 @@ import {
   type Signal,
   useContext,
   Slot,
-} from "@builder.io/qwik";
+} from '@builder.io/qwik';
 
 export const SlotCleanup = component$(() => {
   const rerender = useSignal(0);
@@ -18,7 +18,7 @@ export const SlotCleanup = component$(() => {
   );
 });
 
-const CleanupCounterContext = createContextId<Signal<number>>("CleanupCounterContext");
+const CleanupCounterContext = createContextId<Signal<number>>('CleanupCounterContext');
 
 export const SlotCleanupChildren = component$(() => {
   const signal = useSignal(0);

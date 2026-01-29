@@ -1,7 +1,7 @@
-import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
-import { server$ } from "@builder.io/qwik-city";
-import { ServerError } from "@builder.io/qwik-city/middleware/request-handler";
-import { delay } from "../../actions/login";
+import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+import { ServerError } from '@builder.io/qwik-city/middleware/request-handler';
+import { delay } from '../../actions/login';
 
 type ErrorReason = {
   reason: string;
@@ -10,8 +10,8 @@ type ErrorReason = {
 
 const serverFunctionA = server$(async function a(): Promise<string> {
   throw new ServerError<ErrorReason>(401, {
-    reason: "my error",
-    middleware: "server-error-uncaught",
+    reason: 'my error',
+    middleware: 'server-error-uncaught',
   });
 });
 
@@ -20,9 +20,9 @@ const serverFunctionB = server$(async function b(): Promise<string> {
 });
 
 export const MultipleServerFunctionsInvokedInTask = component$(() => {
-  const errorReason = useSignal("");
-  const errorMiddleware = useSignal("");
-  const methodB = useSignal("");
+  const errorReason = useSignal('');
+  const errorMiddleware = useSignal('');
+  const methodB = useSignal('');
 
   useVisibleTask$(async () => {
     try {
@@ -58,7 +58,7 @@ export default component$(() => {
 });
 
 export function isErrorReason(err: any): err is ErrorReason {
-  if (typeof err.reason === "string" && typeof err.middleware === "string") {
+  if (typeof err.reason === 'string' && typeof err.middleware === 'string') {
     return true;
   }
 

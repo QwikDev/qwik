@@ -1,18 +1,18 @@
-import { readdir, readFile, stat, writeFile } from "node:fs";
-import { get } from "node:https";
-import { join } from "node:path";
+import { readdir, readFile, stat, writeFile } from 'node:fs';
+import { get } from 'node:https';
+import { join } from 'node:path';
 
 export async function scanFiles(
   dir: string,
-  callback: (file: string) => Promise<void>,
+  callback: (file: string) => Promise<void>
 ): Promise<void> {
   const promises: Promise<void>[] = [];
   readdir(dir, (err, files) => {
     if (err) return;
     files.forEach((file) => {
       const path = join(dir, file);
-      if (file === "node_modules") return;
-      if (file.startsWith(".")) return;
+      if (file === 'node_modules') return;
+      if (file.startsWith('.')) return;
       stat(path, (err, status) => {
         if (err) return;
         if (status.isDirectory()) {
@@ -29,27 +29,27 @@ export async function scanFiles(
 const hackMdCache = new Map<string, Promise<string[]>>();
 
 export async function readLines(file: string): Promise<string[]> {
-  file = file.replace("https:/", "https://").replace("https:///", "https://");
+  file = file.replace('https:/', 'https://').replace('https:///', 'https://');
   let promise = hackMdCache.get(file);
   if (promise) return promise;
 
-  const index = file.indexOf("https://hackmd.io/");
+  const index = file.indexOf('https://hackmd.io/');
   if (index === -1) {
     promise = new Promise((res, rej) =>
-      readFile(file, (err, data) => (err ? rej(err) : res(String(data).split("\n")))),
+      readFile(file, (err, data) => (err ? rej(err) : res(String(data).split('\n'))))
     );
   } else {
-    const url = file.substring(index) + "/download";
-    console.log("FETCHING:", url);
+    const url = file.substring(index) + '/download';
+    console.log('FETCHING:', url);
     promise = new Promise<string[]>((resolve, rej) => {
       get(url, (res) => {
-        res.setEncoding("utf8");
-        let body = "";
-        res.on("data", (data) => {
+        res.setEncoding('utf8');
+        let body = '';
+        res.on('data', (data) => {
           body += String(data);
         });
-        res.on("end", () => {
-          resolve(body.split("\n"));
+        res.on('end', () => {
+          resolve(body.split('\n'));
         });
       });
     });
@@ -60,6 +60,6 @@ export async function readLines(file: string): Promise<string[]> {
 
 export async function writeFileLines(file: string, lines: string[]) {
   return new Promise((res, rej) =>
-    writeFile(file, lines.join("\n"), (err) => (err ? rej(err) : res(null))),
+    writeFile(file, lines.join('\n'), (err) => (err ? rej(err) : res(null)))
   );
 }

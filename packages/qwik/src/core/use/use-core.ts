@@ -1,12 +1,12 @@
-import { _getContainerState } from "../container/container";
-import type { QwikDocument } from "../document";
-import { assertDefined } from "../error/assert";
-import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from "../error/error";
-import type { QRLInternal } from "../qrl/qrl-class";
-import type { QRL } from "../qrl/qrl.public";
-import type { QwikElement } from "../render/dom/virtual-element";
-import type { RenderContext } from "../render/types";
-import { getContext, HOST_FLAG_DYNAMIC } from "../state/context";
+import { _getContainerState } from '../container/container';
+import type { QwikDocument } from '../document';
+import { assertDefined } from '../error/assert';
+import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
+import type { QRLInternal } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import type { QwikElement } from '../render/dom/virtual-element';
+import type { RenderContext } from '../render/types';
+import { getContext, HOST_FLAG_DYNAMIC } from '../state/context';
 import {
   ComputedEvent,
   QContainerSelector,
@@ -14,14 +14,14 @@ import {
   RenderEvent,
   ResourceEvent,
   TaskEvent,
-} from "../util/markers";
-import { isPromise } from "../util/promises";
-import { seal } from "../util/qdev";
-import { isArray } from "../util/types";
-import { setLocale } from "./use-locale";
-import type { Subscriber } from "../state/common";
-import { isSignal, type Signal, type SignalInternal } from "../state/signal";
-import { unwrapStore } from "../index";
+} from '../util/markers';
+import { isPromise } from '../util/promises';
+import { seal } from '../util/qdev';
+import { isArray } from '../util/types';
+import { setLocale } from './use-locale';
+import type { Subscriber } from '../state/common';
+import { isSignal, type Signal, type SignalInternal } from '../state/signal';
+import { unwrapStore } from '../index';
 
 declare const document: QwikDocument;
 
@@ -92,7 +92,7 @@ let _context: InvokeContext | undefined;
 /** @public */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
-    const context = typeof document !== "undefined" && document && document.__q_context__;
+    const context = typeof document !== 'undefined' && document && document.__q_context__;
     if (!context) {
       return undefined;
     }
@@ -131,7 +131,7 @@ export const useContainerState = () => {
 
 export function useBindInvokeContext<FN extends (...args: any) => any>(
   this: unknown,
-  fn: FN | undefined,
+  fn: FN | undefined
 ): typeof fn {
   if (fn == null) {
     return fn;
@@ -157,7 +157,7 @@ export function invokeApply<FN extends (...args: any) => any>(
   this: unknown,
   context: InvokeContext | undefined,
   fn: FN,
-  args: Parameters<FN>,
+  args: Parameters<FN>
 ): ReturnType<FN> {
   const previousContext = _context;
   let returnValue: ReturnType<FN>;
@@ -195,11 +195,11 @@ export const newInvokeContext = (
   hostElement?: QwikElement,
   element?: Element,
   event?: PossibleEvents,
-  url?: URL,
+  url?: URL
 ): InvokeContext => {
   // ServerRequestEvent has .locale, but it's not always defined.
   const $locale$ =
-    locale || (typeof event === "object" && event && "locale" in event ? event.locale : undefined);
+    locale || (typeof event === 'object' && event && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
     $i$: 0,
@@ -236,7 +236,7 @@ export const untrack = <T, A extends any[]>(
   expr: ((...args: A) => T) | Signal<T> | T,
   ...args: A
 ): T => {
-  if (typeof expr === "function") {
+  if (typeof expr === 'function') {
     return invoke(undefined, expr as (...args: A) => T, ...args);
   }
   if (isSignal(expr)) {
@@ -249,7 +249,7 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
   undefined,
   undefined,
   undefined,
-  RenderEvent,
+  RenderEvent
 );
 
 /**

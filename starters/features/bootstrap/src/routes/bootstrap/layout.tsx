@@ -1,10 +1,10 @@
-import { component$, Slot, useStyles$ } from "@builder.io/qwik";
-import type { RequestHandler } from "@builder.io/qwik-city";
-import { Navbar } from "~/components/bootstrap";
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
+import { Navbar } from '~/components/bootstrap';
 
 // Add bootstrap styles
 
-import bootstrapStyles from "../../../node_modules/bootstrap/dist/css/bootstrap.min.css?inline";
+import bootstrapStyles from '../../../node_modules/bootstrap/dist/css/bootstrap.min.css?inline';
 
 export default component$(() => {
   useStyles$(bootstrapStyles);

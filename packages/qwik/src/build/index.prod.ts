@@ -1,4 +1,4 @@
-export { isBrowser, isServer } from "./index";
+export { isBrowser, isServer } from './index';
 
 /**
  * True when build is in dev mode.

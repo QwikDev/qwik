@@ -4,10 +4,10 @@ import {
   useContext,
   useContextProvider,
   useStore,
-} from "@builder.io/qwik";
+} from '@builder.io/qwik';
 
 // Declare a context ID
-export const CTX = createContextId<{ count: number }>("stuff");
+export const CTX = createContextId<{ count: number }>('stuff');
 
 export default component$(() => {
   const userData = useStore({ count: 0 });

@@ -1,6 +1,6 @@
-import { component$, Resource, useResource$, useStore } from "@builder.io/qwik";
+import { component$, Resource, useResource$, useStore } from '@builder.io/qwik';
 
-import { server$ } from "@builder.io/qwik-city";
+import { server$ } from '@builder.io/qwik-city';
 
 export interface Hello {
   print: string;
@@ -15,12 +15,12 @@ const helloBar = server$(
   (hello: Hello): Promise<string> =>
     new Promise((res) => {
       setTimeout(() => {
-        res(hello.print + " Bar");
+        res(hello.print + ' Bar');
       }, 200);
-    }),
+    })
 );
 export default component$(() => {
-  const helloStore = useStore<Hello>({ print: "hello" });
+  const helloStore = useStore<Hello>({ print: 'hello' });
   const resource = useResource$(({ track }) => {
     track(() => helloStore.print);
 
@@ -38,7 +38,7 @@ export default component$(() => {
 
       <button
         onClick$={() => {
-          helloStore.print = "Foo";
+          helloStore.print = 'Foo';
         }}
       >
         Reset

@@ -1,8 +1,8 @@
-type ContentType = "content" | "lvl0" | "lvl1" | "lvl2" | "lvl3" | "lvl4" | "lvl5" | "lvl6";
+type ContentType = 'content' | 'lvl0' | 'lvl1' | 'lvl2' | 'lvl3' | 'lvl4' | 'lvl5' | 'lvl6';
 
 interface DocSearchHitAttributeHighlightResult {
   value: string;
-  matchLevel: "full" | "none" | "partial";
+  matchLevel: 'full' | 'none' | 'partial';
   matchedWords: string[];
   fullyHighlighted?: boolean;
 }
@@ -25,7 +25,7 @@ interface DocSearchHitHighlightResult {
 
 interface DocSearchHitAttributeSnippetResult {
   value: string;
-  matchLevel: "full" | "none" | "partial";
+  matchLevel: 'full' | 'none' | 'partial';
 }
 
 interface DocSearchHitSnippetResult {

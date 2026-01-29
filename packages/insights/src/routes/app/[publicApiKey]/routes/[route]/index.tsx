@@ -1,12 +1,12 @@
-import { component$, type ReadonlySignal } from "@builder.io/qwik";
-import { routeLoader$, useLocation } from "@builder.io/qwik-city";
-import Histogram from "~/components/histogram";
-import { RoutesIcon } from "~/components/icons/routes";
-import { SymbolTile } from "~/components/symbol-tile";
-import { getDB } from "~/db";
-import { dbGetManifestHashes } from "~/db/sql-manifest";
-import { getRouteTimeline, type RouteSymbolRow } from "~/db/sql-routes";
-import { TIMELINE_BUCKETS, vectorAvg, vectorSum } from "~/stats/vector";
+import { component$, type ReadonlySignal } from '@builder.io/qwik';
+import { routeLoader$, useLocation } from '@builder.io/qwik-city';
+import Histogram from '~/components/histogram';
+import { RoutesIcon } from '~/components/icons/routes';
+import { SymbolTile } from '~/components/symbol-tile';
+import { getDB } from '~/db';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
+import { getRouteTimeline, type RouteSymbolRow } from '~/db/sql-routes';
+import { TIMELINE_BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
 
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();

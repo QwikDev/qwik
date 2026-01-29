@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
-import type { StaticGenerateOptions, System } from "../types";
-import fs from "node:fs";
-import { dirname, join } from "node:path";
-import { patchGlobalThis } from "../../middleware/node/node-fetch";
-import { createNodeMainProcess } from "./node-main";
-import { createNodeWorkerProcess } from "./node-worker";
-import { normalizePath } from "../../utils/fs";
+import type { StaticGenerateOptions, System } from '../types';
+import fs from 'node:fs';
+import { dirname, join } from 'node:path';
+import { patchGlobalThis } from '../../middleware/node/node-fetch';
+import { createNodeMainProcess } from './node-main';
+import { createNodeWorkerProcess } from './node-worker';
+import { normalizePath } from '../../utils/fs';
 
 /** @public */
 export async function createSystem(opts: StaticGenerateOptions) {
@@ -13,7 +13,7 @@ export async function createSystem(opts: StaticGenerateOptions) {
 
   const createWriteStream = (filePath: string) => {
     return fs.createWriteStream(filePath, {
-      flags: "w",
+      flags: 'w',
     });
   };
 
@@ -30,7 +30,7 @@ export async function createSystem(opts: StaticGenerateOptions) {
 
   const createLogger = async () => {
     return {
-      debug: opts.log === "debug" ? console.debug.bind(console) : () => {},
+      debug: opts.log === 'debug' ? console.debug.bind(console) : () => {},
       error: console.error.bind(console),
       info: console.info.bind(console),
     };
@@ -38,21 +38,21 @@ export async function createSystem(opts: StaticGenerateOptions) {
 
   const outDir = normalizePath(opts.outDir);
 
-  const basePathname = opts.basePathname || "/";
+  const basePathname = opts.basePathname || '/';
   const basenameLen = basePathname.length;
 
   const getRouteFilePath = (pathname: string, isHtml: boolean) => {
     pathname = pathname.slice(basenameLen);
     if (isHtml) {
-      if (!pathname.endsWith(".html")) {
-        if (pathname.endsWith("/")) {
-          pathname += "index.html";
+      if (!pathname.endsWith('.html')) {
+        if (pathname.endsWith('/')) {
+          pathname += 'index.html';
         } else {
-          pathname += "/index.html";
+          pathname += '/index.html';
         }
       }
     } else {
-      if (pathname.endsWith("/")) {
+      if (pathname.endsWith('/')) {
         pathname = pathname.slice(0, -1);
       }
     }
@@ -61,10 +61,10 @@ export async function createSystem(opts: StaticGenerateOptions) {
 
   const getDataFilePath = (pathname: string) => {
     pathname = pathname.slice(basenameLen);
-    if (pathname.endsWith("/")) {
-      pathname += "q-data.json";
+    if (pathname.endsWith('/')) {
+      pathname += 'q-data.json';
     } else {
-      pathname += "/q-data.json";
+      pathname += '/q-data.json';
     }
     return join(outDir, pathname);
   };

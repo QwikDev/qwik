@@ -1,4 +1,4 @@
-import { $, component$, useOnWindow, useSignal } from "@builder.io/qwik";
+import { $, component$, useOnWindow, useSignal } from '@builder.io/qwik';
 
 // Custom hook to manage the dropdown state. Listens to click events on the window.
 // If the clicked element is not the dropdown toggle button, it closes the dropdown.
@@ -16,7 +16,7 @@ function useCloseDropdown() {
     }
   });
   // Attach the window click event listener
-  useOnWindow("click", closeDropdown);
+  useOnWindow('click', closeDropdown);
 
   return {
     isOpen,
@@ -43,7 +43,7 @@ export default component$(() => {
           <div>
             <i>The dropdown is open!</i>
           </div>
-          <div style={{ margin: "1.5rem", marginLeft: "1.5rem" }}>
+          <div style={{ margin: '1.5rem', marginLeft: '1.5rem' }}>
             <b>CLICK OUTSIDE</b>
           </div>
         </>

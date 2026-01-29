@@ -2,9 +2,9 @@
 // Todo Application State Interfaces
 ////////////////////////////////////////////////////////////////////////
 
-import { createContextId } from "@builder.io/qwik";
+import { createContextId } from '@builder.io/qwik';
 
-export const TODOS = createContextId<Todos>("TodoApp");
+export const TODOS = createContextId<Todos>('TodoApp');
 
 export interface TodoItem {
   id: string;
@@ -18,9 +18,9 @@ export interface Todos {
   nextItemId: number;
 }
 
-export type FilterStates = "all" | "active" | "completed";
+export type FilterStates = 'all' | 'active' | 'completed';
 
-export const FilterStates: FilterStates[] = ["all", "active", "completed"];
+export const FilterStates: FilterStates[] = ['all', 'active', 'completed'];
 
 export const FILTERS = {
   all: () => true,

@@ -1,6 +1,6 @@
-import { type ContentMenu, Link, useContent, useLocation } from "@builder.io/qwik-city";
-import { component$, useStyles$ } from "@builder.io/qwik";
-import styles from "./content-nav.css?inline";
+import { type ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
+import { component$, useStyles$ } from '@builder.io/qwik';
+import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(() => {
   useStyles$(styles);

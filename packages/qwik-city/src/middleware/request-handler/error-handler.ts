@@ -1,9 +1,9 @@
 /** @public */
 export function getErrorHtml(status: number, e: any) {
-  let message = "Server Error";
+  let message = 'Server Error';
 
   if (e != null) {
-    if (typeof e.message === "string") {
+    if (typeof e.message === 'string') {
       message = e.message;
     } else {
       message = String(e);
@@ -14,15 +14,15 @@ export function getErrorHtml(status: number, e: any) {
 }
 
 export function minimalHtmlResponse(status: number, message?: string) {
-  if (typeof status !== "number") {
+  if (typeof status !== 'number') {
     status = 500;
   }
-  if (typeof message === "string") {
+  if (typeof message === 'string') {
     message = escapeHtml(message);
   } else {
-    message = "";
+    message = '';
   }
-  const width = typeof message === "string" ? "600px" : "300px";
+  const width = typeof message === 'string' ? '600px' : '300px';
   const color = status >= 500 ? COLOR_500 : COLOR_400;
   return `
 <head>
@@ -45,17 +45,17 @@ const ESCAPE_HTML = /[&<>]/g;
 const escapeHtml = (s: string) => {
   return s.replace(ESCAPE_HTML, (c) => {
     switch (c) {
-      case "&":
-        return "&amp;";
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
       default:
-        return "";
+        return '';
     }
   });
 };
 
-const COLOR_400 = "#006ce9";
-const COLOR_500 = "#713fc2";
+const COLOR_400 = '#006ce9';
+const COLOR_500 = '#713fc2';

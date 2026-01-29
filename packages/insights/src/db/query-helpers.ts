@@ -1,6 +1,6 @@
-import { sql } from "drizzle-orm";
-import { type EdgeRowSansId, edgeTable, type RouteRowSansId, routesTable } from "./schema";
-import { BUCKETS } from "~/stats/vector";
+import { sql } from 'drizzle-orm';
+import { type EdgeRowSansId, edgeTable, type RouteRowSansId, routesTable } from './schema';
+import { BUCKETS } from '~/stats/vector';
 
 export type VectorKeys<PREFIX extends string> =
   | `${PREFIX}00`
@@ -56,15 +56,15 @@ export type VectorKeys<PREFIX extends string> =
 export type VectorFields<PREFIX extends string> = Record<VectorKeys<PREFIX>, number>;
 
 export function latencyBucketField(bucket: number): VectorKeys<`latencyCount`> {
-  return ("latencyCount" + pad(bucket)) as any;
+  return ('latencyCount' + pad(bucket)) as any;
 }
 
 export function delayBucketField(bucket: number): VectorKeys<`delayCount`> {
-  return ("delayCount" + pad(bucket)) as any;
+  return ('delayCount' + pad(bucket)) as any;
 }
 
-function pad(value: number): VectorKeys<""> {
-  return value < 10 ? "0" + value : (String(value) as any);
+function pad(value: number): VectorKeys<''> {
+  return value < 10 ? '0' + value : (String(value) as any);
 }
 
 export function createEdgeRow({
@@ -929,67 +929,67 @@ export const sumTimelineCount = sql<number>`
     SUM(${routesTable.timeline49})`;
 
 export function listToVector(list: string): number[] {
-  return list.split(";").map((s) => parseInt(s, 10));
+  return list.split(';').map((s) => parseInt(s, 10));
 }
 
 export function toVector<PREFIX extends string>(prefix: PREFIX, dat: VectorFields<PREFIX>) {
   const obj = dat as Record<string, number>;
   return [
-    obj[prefix + "00"],
-    obj[prefix + "01"],
-    obj[prefix + "02"],
-    obj[prefix + "03"],
-    obj[prefix + "04"],
-    obj[prefix + "05"],
-    obj[prefix + "06"],
-    obj[prefix + "07"],
-    obj[prefix + "08"],
-    obj[prefix + "09"],
-    obj[prefix + "10"],
-    obj[prefix + "11"],
-    obj[prefix + "12"],
-    obj[prefix + "13"],
-    obj[prefix + "14"],
-    obj[prefix + "15"],
-    obj[prefix + "16"],
-    obj[prefix + "17"],
-    obj[prefix + "18"],
-    obj[prefix + "19"],
-    obj[prefix + "20"],
-    obj[prefix + "21"],
-    obj[prefix + "22"],
-    obj[prefix + "23"],
-    obj[prefix + "24"],
-    obj[prefix + "25"],
-    obj[prefix + "26"],
-    obj[prefix + "27"],
-    obj[prefix + "28"],
-    obj[prefix + "29"],
-    obj[prefix + "30"],
-    obj[prefix + "31"],
-    obj[prefix + "32"],
-    obj[prefix + "33"],
-    obj[prefix + "34"],
-    obj[prefix + "35"],
-    obj[prefix + "36"],
-    obj[prefix + "37"],
-    obj[prefix + "38"],
-    obj[prefix + "39"],
-    obj[prefix + "40"],
-    obj[prefix + "41"],
-    obj[prefix + "42"],
-    obj[prefix + "43"],
-    obj[prefix + "44"],
-    obj[prefix + "45"],
-    obj[prefix + "46"],
-    obj[prefix + "47"],
-    obj[prefix + "48"],
-    obj[prefix + "49"],
+    obj[prefix + '00'],
+    obj[prefix + '01'],
+    obj[prefix + '02'],
+    obj[prefix + '03'],
+    obj[prefix + '04'],
+    obj[prefix + '05'],
+    obj[prefix + '06'],
+    obj[prefix + '07'],
+    obj[prefix + '08'],
+    obj[prefix + '09'],
+    obj[prefix + '10'],
+    obj[prefix + '11'],
+    obj[prefix + '12'],
+    obj[prefix + '13'],
+    obj[prefix + '14'],
+    obj[prefix + '15'],
+    obj[prefix + '16'],
+    obj[prefix + '17'],
+    obj[prefix + '18'],
+    obj[prefix + '19'],
+    obj[prefix + '20'],
+    obj[prefix + '21'],
+    obj[prefix + '22'],
+    obj[prefix + '23'],
+    obj[prefix + '24'],
+    obj[prefix + '25'],
+    obj[prefix + '26'],
+    obj[prefix + '27'],
+    obj[prefix + '28'],
+    obj[prefix + '29'],
+    obj[prefix + '30'],
+    obj[prefix + '31'],
+    obj[prefix + '32'],
+    obj[prefix + '33'],
+    obj[prefix + '34'],
+    obj[prefix + '35'],
+    obj[prefix + '36'],
+    obj[prefix + '37'],
+    obj[prefix + '38'],
+    obj[prefix + '39'],
+    obj[prefix + '40'],
+    obj[prefix + '41'],
+    obj[prefix + '42'],
+    obj[prefix + '43'],
+    obj[prefix + '44'],
+    obj[prefix + '45'],
+    obj[prefix + '46'],
+    obj[prefix + '47'],
+    obj[prefix + '48'],
+    obj[prefix + '49'],
   ];
 }
 
 export function timelineBucketField(bucket: number): VectorKeys<`timeline`> {
-  return ("timeline" + pad(bucket)) as any;
+  return ('timeline' + pad(bucket)) as any;
 }
 
 export function createRouteRow({

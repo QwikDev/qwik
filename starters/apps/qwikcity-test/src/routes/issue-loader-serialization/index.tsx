@@ -1,45 +1,45 @@
-import { component$, useVisibleTask$, useSignal, useTask$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import { isBrowser } from "@builder.io/qwik";
+import { component$, useVisibleTask$, useSignal, useTask$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import { isBrowser } from '@builder.io/qwik';
 
 export const useCmp1 = routeLoader$(
   () => {
     return {
-      message: "loader-cmp1",
+      message: 'loader-cmp1',
     };
   },
   {
-    id: "cmp-1",
-  },
+    id: 'cmp-1',
+  }
 );
 
 export const useCmp2 = routeLoader$(() => {
   return {
-    message: "loader-cmp2",
+    message: 'loader-cmp2',
   };
 });
 
 export const useCmp3 = routeLoader$(() => {
   return {
-    message: "loader-cmp3",
+    message: 'loader-cmp3',
   };
 });
 
 export const useCmp4 = routeLoader$(() => {
   return {
-    message: "loader-cmp4",
+    message: 'loader-cmp4',
   };
 });
 
 export const useCmp5 = routeLoader$(() => {
   return {
-    message: "loader-cmp5",
+    message: 'loader-cmp5',
   };
 });
 
 export const useCmp6 = routeLoader$(() => {
   return {
-    message: "loader-cmp5",
+    message: 'loader-cmp5',
   };
 });
 

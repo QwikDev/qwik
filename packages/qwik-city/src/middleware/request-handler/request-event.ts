@@ -1,23 +1,23 @@
-import type { ValueOrPromise } from "@builder.io/qwik";
-import { QDATA_KEY } from "../../runtime/src/constants";
+import type { ValueOrPromise } from '@builder.io/qwik';
+import { QDATA_KEY } from '../../runtime/src/constants';
 import type {
   ActionInternal,
   FailReturn,
   JSONValue,
   LoadedRoute,
   LoaderInternal,
-} from "../../runtime/src/types";
-import { isPromise } from "./../../runtime/src/utils";
-import { createCacheControl } from "./cache-control";
-import { Cookie } from "./cookie";
+} from '../../runtime/src/types';
+import { isPromise } from './../../runtime/src/utils';
+import { createCacheControl } from './cache-control';
+import { Cookie } from './cookie';
 // Import separately to avoid duplicate imports in the vite dev server
 import {
   AbortMessage,
   RedirectMessage,
   ServerError,
   RewriteMessage,
-} from "@builder.io/qwik-city/middleware/request-handler";
-import { encoder } from "./resolve-request-handlers";
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { encoder } from './resolve-request-handlers';
 import type {
   CacheControl,
   CacheControlTarget,
@@ -29,19 +29,19 @@ import type {
   ResolveValue,
   ServerRequestEvent,
   ServerRequestMode,
-} from "./types";
-import { IsQData, getRouteMatchPathname } from "./user-response";
+} from './types';
+import { IsQData, getRouteMatchPathname } from './user-response';
 
-const RequestEvLoaders = Symbol("RequestEvLoaders");
-const RequestEvMode = Symbol("RequestEvMode");
-const RequestEvRoute = Symbol("RequestEvRoute");
-export const RequestEvQwikSerializer = Symbol("RequestEvQwikSerializer");
-export const RequestEvTrailingSlash = Symbol("RequestEvTrailingSlash");
-export const RequestRouteName = "@routeName";
-export const RequestEvSharedActionId = "@actionId";
-export const RequestEvSharedActionFormData = "@actionFormData";
-export const RequestEvSharedNonce = "@nonce";
-export const RequestEvIsRewrite = "@rewrite";
+const RequestEvLoaders = Symbol('RequestEvLoaders');
+const RequestEvMode = Symbol('RequestEvMode');
+const RequestEvRoute = Symbol('RequestEvRoute');
+export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
+export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
+export const RequestRouteName = '@routeName';
+export const RequestEvSharedActionId = '@actionId';
+export const RequestEvSharedActionFormData = '@actionFormData';
+export const RequestEvSharedNonce = '@nonce';
+export const RequestEvIsRewrite = '@rewrite';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
@@ -50,12 +50,12 @@ export function createRequestEvent(
   trailingSlash: boolean,
   basePathname: string,
   qwikSerializer: QwikSerializer,
-  resolved: (response: any) => void,
+  resolved: (response: any) => void
 ) {
   const { request, platform, env } = serverRequestEv;
 
   const sharedMap = new Map();
-  const cookie = new Cookie(request.headers.get("cookie"));
+  const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
   const { pathname, isInternal } = getRouteMatchPathname(url.pathname, trailingSlash);
@@ -91,7 +91,7 @@ export function createRequestEvent(
   const resetRoute = (
     _loadedRoute: LoadedRoute | null,
     _requestHandlers: RequestHandler<any>[],
-    _url = url,
+    _url = url
   ) => {
     loadedRoute = _loadedRoute;
     requestHandlers = _requestHandlers;
@@ -102,28 +102,28 @@ export function createRequestEvent(
 
   const check = () => {
     if (writableStream !== null) {
-      throw new Error("Response already sent");
+      throw new Error('Response already sent');
     }
   };
 
   const send = (statusOrResponse: number | Response, body: string | Uint8Array) => {
     check();
-    if (typeof statusOrResponse === "number") {
+    if (typeof statusOrResponse === 'number') {
       status = statusOrResponse;
       const writableStream = requestEv.getWritableStream();
       const writer = writableStream.getWriter();
-      writer.write(typeof body === "string" ? encoder.encode(body) : body);
+      writer.write(typeof body === 'string' ? encoder.encode(body) : body);
       writer.close();
     } else {
       status = statusOrResponse.status;
       statusOrResponse.headers.forEach((value, key) => {
-        if (key.toLowerCase() === "set-cookie") {
+        if (key.toLowerCase() === 'set-cookie') {
           return;
         }
         headers.append(key, value);
       });
       statusOrResponse.headers.getSetCookie().forEach((ck) => {
-        const index = ck.indexOf("=");
+        const index = ck.indexOf('=');
         if (index === -1) {
           return;
         }
@@ -191,7 +191,7 @@ export function createRequestEvent(
 
     exit,
 
-    cacheControl: (cacheControl: CacheControl, target: CacheControlTarget = "Cache-Control") => {
+    cacheControl: (cacheControl: CacheControl, target: CacheControlTarget = 'Cache-Control') => {
       check();
       headers.set(target, createCacheControl(cacheControl));
     },
@@ -199,10 +199,10 @@ export function createRequestEvent(
     resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
       // create user request event, which is a narrowed down request context
       const id = loaderOrAction.__id;
-      if (loaderOrAction.__brand === "server_loader") {
+      if (loaderOrAction.__brand === 'server_loader') {
         if (!(id in loaders)) {
           throw new Error(
-            "You can not get the returned data of a loader that has not been executed for this request.",
+            'You can not get the returned data of a loader that has not been executed for this request.'
           );
         }
       }
@@ -211,7 +211,7 @@ export function createRequestEvent(
     }) as ResolveValue,
 
     status: (statusCode?: number) => {
-      if (typeof statusCode === "number") {
+      if (typeof statusCode === 'number') {
         check();
         status = statusCode;
         return statusCode;
@@ -220,15 +220,15 @@ export function createRequestEvent(
     },
 
     locale: (_locale?: string) => {
-      if (typeof _locale === "string") {
+      if (typeof _locale === 'string') {
         locale = _locale;
       }
-      return locale || "";
+      return locale || '';
     },
 
     error: <T = any>(statusCode: number, message: T) => {
       status = statusCode;
-      headers.delete("Cache-Control");
+      headers.delete('Cache-Control');
       return new ServerError(statusCode, message);
     },
 
@@ -237,15 +237,15 @@ export function createRequestEvent(
       status = statusCode;
       if (url) {
         if (/([^:])\/{2,}/.test(url)) {
-          const fixedURL = url.replace(/([^:])\/{2,}/g, "$1/");
+          const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
           url = fixedURL;
         }
-        headers.set("Location", url);
+        headers.set('Location', url);
       }
-      headers.delete("Cache-Control");
+      headers.delete('Cache-Control');
       if (statusCode > 301) {
-        headers.set("Cache-Control", "no-store");
+        headers.set('Cache-Control', 'no-store');
       }
 
       routeModuleIndex = ABORT_INDEX;
@@ -254,21 +254,21 @@ export function createRequestEvent(
 
     rewrite: (pathname: string) => {
       check();
-      if (pathname.startsWith("http")) {
-        throw new Error("Rewrite does not support absolute urls");
+      if (pathname.startsWith('http')) {
+        throw new Error('Rewrite does not support absolute urls');
       }
       sharedMap.set(RequestEvIsRewrite, true);
-      return new RewriteMessage(pathname.replace(/\/+/g, "/"));
+      return new RewriteMessage(pathname.replace(/\/+/g, '/'));
     },
 
     defer: (returnData) => {
-      return typeof returnData === "function" ? returnData : () => returnData;
+      return typeof returnData === 'function' ? returnData : () => returnData;
     },
 
     fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;
-      headers.delete("Cache-Control");
+      headers.delete('Cache-Control');
       return {
         failed: true,
         ...data,
@@ -276,12 +276,12 @@ export function createRequestEvent(
     },
 
     text: (statusCode: number, text: string) => {
-      headers.set("Content-Type", "text/plain; charset=utf-8");
+      headers.set('Content-Type', 'text/plain; charset=utf-8');
       return send(statusCode, text);
     },
 
     html: (statusCode: number, html: string) => {
-      headers.set("Content-Type", "text/html; charset=utf-8");
+      headers.set('Content-Type', 'text/html; charset=utf-8');
       return send(statusCode, html);
     },
 
@@ -293,7 +293,7 @@ export function createRequestEvent(
     },
 
     json: (statusCode: number, data: any) => {
-      headers.set("Content-Type", "application/json; charset=utf-8");
+      headers.set('Content-Type', 'application/json; charset=utf-8');
       return send(statusCode, JSON.stringify(data));
     },
 
@@ -305,10 +305,10 @@ export function createRequestEvent(
 
     getWritableStream: () => {
       if (writableStream === null) {
-        if (serverRequestEv.mode === "dev") {
-          const serverTiming = sharedMap.get("@serverTiming") as [string, number][] | undefined;
+        if (serverRequestEv.mode === 'dev') {
+          const serverTiming = sharedMap.get('@serverTiming') as [string, number][] | undefined;
           if (serverTiming) {
-            headers.set("Server-Timing", serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(","));
+            headers.set('Server-Timing', serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(','));
           }
         }
         writableStream = serverRequestEv.getWritableStream(
@@ -316,7 +316,7 @@ export function createRequestEvent(
           headers,
           cookie,
           resolved,
-          requestEv,
+          requestEv
         );
       }
       return writableStream;
@@ -349,7 +349,7 @@ export interface RequestEventInternal extends Readonly<RequestEvent>, Readonly<R
   resetRoute(
     loadedRoute: LoadedRoute | null,
     requestHandlers: RequestHandler<any>[],
-    url: URL,
+    url: URL
   ): void;
 }
 
@@ -374,18 +374,18 @@ const ABORT_INDEX = Number.MAX_SAFE_INTEGER;
 const parseRequest = async (
   { request, method, query }: RequestEventInternal,
   sharedMap: Map<string, any>,
-  qwikSerializer: QwikSerializer,
+  qwikSerializer: QwikSerializer
 ): Promise<JSONValue | undefined> => {
-  const type = request.headers.get("content-type")?.split(/[;,]/, 1)[0].trim() ?? "";
-  if (type === "application/x-www-form-urlencoded" || type === "multipart/form-data") {
+  const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
+  if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
     const formData = await request.formData();
     sharedMap.set(RequestEvSharedActionFormData, formData);
     return formToObj(formData);
-  } else if (type === "application/json") {
+  } else if (type === 'application/json') {
     const data = await request.json();
     return data;
-  } else if (type === "application/qwik-json") {
-    if (method === "GET" && query.has(QDATA_KEY)) {
+  } else if (type === 'application/qwik-json') {
+    if (method === 'GET' && query.has(QDATA_KEY)) {
       const data = query.get(QDATA_KEY);
       if (data) {
         try {
@@ -407,9 +407,9 @@ const formToObj = (formData: FormData): Record<string, any> => {
    * multiselects Create values object by form data entries
    */
   const values = [...formData.entries()].reduce<any>((values, [name, value]) => {
-    name.split(".").reduce((object: any, key: string, index: number, keys: any) => {
+    name.split('.').reduce((object: any, key: string, index: number, keys: any) => {
       // Backet notation for arrays, notibly for multi selects
-      if (key.endsWith("[]")) {
+      if (key.endsWith('[]')) {
         const arrayKey = key.slice(0, -2);
         object[arrayKey] = object[arrayKey] || [];
         return (object[arrayKey] = [...object[arrayKey], value]);

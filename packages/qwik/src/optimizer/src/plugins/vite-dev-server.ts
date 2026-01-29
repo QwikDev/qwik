@@ -1,34 +1,34 @@
 /* eslint-disable no-console */
-import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
-import type { IncomingMessage, ServerResponse } from "http";
-import { magenta } from "kleur/colors";
+import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { IncomingMessage, ServerResponse } from 'http';
+import { magenta } from 'kleur/colors';
 
-import type { Connect, ViteDevServer } from "vite";
-import { SYNC_QRL } from "../../../core/qrl/qrl-class";
+import type { Connect, ViteDevServer } from 'vite';
+import { SYNC_QRL } from '../../../core/qrl/qrl-class';
 import type {
   OptimizerSystem,
   Path,
   ServerQwikManifest,
   SymbolMapper,
   SymbolMapperFn,
-} from "../types";
-import clickToComponent from "./click-to-component.html?raw";
-import errorHost from "./error-host.html?raw";
-import imageDevTools from "./image-size-runtime.html?raw";
-import perfWarning from "./perf-warning.html?raw";
-import { type NormalizedQwikPluginOptions } from "./plugin";
-import type { QwikViteDevResponse } from "./vite";
-import { VITE_ERROR_OVERLAY_STYLES } from "./vite-error";
-import { formatError, parseId } from "./vite-utils";
+} from '../types';
+import clickToComponent from './click-to-component.html?raw';
+import errorHost from './error-host.html?raw';
+import imageDevTools from './image-size-runtime.html?raw';
+import perfWarning from './perf-warning.html?raw';
+import { type NormalizedQwikPluginOptions } from './plugin';
+import type { QwikViteDevResponse } from './vite';
+import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
+import { formatError, parseId } from './vite-utils';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER.toLowerCase()]) ||
-    ((req.socket as any).encrypted || (req.connection as any).encrypted ? "https" : "http");
+    ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
   const host =
-    (HOST_HEADER && headers[HOST_HEADER.toLowerCase()]) || headers[":authority"] || headers["host"];
+    (HOST_HEADER && headers[HOST_HEADER.toLowerCase()]) || headers[':authority'] || headers['host'];
 
   return `${protocol}://${host}`;
 }
@@ -37,21 +37,21 @@ function createSymbolMapper(base: string): SymbolMapperFn {
   return (
     symbolName: string,
     _mapper: SymbolMapper | undefined,
-    parent: string | undefined,
+    parent: string | undefined
   ): [string, string] => {
     if (symbolName === SYNC_QRL) {
-      return [symbolName, ""];
+      return [symbolName, ''];
     }
     if (!parent) {
       console.error(
-        "qwik vite-dev-server symbolMapper: unknown qrl requested without parent:",
-        symbolName,
+        'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
+        symbolName
       );
       return [symbolName, `${base}${symbolName}.js`];
     }
     // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
     // It is always absolute but when on Windows that's without a /
-    const qrlFile = `${base}${parent.startsWith("/") ? parent.slice(1) : parent}_${symbolName}.js`;
+    const qrlFile = `${base}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
     return [symbolName, qrlFile];
   };
 }
@@ -70,7 +70,7 @@ export let symbolMapper: ReturnType<typeof createSymbolMapper> = (symbolName, ma
   if (lazySymbolMapper) {
     return lazySymbolMapper(symbolName, mapper, parent);
   }
-  throw new Error("symbolMapper not initialized");
+  throw new Error('symbolMapper not initialized');
 };
 
 export async function configureDevServer(
@@ -81,7 +81,7 @@ export async function configureDevServer(
   path: Path,
   isClientDevOnly: boolean,
   clientDevInput: string | undefined,
-  devSsrServer: boolean,
+  devSsrServer: boolean
 ) {
   symbolMapper = lazySymbolMapper = createSymbolMapper(base);
   if (!devSsrServer) {
@@ -89,7 +89,7 @@ export async function configureDevServer(
     return;
   }
   const hasQwikCity = server.config.plugins?.some(
-    (plugin) => plugin.name === "vite-plugin-qwik-city",
+    (plugin) => plugin.name === 'vite-plugin-qwik-city'
   );
 
   // to maintain css importers after HMR
@@ -107,9 +107,9 @@ export async function configureDevServer(
         if (!_qwikEnvData && hasQwikCity) {
           console.error(`not SSR rendering ${url} because Qwik City Env data did not populate`);
           res.statusCode ||= 404;
-          res.setHeader("Content-Type", "text/plain");
+          res.setHeader('Content-Type', 'text/plain');
           res.writeHead(res.statusCode);
-          res.end("Not a SSR URL according to Qwik City");
+          res.end('Not a SSR URL according to Qwik City');
           return;
         }
         const serverData: Record<string, any> = {
@@ -117,18 +117,18 @@ export async function configureDevServer(
           url: url.href,
         };
 
-        const status = typeof res.statusCode === "number" ? res.statusCode : 200;
+        const status = typeof res.statusCode === 'number' ? res.statusCode : 200;
         if (isClientDevOnly) {
           const relPath = path.relative(opts.rootDir, clientDevInput!);
-          const entryUrl = "/" + relPath.replace(/\\/g, "/");
+          const entryUrl = '/' + relPath.replace(/\\/g, '/');
 
           let html = getViteDevIndexHtml(entryUrl, serverData);
           html = await server.transformIndexHtml(url.pathname, html);
 
-          res.setHeader("Content-Type", "text/html; charset=utf-8");
-          res.setHeader("Cache-Control", "no-cache, no-store, max-age=0");
-          res.setHeader("Access-Control-Allow-Origin", "*");
-          res.setHeader("X-Powered-By", "Qwik Vite Dev Server");
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
           res.writeHead(status);
 
           res.end(html);
@@ -140,15 +140,15 @@ export async function configureDevServer(
 
         const render: Render = ssrModule.default ?? ssrModule.render;
 
-        if (typeof render === "function") {
+        if (typeof render === 'function') {
           const manifest: ServerQwikManifest = {
-            manifestHash: "",
+            manifestHash: '',
             mapping: {},
             injections: [],
           };
 
           const added = new Set();
-          const CSS_EXTENSIONS = [".css", ".scss", ".sass", ".less", ".styl", ".stylus"];
+          const CSS_EXTENSIONS = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
           const JS_EXTENSIONS = /\.[mc]?[tj]sx?$/;
 
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
@@ -164,7 +164,7 @@ export async function configureDevServer(
 
               const { pathId, query } = parseId(v.url);
 
-              if (query === "" && CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))) {
+              if (query === '' && CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))) {
                 const isEntryCSS = v.importers.size === 0;
                 const hasCSSImporter = Array.from(v.importers).some((importer) => {
                   const importerPath = (importer as typeof v).url || (importer as typeof v).file;
@@ -192,10 +192,10 @@ export async function configureDevServer(
                 ) {
                   added.add(v.url);
                   manifest.injections!.push({
-                    tag: "link",
-                    location: "head",
+                    tag: 'link',
+                    location: 'head',
                     attributes: {
-                      rel: "stylesheet",
+                      rel: 'stylesheet',
                       href: `${base}${url.slice(1)}`,
                     },
                   });
@@ -215,16 +215,16 @@ export async function configureDevServer(
             containerAttributes: { ...serverData.containerAttributes },
           };
 
-          res.setHeader("Content-Type", "text/html; charset=utf-8");
-          res.setHeader("Cache-Control", "no-cache, no-store, max-age=0");
-          res.setHeader("Access-Control-Allow-Origin", "*");
-          res.setHeader("X-Powered-By", "Qwik Vite Dev Server");
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
           res.writeHead(status);
 
           const result = await render(renderOpts);
 
           // End stream
-          if ("html" in result) {
+          if ('html' in result) {
             res.write((result as any).html);
           }
 
@@ -234,7 +234,7 @@ export async function configureDevServer(
               const { pathId, query } = parseId(v.url);
               if (
                 !added.has(v.url) &&
-                query === "" &&
+                query === '' &&
                 CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))
               ) {
                 const isEntryCSS = v.importers.size === 0;
@@ -269,7 +269,7 @@ export async function configureDevServer(
           });
 
           res.write(
-            END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, "src")),
+            END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
           );
           res.end();
         } else {
@@ -285,7 +285,7 @@ export async function configureDevServer(
       }
       next(e);
     } finally {
-      if (typeof (res as QwikViteDevResponse)._qwikRenderResolve === "function") {
+      if (typeof (res as QwikViteDevResponse)._qwikRenderResolve === 'function') {
         (res as QwikViteDevResponse)._qwikRenderResolve!();
       }
     }
@@ -300,7 +300,7 @@ export async function configureDevServer(
 
   setTimeout(() => {
     console.log(
-      `\n  🚧 ${magenta("Please note that development mode is slower than production.")}`,
+      `\n  🚧 ${magenta('Please note that development mode is slower than production.')}`
     );
   }, 1000);
 }
@@ -309,20 +309,20 @@ export async function configurePreviewServer(
   middlewares: Connect.Server,
   ssrOutDir: string,
   sys: OptimizerSystem,
-  path: Path,
+  path: Path
 ) {
-  const fs: typeof import("fs") = await sys.dynamicImport("node:fs");
-  const url: typeof import("url") = await sys.dynamicImport("node:url");
+  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+  const url: typeof import('url') = await sys.dynamicImport('node:url');
 
-  const entryPreviewPaths = ["mjs", "cjs", "js"].map((ext) =>
-    path.join(ssrOutDir, `entry.preview.${ext}`),
+  const entryPreviewPaths = ['mjs', 'cjs', 'js'].map((ext) =>
+    path.join(ssrOutDir, `entry.preview.${ext}`)
   );
 
   const entryPreviewModulePath = entryPreviewPaths.find((p) => fs.existsSync(p));
   if (!entryPreviewModulePath) {
     return invalidPreviewMessage(
       middlewares,
-      `Unable to find output "${ssrOutDir}/entry.preview" module.\n\nPlease ensure "src/entry.preview.tsx" has been built before the "preview" command.`,
+      `Unable to find output "${ssrOutDir}/entry.preview" module.\n\nPlease ensure "src/entry.preview.tsx" has been built before the "preview" command.`
     );
   }
 
@@ -334,24 +334,24 @@ export async function configurePreviewServer(
     let preview404Middleware: Connect.HandleFunction | null = null;
 
     if (previewModuleImport.default) {
-      if (typeof previewModuleImport.default === "function") {
+      if (typeof previewModuleImport.default === 'function') {
         previewMiddleware = previewModuleImport.default;
-      } else if (typeof previewModuleImport.default === "object") {
+      } else if (typeof previewModuleImport.default === 'object') {
         previewMiddleware = previewModuleImport.default.router;
         preview404Middleware = previewModuleImport.default.notFound;
       }
     }
 
-    if (typeof previewMiddleware !== "function") {
+    if (typeof previewMiddleware !== 'function') {
       return invalidPreviewMessage(
         middlewares,
-        `Entry preview module "${entryPreviewModulePath}" does not export a default middleware function`,
+        `Entry preview module "${entryPreviewModulePath}" does not export a default middleware function`
       );
     }
 
     middlewares.use(previewMiddleware);
 
-    if (typeof preview404Middleware === "function") {
+    if (typeof preview404Middleware === 'function') {
       middlewares.use(preview404Middleware);
     }
   } catch (e) {
@@ -364,56 +364,56 @@ function invalidPreviewMessage(middlewares: Connect.Server, msg: string) {
 
   middlewares.use((_, res) => {
     res.writeHead(400, {
-      "Content-Type": "text/plain",
+      'Content-Type': 'text/plain',
     });
     res.end(msg);
   });
 }
 
-const CYPRESS_DEV_SERVER_PATH = "/__cypress/src";
+const CYPRESS_DEV_SERVER_PATH = '/__cypress/src';
 const FS_PREFIX = `/@fs/`;
 const VALID_ID_PREFIX = `/@id/`;
 const VITE_PUBLIC_PATH = `/@vite/`;
 const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
 const InternalPrefixRE = new RegExp(
-  `^(${CYPRESS_DEV_SERVER_PATH})?(?:${internalPrefixes.join("|")})`,
+  `^(${CYPRESS_DEV_SERVER_PATH})?(?:${internalPrefixes.join('|')})`
 );
 
 const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   const pathname = url.pathname;
-  if (/\.[\w?=&]+$/.test(pathname) && !pathname.endsWith(".html")) {
+  if (/\.[\w?=&]+$/.test(pathname) && !pathname.endsWith('.html')) {
     // has extension
     return false;
   }
-  if (pathname.includes("_-vite-ping")) {
+  if (pathname.includes('_-vite-ping')) {
     return false;
   }
-  if (pathname.includes("__open-in-editor")) {
+  if (pathname.includes('__open-in-editor')) {
     return false;
   }
-  if (pathname.includes("?editor:")) {
+  if (pathname.includes('?editor:')) {
     return false;
   }
-  if (url.searchParams.has("html-proxy")) {
+  if (url.searchParams.has('html-proxy')) {
     return false;
   }
-  if (url.searchParams.get("ssr") === "false") {
+  if (url.searchParams.get('ssr') === 'false') {
     return false;
   }
   if (InternalPrefixRE.test(url.pathname)) {
     return false;
   }
-  if (pathname.includes("@builder.io/qwik/build")) {
+  if (pathname.includes('@builder.io/qwik/build')) {
     return false;
   }
-  const acceptHeader = req.headers.accept || "";
-  const accepts = acceptHeader.split(",").map((accept) => accept.split(";")[0]);
-  if (accepts.length == 1 && accepts.includes("*/*")) {
+  const acceptHeader = req.headers.accept || '';
+  const accepts = acceptHeader.split(',').map((accept) => accept.split(';')[0]);
+  if (accepts.length == 1 && accepts.includes('*/*')) {
     // special case for curl where the default is `*/*` with no additional headers
     return true;
   }
 
-  if (!accepts.includes("text/html")) {
+  if (!accepts.includes('text/html')) {
     return false;
   }
   return true;
@@ -431,24 +431,24 @@ declare global {
 function relativeURL(url: string, base: string) {
   if (url.startsWith(base)) {
     url = url.slice(base.length);
-    if (!url.startsWith("/")) {
-      url = "/" + url;
+    if (!url.startsWith('/')) {
+      url = '/' + url;
     }
   }
   return url;
 }
 
-const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions["devTools"], srcDir: string) => {
+const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {
   const qwikdevtools = {
     hotKeys: opts.clickToSource ?? [],
-    srcDir: new URL(srcDir + "/", "http://local.local").href,
+    srcDir: new URL(srcDir + '/', 'http://local.local').href,
   };
   return (
     `<script>
       globalThis.qwikdevtools = ${JSON.stringify(qwikdevtools)};
     </script>` +
-    (opts.imageDevTools ? imageDevTools : "") +
-    (opts.clickToSource ? clickToComponent : "")
+    (opts.imageDevTools ? imageDevTools : '') +
+    (opts.clickToSource ? clickToComponent : '')
   );
 };
 

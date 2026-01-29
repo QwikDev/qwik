@@ -1,13 +1,13 @@
-import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
-import { server$ } from "@builder.io/qwik-city";
-import { ServerError } from "@builder.io/qwik-city/middleware/request-handler";
+import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+import { ServerError } from '@builder.io/qwik-city/middleware/request-handler';
 
 const serverFunctionA = server$(async () => {
   throw new ServerError(401, 1);
 });
 
 const serverFunctionB = server$(async () => {
-  throw new ServerError(500, "error");
+  throw new ServerError(500, 'error');
 });
 
 export default component$(() => {

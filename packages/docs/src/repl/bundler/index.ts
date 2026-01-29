@@ -1,9 +1,9 @@
 /** Bundler registry that manages WebWorkers per Qwik version */
 
-import type { ReplInputOptions, ReplResult } from "../types";
-import { getDeps } from "./bundled";
-import type { InitMessage, BundleMessage, OutgoingMessage } from "./bundler-worker";
-import bundlerWorkerUrl from "./bundler-worker?worker&url";
+import type { ReplInputOptions, ReplResult } from '../types';
+import { getDeps } from './bundled';
+import type { InitMessage, BundleMessage, OutgoingMessage } from './bundler-worker';
+import bundlerWorkerUrl from './bundler-worker?worker&url';
 
 const bundlers = new Map<string, Bundler>();
 
@@ -27,9 +27,9 @@ class Bundler {
   initWorker() {
     this.initP = new Promise<void>((res) => (this.ready = res));
     // Start from /repl so repl-sw can add COEP headers
-    this.worker = new Worker(`/repl${bundlerWorkerUrl}`, { type: "module" });
-    this.worker.addEventListener("message", this.messageHandler);
-    this.worker.addEventListener("error", (e: ErrorEvent) => {
+    this.worker = new Worker(`/repl${bundlerWorkerUrl}`, { type: 'module' });
+    this.worker.addEventListener('message', this.messageHandler);
+    this.worker.addEventListener('error', (e: ErrorEvent) => {
       console.error(`Bundler worker for ${this.version} failed`, e.message);
       this.terminateWorker();
     });
@@ -37,21 +37,21 @@ class Bundler {
 
   messageHandler = (e: MessageEvent<OutgoingMessage>) => {
     const { type } = e.data;
-    if (type === "ready") {
+    if (type === 'ready') {
       const { version } = this;
       const message: InitMessage = {
-        type: "init",
+        type: 'init',
         version,
         deps: getDeps(version),
       };
       this.worker!.postMessage(message);
       this.ready!();
-    } else if (type === "result" || type === "error") {
+    } else if (type === 'result' || type === 'error') {
       const { buildId } = e.data;
       const promise = this.buildPromises.get(buildId);
       if (promise) {
         this.buildPromises.delete(buildId);
-        if (type === "result") {
+        if (type === 'result') {
           promise.resolve(e.data.result);
         } else {
           const { error, stack } = e.data;
@@ -70,7 +70,7 @@ class Bundler {
     this.timer = setTimeout(() => this.terminateWorker(), 1000 * 60 * 5);
   }
 
-  bundle(options: Omit<ReplInputOptions, "version" | "serverUrl">): Promise<ReplResult> {
+  bundle(options: Omit<ReplInputOptions, 'version' | 'serverUrl'>): Promise<ReplResult> {
     if (!this.worker) {
       this.initWorker();
     }
@@ -80,7 +80,7 @@ class Bundler {
         const buildId = this.nextBuildId++;
         this.buildPromises.set(buildId, { resolve, reject });
         const message: BundleMessage = {
-          type: "bundle",
+          type: 'bundle',
           buildId,
           data: options,
         };
@@ -91,10 +91,10 @@ class Bundler {
 
   terminateWorker(): void {
     if (this.worker) {
-      this.worker.removeEventListener("message", this.messageHandler);
+      this.worker.removeEventListener('message', this.messageHandler);
       this.worker.terminate();
       this.worker = null;
-      this.buildPromises.forEach((p) => p.reject(new Error("Worker terminated")));
+      this.buildPromises.forEach((p) => p.reject(new Error('Worker terminated')));
       this.buildPromises.clear();
       console.debug(`Bundler worker for ${this.version} terminated`);
     }

@@ -3,37 +3,37 @@ import {
   getEventName,
   setRef,
   type ContainerState,
-} from "../../container/container";
-import { assertDefined } from "../../error/assert";
-import { QError_canNotRenderHTML, qError } from "../../error/error";
-import { serializeQRLs } from "../../qrl/qrl";
-import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from "../../state/constants";
+} from '../../container/container';
+import { assertDefined } from '../../error/assert';
+import { QError_canNotRenderHTML, qError } from '../../error/error';
+import { serializeQRLs } from '../../qrl/qrl';
+import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 import {
   HOST_FLAG_DIRTY,
   HOST_FLAG_DYNAMIC,
   HOST_FLAG_NEED_ATTACH_LISTENER,
   createContext,
   type QContext,
-} from "../../state/context";
+} from '../../state/context';
 import {
   PREVENT_DEFAULT,
   groupListeners,
   isOnProp,
   setEvent,
   type Listener,
-} from "../../state/listeners";
-import { isSignal } from "../../state/signal";
-import { createPropsState, createProxy } from "../../state/store";
-import { serializeSStyle } from "../../style/qrl-styles";
-import { invoke, newInvokeContext, trackSignal, type InvokeContext } from "../../use/use-core";
-import { EMPTY_OBJ } from "../../util/flyweight";
-import { logError, logWarn } from "../../util/log";
-import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from "../../util/markers";
-import { isPromise, maybeThen } from "../../util/promises";
-import { qDev, qInspector, seal } from "../../util/qdev";
-import { isArray, isFunction, isString, type ValueOrPromise } from "../../util/types";
-import { version } from "../../version";
-import type { QwikElement } from "../dom/virtual-element";
+} from '../../state/listeners';
+import { isSignal } from '../../state/signal';
+import { createPropsState, createProxy } from '../../state/store';
+import { serializeSStyle } from '../../style/qrl-styles';
+import { invoke, newInvokeContext, trackSignal, type InvokeContext } from '../../use/use-core';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import { logError, logWarn } from '../../util/log';
+import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
+import { isPromise, maybeThen } from '../../util/promises';
+import { qDev, qInspector, seal } from '../../util/qdev';
+import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
+import { version } from '../../version';
+import type { QwikElement } from '../dom/virtual-element';
 import {
   createRenderContext,
   dangerouslySetInnerHTML,
@@ -46,14 +46,14 @@ import {
   shouldWrapFunctional,
   static_subtree,
   stringifyStyle,
-} from "../execute-component";
-import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from "../jsx/jsx-runtime";
-import type { FunctionComponent, JSXNode, JSXNodeInternal, JSXOutput } from "../jsx/types/jsx-node";
-import type { ClassList, JSXChildren } from "../jsx/types/jsx-qwik-attributes";
-import { InternalSSRStream, SSRRaw } from "../jsx/utils.public";
-import type { RenderContext } from "../types";
+} from '../execute-component';
+import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
+import type { FunctionComponent, JSXNode, JSXNodeInternal, JSXOutput } from '../jsx/types/jsx-node';
+import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
+import { InternalSSRStream, SSRRaw } from '../jsx/utils.public';
+import type { RenderContext } from '../types';
 
-const FLUSH_COMMENT = "<!--qkssr-f-->";
+const FLUSH_COMMENT = '<!--qkssr-f-->';
 
 /** @public */
 export type StreamWriter = {
@@ -72,7 +72,7 @@ export interface RenderSSROptions {
     contexts: QContext[],
     containerState: ContainerState,
     containsDynamic: boolean,
-    textNodes: Map<string, string>,
+    textNodes: Map<string, string>
   ) => Promise<JSXNode>;
   manifestHash: string;
 }
@@ -117,7 +117,7 @@ const createDocument = () => {
 export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createMockQContext(1).$element$;
-  const containerState = createContainerState(containerEl as Element, opts.base ?? "/");
+  const containerState = createContainerState(containerEl as Element, opts.base ?? '/');
   containerState.$serverData$.locale = opts.serverData?.locale;
   const doc = createDocument();
   const rCtx = createRenderContext(doc as any, containerState);
@@ -131,14 +131,14 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
       root in invisibleElements
     ) {
       throw new Error(
-        `The "containerTagName" can not be "${root}". Please choose a different tag name like: "div", "html", "custom-container".`,
+        `The "containerTagName" can not be "${root}". Please choose a different tag name like: "div", "html", "custom-container".`
       );
     }
   }
   const ssrCtx: SSRContext = {
     $static$: {
       $contexts$: [],
-      $headNodes$: root === "html" ? headNodes : [],
+      $headNodes$: root === 'html' ? headNodes : [],
       $locale$: opts.serverData?.locale,
       $textNodes$: new Map(),
     },
@@ -150,26 +150,26 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
 
   const locale = opts.serverData?.locale;
   const containerAttributes = opts.containerAttributes;
-  const qRender = containerAttributes["q:render"];
-  containerAttributes["q:container"] = "paused";
-  containerAttributes["q:version"] = version ?? "dev";
-  containerAttributes["q:render"] = (qRender ? qRender + "-" : "") + (qDev ? "ssr-dev" : "ssr");
-  containerAttributes["q:base"] = opts.base || "";
-  containerAttributes["q:locale"] = locale;
-  containerAttributes["q:manifest-hash"] = opts.manifestHash;
-  containerAttributes["q:instance"] = hash();
+  const qRender = containerAttributes['q:render'];
+  containerAttributes['q:container'] = 'paused';
+  containerAttributes['q:version'] = version ?? 'dev';
+  containerAttributes['q:render'] = (qRender ? qRender + '-' : '') + (qDev ? 'ssr-dev' : 'ssr');
+  containerAttributes['q:base'] = opts.base || '';
+  containerAttributes['q:locale'] = locale;
+  containerAttributes['q:manifest-hash'] = opts.manifestHash;
+  containerAttributes['q:instance'] = hash();
 
-  const children = root === "html" ? [node] : [headNodes, node];
-  if (root !== "html") {
+  const children = root === 'html' ? [node] : [headNodes, node];
+  if (root !== 'html') {
     containerAttributes.class =
-      "qc📦" + (containerAttributes.class ? " " + containerAttributes.class : "");
+      'qc📦' + (containerAttributes.class ? ' ' + containerAttributes.class : '');
   }
   const serverData = (containerState.$serverData$ = {
     ...containerState.$serverData$,
     ...opts.serverData,
   });
   serverData.containerAttributes = {
-    ...serverData["containerAttributes"],
+    ...serverData['containerAttributes'],
     ...containerAttributes,
   };
   const invokeCtx = (ssrCtx.$invocationContext$ = newInvokeContext(locale));
@@ -182,11 +182,11 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
     containerAttributes,
     children,
     HOST_FLAG_DIRTY | HOST_FLAG_NEED_ATTACH_LISTENER,
-    null,
+    null
   );
   containerState.$hostsRendering$ = new Set();
   await Promise.resolve().then(() =>
-    renderRoot(rootNode, rCtx, ssrCtx, opts.stream, containerState, opts),
+    renderRoot(rootNode, rCtx, ssrCtx, opts.stream, containerState, opts)
   );
 };
 
@@ -198,7 +198,7 @@ const renderRoot = async (
   ssrCtx: SSRContext,
   stream: StreamWriter,
   containerState: ContainerState,
-  opts: RenderSSROptions,
+  opts: RenderSSROptions
 ) => {
   const beforeClose = opts.beforeClose;
 
@@ -214,17 +214,17 @@ const renderRoot = async (
             ssrCtx.$static$.$contexts$,
             containerState,
             false,
-            ssrCtx.$static$.$textNodes$,
+            ssrCtx.$static$.$textNodes$
           );
           return processData(result, rCtx, ssrCtx, stream, 0, undefined);
         }
-      : undefined,
+      : undefined
   );
 
   if (qDev) {
     if (ssrCtx.$static$.$headNodes$.length > 0) {
       logError(
-        "Missing <head>. Global styles could not be rendered. Please render a <head> element at the root of the app",
+        'Missing <head>. Global styles could not be rendered. Please render a <head> element at the root of the app'
       );
     }
   }
@@ -236,7 +236,7 @@ const renderGenerator = async (
   rCtx: RenderContext,
   ssrCtx: SSRContext,
   stream: StreamWriter,
-  flags: number,
+  flags: number
 ) => {
   stream.write(FLUSH_COMMENT);
   const generator = node.props.children;
@@ -269,7 +269,7 @@ const renderNodeVirtual = (
   ssrCtx: SSRContext,
   stream: StreamWriter,
   flags: number,
-  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>,
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
   const props = node.props;
   const renderQrl = props[OnRenderProp];
@@ -277,17 +277,17 @@ const renderNodeVirtual = (
     elCtx.$componentQrl$ = renderQrl;
     return renderSSRComponent(rCtx, ssrCtx, stream, elCtx, node, flags, beforeClose);
   }
-  let virtualComment = "<!--qv" + renderVirtualAttributes(props as any);
+  let virtualComment = '<!--qv' + renderVirtualAttributes(props as any);
   const isSlot = QSlotS in props;
   const key = node.key != null ? String(node.key) : null;
   if (isSlot) {
-    assertDefined(rCtx.$cmpCtx$?.$id$, "hostId must be defined for a slot");
-    virtualComment += " q:sref=" + rCtx.$cmpCtx$.$id$;
+    assertDefined(rCtx.$cmpCtx$?.$id$, 'hostId must be defined for a slot');
+    virtualComment += ' q:sref=' + rCtx.$cmpCtx$.$id$;
   }
   if (key != null) {
-    virtualComment += " q:key=" + key;
+    virtualComment += ' q:key=' + key;
   }
-  virtualComment += "-->";
+  virtualComment += '-->';
   stream.write(virtualComment);
 
   const html = node.props[dangerouslySetInnerHTML];
@@ -312,7 +312,7 @@ const renderNodeVirtual = (
 
     let promise: ValueOrPromise<void> | undefined;
     if (isSlot) {
-      assertDefined(key, "key must be defined for a slot");
+      assertDefined(key, 'key must be defined for a slot');
       const content = ssrCtx.$projectedChildren$?.[key];
       if (content) {
         const [rCtx, sCtx] = ssrCtx.$projectedCtxs$!;
@@ -336,28 +336,28 @@ const renderNodeVirtual = (
 const CLOSE_VIRTUAL = `<!--/qv-->`;
 
 const renderAttributes = (attributes: Record<string, string>): string => {
-  let text = "";
+  let text = '';
   for (const prop in attributes) {
     if (prop === dangerouslySetInnerHTML) {
       continue;
     }
     const value = attributes[prop];
     if (value != null) {
-      text += " " + (value === "" ? prop : prop + '="' + value + '"');
+      text += ' ' + (value === '' ? prop : prop + '="' + value + '"');
     }
   }
   return text;
 };
 
 const renderVirtualAttributes = (attributes: Record<string, string>): string => {
-  let text = "";
+  let text = '';
   for (const prop in attributes) {
-    if (prop === "children" || prop === dangerouslySetInnerHTML) {
+    if (prop === 'children' || prop === dangerouslySetInnerHTML) {
       continue;
     }
     const value = attributes[prop];
     if (value != null) {
-      text += " " + (value === "" ? prop : prop + "=" + value + "");
+      text += ' ' + (value === '' ? prop : prop + '=' + value + '');
     }
   }
   return text;
@@ -366,9 +366,9 @@ const renderVirtualAttributes = (attributes: Record<string, string>): string => 
 const renderNodeElementSync = (
   tagName: string,
   attributes: Record<string, string>,
-  stream: StreamWriter,
+  stream: StreamWriter
 ) => {
-  stream.write("<" + tagName + renderAttributes(attributes) + ">");
+  stream.write('<' + tagName + renderAttributes(attributes) + '>');
   const empty = !!emptyElements[tagName];
   if (empty) {
     return;
@@ -390,7 +390,7 @@ const renderSSRComponent = (
   elCtx: QContext,
   node: JSXNode<typeof Virtual>,
   flags: number,
-  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>,
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
   const props = node.props;
   setComponentProps(rCtx, elCtx, props.props!);
@@ -414,17 +414,17 @@ const renderSSRComponent = (
       for (const style of elCtx.$appendStyles$) {
         array.push(
           _jsxQ(
-            "style",
+            'style',
             {
               [QStyle]: style.styleId,
               [dangerouslySetInnerHTML]: style.content,
-              hidden: "",
+              hidden: '',
             },
             null,
             null,
             0,
-            null,
-          ),
+            null
+          )
         );
       }
     }
@@ -438,7 +438,7 @@ const renderSSRComponent = (
         children: res.node,
       },
       0,
-      node.key,
+      node.key
     );
 
     elCtx.$id$ = newID;
@@ -464,8 +464,8 @@ const renderSSRComponent = (
            * element. We keep it empty, so it can be a script tag without type.
            */
           const attributes: Record<string, string> = {
-            hidden: "",
-            "q:id": placeholderCtx.$id$,
+            hidden: '',
+            'q:id': placeholderCtx.$id$,
           };
           ssrCtx.$static$.$contexts$.push(placeholderCtx);
 
@@ -475,11 +475,11 @@ const renderSSRComponent = (
             attributes[eventName] = serializeQRLs(
               listener[1],
               rCtx.$static$.$containerState$,
-              placeholderCtx,
+              placeholderCtx
             );
             registerQwikEvent(eventName, rCtx.$static$.$containerState$);
           }
-          renderNodeElementSync("script", attributes, stream);
+          renderNodeElementSync('script', attributes, stream);
         }
         const projectedChildren = newSSrContext.$projectedChildren$;
         let missingSlotsDone;
@@ -489,12 +489,12 @@ const renderSSRComponent = (
             // projectedChildren[slotName] = undefined;
             if (content) {
               return _jsxQ(
-                "q:template",
-                { [QSlot]: slotName || true, hidden: true, "aria-hidden": "true" },
+                'q:template',
+                { [QSlot]: slotName || true, hidden: true, 'aria-hidden': 'true' },
                 null,
                 content,
                 0,
-                null,
+                null
               );
             }
           });
@@ -506,7 +506,7 @@ const renderSSRComponent = (
         return beforeClose
           ? maybeThen(missingSlotsDone, () => beforeClose(stream))
           : missingSlotsDone;
-      },
+      }
     );
   });
 };
@@ -519,9 +519,9 @@ const splitProjectedChildren = (children: JSXChildren, ssrCtx: SSRContext) => {
   const slotMap: Record<string, JSXNode[]> = {};
 
   for (const child of flatChildren) {
-    let slotName = "";
+    let slotName = '';
     if (isJSXNode(child)) {
-      slotName = (child.props[QSlot] as string) || "";
+      slotName = (child.props[QSlot] as string) || '';
     }
     (slotMap[slotName] ||= []).push(child);
   }
@@ -539,24 +539,24 @@ const renderNode = (
   ssrCtx: SSRContext,
   stream: StreamWriter,
   flags: number,
-  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>,
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
   const tagName = node.type;
   const hostCtx = rCtx.$cmpCtx$;
-  if (typeof tagName === "string") {
+  if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
     const immutable = node.immutableProps || EMPTY_OBJ;
     const elCtx = createMockQContext(1);
     const elm = elCtx.$element$ as Element;
-    const isHead = tagName === "head";
-    let openingElement = "<" + tagName;
+    const isHead = tagName === 'head';
+    let openingElement = '<' + tagName;
     let useSignal = false;
     let hasRef = false;
-    let classStr = "";
+    let classStr = '';
     let htmlStr = null;
     const handleProp = (rawProp: string, value: unknown, isImmutable: boolean) => {
-      if (rawProp === "ref") {
+      if (rawProp === 'ref') {
         if (value !== undefined) {
           setRef(value, elm);
           hasRef = true;
@@ -568,7 +568,7 @@ const renderNode = (
         return;
       }
       if (isSignal(value)) {
-        assertDefined(hostCtx, "Signals can not be used outside the root");
+        assertDefined(hostCtx, 'Signals can not be used outside the root');
         if (isImmutable) {
           value = trackSignal(value, [1, elm, value, hostCtx.$element$, rawProp]);
         } else {
@@ -584,12 +584,12 @@ const renderNode = (
         registerQwikEvent(rawProp.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
       }
       let attrValue;
-      const prop = rawProp === "htmlFor" ? "for" : rawProp;
-      if (prop === "class" || prop === "className") {
+      const prop = rawProp === 'htmlFor' ? 'for' : rawProp;
+      if (prop === 'class' || prop === 'className') {
         classStr = serializeClass(value as ClassList);
-      } else if (prop === "style") {
+      } else if (prop === 'style') {
         attrValue = stringifyStyle(value);
-      } else if (isAriaAttribute(prop) || prop === "draggable" || prop === "spellcheck") {
+      } else if (isAriaAttribute(prop) || prop === 'draggable' || prop === 'spellcheck') {
         attrValue = value != null ? String(value) : null;
         value = attrValue;
       } else if (value === false || value == null) {
@@ -598,15 +598,15 @@ const renderNode = (
         attrValue = String(value);
       }
       if (attrValue != null) {
-        if (prop === "value" && tagName === "textarea") {
+        if (prop === 'value' && tagName === 'textarea') {
           htmlStr = escapeHtml(attrValue);
         } else if (isSSRUnsafeAttr(prop)) {
           if (qDev) {
-            logError("Attribute value is unsafe for SSR");
+            logError('Attribute value is unsafe for SSR');
           }
         } else {
           openingElement +=
-            " " + (value === true ? prop : prop + '="' + escapeHtml(attrValue) + '"');
+            ' ' + (value === true ? prop : prop + '="' + escapeHtml(attrValue) + '"');
         }
       }
     };
@@ -636,12 +636,12 @@ const renderNode = (
     const listeners = elCtx.li;
     if (hostCtx) {
       if (qDev) {
-        if (tagName === "html") {
+        if (tagName === 'html') {
           throw qError(QError_canNotRenderHTML);
         }
       }
       if (hostCtx.$scopeIds$?.length) {
-        const extra = hostCtx.$scopeIds$.join(" ");
+        const extra = hostCtx.$scopeIds$.join(' ');
         classStr = classStr ? `${extra} ${classStr}` : extra;
       }
       if (hostCtx.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
@@ -657,45 +657,45 @@ const renderNode = (
           throw createJSXError(
             `<${tagName}> can not be rendered because one of its ancestor is a <p> or a <pre>.\n
 This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#phrasing-content-2`,
-            node,
+            node
           );
         }
       }
-      if (tagName === "table") {
+      if (tagName === 'table') {
         flags |= IS_TABLE;
       } else {
         if (flags & IS_TABLE && !(tagName in tableContent)) {
           throw createJSXError(
             `The <table> element requires that its direct children to be '<tbody>', '<thead>', '<tfoot>' or '<caption>' instead, '<${tagName}>' was rendered.`,
-            node,
+            node
           );
         }
         flags &= ~IS_TABLE;
       }
 
-      if (tagName === "button") {
+      if (tagName === 'button') {
         if (flags & IS_BUTTON) {
           throw createJSXError(
             `<${tagName}> can not be rendered because one of its ancestor is already a <button>.\n
 This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#interactive-content`,
-            node,
+            node
           );
         } else {
           flags |= IS_BUTTON;
         }
       }
-      if (tagName === "a") {
+      if (tagName === 'a') {
         if (flags & IS_ANCHOR) {
           throw createJSXError(
             `<${tagName}> can not be rendered because one of its ancestor is already a <a>.\n
 This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#interactive-content`,
-            node,
+            node
           );
         } else {
           flags |= IS_ANCHOR;
         }
       }
-      if (tagName === "svg" || tagName === "math") {
+      if (tagName === 'svg' || tagName === 'math') {
         // These types of elements are considered phrasing content, but contain children that aren't phrasing content.
         flags |= IS_PHRASING_CONTAINER;
       }
@@ -703,7 +703,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
         if (!(tagName in headContent)) {
           throw createJSXError(
             `<${tagName}> can not be rendered because it's not a valid children of the <head> element. https://html.spec.whatwg.org/multipage/dom.html#metadata-content`,
-            node,
+            node
           );
         }
       }
@@ -711,13 +711,13 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
         if (!(tagName in htmlContent)) {
           throw createJSXError(
             `<${tagName}> can not be rendered because it's not a valid direct children of the <html> element, only <head> and <body> are allowed.`,
-            node,
+            node
           );
         }
       } else if (tagName in htmlContent) {
         throw createJSXError(
           `<${tagName}> can not be rendered because its parent is not a <html> element. Make sure the 'containerTagName' is set to 'html' in entry.ssr.tsx`,
-          node,
+          node
         );
       }
       if (tagName in startPhasingContent) {
@@ -744,7 +744,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       for (const listener of groups) {
         const eventName = isInvisible ? normalizeInvisibleEvents(listener[0]) : listener[0];
         openingElement +=
-          " " +
+          ' ' +
           eventName +
           '="' +
           serializeQRLs(listener[1], rCtx.$static$.$containerState$, elCtx) +
@@ -764,17 +764,17 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       ssrCtx.$static$.$contexts$.push(elCtx);
     }
     if (flags & IS_HEAD) {
-      openingElement += " q:head";
+      openingElement += ' q:head';
     }
     if (qDev && qInspector && node.dev && !(flags & IS_HEAD)) {
-      const sanitizedFileName = node?.dev?.fileName?.replace(/\\/g, "/");
+      const sanitizedFileName = node?.dev?.fileName?.replace(/\\/g, '/');
       if (sanitizedFileName && !/data-qwik-inspector/.test(openingElement)) {
         openingElement += ` data-qwik-inspector="${escapeHtml(
-          `${sanitizedFileName}:${node.dev.lineNumber}:${node.dev.columnNumber}`,
+          `${sanitizedFileName}:${node.dev.lineNumber}:${node.dev.columnNumber}`
         )}"`;
       }
     }
-    openingElement += ">";
+    openingElement += '>';
     stream.write(openingElement);
 
     if (tagName in emptyElements) {
@@ -786,7 +786,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       stream.write(`</${tagName}>`);
       return;
     }
-    if (tagName === "html") {
+    if (tagName === 'html') {
       flags |= IS_HTML;
     } else {
       flags &= ~IS_HTML;
@@ -835,7 +835,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       ssrCtx,
       stream,
       flags,
-      beforeClose,
+      beforeClose
     );
   }
 
@@ -849,7 +849,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       rCtx,
       ssrCtx,
       stream,
-      flags,
+      flags
     );
   }
   // Inline component
@@ -859,7 +859,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     node.props,
     node.key,
     node.flags,
-    node.dev,
+    node.dev
   );
   if (!shouldWrapFunctional(res, node)) {
     return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
@@ -870,7 +870,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     ssrCtx,
     stream,
     flags,
-    beforeClose,
+    beforeClose
   );
 };
 
@@ -881,12 +881,12 @@ const processData = (
   ssrCtx: SSRContext,
   stream: StreamWriter,
   flags: number,
-  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>,
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
-  if (node == null || typeof node === "boolean") {
+  if (node == null || typeof node === 'boolean') {
     return;
   }
-  if (isString(node) || typeof node === "number") {
+  if (isString(node) || typeof node === 'number') {
     stream.write(escapeHtml(String(node)));
   } else if (isJSXNode(node)) {
     return renderNode(node, rCtx, ssrCtx, stream, flags, beforeClose);
@@ -901,8 +901,8 @@ const processData = (
         const id = getNextIndex(rCtx);
         const subs =
           flags & IS_IMMUTABLE
-            ? ([3, ("#" + id) as any, node, ("#" + id) as any] as const)
-            : ([4, hostEl, node, ("#" + id) as any] as const);
+            ? ([3, ('#' + id) as any, node, ('#' + id) as any] as const)
+            : ([4, hostEl, node, ('#' + id) as any] as const);
 
         value = trackSignal(node, subs);
         if (isString(value)) {
@@ -923,7 +923,7 @@ const processData = (
     stream.write(FLUSH_COMMENT);
     return node.then((node) => processData(node, rCtx, ssrCtx, stream, flags, beforeClose));
   } else {
-    logWarn("A unsupported value was passed to the JSX, skipping render. Value:", node);
+    logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
     return;
   }
 };
@@ -933,7 +933,7 @@ const walkChildren = (
   rCtx: RenderContext,
   ssrContext: SSRContext,
   stream: StreamWriter,
-  flags: number,
+  flags: number
 ): ValueOrPromise<void> => {
   if (children == null) {
     return;
@@ -1019,7 +1019,7 @@ const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
       children.type,
       children.props,
       children.key,
-      children.flags,
+      children.flags
     );
     return flatVirtualChildren(res, ssrCtx);
   }
@@ -1029,7 +1029,7 @@ const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
 const setComponentProps = (
   rCtx: RenderContext,
   elCtx: QContext,
-  expectProps: Record<string, any>,
+  expectProps: Record<string, any>
 ) => {
   const keys = Object.keys(expectProps);
   const target = createPropsState();
@@ -1042,7 +1042,7 @@ const setComponentProps = (
   const immutableMeta = ((target as any)[_IMMUTABLE] =
     (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
   for (const prop of keys) {
-    if (prop === "children" || prop === QSlot) {
+    if (prop === 'children' || prop === QSlot) {
       continue;
     }
     if (isSignal(immutableMeta[prop])) {
@@ -1198,18 +1198,18 @@ export const registerQwikEvent = (prop: string, containerState: ContainerState) 
 const escapeHtml = (s: string) => {
   return s.replace(ESCAPE_HTML, (c) => {
     switch (c) {
-      case "&":
-        return "&amp;";
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
       case '"':
-        return "&quot;";
+        return '&quot;';
       case "'":
-        return "&#39;";
+        return '&#39;';
       default:
-        return "";
+        return '';
     }
   });
 };
@@ -1232,5 +1232,5 @@ const addDynamicSlot = (hostCtx: QContext, elCtx: QContext) => {
 };
 
 const normalizeInvisibleEvents = (eventName: string) => {
-  return eventName === "on:qvisible" ? "on-document:qinit" : eventName;
+  return eventName === 'on:qvisible' ? 'on-document:qinit' : eventName;
 };

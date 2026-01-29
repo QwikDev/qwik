@@ -4,13 +4,13 @@ import type {
   StaticStreamWriter,
   StaticWorkerRenderResult,
   System,
-} from "./types";
-import type { ClientPageData } from "../runtime/src/types";
-import type { ServerRequestEvent } from "@builder.io/qwik-city/middleware/request-handler";
-import { requestHandler } from "@builder.io/qwik-city/middleware/request-handler";
-import { pathToFileURL } from "node:url";
-import { WritableStream } from "node:stream/web";
-import { _deserializeData, _serializeData, _verifySerializable } from "@builder.io/qwik";
+} from './types';
+import type { ClientPageData } from '../runtime/src/types';
+import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import { pathToFileURL } from 'node:url';
+import { WritableStream } from 'node:stream/web';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -24,16 +24,16 @@ export async function workerThread(sys: System) {
 
   sys.createWorkerProcess(async (msg) => {
     switch (msg.type) {
-      case "render": {
+      case 'render': {
         return new Promise<StaticWorkerRenderResult>((resolve) => {
           workerRender(sys, opts, msg, pendingPromises, resolve);
         });
       }
-      case "close": {
+      case 'close': {
         const promises = Array.from(pendingPromises);
         pendingPromises.clear();
         await Promise.all(promises);
-        return { type: "close" };
+        return { type: 'close' };
       }
     }
   });
@@ -44,7 +44,7 @@ async function workerRender(
   opts: StaticGenerateHandlerOptions,
   staticRoute: StaticRoute,
   pendingPromises: Set<Promise<any>>,
-  callback: (result: StaticWorkerRenderResult) => void,
+  callback: (result: StaticWorkerRenderResult) => void
 ) {
   const qwikSerializer = {
     _deserializeData,
@@ -55,7 +55,7 @@ async function workerRender(
   const url = new URL(staticRoute.pathname, opts.origin);
 
   const result: StaticWorkerRenderResult = {
-    type: "render",
+    type: 'render',
     pathname: staticRoute.pathname,
     url: url.href,
     ok: false,
@@ -75,7 +75,7 @@ async function workerRender(
     const request = new Request(url);
 
     const requestCtx: ServerRequestEvent<void> = {
-      mode: "static",
+      mode: 'static',
       locale: undefined,
       url,
       request,
@@ -96,15 +96,15 @@ async function workerRender(
           return noopWritableStream as any;
         }
 
-        result.contentType = (headers.get("Content-Type") || "").toLowerCase();
-        const isHtml = result.contentType.includes("text/html");
-        const is404ErrorPage = url.pathname.endsWith("/404.html");
+        result.contentType = (headers.get('Content-Type') || '').toLowerCase();
+        const isHtml = result.contentType.includes('text/html');
+        const is404ErrorPage = url.pathname.endsWith('/404.html');
         const routeFilePath = sys.getRouteFilePath(url.pathname, isHtml);
 
         if (is404ErrorPage) {
-          result.resourceType = "404";
+          result.resourceType = '404';
         } else if (isHtml) {
-          result.resourceType = "page";
+          result.resourceType = 'page';
         }
 
         const hasRouteWriter = isHtml ? opts.emitHtml !== false : true;
@@ -122,7 +122,7 @@ async function workerRender(
               if (hasRouteWriter) {
                 // create a write stream for the static file if enabled
                 routeWriter = sys.createWriteStream(routeFilePath);
-                routeWriter.on("error", (e) => {
+                routeWriter.on('error', (e) => {
                   console.error(e);
                   routeWriter = null;
                   result.error = {
@@ -135,7 +135,7 @@ async function workerRender(
               routeWriter = null;
               result.error = {
                 message: String(e),
-                stack: e.stack || "",
+                stack: e.stack || '',
               };
             }
           },
@@ -149,7 +149,7 @@ async function workerRender(
               routeWriter = null;
               result.error = {
                 message: String(e),
-                stack: e.stack || "",
+                stack: e.stack || '',
               };
             }
           },
@@ -158,12 +158,12 @@ async function workerRender(
 
             try {
               if (writeQDataEnabled) {
-                const qData: ClientPageData = requestEv.sharedMap.get("qData");
+                const qData: ClientPageData = requestEv.sharedMap.get('qData');
                 if (qData && !is404ErrorPage) {
                   // write q-data.json file when enabled and qData is set
                   const qDataFilePath = sys.getDataFilePath(url.pathname);
                   const dataWriter = sys.createWriteStream(qDataFilePath);
-                  dataWriter.on("error", (e) => {
+                  dataWriter.on('error', (e) => {
                     console.error(e);
                     result.error = {
                       message: e.message,
@@ -179,7 +179,7 @@ async function workerRender(
                       // set the static file path for the result
                       result.filePath = routeFilePath;
                       dataWriter.end(resolve);
-                    }),
+                    })
                   );
                 }
               }
@@ -191,7 +191,7 @@ async function workerRender(
                     // set the static file path for the result
                     result.filePath = routeFilePath;
                     routeWriter!.end(resolve);
-                  }).finally(closeResolved),
+                  }).finally(closeResolved)
                 );
               }
 
@@ -202,7 +202,7 @@ async function workerRender(
               routeWriter = null;
               result.error = {
                 message: String(e),
-                stack: e.stack || "",
+                stack: e.stack || '',
               };
             }
           },

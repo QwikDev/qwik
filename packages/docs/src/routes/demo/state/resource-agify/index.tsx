@@ -1,4 +1,4 @@
-import { component$, useSignal, useResource$, Resource } from "@builder.io/qwik";
+import { component$, useSignal, useResource$, Resource } from '@builder.io/qwik';
 
 export default component$(() => {
   const name = useSignal<string>();
@@ -10,7 +10,7 @@ export default component$(() => {
   }>(async ({ track, cleanup }) => {
     track(() => name.value);
     const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
+    cleanup(() => abortController.abort('cleanup'));
     const res = await fetch(`https://api.agify.io?name=${name.value}`, {
       signal: abortController.signal,
     });

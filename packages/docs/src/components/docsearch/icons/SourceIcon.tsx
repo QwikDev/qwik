@@ -1,4 +1,4 @@
-import { component$ } from "@builder.io/qwik";
+import { component$ } from '@builder.io/qwik';
 
 export const LvlIcon = () => {
   return (
@@ -16,9 +16,9 @@ export const LvlIcon = () => {
 
 export const SourceIcon = component$((props: { type: string }) => {
   switch (props.type) {
-    case "lvl1":
+    case 'lvl1':
       return <LvlIcon />;
-    case "content":
+    case 'content':
       return <ContentIcon />;
     default:
       return <AnchorIcon />;

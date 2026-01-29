@@ -1,4 +1,4 @@
-declare module "@qwik-city-plan" {
+declare module '@qwik-city-plan' {
   export const routes: any[];
   export const menus: any[];
   export const trailingSlash: boolean;
@@ -13,11 +13,11 @@ declare module "@qwik-city-plan" {
   };
   export default defaultExport;
 }
-declare module "@qwik-city-not-found-paths" {
+declare module '@qwik-city-not-found-paths' {
   function getNotFound(_pathname: string): string;
   export { getNotFound };
 }
-declare module "@qwik-city-static-paths" {
+declare module '@qwik-city-static-paths' {
   function isStaticPath(method: string, url: URL): boolean;
   export { isStaticPath };
 }

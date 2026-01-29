@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import Dynamic8 from "./dynamic8";
+import { component$ } from '@builder.io/qwik';
+import Dynamic8 from './dynamic8';
 
 export default component$(() => {
   return (

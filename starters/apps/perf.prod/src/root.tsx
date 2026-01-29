@@ -1,6 +1,6 @@
-import { App } from "./components/app/app";
+import { App } from './components/app/app';
 
-import "./global.css";
+import './global.css';
 
 export default () => {
   return (

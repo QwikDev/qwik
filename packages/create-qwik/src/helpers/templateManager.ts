@@ -1,18 +1,18 @@
-import type { IntegrationData, IntegrationType } from "packages/qwik/src/cli/types";
+import type { IntegrationData, IntegrationType } from 'packages/qwik/src/cli/types';
 
-import { loadIntegrations } from "packages/qwik/src/cli/utils/integrations";
+import { loadIntegrations } from 'packages/qwik/src/cli/utils/integrations';
 
 let integrations: IntegrationData[] | undefined = undefined;
 
-const LIBRARY_ID = "library";
-const BASE_ID = "base";
+const LIBRARY_ID = 'library';
+const BASE_ID = 'base';
 
 class AppNotFoundError extends Error {
   constructor(id: string, templates: IntegrationData[]) {
     super();
 
     this.message = `Invalid app id "${id}". It can only be one of${templates.map(
-      (app) => ` "${app.id}"`,
+      (app) => ` "${app.id}"`
     )}.`;
   }
 }
@@ -27,7 +27,7 @@ export const makeTemplateManager = async (type: IntegrationType) => {
 
   function getAppById(
     id: string,
-    isStandaloneInstallable: boolean = true,
+    isStandaloneInstallable: boolean = true
   ): IntegrationData | undefined {
     if (isStandaloneInstallable) {
       return standaloneTemplates.find((t) => t.id === id);

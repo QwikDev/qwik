@@ -1,17 +1,17 @@
-import { component$, useResource$, Resource } from "@builder.io/qwik";
-import { server$ } from "@builder.io/qwik-city";
-import { delay } from "../../actions/login";
+import { component$, useResource$, Resource } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+import { delay } from '../../actions/login';
 
 const serverFunctionA = server$(async function a() {
-  return this.pathname + "a";
+  return this.pathname + 'a';
 });
 
 const serverFunctionB = server$(async function b() {
-  return this.pathname + "b";
+  return this.pathname + 'b';
 });
 
 const serverFunctionC = server$(async function c() {
-  return this.pathname + "c";
+  return this.pathname + 'c';
 });
 
 const ResourceServerFns = component$(() => {

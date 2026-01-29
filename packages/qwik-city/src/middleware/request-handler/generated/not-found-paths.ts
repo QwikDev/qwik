@@ -3,5 +3,5 @@
  * DEPENDING ON RUNTIME (e.g. DEV or PRODUCTION)
  */
 export function getNotFound(_pathname: string) {
-  return "Resource Not Found";
+  return 'Resource Not Found';
 }

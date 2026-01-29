@@ -1,9 +1,9 @@
-import { component$, useTask$, useVisibleTask$, useSignal, $, useStyles$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import { component$, useTask$, useVisibleTask$, useSignal, $, useStyles$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
 
 // This will be in a separate chunk due to dynamic import
-const getLibA = () => import("../vendor-lib/libA");
-const getLibB = () => import("../vendor-lib/libB");
+const getLibA = () => import('../vendor-lib/libA');
+const getLibB = () => import('../vendor-lib/libB');
 
 export default component$(() => {
   useStyles$(`
@@ -24,7 +24,7 @@ export default component$(() => {
   `);
 
   const count = useSignal(0);
-  const message = useSignal("");
+  const message = useSignal('');
 
   useVisibleTask$(async ({ track }) => {
     const lib = track(count) & 1 ? getLibA() : getLibB();
@@ -32,7 +32,7 @@ export default component$(() => {
   });
 
   useTask$(async () => {
-    message.value = "loading...";
+    message.value = 'loading...';
   });
 
   const handleClick$ = $(async () => {
@@ -62,11 +62,11 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Home - Preloader Test",
+  title: 'Home - Preloader Test',
   meta: [
     {
-      name: "description",
-      content: "Welcome to the Preloader Test application",
+      name: 'description',
+      content: 'Welcome to the Preloader Test application',
     },
   ],
 };

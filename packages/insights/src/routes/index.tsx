@@ -1,9 +1,9 @@
-import { component$ } from "@builder.io/qwik";
-import Button from "~/components/button";
-import Container from "~/components/container";
-import GithubIcon from "~/components/icons/github";
-import Layout from "~/components/layout";
-import { useSignIn } from "./plugin@auth";
+import { component$ } from '@builder.io/qwik';
+import Button from '~/components/button';
+import Container from '~/components/container';
+import GithubIcon from '~/components/icons/github';
+import Layout from '~/components/layout';
+import { useSignIn } from './plugin@auth';
 
 export default component$(() => {
   const signInSig = useSignIn();
@@ -17,7 +17,7 @@ export default component$(() => {
             <Button
               theme="github"
               onClick$={async () => {
-                signInSig.submit({ providerId: "github" });
+                signInSig.submit({ providerId: 'github' });
               }}
             >
               <GithubIcon />

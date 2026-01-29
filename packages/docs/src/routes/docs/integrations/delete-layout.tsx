@@ -1,8 +1,8 @@
-import { component$, Slot } from "@builder.io/qwik";
-import { ContentNav } from "../../../components/content-nav/content-nav";
-import { Footer } from "../../../components/footer/footer";
-import { Header } from "../../../components/header/header";
-import { SideBar } from "../../../components/sidebar/sidebar";
+import { component$, Slot } from '@builder.io/qwik';
+import { ContentNav } from '../../../components/content-nav/content-nav';
+import { Footer } from '../../../components/footer/footer';
+import { Header } from '../../../components/header/header';
+import { SideBar } from '../../../components/sidebar/sidebar';
 
 export default component$(() => {
   return (
@@ -11,7 +11,7 @@ export default component$(() => {
       <SideBar allOpen={true} />
       <main
         class={{
-          "no-right-menu": true,
+          'no-right-menu': true,
         }}
       >
         <div class="docs-container">

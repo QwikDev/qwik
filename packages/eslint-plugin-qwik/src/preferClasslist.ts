@@ -1,30 +1,30 @@
 // From: https://github.com/solidjs-community/eslint-plugin-solid/blob/d8bf1d13889fbc5fa3e644bc3f932696c78cef9d/src/rules/prefer-classlist.ts
 
-import type { TSESTree as T } from "@typescript-eslint/utils";
-import jsxAstUtils from "jsx-ast-utils";
-import { QwikEslintExamples } from "../examples";
+import type { TSESTree as T } from '@typescript-eslint/utils';
+import jsxAstUtils from 'jsx-ast-utils';
+import { QwikEslintExamples } from '../examples';
 
 export const preferClasslist = {
   meta: {
-    type: "problem",
+    type: 'problem',
     docs: {
       recommended: false,
       description:
-        "Enforce using the classlist prop over importing a classnames helper. The classlist prop accepts an object `{ [class: string]: boolean }` just like classnames.",
-      url: "https://qwik.dev/docs/advanced/eslint/#prefer-classlist",
+        'Enforce using the classlist prop over importing a classnames helper. The classlist prop accepts an object `{ [class: string]: boolean }` just like classnames.',
+      url: 'https://qwik.dev/docs/advanced/eslint/#prefer-classlist',
     },
-    fixable: "code",
+    fixable: 'code',
     schema: [
       {
-        type: "object",
+        type: 'object',
         properties: {
           classnames: {
-            type: "array",
+            type: 'array',
 
-            description: "An array of names to treat as `classnames` functions",
-            default: ["cn", "clsx", "classnames"],
+            description: 'An array of names to treat as `classnames` functions',
+            default: ['cn', 'clsx', 'classnames'],
             items: {
-              type: "string",
+              type: 'string',
               minItems: 1,
               uniqueItems: true,
             },
@@ -35,43 +35,43 @@ export const preferClasslist = {
     ],
     messages: {
       preferClasslist:
-        "The classlist prop should be used instead of {{ classnames }} to efficiently set classes based on an object.",
+        'The classlist prop should be used instead of {{ classnames }} to efficiently set classes based on an object.',
     },
   },
   create(context) {
     const modifyJsxSource = context.sourceCode
       .getAllComments()
-      .some((c) => c.value.includes("@jsxImportSource"));
+      .some((c) => c.value.includes('@jsxImportSource'));
     if (modifyJsxSource) {
       return {};
     }
-    const classnames = context.options[0]?.classnames ?? ["cn", "clsx", "classnames"];
+    const classnames = context.options[0]?.classnames ?? ['cn', 'clsx', 'classnames'];
     return {
       JSXAttribute(node) {
         if (
-          ["class", "className"].indexOf(jsxAstUtils.propName(node)) === -1 ||
+          ['class', 'className'].indexOf(jsxAstUtils.propName(node)) === -1 ||
           jsxAstUtils.hasProp(
             (node.parent as T.JSXOpeningElement | undefined)?.attributes,
-            "classlist",
+            'classlist',
             {
               ignoreCase: false,
-            },
+            }
           )
         ) {
           return;
         }
-        if (node.value?.type === "JSXExpressionContainer") {
+        if (node.value?.type === 'JSXExpressionContainer') {
           const expr = node.value.expression;
           if (
-            expr.type === "CallExpression" &&
-            expr.callee.type === "Identifier" &&
+            expr.type === 'CallExpression' &&
+            expr.callee.type === 'Identifier' &&
             classnames.indexOf(expr.callee.name) !== -1 &&
             expr.arguments.length === 1 &&
-            expr.arguments[0].type === "ObjectExpression"
+            expr.arguments[0].type === 'ObjectExpression'
           ) {
             context.report({
               node,
-              messageId: "preferClasslist",
+              messageId: 'preferClasslist',
               data: {
                 classnames: expr.callee.name,
               },
@@ -79,8 +79,8 @@ export const preferClasslist = {
                 const attrRange = node.range;
                 const objectRange = expr.arguments[0].range;
                 return [
-                  fixer.replaceTextRange([attrRange[0], objectRange[0]], "classlist={"),
-                  fixer.replaceTextRange([objectRange[1], attrRange[1]], "}"),
+                  fixer.replaceTextRange([attrRange[0], objectRange[0]], 'classlist={'),
+                  fixer.replaceTextRange([objectRange[1], attrRange[1]], '}'),
                 ];
               },
             });
@@ -132,16 +132,16 @@ export const preferClasslistExamples: QwikEslintExamples = {
   preferClasslist: {
     good: [
       {
-        codeHighlight: "{7-10,15,16} /class/#a",
+        codeHighlight: '{7-10,15,16} /class/#a',
         code: preferClasslistGood,
       },
     ],
     bad: [
       {
-        codeHighlight: "{2,7-13} /classnames/#a",
+        codeHighlight: '{2,7-13} /classnames/#a',
         code: preferClasslistBad,
         description:
-          "The class prop should be used instead of any 3rd party lib to efficiently set classes based on an object.",
+          'The class prop should be used instead of any 3rd party lib to efficiently set classes based on an object.',
       },
     ],
   },

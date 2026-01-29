@@ -1,20 +1,20 @@
-import { execSync } from "child_process";
-import { join } from "path";
-import { workspaceRoot } from ".";
-import { existsSync, writeFileSync } from "fs";
+import { execSync } from 'child_process';
+import { join } from 'path';
+import { workspaceRoot } from '.';
+import { existsSync, writeFileSync } from 'fs';
 
 const packageCfg = {
-  "@builder.io/qwik": {
-    packagePath: "packages/qwik",
-    distPath: "packages/qwik/dist",
+  '@builder.io/qwik': {
+    packagePath: 'packages/qwik',
+    distPath: 'packages/qwik/dist',
   },
-  "@builder.io/qwik-city": {
-    packagePath: "packages/qwik-city",
-    distPath: "packages/qwik-city/lib",
+  '@builder.io/qwik-city': {
+    packagePath: 'packages/qwik-city',
+    distPath: 'packages/qwik-city/lib',
   },
-  "eslint-plugin-qwik": {
-    packagePath: "packages/eslint-plugin-qwik",
-    distPath: "packages/eslint-plugin-qwik/dist",
+  'eslint-plugin-qwik': {
+    packagePath: 'packages/eslint-plugin-qwik',
+    distPath: 'packages/eslint-plugin-qwik/dist',
   },
 };
 function ensurePackageBuilt() {
@@ -26,16 +26,16 @@ function ensurePackageBuilt() {
 }
 function packPackages() {
   const tarballPaths: { name: string; absolutePath: string }[] = [];
-  const tarballOutDir = join(workspaceRoot, "temp", "tarballs");
+  const tarballOutDir = join(workspaceRoot, 'temp', 'tarballs');
   for (const [name, cfg] of Object.entries(packageCfg)) {
     const out = execSync(`pnpm pack --json --pack-destination=${tarballOutDir}`, {
       cwd: join(workspaceRoot, cfg.packagePath),
-      encoding: "utf-8",
+      encoding: 'utf-8',
     });
     const json = JSON.parse(out);
     tarballPaths.push({ name, absolutePath: json.filename });
   }
-  writeFileSync(join(tarballOutDir, "paths.json"), JSON.stringify(tarballPaths));
+  writeFileSync(join(tarballOutDir, 'paths.json'), JSON.stringify(tarballPaths));
 }
 
 ensurePackageBuilt();

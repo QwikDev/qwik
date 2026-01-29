@@ -1,6 +1,6 @@
-import type { TestPlatform } from "./types";
-import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import type { TestPlatform } from './types';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 function createPlatform() {
   interface Queue<T> {
@@ -17,10 +17,10 @@ function createPlatform() {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
       if (!url) {
-        throw new Error("Missing URL");
+        throw new Error('Missing URL');
       }
       if (!containerEl) {
-        throw new Error("Missing Container");
+        throw new Error('Missing Container');
       }
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url);
       const importPath = toPath(urlDoc);
@@ -53,7 +53,7 @@ function createPlatform() {
         });
       } else if (renderMarked !== render.fn) {
         // TODO(misko): proper error and test
-        throw new Error("Must be same function");
+        throw new Error('Must be same function');
       }
       return render.promise;
     },
@@ -102,14 +102,14 @@ export function setTestPlatform(_setPlatform: Function) {
  * @returns Fully qualified URL.
  */
 export function toUrl(doc: Document, containerEl: Element, url: string | URL): URL {
-  const base = new URL(containerEl?.getAttribute("q:base") ?? doc.baseURI, doc.baseURI);
+  const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
   return new URL(url, base);
 }
 
 function toPath(url: URL) {
   const normalizedUrl = new URL(String(url));
-  normalizedUrl.hash = "";
-  normalizedUrl.search = "";
+  normalizedUrl.hash = '';
+  normalizedUrl.search = '';
   const path = fileURLToPath(String(normalizedUrl));
   const importPaths = [path, ...testExts.map((ext) => path + ext)];
 
@@ -129,4 +129,4 @@ export function getTestPlatform(): TestPlatform {
   return testPlatform;
 }
 
-const testExts = [".ts", ".tsx", ".js", ".cjs", ".mjs", ".jsx"];
+const testExts = ['.ts', '.tsx', '.js', '.cjs', '.mjs', '.jsx'];

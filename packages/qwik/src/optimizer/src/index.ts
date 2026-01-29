@@ -1,5 +1,5 @@
-export { createOptimizer } from "./optimizer";
-export { versions } from "./versions";
+export { createOptimizer } from './optimizer';
+export { versions } from './versions';
 
 export type {
   ComponentEntryStrategy,
@@ -38,19 +38,19 @@ export type {
   TransformOptions,
   TransformOutput,
   TranspileOption,
-} from "./types";
+} from './types';
 
-export type { ExperimentalFeatures, QwikBuildMode, QwikBuildTarget } from "./plugins/plugin";
-export type { QwikRollupPluginOptions } from "./plugins/rollup";
+export type { ExperimentalFeatures, QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
+export type { QwikRollupPluginOptions } from './plugins/rollup';
 export type {
   QwikViteDevResponse,
   QwikVitePlugin,
   QwikVitePluginApi,
   QwikVitePluginOptions,
-} from "./plugins/vite";
+} from './plugins/vite';
 
-export type { BundleGraphAdder } from "./plugins/bundle-graph";
+export type { BundleGraphAdder } from './plugins/bundle-graph';
 
-export { qwikRollup } from "./plugins/rollup";
-export { qwikVite } from "./plugins/vite";
-export { symbolMapper } from "./plugins/vite-dev-server";
+export { qwikRollup } from './plugins/rollup';
+export { qwikVite } from './plugins/vite';
+export { symbolMapper } from './plugins/vite-dev-server';

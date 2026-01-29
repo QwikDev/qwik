@@ -1,4 +1,4 @@
-import { component$, useVisibleTask$, useSignal, useId } from "@builder.io/qwik";
+import { component$, useVisibleTask$, useSignal, useId } from '@builder.io/qwik';
 
 export const MIN_CHILDREN = 2;
 export const MAX_CHIDREN = 5;
@@ -10,7 +10,7 @@ export const Nested = component$((props: { level: number }) => {
   const children = [...new Array(r).keys()];
   return (
     <>
-      {" "}
+      {' '}
       {props.level >= MAX_DEPTH && children.length ? (
         id
       ) : (
@@ -38,7 +38,7 @@ export const UseId = component$(() => {
   const resultSignal = useSignal<string | null>(null);
 
   useVisibleTask$(() => {
-    const ids = Array.from(document.querySelectorAll("ul[id]"));
+    const ids = Array.from(document.querySelectorAll('ul[id]'));
 
     const uniqueIds: Set<string> = [...ids].reduce((prev, value) => {
       prev.add(value.id);
@@ -57,15 +57,15 @@ export const UseId = component$(() => {
 
     resultSignal.value =
       totalIdsSignal.value == validIdsSignal.value && collsionsSignal.value == 0
-        ? "Passed"
-        : "Failed";
+        ? 'Passed'
+        : 'Failed';
   });
 
   return (
     <>
       <h1>
-        useId() Collision Test{" "}
-        <span id="result" style={{ visibility: resultSignal.value ? "visible" : "hidden" }}>
+        useId() Collision Test{' '}
+        <span id="result" style={{ visibility: resultSignal.value ? 'visible' : 'hidden' }}>
           {resultSignal.value}
         </span>
       </h1>
@@ -82,7 +82,7 @@ export const UseId = component$(() => {
       <p>
         <b>Collisions:</b> <span id="collisions">{collsionsSignal.value}</span>
       </p>
-      <Nested key={"nested-root"} level={0} />
+      <Nested key={'nested-root'} level={0} />
     </>
   );
 });

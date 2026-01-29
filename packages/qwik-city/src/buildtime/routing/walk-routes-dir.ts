@@ -1,8 +1,8 @@
-import fs from "node:fs";
-import { basename, join } from "node:path";
-import type { RouteSourceFile } from "../types";
-import { normalizePath } from "../../utils/fs";
-import { getSourceFile } from "./source-file";
+import fs from 'node:fs';
+import { basename, join } from 'node:path';
+import type { RouteSourceFile } from '../types';
+import { normalizePath } from '../../utils/fs';
+import { getSourceFile } from './source-file';
 
 export async function walkRoutes(routesDir: string) {
   const sourceFiles: RouteSourceFile[] = [];
@@ -32,6 +32,6 @@ async function walkRouteDir(sourceFiles: RouteSourceFile[], dirPath: string, dir
           });
         }
       }
-    }),
+    })
   );
 }

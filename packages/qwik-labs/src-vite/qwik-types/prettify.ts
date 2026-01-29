@@ -1,21 +1,21 @@
-import { format } from "prettier/standalone";
-import estree from "prettier/plugins/estree";
-import typeScriptParser from "prettier/parser-typescript";
-import postCssParser from "prettier/parser-postcss";
-import htmlParser from "prettier/parser-html";
-import babelParser from "prettier/parser-babel";
+import { format } from 'prettier/standalone';
+import estree from 'prettier/plugins/estree';
+import typeScriptParser from 'prettier/parser-typescript';
+import postCssParser from 'prettier/parser-postcss';
+import htmlParser from 'prettier/parser-html';
+import babelParser from 'prettier/parser-babel';
 
 export async function prettify(
   template: TemplateStringsArray,
   ...substitutions: any[]
 ): Promise<string> {
-  let source = "";
+  let source = '';
   for (let i = 0; i < template.length; i++) {
-    source += template[i] + (i < substitutions.length ? String(substitutions[i]) : "");
+    source += template[i] + (i < substitutions.length ? String(substitutions[i]) : '');
   }
   try {
     source = await format(source, {
-      parser: "typescript",
+      parser: 'typescript',
       plugins: [
         // To support running in browsers
         // require('prettier/plugins/estree'),
@@ -29,15 +29,15 @@ export async function prettify(
         // require('prettier/parser-babel'),
         babelParser,
       ],
-      htmlWhitespaceSensitivity: "ignore",
+      htmlWhitespaceSensitivity: 'ignore',
     });
   } catch (e) {
     throw new Error(
       e +
-        "\n" +
-        "========================================================================\n" +
+        '\n' +
+        '========================================================================\n' +
         source +
-        "\n\n========================================================================",
+        '\n\n========================================================================'
     );
   }
   return source;

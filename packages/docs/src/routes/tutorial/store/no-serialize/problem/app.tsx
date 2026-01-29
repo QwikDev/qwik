@@ -1,4 +1,4 @@
-import { component$, type NoSerialize, useStore } from "@builder.io/qwik";
+import { component$, type NoSerialize, useStore } from '@builder.io/qwik';
 
 interface AppStore {
   time: null | string;

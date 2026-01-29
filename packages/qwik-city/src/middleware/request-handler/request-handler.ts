@@ -1,9 +1,9 @@
-import type { Render } from "@builder.io/qwik/server";
-import { loadRoute } from "../../runtime/src/routing";
-import type { RebuildRouteInfoInternal, QwikCityPlan } from "../../runtime/src/types";
-import { renderQwikMiddleware, resolveRequestHandlers } from "./resolve-request-handlers";
-import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from "./types";
-import { getRouteMatchPathname, runQwikCity, type QwikCityRun } from "./user-response";
+import type { Render } from '@builder.io/qwik/server';
+import { loadRoute } from '../../runtime/src/routing';
+import type { RebuildRouteInfoInternal, QwikCityPlan } from '../../runtime/src/types';
+import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
+import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
+import { getRouteMatchPathname, runQwikCity, type QwikCityRun } from './user-response';
 
 /**
  * The request handler for QwikCity. Called by every integration.
@@ -13,12 +13,12 @@ import { getRouteMatchPathname, runQwikCity, type QwikCityRun } from "./user-res
 export async function requestHandler<T = unknown>(
   serverRequestEv: ServerRequestEvent<T>,
   opts: ServerRenderOptions,
-  qwikSerializer: QwikSerializer,
+  qwikSerializer: QwikSerializer
 ): Promise<QwikCityRun<T> | null> {
   const { render, qwikCityPlan, checkOrigin } = opts;
   const { pathname, isInternal } = getRouteMatchPathname(
     serverRequestEv.url.pathname,
-    qwikCityPlan.trailingSlash,
+    qwikCityPlan.trailingSlash
   );
   const routeAndHandlers = await loadRequestHandlers(
     qwikCityPlan,
@@ -26,7 +26,7 @@ export async function requestHandler<T = unknown>(
     serverRequestEv.request.method,
     checkOrigin ?? true,
     render,
-    isInternal,
+    isInternal
   );
 
   if (routeAndHandlers) {
@@ -41,7 +41,7 @@ export async function requestHandler<T = unknown>(
         serverRequestEv.request.method,
         checkOrigin ?? true,
         render,
-        isInternal,
+        isInternal
       );
 
       if (routeAndHandlers) {
@@ -59,7 +59,7 @@ export async function requestHandler<T = unknown>(
       rebuildRouteInfo,
       qwikCityPlan.trailingSlash,
       qwikCityPlan.basePathname,
-      qwikSerializer,
+      qwikSerializer
     );
   }
   return null;
@@ -69,9 +69,9 @@ async function loadRequestHandlers(
   qwikCityPlan: QwikCityPlan,
   pathname: string,
   method: string,
-  checkOrigin: boolean | "lax-proto",
+  checkOrigin: boolean | 'lax-proto',
   renderFn: Render,
-  isInternal: boolean,
+  isInternal: boolean
 ) {
   const { routes, serverPlugins, menus, cacheModules } = qwikCityPlan;
   const route = await loadRoute(routes, menus, cacheModules, pathname, isInternal);
@@ -81,7 +81,7 @@ async function loadRequestHandlers(
     method,
     checkOrigin,
     renderQwikMiddleware(renderFn),
-    isInternal,
+    isInternal
   );
   if (requestHandlers.length > 0) {
     return [route, requestHandlers] as const;

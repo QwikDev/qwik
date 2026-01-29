@@ -1,4 +1,4 @@
-import type { ReplModuleInput } from "../../repl/types";
+import type { ReplModuleInput } from '../../repl/types';
 
 export interface PlaygroundApp {
   inputs: ReplModuleInput[];

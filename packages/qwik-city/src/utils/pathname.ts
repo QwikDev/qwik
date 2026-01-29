@@ -1,19 +1,19 @@
-import type { PathParams } from "../runtime/src";
+import type { PathParams } from '../runtime/src';
 
 export function normalizePathname(
   pathname: string | undefined | null,
   basePathname: string,
-  trailingSlash: boolean,
+  trailingSlash: boolean
 ) {
-  if (typeof pathname === "string") {
+  if (typeof pathname === 'string') {
     pathname = pathname.trim();
 
-    if (pathname !== "") {
+    if (pathname !== '') {
       try {
         // remove duplicate forward slashes
-        pathname = pathname.replace(/\/+/g, "/");
+        pathname = pathname.replace(/\/+/g, '/');
 
-        if (pathname.startsWith("/")) {
+        if (pathname.startsWith('/')) {
           pathname = pathname.slice(1);
         }
 
@@ -23,16 +23,16 @@ export function normalizePathname(
 
         if (pathname !== basePathname) {
           if (trailingSlash) {
-            if (!pathname.endsWith("/")) {
-              const segments = pathname.split("/");
+            if (!pathname.endsWith('/')) {
+              const segments = pathname.split('/');
               const lastSegment = segments[segments.length - 1];
 
-              if (!lastSegment.includes(".")) {
-                pathname += "/";
+              if (!lastSegment.includes('.')) {
+                pathname += '/';
               }
             }
           } else {
-            if (pathname.endsWith("/")) {
+            if (pathname.endsWith('/')) {
               pathname = pathname.slice(0, pathname.length - 1);
             }
           }
@@ -50,7 +50,7 @@ export function normalizePathname(
 export function getPathnameForDynamicRoute(
   originalPathname: string,
   paramNames: string[] | undefined,
-  params: PathParams | undefined,
+  params: PathParams | undefined
 ) {
   let pathname = originalPathname;
 
@@ -68,15 +68,15 @@ export function getPathnameForDynamicRoute(
 }
 
 export function isSameOriginUrl(url: string) {
-  if (typeof url === "string") {
+  if (typeof url === 'string') {
     url = url.trim();
-    if (url !== "") {
+    if (url !== '') {
       const firstChar = url.charAt(0);
-      if (firstChar !== "/" && firstChar !== ".") {
-        if (firstChar === "#") {
+      if (firstChar !== '/' && firstChar !== '.') {
+        if (firstChar === '#') {
           return false;
         }
-        const i = url.indexOf(":");
+        const i = url.indexOf(':');
         if (i > -1) {
           const protocol = url.slice(0, i).toLowerCase();
           return !PROTOCOLS[protocol];

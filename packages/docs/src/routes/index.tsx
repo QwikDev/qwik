@@ -1,7 +1,7 @@
-import { component$ } from "@builder.io/qwik";
-import { type DocumentHead } from "@builder.io/qwik-city";
-import { Footer } from "../components/footer/footer";
-import { Header } from "../components/header/header";
+import { component$ } from '@builder.io/qwik';
+import { type DocumentHead } from '@builder.io/qwik-city';
+import { Footer } from '../components/footer/footer';
+import { Header } from '../components/header/header';
 
 // Copy of the builder content, excluding assets which are still being served
 const builderContent = `<!--cq--><div q:container="paused" q:version="0.100.0" q:render="ssr-dev" q:base="/builder/" class="qc📦"><div builder-content-id="97a3ddc814674f85b6ef0d82dc2b6eb1"><style>/*
@@ -290,5 +290,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Framework reimagined for the edge!",
+  title: 'Framework reimagined for the edge!',
 };

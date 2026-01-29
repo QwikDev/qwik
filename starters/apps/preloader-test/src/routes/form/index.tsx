@@ -1,13 +1,13 @@
-import { component$, useStyles$ } from "@builder.io/qwik";
-import { type DocumentHead, routeAction$, Form } from "@builder.io/qwik-city";
+import { component$, useStyles$ } from '@builder.io/qwik';
+import { type DocumentHead, routeAction$, Form } from '@builder.io/qwik-city';
 
 export const useFormAction = routeAction$((data) => {
   // This runs on the server
   // eslint-disable-next-line no-console
-  console.log("Form submitted with data:", data);
+  console.log('Form submitted with data:', data);
   return {
     success: true,
-    message: "Form submitted successfully",
+    message: 'Form submitted successfully',
   };
 });
 
@@ -138,11 +138,11 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Contact Form - Preloader Test",
+  title: 'Contact Form - Preloader Test',
   meta: [
     {
-      name: "description",
-      content: "Contact form for the Preloader Test application",
+      name: 'description',
+      content: 'Contact form for the Preloader Test application',
     },
   ],
 };

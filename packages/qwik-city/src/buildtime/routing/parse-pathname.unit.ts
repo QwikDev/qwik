@@ -1,5 +1,5 @@
-import { assert, test } from "vitest";
-import { parseRoutePathname } from "./parse-pathname";
+import { assert, test } from 'vitest';
+import { parseRoutePathname } from './parse-pathname';
 
 /**
  * Adopted from SvelteKit
@@ -8,68 +8,68 @@ import { parseRoutePathname } from "./parse-pathname";
  */
 
 const tests = {
-  "/": {
-    basePathname: "/",
+  '/': {
+    basePathname: '/',
     pattern: /^\/$/,
     paramNames: [],
   },
-  "/base.pathname/": {
-    basePathname: "/base.pathname/",
+  '/base.pathname/': {
+    basePathname: '/base.pathname/',
     pattern: /^\/base\.pathname\/$/,
     paramNames: [],
   },
-  "/base/pathname/": {
-    basePathname: "/base/pathname/",
+  '/base/pathname/': {
+    basePathname: '/base/pathname/',
     pattern: /^\/base\/pathname\/$/,
     paramNames: [],
   },
-  "/blog": {
-    basePathname: "/",
+  '/blog': {
+    basePathname: '/',
     pattern: /^\/blog\/?$/,
     paramNames: [],
   },
-  "/base/pathname/blog": {
-    basePathname: "/base/pathname/",
+  '/base/pathname/blog': {
+    basePathname: '/base/pathname/',
     pattern: /^\/base\/pathname\/blog\/?$/,
     paramNames: [],
   },
-  "/blog.json": {
-    basePathname: "/",
+  '/blog.json': {
+    basePathname: '/',
     pattern: /^\/blog\.json\/?$/,
     paramNames: [],
   },
-  "/blog/[slug]": {
-    basePathname: "/",
+  '/blog/[slug]': {
+    basePathname: '/',
     pattern: /^\/blog\/([^/]+?)\/?$/,
-    paramNames: ["slug"],
+    paramNames: ['slug'],
   },
-  "/blog/[slug].json": {
-    basePathname: "/",
+  '/blog/[slug].json': {
+    basePathname: '/',
     pattern: /^\/blog\/([^/]+?)\.json\/?$/,
-    paramNames: ["slug"],
+    paramNames: ['slug'],
   },
-  "/[...rest]": {
-    basePathname: "/",
+  '/[...rest]': {
+    basePathname: '/',
     pattern: /^(?:\/(.*))?\/?$/,
-    paramNames: ["rest"],
+    paramNames: ['rest'],
   },
-  "/foo/[...rest]/bar": {
-    basePathname: "/",
+  '/foo/[...rest]/bar': {
+    basePathname: '/',
     pattern: /^\/foo(?:\/(.*))?\/bar\/?$/,
-    paramNames: ["rest"],
+    paramNames: ['rest'],
   },
-  "/xyz/abc.dot/": {
-    basePathname: "/",
+  '/xyz/abc.dot/': {
+    basePathname: '/',
     pattern: /^\/xyz\/abc\.dot\/?$/,
     paramNames: [],
   },
-  "/xyz/%D8%B9%D8%B1%D8%A8%D9%8A/": {
-    basePathname: "/",
+  '/xyz/%D8%B9%D8%B1%D8%A8%D9%8A/': {
+    basePathname: '/',
     pattern: /^\/xyz\/%D8%B9%D8%B1%D8%A8%D9%8A\/?$/,
     paramNames: [],
   },
-  "/xyz/server$/": {
-    basePathname: "/",
+  '/xyz/server$/': {
+    basePathname: '/',
     pattern: /^\/xyz\/server\$\/?$/,
     paramNames: [],
   },

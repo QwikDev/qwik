@@ -1,8 +1,8 @@
-import { QObjectRecursive } from "../state/constants";
-import { getOrCreateProxy } from "../state/store";
-import { isFunction } from "../util/types";
-import { invoke } from "./use-core";
-import { useSequentialScope } from "./use-sequential-scope";
+import { QObjectRecursive } from '../state/constants';
+import { getOrCreateProxy } from '../state/store';
+import { isFunction } from '../util/types';
+import { invoke } from './use-core';
+import { useSequentialScope } from './use-sequential-scope';
 
 /** @public */
 export interface UseStoreOptions {
@@ -78,7 +78,7 @@ export interface UseStoreOptions {
 // </docs>
 export const useStore = <STATE extends object>(
   initialState: STATE | (() => STATE),
-  opts?: UseStoreOptions,
+  opts?: UseStoreOptions
 ): STATE => {
   const { val, set, iCtx } = useSequentialScope<STATE>();
   if (val != null) {

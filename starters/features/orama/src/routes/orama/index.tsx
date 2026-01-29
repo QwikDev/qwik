@@ -1,7 +1,7 @@
-import { $, component$, useSignal, useStylesScoped$ } from "@builder.io/qwik";
-import { server$ } from "@builder.io/qwik-city";
-import { search } from "@orama/orama";
-import { type Pokemon, oramaDb, createOramaDb } from "~/orama";
+import { $, component$, useSignal, useStylesScoped$ } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+import { search } from '@orama/orama';
+import { type Pokemon, oramaDb, createOramaDb } from '~/orama';
 
 createOramaDb();
 
@@ -42,7 +42,7 @@ export default component$(() => {
 			color: black;
 		}
 	`);
-  const termSignal = useSignal("");
+  const termSignal = useSignal('');
   const pokedexSig = useSignal<Pokemon[]>([]);
 
   const onSearch = $(async (term: string) => {
@@ -59,7 +59,7 @@ export default component$(() => {
             placeholder="e.g. search for plant, water, hot."
             bind:value={termSignal}
             onKeyDown$={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === 'Enter') {
                 onSearch(termSignal.value);
               }
             }}
@@ -92,7 +92,7 @@ export default component$(() => {
 export const execSearch = server$(async (term: string) => {
   const response = await search(oramaDb, {
     term,
-    properties: "*",
+    properties: '*',
     boost: { name: 1.5 },
   });
   return response;

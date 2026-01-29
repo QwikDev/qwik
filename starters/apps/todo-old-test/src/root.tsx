@@ -1,4 +1,4 @@
-import { App } from "./components/app/app";
+import { App } from './components/app/app';
 
 export const Root = () => {
   return (

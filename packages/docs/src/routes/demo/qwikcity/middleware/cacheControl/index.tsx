@@ -1,4 +1,4 @@
-import { type RequestHandler } from "@builder.io/qwik-city";
+import { type RequestHandler } from '@builder.io/qwik-city';
 
 export const onGet: RequestHandler = async ({ cacheControl, headers, json }) => {
   cacheControl({ maxAge: 42, public: true });

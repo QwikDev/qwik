@@ -1,5 +1,5 @@
-import { MODULE_CACHE } from "./constants";
-import { matchRoute } from "./route-matcher";
+import { MODULE_CACHE } from './constants';
+import { matchRoute } from './route-matcher';
 import type {
   ContentMenu,
   LoadedRoute,
@@ -8,7 +8,7 @@ import type {
   ModuleLoader,
   RouteData,
   RouteModule,
-} from "./types";
+} from './types';
 
 export const CACHE = new Map<RouteData, Promise<any>>();
 /** LoadRoute() runs in both client and server. */
@@ -17,7 +17,7 @@ export const loadRoute = async (
   menus: MenuData[] | undefined,
   cacheModules: boolean | undefined,
   pathname: string,
-  isInternal?: boolean,
+  isInternal?: boolean
 ): Promise<LoadedRoute | null> => {
   if (!Array.isArray(routes)) {
     return null;
@@ -38,7 +38,7 @@ export const loadRoute = async (
         moduleLoader,
         pendingLoads,
         (routeModule) => (modules[i] = routeModule),
-        cacheModules,
+        cacheModules
       );
     });
 
@@ -51,7 +51,7 @@ export const loadRoute = async (
         menuLoader,
         pendingLoads,
         (menuModule) => (menu = menuModule?.default),
-        cacheModules,
+        cacheModules
       );
     }
     if (pendingLoads.length > 0) {
@@ -67,22 +67,22 @@ const loadModule = <T>(
   moduleLoader: ModuleLoader | undefined,
   pendingLoads: Promise<any>[],
   moduleSetter: (loadedModule: T) => void,
-  cacheModules: boolean | undefined,
+  cacheModules: boolean | undefined
 ) => {
-  if (typeof moduleLoader === "function") {
+  if (typeof moduleLoader === 'function') {
     const loadedModule = MODULE_CACHE.get(moduleLoader);
     if (loadedModule) {
       moduleSetter(loadedModule);
     } else {
       const moduleOrPromise: any = moduleLoader();
-      if (typeof moduleOrPromise.then === "function") {
+      if (typeof moduleOrPromise.then === 'function') {
         pendingLoads.push(
           moduleOrPromise.then((loadedModule: any) => {
             if (cacheModules !== false) {
               MODULE_CACHE.set(moduleLoader, loadedModule);
             }
             moduleSetter(loadedModule);
-          }),
+          })
         );
       } else if (moduleOrPromise) {
         moduleSetter(moduleOrPromise);
@@ -93,7 +93,7 @@ const loadModule = <T>(
 
 export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
   if (menus) {
-    pathname = pathname.endsWith("/") ? pathname : pathname + "/";
+    pathname = pathname.endsWith('/') ? pathname : pathname + '/';
     // The menus are sorted longest to shortest so first match wins
     const menu = menus.find((m) => m[0] === pathname || pathname.startsWith(m[0]));
     if (menu) {

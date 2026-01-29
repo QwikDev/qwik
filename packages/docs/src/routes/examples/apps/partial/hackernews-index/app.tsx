@@ -1,6 +1,6 @@
-import { component$, useTask$, useSignal, useStyles$ } from "@builder.io/qwik";
-import { isServer } from "@builder.io/qwik";
-import HackerNewsCSS from "./hacker-news.css?inline";
+import { component$, useTask$, useSignal, useStyles$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik';
+import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {
   useStyles$(HackerNewsCSS);
@@ -8,7 +8,7 @@ export const HackerNews = component$(() => {
 
   useTask$(async () => {
     if (isServer) {
-      const response = await fetch("https://node-hnapi.herokuapp.com/news?page=0");
+      const response = await fetch('https://node-hnapi.herokuapp.com/news?page=0');
       data.value = await response.json();
     }
   });
@@ -52,27 +52,27 @@ export const Nav = component$(() => {
 
 export const Stories = component$<{ stories?: IStory[] }>(({ stories }) => {
   const page = 1;
-  const type = "list";
+  const type = 'list';
   return (
     <main class="news-view">
       <section class="news-list-nav">
         {page > 1 ? (
           <a class="page-link" href={`/?type=${type}&page=${page - 1}`} aria-label="Previous Page">
-            {"<"} prev
+            {'<'} prev
           </a>
         ) : (
           <span class="page-link disabled" aria-disabled="true">
-            {"<"} prev
+            {'<'} prev
           </span>
         )}
         <span>page {page}</span>
         {stories && stories.length >= 29 ? (
           <a class="page-link" href={`/?type=${type}&page=${page + 1}`} aria-label="Next Page">
-            more {">"}
+            more {'>'}
           </a>
         ) : (
           <span class="page-link disabled" aria-disabled="true">
-            more {">"}
+            more {'>'}
           </span>
         )}
       </section>
@@ -94,7 +94,7 @@ export const StoryPreview = component$<{ story: IStory }>((props) => {
     <li class="news-item">
       <span class="score">{props.story.points}</span>
       <span class="title">
-        {props.story.url && !props.story.url.startsWith("item?id=") ? (
+        {props.story.url && !props.story.url.startsWith('item?id=') ? (
           <>
             <a href={props.story.url} target="_blank" rel="noreferrer">
               {props.story.title}
@@ -107,21 +107,21 @@ export const StoryPreview = component$<{ story: IStory }>((props) => {
       </span>
       <br />
       <span class="meta">
-        {props.story.type !== "job" ? (
+        {props.story.type !== 'job' ? (
           <>
-            by <a href={`/users/${props.story.user}`}>{props.story.user}</a> {props.story.time_ago}{" "}
-            |{" "}
+            by <a href={`/users/${props.story.user}`}>{props.story.user}</a> {props.story.time_ago}{' '}
+            |{' '}
             <a href={`/stories/${props.story.id}`}>
-              {props.story.comments_count ? `${props.story.comments_count} comments` : "discuss"}
+              {props.story.comments_count ? `${props.story.comments_count} comments` : 'discuss'}
             </a>
           </>
         ) : (
           <a href={`/stories/${props.story.id}`}>{props.story.time_ago}</a>
         )}
       </span>
-      {props.story.type !== "link" && (
+      {props.story.type !== 'link' && (
         <>
-          {" "}
+          {' '}
           <span class="label">{props.story.type}</span>
         </>
       )}

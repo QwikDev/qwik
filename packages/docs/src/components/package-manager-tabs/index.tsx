@@ -6,14 +6,14 @@ import {
   $,
   type PropsOf,
   isBrowser,
-} from "@builder.io/qwik";
-import { Tabs } from "@qwik-ui/headless";
-import { GlobalStore } from "~/context";
+} from '@builder.io/qwik';
+import { Tabs } from '@qwik-ui/headless';
+import { GlobalStore } from '~/context';
 
-const pkgManagers = ["pnpm", "npm", "yarn", "bun"] as const;
+const pkgManagers = ['pnpm', 'npm', 'yarn', 'bun'] as const;
 export type PkgManagers = (typeof pkgManagers)[number];
 
-const pkgManagerStorageKey = "pkg-manager-preference";
+const pkgManagerStorageKey = 'pkg-manager-preference';
 
 const setPreference = (value: PkgManagers) => {
   if (isBrowser) {
@@ -23,15 +23,15 @@ const setPreference = (value: PkgManagers) => {
 
 export const getPkgManagerPreference = () => {
   try {
-    return (localStorage.getItem(pkgManagerStorageKey) || "pnpm") as PkgManagers;
+    return (localStorage.getItem(pkgManagerStorageKey) || 'pnpm') as PkgManagers;
   } catch (err) {
-    return "pnpm";
+    return 'pnpm';
   }
 };
 
 export default component$(() => {
   const globalStore = useContext(GlobalStore);
-  const activeClass = `${globalStore.theme === "light" ? "bg-gray-300 text-black" : "bg-slate-800 text-white"}`;
+  const activeClass = `${globalStore.theme === 'light' ? 'bg-gray-300 text-black' : 'bg-slate-800 text-white'}`;
 
   return (
     <Tabs.Root
@@ -45,7 +45,7 @@ export default component$(() => {
       <Tabs.List>
         <Tabs.Tab
           tabId="pnpm"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === "pnpm" ? `font-bold ${activeClass}` : ""}`}
+          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'pnpm' ? `font-bold ${activeClass}` : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <PnpmIcon />
@@ -54,7 +54,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="npm"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === "npm" ? `font-bold ${activeClass}` : ""}`}
+          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'npm' ? `font-bold ${activeClass}` : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <NpmIcon />
@@ -63,7 +63,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="yarn"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === "yarn" ? `font-bold ${activeClass}` : ""}`}
+          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'yarn' ? `font-bold ${activeClass}` : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <YarnIcon />
@@ -72,7 +72,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="bun"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === "bun" ? `font-bold ${activeClass}` : ""}`}
+          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'bun' ? `font-bold ${activeClass}` : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <BunIcon />
@@ -110,7 +110,7 @@ const CopyButton = component$(() => {
 
     const activePanel = target.parentElement;
     if (activePanel) {
-      const content = activePanel.textContent || "";
+      const content = activePanel.textContent || '';
       navigator.clipboard.writeText(content);
     }
 
@@ -123,8 +123,8 @@ const CopyButton = component$(() => {
     <button
       onClick$={copyToClipboard$}
       class="px-5 rounded-sm absolute right-0 top-0 text-white h-full group"
-      aria-label={isClickedSig.value ? "Copied to clipboard" : "Copy to clipboard"}
-      title={isClickedSig.value ? "Copied!" : "Copy to clipboard"}
+      aria-label={isClickedSig.value ? 'Copied to clipboard' : 'Copy to clipboard'}
+      title={isClickedSig.value ? 'Copied!' : 'Copy to clipboard'}
     >
       {isClickedSig.value ? (
         <CheckIcon class="w-6 h-6" aria-hidden="true" />
@@ -138,7 +138,7 @@ const CopyButton = component$(() => {
   );
 });
 
-const CopyIcon = component$((props: PropsOf<"svg">) => {
+const CopyIcon = component$((props: PropsOf<'svg'>) => {
   return (
     <svg
       {...props}
@@ -156,7 +156,7 @@ const CopyIcon = component$((props: PropsOf<"svg">) => {
   );
 });
 
-const CheckIcon = component$((props: PropsOf<"svg">) => {
+const CheckIcon = component$((props: PropsOf<'svg'>) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" {...props}>
       <path
@@ -167,7 +167,7 @@ const CheckIcon = component$((props: PropsOf<"svg">) => {
   );
 });
 
-const PnpmIcon = component$((props: PropsOf<"svg">) => {
+const PnpmIcon = component$((props: PropsOf<'svg'>) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" {...props}>
       <g fill="none">
@@ -194,7 +194,7 @@ const PnpmIcon = component$((props: PropsOf<"svg">) => {
   );
 });
 
-const YarnIcon = component$((props: PropsOf<"svg">) => {
+const YarnIcon = component$((props: PropsOf<'svg'>) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" {...props}>
       <path
@@ -209,7 +209,7 @@ const YarnIcon = component$((props: PropsOf<"svg">) => {
   );
 });
 
-const NpmIcon = component$((props: PropsOf<"svg">) => {
+const NpmIcon = component$((props: PropsOf<'svg'>) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" {...props}>
       <path fill="#C12127" d="M0 256V0h256v256z" />
@@ -218,7 +218,7 @@ const NpmIcon = component$((props: PropsOf<"svg">) => {
   );
 });
 
-const BunIcon = component$((props: PropsOf<"svg">) => {
+const BunIcon = component$((props: PropsOf<'svg'>) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

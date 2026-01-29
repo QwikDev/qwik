@@ -1,7 +1,7 @@
-import { nodeServerAdapter } from "@builder.io/qwik-city/adapters/node-server/vite";
-import { extendConfig } from "@builder.io/qwik-city/vite";
-import baseConfig from "../../vite.config";
-import { builtinModules } from "module";
+import { nodeServerAdapter } from '@builder.io/qwik-city/adapters/node-server/vite';
+import { extendConfig } from '@builder.io/qwik-city/vite';
+import baseConfig from '../../vite.config';
+import { builtinModules } from 'module';
 export default extendConfig(baseConfig, () => {
   return {
     ssr: {
@@ -12,10 +12,10 @@ export default extendConfig(baseConfig, () => {
       minify: false,
       ssr: true,
       rollupOptions: {
-        input: ["./src/entry-firebase.tsx", "@qwik-city-plan"],
+        input: ['./src/entry-firebase.tsx', '@qwik-city-plan'],
       },
-      outDir: "./functions/server",
+      outDir: './functions/server',
     },
-    plugins: [nodeServerAdapter({ name: "firebase" })],
+    plugins: [nodeServerAdapter({ name: 'firebase' })],
   };
 });

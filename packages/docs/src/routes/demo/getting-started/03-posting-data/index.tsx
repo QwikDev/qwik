@@ -1,9 +1,9 @@
-import { component$ } from "@builder.io/qwik";
-import { routeLoader$, Form, routeAction$ } from "@builder.io/qwik-city";
+import { component$ } from '@builder.io/qwik';
+import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
 export const useDadJoke = routeLoader$(async () => {
-  const response = await fetch("https://icanhazdadjoke.com/", {
-    headers: { Accept: "application/json" },
+  const response = await fetch('https://icanhazdadjoke.com/', {
+    headers: { Accept: 'application/json' },
   });
   return (await response.json()) as {
     id: string;
@@ -13,7 +13,7 @@ export const useDadJoke = routeLoader$(async () => {
 });
 
 export const useJokeVoteAction = routeAction$((props) => {
-  console.log("VOTE", props);
+  console.log('VOTE', props);
 });
 
 export default component$(() => {

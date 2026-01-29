@@ -1,13 +1,13 @@
-import { Link } from "@builder.io/qwik-city";
-import { $ } from "@builder.io/qwik";
+import { Link } from '@builder.io/qwik-city';
+import { $ } from '@builder.io/qwik';
 
 export const MenuItems = () => {
   const scrollIntoView = $((_: any, elm: HTMLAnchorElement) => {
-    const id = elm.getAttribute("href")?.replace("#", "");
+    const id = elm.getAttribute('href')?.replace('#', '');
     const target = document.getElementById(id!);
     if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
-      history.pushState(null, "", `#${id}`);
+      target.scrollIntoView({ behavior: 'smooth' });
+      history.pushState(null, '', `#${id}`);
     }
   });
 
@@ -201,7 +201,7 @@ export const MenuItems = () => {
                 d="M4 7h40M15 41l9-10l9 10M16 13h16m-16 6h12m-12 6h6"
               ></path>
             </g>
-          </svg>{" "}
+          </svg>{' '}
           <span>Courses</span>
         </Link>
       </li>

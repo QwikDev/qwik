@@ -1,19 +1,19 @@
-import { component$, FunctionComponent, useVisibleTask$, useStore } from "@builder.io/qwik";
-import { DocumentHead, useLocation } from "@builder.io/qwik-city";
-import { Host, odd, pride, Range, Square } from "./flower.css";
+import { component$, FunctionComponent, useVisibleTask$, useStore } from '@builder.io/qwik';
+import { DocumentHead, useLocation } from '@builder.io/qwik-city';
+import { Host, odd, pride, Range, Square } from './flower.css';
 
 type StoredInputProps<
   T,
   Cmp extends FunctionComponent,
-  Name extends string = "value",
+  Name extends string = 'value',
 > = Parameters<Cmp>[0] & {
   store: { [value in Name]?: T };
   name?: Name;
 };
 
-export const RangeInput = <Name extends string = "value">({
+export const RangeInput = <Name extends string = 'value'>({
   store,
-  name = "value" as Name,
+  name = 'value' as Name,
   ...props
 }: StoredInputProps<number, typeof Range, Name>) => (
   <Range
@@ -49,12 +49,12 @@ export default component$(() => {
       <RangeInput store={state} name="number" max={50} />
       <Host
         style={{
-          "--state": `${state.count * 0.1}`,
+          '--state': `${state.count * 0.1}`,
         }}
-        class={loc.url.searchParams.get("pride") && pride}
+        class={loc.url.searchParams.get('pride') && pride}
       >
         {Array.from({ length: state.number }, (_, i) => (
-          <Square key={i} class={{ [odd]: i % 2 === 0 }} style={{ "--index": `${i + 1}` }} />
+          <Square key={i} class={{ [odd]: i % 2 === 0 }} style={{ '--index': `${i + 1}` }} />
         )).reverse()}
       </Host>
     </>
@@ -62,5 +62,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Qwik Flower",
+  title: 'Qwik Flower',
 };

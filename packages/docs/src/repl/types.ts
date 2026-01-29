@@ -1,26 +1,26 @@
-import type { NoSerialize, Signal } from "@builder.io/qwik";
+import type { NoSerialize, Signal } from '@builder.io/qwik';
 import type {
   Diagnostic,
   QwikManifest,
   QwikRollupPluginOptions,
   TransformModule,
-} from "@builder.io/qwik/optimizer";
-import type { ReplInstance } from "./repl-instance";
+} from '@builder.io/qwik/optimizer';
+import type { ReplInstance } from './repl-instance';
 
 export interface ReplAppInput {
   files: ReplModuleInput[];
   version: string;
-  buildMode: "development" | "production";
+  buildMode: 'development' | 'production';
   entryStrategy: string;
   debug?: boolean;
 }
 
 export type PkgUrls = { [pkgName: string]: { [path: string]: string; version: string } };
-export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, "srcDir"> {
+export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'> {
   replId: string;
   srcInputs: ReplModuleInput[];
   version: string;
-  buildMode: "development" | "production";
+  buildMode: 'development' | 'production';
   debug?: boolean;
 }
 
@@ -64,16 +64,16 @@ export interface ReplEvent {
   start: number;
   end?: number;
   kind:
-    | "console-log"
-    | "console-debug"
-    | "console-warn"
-    | "console-error"
-    | "symbol"
-    | "pause"
-    | "resume"
-    | "client-module"
-    | "prefetch";
-  scope: "ssr" | "client" | "build" | "network";
+    | 'console-log'
+    | 'console-debug'
+    | 'console-warn'
+    | 'console-error'
+    | 'symbol'
+    | 'pause'
+    | 'resume'
+    | 'client-module'
+    | 'prefetch';
+  scope: 'ssr' | 'client' | 'build' | 'network';
   message: string[];
   element?: Element;
 }
@@ -96,12 +96,12 @@ export interface ReplMessageBase {
 
 // SSR Worker message types
 export interface InitSSRMessage {
-  type: "run-ssr";
+  type: 'run-ssr';
   replId: string;
 }
 
 export interface ExecuteSSRMessage {
-  type: "execute-ssr";
+  type: 'execute-ssr';
   buildId: number;
   ssrModules: ReplModuleOutput[];
   baseUrl: string;
@@ -109,25 +109,25 @@ export interface ExecuteSSRMessage {
 }
 
 export interface SSRResultMessage {
-  type: "ssr-result";
+  type: 'ssr-result';
   buildId: number;
   html: string;
   events: ReplEvent[];
 }
 
 export interface SSRErrorMessage {
-  type: "ssr-error";
+  type: 'ssr-error';
   buildId: number;
   error: string;
   stack?: string;
 }
 
 export type OutputPanel =
-  | "app"
-  | "html"
-  | "segments"
-  | "clientBundles"
-  | "serverModules"
-  | "diagnostics";
+  | 'app'
+  | 'html'
+  | 'segments'
+  | 'clientBundles'
+  | 'serverModules'
+  | 'diagnostics';
 
-export type OutputDetail = "options" | "console";
+export type OutputDetail = 'options' | 'console';

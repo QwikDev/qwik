@@ -1,7 +1,7 @@
-import { type BuildConfig, copyFile, emptyDir, ensureDir } from "./util.ts";
-import spawn from "cross-spawn";
-import { join } from "node:path";
-import { rollup } from "rollup";
+import { type BuildConfig, copyFile, emptyDir, ensureDir } from './util.ts';
+import spawn from 'cross-spawn';
+import { join } from 'node:path';
+import { rollup } from 'rollup';
 
 export async function buildWasmBinding(config: BuildConfig) {
   const srcWasmDir = join(config.srcQwikDir, `wasm`);
@@ -13,23 +13,23 @@ export async function buildWasmBinding(config: BuildConfig) {
 
   async function buildForTarget(env = {}) {
     const cmd = `wasm-pack`;
-    const args = [`build`, "--target", "web", `--out-dir`, tmpBuildDir, srcWasmDir];
+    const args = [`build`, '--target', 'web', `--out-dir`, tmpBuildDir, srcWasmDir];
     if (!config.dev) {
       args.push(`--release`);
     }
 
     await new Promise((resolve, reject) => {
       const child = spawn(cmd, args, {
-        stdio: "inherit",
+        stdio: 'inherit',
         shell: true,
         env: {
           ...process.env,
           ...env,
         },
       });
-      child.on("error", reject);
+      child.on('error', reject);
 
-      child.on("close", (code) => {
+      child.on('close', (code) => {
         if (code === 0) {
           resolve(child.stdout);
         } else {
@@ -37,13 +37,13 @@ export async function buildWasmBinding(config: BuildConfig) {
         }
       });
     });
-    return join(tmpBuildDir, "qwik_wasm.js");
+    return join(tmpBuildDir, 'qwik_wasm.js');
   }
 
   const wasmJsBuildPath = await buildForTarget({
     CARGO_PROFILE_RELEASE_LTO: true,
-    CARGO_PROFILE_RELEASE_PANIC: "abort",
-    CARGO_PROFILE_RELEASE_OPT_LEVEL: "z",
+    CARGO_PROFILE_RELEASE_PANIC: 'abort',
+    CARGO_PROFILE_RELEASE_OPT_LEVEL: 'z',
   });
 
   const build = await rollup({
@@ -51,21 +51,21 @@ export async function buildWasmBinding(config: BuildConfig) {
   });
 
   await build.write({
-    format: "es",
-    file: join(config.distBindingsDir, "qwik.wasm.mjs"),
-    exports: "named",
+    format: 'es',
+    file: join(config.distBindingsDir, 'qwik.wasm.mjs'),
+    exports: 'named',
   });
 
   await build.write({
-    format: "cjs",
-    file: join(config.distBindingsDir, "qwik.wasm.cjs"),
-    exports: "named",
+    format: 'cjs',
+    file: join(config.distBindingsDir, 'qwik.wasm.cjs'),
+    exports: 'named',
   });
 
   await copyFile(
-    join(tmpBuildDir, "qwik_wasm_bg.wasm"),
-    join(config.distBindingsDir, "qwik_wasm_bg.wasm"),
+    join(tmpBuildDir, 'qwik_wasm_bg.wasm'),
+    join(config.distBindingsDir, 'qwik_wasm_bg.wasm')
   );
 
-  console.log("🐻 wasm binding");
+  console.log('🐻 wasm binding');
 }

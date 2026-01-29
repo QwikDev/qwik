@@ -1,2 +1,2 @@
-import _404 from "../404";
+import _404 from '../404';
 export default _404;

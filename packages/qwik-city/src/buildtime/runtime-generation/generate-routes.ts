@@ -1,17 +1,17 @@
-import type { QwikVitePlugin, QwikManifest } from "@builder.io/qwik/optimizer";
-import type { BuildContext, BuildRoute } from "../types";
-import { isModuleExt, isPageExt, removeExtension } from "../../utils/fs";
-import { getImportPath } from "./utils";
+import type { QwikVitePlugin, QwikManifest } from '@builder.io/qwik/optimizer';
+import type { BuildContext, BuildRoute } from '../types';
+import { isModuleExt, isPageExt, removeExtension } from '../../utils/fs';
+import { getImportPath } from './utils';
 
 export function createRoutes(
   ctx: BuildContext,
   qwikPlugin: QwikVitePlugin,
   c: string[],
   esmImports: string[],
-  isSSR: boolean,
+  isSSR: boolean
 ) {
   const includeEndpoints = isSSR;
-  const dynamicImports = ctx.target === "client";
+  const dynamicImports = ctx.target === 'client';
 
   if (ctx.layouts.length > 0) {
     c.push(`\n/** Qwik City Layouts (${ctx.layouts.length}) */`);
@@ -67,10 +67,10 @@ function createRouteData(
   qwikPlugin: QwikVitePlugin,
   r: BuildRoute,
   loaders: string[],
-  isSsr: boolean,
+  isSsr: boolean
 ) {
   const routeName = JSON.stringify(r.routeName);
-  const moduleLoaders = `[ ${loaders.join(", ")} ]`;
+  const moduleLoaders = `[ ${loaders.join(', ')} ]`;
 
   // Use RouteData interface
 

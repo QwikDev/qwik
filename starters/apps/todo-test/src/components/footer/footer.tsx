@@ -1,5 +1,5 @@
-import { component$, useContext } from "@builder.io/qwik";
-import { FILTERS, FilterStates, TODOS } from "../../state/state";
+import { component$, useContext } from '@builder.io/qwik';
+import { FILTERS, FilterStates, TODOS } from '../../state/state';
 
 /**
  * Footer showing items remaining and filtering options
@@ -34,7 +34,7 @@ export const Footer = component$(() => {
         <>
           <span class="todo-count">
             <strong>{remaining}</strong>
-            {remaining == 1 ? " item" : " items"} left
+            {remaining == 1 ? ' item' : ' items'} left
           </span>
           <ul class="filters">
             {FilterStates.map((f) => (

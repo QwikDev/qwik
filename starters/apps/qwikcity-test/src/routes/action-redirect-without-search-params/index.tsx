@@ -1,8 +1,8 @@
-import { routeAction$, Form } from "@builder.io/qwik-city";
-import { component$ } from "@builder.io/qwik";
+import { routeAction$, Form } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
 
 export const useAction = routeAction$((_, context) => {
-  throw context.redirect(302, "/qwikcity-test/action-redirect-without-search-params-target/");
+  throw context.redirect(302, '/qwikcity-test/action-redirect-without-search-params-target/');
 });
 
 export default component$(() => {

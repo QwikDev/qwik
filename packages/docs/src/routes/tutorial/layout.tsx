@@ -1,36 +1,36 @@
-import { component$, Slot, useStore, useStyles$, useTask$ } from "@builder.io/qwik";
-import type { RequestHandler } from "@builder.io/qwik-city";
-import { Link, useLocation } from "@builder.io/qwik-city";
-import { Repl } from "../../repl/ui";
-import styles from "./tutorial.css?inline";
-import { TutorialContentFooter } from "./tutorial-content-footer";
-import { TutorialContentHeader } from "./tutorial-content-header";
-import tutorialSections, { type TutorialApp } from "@tutorial-data";
-import { PanelToggle } from "../../components/panel-toggle/panel-toggle";
-import { Header } from "../../components/header/header";
-import type { ReplAppInput, ReplModuleInput } from "../../repl/types";
-import { EditIcon } from "../../components/svgs/edit-icon";
-import { setReplCorsHeaders } from "~/utils/utils";
+import { component$, Slot, useStore, useStyles$, useTask$ } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
+import { Link, useLocation } from '@builder.io/qwik-city';
+import { Repl } from '../../repl/ui';
+import styles from './tutorial.css?inline';
+import { TutorialContentFooter } from './tutorial-content-footer';
+import { TutorialContentHeader } from './tutorial-content-header';
+import tutorialSections, { type TutorialApp } from '@tutorial-data';
+import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
+import { Header } from '../../components/header/header';
+import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
+import { EditIcon } from '../../components/svgs/edit-icon';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
 
   const { url } = useLocation();
   const panelStore = useStore(() => ({
-    active: "Tutorial",
+    active: 'Tutorial',
     list: PANELS,
   }));
 
   const store = useStore<TutorialStore>(() => {
     const initStore: TutorialStore = {
-      appId: "",
-      app: { id: "", title: "", problemInputs: [], solutionInputs: [] },
+      appId: '',
+      app: { id: '', title: '', problemInputs: [], solutionInputs: [] },
       prev: undefined,
       next: undefined,
-      buildMode: "development",
-      entryStrategy: "segment",
+      buildMode: 'development',
+      entryStrategy: 'segment',
       files: [],
-      version: "",
+      version: '',
     };
     return initStore;
   });
@@ -38,7 +38,7 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => url.pathname);
 
-    const p = url.pathname.split("/");
+    const p = url.pathname.split('/');
     const appId = `${p[2]}/${p[3]}`;
     const t = getTutorial(appId) ?? store;
 
@@ -54,8 +54,8 @@ export default component$(() => {
       <Header />
       <main
         class={{
-          "tutorial-panel-input": panelStore.active === "Input",
-          "tutorial-panel-output": panelStore.active === "Output",
+          'tutorial-panel-input': panelStore.active === 'Input',
+          'tutorial-panel-output': panelStore.active === 'Output',
         }}
       >
         <article class="tutorial-content-panel">
@@ -150,12 +150,12 @@ export const Root = () => {
 };
 `;
 
-  if (!files.some((i) => i.code === "/root.tsx")) {
-    files.push({ path: "/root.tsx", code: DEFAULT_ROOT, hidden: true });
+  if (!files.some((i) => i.code === '/root.tsx')) {
+    files.push({ path: '/root.tsx', code: DEFAULT_ROOT, hidden: true });
   }
 
-  if (!files.some((i) => i.code === "/entry.server.tsx")) {
-    files.push({ path: "/entry.server.tsx", code: DEFAULT_ENTRY_SERVER, hidden: true });
+  if (!files.some((i) => i.code === '/entry.server.tsx')) {
+    files.push({ path: '/entry.server.tsx', code: DEFAULT_ENTRY_SERVER, hidden: true });
   }
 
   return files;
@@ -168,7 +168,7 @@ export interface TutorialStore extends ReplAppInput {
   next: TutorialApp | undefined;
 }
 
-export const PANELS = ["Tutorial", "Input", "Output"];
+export const PANELS = ['Tutorial', 'Input', 'Output'];
 export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,

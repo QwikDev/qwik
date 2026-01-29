@@ -1,6 +1,6 @@
-import type { Rollup } from "vite";
-import { type NormalizedQwikPluginOptions } from "./plugins/plugin";
-import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from "./types";
+import type { Rollup } from 'vite';
+import { type NormalizedQwikPluginOptions } from './plugins/plugin';
+import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -15,14 +15,14 @@ function prioritizeSymbolNames(manifest: QwikManifest) {
     const b = symbols[symbolNameB];
 
     // events should sort highest
-    if (a.ctxKind === "eventHandler" && b.ctxKind !== "eventHandler") {
+    if (a.ctxKind === 'eventHandler' && b.ctxKind !== 'eventHandler') {
       return -1;
     }
-    if (a.ctxKind !== "eventHandler" && b.ctxKind === "eventHandler") {
+    if (a.ctxKind !== 'eventHandler' && b.ctxKind === 'eventHandler') {
       return 1;
     }
 
-    if (a.ctxKind === "eventHandler" && b.ctxKind === "eventHandler") {
+    if (a.ctxKind === 'eventHandler' && b.ctxKind === 'eventHandler') {
       // both are an event handler
       const aIndex = EVENT_PRIORITY.indexOf(a.ctxName.toLowerCase());
       const bIndex = EVENT_PRIORITY.indexOf(b.ctxName.toLowerCase());
@@ -45,7 +45,7 @@ function prioritizeSymbolNames(manifest: QwikManifest) {
           return 1;
         }
       }
-    } else if (a.ctxKind === "function" && b.ctxKind === "function") {
+    } else if (a.ctxKind === 'function' && b.ctxKind === 'function') {
       // both are a function
       const aIndex = FUNCTION_PRIORITY.indexOf(a.ctxName.toLowerCase());
       const bIndex = FUNCTION_PRIORITY.indexOf(b.ctxName.toLowerCase());
@@ -93,74 +93,74 @@ function prioritizeSymbolNames(manifest: QwikManifest) {
 const EVENT_PRIORITY = /*#__PURE__*/ (() =>
   [
     // Click Events
-    "click",
-    "dblclick",
-    "contextmenu",
-    "auxclick",
+    'click',
+    'dblclick',
+    'contextmenu',
+    'auxclick',
 
     // Pointer Events
-    "pointerdown",
-    "pointerup",
-    "pointermove",
-    "pointerover",
-    "pointerenter",
-    "pointerleave",
-    "pointerout",
-    "pointercancel",
-    "gotpointercapture",
-    "lostpointercapture",
+    'pointerdown',
+    'pointerup',
+    'pointermove',
+    'pointerover',
+    'pointerenter',
+    'pointerleave',
+    'pointerout',
+    'pointercancel',
+    'gotpointercapture',
+    'lostpointercapture',
 
     // Touch Events
-    "touchstart",
-    "touchend",
-    "touchmove",
-    "touchcancel",
+    'touchstart',
+    'touchend',
+    'touchmove',
+    'touchcancel',
 
     // Mouse Events
-    "mousedown",
-    "mouseup",
-    "mousemove",
-    "mouseenter",
-    "mouseleave",
-    "mouseover",
-    "mouseout",
-    "wheel",
+    'mousedown',
+    'mouseup',
+    'mousemove',
+    'mouseenter',
+    'mouseleave',
+    'mouseover',
+    'mouseout',
+    'wheel',
 
     // Gesture Events
-    "gesturestart",
-    "gesturechange",
-    "gestureend",
+    'gesturestart',
+    'gesturechange',
+    'gestureend',
 
     // Keyboard Events
-    "keydown",
-    "keyup",
-    "keypress",
+    'keydown',
+    'keyup',
+    'keypress',
 
     // Input/Change Events
-    "input",
-    "change",
-    "search",
-    "invalid",
-    "beforeinput",
-    "select",
+    'input',
+    'change',
+    'search',
+    'invalid',
+    'beforeinput',
+    'select',
 
     // Focus/Blur Events
-    "focusin",
-    "focusout",
-    "focus",
-    "blur",
+    'focusin',
+    'focusout',
+    'focus',
+    'blur',
 
     // Form Events
-    "submit",
-    "reset",
+    'submit',
+    'reset',
 
     // Scroll Events
-    "scroll",
+    'scroll',
   ].map((n) => `on${n.toLowerCase()}$`))();
 
 const FUNCTION_PRIORITY = /*#__PURE__*/ (() =>
-  ["useTask$", "useVisibleTask$", "component$", "useStyles$", "useStylesScoped$"].map((n) =>
-    n.toLowerCase(),
+  ['useTask$', 'useVisibleTask$', 'component$', 'useStyles$', 'useStylesScoped$'].map((n) =>
+    n.toLowerCase()
   ))();
 
 function sortBundleNames(manifest: QwikManifest) {
@@ -171,8 +171,8 @@ function sortBundleNames(manifest: QwikManifest) {
 
 function updateSortAndPriorities(manifest: QwikManifest) {
   const prioritizedSymbolNames = prioritizeSymbolNames(manifest);
-  const prioritizedSymbols: QwikManifest["symbols"] = {};
-  const prioritizedMapping: QwikManifest["mapping"] = {};
+  const prioritizedSymbols: QwikManifest['symbols'] = {};
+  const prioritizedMapping: QwikManifest['mapping'] = {};
 
   for (const symbolName of prioritizedSymbolNames) {
     prioritizedSymbols[symbolName] = manifest.symbols[symbolName];
@@ -225,11 +225,11 @@ export function getValidManifest(manifest: QwikManifest | undefined | null) {
   if (
     manifest != null &&
     manifest.mapping != null &&
-    typeof manifest.mapping === "object" &&
+    typeof manifest.mapping === 'object' &&
     manifest.symbols != null &&
-    typeof manifest.symbols === "object" &&
+    typeof manifest.symbols === 'object' &&
     manifest.bundles != null &&
-    typeof manifest.bundles === "object"
+    typeof manifest.bundles === 'object'
   ) {
     return manifest;
   }
@@ -243,7 +243,7 @@ const getBundleInteractivity = (bundle: QwikBundle, manifest: QwikManifest) => {
       let score = 1;
       const symbol = manifest.symbols[symbolName];
       if (symbol) {
-        if (symbol.ctxKind === "function") {
+        if (symbol.ctxKind === 'function') {
           if (/(component|useStyles|useStylesScoped)/i.test(symbol.ctxName)) {
             score += 1;
           } else if (/(useComputed|useTask|useVisibleTask|useOn)/i.test(symbol.ctxName)) {
@@ -266,7 +266,7 @@ const getBundleInteractivity = (bundle: QwikBundle, manifest: QwikManifest) => {
  * Computes the total size of each bundle based on its dependencies. Written by ChatGPT ;) - it's
  * harder than you think to total nodes in a directed cyclic graph
  */
-export function computeTotals(graph: QwikManifest["bundles"]): void {
+export function computeTotals(graph: QwikManifest['bundles']): void {
   // 1) Prepare Tarjan's structures
   let index = 0;
   const stack: string[] = [];
@@ -398,12 +398,12 @@ export function generateManifestFromBundles(
   outputBundles: Rollup.OutputBundle,
   opts: NormalizedQwikPluginOptions,
   debug: (...args: any[]) => void,
-  canonPath: (p: string) => string,
+  canonPath: (p: string) => string
 ) {
   // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
-    version: "1",
-    manifestHash: "",
+    version: '1',
+    manifestHash: '',
     options: {
       target: opts.target,
       buildMode: opts.buildMode,
@@ -433,9 +433,9 @@ export function generateManifestFromBundles(
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
   for (const outputBundle of Object.values(outputBundles)) {
-    if (outputBundle.type === "asset") {
+    if (outputBundle.type === 'asset') {
       // we don't record map files as assets
-      if (!outputBundle.fileName.endsWith("js.map")) {
+      if (!outputBundle.fileName.endsWith('js.map')) {
         manifest.assets![outputBundle.fileName] = {
           name: outputBundle.names[0],
           size: outputBundle.source.length,

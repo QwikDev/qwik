@@ -1,17 +1,17 @@
-import { $, component$, createSignal, useSignal } from "@builder.io/qwik";
-import { CodeBlock } from "../../components/code-block/code-block";
-import type { ReplModuleOutput } from "../types";
-const FILE_MODULE_DIV_ID = "file-modules-client-modules";
+import { $, component$, createSignal, useSignal } from '@builder.io/qwik';
+import { CodeBlock } from '../../components/code-block/code-block';
+import type { ReplModuleOutput } from '../types';
+const FILE_MODULE_DIV_ID = 'file-modules-client-modules';
 
 export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutputModulesProps) => {
-  const selectedPath = useSignal(outputs.length ? outputs[0].path : "");
+  const selectedPath = useSignal(outputs.length ? outputs[0].path : '');
   const pathInView$ = $((path: string) => {
     selectedPath.value = path;
   });
   return (
     <div class="output-result output-modules">
       <div class="file-tree">
-        <div class="file-tree-header">{outputs.length > 0 ? headerText : ""}</div>
+        <div class="file-tree-header">{outputs.length > 0 ? headerText : ''}</div>
         <div class="file-tree-items">
           {outputs.map((o, i) => (
             <div key={o.path}>
@@ -20,10 +20,10 @@ export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutput
                 onClick$={() => {
                   const fileItem = document.querySelector(`[data-output-item="${i}"]`);
                   if (fileItem) {
-                    fileItem.scrollIntoView({ behavior: "smooth" });
+                    fileItem.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
-                class={{ "in-view": selectedPath.value === o.path }}
+                class={{ 'in-view': selectedPath.value === o.path }}
                 preventdefault:click
                 key={o.path}
                 title={o.path}
@@ -56,7 +56,7 @@ export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutput
                 />
                 {o.shorten && (
                   <button onClick$={() => (o.shorten!.value = !o.shorten!.value)}>
-                    {o.shorten!.value ? "Truncated - show more" : "Show less"}
+                    {o.shorten!.value ? 'Truncated - show more' : 'Show less'}
                   </button>
                 )}
               </div>

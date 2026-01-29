@@ -1,18 +1,18 @@
-import { component$ } from "@builder.io/qwik";
-import { routeAction$, routeLoader$, validator$, z, zod$ } from "@builder.io/qwik-city";
+import { component$ } from '@builder.io/qwik';
+import { routeAction$, routeLoader$, validator$, z, zod$ } from '@builder.io/qwik-city';
 import type {
   CommonLoaderActionOptions,
   JSONObject,
   RequestEventAction,
   ValidatorErrorType,
-} from "packages/qwik-city/src/runtime/src/types";
+} from 'packages/qwik-city/src/runtime/src/types';
 
 type TypedDataValidatorError = ValidatorErrorType<{
-  category: "bird" | "dog" | "rat";
+  category: 'bird' | 'dog' | 'rat';
 }>;
 
 const typedDataValidator = zod$({
-  category: z.enum(["bird", "dog", "rat"]),
+  category: z.enum(['bird', 'dog', 'rat']),
 });
 
 interface DataValidatorError {
@@ -20,7 +20,7 @@ interface DataValidatorError {
 }
 
 const dataValidator = validator$((ev) => {
-  if (ev.query.get("secret") === "123") {
+  if (ev.query.get('secret') === '123') {
     return {
       success: true,
     };
@@ -28,7 +28,7 @@ const dataValidator = validator$((ev) => {
   return {
     success: false,
     error: {
-      message: "Secret not found",
+      message: 'Secret not found',
     } as DataValidatorError,
   };
 });
@@ -44,18 +44,18 @@ interface ActionFailedObject {
 const actionQrl = (data: JSONObject, { fail }: RequestEventAction) => {
   if (Math.random() > 0.5) {
     return fail(500, {
-      actionFail: "secret",
+      actionFail: 'secret',
     } as ActionFailedObject);
   }
 
   return {
-    actionSuccess: "シマエナガ",
+    actionSuccess: 'シマエナガ',
   } as ActionSuccessObject;
 };
 
 export const useLoader = routeLoader$(() => {
   return {
-    stuff: "hello",
+    stuff: 'hello',
   };
 }, dataValidator);
 
@@ -72,7 +72,7 @@ export const useAction4 = routeAction$(actionQrl, typedDataValidator, dataValida
 export const useAction5 = routeAction$(actionQrl, typedDataValidator);
 export const useAction6 = routeAction$(actionQrl, dataValidator);
 export const useAction7 = routeAction$(actionQrl);
-export const useAction8 = routeAction$(actionQrl, { id: "id-action-8" });
+export const useAction8 = routeAction$(actionQrl, { id: 'id-action-8' });
 
 export default component$(() => {
   const loader = useLoader();

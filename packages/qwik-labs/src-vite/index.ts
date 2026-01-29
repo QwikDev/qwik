@@ -1,2 +1,2 @@
-export * from "./insights";
-export * from "./qwik-types";
+export * from './insights';
+export * from './qwik-types';

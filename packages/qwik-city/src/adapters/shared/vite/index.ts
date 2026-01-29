@@ -1,14 +1,14 @@
-import type { Plugin, UserConfig } from "vite";
-import type { QwikCityPlugin } from "@builder.io/qwik-city/vite";
-import type { QwikVitePlugin } from "@builder.io/qwik/optimizer";
+import type { Plugin, UserConfig } from 'vite';
+import type { QwikCityPlugin } from '@builder.io/qwik-city/vite';
+import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import type {
   StaticGenerateOptions,
   StaticGenerateRenderOptions,
-} from "@builder.io/qwik-city/static";
-import type { BuildRoute } from "../../../buildtime/types";
-import fs from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
-import { postBuild } from "./post-build";
+} from '@builder.io/qwik-city/static';
+import type { BuildRoute } from '../../../buildtime/types';
+import fs from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
+import { postBuild } from './post-build';
 
 /** @public */
 export function viteAdapter(opts: ViteAdapterPluginOptions) {
@@ -18,20 +18,20 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let renderModulePath: string | null = null;
   let qwikCityPlanModulePath: string | null = null;
   let isSsrBuild = false;
-  let format = "esm";
+  let format = 'esm';
   const outputEntries: string[] = [];
 
   const plugin: Plugin<never> = {
     name: `vite-plugin-qwik-city-${opts.name}`,
-    enforce: "post",
-    apply: "build",
+    enforce: 'post',
+    apply: 'build',
 
     config(config) {
-      if (typeof opts.config === "function") {
+      if (typeof opts.config === 'function') {
         config = opts.config(config);
       }
       config.define = {
-        "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
         ...config.define,
       };
       return config;
@@ -42,34 +42,34 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 
       if (isSsrBuild) {
         qwikCityPlugin = config.plugins.find(
-          (p) => p.name === "vite-plugin-qwik-city",
+          (p) => p.name === 'vite-plugin-qwik-city'
         ) as QwikCityPlugin;
         if (!qwikCityPlugin) {
-          throw new Error("Missing vite-plugin-qwik-city");
+          throw new Error('Missing vite-plugin-qwik-city');
         }
         qwikVitePlugin = config.plugins.find(
-          (p) => p.name === "vite-plugin-qwik",
+          (p) => p.name === 'vite-plugin-qwik'
         ) as QwikVitePlugin;
         if (!qwikVitePlugin) {
-          throw new Error("Missing vite-plugin-qwik");
+          throw new Error('Missing vite-plugin-qwik');
         }
         serverOutDir = config.build.outDir;
 
         if (config.build?.ssr !== true) {
           throw new Error(
-            `"build.ssr" must be set to "true" in order to use the "${opts.name}" adapter.`,
+            `"build.ssr" must be set to "true" in order to use the "${opts.name}" adapter.`
           );
         }
 
         if (!config.build?.rollupOptions?.input) {
           throw new Error(
-            `"build.rollupOptions.input" must be set in order to use the "${opts.name}" adapter.`,
+            `"build.rollupOptions.input" must be set in order to use the "${opts.name}" adapter.`
           );
         }
 
         // @ts-ignore `format` removed in Vite 5
-        if (config.ssr?.format === "cjs") {
-          format = "cjs";
+        if (config.ssr?.format === 'cjs') {
+          format = 'cjs';
         }
       }
     },
@@ -80,12 +80,12 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 
         for (const fileName in bundles) {
           const chunk = bundles[fileName];
-          if (chunk.type === "chunk" && chunk.isEntry) {
+          if (chunk.type === 'chunk' && chunk.isEntry) {
             outputEntries.push(fileName);
 
-            if (chunk.name === "entry.ssr") {
+            if (chunk.name === 'entry.ssr') {
               renderModulePath = join(serverOutDir!, fileName);
-            } else if (chunk.name === "@qwik-city-plan") {
+            } else if (chunk.name === '@qwik-city-plan') {
               qwikCityPlanModulePath = join(serverOutDir!, fileName);
             }
           }
@@ -93,13 +93,13 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 
         if (!renderModulePath) {
           throw new Error(
-            'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?',
+            'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
           );
         }
 
         if (!qwikCityPlanModulePath) {
           throw new Error(
-            'Unable to find "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?',
+            'Unable to find "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
           );
         }
       }
@@ -132,19 +132,19 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             if (ssgOrigin.length > 0 && !/:\/\//.test(ssgOrigin)) {
               ssgOrigin = `https://${ssgOrigin}`;
             }
-            if (ssgOrigin.startsWith("//")) {
+            if (ssgOrigin.startsWith('//')) {
               ssgOrigin = `https:${ssgOrigin}`;
             }
             try {
               ssgOrigin = new URL(ssgOrigin).origin;
             } catch (e) {
               this.warn(
-                `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.dev"`,
+                `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.dev"`
               );
               ssgOrigin = `https://yoursite.qwik.dev`;
             }
 
-            const staticGenerate = await import("../../../static");
+            const staticGenerate = await import('../../../static');
             const generateOpts: StaticGenerateOptions = {
               maxWorkers: opts.maxWorkers,
               basePathname,
@@ -159,7 +159,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             const staticGenerateResult = await staticGenerate.generate(generateOpts);
             if (staticGenerateResult.errors > 0) {
               const err = new Error(
-                `Error while running SSG from "${opts.name}" adapter. At least one path failed to render.`,
+                `Error while running SSG from "${opts.name}" adapter. At least one path failed to render.`
               );
               err.stack = undefined;
               this.error(err);
@@ -172,17 +172,17 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               assetsDir ? join(basePathname, assetsDir) : basePathname,
               staticPaths,
               format,
-              !!opts.cleanStaticGenerated,
+              !!opts.cleanStaticGenerated
             );
 
             await Promise.all([
               fs.promises.writeFile(join(serverOutDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
               fs.promises.writeFile(
                 join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID),
-                notFoundPathsCode,
+                notFoundPathsCode
               ),
             ]);
-            if (typeof opts.generate === "function") {
+            if (typeof opts.generate === 'function') {
               await opts.generate({
                 outputEntries,
                 serverOutDir,
@@ -199,7 +199,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               `\n==============================================` +
                 `\nNote: Make sure that you are serving the built files with proper cache headers.` +
                 `\nSee https://qwik.dev/docs/deployments/#cache-headers for more information.` +
-                `\n==============================================`,
+                `\n==============================================`
             );
           }
           if (opts.ssg !== null) {
@@ -240,7 +240,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 
 /** @public */
 export function getParentDir(startDir: string, dirName: string) {
-  const root = resolve("/");
+  const root = resolve('/');
   let dir = startDir;
   for (let i = 0; i < 20; i++) {
     dir = dirname(dir);
@@ -288,7 +288,7 @@ export interface ServerAdapterOptions {
 }
 
 /** @public */
-export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, "outDir" | "origin"> {
+export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
   /** Defines routes that should be static generated. Accepts wildcard behavior. */
   include: string[];
   /**
@@ -313,13 +313,13 @@ export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, "ou
 }
 
 /** @public */
-export const STATIC_PATHS_ID = "@qwik-city-static-paths";
+export const STATIC_PATHS_ID = '@qwik-city-static-paths';
 
 /** @public */
 export const RESOLVED_STATIC_PATHS_ID = `${STATIC_PATHS_ID}.js`;
 
 /** @public */
-export const NOT_FOUND_PATHS_ID = "@qwik-city-not-found-paths";
+export const NOT_FOUND_PATHS_ID = '@qwik-city-not-found-paths';
 
 /** @public */
 export const RESOLVED_NOT_FOUND_PATHS_ID = `${NOT_FOUND_PATHS_ID}.js`;

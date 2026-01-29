@@ -1,4 +1,4 @@
-import { $, component$, useStore } from "@builder.io/qwik";
+import { $, component$, useStore } from '@builder.io/qwik';
 
 export const TwoListeners = component$(() => {
   const store1 = useStore({ count: 1 });

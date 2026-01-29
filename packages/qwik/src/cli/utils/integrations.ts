@@ -1,13 +1,13 @@
-import fs from "node:fs";
-import { join } from "node:path";
-import type { IntegrationData, IntegrationType } from "../types";
-import { dashToTitleCase, limitLength, readPackageJson } from "./utils";
+import fs from 'node:fs';
+import { join } from 'node:path';
+import type { IntegrationData, IntegrationType } from '../types';
+import { dashToTitleCase, limitLength, readPackageJson } from './utils';
 
 let integrations: IntegrationData[] | null = null;
 
 export async function sortIntegrationsAndReturnAsClackOptions(
   integrations: IntegrationData[],
-  { maxHintLength = 50, showHint = true }: { maxHintLength?: number; showHint?: boolean } = {},
+  { maxHintLength = 50, showHint = true }: { maxHintLength?: number; showHint?: boolean } = {}
 ) {
   return integrations
     .sort((a, b) => {
@@ -29,9 +29,9 @@ export async function sortIntegrationsAndReturnAsClackOptions(
 export async function loadIntegrations() {
   if (!integrations) {
     const loadingIntegrations: IntegrationData[] = [];
-    const integrationTypes: IntegrationType[] = ["app", "feature", "adapter"];
+    const integrationTypes: IntegrationType[] = ['app', 'feature', 'adapter'];
 
-    const integrationsDir = join(__dirname, "starters");
+    const integrationsDir = join(__dirname, 'starters');
     const integrationsDirNames = await fs.promises.readdir(integrationsDir);
 
     await Promise.all(
@@ -59,10 +59,10 @@ export async function loadIntegrations() {
                 };
                 loadingIntegrations.push(integration);
               }
-            }),
+            })
           );
         }
-      }),
+      })
     );
 
     loadingIntegrations.sort((a, b) => {

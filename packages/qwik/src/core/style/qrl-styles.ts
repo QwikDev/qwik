@@ -1,7 +1,7 @@
-import { ComponentStylesPrefixContent } from "../util/markers";
-import { hashCode } from "../util/hash_code";
-import type { QRL } from "../qrl/qrl.public";
-import { assertQrl } from "../qrl/qrl-class";
+import { ComponentStylesPrefixContent } from '../util/markers';
+import { hashCode } from '../util/hash_code';
+import type { QRL } from '../qrl/qrl.public';
+import { assertQrl } from '../qrl/qrl-class';
 
 export const styleKey = (qStyles: QRL<string>, index: number): string => {
   assertQrl(qStyles);
@@ -17,7 +17,7 @@ export const styleContent = (styleId: string): string => {
 };
 
 export const serializeSStyle = (scopeIds: string[]) => {
-  const value = scopeIds.join("|");
+  const value = scopeIds.join('|');
   if (value.length > 0) {
     return value;
   }

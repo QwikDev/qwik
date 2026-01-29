@@ -3,9 +3,9 @@ import type {
   IntrinsicSVGElements,
   QwikHTMLElements,
   QwikSVGElements,
-} from "./jsx-generated";
+} from './jsx-generated';
 
-export type { QwikIntrinsicAttributes } from "./jsx-qwik-attributes";
+export type { QwikIntrinsicAttributes } from './jsx-qwik-attributes';
 
 /**
  * The interface holds available attributes of both native DOM elements and custom Qwik elements. An

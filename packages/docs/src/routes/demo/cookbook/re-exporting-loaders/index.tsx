@@ -14,17 +14,13 @@ export default component$(() => {
       <Form action={commonRouteAction}>
         <div class="mb-2">CommonRouteAction</div>
         <div class="mb-4">response:</div>
-        <div class="text-lg font-bold mb-4">
-          {commonRouteAction.value?.data.join(' ') || ''}
-        </div>
+        <div class="mb-4 text-lg font-bold">{commonRouteAction.value?.data.join(' ') || ''}</div>
         <button type="submit">Submit</button>
       </Form>
       <div>
         <div class="mb-2">CommonRouteLoader</div>
         <div class="mb-4">response:</div>
-        <div class="text-lg font-bold mb-4">
-          {commonRouteLoader.value.join(' ')}
-        </div>
+        <div class="mb-4 text-lg font-bold">{commonRouteLoader.value.join(' ')}</div>
       </div>
     </div>
   );

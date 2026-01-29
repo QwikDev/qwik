@@ -19,7 +19,7 @@ function logQSymbols() {
   const consoleUl = document.getElementById('console')!;
   consoleUl.className = 'console';
   consoleUl.innerHTML = '<h1>Console</h1>';
-  // eslint-disable-next-line no-constant-binary-expression
+
   false &&
     document.addEventListener('qsymbol', (e) => {
       const detail = (e as any as { detail: { symbol: string } }).detail;

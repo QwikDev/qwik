@@ -1,5 +1,5 @@
-import { RenderOptions, renderToStream } from "@qwik.dev/core/server";
-import Root from "./root";
+import { RenderOptions, renderToStream } from '@qwik.dev/core/server';
+import Root from './root';
 
 /**
  * Qwik server-side render function.

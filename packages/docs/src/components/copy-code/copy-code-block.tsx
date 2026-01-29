@@ -7,7 +7,7 @@ const Check = component$(({ height = 12, width = 12 }: { height?: number; width?
 
   return (
     <svg
-      class="w-3.5 h-3.5 text-white "
+      class="h-3.5 w-3.5 text-white"
       height={height}
       width={width}
       aria-hidden="true"
@@ -39,7 +39,7 @@ export const CopyCode = component$(({ code }: { code: string }) => {
           await navigator.clipboard.writeText(code);
         }
       }}
-      class="absolute text-[--secondary-text-color] right-2 top-2 shadow-2xl z-10"
+      class="absolute top-2 right-2 z-10 text-[--secondary-text-color] shadow-2xl"
     >
       <span
         class={{

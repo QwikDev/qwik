@@ -37,9 +37,7 @@
       "indexes": {
         "publicApiKeyIndex": {
           "name": "publicApiKeyIndex",
-          "columns": [
-            "public_api_key"
-          ],
+          "columns": ["public_api_key"],
           "isUnique": true
         }
       },
@@ -134,13 +132,9 @@
         "errors_public_api_key_applications_public_api_key_fk": {
           "name": "errors_public_api_key_applications_public_api_key_fk",
           "tableFrom": "errors",
-          "columnsFrom": [
-            "public_api_key"
-          ],
+          "columnsFrom": ["public_api_key"],
           "tableTo": "applications",
-          "columnsTo": [
-            "public_api_key"
-          ],
+          "columnsTo": ["public_api_key"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -221,13 +215,9 @@
         "symbols_public_api_key_applications_public_api_key_fk": {
           "name": "symbols_public_api_key_applications_public_api_key_fk",
           "tableFrom": "symbols",
-          "columnsFrom": [
-            "public_api_key"
-          ],
+          "columnsFrom": ["public_api_key"],
           "tableTo": "applications",
-          "columnsTo": [
-            "public_api_key"
-          ],
+          "columnsTo": ["public_api_key"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }

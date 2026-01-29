@@ -20,7 +20,7 @@ export default component$<ButtonProps>((props) => {
       {...props}
       class={[
         'button',
-        props.theme === 'primary' && 'border-slate-300 bg-white  text-black',
+        props.theme === 'primary' && 'border-slate-300 bg-white text-black',
         props.theme === 'github' && 'bg-black text-white',
       ]}
     >

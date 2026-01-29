@@ -1,7 +1,7 @@
-import { nodeServerAdapter } from "@qwik.dev/router/adapters/node-server/vite";
-import { extendConfig } from "@qwik.dev/router/vite";
-import { builtinModules } from "module";
-import baseConfig from "../../vite.config.ts";
+import { nodeServerAdapter } from '@qwik.dev/router/adapters/node-server/vite';
+import { extendConfig } from '@qwik.dev/router/vite';
+import { builtinModules } from 'module';
+import baseConfig from '../../vite.config.ts';
 export default extendConfig(baseConfig, () => {
   return {
     ssr: {
@@ -13,9 +13,9 @@ export default extendConfig(baseConfig, () => {
       minify: false,
       ssr: true,
       rollupOptions: {
-        input: ["./src/entry_aws-lambda.tsx"],
+        input: ['./src/entry_aws-lambda.tsx'],
       },
     },
-    plugins: [nodeServerAdapter({ name: "aws-lambda" })],
+    plugins: [nodeServerAdapter({ name: 'aws-lambda' })],
   };
 });

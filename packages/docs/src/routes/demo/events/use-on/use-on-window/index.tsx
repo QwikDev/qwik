@@ -11,10 +11,7 @@ function useCloseDropdown() {
   // Event listener function for window clicks
   const closeDropdown = $((event: Event): void => {
     // If the clicked element is not contained within the dropdown toggle button, close the dropdown
-    if (
-      dropdownToggleBtn.value &&
-      !dropdownToggleBtn.value.contains(event.target as Node)
-    ) {
+    if (dropdownToggleBtn.value && !dropdownToggleBtn.value.contains(event.target as Node)) {
       isOpen.value = false;
     }
   });
@@ -38,10 +35,7 @@ export default component$(() => {
 
   return (
     <div>
-      <button
-        ref={setDropdownToggleBtnRef}
-        onClick$={() => (isOpen.value = true)}
-      >
+      <button ref={setDropdownToggleBtnRef} onClick$={() => (isOpen.value = true)}>
         Click me!
       </button>
       {isOpen.value && (

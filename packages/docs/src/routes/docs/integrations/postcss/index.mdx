@@ -24,28 +24,11 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 You can add PostCSS to your project by using the following Qwik starter script:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add postcss
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add postcss
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add postcss
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add postcss
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add postcss ```</span>
+  <span q:slot="npm">```shell npm run qwik add postcss ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add postcss ```</span>
+  <span q:slot="bun">```shell bun run qwik add postcss ```</span>
 </PackageManagerTabs>
 
 This will create a new `postcss.config.js` file at the root of the project with following dependencies and configuration.
@@ -57,10 +40,10 @@ This will create a new `postcss.config.js` file at the root of the project with 
 export default {
   plugins: {
     autoprefixer: {},
-    "postcss-preset-env": {
+    'postcss-preset-env': {
       stage: 3,
       features: {
-        "nesting-rules": true,
+        'nesting-rules': true,
       },
     },
   },
@@ -69,39 +52,22 @@ export default {
 
 If you wish to add a new plugin like [CssNano](https://cssnano.co/) run the following command and update the `postcss.config.js`.
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm install cssnano
-```
-</span>
-<span q:slot="npm">
-```shell
-npm install cssnano
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn add cssnano
-```
-</span>
-<span q:slot="bun">
-```shell
-bun install cssnano
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm install cssnano ```</span>
+  <span q:slot="npm">```shell npm install cssnano ```</span>
+  <span q:slot="yarn">```shell yarn add cssnano ```</span>
+  <span q:slot="bun">```shell bun install cssnano ```</span>
 </PackageManagerTabs>
 
 ```ts title="postcss.config.js"
 module.exports = {
   plugins: {
     /* previous plugin configuration */
-    "cssnano": {
-      preset: "default"
-    }
+    cssnano: {
+      preset: 'default',
+    },
   },
-}
+};
 ```
 
 For further documentation, checkout [PostCSS Docs](https://postcss.org/docs/)

@@ -1,6 +1,6 @@
-import { component$ } from "@qwik.dev/core";
-import { routeAction$, z, zod$ } from "@qwik.dev/router";
-import type { ValidatorErrorType } from "packages/qwik-router/src/runtime/src/types";
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, z, zod$ } from '@qwik.dev/router';
+import type { ValidatorErrorType } from 'packages/qwik-router/src/runtime/src/types';
 
 // This is a TypeScript type validation test only.
 
@@ -9,13 +9,11 @@ interface MyObject {
   optional?: string;
 }
 
-export const useSimpleObjectAction = routeAction$(
-  async () => ({ value: 42 }) as MyObject,
-);
+export const useSimpleObjectAction = routeAction$(async () => ({ value: 42 }) as MyObject);
 
 export const useZodObjectAction = routeAction$(
   async () => ({ value: 42 }) as MyObject,
-  zod$({ name: z.string() }),
+  zod$({ name: z.string() })
 );
 
 export default component$(() => {

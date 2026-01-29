@@ -1,11 +1,4 @@
-import {
-  $,
-  component$,
-  useOnWindow,
-  useSignal,
-  useStore,
-  type QRL,
-} from "@qwik.dev/core";
+import { $, component$, useOnWindow, useSignal, useStore, type QRL } from '@qwik.dev/core';
 
 export const Events = component$(() => {
   const store = useStore({
@@ -33,7 +26,7 @@ export const Events = component$(() => {
       <div>
         <div
           onClick$={() => {
-            throw new Error("event was not stopped");
+            throw new Error('event was not stopped');
           }}
         >
           <a
@@ -51,7 +44,7 @@ export const Events = component$(() => {
         <div
           onClick$={() => {
             store.propagationStoppedCount++;
-            throw new Error("event was not stopped");
+            throw new Error('event was not stopped');
           }}
         >
           <button
@@ -61,16 +54,14 @@ export const Events = component$(() => {
               store.propagationStoppedCount++;
             }}
           >
-            Should stop propagation{" "}
+            Should stop propagation{' '}
           </button>
         </div>
       </div>
       <p id="count-transparent">countTransparent: {store.countTransparent}</p>
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
       <p id="count-anchor">countAnchor: {store.countAnchor}</p>
-      <p id="count-propagation">
-        countPropagationStopped: {store.propagationStoppedCount}
-      </p>
+      <p id="count-propagation">countPropagationStopped: {store.propagationStoppedCount}</p>
       <Issue3948 />
     </div>
   );
@@ -106,10 +97,10 @@ export const Listener = component$((props: { name: string }) => {
   const count = useSignal(0);
 
   useOnWindow(
-    "click",
+    'click',
     $(() => {
       count.value++;
-    }),
+    })
   );
 
   return (
@@ -126,12 +117,8 @@ export const Issue3948 = component$(() => {
     <>
       <Listener name="always" />
       <label for="issue-3948-toggle">
-        <input
-          id="issue-3948-toggle"
-          type="checkbox"
-          bind:checked={showingToggle}
-        />{" "}
-        Show conditional
+        <input id="issue-3948-toggle" type="checkbox" bind:checked={showingToggle} /> Show
+        conditional
       </label>
       {showingToggle.value && <Listener name="conditional" />}
     </>

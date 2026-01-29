@@ -1,9 +1,4 @@
-import {
-  type PropsOf,
-  component$,
-  useStylesScoped$,
-  Slot,
-} from '@qwik.dev/core';
+import { type PropsOf, component$, useStylesScoped$, Slot } from '@qwik.dev/core';
 import CSS from './component.css?inline';
 import { type HoverEvent } from './index';
 
@@ -22,9 +17,7 @@ export const UnderstandingResumability = component$(() => {
               onHover$={(e: HoverEvent) =>
                 e.detail(
                   <Callout target={e.target as HTMLElement}>
-                    <p>
-                      Server side rendered HTML to show application instantly
-                    </p>
+                    <p>Server side rendered HTML to show application instantly</p>
                     <ul>
                       <li>HTML from CDN (or SSG)</li>
                     </ul>
@@ -39,12 +32,10 @@ export const UnderstandingResumability = component$(() => {
                   <Callout target={e.target as HTMLElement}>
                     <p>HTML triggers downloading of application JavaScript.</p>
                     <ul>
+                      <li>Duplication: JS contains all string which are in HTML.</li>
                       <li>
-                        Duplication: JS contains all string which are in HTML.
-                      </li>
-                      <li>
-                        Any user interactions are lost (unless some form of
-                        event replay system exist.)
+                        Any user interactions are lost (unless some form of event replay system
+                        exist.)
                       </li>
                     </ul>
                   </Callout>
@@ -57,18 +48,12 @@ export const UnderstandingResumability = component$(() => {
                 e.detail(
                   <Callout target={e.target as HTMLElement}>
                     <p>
-                      The application must be executed for the framework to
-                      collect listeners, components, and state.
+                      The application must be executed for the framework to collect listeners,
+                      components, and state.
                     </p>
                     <ul>
-                      <li>
-                        This is a recursive process which starts with root
-                        component.
-                      </li>
-                      <li>
-                        The code is executed in slow interpretive mode (no
-                        JIT.)
-                      </li>
+                      <li>This is a recursive process which starts with root component.</li>
+                      <li>The code is executed in slow interpretive mode (no JIT.)</li>
                     </ul>
                   </Callout>
                 )
@@ -79,9 +64,7 @@ export const UnderstandingResumability = component$(() => {
               onHover$={(e: HoverEvent) =>
                 e.detail(
                   <Callout target={e.target as HTMLElement}>
-                    <p>
-                      Events are attached to make the application interactive.
-                    </p>
+                    <p>Events are attached to make the application interactive.</p>
                   </Callout>
                 )
               }
@@ -111,9 +94,7 @@ export const UnderstandingResumability = component$(() => {
               onHover$={(e: HoverEvent) =>
                 e.detail(
                   <Callout target={e.target as HTMLElement}>
-                    <p>
-                      Server side rendered HTML to show application instantly
-                    </p>
+                    <p>Server side rendered HTML to show application instantly</p>
                     <ul>
                       <li>HTML from CDN (or SSG)</li>
                       <li>Contains QwikLoader global listener (1kb / ~1ms)</li>
@@ -130,9 +111,8 @@ export const UnderstandingResumability = component$(() => {
                     <ul>
                       <li>Notice that JS is downloaded in parallel.</li>
                       <li>
-                        In an unlikely event that user interacts before JS is
-                        downloaded there may be small delay. (But always less
-                        than hydration cost.)
+                        In an unlikely event that user interacts before JS is downloaded there may
+                        be small delay. (But always less than hydration cost.)
                       </li>
                     </ul>
                   </Callout>
@@ -154,23 +134,22 @@ export const UnderstandingResumability = component$(() => {
                   <p>JavaScript downloaded in parallel.</p>
                   <ul>
                     <li>
-                      JS is eagerly downloaded in service worker off the main
-                      thread into browser cache. Once downloaded the
-                      application interactivity does not depend on network.
+                      JS is eagerly downloaded in service worker off the main thread into browser
+                      cache. Once downloaded the application interactivity does not depend on
+                      network.
                     </li>
                     <li>
-                      JS is not brought to main thread until user interaction.
-                      This keeps main thread free for other tasks.
+                      JS is not brought to main thread until user interaction. This keeps main
+                      thread free for other tasks.
                     </li>
                     <li>
-                      JS is split into many smaller chunks, this allows the
-                      service worker to prioritize the order of chunk download
-                      in case user interacts before all JS is downloaded.
+                      JS is split into many smaller chunks, this allows the service worker to
+                      prioritize the order of chunk download in case user interacts before all JS is
+                      downloaded.
                     </li>
                     <li>
-                      Related code is automatically grouped into chunks so that
-                      each chunk only has what is needed to process user
-                      interaction.
+                      Related code is automatically grouped into chunks so that each chunk only has
+                      what is needed to process user interaction.
                     </li>
                   </ul>
                 </Callout>
@@ -232,10 +211,7 @@ export function ReadyIcon(props: PropsOf<'svg'>, key: string) {
         stroke-width="2"
       >
         <path d="M24 4v8"></path>
-        <path
-          d="m22 22l20 4l-6 4l6 6l-6 6l-6-6l-4 6l-4-20Z"
-          clip-rule="evenodd"
-        ></path>
+        <path d="m22 22l20 4l-6 4l6 6l-6 6l-6-6l-4 6l-4-20Z" clip-rule="evenodd"></path>
         <path d="m38.142 9.858l-5.657 5.657M9.858 38.142l5.657-5.657M4 24h8M9.858 9.858l5.657 5.657"></path>
       </g>
     </svg>

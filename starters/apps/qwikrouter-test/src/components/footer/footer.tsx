@@ -1,9 +1,9 @@
-import { component$, useStyles$, useTask$ } from "@qwik.dev/core";
-import { Link } from "@qwik.dev/router";
-import { useUserLoader } from "../../routes/layout";
-import { useRootLoader } from "../../routes/plugin@header";
-import { usePlugin } from "../../routes/plugin@issue4722";
-import styles from "./footer.css?inline";
+import { component$, useStyles$, useTask$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
+import { useUserLoader } from '../../routes/layout';
+import { useRootLoader } from '../../routes/plugin@header';
+import { usePlugin } from '../../routes/plugin@issue4722';
+import styles from './footer.css?inline';
 
 export default component$(() => {
   const serverData = useRootLoader();
@@ -41,11 +41,7 @@ export default component$(() => {
           )}
         </li>
         <li>
-          <Link
-            href="/qwikrouter-test/mit/"
-            target="_self"
-            data-test-link="mit"
-          >
+          <Link href="/qwikrouter-test/mit/" target="_self" data-test-link="mit">
             {/* Should not use include preventdefault:client */}
             MIT
           </Link>

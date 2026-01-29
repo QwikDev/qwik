@@ -1,5 +1,6 @@
 {
   "description": "Fastify server",
+  "type": "module",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/fastify/vite.config.ts",
     "serve": "node server/entry.fastify"
@@ -29,6 +30,5 @@
         "- pnpm run serve: runs the production server locally"
       ]
     }
-  },
-  "type": "module"
+  }
 }

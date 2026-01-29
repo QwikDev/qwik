@@ -1,11 +1,8 @@
-import { routeAction$, Form } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
+import { routeAction$, Form } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
 
 export const useAction = routeAction$((_, event) => {
-  throw event.redirect(
-    302,
-    "/qwikrouter-test/action-redirect-without-search-params-target/",
-  );
+  throw event.redirect(302, '/qwikrouter-test/action-redirect-without-search-params-target/');
 });
 
 export default component$(() => {

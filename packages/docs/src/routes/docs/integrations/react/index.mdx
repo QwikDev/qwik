@@ -15,7 +15,7 @@ updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-04-06T21:28:28Z'
 ---
 
-import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
+import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Qwik React ⚛️
@@ -27,6 +27,7 @@ Qwik React allows you to use [React](https://react.dev/) within [Qwik](https://q
 The basic usage of Qwik React is to take existing React components and wrap them in a `qwikify$` function. This function will create a Qwik component that can be used within Qwik and which will turn the React component into an island allowing you the freedom to fine-tune when the React component should hydrate.
 
 Basic usage
+
 ```tsx
 // This pragma is required so that React JSX is used instead of Qwik JSX
 /** @jsxImportSource react */
@@ -45,30 +46,13 @@ export const QGreetings = qwikify$(Greetings);
 
 Before you can use Qwik React you need to configure the Qwik project to use Qwik React. The simplest way is to run the following command:
 
-> If you don't have a Qwik app yet, then you need to [create one first](/docs/(qwik)/getting-started/index.mdx), then, follow the instructions and run the command add React to your app.
-
+> If you don't have a Qwik app yet, then you need to [create one first](</docs/(qwik)/getting-started/index.mdx>), then, follow the instructions and run the command add React to your app.
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add react
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add react
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add react
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add react
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add react ```</span>
+  <span q:slot="npm">```shell npm run qwik add react ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add react ```</span>
+  <span q:slot="bun">```shell bun run qwik add react ```</span>
 </PackageManagerTabs>
 
 The above command will perform the following:
@@ -89,6 +73,7 @@ The above command will perform the following:
    ```
    > **Note**: This is not an emulation of React. We are using the actual React library.
 2. configure Vite to use the `@qwik.dev/react` plugin:
+
    ```ts
    // vite.config.ts
    import { qwikReact } from '@qwik.dev/react/vite';
@@ -106,6 +91,7 @@ The above command will perform the following:
    ```
 
 > **Note**: The `qwik add react` command will also configure a demo route showcasing the Qwik React integration. These are:
+>
 > - `package.json` `dependencies`:
 >   - `@emotion/react 11.10.6`
 >   - `@emotion/styled 11.10.6`
@@ -116,7 +102,6 @@ The above command will perform the following:
 >   - `/src/integrations/react`: Here's where the react component lives
 >
 > We will ignore these in this guide and instead take you through the process from the beginning.
-
 
 ## 1. Hello World
 
@@ -131,12 +116,13 @@ import { qwikify$ } from '@qwik.dev/react';
 
 // Create React component standard way
 function Greetings() {
-  return <p>Hello from React</p>;
+return <p>Hello from React</p>;
 }
 
 // Convert React component to Qwik component
 export const QGreetings = qwikify$(Greetings);
-```
+
+````
 </CodeFile>
 </div>
 <div q:slot="1">
@@ -153,14 +139,15 @@ export default component$(() => {
     </main>
   );
 });
-```
+````
+
 </CodeFile>
 </div>
 </CodeSandbox>
 
 The `@qwik.dev/react` package exports the `qwikify$()` function that lets you convert React components into Qwik components, that you can use across your application.
 
-> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik components look similar](/docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx), they are fundamentally very different.
+> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik components look similar](</docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx>), they are fundamentally very different.
 
 React and Qwik components can not be mixed in the same file, if you check your project right after running the installation command, you will see a new folder `src/integrations/react/`, we recommend that you place your React components there.
 
@@ -178,17 +165,19 @@ import { useState } from 'react';
 
 // Create React component standard way
 function Counter() {
-  const [count, setCount] = useState(0);
-  return (
-    <button className="react" onClick={() => setCount(count + 1)}>
-      Count: {count}
-    </button>
-  );
+const [count, setCount] = useState(0);
+return (
+
+<button className="react" onClick={() => setCount(count + 1)}>
+Count: {count}
+</button>
+);
 }
 
 // Convert React component to Qwik component
 export const QCounter = qwikify$(Counter);
-```
+
+````
 </CodeFile>
 </div>
 <div q:slot="1">
@@ -204,7 +193,8 @@ export default component$(() => {
     </main>
   );
 });
-```
+````
+
 </CodeFile>
 </div>
 </CodeSandbox>
@@ -222,19 +212,21 @@ import { useState } from 'react';
 
 // Create React component standard way
 function Counter() {
-  // Print to console to show when the component is rendered.
-  console.log('React <Counter/> Render');
-  const [count, setCount] = useState(0);
-  return (
-    <button className="react" onClick={() => setCount(count + 1)}>
-      Count: {count}
-    </button>
-  );
+// Print to console to show when the component is rendered.
+console.log('React <Counter/> Render');
+const [count, setCount] = useState(0);
+return (
+
+<button className="react" onClick={() => setCount(count + 1)}>
+Count: {count}
+</button>
+);
 }
 
 // Specify eagerness to hydrate component on hover event.
 export const QCounter = qwikify$(Counter, { eagerness: 'hover' });
-```
+
+````
 </CodeFile>
 </div>
 <div q:slot="1">
@@ -251,7 +243,8 @@ export default component$(() => {
     </main>
   );
 });
-```
+````
+
 </CodeFile>
 </div>
 </CodeSandbox>
@@ -260,11 +253,9 @@ In this example, we have brought up the console to show what is going on behind 
 
 By giving the `eagerness` property to `qwikify$()`, we are allowing you to fine-tune the conditions under which the component is hydrated which will impact the startup performance of your application.
 
-
 ## 3. Inter-island communication
 
 In the previous example, we had a single island that we delay-hydrated. But once you have multiple islands, there will be a need to communicate between them. This example shows how to do inter-island communication with Qwik.
-
 
 <CodeSandbox src="/src/routes/demo/react/counter-two-islands/" console={true}
              tabs={["react.tsx","index.tsx"]} style={{ height: '20em' }}>
@@ -275,13 +266,13 @@ In the previous example, we had a single island that we delay-hydrated. But once
 import { qwikify$ } from '@qwik.dev/react';
 
 function Button({ onClick }: { onClick: () => void }) {
-  console.log('React <Button/> Render');
-  return <button onClick={onClick}>+1</button>;
+console.log('React <Button/> Render');
+return <button onClick={onClick}>+1</button>;
 }
 
 function Display({ count }: { count: number }) {
-  console.log('React <Display count=' + count + '/> Render');
-  return <p className="react">Count: {count}</p>;
+console.log('React <Display count=' + count + '/> Render');
+return <p className="react">Count: {count}</p>;
 }
 
 export const QButton = qwikify$(Button, { eagerness: 'hover' });
@@ -318,11 +309,13 @@ export default component$(() => {
 In the above example, we have two islands, one for the button (`QButton`) and one for the display (`QDisplay`). The button island is hydrated on `hover` and the display island is not hydrated on any event.
 
 The `react.tsx` file has:
+
 - `QButton` - a button that increments the count when clicked. This island is hydrated on `hover`.
 - `QDisplay` - a display that shows the current count. This island is not hydrated on any event but will be hydrated by Qwik when its props change.
 - Both of the React components have `console.log` to show when the component is hydrated or re-rendered.
 
 The `index.tsx` file has:
+
 - `count` - a signal that is used to track the current count.
 - Instantiates the `QButton` islands. The `onClick$` handler increments the `count` signal. Notice that Qwik automatically converts the `onClick` to `onClick$` prop allowing lazy loading of the event handlers.
 - Instantiates the `QDisplay` islands. The `count` signal is passed as a prop to the island.
@@ -373,13 +366,13 @@ import { qwikify$ } from '@qwik.dev/react';
 import { type ReactNode } from 'react';
 
 function Button({ children }: { children?: ReactNode[] }) {
-  console.log('React <Button/> Render');
-  return <button>{children}</button>;
+console.log('React <Button/> Render');
+return <button>{children}</button>;
 }
 
 function Display({ count }: { count: number }) {
-  console.log('React <Display count=' + count + '/> Render');
-  return <div className="react">Count: {count}</div>;
+console.log('React <Display count=' + count + '/> Render');
+return <div className="react">Count: {count}</div>;
 }
 
 export const QButton = qwikify$(Button);
@@ -390,7 +383,6 @@ export const QDisplay = qwikify$(Display);
 </CodeSandbox>
 
 Now hovering over the button will not do anything (no React hydration). Clicking on the button will cause Qwik to handle the event and update the signal which will in turn cause the hydration of the `QDisplay` island. Notice that the `QButton` island is never hydrated. Therefore this change allowed us to have an island that renders server side only and never needs to be hydrated in the browser, saving our user time.
-
 
 ## 5. Projecting `children`
 
@@ -432,19 +424,19 @@ import { type ReactNode } from 'react';
 import { qwikify$ } from '@qwik.dev/react';
 
 function Frame({ children }: { children?: ReactNode[] }) {
-  console.log('React <Zippy/> Render');
-  return (
-    <div
-      style={{
+console.log('React <Zippy/> Render');
+return (
+
+<div
+style={{
         display: 'inline-block',
         border: '1px solid black',
         borderRadius: '10px',
         padding: '5px',
-      }}
-    >
-      {children}
-    </div>
-  );
+      }} >
+{children}
+</div>
+);
 }
 
 export const QFrame = qwikify$(Frame);
@@ -458,7 +450,6 @@ Notice that the `QFrame` island is never hydrated because it has no `eagerness` 
 ## 6. Using React libraries
 
 Finally, it is possible to use React libraries in your Qwik application. In this example [Material UI](https://mui.com/) and [Emotion](https://emotion.sh/docs/introduction) are used to render this React example.
-
 
 <CodeSandbox src="/src/routes/demo/react/mui/"
              tabs={["react.tsx", "index.tsx"]} style={{ height: '8em' }}>
@@ -871,7 +862,7 @@ import { Slider } from '@mui/material';
 <Slider onChange={() => console.log('value changed')}></Slider>;
 ```
 
-The `qwikify()` function will convert this into a Qwik component that will also expose the React events as Qwik [QRLs](/docs/(qwik)/advanced/qrl/index.mdx):
+The `qwikify()` function will convert this into a Qwik component that will also expose the React events as Qwik [QRLs](</docs/(qwik)/advanced/qrl/index.mdx>):
 
 ```tsx
 import { Slider } from '@mui/material';

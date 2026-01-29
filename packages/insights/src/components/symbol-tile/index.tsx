@@ -6,7 +6,7 @@ import { SymbolIcon } from '../icons/symbol';
 import { type PopupEvent } from '../popup-manager';
 
 export const SymbolPopup = component$<{ symbolHash: string }>(({ symbolHash }) => (
-  <div class="min-w-[500px] max-w-[75vw]">
+  <div class="max-w-[75vw] min-w-[500px]">
     <SymbolSource symbolHash={symbolHash} />
   </div>
 ));
@@ -38,10 +38,10 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
   return (
     <div>
       <h2 class="h5 px-6 py-3">Details</h2>
-      <table class="w-full text-sm text-left">
+      <table class="w-full text-left text-sm">
         <tbody>
           <tr class="border-y border-slate-200 text-xs">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Symbol
             </th>
             <td scope="col" class="px-6 py-3">
@@ -49,7 +49,7 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
             </td>
           </tr>
           <tr class="border-b border-slate-200 text-xs">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Full Name
             </th>
             <td scope="col" class="px-6 py-3">
@@ -57,7 +57,7 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
             </td>
           </tr>
           <tr class="border-b border-slate-200 text-xs">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
+            <th scope="col" class="bg-slate-50 px-6 py-3">
               Origin
             </th>
             <td scope="col" class="px-6 py-3">

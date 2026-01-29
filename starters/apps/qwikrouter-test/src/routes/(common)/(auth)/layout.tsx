@@ -1,9 +1,9 @@
-import type { RequestEvent } from "@qwik.dev/router";
-import { component$, Slot, useStyles$ } from "@qwik.dev/core";
-import styles from "./layout.css?inline";
+import type { RequestEvent } from '@qwik.dev/router';
+import { component$, Slot, useStyles$ } from '@qwik.dev/core';
+import styles from './layout.css?inline';
 
 export const onGet = ({ headers }: RequestEvent) => {
-  headers.set("cache-control", "no-cache");
+  headers.set('cache-control', 'no-cache');
 };
 
 export default component$(() => {

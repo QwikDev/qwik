@@ -53,24 +53,37 @@ export default component$(() => {
 Remember that Qwik uses `class` instead of `className` for CSS classes.
 
 Qwik also accepts arrays, objects, or a combination of them to assign multiple classes:
+
 ```tsx title="src/components/MyComponent/MyComponent.tsx"
 import { component$ } from '@qwik.dev/core';
 import styles from './MyComponent.module.css';
 
 export default component$((props) => {
   // Array syntax example
-  return <div class={[
-    styles.container, 
-    'p-8', 
-    props.isHighAttention ? 'text-green-500' : 'text-slate-500',
-    { active: true}
-  ]}>Hello world</div>;
+  return (
+    <div
+      class={[
+        styles.container,
+        'p-8',
+        props.isHighAttention ? 'text-green-500' : 'text-slate-500',
+        { active: true },
+      ]}
+    >
+      Hello world
+    </div>
+  );
 
   // Object syntax example
-  return <div class={{  
-    'text-green-500': props.isHighAttention,
-    'p-4': true
-  }}>Hello world</div>;
+  return (
+    <div
+      class={{
+        'text-green-500': props.isHighAttention,
+        'p-4': true,
+      }}
+    >
+      Hello world
+    </div>
+  );
 });
 ```
 
@@ -109,26 +122,10 @@ export const Cmp = component$(() => {
 ```
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add styled-vanilla-extract
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add styled-vanilla-extract
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add styled-vanilla-extract
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add styled-vanilla-extract
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add styled-vanilla-extract ```</span>
+  <span q:slot="npm">```shell npm run qwik add styled-vanilla-extract ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add styled-vanilla-extract ```</span>
+  <span q:slot="bun">```shell bun run qwik add styled-vanilla-extract ```</span>
 </PackageManagerTabs>
 
 Please refer to the [docs of our official integration](/docs/integrations/styled-vanilla-extract/index.mdx) for more information.
@@ -140,26 +137,10 @@ Please refer to the [docs of our official integration](/docs/integrations/styled
 The styled-components library is a popular tool in React-land for writing CSS-in-JS. Thanks to the same [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract) plugin, you can write your styles with styled-components syntax in Qwik with zero-runtime cost!
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add styled-vanilla-extract
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add styled-vanilla-extract
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add styled-vanilla-extract
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add styled-vanilla-extract
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add styled-vanilla-extract ```</span>
+  <span q:slot="npm">```shell npm run qwik add styled-vanilla-extract ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add styled-vanilla-extract ```</span>
+  <span q:slot="bun">```shell bun run qwik add styled-vanilla-extract ```</span>
 </PackageManagerTabs>
 
 Like this:
@@ -187,6 +168,7 @@ export const Cmp = component$(() => {
 ## Scoped CSS
 
 To use scoped CSS, you can use the `useStylesScoped$()` hook exported from `@qwik.dev/core`.
+
 > `useStylesScoped$()` uses an emoji to set a unique name on the selector, to avoid CSS name / selector clashes, and to ensure that the styles are correctly scoped as expected.
 
 ```tsx {4-8} title="src/components/MyComponent/MyComponent.tsx"
@@ -221,7 +203,6 @@ export default component$(() => {
 });
 ```
 
-
 ### `:global()` selector
 
 Using `useStylesScoped$` will scope all child selectors in a ruleset to the component. If you need to style child components rendered through a `<Slot />`, you will need to break out of the scoped styles using the `:global()` selector.
@@ -252,7 +233,6 @@ This will render a css selector of `.list.⚡️8vzca0-0 > *:nth-child(3)`, allo
 
 > Beware that this may have unintended effects that cascade down your component tree.
 
-
 ## `useStyles$()`
 
 A lazy-loadable reference to component's styles.
@@ -282,7 +262,7 @@ export const CmpStyles = component$(() => {
 
 ```tsx
 export const CmpStyles = component$(() => {
-  const primaryColor = "red";
+  const primaryColor = 'red';
 
   // ❌ Does not work
   useStyles$(`
@@ -293,23 +273,18 @@ export const CmpStyles = component$(() => {
 
   // ✅ Adding in the style attribute works
   return (
-    <span 
-      style={{ "--primary-color": primaryColor }} 
-      class="my-text"
-    >
+    <span style={{ '--primary-color': primaryColor }} class="my-text">
       Some text
     </span>
   );
 });
 ```
 
-
 ## CSS Preprocessors
 
 Thanks to [Vite](https://vitejs.dev/guide/features.html#css-pre-processors), Qwik supports CSS preprocessors like Sass, Less, Stylus, and PostCSS.
 
 There is no need to install Qwik-specific plugins for them, but the corresponding pre-processor itself must be installed:
-
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
@@ -318,11 +293,14 @@ There is no need to install Qwik-specific plugins for them, but the correspondin
 pnpm add -D sass
 
 # .less
+
 pnpm add -D less
 
 # .styl and .stylus
+
 pnpm add -D stylus
-```
+
+````
 </span>
 <span q:slot="npm">
 ```shell
@@ -334,7 +312,8 @@ npm add -D less
 
 # .styl and .stylus
 npm add -D stylus
-```
+````
+
 </span>
 <span q:slot="yarn">
 ```shell
@@ -342,11 +321,14 @@ npm add -D stylus
 yarn add -D sass
 
 # .less
+
 yarn add -D less
 
 # .styl and .stylus
+
 yarn add -D stylus
-```
+
+````
 </span>
 <span q:slot="bun">
 ```shell
@@ -358,7 +340,8 @@ bun add -D less
 
 # .styl and .stylus
 bun add -D stylus
-```
+````
+
 </span>
 </PackageManagerTabs>
 
@@ -368,28 +351,11 @@ Check [Vite's docs](https://vitejs.dev/guide/features.html#css-pre-processors) f
 
 To use Tailwind in your app, you can add it to your app with our built-in integration:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add tailwind
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add tailwind
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add tailwind
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add tailwind
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add tailwind ```</span>
+  <span q:slot="npm">```shell npm run qwik add tailwind ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add tailwind ```</span>
+  <span q:slot="bun">```shell bun run qwik add tailwind ```</span>
 </PackageManagerTabs>
 
 Check out [the integration docs](/docs/integrations/tailwind/index.mdx) for more information.
@@ -398,28 +364,11 @@ Check out [the integration docs](/docs/integrations/tailwind/index.mdx) for more
 
 It is also possible to use PostCSS in your app with our built-in integration:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add postcss
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add postcss
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add postcss
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add postcss
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add postcss ```</span>
+  <span q:slot="npm">```shell npm run qwik add postcss ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add postcss ```</span>
+  <span q:slot="bun">```shell bun run qwik add postcss ```</span>
 </PackageManagerTabs>
 
 Important: Since we are using vite, the configuration should look as follows to work:
@@ -475,7 +424,7 @@ The problem with this approach is that we will load styles twice.
 1. The styles are inserted into the HTML as part of the SSR.
 2. Then when the component is invalidated and needs to be re-rendered, the styles are loaded again because they are inlined.
 
-What is needed is to load the styles independently from the component. This is what [`useStyles$()`](/docs/(qwik)/core/styles/index.mdx#usestyles) is for. There are two scenarios:
+What is needed is to load the styles independently from the component. This is what [`useStyles$()`](</docs/(qwik)/core/styles/index.mdx#usestyles>) is for. There are two scenarios:
 
 1. The component is rendered on the server and the styles are inserted into `<head>` as part of the SSR.
    - Adding a new instance of a component to the application does not require that we load the styles as they are already included as part of SSR.

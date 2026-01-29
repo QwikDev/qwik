@@ -3,8 +3,8 @@ import { component$, useStore } from '@qwik.dev/core';
 export default component$(() => {
   return (
     <>
-      <h1>Hello World!</h1>
-      I am a static component, there is no reason to ever download me to the client.
+      <h1>Hello World!</h1>I am a static component, there is no reason to ever download me to the
+      client.
       <br />
       <button onClick$={() => alert('Hello')}>greet!</button>
       <hr />

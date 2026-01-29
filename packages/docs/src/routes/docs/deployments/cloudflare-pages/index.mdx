@@ -26,28 +26,11 @@ Qwik Router Cloudflare Pages adapter allows you to connect Qwik Router to [Cloud
 
 To integrate the `cloudflare-pages` adapter, use the `add` command:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add cloudflare-pages
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add cloudflare-pages
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add cloudflare-pages
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add cloudflare-pages
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add cloudflare-pages ```</span>
+  <span q:slot="npm">```shell npm run qwik add cloudflare-pages ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add cloudflare-pages ```</span>
+  <span q:slot="bun">```shell bun run qwik add cloudflare-pages ```</span>
 </PackageManagerTabs>
 
 The adapter will add a new `vite.config.ts` within the `adapters/` directory, and a new entry file will be created, such as:
@@ -63,34 +46,19 @@ The adapter will add a new `vite.config.ts` within the `adapters/` directory, an
 Additionally, within the `package.json`, the `build.server` and `deploy` scripts will be updated.
 
 Take note of your nodejs version in your local environment by running the `node -v` command:
+
 ```shell
 node -v
 v20.11.1
 ```
 
-When using 
+When using
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm create qwik@latest
-```
-</span>
-<span q:slot="npm">
-```shell
-npm create qwik@latest
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn create qwik
-```
-</span>
-<span q:slot="bun">
-```shell
-bun create qwik@latest
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm create qwik@latest ```</span>
+  <span q:slot="npm">```shell npm create qwik@latest ```</span>
+  <span q:slot="yarn">```shell yarn create qwik ```</span>
+  <span q:slot="bun">```shell bun create qwik@latest ```</span>
 </PackageManagerTabs>
 
 to setup your Qwik app it will likely use a different nodejs version than what Cloudflare Pages uses by default (v16.20.2).
@@ -100,26 +68,10 @@ to setup your Qwik app it will likely use a different nodejs version than what C
 To build the application for production, use the `build` command, this command will automatically run `build.server` and `build.client`:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run build
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run build
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run build
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run build
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run build ```</span>
+  <span q:slot="npm">```shell npm run build ```</span>
+  <span q:slot="yarn">```shell yarn run build ```</span>
+  <span q:slot="bun">```shell bun run build ```</span>
 </PackageManagerTabs>
 
 [Read the full guide here](https://github.com/QwikDev/qwik/tree/main/starters/adapters/cloudflare-pages/README.md)
@@ -143,7 +95,7 @@ Note that you will need a [Cloudflare account](https://dash.cloudflare.com/sign-
 
 ## Static Site Generation (SSG)
 
-The Cloudflare Pages adapter also supports Static Site Generation (SSG) by using the `ssg` property. 
+The Cloudflare Pages adapter also supports Static Site Generation (SSG) by using the `ssg` property.
 This allows you to generate static HTML files for your application at build time, instead of rendering them at runtime.
 
 ```ts title="adapters/cloudflare-pages/vite.config.ts"
@@ -157,45 +109,41 @@ export default extendConfig(baseConfig, () => {
           // This ensures that the SSG can read the routes from the config
           '@qwik-router-config',
         ],
-      }
+      },
     },
     plugins: [
       cloudflarePagesAdapter(
-       // 👇 THIS IS WHAT YOU NEED TO ADD 👇
-       {
-         ssg: {
-           include: ['/*'],
-           exclude: ['/shop/*'],
-           origin: 'https://example.com',
-       },
-      }),
+        // 👇 THIS IS WHAT YOU NEED TO ADD 👇
+        {
+          ssg: {
+            include: ['/*'],
+            exclude: ['/shop/*'],
+            origin: 'https://example.com',
+          },
+        }
+      ),
     ],
   };
 });
-
 ```
-
 
 #### `include`
 
-The `include` array is used to specify which paths should be statically generated. It accepts wildcard behavior. 
+The `include` array is used to specify which paths should be statically generated. It accepts wildcard behavior.
 
 #### `exclude`
 
-The `exclude` array defines routes that should not be static generated and accepts wildcard behavior. 
+The `exclude` array defines routes that should not be static generated and accepts wildcard behavior.
 `exclude` always take priority over include.
 
 #### `origin`
 
 The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For example, `https://qwik.dev` has the protocol `https://` and domain `qwik.dev`. However, the `origin` does _not_ include a `pathname`.
 
-The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the `pathname`. 
+The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the `pathname`.
 For example, in order to render a correct canonical tag URL or URLs within the `sitemap.xml`, the `origin` must be provided too.
 
 This is important because if you don't set it, cloudflare will use the specific deployment url instead.
-
-
-
 
 ## Advanced
 
@@ -219,7 +167,7 @@ The compiled middleware will be built in the `server/` directory. Such directory
 The file simply re-exports the produced `fetch` handler as shown below.
 
 ```tsx title="/dist/_worker.js"
-import { fetch } from "../server/entry.cloudflare-pages";
+import { fetch } from '../server/entry.cloudflare-pages';
 export default { fetch };
 ```
 

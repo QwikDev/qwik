@@ -19,16 +19,14 @@ createQwikCity: typeof createQwikRouter;
 ## createQwikRouter
 
 ```typescript
-export declare function createQwikRouter(
-  opts: QwikRouterCloudflarePagesOptions,
-): (
-  request: PlatformCloudflarePages["request"],
-  env: PlatformCloudflarePages["env"] & {
+export declare function createQwikRouter(opts: QwikRouterCloudflarePagesOptions): (
+  request: PlatformCloudflarePages['request'],
+  env: PlatformCloudflarePages['env'] & {
     ASSETS: {
       fetch: (req: Request) => Response;
     };
   },
-  ctx: PlatformCloudflarePages["ctx"],
+  ctx: PlatformCloudflarePages['ctx']
 ) => Promise<Response>;
 ```
 

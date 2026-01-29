@@ -11,10 +11,9 @@ export default component$(() => {
     cleanup(() => controller.abort());
 
     try {
-      const response = await fetch(
-        `https://jsonplaceholder.typicode.com/posts/${postId.value}`,
-        { signal: controller.signal }
-      );
+      const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId.value}`, {
+        signal: controller.signal,
+      });
       const data = await response.json();
       return data.title as string;
     } catch (e) {

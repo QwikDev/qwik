@@ -1,17 +1,17 @@
-import { component$ } from "@qwik.dev/core";
-import { Form, routeAction$ } from "@qwik.dev/router";
-import { data } from "./data";
+import { component$ } from '@qwik.dev/core';
+import { Form, routeAction$ } from '@qwik.dev/router';
+import { data } from './data';
 
 export const useRootAction = routeAction$(
   (form, { redirect }) => {
     const name = form.name as string;
     data.length = 0;
     data.push(name);
-    throw redirect(303, "/qwikrouter-test/issue2644/other/");
+    throw redirect(303, '/qwikrouter-test/issue2644/other/');
   },
   {
-    id: "root-action",
-  },
+    id: 'root-action',
+  }
 );
 
 export default component$(() => {

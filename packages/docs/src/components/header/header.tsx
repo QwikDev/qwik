@@ -30,7 +30,7 @@ export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
       title="Search"
       aria-label="Search"
     >
-      <span class="mr-2 md:inline-block sm:hidden hidden sm:visible">Search</span>
+      <span class="mr-2 hidden sm:visible sm:hidden md:inline-block">Search</span>
       <SearchIcon />
     </button>
   );
@@ -89,7 +89,7 @@ export const Header = component$(() => {
               <CloseIcon width={30} height={30} />
             </span>
           </button>
-          <ul class="lg:grow lg:flex lg:justify-end lg:p-4 menu-toolkit">
+          <ul class="menu-toolkit lg:flex lg:grow lg:justify-end lg:p-4">
             <li>
               <Link
                 href="/docs/"

@@ -1,23 +1,23 @@
-import { component$, useSignal, useTask$ } from "@qwik.dev/core";
-import { routeLoader$, Form, routeAction$, server$ } from "@qwik.dev/router";
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+import { routeLoader$, Form, routeAction$, server$ } from '@qwik.dev/router';
 
 export const useDadJoke = routeLoader$(async () => {
   return Math.random() > 0.5
     ? {
-        id: "1",
+        id: '1',
         status: 200,
-        joke: "Joke A",
+        joke: 'Joke A',
       }
     : {
-        id: "2",
+        id: '2',
         status: 200,
-        joke: "Joke B",
+        joke: 'Joke B',
       };
 });
 
 export const useJokeVoteAction = routeAction$((props) => {
   // eslint-disable-next-line no-console
-  console.log("VOTE", props);
+  console.log('VOTE', props);
 });
 
 export default component$(() => {
@@ -28,10 +28,10 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => isFavoriteSignal.value);
     // eslint-disable-next-line no-console
-    console.log("FAVORITE (isomorphic)", isFavoriteSignal.value);
+    console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
     server$(() => {
       // eslint-disable-next-line no-console
-      console.log("FAVORITE (server)", isFavoriteSignal.value);
+      console.log('FAVORITE (server)', isFavoriteSignal.value);
     })();
   });
   return (
@@ -50,7 +50,7 @@ export default component$(() => {
         id="favorite-heart"
         onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
       >
-        {isFavoriteSignal.value ? "❤️" : "🤍"}
+        {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
     </section>
   );

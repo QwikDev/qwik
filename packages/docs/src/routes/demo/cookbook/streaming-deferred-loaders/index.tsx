@@ -17,10 +17,7 @@ export default component$(() => {
   return (
     <>
       <div>BEFORE</div>
-      <Resource
-        value={myData}
-        onResolved={(data) => <div>DATA: {data}</div>}
-      />
+      <Resource value={myData} onResolved={(data) => <div>DATA: {data}</div>} />
       <div>AFTER</div>
     </>
   );

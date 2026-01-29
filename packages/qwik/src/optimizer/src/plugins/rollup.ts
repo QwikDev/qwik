@@ -166,7 +166,7 @@ const getChunkFileName = (
       if (chunkInfo.moduleIds?.some((id) => /core\.(prod|min)\.mjs$/.test(id))) {
         return `${prefix}build/core.js`;
       }
-      if (chunkInfo.moduleIds?.some((id) => /qwik-router\/lib\/index\.qwik\.mjs$/.test(id))) {
+      if (chunkInfo.moduleIds?.some((id) => id.endsWith('qwik-router/lib/index.qwik.mjs'))) {
         return `${prefix}build/qwik-router.js`;
       }
 

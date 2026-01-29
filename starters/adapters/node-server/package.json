@@ -1,5 +1,6 @@
 {
   "description": "Vanilla Node server",
+  "type": "module",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/node-server/vite.config.ts",
     "serve": "node server/entry.node-server"
@@ -19,6 +20,5 @@
         "- pnpm run serve: runs the production server locally"
       ]
     }
-  },
-  "type": "module"
+  }
 }

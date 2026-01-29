@@ -1,6 +1,6 @@
-import { routeLoader$ } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
-import ActionForm from "./action";
+import { routeLoader$ } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
+import ActionForm from './action';
 
 export const useRealDateLoader = routeLoader$(() => {
   return [new Date().toISOString()];

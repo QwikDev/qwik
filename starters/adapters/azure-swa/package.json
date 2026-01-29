@@ -1,5 +1,6 @@
 {
   "description": "Azure Static Web Apps",
+  "type": "module",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/azure-swa/vite.config.ts",
     "serve": "swa start"
@@ -24,6 +25,5 @@
         "- pnpm run deploy: it will use the SWA CLI to deploy your site"
       ]
     }
-  },
-  "type": "module"
+  }
 }

@@ -50,5 +50,5 @@ export async function bundleIndex(config: BuildConfig, entryName: string) {
     outExtension: { '.js': '.mjs' },
   });
 
-  await Promise.all([esm]);
+  [await esm];
 }

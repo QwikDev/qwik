@@ -29,20 +29,20 @@ const linkColumns = [
 
 export const Footer = component$(() => {
   return (
-    <footer class="mb-12 mt-10">
-      <div class="flex justify-center my-12">
-        <div class="flex flex-grow justify-center flex-wrap max-w-screen-xl flex-col sm:flex-row gap-y-4">
-          <div class="flex-1 sm:flex-[2] flex sm:justify-center sm:block mb-4 sm:mb-0">
+    <footer class="mt-10 mb-12">
+      <div class="my-12 flex justify-center">
+        <div class="flex max-w-screen-xl flex-grow flex-col flex-wrap justify-center gap-y-4 sm:flex-row">
+          <div class="mb-4 flex flex-1 sm:mb-0 sm:block sm:flex-[2] sm:justify-center">
             <QwikLogo width={170} height={54} />
           </div>
-          <div class="flex flex-1 sm:flex-[3] max-w-screen-sm flex-wrap gap-y-8 gap-x-20 text-xs sm:px-4">
+          <div class="flex max-w-screen-sm flex-1 flex-wrap gap-x-20 gap-y-8 text-xs sm:flex-[3] sm:px-4">
             <FooterLinks />
           </div>
         </div>
       </div>
       <div class="flex justify-center">
-        <div class="max-w-screen-xl w-full">
-          <div class="italic text-xs">
+        <div class="w-full max-w-screen-xl">
+          <div class="text-xs italic">
             <p>
               Made with <span class="not-italic">❤️</span> by
             </p>
@@ -50,8 +50,8 @@ export const Footer = component$(() => {
               The <strong>Qwik</strong> Team
             </p>
           </div>
-          <div class="border border-b-0 border-current mt-2"></div>
-          <div class="flex justify-between items-end">
+          <div class="mt-2 border border-b-0 border-current"></div>
+          <div class="flex items-end justify-between">
             <p class="text-xs">MIT License © {new Date().getFullYear()}</p>
             <FooterSocialLinks />
           </div>
@@ -65,11 +65,11 @@ export const FooterLinks = component$(() => {
   return (
     <>
       {linkColumns.map((column, colIndex) => (
-        <div key={colIndex} class="flex flex-col gap-4 flex-1">
+        <div key={colIndex} class="flex flex-1 flex-col gap-4">
           {column.map((link, linkIndex) => (
             <Link
               key={linkIndex}
-              class="text-[color:var(--text-color)] hover:text-interactive-blue z-[10]"
+              class="hover:text-interactive-blue z-[10] text-[color:var(--text-color)]"
               href={link.href}
             >
               {link.title}
@@ -90,7 +90,7 @@ export const FooterSocialLinks = component$(() => {
   ];
 
   return (
-    <ul class="flex gap-4 mt-4">
+    <ul class="mt-4 flex gap-4">
       {socialLinks.map(({ title, href, Logo }) => (
         <li key={title} class="list-none">
           <a href={href} target="_blank" title={title}>

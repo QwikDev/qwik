@@ -1,50 +1,31 @@
 {
   "name": "@qwik.dev/router",
-  "description": "The router for Qwik.",
   "version": "2.0.0-beta.17",
+  "description": "The router for Qwik.",
+  "homepage": "https://qwik.dev/",
   "bugs": "https://github.com/QwikDev/qwik/issues",
-  "dependencies": {
-    "@azure/functions": "3.5.1",
-    "@mdx-js/mdx": "^3.1.1",
-    "@netlify/edge-functions": "^2.17.0",
-    "@types/mdx": "^2.0.13",
-    "estree-util-value-to-estree": "^3.5.0",
-    "github-slugger": "^2.0.0",
-    "hast-util-heading-rank": "^2.1.1",
-    "hast-util-to-string": "^2.0.0",
-    "kleur": "^4.1.5",
-    "marked": "^12.0.2",
-    "mdast-util-mdx": "^3.0.0",
-    "refractor": "^4.8.1",
-    "rehype-autolink-headings": "^7.1.0",
-    "remark-frontmatter": "^5.0.0",
-    "remark-gfm": "^4.0.1",
-    "set-cookie-parser": "^2.7.2",
-    "source-map": "^0.7.6",
-    "svgo": "^3.3.2",
-    "unified": "^11.0.5",
-    "unist-util-visit": "^5.0.0",
-    "valibot": ">=0.36.0 <2",
-    "vfile": "6.0.3",
-    "vite": ">=5 <8",
-    "vite-imagetools": "9.0.0",
-    "yaml": "^2.8.2",
-    "zod": "^3.25.48"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/qwik-router"
   },
-  "devDependencies": {
-    "@microsoft/api-extractor": "7.55.2",
-    "@qwik.dev/core": "workspace:*",
-    "@types/mdast": "4.0.4",
-    "@types/node": "24.10.0",
-    "@types/refractor": "4.0.0",
-    "@types/set-cookie-parser": "2.4.10",
-    "tsm": "2.3.0",
-    "typescript": "5.9.3",
-    "uvu": "0.5.6"
-  },
-  "engines": {
-    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
-  },
+  "files": [
+    "adapters",
+    "index.d.ts",
+    "lib",
+    "middleware",
+    "modules.d.ts",
+    "README.md",
+    "service-worker.d.ts",
+    "static.d.ts",
+    "ssg.d.ts",
+    "vite.d.ts"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./lib/index.qwik.mjs",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
@@ -152,38 +133,57 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "adapters",
-    "index.d.ts",
-    "lib",
-    "middleware",
-    "modules.d.ts",
-    "README.md",
-    "service-worker.d.ts",
-    "static.d.ts",
-    "ssg.d.ts",
-    "vite.d.ts"
-  ],
-  "homepage": "https://qwik.dev/",
-  "license": "MIT",
-  "main": "./lib/index.qwik.mjs",
-  "peerDependencies": {
-    "@qwik.dev/core": "workspace:^",
-    "vite": ">=5 <8"
-  },
   "publishConfig": {
     "access": "public"
-  },
-  "qwik": "./lib/index.qwik.mjs",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/QwikDev/qwik.git",
-    "directory": "packages/qwik-router"
   },
   "scripts": {
     "build": "vite build"
   },
-  "sideEffects": false,
-  "type": "module",
-  "types": "./lib/index.d.ts"
+  "dependencies": {
+    "@azure/functions": "3.5.1",
+    "@mdx-js/mdx": "^3.1.1",
+    "@netlify/edge-functions": "^2.17.0",
+    "@types/mdx": "^2.0.13",
+    "estree-util-value-to-estree": "^3.5.0",
+    "github-slugger": "^2.0.0",
+    "hast-util-heading-rank": "^2.1.1",
+    "hast-util-to-string": "^2.0.0",
+    "kleur": "^4.1.5",
+    "marked": "^12.0.2",
+    "mdast-util-mdx": "^3.0.0",
+    "refractor": "^4.8.1",
+    "rehype-autolink-headings": "^7.1.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "set-cookie-parser": "^2.7.2",
+    "source-map": "^0.7.6",
+    "svgo": "^3.3.2",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.0.0",
+    "valibot": ">=0.36.0 <2",
+    "vfile": "6.0.3",
+    "vite": ">=5 <8",
+    "vite-imagetools": "9.0.0",
+    "yaml": "^2.8.2",
+    "zod": "^3.25.48"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "7.55.2",
+    "@qwik.dev/core": "workspace:*",
+    "@types/mdast": "4.0.4",
+    "@types/node": "24.10.0",
+    "@types/refractor": "4.0.0",
+    "@types/set-cookie-parser": "2.4.10",
+    "tsm": "2.3.0",
+    "typescript": "5.9.3",
+    "uvu": "0.5.6"
+  },
+  "peerDependencies": {
+    "@qwik.dev/core": "workspace:^",
+    "vite": ">=5 <8"
+  },
+  "engines": {
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
+  },
+  "qwik": "./lib/index.qwik.mjs"
 }

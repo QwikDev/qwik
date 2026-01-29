@@ -1493,13 +1493,13 @@ describe.each([
       const ref = useSignal<Element>();
 
       useVisibleTask$(async () => {
-        const [error /*, data */] = await ['SomeError', 'ignore payload'];
+        const [error /*, data */] = ['SomeError', 'ignore payload'];
         if (error) {
           methodA.value = error;
         }
         await delay(1);
         //     err, method
-        const [, method] = await ['ignore error', 'POST'];
+        const [, method] = ['ignore error', 'POST'];
         methodB.value = method;
       });
 

@@ -1,21 +1,11 @@
-import {
-  component$,
-  useComputed$,
-  useSignal,
-  useStore,
-  type PropsOf,
-} from "@qwik.dev/core";
+import { component$, useComputed$, useSignal, useStore, type PropsOf } from '@qwik.dev/core';
 
 export const Attributes = component$(() => {
   const render = useSignal(0);
   return (
     <>
       <h1>Most of the changes happen in the input attributes</h1>
-      <button
-        id="force-rerender"
-        data-v={render.value}
-        onClick$={() => render.value++}
-      >
+      <button id="force-rerender" data-v={render.value} onClick$={() => render.value++}>
         Rerender
       </button>
       <span id="render-count">{render.value}</span>
@@ -32,18 +22,18 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
     },
     {
       reactive: false,
-    },
+    }
   );
 
   const title = useSignal<string>();
-  const input = useSignal("");
+  const input = useSignal('');
   const hide = useSignal(false);
   const required = useSignal(false);
   const state = useStore({
-    dataAria: "true",
+    dataAria: 'true',
     count: 0,
-    label: "even",
-    stuff: "",
+    label: 'even',
+    stuff: '',
   });
   renders.count++;
   const rerenders = renders.count + 0;
@@ -63,7 +53,7 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
         <button
           id="title"
           onClick$={() => {
-            title.value = title.value === undefined ? "some title" : undefined;
+            title.value = title.value === undefined ? 'some title' : undefined;
           }}
         >
           Toggle title
@@ -71,7 +61,7 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
         <button
           id="aria-hidden"
           onClick$={() => {
-            state.dataAria = state.dataAria === "true" ? "false" : "true";
+            state.dataAria = state.dataAria === 'true' ? 'false' : 'true';
           }}
         >
           Toggle aria-hidden
@@ -81,9 +71,9 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
           onClick$={() => {
             state.count++;
             if (state.count % 2 === 0) {
-              state.label = "even";
+              state.label = 'even';
             } else {
-              state.label = "odd";
+              state.label = 'odd';
             }
           }}
         >
@@ -100,7 +90,7 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
         <button
           id="stuff"
           onClick$={() => {
-            state.stuff += "0";
+            state.stuff += '0';
           }}
         >
           Add stuff (caused render)
@@ -125,12 +115,7 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
           </>
         ) : (
           <>
-            <label
-              id="label"
-              for={state.label}
-              form="my-form"
-              title={title.value}
-            ></label>
+            <label id="label" for={state.label} form="my-form" title={title.value}></label>
             <input
               id="input"
               required={required.value}
@@ -139,7 +124,7 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
               aria-required={required.value}
               draggable={required.value}
               spellcheck={required.value}
-              data-stuff={"stuff: " + state.stuff}
+              data-stuff={'stuff: ' + state.stuff}
               tabIndex={-1}
               title={title.value}
               onInput$={(ev, el) => {
@@ -186,7 +171,7 @@ export const Issue3622 = component$(() => {
 });
 
 export const Issue4718Undefined = component$(() => {
-  const signal = useSignal<string | undefined>("some value");
+  const signal = useSignal<string | undefined>('some value');
 
   return (
     <button
@@ -194,7 +179,7 @@ export const Issue4718Undefined = component$(() => {
       data-works={signal.value}
       aria-label={signal.value}
       title={signal.value}
-      class={!signal.value && "moop"}
+      class={!signal.value && 'moop'}
       onClick$={() => {
         signal.value = undefined;
       }}
@@ -205,7 +190,7 @@ export const Issue4718Undefined = component$(() => {
 });
 
 export const Issue4718Null = component$(() => {
-  const signal = useSignal<string | null>("some value");
+  const signal = useSignal<string | null>('some value');
 
   return (
     <button
@@ -213,7 +198,7 @@ export const Issue4718Null = component$(() => {
       data-works={signal.value as any}
       aria-label={signal.value as any}
       title={signal.value as any}
-      class={!signal.value && "moop"}
+      class={!signal.value && 'moop'}
       onClick$={() => {
         signal.value = null;
       }}
@@ -223,7 +208,7 @@ export const Issue4718Null = component$(() => {
   );
 });
 
-const ProgressRoot = component$<{ min?: number } & PropsOf<"div">>((props) => {
+const ProgressRoot = component$<{ min?: number } & PropsOf<'div'>>((props) => {
   const { ...rest } = props;
 
   const minSig = useComputed$(() => props.min ?? 0);
@@ -242,48 +227,44 @@ const ProgressRoot = component$<{ min?: number } & PropsOf<"div">>((props) => {
   );
 });
 
-const ProgressRootShowHide = component$<{ min: number } & PropsOf<"div">>(
-  ({ min, ...rest }) => {
-    const show = useSignal(true);
+const ProgressRootShowHide = component$<{ min: number } & PropsOf<'div'>>(({ min, ...rest }) => {
+  const show = useSignal(true);
 
-    return (
-      <>
-        {show.value && (
-          <div id="progress-2" aria-valuetext={min.toString()} {...rest}>
-            {min}
-          </div>
-        )}
+  return (
+    <>
+      {show.value && (
+        <div id="progress-2" aria-valuetext={min.toString()} {...rest}>
+          {min}
+        </div>
+      )}
 
-        <button id="progress-hide" onClick$={() => (show.value = !show.value)}>
-          show/hide progress
-        </button>
-      </>
-    );
-  },
-);
+      <button id="progress-hide" onClick$={() => (show.value = !show.value)}>
+        show/hide progress
+      </button>
+    </>
+  );
+});
 
-const ProgressRootPromise = component$<{ min?: number } & PropsOf<"div">>(
-  (props) => {
-    const { ...rest } = props;
+const ProgressRootPromise = component$<{ min?: number } & PropsOf<'div'>>((props) => {
+  const { ...rest } = props;
 
-    const minSig = useComputed$(() => props.min ?? 0);
+  const minSig = useComputed$(() => props.min ?? 0);
 
-    const valueLabelSig = useComputed$(() => {
-      const value = minSig.value;
-      return `${value * 100}%`;
-    });
+  const valueLabelSig = useComputed$(() => {
+    const value = minSig.value;
+    return `${value * 100}%`;
+  });
 
-    return (
-      <>
-        {Promise.resolve(
-          <div id="progress-3" aria-valuetext={valueLabelSig.value} {...rest}>
-            {valueLabelSig.value}
-          </div>,
-        )}
-      </>
-    );
-  },
-);
+  return (
+    <>
+      {Promise.resolve(
+        <div id="progress-3" aria-valuetext={valueLabelSig.value} {...rest}>
+          {valueLabelSig.value}
+        </div>
+      )}
+    </>
+  );
+});
 
 const ProgressParent = component$(() => {
   const minGoal = useSignal(2000);

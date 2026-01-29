@@ -24,35 +24,37 @@ Nested items can be created by separating the items with `.` (dot) in the name. 
 
 ### Arrays
 
-Arrays, either top-level or nested are created by specifying the zero-based index in the name.  For example `person.pets.0` would be converted to `{ person: { pets: [ 'cat' ] } }`.
+Arrays, either top-level or nested are created by specifying the zero-based index in the name. For example `person.pets.0` would be converted to `{ person: { pets: [ 'cat' ] } }`.
 
 ### Example
 
 The key to creating a complex form is in the naming of the inputs. Below would be an example of the list described above:
+
 ```html
 <form>
-  <input name="person.0.name" value="Sam">
-  <input name="person.0.email" value="sam@complexform.com">
-  <input name="person.0.pets.0" value="cat">
-  <input name="person.0.pets.1" value="dog">
-  <input name="person.0.address.street" value="1234 Example Ave.">
-  <input name="person.0.address.city" value="Qwik">
-  <input name="person.0.address.state" value="IA">
-  <input name="person.0.address.zip" value="00000">
-  <input name="person.0.pets.0" value="beaver">
+  <input name="person.0.name" value="Sam" />
+  <input name="person.0.email" value="sam@complexform.com" />
+  <input name="person.0.pets.0" value="cat" />
+  <input name="person.0.pets.1" value="dog" />
+  <input name="person.0.address.street" value="1234 Example Ave." />
+  <input name="person.0.address.city" value="Qwik" />
+  <input name="person.0.address.state" value="IA" />
+  <input name="person.0.address.zip" value="00000" />
+  <input name="person.0.pets.0" value="beaver" />
 
-  <input name="person.1.name" value="Bonnie">
-  <input name="person.1.email" value="bonnie@hishai.net">
-  <input name="person.1.address.street" value="768 Resolution Way">
-  <input name="person.1.address.city" value="Jaffa">
-  <input name="person.1.address.state" value="IL">
-  <input name="person.1.address.zip" value="01948">
+  <input name="person.1.name" value="Bonnie" />
+  <input name="person.1.email" value="bonnie@hishai.net" />
+  <input name="person.1.address.street" value="768 Resolution Way" />
+  <input name="person.1.address.city" value="Jaffa" />
+  <input name="person.1.address.state" value="IL" />
+  <input name="person.1.address.zip" value="01948" />
 </form>
 ```
 
 #### Output object
 
 After submitting the form the data would be parsed in an object like this:
+
 ```json
 {
   "person": [
@@ -88,7 +90,7 @@ Complex forms can be validated using zod$ with routeAction$ and globalAction$. C
 ```tsx
 export const action = routeAction$(
   async (person) => {
-    return { success: true, person, };
+    return { success: true, person };
   },
   // Zod schema is used to validate the FormData
   zod$({
@@ -100,9 +102,9 @@ export const action = routeAction$(
           street: z.string(),
           city: z.string(),
           state: z.string(),
-          zip: z.coerce.number()
+          zip: z.coerce.number(),
         }),
-        pets: z.array(z.string())
+        pets: z.array(z.string()),
       })
     ),
   })
@@ -114,9 +116,10 @@ export const action = routeAction$(
 If you use dot notation, the error messages are also returned in dot notation in the `fieldErrors` property. This has the advantage that the input name and fieldError key match.
 
 For the this action:
+
 ```tsx
 export const addPersonAction = routeAction$(
-  async person => {
+  async (person) => {
     return { success: true, person };
   },
   // Zod schema is used to validate the FormData
@@ -171,7 +174,7 @@ This way you can easily match the error messages to the input names like this:
 
 ```tsx
 export const useAddPersonAction = routeAction$(
-  async person => {
+  async (person) => {
     console.log(person);
     return { success: true, person };
   },
@@ -201,24 +204,25 @@ export default component$(() => {
   return (
     <Form action={testAction}>
       <input type="email" name="person.email" placeholder="Email" />
-      {renderError(testAction.value?.fieldErrors?.["person.email"])}
+      {renderError(testAction.value?.fieldErrors?.['person.email'])}
       <input type="text" name="person.name" placeholder="Name" />
-      {renderError(testAction.value?.fieldErrors?.["person.name"])}
+      {renderError(testAction.value?.fieldErrors?.['person.name'])}
       <input type="text" name="person.address.street" placeholder="Street" />
-      {renderError(testAction.value?.fieldErrors?.["person.address.street"])}
+      {renderError(testAction.value?.fieldErrors?.['person.address.street'])}
       <input type="text" name="person.address.city" placeholder="City" />
-      {renderError(testAction.value?.fieldErrors?.["person.address.city"])}
+      {renderError(testAction.value?.fieldErrors?.['person.address.city'])}
       <input type="text" name="person.address.state" placeholder="State" />
-      {renderError(testAction.value?.fieldErrors?.["person.address.state"])}
+      {renderError(testAction.value?.fieldErrors?.['person.address.state'])}
       <input type="text" name="person.address.zip" placeholder="Zip" />
-      {renderError(testAction.value?.fieldErrors?.["person.address.zip"])}
+      {renderError(testAction.value?.fieldErrors?.['person.address.zip'])}
       <input type="text" name="person.pets.0" placeholder="Pet 1" />
-      {renderError(testAction.value?.fieldErrors?.["person.pets[]"]?.[0])}
+      {renderError(testAction.value?.fieldErrors?.['person.pets[]']?.[0])}
       <button>Send</button>
     </Form>
   );
 });
 ```
+
 For this example the `fieldErrors` look like this:
 
 ```json
@@ -228,9 +232,6 @@ For this example the `fieldErrors` look like this:
   "person.address.street": "String must contain at least 2 character(s)",
   "person.address.city": "String must contain at least 2 character(s)",
   "person.address.state": "String must contain at least 2 character(s)",
-  "person.pets[]": [
-    "String must contain at least 2 character(s)"
-  ]
+  "person.pets[]": ["String must contain at least 2 character(s)"]
 }
 ```
-

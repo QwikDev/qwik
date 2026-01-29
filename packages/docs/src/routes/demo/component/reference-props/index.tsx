@@ -23,9 +23,5 @@ export const Item = component$((props: ItemProps) => {
 });
 
 export default component$(() => {
-  return (
-    <Item
-      details={{ name: 'hammer', quantity: 5, description: '', price: 9.99 }}
-    />
-  );
+  return <Item details={{ name: 'hammer', quantity: 5, description: '', price: 9.99 }} />;
 });

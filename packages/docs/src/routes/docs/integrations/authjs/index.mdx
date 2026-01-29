@@ -38,26 +38,10 @@ Be aware that the Auth.js library is still in a pre-1.0 stage and could have bug
 You can add Auth.js easily by using the following Qwik starter script:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add auth
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add auth
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add auth
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add auth
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add auth ```</span>
+  <span q:slot="npm">```shell npm run qwik add auth ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add auth ```</span>
+  <span q:slot="bun">```shell bun run qwik add auth ```</span>
 </PackageManagerTabs>
 
 This command will add a new package:
@@ -68,15 +52,15 @@ and create a new file named `plugin@auth.ts` with an example configuration.
 
 > **Note on Manual Deployments with Node**
 
-> When deploying applications manually using Node.js, particularly with frameworks like Express, the server or Node process does not inherently know if it's being served under HTTP or HTTPS. 
+> When deploying applications manually using Node.js, particularly with frameworks like Express, the server or Node process does not inherently know if it's being served under HTTP or HTTPS.
 > Unlike hosting services like Vercel, Netlify, or Cloudflare, where the ORIGIN configuration is automatically managed, manual setups require explicit specification. To ensure that your Node.js application recognizes the correct protocol and host it is being served under, set the following **environment variables**:
 
->	-	ORIGIN: Set this to the URL of your application. For example:
->	ORIGIN=https://your-app-name.example.com
->	- PROTOCOL_HEADER: This is used to indicate the original protocol requested by the client. Commonly, this is specified in proxy configurations. Set this variable to:
->	PROTOCOL_HEADER=X-Forwarded-Proto
->	- HOST_HEADER: This header helps identify the original host requested by the client. It is particularly necessary when your Node environment is behind a proxy or load balancer. Set this variable to:
->	HOST_HEADER=X-Forwarded-Host
+>     -	ORIGIN: Set this to the URL of your application. For example:
+>     ORIGIN=https://your-app-name.example.com
+>     - PROTOCOL_HEADER: This is used to indicate the original protocol requested by the client. Commonly, this is specified in proxy configurations. Set this variable to:
+>     PROTOCOL_HEADER=X-Forwarded-Proto
+>     - HOST_HEADER: This header helps identify the original host requested by the client. It is particularly necessary when your Node environment is behind a proxy or load balancer. Set this variable to:
+>     HOST_HEADER=X-Forwarded-Host
 
 ### Migrating from `@builder.io/qwik-auth`
 
@@ -84,30 +68,32 @@ When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple 
 
 1. The routes provided by the auth library are no longer prefixed with `/api`. If your are using previous guidance for protected routes or calling the auth routes directly, please be sure to update accordingly.
 
-    ```diff
-    export const onRequest: RequestHandler = (event) => {
-      const session: Session | null = event.sharedMap.get('session');
-      if (!session || new Date(session.expires) < new Date()) {
-    -    throw event.redirect(302, `/api/auth/signin?redirectTo=${event.url.pathname}`);
-    +    throw event.redirect(302, `/auth/signin?callbackUrl=${event.url.pathname}`);
-      }
-    };
-    ```
+   ```diff
+   export const onRequest: RequestHandler = (event) => {
+     const session: Session | null = event.sharedMap.get('session');
+     if (!session || new Date(session.expires) < new Date()) {
+   -    throw event.redirect(302, `/api/auth/signin?redirectTo=${event.url.pathname}`);
+   +    throw event.redirect(302, `/auth/signin?callbackUrl=${event.url.pathname}`);
+     }
+   };
+   ```
 
 2. The setup function and and methods exported by it have changed in `plugin@auth.ts`. Be sure to update the imports for the `useAuthSession`, `useAuthSignin`, and `useAuthSignout` methods anywhere you use them in your app.
 
-    ```diff
-    import Auth0Provider from "@auth/core/providers/auth0";
-    -import { serverAuth$ } from "@builder.io/qwik-auth";
-    +import { QwikAuth$ } from "@auth/qwik";
+   ```diff
+   import Auth0Provider from "@auth/core/providers/auth0";
+   -import { serverAuth$ } from "@builder.io/qwik-auth";
+   +import { QwikAuth$ } from "@auth/qwik";
 
-    -export const { onRequest, useAuthSession, useAuthSignin, useAuthSignout } =
-    -  serverAuth$(({ env }) => ({
-    +export const { onRequest, useSession, useSignIn, useSignOut } = 
-    +  QwikAuth$(({ env }) => ({
+   -export const { onRequest, useAuthSession, useAuthSignin, useAuthSignout } =
+   -  serverAuth$(({ env }) => ({
+   +export const { onRequest, useSession, useSignIn, useSignOut } =
+   +  QwikAuth$(({ env }) => ({
    ```
+
 3. Update your `vite.config.ts` to include `"@auth/qwik"` to avoid potentials import issues
-```diff 
+
+```diff
    export default defineConfig(({ command, mode }): UserConfig => {
   return {
     plugins: [qwikCity(), qwikVite(), tsconfigPaths({ root: '.' })],
@@ -116,7 +102,6 @@ When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple 
       include: ["@auth/qwik"],
     },
 ```
-
 
 ## Qwik API
 
@@ -132,7 +117,6 @@ export default component$(() => {
   const session = useSession();
   return <p>{session.value?.user?.email}</p>;
 });
-
 ```
 
 ### useSignIn
@@ -141,10 +125,10 @@ A [routeAction$](/docs/action/) used to initiate a signin flow or send the user 
 
 #### Parameters
 
-* `providerId`: An optional string parameter with the name of the provider. When supplied will initiate the Authorization Request to your Identity Provider. When omitted will redirect to the built-in/unbranded sign-in page.
-* `options`: An optional object of options.
-  * `redirectTo`: An optional string specifying to which URL the user will be redirected after signing in. Defaults to the page URL the sign-in is initiated from.
-* `authorizationParams`: An optional object of additional parameters sent to the /authorize endpoint. See the Authorization Request OIDC spec for some ideas.
+- `providerId`: An optional string parameter with the name of the provider. When supplied will initiate the Authorization Request to your Identity Provider. When omitted will redirect to the built-in/unbranded sign-in page.
+- `options`: An optional object of options.
+  - `redirectTo`: An optional string specifying to which URL the user will be redirected after signing in. Defaults to the page URL the sign-in is initiated from.
+- `authorizationParams`: An optional object of additional parameters sent to the /authorize endpoint. See the Authorization Request OIDC spec for some ideas.
 
 > **NOTE:** You can also set the `authorizationParams` through the provider.authorizationParams configuration
 
@@ -160,7 +144,11 @@ export default component$(() => {
   return (
     <Form action={signIn}>
       <input type="hidden" name="providerId" value="github" />
-      <input type="hidden" name="options.redirectTo" value="http://qwik-auth-example.com/dashboard" />
+      <input
+        type="hidden"
+        name="options.redirectTo"
+        value="http://qwik-auth-example.com/dashboard"
+      />
       <button>Sign In</button>
     </Form>
   );
@@ -176,7 +164,16 @@ import { useSignIn } from '~/routes/plugin@auth';
 export default component$(() => {
   const signIn = useSignIn();
   return (
-    <button onClick$={() => signIn.submit({ providerId: 'github', options: { redirectTo: 'http://qwik-auth-example.com/dashboard' } })}>Sign In</button>
+    <button
+      onClick$={() =>
+        signIn.submit({
+          providerId: 'github',
+          options: { redirectTo: 'http://qwik-auth-example.com/dashboard' },
+        })
+      }
+    >
+      Sign In
+    </button>
   );
 });
 ```
@@ -187,7 +184,7 @@ A [routeAction$](/docs/action/) used to initiate a signout flow. The user sessio
 
 #### Parameters
 
-* `redirectTo`: An optional string specifying to which URL the user will be redirected after signing out. Defaults to the page URL the sign-in is initiated from.
+- `redirectTo`: An optional string specifying to which URL the user will be redirected after signing out. Defaults to the page URL the sign-in is initiated from.
 
 The 'redirectTo' must be considered valid by the redirect callback handler. By default, it requires the URL to be an absolute URL at the same host name, or you can also supply a relative URL starting with a slash. If it does not match it will redirect to the homepage. You can define your own redirect callback to allow other URLs.
 
@@ -233,7 +230,7 @@ Displays the built-in/unbranded sign-in page.
 
 **POST /auth/signin/:provider**
 
-Starts a provider-specific sign-in flow. In the case of an OAuth provider, calling this endpoint will initiate the Authorization Request to your Identity Provider.  This endpoint is also used by the [useSignIn](#useSignIn) action internally.
+Starts a provider-specific sign-in flow. In the case of an OAuth provider, calling this endpoint will initiate the Authorization Request to your Identity Provider. This endpoint is also used by the [useSignIn](#useSignIn) action internally.
 
 ### callback
 
@@ -275,17 +272,15 @@ Returns a list of configured OAuth services and details (e.g. sign in and callba
 2. Since the default `plugin@auth.ts` uses GitHub as an example, we don't need to change anything there. However a provider other than GitHub could be used or additional provides could be added. Auth.js also supports many [additional options](https://next-auth.js.org/configuration/options#options) that can be set in this file.
 
 ```ts title="src/routes/plugin@auth.ts"
-import { QwikAuth$ } from "@auth/qwik";
-import GitHub from "@auth/qwik/providers/github";
+import { QwikAuth$ } from '@auth/qwik';
+import GitHub from '@auth/qwik/providers/github';
 
-export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(
-  () => ({
-    providers: [GitHub],
-  }),
-);
+export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(() => ({
+  providers: [GitHub],
+}));
 ```
 
-> *IMPORTANT*: Make sure to keep the `onRequest` export as it is used to handle the OAuth flow redirects. Once the user finished OAuth flow, GitHub (or any other provider) will redirect the user back to the application to `/auth/callback/github` (or `/auth/callback/[otherProvider]`). The `onRequest` middleware function will handle requests to this endpoint and finish the OAuth flow.
+> _IMPORTANT_: Make sure to keep the `onRequest` export as it is used to handle the OAuth flow redirects. Once the user finished OAuth flow, GitHub (or any other provider) will redirect the user back to the application to `/auth/callback/github` (or `/auth/callback/[otherProvider]`). The `onRequest` middleware function will handle requests to this endpoint and finish the OAuth flow.
 
 3. Create or edit the `.env.local` file at the root of your project to store secrets
 
@@ -295,7 +290,7 @@ AUTH_GITHUB_SECRET=
 AUTH_SECRET=
 ```
 
-> *IMPORTANT*: Please read the Qwik documentation about [Environment Variables](/docs/guides/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.
+> _IMPORTANT_: Please read the Qwik documentation about [Environment Variables](/docs/guides/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.
 
 4. The application is now ready to implement authentication using Auth.js.
 5. Enjoy!
@@ -311,27 +306,25 @@ AUTH_SECRET=
 1. Since the default `plugin@auth.ts` uses GitHub as an example, we need to replace it with Credentials.
 
 ```ts title="src/routes/plugin@auth.ts"
-import { QwikAuth$ } from "@auth/qwik";
-import Credentials from "@auth/qwik/providers/credentials";
+import { QwikAuth$ } from '@auth/qwik';
+import Credentials from '@auth/qwik/providers/credentials';
 
-export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(
-  () => ({
-    providers: [
-      Credentials({
-        async authorize(credentials, req) {
-          // Add logic here to look up the user from the credentials supplied
-          const user = {
-            id: 1,
-            name: "Mike",
-            email: "mike@example.com",
-          };
+export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(() => ({
+  providers: [
+    Credentials({
+      async authorize(credentials, req) {
+        // Add logic here to look up the user from the credentials supplied
+        const user = {
+          id: 1,
+          name: 'Mike',
+          email: 'mike@example.com',
+        };
 
-          return user;
-        },
-      }),
-    ],
-  }),
-);
+        return user;
+      },
+    }),
+  ],
+}));
 ```
 
 2. Create or edit the `.env.local` file at the root of your project to store secrets
@@ -340,14 +333,14 @@ export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(
 AUTH_SECRET=
 ```
 
-> *IMPORTANT*: Please read the Qwik documentation about [Environment Variables](/docs/guides/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.
+> _IMPORTANT_: Please read the Qwik documentation about [Environment Variables](/docs/guides/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.
 
 3. The application is now ready to implement authentication using Auth.js.
 4. Enjoy!
 
 ### Route Protection
 
-Session data can be accessed via the route `event.sharedMap`.  So a route can be protected and redirect using something like this located in a `layout.tsx` or page `index.tsx`:
+Session data can be accessed via the route `event.sharedMap`. So a route can be protected and redirect using something like this located in a `layout.tsx` or page `index.tsx`:
 
 ```tsx
 export const onRequest: RequestHandler = (event) => {

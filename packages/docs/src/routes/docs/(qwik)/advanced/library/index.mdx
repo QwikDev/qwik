@@ -19,26 +19,10 @@ In order to create a component library for Qwik, you need to make sure of specif
 The easiest way to create a new component library is to use the build-in `library` starter:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm create qwik library my-library
-```
-</span>
-<span q:slot="npm">
-```shell
-npm create qwik library my-library
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn create qwik library my-library
-```
-</span>
-<span q:slot="bun">
-```shell
-bun create qwik library my-library
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm create qwik library my-library ```</span>
+  <span q:slot="npm">```shell npm create qwik library my-library ```</span>
+  <span q:slot="yarn">```shell yarn create qwik library my-library ```</span>
+  <span q:slot="bun">```shell bun create qwik library my-library ```</span>
 </PackageManagerTabs>
 
 This will create a new folder called `my-library` with the following structure:
@@ -78,11 +62,8 @@ The most important files of a library are a properly configured `package.json` a
       "types": "./lib-types/index.d.ts"
     }
   },
-  "files": [
-    "lib",
-    "lib-types"
-  ],
-  "type": "module",
+  "files": ["lib", "lib-types"],
+  "type": "module"
 }
 ```
 
@@ -134,28 +115,11 @@ Do not worry about them, they won't be part of the final library, but they are u
 In order to publish your library, you have to first build it in `lib` mode and then publish to npm.
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run build
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run build
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run build
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run build
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run build ```</span>
+  <span q:slot="npm">```shell npm run build ```</span>
+  <span q:slot="yarn">```shell yarn run build ```</span>
+  <span q:slot="bun">```shell bun run build ```</span>
 </PackageManagerTabs>
-
 
 This will create a `lib` folder with the following structure. Then you can publish it to npm.
 

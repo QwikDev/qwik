@@ -1,12 +1,6 @@
-import { routeLoader$, server$ } from "@qwik.dev/router";
-import {
-  Resource,
-  component$,
-  useResource$,
-  useSignal,
-  useTask$,
-} from "@qwik.dev/core";
-import { delay } from "../actions/login";
+import { routeLoader$, server$ } from '@qwik.dev/router';
+import { Resource, component$, useResource$, useSignal, useTask$ } from '@qwik.dev/core';
+import { delay } from '../actions/login';
 
 export const useGetUserAgent = routeLoader$(() => {
   return getUserAgent();
@@ -14,9 +8,9 @@ export const useGetUserAgent = routeLoader$(() => {
 
 export const getUserAgentForReal = server$(function () {
   if (!this) {
-    return "failed";
+    return 'failed';
   }
-  const header = this.request.headers.get("host")!;
+  const header = this.request.headers.get('host')!;
   return header;
 });
 
@@ -39,12 +33,12 @@ const serverFunctionB = server$(async function b() {
 });
 
 const argsChecker = server$(async function (...args: any[]) {
-  return args.map(String).join(",");
+  return args.map(String).join(',');
 });
 
 export const MultipleServerFunctionsInvokedInTask = component$(() => {
-  const methodA = useSignal("");
-  const methodB = useSignal("");
+  const methodA = useSignal('');
+  const methodB = useSignal('');
   useTask$(async () => {
     methodA.value = await serverFunctionA();
     await delay(1);
@@ -61,12 +55,12 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
 
 export default component$(() => {
   const resource = useResource$(() => getUserAgent());
-  const userAgent = useSignal("");
-  const userAgentEvent = useSignal("");
+  const userAgent = useSignal('');
+  const userAgentEvent = useSignal('');
   const loader = useGetUserAgent();
-  const streamingLogs = useSignal("");
-  const serverArgsReceived = useSignal("");
-  const clientArgsReceived = useSignal("");
+  const streamingLogs = useSignal('');
+  const serverArgsReceived = useSignal('');
+  const clientArgsReceived = useSignal('');
   const localCount = useSignal(0);
   const receivedCount = useSignal(0);
 
@@ -83,10 +77,7 @@ export default component$(() => {
   });
   return (
     <>
-      <Resource
-        value={resource}
-        onResolved={(value) => <div class="server-host">{value}</div>}
-      />
+      <Resource value={resource} onResolved={(value) => <div class="server-host">{value}</div>} />
       <div class="server-host">{userAgent.value}</div>
       <div class="server-host">{userAgent.value}</div>
       <div class="server-host">{loader.value}</div>

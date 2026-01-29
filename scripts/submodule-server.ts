@@ -81,7 +81,7 @@ export async function submoduleServer(config: BuildConfig) {
     },
   });
 
-  await Promise.all([esm]);
+  [await esm];
 
   console.log('🐰', submodule);
 }

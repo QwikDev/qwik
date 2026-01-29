@@ -1,8 +1,8 @@
-import { $, component$, useSignal } from "@qwik.dev/core";
+import { $, component$, useSignal } from '@qwik.dev/core';
 
 export const EventsClient = component$(() => {
   const enabled = useSignal(false);
-  const input = useSignal("");
+  const input = useSignal('');
 
   return (
     <div>

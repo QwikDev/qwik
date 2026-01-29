@@ -1,5 +1,15 @@
 {
   "description": "Use Qwik in browser-only mode",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@qwik.dev/core": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "latest"
+  },
   "__qwik__": {
     "displayName": "Integration: Qwik in browser-only mode",
     "priority": -10,
@@ -15,15 +25,5 @@
         " - run `pnpm build` to build the application"
       ]
     }
-  },
-  "dependencies": {
-    "@qwik.dev/core": "workspace:*"
-  },
-  "devDependencies": {
-    "vite": "latest"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build"
   }
 }

@@ -1,4 +1,4 @@
-import { component$, useComputed$, useSignal, useTask$ } from "@qwik.dev/core";
+import { component$, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 
 export const ComputedRoot = component$(() => {
   const rerender = useSignal(0);
@@ -33,7 +33,7 @@ export const ComputedBasic = component$(() => {
       <div class="result">double: {double.value}</div>
       <div class="result">plus3: {plus3.value}</div>
       <div class="result">triple: {triple.value}</div>
-      <div class="result">sum: {sum.value + ""}</div>
+      <div class="result">sum: {sum.value + ''}</div>
       <button id="increment" onClick$={() => count.value++}>
         Increment
       </button>
@@ -46,7 +46,7 @@ export const Issue3482 = component$((props) => {
 
   const attributes = useComputed$(() => {
     return {
-      "data-nu": String(count.value),
+      'data-nu': String(count.value),
       class: `class-${count.value}`,
     };
   });
@@ -64,16 +64,14 @@ export const Issue3482 = component$((props) => {
   );
 });
 
-export const TextContent = component$(
-  (props: { "data-nu"?: string; class?: string }) => {
-    return (
-      <div>
-        <div id="issue-3482-datanu">data-nu: {props["data-nu"]}</div>
-        <div id="issue-3482-class">class: {props.class}</div>
-      </div>
-    );
-  },
-);
+export const TextContent = component$((props: { 'data-nu'?: string; class?: string }) => {
+  return (
+    <div>
+      <div id="issue-3482-datanu">data-nu: {props['data-nu']}</div>
+      <div id="issue-3482-class">class: {props.class}</div>
+    </div>
+  );
+});
 
 export const Issue3488 = component$(() => {
   const count = useSignal(0);
@@ -107,9 +105,9 @@ export const Issue5738 = component$(() => {
 
 export const ShouldResolveComputedQrlEarly = component$(() => {
   const trigger = useSignal(0);
-  const display = useSignal("not clicked yet");
+  const display = useSignal('not clicked yet');
 
-  const demo = useComputed$(() => "Hello");
+  const demo = useComputed$(() => 'Hello');
 
   // change attribute and read computed
   useTask$(({ track }) => {
@@ -121,14 +119,14 @@ export const ShouldResolveComputedQrlEarly = component$(() => {
     setTimeout(
       () => {
         try {
-          display.value = demo.value + " world";
+          display.value = demo.value + ' world';
         } catch {
           // happens when we read another computed value that wasn't loaded yet
-          display.value = "computed not ready yet";
+          display.value = 'computed not ready yet';
         }
       },
       // give enough time for the computed to resolve
-      100,
+      100
     );
   });
 

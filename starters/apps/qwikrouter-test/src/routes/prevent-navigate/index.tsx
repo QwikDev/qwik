@@ -1,4 +1,4 @@
-import { Link } from "@qwik.dev/router";
+import { Link } from '@qwik.dev/router';
 
 export default () => {
   return (

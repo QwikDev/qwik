@@ -10,15 +10,13 @@ export const logError = (message?: any, ...optionalParams: any[]) => {
 
 export const throwErrorAndStop = (message?: any, ...optionalParams: any[]): never => {
   const error = createAndLogError(false, message, ...optionalParams);
-  // eslint-disable-next-line no-debugger
-  debugger;
+
   throw error;
 };
 
 export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
   const err = createAndLogError(qDev, message, ...optionalParams);
-  // eslint-disable-next-line no-debugger
-  debugger;
+
   return err;
 };
 

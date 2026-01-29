@@ -15,15 +15,11 @@ export default component$(() => {
 
   return (
     <section>
-      <article
-        ref={outputRef}
-        style={{ border: '1px solid red', width: '100px' }}
-      >
+      <article ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
         Change text value here to stretch the box.
       </article>
       <p>
-        The above red box is {height.value} pixels high and {width.value}{' '}
-        pixels wide.
+        The above red box is {height.value} pixels high and {width.value} pixels wide.
       </p>
     </section>
   );

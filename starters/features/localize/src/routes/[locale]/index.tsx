@@ -1,4 +1,4 @@
-import { component$, useStylesScoped$ } from "@qwik.dev/core";
+import { component$, useStylesScoped$ } from '@qwik.dev/core';
 
 export default component$(() => {
   useStylesScoped$(`
@@ -25,7 +25,7 @@ export default component$(() => {
       color: rgb(63 131 248/1);
     }
 	`);
-  const name = "Qwik";
+  const name = 'Qwik';
   return (
     <div class="card">
       <div style="padding-bottom: 1.25rem;">

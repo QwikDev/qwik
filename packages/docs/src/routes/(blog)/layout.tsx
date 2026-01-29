@@ -29,7 +29,7 @@ export default component$(() => {
         <div class="blog">
           <div class="purple-gradient" role="presentation" />
           <div class="blue-gradient" role="presentation" />
-          <div class="flex flex-wrap gap-9 max-w-[1200px] mb-20 mx-auto">
+          <div class="mx-auto mb-20 flex max-w-[1200px] flex-wrap gap-9">
             <div class="w-full px-10 xl:px-0">
               <Slot />
             </div>

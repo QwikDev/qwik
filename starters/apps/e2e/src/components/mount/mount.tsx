@@ -1,5 +1,5 @@
-import { component$, isServer, useStore, useTask$ } from "@qwik.dev/core";
-import { delay } from "../async/async";
+import { component$, isServer, useStore, useTask$ } from '@qwik.dev/core';
+import { delay } from '../async/async';
 
 export const MountRoot = component$(() => {
   const internal = useStore(
@@ -8,36 +8,36 @@ export const MountRoot = component$(() => {
     },
     {
       reactive: false,
-    },
+    }
   );
   const store = useStore({
-    logs: "",
+    logs: '',
   });
   useTask$(async () => {
     if (isServer) {
-      store.logs += "BEFORE useServerMount1()\n";
+      store.logs += 'BEFORE useServerMount1()\n';
       await delay(100);
-      store.logs += "AFTER useServerMount1()\n";
+      store.logs += 'AFTER useServerMount1()\n';
     }
   });
 
   useTask$(async () => {
-    store.logs += "BEFORE useMount2()\n";
+    store.logs += 'BEFORE useMount2()\n';
     await delay(50);
-    store.logs += "AFTER useMount2()\n";
+    store.logs += 'AFTER useMount2()\n';
   });
 
   useTask$(async () => {
-    store.logs += "BEFORE useWatch3()\n";
+    store.logs += 'BEFORE useWatch3()\n';
     await delay(20);
-    store.logs += "AFTER useWatch3()\n";
+    store.logs += 'AFTER useWatch3()\n';
   });
 
   useTask$(async () => {
     if (isServer) {
-      store.logs += "BEFORE useServerMount4()\n";
+      store.logs += 'BEFORE useServerMount4()\n';
       await delay(10);
-      store.logs += "AFTER useServerMount4()\n";
+      store.logs += 'AFTER useServerMount4()\n';
     }
   });
 
@@ -47,13 +47,13 @@ export const MountRoot = component$(() => {
     <>
       <button
         onClick$={() => {
-          store.logs += "Click\n";
+          store.logs += 'Click\n';
         }}
       >
         Rerender
       </button>
       <pre id="renders">Renders: {internal.renders}</pre>
-      <pre id="logs">{store.logs + ""}</pre>
+      <pre id="logs">{store.logs + ''}</pre>
     </>
   );
 });

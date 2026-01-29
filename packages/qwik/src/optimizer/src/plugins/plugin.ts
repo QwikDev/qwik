@@ -1163,7 +1163,7 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
       // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
       const isExtendedLengthPath = id.startsWith('\\\\?\\');
       if (!isExtendedLengthPath) {
-        const hasNonAscii = /[^\u0000-\u0080]+/.test(id); // eslint-disable-line no-control-regex
+        const hasNonAscii = /[^\u0000-\u0080]+/.test(id);
         if (!hasNonAscii) {
           id = id.replace(/\\/g, '/');
         }

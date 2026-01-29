@@ -1,4 +1,4 @@
-import type { RequestHandler } from "@qwik.dev/router";
+import type { RequestHandler } from '@qwik.dev/router';
 
 export const onRequest: RequestHandler<void> = async (onRequestArgs) => {
   const { redirect, url } = onRequestArgs;

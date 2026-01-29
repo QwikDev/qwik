@@ -17,6 +17,7 @@ Thanks to the [Algolia](https://www.algolia.com/) APIs it is very simple to inte
 ## Solution
 
 To start using it you need to create a personal Algolia account and retrieve your API keys, which will be used to interact with Algolia.
+
 - **Index Name**: An index is where the data used by Algolia is stored. It's the equivalent of a table in a database but optimized for search and discovery operations.
 - **Application ID**: This is your unique application identifier. It's used to identify you when using Algolia's API.
 - **Search-Only API Key**: This is the public API key to use in your frontend code. This key is only usable for search queries and sending data to the Insights API.
@@ -39,12 +40,12 @@ You can check what Algolia returns via the [official documentation](https://www.
 import { $, component$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
 
 type AlgoliaResult = {
-  hits: {
-    type: string;
-    anchor?: string;
-    content?: string;
-    url: string;
-  }[];
+hits: {
+type: string;
+anchor?: string;
+content?: string;
+url: string;
+}[];
 };
 
 export default component$(() => {
@@ -127,37 +128,39 @@ export default component$(() => {
       grid-area: text;
       color: black;
     }
-  `);
-  const termSignal = useSignal('');
-  const hitsSig = useSignal<AlgoliaResult['hits']>([]);
 
-  const onSearch = $(async (query: string) => {
+`);
+const termSignal = useSignal('');
+const hitsSig = useSignal<AlgoliaResult['hits']>([]);
+
+const onSearch = $(async (query: string) => {
     const algoliaURL = new URL(
       `/1/indexes/${import.meta.env.VITE_ALGOLIA_INDEX}/query`,
       `https://${import.meta.env.VITE_ALGOLIA_APP_ID}-dsn.algolia.net`
-    );
-    const response = await fetch(algoliaURL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Algolia-Application-Id': import.meta.env.VITE_ALGOLIA_APP_ID!,
-        'X-Algolia-API-Key': import.meta.env.VITE_ALGOLIA_SEARCH_KEY!,
-      },
-      body: JSON.stringify({ query }),
-    });
-    const algoliaResult: AlgoliaResult = await response.json();
-    hitsSig.value = algoliaResult.hits;
-  });
+);
+const response = await fetch(algoliaURL, {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'X-Algolia-Application-Id': import.meta.env.VITE_ALGOLIA_APP_ID!,
+'X-Algolia-API-Key': import.meta.env.VITE_ALGOLIA_SEARCH_KEY!,
+},
+body: JSON.stringify({ query }),
+});
+const algoliaResult: AlgoliaResult = await response.json();
+hitsSig.value = algoliaResult.hits;
+});
 
-  return (
-    <div>
-      <div style="margin: 1rem;">
-        <div style="position: relative;">
-          <input
-            class="search"
-            placeholder="Algolia search: type here and press enter"
-            bind:value={termSignal}
-            onKeyDown$={(e) => {
+return (
+
+<div>
+<div style="margin: 1rem;">
+<div style="position: relative;">
+<input
+class="search"
+placeholder="Algolia search: type here and press enter"
+bind:value={termSignal}
+onKeyDown$={(e) => {
               if (e.key === 'Enter') {
                 onSearch(termSignal.value);
               }
@@ -166,42 +169,42 @@ export default component$(() => {
           <button
             type="submit"
             class="search-button"
-            onClick$={() => onSearch(termSignal.value)}
-          >
-            <svg
+            onClick$={() => onSearch(termSignal.value)} >
+<svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
               height="32"
               viewBox="0 0 24 24"
             >
-              <path
+<path
                 fill="currentColor"
                 d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
               />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div class="list">
-        {hitsSig.value.map(({ anchor, content, url }, key) => (
-          <li
-            key={key}
-            style={`--cardColor:${key % 2 === 0 ? '#19b6f6' : '#ac7ef4'}`}
-          >
-            <div class="content">
-              <div class="title">
-                {(anchor || content || url || '').substring(0, 30)}
-              </div>
-              <a class="text" href={url}>
-                Documentation link
-              </a>
-            </div>
-          </li>
-        ))}
-      </div>
-    </div>
-  );
+</svg>
+</button>
+</div>
+</div>
+<div class="list">
+{hitsSig.value.map(({ anchor, content, url }, key) => (
+<li
+key={key}
+style={`--cardColor:${key % 2 === 0 ? '#19b6f6' : '#ac7ef4'}`} >
+<div class="content">
+<div class="title">
+{(anchor || content || url || '').substring(0, 30)}
+</div>
+<a class="text" href={url}>
+Documentation link
+</a>
+</div>
+</li>
+))}
+</div>
+</div>
+);
 });
+
 ```
 </CodeSandbox>
 
+```

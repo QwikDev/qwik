@@ -1,11 +1,6 @@
-import {
-  Link,
-  useContent,
-  useLocation,
-  type ContentMenu,
-} from "@qwik.dev/router";
-import { component$, useStyles$ } from "@qwik.dev/core";
-import styles from "./breadcrumbs.css?inline";
+import { Link, useContent, useLocation, type ContentMenu } from '@qwik.dev/router';
+import { component$, useStyles$ } from '@qwik.dev/core';
+import styles from './breadcrumbs.css?inline';
 
 export const Breadcrumbs = component$(() => {
   useStyles$(styles);
@@ -29,10 +24,7 @@ export const Breadcrumbs = component$(() => {
   );
 });
 
-export function createBreadcrumbs(
-  menu: ContentMenu | undefined,
-  pathname: string,
-) {
+export function createBreadcrumbs(menu: ContentMenu | undefined, pathname: string) {
   if (menu?.items) {
     for (const breadcrumbA of menu.items) {
       if (matchesHref(breadcrumbA.href, pathname)) {
@@ -62,10 +54,10 @@ export function createBreadcrumbs(
 
 function matchesHref(href: string | undefined, pathname: string) {
   if (href) {
-    if (href.endsWith("/") && !pathname.endsWith("/")) {
-      pathname += "/";
-    } else if (!href.endsWith("/") && pathname.endsWith("/")) {
-      href += "/";
+    if (href.endsWith('/') && !pathname.endsWith('/')) {
+      pathname += '/';
+    } else if (!href.endsWith('/') && pathname.endsWith('/')) {
+      href += '/';
     }
   }
   return href === pathname;

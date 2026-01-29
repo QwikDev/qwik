@@ -1,5 +1,13 @@
 {
   "description": "Add Cypress component testing",
+  "scripts": {
+    "cypress.open": "cypress open --component",
+    "cypress.run": "cypress run --component"
+  },
+  "devDependencies": {
+    "cypress": "~12.17.2",
+    "cypress-ct-qwik": "~0.3.0"
+  },
   "__qwik__": {
     "displayName": "Integration: Cypress",
     "priority": -10,
@@ -16,13 +24,5 @@
         " There you will see a '.cy.tsx' file which is the component test"
       ]
     }
-  },
-  "devDependencies": {
-    "cypress": "~12.17.2",
-    "cypress-ct-qwik": "~0.3.0"
-  },
-  "scripts": {
-    "cypress.open": "cypress open --component",
-    "cypress.run": "cypress run --component"
   }
 }

@@ -1,11 +1,10 @@
 ---
 title: Cookbook | Detect img tag onLoad
 contributors:
- - gioboa
+  - gioboa
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
-
 
 # Detect img tag onLoad even if it's cached
 
@@ -28,16 +27,19 @@ export default component$(() => {
     });
   });
 
-  return (
-    <section>
-      <img
+return (
+
+<section>
+<img
         ref={imgRef}
         src="/logos/qwik-logo.svg"
         height={200}
         width={200}
       />
-    </section>
-  );
+</section>
+);
 });
+
 ```
 </CodeSandbox>
+```

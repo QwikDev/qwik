@@ -8,8 +8,7 @@ import QwikSocial from '/public/logos/social-card.png?jsx';
 const DownloadButton = component$((props: { href: string | undefined }) => {
   return (
     <a
-      class="
-          flex justify-between items-center py-0 px-2 my-0 mx-4 h-8 font-medium text-center  border-2 border-solid cursor-pointer select-none border-sky-500     text-sky-500 w-fit self-center rounded-md "
+      class="mx-4 my-0 flex h-8 w-fit cursor-pointer items-center justify-between self-center rounded-md border-2 border-solid border-sky-500 px-2 py-0 text-center font-medium text-sky-500 select-none"
       href={props.href ?? '/logos/qwik.png'}
       download
     >
@@ -105,12 +104,12 @@ export default component$(() => {
 
   const Logo = component$((props: { title: string; alt: string; downloadHref: string }) => {
     return (
-      <div class="flex flex-col justify-between h-72 border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-        <p class="text-2xl font-bold text-center py-4 ">{props.title}</p>
-        <div class="flex-grow flex items-center justify-center overflow-hidden px-2">
+      <div class="flex h-72 flex-col justify-between rounded-lg border border-gray-200 shadow-md transition-shadow duration-300 hover:shadow-lg">
+        <p class="py-4 text-center text-2xl font-bold">{props.title}</p>
+        <div class="flex flex-grow items-center justify-center overflow-hidden px-2">
           <Slot name="logo" />
         </div>
-        <div class="flex justify-center mt-auto py-4">
+        <div class="mt-auto flex justify-center py-4">
           <DownloadButton href={props.downloadHref} />
         </div>
       </div>
@@ -123,7 +122,7 @@ export default component$(() => {
         <button
           onClick$={() => copyToClipboard(props.hexCode)}
           style={`background-color:${props.color};`}
-          class="flex justify-center text-white items-center cursor-pointer h-12  "
+          class="flex h-12 cursor-pointer items-center justify-center text-white"
         >
           {activeColor.value === props.hexCode ? (
             <p class={props.color === 'var(--qwik-light-blue)' ? 'text-black' : 'text-white'}>
@@ -156,7 +155,7 @@ export default component$(() => {
   return (
     <main>
       <Header />
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 p-2 px-10 py-10 md:px-32">
+      <div class="grid grid-cols-1 gap-5 p-2 px-10 py-10 md:grid-cols-3 md:px-32">
         {logos.map((item) => (
           <Logo key={item.title} title={item.title} alt={item.alt} downloadHref={item.downloadHref}>
             {item.Logo === 'img' ? (
@@ -166,8 +165,8 @@ export default component$(() => {
             )}
           </Logo>
         ))}
-        <div class="flex flex-col justify-between h-72 border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-          <div class="flex-grow grid grid-rows-6 text-center overflow-hidden px-2 py-2">
+        <div class="flex h-72 flex-col justify-between rounded-lg border border-gray-200 shadow-md transition-shadow duration-300 hover:shadow-lg">
+          <div class="grid flex-grow grid-rows-6 overflow-hidden px-2 py-2 text-center">
             {qwikColors.map((colorItem) => (
               <ColorButton
                 key={colorItem.name}
@@ -180,10 +179,10 @@ export default component$(() => {
           </div>
         </div>
       </div>
-      <div class="flex justify-center mt-1">
+      <div class="mt-1 flex justify-center">
         <a
           onClick$={downloadAllAssets}
-          class="flex justify-between items-center py-2 px-4 font-medium text-center border-2 border-solid cursor-pointer select-none border-sky-500 text-sky-500 rounded-md hover:bg-sky-500 hover:text-white transition-colors duration-300"
+          class="flex cursor-pointer items-center justify-between rounded-md border-2 border-solid border-sky-500 px-4 py-2 text-center font-medium text-sky-500 transition-colors duration-300 select-none hover:bg-sky-500 hover:text-white"
           download
         >
           Download All Logos

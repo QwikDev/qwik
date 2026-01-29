@@ -1,21 +1,16 @@
 /* eslint-disable */
-import {
-  component$,
-  createContextId,
-  useContextProvider,
-  useStore,
-} from "@qwik.dev/core";
+import { component$, createContextId, useContextProvider, useStore } from '@qwik.dev/core';
 
-export const LOGS = createContextId<{ content: string }>("qwik.logs.resource");
+export const LOGS = createContextId<{ content: string }>('qwik.logs.resource');
 
 export const TreeshakingApp = component$(() => {
   const logs = {
-    content: "",
+    content: '',
   };
   useContextProvider(LOGS, logs);
 
   const state = useStore({
-    text: "text",
+    text: 'text',
   });
   return (
     <div>
@@ -26,12 +21,12 @@ export const TreeshakingApp = component$(() => {
 
 export const Child = component$((props: { text: { text: string } }) => {
   const state = useStore({
-    text: "child",
+    text: 'child',
   });
 
   return (
     <div>
-      <span onClick$={() => console.log("hola")}>Text: {props.text.text}</span>
+      <span onClick$={() => console.log('hola')}>Text: {props.text.text}</span>
       <span>Child: {state.text}</span>
     </div>
   );

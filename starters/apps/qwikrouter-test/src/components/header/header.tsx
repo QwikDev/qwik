@@ -1,7 +1,7 @@
-import { component$, useStyles$ } from "@qwik.dev/core";
-import { Link, useLocation } from "@qwik.dev/router";
-import { useUserLoader } from "../../routes/layout";
-import styles from "./header.css?inline";
+import { component$, useStyles$ } from '@qwik.dev/core';
+import { Link, useLocation } from '@qwik.dev/router';
+import { useUserLoader } from '../../routes/layout';
+import styles from './header.css?inline';
 
 export default component$(() => {
   const userData = useUserLoader();
@@ -13,11 +13,7 @@ export default component$(() => {
     <header>
       <div class="header-inner">
         <section class="logo">
-          <Link
-            href="/qwikrouter-test/"
-            prefetch={true}
-            data-test-link="header-home"
-          >
+          <Link href="/qwikrouter-test/" prefetch={true} data-test-link="header-home">
             Qwik Router 🛣
           </Link>
         </section>
@@ -25,7 +21,7 @@ export default component$(() => {
           <Link
             href="/qwikrouter-test/blog/"
             class={{
-              active: loc.url.pathname.startsWith("/qwikrouter-test/blog/"),
+              active: loc.url.pathname.startsWith('/qwikrouter-test/blog/'),
             }}
             data-test-link="blog-home"
           >
@@ -34,7 +30,7 @@ export default component$(() => {
           <Link
             href="/qwikrouter-test/docs/"
             class={{
-              active: loc.url.pathname.startsWith("/qwikrouter-test/docs/"),
+              active: loc.url.pathname.startsWith('/qwikrouter-test/docs/'),
             }}
             data-test-link="docs-home"
           >
@@ -43,7 +39,7 @@ export default component$(() => {
           <Link
             href="/qwikrouter-test/actions/"
             class={{
-              active: loc.url.pathname.startsWith("/qwikrouter-test/actions/"),
+              active: loc.url.pathname.startsWith('/qwikrouter-test/actions/'),
             }}
             data-test-link="docs-actions"
           >
@@ -52,7 +48,7 @@ export default component$(() => {
           <Link
             href="/qwikrouter-test/api/"
             class={{
-              active: loc.url.pathname.startsWith("/qwikrouter-test/api/"),
+              active: loc.url.pathname.startsWith('/qwikrouter-test/api/'),
             }}
             data-test-link="api-home"
           >
@@ -61,7 +57,7 @@ export default component$(() => {
           <Link
             href="/qwikrouter-test/products/hat/"
             class={{
-              active: loc.url.pathname.startsWith("/qwikrouter-test/products/"),
+              active: loc.url.pathname.startsWith('/qwikrouter-test/products/'),
             }}
             data-test-link="products-hat"
           >
@@ -70,7 +66,7 @@ export default component$(() => {
           <Link
             href="/qwikrouter-test/about-us/"
             class={{
-              active: loc.url.pathname.startsWith("/qwikrouter-test/about-us/"),
+              active: loc.url.pathname.startsWith('/qwikrouter-test/about-us/'),
             }}
             data-test-link="about-us"
           >
@@ -85,9 +81,7 @@ export default component$(() => {
             <Link
               href="/qwikrouter-test/sign-in/"
               class={{
-                active: loc.url.pathname.startsWith(
-                  "/qwikrouter-test/sign-in/",
-                ),
+                active: loc.url.pathname.startsWith('/qwikrouter-test/sign-in/'),
               }}
               data-test-link="sign-out"
             >

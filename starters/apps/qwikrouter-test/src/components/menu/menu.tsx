@@ -1,6 +1,6 @@
-import { Link, useContent, useLocation } from "@qwik.dev/router";
-import { component$, Fragment, useStyles$ } from "@qwik.dev/core";
-import styles from "./menu.css?inline";
+import { Link, useContent, useLocation } from '@qwik.dev/router';
+import { component$, Fragment, useStyles$ } from '@qwik.dev/core';
+import styles from './menu.css?inline';
 
 export const Menu = component$(() => {
   useStyles$(styles);
@@ -21,7 +21,7 @@ export const Menu = component$(() => {
                       data-test-menu-link={item.href}
                       href={item.href}
                       class={{
-                        "is-active": url.pathname === item.href,
+                        'is-active': url.pathname === item.href,
                       }}
                     >
                       {item.text}

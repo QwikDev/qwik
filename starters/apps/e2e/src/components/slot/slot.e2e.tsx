@@ -3,10 +3,10 @@ import {
   Fragment,
   Fragment as Projection,
   type JSXOutput,
-} from "@qwik.dev/core";
-import { domRender, ssrRenderToDom, trigger } from "@qwik.dev/core/testing";
-import { beforeEach, describe, expect, it } from "vitest";
-import { Issue5506, SlotParent } from "./slot";
+} from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { Issue5506, SlotParent } from './slot';
 
 //////////////////////////////
 // TODO make this part of qwik/testing somehow
@@ -15,7 +15,7 @@ interface CustomMatchers<R = unknown> {
   toMatchDOM(expectedDOM: JSXOutput): Promise<R>;
 }
 
-declare module "vitest" {
+declare module 'vitest' {
   interface Assertion<T = any> extends CustomMatchers<T> {}
   interface AsymmetricMatchersContaining extends CustomMatchers {}
 }
@@ -27,8 +27,8 @@ Error.stackTraceLimit = 100;
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
-])("$render.name: slot.e2e", ({ render }) => {
-  describe("<SlotParent/>", () => {
+])('$render.name: slot.e2e', ({ render }) => {
+  describe('<SlotParent/>', () => {
     let document: Document;
     // let vNode: VNode;
     // let container: ClientContainer;
@@ -43,25 +43,25 @@ describe.each([
     });
 
     it("should run 'Toggle render'", async () => {
-      await expect(document.querySelector("#isRendered")).toMatchDOM(
+      await expect(document.querySelector('#isRendered')).toMatchDOM(
         <div id="isRendered" key="">
           Hi
-        </div>,
+        </div>
       );
-      await trigger(document.body, "[on-document\\:qinit]", "qinit");
-      await trigger(document.body, "#btn-toggle-render", "click");
-      await expect(document.querySelectorAll("#isRendered").length).toEqual(0);
-      await trigger(document.body, "#btn-toggle-render", "click");
-      await expect(document.querySelector("#isRendered")).toMatchDOM(
+      await trigger(document.body, '[on-document\\:qinit]', 'qinit');
+      await trigger(document.body, '#btn-toggle-render', 'click');
+      await expect(document.querySelectorAll('#isRendered').length).toEqual(0);
+      await trigger(document.body, '#btn-toggle-render', 'click');
+      await expect(document.querySelector('#isRendered')).toMatchDOM(
         <div id="isRendered" key="">
           Hi
-        </div>,
+        </div>
       );
     });
   });
 
-  describe("regression", () => {
-    it("#5506", async ({ expect }) => {
+  describe('regression', () => {
+    it('#5506', async ({ expect }) => {
       const { document, vNode } = await render(<Issue5506 />, { debug });
       expect(vNode).toMatchVDOM(
         <Component>
@@ -71,37 +71,28 @@ describe.each([
                 <Component>
                   <Fragment>
                     <label>
-                      <input
-                        checked
-                        type="checkbox"
-                        preventdefault:click
-                        id="input-5506"
-                      />
-                      {"toggle me"}
+                      <input checked type="checkbox" preventdefault:click id="input-5506" />
+                      {'toggle me'}
                     </label>
                   </Fragment>
                 </Component>
                 <br></br>
-                <button>{"Rerender on client"}</button>
+                <button>{'Rerender on client'}</button>
               </Projection>
             </Component>
           </div>
-        </Component>,
+        </Component>
       );
-      const initialInput = document.querySelector(
-        "#input-5506",
-      ) as HTMLInputElement;
-      await expect(document.querySelector("#input-5506")).toMatchDOM(
-        <input id="input-5506" type="checkbox" checked />,
+      const initialInput = document.querySelector('#input-5506') as HTMLInputElement;
+      await expect(document.querySelector('#input-5506')).toMatchDOM(
+        <input id="input-5506" type="checkbox" checked />
       );
       expect(initialInput.checked).toBe(true);
-      await trigger(document.body, "input#input-5506", "click");
-      const updatedInput = document.querySelector(
-        "#input-5506",
-      ) as HTMLInputElement;
+      await trigger(document.body, 'input#input-5506', 'click');
+      const updatedInput = document.querySelector('#input-5506') as HTMLInputElement;
       expect(updatedInput.checked).toBe(false);
-      await expect(document.querySelector("#input-5506")).toMatchDOM(
-        <input id="input-5506" type="checkbox" checked={false} />,
+      await expect(document.querySelector('#input-5506')).toMatchDOM(
+        <input id="input-5506" type="checkbox" checked={false} />
       );
       expect(updatedInput.checked).toBe(false);
       expect(initialInput).toBe(updatedInput); // Ensure we did not destroy the input

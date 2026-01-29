@@ -40,7 +40,10 @@ Developers need visibility of the issues in order to fix them. Debuggers, audit 
 We want Qwik developers to have a continuous and passive look at common performance issues in their apps and give them tools to fix those with no effort.
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fc1a27f6c5f7243ffae25aa636813ea97%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=c1a27f6c5f7243ffae25aa636813ea97&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fc1a27f6c5f7243ffae25aa636813ea97%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=c1a27f6c5f7243ffae25aa636813ea97&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 Starting with 1.2.0, developers will have constant visibility of easy-to-solve performance issues in their app. We are starting with images, but will extend it to fonts and third-party scripts like Google Analytics soon.
@@ -65,7 +68,11 @@ export default component$(() => {
 
 👆 this little snippet will generate the following `<img>` tag 👇
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F92eeee761ef84984a25be151e96f21fb?format=webp&amp;width=700" alt="image optimization" />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F92eeee761ef84984a25be151e96f21fb?format=webp&amp;width=700"
+  alt="image optimization"
+/>
 
 The community and the Qwik team love this API for a number of reasons:
 
@@ -84,7 +91,10 @@ The community and the Qwik team love this API for a number of reasons:
 <br></br>
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe1f99b0d93bb4b239073ad37eaf760d0%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=e1f99b0d93bb4b239073ad37eaf760d0&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe1f99b0d93bb4b239073ad37eaf760d0%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=e1f99b0d93bb4b239073ad37eaf760d0&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 ## Zero-runtime styling with PandaCSS
@@ -112,16 +122,16 @@ pnpm qwik add pandacss
 Check it out!
 
 ```tsx
-import { component$ } from "@builder.io/qwik";
-import { css } from "~/styled-system/css";
+import { component$ } from '@builder.io/qwik';
+import { css } from '~/styled-system/css';
 
 export default component$(() => {
   return (
     <div
       class={css({
         padding: 10,
-        bg: "red.400",
-        height: "dvh",
+        bg: 'red.400',
+        height: 'dvh',
         margin: 100,
         fontSize: 30,
       })}
@@ -153,7 +163,10 @@ pnpm qwik new my-button
 It's also beautiful, check it out 👇
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa0dbe86ddcb14953a81b31b98f63199a%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=a0dbe86ddcb14953a81b31b98f63199a&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa0dbe86ddcb14953a81b31b98f63199a%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=a0dbe86ddcb14953a81b31b98f63199a&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 ## AWS lambda integration
@@ -169,7 +182,10 @@ pnpm qwik add aws-lambda
 We are especially excited about this contribution because it empowers enterprise users even more.
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fd9484e8cb94147c9b5fcb0a6ce7063fa%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=d9484e8cb94147c9b5fcb0a6ce7063fa&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fd9484e8cb94147c9b5fcb0a6ce7063fa%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=d9484e8cb94147c9b5fcb0a6ce7063fa&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 ## `clientConn` API
@@ -179,10 +195,10 @@ Now it’s easier than ever to know key information about your users. This new A
 It is built on top of `edge` APIs of Cloudflare, Vercel, Netlify, and Google Cloud.
 
 ```tsx
-export const useGetCountryAndIP = routeLoader$(({clientConn}) => {
+export const useGetCountryAndIP = routeLoader$(({ clientConn }) => {
   return {
     ip: clientConn.ip,
-    country: clientConn.country
+    country: clientConn.country,
   };
 });
 ```
@@ -222,9 +238,13 @@ We are excited to keep the Qwik Labs with these projects:
 
 - [Qwik Insights](https://qwik.dev/docs/labs/insights/): a way to collect real-world metrics about how the users are using the Qwik Application and then use the information to create ideal bundles to further improve the prefetching and application startup performance. (A form of [profile-guided optimization](https://en.wikipedia.org/wiki/Profile-guided_optimization).)
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F733086ea420f4ff6937e68e265e6b2ec?format=webp&amp;width=700" alt="Qwik Insights chart" />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F733086ea420f4ff6937e68e265e6b2ec?format=webp&amp;width=700"
+  alt="Qwik Insights chart"
+/>
 
-*   Typed Routes: TypeScript is great at telling us all the places we need to change when we refactor our code – except one place; routes URLs, params, and queries. Typed Routes is a plugin for Vite that generates type information for your routes so that TypeScript can let you know if the application URL does not match the route definitions.
+- Typed Routes: TypeScript is great at telling us all the places we need to change when we refactor our code – except one place; routes URLs, params, and queries. Typed Routes is a plugin for Vite that generates type information for your routes so that TypeScript can let you know if the application URL does not match the route definitions.
 
 ## Qwik $hop!!
 
@@ -232,7 +252,11 @@ Yes! Another amazing community leader [Giorgio Boa](https://bsky.app/profile/gio
 
 [Go check it out and get some socks](https://qwik.dev/shop/); I heard they can make you run qwiker.
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F16a1660c84e444958271c06a2303bd6d?format=webp&amp;width=700" alt="Qwik shop" />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F16a1660c84e444958271c06a2303bd6d?format=webp&amp;width=700"
+  alt="Qwik shop"
+/>
 
 https://qwik.dev/shop/
 
@@ -247,7 +271,7 @@ https://qwik.dev/shop/
 - docs: add CodeSandbox demo to Modular Forms guide by @fabian-hiller in https://github.com/QwikDev/qwik/pull/4095
 - docs: fix link to Bundle Optimization by @Craiqser in https://github.com/QwikDev/qwik/pull/4418
 - feat: image performance dev tools by @manucorporat in https://github.com/QwikDev/qwik/pull/4424
-- fix: slow test by @manucorporat in [https://github.com/QwikDev/qwik/pull/4431](https://github.com/QwikDev/qwik/pull/4431](https://github.com/QwikDev/qwik/pull/4431))
+- fix: slow test by @manucorporat in [https://github.com/QwikDev/qwik/pull/4431](<https://github.com/QwikDev/qwik/pull/4431](https://github.com/QwikDev/qwik/pull/4431)>)
 - docs: qwiksand-box by @manucorporat in https://github.com/QwikDev/qwik/pull/4429
 - fix: image-size dep by @manucorporat in https://github.com/QwikDev/qwik/pull/4435
 - docs: fix example to match by @hamatoyogi in https://github.com/QwikDev/qwik/pull/4439
@@ -259,7 +283,7 @@ https://qwik.dev/shop/
 - docs: Routing - Change getLocation() to useLocation() by @chsanch in https://github.com/QwikDev/qwik/pull/4454
 - fix: visible task execution after removal by @manucorporat in https://github.com/QwikDev/qwik/pull/4459
 - Fix typo in MDX example code by @erikras in https://github.com/QwikDev/qwik/pull/4457
-- fix(use-on.ts): fixed useOn methods to pass correct eventName to _useOn by @OrenSayag in https://github.com/QwikDev/qwik/pull/4453
+- fix(use-on.ts): fixed useOn methods to pass correct eventName to \_useOn by @OrenSayag in https://github.com/QwikDev/qwik/pull/4453
 - docs: routeLoader adjustment by @hamatoyogi in https://github.com/QwikDev/qwik/pull/4462
 - fix: root gitignore file by @zanettin in https://github.com/QwikDev/qwik/pull/4460
 - fix: add missing nonce to popstate script by @DustinJSilk in https://github.com/QwikDev/qwik/pull/4468
@@ -277,7 +301,7 @@ https://qwik.dev/shop/
 - Add new documentation for deprecated features. by @nsdonato in https://github.com/QwikDev/qwik/pull/4476
 - feat: add no-unnecessary-condition eslint rule by @manucorporat in https://github.com/QwikDev/qwik/pull/4485
 - fix(parse-pathname): path segment encoding by @Varixo in https://github.com/QwikDev/qwik/pull/4486
-- docs(*): update contribution docs by @Wimpert in https://github.com/QwikDev/qwik/pull/4490
+- docs(\*): update contribution docs by @Wimpert in https://github.com/QwikDev/qwik/pull/4490
 - Allow replace state when navigating by @Wimpert in https://github.com/QwikDev/qwik/pull/4488
 - fix: test bundle mode by @manucorporat in https://github.com/QwikDev/qwik/pull/4491
 - fix: 'Numberish' type used for width/height didn't allow % by @KenAKAFrosty in https://github.com/QwikDev/qwik/pull/4434

@@ -11,10 +11,7 @@ export default component$(() => {
         </NavLink>
       </div>
       <div>
-        <NavLink
-          href="/demo/cookbook/nav-link/example/"
-          activeClass="text-green-600"
-        >
+        <NavLink href="/demo/cookbook/nav-link/example/" activeClass="text-green-600">
           /demo/cookbook/nav-link/example/
         </NavLink>
       </div>

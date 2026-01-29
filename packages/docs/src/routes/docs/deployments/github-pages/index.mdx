@@ -17,32 +17,16 @@ Qwik's Static Site adapter helps to generate static html files which can be easi
 To integrate the `static-site` adapter, use the `add` command:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add static
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add static
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add static
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add static
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add static ```</span>
+  <span q:slot="npm">```shell npm run qwik add static ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add static ```</span>
+  <span q:slot="bun">```shell bun run qwik add static ```</span>
 </PackageManagerTabs>
 
 Above command will create a directory at project root named `adapters/static/vite.config.ts` with the below code.
 
 ```ts title="adapters/static/vite.config.ts"
-import { staticAdapter } from "@qwik.dev/router/adapters/static/vite";
+import { staticAdapter } from '@qwik.dev/router/adapters/static/vite';
 import { extendConfig } from '@qwik.dev/router/vite';
 import baseConfig from '../../vite.config';
 
@@ -77,12 +61,13 @@ export default defineConfig(({ command, mode }): UserConfig => {
 
 GitHub Actions enables automated deployment of your site to GitHub Pages upon code changes.<br/>
 To enable this feature, configure your repository settings as follows:
-- Navigate to GitHub Pages Settings: Access your repository's GitHub Pages settings by visiting the /settings/pages path within your repository.<br/>
-For example: https://github.com/your-github-username/github-repository/settings/pages.
-- Configure Deployment Source: Under the "Source" section, select "GitHub Actions" as the deployment source.<br/>
-This instructs GitHub Pages to use a GitHub Actions workflow for deployments.
 
-## Add The GitHub Action 
+- Navigate to GitHub Pages Settings: Access your repository's GitHub Pages settings by visiting the /settings/pages path within your repository.<br/>
+  For example: https://github.com/your-github-username/github-repository/settings/pages.
+- Configure Deployment Source: Under the "Source" section, select "GitHub Actions" as the deployment source.<br/>
+  This instructs GitHub Pages to use a GitHub Actions workflow for deployments.
+
+## Add The GitHub Action
 
 Here's an example:
 

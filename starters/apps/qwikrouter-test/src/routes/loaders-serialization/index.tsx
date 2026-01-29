@@ -1,20 +1,20 @@
-import { component$, useSignal } from "@qwik.dev/core";
-import { routeLoader$ } from "@qwik.dev/router";
+import { component$, useSignal } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
 
 export const useTestLoader = routeLoader$(() => {
-  return { test: "some test value", abcd: "should not serialize this" };
+  return { test: 'some test value', abcd: 'should not serialize this' };
 });
 
 export const useTestLoaderEager = routeLoader$(
   () => {
-    return { foo: "some eager test value", bar: "should serialize this" };
+    return { foo: 'some eager test value', bar: 'should serialize this' };
   },
-  { serializationStrategy: "always" },
+  { serializationStrategy: 'always' }
 );
 
 export const useNestedLoader = routeLoader$(async (requestEv) => {
   const testData = await requestEv.resolveValue(useTestLoader);
-  return { test: testData.test + " nested", abcd: testData.abcd + " nested" };
+  return { test: testData.test + ' nested', abcd: testData.abcd + ' nested' };
 });
 
 export default component$(() => {

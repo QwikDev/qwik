@@ -18,7 +18,7 @@ created_at: '2023-03-20T23:45:13Z'
 
 # Prefetching Modules
 
-Qwik prefetches modules ahead of time. This page describes the **low-level** features of Qwik's prefetching. 
+Qwik prefetches modules ahead of time. This page describes the **low-level** features of Qwik's prefetching.
 
 Prefetching modules allows applications to start downloading necessary code in the background before users actually need it. The ideal solution is to prefetch only the smallest amount of relevant code that is highly likely to be executed from a user's interaction, while also avoiding any JavaScript that _will not_ be used.
 
@@ -32,7 +32,7 @@ When Qwik renders an app, it's able to collect which "symbols" were used during 
 
 For example, consider a product page that is mostly static except for one "Add to cart" button. When the button is clicked, the user should immediately get feedback to show the product added to the cart. In this example, the Qwik optimizer would be able to understand that the only symbol a user could interact with is the "Add to cart" button click event listener.
 
-For our "Add to cart" example, the optimizer collects the symbols only for the click event listener and the renderer for the add to cart widget. There is no need to download, hydrate, and re-render any other parts of the application that aren't relevant.  This demonstrates Qwik's capability to determine which interactions are possible and to prefetch only the necessary code for the event listener.  In contrast, traditional approaches require the entire application or route, including framework code, to be prefetched just to add the click event listener.
+For our "Add to cart" example, the optimizer collects the symbols only for the click event listener and the renderer for the add to cart widget. There is no need to download, hydrate, and re-render any other parts of the application that aren't relevant. This demonstrates Qwik's capability to determine which interactions are possible and to prefetch only the necessary code for the event listener. In contrast, traditional approaches require the entire application or route, including framework code, to be prefetched just to add the click event listener.
 
 ## Preloader
 
@@ -54,7 +54,6 @@ The preloader will then add the remaining `<link>` elements to the document head
 
 Most browsers support `rel="modulepreload"`, but for older browsers, Qwik will fall back to `rel="preload"` attribute.
 
-
 ## Frequently Asked Prefetching Questions
 
 **QUESTION**: _Is lazy loading on user events slow because the user must wait for the code to download?_
@@ -69,7 +68,7 @@ No, for several reasons:
 
 - Existing frameworks must download and execute all of the code ([hydration](../../concepts/resumable/index.mdx)) before the application can be interactive. Typically the download of the code is a smaller time cost than the execution of the code.
 - Qwik code prefetch only downloads but does not execute the code. Therefore even if Qwik prefetches the same amount of code as the existing frameworks, the result is significant time cost savings.
-- Qwik only prefetches the code which is needed for the current page. Qwik avoids downloading code associated with components that are static.  In scenarios where more code needs prefetching, Qwik still only reaches the volume that existing frameworks consider their best case. In most cases, Qwik prefetches a small fraction of code compared to the existing frameworks.
+- Qwik only prefetches the code which is needed for the current page. Qwik avoids downloading code associated with components that are static. In scenarios where more code needs prefetching, Qwik still only reaches the volume that existing frameworks consider their best case. In most cases, Qwik prefetches a small fraction of code compared to the existing frameworks.
 - Prefetching of code can happen on other threads than the main thread. Many browsers can even pre-parse the AST of the code off the main thread.
 - If the user interaction happens before the prefetch is completed, the browser will automatically prioritize the interaction chunk before the remaining prefetch chunks.
 - Qwik can break up the application into many small chunks, and these chunks can be downloaded in the order of probability that the user will interact with them. Existing frameworks have trouble breaking up applications into small chunks, and there is no easy way to prioritize the chunk download order because hydration requires a single "main" entry point to the application.

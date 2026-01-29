@@ -21,7 +21,7 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
     <>
       <div class="pt-4">
         <Link
-          class="text-[color:var(--text-color)] flex items-center space-x-1 pl-2"
+          class="flex items-center space-x-1 pl-2 text-[color:var(--text-color)]"
           rel="noopener"
           href="/blog"
         >
@@ -39,20 +39,20 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
           <span class="text-xl">Back to blog</span>
         </Link>
       </div>
-      <div class="max-w-[1000px] pb-8 mx-auto">
+      <div class="mx-auto max-w-[1000px] pb-8">
         <div class="flex flex-col justify-center">
-          <h4 class="text-xl text-[color:var(--qwik-blue)] font-semibold uppercase text-center pt-6 tracking-wide">
+          <h4 class="pt-6 text-center text-xl font-semibold tracking-wide text-[color:var(--qwik-blue)] uppercase">
             {frontmatter.tags.map((tag: string) => (
               <span class="pr-2">{tag}</span>
             ))}
           </h4>
-          <h1 class="text-[48px] text-[color:var(--text-color)] font-bold text-center tracking-wide pt-6">
+          <h1 class="pt-6 text-center text-[48px] font-bold tracking-wide text-[color:var(--text-color)]">
             {title}
           </h1>
-          <div class="flex justify-center pt-8 pb-10 text-[color:var(--text-color)] text-xl">
-            <h4 class="font-semibold uppercase text-center">{frontmatter.date}</h4>
-            <div class="border border-[color:var(--text-color)] mx-4"></div>
-            <div class="font-semibold uppercase text-center">
+          <div class="flex justify-center pt-8 pb-10 text-xl text-[color:var(--text-color)]">
+            <h4 class="text-center font-semibold uppercase">{frontmatter.date}</h4>
+            <div class="mx-4 border border-[color:var(--text-color)]"></div>
+            <div class="text-center font-semibold uppercase">
               {frontmatter.authors.length > 1 && 'Co-'}Written by{' '}
               {frontmatter.authors.map((author: string, index: number) => (
                 <span key={author}>

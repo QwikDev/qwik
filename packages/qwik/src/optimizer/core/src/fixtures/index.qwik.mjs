@@ -1053,7 +1053,7 @@ export {
   globalActionQrl,
   Link,
   QwikRouterMockProvider,
-  QwikRouterProvider as QwikRouterProvider,
+  QwikRouterProvider,
   routeAction$,
   routeActionQrl,
   routeLoader$,

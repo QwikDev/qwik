@@ -22,28 +22,11 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 You can add builder.io easily by using the following `add` script:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add builder.io
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add builder.io
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add builder.io
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add builder.io
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add builder.io ```</span>
+  <span q:slot="npm">```shell npm run qwik add builder.io ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add builder.io ```</span>
+  <span q:slot="bun">```shell bun run qwik add builder.io ```</span>
 </PackageManagerTabs>
 
 After running the command, `@builder.io/sdk-qwik` will be installed, and a new sample component and catchall route will be created in `src/components` and `src/routes` respectively.
@@ -58,26 +41,10 @@ Create a free [Builder.io account](https://builder.io/signup) (only takes a coup
 Then run the development server:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run dev
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run dev
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run dev
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run dev
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run dev ```</span>
+  <span q:slot="npm">```shell npm run dev ```</span>
+  <span q:slot="yarn">```shell yarn run dev ```</span>
+  <span q:slot="bun">```shell bun run dev ```</span>
 </PackageManagerTabs>
 
 Now, go set your [preview URL](https://www.builder.io/c/docs/guides/preview-url) to `http://localhost:5173/`
@@ -120,11 +87,7 @@ export const CUSTOM_COMPONENTS: RegisteredComponent[] = [
 
 export default component$(() => {
   const content = useBuilderContent();
-  return (
-    <RenderContent
-      customComponents={CUSTOM_COMPONENTS}
-    />
-  );
+  return <RenderContent customComponents={CUSTOM_COMPONENTS} />;
 });
 ```
 
@@ -135,4 +98,3 @@ See our full integration guides [here](https://www.builder.io/c/docs/developers)
 Also, when you push your integration to production, go back and update your preview URL to your production URL so now anyone on your team can visually create content in your Qwik app!
 
 Also, to integrate structured data, see [this guide](https://www.builder.io/c/docs/integrate-cms-data)
-

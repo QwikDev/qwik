@@ -17,15 +17,15 @@ created_at: '2023-05-24T03:52:24Z'
 
 # Caching Responses
 
-Caching responses is critical for keeping your site as fast as possible, both for [pages](/docs/(qwikrouter)/pages/index.mdx) as well as [middleware](/docs/(qwikrouter)/middleware/index.mdx).
+Caching responses is critical for keeping your site as fast as possible, both for [pages](</docs/(qwikrouter)/pages/index.mdx>) as well as [middleware](</docs/(qwikrouter)/middleware/index.mdx>).
 
 A option is to use [stale-while-revalidate](https://web.dev/stale-while-revalidate/) caching for all responses. Note that this means that users will see a cached response even if the server is updated, and only when the user refreshes will they see the updated content.
 
-For instance, we can add an `onGet` export to our root [layout](/docs/(qwikrouter)/layout/index.mdx) (`src/routes/layout.tsx`) like so, to apply good caching defaults site-wide:
+For instance, we can add an `onGet` export to our root [layout](</docs/(qwikrouter)/layout/index.mdx>) (`src/routes/layout.tsx`) like so, to apply good caching defaults site-wide:
 
 ```tsx title="src/routes/layout.tsx"
-import { component$, Slot } from "@qwik.dev/core";
-import type { RequestHandler } from "@qwik.dev/router";
+import { component$, Slot } from '@qwik.dev/core';
+import type { RequestHandler } from '@qwik.dev/router';
 
 export const onGet: RequestHandler = async ({ cacheControl }) => {
   cacheControl({
@@ -52,7 +52,7 @@ With the above setup, you will not only have better performance (pages are alway
 Any method that takes a [request event](https://qwik.dev/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response:
 
 ```tsx title="src/routes/layout.tsx"
-import type { RequestHandler } from "@qwik.dev/router";
+import type { RequestHandler } from '@qwik.dev/router';
 
 export const onGet: RequestHandler = async ({ cacheControl }) => {
   cacheControl({
@@ -64,10 +64,10 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
 };
 ```
 
-If you have default caching set at the root, but want to disable caching for a specific page, you can override this setting using nested layouts.  The below example overrides caching for dashboard pages.
+If you have default caching set at the root, but want to disable caching for a specific page, you can override this setting using nested layouts. The below example overrides caching for dashboard pages.
 
 ```tsx title="src/routes/dashboard/layout.tsx"
-import type { RequestHandler } from "@qwik.dev/router";
+import type { RequestHandler } from '@qwik.dev/router';
 
 // Override caching for /dashboard pages to not cache as they are unique per visitor
 export const onGet: RequestHandler = async ({ cacheControl }) => {
@@ -78,7 +78,6 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
     staleWhileRevalidate: 0,
   });
 };
-
 ```
 
 You can see the full [API reference](https://qwik.dev/api/qwik-router-middleware-request-handler/) of options you can pass to `request.cacheControl`.
@@ -92,7 +91,7 @@ For high traffic pages that look the same to everyone, such as a homepage, cachi
 You can conditionally change cache behaviors with any logic you like:
 
 ```tsx title="src/routes/layout.tsx"
-import type { RequestHandler } from "@qwik.dev/router";
+import type { RequestHandler } from '@qwik.dev/router';
 
 export const onGet: RequestHandler = async ({ cacheControl, url }) => {
   // Only our homepage is public and should be CDN cached. Other pages are unique per visitor
@@ -113,10 +112,13 @@ For even more control on your caching strategy, your CDN might have another laye
 The `cacheControl` convenience method can receive a second argument (set to `"Cache-Control"` by default). You can pass in any string value specific to your CDN such as "CDN-Cache-Control", "Cloudflare-CDN-Cache-Control", "Vercel-CDN-Cache-Control", etc.
 
 ```tsx
-cacheControl({
-  maxAge: 5,
-  staleWhileRevalidate: 60 * 60 * 24 * 365,
-}, "CDN-Cache-Control");
+cacheControl(
+  {
+    maxAge: 5,
+    staleWhileRevalidate: 60 * 60 * 24 * 365,
+  },
+  'CDN-Cache-Control'
+);
 ```
 
 ### Missing Controls
@@ -124,23 +126,27 @@ cacheControl({
 Some CDNs (such as Vercel Edge) may strip some of your "Cache-Control" headers.
 
 [On Vercel's documentation:](https://vercel.com/docs/edge-network/caching#cdn-cache-control)
+
 > If you set Cache-Control without a CDN-Cache-Control, the Vercel Edge Network strips s-maxage and stale-while-revalidate from the response before sending it to the browser. To determine if the response was served from the cache, check the [x-vercel-cache](https://vercel.com/docs/edge-network/caching#x-vercel-cache) header in the response.
 
 If your CDN, such as Vercel Edge, automatically removes certain cache control headers and you wish to implement caching strategies like "stale-while-revalidate" or "s-maxage" in the browser, you can specify an additional cacheControl:
 
 ```tsx title="src/routes/layout.tsx"
-import type { RequestHandler } from "@qwik.dev/router";
+import type { RequestHandler } from '@qwik.dev/router';
 
 export const onGet: RequestHandler = async ({ cacheControl }) => {
-    // If you want the browser to use "stale-while-revalidate" or "s-maxage" Cache Control headers, you have to add the second cacheControl with "CDN-Cache-Control" or "Vercel-CDN-Cache-Control" on Vercel Edge 
-    cacheControl({
-      staleWhileRevalidate: 60 * 60 * 24 * 365,
+  // If you want the browser to use "stale-while-revalidate" or "s-maxage" Cache Control headers, you have to add the second cacheControl with "CDN-Cache-Control" or "Vercel-CDN-Cache-Control" on Vercel Edge
+  cacheControl({
+    staleWhileRevalidate: 60 * 60 * 24 * 365,
+    maxAge: 5,
+  });
+  cacheControl(
+    {
       maxAge: 5,
-    });
-    cacheControl({
-      maxAge: 5,
       staleWhileRevalidate: 60 * 60 * 24 * 365,
-    }, "CDN-Cache-Control");
+    },
+    'CDN-Cache-Control'
+  );
 };
 ```
 

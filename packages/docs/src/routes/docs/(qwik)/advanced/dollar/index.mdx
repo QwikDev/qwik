@@ -83,7 +83,6 @@ The first argument of any function that ends with `$` has certain restrictions:
 
 #### Literals without local identifiers
 
-
 ```tsx
 const bar = 'bar';
 const foo = 'foo';
@@ -100,9 +99,7 @@ foo$({ value: 'stuff' }); // object literal without local identifiers
 foo$(1 + 3); // expression without local identifiers
 ```
 
-
 #### Importable identifiers
-
 
 ```tsx
 // Invalid
@@ -134,7 +131,7 @@ For closures, the rules are a bit relaxed, and local identifiers can be referenc
 ```tsx
 component$(() => {
   let foo = 'value'; // variable is not a const
-  return <div onClick$={() => console.log(foo)}/>
+  return <div onClick$={() => console.log(foo)} />;
 });
 ```
 
@@ -143,7 +140,7 @@ component$(() => {
 ```tsx
 component$(() => {
   const foo = 'value';
-  return <div onClick$={() => console.log(foo)}/>
+  return <div onClick$={() => console.log(foo)} />;
 });
 ```
 
@@ -153,13 +150,13 @@ component$(() => {
 // Invalid
 component$(() => {
   const foo = new MyCustomClass(12); // MyCustomClass is not serializable
-  return <div onClick$={() => console.log(foo)}/>
+  return <div onClick$={() => console.log(foo)} />;
 });
 
 // Valid
 component$(() => {
   const foo = { data: 12 };
-  return <div onClick$={() => console.log(foo)}/>
+  return <div onClick$={() => console.log(foo)} />;
 });
 ```
 

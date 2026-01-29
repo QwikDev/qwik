@@ -37,9 +37,9 @@ export default component$(() => {
       if (!url) return true;
 
       // Here we assume that the confirmDialog function shows a modal and returns a promise for the result
-      return confirmDialog(
-        `Do you want to lose changes and go to ${url}?`
-      ).then(answer => !answer);
+      return confirmDialog(`Do you want to lose changes and go to ${url}?`).then(
+        (answer) => !answer
+      );
       // or simply using the browser confirm dialog:
       // return !confirm(`Do you want to lose changes and go to ${url}?`);
     }
@@ -47,9 +47,7 @@ export default component$(() => {
 
   return (
     <div>
-      <button onClick$={() => (okToNavigate.value = !okToNavigate.value)}>
-        toggle user state
-      </button>
+      <button onClick$={() => (okToNavigate.value = !okToNavigate.value)}>toggle user state</button>
       application content
     </div>
   );
@@ -76,15 +74,11 @@ export default component$(() => {
 
   return (
     <div>
-      <button onClick$={() => (okToNavigate.value = !okToNavigate.value)}>
-        toggle user state
-      </button>
+      <button onClick$={() => (okToNavigate.value = !okToNavigate.value)}>toggle user state</button>
       application content
       {showConfirm.value && (
         <div>
-          <div>
-            Do you want to lose changes and go to {String(navSig.value)}?
-          </div>
+          <div>Do you want to lose changes and go to {String(navSig.value)}?</div>
           <button
             onClick$={() => {
               showConfirm.value = false;

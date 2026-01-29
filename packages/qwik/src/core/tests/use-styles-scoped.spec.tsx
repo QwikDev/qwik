@@ -86,13 +86,13 @@ describe.each([
     });
     expect(vNode).toMatchVDOM(
       <>
-        <button class={(globalThis as any).rawStyleId + ' container count-10'}>Hello world</button>
+        <button class={(globalThis as any).rawStyleId + ' count-10 container'}>Hello world</button>
       </>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <>
-        <button class={(globalThis as any).rawStyleId + ' container count-11'}>Hello world</button>
+        <button class={(globalThis as any).rawStyleId + ' count-11 container'}>Hello world</button>
       </>
     );
   });

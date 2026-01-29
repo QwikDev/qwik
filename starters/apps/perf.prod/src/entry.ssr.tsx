@@ -1,5 +1,5 @@
-import { renderToStream, RenderToStreamOptions } from "@qwik.dev/core/server";
-import { Root } from "./root";
+import { renderToStream, RenderToStreamOptions } from '@qwik.dev/core/server';
+import { Root } from './root';
 
 /**
  * Server-Side Render method to be called by a server.
@@ -16,6 +16,6 @@ export default function (opts: RenderToStreamOptions) {
         <Root pathname={url.pathname} />
       </body>
     </>,
-    opts,
+    opts
   );
 }

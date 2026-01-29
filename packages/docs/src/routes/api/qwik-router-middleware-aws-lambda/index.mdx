@@ -22,19 +22,19 @@ createQwikCity: typeof createQwikRouter;
 export declare function createQwikRouter(opts: AwsOpt): {
   fixPath: (pathT: string) => string;
   router: (
-    req: import("http").IncomingMessage | import("http2").Http2ServerRequest,
-    res: import("http").ServerResponse,
-    next: import("@qwik.dev/router/middleware/node").NodeRequestNextFunction,
+    req: import('http').IncomingMessage | import('http2').Http2ServerRequest,
+    res: import('http').ServerResponse,
+    next: import('@qwik.dev/router/middleware/node').NodeRequestNextFunction
   ) => Promise<void>;
   staticFile: (
-    req: import("http").IncomingMessage | import("http2").Http2ServerRequest,
-    res: import("http").ServerResponse,
-    next: (e?: any) => void,
+    req: import('http').IncomingMessage | import('http2').Http2ServerRequest,
+    res: import('http').ServerResponse,
+    next: (e?: any) => void
   ) => Promise<void>;
   notFound: (
-    req: import("http").IncomingMessage | import("http2").Http2ServerRequest,
-    res: import("http").ServerResponse,
-    next: (e: any) => void,
+    req: import('http').IncomingMessage | import('http2').Http2ServerRequest,
+    res: import('http').ServerResponse,
+    next: (e: any) => void
   ) => Promise<void>;
   handle: (req: any, res: any) => void;
 };

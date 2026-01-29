@@ -24,25 +24,23 @@ created_at: '2023-03-29T02:35:29Z'
 
 > `server$` can accept any number of arguments and return any value that can be serialized by Qwik. This includes primitives, objects, arrays, bigint, JSX nodes, and even Promises, just to name a few.
 
-
 `AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.  
 Your new function will have the following signature:  
-`([AbortSignal, ...yourOtherArgs]): Promise<T>`  
+`([AbortSignal, ...yourOtherArgs]): Promise<T>`
+
 > Please note that depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.
 
 ```tsx
-import { component$, useSignal, $  } from '@qwik.dev/core';
+import { component$, useSignal, $ } from '@qwik.dev/core';
 import { server$ } from '@qwik.dev/router';
 
 // By wrapping a function with `server$()` we mark it to always
 // execute on the server. This is a form of RPC mechanism.
-export const serverGreeter = server$(
-  function (firstName: string, lastName: string) {
-    const greeting = `Hello ${firstName} ${lastName}`;
-    console.log('Prints in the server', greeting);
-    return greeting;
-  }
-);
+export const serverGreeter = server$(function (firstName: string, lastName: string) {
+  const greeting = `Hello ${firstName} ${lastName}`;
+  console.log('Prints in the server', greeting);
+  return greeting;
+});
 
 export default component$(() => {
   const firstName = useSignal('');
@@ -50,16 +48,18 @@ export default component$(() => {
 
   return (
     <section>
-      <label>First name: <input bind:value={firstName} /></label>
-      <label>Last name: <input bind:value={lastName} /></label>
+      <label>
+        First name: <input bind:value={firstName} />
+      </label>
+      <label>
+        Last name: <input bind:value={lastName} />
+      </label>
 
       <button
-        onClick$={
-          $(async () => {
-            const greeting = await serverGreeter(firstName.value, lastName.value);
-            alert(greeting);
-          })
-        }
+        onClick$={$(async () => {
+          const greeting = await serverGreeter(firstName.value, lastName.value);
+          alert(greeting);
+        })}
       >
         greet
       </button>
@@ -77,13 +77,11 @@ When using `server$`, you have access to the `RequestEvent` object through `this
 You can access environment variables using `this.env.get()`.
 
 ```tsx
-export const getEnvVariable = server$(
-  function () {
-    const dbKey = this.env.get('DB_KEY');
-    console.log('Database Key:', dbKey);
-    return dbKey;
-  }
-);
+export const getEnvVariable = server$(function () {
+  const dbKey = this.env.get('DB_KEY');
+  console.log('Database Key:', dbKey);
+  return dbKey;
+});
 ```
 
 ### Cookies
@@ -93,15 +91,13 @@ You can read cookies using `this.cookie.get()` and `this.cookie.set()`.
 > When using `handleCookies` (in our example below) if it's used within a `useTask$` function that runs during the initial request, setting cookies won’t work as expected. This is because, during server-side rendering (SSR), the response is streamed, and HTTP requires all headers to be set before sending the first response. However, if handleCookies is used in useVisibleTask$, this issue doesn’t occur. If you need to set cookies for the initial document request you can use `plugin@<name>.ts` or Middleware.
 
 ```tsx
-export const handleCookies = server$(
-  function () {
-    const userSession = this.cookie.get('user-session')?.value;
-    if (!userSession) {
-      this.cookie.set('user-session', 'new-session-id', { path: '/', httpOnly: true });
-    }
-    return userSession;
+export const handleCookies = server$(function () {
+  const userSession = this.cookie.get('user-session')?.value;
+  if (!userSession) {
+    this.cookie.set('user-session', 'new-session-id', { path: '/', httpOnly: true });
   }
-);
+  return userSession;
+});
 ```
 
 ### URL
@@ -109,13 +105,11 @@ export const handleCookies = server$(
 You can access the request URL and its components using `this.url`.
 
 ```tsx
-export const getRequestUrl = server$(
-  function () {
-    const requestUrl = this.url;
-    console.log('Request URL:', requestUrl);
-    return requestUrl;
-  }
-);
+export const getRequestUrl = server$(function () {
+  const requestUrl = this.url;
+  console.log('Request URL:', requestUrl);
+  return requestUrl;
+});
 ```
 
 ### Headers
@@ -123,13 +117,11 @@ export const getRequestUrl = server$(
 You can read headers using `this.headers.get()`.
 
 ```tsx
-export const getHeaders = server$(
-  function () {
-    const userAgent = this.headers.get('User-Agent');
-    console.log('User-Agent:', userAgent);
-    return userAgent;
-  }
-);
+export const getHeaders = server$(function () {
+  const userAgent = this.headers.get('User-Agent');
+  console.log('User-Agent:', userAgent);
+  return userAgent;
+});
 ```
 
 ### Using Multiple RequestEvent Information
@@ -137,36 +129,34 @@ export const getHeaders = server$(
 Here's an example that combines environment variables, cookies, URL, and headers in a single function.
 
 ```tsx
-export const handleRequest = server$(
-  function () {
-    // Access environment variable
-    const dbKey = this.env.get('DB_KEY');
+export const handleRequest = server$(function () {
+  // Access environment variable
+  const dbKey = this.env.get('DB_KEY');
 
-    // Access cookies
-    const userSession = this.cookie.get('user-session')?.value;
-    if (!userSession) {
-      this.cookie.set('user-session', 'new-session-id', { path: '/', httpOnly: true });
-    }
-
-    // Access request URL
-    const requestUrl = this.url;
-
-    // Access headers
-    const userAgent = this.headers.get('User-Agent');
-
-    console.log('Environment Variable:', dbKey);
-    console.log('User Session:', userSession);
-    console.log('Request URL:', requestUrl);
-    console.log('User-Agent:', userAgent);
-
-    return {
-      dbKey,
-      userSession,
-      requestUrl,
-      userAgent
-    };
+  // Access cookies
+  const userSession = this.cookie.get('user-session')?.value;
+  if (!userSession) {
+    this.cookie.set('user-session', 'new-session-id', { path: '/', httpOnly: true });
   }
-);
+
+  // Access request URL
+  const requestUrl = this.url;
+
+  // Access headers
+  const userAgent = this.headers.get('User-Agent');
+
+  console.log('Environment Variable:', dbKey);
+  console.log('User Session:', userSession);
+  console.log('Request URL:', requestUrl);
+  console.log('User-Agent:', userAgent);
+
+  return {
+    dbKey,
+    userSession,
+    requestUrl,
+    userAgent,
+  };
+});
 ```
 
 ## Streaming Responses
@@ -183,12 +173,12 @@ export const streamFromServer = server$(
   // Async Generator Function
   async function* () {
     // Creation of an array with 10 undefined values
-    const iterationRange = Array(10).fill().entries(); 
-  
+    const iterationRange = Array(10).fill().entries();
+
     for (const [value] of iterationRange) {
       // Yield returns the array value during each iteration
       yield value;
-  
+
       // Waiting for 1 second before the next iteration
       // This simulates a delay in the execution
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -196,24 +186,21 @@ export const streamFromServer = server$(
   }
 );
 
-
 export default component$(() => {
   const message = useSignal('');
   return (
     <div>
       <button
-        onClick$={
-          $(async () => {
-            // call the async stream function and wait for the response
-            const response = await streamFromServer(); 
-            // use a for-await-of loop to asynchronously iterate over the response
-            for await (const value of response) {
-              // add each value from the response to the message value
-              message.value += ` ${value}`;
-            }
-            // do anything else
-          })
-        }
+        onClick$={$(async () => {
+          // call the async stream function and wait for the response
+          const response = await streamFromServer();
+          // use a for-await-of loop to asynchronously iterate over the response
+          for await (const value of response) {
+            // add each value from the response to the message value
+            message.value += ` ${value}`;
+          }
+          // do anything else
+        })}
       >
         start
       </button>
@@ -224,7 +211,6 @@ export default component$(() => {
 ```
 
 This API is actually used to implement QwikGPT streaming responses in our docs site.
-
 
 ## How does `server$()` work?
 
@@ -248,6 +234,3 @@ When using `server$`, it's important to understand how [middleware functions](/d
 To ensure that a middleware function runs for both types of requests, it should be defined in the `plugin.ts` file. This ensures that the middleware is executed consistently for all incoming requests, regardless of whether they are normal page requests or `server$` requests.
 
 By [defining middleware in the `plugin.ts`](/docs/advanced/plugins) file, developers can maintain a centralized location for shared middleware logic, ensuring consistency and reducing potential errors or oversights.
-
-
-

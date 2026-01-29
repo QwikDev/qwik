@@ -28,38 +28,34 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 Image optimization is the process of reducing the number of bytes that represent an image. The smaller the image size, the faster it will load on a page. The smaller the image size, the less bandwidth it consumes. The less bandwidth it consumes, the better the experience for your users especially on mobile networks.
 
-
 ## Responsive Images
 
 Qwik supports responsive images.
 
 This is a built-in feature that relies on the [`vite-imagetools`](https://www.npmjs.com/package/vite-imagetools) module, so no additional packages or components need to be installed.
 
-
-
 #### How it works
 
-* Import any image from the `src` folder
-* The image is converted in several webp images, one for each breakpoint (200px, 400px, 600px, 800px, 1200px)
-* The image is processed and optimized to reduce its size
-* An `<img>` element is rendered, using the `srcset` attribute to set the image source for several resolutions
-* Now the browser will load the most suitable image for the resolution in use
+- Import any image from the `src` folder
+- The image is converted in several webp images, one for each breakpoint (200px, 400px, 600px, 800px, 1200px)
+- The image is processed and optimized to reduce its size
+- An `<img>` element is rendered, using the `srcset` attribute to set the image source for several resolutions
+- Now the browser will load the most suitable image for the resolution in use
 
 #### Key Points
+
 The community and the Qwik team love this API for a number of reasons:
 
-
-* Zero runtime, zero JS
-* Zero props by default, simple API
-* Zero 404, strongly typed API
-* Zero layout reflows (Automatic width/height)
-* Hashed images, immutable cached
-* Automatic `.webp` / `.avif` format optimization
-* Automated `srcSet` generation
-* Extendable (use any `<img>` attribute)
-* Loading lazy and async decoding by default
-* Lightweight, a single `<img>` node in the HTML
-
+- Zero runtime, zero JS
+- Zero props by default, simple API
+- Zero 404, strongly typed API
+- Zero layout reflows (Automatic width/height)
+- Hashed images, immutable cached
+- Automatic `.webp` / `.avif` format optimization
+- Automated `srcSet` generation
+- Extendable (use any `<img>` attribute)
+- Loading lazy and async decoding by default
+- Lightweight, a single `<img>` node in the HTML
 
 #### Usage
 
@@ -75,7 +71,7 @@ Use the image in the template as a component:
 
 ```tsx
 <Image />
-````
+```
 
 #### Result
 
@@ -106,11 +102,12 @@ This script will generate the following `<img>` element with the following optim
 > - `width` and `height`: setting `width` and `height` attributes prevents layout reflow, which hurts the [CLS](https://web.dev/cls/) score
 
 > **Note:** You can also change the default behavior by manually setting the value of these properties:
-> * ```<Image decoding="sync" loading="eager" />```
+>
+> - `<Image decoding="sync" loading="eager" />`
 
 Thanks to `srcset` attribute the browser will load the most suitable image for the device's resolution:
 
-<img width="100%" src="/docs/integrations/image-optimization/image-network.png"/>
+<img width="100%" src="/docs/integrations/image-optimization/image-network.png" />
 
 > The original source size was 1.5Mb but its size is now just few kilobytes
 
@@ -128,42 +125,20 @@ export default component$(() => {
   );
 });
 ```
+
 #### Customize image format
+
 Images are automatically converted to `.webp` format, but you can also specify the format manually:
 Available formats:
 
 <div class="docs-long-list">
-- `heic`
-- `heif`
-- `avif`
-- `jpeg`
-- `jpg`
-- `jpe`
-- `tile`
-- `dz`
-- `png`
-- `raw`
-- `tiff`
-- `tif`
-- `webp`
-- `gif`
-- `jp2`
-- `jpx`
-- `j2k`
-- `j2c`
-- `jxl`
+  - `heic` - `heif` - `avif` - `jpeg` - `jpg` - `jpe` - `tile` - `dz` - `png` - `raw` - `tiff` -
+  `tif` - `webp` - `gif` - `jp2` - `jpx` - `j2k` - `j2c` - `jxl`
 </div>
 
 Supported file formats to be converted are:
-<div class="docs-long-list">
-- `jpg`
-- `jpeg`
-- `png`
-- `webp`
-- `gif`
-- `tiff`
-- `avif`
-</div>
+
+<div class="docs-long-list">- `jpg` - `jpeg` - `png` - `webp` - `gif` - `tiff` - `avif`</div>
 
 In the below example, a `jpg` image is converted to a `png` format:
 
@@ -181,6 +156,7 @@ export default component$(() => {
 ```
 
 #### Customize image quality
+
 As noted above, the default quality is set to 75, but you can also specify the quality manually.
 
 Quality parameter is an integer between 1 and 100.
@@ -196,28 +172,25 @@ export default component$(() => {
     </div>
   );
 });
-
 ```
 
-#### Customize image `width`  and `height`
+#### Customize image `width` and `height`
 
 You may need to set a custom `width` to the image:
 
 ```tsx
-<Image style={{ width: '300px'}} />
+<Image style={{ width: '300px' }} />
 ```
 
 but in that case you need to manually specify the `height` as well to avoid it being stretched:
 
-
 ```tsx
-<Image style={{ width: '300px', height: '200px'}} />
+<Image style={{ width: '300px', height: '200px' }} />
 ```
 
 Below you can see a simple trick to avoid having to manually set the `height`, while also maintaining the aspect ratio:
 
 > **TIP:** you should always specify `width` and `height` values to prevent layout reflow
-
 
 ```tsx
 import { component$ } from '@qwik.dev/core';
@@ -227,7 +200,7 @@ export default component$(() => {
   return (
     <>
       <h1>Image Example</h1>
-      <div class="image-wrapper" >
+      <div class="image-wrapper">
         <Image />
       </div>
     </>
@@ -249,7 +222,9 @@ export default component$(() => {
 ```
 
 #### Image Optimization for SVGs
-<abbr title="Scalable Vector Graphics">SVGs</abbr> can be added directly to your JSX code, but you can also use the image optimization approach to optimize them:
+
+<abbr title="Scalable Vector Graphics">SVGs</abbr> can be added directly to your JSX code, but you
+can also use the image optimization approach to optimize them:
 
 ```tsx
 import { component$ } from '@qwik.dev/core';
@@ -259,13 +234,14 @@ export default component$(() => {
   return (
     <>
       <h1>Image Example</h1>
-      <div class="image-wrapper" >
+      <div class="image-wrapper">
         <SvgImage />
       </div>
     </>
   );
 });
 ```
+
 ## `@unpic/qwik`
 
 - Site with detailed instructions on usage: [@unpic/qwik](https://unpic.pics/img/qwik/)
@@ -291,6 +267,7 @@ export default component$(() => {
 ```
 
 > **Note:** qwik-image and unpic are not a CDN and does not host your images. They work with existing image optimization CDNs. We suggest using some of the popular CDNs:
+>
 > - Cloudinary
 > - Cloudflare
 > - Bunny.net
@@ -307,28 +284,11 @@ export default component$(() => {
 
 Performant images with automatic optimization.
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm install qwik-image
-```
-</span>
-<span q:slot="npm">
-```shell
-npm install qwik-image
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn add qwik-image
-```
-</span>
-<span q:slot="bun">
-```shell
-bun install qwik-image
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm install qwik-image ```</span>
+  <span q:slot="npm">```shell npm install qwik-image ```</span>
+  <span q:slot="yarn">```shell yarn add qwik-image ```</span>
+  <span q:slot="bun">```shell bun install qwik-image ```</span>
 </PackageManagerTabs>
 
 > This is a pluggable component so devs could connect different image loaders to it (like builder.io or other CDNs)
@@ -350,30 +310,33 @@ export default component$(() => {
     }
   );
 
-  // Global Provider (required)
-  useImageProvider({
-    // You can set this prop to overwrite default values [3840, 1920, 1280, 960, 640]
-    resolutions: [640],
-    imageTransformer$,
-  });
-
-  return (
-    <Image
-      layout="constrained"
-      objectFit="fill"
-      width={400}
-      height={500}
-      alt="Tropical paradise"
-      placeholder="#e6e6e6"
-      src={
-        'image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe5113e1c02db40e5bac75146fa46386f'
-      }
-    />
-  );
+// Global Provider (required)
+useImageProvider({
+// You can set this prop to overwrite default values [3840, 1920, 1280, 960, 640]
+resolutions: [640],
+imageTransformer$,
 });
+
+return (
+
+<Image
+layout="constrained"
+objectFit="fill"
+width={400}
+height={500}
+alt="Tropical paradise"
+placeholder="#e6e6e6"
+src={
+'image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe5113e1c02db40e5bac75146fa46386f'
+}
+/>
+);
+});
+
 ```
 </CodeSandbox>
 
 Here is the Github repository with detailed instructions on usage and customizations: [qwikifiers/qwik-image](https://github.com/qwikifiers/qwik-image)
 
 
+```

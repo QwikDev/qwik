@@ -39,7 +39,9 @@ export default component$(() => {
     <div>
       <button onClick$={() => signal.value++}>+</button>
       <button onClick$={() => signal.value--}>-</button>
-      <div>{isBiggerThanZero} - Current value: { signal.value }</div>
+      <div>
+        {isBiggerThanZero} - Current value: {signal.value}
+      </div>
     </div>
   );
 });
@@ -54,15 +56,14 @@ export default component$(() => {
     <div>
       <button onClick$={() => signal.value++}>+</button>
       <button onClick$={() => signal.value--}>-</button>
-        <div>
-          {signal.value > 0 ? 'Bigger than zero' : 'Smaller than zero'} - Current
-          value: {signal.value}
-        </div>
+      <div>
+        {signal.value > 0 ? 'Bigger than zero' : 'Smaller than zero'} - Current value:{' '}
+        {signal.value}
+      </div>
     </div>
   );
 });
 ```
-
 
 ## Moving signal reads to `useTask$` or `useComputed$`
 
@@ -79,29 +80,24 @@ whenever possible.
 Because otherwise, your component function will re-run
 on each change.
 
-
 ```tsx title="Suboptimal implementation"
 // Don't do this!
 export default component$(() => {
   const count = useSignal(1);
-  const doubleCount = count.value*2;
-  return (
-    <div>{doubleCount}</div>
-  );
+  const doubleCount = count.value * 2;
+  return <div>{doubleCount}</div>;
 });
 ```
 
-The above implementation will cause the whole template to be re-rendered when the signal changes. 
+The above implementation will cause the whole template to be re-rendered when the signal changes.
 
 Below, only the `useComputed$` function will re-run on any `count.value` change:
 
 ```tsx title="Optimal Implementation"
 export default component$(() => {
   const count = useSignal(1);
-  const dobuleCount = useComputed$(() => count.value*2);
-  return (
-    <div>{doubleCount.value}</div>
-  );
+  const dobuleCount = useComputed$(() => count.value * 2);
+  return <div>{doubleCount.value}</div>;
 });
 ```
 
@@ -110,6 +106,7 @@ export default component$(() => {
 Although convenient, `useVisibleTask$()` runs code eagerly and blocks the main thread, preventing user interaction until the task is finished. You can think of it as an escape hatch.
 
 When in doubt, instead of "useVisibleTask$()" use:
+
 - `useTask$()` -> perform code execution in SSR mode.
 - `useOn()` -> listen to events on the root element of `the current component`.
 - `useOnWindow()` -> listen to events on the `window` object.
@@ -197,13 +194,14 @@ However, exercise caution! If the required information (such as query parameters
 
 This approach helps to prevent eager loading of JavaScript and improves performance.
 
-> See: [useLocation() Docs](/docs/(qwikrouter)/api/index.mdx#uselocation)
-
+> See: [useLocation() Docs](</docs/(qwikrouter)/api/index.mdx#uselocation>)
 
 ## Delaying Core Execution
+
 At load time we want to execute as little as possible to free main thread for other priority. With Qwik you can even delay the framework execution (called "core"), but there are some rules to follow.
 
-Some things to keep in mind before checking the rules : 
+Some things to keep in mind before checking the rules :
+
 - Delaying core execution usually comes at the price of devX, this is an advance performance trick.
 - Like other chunks, core will be preloaded so the app doesn't have to load it at execution time.
 
@@ -218,10 +216,7 @@ useVisibleTask$(() => {
 });
 
 // Requires core on requestIdleCallback
-useVisibleTask$(
-  () => console.log('Hello core'),
-  { strategy: 'document-idle' }
-);
+useVisibleTask$(() => console.log('Hello core'), { strategy: 'document-idle' });
 ```
 
 In **some** cases you can replace `useVisibleTask$` with either `useOn` or `useTask$`
@@ -314,7 +309,7 @@ useOnDocument(
     };
     // Store mediaQuery & handler to cleanup later
     document['cleanup:media-query:(max-width: 400px)'] = () => {
-      query.removeEventListener('change', handler)
+      query.removeEventListener('change', handler);
     };
     query.addEventListener('change', handler);
   })

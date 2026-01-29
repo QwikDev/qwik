@@ -1,5 +1,5 @@
-import { component$, useStyles$ } from "@qwik.dev/core";
-import type { DocumentHead } from "@qwik.dev/router";
+import { component$, useStyles$ } from '@qwik.dev/core';
+import type { DocumentHead } from '@qwik.dev/router';
 
 export default component$(() => {
   useStyles$(`
@@ -46,9 +46,9 @@ export default component$(() => {
       <h1 class="title">About Preloader Test</h1>
       <div class="content">
         <p class="paragraph">
-          This application demonstrates the preloading capabilities of Qwik. It
-          shows how Qwik can efficiently load only the necessary JavaScript code
-          when needed, resulting in faster page loads and better performance.
+          This application demonstrates the preloading capabilities of Qwik. It shows how Qwik can
+          efficiently load only the necessary JavaScript code when needed, resulting in faster page
+          loads and better performance.
         </p>
         <h2 class="subtitle">Features</h2>
         <ul class="feature-list">
@@ -58,8 +58,8 @@ export default component$(() => {
           <li>Responsive design with CSS</li>
         </ul>
         <p class="paragraph">
-          Feel free to explore the different pages and observe how Qwik handles
-          navigation and form interactions efficiently.
+          Feel free to explore the different pages and observe how Qwik handles navigation and form
+          interactions efficiently.
         </p>
       </div>
     </div>
@@ -67,11 +67,11 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "About - Preloader Test",
+  title: 'About - Preloader Test',
   meta: [
     {
-      name: "description",
-      content: "Learn about the Preloader Test application and its features",
+      name: 'description',
+      content: 'Learn about the Preloader Test application and its features',
     },
   ],
 };

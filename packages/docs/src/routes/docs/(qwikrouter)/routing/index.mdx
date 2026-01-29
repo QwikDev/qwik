@@ -34,9 +34,8 @@ Routing in Qwik Router is file-system based like [Next.js](https://nextjs.org/do
 - **🖼️ `layout.tsx` files:** Define nested [layout](/docs/layout/) and/or a [middleware](/docs/middleware/).
 
 <video autoplay playsinline muted loop>
- <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fabf8f471ba884b938d0863d85ed4c50f%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=abf8f471ba884b938d0863d85ed4c50f&alt=media&optimized=true"/>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fabf8f471ba884b938d0863d85ed4c50f%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=abf8f471ba884b938d0863d85ed4c50f&alt=media&optimized=true" />
 </video>
-
 
 ## Directory-based routing
 
@@ -180,7 +179,7 @@ src/
 
 ### Middleware Layouts
 
-Layouts can implement request handling using any of the following methods: `onRequest`, `onGet`, `onPost`, `onPut` or `onDelete`. This means they can be used to implement middleware.  For example, they can be used to validate the request cookies before rendering the page.
+Layouts can implement request handling using any of the following methods: `onRequest`, `onGet`, `onPost`, `onPut` or `onDelete`. This means they can be used to implement middleware. For example, they can be used to validate the request cookies before rendering the page.
 
 For the route `https://example.com/admin`, the `onRequest` methods will be executed in the following order:
 
@@ -233,7 +232,7 @@ Qwik provides a `<Link>` component and `useNavigate()` hook.
 These can be used to initiate an SPA refresh or navigation between pages.
 
 The `Link` component is the recommended way to navigate as it uses the HTML `<a>` tag,
-  which is the most accessible way to move between pages.
+which is the most accessible way to move between pages.
 However, if you need to navigate programmatically, you can use the `useNavigate()` hook.
 
 ```tsx
@@ -294,8 +293,11 @@ export default component$(() => {
 By default, a `Link` component will start prefetching the next page as soon as the user hovers over the corresponding link in the UI. So if the application is done prefetching when the user clicks on the link, the next page will appear instantly. Although Qwik applications already excel at lazy loading javascript, this behavior can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
 
 If this is not your desired behavior, you can set the `prefetch` prop to false.
+
 ```tsx
- <Link prefetch={false} href="/about">About</Link>
+<Link prefetch={false} href="/about">
+  About
+</Link>
 ```
 
 ### Scroll Restoration
@@ -339,7 +341,6 @@ which is not the case for many other frameworks.
 > value to a new key: `{ _data: <your_value> }`
 >
 > Qwik will also warn you in the browser's console in `dev` mode when this occurs.
-
 
 ## Request Event
 
@@ -405,20 +406,20 @@ export default defineConfig(async () => {
     plugins: [
       qwikRouter({
         rewriteRoutes: [
-            {
-              paths: {
-                  'docs': 'documentation'
-              },
+          {
+            paths: {
+              docs: 'documentation',
             },
-            {
-              prefix: 'it',
-              paths: {
-                'docs': 'documentazione',
-                'getting-started': 'per-iniziare',
-                'products': 'prodotti',
-              },
+          },
+          {
+            prefix: 'it',
+            paths: {
+              docs: 'documentazione',
+              'getting-started': 'per-iniziare',
+              products: 'prodotti',
             },
-          ],
+          },
+        ],
       }),
     ],
   };
@@ -429,12 +430,13 @@ export default defineConfig(async () => {
 
 Qwik Router also supports:
 
-- [Route Parameters](/docs/(qwikrouter)/advanced/routing/index.mdx)
-- [Nested layouts](/docs/(qwikrouter)/advanced/routing/index.mdx#nested-layout)
-- [Menus](/docs/(qwikrouter)/advanced/menu/index.mdx)
-- [Request Handling](/docs/(qwikrouter)/advanced/request-handling/index.mdx)
+- [Route Parameters](</docs/(qwikrouter)/advanced/routing/index.mdx>)
+- [Nested layouts](</docs/(qwikrouter)/advanced/routing/index.mdx#nested-layout>)
+- [Menus](</docs/(qwikrouter)/advanced/menu/index.mdx>)
+- [Request Handling](</docs/(qwikrouter)/advanced/request-handling/index.mdx>)
 
 ## Typesafe Routing
+
 - [Typed Routes](/docs/labs/typed-routes/index.mdx#-typed-routes)
 - [Declarative Routing](/docs/labs/typed-routes/index.mdx#declarative-routing)
 

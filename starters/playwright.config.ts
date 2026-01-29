@@ -1,5 +1,5 @@
-import type { Locator, PlaywrightTestConfig } from "@playwright/test";
-import { expect } from "@playwright/test";
+import type { Locator, PlaywrightTestConfig } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 const inGithubCI = !!process.env.GITHUB_ACTIONS;
 
@@ -10,8 +10,7 @@ expect.extend({
     }, attribute);
 
     return {
-      message: () =>
-        `expected ${recieved} to have attribute \`${attribute}\` (${pass})`,
+      message: () => `expected ${recieved} to have attribute \`${attribute}\` (${pass})`,
       pass: pass !== null,
     };
   },
@@ -23,19 +22,18 @@ const config: PlaywrightTestConfig = {
       width: 520,
       height: 600,
     },
-    trace: inGithubCI ? "on-first-retry" : undefined,
-    screenshot: inGithubCI ? "only-on-failure" : undefined,
+    trace: inGithubCI ? 'on-first-retry' : undefined,
+    screenshot: inGithubCI ? 'only-on-failure' : undefined,
   },
   fullyParallel: true,
-  testMatch: "*.e2e.ts",
+  testMatch: '*.e2e.ts',
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   testIgnore: /.*example.spec.tsx?$/,
   retries: 1,
   expect: { timeout: inGithubCI ? 120000 : 10000 },
   webServer: {
-    command:
-      "pnpm node --require ./scripts/runBefore.ts starters/dev-server.ts 3301",
+    command: 'pnpm node --require ./scripts/runBefore.ts starters/dev-server.ts 3301',
     port: 3301,
     reuseExistingServer: !process.env.CI,
   },

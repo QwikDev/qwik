@@ -1,9 +1,4 @@
-import {
-  component$,
-  useSignal,
-  useStylesScoped$,
-  useTask$,
-} from '@qwik.dev/core';
+import { component$, useSignal, useStylesScoped$, useTask$ } from '@qwik.dev/core';
 import { Form, routeAction$, routeLoader$, server$ } from '@qwik.dev/router';
 import styles from './index.css?inline';
 
@@ -47,9 +42,7 @@ export default component$(() => {
           👎
         </button>
       </Form>
-      <button
-        onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}
-      >
+      <button onClick$={() => (isFavoriteSignal.value = !isFavoriteSignal.value)}>
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
     </section>

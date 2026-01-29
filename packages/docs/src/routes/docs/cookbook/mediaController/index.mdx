@@ -8,7 +8,7 @@ updated_at: '2023-10-03T18:53:59Z'
 created_at: '2023-08-31T22:41:52Z'
 ---
 
-import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
+import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
 
 # Media Controller
 
@@ -35,8 +35,10 @@ To achieve consistent media playback across various browsers and devices, a holi
 
 Below, you'll find a prototype of an audio and video controller, tailored to provide a consistent user experience across multiple platforms.
 
-<CodeSandbox src="/src/routes/demo/cookbook/mediaController/"  style={{ height: '700px' }}>
-</CodeSandbox>
+<CodeSandbox
+  src="/src/routes/demo/cookbook/mediaController/"
+  style={{ height: '700px' }}
+></CodeSandbox>
 
 Universal media controller code compatible with iOS devices looks like this:
 
@@ -51,9 +53,9 @@ import {
 import { useLocation } from '@qwik.dev/router';
 
 const AUDIO_SRC =
-  'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2Fafe011812da146a5b2263196cb25f263?alt=media&token=c017cd87-0598-4af2-8afd-e9b5a3fba078&apiKey=5b8073f890b043be81574f96cfd1250b';
+'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2Fafe011812da146a5b2263196cb25f263?alt=media&token=c017cd87-0598-4af2-8afd-e9b5a3fba078&apiKey=5b8073f890b043be81574f96cfd1250b';
 const VIDEO_SRC =
-  'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2F8b210c56974440649a0a78d4a3a0ddc5%2Fcompressed?apiKey=5b8073f890b043be81574f96cfd1250b&token=8b210c56974440649a0a78d4a3a0ddc5&alt=media&optimized=true';
+'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2F8b210c56974440649a0a78d4a3a0ddc5%2Fcompressed?apiKey=5b8073f890b043be81574f96cfd1250b&token=8b210c56974440649a0a78d4a3a0ddc5&alt=media&optimized=true';
 
 export default component$(() => {
   const audioElementSignal = useSignal<HTMLAudioElement | undefined>();
@@ -65,11 +67,10 @@ export default component$(() => {
   const playsInlineSignal = useSignal(true);
   const location = useLocation();
 
-  const videoPoster =
-    location.url.origin + '/sample-media/qwik-koi-poster.jpg';
+const videoPoster =
+location.url.origin + '/sample-media/qwik-koi-poster.jpg';
 
-  useStylesScoped$(`
-        segment {
+useStylesScoped$(`         segment {
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -117,9 +118,9 @@ export default component$(() => {
         }
         `);
 
-  useVisibleTask$(({ track }) => {
-    track(() => audioPlayButtonSignal.value);
-    track(() => audioElementSignal.value);
+useVisibleTask$(({ track }) => {
+track(() => audioPlayButtonSignal.value);
+track(() => audioElementSignal.value);
 
     const play = () =>
       audioIsPlayingSignal.value
@@ -131,11 +132,12 @@ export default component$(() => {
 
     return () =>
       audioPlayButtonSignal.value?.removeEventListener('click', play);
-  });
 
-  useVisibleTask$(({ track }) => {
-    track(() => videoPlayButtonSignal.value);
-    track(() => videoElementSignal.value);
+});
+
+useVisibleTask$(({ track }) => {
+track(() => videoPlayButtonSignal.value);
+track(() => videoElementSignal.value);
 
     const play = () =>
       videoIsPlayingSignal.value
@@ -145,48 +147,50 @@ export default component$(() => {
     videoPlayButtonSignal.value?.addEventListener('click', play);
     return () =>
       videoPlayButtonSignal.value?.removeEventListener('click', play);
-  });
 
-  return (
-    <segment>
-      <div class="content">
-        <h1>Media Controller</h1>
-        <h3>
-          <i>with iOS Support</i>
-        </h3>
-        <br />
-        <div class="video-container">
-          <video
-            ref={videoElementSignal}
-            src={VIDEO_SRC}
-            poster={videoPoster}
-            playsInline={playsInlineSignal.value}
-            onPlay$={() => (videoIsPlayingSignal.value = true)}
+});
+
+return (
+
+<segment>
+<div class="content">
+<h1>Media Controller</h1>
+<h3>
+<i>with iOS Support</i>
+</h3>
+<br />
+<div class="video-container">
+<video
+ref={videoElementSignal}
+src={VIDEO_SRC}
+poster={videoPoster}
+playsInline={playsInlineSignal.value}
+onPlay$={() => (videoIsPlayingSignal.value = true)}
             onPause$={() => (videoIsPlayingSignal.value = false)}
-            onEnded$={() => (videoIsPlayingSignal.value = false)}
+onEnded$={() => (videoIsPlayingSignal.value = false)}
           />
         </div>
         <audio
           ref={audioElementSignal}
           src={AUDIO_SRC}
           onPlay$={() => (audioIsPlayingSignal.value = true)}
-          onPause$={() => (audioIsPlayingSignal.value = false)}
+onPause$={() => (audioIsPlayingSignal.value = false)}
           onEnded$={() => (audioIsPlayingSignal.value = false)}
-        />
-        <br />
-        <div class="checkbox-container">
-          <input
-            type="checkbox"
-            id="playsInlineCheckbox"
-            class="checkbox"
-            checked={playsInlineSignal.value}
-            onchange$={() => {
-              videoElementSignal.value?.pause();
-              playsInlineSignal.value = !playsInlineSignal.value;
-            }}
-          />
-          <label for="playsInlineCheckbox">playsInline (iOS)</label>
-        </div>
+/>
+<br />
+<div class="checkbox-container">
+<input
+type="checkbox"
+id="playsInlineCheckbox"
+class="checkbox"
+checked={playsInlineSignal.value}
+onchange$={() => {
+videoElementSignal.value?.pause();
+playsInlineSignal.value = !playsInlineSignal.value;
+}}
+/>
+<label for="playsInlineCheckbox">playsInline (iOS)</label>
+</div>
 
         <br />
         <button ref={videoPlayButtonSignal}>
@@ -199,7 +203,10 @@ export default component$(() => {
         </button>
       </div>
     </segment>
-  );
+
+);
 });
+
 ```
 </CodeFile>
+```

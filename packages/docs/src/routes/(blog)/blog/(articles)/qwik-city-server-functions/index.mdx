@@ -48,7 +48,7 @@ export default component$(() => {
       </Form>
     </div>
   );
-})
+});
 ```
 
 ## The Server vs. Browser Duality
@@ -84,9 +84,7 @@ export const useGetServerTime = loader$(() => {
 
 export default component$(() => {
   const serverTime = useGetServerTime();
-  return (
-    <div>{serverTime}</div>
-  )
+  return <div>{serverTime}</div>;
 });
 ```
 
@@ -95,7 +93,7 @@ Thanks to `defer`, loaders can return a promise and start streaming HTML before 
 ```tsx
 import { loader$ } from '@builder.io/qwik-city';
 
-export const useGetProduct = loader$(({defer}) => {
+export const useGetProduct = loader$(({ defer }) => {
   const promise = expensiveFetch();
   return defer(promise);
 });
@@ -103,7 +101,8 @@ export const useGetProduct = loader$(({defer}) => {
 export default component$(() => {
   const productResource = useGetProduct();
   return (
-    <Resource value={productResource}
+    <Resource
+      value={productResource}
       onResolved={(value) => (
         <article>
           <div>Product name: {value.name}</div>
@@ -114,8 +113,12 @@ export default component$(() => {
   );
 });
 ```
+
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbef031efb09f4b4e9046b9af45e32818%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=bef031efb09f4b4e9046b9af45e32818&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbef031efb09f4b4e9046b9af45e32818%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=bef031efb09f4b4e9046b9af45e32818&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 Data loaders are equivalent to [Next's](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) [`getServerProps()`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props),
@@ -137,17 +140,15 @@ export const loader = () => {
   return {
     id: '42',
     name: 'Xmas pants',
-    description: 'Ugly Xmas pants to surprise all your family'
-  }
+    description: 'Ugly Xmas pants to surprise all your family',
+  };
 };
 
 export default () => {
   const product = useLoaderData();
   // product: any
-  return (
-    <div>Product: {product.name}</div>
-  )
-}
+  return <div>Product: {product.name}</div>;
+};
 ```
 
 With Qwik, the type information naturally flows because the loaders references are implicitly imported, allowing TS to do its job for you:
@@ -157,21 +158,22 @@ export const useGetProduct = loader$(() => {
   return {
     id: '42',
     name: 'Valentines Teddy-Bear',
-    description: 'Handmade and Guaranteed For Life.'
+    description: 'Handmade and Guaranteed For Life.',
   };
 });
 
 export default component$(() => {
   const product = useGetProduct();
   // Type of product: {id: string, name: string, description: string}
-  return (
-    <div>{product.value.name}</div>
-  )
-})
+  return <div>{product.value.name}</div>;
+});
 ```
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F8db7184f5fac4bbeaff1756fdc440904%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=8db7184f5fac4bbeaff1756fdc440904&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F8db7184f5fac4bbeaff1756fdc440904%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=8db7184f5fac4bbeaff1756fdc440904&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 ### Colocation
@@ -183,25 +185,20 @@ Loaders can be located anywhere and referenced and imported from any file, bring
 import { useAuthSessionLoader } from '../../layout.ts';
 
 // and we can have multiple loaders.
-export const useGetLoggedInUserMessage = loader$(() => { 
-  return { 
-    message:'Glad to have you back!'
-  }
+export const useGetLoggedInUserMessage = loader$(() => {
+  return {
+    message: 'Glad to have you back!',
+  };
 });
-  
+
 export default component$(() => {
   const signal = useAuthSessionLoader();
   const loggedInUserMessage = useGetLoggedInUserMessage();
 
   return (
-    <div>
-      { signal.value.isLogin
-        ? loggedInUserMessage.value.message
-        : 'You are NOT logged in'
-      }
-    </div>
-  )
-})
+    <div>{signal.value.isLogin ? loggedInUserMessage.value.message : 'You are NOT logged in'}</div>
+  );
+});
 ```
 
 ### Low-level HTTP request access
@@ -211,7 +208,7 @@ Loaders are internally implemented as [middleware](https://en.wikipedia.org/wiki
 Even Qwiks streaming SSR is implemented as a middleware, so even a custom error middleware can capture a crash coming from a component.
 
 ```typescript
-export const useGetActiveUser = loader(async ({params, redirect}) => {
+export const useGetActiveUser = loader(async ({ params, redirect }) => {
   const productID = params['id'];
   const product = await db.getProduct(id);
   if (!product) {

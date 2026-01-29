@@ -1,5 +1,6 @@
 {
   "description": "Google Cloud Run server",
+  "type": "module",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/cloud-run/vite.config.ts",
     "deploy": "gcloud run deploy my-cloud-run-app --source ."
@@ -20,6 +21,5 @@
         "- pnpm run deploy: it will use the gcloud CLI to deploy your site"
       ]
     }
-  },
-  "type": "module"
+  }
 }

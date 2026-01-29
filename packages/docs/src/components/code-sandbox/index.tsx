@@ -28,27 +28,27 @@ export default component$<{
           ))}
         </div>
       )}
-      <div class="overflow-auto slot-container mb-4">
+      <div class="slot-container mb-4 overflow-auto">
         <Slot name={tabs ? String(activeTab.value) : ''} />
       </div>
       <div class="browser shadow-xl">
-        <div class="bar bg-slate-200 rounded-tl-md rounded-tr-md flex flex-row justify-left px-5 py-2 gap-5">
+        <div class="bar justify-left flex flex-row gap-5 rounded-tl-md rounded-tr-md bg-slate-200 px-5 py-2">
           <ul>
             <li>
-              <span class="bg-red-600 rounded-full w-3 h-3 inline-block"></span>
+              <span class="inline-block h-3 w-3 rounded-full bg-red-600"></span>
             </li>
             <li>
-              <span class="bg-yellow-500 rounded-full w-3 h-3 inline-block"></span>
+              <span class="inline-block h-3 w-3 rounded-full bg-yellow-500"></span>
             </li>
             <li>
-              <span class="bg-lime-500 rounded-full w-3 h-3 inline-block"></span>
+              <span class="inline-block h-3 w-3 rounded-full bg-lime-500"></span>
             </li>
           </ul>
-          <div class="url bg-slate-300 rounded-md inline-grid whitespace-nowrap text-xs px-2 py-1 content-center w-full">
+          <div class="url inline-grid w-full content-center rounded-md bg-slate-300 px-2 py-1 text-xs whitespace-nowrap">
             <a
               href={examplePath(exampleUrl)}
               target="_blank"
-              class="url-link text-ellipsis overflow-hidden"
+              class="url-link overflow-hidden text-ellipsis"
             >
               {new URL(examplePath(exampleUrl), 'https://qwik.dev').toString()}
             </a>

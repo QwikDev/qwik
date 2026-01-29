@@ -16,7 +16,6 @@ created_at: '2023-03-20T23:45:13Z'
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
-
 # Project Structure
 
 A typical Qwik project looks like this:
@@ -59,7 +58,6 @@ The `src/routes/` directory is a special directory where Qwik Router will look f
 
 The directory named `src/components/` follows a standard convention. It's present in all Qwik starters and you can rename it if you prefer. The `src/components/` directory is where to put your components (i.e. reusable pieces of code that can be used in multiple places). These components are not routes or layouts, but they can be referenced from within your route or layout code.
 
-
 For example, a `Button` component should be inside `src/components/button/button.tsx`.
 
 ### `public/`
@@ -79,7 +77,7 @@ The SSR entry point is the common entry point in all cases where the application
 
 ### `src/root.tsx`
 
-The `src/root.tsx` file is the root of the application tree.  It is the entry point and is the first component that will be rendered.
+The `src/root.tsx` file is the root of the application tree. It is the entry point and is the first component that will be rendered.
 
 ### `src/global.css`
 
@@ -102,51 +100,19 @@ Qwik has a utility command called `new` that allows developers to easily create 
 Let's say you wanted to create a new component called `Button`, you would run the command:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik new Button
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik new Button
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik new Button
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik new Button
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik new Button ```</span>
+  <span q:slot="npm">```shell npm run qwik new Button ```</span>
+  <span q:slot="yarn">```shell yarn run qwik new Button ```</span>
+  <span q:slot="bun">```shell bun run qwik new Button ```</span>
 </PackageManagerTabs>
 
 Maybe you want to create a new route for the /contact page. To do that, you could use the command:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik new /contact
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik new /contact
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik new /contact
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik new /contact
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik new /contact ```</span>
+  <span q:slot="npm">```shell npm run qwik new /contact ```</span>
+  <span q:slot="yarn">```shell yarn run qwik new /contact ```</span>
+  <span q:slot="bun">```shell bun run qwik new /contact ```</span>
 </PackageManagerTabs>
 
 The following commands are consistent with Qwik's directory file structure, allowing you to scaffold components more quickly.
@@ -184,29 +150,14 @@ qwik-app-demo
 If you prefer to generate the `Button` component with the `Button/index.tsx` naming convention, you could use the command:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik new --barrel Button
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik new --barrel Button
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik new --barrel Button
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik new --barrel Button
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik new --barrel Button ```</span>
+  <span q:slot="npm">```shell npm run qwik new --barrel Button ```</span>
+  <span q:slot="yarn">```shell yarn run qwik new --barrel Button ```</span>
+  <span q:slot="bun">```shell bun run qwik new --barrel Button ```</span>
 </PackageManagerTabs>
 
 In that case, the `src/components` folder would look like this:
+
 ```bash
 src
 │   ├── components

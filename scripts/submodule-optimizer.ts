@@ -77,7 +77,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
   };
 
   // Build both formats
-  await Promise.all([viteBuild(esmConfig)]);
+  [await viteBuild(esmConfig)];
 
   // Note: Minification is now handled automatically by Vite in production builds
   // The output files will be minified when config.dev is false

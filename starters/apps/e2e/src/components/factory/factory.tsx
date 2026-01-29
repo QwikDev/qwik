@@ -1,5 +1,5 @@
-import { component$ } from "@qwik.dev/core";
-import { factory$ } from "./utils";
+import { component$ } from '@qwik.dev/core';
+import { factory$ } from './utils';
 
 export const A = factory$(() => {
   return <div>A</div>;

@@ -1,12 +1,12 @@
-import { useLocation } from "@qwik.dev/router";
-import { component$, useStore, useTask$ } from "@qwik.dev/core";
+import { useLocation } from '@qwik.dev/router';
+import { component$, useStore, useTask$ } from '@qwik.dev/core';
 
 export default component$((props) => {
   const loc = useLocation();
-  const state = useStore({ id: "" });
+  const state = useStore({ id: '' });
   useTask$(({ track }) => {
     track(() => loc.url.searchParams);
-    state.id = loc.url.searchParams.get("id") || "";
+    state.id = loc.url.searchParams.get('id') || '';
   });
   return (
     <div>

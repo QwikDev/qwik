@@ -1,10 +1,6 @@
-import {
-  globalAction$,
-  routeLoader$,
-  type DocumentHead,
-} from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
-import { SecretForm } from "./login";
+import { globalAction$, routeLoader$, type DocumentHead } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
+import { SecretForm } from './login';
 
 export const useDateLoader = routeLoader$(() => new Date());
 
@@ -27,8 +23,8 @@ export default component$(() => {
       <div>{date.value.toISOString()}</div>
       <section>
         <div id="other-store">
-          {String(other.isRunning)}:{other.formData?.get("username") as string}:
-          {other.formData?.get("code") as string}:{JSON.stringify(other.value)}
+          {String(other.isRunning)}:{other.formData?.get('username') as string}:
+          {other.formData?.get('code') as string}:{JSON.stringify(other.value)}
         </div>
         <button id="other-button" onClick$={() => other.submit()}>
           Run other
@@ -41,6 +37,6 @@ export default component$(() => {
 
 export const head: DocumentHead = () => {
   return {
-    title: "Actions",
+    title: 'Actions',
   };
 };

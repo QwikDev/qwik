@@ -7,11 +7,7 @@ import {
   type NoSerialize,
   type JSXOutput,
 } from '@qwik.dev/core';
-import {
-  Portal,
-  PortalAPI,
-  PortalProvider,
-} from '../cookbook/portal/portal-provider';
+import { Portal, PortalAPI, PortalProvider } from '../cookbook/portal/portal-provider';
 import { UnderstandingResumability } from './component';
 
 export default component$(() => {

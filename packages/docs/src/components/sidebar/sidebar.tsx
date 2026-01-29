@@ -128,7 +128,7 @@ export function Items({
               <Link
                 href={item.href}
                 class={[
-                  'flex relative',
+                  'relative flex',
                   {
                     'is-active': pathname === item.href,
                   },

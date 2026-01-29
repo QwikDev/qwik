@@ -18,6 +18,7 @@ contributors:
 updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
+
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 
 # Context
@@ -39,20 +40,14 @@ import {
   createContextId,
 } from '@qwik.dev/core';
 
-export const ThemeContext = createContextId<Signal<string>>(
-  'docs.theme-context'
-);
+export const ThemeContext = createContextId < Signal < string >> 'docs.theme-context';
 
 export default component$(() => {
   const theme = useSignal('dark');
   useContextProvider(ThemeContext, theme);
   return (
     <>
-      <button
-        onClick$={() =>
-          (theme.value = theme.value == 'dark' ? 'light' : 'dark')
-        }
-      >
+      <button onClick$={() => (theme.value = theme.value == 'dark' ? 'light' : 'dark')}>
         Flip
       </button>
       <Child />
@@ -61,10 +56,11 @@ export default component$(() => {
 });
 
 const Child = component$(() => {
-  const theme = useContext(ThemeContext);
-  return <div>Theme is {theme.value}</div>;
+const theme = useContext(ThemeContext);
+return <div>Theme is {theme.value}</div>;
 });
-```
+
+````
 </CodeSandbox>
 
 
@@ -80,7 +76,7 @@ export interface GenericType {
 }
 
 export const QwikRouterContext = createContextId<GenericType>(name: string): ContextId<GenericType>;
-```
+````
 
 ### Parameters
 
@@ -88,7 +84,7 @@ export const QwikRouterContext = createContextId<GenericType>(name: string): Con
 
 ### Returns
 
-Notice that the value returned by `createContextId()` does not hold any state, it is an immutable ID object i.e. `{ id: 'dev.qwik.router' }`. It's only used to describe the name and type of the context, like an address or an identifier.  Since it doesn't hold any state, it can be initialized as a singleton and exported from a shared module.
+Notice that the value returned by `createContextId()` does not hold any state, it is an immutable ID object i.e. `{ id: 'dev.qwik.router' }`. It's only used to describe the name and type of the context, like an address or an identifier. Since it doesn't hold any state, it can be initialized as a singleton and exported from a shared module.
 
 ## `useContextProvider()`
 
@@ -122,7 +118,7 @@ export const Parent = component$(() => {
 ### Caveats
 
 - The provided value will not be globally available across the whole render tree, but only to descendant components in the tree.
-- If the context isn't used during Server-Side Rendering (SSR), it will not be serialized. If you need the context available on the client, even though it's not used during SSR, you should call `useContext()` in the parent component.  This will force it to be serialized.
+- If the context isn't used during Server-Side Rendering (SSR), it will not be serialized. If you need the context available on the client, even though it's not used during SSR, you should call `useContext()` in the parent component. This will force it to be serialized.
 
 ## `useContext()`
 
@@ -136,8 +132,6 @@ export const Children = component$(() => {
   const plainArray = useContext(PlainArrayContext);
   const appName = useContext(AppNameContext);
 
-  return (
-    <div>Child components can use any of the provided values, such as {appName}</div>
-  );
+  return <div>Child components can use any of the provided values, such as {appName}</div>;
 });
 ```

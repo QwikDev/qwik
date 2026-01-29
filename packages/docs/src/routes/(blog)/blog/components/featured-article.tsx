@@ -6,13 +6,13 @@ import { ClockIcon } from '../icons/clock-icon';
 
 export const FeaturedArticle = component$(() => {
   return (
-    <article class="relative group cursor-pointer">
+    <article class="group relative cursor-pointer">
       <Link href={blogArticles[0].path}>
         <div class="relative max-w-[1200px] overflow-hidden rounded-xl">
           <Image
             layout="fullWidth"
             objectFit="fill"
-            class="transform group-hover:scale-105 transition-transform duration-500"
+            class="transform transition-transform duration-500 group-hover:scale-105"
             src={blogArticles[0].image}
             alt={blogArticles[0].title}
           />
@@ -26,14 +26,14 @@ export const FeaturedArticle = component$(() => {
             hidden: blogArticles[0].featuredTitlePosition === 'none',
           }}
         >
-          <h2 class="pb-4 text-3xl font-bold leading-tight hover:text-slate-200 transition-colors">
+          <h2 class="pb-4 text-3xl leading-tight font-bold transition-colors hover:text-slate-200">
             {blogArticles[0].title}
           </h2>
           <div class="pb-4">
             {blogArticles[0].tags.map((tag, key) => (
               <span
                 key={key}
-                class="mb-4 px-3 py-1 mr-2 text-xs text-[#0e201a] bg-white rounded-full backdrop-blur-xs"
+                class="mr-2 mb-4 rounded-full bg-white px-3 py-1 text-xs text-[#0e201a] backdrop-blur-xs"
               >
                 {tag}
               </span>

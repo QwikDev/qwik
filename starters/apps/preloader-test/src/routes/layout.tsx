@@ -1,5 +1,5 @@
-import { component$, Slot, useSignal, useStyles$ } from "@qwik.dev/core";
-import { Link, type DocumentHead } from "@qwik.dev/router";
+import { component$, Slot, useSignal, useStyles$ } from '@qwik.dev/core';
+import { Link, type DocumentHead } from '@qwik.dev/router';
 
 export default component$(() => {
   useStyles$(`
@@ -57,12 +57,12 @@ export default component$(() => {
   `);
 
   const isSPA = useSignal(true);
-  const LinkCmp = isSPA.value ? Link : "a";
+  const LinkCmp = isSPA.value ? Link : 'a';
 
   return (
     <div class="layout">
       <header class="header">
-        <div class="container nav-container">
+        <div class="nav-container container">
           <nav class="nav">
             <LinkCmp href="/">Home</LinkCmp>
             <LinkCmp href="/form">Form</LinkCmp>
@@ -70,7 +70,7 @@ export default component$(() => {
             <LinkCmp
               href="/counters"
               // eslint-disable-next-line no-console
-              onQVisible$={() => console.log("visible")}
+              onQVisible$={() => console.log('visible')}
             >
               Counters
             </LinkCmp>
@@ -92,5 +92,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Preloader Test",
+  title: 'Preloader Test',
 };

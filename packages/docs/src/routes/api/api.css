@@ -20,7 +20,7 @@
   border-top: 1px solid #eee;
   padding-top: 50px;
 }
-[data-theme="dark"] .docs.api h2:not(:not([id])):not(:nth-of-type(1)) {
+[data-theme='dark'] .docs.api h2:not(:not([id])):not(:nth-of-type(1)) {
   border-top: 1px solid #373737;
 }
 
@@ -33,7 +33,7 @@
   text-decoration: none;
 }
 
-.docs.api article a[href*="github.com"] {
+.docs.api article a[href*='github.com'] {
   display: inline-block;
   position: relative;
   left: calc(100% - 115px);
@@ -45,20 +45,20 @@
   text-decoration: none;
 }
 
-[data-theme="dark"] .docs.api article a[href*="github.com"] {
+[data-theme='dark'] .docs.api article a[href*='github.com'] {
   background: #373737;
 }
 
 .docs.api table {
   font-size: 0.8rem;
   border-radius: 8px;
-  box-shadow: 0 0 30px 0 rgba(0,0,0,0.1);
+  box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   overflow: hidden;
   width: 100%;
 }
-[data-theme="dark"] .docs.api table {
-  box-shadow: 0 0 30px 0 rgba(80,80,80,0.1);
+[data-theme='dark'] .docs.api table {
+  box-shadow: 0 0 30px 0 rgba(80, 80, 80, 0.1);
 }
 .docs.api article thead tr {
   background: #f6f6f6;
@@ -67,7 +67,7 @@
 .docs.api article thead tr p {
   font-weight: bold;
 }
-[data-theme="dark"] .docs.api thead tr {
+[data-theme='dark'] .docs.api thead tr {
   background: #373737;
 }
 .docs.api thead th,
@@ -78,8 +78,8 @@
 .docs.api tbody tr:nth-child(even) {
   background: #f6f6f6;
 }
-[data-theme="dark"] .docs.api tbody tr:hover,
-[data-theme="dark"] .docs.api tbody tr:nth-child(even) {
+[data-theme='dark'] .docs.api tbody tr:hover,
+[data-theme='dark'] .docs.api tbody tr:nth-child(even) {
   background: black;
 }
 
@@ -100,7 +100,7 @@
   margin-top: 0;
   width: 100%;
 }
-[data-theme="dark"] .docs.api .section-title {
+[data-theme='dark'] .docs.api .section-title {
   background: #373737;
 }
 @media screen and (min-width: 768px) {
@@ -136,12 +136,12 @@
 }
 
 .docs.api a {
-    display: inline-block;
-    color: black;
-    text-decoration: none;
+  display: inline-block;
+  color: black;
+  text-decoration: none;
 }
-[data-theme="dark"] .docs.api a {
-    color: inherit;
+[data-theme='dark'] .docs.api a {
+  color: inherit;
 }
 
 .docs.api a {
@@ -149,7 +149,7 @@
   color: black;
   text-decoration: none;
 }
-[data-theme="dark"] .docs.api a {
+[data-theme='dark'] .docs.api a {
   color: inherit;
 }
 
@@ -166,7 +166,7 @@
   border-bottom: 1px solid #eee;
   position: relative;
 }
-[data-theme="dark"] .api-detail-section {
+[data-theme='dark'] .api-detail-section {
   border-bottom: 1px solid #373737;
 }
 
@@ -182,7 +182,7 @@
   border-radius: 4px;
   padding: 4px 8px;
 }
-[data-theme="dark"] .docs.api .api-edit a {
+[data-theme='dark'] .docs.api .api-edit a {
   background: #373737;
 }
 
@@ -190,7 +190,7 @@
   @apply bg-slate-100;
   line-height: 2;
 }
-[data-theme="dark"] .docs.api .filter-item {
+[data-theme='dark'] .docs.api .filter-item {
   background: #373737;
 }
 @media screen and (min-width: 768px) {
@@ -216,33 +216,33 @@
   padding: 2px 10px;
 }
 
-.docs.api [data-kind-label="V"]:before {
+.docs.api [data-kind-label='V']:before {
   content: 'V';
   background: var(--qwik-purple);
 }
-.docs.api [data-kind-label="P"]:before {
+.docs.api [data-kind-label='P']:before {
   content: 'P';
   background: var(--qwik-blue);
 }
-.docs.api [data-kind-label="I"]:before {
-    content: 'I';
-    background: var(--qwik-dark-blue);
+.docs.api [data-kind-label='I']:before {
+  content: 'I';
+  background: var(--qwik-dark-blue);
 }
-.docs.api [data-kind-label="T"]:before {
-    content: 'T';
-    background: var(--qwik-dark-purple);
+.docs.api [data-kind-label='T']:before {
+  content: 'T';
+  background: var(--qwik-dark-purple);
 }
-.docs.api [data-kind-label="M"]:before {
-    content: 'M';
-    background: #c3ba4c;
+.docs.api [data-kind-label='M']:before {
+  content: 'M';
+  background: #c3ba4c;
 }
-.docs.api [data-kind-label="F"]:before {
-    content: 'F';
-    background: #5bc0de;
+.docs.api [data-kind-label='F']:before {
+  content: 'F';
+  background: #5bc0de;
 }
-.docs.api [data-kind-label="N"]:before {
-    content: 'N';
-    background: #5cb85c;
+.docs.api [data-kind-label='N']:before {
+  content: 'N';
+  background: #5cb85c;
 }
 .docs.api .table-wrapper {
   overflow-x: auto;

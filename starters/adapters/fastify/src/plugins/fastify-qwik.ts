@@ -1,9 +1,9 @@
-import fastifyStatic from "@fastify/static";
-import { createQwikRouter } from "@qwik.dev/router/middleware/node";
-import type { FastifyPluginAsync } from "fastify";
-import fastifyPlugin from "fastify-plugin";
+import fastifyStatic from '@fastify/static';
+import { createQwikRouter } from '@qwik.dev/router/middleware/node';
+import type { FastifyPluginAsync } from 'fastify';
+import fastifyPlugin from 'fastify-plugin';
 
-import render from "../entry.ssr";
+import render from '../entry.ssr';
 
 export interface FastifyQwikOptions {
   distDir: string;
@@ -13,25 +13,22 @@ export interface FastifyQwikOptions {
 
 const { router, notFound } = createQwikRouter({ render });
 
-const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
-  fastify,
-  options,
-) => {
+const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (fastify, options) => {
   const { buildDir, distDir, assetsDir } = options;
 
   fastify.register(fastifyStatic, {
     root: buildDir,
-    prefix: "/build",
+    prefix: '/build',
     immutable: true,
-    maxAge: "1y",
+    maxAge: '1y',
     decorateReply: false,
   });
 
   fastify.register(fastifyStatic, {
     root: assetsDir,
-    prefix: "/assets",
+    prefix: '/assets',
     immutable: true,
-    maxAge: "1y",
+    maxAge: '1y',
   });
 
   fastify.register(fastifyStatic, {
@@ -48,4 +45,4 @@ const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
   });
 };
 
-export default fastifyPlugin(qwikPlugin, { fastify: ">=4.0.0 <6.0.0" });
+export default fastifyPlugin(qwikPlugin, { fastify: '>=4.0.0 <6.0.0' });

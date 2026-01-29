@@ -1,15 +1,5 @@
-import {
-  component$,
-  Resource,
-  useResource$,
-  useSignal,
-  useStyles$,
-} from "@qwik.dev/core";
-import {
-  SSRRaw,
-  SSRStream,
-  type SSRStreamWriter,
-} from "@qwik.dev/core/internal";
+import { component$, Resource, useResource$, useSignal, useStyles$ } from '@qwik.dev/core';
+import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
 
 interface ContainerProps {
   url: string;
@@ -30,32 +20,25 @@ const SSRStreamRemoteContainer = component$<{
   containerId?: string;
 }>(({ url, containerId }) => {
   const decoder = new TextDecoder();
-  const getSSRStreamFunction =
-    (remoteUrl: string) => async (stream: SSRStreamWriter) => {
-      const _remoteUrl = new URL(
-        `http://localhost:${(globalThis as any).PORT}${remoteUrl}`,
-      );
-      const response = await fetch(_remoteUrl, {
-        headers: {
-          accept: "text/html",
-        },
-      });
-      if (response.ok) {
-        const reader = response.body!.getReader();
-        let fragmentChunk = await reader.read();
-        while (!fragmentChunk.done) {
-          const rawHtml = decoder.decode(fragmentChunk.value);
-          stream.write((<SSRRaw data={rawHtml} />) as string);
-          fragmentChunk = await reader.read();
-        }
-      } else {
-        console.error(
-          "Failed to connect with status:",
-          response.status,
-          response.statusText,
-        );
+  const getSSRStreamFunction = (remoteUrl: string) => async (stream: SSRStreamWriter) => {
+    const _remoteUrl = new URL(`http://localhost:${(globalThis as any).PORT}${remoteUrl}`);
+    const response = await fetch(_remoteUrl, {
+      headers: {
+        accept: 'text/html',
+      },
+    });
+    if (response.ok) {
+      const reader = response.body!.getReader();
+      let fragmentChunk = await reader.read();
+      while (!fragmentChunk.done) {
+        const rawHtml = decoder.decode(fragmentChunk.value);
+        stream.write((<SSRRaw data={rawHtml} />) as string);
+        fragmentChunk = await reader.read();
       }
-    };
+    } else {
+      console.error('Failed to connect with status:', response.status, response.statusText);
+    }
+  };
 
   return (
     <div id={containerId} q:shadowRoot>
@@ -87,19 +70,15 @@ export const Container = component$((props: ContainerProps) => {
     }
     `);
 
-  const resource = useResource$<{ url: string; html: string }>(
-    async ({ track }) => {
-      track(() => props.url);
-      const url = `http://localhost:${(globalThis as any).PORT}${
-        props.url
-      }?fragment&loader=false`;
-      const res = await fetch(url);
-      return {
-        url,
-        html: await res.text(),
-      };
-    },
-  );
+  const resource = useResource$<{ url: string; html: string }>(async ({ track }) => {
+    track(() => props.url);
+    const url = `http://localhost:${(globalThis as any).PORT}${props.url}?fragment&loader=false`;
+    const res = await fetch(url);
+    return {
+      url,
+      html: await res.text(),
+    };
+  });
 
   return (
     <div>
@@ -116,7 +95,7 @@ export const Container = component$((props: ContainerProps) => {
           }}
         />
       </div>
-      <div style={{ border: "1px solid red" }}>
+      <div style={{ border: '1px solid red' }}>
         Shadow DOM
         <div id="shadow-dom-resource" q:shadowRoot>
           <template shadowRootMode="open">

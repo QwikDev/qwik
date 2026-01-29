@@ -1,5 +1,11 @@
 {
   "description": "Use Tailwind v4 in your Qwik app",
+  "type": "module",
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "tailwindcss": "^4.1.4"
+  },
   "__qwik__": {
     "displayName": "Integration: Tailwind v4 (styling)",
     "priority": -10,
@@ -18,11 +24,5 @@
       "https://qwik.dev/integrations/tailwind/",
       "https://tailwindcss.com/docs/utility-first"
     ]
-  },
-  "devDependencies": {
-    "prettier-plugin-tailwindcss": "^0.6.11",
-    "tailwindcss": "^4.1.4",
-    "@tailwindcss/vite": "^4.1.4"
-  },
-  "type": "module"
+  }
 }

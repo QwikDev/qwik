@@ -23,56 +23,22 @@ Since version 7.0, Storybook supports Vite natively, which means it has first-cl
 
 You can add Storybook to your existing app, or library use:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add storybook
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add storybook
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add storybook
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add storybook
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add storybook ```</span>
+  <span q:slot="npm">```shell npm run qwik add storybook ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add storybook ```</span>
+  <span q:slot="bun">```shell bun run qwik add storybook ```</span>
 </PackageManagerTabs>
 
 The previous command installs the necessary dependencies and adds an example component and stories
 
 Now you can serve the Storybook dashboard:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run storybook
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run storybook
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run storybook
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run storybook
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run storybook ```</span>
+  <span q:slot="npm">```shell npm run storybook ```</span>
+  <span q:slot="yarn">```shell yarn run storybook ```</span>
+  <span q:slot="bun">```shell bun run storybook ```</span>
 </PackageManagerTabs>
 
 ## Examples
@@ -82,36 +48,32 @@ bun run storybook
 The following demonstrates a simple story that uses a qwik component:
 
 ```tsx title="src/components/button.tsx"
-import { component$ } from "@qwik.dev/core";
+import { component$ } from '@qwik.dev/core';
 
 export interface ButtonProps {
   label: string;
 }
 
-export const Button = component$<ButtonProps>(({label}) => {
-  return (
-    <button>
-      {label}
-    </button>
-  );
+export const Button = component$<ButtonProps>(({ label }) => {
+  return <button>{label}</button>;
 });
 ```
 
 ```tsx title="src/components/button.stories.tsx"
-import type { Meta, StoryObj } from "storybook-framework-qwik";
-import {Button, type ButtonProps} from "./button";
+import type { Meta, StoryObj } from 'storybook-framework-qwik';
+import { Button, type ButtonProps } from './button';
 
-const meta: Meta<ButtonProps>  = {
+const meta: Meta<ButtonProps> = {
   component: Button,
 };
 
 export default meta;
-type Story = StoryObj<ButtonProps>; 
+type Story = StoryObj<ButtonProps>;
 
 export const Primary: Story = {
   args: {
-    label: "Hello World", 
-  }
+    label: 'Hello World',
+  },
 };
 ```
 
@@ -120,21 +82,19 @@ export const Primary: Story = {
 When using Qwik Router, you must pass a context to the story by using the [`<QwikRouterMockProvider>`](https://qwik.dev/docs/api/#qwikroutermockprovider):
 
 ```tsx title="src/components/with-link.tsx"
-import { component$ } from "@qwik.dev/core";
-import { Link } from "@qwik.dev/router";
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 
 export const WithLink = component$(() => {
-  return (
-    <Link href="https://google.com">Google Link</Link>
-  );
+  return <Link href="https://google.com">Google Link</Link>;
 });
 ```
 
 ```tsx title="src/components/with-link.stories.tsx"
-import type { Meta, StoryObj } from "storybook-framework-qwik";
-import { QwikRouterMockProvider } from "@qwik.dev/router";
+import type { Meta, StoryObj } from 'storybook-framework-qwik';
+import { QwikRouterMockProvider } from '@qwik.dev/router';
 
-import { WithLink } from "./with-link";
+import { WithLink } from './with-link';
 
 const meta: Meta = {
   component: WithLink,
@@ -144,10 +104,11 @@ type Story = StoryObj;
 export default meta;
 
 export const Primary: Story = {
-  render: () =>
+  render: () => (
     <QwikRouterMockProvider>
       <WithLink />
     </QwikRouterMockProvider>
+  ),
 };
 ```
 

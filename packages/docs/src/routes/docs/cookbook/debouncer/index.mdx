@@ -12,10 +12,9 @@ import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index
 
 # What is a debouncer and why it's important
 
-A debouncer is a programming pattern used to ensure that time-consuming tasks do not fire too frequently, thereby preventing performance issues or the overwhelming of servers with requests. This is particularly useful in scenarios such as search inputs where you may not want to trigger a search request with every keystroke, but rather after the user has paused typing. 
+A debouncer is a programming pattern used to ensure that time-consuming tasks do not fire too frequently, thereby preventing performance issues or the overwhelming of servers with requests. This is particularly useful in scenarios such as search inputs where you may not want to trigger a search request with every keystroke, but rather after the user has paused typing.
 
 By implementing a debouncer, you can enhance both user experience and application efficiency. This is achieved by delaying a function's execution until a specified amount of time has elapsed since its last invocation.
-
 
 ## When to use debouncers
 
@@ -37,14 +36,15 @@ export const useDebouncer = <A extends unknown[], R>(
 ): QRL<(...args: A) => void> => {
   const timeoutId = useSignal<number>();
 
-  return $((...args: A): void => {
-    window.clearTimeout(timeoutId.value);
-    timeoutId.value = window.setTimeout((): void => {
-      void fn(...args);
-    }, delay);
-  });
+return $((...args: A): void => {
+window.clearTimeout(timeoutId.value);
+timeoutId.value = window.setTimeout((): void => {
+void fn(...args);
+}, delay);
+});
 };
-```
+
+````
 </CodeFile>
 
 This debouncer takes a function and a delay as arguments. It utilizes `useSignal` to track the `timeoutID`, ensuring compatibility with Qwik's resumability model and its use of [QRL's](https://qwik.dev/docs/advanced/qrl/). The returned function, when called, clears any existing timeout and sets a new one to invoke the provided function after the specified delay.
@@ -79,15 +79,15 @@ export default component$(() => {
     </>
   );
 });
-```
+````
+
 </CodeFile>
 
 ## Live Demo
 
 In the live demo below, `useDebouncer` is used to update the `debouncedValue` signal after a 1-second delay has elapsed since the last keystroke.
 
-<CodeSandbox src="/src/routes/demo/cookbook/debouncer/"  style={{ height: '250px' }}>
-</CodeSandbox>
+<CodeSandbox src="/src/routes/demo/cookbook/debouncer/" style={{ height: '250px' }}></CodeSandbox>
 
 ## Bonus: `useDebouncer$`
 
@@ -100,7 +100,7 @@ This is how Qwik actually implements all of its built-in $ hooks.
 ```tsx
 export const useDebouncerQrl = <A extends unknown[], R>(
   fn: QRL<(...args: A) => R>,
-  delay: number,
+  delay: number
 ): QRL<(...args: A) => void> => {
   const timeoutId = useSignal<number>();
 
@@ -118,14 +118,9 @@ export const useDebouncer$ = implicit$FirstArg(useDebouncerQrl);
 And now we could do:
 
 ```tsx
-const debounce = useDebouncer$(
-  (value: string) => {
-    debouncedValue.value = value;
-  },
-  1000
-);
+const debounce = useDebouncer$((value: string) => {
+  debouncedValue.value = value;
+}, 1000);
 ```
 
 Pretty great, huh? :)
-
-

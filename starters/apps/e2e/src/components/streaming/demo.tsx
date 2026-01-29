@@ -1,5 +1,5 @@
-import { component$, Resource, useResource$, useStyles$ } from "@qwik.dev/core";
-import { SSRStream } from "@qwik.dev/core/internal";
+import { component$, Resource, useResource$, useStyles$ } from '@qwik.dev/core';
+import { SSRStream } from '@qwik.dev/core/internal';
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
@@ -47,10 +47,7 @@ export const Cmp = component$((props: { text: string; delay: number }) => {
 
   return (
     <div>
-      <Resource
-        value={resource}
-        onResolved={(value) => <span class="cmp">{value}</span>}
-      />
+      <Resource value={resource} onResolved={(value) => <span class="cmp">{value}</span>} />
     </div>
   );
 });

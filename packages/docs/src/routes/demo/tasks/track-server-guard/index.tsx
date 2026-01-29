@@ -18,9 +18,7 @@ export default component$(() => {
       <label>
         Enter text: <input bind:value={text} />
       </label>
-      <p style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>
-        Text: {text}
-      </p>
+      <p style={{ fontWeight: isBold.value ? 'bold' : 'normal' }}>Text: {text}</p>
     </section>
   );
 });

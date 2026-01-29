@@ -28,7 +28,11 @@ pnpm create qwik@latest
 
 Follow the CLI (command line interface) prompts. When you finish, it should look something like this:
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbf6f21f590f145c3b7427ab8ead72507?format=webp&width=800" alt="a screenshot showing the CLI output of creating a new Qwik app." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbf6f21f590f145c3b7427ab8ead72507?format=webp&width=800"
+  alt="a screenshot showing the CLI output of creating a new Qwik app."
+/>
 
 ## Installing `qwik-react`
 
@@ -40,7 +44,11 @@ pnpm run qwik add react
 
 This will once again give us a CLI output that looks like this:
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Ffb3bde63f5744eb0bd4c539433c892d8?width=800" alt="a screenshot showing the CLI output of running pnpm run qwik add react." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Ffb3bde63f5744eb0bd4c539433c892d8?width=800"
+  alt="a screenshot showing the CLI output of running pnpm run qwik add react."
+/>
 
 The above image shows that this has installed:
 
@@ -66,16 +74,27 @@ pnpm run dev
 
 Now, if we go to [`http://localhost:5173/`](http://localhost:5173/) the initial page renders:
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4de09e8f126e447c96543d3e6688a331?width=800" alt="A screenshot of a newly created Qwik app." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4de09e8f126e447c96543d3e6688a331?width=800"
+  alt="A screenshot of a newly created Qwik app."
+/>
 
 For the generated UI, we can go to [`http://localhost:5173/react`](http://localhost:5173/react) to display some React Material UI components inside our Qwik app:
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F589ecbdb31484def8d65e8b41318ce3f?width=800" alt="A screenshot of a qwik app using React MaterialUI components." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F589ecbdb31484def8d65e8b41318ce3f?width=800"
+  alt="A screenshot of a qwik app using React MaterialUI components."
+/>
 
 And if we interact with the components, they all work:
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F890c91a979964c73b3dc6174a2ec8b87%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=890c91a979964c73b3dc6174a2ec8b87&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F890c91a979964c73b3dc6174a2ec8b87%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=890c91a979964c73b3dc6174a2ec8b87&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 ## A look under the hood
@@ -219,7 +238,7 @@ export default component$(() => {
 
 ```tsx
 export default component$(() => {
-	const count = useSignal(0);
+  const count = useSignal(0);
   return (
     <>
       <p>This slider will only run hydration after a click on it</p>
@@ -261,7 +280,11 @@ export default component$(() => {
 
 If we now navigate to our newly created route we can see that everything renders correctly:
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F2dc7a88861ec411c9e23058398e5794c?width=800" alt="a screenshot of a React component with no React code inside a Qwik app." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F2dc7a88861ec411c9e23058398e5794c?width=800"
+  alt="a screenshot of a React component with no React code inside a Qwik app."
+/>
 
 ### Adding interactivity via Qwik
 
@@ -329,7 +352,10 @@ export default component$(() => {
 This works. However, notice from the video below, React is loaded, as my React DevTools on the right show:
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fabac48a50e7f43b198129c1a8429d46b%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=abac48a50e7f43b198129c1a8429d46b&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fabac48a50e7f43b198129c1a8429d46b%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=abac48a50e7f43b198129c1a8429d46b&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 In order to get the result we want, we need to use the `host:` attribute, which allows us to [listen to DOM events without hydration](https://qwik.dev/integrations/react/#listen-to-dom-events-without-hydration).
@@ -366,7 +392,10 @@ Now it works without React! 🎉🎉🎉
 We can infer this since our dev tools are not showing the React DevTools extension as they did before:
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F106b0b982c5d4a34b7bef04cc48ec4de%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=106b0b982c5d4a34b7bef04cc48ec4de&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F106b0b982c5d4a34b7bef04cc48ec4de%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=106b0b982c5d4a34b7bef04cc48ec4de&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 One last thing to notice is that now we do not get that nice Material UI ripple effect because it needs to be triggered internally by React code.
@@ -374,7 +403,10 @@ One last thing to notice is that now we do not get that nice Material UI ripple 
 But we did get a React component that is pure HTML with reactivity from Qwik signals, which is way less code.
 
 <video muted loop autoplay class="w-full">
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fb3f864be4c284ec2975c992791b7f14d%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=b3f864be4c284ec2975c992791b7f14d&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fb3f864be4c284ec2975c992791b7f14d%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=b3f864be4c284ec2975c992791b7f14d&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 ## Less code
@@ -383,7 +415,11 @@ Time to look at some numbers. When I say less code, what do I mean? (This is aft
 
 Qwikified React component with hydration with signal: **95.6KB** of JS over the network.
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F008d6cf4e746417aad0d5eab7b837d34?width=800" alt="A screenshot of a Qwik app with a hydrated React component and the devtools network pane on the right side." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F008d6cf4e746417aad0d5eab7b837d34?width=800"
+  alt="A screenshot of a Qwik app with a hydrated React component and the devtools network pane on the right side."
+/>
 
 For fun, I built the same minimal example with a brand new `vite` / `React` project and installed the same React dependencies.
 
@@ -421,17 +457,33 @@ export default App;
 
 React Vite build is less JS over the network: **71.9KB** of JS in one single file.
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F55660795b82143539e59911095105600?width=800" alt="A screenshot of a React app with the devtools network pane on the right side." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F55660795b82143539e59911095105600?width=800"
+  alt="A screenshot of a React app with the devtools network pane on the right side."
+/>
 
 However, it seems that the React app has twice as much time-to-interactive than Qwik running React (on my machine, running lighthouse with a new Arc browser space with no extensions).
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F6b5c75a6e1254e78a58602329f4c8532?width=800" alt="screenshot showing a lighthouse score of 0.6s for Qwik app." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F6b5c75a6e1254e78a58602329f4c8532?width=800"
+  alt="screenshot showing a lighthouse score of 0.6s for Qwik app."
+/>
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F9e53f1e6ed8245e8b81e0c3f4da2e02b?width=800" alt="screenshot showing a lighthouse score of 1.2s for React app." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F9e53f1e6ed8245e8b81e0c3f4da2e02b?width=800"
+  alt="screenshot showing a lighthouse score of 1.2s for React app."
+/>
 
 Qwikified React component with no react code: **7.7KB**
 
-<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F239064e3579a4f1b8c6be4dad8cf8c05?width=800" alt="A screenshot of a Qwik app with the devtools network pane on the right that shows only 7.7KB transfer over the network." />
+<img
+  class="w-full"
+  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F239064e3579a4f1b8c6be4dad8cf8c05?width=800"
+  alt="A screenshot of a Qwik app with the devtools network pane on the right that shows only 7.7KB transfer over the network."
+/>
 
 ## Things to look out for
 

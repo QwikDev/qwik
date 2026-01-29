@@ -67,7 +67,7 @@ export const PopupManager = component$(() => {
       {popup.currentTarget && popup.Component ? (
         <div
           ref={popupTarget}
-          class="fixed inline-block border border-slate-200 bg-white shadow-lg z-10"
+          class="fixed z-10 inline-block border border-slate-200 bg-white shadow-lg"
           style={{
             top: popup.y + 4 + 'px',
             left: popup.x + 4 + 'px',

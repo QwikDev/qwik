@@ -33,34 +33,17 @@ markup or `.js/.jsx/.ts/.tsx/.mdx` files. [Tailwindcss Website](https://tailwind
 You can add Tailwind v4 easily by using the following Qwik starter script:
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add tailwind
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add tailwind
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add tailwind
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add tailwind
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add tailwind ```</span>
+  <span q:slot="npm">```shell npm run qwik add tailwind ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add tailwind ```</span>
+  <span q:slot="bun">```shell bun run qwik add tailwind ```</span>
 </PackageManagerTabs>
 
 The previous command updates your app with the necessary dependencies,
 and modifies the following files
 
 ```css title="src/global.css"
-
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ... other css stuff ... */
 
@@ -74,12 +57,11 @@ and modifies the following files
 
 /* Disabling automatic detection of source file */
 /* @import "tailwindcss" source(none); */
-
 ```
 
 ```ts title="vite.config.ts"
-import { defineConfig , type UserConfig} from 'vite'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig, type UserConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 // … other imports ...
 
 export default defineConfig(({ command, mode }): UserConfig => {
@@ -87,9 +69,8 @@ export default defineConfig(({ command, mode }): UserConfig => {
     plugins: [
       tailwindcss(),
       // ... other plugins ...
-      ]
+    ],
     // ... other stuff ...
-    }
-  }
-)
+  };
+});
 ```

@@ -59,14 +59,12 @@ CreatePlatform and CreateDocument
 ```typescript
 createDOM: ({ html }?: { html?: string }) =>
   Promise<{
-    render: (
-      jsxElement: JSXOutput,
-    ) => Promise<import("@qwik.dev/core").RenderResult>;
+    render: (jsxElement: JSXOutput) => Promise<import('@qwik.dev/core').RenderResult>;
     screen: HTMLElement;
     userEvent: (
       queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
       eventNameCamel: string | keyof WindowEventMap,
-      eventPayload?: any,
+      eventPayload?: any
     ) => Promise<void>;
   }>;
 ```
@@ -118,10 +116,10 @@ export declare function domRender(
   jsx: JSXOutput,
   opts?: {
     debug?: boolean;
-  },
+  }
 ): Promise<{
   document: Document;
-  container: import("@qwik.dev/core").ClientContainer;
+  container: import('@qwik.dev/core').ClientContainer;
   vNode: _VNode | null;
   getStyles: () => Record<string, string | string[]>;
 }>;
@@ -354,10 +352,7 @@ void
 ## expectDOM
 
 ```typescript
-export declare function expectDOM(
-  actual: Element,
-  expected: string,
-): Promise<void>;
+export declare function expectDOM(actual: Element, expected: string): Promise<void>;
 ```
 
 <table><thead><tr><th>
@@ -437,7 +432,7 @@ export declare function ssrRenderToDom(
     raw?: boolean;
     qwikLoader?: boolean;
     onBeforeResume?: (document: Document) => void;
-  },
+  }
 ): Promise<{
   container: _DomContainer;
   document: Document;
@@ -511,7 +506,7 @@ export declare function trigger(
   eventPayload?: any,
   options?: {
     waitForIdle?: boolean;
-  },
+  }
 ): Promise<void>;
 ```
 
@@ -691,7 +686,7 @@ export declare function walkJSX(
     enter: (jsx: JSXNodeInternal) => void;
     leave: (jsx: JSXNodeInternal) => void;
     text: (text: _Stringifiable) => void;
-  },
+  }
 ): void;
 ```
 

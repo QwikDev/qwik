@@ -1,7 +1,7 @@
-import type { DocumentHead } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
-import { Button } from "~/components/bootstrap";
-import { colorVariantsList } from "~/constants/data";
+import type { DocumentHead } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
+import { Button } from '~/components/bootstrap';
+import { colorVariantsList } from '~/constants/data';
 
 export default component$(() => {
   return (
@@ -10,10 +10,7 @@ export default component$(() => {
       <hr />
       {colorVariantsList.map((colorVariant, index) => (
         <>
-          <Button
-            key={`${index + 1}_${colorVariant}`}
-            colorVariant={colorVariant}
-          />
+          <Button key={`${index + 1}_${colorVariant}`} colorVariant={colorVariant} />
           <span class="me-3"></span>
         </>
       ))}
@@ -22,11 +19,11 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Qwik - Bootstrap v5 - Buttons",
+  title: 'Qwik - Bootstrap v5 - Buttons',
   meta: [
     {
-      name: "description",
-      content: "Buttons with Boostrap in Qwik",
+      name: 'description',
+      content: 'Buttons with Boostrap in Qwik',
     },
   ],
 };

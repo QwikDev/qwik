@@ -1,5 +1,6 @@
 {
   "description": "Deno server",
+  "type": "module",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/deno/vite.config.ts",
     "serve": "deno run --allow-net --allow-read --allow-env server/entry.deno.js"
@@ -20,6 +21,5 @@
         "- pnpm run serve: runs the production server locally"
       ]
     }
-  },
-  "type": "module"
+  }
 }

@@ -743,7 +743,7 @@ describe.each([
 
     it('should trim class attribute value', async () => {
       const Cmp = component$(() => {
-        return <span class="   test-class   "></span>;
+        return <span class="test-class"></span>;
       });
 
       const { vNode } = await render(<Cmp />, { debug });

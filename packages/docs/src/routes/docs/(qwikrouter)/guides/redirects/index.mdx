@@ -58,7 +58,7 @@ Read more about redirect status codes [here](https://developer.mozilla.org/en-US
 In some cases, you may need to manage multiple redirects based on different conditions. For example, you might want to redirect users from old URLs to new URLs after a site restructure. Additionally, you may want editors in a CMS to manage these redirects as well. Here's one of the ways you can handle multiple redirects in Qwik:
 
 ```tsx title="src/routes/layout.tsx"
-import { type RequestHandler } from "@qwik.dev/router";
+import { type RequestHandler } from '@qwik.dev/router';
 
 export const onGet: RequestHandler = async ({ url, redirect }) => {
   // qwik router request caching ...
@@ -70,10 +70,10 @@ export const onGet: RequestHandler = async ({ url, redirect }) => {
     // Fetch data from a CMS or API, and add more rules as needed.
     // Filter and map your data to make it easier to handle, as simulated here:
     return [
-      { source: "/old-path", destination: "/new-path", permanent: true },
+      { source: '/old-path', destination: '/new-path', permanent: true },
       {
-        source: "/another-old-path",
-        destination: "/another-new-path",
+        source: '/another-old-path',
+        destination: '/another-new-path',
         permanent: false,
       },
     ];
@@ -81,8 +81,8 @@ export const onGet: RequestHandler = async ({ url, redirect }) => {
 
   const redirectRules = await fetchRules();
   const redirectUrl = redirectRules.find((rule) => {
-    if (url.pathname.endsWith("/")) {
-      return rule.source + "/" === url.pathname;
+    if (url.pathname.endsWith('/')) {
+      return rule.source + '/' === url.pathname;
     }
 
     return rule.source === url.pathname;

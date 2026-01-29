@@ -20,27 +20,28 @@ If you happened to come across one of them and don't know what its replacement i
 
 ### Deprecated functions and their replacements
 
-----
+---
 
-| Deprecated   | Replacements     |
-| :-------- | :-------
-| `useWatch$` | [useTask$](https://qwik.dev/docs/core/tasks/#usetask) |
-| `useMount$` | [useTask$](https://qwik.dev/docs/core/tasks/#usetask) |
-| `useServerMount` | [useTask$](https://qwik.dev/docs/core/tasks/#usetask) + [isServer](https://qwik.dev/docs/guides/qwik-nutshell/#isbrowser-&-isserver-conditionals)
-| `useClientMount` | [useTask$](https://qwik.dev/docs/core/tasks/#usetask) + [isBrowser](https://qwik.dev/docs/guides/qwik-nutshell/#isbrowser-&-isserver-conditionals)
-| `useClientEffect` - `useClientEffectQrl` | [useVisibleTask$](https://qwik.dev/docs/core/tasks/#usevisibletask) |
-| `useBrowserVisibleTask` - `useBrowserVisibleTaskQrl` | [useVisibleTask$](https://qwik.dev/docs/core/tasks/#usevisibletask) |
-| `useEnvData` | [useServerData](https://qwik.dev/api/qwik/#useserverdata) |
-| `useRef` | [useSignal](https://qwik.dev/docs/core/state/#usesignal) |
-| `createContext` | [createContextId](https://qwik.dev/docs/core/context/#createcontextid) |
+| Deprecated                                           | Replacements                                                                                                                                       |
+| :--------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useWatch$`                                          | [useTask$](https://qwik.dev/docs/core/tasks/#usetask)                                                                                              |
+| `useMount$`                                          | [useTask$](https://qwik.dev/docs/core/tasks/#usetask)                                                                                              |
+| `useServerMount`                                     | [useTask$](https://qwik.dev/docs/core/tasks/#usetask) + [isServer](https://qwik.dev/docs/guides/qwik-nutshell/#isbrowser-&-isserver-conditionals)  |
+| `useClientMount`                                     | [useTask$](https://qwik.dev/docs/core/tasks/#usetask) + [isBrowser](https://qwik.dev/docs/guides/qwik-nutshell/#isbrowser-&-isserver-conditionals) |
+| `useClientEffect` - `useClientEffectQrl`             | [useVisibleTask$](https://qwik.dev/docs/core/tasks/#usevisibletask)                                                                                |
+| `useBrowserVisibleTask` - `useBrowserVisibleTaskQrl` | [useVisibleTask$](https://qwik.dev/docs/core/tasks/#usevisibletask)                                                                                |
+| `useEnvData`                                         | [useServerData](https://qwik.dev/api/qwik/#useserverdata)                                                                                          |
+| `useRef`                                             | [useSignal](https://qwik.dev/docs/core/state/#usesignal)                                                                                           |
+| `createContext`                                      | [createContextId](https://qwik.dev/docs/core/context/#createcontextid)                                                                             |
 
 ## Qwik Router (Formerly named "Qwik City")
 
 ### Deprecated functions and their replacements
-----
 
-| Deprecated   | Replacements
-| :-------- | :-------
-| `useEndpoint ` | [routeLoader$](https://qwik.dev/docs/route-loader/#routeloader)
-| `loader$` - `loaderQrl` | [routeLoader$](https://qwik.dev/docs/route-loader/#routeloader)
-| `action$` - `actionQrl`  | [routeAction$](https://qwik.dev/docs/action/#routeaction)
+---
+
+| Deprecated              | Replacements                                                    |
+| :---------------------- | :-------------------------------------------------------------- |
+| `useEndpoint `          | [routeLoader$](https://qwik.dev/docs/route-loader/#routeloader) |
+| `loader$` - `loaderQrl` | [routeLoader$](https://qwik.dev/docs/route-loader/#routeloader) |
+| `action$` - `actionQrl` | [routeAction$](https://qwik.dev/docs/action/#routeaction)       |

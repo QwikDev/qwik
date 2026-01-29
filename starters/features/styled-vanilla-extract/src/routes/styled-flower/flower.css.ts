@@ -1,4 +1,4 @@
-import { style, styled } from "styled-vanilla-extract/qwik";
+import { style, styled } from 'styled-vanilla-extract/qwik';
 
 export const header = style({});
 
@@ -8,7 +8,7 @@ export const odd = style({});
 
 export const Host = styled.div`
   display: grid;
-
+  
   align-items: center;
   justify-content: center;
   justify-items: center;
@@ -18,10 +18,10 @@ export const Host = styled.div`
   --odd-color-step: 5;
   --even-color-step: 5;
   --center: 12;
-
+  
   width: 100%;
   height: 500px;
-
+  
   contain: strict;
 `;
 

@@ -69,7 +69,7 @@ hr {
 }
 
 .quote p:before {
-  content: "“";
+  content: '“';
   font-size: 50px;
   opacity: 0.15;
   position: absolute;
@@ -78,7 +78,7 @@ hr {
 }
 
 .quote p:after {
-  content: "”";
+  content: '”';
   font-size: 50px;
   opacity: 0.15;
   position: absolute;
@@ -109,7 +109,7 @@ hr {
 }
 
 .speech-bubble:after {
-  content: "";
+  content: '';
   position: absolute;
   top: 100%;
   right: 30px;

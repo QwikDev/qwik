@@ -1,6 +1,6 @@
-import { component$, Slot } from "@qwik.dev/core";
-import Footer from "../../components/footer/footer";
-import Header from "../../components/header/header";
+import { component$, Slot } from '@qwik.dev/core';
+import Footer from '../../components/footer/footer';
+import Header from '../../components/header/header';
 
 export const isNull = null;
 

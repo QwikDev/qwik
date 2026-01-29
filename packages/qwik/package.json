@@ -1,32 +1,61 @@
 {
   "name": "@qwik.dev/core",
-  "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
   "version": "2.0.0-beta.17",
+  "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
+  "keywords": [
+    "Automatic Optimization",
+    "framework",
+    "generator",
+    "javascript streaming",
+    "lazy execution",
+    "performance",
+    "prerender",
+    "resumability",
+    "resumable",
+    "server-side-render",
+    "ssg",
+    "ssr",
+    "static-site",
+    "static-site-generator",
+    "webapp",
+    "website"
+  ],
+  "homepage": "https://qwik.dev/",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
+  "license": "MIT",
   "author": "Qwik Team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/qwik"
+  },
   "bin": {
     "qwik": "./qwik-cli.mjs"
   },
-  "bugs": "https://github.com/QwikDev/qwik/issues",
-  "dependencies": {
-    "csstype": "^3.2.3",
-    "launch-editor": "^2.12.0",
-    "rollup": "^4.55.1",
-    "ts-morph": "27.0.2"
-  },
-  "devDependencies": {
-    "@croct/json5-parser": "0.2.2",
-    "@qwik.dev/core": "workspace:*",
-    "@qwik.dev/dom": "workspace:*",
-    "domino": "2.1.6",
-    "ignore": "5.3.1",
-    "image-size": "1.2.1",
-    "kleur": "4.1.5",
-    "prettier": "3.7.4",
-    "vitest": "4.0.16"
-  },
-  "engines": {
-    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
-  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "dist",
+    "bindings",
+    "build.d.ts",
+    "cli.d.ts",
+    "handlers.mjs",
+    "jsx-dev-runtime.d.ts",
+    "jsx-runtime.d.ts",
+    "loader.d.ts",
+    "optimizer.d.ts",
+    "public.d.ts",
+    "server.d.ts",
+    "testing.d.ts",
+    "qwik-cli.mjs"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "./src/testing/vdom-diff.unit-util.ts",
+    "./src/testing/mocks.ts"
+  ],
+  "main": "./src/index.ts",
+  "types": "./public.d.ts",
   "exports": {
     ".": {
       "types": "./public.d.ts",
@@ -111,45 +140,29 @@
     "./backpatch-executor.debug.js": "./dist/backpatch-executor.debug.js",
     "./package.json": "./package.json"
   },
-  "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs",
-  "files": [
-    "README.md",
-    "LICENSE",
-    "dist",
-    "bindings",
-    "build.d.ts",
-    "cli.d.ts",
-    "handlers.mjs",
-    "jsx-dev-runtime.d.ts",
-    "jsx-runtime.d.ts",
-    "loader.d.ts",
-    "optimizer.d.ts",
-    "public.d.ts",
-    "server.d.ts",
-    "testing.d.ts",
-    "qwik-cli.mjs"
-  ],
-  "homepage": "https://qwik.dev/",
-  "keywords": [
-    "Automatic Optimization",
-    "framework",
-    "generator",
-    "javascript streaming",
-    "lazy execution",
-    "performance",
-    "prerender",
-    "resumability",
-    "resumable",
-    "server-side-render",
-    "ssg",
-    "ssr",
-    "static-site",
-    "static-site-generator",
-    "webapp",
-    "website"
-  ],
-  "license": "MIT",
-  "main": "./src/index.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
+  },
+  "dependencies": {
+    "csstype": "^3.2.3",
+    "launch-editor": "^2.12.0",
+    "rollup": "^4.55.1",
+    "ts-morph": "27.0.2"
+  },
+  "devDependencies": {
+    "@croct/json5-parser": "0.2.2",
+    "@qwik.dev/core": "workspace:*",
+    "@qwik.dev/dom": "workspace:*",
+    "domino": "2.1.6",
+    "ignore": "5.3.1",
+    "image-size": "1.2.1",
+    "kleur": "4.1.5",
+    "prettier": "3.7.4",
+    "vitest": "4.0.16"
+  },
   "peerDependencies": {
     "prettier": "3.6.2",
     "vite": ">=5 <8",
@@ -163,21 +176,8 @@
       "optional": true
     }
   },
-  "publishConfig": {
-    "access": "public"
+  "engines": {
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/QwikDev/qwik.git",
-    "directory": "packages/qwik"
-  },
-  "scripts": {
-    "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
-  },
-  "sideEffects": [
-    "./src/testing/vdom-diff.unit-util.ts",
-    "./src/testing/mocks.ts"
-  ],
-  "type": "module",
-  "types": "./public.d.ts"
+  "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs"
 }

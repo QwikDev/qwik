@@ -1,12 +1,8 @@
-import {
-  routeLoader$,
-  validator$,
-  type RequestEventAction,
-} from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
+import { routeLoader$, validator$, type RequestEventAction } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
 
 const dataValidator = validator$((ev) => {
-  if (ev.query.get("secret") === "123") {
+  if (ev.query.get('secret') === '123') {
     return {
       success: true,
     };
@@ -14,57 +10,51 @@ const dataValidator = validator$((ev) => {
   return {
     success: false,
     error: {
-      validationFailReason: "Secret not found",
+      validationFailReason: 'Secret not found',
     },
   };
 });
 
 const petLoaderQrl = () => {
   return {
-    pet: "guinea pig",
+    pet: 'guinea pig',
   };
 };
 
 const dynamicPetLoaderQrl = () => {
   if (Math.random() > 0.5) {
     return {
-      dog: "malamute",
+      dog: 'malamute',
     };
   }
 
   return {
-    rat: "guinea pig",
+    rat: 'guinea pig',
   };
 };
 
 const randomFailedLoaderQrl = ({ fail }: RequestEventAction) => {
   if (Math.random() > 0.5) {
     return fail(500, {
-      loaderFailedReason: "Reach Limit",
+      loaderFailedReason: 'Reach Limit',
     });
   }
 
   return {
-    pet: "guinea pig",
+    pet: 'guinea pig',
   };
 };
 
 export const usePetLoader = routeLoader$(petLoaderQrl);
-export const usePetWithValidationLoader = routeLoader$(
-  petLoaderQrl,
-  dataValidator,
-);
+export const usePetWithValidationLoader = routeLoader$(petLoaderQrl, dataValidator);
 
 export const useDynamicPetLoader = routeLoader$(dynamicPetLoaderQrl);
-export const useDynamicPetWithValidationLoader = routeLoader$(
-  dynamicPetLoaderQrl,
-  dataValidator,
-);
+export const useDynamicPetWithValidationLoader = routeLoader$(dynamicPetLoaderQrl, dataValidator);
 
 export const useRandomFailedLoader = routeLoader$(randomFailedLoaderQrl);
 export const useRandomFailedWithValidatorLoader = routeLoader$(
   randomFailedLoaderQrl,
-  dataValidator,
+  dataValidator
 );
 
 export default component$(() => {

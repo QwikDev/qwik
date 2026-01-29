@@ -1,5 +1,21 @@
 {
   "description": "Headless TypeScript ORM with a head 🐲",
+  "scripts": {
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:push": "drizzle-kit push",
+    "drizzle:pull": "drizzle-kit pull",
+    "drizzle:check": "drizzle-kit check",
+    "drizzle:up": "drizzle-kit up",
+    "drizzle:studio": "drizzle-kit studio",
+    "postinstall": "drizzle-kit generate"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "better-sqlite3": "^11.8.1",
+    "drizzle-kit": "^0.30.3",
+    "drizzle-orm": "^0.39.0"
+  },
   "__qwik__": {
     "displayName": "Integration: Drizzle (Database ORM)",
     "priority": -10,
@@ -25,21 +41,5 @@
       ]
     },
     "alwaysInRoot": []
-  },
-  "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
-    "drizzle-kit": "^0.30.3",
-    "better-sqlite3": "^11.8.1",
-    "drizzle-orm": "^0.39.0"
-  },
-  "scripts": {
-    "drizzle:generate": "drizzle-kit generate",
-    "drizzle:migrate": "drizzle-kit migrate",
-    "drizzle:push": "drizzle-kit push",
-    "drizzle:pull": "drizzle-kit pull",
-    "drizzle:check": "drizzle-kit check",
-    "drizzle:up": "drizzle-kit up",
-    "drizzle:studio": "drizzle-kit studio",
-    "postinstall": "drizzle-kit generate"
   }
 }

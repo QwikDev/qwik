@@ -1,24 +1,24 @@
-import { type DocumentHead, routeLoader$ } from "@qwik.dev/router";
-import { component$, Resource } from "@qwik.dev/core";
-import { delay } from "../actions/login";
+import { type DocumentHead, routeLoader$ } from '@qwik.dev/router';
+import { component$, Resource } from '@qwik.dev/core';
+import { delay } from '../actions/login';
 
 export const useThing = routeLoader$(({ defer }) => {
   return defer(async () => {
     await delay(1000);
-    return { name: "thing" };
+    return { name: 'thing' };
   });
 });
 
 export const useOther = routeLoader$(({ defer }) => {
   return defer(
     delay(2000).then(() => {
-      return { name: "other" };
-    }),
+      return { name: 'other' };
+    })
   );
 });
 
 export const useAnother = routeLoader$(() => {
-  return { name: "another" };
+  return { name: 'another' };
 });
 
 export default component$(() => {
@@ -48,5 +48,5 @@ export default component$(() => {
 // };
 
 export const head: DocumentHead = {
-  title: "About Us",
+  title: 'About Us',
 };

@@ -48,7 +48,7 @@ export default component$<GaugeProps>(
           ></circle>
         </svg>
         <span
-          class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-white"
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-white"
           style={{ fontSize: `${radius / 24}rem` }}
         >
           {safeLabel}

@@ -17,38 +17,21 @@ import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 
 # LeafletJS Map
 
-Leaflet is the leading open-source JavaScript library for mobile-friendly interactive maps. 
+Leaflet is the leading open-source JavaScript library for mobile-friendly interactive maps.
 Weighing just about 42 KB of JS, it has all the mapping features most developers ever need.
 
-Leaflet is designed with simplicity, performance and usability in mind. 
+Leaflet is designed with simplicity, performance and usability in mind.
 It works efficiently across all major desktop and mobile platforms, can be extended with lots of plugins, has a beautiful, easy to use and well-documented API and a simple, readable source code that is a joy to contribute to. [LeafletJS Map Website](https://leafletjs.com/)
 
 ## Usage
 
 You can add LeafletJS Map easily by using the following Qwik starter script:
 
-
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add leaflet-map
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add leaflet-map
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add leaflet-map
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add leaflet-map
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm run qwik add leaflet-map ```</span>
+  <span q:slot="npm">```shell npm run qwik add leaflet-map ```</span>
+  <span q:slot="yarn">```shell yarn run qwik add leaflet-map ```</span>
+  <span q:slot="bun">```shell bun run qwik add leaflet-map ```</span>
 </PackageManagerTabs>
 
 The previous command updates your app with the necessary dependencies.
@@ -114,34 +97,34 @@ export const fvg: any = {
 };
 
 const markers: Record<string, MarkersProps[]> = {
-  FDA: [
-    {
-      name: "Terzo d'Aquileia",
-      label: 'TRZ',
-      lat: '45.770946',
-      lon: '13.31338',
-    },
-    {
-      name: 'Musi',
-      label: 'MUS',
-      lat: '46.312663',
-      lon: '13.274682',
-    },
-  ],
-  FVG: [
-    {
-      name: 'Borgo Grotta Gigante',
-      label: 'BGG',
-      lat: '45.709385',
-      lon: '13.764681',
-    },
-    {
-      name: 'Muggia',
-      label: 'MGG',
-      lat: '45.610495',
-      lon: '13.752682',
-    },
-  ],
+FDA: [
+{
+name: "Terzo d'Aquileia",
+label: 'TRZ',
+lat: '45.770946',
+lon: '13.31338',
+},
+{
+name: 'Musi',
+label: 'MUS',
+lat: '46.312663',
+lon: '13.274682',
+},
+],
+FVG: [
+{
+name: 'Borgo Grotta Gigante',
+label: 'BGG',
+lat: '45.709385',
+lon: '13.764681',
+},
+{
+name: 'Muggia',
+label: 'MGG',
+lat: '45.610495',
+lon: '13.752682',
+},
+],
 };
 
 export default component$(() => {
@@ -155,28 +138,29 @@ export default component$(() => {
   `
   );
 
-  const groupSig = useSignal('FDA');
-  const currentLocation = useSignal<LocationsProps>({
-    name: 'Udine',
-    point: [46.06600881056668, 13.237724558490601],
-    zoom: 10,
-    marker: true,
-  });
+const groupSig = useSignal('FDA');
+const currentLocation = useSignal<LocationsProps>({
+name: 'Udine',
+point: [46.06600881056668, 13.237724558490601],
+zoom: 10,
+marker: true,
+});
 
-  return (
-    <>
-      Change markers:{'  '}
-      <select name="group" class="leaflet-ctrl" bind:value={groupSig}>
-        <option value="FDA">FDA</option>
-        <option value="FVG">FVG</option>
-      </select>
-      <LeafletMap
+return (
+
+<>
+Change markers:{' '}
+<select name="group" class="leaflet-ctrl" bind:value={groupSig}>
+<option value="FDA">FDA</option>
+<option value="FVG">FVG</option>
+</select>
+<LeafletMap
         location={currentLocation}
         markers={markers[groupSig.value]}
         group={groupSig}
       ></LeafletMap>
-    </>
-  );
+</>
+);
 });
 
 // The properties (props) used in the `LeafletMap` component and other related components are defined as follows:
@@ -201,12 +185,12 @@ export interface MarkersProps {
   lon: string;
 }
 
-/*
-The `LeafletMap` component leverages the Leaflet library to render an interactive map. 
+/_
+The `LeafletMap` component leverages the Leaflet library to render an interactive map.
 This component can be configured with various properties (props) to set the central location, add markers, and draw boundaries.
 In the `LeafletMap` component, both the location and the group signal are tracked.
 This ensures that when the signal changes, the server function is called, and the map is updated with the new data.
-*/
+_/
 
 export const LeafletMap = component$<MapProps>(
   ({ location, markers, group }) => {
@@ -241,7 +225,7 @@ export const LeafletMap = component$<MapProps>(
       // center position marker
 
       const qwikMarker = L.divIcon({
-        html: ` 
+        html: `
           <svg xmlns="http://www.w3.org/2000/svg" width="30.12" height="32" viewBox="0 0 256 272">
             <path fill="#18B6F6"
               d="m224.803 271.548l-48.76-48.483l-.744.107v-.532L71.606 120.252l25.55-24.667l-15.01-86.12l-71.222 88.247c-12.136 12.226-14.372 32.109-5.642 46.781l44.5 73.788c6.813 11.376 19.163 18.18 32.47 18.074l22.038-.213z" />
@@ -277,8 +261,10 @@ export const LeafletMap = component$<MapProps>(
     });
 
     return <div id="map" style={{ height: '25rem' }}></div>;
-  }
+
+}
 );
+
 ```
 </CodeSandbox>
 
@@ -288,3 +274,4 @@ export const LeafletMap = component$<MapProps>(
 
 - `Tutorials`: Examples step by step to reference to create new features using Documentation. [Reference](https://leafletjs.com/examples.html).
 - `Docs`: All necessary info to work with LeafletJS. [Reference](https://leafletjs.com/reference.html)
+```

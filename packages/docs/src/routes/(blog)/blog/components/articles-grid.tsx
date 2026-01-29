@@ -6,24 +6,24 @@ import { ClockIcon } from '../icons/clock-icon';
 
 export const ArticlesGrid = component$(() => {
   return (
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {blogArticles.map((post, key) => (
         <article
           key={key}
-          class="group rounded-xl overflow-hidden shadow-xs hover:shadow-xl transition-shadow duration-300 cursor-pointer z-10"
+          class="group z-10 cursor-pointer overflow-hidden rounded-xl shadow-xs transition-shadow duration-300 hover:shadow-xl"
         >
           <Link href={post.path}>
             <div class="relative h-48 overflow-hidden">
               <Image
                 layout="constrained"
-                class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                class="h-full w-full transform object-cover transition-transform duration-500 group-hover:scale-105"
                 src={post.image}
                 alt={post.title}
               />
             </div>
 
-            <div class="p-6 bg-[color:var(--text-color)]">
-              <h3 class="pb-4 text-xl font-bold text-[color:var(--bg-color)] min-h-[72px] group-hover:opacity-70 transition-colors">
+            <div class="bg-[color:var(--text-color)] p-6">
+              <h3 class="min-h-[72px] pb-4 text-xl font-bold text-[color:var(--bg-color)] transition-colors group-hover:opacity-70">
                 {post.title}
               </h3>
 
@@ -31,7 +31,7 @@ export const ArticlesGrid = component$(() => {
                 {post.tags.map((tag, key) => (
                   <span
                     key={key}
-                    class="px-3 py-1 mr-2 text-xs font-semibold text-[color:var(--text-color)] bg-[color:var(--bg-color)] rounded-full"
+                    class="mr-2 rounded-full bg-[color:var(--bg-color)] px-3 py-1 text-xs font-semibold text-[color:var(--text-color)]"
                   >
                     {tag}
                   </span>

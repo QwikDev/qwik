@@ -1,9 +1,4 @@
-import {
-  component$,
-  useSignal,
-  useVisibleTask$,
-  type Signal,
-} from '@qwik.dev/core';
+import { component$, useSignal, useVisibleTask$, type Signal } from '@qwik.dev/core';
 
 export default component$(() => {
   const isClockRunning = useSignal(false);

@@ -21,12 +21,12 @@ contributors:
 updated_at: '2024-05-13T16:00:00Z'
 created_at: '2023-03-30T19:49:50Z'
 ---
+
 # Qwik in a nutshell
 
 ## Components
 
 Qwik components are very similar to React components. They are functions that return JSX. However, `component$(...)` needs to be used, event handlers must have the `$` suffix, state is created using `useSignal()`, `class` is used instead of `className` and some other differences.
-
 
 ```tsx title="src/components/my-other-component/index.tsx"
 import { component$, Slot } from '@qwik.dev/core';
@@ -68,7 +68,9 @@ export const MyComponent = component$((props: MyComponentProps) => {
         }}
       >
         <h1>Count: {count.value}</h1>
-        <MyOtherComponent class="correct-way"> {/* ✅ */}
+        <MyOtherComponent class="correct-way">
+          {' '}
+          {/* ✅ */}
           {count.value > 10 && <p>Count is greater than 10</p>}
           {count.value > 10 ? <p>Count is greater than 10</p> : <p>Count is less than 10</p>}
         </MyOtherComponent>
@@ -123,10 +125,7 @@ export const MyComponent = component$(() => {
   return (
     <>
       <input name="name" onInput$={inputHandler} />
-      <input
-        name="password"
-        onInput$={inputHandler}
-      />
+      <input name="password" onInput$={inputHandler} />
     </>
   );
 });
@@ -303,7 +302,7 @@ export interface StoreOptions {
 export const useStore: <T>(value?: T | (() => T), options?: StoreOptions): Reactive<T>;
 ```
 
-In practice, `useSignal` and `useStore` are very similar -- `useSignal(0) === useStore({ value: 0 })` -- but `useSignal` is preferable most of the time.  Some use cases for `useStore` are:
+In practice, `useSignal` and `useStore` are very similar -- `useSignal(0) === useStore({ value: 0 })` -- but `useSignal` is preferable most of the time. Some use cases for `useStore` are:
 
 - When you need reactivity in an array.
 - When you want a reactive object that you can easily add properties to.
@@ -443,7 +442,6 @@ Note that `useVisibleTask$()` should not be used to fetch data, because it will 
 Qwik comes with a file-based router, which is similar to Next.js, but with a few differences. The router is based on the file-system, specifically in `src/routes/`. Creating a new `index.tsx` file in a folder under `src/routes/` will create a new route. For example, `src/routes/home/index.tsx` will create a route at `/home/`.
 
 ```tsx title="src/routes/home/index.tsx"
-
 import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -458,7 +456,6 @@ It is very important to export the component as the default export, otherwise th
 You can create dynamic routes by adding a folder with `[param]` in the route path. For example, `src/routes/user/[id]/index.tsx` will create a route at `/user/:id/`. In order to access the route parameter, you can use the `useLocation` hook exported from `@qwik.dev/router`.
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
-
 import { component$ } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 
@@ -492,7 +489,6 @@ export interface RouteLocation {
 To link to other routes, you can use the `Link` component exported from `@qwik.dev/router`. The `Link` component takes all the properties of the `<a>` HTMLAnchorElement. The only difference is that it will use the Qwik router to SPA navigate to the route instead of doing a full page navigation.
 
 ```tsx title="src/routes/index.tsx"
-
 import { component$ } from '@qwik.dev/core';
 import { Link } from '@qwik.dev/router';
 
@@ -512,7 +508,6 @@ export default component$(() => {
 The recommended way to load data from the server is to use the `routeLoader$()` function exported from `@qwik.dev/router`. The `routeLoader$()` function is used to create a data loader that will be executed on the server before the route is rendered. The return of `routeLoader$()` must be exported as a named export from the route file, ie, it can only be used in a `index.tsx`, inside of `src/routes/`.
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
-
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 
@@ -539,7 +534,7 @@ export default component$(() => {
 });
 
 // Exported `head` function is used to set the document head for the route.
-export const head: DocumentHead = ({resolveValue}) => {
+export const head: DocumentHead = ({ resolveValue }) => {
   // It can use the `resolveValue()` method to resolve the value from `routeLoader$()`.
   const user = resolveValue(useUserData);
   return {
@@ -561,24 +556,26 @@ The `routeLoader$()` function takes a function that returns a promise. The promi
 Qwik provides the `routeAction$()` API exported from `@qwik.dev/router` to handle form requests on the server. `routeAction$()` is only executed on the server when the form is submitted.
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
-
 import { component$ } from '@qwik.dev/core';
 import { routeAction$, Form, zod$, z } from '@qwik.dev/router';
 
 // The `routeAction$()` function is used to create a data loader that will be executed on the server when the form is submitted.
 // The return of `routeAction$()` is a custom use hook, which can be used to access the data returned from `routeAction$()`.
-export const useUserUpdate = routeAction$(async (data, requestContext) => {
-  const user = await db.table('users').get(requestContext.params.userID);
-  user.name = data.name;
-  user.email = data.email;
-  await db.table('users').put(user);
-  return {
-    user,
-  };
-}, zod$({
-  name: z.string(),
-  email: z.string(),
-}));
+export const useUserUpdate = routeAction$(
+  async (data, requestContext) => {
+    const user = await db.table('users').get(requestContext.params.userID);
+    user.name = data.name;
+    user.email = data.email;
+    await db.table('users').put(user);
+    return {
+      user,
+    };
+  },
+  zod$({
+    name: z.string(),
+    email: z.string(),
+  })
+);
 
 export default component$(() => {
   // The `useUserUpdate` hook will return an `ActionStore<T>` containing the `value` returned from `routeAction$()`, and some other properties, such as `submit()`, which is used to submit the form programmatically, and `isRunning`. All of these properties are reactive, and will re-render the component whenever they change.
@@ -593,10 +590,14 @@ export default component$(() => {
       <h1>User data</h1>
       <Form action={userData}>
         <div>
-          <label>User name: <input name="name" defaultValue={userData.formData?.get('name')} /></label>
+          <label>
+            User name: <input name="name" defaultValue={userData.formData?.get('name')} />
+          </label>
         </div>
         <div>
-          <label>User email: <input name="email" defaultValue={userData.formData?.get('email')} /></label>
+          <label>
+            User email: <input name="email" defaultValue={userData.formData?.get('email')} />
+          </label>
         </div>
         <button type="submit">Update</button>
       </Form>
@@ -606,7 +607,6 @@ export default component$(() => {
 ```
 
 The `routeAction$()` is used on pair with the `Form` component exported from `@qwik.dev/router`. The `Form` component is a wrapper around the native HTML `<form>` element. The `Form` component takes an `ActionStore<T>` as the `action` property. The `ActionStore<T>` is the return value of the `routeAction$()` function.
-
 
 ## Run code only in the browser
 
@@ -668,15 +668,14 @@ import { component$, useTask$ } from '@qwik.dev/core';
 import { server$, routeLoader$ } from '@qwik.dev/router';
 import { isServer } from '@qwik.dev/core';
 
-
 export const useGetProducts = routeLoader$((requestEvent) => {
   // This code will only run on the server
   const db = await openDB(requestEvent.env.get('DB_PRIVATE_KEY'));
   const product = await db.table('products').select();
   return product;
-})
+});
 
-const encryptOnServer = server$(function(message: string) {
+const encryptOnServer = server$(function (message: string) {
   // `this` is the `requestEvent
   const secretKey = this.env.get('SECRET_KEY');
   const encryptedMessage = encrypt(message, secretKey);
@@ -745,12 +744,12 @@ export const isServer: boolean = !isBrowser;
 Here is how you import these for reference:
 
 ```tsx
-import {isServer, isBrowser} from '@qwik.dev/core';
+import { isServer, isBrowser } from '@qwik.dev/core';
 
 // inside component$
 
 useTask$(({ track }) => {
-  track(interactionSig) // <-- tracks on the client when a signal has changed.
+  track(interactionSig); // <-- tracks on the client when a signal has changed.
 
   // server code
 

@@ -7,7 +7,7 @@ updated_at: '2024-01-18T11:00:00Z'
 created_at: '2024-01-18T11:00:00Z'
 ---
 
-import {CodeFile} from '../../../../components/code-sandbox/index.tsx';
+import { CodeFile } from '../../../../components/code-sandbox/index.tsx';
 
 # Combine Request Handlers
 
@@ -26,21 +26,22 @@ If you want to chain multiple request handlers together you can use this utility
 ```tsx
 import type { RequestHandler } from '@qwik.dev/router';
 
-/**
- * Combines multiple request handlers into a single request handler.
- *
- * The handlers will be called in order:
- *
- * 1. Handler1 before next()
- * 2. Handler2 before next()
- * 3. Handler3 before next()
- * 4. Next()
- * 5. Handler3 after next()
- * 6. Handler2 after next()
- * 7. Handler1 after next()
- *
- * @public
- */
+/\*\*
+
+- Combines multiple request handlers into a single request handler.
+-
+- The handlers will be called in order:
+-
+- 1.  Handler1 before next()
+- 2.  Handler2 before next()
+- 3.  Handler3 before next()
+- 4.  Next()
+- 5.  Handler3 after next()
+- 6.  Handler2 after next()
+- 7.  Handler1 after next()
+-
+- @public
+  \*/
 
 export const combineRequestHandlers = (...handlers: RequestHandler[]): RequestHandler =>
   async (originalContext) => {
@@ -54,7 +55,10 @@ export const combineRequestHandlers = (...handlers: RequestHandler[]): RequestHa
     }
 
     await lastNext();
-  };
+
+};
+
 ```
 </CodeFile>
 
+```

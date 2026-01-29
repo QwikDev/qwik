@@ -1,18 +1,18 @@
 {
   "name": "docs-e2e",
+  "private": true,
   "description": "",
-  "author": "",
-  "devDependencies": {
-    "@playwright/test": "1.57.0",
-    "@types/node": "24.10.0"
-  },
   "keywords": [],
   "license": "ISC",
+  "author": "",
+  "type": "module",
   "main": "index.js",
-  "private": true,
   "scripts": {
     "test": "pnpm exec playwright test --config=playwright.config.ts --project=chromium",
     "test-ui": "pnpm exec playwright test --config=playwright.config.ts --project=chromium --ui"
   },
-  "type": "module"
+  "devDependencies": {
+    "@playwright/test": "1.57.0",
+    "@types/node": "24.10.0"
+  }
 }

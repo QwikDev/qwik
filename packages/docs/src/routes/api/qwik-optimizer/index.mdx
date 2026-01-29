@@ -287,7 +287,7 @@ string[] \| null
 ## DiagnosticCategory
 
 ```typescript
-export type DiagnosticCategory = "error" | "warning" | "sourceError";
+export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
@@ -715,7 +715,7 @@ string
 ## MinifyMode
 
 ```typescript
-export type MinifyMode = "simplify" | "none";
+export type MinifyMode = 'simplify' | 'none';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
@@ -1299,7 +1299,7 @@ Size of the asset
 ## QwikBuildMode
 
 ```typescript
-export type QwikBuildMode = "production" | "development";
+export type QwikBuildMode = 'production' | 'development';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
@@ -1307,7 +1307,7 @@ export type QwikBuildMode = "production" | "development";
 ## QwikBuildTarget
 
 ```typescript
-export type QwikBuildTarget = "client" | "ssr" | "lib" | "test";
+export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
@@ -1698,9 +1698,7 @@ The version of the manifest
 ## qwikRollup
 
 ```typescript
-export declare function qwikRollup(
-  qwikRollupOpts?: QwikRollupPluginOptions,
-): any;
+export declare function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 ```
 
 <table><thead><tr><th>
@@ -2216,7 +2214,7 @@ This is the type of the "pre" Qwik Vite plugin. `qwikVite` actually returns a tu
 
 ```typescript
 export type QwikVitePlugin = P<QwikVitePluginApi> & {
-  name: "vite-plugin-qwik";
+  name: 'vite-plugin-qwik';
 };
 ```
 
@@ -2358,9 +2356,7 @@ Description
 ## QwikVitePluginOptions
 
 ```typescript
-export type QwikVitePluginOptions =
-  | QwikVitePluginCSROptions
-  | QwikVitePluginSSROptions;
+export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSROptions;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
@@ -2806,14 +2802,14 @@ The manifest values that are needed for SSR.
 ```typescript
 export type ServerQwikManifest = Pick<
   QwikManifest,
-  | "manifestHash"
-  | "injections"
-  | "bundleGraph"
-  | "bundleGraphAsset"
-  | "mapping"
-  | "preloader"
-  | "core"
-  | "qwikLoader"
+  | 'manifestHash'
+  | 'injections'
+  | 'bundleGraph'
+  | 'bundleGraphAsset'
+  | 'mapping'
+  | 'preloader'
+  | 'core'
+  | 'qwikLoader'
 >;
 ```
 
@@ -3039,7 +3035,7 @@ number
 ## SourceMapsOption
 
 ```typescript
-export type SourceMapsOption = "external" | "inline" | undefined | null;
+export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
@@ -3078,7 +3074,7 @@ symbolMapper: undefined;
 export type SymbolMapperFn = (
   symbolName: string,
   mapper: SymbolMapper | undefined,
-  parent?: string,
+  parent?: string
 ) => readonly [symbol: string, chunk: string] | undefined;
 ```
 
@@ -3089,13 +3085,7 @@ export type SymbolMapperFn = (
 ## SystemEnvironment
 
 ```typescript
-export type SystemEnvironment =
-  | "node"
-  | "deno"
-  | "bun"
-  | "webworker"
-  | "browsermain"
-  | "unknown";
+export type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)

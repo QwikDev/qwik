@@ -1,60 +1,60 @@
-import { component$, useStore } from "@qwik.dev/core";
+import { component$, useStore } from '@qwik.dev/core';
 
 let idCounter = 1;
 const adjectives = [
-    "pretty",
-    "large",
-    "big",
-    "small",
-    "tall",
-    "short",
-    "long",
-    "handsome",
-    "plain",
-    "quaint",
-    "clean",
-    "elegant",
-    "easy",
-    "angry",
-    "crazy",
-    "helpful",
-    "mushy",
-    "odd",
-    "unsightly",
-    "adorable",
-    "important",
-    "inexpensive",
-    "cheap",
-    "expensive",
-    "fancy",
+    'pretty',
+    'large',
+    'big',
+    'small',
+    'tall',
+    'short',
+    'long',
+    'handsome',
+    'plain',
+    'quaint',
+    'clean',
+    'elegant',
+    'easy',
+    'angry',
+    'crazy',
+    'helpful',
+    'mushy',
+    'odd',
+    'unsightly',
+    'adorable',
+    'important',
+    'inexpensive',
+    'cheap',
+    'expensive',
+    'fancy',
   ],
   colours = [
-    "red",
-    "yellow",
-    "blue",
-    "green",
-    "pink",
-    "brown",
-    "purple",
-    "brown",
-    "white",
-    "black",
-    "orange",
+    'red',
+    'yellow',
+    'blue',
+    'green',
+    'pink',
+    'brown',
+    'purple',
+    'brown',
+    'white',
+    'black',
+    'orange',
   ],
   nouns = [
-    "table",
-    "chair",
-    "house",
-    "bbq",
-    "desk",
-    "car",
-    "pony",
-    "cookie",
-    "sandwich",
-    "burger",
-    "pizza",
-    "mouse",
-    "keyboard",
+    'table',
+    'chair',
+    'house',
+    'bbq',
+    'desk',
+    'car',
+    'pony',
+    'cookie',
+    'sandwich',
+    'burger',
+    'pizza',
+    'mouse',
+    'keyboard',
   ];
 
 function _random(max: number) {
@@ -114,9 +114,7 @@ export default component$(() => {
                   id="add"
                   class="btn btn-primary btn-block"
                   type="button"
-                  onClick$={() =>
-                    (state.data = state.data.concat(buildData(1000)))
-                  }
+                  onClick$={() => (state.data = state.data.concat(buildData(1000)))}
                 >
                   Append 1,000 rows
                 </button>
@@ -127,12 +125,8 @@ export default component$(() => {
                   class="btn btn-primary btn-block"
                   type="button"
                   onClick$={() => {
-                    for (
-                      let i = 0, d = state.data, len = d.length;
-                      i < len;
-                      i += 10
-                    ) {
-                      d[i].label += " !!!";
+                    for (let i = 0, d = state.data, len = d.length; i < len; i += 10) {
+                      d[i].label += ' !!!';
                     }
                   }}
                 >
@@ -171,11 +165,11 @@ export default component$(() => {
           </div>
         </div>
       </div>
-      <table class="table table-hover table-striped test-data">
+      <table class="table-hover table-striped test-data table">
         <tbody>
           {state.data.map(({ id, label }) => {
             return (
-              <tr key={id} class={id === state.selected ? "danger" : ""}>
+              <tr key={id} class={id === state.selected ? 'danger' : ''}>
                 <td class="col-md-1">{id}</td>
                 <td class="col-md-4">
                   <a onClick$={() => (state.selected = id)}>{label}</a>
@@ -186,7 +180,7 @@ export default component$(() => {
                       const d = state.data;
                       d.splice(
                         d.findIndex((d) => d.id === id),
-                        1,
+                        1
                       );
                     }}
                   >

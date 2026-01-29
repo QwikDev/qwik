@@ -8,14 +8,14 @@
  * - https://bun.sh/docs/api/http
  *
  */
-import { createQwikRouter } from "@qwik.dev/router/middleware/bun";
-import render from "./entry.ssr";
+import { createQwikRouter } from '@qwik.dev/router/middleware/bun';
+import render from './entry.ssr';
 
 // Create the Qwik Router Bun middleware
 const { router, notFound, staticFile } = createQwikRouter({
   render,
   static: {
-    cacheControl: "public, max-age=31536000, immutable",
+    cacheControl: 'public, max-age=31536000, immutable',
   },
 });
 

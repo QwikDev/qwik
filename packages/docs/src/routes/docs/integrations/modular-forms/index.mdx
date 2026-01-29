@@ -22,31 +22,15 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 To get started, install the `@modular-forms/qwik` package:
 
->⚠️ Warning:  
->Make sure to install @modular-forms/qwik as a devDependency, since it only runs at build/SSR time.
->Putting it in your regular dependencies will trigger Vite plugin errors.
+> ⚠️ Warning:  
+> Make sure to install @modular-forms/qwik as a devDependency, since it only runs at build/SSR time.
+> Putting it in your regular dependencies will trigger Vite plugin errors.
 
 <PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm add -D @modular-forms/qwik
-```
-</span>
-<span q:slot="npm">
-```shell
-npm install -D @modular-forms/qwik
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn add -D @modular-forms/qwik
-```
-</span>
-<span q:slot="bun">
-```shell
-bun install -D @modular-forms/qwik
-```
-</span>
+  <span q:slot="pnpm">```shell pnpm add -D @modular-forms/qwik ```</span>
+  <span q:slot="npm">```shell npm install -D @modular-forms/qwik ```</span>
+  <span q:slot="yarn">```shell yarn add -D @modular-forms/qwik ```</span>
+  <span q:slot="bun">```shell bun install -D @modular-forms/qwik ```</span>
 </PackageManagerTabs>
 
 ## Define your form
@@ -69,12 +53,12 @@ const LoginSchema = v.object({
   email: v.pipe(
     v.string(),
     v.nonEmpty('Please enter your email.'),
-    v.email('The email address is badly formatted.'),
+    v.email('The email address is badly formatted.')
   ),
   password: v.pipe(
     v.string(),
     v.nonEmpty('Please enter your password.'),
-    v.minLength(8, 'Your password must have 8 characters or more.'),
+    v.minLength(8, 'Your password must have 8 characters or more.')
   ),
 });
 
@@ -129,14 +113,10 @@ Now you can proceed with the fields of your form. With the [`Field`](https://mod
 ```tsx
 <Form>
   <Field name="email">
-    {(field, props) => (
-      <input {...props} type="email" value={field.value} />
-    )}
+    {(field, props) => <input {...props} type="email" value={field.value} />}
   </Field>
   <Field name="password">
-    {(field, props) => (
-      <input {...props} type="password" value={field.value} />
-    )}
+    {(field, props) => <input {...props} type="password" value={field.value} />}
   </Field>
   <button type="submit">Login</button>
 </Form>
@@ -190,11 +170,7 @@ export default component$(() => {
     // Runs on client
   });
 
-  return (
-    <Form onSubmit$={handleSubmit}>
-      …
-    </Form>
-  );
+  return <Form onSubmit$={handleSubmit}>…</Form>;
 });
 ```
 
@@ -215,12 +191,12 @@ const LoginSchema = v.object({
   email: v.pipe(
     v.string(),
     v.nonEmpty('Please enter your email.'),
-    v.email('The email address is badly formatted.'),
+    v.email('The email address is badly formatted.')
   ),
   password: v.pipe(
     v.string(),
     v.nonEmpty('Please enter your password.'),
-    v.minLength(8, 'Your password must have 8 characters or more.'),
+    v.minLength(8, 'Your password must have 8 characters or more.')
   ),
 });
 
@@ -276,21 +252,21 @@ export default component$(() => {
 Sometimes, you may need to initialize or update the state of your form from the parent component via props. In such cases, you can use the setValue function, as illustrated in the example below:
 
 ```tsx
-import { setValue, useForm } from "@modular-forms/qwik";
+import { setValue, useForm } from '@modular-forms/qwik';
 
 export interface FormProps {
- login?: LoginForm
+  login?: LoginForm;
 }
 
 export default component$<FormProps>((props) => {
   const [loginForm, { Form, Field }] = useForm<LoginForm>({
-   // rest of the code...
+    // rest of the code...
   });
 
- useTask$(({ track }) => {
-     const login = track(() => props.login);
+  useTask$(({ track }) => {
+    const login = track(() => props.login);
     if (!login) return;
-    for (const [key,value] of Object.entries(login)) {
+    for (const [key, value] of Object.entries(login)) {
       setValue(loginForm, key, value);
     }
   });
@@ -298,6 +274,7 @@ export default component$<FormProps>((props) => {
   // rest of the code...
 });
 ```
+
 By tracking props.login with useTask$, the form fields are dynamically updated whenever the parent provides new values.
 
 ## Dealing With Props
@@ -305,21 +282,21 @@ By tracking props.login with useTask$, the form fields are dynamically updated w
 Sometimes, you may need to initialize or update the state of your form from the parent component via props. In such cases, you can use the setValue function, as illustrated in the example below:
 
 ```tsx
-import { setValue, useForm } from "@modular-forms/qwik";
+import { setValue, useForm } from '@modular-forms/qwik';
 
 export interface FormProps {
- login?: LoginForm
+  login?: LoginForm;
 }
 
 export default component$<FormProps>((props) => {
   const [loginForm, { Form, Field }] = useForm<LoginForm>({
-   // rest of the code...
+    // rest of the code...
   });
 
- useTask$(({ track }) => {
-     const login = track(() => props.login);
+  useTask$(({ track }) => {
+    const login = track(() => props.login);
     if (!login) return;
-    for (const [key,value] of Object.entries(login)) {
+    for (const [key, value] of Object.entries(login)) {
       setValue(loginForm, key, value);
     }
   });
@@ -327,6 +304,7 @@ export default component$<FormProps>((props) => {
   // rest of the code...
 });
 ```
+
 By tracking props.login with useTask$, the form fields are dynamically updated whenever the parent provides new values.
 
 ## Dealing With Props
@@ -334,21 +312,21 @@ By tracking props.login with useTask$, the form fields are dynamically updated w
 Sometimes, you may need to initialize or update the state of your form from the parent component via props. In such cases, you can use the setValue function, as illustrated in the example below:
 
 ```tsx
-import { setValue, useForm } from "@modular-forms/qwik";
+import { setValue, useForm } from '@modular-forms/qwik';
 
 export interface FormProps {
- login?: LoginForm
+  login?: LoginForm;
 }
 
 export default component$<FormProps>((props) => {
   const [loginForm, { Form, Field }] = useForm<LoginForm>({
-   // rest of the code...
+    // rest of the code...
   });
 
- useTask$(({ track }) => {
-     const login = track(() => props.login);
+  useTask$(({ track }) => {
+    const login = track(() => props.login);
     if (!login) return;
-    for (const [key,value] of Object.entries(login)) {
+    for (const [key, value] of Object.entries(login)) {
       setValue(loginForm, key, value);
     }
   });
@@ -356,6 +334,7 @@ export default component$<FormProps>((props) => {
   // rest of the code...
 });
 ```
+
 By tracking props.login with useTask$, the form fields are dynamically updated whenever the parent provides new values.
 
 ## Summary
@@ -363,5 +342,4 @@ By tracking props.login with useTask$, the form fields are dynamically updated w
 You have learned the basics of Modular Forms and are ready to create your first simple form. For more info and details you can find more guides and the API reference on our website: [modularforms.dev](https://modularforms.dev/)
 
 > Do you like Modular Forms so far? It would be a great honor for us to get a star from you on [GitHub](https://github.com/fabian-hiller/modular-forms)!import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
-import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
-
+> import CodeSandbox from '../../../../components/code-sandbox/index.tsx';

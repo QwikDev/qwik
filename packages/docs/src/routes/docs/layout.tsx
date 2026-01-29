@@ -50,7 +50,7 @@ export default component$(() => {
           </ol>
         ) : null}
       </nav>
-      <div class="flex gap-12 xl:gap-20 items-stretch content-container">
+      <div class="content-container flex items-stretch gap-12 xl:gap-20">
         <SideBar />
         <main class="contents">
           <div class="docs-container">

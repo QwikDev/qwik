@@ -1,5 +1,5 @@
-import { component$ } from "@qwik.dev/core";
-import type { DocumentHead } from "@qwik.dev/router";
+import { component$ } from '@qwik.dev/core';
+import type { DocumentHead } from '@qwik.dev/router';
 
 export default component$(() => {
   return (
@@ -13,5 +13,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Home",
+  title: 'Home',
 };

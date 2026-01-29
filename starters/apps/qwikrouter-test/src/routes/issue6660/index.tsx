@@ -1,5 +1,5 @@
-import { Form, routeAction$ } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
+import { Form, routeAction$ } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
 
 export const useAction = routeAction$(() => ({ ok: true }));
 

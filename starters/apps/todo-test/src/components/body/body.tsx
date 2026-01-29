@@ -1,6 +1,6 @@
-import { component$, useContext } from "@qwik.dev/core";
-import { FILTERS, TODOS } from "../../state/state";
-import { Item } from "../item/item";
+import { component$, useContext } from '@qwik.dev/core';
+import { FILTERS, TODOS } from '../../state/state';
+import { Item } from '../item/item';
 
 export const Body = component$(() => {
   const todos = useContext(TODOS);

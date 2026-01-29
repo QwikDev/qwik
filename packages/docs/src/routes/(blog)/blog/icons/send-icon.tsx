@@ -9,7 +9,7 @@ export const SendIcon = () => (
     stroke-width="2"
     stroke-linecap="round"
     stroke-linejoin="round"
-    class="w-4 h-4 ml-2"
+    class="ml-2 h-4 w-4"
   >
     <path d="m22 2-7 20-4-9-9-4Z"></path>
     <path d="M22 2 11 13"></path>

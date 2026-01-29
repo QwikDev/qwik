@@ -91,7 +91,7 @@ For example, here's how we use a Qwik counter component in Astro.
 **counter.tsx**
 
 ```tsx
-import { component$, useSignal } from "@qwik.dev/core";
+import { component$, useSignal } from '@qwik.dev/core';
 
 export const Counter = component$(() => {
   const counter = useSignal(0);
@@ -121,7 +121,10 @@ import { Counter } from "../components/counter";
 Yes! We can lazily execute code on interaction, just like using Qwik with Qwik Router.
 
 <video muted loop autoplay>
-  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7be046307ece4278a81789e386737813%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=7be046307ece4278a81789e386737813&alt=media&optimized=true" type="video/mp4"/>
+  <source
+    src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7be046307ece4278a81789e386737813%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=7be046307ece4278a81789e386737813&alt=media&optimized=true"
+    type="video/mp4"
+  />
 </video>
 
 Here, we are refreshing the page, and you'll notice that nothing was executed until the button was clicked. Without resumability, our `<counter></counter>` component would have been executed on page load.

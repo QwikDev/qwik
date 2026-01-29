@@ -7,10 +7,7 @@ export default component$(() => {
     <>
       <button onClick$={() => state.count++}>Increment</button>
       <p>Count: {state.count}</p>
-      <input
-        value={state.name}
-        onInput$={(_, el) => (state.name = el.value)}
-      />
+      <input value={state.name} onInput$={(_, el) => (state.name = el.value)} />
     </>
   );
 });

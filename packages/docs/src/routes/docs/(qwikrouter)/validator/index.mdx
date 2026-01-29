@@ -17,23 +17,23 @@ import {
   type RequestEventAction,
   routeAction$,
   validator$,
-} from "@qwik.dev/router";
+} from '@qwik.dev/router';
 
 export const useAction = routeAction$(
   async (data, requestEvent: RequestEventAction) => {
-    return { foo: "bar" };
+    return { foo: 'bar' };
   },
   validator$(async (ev: RequestEvent, data) => {
-    if (ev.query.get("secret") === "123") {
+    if (ev.query.get('secret') === '123') {
       return { success: true };
     }
     return {
       success: false,
       error: {
-        message: "secret is not correct",
+        message: 'secret is not correct',
       },
     };
-  }),
+  })
 );
 ```
 
@@ -53,9 +53,7 @@ export default component$(() => {
     }
   }
 
-  return (
-    <button onClick$={() => action.submit({ search: "foo" })}>Submit</button>
-  );
+  return <button onClick$={() => action.submit({ search: 'foo' })}>Submit</button>;
 });
 ```
 
@@ -64,17 +62,17 @@ export default component$(() => {
 Actions and loaders can have multiple validators, which are executed in reverse order. In the following example, validators execute in the order `validator3` -> `validator2` -> `validator1`.
 
 ```tsx {9-11}
-const validator1 = validator$(/*...*/)
-const validator2 = validator$(/*...*/)
-const validator3 = validator$(/*...*/)
+const validator1 = validator$(/*...*/);
+const validator2 = validator$(/*...*/);
+const validator3 = validator$(/*...*/);
 
 export const useAction = routeAction$(
   async (data, requestEvent: RequestEventAction) => {
-    return { foo: "bar" };
+    return { foo: 'bar' };
   },
   validator1,
   validator2,
-  validator3, // will be executed first
+  validator3 // will be executed first
 );
 ```
 
@@ -84,7 +82,7 @@ If `validator3` has a `data` property in its success return object, this data wi
 export const useAction = routeAction$(
   async (data, requestEvent: RequestEventAction) => {
     console.log(data); // { message: "hi, I am validator1" }
-    return { foo: "bar" };
+    return { foo: 'bar' };
   },
   // validator1
   validator$((ev, data) => {
@@ -92,7 +90,7 @@ export const useAction = routeAction$(
     return {
       success: true,
       data: {
-        message: "hi, I am validator1",
+        message: 'hi, I am validator1',
       },
     };
   }),
@@ -102,7 +100,7 @@ export const useAction = routeAction$(
     return {
       success: true,
       data: {
-        message: "hi, I am validator2",
+        message: 'hi, I am validator2',
       },
     };
   }),
@@ -112,10 +110,10 @@ export const useAction = routeAction$(
     return {
       success: true,
       data: {
-        message: "hi, I am validator3",
+        message: 'hi, I am validator3',
       },
     };
-  }),
+  })
 );
 ```
 
@@ -148,7 +146,7 @@ Validator behaves like using the `fail()` method in the action or loader when it
 
 ```tsx /status/#a /errorObject/#b
 const status = 500;
-const errorObject = { message: "123" };
+const errorObject = { message: '123' };
 
 export const useAction = routeAction$(
   async (_, { fail }) => {
@@ -160,7 +158,7 @@ export const useAction = routeAction$(
       status,
       errorObject,
     };
-  }),
+  })
 );
 ```
 
@@ -171,10 +169,10 @@ For actions, the typed data validator `zod$()` should be the second argument of 
 ```tsx {5-7}
 export const useAction = routeAction$(
   async (data, requestEvent: RequestEventAction) => {
-    return { foo: "bar" };
+    return { foo: 'bar' };
   },
   zod$(/*...*/),
   validator$(/*...*/),
-  validator$(/*...*/),
+  validator$(/*...*/)
 );
 ```

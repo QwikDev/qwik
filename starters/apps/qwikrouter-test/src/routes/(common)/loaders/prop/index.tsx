@@ -1,8 +1,8 @@
-import { component$, type Signal } from "@qwik.dev/core";
-import { routeLoader$ } from "@qwik.dev/router";
+import { component$, type Signal } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
 
 export const useTestLoader = routeLoader$(async () => {
-  return { test: "test" };
+  return { test: 'test' };
 });
 
 export default component$(() => {
@@ -15,14 +15,10 @@ export default component$(() => {
   );
 });
 
-export const Homepage = component$(
-  (props: { testSignal: Signal<{ test: string }> }) => {
-    return <div id="prop">{props.testSignal.value.test}</div>;
-  },
-);
+export const Homepage = component$((props: { testSignal: Signal<{ test: string }> }) => {
+  return <div id="prop">{props.testSignal.value.test}</div>;
+});
 
-export const HomepageUnwrapped = component$(
-  (props: { testSignal: { test: string } }) => {
-    return <div id="prop-unwrapped">{props.testSignal.test}</div>;
-  },
-);
+export const HomepageUnwrapped = component$((props: { testSignal: { test: string } }) => {
+  return <div id="prop-unwrapped">{props.testSignal.test}</div>;
+});

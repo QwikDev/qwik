@@ -73,7 +73,6 @@ export default component$(() => {
 
 > Since actions are not executed during rendering, they can have side effects such as writing to a database, or sending an email. An action only runs when called explicitly.
 
-
 ## Using actions with `<Form/>`
 
 The best way to call an action is using the `<Form/>` component exported in `@qwik.dev/router`.
@@ -153,11 +152,10 @@ When using `<Form>` with a file input, the submission will be sent as a `multipa
 But when using actions programmatically, you can still upload files by passing a `File` object to the `action.submit()` method by creating a `FormData` object and appending the file to it.
 
 ```tsx title="src/routes/index.tsx"
-
 import { component$ } from '@qwik.dev/core';
 import { routeAction$ } from '@qwik.dev/router';
 
-export const useUploadFile = routeAction$(async ({file}) => {
+export const useUploadFile = routeAction$(async ({ file }) => {
   // save the file somewhere...
   return {
     success: true,
@@ -169,13 +167,12 @@ export default component$(() => {
   const fileUploadRef = useSignal<HTMLInputElement | undefined>();
   return (
     <section>
-      <input type="file" ref={fileUploadRef}/>
+      <input type="file" ref={fileUploadRef} />
       <button
         onClick$={async () => {
-          
           const file = fileUploadRef.value?.files?.[0];
 
-          if (file){
+          if (file) {
             const formData = new FormData();
             formData.append('file', file);
             const { value } = await action.submit(formData);
@@ -185,14 +182,10 @@ export default component$(() => {
       >
         Upload file
       </button>
-      
     </section>
   );
 });
-
 ```
-
-
 
 ## Actions with Event Handlers
 
@@ -210,41 +203,30 @@ export interface EditFormProps {
   editingIdSignal: Signal<string>;
 }
 
-const EditForm = component$(
-  ({ item, editingIdSignal }: EditFormProps) => {
-    const editAction = useEditFromListAction();
+const EditForm = component$(({ item, editingIdSignal }: EditFormProps) => {
+  const editAction = useEditFromListAction();
 
-    return (
+  return (
+    <div>
+      <Form
+        action={editAction}
+        onSubmitCompleted$={() => {
+          editingIdSignal.value = '';
+        }}
+        spaReset
+      >
+        <input type="text" value={item.text} name="text" id={`edit-${item.id}`} />
+        {/* Sends item.id with form data on submission. */}
+        <input type="hidden" name="id" value={item.id} />
+        <button type="submit">Submit</button>
+      </Form>
+
       <div>
-        <Form
-          action={editAction}
-          onSubmitCompleted$={() => {
-            editingIdSignal.value = '';
-          }}
-          spaReset
-        >
-          <input
-            type="text"
-            value={item.text}
-            name="text"
-            id={`edit-${item.id}`}
-          />
-          {/* Sends item.id with form data on submission. */}
-          <input type="hidden" name="id" value={item.id} />
-          <button type="submit">
-            Submit
-          </button>
-        </Form>
-
-        <div>
-          <button onClick$={() => (editingIdSignal.value = '')}>
-            Cancel
-          </button>
-        </div>
+        <button onClick$={() => (editingIdSignal.value = '')}>Cancel</button>
       </div>
-    );
-  }
-);
+    </div>
+  );
+});
 
 export default EditForm;
 ```
@@ -291,9 +273,7 @@ export default component$(() => {
         {action.value?.failed && <p>{action.value.fieldErrors?.firstName}</p>}
         <button type="submit">Add user</button>
       </Form>
-      {action.value?.success && (
-        <p>User {action.value.userID} added successfully</p>
-      )}
+      {action.value?.success && <p>User {action.value.userID} added successfully</p>}
     </>
   );
 });
@@ -305,10 +285,9 @@ Please refer to the [Zod documentation](https://zod.dev/) for more information o
 
 ### Advanced event based validation
 
-The constructor of ```zod$``` can also take a function, as the first argument is zod itself, so you can use this directly to build the schema.
+The constructor of `zod$` can also take a function, as the first argument is zod itself, so you can use this directly to build the schema.
 The second parameter is the RequestEvent to construct an event-based zod schema.
-Especially in combination with ```refine``` and ```superRefine``` in zod, the only limit is your imagination.
-
+Especially in combination with `refine` and `superRefine` in zod, the only limit is your imagination.
 
 ```tsx {5-5} /ev/#a  title="Advanced event based validation"
 export const useAddUser = routeAction$(
@@ -328,7 +307,7 @@ export const useAddUser = routeAction$(
   zod$((z, ev) => {
     // The first name is optional if the url contains the query parameter "firstname=optional"
     const firstName =
-      ev.url.searchParams.get("firstname") === "optional"
+      ev.url.searchParams.get('firstname') === 'optional'
         ? z.string().optional()
         : z.string().nonempty();
 
@@ -350,16 +329,13 @@ This allows actions to access the request headers, cookies, url and environment 
 import { routeAction$ } from '@qwik.dev/router';
 
 // The second argument of the action is the `RequestEvent` object
-export const useProductRecommendations = routeAction$(
-  async (_data, requestEvent) => {
-    console.log('Request headers:', requestEvent.request.headers);
-    console.log('Request cookies:', requestEvent.cookie);
-    console.log('Request url:', requestEvent.url);
-    console.log('Request params:', requestEvent.params);
-    console.log('MY_ENV_VAR:', requestEvent.env.get('MY_ENV_VAR'));
-  }
-);
-
+export const useProductRecommendations = routeAction$(async (_data, requestEvent) => {
+  console.log('Request headers:', requestEvent.request.headers);
+  console.log('Request cookies:', requestEvent.cookie);
+  console.log('Request url:', requestEvent.url);
+  console.log('Request params:', requestEvent.params);
+  console.log('MY_ENV_VAR:', requestEvent.env.get('MY_ENV_VAR'));
+});
 ```
 
 ## Action Failures
@@ -446,7 +422,7 @@ It's recommended to start with `routeAction$()`. Use `globalAction$()` only when
 
 `routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()`s are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
 
-> If you want to manage common reusable routeAction$() it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](/docs/(qwikrouter)/re-exporting-loaders/index.mdx).
+> If you want to manage common reusable routeAction$() it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](</docs/(qwikrouter)/re-exporting-loaders/index.mdx>).
 
 ```tsx title="src/routes/form/index.tsx"
 import { routeAction$ } from '@qwik.dev/router';

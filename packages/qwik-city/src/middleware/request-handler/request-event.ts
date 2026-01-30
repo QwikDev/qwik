@@ -17,7 +17,7 @@ import {
   ServerError,
   RewriteMessage,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import { encoder } from './resolve-request-handlers';
+import { encoder, getContentType } from './resolve-request-handlers';
 import type {
   CacheControl,
   CacheControlTarget,
@@ -376,7 +376,7 @@ const parseRequest = async (
   sharedMap: Map<string, any>,
   qwikSerializer: QwikSerializer
 ): Promise<JSONValue | undefined> => {
-  const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
+  const type = getContentType(request.headers);
   if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
     const formData = await request.formData();
     sharedMap.set(RequestEvSharedActionFormData, formData);

@@ -75,7 +75,8 @@ describe.each([
 
     await trigger(container.element, 'button', 'click');
 
-    // TODO this probably should not be needed
+    // TODO this should not be needed
+    await waitForDrain(container);
     await waitForDrain(container);
     await waitForDrain(container);
 

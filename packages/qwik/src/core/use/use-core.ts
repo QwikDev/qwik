@@ -110,14 +110,12 @@ export function invokeApply<FN extends (...args: any) => any>(
   args: Parameters<FN>
 ): ReturnType<FN> {
   const previousContext = _context;
-  let returnValue: ReturnType<FN>;
   try {
     _context = context;
-    returnValue = fn.apply(this, args);
+    return fn.apply(this, args);
   } finally {
     _context = previousContext;
   }
-  return returnValue;
 }
 
 const newInvokeContextFromDOM = (event: Event, element: Element) => {
@@ -136,6 +134,7 @@ export function invokeFromDOM<EL extends Element, EV extends Event>(
   captureIds: string | undefined,
   handler: (context: InvokeContext, event: EV, element: EL) => ValueOrPromise<unknown>
 ) {
+  const previousContext = _context;
   try {
     _context = newInvokeContextFromDOM(event, element);
     /**
@@ -147,7 +146,7 @@ export function invokeFromDOM<EL extends Element, EV extends Event>(
     }
     return handler(_context, event, element);
   } finally {
-    _context = undefined;
+    _context = previousContext;
   }
 }
 

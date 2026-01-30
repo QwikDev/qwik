@@ -21,6 +21,7 @@ export function callQrl(
   element: unknown,
   useGetObjectById: boolean
 ): Promise<unknown> {
+  // Note, try passing a flag to indicate iteration item so we dont have to do the lookups here
   const getObjectById = useGetObjectById ? container?.$getObjectById$ || null : null;
   const singleItem = vnode_getProp<unknown>(host, ITERATION_ITEM_SINGLE, getObjectById);
   if (singleItem !== null) {
@@ -50,20 +51,26 @@ export function _run(
       isDev && assertQrl(runQrl);
       context.$container$ ||= getDomContainer(hostElement.node as Element);
       vnode_ensureElementInflated(hostElement);
-      return retryOnPromise(() => {
-        if (!(hostElement.flags & VNodeFlags.Deleted)) {
-          return callQrl(context.$container$, hostElement, runQrl, event, element, true).catch(
-            (err) => {
-              const container = context.$container$;
-              if (container) {
-                container.handleError(err, hostElement);
-              } else {
-                throw err;
-              }
-            }
-          );
+      const container = context.$container$;
+      const handleError = (err: any) => {
+        if (container) {
+          container.handleError(err, hostElement);
+        } else {
+          throw err;
         }
-      });
+      };
+      try {
+        return retryOnPromise(() => {
+          // Check if the host element was deleted while waiting for the promise to resolve
+          if (!(hostElement.flags & VNodeFlags.Deleted)) {
+            return callQrl(context.$container$, hostElement, runQrl, event, element, true).catch(
+              handleError
+            );
+          }
+        });
+      } catch (err) {
+        handleError(err);
+      }
     }
   });
 }

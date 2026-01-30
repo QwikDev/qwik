@@ -975,6 +975,10 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
     if (module) {
       const segment = module.meta.segment as SegmentAnalysis | undefined;
       if (segment) {
+        if (['qwikify$', 'useVisibleTask$'].includes(segment.ctxName)) {
+          return null;
+        }
+
         const { hash } = segment;
 
         // We use the manual entry strategy to group segments together based on their common entry or Qwik Insights provided hash

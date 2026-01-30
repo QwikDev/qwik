@@ -1635,7 +1635,7 @@ export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T
 }
 
 // @public
-export const untrack: <T>(fn: () => T) => T;
+export const untrack: <T, A extends any[]>(expr: ((...args: A) => T) | Signal<T> | T, ...args: A) => T;
 
 // @public
 export const unwrapStore: <T>(proxy: T) => T;

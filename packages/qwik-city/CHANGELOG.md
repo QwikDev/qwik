@@ -1,5 +1,19 @@
 # @builder.io/qwik-city
 
+## 1.19.0
+
+### Minor Changes
+
+- ✨ allow mocking route loaders & actions in `QwikCityMockProvider` (by [@alexismch](https://github.com/alexismch) in [#8102](https://github.com/QwikDev/qwik/pull/8102))
+
+### Patch Changes
+
+- 🐞🩹 qwik-city spa routeStateInternal and routeLocation url origins mismatch (by [@maiieul](https://github.com/maiieul) in [#8234](https://github.com/QwikDev/qwik/pull/8234))
+
+- feat(qwik-city): add getOrigin option to QwikCityBunOptions and QwikCityDenoOptions for improved URL handling (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8251](https://github.com/QwikDev/qwik/pull/8251))
+
+- Make RequestEvents readonly instead of frozen (by [@DustinJSilk](https://github.com/DustinJSilk) in [#8135](https://github.com/QwikDev/qwik/pull/8135))
+
 ## 1.18.0
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 import { format } from 'prettier';
 
-import { expect, test, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
@@ -17,7 +17,13 @@ import { HTMLFragment, jsx } from '../jsx/jsx-runtime';
 import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import { SSRComment, SSRRaw } from '../jsx/utils.public';
-import { _renderSSR, type RenderSSROptions } from './render-ssr';
+import {
+  _renderSSR,
+  renderAttributes,
+  renderVirtualAttributes,
+  type RenderSSROptions,
+} from './render-ssr';
+import { dangerouslySetInnerHTML } from '../execute-component';
 
 test('render attributes', async () => {
   await testSSR(
@@ -1566,6 +1572,111 @@ test('AsyncResource', async () => {
       </ul>
     </body>
   </html>`
+  );
+});
+
+test('Slot name escaping', async () => {
+  await testSSR(
+    <body>
+      <SlotNameEscapingComponent>
+        <div q:slot={PAYLOAD}>Injected Content</div>
+      </SlotNameEscapingComponent>
+    </body>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
+      <body>
+        <!--qv q:id=0 q:key=sX:-->
+        <div>
+          <p>Injecting via Slot Name...</p>
+          <!--qv q:s q:sref=0 q:key=--&gt;&lt;img src=x onerror=alert(&#39;XSS&#39;)&gt;-->
+          <div q:slot="--&gt;&lt;img src=x onerror=alert(&#39;XSS&#39;)&gt;">Injected Content</div>
+          <!--/qv-->
+        </div>
+        <!--/qv-->
+      </body>
+    </html>
+    `
+  );
+});
+
+describe('renderVirtualAttributes', () => {
+  test('escapes values and handles empty props', () => {
+    const attrs = { a: 'a&<>"\'' };
+    const out = renderVirtualAttributes(attrs as any);
+    expect(out).toBe(' a=a&amp;&lt;&gt;&quot;&#39;');
+  });
+
+  test('renders boolean/empty attribute as prop without value', () => {
+    const attrs = { disabled: '' };
+    const out = renderVirtualAttributes(attrs as any);
+    expect(out).toBe(' disabled');
+  });
+
+  test('skips children and dangerouslySetInnerHTML', () => {
+    const attrs: Record<string, string> = {
+      children: 'x',
+      [dangerouslySetInnerHTML]: '<p>hi</p>',
+      foo: 'bar',
+    };
+    const out = renderVirtualAttributes(attrs as any);
+    expect(out).toBe(' foo=bar');
+  });
+
+  test('renders numeric attributes', () => {
+    const attrs = { width: 300, height: 150 };
+    const out = renderVirtualAttributes(attrs as any);
+    expect(out).toBe(' width=300 height=150');
+  });
+
+  test('renders boolean attributes', () => {
+    const attrs = { disabled: true, readonly: false, required: true };
+    const out = renderVirtualAttributes(attrs as any);
+    expect(out).toBe(' disabled=true readonly=false required=true');
+  });
+});
+
+describe('renderAttributes', () => {
+  test('escapes values and handles empty props', () => {
+    const attrs = { a: 'a&<>"\'' };
+    const out = renderAttributes(attrs as any);
+    expect(out).toBe(' a="a&amp;&lt;&gt;&quot;&#39;"');
+  });
+
+  test('renders boolean/empty attribute as prop without value', () => {
+    const attrs = { disabled: '' };
+    const out = renderAttributes(attrs as any);
+    expect(out).toBe(' disabled');
+  });
+
+  test('skips children and dangerouslySetInnerHTML', () => {
+    const attrs: Record<string, string> = {
+      [dangerouslySetInnerHTML]: '<p>hi</p>',
+      foo: 'bar',
+    };
+    const out = renderAttributes(attrs as any);
+    expect(out).toBe(' foo="bar"');
+  });
+
+  test('renders numeric attributes', () => {
+    const attrs = { width: 300, height: 150 };
+    const out = renderAttributes(attrs as any);
+    expect(out).toBe(' width="300" height="150"');
+  });
+
+  test('renders boolean attributes', () => {
+    const attrs = { disabled: true, readonly: false, required: true };
+    const out = renderAttributes(attrs as any);
+    expect(out).toBe(' disabled="true" readonly="false" required="true"');
+  });
+});
+
+const PAYLOAD = `--><img src=x onerror=alert('XSS')>`;
+export const SlotNameEscapingComponent = component$(() => {
+  return (
+    <div>
+      <p>Injecting via Slot Name...</p>
+      <Slot name={PAYLOAD} />
+    </div>
   );
 });
 

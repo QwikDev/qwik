@@ -400,32 +400,55 @@ const parseRequest = async (
   return undefined;
 };
 
-const formToObj = (formData: FormData): Record<string, any> => {
+const isDangerousKey = (k: string) => k === '__proto__' || k === 'constructor' || k === 'prototype';
+
+export const formToObj = (formData: FormData): Record<string, any> => {
   /**
    * Convert FormData to object Handle nested form input using dot notation Handle array input using
    * indexed dot notation (name.0, name.0) or bracket notation (name[]), the later is needed for
    * multiselects Create values object by form data entries
    */
-  const values = [...formData.entries()].reduce<any>((values, [name, value]) => {
-    name.split('.').reduce((object: any, key: string, index: number, keys: any) => {
-      // Backet notation for arrays, notibly for multi selects
+  const values = Object.create(null);
+
+  for (const [name, value] of formData) {
+    const keys = name.split('.');
+    let hasDangerousKey = false;
+
+    for (let i = 0; i < keys.length; i++) {
+      if (isDangerousKey(keys[i])) {
+        hasDangerousKey = true;
+        break;
+      }
+    }
+
+    if (hasDangerousKey) {
+      continue;
+    }
+
+    let object = values;
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+
+      // Bracket notation for arrays, notably for multi selects
       if (key.endsWith('[]')) {
         const arrayKey = key.slice(0, -2);
+        if (isDangerousKey(arrayKey)) {
+          break;
+        }
         object[arrayKey] = object[arrayKey] || [];
-        return (object[arrayKey] = [...object[arrayKey], value]);
+        object[arrayKey].push(value);
+        break;
       }
 
       // If it is not last index, return nested object or array
-      if (index < keys.length - 1) {
-        return (object[key] = object[key] || (Number.isNaN(+keys[index + 1]) ? {} : []));
+      if (i < keys.length - 1) {
+        object = object[key] =
+          object[key] || (Number.isNaN(+keys[i + 1]) ? Object.create(null) : []);
+      } else {
+        object[key] = value;
       }
-
-      return (object[key] = value);
-    }, values);
-
-    // Return modified values
-    return values;
-  }, {});
+    }
+  }
 
   // Return values object
   return values;

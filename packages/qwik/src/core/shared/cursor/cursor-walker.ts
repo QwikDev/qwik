@@ -130,16 +130,6 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     if (DEBUG && count++ > 1000) {
       throw new Error('Infinite loop detected in cursor walker');
     }
-    // Check time budget (only for DOM, not SSR)
-    if (!isRunningOnServer && !import.meta.env.TEST) {
-      const elapsed = performance.now() - startTime;
-      if (elapsed >= timeBudget) {
-        // Schedule continuation as macrotask to actually yield to browser
-        scheduleYield();
-        return;
-      }
-    }
-
     if (cursorData.promise) {
       return;
     }
@@ -212,6 +202,16 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
           triggerCursors();
         });
       return;
+    }
+
+    // Check time budget (only for DOM, not SSR)
+    if (!isRunningOnServer && !import.meta.env.TEST) {
+      const elapsed = performance.now() - startTime;
+      if (elapsed >= timeBudget) {
+        // Schedule continuation as macrotask to actually yield to browser
+        scheduleYield();
+        return;
+      }
     }
   }
   isDev &&

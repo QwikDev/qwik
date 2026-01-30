@@ -1,5 +1,11 @@
 # create-qwik
 
+## 1.19.0
+
+### Patch Changes
+
+- ✨ cloudflare workers deployment adapter (by [@LazyClicks](https://github.com/LazyClicks) in [#8214](https://github.com/QwikDev/qwik/pull/8214))
+
 ## 1.18.0
 
 ### Patch Changes

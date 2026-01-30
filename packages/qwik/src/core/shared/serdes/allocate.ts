@@ -55,8 +55,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return Array((value as any[]).length / 2);
     case TypeIds.Object:
       return {};
-    case TypeIds.QRL:
-    case TypeIds.PreloadQRL: {
+    case TypeIds.QRL: {
       let qrl: QRLInternal;
       if (typeof value === 'string') {
         const [chunkId, symbolId, captureIds] = value.split('#');

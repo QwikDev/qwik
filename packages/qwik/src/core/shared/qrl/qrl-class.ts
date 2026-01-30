@@ -19,6 +19,7 @@ import { p as preload } from '@qwik.dev/core/preloader';
 import { DomContainer } from '../../client/dom-container';
 import type { Container } from '../types';
 import { ElementVNode } from '../vnode/element-vnode';
+import { loading } from '../serdes/inflate';
 
 interface SyncQRLSymbol {
   $symbol$: typeof SYNC_QRL;
@@ -68,8 +69,8 @@ export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
  *
  * @internal
  */
-export let _captures: unknown[] | null = null;
-export const setCaptures = (captures: unknown[] | null) => {
+export let _captures: Readonly<unknown[]> | null = null;
+export const setCaptures = (captures: Readonly<unknown[]> | null) => {
   _captures = captures;
 };
 
@@ -80,12 +81,21 @@ export const deserializeCaptures = (container: Container, captures: string) => {
   }
   return refs;
 };
+
+/** Puts the qrl captures into `_captures`, and returns a Promise that should be awaited if possible */
 const ensureQrlCaptures = (qrl: QRLInternal) => {
-  if (typeof qrl.$captures$ === 'string') {
+  // We read the captures once, synchronously, so no need to keep previous
+  _captures = qrl.$captures$ as any;
+  if (typeof _captures === 'string') {
     if (!qrl.$container$) {
       throw qError(QError.qrlMissingContainer);
     }
-    qrl.$captures$ = deserializeCaptures(qrl.$container$, qrl.$captures$);
+    const prevLoading = loading;
+    _captures = qrl.$captures$ = deserializeCaptures(qrl.$container$, _captures);
+    if (loading !== prevLoading) {
+      // return the loading promise so callers can await it
+      return loading;
+    }
   }
 };
 
@@ -114,14 +124,12 @@ function bindFnToContext<TYPE>(
 }
 
 // Wrap functions to provide their lexical scope
-const wrapFn = <TYPE>(qrl: QRLInternal, fn: TYPE): TYPE => {
+const bindCaptures = <TYPE>(qrl: QRLInternal, fn: TYPE): TYPE => {
   if (typeof fn !== 'function' || !qrl.$captures$) {
     return fn;
   }
-  return function (this: unknown, ...args: QrlArgs<TYPE>) {
+  return function withCaptures(this: unknown, ...args: QrlArgs<TYPE>) {
     ensureQrlCaptures(qrl);
-    // We read the captures once, synchronously, so no need to keep previous
-    _captures = qrl.$captures$ as unknown[] | null;
     return fn.apply(this, args);
   } as TYPE;
 };
@@ -131,6 +139,7 @@ const makeResolveFunction = <TYPE>(
   symbolFn: () => Promise<Record<string, TYPE>>
 ) => {
   let symbolRef: ValueOrPromise<TYPE> | null;
+  // Always return a promise, even for sync QRLs
   return async (container?: Container): Promise<TYPE> => {
     if (symbolRef != null) {
       // Resolving (Promise) or already resolved (value)
@@ -138,6 +147,11 @@ const makeResolveFunction = <TYPE>(
     }
     if (container) {
       qrl.$container$ = container;
+    } else if (!qrl.$container$) {
+      const ctx = tryGetInvokeContext();
+      if (ctx?.$container$) {
+        qrl.$container$ = ctx.$container$;
+      }
     }
     if (qrl.$chunk$ === '') {
       // Sync QRL
@@ -155,7 +169,6 @@ const makeResolveFunction = <TYPE>(
     }
 
     const start = now();
-    const ctx = tryGetInvokeContext();
     const symbol = qrl.$symbol$;
     const importP = symbolFn
       ? symbolFn().then((module) => module[symbol] as TYPE)
@@ -164,16 +177,18 @@ const makeResolveFunction = <TYPE>(
           qrl.$chunk$,
           symbol
         );
+
     symbolRef = maybeThen(importP, (resolved) => {
       // We memoize the result on the symbolFn
       // Make sure not to memoize the wrapped function!
       if (symbolFn) {
         (symbolFn as any)[symbol] = resolved;
       }
-      return (symbolRef = qrl.resolved = wrapFn(qrl, resolved as TYPE));
+      return (symbolRef = qrl.resolved = bindCaptures(qrl, resolved as TYPE));
     });
 
     if (isPromise(symbolRef)) {
+      const ctx = tryGetInvokeContext();
       symbolRef.then(
         () =>
           emitUsedSymbol(
@@ -188,6 +203,12 @@ const makeResolveFunction = <TYPE>(
         }
       );
     }
+
+    // Try to deserialize captures if any
+    if (qrl.$container$) {
+      await ensureQrlCaptures(qrl);
+    }
+
     return symbolRef as TYPE;
   };
 };
@@ -235,7 +256,7 @@ export const createQRL = <TYPE>(
     }
   }
 
-  const qrl: QRLInternal<TYPE> = async function (this: unknown, ...args: QrlArgs<TYPE>) {
+  const qrl: QRLInternal<TYPE> = async function qrlFn(this: unknown, ...args: QrlArgs<TYPE>) {
     if (qrl.resolved) {
       return (qrl.resolved as any).apply(this, args);
     }
@@ -250,10 +271,11 @@ export const createQRL = <TYPE>(
 
   // Retrieve memoized result from symbolFn
   if (symbolFn && symbol in symbolFn) {
-    symbolRef = wrapFn(qrl, (symbolFn as any)[symbol] as TYPE);
+    symbolRef = (symbolFn as any)[symbol];
   }
 
-  const resolve = symbolRef != null ? async () => symbolRef : makeResolveFunction(qrl, symbolFn!);
+  const resolve =
+    symbolRef != null ? async () => symbolRef as TYPE : makeResolveFunction(qrl, symbolFn!);
 
   const hash = getSymbolHash(symbol);
 
@@ -282,11 +304,14 @@ export const createQRL = <TYPE>(
     seal(qrl);
   }
 
-  // Now that the qrl is fully constructed, we can unwrap the symbolRef
-  if (symbolRef) {
-    maybeThen(symbolRef, (resolved) => {
-      symbolRef = qrl.resolved = wrapFn(qrl, resolved);
-    });
+  // Now that the qrl is fully constructed, we can resolve/wrap the symbolRef if we received it. If it is a plain value without computed captures, the qrl will be resolved immediately.
+  if (symbolRef != null) {
+    symbolRef = maybeThen(ensureQrlCaptures(qrl), () =>
+      maybeThen(symbolRef, (resolved) => {
+        symbolRef = qrl.resolved = bindCaptures(qrl, resolved as TYPE);
+        return symbolRef;
+      })
+    );
   }
 
   if (isBrowser && symbol) {

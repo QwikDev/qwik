@@ -11,4 +11,6 @@ test("should update counter without uncaught promises", async ({ page }) => {
   await expect(button).toContainText("Click Me 0");
 
   await button.click();
+
+  await expect(button).toContainText("Click Me 1");
 });

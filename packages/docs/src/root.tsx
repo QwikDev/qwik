@@ -1,11 +1,11 @@
-import { component$, useContextProvider, useStore } from '@builder.io/qwik';
+import { component$, useContextProvider, useStore, useStyles$ } from '@builder.io/qwik';
 import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import { Insights } from '@builder.io/qwik-labs';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
 import { GlobalStore, type SiteStore } from './context';
-import './global.css';
+import styles from './global.css?inline';
 
 export const uwu = /*javascript*/ `
 ;(function () {
@@ -41,6 +41,7 @@ export const uwu = /*javascript*/ `
 `;
 
 export default component$(() => {
+  useStyles$(styles);
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,

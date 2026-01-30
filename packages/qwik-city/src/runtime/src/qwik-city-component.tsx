@@ -14,6 +14,7 @@ import {
   useStyles$,
   _waitUntilRendered,
   type QRL,
+  type ValueOrPromise,
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik';
 import * as qwikCity from '@qwik-city-plan';
@@ -31,6 +32,8 @@ import {
 import { createDocumentHead, resolveHead } from './head';
 import { loadRoute } from './routing';
 import type {
+  Action,
+  ActionInternal,
   ClientPageData,
   ContentModule,
   ContentState,
@@ -38,10 +41,13 @@ import type {
   Editable,
   EndpointResponse,
   LoadedRoute,
+  Loader,
+  LoaderInternal,
   MutableRouteLocation,
   PageModule,
   PreventNavigateCallback,
   ResolvedDocumentHead,
+  RouteActionResolver,
   RouteActionValue,
   RouteNavigate,
   RouteStateInternal,
@@ -229,7 +235,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     // which in the case of SSG may not match the actual origin the site
     // is deployed on.
     if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
-      routeInternal.value.dest = new URL(window.location.href);
+      const url = new URL(window.location.href);
+      routeInternal.value.dest = url;
+      routeLocation.url = url;
     }
 
     const lastDest = routeInternal.value.dest;
@@ -657,10 +665,67 @@ function getContainer(elm: Node): HTMLElement {
 }
 
 /** @public */
+export interface QwikCityMockLoaderProp<T = any> {
+  /** The loader function to mock. */
+  loader: Loader<T>;
+
+  /** The data to return when the loader is called. */
+  data: T;
+}
+
+/** @public */
+export interface QwikCityMockActionProp<T = any> {
+  /** The action function to mock. */
+  action: Action<T>;
+
+  /** The QRL function that will be called when the action is submitted. */
+  handler: QRL<(data: T) => ValueOrPromise<RouteActionResolver>>;
+}
+
+/** @public */
 export interface QwikCityMockProps {
+  /**
+   * Allow mocking the url returned by `useLocation` hook.
+   *
+   * Default: `http://localhost/`
+   */
   url?: string;
+
+  /** Allow mocking the route params returned by `useLocation` hook. */
   params?: Record<string, string>;
+
+  /** Allow mocking the `goto` function returned by `useNavigate` hook. */
   goto?: RouteNavigate;
+
+  /**
+   * Allow mocking data for loaders defined with `routeLoader$` function.
+   *
+   * ```
+   * [
+   *   {
+   *     loader: useProductData,
+   *     data: { product: { name: 'Test Product' } },
+   *   },
+   * ];
+   * ```
+   */
+  loaders?: Array<QwikCityMockLoaderProp<any>>;
+
+  /**
+   * Allow mocking actions defined with `routeAction$` function.
+   *
+   * ```
+   * [
+   *   {
+   *     action: useAddUser,
+   *     handler: $(async (data) => {
+   *       console.log('useAddUser action called with data:', data);
+   *     }),
+   *   },
+   * ];
+   * ```
+   */
+  actions?: Array<QwikCityMockActionProp<any>>;
 }
 
 /** @public */
@@ -677,7 +742,14 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     { deep: false }
   );
 
-  const loaderState = useSignal({});
+  const loadersData = props.loaders?.reduce(
+    (acc, { loader, data }) => {
+      acc[(loader as LoaderInternal).__id] = data;
+      return acc;
+    },
+    {} as Record<string, QwikCityMockLoaderProp['data']>
+  );
+  const loaderState = useStore(loadersData ?? {}, { deep: false });
 
   const goto: RouteNavigate =
     props.goto ??
@@ -706,6 +778,27 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
+
+  const actionsMocks = props.actions?.reduce(
+    (acc, { action, handler }) => {
+      acc[(action as ActionInternal).__id] = handler;
+      return acc;
+    },
+    {} as Record<string, QwikCityMockActionProp['handler']>
+  );
+
+  useTask$(async ({ track }) => {
+    const action = track(actionState);
+    if (!action?.resolve) {
+      return;
+    }
+
+    const mock = actionsMocks?.[action.id];
+    if (mock) {
+      const actionResult = await mock(action.data);
+      action.resolve(actionResult);
+    }
+  });
 
   return <Slot />;
 });

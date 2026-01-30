@@ -279,7 +279,7 @@ const renderNodeVirtual = (
   }
   let virtualComment = '<!--qv' + renderVirtualAttributes(props as any);
   const isSlot = QSlotS in props;
-  const key = node.key != null ? String(node.key) : null;
+  const key = node.key != null ? escapeHtml(String(node.key)) : null;
   if (isSlot) {
     assertDefined(rCtx.$cmpCtx$?.$id$, 'hostId must be defined for a slot');
     virtualComment += ' q:sref=' + rCtx.$cmpCtx$.$id$;
@@ -335,7 +335,7 @@ const renderNodeVirtual = (
 
 const CLOSE_VIRTUAL = `<!--/qv-->`;
 
-const renderAttributes = (attributes: Record<string, string>): string => {
+export const renderAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop in attributes) {
     if (prop === dangerouslySetInnerHTML) {
@@ -343,13 +343,13 @@ const renderAttributes = (attributes: Record<string, string>): string => {
     }
     const value = attributes[prop];
     if (value != null) {
-      text += ' ' + (value === '' ? prop : prop + '="' + value + '"');
+      text += ' ' + (value === '' ? prop : prop + '="' + escapeValue(value) + '"');
     }
   }
   return text;
 };
 
-const renderVirtualAttributes = (attributes: Record<string, string>): string => {
+export const renderVirtualAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop in attributes) {
     if (prop === 'children' || prop === dangerouslySetInnerHTML) {
@@ -357,7 +357,7 @@ const renderVirtualAttributes = (attributes: Record<string, string>): string => 
     }
     const value = attributes[prop];
     if (value != null) {
-      text += ' ' + (value === '' ? prop : prop + '=' + value + '');
+      text += ' ' + (value === '' ? prop : prop + '=' + escapeValue(value) + '');
     }
   }
   return text;
@@ -485,12 +485,13 @@ const renderSSRComponent = (
         let missingSlotsDone;
         if (projectedChildren) {
           const nodes = Object.keys(projectedChildren).map((slotName) => {
-            const content = projectedChildren[slotName];
+            const escapedSlotName = slotName ? escapeHtml(slotName) : slotName;
+            const content = projectedChildren[escapedSlotName];
             // projectedChildren[slotName] = undefined;
             if (content) {
               return _jsxQ(
                 'q:template',
-                { [QSlot]: slotName || true, hidden: true, 'aria-hidden': 'true' },
+                { [QSlot]: escapedSlotName || true, hidden: true, 'aria-hidden': 'true' },
                 null,
                 content,
                 0,
@@ -521,7 +522,7 @@ const splitProjectedChildren = (children: JSXChildren, ssrCtx: SSRContext) => {
   for (const child of flatChildren) {
     let slotName = '';
     if (isJSXNode(child)) {
-      slotName = (child.props[QSlot] as string) || '';
+      slotName = escapeHtml((child.props[QSlot] as string) || '');
     }
     (slotMap[slotName] ||= []).push(child);
   }
@@ -1193,6 +1194,13 @@ const ESCAPE_HTML = /[&<>'"]/g;
 
 export const registerQwikEvent = (prop: string, containerState: ContainerState) => {
   containerState.$events$.add(getEventName(prop));
+};
+
+const escapeValue = (value: any) => {
+  if (typeof value === 'string') {
+    return escapeHtml(value);
+  }
+  return value;
 };
 
 const escapeHtml = (s: string) => {

@@ -355,7 +355,7 @@ test.each(cases)('should render card with %s %s', async ({text, link}) => {
 });
 ```
 
-> a `goto` prop can be passed to customize the `navigate` behavior during tests
+> A `goto` prop can be passed to customize the `navigate` behavior during tests
 
 ```tsx title="src/components/button.spec.tsx"
 import { $ } from '@builder.io/qwik';
@@ -380,6 +380,82 @@ test('should render the button and navigate', async () => {
   expect(screen.innerHTML).toMatchSnapshot();
   await userEvent('#button', 'click');
   expect(goto).toHaveBeenCalled();
+});
+```
+
+> If you are using `routeLoader$`s in a Qwik Component that you want to test, you can provide a `loaders` prop to mock the data returned by the loaders
+
+```ts title="src/loaders/product.loader.ts"
+import { routeLoader$ } from '@builder.io/qwik-city';
+
+export const useProductData = routeLoader$(async () => {
+  const res = await fetch('https://.../product');
+  const product = (await res.json()) as Product;
+  return product;
+});
+```
+
+```tsx title="src/components/product.tsx"
+import { component$ } from '@builder.io/qwik';
+
+import { useProductData } from '../loaders/product.loader';
+
+export const Footer = component$(() => {
+  const signal = useProductData();
+  return <footer>Product name: {signal.value.product.name}</footer>;
+});
+```
+
+```tsx title="src/components/product.spec.tsx"
+import { createDOM } from '@builder.io/qwik/testing';
+import { test, expect } from 'vitest';
+
+import { Footer } from './product';
+import { useProductData } from '../loaders/product.loader';
+
+test('should render footer with product name', async () => {
+  const { screen, render } = await createDOM();
+  const loadersMock = [
+    {
+      loader: useProductData,
+      data: { product: { name: 'Test Product' } },
+    },
+  ];
+  await render(
+    <QwikCityMockProvider loaders={loadersMock}>
+      <Footer />
+    </QwikCityMockProvider>,
+  );
+  expect(screen.innerHTML).toMatchSnapshot();
+});
+```
+
+> The same approach can be used to mock `routeAction$`s by providing an `actions` prop to the `QwikCityMockProvider`
+
+```tsx title="src/components/user-form.spec.tsx"
+import { $ } from '@builder.io/qwik';
+import { createDOM } from '@builder.io/qwik/testing';
+import { test, expect } from 'vitest';
+
+import { UserForm } from './user-form';
+import { useAddUser } from '../loaders/add-user.action';
+
+test('should call addUser action with correct data', async () => {
+  const { screen, render } = await createDOM();
+  const actionsMock = [
+    {
+      action: useAddUser,
+      handler: $(async (data) => {
+        console.log('useAddUser action called with data:', data);
+      }),
+    },
+  ];
+  await render(
+    <QwikCityMockProvider actions={actionsMock}>
+      <UserForm />
+    </QwikCityMockProvider>,
+  );
+  expect(screen.innerHTML).toMatchSnapshot();
 });
 ```
 

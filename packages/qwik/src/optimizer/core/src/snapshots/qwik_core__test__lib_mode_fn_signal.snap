@@ -22,9 +22,9 @@ expression: output
 
 ============================= test.tsx_Counter_component_div_p_button_on_click_z7xlsL20tDc.ts (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const Counter_component_div_p_button_on_click_z7xlsL20tDc = ()=>{
-    const [count] = useLexicalScope();
+    const count = _captures[0];
     return count.value++;
 };
 

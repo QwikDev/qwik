@@ -45,6 +45,8 @@ import {
 import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 
+export let loading = Promise.resolve();
+
 export const inflate = (
   container: DeserializeContainer,
   target: unknown,
@@ -73,13 +75,6 @@ export const inflate = (
         const key = (data as string[])[i];
         const value = (data as unknown[])[i + 1];
         (target as Record<string, unknown>)[key] = value;
-      }
-      break;
-    case TypeIds.QRL:
-    case TypeIds.PreloadQRL:
-      _inflateQRL(container, target as QRLInternal<any>);
-      if (typeId === TypeIds.PreloadQRL) {
-        (target as QRLInternal<any>).resolve();
       }
       break;
     case TypeIds.Task:
@@ -194,6 +189,15 @@ export const inflate = (
         unknown?,
       ];
       computed.$computeQrl$ = d[0];
+      /**
+       * If we try to compute value and the qrl is not resolved, then system throws an error with
+       * the resolve promise. To prevent that we load it now and qrls wait for the loading to
+       * finish.
+       */
+      const p = computed.$computeQrl$.resolve(container as any).catch(() => {
+        // ignore preload errors
+      });
+      loading = loading.finally(() => p);
       computed[_EFFECT_BACK_REF] = d[1];
       if (d[2]) {
         computed.$effects$ = new Set(d[2]);
@@ -207,14 +211,6 @@ export const inflate = (
         }
       } else {
         computed.$flags$ |= SignalFlags.INVALID;
-        /**
-         * If we try to compute value and the qrl is not resolved, then system throws an error with
-         * qrl promise. To prevent that we should early resolve computed qrl while computed
-         * deserialization. This also prevents anything from firing while computed qrls load,
-         * because of scheduler
-         */
-        // try to download qrl in this tick
-        computed.$computeQrl$.resolve();
       }
       break;
     }
@@ -334,20 +330,6 @@ export const _eagerDeserializeArray = (
   }
   return output;
 };
-export function _inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
-  if (qrl.$captureRef$) {
-    // early return if capture references are already set and qrl is already inflated
-    return qrl;
-  }
-  const captureIds = qrl.$capture$;
-  qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
-  // clear serialized capture references
-  qrl.$capture$ = null;
-  if (container.element) {
-    qrl.$setContainer$(container.element);
-  }
-  return qrl;
-}
 export function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
   if (typeId === TypeIds.Plain) {
     return value;

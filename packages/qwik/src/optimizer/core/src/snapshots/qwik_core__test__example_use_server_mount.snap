@@ -47,11 +47,11 @@ export const Child = component$(() => {
 
 ============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js ==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
 export const Parent_component_useTask_gDH1EtUWqBU = async ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     state.text = await mongo.users();
     redis.set(state.text);
 };
@@ -94,10 +94,10 @@ export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9GyF01GDKqw,
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,MAAM,uBAAS,+EAgBnB;AAEH,OAAO,MAAM,sBAAQ,8EAelB\"}")
 ============================= test.tsx_Child_component_useTask_Oh4n7ZeqJkU.js ==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 export const Child_component_useTask_Oh4n7ZeqJkU = async ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     state.text = await mongo.users();
 };
 

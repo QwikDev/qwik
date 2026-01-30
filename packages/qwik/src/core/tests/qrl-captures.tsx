@@ -14,7 +14,7 @@ Error.stackTraceLimit = 100;
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
-])('$render.name: useLexicalScope', ({ render }) => {
+])('$render.name: QRL captures', ({ render }) => {
   it('should update const prop event value', async () => {
     type Cart = string[];
 

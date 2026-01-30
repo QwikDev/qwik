@@ -1,8 +1,7 @@
-import { getDomContainer } from '../client/dom-container';
 import { BackRef } from '../reactive-primitives/backref';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
-import { type QRLInternal } from '../shared/qrl/qrl-class';
+import { _captures, type QRLInternal } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { type NoSerialize } from '../shared/serdes/verify';
@@ -12,8 +11,7 @@ import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
-import { newInvokeContext } from './use-core';
-import { useLexicalScope } from './use-lexical-scope.public';
+import { invokeFromDOM, newInvokeContext } from './use-core';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupDestroyable } from './utils/destroyable';
@@ -231,9 +229,10 @@ export const isTask = (value: any): value is Task => {
  *
  * @internal
  */
-export const scheduleTask = (_event: Event, element: Element) => {
-  const [task] = useLexicalScope<[Task]>();
-  const container = getDomContainer(element);
-  task.$flags$ |= TaskFlags.DIRTY;
-  markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
-};
+export function scheduleTask(this: string | undefined, _event: Event, element: Element) {
+  invokeFromDOM(element, _event, this, (context) => {
+    const task = _captures![0] as Task;
+    task.$flags$ |= TaskFlags.DIRTY;
+    markVNodeDirty(context.$container$!, task.$el$, ChoreBits.TASKS);
+  });
+}

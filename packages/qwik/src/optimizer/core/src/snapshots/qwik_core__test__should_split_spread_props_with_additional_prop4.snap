@@ -64,9 +64,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_test_component_button_on_click_6pPnWSWL0tY.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const test_component_button_on_click_6pPnWSWL0tY = ()=>{
-    const [props] = useLexicalScope();
+    const props = _captures[0];
     return props.onClick$();
 };
 

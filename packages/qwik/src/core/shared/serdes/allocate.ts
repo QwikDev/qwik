@@ -19,6 +19,7 @@ import { componentQrl } from '../component.public';
 import { qError, QError } from '../error/error';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy } from '../jsx/props-proxy';
+import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
 import type { ElementVNode } from '../vnode/element-vnode';
@@ -54,17 +55,19 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return Array((value as any[]).length / 2);
     case TypeIds.Object:
       return {};
-    case TypeIds.QRL:
-    case TypeIds.PreloadQRL: {
+    case TypeIds.QRL: {
+      let qrl: QRLInternal;
       if (typeof value === 'string') {
-        const data = value.split(' ').map(Number);
-        const chunk = container.$getObjectById$(data[0]) as string;
-        const symbol = container.$getObjectById$(data[1]) as string;
-        const captureIds = data.length > 2 ? data.slice(2) : null;
-        return createQRLWithBackChannel(chunk, symbol, captureIds);
+        const [chunkId, symbolId, captureIds] = value.split('#');
+        const chunk = container.$getObjectById$(chunkId) as string;
+        const symbol = container.$getObjectById$(symbolId) as string;
+        qrl = createQRLWithBackChannel(chunk, symbol, captureIds || null);
       } else {
-        return createQRLWithBackChannel('', String(value));
+        // Sync qrl
+        qrl = createQRLWithBackChannel('', String(value), null);
       }
+      qrl.$container$ = container as DomContainer;
+      return qrl;
     }
     case TypeIds.Task:
       return new Task(-1, -1, null!, null!, null!, null);

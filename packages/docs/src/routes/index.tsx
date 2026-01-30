@@ -16,7 +16,6 @@ const builderContent = `<!--cq--><div q:container="paused" q:version="0.100.0" q
 
 main{
     overflow-x: hidden!important;
-    margin-top: -80px!important;
 }
 
 header{
@@ -34,7 +33,6 @@ header{
 
 main{
     overflow-x: hidden!important;
-    margin-top: -80px!important;
 }
 
 header{

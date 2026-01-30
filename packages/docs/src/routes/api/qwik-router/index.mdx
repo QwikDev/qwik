@@ -1386,20 +1386,6 @@ QWIK_ROUTER_SCROLLER = "_qRouterScroller";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikCityMockProps
-
-> Warning: This API is now obsolete.
->
-> Use `QwikRouterMockProps` instead. will be removed in V3
-
-```typescript
-export type QwikCityMockProps = QwikRouterMockProps;
-```
-
-**References:** [QwikRouterMockProps](#qwikroutermockprops)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
-
 ## QwikCityMockProvider
 
 > Warning: This API is now obsolete.
@@ -1671,6 +1657,120 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+## QwikRouterMockActionProp
+
+```typescript
+export interface QwikRouterMockActionProp<T = any>
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[action](./router.qwikroutermockactionprop.action.md)
+
+</td><td>
+
+</td><td>
+
+[Action](#action)&lt;T&gt;
+
+</td><td>
+
+The action function to mock.
+
+</td></tr>
+<tr><td>
+
+[handler](./router.qwikroutermockactionprop.handler.md)
+
+</td><td>
+
+</td><td>
+
+QRL&lt;(data: T) =&gt; ValueOrPromise&lt;RouteActionResolver&gt;&gt;
+
+</td><td>
+
+The QRL function that will be called when the action is submitted.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
+
+## QwikRouterMockLoaderProp
+
+```typescript
+export interface QwikRouterMockLoaderProp<T = any>
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[data](./router.qwikroutermockloaderprop.data.md)
+
+</td><td>
+
+</td><td>
+
+T
+
+</td><td>
+
+The data to return when the loader is called.
+
+</td></tr>
+<tr><td>
+
+[loader](./router.qwikroutermockloaderprop.loader.md)
+
+</td><td>
+
+</td><td>
+
+[Loader](#loader_2)&lt;T&gt;
+
+</td><td>
+
+The loader function to mock.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
+
 ## QwikRouterMockProps
 
 ```typescript
@@ -1696,6 +1796,32 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[actions?](./router.qwikroutermockprops.actions.md)
+
+</td><td>
+
+</td><td>
+
+Array&lt;[QwikRouterMockActionProp](#qwikroutermockactionprop)&lt;any&gt;&gt;
+
+</td><td>
+
+_(Optional)_ Allow mocking actions defined with `routeAction$` function.
+
+```
+[
+  {
+    action: useAddUser,
+    handler: $(async (data) => {
+      console.log('useAddUser action called with data:', data);
+    }),
+  },
+];
+```
+
+</td></tr>
+<tr><td>
+
 [goto?](./router.qwikroutermockprops.goto.md)
 
 </td><td>
@@ -1706,7 +1832,31 @@ Description
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Allow mocking the `goto` function returned by `useNavigate` hook.
+
+</td></tr>
+<tr><td>
+
+[loaders?](./router.qwikroutermockprops.loaders.md)
+
+</td><td>
+
+</td><td>
+
+Array&lt;[QwikRouterMockLoaderProp](#qwikroutermockloaderprop)&lt;any&gt;&gt;
+
+</td><td>
+
+_(Optional)_ Allow mocking data for loaders defined with `routeLoader$` function.
+
+```
+[
+  {
+    loader: useProductData,
+    data: { product: { name: 'Test Product' } },
+  },
+];
+```
 
 </td></tr>
 <tr><td>
@@ -1721,7 +1871,7 @@ Record&lt;string, string&gt;
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Allow mocking the route params returned by `useLocation` hook.
 
 </td></tr>
 <tr><td>
@@ -1736,7 +1886,9 @@ string
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Allow mocking the url returned by `useLocation` hook.
+
+Default: `http://localhost/`
 
 </td></tr>
 </tbody></table>

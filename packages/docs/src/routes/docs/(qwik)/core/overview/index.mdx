@@ -90,6 +90,58 @@ const Child = component$(() => {
 
 > Notice that Qwik components are already lazy loaded thanks to the `$` sign. That means that you don't need to dynamically import the child component manually, Qwik will do it for you.
 
+### Dot Notation Components
+
+While you cannot directly attach properties to a component created with `component$` (e.g. `Scene.Title = Title`), you can achieve dot-notation by using ES module exports or barrel files.
+
+#### Using Barrel Files
+
+Create an `index.ts` file in your component directory to group related components:
+
+```tsx
+// components/scene/index.ts
+export { SceneComponent as Root } from './scene-root';
+export { SceneTitle as Title } from './scene-title';
+```
+
+Then, you can import and use them with dot notation:
+
+```tsx
+import * as Scene from './components/scene';
+
+export default component$(() => {
+  return (
+    <Scene.Root>
+      <Scene.Title>ACT III Scene II</Scene.Title>
+    </Scene.Root>
+  );
+});
+```
+
+#### Exporting as Namespace
+
+You can also export all sub-components from a directory as a single namespace:
+
+```tsx
+// components/ui/index.ts
+export * as Select from './select';
+export * as Accordion from './accordion';
+```
+
+And use it like so:
+
+```tsx
+import { Select } from './components/ui';
+
+export default component$(() => {
+  return (
+    <Select.Root>
+      <Select.Item>Option 1</Select.Item>
+    </Select.Root>
+  );
+});
+```
+
 ### Counter Example
 
 A slightly more complex example of a counter.

@@ -31,6 +31,7 @@ const QWIKROUTER_GROUP = [
   'caching',
   'endpoints',
   'error-handling',
+  'guides',
   'html-attributes',
   'layout',
   'middleware',

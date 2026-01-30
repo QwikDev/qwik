@@ -1,5 +1,6 @@
 export type { FormSubmitCompletedDetail as FormSubmitSuccessDetail } from './form-component';
 
+export type { Q_ROUTE } from './constants';
 export type {
   Action,
   ActionConstructor,
@@ -47,7 +48,6 @@ export type {
   ValidatorErrorType,
   ZodConstructor,
 } from './types';
-export type { Q_ROUTE } from './constants';
 
 export { ErrorBoundary } from './error-boundary';
 export { Link, type LinkProps } from './link-component';
@@ -59,8 +59,9 @@ export {
   QwikRouterMockProvider,
   QwikRouterProvider,
   useQwikRouter,
-  type QwikCityMockProps,
   type QwikCityProps,
+  type QwikRouterMockActionProp,
+  type QwikRouterMockLoaderProp,
   type QwikRouterMockProps,
   type QwikRouterProps,
 } from './qwik-router-component';

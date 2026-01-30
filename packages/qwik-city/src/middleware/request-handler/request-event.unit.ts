@@ -80,6 +80,60 @@ describe('request-event redirect', () => {
     );
   });
 
+  it('should fix protocol-relative URL redirects starting with //', () => {
+    const requestEv = createMockRequestEvent();
+
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = requestEv.redirect(302, '//evil.com');
+
+    expect(result).toBeInstanceOf(RedirectMessage);
+    expect(requestEv.headers.get('Location')).toBe('/evil.com');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Redirect URL //evil.com is invalid, fixing to /evil.com'
+    );
+  });
+
+  it('should fix protocol-relative URL redirects with trailing path', () => {
+    const requestEv = createMockRequestEvent();
+
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = requestEv.redirect(302, '//evil.com/path');
+
+    expect(result).toBeInstanceOf(RedirectMessage);
+    expect(requestEv.headers.get('Location')).toBe('/evil.com/path');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Redirect URL //evil.com/path is invalid, fixing to /evil.com/path'
+    );
+  });
+
+  it('should fix URLs with multiple leading slashes', () => {
+    const requestEv = createMockRequestEvent();
+
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = requestEv.redirect(302, '////evil.com');
+
+    expect(result).toBeInstanceOf(RedirectMessage);
+    expect(requestEv.headers.get('Location')).toBe('/evil.com');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Redirect URL ////evil.com is invalid, fixing to /evil.com'
+    );
+  });
+
+  it('should preserve valid URLs with protocols', () => {
+    const requestEv = createMockRequestEvent();
+
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = requestEv.redirect(302, 'https://qwik.dev');
+
+    expect(result).toBeInstanceOf(RedirectMessage);
+    expect(requestEv.headers.get('Location')).toBe('https://qwik.dev');
+    expect(consoleSpy).not.toHaveBeenCalled();
+  });
+
   it('should throw error when trying to redirect after headers are sent', () => {
     const requestEv = createMockRequestEvent();
 

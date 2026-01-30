@@ -379,11 +379,21 @@ async function runServerFunction(ev: RequestEvent) {
   }
 }
 
-function fixTrailingSlash(ev: RequestEvent) {
+export function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
   const { basePathname, originalUrl, sharedMap } = ev;
   const { pathname, search } = originalUrl;
   const isQData = sharedMap.has(IsQData);
+
+  if (
+    // all valid pathnames must start with a single slash
+    !pathname.startsWith('/') ||
+    // protocol-relative URLs are not allowed like: //test.com, ///bad.com
+    pathname.startsWith('//')
+  ) {
+    return;
+  }
+
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {

@@ -7,7 +7,8 @@ contributors:
   - tzdesign
   - Benny-Nottonson
   - mrhoodz
-updated_at: '2023-10-08T10:16:44Z'
+  - wmertens
+updated_at: '2025-11-23T00:00:00Z'
 created_at: '2023-04-19T22:13:46Z'
 ---
 
@@ -71,103 +72,36 @@ Our recommendation is to use a tool that would provide a runtime approach on the
 
 ## Internationalization Libraries
 
-### $localize
+### Paraglide JS
 
-[$localize](https://angular.io/api/localize/init/$localize) the translation system is based on the $localize system from [Angular](https://angular.io/). The translations can be extracted in xmb, xlf, xlif, xliff, xlf2, xlif2, xliff2, and json formats.
+[Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs) is a compile-time translation library that generates type-safe translation functions from standard message format messages.
 
->NOTE: The $localize system is a compile-time translation system and is completely removed from the final output. $localize is a sub-project of Angular, and including its usage does not mean that Angular is used for rendering of applications.
+#### Advantages
+- **Tiny Runtime Overhead**: Translations are compiled to trivial functions.
+- **Framework Agnostic**: Can be used with various frameworks, even within the same project.
+- **Type-Safe Translations**: Generates type-safe functions for translations, reducing runtime errors
+- **Lazy Loading**: Only the translations used by the application are bundled, optimizing bundle size.
+- **Standard Message Format**: Supports complex message formatting using the widely adopted ICU message format.
+- **Developed ecosystem**: Part of the inlang ecosystem, which provides additional tools and integrations for managing translations.
+#### Disadvantages
+- **Ships all languages**: The translations for all languages are included in the single build output, which may increase the overall bundle size.
+- **No runtime features**: Lacks the possibility to add messages at runtime.
 
-The easiest way to add $localize to Qwik is using the Qwik CLI command. This will install the required dependencies and create a new public route `/src/routes/[locale]` showcasing i18n $localize integration.
+#### Installation
+The easiest way to add Paraglide JS to Qwik is by following the [official guide for Vite](https://inlang.com/m/gerre34r/library-inlang-paraglideJs/vite).
 
-<PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add localize
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add localize
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add localize
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add localize
-```
-</span>
-</PackageManagerTabs>
+For further features like language switching and automatic translations, check the [documentation](https://inlang.com/m/gerre34r/library-inlang-paraglideJs).
 
-For further reference, please check this [example repo](https://github.com/mhevery/qwik-i18n).
+#### Usage
+Use the generated functions in your code:
 
-#### Extract translations
+```tsx
+import * as m from './src/paraglide/messages'
+import { component$ } from '@builder.io/qwik';
 
-When you are done with your changes, you can use the `i18n-extract` command to extract the translations from the code. 
-This will update the file you see in `package.json`.
-
-<PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run i18n-extract
-```
-</span>
-<span q:slot="npm">
-```shell
-npm run i18n-extract
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run i18n-extract
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run i18n-extract
-```
-</span>
-</PackageManagerTabs>
-
-#### Auto translations for $localize with deepl
-
-For auto translations, you can use the [deepl-localize](https://www.npmjs.com/package/deepl-localize) package. It will automatically translate your strings using the [deepl.com](https://deepl.com/) API.
-
-Use the `deepl-localize` command to translate your strings with:
-
-<PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm dlx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
-```
-</span>
-<span q:slot="npm">
-```shell
-npx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn dlx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
-```
-</span>
-<span q:slot="bun">
-```shell
-bunx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
-```
-</span>
-</PackageManagerTabs>
-
-Alternatively, you can use the `deepl-localize` command to translate your strings within your script section:
-```json
-{
-  "scripts":{
-    "translate":"deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a 'your-deepl-api-key'"
-  }
-}
+export default component$(() => {
+  return <p>{m.hello({name: 'World'})}</p>
+})
 ```
 
 ### compiled-i18n
@@ -176,12 +110,76 @@ Alternatively, you can use the `deepl-localize` command to translate your string
 
 It supports both runtime and compile-time translations.
 
-See the [Qwik-specific instructions](https://github.com/wmertens/compiled-i18n/blob/main/docs/qwik.md).
+#### Advantages
+- **Zero Runtime Overhead (Compile-time mode)**: Translations are inlined at build time, resulting in no runtime cost for lookups.
+- **Simplicity**: Minimal setup. Simple template string function API.
+- **Framework Agnostic**: Can be used with various frameworks, even within the same project.
+- **Flexible Approach**: Supports both runtime and compile-time modes, allowing developers to choose based on their needs.
+- **Per-locale builds**: Compile-time mode inlines translations, eliminating runtime lookups. Server code includes all languages, simplifying deployment.
+- **Automatic extraction**: Automatically adds new keys to translation files during build, and warns about missing and/or unused translations.
+
+#### Disadvantages
+- **Per-locale builds**: Compile-time mode requires separate builds for each locale, complicating deployment.
+
+#### Installation
+Run `npx qwik add compiled-i18n` to add compiled-i18n to your Qwik app.
+
+See the [Qwik-specific instructions](https://github.com/wmertens/compiled-i18n/blob/main/docs/qwik.md) for more details.
 
 Automatic translation is supported via [deepl-localize](https://github.com/tzdesign/deepl-localize).
+
+For further explanation of the API and features like pluralization, check the [documentation](https://github.com/wmertens/compiled-i18n/blob/main/Readme.md).
+
+#### Usage
+Use the template string function anywhere in your code:
+
+```tsx
+import {_} from 'compiled-i18n'
+
+console.log(_`Logenv ${process.env.NODE_ENV}`)
+
+export const Count = ({count}) => (
+	<div title={_`countTitle`}>{_`${count} items`}</div>
+)
+```
 
 ### qwik-speak
 
 [qwik-speak](https://github.com/robisim74/qwik-speak) library to translate texts, dates and numbers in Qwik apps.
 
+#### Advantages
+- **Runtime Flexibility**: Allows dynamic language switching without page reloads, improving user experience.
+- **Qwik-Optimized**: Deep integration with Qwik's reactivity system and serialization.
+- **Rich Features**: Supports advanced formatting including dates, numbers, Pluralization, and ICU message format.
+
+#### Disadvantages
+- **Runtime Overhead**: Requires loading translation maps at runtime, which can increase bundle size and initial load time.
+- **Limited Compiler Benefits**: Doesn't provide the same compile-time optimizations and tree-shaking as pure compile-time solutions.
+
+#### Installation
+
 The easiest way to add qwik-speak to Qwik is following the official [guide](https://github.com/robisim74/qwik-speak/blob/main/docs/quick-start.md).
+
+#### Usage
+
+```tsx
+import { component$, useStore } from '@builder.io/qwik';
+import { Speak, useSpeakContext } from 'qwik-speak';
+
+export default component$(() => {
+  const speak = useSpeakContext();
+  const state = useStore({ count: 0 });
+
+  return (
+    <Speak>
+      <div>
+        <h1>{speak.t('helloWorld')}</h1>
+        <p>{speak.t('itemCount', { count: state.count })}</p>
+        <button onClick$={() => state.count++}>
+          {speak.t('increment')}
+        </button>
+      </div>
+    </Speak>
+  );
+});
+```

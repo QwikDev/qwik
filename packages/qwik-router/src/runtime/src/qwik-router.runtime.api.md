@@ -29,6 +29,7 @@ import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handl
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type * as v from 'valibot';
 import type { ValueOrPromise } from '@qwik.dev/core';
+import { ValueOrPromise as ValueOrPromise_2 } from '@qwik.dev/core/internal';
 import { z } from 'zod';
 import type * as z_2 from 'zod';
 
@@ -310,9 +311,6 @@ export const QWIK_CITY_SCROLLER = "_qCityScroller";
 export const QWIK_ROUTER_SCROLLER = "_qRouterScroller";
 
 // @public @deprecated (undocumented)
-export type QwikCityMockProps = QwikRouterMockProps;
-
-// @public @deprecated (undocumented)
 export const QwikCityMockProvider: Component<QwikRouterMockProps>;
 
 // @public @deprecated (undocumented)
@@ -359,12 +357,24 @@ export interface QwikRouterEnvData {
 }
 
 // @public (undocumented)
+export interface QwikRouterMockActionProp<T = any> {
+    action: Action<T>;
+    // Warning: (ae-forgotten-export) The symbol "RouteActionResolver" needs to be exported by the entry point index.d.ts
+    handler: QRL<(data: T) => ValueOrPromise_2<RouteActionResolver>>;
+}
+
+// @public (undocumented)
+export interface QwikRouterMockLoaderProp<T = any> {
+    data: T;
+    loader: Loader_2<T>;
+}
+
+// @public (undocumented)
 export interface QwikRouterMockProps {
-    // (undocumented)
+    actions?: Array<QwikRouterMockActionProp<any>>;
     goto?: RouteNavigate;
-    // (undocumented)
+    loaders?: Array<QwikRouterMockLoaderProp<any>>;
     params?: Record<string, string>;
-    // (undocumented)
     url?: string;
 }
 

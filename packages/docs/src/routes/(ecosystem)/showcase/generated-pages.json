@@ -653,5 +653,294 @@
       "ttiTime": 1051
     },
     "version": "1.8.0"
+  },
+  {
+    "href": "https://abn.ooo/",
+    "ts": 1763307602884,
+    "title": "Abner Rodrigues - Creative Developer",
+    "imgSrc": "/showcases/abn_ooo_.jpeg",
+    "perf": {
+      "score": 0.81,
+      "clsScore": null,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.91,
+      "lcpDisplay": "4.6 s",
+      "lcpScore": 0.35,
+      "ttiDisplay": "4.6 s",
+      "ttiScore": 0.81,
+      "ttiTime": 4583.5
+    },
+    "version": "1.13.0-dev+97aa67d"
+  },
+  {
+    "href": "https://ale.gimona.it/",
+    "ts": 1763307628088,
+    "title": "Ale",
+    "imgSrc": "/showcases/ale_gimona_it_.jpeg",
+    "perf": {
+      "score": 0.94,
+      "clsScore": null,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.96,
+      "ttiDisplay": "2.1 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2101
+    },
+    "version": "2.0.0-beta.8-dev+434cd18"
+  },
+  {
+    "href": "https://amo.co/",
+    "ts": 1763307645182,
+    "title": "Welcome to amo",
+    "imgSrc": "/showcases/amo_co_.jpeg",
+    "perf": {
+      "score": 0.92,
+      "inpMs": 56,
+      "clsScore": 0,
+      "ttfbMs": 1383,
+      "fcpDisplay": "2.0 s",
+      "fcpScore": 0.84,
+      "lcpDisplay": "3.1 s",
+      "lcpScore": 0.74,
+      "ttiDisplay": "3.1 s",
+      "ttiScore": 0.95,
+      "ttiTime": 3123.926980000001
+    },
+    "version": "1.2.17"
+  },
+  {
+    "href": "https://bato.si/",
+    "ts": 1763307668227,
+    "title": "BATOTO - Read Free Manga Online",
+    "imgSrc": "/showcases/bato_si_.jpeg",
+    "perf": {
+      "score": 0.55,
+      "inpMs": 161,
+      "clsScore": 0.16,
+      "ttfbMs": 895,
+      "fcpDisplay": "39.2 s",
+      "fcpScore": 0,
+      "lcpDisplay": "55.2 s",
+      "lcpScore": 0,
+      "ttiDisplay": "56.2 s",
+      "ttiScore": 0,
+      "ttiTime": 56176.37287888823
+    },
+    "version": "1.11.0"
+  },
+  {
+    "href": "https://www.brainrush.fun/",
+    "ts": 1763307690911,
+    "title": "Play Brain Games Online | Weekly Memory & Logic Puzzles",
+    "imgSrc": "/showcases/www_brainrush_fun_.jpeg",
+    "perf": {
+      "score": 1,
+      "clsScore": null,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 1,
+      "lcpDisplay": "1.1 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.1 s",
+      "ttiScore": 1,
+      "ttiTime": 1065
+    },
+    "version": "2.0.0-beta.7-dev+2dd89a6"
+  },
+  {
+    "href": "https://jobibox.fr/",
+    "ts": 1763307717782,
+    "title": "Jobibox",
+    "imgSrc": "/showcases/jobibox_fr_.jpeg",
+    "perf": {
+      "score": 0.99,
+      "clsScore": null,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.9 s",
+      "lcpScore": 0.98,
+      "ttiDisplay": "1.9 s",
+      "ttiScore": 1,
+      "ttiTime": 1885.5674405584878
+    },
+    "version": "1.15.0"
+  },
+  {
+    "href": "https://www.le-cv-du-bantu.com/",
+    "ts": 1763307745355,
+    "title": "Yves Romuald BAHOKEN – Fullstack JS Developer | Portfolio",
+    "imgSrc": "/showcases/www_le-cv-du-bantu_com_.jpeg",
+    "perf": {
+      "score": 0.65,
+      "clsScore": null,
+      "fcpDisplay": "2.9 s",
+      "fcpScore": 0.53,
+      "lcpDisplay": "9.6 s",
+      "lcpScore": 0,
+      "ttiDisplay": "9.6 s",
+      "ttiScore": 0.29,
+      "ttiTime": 9602.188489749846
+    },
+    "version": "1.13.0-dev+97aa67d"
+  },
+  {
+    "href": "https://qwik-pokedex.vercel.app/en",
+    "ts": 1763307763972,
+    "title": "Pokedex",
+    "imgSrc": "/showcases/qwik-pokedex_vercel_app_en.jpeg",
+    "perf": {
+      "score": 1,
+      "clsScore": null,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.95,
+      "lcpDisplay": "1.5 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.5 s",
+      "ttiScore": 1,
+      "ttiTime": 1523
+    },
+    "version": "2.0.0-beta.1-dev+495e8d9"
+  },
+  {
+    "href": "https://si.com/",
+    "size": "large",
+    "ts": 1763307810379,
+    "title": "Sports Illustrated",
+    "imgSrc": "/showcases/si_com_.jpeg",
+    "perf": {
+      "score": 0.35,
+      "inpMs": 113,
+      "clsScore": 0.01,
+      "ttfbMs": 1186,
+      "fcpDisplay": "4.2 s",
+      "fcpScore": 0.2,
+      "lcpDisplay": "6.0 s",
+      "lcpScore": 0.13,
+      "ttiDisplay": "30.4 s",
+      "ttiScore": 0,
+      "ttiTime": 30386.522025351613
+    },
+    "version": "1.15.0"
+  },
+  {
+    "href": "https://www.aimfox.com/",
+    "ts": 1763307843646,
+    "title": "Aimfox - Built for LinkedIn Outreach. Made to Close Deals.",
+    "imgSrc": "/showcases/www_aimfox_com_.jpeg",
+    "perf": {
+      "score": 0.44,
+      "inpMs": 261,
+      "clsScore": 0,
+      "ttfbMs": 1569,
+      "fcpDisplay": "12.8 s",
+      "fcpScore": 0,
+      "lcpDisplay": "33.3 s",
+      "lcpScore": 0,
+      "ttiDisplay": "34.9 s",
+      "ttiScore": 0,
+      "ttiTime": 34926.61373492815
+    },
+    "version": "1.16.0"
+  },
+  {
+    "href": "https://www.herold.at/",
+    "ts": 1763307864738,
+    "title": "Herold | Firmensuche & Online Marketing für Unternehmen",
+    "imgSrc": "/showcases/www_herold_at_.jpeg",
+    "perf": {
+      "score": 0.67,
+      "inpMs": 148,
+      "clsScore": 0,
+      "ttfbMs": 598,
+      "fcpDisplay": "2.8 s",
+      "fcpScore": 0.55,
+      "lcpDisplay": "15.8 s",
+      "lcpScore": 0,
+      "ttiDisplay": "15.9 s",
+      "ttiScore": 0.06,
+      "ttiTime": 15879.017440755084
+    },
+    "version": "1.13.0-dev+97aa67d"
+  },
+  {
+    "href": "https://www.honda.com.tr/",
+    "ts": 1763307912656,
+    "title": "Honda Türkiye | Otomobil, Motosiklet | Honda Türkiye",
+    "imgSrc": "/showcases/www_honda_com.tr_.jpeg",
+    "perf": {
+      "score": 0.96,
+      "inpMs": 134,
+      "clsScore": 0.22,
+      "ttfbMs": 523,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.7 s",
+      "lcpScore": 0.84,
+      "ttiDisplay": "2.7 s",
+      "ttiScore": 0.97,
+      "ttiTime": 2743.9989000797186
+    },
+    "version": "1.17.2"
+  },
+  {
+    "href": "https://www.uswitch.com/",
+    "ts": 1763307941107,
+    "title": "Uswitch.com - We Put U First - Uswitch",
+    "imgSrc": "/showcases/www_uswitch_com_.jpeg",
+    "perf": {
+      "score": 0.81,
+      "inpMs": 88,
+      "clsScore": 0,
+      "ttfbMs": 438,
+      "fcpDisplay": "2.6 s",
+      "fcpScore": 0.65,
+      "lcpDisplay": "4.0 s",
+      "lcpScore": 0.5,
+      "ttiDisplay": "6.8 s",
+      "ttiScore": 0.55,
+      "ttiTime": 6835.1500000000015
+    },
+    "version": "1.14.1"
+  },
+  {
+    "href": "https://www.nau.ch/",
+    "ts": 1763307989817,
+    "title": "News für die Schweiz - Nau.ch",
+    "imgSrc": "/showcases/www_nau_ch_.jpeg",
+    "perf": {
+      "score": 0.47,
+      "inpMs": 129,
+      "clsScore": 0.51,
+      "ttfbMs": 262,
+      "fcpDisplay": "5.1 s",
+      "fcpScore": 0.08,
+      "lcpDisplay": "11.0 s",
+      "lcpScore": 0,
+      "ttiDisplay": "15.0 s",
+      "ttiScore": 0.07,
+      "ttiTime": 15049.319363454902
+    },
+    "version": "1.16.1"
+  },
+  {
+    "href": "https://www.sport-thieme.de/",
+    "ts": 1763319871552,
+    "title": "Sport, Fitness, Therapie: Sportgeräte von Sport-Thieme",
+    "imgSrc": "/showcases/www_sport-thieme_de_.jpeg",
+    "perf": {
+      "score": 0.67,
+      "inpMs": 167,
+      "clsScore": 0.39,
+      "ttfbMs": 886,
+      "fcpDisplay": "2.5 s",
+      "fcpScore": 0.66,
+      "lcpDisplay": "4.7 s",
+      "lcpScore": 0.33,
+      "ttiDisplay": "14.7 s",
+      "ttiScore": 0.08,
+      "ttiTime": 14670.339378955397
+    },
+    "version": "1.17.1"
   }
 ]

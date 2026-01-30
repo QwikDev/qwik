@@ -1,32 +1,33 @@
-import type { QwikDocument } from '../document';
-import { assertDefined } from '../shared/error/assert';
-import { QError, qError } from '../shared/error/error';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
-import { RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
-import { seal } from '../shared/utils/qdev';
-import { isArray, isObject } from '../shared/utils/types';
-import { setLocale } from './use-locale';
-import type { Container, HostElement } from '../shared/types';
+import { isDev } from '@qwik.dev/core/build';
+import type { ISsrNode, SignalImpl } from 'packages/qwik/src/server/qwik-types';
+import { getDomContainer } from '../client/dom-container';
+import { type ClientContainer } from '../client/types';
 import {
   vnode_getNode,
   vnode_isElementVNode,
   vnode_isVNode,
   vnode_locate,
 } from '../client/vnode-utils';
-import { _getQContainerElement, getDomContainer } from '../client/dom-container';
-import { type ClientContainer } from '../client/types';
+import type { QwikDocument } from '../document';
+import { unwrapStore } from '../index';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { isSignal, type Signal } from '../reactive-primitives/signal.public';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import type { SubscriptionData } from '../reactive-primitives/subscription-data';
 import {
   type Consumer,
   type EffectProperty,
   type EffectSubscription,
 } from '../reactive-primitives/types';
-import type { Signal } from '../reactive-primitives/signal.public';
-import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
-import { getSubscriber } from '../reactive-primitives/subscriber';
-import type { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { isDev } from '@qwik.dev/core/build';
+import { assertDefined } from '../shared/error/assert';
+import { QError, qError } from '../shared/error/error';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRL } from '../shared/qrl/qrl.public';
+import type { Container, HostElement } from '../shared/types';
+import { RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
+import { seal } from '../shared/utils/qdev';
+import { isArray, isObject } from '../shared/utils/types';
+import { setLocale } from './use-locale';
 
 declare const document: QwikDocument;
 
@@ -119,7 +120,7 @@ export function useBindInvokeContext<FN extends (...args: any) => any>(
 }
 
 /** Call a function with the given InvokeContext and given arguments. */
-export function invoke<FN extends (...args: any) => any>(
+export function invoke<FN extends (...args: any[]) => any>(
   this: unknown,
   context: InvokeContext | undefined,
   fn: FN,
@@ -198,22 +199,38 @@ export function newInvokeContext(
 }
 
 /**
- * Don't track listeners for this callback
+ * Get the value of the expression without tracking listeners. A function will be invoked, signals
+ * will return their value, and stores will be unwrapped (they return the backing object).
  *
+ * When you pass a function, you can also pass additional arguments that the function will receive.
+ *
+ * Note that stores are not unwrapped recursively.
+ *
+ * @param expr - The function or object to evaluate without tracking.
+ * @param args - Additional arguments to pass when `expr` is a function.
  * @public
  */
-export const untrack = <T>(fn: () => T): T => {
-  if (_context) {
-    const sub = _context.$effectSubscriber$;
-    try {
-      _context.$effectSubscriber$ = undefined;
-      return fn();
-    } finally {
-      _context.$effectSubscriber$ = sub;
+export const untrack = <T, A extends any[]>(
+  expr: ((...args: A) => T) | Signal<T> | T,
+  ...args: A
+): T => {
+  if (typeof expr === 'function') {
+    if (_context) {
+      const sub = _context.$effectSubscriber$;
+      try {
+        _context.$effectSubscriber$ = undefined;
+        return (expr as (...args: A) => T)(...args);
+      } finally {
+        _context.$effectSubscriber$ = sub;
+      }
+    } else {
+      return (expr as (...args: A) => T)(...args);
     }
-  } else {
-    return fn();
   }
+  if (isSignal(expr)) {
+    return (expr as SignalImpl<T>).untrackedValue;
+  }
+  return unwrapStore(expr);
 };
 
 const trackInvocation = /*#__PURE__*/ newRenderInvokeContext(undefined, undefined!, undefined!);

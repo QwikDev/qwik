@@ -1,5 +1,14 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.18
+
+### Patch Changes
+
+- 🐞🩹 navigate to new page even if transition is failed (by [@Varixo](https://github.com/Varixo) in [#8271](https://github.com/QwikDev/qwik/pull/8271))
+
+- Updated dependencies [[`4fdff10`](https://github.com/QwikDev/qwik/commit/4fdff105ba29c4a2793fcc196cee283a7d709cd5), [`a4ae2ef`](https://github.com/QwikDev/qwik/commit/a4ae2ef19d2802dd3afa2ddf7c7e6b8431198e36), [`5f9af9e`](https://github.com/QwikDev/qwik/commit/5f9af9e95f522d74d72fe6c6df680ac95618f829), [`e83a97d`](https://github.com/QwikDev/qwik/commit/e83a97d7bdf799b1510a352b90b6f44b25af11f9), [`68e723a`](https://github.com/QwikDev/qwik/commit/68e723ae5526064813c95072f9a18e1af23e90cb), [`8829960`](https://github.com/QwikDev/qwik/commit/88299606d7977ae54d4d4e131472812cf3ed6bdb), [`d92665e`](https://github.com/QwikDev/qwik/commit/d92665e800b55ec2fef7f06c9cca317bb8c79493), [`6e73033`](https://github.com/QwikDev/qwik/commit/6e7303326759a9ecafa27e63adf6ac01f09fc6c9), [`0ce16bc`](https://github.com/QwikDev/qwik/commit/0ce16bc17836ae02ce210783dc78350980ec9e98), [`f0dbc1c`](https://github.com/QwikDev/qwik/commit/f0dbc1c64048ad5157cae42dc34494fa4b8d1010), [`7606dbe`](https://github.com/QwikDev/qwik/commit/7606dbe570ee0e97a2d26d0b0f69d3e499ea83b5), [`e8ffc2b`](https://github.com/QwikDev/qwik/commit/e8ffc2b0cd7725ffa8f57f9d03aa33ed05de7ac0), [`df3ed1a`](https://github.com/QwikDev/qwik/commit/df3ed1acbe8b818bf20ee4ec1a4ef7ac35e57843), [`253d190`](https://github.com/QwikDev/qwik/commit/253d1905e0dde9f8c363ac2dfd9835201d8b3db9), [`8e6f545`](https://github.com/QwikDev/qwik/commit/8e6f545576e49a989fb7f28f439658cd98866fb0)]:
+  - @qwik.dev/core@2.0.0-beta.18
+
 ## 2.0.0-beta.17
 
 ### Patch Changes

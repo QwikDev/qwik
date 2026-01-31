@@ -808,17 +808,17 @@ jobs:
         if: always()
         run: pnpm run lint.syncpack
 
-      - name: Prettier Check
+      - name: Format Check
         if: always()
-        run: pnpm run lint.prettier
+        run: pnpm run lint.fmt
 
-      - name: Build ESLint
+      - name: Build ESLint Plugin
         if: always()
         run: pnpm build --eslint
 
-      - name: ESLint Check
+      - name: Lint Check
         if: always()
-        run: pnpm run lint.eslint
+        run: pnpm run lint.oxlint
 
   ############ RELEASE ############
   release:

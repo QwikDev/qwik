@@ -1,0 +1,53 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 126
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+
+export const testLogger$ = $(() => {
+  console.log("testLogger");
+});
+
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+const i_uXqpA6HA5u0 = ()=>import("./test.tsx_testLogger_uXqpA6HA5u0");
+export const testLogger$ = /*#__PURE__*/ qrl(i_uXqpA6HA5u0, "testLogger_uXqpA6HA5u0");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,yEAEV\"}")
+============================= test.tsx_testLogger_uXqpA6HA5u0.js (ENTRY POINT)==
+
+export const testLogger_uXqpA6HA5u0 = ()=>{
+    console.log("testLogger");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sCAG6B;IAC3B,QAAQ,GAAG,CAAC;AACd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "testLogger_uXqpA6HA5u0",
+  "entry": null,
+  "displayName": "test.tsx_testLogger",
+  "hash": "uXqpA6HA5u0",
+  "canonicalFilename": "test.tsx_testLogger_uXqpA6HA5u0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    68,
+    106
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

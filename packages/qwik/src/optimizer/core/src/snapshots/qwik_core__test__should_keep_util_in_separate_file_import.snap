@@ -1,0 +1,178 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 369
+expression: output
+---
+==INPUT 1 (test.tsx)==
+
+
+import { component$, useTask$ } from '@qwik.dev/core';
+import { testLogger } from './test-logger';
+
+export const TestComponent = component$(() => {
+  testLogger();
+
+	useTask$(() => {
+		console.log("log 1:",testLogger());
+	});
+
+	useTask$(() => {
+		console.log("log 2:",testLogger());
+	});
+
+  	return <button onClick$={() => testLogger()}>Click me</button>;
+});
+
+
+==INPUT 2 (test-logger.ts)==
+
+
+export const testLogger = () => {
+  console.log("testLogger");
+};
+
+============================= test.tsx_TestComponent_component_useTask_O98HB2chigg.js (ENTRY POINT)==
+
+import { testLogger } from "./test-logger";
+export const TestComponent_component_useTask_O98HB2chigg = ()=>{
+    console.log("log 1:", testLogger());
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2DAOU;IACR,QAAQ,GAAG,CAAC,UAAS;AACtB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestComponent_component_useTask_O98HB2chigg",
+  "entry": null,
+  "displayName": "test.tsx_TestComponent_component_useTask",
+  "hash": "O98HB2chigg",
+  "canonicalFilename": "test.tsx_TestComponent_component_useTask_O98HB2chigg",
+  "path": "",
+  "extension": "js",
+  "parent": "TestComponent_component_JeI1MikkbKs",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": false,
+  "loc": [
+    177,
+    225
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_JeI1MikkbKs = ()=>import("./test.tsx_TestComponent_component_JeI1MikkbKs");
+export const TestComponent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_JeI1MikkbKs, "TestComponent_component_JeI1MikkbKs"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,8BAAgB,sFAY1B\"}")
+============================= test-logger.js ==
+
+export const testLogger = ()=>{
+    console.log("testLogger");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test-logger.ts\"],\"names\":[],\"mappings\":\"AACA,OAAO,MAAM,aAAa;IACxB,QAAQ,GAAG,CAAC;AACd,EAAE\"}")
+============================= test.tsx_TestComponent_component_useTask_1_0N0OYUl6cY8.js (ENTRY POINT)==
+
+import { testLogger } from "./test-logger";
+export const TestComponent_component_useTask_1_0N0OYUl6cY8 = ()=>{
+    console.log("log 2:", testLogger());
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6DAWU;IACR,QAAQ,GAAG,CAAC,UAAS;AACtB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestComponent_component_useTask_1_0N0OYUl6cY8",
+  "entry": null,
+  "displayName": "test.tsx_TestComponent_component_useTask_1",
+  "hash": "0N0OYUl6cY8",
+  "canonicalFilename": "test.tsx_TestComponent_component_useTask_1_0N0OYUl6cY8",
+  "path": "",
+  "extension": "js",
+  "parent": "TestComponent_component_JeI1MikkbKs",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": false,
+  "loc": [
+    239,
+    287
+  ]
+}
+*/
+============================= test.tsx_TestComponent_component_JeI1MikkbKs.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { testLogger } from "./test-logger";
+import { useTaskQrl } from "@qwik.dev/core";
+const i_0N0OYUl6cY8 = ()=>import("./test.tsx_TestComponent_component_useTask_1_0N0OYUl6cY8");
+const i_O98HB2chigg = ()=>import("./test.tsx_TestComponent_component_useTask_O98HB2chigg");
+const i_yEs3QuJxKa8 = ()=>import("./test.tsx_TestComponent_component_button_on_click_yEs3QuJxKa8");
+export const TestComponent_component_JeI1MikkbKs = ()=>{
+    testLogger();
+    useTaskQrl(/*#__PURE__*/ qrl(i_O98HB2chigg, "TestComponent_component_useTask_O98HB2chigg"));
+    useTaskQrl(/*#__PURE__*/ qrl(i_0N0OYUl6cY8, "TestComponent_component_useTask_1_0N0OYUl6cY8"));
+    return /*#__PURE__*/ _jsxSorted("button", null, {
+        "on:click": /*#__PURE__*/ qrl(i_yEs3QuJxKa8, "TestComponent_component_button_on_click_yEs3QuJxKa8")
+    }, "Click me", 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;mDAIwC;IACtC;IAED;IAIA;IAIE,qBAAO,WAAC;QAAO,UAAQ;OAAsB;AAChD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestComponent_component_JeI1MikkbKs",
+  "entry": null,
+  "displayName": "test.tsx_TestComponent_component",
+  "hash": "JeI1MikkbKs",
+  "canonicalFilename": "test.tsx_TestComponent_component_JeI1MikkbKs",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    142,
+    359
+  ]
+}
+*/
+============================= test.tsx_TestComponent_component_button_on_click_yEs3QuJxKa8.js (ENTRY POINT)==
+
+import { testLogger } from "./test-logger";
+export const TestComponent_component_button_on_click_yEs3QuJxKa8 = ()=>testLogger();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAe4B,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestComponent_component_button_on_click_yEs3QuJxKa8",
+  "entry": null,
+  "displayName": "test.tsx_TestComponent_component_button_on_click",
+  "hash": "yEs3QuJxKa8",
+  "canonicalFilename": "test.tsx_TestComponent_component_button_on_click_yEs3QuJxKa8",
+  "path": "",
+  "extension": "js",
+  "parent": "TestComponent_component_JeI1MikkbKs",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    319,
+    337
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,233 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 186
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+export const TestButton = component$(() => {
+	const testLogger = $(() => {
+		console.log("testLogger");
+	});
+
+	testLogger();
+	const sig = useSignal(0);
+
+	useTask$(() => {
+		console.log("log 1:", testLogger());
+	});
+
+	useTask$(() => {
+		console.log("log 2:", testLogger());
+	});
+
+	return (
+		<>
+		<button
+			onClick$={() => {
+			testLogger();
+			sig.value++;
+			}}
+		>
+			{sig.value}
+		</button>
+		</>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_uFrpfTnm3bA = ()=>import("./test.tsx_TestButton_component_uFrpfTnm3bA");
+export const TestButton = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_uFrpfTnm3bA, "TestButton_component_uFrpfTnm3bA"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,mFA4BvB\"}")
+============================= test.tsx_TestButton_component_useTask_K6S9SSHyiUc.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const TestButton_component_useTask_K6S9SSHyiUc = ()=>{
+    const [testLogger] = useLexicalScope();
+    console.log("log 1:", testLogger());
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wDAWU;;IACR,QAAQ,GAAG,CAAC,UAAU\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_useTask_K6S9SSHyiUc",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component_useTask",
+  "hash": "K6S9SSHyiUc",
+  "canonicalFilename": "test.tsx_TestButton_component_useTask_K6S9SSHyiUc",
+  "path": "",
+  "extension": "js",
+  "parent": "TestButton_component_uFrpfTnm3bA",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    235,
+    284
+  ],
+  "captureNames": [
+    "testLogger"
+  ]
+}
+*/
+============================= test.tsx_TestButton_component_useTask_1_rqfZ500hckk.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const TestButton_component_useTask_1_rqfZ500hckk = ()=>{
+    const [testLogger] = useLexicalScope();
+    console.log("log 2:", testLogger());
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";0DAeU;;IACR,QAAQ,GAAG,CAAC,UAAU\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_useTask_1_rqfZ500hckk",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component_useTask_1",
+  "hash": "rqfZ500hckk",
+  "canonicalFilename": "test.tsx_TestButton_component_useTask_1_rqfZ500hckk",
+  "path": "",
+  "extension": "js",
+  "parent": "TestButton_component_uFrpfTnm3bA",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    298,
+    347
+  ],
+  "captureNames": [
+    "testLogger"
+  ]
+}
+*/
+============================= test.tsx_TestButton_component_Fragment_button_on_click_telk8t1ZG1w.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const TestButton_component_Fragment_button_on_click_telk8t1ZG1w = ()=>{
+    const [sig, testLogger] = useLexicalScope();
+    testLogger();
+    sig.value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yEAsBa;;IACV;IACA,IAAI,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_Fragment_button_on_click_telk8t1ZG1w",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component_Fragment_button_on_click",
+  "hash": "telk8t1ZG1w",
+  "canonicalFilename": "test.tsx_TestButton_component_Fragment_button_on_click_telk8t1ZG1w",
+  "path": "",
+  "extension": "js",
+  "parent": "TestButton_component_uFrpfTnm3bA",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    389,
+    434
+  ],
+  "captureNames": [
+    "sig",
+    "testLogger"
+  ]
+}
+*/
+============================= test.tsx_TestButton_component_uFrpfTnm3bA.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+const i_K6S9SSHyiUc = ()=>import("./test.tsx_TestButton_component_useTask_K6S9SSHyiUc");
+const i_Q0ji4LR90bw = ()=>import("./test.tsx_TestButton_component_testLogger_Q0ji4LR90bw");
+const i_rqfZ500hckk = ()=>import("./test.tsx_TestButton_component_useTask_1_rqfZ500hckk");
+const i_telk8t1ZG1w = ()=>import("./test.tsx_TestButton_component_Fragment_button_on_click_telk8t1ZG1w");
+export const TestButton_component_uFrpfTnm3bA = ()=>{
+    const testLogger = /*#__PURE__*/ qrl(i_Q0ji4LR90bw, "TestButton_component_testLogger_Q0ji4LR90bw");
+    testLogger();
+    const sig = useSignal(0);
+    useTaskQrl(/*#__PURE__*/ qrl(i_K6S9SSHyiUc, "TestButton_component_useTask_K6S9SSHyiUc", [
+        testLogger
+    ]));
+    useTaskQrl(/*#__PURE__*/ qrl(i_rqfZ500hckk, "TestButton_component_useTask_1_rqfZ500hckk", [
+        testLogger
+    ]));
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("button", null, {
+        "on:click": /*#__PURE__*/ qrl(i_telk8t1ZG1w, "TestButton_component_Fragment_button_on_click_telk8t1ZG1w", [
+            sig,
+            testLogger
+        ])
+    }, _wrapProp(sig), 3, null), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;gDAGqC;IACpC,MAAM;IAIN;IACA,MAAM,MAAM,UAAU;IAEtB;;;IAIA;;;IAIA,qBACC,gDACA,WAAC;QACA,UAAQ;;;;iBAKP;AAIJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_uFrpfTnm3bA",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component",
+  "hash": "uFrpfTnm3bA",
+  "canonicalFilename": "test.tsx_TestButton_component_uFrpfTnm3bA",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    109,
+    478
+  ]
+}
+*/
+============================= test.tsx_TestButton_component_testLogger_Q0ji4LR90bw.js (ENTRY POINT)==
+
+export const TestButton_component_testLogger_Q0ji4LR90bw = ()=>{
+    console.log("testLogger");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2DAIsB;IACpB,QAAQ,GAAG,CAAC;AACb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_testLogger_Q0ji4LR90bw",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component_testLogger",
+  "hash": "Q0ji4LR90bw",
+  "canonicalFilename": "test.tsx_TestButton_component_testLogger_Q0ji4LR90bw",
+  "path": "",
+  "extension": "js",
+  "parent": "TestButton_component_uFrpfTnm3bA",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    139,
+    178
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

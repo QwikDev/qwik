@@ -88,6 +88,321 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 }
 
 #[test]
+fn should_output_utils_in_a_newly_generated_segment() {
+	test_input!(TestInput {
+		code: r#"
+export const testLogger = () => {
+  console.log("testLogger");
+};
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_simple_signal() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const TestButton = component$(() => {
+  	const sig = useSignal(0);
+
+  	return <button onClick$={() => sig.value++}>{sig.value}</button>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_output_qrl_utils_in_a_separate_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+export const testLogger$ = $(() => {
+  console.log("testLogger");
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_output_qrl_utils_outside_of_components_in_a_separate_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, useTask$ } from "@qwik.dev/core";
+
+export const testLogger$ = $(() => {
+  	console.log("testLogger");
+});
+
+export const TestButton = component$(() => {
+	testLogger();
+	const sig = useSignal(0);
+
+	useTask$(() => {
+		console.log("log 1:", testLogger());
+	});
+
+	useTask$(() => {
+		console.log("log 2:", testLogger());
+	});
+
+	return (
+		<>
+		<button
+			onClick$={() => {
+			testLogger();
+			sig.value++;
+			}}
+		>
+			{sig.value}
+		</button>
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_output_qrl_utils_inside_of_components_in_a_separate_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+export const TestButton = component$(() => {
+	const testLogger = $(() => {
+		console.log("testLogger");
+	});
+
+	testLogger();
+	const sig = useSignal(0);
+
+	useTask$(() => {
+		console.log("log 1:", testLogger());
+	});
+
+	useTask$(() => {
+		console.log("log 2:", testLogger());
+	});
+
+	return (
+		<>
+		<button
+			onClick$={() => {
+			testLogger();
+			sig.value++;
+			}}
+		>
+			{sig.value}
+		</button>
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_output_utils_inside_of_components_in_a_separate_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+export const TestButton = component$(() => {
+  	const testLogger = () => {
+  		console.log("testLogger");
+	};
+
+	testLogger();
+	const sig = useSignal(0);
+
+	useTask$(() => {
+		console.log("log 1:", testLogger());
+	});
+
+	useTask$(() => {
+		console.log("log 2:", testLogger());
+	});
+
+	return (
+		<>
+		<button
+			onClick$={() => {
+			testLogger();
+			sig.value++;
+			}}
+		>
+			{sig.value}
+		</button>
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_output_utils_outside_of_components_in_a_separate_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, useTask$, useVisibleTask$, useComputed$ } from '@qwik.dev/core';
+import { Child } from './child';
+import { ConditionalChild } from './conditional-child';
+import { relativeHelper } from './helpers-only-path';
+import { parentHelper } from './parent-path-with-component';
+import { aliasHelper } from '@alias/path';
+
+export const testLogger = () => {
+  console.log("testLogger");
+};
+
+export const TestButton = component$(() => {
+	testLogger();
+	const counter = useSignal(0);
+
+	useTask$(() => {
+		console.log("log 1:", testLogger());
+		relativeHelper();
+		parentHelper();
+		aliasHelper();
+	});
+
+	useTask$(() => {
+		console.log("log 2:", testLogger());
+		relativeHelper();
+		parentHelper();
+		aliasHelper();
+	});
+
+	useVisibleTask$(() => {
+		console.log("log 3:", testLogger());
+	});
+
+	const doubleCounter = useComputed$(() => counter.value * 2);
+
+	return (
+		<>
+			<button
+				onClick$={() => {
+					testLogger();
+					counter.value++;
+				}}
+			>
+				Increment signal: {counter.value}
+			</button>
+			<button
+				onClick$={() => {
+					testLogger();
+					doubleCounter.value++;
+				}}
+			>
+				Increment computed: {doubleCounter.value}
+			</button>
+			<Child />
+			{counter.value > 0 && <ConditionalChild />}
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_util_in_separate_file_import() {
+	let component = r#"
+import { component$, useTask$ } from '@qwik.dev/core';
+import { testLogger } from './test-logger';
+
+export const TestComponent = component$(() => {
+  testLogger();
+
+	useTask$(() => {
+		console.log("log 1:",testLogger());
+	});
+
+	useTask$(() => {
+		console.log("log 2:",testLogger());
+	});
+
+  	return <button onClick$={() => testLogger()}>Click me</button>;
+});
+"#;
+	let util = r#"
+export const testLogger = () => {
+  console.log("testLogger");
+};
+"#;
+	let res = transform_modules(TransformModulesOptions {
+		src_dir: "/user/qwik/src/".into(),
+		root_dir: None,
+		input: vec![
+			TransformModuleInput {
+				code: component.into(),
+				path: "test.tsx".into(),
+				dev_path: None,
+			},
+			TransformModuleInput {
+				code: util.into(),
+				path: "test-logger.ts".into(),
+				dev_path: None,
+			},
+		],
+		source_maps: true,
+		minify: MinifyMode::Simplify,
+		explicit_extensions: false,
+		mode: EmitMode::Test,
+		entry_strategy: EntryStrategy::Segment,
+		transpile_ts: true,
+		transpile_jsx: true,
+		preserve_filenames: false,
+		core_module: None,
+		scope: None,
+		strip_exports: None,
+		strip_ctx_name: None,
+		strip_event_handlers: false,
+		reg_ctx_name: None,
+		is_server: None,
+	});
+	snapshot_res!(
+		&res,
+		format!(
+			"==INPUT 1 (test.tsx)==\n\n{}\n\n==INPUT 2 (test-logger.ts)==\n\n{}",
+			component, util
+		)
+	);
+}
+
+#[test]
 fn example_1() {
 	test_input!(TestInput {
 		code: r#"

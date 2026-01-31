@@ -1,0 +1,23 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 92
+expression: output
+---
+==INPUT==
+
+
+export const testLogger = () => {
+  console.log("testLogger");
+};
+
+============================= test.js ==
+
+export const testLogger = ()=>{
+    console.log("testLogger");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,OAAO,MAAM,aAAa;IACxB,QAAQ,GAAG,CAAC;AACd,EAAE\"}")
+== DIAGNOSTICS ==
+
+[]

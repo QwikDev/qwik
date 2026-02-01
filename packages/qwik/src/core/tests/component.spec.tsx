@@ -13,6 +13,7 @@ import {
   h,
   jsx,
   useComputed$,
+  useConstant,
   useSignal,
   useStore,
   useTask$,
@@ -2998,6 +2999,102 @@ describe.each([
       </Component>
     );
   });
+
+  it('should correctly unsubscribe from store inside wrapped signal', async () => {
+    interface Store {
+      to: {
+        country?: string;
+        error?: string;
+      };
+    }
+
+    interface InputOptions extends Omit<PropsOf<'input'>, 'children' | 'size'> {
+      error?: string;
+    }
+
+    const Input = component$<InputOptions>(({ error, onInput$ }) => {
+      return (
+        <div class={[!!error && 'text-red-500']}>
+          <p id="error">{error}</p>
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const store = useStore<Store>({
+        to: {},
+      });
+
+      const tick = useSignal<number>(0);
+      const world = useSignal<string>('Stress-free');
+
+      const words = useConstant(() => {
+        return ['Stress-free', 'Fast', 'Secure', 'Online'];
+      });
+
+      return (
+        <header>
+          <span key={tick.value}>{world.value}</span>
+
+          <Input error={store.to.error} value={store.to.country} />
+
+          <button
+            id="fill"
+            onClick$={() => {
+              store.to.country = store.to.country ? undefined : 'aaa';
+            }}
+          >
+            fill
+          </button>
+
+          <button
+            id="next"
+            onClick$={() => {
+              let nextIndex = words.indexOf(world.value) + 1;
+
+              if (nextIndex >= words.length) {
+                nextIndex = 0;
+              }
+
+              world.value = words[nextIndex] ?? 'Stress-free';
+
+              tick.value += 1;
+            }}
+          >
+            Next
+          </button>
+
+          <button
+            id="apply"
+            onClick$={() => {
+              if (!store.to.country) {
+                store.to.error = 'Please select a destination country.';
+                return;
+              }
+
+              store.to.error = undefined;
+            }}
+          >
+            Apply now
+          </button>
+        </header>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'button#next', 'click');
+    await trigger(document.body, 'button#apply', 'click');
+    await expect(document.body.querySelector('#error')).toMatchDOM(
+      '<p id="error">Please select a destination country.</p>'
+    );
+    await trigger(document.body, 'button#fill', 'click');
+
+    await trigger(document.body, 'button#next', 'click');
+    await trigger(document.body, 'button#apply', 'click');
+
+    await expect(document.body.querySelector('#error')).not.toMatchDOM('<p id="error"></p>');
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

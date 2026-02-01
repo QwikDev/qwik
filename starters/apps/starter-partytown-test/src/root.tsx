@@ -28,6 +28,9 @@ export default () => {
 };
 
 function partyTownExampleWhichBlocksMainThreadForOneSecond() {
+  document.dispatchEvent(
+    new Event("expensiveComputationStarted", { bubbles: true }),
+  );
   // Block execution for 1 second.
   const start = new Date().getTime();
   // eslint-disable-next-line no-console

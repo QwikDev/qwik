@@ -549,6 +549,20 @@
 
 - 🐞🩹 do not trigger effects if computed value is not changed (by [@Varixo](https://github.com/Varixo) in [#6996](https://github.com/QwikDev/qwik/pull/6996))
 
+## 1.19.0
+
+### Minor Changes
+
+- ✨ `untrack()` now accepts signals and stores directly, as well as accepting arguments when you pass a function. This makes retrieving values without subscribing to them more efficient. (by [@wmertens](https://github.com/wmertens) in [#8247](https://github.com/QwikDev/qwik/pull/8247))
+
+### Patch Changes
+
+- 🐞🩹 we now prevent merging useVisibleTask$ code together with other segments to prevent overpreloading when their entry contains a lot of transitive imports. (by [@maiieul](https://github.com/maiieul) in [#8275](https://github.com/QwikDev/qwik/pull/8275))
+
+- 🐞🩹 duplicated preload bundles in SSR preload (by [@chebanenko](https://github.com/chebanenko) in [#8248](https://github.com/QwikDev/qwik/pull/8248))
+
+- ⚡️: the core.js and preloader.js references in q-manifest and bundle-graph are now filtered out for smaller outputs. (by [@maiieul](https://github.com/maiieul) in [#8278](https://github.com/QwikDev/qwik/pull/8278))
+
 ## 1.18.0
 
 ### Minor Changes

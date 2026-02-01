@@ -30,18 +30,15 @@ export const Link = component$<LinkProps>((props) => {
     scroll,
     ...linkProps
   } = (() => props)();
-  const clientNavPath = untrack(() => getClientNavPath({ ...linkProps, reload }, loc));
+  const clientNavPath = untrack(getClientNavPath, { ...linkProps, reload }, loc);
   linkProps.href = clientNavPath || originalHref;
 
-  const prefetchData = untrack(
-    () => (!!clientNavPath && prefetchProp !== false && prefetchProp !== 'js') || undefined
-  );
+  const prefetchData =
+    (!!clientNavPath && prefetchProp !== false && prefetchProp !== 'js') || undefined;
 
-  const prefetch = untrack(
-    () =>
-      prefetchData ||
-      (!!clientNavPath && prefetchProp !== false && shouldPreload(clientNavPath, loc))
-  );
+  const prefetch =
+    prefetchData ||
+    (!!clientNavPath && prefetchProp !== false && untrack(shouldPreload, clientNavPath, loc));
 
   const handlePrefetch = prefetch
     ? $((_: any, elm: HTMLAnchorElement) => {

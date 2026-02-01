@@ -9,7 +9,12 @@ export default () => {
       <head>
         <meta charset="utf-8" />
         <title>Qwik + Partytown Blank App</title>
-        <script dangerouslySetInnerHTML={partytownSnippet({ debug: true })} />
+        <script
+          dangerouslySetInnerHTML={partytownSnippet({
+            fallbackTimeout: 1000,
+            debug: true,
+          })}
+        />
       </head>
       <body>
         <App />
@@ -23,6 +28,9 @@ export default () => {
 };
 
 function partyTownExampleWhichBlocksMainThreadForOneSecond() {
+  document.dispatchEvent(
+    new Event("expensiveComputationStarted", { bubbles: true }),
+  );
   // Block execution for 1 second.
   const start = new Date().getTime();
   // eslint-disable-next-line no-console

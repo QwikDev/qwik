@@ -209,6 +209,15 @@
 
 # @builder.io/qwik-react
 
+## 0.5.8
+
+### Patch Changes
+
+- execute cleanup cb for all component tree while calling dispose.cleanup method returned by render fn (by [@sashkashishka](https://github.com/sashkashishka) in [#8164](https://github.com/QwikDev/qwik/pull/8164))
+
+- Updated dependencies [[`494d27c`](https://github.com/QwikDev/qwik/commit/494d27cddee49875d0b2776236d4c49da15e47b3), [`7d62aa2`](https://github.com/QwikDev/qwik/commit/7d62aa21b1b2f82889a331969f6b53cac5b84c6a), [`767c981`](https://github.com/QwikDev/qwik/commit/767c9814e338ba6c443ba88d8ddb2158f2e9a9a9), [`bd6c9b3`](https://github.com/QwikDev/qwik/commit/bd6c9b350815f33abf0c43e3e988c52254a268a3)]:
+  - @builder.io/qwik@1.18.0
+
 ## 0.5.7
 
 ### Patch Changes

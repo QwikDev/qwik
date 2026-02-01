@@ -1,16 +1,22 @@
-import { $, componentQrl, noSerialize } from '@qwik.dev/core';
-import { describe, expect, it, vi } from 'vitest';
-import { _fnSignal, _wrapProp } from '../../internal';
-import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
-import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
-import { createStore } from '../../reactive-primitives/impl/store';
-import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
 import {
+  $,
+  _fnSignal,
+  _verifySerializable,
+  _wrapProp,
+  componentQrl,
   createComputedQrl,
   createSerializer$,
   createSignal,
   isSignal,
-} from '../../reactive-primitives/signal.public';
+  noSerialize,
+  NoSerializeSymbol,
+  SerializerSymbol,
+} from '@qwik.dev/core';
+import { describe, expect, it, vi } from 'vitest';
+import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
+import type { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
+import { createStore } from '../../reactive-primitives/impl/store';
+import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import { EffectProperty, EffectSubscription, StoreFlags } from '../../reactive-primitives/types';
 import { createResourceReturn } from '../../use/use-resource';
@@ -26,7 +32,6 @@ import { _dumpState } from './dump-state';
 import { _createDeserializeContainer } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
 import { _serializationWeakRef } from './serialize';
-import { NoSerializeSymbol, SerializerSymbol, verifySerializable } from './verify';
 
 const DEBUG = false;
 
@@ -38,7 +43,8 @@ describe('shared-serialization', () => {
   const shared2 = { shared: 2 };
 
   describe('serialize types', () => {
-    const dump = async (...value: any) => _dumpState(await serialize(...verifySerializable(value)));
+    const dump = async (...value: any) =>
+      _dumpState(await serialize(..._verifySerializable(value)));
     it(title(TypeIds.Plain), async () => {
       expect(await dump('hi', 123.456)).toMatchInlineSnapshot(`
         "

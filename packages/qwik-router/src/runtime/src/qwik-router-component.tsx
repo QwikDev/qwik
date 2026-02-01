@@ -28,6 +28,7 @@ import {
   type SerializationStrategy,
   forceStoreEffects,
   _hasStoreEffects,
+  type ValueOrPromise,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE, DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
@@ -52,6 +53,8 @@ import {
 } from './scroll-restoration';
 import spaInit from './spa-init';
 import type {
+  Action,
+  ActionInternal,
   ClientPageData,
   ContentModule,
   ContentState,
@@ -60,10 +63,13 @@ import type {
   Editable,
   EndpointResponse,
   LoadedRoute,
+  Loader,
+  LoaderInternal,
   MutableRouteLocation,
   PageModule,
   PreventNavigateCallback,
   ResolvedDocumentHead,
+  RouteActionResolver,
   RouteActionValue,
   RouteNavigate,
   RouteStateInternal,
@@ -286,7 +292,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     // is deployed on.
     // We only do this for link navigations, as popstate will have already changed the URL
     if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
-      routeInternal.value.dest = new URL(window.location.href);
+      const url = new URL(window.location.href);
+      routeInternal.value.dest = url;
+      routeLocation.url = url;
     }
 
     const lastDest = routeInternal.value.dest;
@@ -820,10 +828,67 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
 export const QwikCityProvider = QwikRouterProvider;
 
 /** @public */
+export interface QwikRouterMockLoaderProp<T = any> {
+  /** The loader function to mock. */
+  loader: Loader<T>;
+
+  /** The data to return when the loader is called. */
+  data: T;
+}
+
+/** @public */
+export interface QwikRouterMockActionProp<T = any> {
+  /** The action function to mock. */
+  action: Action<T>;
+
+  /** The QRL function that will be called when the action is submitted. */
+  handler: QRL<(data: T) => ValueOrPromise<RouteActionResolver>>;
+}
+
+/** @public */
 export interface QwikRouterMockProps {
+  /**
+   * Allow mocking the url returned by `useLocation` hook.
+   *
+   * Default: `http://localhost/`
+   */
   url?: string;
+
+  /** Allow mocking the route params returned by `useLocation` hook. */
   params?: Record<string, string>;
+
+  /** Allow mocking the `goto` function returned by `useNavigate` hook. */
   goto?: RouteNavigate;
+
+  /**
+   * Allow mocking data for loaders defined with `routeLoader$` function.
+   *
+   * ```
+   * [
+   *   {
+   *     loader: useProductData,
+   *     data: { product: { name: 'Test Product' } },
+   *   },
+   * ];
+   * ```
+   */
+  loaders?: Array<QwikRouterMockLoaderProp<any>>;
+
+  /**
+   * Allow mocking actions defined with `routeAction$` function.
+   *
+   * ```
+   * [
+   *   {
+   *     action: useAddUser,
+   *     handler: $(async (data) => {
+   *       console.log('useAddUser action called with data:', data);
+   *     }),
+   *   },
+   * ];
+   * ```
+   */
+  actions?: Array<QwikRouterMockActionProp<any>>;
 }
 
 /**
@@ -846,7 +911,14 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
     { deep: false }
   );
 
-  const loaderState = {};
+  const loadersData = props.loaders?.reduce(
+    (acc, { loader, data }) => {
+      acc[(loader as LoaderInternal).__id] = data;
+      return acc;
+    },
+    {} as Record<string, QwikRouterMockLoaderProp['data']>
+  );
+  const loaderState = useStore(loadersData ?? {}, { deep: false });
 
   const goto: RouteNavigate =
     props.goto ??
@@ -875,6 +947,27 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
+
+  const actionsMocks = props.actions?.reduce(
+    (acc, { action, handler }) => {
+      acc[(action as ActionInternal).__id] = handler;
+      return acc;
+    },
+    {} as Record<string, QwikRouterMockActionProp['handler']>
+  );
+
+  useTask$(async ({ track }) => {
+    const action = track(actionState);
+    if (!action?.resolve) {
+      return;
+    }
+
+    const mock = actionsMocks?.[action.id];
+    if (mock) {
+      const actionResult = await mock(action.data);
+      action.resolve(actionResult);
+    }
+  });
 };
 
 /** @public */

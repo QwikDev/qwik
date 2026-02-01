@@ -754,24 +754,15 @@ describe.each([
     });
 
     it('should handle promises and visible tasks', async () => {
-      // vi.useFakeTimers();
       const MyComp = component$(() => {
         const promise = useSignal<Promise<number>>(Promise.resolve(0));
 
         useVisibleTask$(() => {
-          promise.value = promise.value
-            .then(() => {
-              return delay(10);
-            })
-            .then(() => {
-              return 1;
-            });
+          promise.value = promise.value.then(() => delay(10)).then(() => 1);
         });
 
         useVisibleTask$(() => {
-          promise.value = promise.value.then(() => {
-            return 2;
-          });
+          promise.value = promise.value.then(() => 2);
         });
 
         return <p>Should have a number: "{promise.value}"</p>;

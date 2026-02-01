@@ -22,8 +22,8 @@ export type QwikCityBunOptions = QwikRouterBunOptions;
 
 // @public (undocumented)
 export interface QwikRouterBunOptions extends ServerRenderOptions {
-    // (undocumented)
     getClientConn?: (request: Request) => ClientConn;
+    getOrigin?: (request: Request) => string | null;
     static?: {
         root?: string;
         cacheControl?: string;

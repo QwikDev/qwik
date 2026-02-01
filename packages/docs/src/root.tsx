@@ -1,11 +1,11 @@
-import { component$, useContextProvider, useStore } from '@qwik.dev/core';
+import { component$, useContextProvider, useStore, useStyles$ } from '@qwik.dev/core';
 import { Insights } from '@qwik.dev/core/insights';
 import { RouterOutlet, useQwikRouter } from '@qwik.dev/router';
 import { RouterHead } from './components/router-head/router-head';
 import { InjectThemeScript } from './components/theme-toggle';
 import { GlobalStore, type SiteStore } from './context';
 
-import './global.css';
+import styles from './global.css?inline';
 
 export const uwu = /*javascript*/ `
 ;(function () {
@@ -42,6 +42,8 @@ export const uwu = /*javascript*/ `
 
 export default component$(() => {
   useQwikRouter();
+
+  useStyles$(styles);
 
   const store = useStore<SiteStore>({
     headerMenuOpen: false,

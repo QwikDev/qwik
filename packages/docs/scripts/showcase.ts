@@ -1,11 +1,11 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { chromium, type Page } from 'playwright';
+import { chromium, devices, type Page } from 'playwright';
 import pages from './pages.json' with { type: 'json' };
 
 type InputPageData = {
   href: string;
-  tags: string[];
-  size: 'small' | 'large';
+  tags?: string[];
+  size?: 'small' | 'large';
   repo?: string;
 };
 type PageData = InputPageData & {
@@ -34,13 +34,15 @@ async function captureMultipleScreenshots() {
   }
 
   let browser = null;
-  const output = [];
   try {
     // launch headless Chromium browser
     browser = await chromium.launch({
       headless: true,
     });
-    const context = await browser.newContext();
+    const context = await browser.newContext({
+      // pretend to be a desktop browser
+      ...devices['Desktop Chrome'],
+    });
     let existingJson: PageData[] = [];
     try {
       const data = readFileSync(OUTPUT_JSON, 'utf8');
@@ -53,9 +55,6 @@ async function captureMultipleScreenshots() {
       let page: Page;
       try {
         page = await context.newPage();
-        // page.setUserAgent(
-        //   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
-        // );
 
         // set viewport width and height
         await page.setViewportSize({
@@ -64,16 +63,13 @@ async function captureMultipleScreenshots() {
         });
 
         const href = pageData.href;
-        const existing = existingJson.find((item) => item.href === href);
-        if (existing && existing.ts - Date.now() < 1000 * 60 * 60 * 24 * 7) {
-          console.log('Skipping page', href);
-
-          output.push({
-            ...existing,
-            ...pageData,
-            tags: pageData.tags,
-            size: pageData.size,
-          });
+        let existing = existingJson.find((item) => item.href === href);
+        if (!existing) {
+          existing = { ...pageData, ts: 0 } as PageData;
+          existingJson.push(existing);
+        }
+        if (Date.now() - existing.ts < 1000 * 60 * 60 * 24 * 7) {
+          console.log('Skipping recently updated', href);
           continue;
         }
         console.log('Opening page', href);
@@ -83,7 +79,9 @@ async function captureMultipleScreenshots() {
         const html = page.locator('html');
         const hasContainer = await html.evaluate((node) => node.hasAttribute('q:container'));
         if (!hasContainer) {
-          console.warn('❌ Not Qwik Site', href);
+          console.warn('❌ Not a Qwik Site', href, await html.getAttribute('q:container'));
+          existingJson.splice(existingJson.indexOf(existing), 1);
+          writeFileSync(OUTPUT_JSON, JSON.stringify(existingJson, undefined, 2) + '\n');
           continue;
         }
         const version = await html.getAttribute('q:version');
@@ -141,7 +139,7 @@ async function captureMultipleScreenshots() {
           ttiScore,
           ttiTime,
         };
-        output.push({
+        Object.assign(existing, {
           ...pageData,
           ts: Date.now(),
           title,
@@ -149,6 +147,7 @@ async function captureMultipleScreenshots() {
           perf,
           version,
         });
+        writeFileSync(OUTPUT_JSON, JSON.stringify(existingJson, undefined, 2) + '\n');
         console.log(`✅ ${title} - (${href})`);
       } catch (err) {
         console.error(err);
@@ -166,7 +165,6 @@ async function captureMultipleScreenshots() {
     }
     console.log(`\n🎉 ${pages.length} screenshots captured.`);
   }
-  writeFileSync(OUTPUT_JSON, JSON.stringify(output, undefined, 2) + '\n');
 }
 
 async function getPagespeedData(url: string) {

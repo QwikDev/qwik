@@ -200,6 +200,7 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
       DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
 
       if (state === 'pending' && props.onPending) {
+        resource.value.catch(() => {});
         return Promise.resolve().then(useBindInvokeContext(props.onPending));
       } else if (state === 'rejected' && props.onRejected) {
         return Promise.resolve(resource._error!).then(useBindInvokeContext(props.onRejected));

@@ -43,7 +43,7 @@ function checkNodeVersion() {
     if (Number(minorVersion) < 11) {
       console.error(
         red(
-          `Node.js 18.11 or higher is REQUIRED. From Node 18.0.0 to 18.11.0, there is a bug preventing correct behaviour of Qwik. You are currently running Node.js ${version}. https://github.com/QwikDev/qwik/issues/3035`
+          `Node.js 18.11 or higher is REQUIRED. From Node 18.0.0 to 18.11.0, there is a bug preventing correct behavior of Qwik. You are currently running Node.js ${version}. https://github.com/QwikDev/qwik/issues/3035`
         )
       );
     }

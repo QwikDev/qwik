@@ -67,7 +67,7 @@ export default tseslint.config(
       parserOptions: {
         // Needed when using the qwik plugin
         // projectService: true,
-        // tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
   },

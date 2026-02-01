@@ -274,7 +274,17 @@ export function addStoreEffect(
   (import.meta.env.TEST ? !isDomContainer(store.$container$) : isServer) &&
     addQrlToSerializationCtx(effectSubscription, store.$container$);
 
-  DEBUG && log('sub', pad('\n' + store.$effects$?.entries.toString(), '  '));
+  DEBUG &&
+    log(
+      'sub',
+      pad(
+        '\n' +
+          [...(store.$effects$?.entries() || [])]
+            .map(([key, value]) => `${String(key)}: ${String(value)}`)
+            .join(','),
+        '  '
+      )
+    );
 }
 
 function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(

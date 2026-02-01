@@ -17,10 +17,13 @@ export const InnerComputedButton = component$<any>((props) => {
   const syncSelectionCounter = useSignal(0);
   const syncSelection = $(() => {
     syncSelectionCounter.value++;
+    // Access the computed to ensure it resolves without errors
     props.test.value;
   });
 
   const handleClick = $(() => {
+    // Note, we call the qrl without awaiting it to simulate real world usage
+    // The only way to avoid uncaught promise errors is to ensure the computed qrl is resolved beforehand
     syncSelection();
   });
 

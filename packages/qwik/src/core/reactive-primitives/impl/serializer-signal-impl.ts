@@ -2,15 +2,15 @@ import { qwikDebugToString } from '../../debug';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
 import { trackSignal } from '../../use/use-core';
-import { throwIfQRLNotResolved } from '../utils';
 import type { SerializerArg } from '../types';
 import {
-  SerializationSignalFlags,
   EffectProperty,
   NEEDS_COMPUTATION,
+  SerializationSignalFlags,
   SignalFlags,
   type ComputeQRL,
 } from '../types';
+import { throwIfQRLNotResolved } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 
 const DEBUG = false;

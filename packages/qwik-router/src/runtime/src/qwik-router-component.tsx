@@ -18,16 +18,14 @@ import {
 } from '@qwik.dev/core';
 import {
   _getContextContainer,
-  _getContextElement,
-  _getQContainerElement,
-  _waitUntilRendered,
-  _UNINITIALIZED,
-  SerializerSymbol,
-  type _ElementVNode,
-  type AsyncComputedReadonlySignal,
-  type SerializationStrategy,
-  forceStoreEffects,
   _hasStoreEffects,
+  _UNINITIALIZED,
+  _waitUntilRendered,
+  forceStoreEffects,
+  SerializerSymbol,
+  type AsyncComputedReadonlySignal,
+  type ClientContainer,
+  type SerializationStrategy,
   type ValueOrPromise,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
@@ -43,6 +41,7 @@ import {
   RouteStateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
+import transitionCss from './qwik-view-transition.css?inline';
 import { loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
@@ -79,7 +78,6 @@ import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
-import transitionCss from './qwik-view-transition.css?inline';
 
 declare const window: ClientSPAWindow;
 
@@ -383,7 +381,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     };
 
     if (isBrowser) {
-      loadClientData(dest, _getContextElement());
+      loadClientData(dest);
       loadRoute(
         qwikRouterConfig.routes,
         qwikRouterConfig.menus,
@@ -421,7 +419,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       let trackUrl: URL;
       let clientPageData: EndpointResponse | ClientPageData | undefined;
       let loadedRoute: LoadedRoute | null = null;
-      let elm: unknown;
+      let container: ReturnType<typeof _getContextContainer> | undefined;
       if (isServer) {
         // server
         trackUrl = new URL(navigation.dest, routeLocation.url);
@@ -445,8 +443,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           qwikRouterConfig.cacheModules,
           trackUrl.pathname
         );
-        elm = _getContextElement();
-        const pageData = (clientPageData = await loadClientData(trackUrl, elm, {
+        container = _getContextContainer();
+        const pageData = (clientPageData = await loadClientData(trackUrl, {
           action,
           clearCache: true,
         }));
@@ -755,7 +753,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           const navigate = () => {
             clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
             (contentInternal as any).force();
-            return _waitUntilRendered(elm as Element);
+            return _waitUntilRendered(container!);
           };
 
           const _waitNextPage = () => {
@@ -780,8 +778,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               throw err;
             })
             .finally(() => {
-              const container = _getQContainerElement(elm as Element)!;
-              container.setAttribute(Q_ROUTE, routeName);
+              (container as ClientContainer).element.setAttribute?.(Q_ROUTE, routeName);
               const scrollState = currentScrollState(scroller);
               saveScrollHistory(scrollState);
               window._qRouterScrollEnabled = true;

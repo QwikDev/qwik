@@ -724,7 +724,7 @@ When the application is running on the server the symbols may be imported from d
 
 </td><td>
 
-(containerEl: Element \| undefined, url: string \| URL \| undefined \| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)&lt;any&gt;
+(containerEl: Element \| undefined, url: string \| URL \| undefined \| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)&lt;unknown&gt;
 
 </td><td>
 
@@ -1713,7 +1713,7 @@ Create an inlined QRL. This is mostly useful on the server side for serializatio
 inlinedQrl: <T>(
   symbol: T | null,
   symbolName: string,
-  lexicalScopeCapture?: any[],
+  lexicalScopeCapture?: Readonly<unknown[]>,
 ) => QRL<T>;
 ```
 
@@ -1762,7 +1762,7 @@ lexicalScopeCapture
 
 </td><td>
 
-any[]
+Readonly&lt;unknown[]&gt;
 
 </td><td>
 
@@ -2811,7 +2811,7 @@ These are the main reasons why Qwik introduces its own concept of `QRL`.
 ```typescript
 export type QRL<TYPE = unknown> = {
   __qwik_serializable__?: any;
-  __brand__QRL__: TYPE;
+  __brand__QRL__?: TYPE;
   resolve(): Promise<TYPE>;
   resolved: undefined | TYPE;
   getCaptured(): unknown[] | null;
@@ -2919,7 +2919,7 @@ These are the main reasons why Qwik introduces its own concept of `QRL`.
 ```typescript
 export type QRL<TYPE = unknown> = {
   __qwik_serializable__?: any;
-  __brand__QRL__: TYPE;
+  __brand__QRL__?: TYPE;
   resolve(): Promise<TYPE>;
   resolved: undefined | TYPE;
   getCaptured(): unknown[] | null;
@@ -3322,8 +3322,6 @@ export type QwikSymbolEvent = CustomEvent<{
   element: Element;
   reqTime: number;
   qBase?: string;
-  qManifest?: string;
-  qVersion?: string;
   href?: string;
 }>;
 ```

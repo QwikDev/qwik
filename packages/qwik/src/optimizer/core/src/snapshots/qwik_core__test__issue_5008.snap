@@ -89,9 +89,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_test_component_Fragment_button_on_click_G71xRH0eut0.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const test_component_Fragment_button_on_click_G71xRH0eut0 = ()=>{
-    const [store] = useLexicalScope();
+    const store = _captures[0];
     return store[0].value++;
 };
 

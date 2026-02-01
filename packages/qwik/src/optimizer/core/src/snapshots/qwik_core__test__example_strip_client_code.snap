@@ -53,7 +53,7 @@ import { _noopQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useStore } from '@qwik.dev/core';
 export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
@@ -78,7 +78,7 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
         /*#__PURE__*/ _jsxSorted(Div, null, {
             onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('keep'), "Parent_component_div_Div_onClick_kgowuto5dR0"),
             render$: /*#__PURE__*/ inlinedQrl(()=>{
-                const [state] = useLexicalScope();
+                const state = _captures[0];
                 return state.text;
             }, "Parent_component_div_Div_render_CkMybN6xzQk", [
                 state

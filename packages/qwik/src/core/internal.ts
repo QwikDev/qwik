@@ -26,16 +26,17 @@ export {
   vnode_isVirtualVNode as _vnode_isVirtualVNode,
   vnode_toString as _vnode_toString,
 } from './client/vnode-utils';
-export type { VNode as _VNode } from './shared/vnode/vnode';
+export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export type { Container as _Container } from './shared/types';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
 export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
-export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export type { VNode as _VNode } from './shared/vnode/vnode';
 
+export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
 export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';
 export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
 export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
-export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
 export {
   isStringifiable as _isStringifiable,
   type Stringifiable as _Stringifiable,
@@ -51,18 +52,20 @@ export {
   preprocessState as _preprocessState,
   _serialize,
 } from './shared/serdes/index';
+export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
 export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';
 export { _restProps } from './shared/utils/prop';
-export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
 export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,
-  _getContextElement,
   _getContextEvent,
+  _getContextHostElement,
   _jsxBranch,
   _waitUntilRendered,
 } from './use/use-core';
+export { useLexicalScope } from './use/use-lexical-scope.public';
 export { isTask as _isTask, scheduleTask as _task } from './use/use-task';
+export { _captures } from './shared/qrl/qrl-class';

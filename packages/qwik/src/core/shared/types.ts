@@ -13,6 +13,7 @@ export interface DeserializeContainer {
   $forwardRefs$: Array<number> | null;
 }
 
+/** @internal */
 export interface Container {
   readonly $version$: string;
   readonly $storeProxyMap$: ObjToProxyMap;

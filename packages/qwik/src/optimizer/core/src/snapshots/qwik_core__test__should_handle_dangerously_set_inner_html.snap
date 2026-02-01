@@ -95,9 +95,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Cmp_component_div_div_button_on_click_Ju08jVHVMrk.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const Cmp_component_div_div_button_on_click_Ju08jVHVMrk = ()=>{
-    const [htmlSignal] = useLexicalScope();
+    const htmlSignal = _captures[0];
     return htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>";
 };
 

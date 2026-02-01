@@ -58,7 +58,7 @@ export interface CorePlatform {
     containerEl: Element | undefined,
     url: string | URL | undefined | null,
     symbol: string
-  ) => ValueOrPromise<any>;
+  ) => ValueOrPromise<unknown>;
   // <docs markdown="./readme.md#CorePlatform.raf">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
   // (edit ./readme.md#CorePlatform.raf instead and run `pnpm docs.sync`)

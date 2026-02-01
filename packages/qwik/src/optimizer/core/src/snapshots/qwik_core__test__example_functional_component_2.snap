@@ -37,9 +37,9 @@ export const App = component$((props) => {
 
 ============================= test.tsx_App_component_div_on_click_V4v7mvdC0xU.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_div_on_click_V4v7mvdC0xU = ()=>{
-    const [count2, state] = useLexicalScope();
+    const count2 = _captures[0], state = _captures[1];
     return state.count += count2;
 };
 
@@ -87,10 +87,10 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAwB,QAAQ,QAAQ,iBAAiB;AACzD,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,4EAoBjB\"}")
 ============================= test.tsx_App_component_div_button_on_click_5a2ivZyN1Y0.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import { STEP } from "./test";
 export const App_component_div_button_on_click_5a2ivZyN1Y0 = (_, _1, btn)=>{
-    const [props, state, thing] = useLexicalScope();
+    const props = _captures[0], state = _captures[1], thing = _captures[2];
     return state.count += btn.offset + thing + STEP + 2 + props.step;
 };
 

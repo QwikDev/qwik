@@ -130,7 +130,7 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
         if (bindCheckedSignal) {
           delete varProps[BIND_CHECKED];
           varProps.checked = bindCheckedSignal;
-          const handler = createQRL(null, '_chk', _chk, null, null, [bindCheckedSignal]);
+          const handler = createQRL(null, '_chk', _chk, null, [bindCheckedSignal]);
 
           // Move on:input from constProps if it exists
           if (constProps && _hasOwnProperty.call(constProps, 'on:input')) {
@@ -147,7 +147,7 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
         } else if (bindValueSignal) {
           delete varProps[BIND_VALUE];
           varProps.value = bindValueSignal;
-          const handler = createQRL(null, '_val', _val, null, null, [bindValueSignal]);
+          const handler = createQRL(null, '_val', _val, null, [bindValueSignal]);
 
           // Move on:input from constProps if it exists
           if (constProps && _hasOwnProperty.call(constProps, 'on:input')) {

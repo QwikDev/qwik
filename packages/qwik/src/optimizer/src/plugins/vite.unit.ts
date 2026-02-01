@@ -568,3 +568,112 @@ describe('input config', () => {
     assert.deepEqual(c.build.rollupOptions.input, ['./src/widget/ssr.tsx']);
   });
 });
+
+describe('clientPublicOutDir', () => {
+  test('clientPublicOutDir should equal clientOutDir when base is set', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+
+    // Simulate a config with a base path that might cause duplication
+    const viteConfig = {
+      base: '/frameworks/keyed/qwik2/',
+      build: {
+        outDir: 'dist',
+      },
+    };
+
+    await plugin.config.call(configHookPluginContext, viteConfig, {
+      command: 'build',
+      mode: 'production',
+    });
+
+    const clientOutDir = plugin.api.getClientOutDir();
+    const clientPublicOutDir = plugin.api.getClientPublicOutDir();
+
+    // clientPublicOutDir should be the same as clientOutDir
+    // The base path should NOT be appended to the filesystem path
+    assert.equal(clientPublicOutDir, clientOutDir);
+  });
+
+  test('clientPublicOutDir should equal clientOutDir without base', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+
+    const viteConfig = {
+      build: {
+        outDir: 'dist',
+      },
+    };
+
+    await plugin.config.call(configHookPluginContext, viteConfig, {
+      command: 'build',
+      mode: 'production',
+    });
+
+    const clientOutDir = plugin.api.getClientOutDir();
+    const clientPublicOutDir = plugin.api.getClientPublicOutDir();
+
+    assert.equal(clientPublicOutDir, clientOutDir);
+  });
+
+  test('clientPublicOutDir should equal clientOutDir with base="/"', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+
+    const viteConfig = {
+      base: '/',
+      build: {
+        outDir: 'dist',
+      },
+    };
+
+    await plugin.config.call(configHookPluginContext, viteConfig, {
+      command: 'build',
+      mode: 'production',
+    });
+
+    const clientOutDir = plugin.api.getClientOutDir();
+    const clientPublicOutDir = plugin.api.getClientPublicOutDir();
+
+    assert.equal(clientPublicOutDir, clientOutDir);
+  });
+
+  test('clientPublicOutDir should not duplicate custom outDir with nested base path', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+      client: {
+        outDir: 'frameworks/keyed/qwik2/dist',
+      },
+    };
+    const plugin = getPlugin(initOpts);
+
+    const viteConfig = {
+      base: '/frameworks/keyed/qwik2/',
+      build: {
+        outDir: 'frameworks/keyed/qwik2/dist',
+      },
+    };
+
+    await plugin.config.call(configHookPluginContext, viteConfig, {
+      command: 'build',
+      mode: 'production',
+    });
+
+    const clientPublicOutDir = plugin.api.getClientPublicOutDir();
+
+    // Should be the outDir, not outDir + base
+    assert.equal(
+      normalizePath(clientPublicOutDir!),
+      normalizePath(resolve(cwd, 'frameworks/keyed/qwik2/dist'))
+    );
+
+    // Should NOT be duplicated like: frameworks/keyed/qwik2/dist/frameworks/keyed/qwik2
+    assert.notMatch(clientPublicOutDir!, /frameworks.*frameworks/);
+  });
+});

@@ -37,11 +37,7 @@
     "packages/create-qwik",
     "packages/supabase-auth-helpers-qwik",
     "packages/qwik-react/src",
-    "starters/apps/sandbox",
-    "starters/apps/todo-test",
-    "starters/apps/e2e",
-    "starters/apps/qwikrouter-test/**/*",
-    "starters/apps/qwikrouter-test.prod/**/*",
+    "starters/apps/*",
     "packages/qwik-react/vite",
     "@types/deno.d.ts",
     "@types/bun.d.ts",
@@ -52,6 +48,9 @@
     "packages/create-qwik/dist",
     "packages/qwik/src",
     "packages/*/lib",
+    "starters/apps/*/lib",
+    "starters/apps/*/dist",
+    "starters/apps/*/server",
     "scripts",
     "starters/dev-server.ts"
   ]

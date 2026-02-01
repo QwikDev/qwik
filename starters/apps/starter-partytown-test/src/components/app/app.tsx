@@ -1,12 +1,14 @@
-import { component$, useStore } from "@qwik.dev/core";
+import { component$, useSignal } from "@qwik.dev/core";
 
 export const App = component$(() => {
-  const state = useStore({ name: "World", running: true });
+  const name = useSignal("World");
+  const state = useSignal("loading");
 
   return (
     <div
       id="my-app"
-      document:on-expensiveComputationDone$={() => (state.running = false)}
+      document:on-expensiveComputationStarted$={() => (state.value = "running")}
+      document:on-expensiveComputationDone$={() => (state.value = "finished")}
     >
       <p style={{ "text-align": "center" }}>
         <a href="https://github.com/QwikDev/qwik">
@@ -25,29 +27,16 @@ export const App = component$(() => {
       <p>
         Expensive script running in{" "}
         <a href="https://partytown.qwik.dev/">Partytown</a> is{" "}
-        {state.running ? (
-          <span
-            id="state"
-            style={{
-              "background-color": "red",
-              color: "white",
-              padding: ".1em",
-            }}
-          >
-            running
-          </span>
-        ) : (
-          <span
-            id="state"
-            style={{
-              "background-color": "green",
-              color: "white",
-              padding: ".1em",
-            }}
-          >
-            finished
-          </span>
-        )}
+        <span
+          id="state"
+          style={{
+            "background-color": state.value === "finished" ? "green" : "red",
+            color: "white",
+            padding: ".1em",
+          }}
+        >
+          {state.value}
+        </span>
         .
       </p>
 
@@ -74,16 +63,10 @@ export const App = component$(() => {
         </li>
         <li>
           Try interacting with this component by changing{" "}
-          <input
-            value={state.name}
-            onInput$={(event, input) => {
-              state.name = input.value;
-            }}
-          ></input>
-          .
+          <input bind:value={name}></input>.
         </li>
         <li>
-          Observe that the binding changes: <code>Hello {state.name}!</code>
+          Observe that the binding changes: <code>Hello {name.value}!</code>
         </li>
         <li>
           Notice that Qwik automatically lazily-loaded and resumed the component
@@ -96,13 +79,6 @@ export const App = component$(() => {
         <li>Replace the content of this component with your code.</li>
         <li>Build amazing web-sites with unbeatable startup performance.</li>
       </ol>
-      <hr />
-      <p style={{ "text-align": "center" }}>
-        Made with ❤️ by{" "}
-        <a target="_blank" href="https://www.builder.io/">
-          Builder.io
-        </a>
-      </p>
     </div>
   );
 });

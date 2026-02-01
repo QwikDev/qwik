@@ -105,8 +105,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
 
-      const path = qwikPlugin.getPath();
-
       let target: QwikBuildTarget;
       if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
         target = 'ssr';
@@ -200,9 +198,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (!qwikViteOpts.csr) {
         clientOutDir = opts.clientOutDir;
 
-        clientPublicOutDir = viteConfig.base
-          ? path.join(clientOutDir, viteConfig.base)
-          : clientOutDir;
+        // Don't join base to clientOutDir - vite handles the base internally for assets.
+        clientPublicOutDir = clientOutDir;
 
         ssrOutDir = opts.ssrOutDir;
       }

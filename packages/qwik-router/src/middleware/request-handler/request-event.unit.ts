@@ -114,6 +114,7 @@ describe('request-event redirect', () => {
     expect(consoleSpy).toHaveBeenCalledWith(
       'Redirect URL ////evil.com is invalid, fixing to /evil.com'
     );
+    consoleSpy.mockRestore();
   });
 
   it('should preserve valid URLs with protocols', () => {
@@ -126,6 +127,7 @@ describe('request-event redirect', () => {
     expect(result).toBeInstanceOf(RedirectMessage);
     expect(requestEv.headers.get('Location')).toBe('https://qwik.dev');
     expect(consoleSpy).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 
   it('should throw error when trying to redirect after headers are sent', () => {

@@ -395,10 +395,20 @@ async function runServerFunction(ev: RequestEvent) {
   }
 }
 
-function fixTrailingSlash(ev: RequestEvent) {
+export function fixTrailingSlash(ev: RequestEvent) {
   const { basePathname, originalUrl, sharedMap } = ev;
   const { pathname, search } = originalUrl;
   const isQData = sharedMap.has(IsQData);
+
+  if (
+    // all valid pathnames must start with a single slash
+    !pathname.startsWith('/') ||
+    // protocol-relative URLs are not allowed like: //test.com, ///bad.com
+    pathname.startsWith('//')
+  ) {
+    return;
+  }
+
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (!globalThis.__NO_TRAILING_SLASH__) {
@@ -467,14 +477,19 @@ function csrfLaxProtoCheckMiddleware(requestEv: RequestEvent) {
 function csrfCheckMiddleware(requestEv: RequestEvent) {
   checkCSRF(requestEv);
 }
-function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
-  const isForm = isContentType(
-    requestEv.request.headers,
-    'application/x-www-form-urlencoded',
-    'multipart/form-data',
-    'text/plain'
-  );
-  if (isForm) {
+export function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
+  const contentType = requestEv.request.headers.get('content-type');
+
+  const isSimpleRequest =
+    !contentType ||
+    isContentType(
+      requestEv.request.headers,
+      'application/x-www-form-urlencoded',
+      'multipart/form-data',
+      'text/plain'
+    );
+
+  if (isSimpleRequest) {
     const inputOrigin = requestEv.request.headers.get('origin');
     const origin = requestEv.url.origin;
     let forbidden = inputOrigin !== origin;
@@ -671,7 +686,16 @@ export async function measure<T>(
   }
 }
 
+export function getContentType(headers: Headers): string {
+  return (headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '').toLowerCase();
+}
+
 export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(/;/, 1)[0].trim() ?? '';
-  return types.includes(type);
+  const type = getContentType(headers);
+  for (let i = 0; i < types.length; i++) {
+    if (types[i].toLowerCase() === type) {
+      return true;
+    }
+  }
+  return false;
 }

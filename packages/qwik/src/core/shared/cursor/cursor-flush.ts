@@ -1,4 +1,4 @@
-import { type VNodeJournal } from '../../client/vnode-utils';
+import { vnode_journalToString, type VNodeJournal } from '../../client/vnode-utils';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { directSetAttribute } from '../utils/attribute';
@@ -14,6 +14,8 @@ import {
 } from '../vnode/types/dom-vnode-operation';
 import type { Cursor } from './cursor';
 import { getCursorData, type CursorData } from './cursor-props';
+
+const DEBUG = false;
 
 /**
  * Executes the flush phase for a cursor.
@@ -45,7 +47,7 @@ const fastInsertBefore = (
 };
 
 export function _flushJournal(journal: VNodeJournal): void {
-  // console.log(vnode_journalToString(journal));
+  DEBUG && console.warn('walkCursor: flushing journal', vnode_journalToString(journal));
   let batchParent: Node | null = null;
   let batchBefore: Node | null = null;
   let batchNodes: Node[] | null = null;
@@ -184,6 +186,12 @@ function executeAfterFlush(container: Container, cursorData: CursorData): void {
     cursorData.afterFlushTasks = null;
     return;
   }
+  DEBUG &&
+    console.warn(
+      'walkCursor: executeAfterFlush',
+      visibleTasks.map((t) => t.$qrl$.$symbol$)
+    );
+
   let visibleTaskPromise: Promise<void> | undefined;
   for (const visibleTask of visibleTasks) {
     const task = visibleTask;

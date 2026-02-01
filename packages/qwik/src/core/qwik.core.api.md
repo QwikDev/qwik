@@ -930,6 +930,8 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     readonly $locale$: string;
     // (undocumented)
+    $pausedCursorCount$: number;
+    // (undocumented)
     $renderPromise$: Promise<void> | null;
     // (undocumented)
     $resolveRenderPromise$: (() => void) | null;

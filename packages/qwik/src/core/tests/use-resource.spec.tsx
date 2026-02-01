@@ -94,13 +94,14 @@ describe.each([
   });
 
   it('should show loading state', async () => {
-    (global as any).delay = () => new Promise<void>((res) => ((global as any).delay.resolve = res));
+    (global as any)._resDelay = () =>
+      new Promise<void>((res) => ((global as any)._resDelay.resolve = res));
     const ResourceCmp = component$(() => {
       const count = useSignal(0);
       const rsrc = useResource$(async ({ track }) => {
         const value = track(() => count.value);
         if (count.value === 1) {
-          await (global as any).delay();
+          await (global as any)._resDelay();
         }
         return value;
       });
@@ -110,6 +111,7 @@ describe.each([
         </button>
       );
     });
+
     const { vNode, container } = await render(<ResourceCmp />, { debug });
 
     expect(vNode).toMatchVDOM(
@@ -138,7 +140,10 @@ describe.each([
         </button>
       </Component>
     );
-    await (global as any).delay.resolve();
+
+    await (global as any)._resDelay.resolve();
+    // Give the resource a tick to resolve
+    await Promise.resolve();
     await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
@@ -154,7 +159,7 @@ describe.each([
         </button>
       </Component>
     );
-    (global as any).delay = undefined;
+    (global as any)._resDelay = undefined;
   });
 
   it('should immediately increment button count', async () => {

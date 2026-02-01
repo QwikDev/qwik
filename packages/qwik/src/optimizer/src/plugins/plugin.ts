@@ -1,7 +1,15 @@
-import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { Environment, HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
 import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
+
+/**
+ * Plugin context with optional Vite 6+ environment. In Vite 6+, MinimalPluginContext is extended
+ * with `environment: Environment`. In Vite 5, this property doesn't exist.
+ */
+type PluginContext = Rollup.PluginContext & {
+  environment?: Environment;
+};
 import { createOptimizer } from '../optimizer';
 import type {
   Diagnostic,
@@ -433,7 +441,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const getIsServer = (viteOpts?: { ssr?: boolean }) => {
+  const getIsServer = (viteOpts?: { ssr?: boolean }, environment?: Environment): boolean => {
+    // Vite 7+ Environment API: Check environment.config.consumer first
+    if (environment?.config?.consumer === 'server') {
+      return true;
+    }
+    // Fallback: check environment.name for edge cases
+    if (environment?.name === 'ssr') {
+      return true;
+    }
+    // Rolldown/build fallback (no dev server, no Environment API)
+    // This handles REPL/playground builds and production builds where
+    // the Environment API may not be available
     return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
   };
 
@@ -449,7 +468,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
    * `load()` phase ensure it is built first.
    */
   const resolveId = async (
-    ctx: Rollup.PluginContext,
+    ctx: PluginContext,
     id: string,
     importerId: string | undefined,
     resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
@@ -470,7 +489,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         // Find the actual file on disk by asking vite to resolve it
         const resolved = await ctx.resolve(origId, importerId);
         if (resolved) {
-          const file = devServer!.moduleGraph.getModuleById(resolved.id)?.file;
+          // Vite 7+: use environment's module graph when available (DevEnvironment only)
+          const file = (
+            (ctx?.environment as any)?.moduleGraph?.getModuleById(resolved.id) ??
+            getModuleById(devServer!, resolved.id)
+          )?.file;
           if (file) {
             const path = `${file}${location}`;
             try {
@@ -487,7 +510,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     const count = resolveIdCount++;
-    const isServer = getIsServer(resolveOpts);
+    const isServer = getIsServer(resolveOpts, ctx?.environment);
     debug(`resolveId(${count})`, `begin ${id} | ${isServer ? 'server' : 'client'} | ${importerId}`);
 
     const parsedImporterId = importerId && parseId(importerId);
@@ -636,7 +659,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let loadCount = 0;
   const load = async (
-    ctx: Rollup.PluginContext,
+    ctx: PluginContext,
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
   ): Promise<Rollup.LoadResult> => {
@@ -648,7 +671,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const count = loadCount++;
-    const isServer = getIsServer(loadOpts);
+    const isServer = getIsServer(loadOpts, ctx?.environment);
 
     // Virtual modules
     if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
@@ -686,19 +709,33 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
       const parentId = parentIds.get(id);
       if (parentId) {
-        const parentModule = devServer.moduleGraph.getModuleById(parentId);
-        if (parentModule) {
-          // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
-          debug(`load(${count})`, 'transforming QRL parent', parentId);
-          // We need to encode it as an absolute path
-          await devServer.transformRequest(parentModule.url);
-          // The QRL segment should exist now
-          if (!outputs.has(id)) {
-            debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
-            return null;
-          }
+        // Vite 7+: use environment's module graph directly when available (DevEnvironment only)
+        // This ensures we query the correct graph (client or ssr) based on the request context
+        const envModuleGraph = (ctx?.environment as any)?.moduleGraph;
+        const envModule = envModuleGraph?.getModuleById(parentId);
+        const fallbackModule = getModuleById(devServer, parentId);
+        const parentModule = envModule ?? fallbackModule;
+
+        // Determine the URL to use for transformRequest
+        let transformUrl: string;
+        if (parentModule?.url) {
+          // Module found in graph - use its URL
+          transformUrl = parentModule.url;
+        } else if (parentId.startsWith('/virtual-') || parentId.startsWith('\0')) {
+          // Virtual modules - use as-is
+          transformUrl = parentId;
         } else {
-          console.error(`load(${count})`, `module ${parentId} does not exist in the build graph!`);
+          // Real file not in graph yet - use /@fs/ prefix for absolute paths
+          transformUrl = parentId.startsWith('/') ? `/@fs${parentId}` : `/@fs/${parentId}`;
+        }
+
+        debug(`load(${count})`, 'transforming QRL parent', parentId, '->', transformUrl);
+        await devServer.transformRequest(transformUrl);
+
+        // The QRL segment should exist now after parent transform
+        if (!outputs.has(id)) {
+          debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
+          return null;
         }
       }
     }
@@ -717,7 +754,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let transformCount = 0;
   const transform = async function (
-    ctx: Rollup.PluginContext,
+    ctx: PluginContext,
     code: string,
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
@@ -726,7 +763,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const count = transformCount++;
-    const isServer = getIsServer(transformOpts);
+    const isServer = getIsServer(transformOpts, ctx?.environment);
     const currentOutputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
       // This is a QRL segment, and we don't need to process it any further
@@ -771,7 +808,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
       if (devServer) {
-        devPath = devServer.moduleGraph.getModuleById(pathId)?.url;
+        // Vite 7+: use environment's module graph when available (DevEnvironment only)
+        devPath = (
+          (ctx?.environment as any)?.moduleGraph?.getModuleById(pathId) ??
+          getModuleById(devServer, pathId)
+        )?.url;
       }
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath, devPath }],
@@ -1009,24 +1050,63 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     opts.sourcemap = sourcemap;
   }
 
-  // Only used in Vite dev mode
-  function handleHotUpdate(ctx: HmrContext) {
-    debug('handleHotUpdate()', ctx.file);
+  /**
+   * Invalidate a module across all environments (Vite 7+) or legacy module graph. Pattern from
+   * qwik-router/plugin.ts lines 182-195.
+   */
+  function invalidateModuleInEnvironments(server: ViteDevServer, moduleId: string): void {
+    if ((server as any).environments) {
+      // Vite 7+: Invalidate in all environments
+      for (const env of Object.values((server as any).environments)) {
+        const mod = (env as any).moduleGraph?.getModuleById(moduleId);
+        if (mod) {
+          (env as any).moduleGraph.invalidateModule(mod);
+        }
+      }
+    } else {
+      // Legacy fallback
+      const mod = server.moduleGraph.getModuleById(moduleId);
+      if (mod) {
+        server.moduleGraph.invalidateModule(mod);
+      }
+    }
+  }
+
+  /**
+   * Legacy fallback for getting a module from the module graph when environment context is not
+   * available. In Vite 7+, prefer using ctx.environment.moduleGraph.getModuleById() directly in
+   * plugin hooks, which queries the correct environment-specific graph.
+   *
+   * This function falls back to client environment graph, then legacy shared graph.
+   */
+  function getModuleById(
+    server: ViteDevServer,
+    moduleId: string
+  ): { file?: string | null; url?: string } | undefined {
+    // Vite 7+: fallback to client environment when environment context not available
+    const clientEnv = (server as any).environments?.client;
+    if (clientEnv?.moduleGraph) {
+      return clientEnv.moduleGraph.getModuleById(moduleId);
+    }
+    // Legacy fallback
+    return server.moduleGraph.getModuleById(moduleId);
+  }
+
+  // Only used in Vite dev mode - called from hotUpdate hook
+  function invalidateHotModules(ctx: HmrContext) {
+    debug('invalidateHotModules()', ctx.file);
 
     for (const mod of ctx.modules) {
       const { id } = mod;
       if (id) {
-        debug('handleHotUpdate()', `invalidate ${id}`);
+        debug('invalidateHotModules()', `invalidate ${id}`);
         clientResults.delete(id);
         for (const outputs of [clientTransformedOutputs, serverTransformedOutputs]) {
           for (const [key, [_, parentId]] of outputs) {
             if (parentId === id) {
-              debug('handleHotUpdate()', `invalidate ${id} segment ${key}`);
+              debug('invalidateHotModules()', `invalidate ${id} segment ${key}`);
               outputs.delete(key);
-              const mod = ctx.server.moduleGraph.getModuleById(key);
-              if (mod) {
-                ctx.server.moduleGraph.invalidateModule(mod);
-              }
+              invalidateModuleInEnvironments(ctx.server, key);
             }
           }
         }
@@ -1149,7 +1229,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     validateSource,
     setSourceMapSupport,
     configureServer,
-    handleHotUpdate,
+    invalidateHotModules,
     manualChunks,
     generateManifest,
   };

@@ -40,6 +40,18 @@ const DEDUPE = [
   '@builder.io/qwik/jsx-dev-runtime',
 ];
 
+/**
+ * Parse the major version number from a Vite version string. Returns 0 if version is undefined or
+ * cannot be parsed.
+ */
+function getViteMajorVersion(viteVersion: string | undefined): number {
+  if (!viteVersion) {
+    return 0;
+  }
+  const major = parseInt(viteVersion.split('.')[0], 10);
+  return isNaN(major) ? 0 : major;
+}
+
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
 
@@ -353,6 +365,43 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         (globalThis as any).qInspector = qInspector;
       }
 
+      /**
+       * Vite 7+ Environment API configuration. Provides per-environment module graphs and optimized
+       * deps. Only enabled for Vite 7+ where the Environment API is fully stable. Rolldown (used in
+       * REPL/playground) doesn't have a dev server and will fall back to opts.target detection in
+       * getIsServer().
+       */
+      // @ts-ignore - this.meta may not exist in tests or older Vite versions
+      const viteMajorVersion = getViteMajorVersion((this as any)?.meta?.viteVersion);
+      if (viteMajorVersion >= 7) {
+        updatedViteConfig.environments = {
+          client: {
+            consumer: 'client',
+            resolve: {
+              conditions: ['browser', 'import', 'module'],
+            },
+            optimizeDeps: {
+              exclude: [
+                QWIK_CORE_ID,
+                QWIK_CORE_INTERNAL_ID,
+                QWIK_CORE_SERVER,
+                QWIK_JSX_RUNTIME_ID,
+                QWIK_JSX_DEV_RUNTIME_ID,
+                QWIK_BUILD_ID,
+                QWIK_CLIENT_MANIFEST_ID,
+              ],
+            },
+          },
+          ssr: {
+            consumer: 'server',
+            resolve: {
+              conditions: ['node', 'import', 'module'],
+              noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+            },
+          },
+        };
+      }
+
       return updatedViteConfig;
     },
 
@@ -583,16 +632,29 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
     },
 
-    handleHotUpdate(ctx) {
-      qwikPlugin.handleHotUpdate(ctx);
+    // Vite 7+ Environment API: per-environment HMR handling
+    hotUpdate: {
+      order: 'post',
+      handler({ file, modules, server }) {
+        // Only handle client environment - SSR changes trigger client reload anyway
+        if ((this as any).environment?.name !== 'client') {
+          return;
+        }
 
-      // Tell the client to reload the page if any modules were used in ssr or client
-      // this needs to be refined
-      if (ctx.modules.length) {
-        ctx.server.hot.send({
-          type: 'full-reload',
-        });
-      }
+        // Delegate to plugin for cache invalidation
+        qwikPlugin.invalidateHotModules({
+          file,
+          modules,
+          server,
+          read: () => Promise.resolve(''),
+        } as any);
+
+        // Trigger full reload via environment-specific hot channel
+        if (modules.length) {
+          (this as any).environment.hot.send({ type: 'full-reload' });
+          return []; // Prevent default HMR, we handled it
+        }
+      },
     },
 
     onLog(level, log) {

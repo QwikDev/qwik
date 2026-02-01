@@ -58,8 +58,14 @@ const excludeDeps = [
 const getPlugin = (opts: QwikVitePluginOptions | undefined) =>
   (qwikVite(opts) as any)[0] as QwikVitePlugin;
 
-// undefined for Vite 5 - 6, an object for Vite 7
-const configHookPluginContext = undefined as any;
+// Mock plugin context for config hook
+// In Vite 7+, `this.meta.viteVersion` provides the version
+function createConfigHookContext(viteVersion?: string) {
+  return { meta: { viteVersion } } as any;
+}
+
+// Default context for most tests (no version = environments not present)
+const configHookPluginContext = createConfigHookContext();
 
 test('command: serve, mode: development', async () => {
   const initOpts = {
@@ -566,5 +572,201 @@ describe('input config', () => {
       { command: 'build', mode: 'ssr' }
     ))!;
     assert.deepEqual(c.build.rollupOptions.input, ['./src/widget/ssr.tsx']);
+  });
+});
+
+describe('hotUpdate hook (Vite 7+ HMR)', () => {
+  // Get the post plugin which has the hotUpdate hook
+  const getPostPlugin = (opts: QwikVitePluginOptions | undefined) =>
+    (qwikVite(opts) as any)[1] as any;
+
+  test('hotUpdate hook should exist on post plugin', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    assert.isDefined(plugin.hotUpdate);
+    assert.equal(plugin.hotUpdate.order, 'post');
+    assert.isFunction(plugin.hotUpdate.handler);
+  });
+
+  test('hotUpdate should skip non-client environments', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    const handler = plugin.hotUpdate.handler;
+
+    // Mock context with SSR environment
+    const mockContext = {
+      environment: { name: 'ssr', hot: { send: () => {} } },
+    };
+
+    const result = handler.call(mockContext, {
+      file: '/test.tsx',
+      modules: [{ id: '/test.tsx' }],
+      server: { environments: {} },
+    });
+
+    // Should return undefined (early return for non-client)
+    assert.isUndefined(result);
+  });
+
+  test('hotUpdate should send full-reload for client environment with modules', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    const handler = plugin.hotUpdate.handler;
+
+    let sentMessage: any = null;
+    const mockContext = {
+      environment: {
+        name: 'client',
+        hot: {
+          send: (msg: any) => {
+            sentMessage = msg;
+          },
+        },
+      },
+    };
+
+    const result = handler.call(mockContext, {
+      file: '/test.tsx',
+      modules: [{ id: '/test.tsx' }],
+      server: { environments: {} },
+      read: () => Promise.resolve(''),
+    });
+
+    // Should return empty array (handled, prevent default HMR)
+    assert.deepEqual(result, []);
+    // Should have sent full-reload
+    assert.deepEqual(sentMessage, { type: 'full-reload' });
+  });
+
+  test('hotUpdate should not send reload when no modules', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    const handler = plugin.hotUpdate.handler;
+
+    let sentMessage: any = null;
+    const mockContext = {
+      environment: {
+        name: 'client',
+        hot: {
+          send: (msg: any) => {
+            sentMessage = msg;
+          },
+        },
+      },
+    };
+
+    const result = handler.call(mockContext, {
+      file: '/test.tsx',
+      modules: [],
+      server: { environments: {} },
+      read: () => Promise.resolve(''),
+    });
+
+    // Should return undefined (no modules to handle)
+    assert.isUndefined(result);
+    // Should not have sent any message
+    assert.isNull(sentMessage);
+  });
+
+  test('hotUpdate should call qwikPlugin.invalidateHotModules with environment context', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    const handler = plugin.hotUpdate.handler;
+
+    // The handler calls qwikPlugin.invalidateHotModules internally
+    // We verify through the full-reload being sent (proves invalidation path was taken)
+
+    let sentMessage: any = null;
+    const mockContext = {
+      environment: {
+        name: 'client',
+        hot: {
+          send: (msg: any) => {
+            sentMessage = msg;
+          },
+        },
+      },
+    };
+
+    const mockModules = [
+      { id: '/src/components/counter.tsx', file: '/src/components/counter.tsx' },
+    ];
+
+    const result = handler.call(mockContext, {
+      file: '/src/components/counter.tsx',
+      modules: mockModules,
+      server: { environments: {} },
+      read: () => Promise.resolve(''),
+    });
+
+    // Verify environment-specific handling occurred
+    assert.deepEqual(result, []);
+    assert.deepEqual(sentMessage, { type: 'full-reload' });
+  });
+});
+
+describe('Vite 7+ Environment API configuration', () => {
+  test('environments config should be present for Vite 7+', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      createConfigHookContext('7.0.0'),
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.isDefined(c.environments);
+    assert.isDefined(c.environments.client);
+    assert.isDefined(c.environments.ssr);
+    assert.deepEqual(c.environments.client.consumer, 'client');
+    assert.deepEqual(c.environments.ssr.consumer, 'server');
+  });
+
+  test('environments config should NOT be present for older Vite versions', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      createConfigHookContext('6.0.0'),
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.isUndefined(c.environments);
+  });
+
+  test('environments config should NOT be present for undefined version (Rolldown)', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.isUndefined(c.environments);
+  });
+
+  test('client environment should have browser resolve conditions', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      createConfigHookContext('7.0.0'),
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.deepEqual(c.environments.client.resolve.conditions, ['browser', 'import', 'module']);
+  });
+
+  test('ssr environment should have node resolve conditions', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      createConfigHookContext('7.0.0'),
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.deepEqual(c.environments.ssr.resolve.conditions, ['node', 'import', 'module']);
   });
 });

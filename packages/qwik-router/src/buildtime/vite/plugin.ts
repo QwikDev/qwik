@@ -178,11 +178,19 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         }
         // Invalidate the router config
         ctx!.isDirty = true;
-        const graph = server.environments?.ssr?.moduleGraph;
-        if (graph) {
-          const mod = graph.getModuleById('@qwik-router-config');
+
+        // Invalidate in all environments (Vite 6+) or legacy module graph (Vite 5)
+        if (server.environments) {
+          for (const env of Object.values(server.environments)) {
+            const mod = env.moduleGraph.getModuleById('@qwik-router-config');
+            if (mod) {
+              env.moduleGraph.invalidateModule(mod);
+            }
+          }
+        } else {
+          const mod = server.moduleGraph.getModuleById('@qwik-router-config');
           if (mod) {
-            graph.invalidateModule(mod);
+            server.moduleGraph.invalidateModule(mod);
           }
         }
       });

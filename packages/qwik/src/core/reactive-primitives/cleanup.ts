@@ -29,10 +29,11 @@ export function clearEffectSubscription(container: Container, effect: EffectSubs
     return;
   }
   for (const producer of backRefs) {
-    if (producer instanceof SignalImpl) {
-      clearSignal(container, producer, effect);
-    } else if (producer instanceof AsyncComputedSignalImpl) {
+    // Check AsyncComputedSignalImpl before SignalImpl since it extends SignalImpl
+    if (producer instanceof AsyncComputedSignalImpl) {
       clearAsyncComputedSignal(producer, effect);
+    } else if (producer instanceof SignalImpl) {
+      clearSignal(container, producer, effect);
     } else if (isPropsProxy(producer)) {
       const propsHandler = producer[_PROPS_HANDLER];
       clearStoreOrProps(propsHandler, effect);
@@ -51,7 +52,8 @@ function clearSignal(container: Container, producer: SignalImpl, effect: EffectS
     effects.delete(effect);
   }
 
-  if (producer instanceof WrappedSignalImpl) {
+  if (producer instanceof WrappedSignalImpl && !effects?.size) {
+    // Only clear if there are no more subscribers
     producer.$hostElement$ = undefined;
     clearAllEffects(container, producer);
   }

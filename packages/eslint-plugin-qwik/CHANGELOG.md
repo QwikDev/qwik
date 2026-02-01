@@ -60,6 +60,14 @@
 
 ## 2.0.0-alpha.0
 
+## 1.18.0
+
+### Patch Changes
+
+- execute cleanup cb for all component tree while calling dispose.cleanup method returned by render fn (by [@sashkashishka](https://github.com/sashkashishka) in [#8164](https://github.com/QwikDev/qwik/pull/8164))
+
+## 1.17.2
+
 ## 1.17.1
 
 ## 1.17.0

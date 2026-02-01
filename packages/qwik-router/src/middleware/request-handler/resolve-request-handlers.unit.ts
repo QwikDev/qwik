@@ -2,14 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { getPathname, isContentType, fixTrailingSlash } from './resolve-request-handlers';
 import { createRequestEvent } from './request-event';
 import { RedirectMessage } from './redirect-handler';
-import type { ServerRequestEvent, QwikSerializer } from './types';
+import type { ServerRequestEvent } from './types';
 import { checkCSRF } from './resolve-request-handlers';
-
-const mockQwikSerializer: QwikSerializer = {
-  _deserializeData: vi.fn(),
-  _serializeData: vi.fn(),
-  _verifySerializable: vi.fn(),
-};
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -39,16 +33,9 @@ function createMockServerRequestEvent(url = 'http://localhost:3000/test'): Serve
 }
 
 function createMockRequestEvent(url = 'http://localhost:3000/test', trailingSlash = true) {
+  globalThis.__NO_TRAILING_SLASH__ = !trailingSlash;
   const serverRequestEv = createMockServerRequestEvent(url);
-  return createRequestEvent(
-    serverRequestEv,
-    null,
-    [],
-    trailingSlash,
-    '/',
-    mockQwikSerializer,
-    vi.fn()
-  );
+  return createRequestEvent(serverRequestEv, null, [], '/', vi.fn());
 }
 
 describe('resolve-request-handler', () => {

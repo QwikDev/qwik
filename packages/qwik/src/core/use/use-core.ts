@@ -1,7 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import type { ISsrNode, SignalImpl } from 'packages/qwik/src/server/qwik-types';
 import { getDomContainer } from '../client/dom-container';
-import { type ClientContainer } from '../client/types';
+import type { ClientContainer } from '../client/types';
 import {
   vnode_getNode,
   vnode_isElementVNode,
@@ -14,11 +14,7 @@ import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-im
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
-import {
-  type Consumer,
-  type EffectProperty,
-  type EffectSubscription,
-} from '../reactive-primitives/types';
+import type { Consumer, EffectProperty, EffectSubscription } from '../reactive-primitives/types';
 import { assertDefined } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';

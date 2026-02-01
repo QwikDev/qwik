@@ -135,7 +135,7 @@ jobs:
           lookup-only: true
           path: packages/qwik/dist
           # Note that this includes the package.json of qwik
-          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', '!**/*.unit.*', '!**/*.rs') }}
+          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!starters/apps/e2e') }}
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
       - name: 'check cache: rust'
         id: cache-rust
@@ -156,7 +156,7 @@ jobs:
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'starters/apps/**/*', 'starters/features/**/*', 'starters/adapters/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'starters/apps/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs

@@ -32,8 +32,8 @@ export type QwikCityDenoOptions = QwikRouterDenoOptions;
 
 // @public (undocumented)
 export interface QwikRouterDenoOptions extends ServerRenderOptions {
-    // (undocumented)
     getClientConn?: (request: Request, info: ServeHandlerInfo) => ClientConn;
+    getOrigin?: (request: Request, info?: ServeHandlerInfo) => string | null;
     static?: {
         root?: string;
         cacheControl?: string;

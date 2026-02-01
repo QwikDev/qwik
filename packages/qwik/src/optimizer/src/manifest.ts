@@ -440,6 +440,17 @@ export function generateManifestFromBundles(
     return canonPath(bundle.fileName);
   };
 
+  let coreBundleName: string | undefined;
+  let preloaderBundleName: string | undefined;
+  for (const outputBundle of Object.values(outputBundles)) {
+    const bundleFileName = getBundleName(outputBundle.fileName);
+    if (outputBundle.name === 'core') {
+      coreBundleName = bundleFileName;
+    }
+    if (outputBundle.name === 'preloader') {
+      preloaderBundleName = bundleFileName;
+    }
+  }
   let qwikHandlersName: string | undefined;
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
@@ -475,11 +486,11 @@ export function generateManifestFromBundles(
       // Tree shaking might remove imports
       .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))
+      .filter((i) => i !== preloaderBundleName && i !== coreBundleName)
       .filter(Boolean) as string[];
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
     }
-
     const bundleDynamicImports = outputBundle.dynamicImports
       .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))

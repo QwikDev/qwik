@@ -1,0 +1,31 @@
+{
+  "description": "Cloudflare Workers",
+  "scripts": {
+    "build.server": "qwik check-client src dist && vite build -c adapters/cloudflare-workers/vite.config.ts",
+    "deploy": "wrangler deploy",
+    "serve": "wrangler dev",
+    "cf-typegen": "wrangler types"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251228.0",
+    "wrangler": "^3.0.0"
+  },
+  "__qwik__": {
+    "priority": 40,
+    "displayName": "Adapter: Cloudflare Workers",
+    "docs": [
+      "https://qwik.dev/deployments/cloudflare-workers/",
+      "https://developers.cloudflare.com/workers"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        "Make sure to follow the instructions in the [Cloudflare Workers documentation](https://qwik.dev/deployments/cloudflare-workers/) to setup your Qwik app.",
+        "Now you can build and deploy to Cloudflare Workers with:",
+        "",
+        "- pnpm run build: production build for Cloudflare",
+        "- pnpm run deploy: it will use the Cloudflare CLI to deploy your site"
+      ]
+    }
+  }
+}

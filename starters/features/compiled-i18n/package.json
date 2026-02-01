@@ -1,0 +1,37 @@
+{
+  "description": "Add compiled-i18n to your Qwik app",
+  "__qwik__": {
+    "displayName": "Integration: compiled-i18n (compile time translations)",
+    "priority": -10,
+    "viteConfig": {
+      "imports": [
+        {
+          "namedImports": [
+            "i18nPlugin"
+          ],
+          "importPath": "compiled-i18n/vite"
+        }
+      ],
+      "vitePlugins": [
+        "i18nPlugin({ locales: ['en'] })"
+      ]
+    },
+    "docs": [
+      "https://qwik.dev/docs/integrations/i18n/#localize",
+      "https://github.com/wmertens/compiled-i18n/blob/main/Readme.md"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " - Change the `locales` array in the vite config to add more languages",
+        " - Use the `src/components/locale-selector/locale-selector.tsx` component to switch languages",
+        "",
+        " Check out the compiled-i18n docs:",
+        "   - https://github.com/wmertens/compiled-i18n/blob/main/Readme.md"
+      ]
+    }
+  },
+  "devDependencies": {
+    "compiled-i18n": "latest"
+  }
+}

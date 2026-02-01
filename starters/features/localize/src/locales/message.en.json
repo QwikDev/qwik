@@ -1,8 +1,0 @@
-{
-  "locale": "en",
-  "translations": {
-    "1573294495032945047": "Hello from {$PH}!",
-    "8569626659814641312": "Use the following links to change the translation.",
-    "6563882999249543998": "Translation is performed as part of the build step so translated strings are inlined into the application, there is no need to load or look them up at runtime. However, these advantages mean that the user cannot change the language without refreshing the page."
-  }
-}

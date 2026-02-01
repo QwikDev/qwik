@@ -52,7 +52,7 @@ export const jsxNoScriptUrl = {
 };
 
 const noJSURLGood = `
-<button onClick$={() => alert('open the door please')>ring</button>`.trim();
+<button onClick$={() => alert('open the door please')}>ring</button>`.trim();
 
 const noJSURLBad = `
 <button onClick$="javascript:alert('open the door please')">ring</button>`.trim();

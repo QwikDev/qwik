@@ -17,8 +17,13 @@ test.describe("styles", () => {
   test.describe("client side", () => {
     test.beforeEach(async ({ page }) => {
       const reload = page.locator("#reload");
+      const renderCount = page.locator("#renderCount");
+      const v = Number(await reload.getAttribute("v"));
+
+      expect(v).toBe(0);
+      await expect(renderCount).toHaveText(`Render ${v}`);
       await reload.click();
-      await expect(page.locator("#renderCount")).toHaveText(`Render 1`);
+      await expect(renderCount).toHaveText(`Render ${v + 1}`);
     });
     runTests();
   });

@@ -7,15 +7,20 @@
  * On the client, containers resume and do not call render.
  */
 import { createRenderer } from "@qwik.dev/router";
+import { extractBase, setSsrLocaleGetter } from "compiled-i18n/qwik";
 import Root from "./root";
-import { extractBase } from "./routes/[locale]/i18n-utils";
+
+setSsrLocaleGetter();
 
 export default createRenderer((opts) => {
   return {
     jsx: <Root />,
     options: {
       ...opts,
-      base: extractBase, // determine the base URL for the client code
+
+      // determine the base URL for the client code
+      base: extractBase,
+
       // Use container attributes to set attributes on the html tag.
       containerAttributes: {
         lang: opts.serverData?.locale ?? "en-us",

@@ -32,6 +32,13 @@ test('Deployments Cloudflare Pages Adapter page loads', async ({ page }) => {
   );
 });
 
+test('Deployments Cloudflare Workers Adapter page loads', async ({ page }) => {
+  await page.goto('/docs/deployments/cloudflare-workers/');
+  await expect(page).toHaveTitle(
+    'Cloudflare Workers Adapter and Middleware | Deployments 📚 Qwik Documentation'
+  );
+});
+
 test('Deployments Deno Middleware page loads', async ({ page }) => {
   await page.goto('/docs/deployments/deno/');
   await expect(page).toHaveTitle('Deno Middleware | Deployments 📚 Qwik Documentation');

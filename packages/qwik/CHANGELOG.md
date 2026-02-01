@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.19
+
+### Patch Changes
+
+- 🐞🩹 over-cleaning store subscriptions (by [@Varixo](https://github.com/Varixo) in [#8286](https://github.com/QwikDev/qwik/pull/8286))
+
 ## 2.0.0-beta.18
 
 ### Patch Changes

@@ -10,12 +10,12 @@ import {
   untrack,
   useComputed$,
   useComputedQrl,
-  useLexicalScope,
+  _captures,
   useSignal,
   useStore,
   useTask$,
 } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
@@ -41,7 +41,7 @@ describe.each([
           () =>
             Promise.resolve({
               lazy: () => {
-                const [count] = useLexicalScope();
+                const [count] = _captures as any;
                 return count.value * 2;
               },
             }),
@@ -128,6 +128,9 @@ describe.each([
       </>
     );
     await trigger(container.element, 'button', 'click');
+    // TODO figure out why this requires waitForDrain
+    // computed signals should cause the cursor to pause
+    await waitForDrain(container);
     expect(vNode).toMatchVDOM(
       <>
         <button>

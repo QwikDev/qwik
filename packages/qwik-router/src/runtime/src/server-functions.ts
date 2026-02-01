@@ -12,7 +12,7 @@ import {
 } from '@qwik.dev/core';
 import {
   _deserialize,
-  _getContextElement,
+  _getContextHostElement,
   _getContextEvent,
   _resolveContextWithoutSequentialScope,
   _serialize,
@@ -399,7 +399,7 @@ export const serverQrl = <T extends ServerFunction>(
 ): ServerQRL<T> => {
   if (isServer) {
     const captured = qrl.getCaptured();
-    if (captured && captured.length > 0 && !_getContextElement()) {
+    if (captured && captured.length > 0 && !_getContextHostElement()) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
     }
   }
@@ -431,7 +431,6 @@ export const serverQrl = <T extends ServerFunction>(
       return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
     } else {
       // Running on the client, we need to call the function via HTTP
-      const ctxElm = _getContextElement();
       const filteredArgs = args.map((arg: unknown) => {
         if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
           return new FormData(arg.target);
@@ -478,11 +477,7 @@ export const serverQrl = <T extends ServerFunction>(
       if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
         return (async function* () {
           try {
-            for await (const result of deserializeStream(
-              res.body!,
-              ctxElm ?? document.documentElement,
-              abortSignal
-            )) {
+            for await (const result of deserializeStream(res.body!, abortSignal)) {
               yield result;
             }
           } finally {
@@ -493,7 +488,7 @@ export const serverQrl = <T extends ServerFunction>(
         })();
       } else if (contentType === 'application/qwik-json') {
         const str = await res.text();
-        const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
+        const [obj] = _deserialize(str);
         if (res.status >= 400) {
           throw obj;
         }
@@ -560,7 +555,6 @@ const getValidators = (rest: (LoaderOptions | DataValidator)[], qrl: QRL) => {
 
 const deserializeStream = async function* (
   stream: ReadableStream<Uint8Array>,
-  ctxElm: unknown,
   abortSignal?: AbortSignal
 ) {
   const reader = stream.getReader();
@@ -576,7 +570,7 @@ const deserializeStream = async function* (
       const lines = buffer.split(/\n/);
       buffer = lines.pop()!;
       for (const line of lines) {
-        const [deserializedData] = _deserialize(line, ctxElm);
+        const [deserializedData] = _deserialize(line);
         yield deserializedData;
       }
     }

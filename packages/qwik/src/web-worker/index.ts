@@ -1,8 +1,9 @@
 //@ts-ignore
+import type { ClientContainer } from '@qwik.dev/core';
 import { implicit$FirstArg } from '../core/shared/qrl/implicit_dollar';
 import { $, type QRL } from '../core/shared/qrl/qrl.public';
 import { _serialize } from '../core/shared/serdes/index';
-import { _getContextElement } from '../core/use/use-core';
+import { _getContextContainer, _getContextHostElement } from '../core/use/use-core';
 import workerUrl from './worker.js?worker&url';
 
 export interface ServerFunction {
@@ -46,9 +47,7 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
   }
   return $(async (...args: any[]) => {
     const containerEl =
-      (_getContextElement() as HTMLElement | undefined)?.closest(
-        '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
-      ) ?? document.documentElement;
+      (_getContextContainer() as ClientContainer | undefined)?.element ?? document.documentElement;
     const worker = getWorker(qrl);
     const requestId = getWorkerRequest();
     const qbase = containerEl.getAttribute('q:base') ?? '/';

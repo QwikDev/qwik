@@ -7,8 +7,6 @@ import {
   useContext,
   useServerData,
 } from '@qwik.dev/core';
-import { _getContextElement, _getDomContainer } from '@qwik.dev/core/internal';
-
 import { ContentInternalContext } from './contexts';
 import type { ClientSPAWindow } from './qwik-router-component';
 import type { ScrollHistoryState } from './scroll-restoration';

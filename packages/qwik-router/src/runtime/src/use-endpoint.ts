@@ -8,7 +8,6 @@ const MAX_Q_DATA_RETRY_COUNT = 3;
 
 export const loadClientData = async (
   url: URL,
-  element: unknown,
   opts?: {
     action?: RouteActionValue;
     loaderIds?: string[];
@@ -44,7 +43,7 @@ export const loadClientData = async (
         // retry if the q-data.json is not found with all options
         // we want to retry with all the loaders
         opts.loaderIds = undefined;
-        return loadClientData(url, element, opts, retryCount + 1);
+        return loadClientData(url, opts, retryCount + 1);
       }
       if (rsp.redirected) {
         const redirectedURL = new URL(rsp.url);
@@ -60,7 +59,7 @@ export const loadClientData = async (
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
-          const [clientData] = _deserialize(text, element) as [ClientPageData];
+          const [clientData] = _deserialize(text) as [ClientPageData];
           if (!clientData) {
             // Something went wrong, show to the user
             location.href = url.href;

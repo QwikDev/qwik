@@ -24,9 +24,9 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 
 ============================= test.tsx_App_component_div_on_click_V4v7mvdC0xU.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_div_on_click_V4v7mvdC0xU = ()=>{
-    const [count, state] = useLexicalScope();
+    const count = _captures[0], state = _captures[1];
     return state.count += count + total;
 };
 
@@ -122,12 +122,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 const i_V4v7mvdC0xU = ()=>import("./test.tsx_App_component_div_on_click_V4v7mvdC0xU");
 export const App_component_1_w0t0o3QMovU = ()=>{
-    const [C2, C3, C4, C5, C6, C7, C8, I2, I3, I4, I5, I6, I7, I8, count, state] = useLexicalScope();
+    const C2 = _captures[0], C3 = _captures[1], C4 = _captures[2], C5 = _captures[3], C6 = _captures[4], C7 = _captures[5], C8 = _captures[6], I2 = _captures[7], I3 = _captures[8], I4 = _captures[9], I5 = _captures[10], I6 = _captures[11], I7 = _captures[12], I8 = _captures[13], count = _captures[14], state = _captures[15];
     return /*#__PURE__*/ _jsxSorted("div", {
         "on:click": /*#__PURE__*/ qrl(i_V4v7mvdC0xU, "App_component_div_on_click_V4v7mvdC0xU", [
             count,

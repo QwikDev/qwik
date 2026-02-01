@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1074
+assertion_line: 1075
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -28,11 +27,11 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_NuXFTHRjvXE, "
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAMhB\"}")
 ============================= test.tsx_App_Component_1_A08tXHb9pEk.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 export const App_Component_1_A08tXHb9pEk = ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "thing"), 3, "u6_0");
 };
 

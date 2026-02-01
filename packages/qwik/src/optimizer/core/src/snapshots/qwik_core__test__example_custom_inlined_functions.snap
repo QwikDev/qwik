@@ -50,9 +50,9 @@ export const Lightweight = (props)=>{
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,iBAAiB;AAE1E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,4EAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAE\"}")
 ============================= test.tsx_App_component_useMemo_6Sc9KVki3Y0.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_useMemo_6Sc9KVki3Y0 = ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     console.log(state.count);
 };
 
@@ -155,11 +155,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 export const App_component_1_w0t0o3QMovU = ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
 };
 

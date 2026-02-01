@@ -100,6 +100,9 @@ export function retryOnPromise<T>(
     if (isPromise(e) && retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
       return e.then(retryOnPromise.bind(null, fn, retryCount++)) as ValueOrPromise<T>;
     }
+    if (isDev && isServer && e instanceof ReferenceError && e.message.includes('window')) {
+      e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
+    }
     throw e;
   };
 
@@ -111,10 +114,6 @@ export function retryOnPromise<T>(
     }
     return result;
   } catch (e) {
-    if (isDev && isServer && e instanceof ReferenceError && e.message.includes('window')) {
-      e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
-      throw e;
-    }
     return retryOrThrow(e);
   }
 }

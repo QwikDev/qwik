@@ -93,9 +93,9 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAKA,OAAO,MAAM,oBAAM,4EA4ChB\"}")
 ============================= test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_Fragment_Div_immutable4_2zF7jA3Yti0 = (ev)=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     return console.log(state.count);
 };
 
@@ -258,9 +258,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_remove_pU6yOC5P6sY.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_remove_pU6yOC5P6sY = (id)=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     const d = state.data;
     d.splice(d.findIndex((d)=>d.id === id), 1);
 };

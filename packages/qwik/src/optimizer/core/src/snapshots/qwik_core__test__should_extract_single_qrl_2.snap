@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4853
+assertion_line: 4905
 expression: output
 ---
 ==INPUT==
@@ -102,9 +102,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Parent_component_div_button_on_click_idS41XFQi6Q.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const Parent_component_div_button_on_click_idS41XFQi6Q = ()=>{
-    const [results] = useLexicalScope();
+    const results = _captures[0];
     return results.value = [
         'item1',
         'item2'
@@ -138,9 +138,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Parent_component_div_button_on_click_1_SElC3FUsPNU.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const Parent_component_div_button_on_click_1_SElC3FUsPNU = (_, _1, item)=>{
-    const [cart] = useLexicalScope();
+    const cart = _captures[0];
     cart.push(item);
 };
 

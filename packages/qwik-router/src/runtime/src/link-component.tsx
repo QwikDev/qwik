@@ -51,7 +51,7 @@ export const Link = component$<LinkProps>((props) => {
           preloadRouteBundles(url.pathname);
 
           if (elm.hasAttribute('data-prefetch')) {
-            loadClientData(url, elm, {
+            loadClientData(url, {
               preloadRouteBundles: false,
               isPrefetch: true,
             });

@@ -55,9 +55,9 @@ expression: output
 		
 ============================= test.tsx_test_component_div_button_on_click_4abkecKXGAE.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const test_component_div_button_on_click_4abkecKXGAE = ()=>{
-    const [store] = useLexicalScope();
+    const store = _captures[0];
     store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
 };
 
@@ -194,9 +194,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Input_component_useTask_Sbgs9Wtfkt0.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const Input_component_useTask_Sbgs9Wtfkt0 = ({ track })=>{
-    const [props] = useLexicalScope();
+    const props = _captures[0];
     track(()=>props.error);
     track(()=>props.error2);
     track(()=>props.error3);

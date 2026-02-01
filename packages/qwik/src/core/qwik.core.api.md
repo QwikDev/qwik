@@ -28,16 +28,18 @@ export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal
 export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;
 
 // @internal
-export const _chk: (_: any, element: HTMLInputElement) => void;
+export let _captures: Readonly<unknown[]> | null;
+
+// @internal
+export function _chk(this: string | undefined, _: any, element: HTMLInputElement): unknown;
 
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
-// Warning: (ae-forgotten-export) The symbol "Container" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "ClientContainer" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export interface ClientContainer extends Container {
+export interface ClientContainer extends _Container {
     // (undocumented)
     $forwardRefs$: Array<number> | null;
     // (undocumented)
@@ -82,8 +84,10 @@ export type ComputedFn<T> = () => T;
 
 // @public (undocumented)
 export interface ComputedOptions {
+    // Warning: (ae-incompatible-release-tags) The symbol "container" is marked as @public, but its signature references "_Container" which is marked as @internal
+    //
     // (undocumented)
-    container?: Container;
+    container?: _Container;
     // (undocumented)
     serializationStrategy?: SerializationStrategy;
 }
@@ -99,6 +103,64 @@ export interface ComputedSignal<T> extends ReadonlySignal<T> {
 
 // @internal (undocumented)
 export const _CONST_PROPS: unique symbol;
+
+// @internal (undocumented)
+export interface _Container {
+    // (undocumented)
+    $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
+    // (undocumented)
+    $buildBase$: string | null;
+    // (undocumented)
+    $currentUniqueId$: number;
+    // (undocumented)
+    $cursorCount$: number;
+    // (undocumented)
+    readonly $getObjectById$: (id: number | string) => any;
+    // (undocumented)
+    readonly $locale$: string;
+    // (undocumented)
+    $pausedCursorCount$: number;
+    // (undocumented)
+    $renderPromise$: Promise<void> | null;
+    // (undocumented)
+    $resolveRenderPromise$: (() => void) | null;
+    // (undocumented)
+    readonly $serverData$: Record<string, any>;
+    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly $storeProxyMap$: ObjToProxyMap;
+    // (undocumented)
+    readonly $version$: string;
+    ensureProjectionResolved(host: HostElement): void;
+    // (undocumented)
+    getHostProp<T>(host: HostElement, name: string): T | null;
+    // (undocumented)
+    getParentHost(host: HostElement): HostElement | null;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    handleError(err: any, $host$: HostElement | null): void;
+    // (undocumented)
+    resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+    // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    serializationCtxFactory(NodeConstructor: {
+        new (...rest: any[]): {
+            __brand__: 'SsrNode';
+        };
+    } | null, DomRefConstructor: {
+        new (...rest: any[]): {
+            __brand__: 'DomRef';
+        };
+    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter): SerializationContext;
+    // (undocumented)
+    setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+    // (undocumented)
+    setHostProp<T>(host: HostElement, name: string, value: T): void;
+}
 
 // @internal (undocumented)
 export interface _ContainerElement extends HTMLElement {
@@ -117,7 +179,7 @@ export interface ContextId<STATE> {
 // @public
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string, chunk: string | null, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
-    importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
+    importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<unknown>;
     isServer: boolean;
     raf: (fn: () => any) => Promise<any>;
 }
@@ -179,7 +241,7 @@ export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.
 }
 
 // @internal
-export function _deserialize(rawStateData: string | null, element?: unknown): unknown[];
+export function _deserialize(rawStateData: string | null): unknown[];
 
 // @public (undocumented)
 export interface DevJSX {
@@ -219,8 +281,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $rawStateData$: unknown[];
     // (undocumented)
     $setRawState$(id: number, vParent: _VNode): void;
-    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     $storeProxyMap$: ObjToProxyMap;
     constructor(element: _ContainerElement);
@@ -239,7 +299,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     handleError(err: any, host: _VNode | null): void;
     // (undocumented)
-    parseQRL<T = unknown>(qrl: string): QRL<T>;
+    parseQRL<T = unknown>(qrlStr: string): QRL<T>;
     // (undocumented)
     qContainer: string;
     // (undocumented)
@@ -250,8 +310,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     rootVNode: _ElementVNode;
     // (undocumented)
     setContext<T>(host: _VNode, context: ContextId<T>, value: T): void;
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     setHostProp<T>(host: HostElement, name: string, value: T): void;
     // (undocumented)
@@ -333,13 +391,13 @@ export type FunctionComponent<P = unknown> = {
 export const _getConstProps: (props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @internal (undocumented)
-export const _getContextContainer: () => ClientContainer | undefined;
-
-// @internal (undocumented)
-export const _getContextElement: () => unknown;
+export const _getContextContainer: () => _Container | undefined;
 
 // @internal (undocumented)
 export const _getContextEvent: () => unknown;
+
+// @internal (undocumented)
+export const _getContextHostElement: () => HostElement | undefined;
 
 // Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "ClientContainer" which is marked as @internal
 //
@@ -382,13 +440,13 @@ export const _IMMUTABLE: unique symbol;
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET);
 
 // @public
-export const inlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
+export const inlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "QRLDev" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 export { isBrowser }
 
@@ -556,10 +614,10 @@ export type NativeUIEvent = UIEvent;
 export type NativeWheelEvent = WheelEvent;
 
 // @internal (undocumented)
-export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
+export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // @internal (undocumented)
-export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // @public
 export type NoSerialize<T> = (T & {
@@ -631,7 +689,7 @@ export interface _QDocument extends Document {
 // @public
 export type QRL<TYPE = unknown> = {
     __qwik_serializable__?: any;
-    __brand__QRL__: TYPE;
+    __brand__QRL__?: TYPE;
     resolve(): Promise<TYPE>;
     resolved: undefined | TYPE;
     getCaptured(): unknown[] | null;
@@ -641,12 +699,12 @@ export type QRL<TYPE = unknown> = {
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @public
-export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>;
+export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: Readonly<unknown[]> | null, stackOffset?: number) => QRL<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "qrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // @public
 export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
@@ -759,8 +817,6 @@ export type QwikSymbolEvent = CustomEvent<{
     element: Element;
     reqTime: number;
     qBase?: string;
-    qManifest?: string;
-    qVersion?: string;
     href?: string;
 }>;
 
@@ -899,7 +955,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
 
 // @internal
-export const _run: (...args: unknown[]) => ValueOrPromise<unknown>;
+export function _run(this: string | undefined, event: Event, element: Element): ValueOrPromise<unknown>;
 
 // @public (undocumented)
 export type SerializationStrategy = 'never' | 'always';
@@ -914,7 +970,7 @@ export const SerializerSymbol: unique symbol;
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
 // @internal (undocumented)
-export abstract class _SharedContainer implements Container {
+export abstract class _SharedContainer implements _Container {
     // (undocumented)
     abstract $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
     // (undocumented)
@@ -952,9 +1008,6 @@ export abstract class _SharedContainer implements Container {
     abstract handleError(err: any, $host$: HostElement | null): void;
     // (undocumented)
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
-    // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     serializationCtxFactory(NodeConstructor: {
         new (...rest: any[]): {
@@ -1643,7 +1696,7 @@ export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @internal
-export const _task: (_event: Event, element: Element) => void;
+export function _task(this: string | undefined, _event: Event, element: Element): void;
 
 // @public (undocumented)
 export interface TaskCtx {
@@ -1721,7 +1774,7 @@ export const useId: () => string;
 
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @internal
+// @internal @deprecated
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
 // Warning: (ae-forgotten-export) The symbol "EventQRL" needs to be exported by the entry point index.d.ts
@@ -1818,7 +1871,7 @@ export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @internal
-export const _val: (_: any, element: HTMLInputElement) => void;
+export function _val(this: string | undefined, _: any, element: HTMLInputElement): unknown;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
@@ -1935,7 +1988,7 @@ export const enum _VNodeFlags {
 }
 
 // @internal (undocumented)
-export const _waitUntilRendered: (elm: Element) => Promise<void>;
+export const _waitUntilRendered: (container: _Container) => Promise<void>;
 
 // @internal (undocumented)
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {

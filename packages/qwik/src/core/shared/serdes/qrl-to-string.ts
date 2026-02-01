@@ -8,70 +8,74 @@ import { assertDefined } from '../error/assert';
 
 export function qrlToString(
   serializationContext: SerializationContext,
-  value: QRLInternal | SyncQRLInternal
+  qrl: QRLInternal | SyncQRLInternal
 ): string;
 export function qrlToString(
   serializationContext: SerializationContext,
-  value: QRLInternal | SyncQRLInternal,
+  qrl: QRLInternal | SyncQRLInternal,
   raw: true
-): [string, string, string[] | null];
+): [string, string, string | null];
 export function qrlToString(
   serializationContext: SerializationContext,
-  value: QRLInternal | SyncQRLInternal,
+  qrl: QRLInternal | SyncQRLInternal,
   raw?: true
-): string | [string, string, string[] | null] {
-  let symbol = value.$symbol$;
-  let chunk = value.$chunk$;
+): string | [string, string, string | null] {
+  let symbol = qrl.$symbol$;
+  let chunk = qrl.$chunk$;
 
   const platform = getPlatform();
   if (platform) {
-    const result = platform.chunkForSymbol(symbol, chunk, value.dev?.file);
+    const result = isDev
+      ? platform.chunkForSymbol(symbol, chunk, qrl.dev?.file)
+      : platform.chunkForSymbol(symbol, chunk);
     if (result) {
       chunk = result[1];
       symbol = result[0];
     }
   }
 
-  const isSync = isSyncQrl(value);
+  const isSync = isSyncQrl(qrl);
   if (!isSync) {
     // If we have a symbol we need to resolve the chunk.
     if (!chunk) {
-      chunk = serializationContext.$symbolToChunkResolver$(value.$hash$);
+      chunk = serializationContext.$symbolToChunkResolver$(qrl.$hash$);
     }
     // in Dev mode we need to keep track of the symbols
     if (isDev) {
       const backChannel: Map<string, unknown> = ((globalThis as any).__qrl_back_channel__ ||=
         new Map());
       // During tests the resolved value is always available
-      backChannel.set(value.$symbol$, value.resolved);
+      backChannel.set(qrl.$symbol$, qrl.$symbolRef$);
       if (!chunk) {
         chunk = QRL_RUNTIME_CHUNK;
       }
     }
     if (!chunk) {
-      throw qError(QError.qrlMissingChunk, [value.$symbol$]);
+      throw qError(QError.qrlMissingChunk, [qrl.$symbol$]);
     }
     if (chunk.startsWith('./')) {
       chunk = chunk.slice(2);
     }
   } else {
-    const fn = value.resolved as Function;
+    const fn = qrl.resolved as Function;
     chunk = '';
     // TODO test that provided stringified fn is used
     symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
   }
 
-  let capturedIds: string[] | null = null;
-  if (Array.isArray(value.$captureRef$) && value.$captureRef$.length > 0) {
+  const captures = qrl.getCaptured();
+
+  let captureIds: string | null = null;
+  if (captures && captures.length > 0) {
     // We refer by id so every capture needs to be a root
-    capturedIds = value.$captureRef$.map((ref) => `${serializationContext.$addRoot$(ref)}`);
+    captureIds = captures.map((ref) => `${serializationContext.$addRoot$(ref)}`).join(' ');
   }
   if (raw) {
-    return [chunk, symbol, capturedIds];
+    return [chunk, symbol, captureIds];
   }
   let qrlStringInline = `${chunk}#${symbol}`;
-  if (capturedIds && capturedIds.length > 0) {
-    qrlStringInline += `[${capturedIds.join(' ')}]`;
+  if (captureIds) {
+    qrlStringInline += `#${captureIds}`;
   }
   return qrlStringInline;
 }
@@ -79,7 +83,7 @@ export function qrlToString(
 export function createQRLWithBackChannel(
   chunk: string,
   symbol: string,
-  captureIds?: number[] | null
+  captures: string | unknown[] | null
 ): QRLInternal<any> {
   let qrlImporter = null;
   if (isDev && chunk === QRL_RUNTIME_CHUNK) {
@@ -90,26 +94,13 @@ export function createQRLWithBackChannel(
       qrlImporter = () => Promise.resolve({ [symbol]: fn });
     }
   }
-  return createQRL(chunk, symbol, null, qrlImporter, captureIds!, null);
+  return createQRL(chunk, symbol, null, qrlImporter, captures);
 }
 
-/** Parses "chunk#hash[...rootRef]" */
+/** Parses "chunk#hash#...rootRef" */
 export function parseQRL(qrl: string): QRLInternal<any> {
-  const hashIdx = qrl.indexOf('#');
-  const captureStart = qrl.indexOf('[', hashIdx);
-  const captureEnd = qrl.indexOf(']', captureStart);
-  const chunk = hashIdx > -1 ? qrl.slice(0, hashIdx) : qrl.slice(0, captureStart);
-
-  const symbol = captureStart > -1 ? qrl.slice(hashIdx + 1, captureStart) : qrl.slice(hashIdx + 1);
-  const captureIds =
-    captureStart > -1 && captureEnd > -1
-      ? qrl
-          .slice(captureStart + 1, captureEnd)
-          .split(' ')
-          .filter((v) => v.length)
-          .map((s) => parseInt(s, 10))
-      : null;
-  return createQRLWithBackChannel(chunk, symbol, captureIds);
+  const [chunk, symbol, captures] = qrl.split('#');
+  return createQRLWithBackChannel(chunk, symbol, captures || null);
 }
 
 export const QRL_RUNTIME_CHUNK = 'mock-chunk';

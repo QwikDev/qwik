@@ -278,13 +278,13 @@ export function addStoreEffect(
 }
 
 function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
-  prop: string | symbol,
+  prop: keyof T,
   value: any,
   target: T,
   currentStore: StoreHandler
 ): void {
-  (target as any)[prop] = value;
-  const effects = getEffects(target, prop, currentStore.$effects$);
+  target[prop] = value;
+  const effects = getEffects(target, prop as string | symbol, currentStore.$effects$);
   if (effects) {
     scheduleEffects(currentStore.$container$, currentStore, effects);
   }

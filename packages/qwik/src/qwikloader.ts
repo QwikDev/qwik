@@ -87,26 +87,6 @@ const dispatch = async (
   if (element.hasAttribute('stoppropagation:' + eventName)) {
     ev.stopPropagation();
   }
-  // <DELETE ME LATER>: After Qwik 2.0 release
-  // This needs to be here for backward compatibility with Qwik 1.0, but at some point we can drop it.
-  const ctx = (element as any)._qc_;
-  const relevantListeners = ctx && ctx.li.filter((li: string) => li[0] === attrName);
-  if (relevantListeners && relevantListeners.length > 0) {
-    for (const listener of relevantListeners) {
-      // listener[1] holds the QRL
-      const results = listener[1].getFn([element, ev], () => element.isConnected)(ev, element);
-      const cancelBubble = ev.cancelBubble;
-      if (isPromise(results)) {
-        await results;
-      }
-      // forcing async with await resets ev.cancelBubble to false
-      if (cancelBubble) {
-        ev.stopPropagation();
-      }
-    }
-    return;
-  }
-  // </DELETE ME LATER>
   const qDispatchEvent = (element as QElement).qDispatchEvent;
   if (qDispatchEvent) {
     return qDispatchEvent(ev, scope);

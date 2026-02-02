@@ -1,6 +1,5 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { chromium, devices, type Page } from 'playwright';
-import { fetch } from 'undici';
 import pages from './pages.json' with { type: 'json' };
 
 type InputPageData = {

@@ -1,103 +1,100 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2255
+assertion_line: 2367
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
-import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { useDocumentHead, useLocation } from '@qwik.dev/router';
 
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
  */
 export const RouterHead = component$(() => {
-  const head = useDocumentHead();
-  const loc = useLocation();
+	const head = useDocumentHead();
+	const loc = useLocation();
 
-  return (
-    <>
-      <title>{head.title}</title>
+	return (
+	<>
+		<title>{head.title}</title>
 
-      <link rel="canonical" href={loc.href} />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="canonical" href={loc.href} />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-      {head.meta.map((m) => (
-        <meta {...m} />
-      ))}
+		{head.meta.map((m) => (
+			<meta {...m} />
+		))}
 
-      {head.links.map((l) => (
-        <link {...l} key={l.key} />
-      ))}
+		{head.links.map((l) => (
+			<link {...l} key={l.key} />
+		))}
 
-      {head.styles.map((s) => (
-        <style {...s.props} dangerouslySetInnerHTML={s.style} key={s.key} />
-      ))}
-    </>
-  );
+		{head.styles.map((s) => (
+			<style {...s.props} dangerouslySetInnerHTML={s.style} key={s.key} />
+		))}
+	</>
+	);
 });
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_DPA76mgIou0 = ()=>import("./test.tsx_RouterHead_component_DPA76mgIou0");
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
- */ export const RouterHead = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_RouterHead_component_DPA76mgIou0"), "RouterHead_component_DPA76mgIou0"));
+ */ export const RouterHead = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_DPA76mgIou0, "RouterHead_component_DPA76mgIou0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA;;CAEC,GACD,OAAO,MAAM,2BAAa,+HAyBvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA;;CAEC,GACD,OAAO,MAAM,2BAAa,mFAyBvB\"}")
 ============================= test.tsx_RouterHead_component_DPA76mgIou0.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { createElement as _createElement } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { _jsxS } from "@builder.io/qwik";
-import { useDocumentHead } from "@builder.io/qwik-city";
-import { useLocation } from "@builder.io/qwik-city";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { createElement as _createElement } from "@qwik.dev/core";
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { useDocumentHead } from "@qwik.dev/router";
+import { useLocation } from "@qwik.dev/router";
 export const RouterHead_component_DPA76mgIou0 = ()=>{
     const head = useDocumentHead();
     const loc = useLocation();
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("title", null, null, head.title, 1, null),
-            /*#__PURE__*/ _jsxQ("link", null, {
-                rel: "canonical",
-                href: _fnSignal((p0)=>p0.href, [
-                    loc
-                ], "p0.href")
-            }, null, 3, null),
-            /*#__PURE__*/ _jsxQ("meta", null, {
-                name: "viewport",
-                content: "width=device-width, initial-scale=1.0"
-            }, null, 3, null),
-            /*#__PURE__*/ _jsxQ("link", null, {
-                rel: "icon",
-                type: "image/svg+xml",
-                href: "/favicon.svg"
-            }, null, 3, null),
-            head.meta.map((m)=>/*#__PURE__*/ _jsxS("meta", {
-                    ...m
-                }, null, 0, "u6_0")),
-            head.links.map((l)=>/*#__PURE__*/ _createElement("link", {
-                    ...l,
-                    key: l.key
-                })),
-            head.styles.map((s)=>/*#__PURE__*/ _createElement("style", {
-                    ...s.props,
-                    dangerouslySetInnerHTML: s.style,
-                    key: s.key
-                }))
-        ]
-    }, 1, "u6_1");
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("title", null, null, head.title, 1, null),
+        /*#__PURE__*/ _jsxSorted("link", null, {
+            rel: "canonical",
+            href: _wrapProp(loc, "href")
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("meta", null, {
+            name: "viewport",
+            content: "width=device-width, initial-scale=1.0"
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("link", null, {
+            rel: "icon",
+            type: "image/svg+xml",
+            href: "/favicon.svg"
+        }, null, 3, null),
+        head.meta.map((m)=>/*#__PURE__*/ _jsxSplit("meta", {
+                ..._getVarProps(m)
+            }, _getConstProps(m), null, 0, "u6_0")),
+        head.links.map((l)=>/*#__PURE__*/ _createElement("link", {
+                ...l,
+                key: l.key
+            })),
+        head.styles.map((s)=>/*#__PURE__*/ _createElement("style", {
+                ...s.props,
+                dangerouslySetInnerHTML: s.style,
+                key: s.key
+            }))
+    ], 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAOqC;IACnC,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACE;;0BACE,MAAC,qBAAO,KAAK,KAAK;0BAElB,MAAC;gBAAK,KAAI;gBAAY,IAAI,kBAAE,GAAI,IAAI;;;;0BACpC,MAAC;gBAAK,MAAK;gBAAW,SAAQ;;0BAC9B,MAAC;gBAAK,KAAI;gBAAO,MAAK;gBAAgB,MAAK;;YAE1C,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACd,MAAC;oBAAM,GAAG,CAAC;;YAGZ,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBACf,eAAC;oBAAM,GAAG,CAAC;oBAAE,KAAK,EAAE,GAAG;;YAGxB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;oBAAO,GAAG,EAAE,KAAK;oBAAE,yBAAyB,EAAE,KAAK;oBAAE,KAAK,EAAE,GAAG;;;;AAIxE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;gDAOqC;IACpC,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACA;sBACC,WAAC,qBAAO,KAAK,KAAK;sBAElB,WAAC;YAAK,KAAI;YAAY,IAAI,YAAE;;sBAC5B,WAAC;YAAK,MAAK;YAAW,SAAQ;;sBAC9B,WAAC;YAAK,KAAI;YAAO,MAAK;YAAgB,MAAK;;QAE1C,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACf,UAAC;gCAAS;8BAAA;QAGV,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;gBAAM,GAAG,CAAC;gBAAE,KAAK,EAAE,GAAG;;QAGvB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBACjB,eAAC;gBAAO,GAAG,EAAE,KAAK;gBAAE,yBAAyB,EAAE,KAAK;gBAAE,KAAK,EAAE,GAAG;;;AAInE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -113,8 +110,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    244,
-    839
+    237,
+    767
   ]
 }
 */

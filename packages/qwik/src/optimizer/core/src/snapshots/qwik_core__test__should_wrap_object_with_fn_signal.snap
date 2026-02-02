@@ -1,0 +1,74 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4177
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+export default component$((props) => {
+	// not destructure it so it is a var prop
+	const item = props.something.count;
+	return (
+		<>
+			<div data-no-wrap={item ? item * 2 : null} data-wrap={props.myobj.id + "test"}></div>
+		</>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,6BAAe,6EAQZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.myobj.id + "test";
+const _hf0_str = 'p0.myobj.id+"test"';
+export const test_component_LUXeXe0DQrg = (props)=>{
+    // not destructure it so it is a var prop
+    const item = props.something.count;
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", {
+        "data-no-wrap": item ? item * 2 : null,
+        "data-wrap": _fnSignal(_hf0, [
+            props
+        ], _hf0_str)
+    }, null, null, 3, null), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAOyD,GAAM,KAAK,CAAC,EAAE,GAAG;;0CALhD,CAAC;IAC1B,yCAAyC;IACzC,MAAM,OAAO,MAAM,SAAS,CAAC,KAAK;IAClC,qBACC,gDACC,WAAC;QAAI,gBAAc,OAAO,OAAO,IAAI;QAAM,WAAS;;;;AAGvD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    73,
+    281
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

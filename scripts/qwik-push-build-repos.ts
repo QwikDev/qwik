@@ -10,26 +10,23 @@ const root = join(__dirname, '..');
 const srcRepoRef = 'https://github.com/QwikDev/qwik/commit/';
 
 (async () => {
+  // Disabled for v2 for now
+  return;
   const finishQwik = await prepare({
     buildRepo: 'qwik-build',
-    artifactsDir: join(root, 'packages', 'qwik'),
+    artifactsDir: join(root, 'packages', 'qwik', 'dist'),
   });
-  const finishQwikCity = await prepare({
-    buildRepo: 'qwik-city-build',
-    artifactsDir: join(root, 'packages', 'qwik-city'),
+  const finishQwikRouter = await prepare({
+    buildRepo: 'qwik-router-build',
+    artifactsDir: join(root, 'packages', 'qwik-router', 'lib'),
   });
   const finishCreateQwikCli = await prepare({
     buildRepo: 'qwik-create-cli-build',
-    artifactsDir: join(root, 'packages', 'create-qwik'),
-  });
-  const finishQwikLabs = await prepare({
-    buildRepo: 'qwik-labs-build',
-    artifactsDir: join(root, 'packages', 'qwik-labs'),
+    artifactsDir: join(root, 'packages', 'create-qwik', 'dist'),
   });
   await finishQwik();
-  await finishQwikCity();
+  await finishQwikRouter();
   await finishCreateQwikCli();
-  await finishQwikLabs();
 })();
 
 async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifactsDir: string }) {

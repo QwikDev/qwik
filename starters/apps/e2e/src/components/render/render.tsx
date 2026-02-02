@@ -1,22 +1,24 @@
 import {
   component$,
+  createContextId,
+  event$,
+  isServer,
+  jsx,
+  SkipRender,
+  Slot,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useStylesScoped$,
   useTask$,
-  event$,
-  h,
-  jsx,
-  SkipRender,
-  SSRRaw,
-  HTMLFragment,
-  type PropsOf,
-  Slot,
-  type QRL,
   type JSXOutput,
-} from "@builder.io/qwik";
+  type PropsOf,
+  type QRL,
+  type Signal,
+} from "@qwik.dev/core";
+import { h, SSRComment, SSRRaw } from "@qwik.dev/core/internal";
 import { delay } from "../streaming/demo";
-import { isServer } from "@builder.io/qwik";
 
 export const Render = component$(() => {
   const rerender = useSignal(0);
@@ -100,12 +102,13 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4346 />
       <SkipRenderTest />
       <SSRRawTest />
-      <HTMLFragmentTest />
       <Issue4292 />
       <Issue4386 />
       <Issue4455 />
       <Issue5266 />
       <DynamicButton id="dynamic-button" />;
+      <RerenderOnce />
+      <Issue8213 />
     </>
   );
 });
@@ -457,19 +460,21 @@ const Issue2414 = component$(() => {
         <caption>Hello</caption>
         <colgroup></colgroup>
         <thead>
-          {(["size", "age", "id"] as const).map((c) => {
-            return (
-              <th
-                key={c}
-                id={`issue-2414-${c}`}
-                onClick$={() => {
-                  sort.value = c;
-                }}
-              >
-                {c}
-              </th>
-            );
-          })}
+          <tr>
+            {(["size", "age", "id"] as const).map((c) => {
+              return (
+                <th
+                  key={c}
+                  id={`issue-2414-${c}`}
+                  onClick$={() => {
+                    sort.value = c;
+                  }}
+                >
+                  {c}
+                </th>
+              );
+            })}
+          </tr>
         </thead>
         {showTable.value ? (
           <tbody>
@@ -817,18 +822,9 @@ export const SSRRawTest = component$(() => {
       id="ssr-raw-test-result"
       data-mounted={isServer ? "server" : "browser"}
     >
+      <SSRComment data="q:container=html" />
       <SSRRaw data="<b>ssr raw test</b>" />
-    </div>
-  );
-});
-
-export const HTMLFragmentTest = component$(() => {
-  return (
-    <div
-      id="html-fragment-test-result"
-      data-mounted={isServer ? "server" : "browser"}
-    >
-      <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
+      <SSRComment data="/q:container" />
     </div>
   );
 });
@@ -869,7 +865,7 @@ export const Issue4292 = component$(() => {
           $toggled.value = !$toggled.value;
         }}
       >
-        <div>Hello, World!</div>
+        <span>Hello, World!</span>
       </TestB>
     </>
   );
@@ -970,3 +966,93 @@ export const DynamicButton = component$<any>(
     );
   },
 );
+
+const globalObj = ["foo", "bar"];
+const LogsProvider = createContextId<any[]>("logs");
+
+const RerenderOnceChild = component$<{ obj: string; foo: Signal<number> }>(
+  ({ obj, foo }) => {
+    const logs = useContext(LogsProvider);
+    logs.push("render Cmp", obj, foo.value);
+    return <span id="rerender-once-child">{JSON.stringify(logs)}</span>;
+  },
+);
+
+export const RerenderOnce = component$(() => {
+  const foo = useSignal(0);
+  const logs: any[] = [];
+  useContextProvider(LogsProvider, logs);
+  return (
+    <div>
+      <button
+        id="rerender-once-button"
+        onClick$={() => {
+          foo.value === 0 ? (foo.value = 1) : (foo.value = 0);
+        }}
+      >
+        click
+      </button>
+      <RerenderOnceChild obj={globalObj[foo.value]} foo={foo} />
+    </div>
+  );
+});
+
+const ctxId = createContextId<{
+  isTitle: Signal<boolean>;
+}>("my-Issue8213");
+const Issue8213Render = component$((props: any): JSXOutput => {
+  const { fallback: _fallback, jsxType: _jsxType, movedProps, ...rest } = props;
+
+  const Comp = (props.jsxType ?? props.fallback) as any;
+
+  return (
+    <Comp {...rest} {...movedProps}>
+      <Slot />
+    </Comp>
+  );
+});
+const Issue8213Child = component$(() => {
+  const ctx = useContext(ctxId);
+  useTask$(() => {
+    ctx.isTitle.value = true;
+  });
+  return <Slot />;
+});
+const Issue8213Parent = component$((props: any) => {
+  const { align: _align, ...rest } = props;
+  const isTitle = useSignal(false);
+  const titleId = `title`;
+  useContextProvider(ctxId, {
+    isTitle,
+  });
+  return (
+    <>
+      <Issue8213Render
+        {...rest}
+        fallback="div"
+        id="issue-8213-render"
+        aria-labelledby={isTitle.value ? titleId : undefined}
+      >
+        <Slot />
+      </Issue8213Render>
+    </>
+  );
+});
+const Issue8213 = component$(() => {
+  const toggle = useSignal(false);
+  return (
+    <div>
+      <button
+        id="issue-8213-button"
+        onClick$={() => (toggle.value = !toggle.value)}
+      >
+        Toggle
+      </button>
+      {toggle.value && (
+        <Issue8213Parent data-testid="root">
+          <Issue8213Child>Child</Issue8213Child>
+        </Issue8213Parent>
+      )}
+    </div>
+  );
+});

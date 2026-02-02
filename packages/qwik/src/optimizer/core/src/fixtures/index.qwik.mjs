@@ -1,41 +1,38 @@
+import * as qwikRouterConfig from '@qwik-router-config';
+import swRegister from '@qwik-router-sw-register';
 import {
-  createContextId,
-  componentQrl,
-  inlinedQrl,
-  _jsxBranch,
-  useOnDocument,
-  eventQrl,
-  useContext,
-  _jsxC,
-  SkipRender,
-  withLocale,
   _deserializeData,
-  noSerialize,
-  useServerData,
-  useStylesQrl,
-  useStore,
-  _weakSerialize,
-  useSignal,
-  useLexicalScope,
-  _getContextElement,
-  useContextProvider,
-  useTaskQrl,
-  Slot,
-  getLocale,
-  untrack,
-  _jsxS,
-  _jsxQ,
-  _wrapSignal,
-  implicit$FirstArg,
-  _serializeData,
-  _restProps,
   _fnSignal,
-} from '@builder.io/qwik';
-import { isBrowser, isServer, isDev } from '@builder.io/qwik/build';
-import * as qwikCity from '@qwik-city-plan';
-import swRegister from '@qwik-city-sw-register';
-import { z } from 'zod';
-import { z as z2 } from 'zod';
+  _getContextElement,
+  _jsxBranch,
+  _jsxSplit,
+  _restProps,
+  _serializeData,
+  _weakSerialize,
+  _wrapSignal,
+  componentQrl,
+  createContextId,
+  eventQrl,
+  getLocale,
+  implicit$FirstArg,
+  inlinedQrl,
+  noSerialize,
+  SkipRender,
+  Slot,
+  untrack,
+  useContext,
+  useContextProvider,
+  useLexicalScope,
+  useOnDocument,
+  useServerData,
+  useSignal,
+  useStore,
+  useStylesQrl,
+  useTaskQrl,
+  withLocale,
+} from '@qwik.dev/core';
+import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
+import { z, z as z2 } from 'zod';
 const RouteStateContext = /* @__PURE__ */ createContextId('qc-s');
 const ContentContext = /* @__PURE__ */ createContextId('qc-c');
 const ContentInternalContext = /* @__PURE__ */ createContextId('qc-ic');
@@ -50,8 +47,8 @@ const RouterOutlet = /* @__PURE__ */ componentQrl(
       'qinit',
       eventQrl(
         /* @__PURE__ */ inlinedQrl(() => {
-          const POPSTATE_FALLBACK_INITIALIZED = '_qCityPopstateFallback';
-          const CLIENT_HISTORY_INITIALIZED = '_qCityHistory';
+          const POPSTATE_FALLBACK_INITIALIZED = '_qRouterPopstateFallback';
+          const CLIENT_HISTORY_INITIALIZED = '_qRouterHistory';
           if (!window[POPSTATE_FALLBACK_INITIALIZED]) {
             window[POPSTATE_FALLBACK_INITIALIZED] = () => {
               if (!window[CLIENT_HISTORY_INITIALIZED]) location.reload();
@@ -68,7 +65,7 @@ const RouterOutlet = /* @__PURE__ */ componentQrl(
       const contentsLen = context.value.length;
       let cmp = null;
       for (let i = contentsLen - 1; i >= 0; i--)
-        cmp = _jsxC(
+        cmp = _jsxSplit(
           context.value[i].default,
           {
             children: cmp,
@@ -121,8 +118,8 @@ const clientNavigate = (win, newUrl, routeNavigate) => {
     handleScroll(win, currentUrl, newUrl);
     win.history.pushState('', '', toPath(newUrl));
   }
-  if (!win._qCityHistory) {
-    win._qCityHistory = 1;
+  if (!win._qRouterHistory) {
+    win._qRouterHistory = 1;
     win.addEventListener('popstate', () => {
       const currentUrl2 = win.location;
       const previousUrl = toUrl(routeNavigate.value, currentUrl2);
@@ -131,7 +128,7 @@ const clientNavigate = (win, newUrl, routeNavigate) => {
         routeNavigate.value = toPath(new URL(currentUrl2.href));
       }
     });
-    win.removeEventListener('popstate', win._qCityPopstateFallback);
+    win.removeEventListener('popstate', win._qRouterPopstateFallback);
   }
 };
 const handleScroll = async (win, previousUrl, newUrl) => {
@@ -373,17 +370,17 @@ const useDocumentHead = () => useContext(DocumentHeadContext);
 const useLocation = () => useContext(RouteLocationContext);
 const useNavigate = () => useContext(RouteNavigateContext);
 const useAction = () => useContext(RouteActionContext);
-const useQwikCityEnv = () => noSerialize(useServerData('qwikcity'));
-const QwikCityProvider = /* @__PURE__ */ componentQrl(
+const useQwikRouterEnv = () => noSerialize(useServerData('qwikrouter'));
+const QwikRouterProvider = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
     useStylesQrl(
       /* @__PURE__ */ inlinedQrl(
         `:root{view-transition-name: none}`,
-        'QwikCityProvider_component_useStyles_RPDJAz33WLA'
+        'QwikRouterProvider_component_useStyles_RPDJAz33WLA'
       )
     );
-    const env = useQwikCityEnv();
-    if (!env?.params) throw new Error(`Missing Qwik City Env Data`);
+    const env = useQwikRouterEnv();
+    if (!env?.params) throw new Error(`Missing Qwik Router Env Data`);
     const urlEnv = useServerData('url');
     if (!urlEnv) throw new Error(`Missing Qwik URL Env Data`);
     const url = new URL(urlEnv);
@@ -437,12 +434,17 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
           navPath2.value = path;
           if (isBrowser) {
             loadClientData(resolvedURL, _getContextElement());
-            loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, resolvedURL.pathname);
+            loadRoute(
+              qwikRouterConfig.routes,
+              qwikRouterConfig.menus,
+              qwikRouterConfig.cacheModules,
+              resolvedURL.pathname
+            );
           }
           actionState2.value = void 0;
           routeLocation2.isNavigating = true;
         },
-        'QwikCityProvider_component_goto_event_cBcjROynRVg',
+        'QwikRouterProvider_component_goto_event_cBcjROynRVg',
         [actionState, navPath, routeLocation]
       )
     );
@@ -481,12 +483,13 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
             } else {
               trackUrl = new URL(path, location);
               if (trackUrl.pathname.endsWith('/')) {
-                if (!qwikCity.trailingSlash) trackUrl.pathname = trackUrl.pathname.slice(0, -1);
-              } else if (qwikCity.trailingSlash) trackUrl.pathname += '/';
+                if (!qwikRouterConfig.trailingSlash)
+                  trackUrl.pathname = trackUrl.pathname.slice(0, -1);
+              } else if (qwikRouterConfig.trailingSlash) trackUrl.pathname += '/';
               let loadRoutePromise = loadRoute(
-                qwikCity.routes,
-                qwikCity.menus,
-                qwikCity.cacheModules,
+                qwikRouterConfig.routes,
+                qwikRouterConfig.menus,
+                qwikRouterConfig.cacheModules,
                 trackUrl.pathname
               );
               const element = _getContextElement();
@@ -505,9 +508,9 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
               if (newURL.pathname !== trackUrl.pathname) {
                 trackUrl = newURL;
                 loadRoutePromise = loadRoute(
-                  qwikCity.routes,
-                  qwikCity.menus,
-                  qwikCity.cacheModules,
+                  qwikRouterConfig.routes,
+                  qwikRouterConfig.menus,
+                  qwikRouterConfig.cacheModules,
                   trackUrl.pathname
                 );
               }
@@ -554,7 +557,7 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
           if (isServer) return promise;
           else return;
         },
-        'QwikCityProvider_component_useTask_02wMImzEAbk',
+        'QwikRouterProvider_component_useTask_02wMImzEAbk',
         [
           actionState,
           content,
@@ -569,10 +572,10 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
         ]
       )
     );
-    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_0');
-  }, 'QwikCityProvider_component_TxCFOy819ag')
+    return /* @__PURE__ */ _jsxSplit(Slot, null, 3, 'qY_0');
+  }, 'QwikRouterProvider_component_TxCFOy819ag')
 );
-const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
+const QwikRouterMockProvider = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
     const urlEnv = props.url ?? 'http://localhost/';
     const url = new URL(urlEnv);
@@ -589,7 +592,7 @@ const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
     const loaderState = useSignal({});
     const goto = /* @__PURE__ */ inlinedQrl(async (path) => {
       throw new Error('Not implemented');
-    }, 'QwikCityMockProvider_component_goto_BUbtvTyvVRE');
+    }, 'QwikRouterMockProvider_component_goto_BUbtvTyvVRE');
     const documentHead = useStore(createDocumentHead, {
       deep: false,
     });
@@ -609,8 +612,8 @@ const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
     useContextProvider(RouteLocationContext, routeLocation);
     useContextProvider(RouteNavigateContext, goto);
     useContextProvider(RouteStateContext, loaderState);
-    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_1');
-  }, 'QwikCityMockProvider_component_WmYC5H00wtI')
+    return /* @__PURE__ */ _jsxSplit(Slot, null, 3, 'qY_1');
+  }, 'QwikRouterMockProvider_component_WmYC5H00wtI')
 );
 const Link = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
@@ -630,12 +633,12 @@ const Link = /* @__PURE__ */ componentQrl(
         'Link_component_event_event_5g4B0Gd1Wck'
       )
     );
-    return /* @__PURE__ */ _jsxS(
+    return /* @__PURE__ */ _jsxSplit(
       'a',
       {
         ...linkProps,
         'data-prefetch': prefetchDataset,
-        children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'AD_0'),
+        children: /* @__PURE__ */ _jsxSplit(Slot, null, null, 3, 'AD_0'),
         onClick$: /* @__PURE__ */ inlinedQrl(
           (_, elm) => {
             const [nav2, reload2] = useLexicalScope();
@@ -663,15 +666,13 @@ const prefetchLinkResources = (elm, isOnVisible) => {
 };
 let windowInnerWidth = 0;
 const ServiceWorkerRegister = (props) =>
-  _jsxQ(
+  _jsxSplit(
     'script',
+    null,
     {
       nonce: _wrapSignal(props, 'nonce'),
-    },
-    {
       dangerouslySetInnerHTML: swRegister,
     },
-    null,
     3,
     '1Z_0'
   );
@@ -784,7 +785,7 @@ const routeLoaderQrl = (loaderQrl, ...rest) => {
       if (!(id in state))
         throw new Error(`Loader (${id}) was used in a path where the 'loader$' was not declared.
     This is likely because the used loader was not exported in a layout.tsx or index.tsx file of the existing route.
-    For more information check: https://qwik.dev/qwikcity/route-loader/`);
+    For more information check: https://qwik.dev/docs/route-loader/`);
       return _wrapSignal(state, id);
     });
   }
@@ -846,7 +847,7 @@ const serverQrl = (qrl) => {
       async (...args) => {
         const [qrl2] = useLexicalScope();
         if (isServer) {
-          const requestEvent = useQwikCityEnv()?.ev;
+          const requestEvent = useQwikRouterEnv()?.ev;
           return qrl2.apply(requestEvent, args);
         } else {
           const ctxElm = _getContextElement();
@@ -965,7 +966,7 @@ async function* streamAsyncIterator(stream, ctxElm) {
 const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => {
   _jsxBranch();
   if (action)
-    return _jsxS(
+    return _jsxSplit(
       'form',
       {
         ...rest,
@@ -981,7 +982,7 @@ const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => 
       key
     );
   else
-    return /* @__PURE__ */ _jsxC(
+    return /* @__PURE__ */ _jsxSplit(
       GetForm,
       {
         spaReset,
@@ -997,11 +998,11 @@ const GetForm = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
     const rest = _restProps(props, ['action', 'spaReset', 'reloadDocument', 'onSubmit$']);
     const nav = useNavigate();
-    return /* @__PURE__ */ _jsxS(
+    return /* @__PURE__ */ _jsxSplit(
       'form',
       {
         ...rest,
-        children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'BC_0'),
+        children: /* @__PURE__ */ _jsxSplit(Slot, null, 3, 'BC_0'),
         onSubmit$: /* @__PURE__ */ inlinedQrl(
           async (_, form) => {
             const [nav2] = useLexicalScope();
@@ -1048,19 +1049,19 @@ const GetForm = /* @__PURE__ */ componentQrl(
 );
 export {
   Form,
-  Link,
-  QwikCityMockProvider,
-  QwikCityProvider,
-  RouterOutlet,
-  ServiceWorkerRegister,
   globalAction$,
   globalActionQrl,
+  Link,
+  QwikRouterMockProvider,
+  QwikRouterProvider as QwikRouterProvider,
   routeAction$,
   routeActionQrl,
   routeLoader$,
   routeLoaderQrl,
+  RouterOutlet,
   server$,
   serverQrl,
+  ServiceWorkerRegister,
   useContent,
   useDocumentHead,
   useLocation,

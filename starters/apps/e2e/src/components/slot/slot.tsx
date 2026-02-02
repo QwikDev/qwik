@@ -1,18 +1,18 @@
 import {
-  component$,
   $,
-  useStore,
+  component$,
+  createContextId,
+  jsx,
   Slot,
   useContext,
-  useSignal,
   useContextProvider,
-  createContextId,
-  type Signal,
-  jsx,
-  type JSXNode,
+  useSignal,
+  useStore,
   useVisibleTask$,
   type FunctionComponent,
-} from "@builder.io/qwik";
+  type JSXNode,
+  type Signal,
+} from "@qwik.dev/core";
 
 export const SlotParent = component$(() => {
   const state = useStore({
@@ -22,6 +22,7 @@ export const SlotParent = component$(() => {
     render: true,
     count: 0,
   });
+  const renderCount = useSignal(0);
   return (
     <section class="todoapp">
       {state.render && (
@@ -47,7 +48,7 @@ export const SlotParent = component$(() => {
 
           <Projector state={state} id="btn2">
             {!state.removeContent && (
-              <div q:slot="start">START {state.count}</div>
+              <span q:slot="start">START {state.count}</span>
             )}
           </Projector>
 
@@ -111,11 +112,15 @@ export const SlotParent = component$(() => {
         <button
           id="btn-toggle-render"
           class="border border-cyan-600"
-          onClick$={() => (state.render = !state.render)}
+          onClick$={() => {
+            state.render = !state.render;
+            renderCount.value++;
+          }}
         >
           Toogle render
         </button>
       </div>
+      <div id="slot-render-count">{renderCount.value}</div>
     </section>
   );
 });
@@ -176,9 +181,9 @@ export const Projector = component$((props: { state: any; id: string }) => {
         <Slot name="start"></Slot>
 
         {!props.state.disableButtons && (
-          <div>
+          <span>
             <Slot />
-          </div>
+          </span>
         )}
         <Slot name="end" />
       </Button>
@@ -188,9 +193,9 @@ export const Projector = component$((props: { state: any; id: string }) => {
 
 export const Button = component$((props: { id?: string }) => {
   return (
-    <button type="button" id={props.id}>
+    <div role="button" id={props.id}>
       <Slot />
-    </button>
+    </div>
   );
 });
 

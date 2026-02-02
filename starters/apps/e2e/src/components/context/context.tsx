@@ -1,13 +1,13 @@
 import {
-  useStore,
   component$,
   createContextId,
-  useContextProvider,
-  useContext,
   Slot,
+  useContext,
+  useContextProvider,
   useSignal,
+  useStore,
   useVisibleTask$,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 
 export interface ContextI {
   displayName: string;
@@ -28,12 +28,13 @@ export const ContextRoot = component$(() => {
       <button id="btn-rerender" onClick$={() => count.value++}>
         Client Rerender
       </button>
-      <ContextApp key={count.value} />
+      <span id="render-count">{count.value}</span>
+      <ContextApp key={count.value} count={count.value} />
     </div>
   );
 });
 
-export const ContextApp = component$(() => {
+export const ContextApp = component$(({ count }: { count: number }) => {
   const state1 = useStore({ displayName: "ROOT / state1", count: 0 });
   const state2 = useStore({ displayName: "ROOT / state2", count: 0 });
 
@@ -59,6 +60,7 @@ export const ContextApp = component$(() => {
       <Issue2894 />
       <Issue5356 />
       <Issue5793 />
+      <div id="context-app-count">{count}</div>
     </div>
   );
 });

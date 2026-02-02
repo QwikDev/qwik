@@ -1,5 +1,5 @@
-import { component$ } from '@builder.io/qwik';
-import { Link, useContent } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { Link, useContent } from '@qwik.dev/router';
 
 export const IntegrationsList = component$(() => {
   const { menu } = useContent();

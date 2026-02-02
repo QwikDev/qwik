@@ -1,6 +1,6 @@
 /** @jsxImportSource react */
 import { useEffect, useState } from 'react';
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 
 interface IProps {
   onMount(): void;

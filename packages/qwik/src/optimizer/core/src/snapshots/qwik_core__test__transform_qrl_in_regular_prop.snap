@@ -1,0 +1,83 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3902
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+		import { component$, $ } from '@qwik.dev/core';
+		export const Cmp = component$(() =>
+			<Cmp foo={$(() => console.log('hi there'))}>Hello Qwik</Cmp>);
+		
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.ts (ENTRY POINT)==
+
+import { Cmp } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_iPpdemxi0uE = ()=>import("./test.tsx_Cmp_component_Cmp_foo_iPpdemxi0uE");
+export const Cmp_component_4ryKJTOKjWE = ()=>/*#__PURE__*/ _jsxSorted(Cmp, {
+        foo: /*#__PURE__*/ qrl(i_iPpdemxi0uE, "Cmp_component_Cmp_foo_iPpdemxi0uE")
+    }, null, "Hello Qwik", 3, "u6_0");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAEgC,kBAC7B,WAAC;QAAI,GAAG;aAAoC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    84,
+    153
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_Cmp_foo_iPpdemxi0uE.ts (ENTRY POINT)==
+
+export const Cmp_component_Cmp_foo_iPpdemxi0uE = ()=>console.log('hi there');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iDAGe,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_Cmp_foo_iPpdemxi0uE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_Cmp_foo",
+  "hash": "iPpdemxi0uE",
+  "canonicalFilename": "test.tsx_Cmp_component_Cmp_foo_iPpdemxi0uE",
+  "path": "",
+  "extension": "ts",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    105,
+    134
+  ]
+}
+*/
+============================= test.ts ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_4ryKJTOKjWE = ()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE");
+export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_4ryKJTOKjWE, "Cmp_component_4ryKJTOKjWE"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEE,OAAO,MAAM,oBAAM,4EAC4C\"}")
+== DIAGNOSTICS ==
+
+[]

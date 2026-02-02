@@ -1,9 +1,4 @@
-import {
-  component$,
-  useId,
-  useSignal,
-  useVisibleTask$,
-} from '@builder.io/qwik';
+import { component$, useId, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const elemIdSignal = useSignal<string | null>(null);

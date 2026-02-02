@@ -1,0 +1,178 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4199
+expression: output
+---
+==INPUT==
+
+
+import { component$, useResource$, Resource } from "@qwik.dev/core";
+import { type ModelProps } from "./modelMenu";
+import { serverImg } from "~/routes/(authenticated)/layout";
+
+export const Image = component$((props) => {
+  return (
+    <>
+      <img src={`${props.src}`} />
+    </>
+  );
+});
+
+export const ModelImg = component$<ModelProps>((props) => {
+  const imgLoc = useResource$(async ({ track }) => {
+    track(() => props.store.model);
+    return await serverImg('some.png');
+  });
+  return (
+    <>
+      <Resource
+        value={imgLoc}
+        onRejected={() => <p>error ...</p>}
+        onResolved={(res) =>
+          res && (
+            <>
+              <Image
+                src={res}
+              />
+            </>
+          )
+        }
+      />
+    </>
+  );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_CS20HgBlRYI = ()=>import("./test.tsx_Image_component_CS20HgBlRYI");
+const i_iJe6ICWVnyA = ()=>import("./test.tsx_ModelImg_component_iJe6ICWVnyA");
+export const Image = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_CS20HgBlRYI, "Image_component_CS20HgBlRYI"));
+export const ModelImg = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_iJe6ICWVnyA, "ModelImg_component_iJe6ICWVnyA"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,MAAM,sBAAQ,8EAMlB;AAEH,OAAO,MAAM,yBAAW,iFAsBrB\"}")
+============================= test.tsx_ModelImg_component_iJe6ICWVnyA.js (ENTRY POINT)==
+
+import { Image } from "./test";
+import { Resource } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useResourceQrl } from "@qwik.dev/core";
+const i_Ogi9hEJvtmI = ()=>import("./test.tsx_ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI");
+export const ModelImg_component_iJe6ICWVnyA = (props)=>{
+    const imgLoc = useResourceQrl(/*#__PURE__*/ qrl(i_Ogi9hEJvtmI, "ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI", [
+        props
+    ]));
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted(Resource, null, {
+        value: imgLoc,
+        onRejected: ()=>/*#__PURE__*/ _jsxSorted("p", null, null, "error ...", 3, "u6_1"),
+        onResolved: (res)=>res && /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted(Image, {
+                src: res
+            }, null, null, 3, "u6_2"), 1, "u6_3")
+    }, null, 3, "u6_4"), 1, "u6_5");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;8CAa+C,CAAC;IAC9C,MAAM,SAAS;;;IAIf,qBACE,gDACE,WAAC;QACC,OAAO;QACP,YAAY,kBAAM,WAAC,iBAAE;QACrB,YAAY,CAAC,MACX,qBACE,gDACE,WAAC;gBACC,KAAK;;;AAQrB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ModelImg_component_iJe6ICWVnyA",
+  "entry": null,
+  "displayName": "test.tsx_ModelImg_component",
+  "hash": "iJe6ICWVnyA",
+  "canonicalFilename": "test.tsx_ModelImg_component_iJe6ICWVnyA",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    343,
+    780
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { serverImg } from "~/routes/(authenticated)/layout";
+export const ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI = async (_rawProps)=>{
+    const props = _captures[0];
+    _rawProps.track(()=>props.store.model);
+    return await serverImg('some.png');
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;iEAc8B;;IAC1B,UADmC,MAC7B,IAAM,MAAM,KAAK,CAAC,KAAK;IAC7B,OAAO,MAAM,UAAU\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI",
+  "entry": null,
+  "displayName": "test.tsx_ModelImg_component_imgLoc_useResource",
+  "hash": "Ogi9hEJvtmI",
+  "canonicalFilename": "test.tsx_ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI",
+  "path": "",
+  "extension": "js",
+  "parent": "ModelImg_component_iJe6ICWVnyA",
+  "ctxKind": "function",
+  "ctxName": "useResource$",
+  "captures": true,
+  "loc": [
+    386,
+    488
+  ],
+  "paramNames": [
+    "_rawProps"
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Image_component_CS20HgBlRYI.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+export const Image_component_CS20HgBlRYI = (props)=>{
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("img", {
+        src: `${props.src}`
+    }, null, null, 3, null), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKgC,CAAC;IAC/B,qBACE,gDACE,WAAC;QAAI,KAAK,GAAG,MAAM,GAAG,EAAE;;AAG9B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Image_component_CS20HgBlRYI",
+  "entry": null,
+  "displayName": "test.tsx_Image_component",
+  "hash": "CS20HgBlRYI",
+  "canonicalFilename": "test.tsx_Image_component_CS20HgBlRYI",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    212,
+    292
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

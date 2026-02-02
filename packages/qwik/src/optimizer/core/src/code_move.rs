@@ -1,10 +1,11 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
 use crate::parse::PathData;
-use crate::transform::{add_handle_watch, create_synthetic_named_import};
+use crate::transform::create_synthetic_named_import;
 use crate::words::*;
 
 use anyhow::Error;
-use swc_atoms::JsWord;
+use std::collections::BTreeMap;
+use swc_atoms::Atom;
 use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
@@ -23,12 +24,12 @@ pub struct NewModuleCtx<'a> {
 	pub local_idents: &'a [Id],
 	pub scoped_idents: &'a [Id],
 	pub global: &'a GlobalCollect,
-	pub core_module: &'a JsWord,
-	pub need_handle_watch: bool,
+	pub core_module: &'a Atom,
 	pub need_transform: bool,
 	pub explicit_extensions: bool,
 	pub leading_comments: SingleThreadedCommentsMap,
 	pub trailing_comments: SingleThreadedCommentsMap,
+	pub extra_top_items: &'a BTreeMap<Id, ast::ModuleItem>,
 }
 
 pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComments), Error> {
@@ -36,7 +37,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 		ctx.leading_comments,
 		ctx.trailing_comments,
 	);
-	let max_cap = ctx.global.imports.len() + ctx.global.exports.len();
+	let max_cap = ctx.global.imports.len() + ctx.global.exports.len() + ctx.extra_top_items.len();
 	let mut module = ast::Module {
 		span: DUMMY_SP,
 		body: Vec::with_capacity(max_cap),
@@ -44,8 +45,8 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 	};
 
 	let has_scoped_idents = ctx.need_transform && !ctx.scoped_idents.is_empty();
-	let use_lexical_scope = if has_scoped_idents {
-		let new_local = id!(private_ident!(&*USE_LEXICAL_SCOPE.clone()));
+	let _captures = if has_scoped_idents {
+		let new_local = id!(private_ident!(&*_CAPTURES.clone()));
 		module
 			.body
 			.push(create_synthetic_named_import(&new_local, ctx.core_module));
@@ -133,21 +134,19 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 		}
 	}
 
-	let expr = if let Some(use_lexical_scope) = use_lexical_scope {
+	let expr = if let Some(_captures) = _captures {
 		Box::new(transform_function_expr(
 			*ctx.expr,
-			&use_lexical_scope,
+			&_captures,
 			ctx.scoped_idents,
 		))
 	} else {
 		ctx.expr
 	};
 
+	module.body.extend(ctx.extra_top_items.values().cloned());
+
 	module.body.push(create_named_export(expr, ctx.name));
-	if ctx.need_handle_watch {
-		// Inject qwik internal import
-		add_handle_watch(&mut module.body, ctx.core_module);
-	}
 	Ok((module, comments))
 }
 
@@ -163,7 +162,7 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 				span: DUMMY_SP,
 				definite: false,
 				name: ast::Pat::Ident(ast::BindingIdent::from(ast::Ident::new(
-					JsWord::from(name),
+					Atom::from(name),
 					DUMMY_SP,
 					Default::default(),
 				))),
@@ -173,29 +172,25 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 	}))
 }
 
-pub fn transform_function_expr(
-	expr: ast::Expr,
-	use_lexical_scope: &Id,
-	scoped_idents: &[Id],
-) -> ast::Expr {
+pub fn transform_function_expr(expr: ast::Expr, _captures: &Id, scoped_idents: &[Id]) -> ast::Expr {
 	match expr {
 		ast::Expr::Arrow(node) => {
-			ast::Expr::Arrow(transform_arrow_fn(node, use_lexical_scope, scoped_idents))
+			ast::Expr::Arrow(transform_arrow_fn(node, _captures, scoped_idents))
 		}
-		ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(node, use_lexical_scope, scoped_idents)),
+		ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(node, _captures, scoped_idents)),
 		_ => expr,
 	}
 }
 
 fn transform_arrow_fn(
 	arrow: ast::ArrowExpr,
-	use_lexical_scope: &Id,
+	_captures: &Id,
 	scoped_idents: &[Id],
 ) -> ast::ArrowExpr {
 	match arrow.body {
 		box ast::BlockStmtOrExpr::BlockStmt(mut block) => {
 			let mut stmts = Vec::with_capacity(1 + block.stmts.len());
-			stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
+			stmts.push(read_captures(_captures, scoped_idents));
 			stmts.append(&mut block.stmts);
 			ast::ArrowExpr {
 				body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
@@ -209,7 +204,7 @@ fn transform_arrow_fn(
 		box ast::BlockStmtOrExpr::Expr(expr) => {
 			let mut stmts = Vec::with_capacity(2);
 			if !scoped_idents.is_empty() {
-				stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
+				stmts.push(read_captures(_captures, scoped_idents));
 			}
 			stmts.push(create_return_stmt(expr));
 			ast::ArrowExpr {
@@ -224,7 +219,7 @@ fn transform_arrow_fn(
 	}
 }
 
-fn transform_fn(node: ast::FnExpr, use_lexical_scope: &Id, scoped_idents: &[Id]) -> ast::FnExpr {
+fn transform_fn(node: ast::FnExpr, _captures: &Id, scoped_idents: &[Id]) -> ast::FnExpr {
 	let mut stmts = Vec::with_capacity(
 		1 + node
 			.function
@@ -233,7 +228,7 @@ fn transform_fn(node: ast::FnExpr, use_lexical_scope: &Id, scoped_idents: &[Id])
 			.map_or(0, |body| body.stmts.len()),
 	);
 	if !scoped_idents.is_empty() {
-		stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
+		stmts.push(read_captures(_captures, scoped_idents));
 	}
 	if let Some(mut body) = node.function.body {
 		stmts.append(&mut body.stmts);
@@ -258,34 +253,32 @@ pub const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
 	})
 }
 
-fn create_use_lexical_scope(use_lexical_scope: &Id, scoped_idents: &[Id]) -> ast::Stmt {
+fn read_captures(_captures: &Id, scoped_idents: &[Id]) -> ast::Stmt {
 	ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
 		span: DUMMY_SP,
 		ctxt: Default::default(),
 		declare: false,
 		kind: ast::VarDeclKind::Const,
-		decls: vec![ast::VarDeclarator {
-			definite: false,
-			span: DUMMY_SP,
-			init: Some(Box::new(ast::Expr::Call(ast::CallExpr {
-				callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
-					use_lexical_scope,
-				)))),
-				..Default::default()
-			}))),
-			name: ast::Pat::Array(ast::ArrayPat {
+		decls: scoped_idents
+			.iter()
+			.enumerate()
+			.map(|(index, id)| ast::VarDeclarator {
+				definite: false,
 				span: DUMMY_SP,
-				optional: false,
-				type_ann: None,
-				elems: scoped_idents
-					.iter()
-					.map(|id| {
-						Some(ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(
-							id,
-						))))
-					})
-					.collect(),
-			}),
-		}],
+				init: Some(Box::new(ast::Expr::Member(ast::MemberExpr {
+					span: DUMMY_SP,
+					obj: Box::new(ast::Expr::Ident(new_ident_from_id(_captures))),
+					prop: ast::MemberProp::Computed(ast::ComputedPropName {
+						span: DUMMY_SP,
+						expr: Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
+							span: DUMMY_SP,
+							value: index as f64,
+							raw: None,
+						}))),
+					}),
+				}))),
+				name: ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(id))),
+			})
+			.collect(),
 	})))
 }

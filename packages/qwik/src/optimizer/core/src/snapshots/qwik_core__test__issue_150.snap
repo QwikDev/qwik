@@ -1,45 +1,45 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1870
+assertion_line: 1982
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 import { hola } from 'sdfds';
 
 export const Greeter = component$(() => {
-    const stuff = useStore();
-    return $(() => {
-        return (
-            <div
-                class={{
-                    'foo': true,
-                    'bar': stuff.condition,
-                    'baz': hola ? 'true' : 'false',
-                }}
-            />
-        )
-    });
+	const stuff = useStore();
+	return $(() => {
+		return (
+			<div
+				class={{
+					'foo': true,
+					'bar': stuff.condition,
+					'baz': hola ? 'true' : 'false',
+				}}
+			/>
+		)
+	});
 });
 
 const d = $(()=>console.log('thing'));
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q"));
-/*#__PURE__*/ qrl(()=>import("./test.tsx_d_wKNFJEIQVUA"), "d_wKNFJEIQVUA");
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_n7HuG2hhU0Q = ()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q");
+const i_wKNFJEIQVUA = ()=>import("./test.tsx_d_wKNFJEIQVUA");
+export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_n7HuG2hhU0Q, "Greeter_component_n7HuG2hhU0Q"));
+/*#__PURE__*/ qrl(i_wKNFJEIQVUA, "d_wKNFJEIQVUA");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,wBAAU,yHAapB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIA,OAAO,MAAM,wBAAU,gFAapB\"}")
 ============================= test.tsx_d_wKNFJEIQVUA.js (ENTRY POINT)==
 
 export const d_wKNFJEIQVUA = ()=>console.log('thing');
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAmBY,IAAI,QAAQ,GAAG,CAAC\"}")
@@ -58,19 +58,19 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    433,
-    457
+    323,
+    347
   ]
 }
 */
 ============================= test.tsx_Greeter_component_1_krCndSwhX4U.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _captures } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
 import { hola } from "sdfds";
 export const Greeter_component_1_krCndSwhX4U = ()=>{
-    const [stuff] = useLexicalScope();
-    return /*#__PURE__*/ _jsxQ("div", {
+    const stuff = _captures[0];
+    return /*#__PURE__*/ _jsxSorted("div", {
         class: {
             'foo': true,
             'bar': stuff.condition,
@@ -78,10 +78,9 @@ export const Greeter_component_1_krCndSwhX4U = ()=>{
         }
     }, null, null, 3, "u6_0");
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMa;;IACL,qBACI,MAAC;QACG,OAAO;YACH,OAAO;YACP,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS;QAC3B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMU;;IACR,qBACC,WAAC;QACA,OAAO;YACN,OAAO;YACP,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS;QACxB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -97,23 +96,27 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    168,
-    413
+    160,
+    303
+  ],
+  "captureNames": [
+    "stuff"
   ]
 }
 */
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+const i_krCndSwhX4U = ()=>import("./test.tsx_Greeter_component_1_krCndSwhX4U");
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
     const stuff = useStore();
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_1_krCndSwhX4U"), "Greeter_component_1_krCndSwhX4U", [
+    return /*#__PURE__*/ qrl(i_krCndSwhX4U, "Greeter_component_1_krCndSwhX4U", [
         stuff
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAIkC;IAC9B,MAAM,QAAQ;IACd;;;AAWJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6CAIkC;IACjC,MAAM,QAAQ;IACd;;;AAWD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -129,8 +132,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    117,
-    417
+    115,
+    307
   ]
 }
 */

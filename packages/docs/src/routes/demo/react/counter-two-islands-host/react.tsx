@@ -1,6 +1,6 @@
 /** @jsxImportSource react */
 
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 import { type ReactNode } from 'react';
 
 function Button({ children }: { children?: ReactNode[] }) {

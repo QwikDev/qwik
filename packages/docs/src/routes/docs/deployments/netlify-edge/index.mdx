@@ -14,7 +14,7 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Netlify Edge Adapter
 
-Qwik City Netlify Edge adapter allows you to connect Qwik City to [Netlify Edge Functions](https://docs.netlify.com/edge-functions/overview/).
+Qwik Router Netlify Edge adapter allows you to connect Qwik Router to [Netlify Edge Functions](https://docs.netlify.com/edge-functions/overview/).
 
 ## Installation
 
@@ -129,11 +129,10 @@ Please refer to the Netlify docs for more information on how to deploy your site
 When the `netlify-edge` adapter is added, a new entry file will be created at `src/entry.netlify-edge.tsx`. Below is an example of using the built-in middleware within the entry file.
 
 ```tsx title="src/entry.netlify-edge.tsx"
-import { createQwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
-import qwikCityPlan from '@qwik-city-plan';
+import { createQwikRouter } from '@qwik.dev/router/middleware/netlify-edge';
 import render from './entry.ssr';
 
-export default createQwikCity({ render, qwikCityPlan });
+export default createQwikRouter({ render });
 ```
 
 The compiled middleware will be built in the `.netlify/edge-functions` directory.
@@ -173,4 +172,4 @@ export const onRequest = async ({ env }) => {
 ```
 
 - [Netlify Environment Variables](https://docs.netlify.com/environment-variables/overview/#environment-variable-options)
-- [Netlify Edge Middleware Source](https://github.com/QwikDev/qwik/blob/main/packages/qwik-city/src/middleware/netlify-edge/index.ts)
+- [Netlify Edge Middleware Source](https://github.com/QwikDev/qwik/blob/main/packages/qwik-router/src/middleware/netlify-edge/index.ts)

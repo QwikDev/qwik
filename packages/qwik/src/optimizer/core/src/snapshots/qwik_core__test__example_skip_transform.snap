@@ -1,34 +1,34 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1260
+assertion_line: 1370
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ as Component, $ as onRender } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender } from '@qwik.dev/core';
 
 export const handler = $(()=>console.log('hola'));
 
 export const App = component$((props) => {
-    useStyles$('hola');
-    return $(() => (
-        <div>{state.thing}</div>
-    ));
+	useStyles$('hola');
+	return $(() => (
+		<div>{state.thing}</div>
+	));
 });
 
 ============================= test.js ==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
 export const handler = $(()=>console.log('hola'));
 export const App = component$((props)=>{
     useStyles$('hola');
-    return $(()=>/*#__PURE__*/ _jsxQ("div", null, null, state.thing, 3, "u6_0"));
+    return $(()=>/*#__PURE__*/ _jsxSorted("div", null, null, state.thing, 1, "u6_0"));
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAGA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC;IAC3B,WAAW;IACX,OAAO,EAAE,kBACL,MAAC,mBAAK,MAAM,KAAK;AAEzB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAGA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC;IAC9B,WAAW;IACX,OAAO,EAAE,kBACR,WAAC,mBAAK,MAAM,KAAK;AAEnB,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

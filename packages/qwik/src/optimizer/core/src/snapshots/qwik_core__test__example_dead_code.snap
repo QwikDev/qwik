@@ -7,29 +7,29 @@ snapshot_kind: text
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { deps } from 'deps';
 
 export const Foo = component$(({foo}) => {
-    useMount$(() => {
-        if (false) {
-            deps();
-        }
-    });
-    return (
-        <div />
-    );
+	useMount$(() => {
+		if (false) {
+			deps();
+		}
+	});
+	return (
+		<div />
+	);
 })
 
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
 
-export const Foo_component_HTDRsvUbLiE = (props)=>{
+export const Foo_component_HTDRsvUbLiE = (_rawProps)=>{
     useMount$(()=>{});
     return <div/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAI8B;IAC1B,UAAU,KAIV;IACA,QACK;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAI8B;IAC7B,UAAU,KAIV;IACA,QACE;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -45,19 +45,23 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    109,
-    240
+    107,
+    199
+  ],
+  "paramNames": [
+    "_rawProps"
   ]
 }
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,oBAAM,iHASjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,oBAAM,4EASjB\"}")
 == DIAGNOSTICS ==
 
 []

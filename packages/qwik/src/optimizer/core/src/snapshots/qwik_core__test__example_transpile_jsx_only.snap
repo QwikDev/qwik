@@ -1,38 +1,61 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2233
+assertion_line: 2345
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props) => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 
+============================= test.tsx_App_component_Cmp_p_on_click_9VylW0qB00s.ts (ENTRY POINT)==
+
+export const App_component_Cmp_p_on_click_9VylW0qB00s = ()=>console.log('warn');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAM8B,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Cmp_p_on_click_9VylW0qB00s",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Cmp_p_on_click",
+  "hash": "9VylW0qB00s",
+  "canonicalFilename": "test.tsx_App_component_Cmp_p_on_click_9VylW0qB00s",
+  "path": "",
+  "extension": "ts",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    149,
+    174
+  ]
+}
+*/
 ============================= test.tsx_App_component_ckEPmXZlub0.ts (ENTRY POINT)==
 
-import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_9VylW0qB00s = ()=>import("./test.tsx_App_component_Cmp_p_on_click_9VylW0qB00s.ts");
 export const App_component_ckEPmXZlub0 = (props)=>{
-    return /*#__PURE__*/ _jsxC(Cmp, {
-        children: /*#__PURE__*/ _jsxQ("p", null, {
-            class: "stuff",
-            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto.ts"), "App_component_Cmp_p_onClick_vuXzfUTkpto")
-        }, "Hello Qwik", 3, null)
-    }, 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
+        class: "stuff",
+        "on:click": /*#__PURE__*/ qrl(i_9VylW0qB00s, "App_component_Cmp_p_on_click_9VylW0qB00s")
+    }, "Hello Qwik", 3, null), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC;IAC3B,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ;WAA6B;;AAGlE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC;IAC9B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,UAAQ;OAA6B;AAGzD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -48,45 +71,23 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    90,
-    234
-  ]
-}
-*/
-============================= test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto.ts (ENTRY POINT)==
-
-export const App_component_Cmp_p_onClick_vuXzfUTkpto = ()=>console.log('warn');
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAMuC,IAAM,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_Cmp_p_onClick_vuXzfUTkpto",
-  "entry": null,
-  "displayName": "test.tsx_App_component_Cmp_p_onClick",
-  "hash": "vuXzfUTkpto",
-  "canonicalFilename": "test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto",
-  "path": "",
-  "extension": "ts",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    169,
-    194
+    88,
+    205
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */
 ============================= test.ts ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0.ts"), "App_component_ckEPmXZlub0"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0.ts");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,oHAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAMhB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -15,49 +15,49 @@ Qwik's Static Site adapter helps to generate static html files which can be easi
 
 ## Installation
 
-To integrate the `static-site` adapter, use the `add` command:
+To integrate the `ssg` adapter, use the `add` command:
 
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
 ```shell
-pnpm run qwik add static
+pnpm run qwik add ssg
 ```
 </span>
 <span q:slot="npm">
 ```shell
-npm run qwik add static
+npm run qwik add ssg
 ```
 </span>
 <span q:slot="yarn">
 ```shell
-yarn run qwik add static
+yarn run qwik add ssg
 ```
 </span>
 <span q:slot="bun">
 ```shell
-bun run qwik add static
+bun run qwik add ssg
 ```
 </span>
 </PackageManagerTabs>
 
-Above command will create a directory at project root named `adapters/static/vite.config.ts` with the below code.
+Above command will create a directory at project root named `adapters/ssg/vite.config.ts` with the below code.
 
-```ts title="adapters/static/vite.config.ts"
-import { staticAdapter } from "@builder.io/qwik-city/adapters/static/vite";
-import { extendConfig } from '@builder.io/qwik-city/vite';
-import baseConfig from '../../vite.config';
+```ts title="adapters/ssg/vite.config.ts"
+import { ssgAdapter } from "@qwik.dev/router/adapters/ssg/vite";
+import { extendConfig } from '@qwik.dev/router';
+import baseConfig from '../../vite.config.ts';
 
 export default extendConfig(baseConfig, () => {
   return {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ['@qwik-city-plan'],
+        input: ['@qwik-router-config'],
       },
     },
     plugins: [
-      staticAdapter({
+      ssgAdapter({
         origin: 'https://yoursite.qwik.dev',
       }),
     ],

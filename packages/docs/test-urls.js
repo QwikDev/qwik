@@ -1,7 +1,6 @@
+/* eslint-disable no-console */
 // Test script to verify all edit URLs are working
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
+import https from 'https';
 
 // Import the arrays from on-this-page.tsx (these are simplified copies for testing)
 const QWIK_GROUP = [
@@ -26,7 +25,7 @@ const QWIK_ADVANCED_GROUP = [
   'vite',
 ];
 
-const QWIKCITY_GROUP = [
+const QWIKROUTER_GROUP = [
   'action',
   'api',
   'caching',
@@ -37,7 +36,7 @@ const QWIKCITY_GROUP = [
   'middleware',
   'pages',
   'project-structure',
-  'qwikcity',
+  'qwikrouter',
   're-exporting-loaders',
   'route-loader',
   'routing',
@@ -45,7 +44,7 @@ const QWIKCITY_GROUP = [
   'validator',
 ];
 
-const QWIKCITY_ADVANCED_GROUP = [
+const QWIKROUTER_ADVANCED_GROUP = [
   'complex-forms',
   'content-security-policy',
   'menu',
@@ -73,13 +72,13 @@ function makeEditPageUrl(url) {
   if (segments[1] === 'advanced') {
     if (QWIK_ADVANCED_GROUP.includes(segments[2])) {
       group = '(qwik)';
-    } else if (QWIKCITY_ADVANCED_GROUP.includes(segments[2])) {
-      group = '(qwikcity)';
+    } else if (QWIKROUTER_ADVANCED_GROUP.includes(segments[2])) {
+      group = '(qwikrouter)';
     }
   } else if (QWIK_GROUP.includes(segments[1])) {
     group = '(qwik)';
-  } else if (QWIKCITY_GROUP.includes(segments[1])) {
-    group = '(qwikcity)';
+  } else if (QWIKROUTER_GROUP.includes(segments[1])) {
+    group = '(qwikrouter)';
   }
 
   if (group) {
@@ -170,13 +169,13 @@ async function testAllPaths() {
     testPaths.push(`/docs/advanced/${path}`);
   }
 
-  // Test QWIKCITY_GROUP paths
-  for (const path of QWIKCITY_GROUP) {
+  // Test QWIKROUTER_GROUP paths
+  for (const path of QWIKROUTER_GROUP) {
     testPaths.push(`/docs/${path}`);
   }
 
-  // Test QWIKCITY_ADVANCED_GROUP paths
-  for (const path of QWIKCITY_ADVANCED_GROUP) {
+  // Test QWIKROUTER_ADVANCED_GROUP paths
+  for (const path of QWIKROUTER_ADVANCED_GROUP) {
     testPaths.push(`/docs/advanced/${path}`);
   }
 
@@ -189,7 +188,7 @@ async function testAllPaths() {
 
   for (const testPath of testPaths) {
     const editPath = makeEditPageUrl(testPath);
-    const editUrl = `https://github.com/QwikDev/qwik/blob/main/packages/docs/src/routes/${editPath}/index.mdx`;
+    const editUrl = `https://github.com/QwikDev/qwik/blob/build/v2/packages/docs/src/routes/${editPath}/index.mdx`;
 
     try {
       const result = await checkUrl(editUrl);

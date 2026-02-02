@@ -69,9 +69,9 @@ and create a new file named `plugin@auth.ts` with an example configuration.
 > **Note on Manual Deployments with Node**
 
 > When deploying applications manually using Node.js, particularly with frameworks like Express, the server or Node process does not inherently know if it's being served under HTTP or HTTPS. 
-> Unlike hosting services like Vercel, Netlify, or Cloudflare, where the ﻿ORIGIN configuration is automatically managed, manual setups require explicit specification. To ensure that your Node.js application recognizes the correct protocol and host it is being served under, set the following **environment variables**:
+> Unlike hosting services like Vercel, Netlify, or Cloudflare, where the ORIGIN configuration is automatically managed, manual setups require explicit specification. To ensure that your Node.js application recognizes the correct protocol and host it is being served under, set the following **environment variables**:
 
->	-	﻿ORIGIN: Set this to the URL of your application. For example:
+>	-	ORIGIN: Set this to the URL of your application. For example:
 >	ORIGIN=https://your-app-name.example.com
 >	- PROTOCOL_HEADER: This is used to indicate the original protocol requested by the client. Commonly, this is specified in proxy configurations. Set this variable to:
 >	PROTOCOL_HEADER=X-Forwarded-Proto
@@ -125,7 +125,7 @@ When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple 
 A [routeLoader$](/docs/route-loader/) that returns a session object or an empty object if there is no session. The contents of the session object that is returned are configurable with the session callback. Session data can also be retrieved using the [session](#session) REST API.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { useSession } from '~/routes/plugin@auth';
 
 export default component$(() => {
@@ -151,8 +151,8 @@ A [routeAction$](/docs/action/) used to initiate a signin flow or send the user 
 Example using `useSignIn` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `providerId` and `options.redirectTo`:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
-import { Form } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { Form } from '@qwik.dev/router';
 import { useSignIn } from '~/routes/plugin@auth';
 
 export default component$(() => {
@@ -170,7 +170,7 @@ export default component$(() => {
 Example using `useSignIn` programmatically with optional `providerId` and `options.redirectTo`:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { useSignIn } from '~/routes/plugin@auth';
 
 export default component$(() => {
@@ -194,8 +194,8 @@ The 'redirectTo' must be considered valid by the redirect callback handler. By d
 Example using `useSignOut` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `redirectTo`:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
-import { Form } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { Form } from '@qwik.dev/router';
 import { useSignOut } from '~/routes/plugin@auth';
 
 export default component$(() => {
@@ -212,7 +212,7 @@ export default component$(() => {
 Example using `useSignOut` programmatically with optional `redirectTo`:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { useSignOut } from '~/routes/plugin@auth';
 
 export default component$(() => {

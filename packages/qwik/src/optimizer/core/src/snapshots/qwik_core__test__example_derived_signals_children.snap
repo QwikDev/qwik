@@ -1,125 +1,120 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2751
+assertion_line: 2863
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore, mutable } from '@builder.io/qwik';
+import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
 
 export const TextContent = component$((props) => {
-    return (
-        <>
-            <div>data-nu: {props['data-nu']}</div>
-            <div>class: {props.class}</div>
-        </>
-    );
+	return (
+		<>
+			<div>data-nu: {props['data-nu']}</div>
+			<div>class: {props.class}</div>
+		</>
+	);
 });
 
 export const App = component$(() => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    return (
-        <>
-            <div>text</div>
-            <div>{`text`}</div>
-            <div>{1}</div>
-            <div>{true}</div>
-            <div>{`text${12}`}</div>
-            <div>{typeof `text${12}` === 'string' ? 12 : 43}</div>
-            <div>{signal}</div>
-            <div>{signal.value}</div>
-            <div>{12 + signal.value}</div>
-            <div>{store.address.city.name}</div>
-            <div>{store.address.city.name ? 'true' : 'false'}</div>
-            <div>{dep}</div>
-            <div>{dep.thing}</div>
-            <div>{dep.thing + 'stuff'}</div>
-            <div>{globalThing}</div>
-            <div>{globalThing.thing}</div>
-            <div>{globalThing.thing + 'stuff'}</div>
-            <div>{signal.value()}</div>
-            <div>{signal.value + unknown()}</div>
-            <div>{mutable(signal)}</div>
-            <div>{signal.value + dep}</div>
-        </>
-    );
+	const signal = useSignal(0);
+	const store = useStore({});
+	return (
+		<>
+			<div>text</div>
+			<div>{`text`}</div>
+			<div>{1}</div>
+			<div>{true}</div>
+			<div>{`text${12}`}</div>
+			<div>{typeof `text${12}` === 'string' ? 12 : 43}</div>
+			<div>{signal}</div>
+			<div>{signal.value}</div>
+			<div>{12 + signal.value}</div>
+			<div>{store.address.city.name}</div>
+			<div>{store.address.city.name ? 'true' : 'false'}</div>
+			<div>{dep}</div>
+			<div>{dep.thing}</div>
+			<div>{dep.thing + 'stuff'}</div>
+			<div>{globalThing}</div>
+			<div>{globalThing.thing}</div>
+			<div>{globalThing.thing + 'stuff'}</div>
+			<div>{signal.value()}</div>
+			<div>{signal.value + unknown()}</div>
+			<div>{mutable(signal)}</div>
+			<div>{signal.value + dep}</div>
+		</>
+	);
 });
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { useStore, mutable } from '@builder.io/qwik';
+import { componentQrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
+const _hf0 = (p0)=>12 + p0.value;
+const _hf0_str = "12+p0.value";
+const _hf1 = (p0)=>p0.address.city.name;
+const _hf1_str = "p0.address.city.name";
+const _hf2 = (p0)=>p0.address.city.name ? 'true' : 'false';
+const _hf2_str = 'p0.address.city.name?"true":"false"';
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { useStore, mutable } from '@qwik.dev/core';
 import { dep } from './file';
 const TextContent_component_puSwpKXO7Kg = (props)=>{
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "data-nu: ",
-                _fnSignal((p0)=>p0['data-nu'], [
-                    props
-                ], 'p0["data-nu"]')
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "class: ",
-                _fnSignal((p0)=>p0.class, [
-                    props
-                ], "p0.class")
-            ], 3, null)
-        ]
-    }, 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
+            "data-nu: ",
+            _wrapProp(props, "data-nu")
+        ], 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
+            "class: ",
+            _wrapProp(props, "class")
+        ], 1, null)
+    ], 1, "u6_0");
 };
 export const TextContent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(TextContent_component_puSwpKXO7Kg, "TextContent_component_puSwpKXO7Kg"));
 const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     const store = useStore({});
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("div", null, null, "text", 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, `text`, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, 1, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, true, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, `text${12}`, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, typeof `text${12}` === 'string' ? 12 : 43, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, signal, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.value, [
-                signal
-            ], "p0.value"), 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>12 + p0.value, [
-                signal
-            ], "12+p0.value"), 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.address.city.name, [
-                store
-            ], "p0.address.city.name"), 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
-                store
-            ], 'p0.address.city.name?"true":"false"'), 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, dep, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, dep.thing, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, dep.thing + 'stuff', 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, globalThing, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, globalThing.thing, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, globalThing.thing + 'stuff', 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, signal.value(), 1, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, signal.value + unknown(), 1, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, mutable(signal), 1, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, signal.value + dep, 1, null)
-        ]
-    }, 1, "u6_1");
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, "text", 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, `text`, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, 1, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, true, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, `text${12}`, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, typeof `text${12}` === 'string' ? 12 : 43, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, signal, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(signal), 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf0, [
+            signal
+        ], _hf0_str), 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf1, [
+            store
+        ], _hf1_str), 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf2, [
+            store
+        ], _hf2_str), 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, dep, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, dep.thing, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, dep.thing + 'stuff', 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, globalThing, 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, globalThing.thing, 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, globalThing.thing + 'stuff', 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, signal.value(), 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, signal.value + unknown(), 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, mutable(signal), 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, signal.value + dep, 1, null)
+    ], 1, "u6_1");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC;IACnC,qBACI;;0BACI,MAAC;gBAAI;gCAAU,EAAK,CAAC,UAAU;;;;0BAC/B,MAAC;gBAAI;gCAAQ,GAAM,KAAK;;;;;;AAGpC;AAPA,OAAO,MAAM,4BAAc,+GAOxB;kCAE2B;IAC1B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;;0BACI,MAAC,mBAAI;0BACL,MAAC,mBAAK,CAAC,IAAI,CAAC;0BACZ,MAAC,mBAAK;0BACN,MAAC,mBAAK;0BACN,MAAC,mBAAK,CAAC,IAAI,EAAE,IAAI;0BACjB,MAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;0BAC7C,MAAC,mBAAK;0BACN,MAAC,mCAAK,GAAO,KAAK;;;0BAClB,MAAC,mCAAK,KAAK,GAAO,KAAK;;;0BACvB,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;0BAC7B,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;;0BACzC,MAAC,mBAAK;0BACN,MAAC,mBAAK,IAAI,KAAK;0BACf,MAAC,mBAAK,IAAI,KAAK,GAAG;0BAClB,MAAC,mBAAK;0BACN,MAAC,mBAAK,YAAY,KAAK;0BACvB,MAAC,mBAAK,YAAY,KAAK,GAAG;0BAC1B,MAAC,mBAAK,OAAO,KAAK;0BAClB,MAAC,mBAAK,OAAO,KAAK,GAAG;0BACrB,MAAC,mBAAK,QAAQ;0BACd,MAAC,mBAAK,OAAO,KAAK,GAAG;;;AAGjC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBA2BS,KAAK,GAAO,KAAK;;mBACjB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACvB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;;AA5B5C,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC;IACtC,qBACC;sBACC,WAAC;YAAI;sBAAU;;sBACf,WAAC;YAAI;sBAAQ;;;AAGhB;AAPA,OAAO,MAAM,4BAAc,+GAOxB;kCAE2B;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC,mBAAK,CAAC,IAAI,CAAC;sBACZ,WAAC,mBAAK;sBACN,WAAC,mBAAK;sBACN,WAAC,mBAAK,CAAC,IAAI,EAAE,IAAI;sBACjB,WAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;sBAC7C,WAAC,mBAAK;sBACN,WAAC,6BAAK;sBACN,WAAC;;;sBACD,WAAC;;;sBACD,WAAC;;;sBACD,WAAC,mBAAK;sBACN,WAAC,mBAAK,IAAI,KAAK;sBACf,WAAC,mBAAK,IAAI,KAAK,GAAG;sBAClB,WAAC,mBAAK;sBACN,WAAC,mBAAK,YAAY,KAAK;sBACvB,WAAC,mBAAK,YAAY,KAAK,GAAG;sBAC1B,WAAC,mBAAK,OAAO,KAAK;sBAClB,WAAC,mBAAK,OAAO,KAAK,GAAG;sBACrB,WAAC,mBAAK,QAAQ;sBACd,WAAC,mBAAK,OAAO,KAAK,GAAG;;AAGxB;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

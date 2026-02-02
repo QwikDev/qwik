@@ -1,34 +1,34 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1232
+assertion_line: 1342
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ as Component, $ as onRender, useStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender, useStore, wrap, useEffect } from '@qwik.dev/core';
 
 
 export const useMemo$ = (qrt) => {
-    useEffect(qrt);
+	useEffect(qrt);
 };
 
 export const App = component$((props) => {
-    const state = useStore({count: 0});
-    useMemo$(() => {
-        console.log(state.count);
-    });
-    return $(() => (
-        <div>{state.count}</div>
-    ));
+	const state = useStore({count: 0});
+	useMemo$(() => {
+		console.log(state.count);
+	});
+	return $(() => (
+		<div>{state.count}</div>
+	));
 });
 
 ============================= test.js ==
 
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { useStore, useEffect } from '@builder.io/qwik';
+import { _wrapProp } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useStore, useEffect } from '@qwik.dev/core';
 export const useMemo$ = (qrt)=>{
     useEffect(qrt);
 };
@@ -39,13 +39,11 @@ export const App = component$((props)=>{
     useMemo$(()=>{
         console.log(state.count);
     });
-    return $(()=>/*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.count, [
-            state
-        ], "p0.count"), 3, "u6_0"));
+    return $(()=>/*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0"));
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAiD,QAAQ,EAAQ,SAAS,QAAQ,mBAAmB;AAGrG,OAAO,MAAM,WAAW,CAAC;IACrB,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,MAAM,WAAW,CAAC;IAC3B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,SAAS;QACL,QAAQ,GAAG,CAAC,MAAM,KAAK;IAC3B;IACA,OAAO,EAAE,kBACL,MAAC,mCAAK,GAAM,KAAK;;;AAEzB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAiD,QAAQ,EAAQ,SAAS,QAAQ,iBAAiB;AAGnG,OAAO,MAAM,WAAW,CAAC;IACxB,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,MAAM,WAAW,CAAC;IAC9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,SAAS;QACR,QAAQ,GAAG,CAAC,MAAM,KAAK;IACxB;IACA,OAAO,EAAE,kBACR,WAAC,6BAAK;AAER,GAAG\"}")
 == DIAGNOSTICS ==
 
 [
@@ -56,8 +54,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "message": "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly",
     "highlights": [
       {
-        "lo": 252,
-        "hi": 260,
+        "lo": 241,
+        "hi": 249,
         "startLine": 11,
         "startCol": 5,
         "endLine": 11,

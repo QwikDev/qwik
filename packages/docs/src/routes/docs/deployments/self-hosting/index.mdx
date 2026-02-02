@@ -465,13 +465,13 @@ For Apache with mod_proxy enabled, use this configuration:
 
 ### CSRF Protection
 
-Qwik City applications are protected against CSRF (Cross-Site Request Forgery) attacks by default for all state-mutating HTTP methods (POST, PATCH, DELETE). This protection is crucial for preventing unauthorized actions on behalf of authenticated users.
+Qwik Router applications are protected against CSRF (Cross-Site Request Forgery) attacks by default for all state-mutating HTTP methods (POST, PATCH, DELETE). This protection is crucial for preventing unauthorized actions on behalf of authenticated users.
 
 #### How It Works
 
 1. **Default Protection**: Enabled by default for all non-idempotent requests
 2. **Origin Checking**: Validates the `Origin` and `Referer` headers against the `ORIGIN` environment variable
-3. **Configuration**: Controlled via the `checkOrigin` option in `createQwikCity`
+3. **Configuration**: Controlled via the `checkOrigin` option in `createQwikRouter`
 
 #### Configuration Options
 
@@ -479,10 +479,8 @@ Qwik City applications are protected against CSRF (Cross-Site Request Forgery) a
 
 ```tsx
 // src/entry.express.tsx or src/entry.fastify.tsx
-const { router, notFound } = createQwikCity({
+const { router, notFound } = createQwikRouter({
   render,
-  qwikCityPlan,
-  manifest,
   // CSRF protection is enabled by default when ORIGIN is set
   checkOrigin: true
 });
@@ -493,10 +491,8 @@ const { router, notFound } = createQwikCity({
 When behind a reverse proxy (Nginx, CloudFront, etc.), use `'lax-proto'` to handle `X-Forwarded-Proto` headers:
 
 ```tsx
-const { router, notFound } = createQwikCity({
+const { router, notFound } = createQwikRouter({
   render,
-  qwikCityPlan,
-  manifest,
   checkOrigin: 'lax-proto' // Required for proper proxy support
 });
 ```
@@ -504,10 +500,8 @@ const { router, notFound } = createQwikCity({
 ##### 3. Disabling CSRF (Not Recommended)
 
 ```tsx
-const { router, notFound } = createQwikCity({
+const { router, notFound } = createQwikRouter({
   render,
-  qwikCityPlan,
-  manifest,
   checkOrigin: false // Disables CSRF protection (not recommended for production)
 });
 ```

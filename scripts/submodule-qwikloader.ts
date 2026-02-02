@@ -1,5 +1,7 @@
 import { join } from 'node:path';
+import { minify } from 'terser';
 import { build } from 'vite';
+import { writePackageJson } from './package-json.ts';
 import {
   type BuildConfig,
   ensureDir,
@@ -8,12 +10,10 @@ import {
   readFile,
   writeFile,
 } from './util.ts';
-import { minify } from 'terser';
-import { writePackageJson } from './package-json.ts';
 
 /**
  * Builds the qwikloader javascript files. These files can be used by other tooling, and are
- * provided in the package so CDNs could point to them. The @builder.io/optimizer submodule also
+ * provided in the package so CDNs could point to them. The @qwik.dev/core/optimizer submodule also
  * provides a utility function.
  */
 export async function submoduleQwikLoader(config: BuildConfig) {
@@ -37,24 +37,8 @@ export async function submoduleQwikLoader(config: BuildConfig) {
   const debugFilePath = join(config.distQwikPkgDir, 'qwikloader.debug.js');
   const debugContent = await readFile(debugFilePath, 'utf-8');
 
-  // Create the minified version using terser
-  const minifyResult = await minify(debugContent, {
-    compress: {
-      global_defs: {
-        'window.BuildEvents': false,
-      },
-      keep_fargs: false,
-      unsafe: true,
-      passes: 2,
-    },
-    mangle: {
-      keep_fnames: false,
-      properties: false,
-      toplevel: true,
-    },
-    // uncomment this to understand the minified version better
-    // format: { semicolons: false },
-  });
+  // Create the minified version using shared terser config
+  const minifyResult = await minifyClientScript(debugContent);
 
   // Write the minified version
   const minifiedFilePath = join(config.distQwikPkgDir, 'qwikloader.js');
@@ -66,7 +50,29 @@ export async function submoduleQwikLoader(config: BuildConfig) {
   console.log(`🐸 qwikloader:`, loaderSize);
 }
 
-const getLoaderJsonString = async (config: BuildConfig, name: string) => {
+export const getTerserConfig = () => ({
+  compress: {
+    global_defs: {
+      'window.BuildEvents': false,
+    },
+    keep_fargs: false,
+    unsafe: true,
+    passes: 2,
+  },
+  mangle: {
+    keep_fnames: false,
+    properties: false,
+    toplevel: true,
+  },
+  // format: { semicolons: false }, // uncomment to understand minified version better
+});
+
+/** Minify JavaScript content using the shared configuration */
+export const minifyClientScript = async (content: string) => {
+  return await minify(content, getTerserConfig());
+};
+
+export const getLoaderJsonString = async (config: BuildConfig, name: string) => {
   const filePath = join(config.distQwikPkgDir, name);
   const content = await readFile(filePath, 'utf-8');
   // Remove vite comments and leading/trailing whitespace
@@ -105,11 +111,6 @@ async function generateLoaderSubmodule(config: BuildConfig) {
   ];
 
   const esmCode = [...code, `export { QWIK_LOADER, QWIK_LOADER_DEBUG };`];
-  const cjsCode = [
-    ...code,
-    `exports.QWIK_LOADER = QWIK_LOADER;`,
-    `exports.QWIK_LOADER_DEBUG = QWIK_LOADER_DEBUG;`,
-  ];
   const dtsCode = [
     `export declare const QWIK_LOADER: string;`,
     `export declare const QWIK_LOADER_DEBUG: string;`,
@@ -117,11 +118,10 @@ async function generateLoaderSubmodule(config: BuildConfig) {
 
   ensureDir(loaderDistDir);
   await writeFile(join(loaderDistDir, 'index.mjs'), esmCode.join('\n') + '\n');
-  await writeFile(join(loaderDistDir, 'index.cjs'), cjsCode.join('\n') + '\n');
   await writeFile(join(loaderDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
 
   const loaderPkg: PackageJSON = {
-    name: `@builder.io/qwik/loader`,
+    name: `@qwik.dev/core/loader`,
     version: config.distVersion,
     main: `index.mjs`,
     types: `index.d.ts`,

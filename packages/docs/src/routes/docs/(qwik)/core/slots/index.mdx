@@ -29,10 +29,10 @@ This concept has different names in different frameworks:
 - In React, it's the `children` of the props
 - In Web components it's [`<slot>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) as well
 
-The main API to achieve this is the `<Slot>` component, exported in `@builder.io/qwik`:
+The main API to achieve this is the `<Slot>` component, exported in `@qwik.dev/core`:
 <CodeSandbox src="/src/routes/demo/slot/basic/index.tsx" style={{ height: '6em' }}>
 ```tsx {6} /Slot/
-import { Slot, component$ } from '@builder.io/qwik';
+import { Slot, component$ } from '@qwik.dev/core';
 
 const Button = component$(() => {
   return (
@@ -66,7 +66,7 @@ The `Slot` component can be used multiple times in the same component, as long a
 
 <CodeSandbox src="/src/routes/demo/slot/named/index.tsx" style={{ height: '10em' }}>
 ```tsx {9} /start/#a /title/#c /footer/#a /end/#c /q:slot/ /Slot/
-import { Slot, component$, useStylesScoped$ } from '@builder.io/qwik';
+import { Slot, component$, useStylesScoped$ } from '@qwik.dev/core';
 import CSS from './index.css?inline';
 
 const Tab = component$(() => {
@@ -115,7 +115,7 @@ Qwik keeps all content around, even if not projected. This is because the conten
 
 <CodeSandbox src="/src/routes/demo/slot/unprojected/index.tsx" style={{ height: '7em' }}>
 ```tsx
-import { Slot, component$, useSignal } from '@builder.io/qwik';
+import { Slot, component$, useSignal } from '@qwik.dev/core';
 
 const Accordion = component$(() => {
   const isOpen = useSignal(false);
@@ -145,7 +145,7 @@ Results in:
 <div>
   <h1>▶︎</h1>
 </div>
-<q:template q:slot hidden aria-hidden="true">
+<q:template hidden aria-hidden="true">
   I am pre-rendered on the Server and hidden until needed.
 </q:template>
 ```
@@ -157,7 +157,7 @@ Notice that the un-projected content is moved into an inert `<q:template>`. This
 The `q:slot` attribute must be a direct child of a component.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const Project = component$(() => { ... })
 
@@ -180,7 +180,7 @@ An example of a collapsible component that conditionally projects editable conte
 
 <CodeSandbox src="/src/routes/demo/slot/advanced/index.tsx" style={{ height: '15em' }}>
 ```tsx
-import { Slot, component$, useSignal } from '@builder.io/qwik';
+import { Slot, component$, useSignal } from '@qwik.dev/core';
 
 export const Collapsible = component$(() => {
   const isOpen = useSignal(true);

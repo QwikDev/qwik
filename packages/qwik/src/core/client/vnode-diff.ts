@@ -66,7 +66,7 @@ import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
-import { callQrl } from './run-qrl';
+import { runEventHandlerQRL } from './run-qrl';
 import { VNodeFlags, type ClientContainer } from './types';
 import { mapApp_findIndx } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
@@ -996,7 +996,7 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
         if (qrl) {
           // TODO is this needed?
           qrl.$container$ = diffContext.container;
-          return callQrl(diffContext.container, vNode, qrl, event, vNode.node, false);
+          return runEventHandlerQRL(diffContext.container, vNode, qrl, event, vNode.node, false);
         }
       };
     }

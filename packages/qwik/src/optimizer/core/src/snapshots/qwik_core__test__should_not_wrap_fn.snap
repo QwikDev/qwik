@@ -25,39 +25,6 @@ export const Cmp = component$(() => {
 	);
 });
 
-============================= test.tsx_Cmp_component_Fragment_button_on_click_MhhCocTC5xM.js (ENTRY POINT)==
-
-import { _captures } from "@qwik.dev/core";
-export const Cmp_component_Fragment_button_on_click_MhhCocTC5xM = ()=>{
-    const currentType = _captures[0];
-    return currentType.value = 'NEXT';
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAcqB;;WAAO,YAAY,KAAK,GAAG\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Cmp_component_Fragment_button_on_click_MhhCocTC5xM",
-  "entry": null,
-  "displayName": "test.tsx_Cmp_component_Fragment_button_on_click",
-  "hash": "MhhCocTC5xM",
-  "canonicalFilename": "test.tsx_Cmp_component_Fragment_button_on_click_MhhCocTC5xM",
-  "path": "",
-  "extension": "js",
-  "parent": "Cmp_component_4ryKJTOKjWE",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    394,
-    428
-  ],
-  "captureNames": [
-    "currentType"
-  ]
-}
-*/
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
@@ -74,7 +41,7 @@ import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
-const i_MhhCocTC5xM = ()=>import("./test.tsx_Cmp_component_Fragment_button_on_click_MhhCocTC5xM");
+const i_veAZ2ow0cnM = ()=>import("./test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM");
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const currentStep = useSignal('STEP_1');
     const currentType = useSignal('PREVIOUS');
@@ -83,7 +50,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
     };
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("button", null, {
-            "on:click": /*#__PURE__*/ qrl(i_MhhCocTC5xM, "Cmp_component_Fragment_button_on_click_MhhCocTC5xM", [
+            "q-e:click": /*#__PURE__*/ qrl(i_veAZ2ow0cnM, "Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM", [
                 currentType
             ])
         }, "CLICK", 3, null),
@@ -94,7 +61,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAI8B;IAC7B,MAAM,cAAc,UAAU;IAC9B,MAAM,cAAc,UAA+B;IAEnD,MAAM,UAAU,CAAC,MAAc;QAC9B,OAAO,SAAS,WAAW,WAAW;IACvC;IAEA,qBACC;sBACC,WAAC;YAAO,UAAQ;;;WAAsC;sBACtD,WAAC;YAAE,MAAM,QAAQ,YAAY,KAAK,EAAE,YAAY,KAAK;;;AAGxD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAI8B;IAC7B,MAAM,cAAc,UAAU;IAC9B,MAAM,cAAc,UAA+B;IAEnD,MAAM,UAAU,CAAC,MAAc;QAC9B,OAAO,SAAS,WAAW,WAAW;IACvC;IAEA,qBACC;sBACC,WAAC;YAAO,WAAQ;;;WAAsC;sBACtD,WAAC;YAAE,MAAM,QAAQ,YAAY,KAAK,EAAE,YAAY,KAAK;;;AAGxD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -112,6 +79,39 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     123,
     518
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM = ()=>{
+    const currentType = _captures[0];
+    return currentType.value = 'NEXT';
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAcqB;;WAAO,YAAY,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_Fragment_button_q_e_click",
+  "hash": "veAZ2ow0cnM",
+  "canonicalFilename": "test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    394,
+    428
+  ],
+  "captureNames": [
+    "currentType"
   ]
 }
 */

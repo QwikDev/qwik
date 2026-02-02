@@ -36,6 +36,42 @@ expression: output
       );
     });
 
+============================= test.tsx_Parent_component_div_button_q_e_click_5khsVRINUws.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const Parent_component_div_button_q_e_click_5khsVRINUws = ()=>{
+    const results = _captures[0];
+    return results.value = [
+        'item1',
+        'item2'
+    ];
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAQuC;;WAAO,QAAQ,KAAK,GAAG;QAAC;QAAS;KAAQ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_div_button_q_e_click_5khsVRINUws",
+  "entry": null,
+  "displayName": "test.tsx_Parent_component_div_button_q_e_click",
+  "hash": "5khsVRINUws",
+  "canonicalFilename": "test.tsx_Parent_component_div_button_q_e_click_5khsVRINUws",
+  "path": "",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    268,
+    310
+  ],
+  "captureNames": [
+    "results"
+  ]
+}
+*/
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
@@ -51,27 +87,27 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
-const i_SElC3FUsPNU = ()=>import("./test.tsx_Parent_component_div_button_on_click_1_SElC3FUsPNU");
-const i_idS41XFQi6Q = ()=>import("./test.tsx_Parent_component_div_button_on_click_idS41XFQi6Q");
+const i_5khsVRINUws = ()=>import("./test.tsx_Parent_component_div_button_q_e_click_5khsVRINUws");
+const i_rAeuW6OvuXM = ()=>import("./test.tsx_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM");
 export const Parent_component_0TaiDayHrlo = ()=>{
     const cart = useStore([]);
     const results = useSignal([
         'foo',
         'bar'
     ]);
-    const Parent_component_div_button_on_click_1_SElC3FUsPNU = /*#__PURE__*/ qrl(i_SElC3FUsPNU, "Parent_component_div_button_on_click_1_SElC3FUsPNU", [
+    const Parent_component_div_button_q_e_click_1_rAeuW6OvuXM = /*#__PURE__*/ qrl(i_rAeuW6OvuXM, "Parent_component_div_button_q_e_click_1_rAeuW6OvuXM", [
         cart
     ]);
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         /*#__PURE__*/ _jsxSorted("button", null, {
             id: "first",
-            "on:click": /*#__PURE__*/ qrl(i_idS41XFQi6Q, "Parent_component_div_button_on_click_idS41XFQi6Q", [
+            "q-e:click": /*#__PURE__*/ qrl(i_5khsVRINUws, "Parent_component_div_button_q_e_click_5khsVRINUws", [
                 results
             ])
         }, null, 3, null),
         results.value.map((item, key)=>/*#__PURE__*/ _jsxSorted("button", {
                 id: 'second-' + key,
-                "on:click": Parent_component_div_button_on_click_1_SElC3FUsPNU,
+                "q-e:click": Parent_component_div_button_q_e_click_1_rAeuW6OvuXM,
                 "q:p": item
             }, null, item, 0, "u6_0")),
         /*#__PURE__*/ _jsxSorted("ul", null, null, cart.map((item)=>/*#__PURE__*/ _jsxSorted("li", null, null, /*#__PURE__*/ _jsxSorted("span", null, null, item, 1, null), 1, "u6_1")), 1, null)
@@ -79,7 +115,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;4CAEgC;IAC1B,MAAM,OAAO,SAAe,EAAE;IAC9B,MAAM,UAAU,UAAU;QAAC;QAAO;KAAM;;;;IAExC,qBACE,WAAC;sBACC,WAAC;YAAO,IAAG;YAAQ,UAAQ;;;;QAE1B,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,MAAM,oBACxB,WAAC;gBACC,IAAI,YAAY;gBAChB,UAAQ;uBAHQ;qBAOf;sBAGL,WAAC,kBACE,KAAK,GAAG,CAAC,CAAC,qBACT,WAAC,gCACC,WAAC,oBAAM;;AAMnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;4CAEgC;IAC1B,MAAM,OAAO,SAAe,EAAE;IAC9B,MAAM,UAAU,UAAU;QAAC;QAAO;KAAM;;;;IAExC,qBACE,WAAC;sBACC,WAAC;YAAO,IAAG;YAAQ,WAAQ;;;;QAE1B,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,MAAM,oBACxB,WAAC;gBACC,IAAI,YAAY;gBAChB,WAAQ;uBAHQ;qBAOf;sBAGL,WAAC,kBACE,KAAK,GAAG,CAAC,CAAC,qBACT,WAAC,gCACC,WAAC,oBAAM;;AAMnB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -100,60 +136,24 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Parent_component_div_button_on_click_idS41XFQi6Q.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
-export const Parent_component_div_button_on_click_idS41XFQi6Q = ()=>{
-    const results = _captures[0];
-    return results.value = [
-        'item1',
-        'item2'
-    ];
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAQuC;;WAAO,QAAQ,KAAK,GAAG;QAAC;QAAS;KAAQ\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Parent_component_div_button_on_click_idS41XFQi6Q",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_div_button_on_click",
-  "hash": "idS41XFQi6Q",
-  "canonicalFilename": "test.tsx_Parent_component_div_button_on_click_idS41XFQi6Q",
-  "path": "",
-  "extension": "js",
-  "parent": "Parent_component_0TaiDayHrlo",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    268,
-    310
-  ],
-  "captureNames": [
-    "results"
-  ]
-}
-*/
-============================= test.tsx_Parent_component_div_button_on_click_1_SElC3FUsPNU.js (ENTRY POINT)==
-
-import { _captures } from "@qwik.dev/core";
-export const Parent_component_div_button_on_click_1_SElC3FUsPNU = (_, _1, item)=>{
+export const Parent_component_div_button_q_e_click_1_rAeuW6OvuXM = (_, _1, item)=>{
     const cart = _captures[0];
     cart.push(item);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAawB,QAHM;;IAId,KAAK,IAAI,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAawB,QAHM;;IAId,KAAK,IAAI,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Parent_component_div_button_on_click_1_SElC3FUsPNU",
+  "name": "Parent_component_div_button_q_e_click_1_rAeuW6OvuXM",
   "entry": null,
-  "displayName": "test.tsx_Parent_component_div_button_on_click_1",
-  "hash": "SElC3FUsPNU",
-  "canonicalFilename": "test.tsx_Parent_component_div_button_on_click_1_SElC3FUsPNU",
+  "displayName": "test.tsx_Parent_component_div_button_q_e_click_1",
+  "hash": "rAeuW6OvuXM",
+  "canonicalFilename": "test.tsx_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM",
   "path": "",
   "extension": "js",
   "parent": "Parent_component_0TaiDayHrlo",

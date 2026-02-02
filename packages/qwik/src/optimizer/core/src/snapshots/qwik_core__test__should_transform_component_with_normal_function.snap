@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4973
+assertion_line: 5025
 expression: output
 ---
 ==INPUT==
@@ -16,37 +16,6 @@ const Foo = component$(function() {
   return <Inner data={data} />
 })
 
-============================= test.tsx_Foo_component_Inner_component_div_p_on_click_KJykIBkozgo.js (ENTRY POINT)==
-
-export const Foo_component_Inner_component_div_p_on_click_KJykIBkozgo = (_, _1, item)=>console.log(item.value.id);
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wEAMqD,QAArB,OAA2B,QAAQ,GAAG,CAAC,KAAK,KAAK,CAAC,EAAE\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_Inner_component_div_p_on_click_KJykIBkozgo",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_Inner_component_div_p_on_click",
-  "hash": "KJykIBkozgo",
-  "canonicalFilename": "test.tsx_Foo_component_Inner_component_div_p_on_click_KJykIBkozgo",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_Inner_component_AuJ9mTBx5YA",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    276,
-    308
-  ],
-  "paramNames": [
-    "_",
-    "_",
-    "item"
-  ]
-}
-*/
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
@@ -100,12 +69,12 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 const _hf0 = (p0)=>p0.value.id;
 const _hf0_str = "p0.value.id";
-const i_KJykIBkozgo = ()=>import("./test.tsx_Foo_component_Inner_component_div_p_on_click_KJykIBkozgo");
+const i_7oFgEhSmgvY = ()=>import("./test.tsx_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY");
 export const Foo_component_Inner_component_AuJ9mTBx5YA = function(props) {
     const data = props.data;
-    const Foo_component_Inner_component_div_p_on_click_KJykIBkozgo = /*#__PURE__*/ qrl(i_KJykIBkozgo, "Foo_component_Inner_component_div_p_on_click_KJykIBkozgo");
+    const Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY = /*#__PURE__*/ qrl(i_7oFgEhSmgvY, "Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY");
     return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((item)=>/*#__PURE__*/ _jsxSorted("p", {
-            "on:click": Foo_component_Inner_component_div_p_on_click_KJykIBkozgo,
+            "q-e:click": Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY,
             "q:p": item
         }, null, _fnSignal(_hf0, [
             item
@@ -113,7 +82,7 @@ export const Foo_component_Inner_component_AuJ9mTBx5YA = function(props) {
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAMwF,GAAK,KAAK,CAAC,EAAE;;;yDAF1E,SAAS,KAAK;IACrC,MAAM,OAAO,MAAM,IAAI;;IACvB,qBAAO,WAAC,mBAAK,KAAK,KAAK,CAAC,GAAG,CAAC,CAAA,qBAAQ,WAAC;YAAE,UAAQ;mBAAnB;;;;AAC9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAMwF,GAAK,KAAK,CAAC,EAAE;;;yDAF1E,SAAS,KAAK;IACrC,MAAM,OAAO,MAAM,IAAI;;IACvB,qBAAO,WAAC,mBAAK,KAAK,KAAK,CAAC,GAAG,CAAC,CAAA,qBAAQ,WAAC;YAAE,WAAQ;mBAAnB;;;;AAC9B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -134,6 +103,37 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "props"
+  ]
+}
+*/
+============================= test.tsx_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY.js (ENTRY POINT)==
+
+export const Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY = (_, _1, item)=>console.log(item.value.id);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yEAMqD,QAArB,OAA2B,QAAQ,GAAG,CAAC,KAAK,KAAK,CAAC,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_Inner_component_div_p_q_e_click",
+  "hash": "7oFgEhSmgvY",
+  "canonicalFilename": "test.tsx_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_Inner_component_AuJ9mTBx5YA",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    276,
+    308
+  ],
+  "paramNames": [
+    "_",
+    "_",
+    "item"
   ]
 }
 */

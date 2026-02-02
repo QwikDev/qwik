@@ -17,21 +17,30 @@ export default component$(() => {
 });
 
 
-============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_on_click_rUNGjv14wiY.js (ENTRY POINT)==
+============================= src/routes/_repl/[id]/[[...slug]].js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_0AM8HPnkNs4 = ()=>import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_0AM8HPnkNs4, "slug_component_0AM8HPnkNs4"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;AAIA,6BAAe,6EAKZ\"}")
+============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js (ENTRY POINT)==
 
 import { sibling } from "./sibling";
-export const slug_component_div_on_click_rUNGjv14wiY = ()=>console.log(mongodb, sibling);
+export const slug_component_div_q_e_click_bCwVPYSTQ0w = ()=>console.log(mongodb, sibling);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";uDAMiB,IAAM,QAAQ,GAAG,CAAC,SAAS\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";wDAMiB,IAAM,QAAQ,GAAG,CAAC,SAAS\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
-  "name": "slug_component_div_on_click_rUNGjv14wiY",
+  "name": "slug_component_div_q_e_click_bCwVPYSTQ0w",
   "entry": null,
-  "displayName": "[[...slug]].tsx_slug_component_div_on_click",
-  "hash": "rUNGjv14wiY",
-  "canonicalFilename": "[[...slug]].tsx_slug_component_div_on_click_rUNGjv14wiY",
+  "displayName": "[[...slug]].tsx_slug_component_div_q_e_click",
+  "hash": "bCwVPYSTQ0w",
+  "canonicalFilename": "[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w",
   "path": "src/routes/_repl/[id]",
   "extension": "js",
   "parent": "slug_component_0AM8HPnkNs4",
@@ -44,28 +53,19 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   ]
 }
 */
-============================= src/routes/_repl/[id]/[[...slug]].js ==
-
-import { componentQrl } from "@qwik.dev/core";
-import { qrl } from "@qwik.dev/core";
-const i_0AM8HPnkNs4 = ()=>import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js");
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_0AM8HPnkNs4, "slug_component_0AM8HPnkNs4"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;AAIA,6BAAe,6EAKZ\"}")
 ============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_0AM8HPnkNs4.js ==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_rUNGjv14wiY = ()=>import("./[[...slug]].tsx_slug_component_div_on_click_rUNGjv14wiY.js");
+const i_bCwVPYSTQ0w = ()=>import("./[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js");
 export const slug_component_0AM8HPnkNs4 = ()=>{
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        "on:click": /*#__PURE__*/ qrl(i_rUNGjv14wiY, "slug_component_div_on_click_rUNGjv14wiY")
+        "q-e:click": /*#__PURE__*/ qrl(i_bCwVPYSTQ0w, "slug_component_div_q_e_click_bCwVPYSTQ0w")
     }, null, 3, "W4_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;0CAI0B;IACzB,qBACC,WAAC;QAAI,UAAQ;;AAGf\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;0CAI0B;IACzB,qBACC,WAAC;QAAI,WAAQ;;AAGf\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",

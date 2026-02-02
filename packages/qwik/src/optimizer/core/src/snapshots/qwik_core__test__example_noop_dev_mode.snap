@@ -76,11 +76,11 @@ export const App_component_ckEPmXZlub0 = ()=>{
         }, [
             stuff
         ]),
-        "on:click": /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_on_click_9VylW0qB00s", {
+        "q-e:click": /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
             file: "/hello/from/dev/test.tsx",
             lo: 0,
             hi: 0,
-            displayName: "test.tsx_App_component_Cmp_p_on_click"
+            displayName: "test.tsx_App_component_Cmp_p_q_e_click"
         })
     }, "Hello Qwik", 3, null, {
         fileName: "/hello/from/dev/test.tsx",
@@ -94,7 +94,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B;IAC7B,MAAM,QAAQ;IACd;;;;;;;;IAIA;;;;;;IAIA,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QACR,aAAa;;;;;;;;QACb,UAAQ;;;;;;OACR;;;;;;;;;AAKJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B;IAC7B,MAAM,QAAQ;IACd;;;;;;;;IAIA;;;;;;IAIA,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QACR,aAAa;;;;;;;;QACb,WAAQ;;;;;;OACR;;;;;;;;;AAKJ\"}")
 /*
 {
   "origin": "test.tsx",

@@ -32,7 +32,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 const _hf0 = (p0, p1)=>(p0.description ?? '') && 'description' in p0.other ? `Hello ${p1.value}` : `Bye ${p1.value}`;
 const _hf0_str = '(p0.description??"")&&"description"in p0.other?`Hello ${p1.value}`:`Bye ${p1.value}`';
 import { useSignal } from '@qwik.dev/core';
-const Issue3742_component_div_button_on_click_BquD15kWx0k = ()=>{
+const Issue3742_component_div_button_q_e_click_95Hlm8WgsYY = ()=>{
     const counter = _captures[0];
     return counter.value++;
 };
@@ -46,7 +46,7 @@ const Issue3742_component_svSy0PlWTAw = (_rawProps)=>{
     }, null, [
         "Issue3742",
         /*#__PURE__*/ _jsxSorted("button", null, {
-            "on:click": /*#__PURE__*/ inlinedQrl(Issue3742_component_div_button_on_click_BquD15kWx0k, "Issue3742_component_div_button_on_click_BquD15kWx0k", [
+            "q-e:click": /*#__PURE__*/ inlinedQrl(Issue3742_component_div_button_q_e_click_95Hlm8WgsYY, "Issue3742_component_div_button_q_e_click_95Hlm8WgsYY", [
                 counter
             ])
         }, "Increment", 3, null)
@@ -55,7 +55,7 @@ const Issue3742_component_svSy0PlWTAw = (_rawProps)=>{
 export const Issue3742 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Issue3742_component_svSy0PlWTAw, "Issue3742_component_svSy0PlWTAw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAOS,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,EAAE,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,EAAE;;AANpG,SAAqB,SAAS,QAAQ,iBAAiB;4DASnC;;WAAM,QAAQ,KAAK;;wCAPH;IACnC,MAAM,UAAU,UAAU;IAC1B,qBACC,WAAC;QACD,KAAK;;;;;QACJ;sBAED,WAAC;YAAO,UAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAOS,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,EAAE,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,EAAE;;AANpG,SAAqB,SAAS,QAAQ,iBAAiB;6DASnC;;WAAM,QAAQ,KAAK;;wCAPH;IACnC,MAAM,UAAU,UAAU;IAC1B,qBACC,WAAC;QACD,KAAK;;;;;QACJ;sBAED,WAAC;YAAO,WAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
 == DIAGNOSTICS ==
 
 []

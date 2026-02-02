@@ -128,6 +128,7 @@ const newInvokeContextFromDOM = (event: Event, element: Element) => {
   return context;
 };
 
+/** When called from qwikloader, parse capturedIds and set up context */
 export function invokeFromDOM<EL extends Element, EV extends Event>(
   element: EL,
   event: EV,

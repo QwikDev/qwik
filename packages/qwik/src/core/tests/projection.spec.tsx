@@ -3064,7 +3064,7 @@ describe.each([
         { debug: DEBUG }
       );
       if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', ':document:qinit');
+        await trigger(document.body, 'div', 'd:qinit');
       }
       expect(vNode).toMatchVDOM(
         <Component>
@@ -3136,7 +3136,7 @@ describe.each([
 
       const { vNode, document } = await render(<SlotParent />, { debug: DEBUG });
       if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', ':document:qinit');
+        await trigger(document.body, 'div', 'd:qinit');
       }
       expect(vNode).toMatchVDOM(
         <Component ssr-required>

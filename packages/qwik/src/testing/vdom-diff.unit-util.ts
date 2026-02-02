@@ -52,7 +52,6 @@ import {
   ITERATION_ITEM_SINGLE,
   QTemplate,
 } from '../core/shared/utils/markers';
-import { HANDLER_PREFIX } from '../core/client/vnode-diff';
 import { prettyJSX } from './jsx';
 import { isElement, prettyHtml } from './html';
 import { QContainerValue } from '../core/shared/types';
@@ -508,7 +507,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
           if (isJsxPropertyAnEventName(key)) {
             continue;
           }
-          if (key.startsWith(HANDLER_PREFIX) || isHtmlAttributeAnEventName(key)) {
+          if (isHtmlAttributeAnEventName(key)) {
             vnode_setProp(child, key, props[key]);
           } else {
             vnode_setAttr(journal, child, key, String(props[key]));

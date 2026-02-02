@@ -10,23 +10,23 @@ import { jsxEventToHtmlAttribute } from './event-names';
  */
 const testCases = [
   // default scope
-  { jsx: 'onClick$', html: 'on:click', eventName: 'click' },
-  { jsx: 'onDblClick$', html: 'on:dblclick' },
-  { jsx: 'on--CustomEvent$', html: 'on:---custom-event' },
-  { jsx: 'on-Custom-Event$', html: 'on:-custom---event' },
-  { jsx: 'on-custom-event$', html: 'on:custom--event' },
-  { jsx: 'on-CustomEvent$', html: 'on:-custom-event' },
-  { jsx: 'on-customEvent$', html: 'on:custom-event' },
-  { jsx: 'onCustom-event$', html: 'on:custom--event' },
-  { jsx: 'onCustom-Event$', html: 'on:custom--event' },
+  { jsx: 'onClick$', html: 'q-e:click', eventName: 'click' },
+  { jsx: 'onDblClick$', html: 'q-e:dblclick' },
+  { jsx: 'on--CustomEvent$', html: 'q-e:---custom-event' },
+  { jsx: 'on-Custom-Event$', html: 'q-e:-custom---event' },
+  { jsx: 'on-custom-event$', html: 'q-e:custom--event' },
+  { jsx: 'on-CustomEvent$', html: 'q-e:-custom-event' },
+  { jsx: 'on-customEvent$', html: 'q-e:custom-event' },
+  { jsx: 'onCustom-event$', html: 'q-e:custom--event' },
+  { jsx: 'onCustom-Event$', html: 'q-e:custom--event' },
   // exception for DOMContentLoaded
-  { jsx: 'onDOMContentLoaded$', html: 'on:-d-o-m-content-loaded' },
+  { jsx: 'onDOMContentLoaded$', html: 'q-e:-d-o-m-content-loaded' },
   // window scope
-  { jsx: 'window:onLoad$', html: 'on-window:load' },
-  { jsx: 'window:onUnload$', html: 'on-window:unload' },
+  { jsx: 'window:onLoad$', html: 'q-w:load' },
+  { jsx: 'window:onUnload$', html: 'q-w:unload' },
   // document scope
-  { jsx: 'document:onLoad$', html: 'on-document:load' },
-  { jsx: 'document:onUnload$', html: 'on-document:unload' },
+  { jsx: 'document:onLoad$', html: 'q-d:load' },
+  { jsx: 'document:onUnload$', html: 'q-d:unload' },
 ];
 
 describe('Event conversion utilities', () => {

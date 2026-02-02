@@ -60,19 +60,27 @@ export interface Container {
 export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {
-  qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => ValueOrPromise<unknown>;
+  qDispatchEvent?: (event: Event, scopedKebabName: string) => ValueOrPromise<unknown>;
   vNode?: VNode;
 }
 
 export type qWindow = Window & {
-  qwikevents: {
+  /**
+   * QwikLoader communication channel. Starts out as a regular array and is then replaced with this
+   * object. We use kebab-case property names to avoid converting to camelCase during DOM rendering
+   * while we add new events to qwikloader.
+   */
+  _qwikEv: {
+    /** The scoped kebabcase names of events, e.g. `"e:my-event"` or `"w:load"` */
     events: Set<string>;
+    /** The known root nodes (document, shadow roots) */
     roots: Set<Node>;
+    /** Add new root nodes, or scoped kebabcase eventnames to listen to. */
     push: (...e: (string | (EventTarget & ParentNode))[]) => void;
   };
 };
 
-export type QwikLoaderEventScope = '-document' | '-window' | '';
+export type QwikLoaderEventScope = 'd' | 'w' | 'e';
 
 /**
  * A friendly name tag for a VirtualVNode.

@@ -408,7 +408,7 @@ describe('render api', () => {
           // qwik events should be the last script of body
           const eventsScriptElement = document.body.lastChild as HTMLElement;
           expect(eventsScriptElement.textContent).toContain(
-            '(window.qwikevents||(window.qwikevents=[]))'
+            '(window._qwikEv||(window._qwikEv=[]))'
           );
         });
         it('should not render for static content and auto include', async () => {
@@ -418,9 +418,7 @@ describe('render api', () => {
           });
           const document = createDocument({ html: result.html });
           // should not contain qwik events script for top position
-          expect(document.head.lastChild?.textContent ?? '').not.toContain(
-            'window.qwikevents.push'
-          );
+          expect(document.head.lastChild?.textContent ?? '').not.toContain('window._qwikEv.push');
           expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
         });
         it('should render after 30kB of SSR', async () => {
@@ -444,7 +442,7 @@ describe('render api', () => {
           // qwik events should still be the last script of body
           const eventsScriptElement = document.body.lastChild as HTMLElement;
           expect(eventsScriptElement.textContent).toContain(
-            '(window.qwikevents||(window.qwikevents=[]))'
+            '(window._qwikEv||(window._qwikEv=[]))'
           );
         });
         it('should only render inside body', async () => {
@@ -503,7 +501,7 @@ describe('render api', () => {
           // qwik events should still be the last script of body
           const eventsScriptElement = document.body.lastChild as HTMLElement;
           expect(eventsScriptElement.textContent).toContain(
-            '(window.qwikevents||(window.qwikevents=[]))'
+            '(window._qwikEv||(window._qwikEv=[]))'
           );
         });
       });
@@ -516,15 +514,15 @@ describe('render api', () => {
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
       });
     });
-    describe('qwikEvents', () => {
+    describe('_qwikEv', () => {
       it('should render', async () => {
         const result = await renderToStringAndSetPlatform(<ManyEventsComponent />, {
           containerTagName: 'div',
           qwikLoader: 'module',
         });
         expect(result.html).toContain(
-          '(window.qwikevents||(window.qwikevents=[])).push(' +
-            '":focus", ":-my---custom", ":click", ":dblclick", "-document:focus", "-window:click", ":another-custom", ":blur")'
+          '(window._qwikEv||(window._qwikEv=[])).push(' +
+            '"e:focus", "e:-my---custom", "e:click", "e:dblclick", "d:focus", "e:another-custom", "e:blur", "w:click")'
         );
       });
     });
@@ -584,7 +582,7 @@ describe('render api', () => {
         const document = createDocument({ html: result.html });
         const containerElement = document.body.firstChild;
         expect(containerElement?.nodeName.toLowerCase()).toEqual(testTag);
-        expect(containerElement?.lastChild?.textContent ?? '').toContain('window.qwikevents');
+        expect(containerElement?.lastChild?.textContent ?? '').toContain('window._qwikEv');
         const scripts = document.querySelectorAll('script');
         expect(scripts[0]?.getAttribute('src')).toEqual('/build/qwik-loader.js');
         expect(scripts[1]?.innerHTML).toContain('/build/preloader.js');

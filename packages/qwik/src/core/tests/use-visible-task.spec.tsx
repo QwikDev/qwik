@@ -77,7 +77,7 @@ describe.each([
     });
 
     const { vNode, document } = await render(<VisibleCmp />, { debug });
-    await trigger(document.body, 'span', ':document:qinit');
+    await trigger(document.body, 'span', 'd:qinit');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <span>
@@ -102,7 +102,7 @@ describe.each([
     });
 
     const { vNode, document } = await render(<VisibleCmp />, { debug });
-    await trigger(document.body, 'span', ':document:qidle');
+    await trigger(document.body, 'span', 'd:qidle');
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -256,7 +256,7 @@ describe.each([
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -278,7 +278,7 @@ describe.each([
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -303,7 +303,7 @@ describe.each([
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -324,7 +324,7 @@ describe.each([
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect((globalThis as any).log).toEqual(['task']);
     expect(vNode).toMatchVDOM(
@@ -347,7 +347,7 @@ describe.each([
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect((globalThis as any).log).toEqual(['task']);
     expect(vNode).toMatchVDOM(
@@ -376,7 +376,7 @@ describe.each([
     });
     const { document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
     expect((globalThis as any).log).toEqual(['task1', 'task2']);
   });
@@ -465,7 +465,7 @@ describe.each([
 
     const { document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', ':document:qinit');
+      await trigger(document.body, 'script', 'd:qinit');
     }
 
     expect((globalThis as any).counter).toBe(1);
@@ -484,7 +484,7 @@ describe.each([
 
     const { document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script[hidden]', ':document:qinit');
+      await trigger(document.body, 'script[hidden]', 'd:qinit');
     }
 
     expect((globalThis as any).counter).toBe(1);
@@ -508,7 +508,7 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    await trigger(document.body, 'script', ':document:qinit');
+    await trigger(document.body, 'script', 'd:qinit');
 
     expect((globalThis as any).counter).toBe(
       render === ssrRenderToDom
@@ -777,7 +777,6 @@ describe.each([
         return <p>Should have a number: "{promise.value}"</p>;
       });
       const { vNode, document } = await render(<MyComp />, { debug });
-
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'p', 'qvisible');
       }
@@ -972,7 +971,7 @@ describe.each([
         const pathname = useComputed$(() => state.url.pathname);
 
         useVisibleTask$(({ track, cleanup }) => {
-          track(() => pathname.value);
+          track(pathname);
 
           // This should only run on page load for path '/'
           state.logs += `VisibleTask ChildA ${pathname.value}\n`;
@@ -995,7 +994,11 @@ describe.each([
 
         return (
           <>
-            <button onClick$={() => (loc.url = new URL('http://localhost:3000/other'))}>
+            <button
+              onClick$={() => {
+                loc.url = new URL('http://localhost:3000/other');
+              }}
+            >
               Change
             </button>
             <pre>{loc.logs}</pre>

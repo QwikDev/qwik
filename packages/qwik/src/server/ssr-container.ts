@@ -1029,7 +1029,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         scriptAttrs.push('nonce', nonce);
       }
       this.openElement('script', null, scriptAttrs);
-      this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);
+      this.write(`(window._qwikEv||(window._qwikEv=[])).push(`);
       this.writeArray(eventNames, ', ');
       this.write(')');
       this.closeElement();

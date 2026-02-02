@@ -4,22 +4,22 @@ import type { QRL } from '../qrl/qrl.public';
 
 describe('_jsxSplit', () => {
   describe('event name conversion', () => {
-    it('should convert onClick$ to on:click in varProps', () => {
+    it('should convert onClick$ to q-e:click in varProps', () => {
       const node = _jsxSplit('button', { onClick$: (() => {}) as any as QRL }, null, null, 0);
       expect(node.varProps['onClick$']).toBeUndefined();
-      expect(node.varProps['on:click']).toBeDefined();
+      expect(node.varProps['q-e:click']).toBeDefined();
     });
 
-    it('should convert onClick$ to on:click in constProps', () => {
+    it('should convert onClick$ to q-e:click in constProps', () => {
       const node = _jsxSplit('button', null, { onClick$: (() => {}) as any as QRL }, null, 0);
       expect(node.constProps?.['onClick$']).toBeUndefined();
-      expect(node.constProps?.['on:click']).toBeDefined();
+      expect(node.constProps?.['q-e:click']).toBeDefined();
     });
 
-    it('should convert onInput$ to on:input in varProps', () => {
+    it('should convert onInput$ to q-e:input in varProps', () => {
       const node = _jsxSplit('input', { onInput$: (() => {}) as any as QRL }, null, null, 0);
       expect(node.varProps['onInput$']).toBeUndefined();
-      expect(node.varProps['on:input']).toBeDefined();
+      expect(node.varProps['q-e:input']).toBeDefined();
     });
 
     it('should convert multiple event handlers', () => {
@@ -35,8 +35,8 @@ describe('_jsxSplit', () => {
       );
       expect(node.varProps['onClick$']).toBeUndefined();
       expect(node.varProps['onMouseOver$']).toBeUndefined();
-      expect(node.varProps['on:click']).toBeDefined();
-      expect(node.varProps['on:mouseover']).toBeDefined();
+      expect(node.varProps['q-e:click']).toBeDefined();
+      expect(node.varProps['q-e:mouseover']).toBeDefined();
     });
   });
 
@@ -46,14 +46,14 @@ describe('_jsxSplit', () => {
 
     const node = _jsxSplit(
       'button',
-      { onClick$: clickHandler1, 'on:click': clickHandler2 },
+      { onClick$: clickHandler1, 'q-e:click': clickHandler2 },
       null,
       null,
       0
     );
 
     expect(node.varProps['onClick$']).toBeUndefined();
-    expect(node.varProps['on:click']).toBe(clickHandler2);
+    expect(node.varProps['q-e:click']).toBe(clickHandler2);
   });
 
   it('should override the same event with different name conventions in var props case 2', () => {
@@ -62,14 +62,14 @@ describe('_jsxSplit', () => {
 
     const node = _jsxSplit(
       'button',
-      { 'on:click': clickHandler2, onClick$: clickHandler1 },
+      { 'q-e:click': clickHandler2, onClick$: clickHandler1 },
       null,
       null,
       0
     );
 
     expect(node.varProps['onClick$']).toBeUndefined();
-    expect(node.varProps['on:click']).toBe(clickHandler1);
+    expect(node.varProps['q-e:click']).toBe(clickHandler1);
   });
 
   it('should override the same event with different name conventions in const props case 1', () => {
@@ -79,13 +79,13 @@ describe('_jsxSplit', () => {
     const node = _jsxSplit(
       'button',
       {},
-      { onClick$: clickHandler1, 'on:click': clickHandler2 },
+      { onClick$: clickHandler1, 'q-e:click': clickHandler2 },
       null,
       0
     );
 
     expect(node.constProps?.['onClick$']).toBeUndefined();
-    expect(node.constProps?.['on:click']).toBe(clickHandler2);
+    expect(node.constProps?.['q-e:click']).toBe(clickHandler2);
   });
 
   it('should override the same event with different name conventions in const props case 2', () => {
@@ -95,13 +95,13 @@ describe('_jsxSplit', () => {
     const node = _jsxSplit(
       'button',
       {},
-      { 'on:click': clickHandler2, onClick$: clickHandler1 },
+      { 'q-e:click': clickHandler2, onClick$: clickHandler1 },
       null,
       0
     );
 
     expect(node.constProps?.['onClick$']).toBeUndefined();
-    expect(node.constProps?.['on:click']).toBe(clickHandler1);
+    expect(node.constProps?.['q-e:click']).toBe(clickHandler1);
   });
 
   describe('event handling between constProps and varProps', () => {
@@ -112,17 +112,17 @@ describe('_jsxSplit', () => {
       const node = _jsxSplit(
         'input',
         { onInput$: varHandler },
-        { 'on:input': constHandler },
+        { 'q-e:input': constHandler },
         null,
         0
       );
 
       // varProps should be transformed but then removed during deduplication
       expect(node.varProps['onInput$']).toBeUndefined();
-      expect(node.varProps['on:input']).toBeUndefined();
+      expect(node.varProps['q-e:input']).toBeUndefined();
 
       // constProps keeps its handler (no merging)
-      expect(node.constProps?.['on:input']).toBe(constHandler);
+      expect(node.constProps?.['q-e:input']).toBe(constHandler);
     });
 
     it('should let constProps overwrite varProps after transformation', () => {
@@ -131,7 +131,7 @@ describe('_jsxSplit', () => {
 
       const node = _jsxSplit(
         'input',
-        { 'on:input': varHandler },
+        { 'q-e:input': varHandler },
         { onInput$: constHandler },
         null,
         0
@@ -139,8 +139,8 @@ describe('_jsxSplit', () => {
 
       // constProps transformed and constProps wins
       expect(node.constProps?.['onInput$']).toBeUndefined();
-      expect(node.constProps?.['on:input']).toBe(constHandler);
-      expect(node.varProps['on:input']).toBeUndefined();
+      expect(node.constProps?.['q-e:input']).toBe(constHandler);
+      expect(node.varProps['q-e:input']).toBeUndefined();
     });
 
     it('should handle multiple different events in both props', () => {
@@ -157,17 +157,17 @@ describe('_jsxSplit', () => {
         },
         {
           onClick$: clickHandler1,
-          'on:input': inputHandler1,
+          'q-e:input': inputHandler1,
         },
         null,
         0
       );
 
       // constProps wins for both (no merging)
-      expect(node.constProps?.['on:click']).toBe(clickHandler1);
-      expect(node.constProps?.['on:input']).toBe(inputHandler1);
-      expect(node.varProps['on:click']).toBeUndefined();
-      expect(node.varProps['on:input']).toBeUndefined();
+      expect(node.constProps?.['q-e:click']).toBe(clickHandler1);
+      expect(node.constProps?.['q-e:input']).toBe(inputHandler1);
+      expect(node.varProps['q-e:click']).toBeUndefined();
+      expect(node.varProps['q-e:input']).toBeUndefined();
     });
 
     it('should keep events separate when no overlap', () => {
@@ -183,8 +183,8 @@ describe('_jsxSplit', () => {
       );
 
       // Both should be kept in their respective locations
-      expect(node.varProps['on:click']).toBe(clickHandler);
-      expect(node.constProps?.['on:input']).toBe(inputHandler);
+      expect(node.varProps['q-e:click']).toBe(clickHandler);
+      expect(node.constProps?.['q-e:input']).toBe(inputHandler);
     });
   });
 
@@ -207,7 +207,7 @@ describe('_jsxSplit', () => {
       expect(node.varProps['bind:value']).toBeUndefined();
       expect(node.varProps.value).toBe(signal);
 
-      const merged = node.varProps['on:input'];
+      const merged = node.varProps['q-e:input'];
       expect(merged).toBeDefined();
       expect(Array.isArray(merged)).toBe(true);
       if (Array.isArray(merged)) {
@@ -216,7 +216,7 @@ describe('_jsxSplit', () => {
       }
     });
 
-    it('should move on:input from constProps to varProps when bind:value is in varProps', () => {
+    it('should move q-e:input from constProps to varProps when bind:value is in varProps', () => {
       const handler = (() => {}) as any as QRL;
       const signal = { value: 'test' };
 
@@ -226,7 +226,7 @@ describe('_jsxSplit', () => {
           'bind:value': signal,
         },
         {
-          'on:input': handler,
+          'q-e:input': handler,
         },
         null,
         0
@@ -235,9 +235,9 @@ describe('_jsxSplit', () => {
       expect(node.varProps['bind:value']).toBeUndefined();
       expect(node.varProps.value).toBe(signal);
 
-      // on:input should be moved from constProps to varProps and merged with bind handler
-      expect(node.constProps?.['on:input']).toBeUndefined();
-      const merged = node.varProps['on:input'];
+      // q-e:input should be moved from constProps to varProps and merged with bind handler
+      expect(node.constProps?.['q-e:input']).toBeUndefined();
+      const merged = node.varProps['q-e:input'];
       expect(merged).toBeDefined();
       expect(Array.isArray(merged)).toBe(true);
       if (Array.isArray(merged)) {
@@ -267,10 +267,10 @@ describe('_jsxSplit', () => {
       expect(node.varProps['bind:value']).toBeUndefined();
       expect(node.varProps.value).toBe(signal);
 
-      // onInput$ should be converted to on:input, moved from constProps to varProps, and merged
+      // onInput$ should be converted to q-e:input, moved from constProps to varProps, and merged
       expect(node.constProps?.['onInput$']).toBeUndefined();
-      expect(node.constProps?.['on:input']).toBeUndefined();
-      const merged = node.varProps['on:input'];
+      expect(node.constProps?.['q-e:input']).toBeUndefined();
+      const merged = node.varProps['q-e:input'];
       expect(merged).toBeDefined();
       expect(Array.isArray(merged)).toBe(true);
       if (Array.isArray(merged)) {
@@ -301,10 +301,10 @@ describe('_jsxSplit', () => {
       expect(node.varProps['bind:value']).toBe(false);
       expect(node.varProps.value).toBeUndefined();
 
-      // onInput$ should remain in constProps, converted to on:input
+      // onInput$ should remain in constProps, converted to q-e:input
       expect(node.constProps?.['onInput$']).toBeUndefined();
-      expect(node.constProps?.['on:input']).toBe(handler);
-      expect(node.varProps['on:input']).toBeUndefined();
+      expect(node.constProps?.['q-e:input']).toBe(handler);
+      expect(node.varProps['q-e:input']).toBeUndefined();
     });
   });
 
@@ -375,7 +375,7 @@ describe('_jsxSplit', () => {
 
       // For components, events should not be converted
       expect(node.varProps['onClick$']).toBeDefined();
-      expect(node.varProps['on:click']).toBeUndefined();
+      expect(node.varProps['q-e:click']).toBeUndefined();
     });
   });
 
@@ -389,11 +389,11 @@ describe('_jsxSplit', () => {
 
       // Original object should not be mutated
       expect(originalRef.onClick$).toBe(handler);
-      expect((originalRef as any)['on:click']).toBeUndefined();
+      expect((originalRef as any)['q-e:click']).toBeUndefined();
       expect(originalRef.id).toBe('test');
 
       // Result should have converted event
-      expect(node.varProps['on:click']).toBeDefined();
+      expect(node.varProps['q-e:click']).toBeDefined();
       expect(node.varProps.id).toBe('test');
     });
 
@@ -406,11 +406,11 @@ describe('_jsxSplit', () => {
 
       // Original object should not be mutated
       expect(originalRef.onClick$).toBe(handler);
-      expect((originalRef as any)['on:click']).toBeUndefined();
+      expect((originalRef as any)['q-e:click']).toBeUndefined();
       expect(originalRef.id).toBe('test');
 
       // Result should have converted event
-      expect(node.constProps?.['on:click']).toBeDefined();
+      expect(node.constProps?.['q-e:click']).toBeDefined();
       expect(node.constProps?.id).toBe('test');
     });
 
@@ -425,11 +425,11 @@ describe('_jsxSplit', () => {
       expect(originalRef['bind:checked']).toBe(signal);
       expect(originalRef.id).toBe('test');
       expect((originalRef as any).checked).toBeUndefined();
-      expect((originalRef as any)['on:input']).toBeUndefined();
+      expect((originalRef as any)['q-e:input']).toBeUndefined();
 
-      // Result should have checked and on:input (not on:change)
+      // Result should have checked and q-e:input (not q-e:change)
       expect(node.varProps.checked).toBeDefined();
-      expect(node.varProps['on:input']).toBeDefined();
+      expect(node.varProps['q-e:input']).toBeDefined();
       expect(node.varProps['bind:checked']).toBeUndefined();
       expect(node.varProps.id).toBe('test');
     });
@@ -542,8 +542,8 @@ describe('_jsxSplit', () => {
       expect(originalRef.id).toBe('test');
 
       // Result should have all transformations applied
-      expect(node.varProps['on:click']).toBeDefined();
-      expect(node.varProps['on:input']).toBeDefined();
+      expect(node.varProps['q-e:click']).toBeDefined();
+      expect(node.varProps['q-e:input']).toBeDefined();
       expect(node.varProps.class).toBe('test-class');
       expect(node.varProps.className).toBeUndefined();
       expect(node.varProps.key).toBeUndefined();

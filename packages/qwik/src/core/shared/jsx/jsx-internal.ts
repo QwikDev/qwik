@@ -77,7 +77,7 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
 
   // Apply transformations for native HTML elements only
   if (typeof type === 'string') {
-    // Transform event names (onClick$ -> on:click)
+    // Transform event names (onClick$ -> q-e:click)
     if (constProps) {
       const processedKeys = new Set<string>();
       for (const k in constProps) {
@@ -132,35 +132,35 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
           varProps.checked = bindCheckedSignal;
           const handler = createQRL(null, '_chk', _chk, null, [bindCheckedSignal]);
 
-          // Move on:input from constProps if it exists
-          if (constProps && _hasOwnProperty.call(constProps, 'on:input')) {
+          // Move q-e:input from constProps if it exists
+          if (constProps && _hasOwnProperty.call(constProps, 'q-e:input')) {
             if (!constPropsCopied) {
               constProps = { ...constProps };
               constPropsCopied = true;
             }
-            const existingHandler = constProps['on:input'];
-            delete constProps['on:input'];
-            toSort = mergeHandlers(varProps, 'on:input', existingHandler as any) || toSort;
+            const existingHandler = constProps['q-e:input'];
+            delete constProps['q-e:input'];
+            toSort = mergeHandlers(varProps, 'q-e:input', existingHandler as any) || toSort;
           }
 
-          toSort = mergeHandlers(varProps, 'on:input', handler) || toSort;
+          toSort = mergeHandlers(varProps, 'q-e:input', handler) || toSort;
         } else if (bindValueSignal) {
           delete varProps[BIND_VALUE];
           varProps.value = bindValueSignal;
           const handler = createQRL(null, '_val', _val, null, [bindValueSignal]);
 
-          // Move on:input from constProps if it exists
-          if (constProps && _hasOwnProperty.call(constProps, 'on:input')) {
+          // Move q-e:input from constProps if it exists
+          if (constProps && _hasOwnProperty.call(constProps, 'q-e:input')) {
             if (!constPropsCopied) {
               constProps = { ...constProps };
               constPropsCopied = true;
             }
-            const existingHandler = constProps['on:input'];
-            delete constProps['on:input'];
-            toSort = mergeHandlers(varProps, 'on:input', existingHandler as any) || toSort;
+            const existingHandler = constProps['q-e:input'];
+            delete constProps['q-e:input'];
+            toSort = mergeHandlers(varProps, 'q-e:input', existingHandler as any) || toSort;
           }
 
-          toSort = mergeHandlers(varProps, 'on:input', handler) || toSort;
+          toSort = mergeHandlers(varProps, 'q-e:input', handler) || toSort;
         }
       }
     }

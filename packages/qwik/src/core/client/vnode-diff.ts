@@ -27,15 +27,13 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
+import type { HostElement, QElement, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { _CONST_PROPS, _OWNER, _PROPS_HANDLER, _VAR_PROPS } from '../shared/utils/constants';
 import {
-  fromCamelToKebabCase,
   getEventDataFromHtmlAttribute,
-  getLoaderScopedEventName,
   getScopedEventName,
   isHtmlAttributeAnEventName,
 } from '../shared/utils/event-names';
@@ -818,7 +816,6 @@ function createNewElement(
         if (data) {
           const [scope, eventName] = data;
           const scopedEvent = getScopedEventName(scope, eventName);
-          const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
 
           if (eventName) {
             vnode_setProp(diffContext.vNewNode!, '::' + scopedEvent, value);
@@ -827,7 +824,7 @@ function createNewElement(
               vnode_setAttr(diffContext.journal, diffContext.vNewNode!, key, '');
             }
             // register an event for qwik loader (window/document prefixed with '-')
-            registerQwikLoaderEvent(diffContext, loaderScopedEvent);
+            registerQwikLoaderEvent(diffContext, scopedEvent);
           }
         }
 
@@ -988,24 +985,18 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
   if (needsQDispatchEventPatch) {
     // Event handler needs to be patched onto the element.
     if (!element.qDispatchEvent) {
-      element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
+      element.qDispatchEvent = (event, scopedKebabName) => {
         if (vNode.flags & VNodeFlags.Deleted) {
           return;
         }
-        const eventName = fromCamelToKebabCase(event.type);
-        const eventProp = ':' + scope.substring(1) + ':' + eventName;
-        const qrls = [
-          vnode_getProp<QRLInternal>(vNode, eventProp, null),
-          vnode_getProp<QRLInternal>(vNode, HANDLER_PREFIX + eventProp, null),
-        ];
-        for (const qrl of qrls.flat(2)) {
-          if (qrl) {
-            // TODO is this needed?
-            qrl.$container$ = diffContext.container;
-            callQrl(diffContext.container, vNode, qrl, event, vNode.node, false).catch((e) => {
-              diffContext.container.handleError(e, vNode);
-            });
-          }
+        const eventProp = 'q-' + scopedKebabName;
+        const qrl = vnode_getProp<QRLInternal>(vNode, eventProp, null) as QRLInternal<
+          (...args: any[]) => any
+        > | null;
+        if (qrl) {
+          // TODO is this needed?
+          qrl.$container$ = diffContext.container;
+          return callQrl(diffContext.container, vNode, qrl, event, vNode.node, false);
         }
       };
     }
@@ -1085,7 +1076,7 @@ const patchProperty = (
     // set only property for iteration item, not an attribute
     key === ITERATION_ITEM_SINGLE ||
     key === ITERATION_ITEM_MULTI ||
-    key.charAt(0) === HANDLER_PREFIX
+    isHtmlAttributeAnEventName(key)
   ) {
     // TODO: there is a potential deoptimization here, because we are setting different keys on props.
     // Eager bailout - Insufficient type feedback for generic keyed access
@@ -1166,21 +1157,13 @@ const recordJsxEvent = (
   value: any,
   currentFile: string | null
 ) => {
-  const data = getEventDataFromHtmlAttribute(key);
-  if (data) {
-    const props = vnode.props;
-    const [scope, eventName] = data;
-    const scopedEvent = getScopedEventName(scope, eventName);
-    const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
-    const scopedEventKey = ':' + scopedEvent;
-    if (props && _hasOwnProperty.call(props, scopedEventKey)) {
-      return false;
-    }
-    patchProperty(diffContext, vnode, scopedEventKey, value, currentFile);
-    registerQwikLoaderEvent(diffContext, loaderScopedEvent);
-    return true;
+  const props = vnode.props;
+  if (props && _hasOwnProperty.call(props, key)) {
+    return false;
   }
-  return false;
+  patchProperty(diffContext, vnode, key, value, currentFile);
+  registerQwikLoaderEvent(diffContext, key.substring(2));
+  return true;
 };
 
 function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
@@ -1188,7 +1171,7 @@ function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
     ? (diffContext.container.document.defaultView as qWindow | null)
     : (window as unknown as qWindow);
   if (qWindow) {
-    (qWindow.qwikevents ||= [] as any).push(eventName);
+    (qWindow._qwikEv ||= [] as any).push(eventName);
   }
 }
 
@@ -2003,9 +1986,5 @@ function containsWrappedSignal(data: unknown[], signal: Signal<any>): boolean {
   return false;
 }
 
-/**
- * This marks the property as immutable. It is needed for the QRLs so that QwikLoader can get a hold
- * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
- */
-export const HANDLER_PREFIX = ':';
+export const HANDLER_PREFIX = 'q-';
 let count = 0;

@@ -98,7 +98,7 @@ Assume: `http://localhost/index.html`
 ```html
 <html>
   <body q:base="/build/">
-    <button q:obj="456, 123" on:click="./chunk-c.js#Counter_onClick[0,1]">0</button>
+    <button q:obj="456, 123" q-e:click="./chunk-c.js#Counter_onClick[0,1]">0</button>
     <script>
       /*Qwikloader script*/
     </script>
@@ -109,13 +109,13 @@ Assume: `http://localhost/index.html`
 </html>
 ```
 
-The main thing to note is the `on:click` attribute. This attribute gets read by the Qwikloader when the user clicks on the button.
+The main thing to note is the `q-e:click` attribute. This attribute gets read by the Qwikloader when the user clicks on the button.
 
 1. HTML is loaded in the browser, and Qwikloader registers a global `click` listener. No other JavaScript is loaded/executed at this point.
 2. User clicks on the `<button>`. This fires a `click` event which bubbles up and is handled by the Qwikloader.
-3. Qwikloader retraces the event bubble path and looks for `on:click` attribute, which it finds on `<button>`.
+3. Qwikloader retraces the event bubble path and looks for `q-e:click` attribute, which it finds on `<button>`.
 4. Qwikloader now tries to load the corresponding chunk. To do that, the Qwikloader needs to resolve the relative path of `./chunk-c.js`. It uses these values to build an absolute path starting at `<button>` and walking towards the document.
-   - `on:click="./chunk-c.js#Counter_onClick[0,1]"`
+   - `q-e:click="./chunk-c.js#Counter_onClick[0,1]"`
    - `<body q:base="/build/">`
    - `document.baseURI = "http://localhost/index.html"`
    - The resulting absolute URL is `http://localhost/build/chunk-c.js` which Qwikloader fetches.
@@ -144,7 +144,7 @@ There are several reasons:
 
 1. For Qwik to work, the QRLs need to be serialized into HTML. This is problematic for dynamic `import()` because there is no easy way to retrieve the relative URL from the `import('./some-path.js')` so that it can be placed in the HTML.
 2. Dynamic imports deal with chunks, but they have no mechanism to refer to a specific symbol in the chunk.
-3. Dynamic imports have relative paths to the file which imported it. This is a problem because when the relative path is placed in HTML, it loses the context which defines relative to what. When the framework reads the path from HTML and tries to import it as `import(element.getAttribute('on:click'))`, the framework will become the context for relative path resolution. This is wrong as the original context before serialization to the HTML was different.
+3. Dynamic imports have relative paths to the file which imported it. This is a problem because when the relative path is placed in HTML, it loses the context which defines relative to what. When the framework reads the path from HTML and tries to import it as `import(element.getAttribute('q-e:click'))`, the framework will become the context for relative path resolution. This is wrong as the original context before serialization to the HTML was different.
 4. QRLs encode information about the lexically scoped variables that were captured in the closure and need to be restored.
 5. Dynamic import requires that the developer writes `import('./file-a.js')`, which means the developer is in charge of deciding where the lazy-loaded boundaries are. This limits the ability of the tooling to move code around in an automated way.
 

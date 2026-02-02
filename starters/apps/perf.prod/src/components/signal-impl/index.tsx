@@ -156,10 +156,9 @@ export default component$(() => {
                       );
                     }}
                   >
-                    <span
-                      class="glyphicon glyphicon-remove"
-                      aria-hidden="true"
-                    ></span>
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true">
+                      x
+                    </span>
                   </a>
                 </td>
                 <td class="col-md-6" />

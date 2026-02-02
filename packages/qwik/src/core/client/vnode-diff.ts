@@ -1340,12 +1340,14 @@ function moveOrCreateKeyedNode(
   diffContext.vNewNode = retrieveChildWithKey(diffContext, nodeName, lookupKey);
 
   if (diffContext.vNewNode) {
-    vnode_insertBefore(
-      diffContext.journal,
-      parentForInsert as ElementVNode | VirtualVNode,
-      diffContext.vNewNode,
-      diffContext.vCurrent
-    );
+    if (!sideBufferKey) {
+      vnode_insertBefore(
+        diffContext.journal,
+        parentForInsert as ElementVNode | VirtualVNode,
+        diffContext.vNewNode,
+        diffContext.vCurrent
+      );
+    }
     diffContext.vCurrent = diffContext.vNewNode;
     diffContext.vNewNode = null;
     return false;
@@ -1371,12 +1373,15 @@ function moveOrCreateKeyedNode(
           }
         }
       }
-      vnode_insertBefore(
-        diffContext.journal,
-        parentForInsert as ElementVNode | VirtualVNode,
-        buffered,
-        diffContext.vCurrent
-      );
+      // Only move if the node is not already in the correct position
+      if (buffered !== diffContext.vCurrent) {
+        vnode_insertBefore(
+          diffContext.journal,
+          parentForInsert as ElementVNode | VirtualVNode,
+          buffered,
+          diffContext.vCurrent
+        );
+      }
       diffContext.vCurrent = buffered;
       diffContext.vNewNode = null;
       return false;

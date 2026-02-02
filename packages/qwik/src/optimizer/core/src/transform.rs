@@ -1125,7 +1125,7 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	/// Handles transformation of JSX props for native elements:
-	/// - Transform event props (e.g., onClick$ -> on:click)
+	/// - Transform event props (e.g., onClick$ -> q-e:click)
 	/// - Transform className -> class
 	/// - Handle bind:value and bind:checked (always for constProps, only for _jsxSorted in varProps)
 	fn transform_jsx_prop(
@@ -1140,7 +1140,7 @@ impl<'a> QwikTransform<'a> {
 		let mut key_word = original_key_word.clone();
 		let mut transformed_event_key = None;
 
-		// Transform event props (e.g., onClick$ -> on:click)
+		// Transform event props (e.g., onClick$ -> q-e:click)
 		// Only for native elements, not components
 		if !is_fn {
 			if let Some(ref kw) = original_key_word {
@@ -1231,7 +1231,7 @@ impl<'a> QwikTransform<'a> {
 							..Default::default()
 						});
 
-						// Use helper function to merge or add the on:input handler
+						// Use helper function to merge or add the q-e:input handler
 						self.merge_or_add_event_handler(
 							maybe_const_props,
 							ON_INPUT.clone(),
@@ -2506,7 +2506,7 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	/// Helper to add a prop to the appropriate props list based on const-ness and spread props
-	/// Handles the special case of merging on:input handlers
+	/// Handles the special case of merging q-e:input handlers
 	fn add_prop_to_appropriate_list(
 		&mut self,
 		expr: Box<ast::Expr>,
@@ -2519,7 +2519,7 @@ impl<'a> QwikTransform<'a> {
 		let is_const = context.is_const;
 		let is_fn = context.is_fn;
 		let spread_props_count = context.spread_props_count;
-		// Check if this is an on:input handler that needs to be merged
+		// Check if this is an q-e:input handler that needs to be merged
 		if transformed_event_key.as_ref() == Some(&*ON_INPUT) {
 			let target_props = if is_fn || spread_props_count > 0 {
 				if is_const && spread_props_count == 0 {
@@ -3039,7 +3039,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			ast::JSXAttrName::Ident(ref ident) => {
 				let new_word = convert_qrl_word(&ident.sym);
 
-				// Transform event names (onClick$ -> on:click) only on native HTML elements
+				// Transform event names (onClick$ -> q-e:click) only on native HTML elements
 				let is_native_element = self.jsx_element_is_native.last().copied().unwrap_or(false);
 				let transformed_name = if is_native_element {
 					if let Some(html_attr) = jsx_event_to_html_attribute(&ident.sym) {
@@ -3342,7 +3342,7 @@ fn escape_sym(str: &str) -> String {
 		.0
 }
 
-/// Converts JSX event names (e.g., onClick$) to HTML attribute names (e.g., on:click)
+/// Converts JSX event names (e.g., onClick$) to HTML attribute names (e.g., q-e:click)
 /// Follows the same logic as jsxEventToHtmlAttribute in event-names.ts
 fn jsx_event_to_html_attribute(jsx_event: &str) -> Option<Atom> {
 	if !jsx_event.ends_with('$') {
@@ -3374,11 +3374,11 @@ fn jsx_event_to_html_attribute(jsx_event: &str) -> Option<Atom> {
 /// Get the event scope prefix and starting index from a JSX event name
 fn get_event_scope_data_from_jsx_event(jsx_event: &str) -> (&str, usize) {
 	if jsx_event.starts_with("window:on") {
-		("on-window:", 9)
+		("q-w:", 9)
 	} else if jsx_event.starts_with("document:on") {
-		("on-document:", 11)
+		("q-d:", 11)
 	} else if jsx_event.starts_with("on") {
-		("on:", 2)
+		("q-e:", 2)
 	} else {
 		("", usize::MAX)
 	}

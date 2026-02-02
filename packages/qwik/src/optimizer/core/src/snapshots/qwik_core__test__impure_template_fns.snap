@@ -27,6 +27,39 @@ expression: output
 			);
 		});
 		
+============================= test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw.ts (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = ()=>{
+    const count = _captures[0];
+    return count.value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";oEAiBuB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_Fragment_button_q_e_click_7MTd2pAiliw",
+  "entry": null,
+  "displayName": "test.tsx_test_component_Fragment_button_q_e_click",
+  "hash": "7MTd2pAiliw",
+  "canonicalFilename": "test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw",
+  "path": "",
+  "extension": "ts",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    418,
+    437
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
 ============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
@@ -34,7 +67,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _auto_useFoo as useFoo } from "./test";
 import { useSignal } from "@qwik.dev/core";
-const i_G71xRH0eut0 = ()=>import("./test.tsx_test_component_Fragment_button_on_click_G71xRH0eut0");
+const i_7MTd2pAiliw = ()=>import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw");
 export const test_component_LUXeXe0DQrg = ()=>{
     const count = useSignal(0);
     const foo = useFoo(count);
@@ -42,7 +75,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
         /*#__PURE__*/ _jsxSorted("p", null, null, foo("test"), 1, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, foo`test`, 1, null),
         /*#__PURE__*/ _jsxSorted("button", null, {
-            "on:click": /*#__PURE__*/ qrl(i_G71xRH0eut0, "test_component_Fragment_button_on_click_G71xRH0eut0", [
+            "q-e:click": /*#__PURE__*/ qrl(i_7MTd2pAiliw, "test_component_Fragment_button_q_e_click_7MTd2pAiliw", [
                 count
             ])
         }, "Count up", 3, null)
@@ -50,7 +83,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,UAAQ;;;WAAuB;;AAG1C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,WAAQ;;;WAAuB;;AAG1C\"}")
 /*
 {
   "origin": "test.tsx",
@@ -68,39 +101,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     257,
     474
-  ]
-}
-*/
-============================= test.tsx_test_component_Fragment_button_on_click_G71xRH0eut0.ts (ENTRY POINT)==
-
-import { _captures } from "@qwik.dev/core";
-export const test_component_Fragment_button_on_click_G71xRH0eut0 = ()=>{
-    const count = _captures[0];
-    return count.value++;
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAiBuB;;WAAM,MAAM,KAAK\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_Fragment_button_on_click_G71xRH0eut0",
-  "entry": null,
-  "displayName": "test.tsx_test_component_Fragment_button_on_click",
-  "hash": "G71xRH0eut0",
-  "canonicalFilename": "test.tsx_test_component_Fragment_button_on_click_G71xRH0eut0",
-  "path": "",
-  "extension": "ts",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    418,
-    437
-  ],
-  "captureNames": [
-    "count"
   ]
 }
 */

@@ -20,24 +20,24 @@ expression: output
 			);
 		});
 
-============================= test.tsx_Counter_component_div_p_button_on_click_z7xlsL20tDc.ts (ENTRY POINT)==
+============================= test.tsx_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI.ts (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
-export const Counter_component_div_p_button_on_click_z7xlsL20tDc = ()=>{
+export const Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI = ()=>{
     const count = _captures[0];
     return count.value++;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEASwB;;WAAM,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";oEASwB;;WAAM,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Counter_component_div_p_button_on_click_z7xlsL20tDc",
+  "name": "Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI",
   "entry": null,
-  "displayName": "test.tsx_Counter_component_div_p_button_on_click",
-  "hash": "z7xlsL20tDc",
-  "canonicalFilename": "test.tsx_Counter_component_div_p_button_on_click_z7xlsL20tDc",
+  "displayName": "test.tsx_Counter_component_div_p_button_q_e_click",
+  "hash": "Pq1pmfmJWUI",
+  "canonicalFilename": "test.tsx_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI",
   "path": "",
   "extension": "ts",
   "parent": "Counter_component_zTmRHlL09Gg",
@@ -58,7 +58,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_z7xlsL20tDc = ()=>import("./test.tsx_Counter_component_div_p_button_on_click_z7xlsL20tDc");
+const i_Pq1pmfmJWUI = ()=>import("./test.tsx_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI");
 export const Counter_component_zTmRHlL09Gg = ()=>{
     const count = useSignal(0);
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
@@ -67,7 +67,7 @@ export const Counter_component_zTmRHlL09Gg = ()=>{
             _wrapProp(count)
         ], 3, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", null, {
-            "on:click": /*#__PURE__*/ qrl(i_z7xlsL20tDc, "Counter_component_div_p_button_on_click_z7xlsL20tDc", [
+            "q-e:click": /*#__PURE__*/ qrl(i_Pq1pmfmJWUI, "Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI", [
                 count
             ])
         }, "Increment", 3, null), 3, null)
@@ -75,7 +75,7 @@ export const Counter_component_zTmRHlL09Gg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6CAEoC;IACjC,MAAM,QAAQ,UAAU;IAExB,qBACC,WAAC;sBACA,WAAC;YAAE;sBAAQ;;sBACX,WAAC,+BACA,WAAC;YAAO,UAAQ;;;WAAuB;;AAI3C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6CAEoC;IACjC,MAAM,QAAQ,UAAU;IAExB,qBACC,WAAC;sBACA,WAAC;YAAE;sBAAQ;;sBACX,WAAC,+BACA,WAAC;YAAO,WAAQ;;;WAAuB;;AAI3C\"}")
 /*
 {
   "origin": "test.tsx",

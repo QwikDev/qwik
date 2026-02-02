@@ -40,13 +40,13 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("input", null, {
             "value": value,
-            "on:input": inlinedQrl(_val, "_val", [
+            "q-e:input": inlinedQrl(_val, "_val", [
                 value
             ])
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("input", null, {
             "checked": checked,
-            "on:input": inlinedQrl(_chk, "_chk", [
+            "q-e:input": inlinedQrl(_chk, "_chk", [
                 checked
             ])
         }, null, 3, null),

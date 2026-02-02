@@ -71,7 +71,7 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
         shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do", [
             state
         ]),
-        "on:click": /*#__PURE__*/ _noopQrl("Parent_component_div_on_click_qNr5MFLFX9Y", [
+        "q-e:click": /*#__PURE__*/ _noopQrl("Parent_component_div_q_e_click_oqNnfO6ubjU", [
             state
         ])
     }, [
@@ -89,7 +89,7 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 }, "Parent_component_t6Wy3C0Q0XM"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,iBAAiB;AAQjF,OAAO,MAAM,uBAAS,sCAAW;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS;IACR,OAAO;IACR;IAEA,qBACC,WAAC;QACA,aAAa;;;QACb,UAAQ;;;;sBAER,WAAC;YACA,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;kBAEzB;;AAGJ,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,iBAAiB;AAQjF,OAAO,MAAM,uBAAS,sCAAW;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS;IACR,OAAO;IACR;IAEA,qBACC,WAAC;QACA,aAAa;;;QACb,WAAQ;;;;sBAER,WAAC;YACA,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;kBAEzB;;AAGJ,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

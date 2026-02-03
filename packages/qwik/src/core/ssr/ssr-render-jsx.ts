@@ -18,7 +18,6 @@ import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import {
   getEventDataFromHtmlAttribute,
-  getLoaderScopedEventName,
   getScopedEventName,
   isHtmlAttributeAnEventName,
   isPreventDefault,
@@ -391,7 +390,7 @@ function setEvent(
   const qrls = rawValue;
 
   const appendToValue = (valueToAppend: string) => {
-    value = (value == null ? '' : value + '\n') + valueToAppend;
+    value = (value == null ? '' : value + '|') + valueToAppend;
   };
   const getQrlString = (qrl: QRLInternal<unknown>) => {
     /**
@@ -433,13 +432,11 @@ function addQwikEventToSerializationContext(
   key: string,
   qrl: QRL
 ) {
-  // TODO extract window/document too so qwikloader can precisely listen
   const data = getEventDataFromHtmlAttribute(key);
   if (data) {
     const [scope, eventName] = data;
     const scopedEvent = getScopedEventName(scope, eventName);
-    const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
-    serializationCtx.$eventNames$.add(loaderScopedEvent);
+    serializationCtx.$eventNames$.add(scopedEvent);
     serializationCtx.$eventQrls$.add(qrl);
   }
 }
@@ -448,8 +445,8 @@ function addPreventDefaultEventToSerializationContext(
   serializationCtx: SerializationContext,
   key: string
 ) {
-  // skip first 15 chars, this is length of the `preventdefault`, leave the ":"
-  const eventName = key.substring(14);
+  // skip the `preventdefault`, leave the ':'
+  const eventName = 'e' + key.substring(14);
   if (eventName) {
     serializationCtx.$eventNames$.add(eventName);
   }

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4756
+assertion_line: 4741
 expression: output
 ---
 ==INPUT==
@@ -24,20 +24,20 @@ export const Greeter = component$(() => {
 });
 
 
-============================= test.tsx_Greeter_component_div_div_on_click_1_qUiGOwID9SE.tsx (ENTRY POINT)==
+============================= test.tsx_Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo.tsx (ENTRY POINT)==
 
-export const Greeter_component_div_div_on_click_1_qUiGOwID9SE = ()=>{};
+export const Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo = ()=>{};
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gEAYkB,KAAO\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAYkB,KAAO\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component_div_div_on_click_1_qUiGOwID9SE",
+  "name": "Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo",
   "entry": null,
-  "displayName": "test.tsx_Greeter_component_div_div_on_click_1",
-  "hash": "qUiGOwID9SE",
-  "canonicalFilename": "test.tsx_Greeter_component_div_div_on_click_1_qUiGOwID9SE",
+  "displayName": "test.tsx_Greeter_component_div_div_q_e_click_1",
+  "hash": "s7p0zjWZpqo",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo",
   "path": "",
   "extension": "tsx",
   "parent": "Greeter_component_n7HuG2hhU0Q",
@@ -59,20 +59,46 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_n7HuG2hhU0
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,wBAAU,gFAYpB\"}")
-============================= test.tsx_Greeter_component_div_div_on_click_2_2n0r4Lbtxrs.tsx (ENTRY POINT)==
+============================= test.tsx_Greeter_component_div_div_q_e_click_wYSPnQEGCbA.tsx (ENTRY POINT)==
 
-export const Greeter_component_div_div_on_click_2_2n0r4Lbtxrs = ()=>{};
+export const Greeter_component_div_div_q_e_click_wYSPnQEGCbA = ()=>{};
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gEAakB,KAAO\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAWkB,KAAO\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component_div_div_on_click_2_2n0r4Lbtxrs",
+  "name": "Greeter_component_div_div_q_e_click_wYSPnQEGCbA",
   "entry": null,
-  "displayName": "test.tsx_Greeter_component_div_div_on_click_2",
-  "hash": "2n0r4Lbtxrs",
-  "canonicalFilename": "test.tsx_Greeter_component_div_div_on_click_2_2n0r4Lbtxrs",
+  "displayName": "test.tsx_Greeter_component_div_div_q_e_click",
+  "hash": "wYSPnQEGCbA",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_e_click_wYSPnQEGCbA",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    233,
+    241
+  ]
+}
+*/
+============================= test.tsx_Greeter_component_div_div_q_e_click_2_B9tqzgApK9E.tsx (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_e_click_2_B9tqzgApK9E = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAakB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_e_click_2_B9tqzgApK9E",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_e_click_2",
+  "hash": "B9tqzgApK9E",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_e_click_2_B9tqzgApK9E",
   "path": "",
   "extension": "tsx",
   "parent": "Greeter_component_n7HuG2hhU0Q",
@@ -89,23 +115,23 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import mongo from "mongodb";
 import { qrl } from "@qwik.dev/core";
-const i_2n0r4Lbtxrs = ()=>import("./test.tsx_Greeter_component_div_div_on_click_2_2n0r4Lbtxrs");
-const i_bnZeePaQAfc = ()=>import("./test.tsx_Greeter_component_div_div_on_click_bnZeePaQAfc");
-const i_qUiGOwID9SE = ()=>import("./test.tsx_Greeter_component_div_div_on_click_1_qUiGOwID9SE");
+const i_B9tqzgApK9E = ()=>import("./test.tsx_Greeter_component_div_div_q_e_click_2_B9tqzgApK9E");
+const i_s7p0zjWZpqo = ()=>import("./test.tsx_Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo");
+const i_wYSPnQEGCbA = ()=>import("./test.tsx_Greeter_component_div_div_q_e_click_wYSPnQEGCbA");
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
     // Double count watch
     useTask$(async ()=>{
         await mongo.users();
     });
     return <div>
-			<div on:click={/*#__PURE__*/ qrl(i_bnZeePaQAfc, "Greeter_component_div_div_on_click_bnZeePaQAfc")}/>
-			<div on:click={/*#__PURE__*/ qrl(i_qUiGOwID9SE, "Greeter_component_div_div_on_click_1_qUiGOwID9SE")}/>
-			<div on:click={/*#__PURE__*/ qrl(i_2n0r4Lbtxrs, "Greeter_component_div_div_on_click_2_2n0r4Lbtxrs")}/>
+			<div q-e:click={/*#__PURE__*/ qrl(i_wYSPnQEGCbA, "Greeter_component_div_div_q_e_click_wYSPnQEGCbA")}/>
+			<div q-e:click={/*#__PURE__*/ qrl(i_s7p0zjWZpqo, "Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo")}/>
+			<div q-e:click={/*#__PURE__*/ qrl(i_B9tqzgApK9E, "Greeter_component_div_div_q_e_click_2_B9tqzgApK9E")}/>
 		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;6CAIkC;IACjC,qBAAqB;IACrB,SAAS;QACR,MAAM,MAAM,KAAK;IAClB;IACA,QACE,IAAI;GACJ,CAAC,IAAI,+FAAqB;GAC1B,CAAC,IAAI,iGAAqB;GAC1B,CAAC,IAAI,iGAAqB;EAC3B,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;6CAIkC;IACjC,qBAAqB;IACrB,SAAS;QACR,MAAM,MAAM,KAAK;IAClB;IACA,QACE,IAAI;GACJ,CAAC,IAAI,iGAAqB;GAC1B,CAAC,IAAI,mGAAqB;GAC1B,CAAC,IAAI,mGAAqB;EAC3B,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -123,32 +149,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     114,
     318
-  ]
-}
-*/
-============================= test.tsx_Greeter_component_div_div_on_click_bnZeePaQAfc.tsx (ENTRY POINT)==
-
-export const Greeter_component_div_div_on_click_bnZeePaQAfc = ()=>{};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAWkB,KAAO\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Greeter_component_div_div_on_click_bnZeePaQAfc",
-  "entry": null,
-  "displayName": "test.tsx_Greeter_component_div_div_on_click",
-  "hash": "bnZeePaQAfc",
-  "canonicalFilename": "test.tsx_Greeter_component_div_div_on_click_bnZeePaQAfc",
-  "path": "",
-  "extension": "tsx",
-  "parent": "Greeter_component_n7HuG2hhU0Q",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    233,
-    241
   ]
 }
 */

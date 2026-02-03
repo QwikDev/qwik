@@ -31,7 +31,7 @@ export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncCompu
 export let _captures: Readonly<unknown[]> | null;
 
 // @internal
-export function _chk(this: string | undefined, _: any, element: HTMLInputElement): unknown;
+export function _chk(this: string | undefined, _: any, element: HTMLInputElement): void;
 
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
@@ -955,7 +955,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
 
 // @internal
-export function _run(this: string | undefined, event: Event, element: Element): ValueOrPromise<unknown>;
+export function _run(this: string, event: Event, element: Element): ValueOrPromise<unknown>;
 
 // @public (undocumented)
 export type SerializationStrategy = 'never' | 'always';
@@ -1696,7 +1696,7 @@ export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @internal
-export function _task(this: string | undefined, _event: Event, element: Element): void;
+export function _task(this: string, _event: Event, element: Element): void;
 
 // @public (undocumented)
 export interface TaskCtx {
@@ -1871,7 +1871,7 @@ export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @internal
-export function _val(this: string | undefined, _: any, element: HTMLInputElement): unknown;
+export function _val(this: string | undefined, _: any, element: HTMLInputElement): void;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
@@ -1931,10 +1931,10 @@ export abstract class _VNode implements BackRef {
 }
 
 // @internal (undocumented)
-export const _vnode_ensureElementInflated: (vnode: _VNode) => void;
+export const _vnode_ensureElementInflated: (container: _Container, vnode: _VNode) => void;
 
 // @internal (undocumented)
-export const _vnode_getAttrKeys: (vnode: _ElementVNode | _VirtualVNode) => string[];
+export const _vnode_getAttrKeys: (container: _Container, vnode: _ElementVNode | _VirtualVNode) => string[];
 
 // @internal (undocumented)
 export const _vnode_getFirstChild: (vnode: _VNode) => _VNode | null;
@@ -1949,12 +1949,12 @@ export const _vnode_isTextVNode: (vNode: _VNode) => vNode is _TextVNode;
 export const _vnode_isVirtualVNode: (vNode: _VNode) => vNode is _VirtualVNode;
 
 // @internal (undocumented)
-export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean): string;
+export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean, container?: ClientContainer | null): string;
 
 // @internal
 export const enum _VNodeFlags {
     // (undocumented)
-    Cursor = 64,
+    Cursor = 256,
     // (undocumented)
     Deleted = 32,
     // (undocumented)
@@ -1964,19 +1964,23 @@ export const enum _VNodeFlags {
     // (undocumented)
     ELEMENT_OR_VIRTUAL_MASK = 3,
     // (undocumented)
+    HasIterationItems = 64,
+    // (undocumented)
     Inflated = 8,
     // (undocumented)
     INFLATED_TYPE_MASK = 15,
     // (undocumented)
-    NAMESPACE_MASK = 384,
+    InflatedIterationItems = 128,
     // (undocumented)
-    NEGATED_NAMESPACE_MASK = -385,
+    NAMESPACE_MASK = 1536,
+    // (undocumented)
+    NEGATED_NAMESPACE_MASK = -1537,
     // (undocumented)
     NS_html = 0,
     // (undocumented)
-    NS_math = 256,
+    NS_math = 1024,
     // (undocumented)
-    NS_svg = 128,
+    NS_svg = 512,
     // (undocumented)
     Resolved = 16,
     // (undocumented)

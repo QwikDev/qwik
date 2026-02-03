@@ -166,7 +166,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'button', ':document:click');
+      await trigger(container.element, 'button', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -213,7 +213,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:click');
+      await trigger(container.element, 'button', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -221,7 +221,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:focus');
+      await trigger(container.element, 'button', 'd:focus');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -250,7 +250,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'script', ':document:click');
+      await trigger(container.element, 'script', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
@@ -284,7 +284,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'script', ':document:click');
+      await trigger(container.element, 'script', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
@@ -317,7 +317,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':window:click');
+      await trigger(container.element, 'button', 'w:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -353,7 +353,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:DOMContentLoaded');
+      await trigger(container.element, 'button', 'd:DOMContentLoaded');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -379,7 +379,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:DOMContentLoaded');
+      await trigger(container.element, 'button', 'd:DOMContentLoaded');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -433,7 +433,7 @@ describe.each([
       const { container, document } = await render(<Parent />, { debug });
       (globalThis as any).dispatchCustomEvent = () => {
         // don't await for this event
-        trigger(document.documentElement, '[on-document\\:child]', ':document:child');
+        trigger(document.documentElement, '[on-document\\:child]', 'd:child');
       };
       // trigger the change
       await trigger(container.element, 'button', 'click');
@@ -462,7 +462,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'button', ':window:click');
+      await trigger(container.element, 'button', 'w:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -491,7 +491,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'script', ':window:click');
+      await trigger(container.element, 'script', 'w:click');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
@@ -520,7 +520,7 @@ describe.each([
         </Component>
       );
 
-      await trigger(container.element, 'button', ':window:dblclick');
+      await trigger(container.element, 'button', 'w:dblclick');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -567,7 +567,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':window:click');
+      await trigger(container.element, 'button', 'w:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -575,7 +575,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':window:focus');
+      await trigger(container.element, 'button', 'w:focus');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -603,7 +603,7 @@ describe.each([
           </button>
         </Component>
       );
-      await trigger(container.element, 'button', ':document:click');
+      await trigger(container.element, 'button', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -729,7 +729,7 @@ describe.each([
         </button>
       </Component>
     );
-    await trigger(container.element, 'button', ':window:focus');
+    await trigger(container.element, 'button', 'w:focus');
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
@@ -737,7 +737,7 @@ describe.each([
         </button>
       </Component>
     );
-    await trigger(container.element, 'button', ':document:blur');
+    await trigger(container.element, 'button', 'd:blur');
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
@@ -888,10 +888,10 @@ describe.each([
       });
       const { vNode, document } = await render(<LayoutTest />, { debug });
       if (render === ssrRenderToDom) {
-        await trigger(document.body, 'script', ':document:qinit');
+        await trigger(document.body, 'script', 'd:qinit');
       }
-      await trigger(document.body, 'script', ':document:click');
-      await trigger(document.body, 'script', ':window:resize');
+      await trigger(document.body, 'script', 'd:click');
+      await trigger(document.body, 'script', 'w:resize');
       expect((globalThis as any).counter).toBe(3);
 
       (globalThis as any).counter = undefined;

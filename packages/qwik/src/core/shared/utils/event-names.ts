@@ -16,9 +16,9 @@ export const enum EventNameJSXScope {
 }
 
 export const enum EventNameHtmlScope {
-  on = 'on:',
-  window = 'on-window:',
-  document = 'on-document:',
+  on = 'q-e:',
+  window = 'q-w:',
+  document = 'q-d:',
 }
 
 export const EVENT_SUFFIX = '$';
@@ -34,14 +34,11 @@ export const isJsxPropertyAnEventName = (name: string): boolean => {
 };
 
 export const isHtmlAttributeAnEventName = (name: string): boolean => {
-  if (name.charCodeAt(0) !== 111 /* o */ || name.charCodeAt(1) !== 110 /* n */) {
-    return false;
-  }
-  if (name.charCodeAt(2) === 58 /* : */) {
-    return true; // on:
-  }
-
-  return name.startsWith(EventNameHtmlScope.window) || name.startsWith(EventNameHtmlScope.document);
+  return (
+    name.charCodeAt(0) === 113 /* q */ &&
+    name.charCodeAt(1) === 45 /* - */ &&
+    name.charCodeAt(3) === 58 /* : */
+  );
 };
 
 export function jsxEventToHtmlAttribute(jsxEvent: string): string | null {
@@ -58,7 +55,7 @@ export function jsxEventToHtmlAttribute(jsxEvent: string): string | null {
               ? // marker for case sensitive event name
                 name.slice(1)
               : name.toLowerCase(),
-            prefix
+            prefix!
           );
     }
   }
@@ -70,8 +67,10 @@ export function createEventName(event: string, prefix: EventNameHtmlScope): stri
   return prefix + eventName;
 }
 
-export function getEventScopeDataFromJsxEvent(eventName: string): [EventNameHtmlScope, number] {
-  let prefix: EventNameHtmlScope = EventNameHtmlScope.on;
+export function getEventScopeDataFromJsxEvent(
+  eventName: string
+): [EventNameHtmlScope | undefined, number] {
+  let prefix: EventNameHtmlScope | undefined;
   let idx = -1;
   // set prefix and idx based on the scope
   if (eventName.startsWith(EventNameJSXScope.on)) {
@@ -103,21 +102,12 @@ export const fromCamelToKebabCase = (text: string): string => {
   return text.replace(/([A-Z-])/g, (a) => '-' + a.toLowerCase());
 };
 
-export const getEventDataFromHtmlAttribute = (htmlKey: string): [string, string] | null => {
-  if (htmlKey.startsWith(EventNameHtmlScope.on)) {
-    return ['', htmlKey.substring(3)];
-  }
-  if (htmlKey.startsWith(EventNameHtmlScope.window)) {
-    return ['window', htmlKey.substring(10)];
-  }
-  return ['document', htmlKey.substring(12)];
-};
+/** E.g. `"q-e:click"` => `['e', 'click']` */
+export const getEventDataFromHtmlAttribute = (htmlKey: string): [string, string] => [
+  htmlKey.charAt(2),
+  htmlKey.substring(4),
+];
 
-export const getScopedEventName = (scope: string, eventName: string): string => {
-  const suffix = ':' + eventName;
-  return scope ? scope + suffix : suffix;
-};
-
-export const getLoaderScopedEventName = (scope: string, scopedEvent: string): string => {
-  return scope ? '-' + scopedEvent : scopedEvent;
-};
+/** E.g. `"e:click"`, `"w:load"` */
+export const getScopedEventName = (scope: string, eventName: string): string =>
+  scope + ':' + eventName;

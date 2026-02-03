@@ -21,24 +21,57 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,6EAEZ\"}")
+============================= test.tsx_test_component_button_q_e_click_qwSL5gM03T4.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const test_component_button_q_e_click_qwSL5gM03T4 = ()=>{
+    const props = _captures[0];
+    return props.onClick$();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2DAIuC;;WAAM,MAAM,QAAQ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_button_q_e_click_qwSL5gM03T4",
+  "entry": null,
+  "displayName": "test.tsx_test_component_button_q_e_click",
+  "hash": "qwSL5gM03T4",
+  "canonicalFilename": "test.tsx_test_component_button_q_e_click_qwSL5gM03T4",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    135,
+    157
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { _getConstProps } from "@qwik.dev/core";
 import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_6pPnWSWL0tY = ()=>import("./test.tsx_test_component_button_on_click_6pPnWSWL0tY");
+const i_qwSL5gM03T4 = ()=>import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4");
 export const test_component_LUXeXe0DQrg = (props)=>{
     return /*#__PURE__*/ _jsxSplit("button", {
         ..._getVarProps(props),
-        "on:click": /*#__PURE__*/ qrl(i_6pPnWSWL0tY, "test_component_button_on_click_6pPnWSWL0tY", [
+        "q-e:click": /*#__PURE__*/ qrl(i_qwSL5gM03T4, "test_component_button_q_e_click_qwSL5gM03T4", [
             props
         ])
     }, _getConstProps(props), null, 0, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG4B,CAAC;IAC1B,qBAAO,UAAC;wBAAW;QAAO,UAAQ;;;sBAAf;AACpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG4B,CAAC;IAC1B,qBAAO,UAAC;wBAAW;QAAO,WAAQ;;;sBAAf;AACpB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -58,39 +91,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     173
   ],
   "paramNames": [
-    "props"
-  ]
-}
-*/
-============================= test.tsx_test_component_button_on_click_6pPnWSWL0tY.js (ENTRY POINT)==
-
-import { _captures } from "@qwik.dev/core";
-export const test_component_button_on_click_6pPnWSWL0tY = ()=>{
-    const props = _captures[0];
-    return props.onClick$();
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";0DAIuC;;WAAM,MAAM,QAAQ\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_button_on_click_6pPnWSWL0tY",
-  "entry": null,
-  "displayName": "test.tsx_test_component_button_on_click",
-  "hash": "6pPnWSWL0tY",
-  "canonicalFilename": "test.tsx_test_component_button_on_click_6pPnWSWL0tY",
-  "path": "",
-  "extension": "js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    135,
-    157
-  ],
-  "captureNames": [
     "props"
   ]
 }

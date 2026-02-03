@@ -137,6 +137,8 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
+  ITERATION_ITEM_MULTI,
+  ITERATION_ITEM_SINGLE,
   OnRenderProp,
   Q_PROPS_SEPARATOR,
   QContainerAttr,
@@ -165,7 +167,7 @@ import {
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { mergeMaps } from '../shared/utils/maps';
-import { EventNameHtmlScope } from '../shared/utils/event-names';
+import { isHtmlAttributeAnEventName } from '../shared/utils/event-names';
 import { VNode } from '../shared/vnode/vnode';
 import { ElementVNode } from '../shared/vnode/element-vnode';
 import { TextVNode } from '../shared/vnode/text-vnode';
@@ -189,6 +191,7 @@ import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { fastGetter } from './prototype-utils';
 import { decodeVNodeDataString } from '../shared/utils/character-escaping';
+import { parseQRL } from '../shared/serdes/index';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -447,16 +450,24 @@ export const vnode_ensureElementKeyInflated = (vnode: ElementVNode) => {
 };
 
 /** @internal */
-export const vnode_ensureElementInflated = (vnode: VNode) => {
+export const vnode_ensureElementInflated = (container: Container, vnode: VNode) => {
   if ((vnode.flags & VNodeFlags.INFLATED_TYPE_MASK) === VNodeFlags.Element) {
     const elementVNode = vnode as ElementVNode;
     elementVNode.flags ^= VNodeFlags.Inflated;
-    const element = elementVNode.node;
+    const element = elementVNode.node as QElement;
     const attributes = element.attributes;
+    let isConst = false;
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
-      if (key === Q_PROPS_SEPARATOR || !key) {
+      // We need to grab all handlers, even const ones, because as soon as qDispatch exists, qwikloader will use it
+      if (isHtmlAttributeAnEventName(key)) {
+        registerQrlHandlers(attr, key, container, element);
+        continue;
+      }
+      if (isConst) {
+        // Do nothing, we're only interested in recovering event handlers from the const attributes.
+      } else if (key === Q_PROPS_SEPARATOR || !key) {
         // SVG in Domino does not support ':' so it becomes an empty string.
         // all attributes after the ':' are considered immutable, and so we ignore them.
         const value = attr.value;
@@ -464,7 +475,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
           // don't assign empty string as a key
           elementVNode.key = value;
         }
-        break;
+        isConst = true;
       } else if (key.startsWith(QContainerAttr)) {
         const value = attr.value;
         if (value === QContainerValue.HTML) {
@@ -472,13 +483,32 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         } else if (value === QContainerValue.TEXT && 'value' in element) {
           vnode_setProp(elementVNode, 'value', element.value);
         }
-      } else if (!key.startsWith(EventNameHtmlScope.on)) {
+      } else {
         const value = attr.value;
         vnode_setProp(elementVNode, key, value);
       }
     }
+    if (
+      vnode_getProp<unknown>(elementVNode, ITERATION_ITEM_SINGLE, null) !== null ||
+      vnode_getProp<unknown>(elementVNode, ITERATION_ITEM_MULTI, null) !== null
+    ) {
+      vnode.flags |= VNodeFlags.HasIterationItems;
+    }
   }
 };
+
+function registerQrlHandlers(attr: Attr, key: string, container: Container, element: QElement) {
+  const value = attr.value;
+  const scopedKebabName = key.slice(2);
+  const qrls = value.split('|');
+  const handlers = qrls.map((qrl) => {
+    const handler = parseQRL(qrl);
+    handler.$container$ = container;
+    // These QRLs are mostly _run and _task and don't need wrapping with retryOnPromise
+    return handler;
+  });
+  (element._qDispatch ||= {})[scopedKebabName] = handlers;
+}
 
 /** Walks the VNode tree and materialize it using `vnode_getFirstChild`. */
 export function vnode_walkVNode(
@@ -583,6 +613,21 @@ export function vnode_getDOMChildNodes(
     vNode = vNode.nextSibling as VNode | null;
   }
   return childNodes;
+}
+
+export function vnode_getDOMContainer(vNode: VNode): ClientContainer | null {
+  let cursor: VNode | null = vNode;
+  while (cursor) {
+    if (vnode_isElementVNode(cursor)) {
+      try {
+        return getDomContainer(cursor.node);
+      } catch {
+        return null;
+      }
+    }
+    cursor = cursor.parent;
+  }
+  return null;
 }
 
 /**
@@ -1643,10 +1688,13 @@ export const vnode_getPreviousSibling = (vnode: VNode): VNode | null => {
 };
 
 /** @internal */
-export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] => {
+export const vnode_getAttrKeys = (
+  container: Container,
+  vnode: ElementVNode | VirtualVNode
+): string[] => {
   const type = vnode.flags;
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
-    vnode_ensureElementInflated(vnode);
+    vnode_ensureElementInflated(container, vnode);
     const keys: string[] = [];
     const props = vnode.props;
     if (props) {
@@ -1690,7 +1738,8 @@ export function vnode_toString(
   offset: string = '',
   materialize: boolean = false,
   siblings = false,
-  colorize: boolean = true
+  colorize: boolean = true,
+  container = this && vnode_getDOMContainer(this)
 ): string {
   let vnode = this;
   if (depth === 0) {
@@ -1714,7 +1763,7 @@ export function vnode_toString(
       if (vnode.dirty) {
         attrs.push(` dirty:${vnode.dirty}`);
       }
-      vnode_getAttrKeys(vnode).forEach((key) => {
+      vnode_getAttrKeys(container!, vnode).forEach((key) => {
         if (key !== DEBUG_TYPE && key !== debugStyleScopeIdPrefixAttr) {
           const value = vnode_getProp(vnode!, key, null);
           attrs.push(' ' + key + '=' + qwikDebugToString(value));
@@ -1744,7 +1793,7 @@ export function vnode_toString(
       if (vnode.dirtyChildren) {
         attrs.push(` dirtyChildren[${vnode.dirtyChildren.length}]`);
       }
-      const keys = vnode_getAttrKeys(vnode);
+      const keys = vnode_getAttrKeys(container!, vnode);
       for (const key of keys) {
         const value = vnode_getProp(vnode!, key, null);
         attrs.push(' ' + key + '=' + qwikDebugToString(value));

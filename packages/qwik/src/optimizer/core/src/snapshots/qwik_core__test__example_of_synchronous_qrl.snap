@@ -40,24 +40,24 @@ import { _qrlSync } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("input", {
-            "on:click": _qrlSync(function(event, target) {
+            "q-e:click": _qrlSync(function(event, target) {
                 // comment should be removed
                 event.preventDefault();
             }, "function(event,target){event.preventDefault();}")
         }, null, null, 2, null),
         /*#__PURE__*/ _jsxSorted("input", {
-            "on:click": _qrlSync((event, target)=>{
+            "q-e:click": _qrlSync((event, target)=>{
                 event.preventDefault();
             }, "(event,target)=>{event.preventDefault();}")
         }, null, null, 2, null),
         /*#__PURE__*/ _jsxSorted("input", {
-            "on:click": _qrlSync((event, target)=>event.preventDefault(), "(event,target)=>event.preventDefault()")
+            "q-e:click": _qrlSync((event, target)=>event.preventDefault(), "(event,target)=>event.preventDefault()")
         }, null, null, 2, null)
     ], 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG4B;IAC1B,qBACC;sBACC,WAAC;YAAM,UAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM;gBAC5C,4BAA4B;gBAC5B,MAAM,cAAc;YACrB;;sBACA,WAAC;YAAM,UAAQ,WAAQ,CAAC,OAAO;gBAC9B,MAAM,cAAc;YACrB;;sBACA,WAAC;YAAM,UAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;AAGhE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG4B;IAC1B,qBACC;sBACC,WAAC;YAAM,WAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM;gBAC5C,4BAA4B;gBAC5B,MAAM,cAAc;YACrB;;sBACA,WAAC;YAAM,WAAQ,WAAQ,CAAC,OAAO;gBAC9B,MAAM,cAAc;YACrB;;sBACA,WAAC;YAAM,WAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;AAGhE\"}")
 /*
 {
   "origin": "test.tsx",

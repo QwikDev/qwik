@@ -47,7 +47,7 @@ lazy_static! {
 	pub static ref BIND_CHECKED: Atom = Atom::from("bind:checked");
 	pub static ref CLASS_NAME: Atom = Atom::from("className");
 	pub static ref CLASS: Atom = Atom::from("class");
-	pub static ref ON_INPUT: Atom = Atom::from("on:input");
+	pub static ref ON_INPUT: Atom = Atom::from("q-e:input");
 	pub static ref CHECKED: Atom = Atom::from("checked");
 	pub static ref VALUE: Atom = Atom::from("value");
 }

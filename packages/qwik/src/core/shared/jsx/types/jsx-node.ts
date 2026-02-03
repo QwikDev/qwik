@@ -61,7 +61,7 @@ export interface JSXNodeInternal<
    *
    * Does not contain `children` or `key`.
    *
-   * `onEvent$` props are normalized to the html `on:event` version
+   * `onEvent$` props are normalized to the html `q-x:event` version
    */
   varProps: Props;
   /**
@@ -71,7 +71,7 @@ export interface JSXNodeInternal<
    *
    * Does not contain `children` or `key`.
    *
-   * `onEvent$` props are normalized to the html `on:event` version
+   * `onEvent$` props are normalized to the html `q-x:event` version
    */
   constProps: Props | null;
   /** The children of the node */

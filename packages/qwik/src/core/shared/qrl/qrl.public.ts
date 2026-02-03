@@ -111,7 +111,7 @@ export type QrlReturn<T> = T extends (...args: any) => infer R ? Awaited<R> : un
  *
  * ```
  * <div q:base="/build/">
- *   <button on:click="./chunk-abc.js#onClick">...</button>
+ *   <button q-e:click="./chunk-abc.js#onClick">...</button>
  * </div>
  * ```
  *

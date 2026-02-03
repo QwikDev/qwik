@@ -69,7 +69,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
         toggleSig
     ]);
     return /*#__PURE__*/ _jsxSorted("button", null, {
-        "on:click": handleClick$,
+        "q-e:click": handleClick$,
         "data-open": _fnSignal(_hf0, [
             toggleSig
         ], _hf0_str)
@@ -77,7 +77,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAU+C,GAAU,KAAK,GAAG,OAAO;;;yCARxC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAAO,YAAU;QAAc,WAAS;;;OAAsC;AAIjF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAU+C,GAAU,KAAK,GAAG,OAAO;;;yCARxC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAAO,aAAU;QAAc,WAAS;;;OAAsC;AAIjF\"}")
 /*
 {
   "origin": "test.tsx",

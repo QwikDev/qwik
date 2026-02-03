@@ -1,7 +1,8 @@
-import { Fragment, Slot, _getDomContainer, isSignal, untrack } from '@qwik.dev/core';
-import { _isJSXNode, _isStringifiable } from '@qwik.dev/core/internal';
 import type { JSXChildren, JSXNode, JSXOutput } from '@qwik.dev/core';
+import { Fragment, Slot, _getDomContainer, isSignal, untrack } from '@qwik.dev/core';
 import type {
+  ClientContainer,
+  JSXNodeInternal,
   _ContainerElement,
   _ElementVNode,
   _QDocument,
@@ -9,9 +10,8 @@ import type {
   _TextVNode,
   _VNode,
   _VirtualVNode,
-  JSXNodeInternal,
-  ClientContainer,
 } from '@qwik.dev/core/internal';
+import { _isJSXNode, _isStringifiable } from '@qwik.dev/core/internal';
 import { expect } from 'vitest';
 import {
   type VNodeJournal,
@@ -34,32 +34,31 @@ import {
 } from '../core/client/vnode-utils';
 
 import { format } from 'prettier';
-import { serializeAttribute, serializeBooleanOrNumberAttribute } from '../core/shared/utils/styles';
+import { _flushJournal } from '../core/shared/cursor/cursor-flush';
+import { QContainerValue } from '../core/shared/types';
 import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../core/shared/utils/event-names';
-import { createDocument } from './document';
 import {
   ELEMENT_ID,
   ELEMENT_KEY,
-  QRenderAttr,
-  QBackRefs,
-  Q_PROPS_SEPARATOR,
-  QContainerAttr,
-  debugStyleScopeIdPrefixAttr,
   ITERATION_ITEM_MULTI,
   ITERATION_ITEM_SINGLE,
+  QBackRefs,
+  QContainerAttr,
+  QRenderAttr,
   QTemplate,
+  Q_PROPS_SEPARATOR,
+  debugStyleScopeIdPrefixAttr,
 } from '../core/shared/utils/markers';
-import { HANDLER_PREFIX } from '../core/client/vnode-diff';
-import { prettyJSX } from './jsx';
-import { isElement, prettyHtml } from './html';
-import { QContainerValue } from '../core/shared/types';
-import type { VNode } from '../core/shared/vnode/vnode';
+import { serializeAttribute, serializeBooleanOrNumberAttribute } from '../core/shared/utils/styles';
 import { ElementVNode } from '../core/shared/vnode/element-vnode';
 import type { VirtualVNode } from '../core/shared/vnode/virtual-vnode';
-import { _flushJournal } from '../core/shared/cursor/cursor-flush';
+import type { VNode } from '../core/shared/vnode/vnode';
+import { createDocument } from './document';
+import { isElement, prettyHtml } from './html';
+import { prettyJSX } from './jsx';
 
 expect.extend({
   toMatchVDOM(
@@ -142,6 +141,14 @@ function diffJsxVNode(
   if (!received) {
     return [path.join(' > ') + ' missing'];
   }
+  if (!container.qContainer) {
+    try {
+      _getDomContainer(container);
+    } catch {
+      // ignore and hope for the best
+    }
+  }
+
   const diffs: string[] = [];
   if (typeof expected === 'string') {
     const receivedText = vnode_isTextVNode(received) ? vnode_getText(received as _TextVNode) : null;
@@ -189,7 +196,7 @@ function diffJsxVNode(
     propsAdd(
       allProps,
       vnode_isElementVNode(received)
-        ? vnode_getAttrKeys(received)
+        ? vnode_getAttrKeys(container.qContainer!, received)
             .filter((key) => !ignoredAttributes.includes(key))
             .sort()
         : []
@@ -508,7 +515,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
           if (isJsxPropertyAnEventName(key)) {
             continue;
           }
-          if (key.startsWith(HANDLER_PREFIX) || isHtmlAttributeAnEventName(key)) {
+          if (isHtmlAttributeAnEventName(key)) {
             vnode_setProp(child, key, props[key]);
           } else {
             vnode_setAttr(journal, child, key, String(props[key]));

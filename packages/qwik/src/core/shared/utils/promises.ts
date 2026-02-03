@@ -3,7 +3,7 @@ import type { ValueOrPromise } from './types';
 
 export const MAX_RETRY_ON_PROMISE_COUNT = 100;
 
-export const isPromise = (value: any): value is Promise<any> => {
+export const isPromise = <T>(value: any): value is Promise<T> => {
   // not using "value instanceof Promise" to have zone.js support
   return !!value && typeof value == 'object' && typeof value.then === 'function';
 };
@@ -91,29 +91,66 @@ export const delay = (timeout: number) => {
   });
 };
 
-/** Retries a function that throws a promise. */
+const checkError = (e: Error) => {
+  if (isServer && e instanceof ReferenceError && e.message.includes('window')) {
+    e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
+  }
+};
+const justThrow = (e: any) => {
+  throw e;
+};
+
+/**
+ * Retries a function that throws a promise. If you pass `onError`, you're responsible for handling
+ * errors.
+ */
 export function retryOnPromise<T>(
   fn: () => ValueOrPromise<T>,
-  retryCount: number = 0
+  onError: (e: any) => ValueOrPromise<T> = justThrow
 ): ValueOrPromise<T> {
-  const retryOrThrow = (e: any): ValueOrPromise<T> => {
-    if (isPromise(e) && retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
-      return e.then(retryOnPromise.bind(null, fn, retryCount++)) as ValueOrPromise<T>;
+  let ok = false;
+  let result: ValueOrPromise<T> | Error;
+  try {
+    result = fn();
+    ok = true;
+  } catch (e) {
+    result = e as Error;
+  }
+
+  if (!isPromise(result)) {
+    // Synchronous function or error, no need to retry
+    if (ok) {
+      return result as T;
     }
-    if (isDev && isServer && e instanceof ReferenceError && e.message.includes('window')) {
-      e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
+    isDev && checkError(result as Error);
+    return onError(result);
+  }
+
+  let retryCount: number = MAX_RETRY_ON_PROMISE_COUNT;
+  const retry = async (p: Promise<void> | Error): Promise<T> => {
+    while (isPromise<void>(p)) {
+      try {
+        await p;
+        // We waited for the thrown promise, now try again
+        return await fn();
+      } catch (err) {
+        if (isPromise<void>(err)) {
+          if (!--retryCount) {
+            p = new Error('Exceeded max retry count in retryOnPromise');
+            break;
+          } else {
+            p = err;
+          }
+        } else {
+          p = err as Error;
+          break;
+        }
+      }
     }
-    throw e;
+
+    isDev && checkError(p as Error);
+    return onError(p);
   };
 
-  try {
-    const result = fn();
-    if (isPromise(result)) {
-      // not awaited promise is not caught by try/catch block
-      return result.catch((e) => retryOrThrow(e));
-    }
-    return result;
-  } catch (e) {
-    return retryOrThrow(e);
-  }
+  return ok ? result.catch(retry) : retry(result as Promise<void>);
 }

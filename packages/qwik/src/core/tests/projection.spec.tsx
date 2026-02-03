@@ -1502,7 +1502,7 @@ describe.each([
       );
       (globalThis as any).log.length = 0;
       // console.log('--- HIDE PROJECTION ---');
-      await trigger(document.body, '.child', 'click'); // hide projection
+      await trigger(document.body, '.child', 'click', { bubbles: false }); // hide projection
       // console.log('---');
       expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
       expect(vNode).toMatchVDOM(
@@ -1540,7 +1540,7 @@ describe.each([
       );
       (globalThis as any).log.length = 0;
       // console.log('--- UN-HIDE PROJECTION (no content) ---');
-      await trigger(document.body, '.child', 'click'); // un-hide projection (no content)
+      await trigger(document.body, '.child', 'click', { bubbles: false }); // un-hide projection (no content)
       // console.log('---');
       expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
       expect(vNode).toMatchVDOM(
@@ -1628,7 +1628,7 @@ describe.each([
         </Component>
       );
       (globalThis as any).log.length = 0;
-      await trigger(document.body, '.child', 'click');
+      await trigger(document.body, '.child', 'click', { bubbles: false });
       expect(vNode).toMatchVDOM(
         <Component>
           <div class="parent">
@@ -3064,7 +3064,7 @@ describe.each([
         { debug: DEBUG }
       );
       if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', ':document:qinit');
+        await trigger(document.body, 'div', 'd:qinit');
       }
       expect(vNode).toMatchVDOM(
         <Component>
@@ -3136,7 +3136,7 @@ describe.each([
 
       const { vNode, document } = await render(<SlotParent />, { debug: DEBUG });
       if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', ':document:qinit');
+        await trigger(document.body, 'div', 'd:qinit');
       }
       expect(vNode).toMatchVDOM(
         <Component ssr-required>

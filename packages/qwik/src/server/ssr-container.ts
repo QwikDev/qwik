@@ -286,7 +286,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   addBackpatchEntry(
     ssrNodeId: string,
     attrName: string,
-    serializedValue: string | true | null
+    serializedValue: Awaited<SsrAttrValue>
   ): void {
     // we want to always parse as decimal here
     const elementIndex = parseInt(ssrNodeId, 10);
@@ -924,7 +924,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const patches: (string | number | boolean | null)[] = [];
     for (const [elementIndex, backpatchEntries] of this.backpatchMap) {
       for (const backpatchEntry of backpatchEntries) {
-        patches.push(elementIndex, backpatchEntry.attrName, backpatchEntry.value);
+        patches.push(
+          elementIndex,
+          backpatchEntry.attrName,
+          isSignal(backpatchEntry.value)
+            ? (backpatchEntry.value as SignalImpl<string>).untrackedValue
+            : (backpatchEntry.value as string)
+        );
       }
     }
 
@@ -1023,7 +1029,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         scriptAttrs.push('nonce', nonce);
       }
       this.openElement('script', null, scriptAttrs);
-      this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);
+      this.write(`(window._qwikEv||(window._qwikEv=[])).push(`);
       this.writeArray(eventNames, ', ');
       this.write(')');
       this.closeElement();
@@ -1198,7 +1204,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           ) as Promise<string>;
         }
 
-        if (isPromise(value)) {
+        if (isPromise<SsrAttrValue>(value)) {
           const lastNode = this.getOrCreateLastNode();
           this.addPromiseAttribute(value);
           value.then((resolvedValue) => {

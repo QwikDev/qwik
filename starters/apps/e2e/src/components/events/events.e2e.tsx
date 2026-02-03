@@ -31,7 +31,7 @@ describe.each([
       ) as HTMLInputElement;
       expect(always.textContent).toEqual("always count: 0");
 
-      await trigger(container.element, "#issue-3948-always", ":window:click");
+      await trigger(container.element, "#issue-3948-always", "w:click");
 
       expect(always.textContent).toEqual("always count: 1");
 
@@ -39,25 +39,17 @@ describe.each([
       await trigger(document.body, toggle, "input");
 
       const conditional = document.querySelector("#issue-3948-conditional");
-      expect(conditional?.getAttribute("on-window:click")).not.toBe(null);
+      expect(conditional?.getAttribute("q-w:click")).not.toBe(null);
       expect(conditional?.textContent).toEqual("conditional count: 0");
 
-      await trigger(container.element, "#issue-3948-always", ":window:click");
-      await trigger(container.element, "#issue-3948-always", ":window:click");
-      await trigger(
-        container.element,
-        "#issue-3948-conditional",
-        ":window:click",
-      );
+      await trigger(container.element, "#issue-3948-always", "w:click");
+      await trigger(container.element, "#issue-3948-always", "w:click");
+      await trigger(container.element, "#issue-3948-conditional", "w:click");
       expect(always.textContent).toEqual("always count: 3");
       expect(conditional?.textContent).toEqual("conditional count: 1");
 
-      await trigger(container.element, "#issue-3948-always", ":window:click");
-      await trigger(
-        container.element,
-        "#issue-3948-conditional",
-        ":window:click",
-      );
+      await trigger(container.element, "#issue-3948-always", "w:click");
+      await trigger(container.element, "#issue-3948-conditional", "w:click");
 
       expect(always.textContent).toEqual("always count: 4");
       expect(conditional?.textContent).toEqual("conditional count: 2");

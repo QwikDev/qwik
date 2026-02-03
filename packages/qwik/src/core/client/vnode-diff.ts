@@ -1054,6 +1054,7 @@ const patchProperty = (
     // TODO: there is a potential deoptimization here, because we are setting different keys on props.
     // Eager bailout - Insufficient type feedback for generic keyed access
     vnode_setProp(vnode, key, value);
+    vnode.flags |= VNodeFlags.HasIterationItems | VNodeFlags.InflatedIterationItems;
     return;
   }
   const originalValue = value;

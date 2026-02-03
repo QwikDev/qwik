@@ -137,6 +137,7 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
+  ITERATION_ITEM_MULTI,
   ITERATION_ITEM_SINGLE,
   OnRenderProp,
   Q_PROPS_SEPARATOR,
@@ -487,10 +488,11 @@ export const vnode_ensureElementInflated = (container: Container, vnode: VNode) 
         vnode_setProp(elementVNode, key, value);
       }
     }
-    // In tests we might not have a container
-    if (import.meta.env.TEST ? container : true) {
-      // We need to deserialize single iteration items here, once, because they can be strings
-      vnode_getProp<unknown>(elementVNode, ITERATION_ITEM_SINGLE, container.$getObjectById$);
+    if (
+      vnode_getProp<unknown>(elementVNode, ITERATION_ITEM_SINGLE, null) !== null ||
+      vnode_getProp<unknown>(elementVNode, ITERATION_ITEM_MULTI, null) !== null
+    ) {
+      vnode.flags |= VNodeFlags.HasIterationItems;
     }
   }
 };

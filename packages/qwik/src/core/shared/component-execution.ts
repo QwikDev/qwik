@@ -276,10 +276,8 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
       queue.push(jsx.children);
     } else if (isArray(jsx)) {
       queue.push(...jsx);
-    } else if (isPromise(jsx)) {
-      return maybeThen<JSXOutput, JSXNodeInternal<string> | null>(jsx, (jsx) =>
-        findFirstElementNode(jsx)
-      );
+    } else if (isPromise<JSXOutput>(jsx)) {
+      return maybeThen(jsx, (jsx) => findFirstElementNode(jsx));
     } else if (isSignal(jsx)) {
       return findFirstElementNode(untrack(() => jsx.value as JSXOutput));
     }

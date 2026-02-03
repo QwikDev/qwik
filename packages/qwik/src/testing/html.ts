@@ -1,3 +1,4 @@
+import { EventNameHtmlScope } from '../core/shared/utils/event-names';
 import { ELEMENT_KEY, Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
 import { isSelfClosingTag } from '../server/tag-nesting';
 
@@ -13,7 +14,8 @@ export function prettyHtml(element: HTMLElement, prefix: string = ''): any {
     .map((attr) => ({ name: attr.name, value: attr.value }))
     .filter(
       (attr) =>
-        [Q_PROPS_SEPARATOR, ELEMENT_KEY].indexOf(attr.name) == -1 && !attr.name.startsWith('on')
+        [Q_PROPS_SEPARATOR, ELEMENT_KEY].indexOf(attr.name) == -1 &&
+        !attr.name.startsWith(EventNameHtmlScope.on)
     )
     .sort((a, b) => a.name.localeCompare(b.name));
   for (let i = 0; i < attrs.length; i++) {

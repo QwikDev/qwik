@@ -1,7 +1,7 @@
-import type { ContextId } from '../use/use-context';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { ContextId } from '../use/use-context';
+import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
 import type { SerializationContext } from './serdes/index';
-import type { ValueOrPromise } from './utils/types';
 import type { VNode } from './vnode/vnode';
 
 export interface DeserializeContainer {
@@ -60,7 +60,7 @@ export interface Container {
 export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {
-  qDispatchEvent?: (event: Event, scopedKebabName: string) => ValueOrPromise<unknown>;
+  _qDispatch?: Record<string, (EventHandler | EventHandler[])[]>;
   vNode?: VNode;
 }
 

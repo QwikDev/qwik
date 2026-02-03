@@ -119,9 +119,20 @@ const dispatch = async (
     }
   }
   // The DOM renderer attaches qDispatchEvent to elements, call that if it exists. This bypasses QRL lookups.
-  const qDispatchEvent = (element as QElement).qDispatchEvent;
-  if (qDispatchEvent) {
-    return qDispatchEvent(ev, scopedKebabName);
+  const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
+  if (handlers) {
+    if (handlers.length) {
+      for (const handler of handlers) {
+        const result = (handler as any)?.(ev, element);
+        // only await if there is a promise returned so everything stays sync if possible
+        if (isPromise(result)) {
+          await result;
+        }
+      }
+    } else {
+      await (handlers as any)(ev, element);
+    }
+    return;
   }
 
   // Find the attribute that contains the QRLs
@@ -193,10 +204,10 @@ const dispatch = async (
       // After the await, the element could have been removed
       if (element.isConnected) {
         try {
-          const results = handler.call(capturedIds, ev, element);
+          const result = handler.call(capturedIds, ev, element);
           // only await if there is a promise returned
-          if (isPromise(results)) {
-            await results;
+          if (isPromise(result)) {
+            await result;
           }
         } catch (error) {
           emitEvent<QwikErrorEvent>('qerror', { error, ...eventData });
@@ -222,18 +233,20 @@ const processElementEvent = async (ev: Event) => {
   // Bubble up the DOM tree, awaiting any async handlers
   while (element && element.getAttribute) {
     const results = dispatch(element, ev, scopedKebabName, kebabName);
+    // The event bubbling is reset after awaiting
+    const doBubble = ev.bubbles && !ev.cancelBubble;
     if (isPromise(results)) {
       await results;
     }
     // Even though it's deprecated as a writeable property, cancelBubble is the only way to know if stopPropagation was called
-    element = ev.bubbles && !ev.cancelBubble ? element.parentElement : null;
+    element = doBubble && ev.bubbles && !ev.cancelBubble ? element.parentElement : null;
   }
 };
 
 const broadcast = (infix: QwikLoaderEventScope, ev: Event) => {
   const kebabName = camelToKebab(ev.type);
   const scopedKebabName = infix + ':' + kebabName;
-  querySelectorAll('[qe\\:' + infix + '\\:' + kebabName + ']').forEach((el) =>
+  querySelectorAll('[q-' + infix + '\\:' + kebabName + ']').forEach((el) =>
     dispatch(el, ev, scopedKebabName, kebabName)
   );
 };
@@ -268,7 +281,7 @@ const processReadyStateChange = () => {
     if (events.has('d:qinit')) {
       events.delete('d:qinit');
       const ev = createEvent('qinit');
-      querySelectorAll('[qe\\:d\\:qinit]').forEach((el) => {
+      querySelectorAll('[q-d\\:qinit]').forEach((el) => {
         dispatch(el, ev, 'd:qinit');
         el.removeAttribute('q-d:qinit');
       });
@@ -279,7 +292,7 @@ const processReadyStateChange = () => {
       const riC = win.requestIdleCallback ?? win.setTimeout;
       riC.bind(win)(() => {
         const ev = createEvent('qidle');
-        querySelectorAll('[qe\\:d\\:qidle]').forEach((el) => {
+        querySelectorAll('[q-d\\:qidle]').forEach((el) => {
           dispatch(el, ev, 'd:qidle');
           el.removeAttribute('q-d:qidle');
         });
@@ -295,7 +308,7 @@ const processReadyStateChange = () => {
           }
         }
       });
-      querySelectorAll('[qe\\:e\\:qvisible]:not([q\\:observed])').forEach((el) => {
+      querySelectorAll('[q-e\\:qvisible]:not([q\\:observed])').forEach((el) => {
         observer!.observe(el);
         el.setAttribute('q:observed', 'true');
       });

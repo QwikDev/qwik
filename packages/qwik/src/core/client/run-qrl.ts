@@ -30,19 +30,21 @@ export function runEventHandlerQRL(
   vnode_ensureElementInflated(container, hostElement);
   let realHandler = handler;
 
-  // TODO try passing a flag to indicate iteration item so we dont have to do the lookups
-  // Note, the single item is guaranteed to be deserialized already in vnode_ensureElementInflated
-  const singleItem = vnode_getProp<unknown>(hostElement, ITERATION_ITEM_SINGLE, null);
-  if (singleItem !== null) {
-    realHandler = (() => handler(event, element, singleItem)) as typeof handler;
-  } else {
-    const multiItems = vnode_getProp<unknown[]>(
-      hostElement,
-      ITERATION_ITEM_MULTI,
-      ctx.$container$!.$getObjectById$
-    );
-    if (multiItems !== null) {
-      realHandler = (() => handler(event, element, ...multiItems)) as typeof handler;
+  if (hostElement.flags & VNodeFlags.HasIterationItems) {
+    let shouldInflate: boolean | undefined;
+    if (!(hostElement.flags & VNodeFlags.InflatedIterationItems)) {
+      shouldInflate = true;
+      hostElement.flags |= VNodeFlags.InflatedIterationItems;
+    }
+    const getObj = shouldInflate ? container.$getObjectById$ : null;
+    const singleItem = vnode_getProp<unknown>(hostElement, ITERATION_ITEM_SINGLE, getObj);
+    if (singleItem !== null) {
+      realHandler = (() => handler(event, element, singleItem)) as typeof handler;
+    } else {
+      const multiItems = vnode_getProp<unknown[]>(hostElement, ITERATION_ITEM_MULTI, getObj);
+      if (multiItems !== null) {
+        realHandler = (() => handler(event, element, ...multiItems)) as typeof handler;
+      }
     }
   }
 

@@ -55,6 +55,10 @@ export async function requestHandler<T = unknown>(
   }
 
   const { pathname, isInternal } = getRouteMatchPathname(serverRequestEv.url.pathname);
+  // Ignore requests for .well-known so static servers or other middleware can handle them
+  if (pathname === '/.well-known' || pathname.startsWith('/.well-known/')) {
+    return null;
+  }
   // TODO also match 404 routes with extra notFound boolean result
   // TODO cache pages
   const routeAndHandlers = await loadRequestHandlers(

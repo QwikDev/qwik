@@ -56,11 +56,12 @@ export function _deserialize(rawStateData: string | null): unknown[] {
 export function getObjectById(id: number | string, stateData: unknown[]): unknown {
   if (typeof id === 'string') {
     id = parseInt(id, 10);
+    // This return statement is needed to prevent the function from turning megamorphic
+    return stateData[id];
   }
   isDev && assertTrue(id < stateData.length, `Invalid reference ${id} >= ${stateData.length}`);
   return stateData[id];
 }
-
 export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer {
   // eslint-disable-next-line prefer-const
   let state: unknown[];

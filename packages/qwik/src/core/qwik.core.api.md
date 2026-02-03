@@ -1954,7 +1954,7 @@ export function _vnode_toString(this: _VNode | null, depth?: number, offset?: st
 // @internal
 export const enum _VNodeFlags {
     // (undocumented)
-    Cursor = 64,
+    Cursor = 256,
     // (undocumented)
     Deleted = 32,
     // (undocumented)
@@ -1964,19 +1964,23 @@ export const enum _VNodeFlags {
     // (undocumented)
     ELEMENT_OR_VIRTUAL_MASK = 3,
     // (undocumented)
+    HasIterationItems = 64,
+    // (undocumented)
     Inflated = 8,
     // (undocumented)
     INFLATED_TYPE_MASK = 15,
     // (undocumented)
-    NAMESPACE_MASK = 384,
+    InflatedIterationItems = 128,
     // (undocumented)
-    NEGATED_NAMESPACE_MASK = -385,
+    NAMESPACE_MASK = 1536,
+    // (undocumented)
+    NEGATED_NAMESPACE_MASK = -1537,
     // (undocumented)
     NS_html = 0,
     // (undocumented)
-    NS_math = 256,
+    NS_math = 1024,
     // (undocumented)
-    NS_svg = 128,
+    NS_svg = 512,
     // (undocumented)
     Resolved = 16,
     // (undocumented)

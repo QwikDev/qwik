@@ -48,6 +48,7 @@ test.describe("streaming", () => {
     const cmps = page.locator(".cmp");
     const count = page.locator("button#count");
     const rerender = page.locator("button#client-render");
+
     await count.click();
     await expect(count).toHaveText("Rerender: 1");
 

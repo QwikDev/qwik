@@ -1,5 +1,5 @@
 import { getDomContainer } from '@qwik.dev/core';
-import type { ClientContainer } from '@qwik.dev/core/internal';
+import type { ClientContainer, EventHandler } from '@qwik.dev/core/internal';
 import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
 import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/types';
@@ -93,13 +93,17 @@ export async function trigger(
     scopedKebabName = eventName;
     scope = eventName.charAt(0) as QwikLoaderEventScope;
     kebabName = eventName.substring(2);
+    if (kebabName === 'DOMContentLoaded') {
+      kebabName = '-d-o-m-content-loaded';
+      scopedKebabName = scope + ':' + kebabName;
+    }
   } else {
     scope = 'e';
     kebabName = fromCamelToKebabCase(eventName);
     scopedKebabName = 'e:' + kebabName;
   }
   if (scope !== 'e') {
-    queryOrElement = `[qe\\:${scope}\\:${kebabName}]`;
+    queryOrElement = `[q-${scope}\\:${kebabName}]`;
   }
 
   const elements =
@@ -115,11 +119,12 @@ export async function trigger(
       container = getDomContainer(element as HTMLElement);
     }
 
+    const { bubbles = true, cancelable = true, ...rest } = eventPayload ?? {};
     const event = new Event(eventName, {
-      bubbles: true,
-      cancelable: true,
+      bubbles,
+      cancelable,
     });
-    Object.assign(event, eventPayload);
+    Object.assign(event, rest);
     await dispatch(element, event, scopedKebabName, kebabName);
   }
   if (waitForIdle && container) {
@@ -152,8 +157,19 @@ export const dispatch = async (
         event.stopPropagation();
       }
     }
-    if ('qDispatchEvent' in (element as QElement)) {
-      return (element as QElement).qDispatchEvent!(event, scopedKebabName);
+    if ('_qDispatch' in (element as QElement)) {
+      const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
+      if (handlers) {
+        if (Array.isArray(handlers)) {
+          for (const handler of handlers.flat(2)) {
+            if (handler) {
+              await (handler as EventHandler)(event, element);
+            }
+          }
+        } else {
+          await (handlers as EventHandler)(event, element);
+        }
+      }
     } else if (element.hasAttribute('q-' + scopedKebabName)) {
       const qrls = element.getAttribute('q-' + scopedKebabName)!;
       try {
@@ -183,7 +199,7 @@ export const dispatch = async (
       }
       return;
     }
-    element = event.cancelBubble ? null : element.parentElement;
+    element = event.bubbles && !event.cancelBubble ? element.parentElement : null;
   }
 };
 

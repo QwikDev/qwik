@@ -688,12 +688,12 @@ describe('vNode-diff', () => {
 
       it('should skip props starting with handler prefix (colon)', () => {
         const { vParent, container } = vnode_fromJSX(
-          _jsxSorted('span', { ':::onClick$': () => null }, null, [], 0, null)
+          _jsxSorted('span', { 'q-e:click': () => null }, null, [], 0, null)
         );
         const test = _jsxSorted(
           'span',
           {
-            ':::onClick$': () => null,
+            'q-e:click': () => null,
             id: 'a',
           },
           null,
@@ -728,7 +728,7 @@ describe('vNode-diff', () => {
         expect(vnode_getFirstChild(vParent)).toMatchVDOM(<span id="a"></span>);
       });
 
-      it('should not add qDispatchEvent for removed html event attribute', () => {
+      it('should not add _qDispatch for removed html event attribute', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { id: 'a', 'q-e:click': 'abcd' }, null, [], 0, null)
         );
@@ -739,10 +739,10 @@ describe('vNode-diff', () => {
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).not.toBeDefined();
+        expect(element._qDispatch).not.toBeDefined();
       });
 
-      it('should add qDispatchEvent for existing html event attribute', () => {
+      it('should add _qDispatch for existing html event attribute', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { id: 'a', 'q-e:click': 'abcd' }, null, [], 0, null)
         );
@@ -753,10 +753,10 @@ describe('vNode-diff', () => {
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
-      it('should add qDispatchEvent for new jsx event attribute', () => {
+      it('should add _qDispatch for new jsx event attribute', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { id: 'a' }, null, [], 0, null)
         );
@@ -767,10 +767,10 @@ describe('vNode-diff', () => {
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
-      it('should add qDispatchEvent for existing html event attribute and new jsx event attribute', () => {
+      it('should add _qDispatch for existing html event attribute and new jsx event attribute', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { id: 'a', 'q-e:click': 'abcd' }, null, [], 0, null)
         );
@@ -781,7 +781,7 @@ describe('vNode-diff', () => {
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
       it('should change to alphabetically later attribute', () => {
@@ -856,7 +856,7 @@ describe('vNode-diff', () => {
         expect(firstChild).toMatchVDOM(test);
       });
 
-      it('should change to alphabetically later event attribute and add qDispatchEvent', () => {
+      it('should change to alphabetically later event attribute and add _qDispatch', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { onDblClick$: 'aaa' }, null, [], 0, null)
         );
@@ -867,10 +867,10 @@ describe('vNode-diff', () => {
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
-      it('should change to alphabetically earlier event attribute and add qDispatchEvent', () => {
+      it('should change to alphabetically earlier event attribute and add _qDispatch', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { 'q-e:click': 'aaa' }, null, [], 0, null)
         );
@@ -881,10 +881,10 @@ describe('vNode-diff', () => {
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
-      it('should add event scope to element add qDispatchEvent', () => {
+      it('should add event scope to element add _qDispatch', () => {
         const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
         const test = _jsxSorted('span', { 'q-w:click': 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
@@ -893,7 +893,7 @@ describe('vNode-diff', () => {
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(<span q-w:click></span>);
         const element = vnode_getNode(firstChild) as QElement;
-        expect(element.qDispatchEvent).toBeDefined();
+        expect(element._qDispatch).toBeDefined();
       });
 
       describe('ref', () => {
@@ -1450,7 +1450,7 @@ describe('vNode-diff', () => {
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span class="new" id="b"></span>);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).toBeDefined();
+          expect(element._qDispatch).toBeDefined();
         });
 
         it('should handle multiple HTML event attributes being removed', () => {
@@ -1471,7 +1471,7 @@ describe('vNode-diff', () => {
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(test);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).not.toBeDefined();
+          expect(element._qDispatch).not.toBeDefined();
         });
 
         it('should handle replacing HTML events with JSX events', () => {
@@ -1491,7 +1491,7 @@ describe('vNode-diff', () => {
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).toBeDefined();
+          expect(element._qDispatch).toBeDefined();
         });
 
         it('should handle all attributes being updated to different values', () => {
@@ -1565,7 +1565,7 @@ describe('vNode-diff', () => {
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span q-d:click q-w:scroll></span>);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).toBeDefined();
+          expect(element._qDispatch).toBeDefined();
         });
 
         it('should handle complex mix: add/remove/update/keep', () => {
@@ -1603,7 +1603,7 @@ describe('vNode-diff', () => {
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span class="update-new" id="keep" title="add"></span>);
           const element = vnode_getNode(firstChild) as QElement;
-          expect(element.qDispatchEvent).toBeDefined();
+          expect(element._qDispatch).toBeDefined();
         });
 
         it('should handle updating signal attribute values', () => {

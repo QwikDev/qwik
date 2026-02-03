@@ -132,7 +132,7 @@ describe('serializer v2', () => {
           ssr.closeElement();
         });
         const vnodeSpan: VNode = await clientContainer.$getObjectById$(0).someProp;
-        vnode_ensureElementInflated(vnodeSpan);
+        vnode_ensureElementInflated(clientContainer, vnodeSpan);
         expect(vnode_getProp(vnodeSpan, 'id', null)).toBe('myId');
       });
       it('should retrieve text node', async () => {

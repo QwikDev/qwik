@@ -146,7 +146,7 @@ export interface LinkProps extends AnchorAttributes {
    *
    * This **improves UX performance** for client-side (**SPA**) navigations.
    *
-   * Prefetching occurs when a the Link enters the viewport in production (**`on:qvisible`**), or
+   * Prefetching occurs when a the Link enters the viewport in production (**`q-e:qvisible`**), or
    * with **`mouseover`/`focus`** during dev.
    *
    * Prefetching will not occur if the user has the **data saver** setting enabled.

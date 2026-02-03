@@ -122,7 +122,7 @@ export class AsyncComputedSignalImpl<T>
         ? this.$promiseComputation$()
         : this.$promiseValue$;
 
-    if (isPromise(untrackedValue)) {
+    if (isPromise<T>(untrackedValue)) {
       const isFirstComputation = this.$promiseValue$ === NEEDS_COMPUTATION;
       this.untrackedLoading = true;
       this.untrackedError = undefined;

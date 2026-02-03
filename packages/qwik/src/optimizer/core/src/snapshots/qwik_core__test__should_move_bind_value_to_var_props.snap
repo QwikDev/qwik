@@ -35,34 +35,6 @@ export const FieldInput = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_V4XAtJS
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,2BAAa,mFAexB\"}")
-============================= test.tsx_FieldInput_component_input_on_click_2sr386GIAzQ.js (ENTRY POINT)==
-
-export const FieldInput_component_input_on_click_2sr386GIAzQ = ()=>{
-    console.log('clicked');
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAaY;IACT,QAAQ,GAAG,CAAC;AACb\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "FieldInput_component_input_on_click_2sr386GIAzQ",
-  "entry": null,
-  "displayName": "test.tsx_FieldInput_component_input_on_click",
-  "hash": "2sr386GIAzQ",
-  "canonicalFilename": "test.tsx_FieldInput_component_input_on_click_2sr386GIAzQ",
-  "path": "",
-  "extension": "js",
-  "parent": "FieldInput_component_V4XAtJSTRKg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    396,
-    434
-  ]
-}
-*/
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
 
 import { _getConstProps } from "@qwik.dev/core";
@@ -70,7 +42,7 @@ import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { destructureBindings } from "./destructure-bindings";
 import { qrl } from "@qwik.dev/core";
-const i_2sr386GIAzQ = ()=>import("./test.tsx_FieldInput_component_input_on_click_2sr386GIAzQ");
+const i_fZgZHYZXt60 = ()=>import("./test.tsx_FieldInput_component_input_q_e_click_fZgZHYZXt60");
 export const FieldInput_component_V4XAtJSTRKg = (props)=>{
     const initialValues = {
         value: undefined
@@ -81,12 +53,12 @@ export const FieldInput_component_V4XAtJSTRKg = (props)=>{
         ..._getConstProps(rest),
         "bind:value": finalValue
     }, {
-        "on:click": /*#__PURE__*/ qrl(i_2sr386GIAzQ, "FieldInput_component_input_on_click_2sr386GIAzQ")
+        "q-e:click": /*#__PURE__*/ qrl(i_fZgZHYZXt60, "FieldInput_component_input_q_e_click_fZgZHYZXt60")
     }, null, 0, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gDAKE,CAAC;IACC,MAAM,gBAAgB;QAAE,OAAO;IAAgC;IAC/D,MAAM,OAAO,oBAAoB,OAAO;IAExC,qBACE,UAAC;wBACK;0BAAA;QADN,cAEc;;QAClB,UAAQ;;AAKR\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gDAKE,CAAC;IACC,MAAM,gBAAgB;QAAE,OAAO;IAAgC;IAC/D,MAAM,OAAO,oBAAoB,OAAO;IAExC,qBACE,UAAC;wBACK;0BAAA;QADN,cAEc;;QAClB,WAAQ;;AAKR\"}")
 /*
 {
   "origin": "test.tsx",
@@ -107,6 +79,34 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "props"
+  ]
+}
+*/
+============================= test.tsx_FieldInput_component_input_q_e_click_fZgZHYZXt60.js (ENTRY POINT)==
+
+export const FieldInput_component_input_q_e_click_fZgZHYZXt60 = ()=>{
+    console.log('clicked');
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gEAaY;IACT,QAAQ,GAAG,CAAC;AACb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "FieldInput_component_input_q_e_click_fZgZHYZXt60",
+  "entry": null,
+  "displayName": "test.tsx_FieldInput_component_input_q_e_click",
+  "hash": "fZgZHYZXt60",
+  "canonicalFilename": "test.tsx_FieldInput_component_input_q_e_click_fZgZHYZXt60",
+  "path": "",
+  "extension": "js",
+  "parent": "FieldInput_component_V4XAtJSTRKg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    396,
+    434
   ]
 }
 */

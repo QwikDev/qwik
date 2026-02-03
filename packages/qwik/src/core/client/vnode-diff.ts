@@ -24,21 +24,15 @@ import {
 } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
-import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
+import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
+import type { HostElement, QElement, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { _CONST_PROPS, _OWNER, _PROPS_HANDLER, _VAR_PROPS } from '../shared/utils/constants';
-import {
-  fromCamelToKebabCase,
-  getEventDataFromHtmlAttribute,
-  getLoaderScopedEventName,
-  getScopedEventName,
-  isHtmlAttributeAnEventName,
-} from '../shared/utils/event-names';
+import { isHtmlAttributeAnEventName } from '../shared/utils/event-names';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_PROPS,
@@ -68,7 +62,7 @@ import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
-import { callQrl } from './run-qrl';
+import { runEventHandlerQRL } from './run-qrl';
 import { VNodeFlags, type ClientContainer } from './types';
 import { mapApp_findIndx } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
@@ -792,21 +786,14 @@ function expectNoMoreTextNodes(diffContext: DiffContext) {
   }
 }
 
-/**
- * Returns whether `qDispatchEvent` needs patching. This is true when one of the `jsx` argument's
- * const props has the name of an event.
- *
- * @returns {boolean}
- */
 function createNewElement(
   diffContext: DiffContext,
   jsx: JSXNodeInternal,
   elementName: string,
   currentFile?: string | null
-): boolean {
-  const element = createElementWithNamespace(diffContext, elementName);
+) {
+  const element = createElementWithNamespace(diffContext, elementName) as QElement;
   const { constProps } = jsx;
-  let needsQDispatchEventPatch = false;
   if (constProps) {
     // Const props are, well, constant, they will never change!
     // For this reason we can cheat and write them directly into the DOM.
@@ -814,24 +801,14 @@ function createNewElement(
     for (const key in constProps) {
       let value = constProps[key];
       if (isHtmlAttributeAnEventName(key)) {
-        const data = getEventDataFromHtmlAttribute(key);
-        if (data) {
-          const [scope, eventName] = data;
-          const scopedEvent = getScopedEventName(scope, eventName);
-          const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
+        registerEventHandlers(
+          key,
+          value,
+          element,
+          diffContext.vNewNode as ElementVNode,
+          diffContext
+        );
 
-          if (eventName) {
-            vnode_setProp(diffContext.vNewNode!, '::' + scopedEvent, value);
-            if (scope) {
-              // window and document need attrs so qwik loader can find them
-              vnode_setAttr(diffContext.journal, diffContext.vNewNode!, key, '');
-            }
-            // register an event for qwik loader (window/document prefixed with '-')
-            registerQwikLoaderEvent(diffContext, loaderScopedEvent);
-          }
-        }
-
-        needsQDispatchEventPatch = true;
         continue;
       }
 
@@ -925,8 +902,33 @@ function createNewElement(
     diffContext.vNewNode as ElementVNode,
     diffContext.vCurrent
   );
+}
 
-  return needsQDispatchEventPatch;
+function registerEventHandlers(
+  key: string,
+  value: unknown,
+  element: QElement,
+  vnode: ElementVNode,
+  diffContext: DiffContext
+) {
+  const scopedKebabName = key.slice(2);
+  if (!Array.isArray(value)) {
+    value = [value];
+  }
+  const handlers: EventHandler[] = [];
+  for (const handler of (value as (QRLInternal<(...args: any[]) => void> | undefined)[]).flat(2)) {
+    if (handler) {
+      handlers.push(runEventHandlerQRL.bind(null, handler));
+    }
+  }
+  (element._qDispatch ||= {})[scopedKebabName] = handlers;
+
+  // window and document events need attrs so qwik loader can find them
+  // TODO only do these when not already present
+  if (key.charAt(2) !== 'e') {
+    vnode_setAttr(diffContext.journal, vnode, key, '');
+  }
+  registerQwikLoaderEvent(diffContext, scopedKebabName);
 }
 
 function createElementWithNamespace(diffContext: DiffContext, elementName: string): Element {
@@ -945,9 +947,8 @@ function createElementWithNamespace(diffContext: DiffContext, elementName: strin
 }
 
 function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementName: string) {
-  let needsQDispatchEventPatch = false;
   if (diffContext.isCreationMode) {
-    needsQDispatchEventPatch = createNewElement(diffContext, jsx, elementName, null);
+    createNewElement(diffContext, jsx, elementName, null);
   } else {
     const isElementVNode = diffContext.vCurrent && vnode_isElementVNode(diffContext.vCurrent);
     const isSameElementName =
@@ -965,7 +966,7 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
           diffContext.vParent as ElementVNode
         )
       ) {
-        needsQDispatchEventPatch = createNewElement(diffContext, jsx, elementName, null);
+        createNewElement(diffContext, jsx, elementName, null);
       }
     } else {
       // delete the key from the side buffer if it is the same element
@@ -978,37 +979,8 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
   const jsxProps = jsx.varProps;
   const vNode = (diffContext.vNewNode || diffContext.vCurrent) as ElementVNode;
 
-  const element = vNode.node as QElement;
-
   if (jsxProps) {
-    needsQDispatchEventPatch =
-      diffProps(diffContext, vNode, jsxProps, (isDev && getFileLocationFromJsx(jsx.dev)) || null) ||
-      needsQDispatchEventPatch;
-  }
-  if (needsQDispatchEventPatch) {
-    // Event handler needs to be patched onto the element.
-    if (!element.qDispatchEvent) {
-      element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
-        if (vNode.flags & VNodeFlags.Deleted) {
-          return;
-        }
-        const eventName = fromCamelToKebabCase(event.type);
-        const eventProp = ':' + scope.substring(1) + ':' + eventName;
-        const qrls = [
-          vnode_getProp<QRLInternal>(vNode, eventProp, null),
-          vnode_getProp<QRLInternal>(vNode, HANDLER_PREFIX + eventProp, null),
-        ];
-        for (const qrl of qrls.flat(2)) {
-          if (qrl) {
-            // TODO is this needed?
-            qrl.$container$ = diffContext.container;
-            callQrl(diffContext.container, vNode, qrl, event, vNode.node, false).catch((e) => {
-              diffContext.container.handleError(e, vNode);
-            });
-          }
-        }
-      };
-    }
+    diffProps(diffContext, vNode, jsxProps, (isDev && getFileLocationFromJsx(jsx.dev)) || null);
   }
 }
 
@@ -1017,19 +989,17 @@ function diffProps(
   vnode: ElementVNode,
   newAttrs: Record<string, any>,
   currentFile: string | null
-): boolean {
+) {
   if (!diffContext.isCreationMode) {
     // inflate only resumed vnodes
-    vnode_ensureElementInflated(vnode);
+    vnode_ensureElementInflated(diffContext.container, vnode);
   }
   const oldAttrs = vnode.props;
-  let patchEventDispatch = false;
 
   // Actual diffing logic
   // Apply all new attributes
   for (const key in newAttrs) {
     const newValue = newAttrs[key];
-    const isEvent = isHtmlAttributeAnEventName(key);
 
     if (oldAttrs && _hasOwnProperty.call(oldAttrs, key)) {
       const oldValue = oldAttrs[key];
@@ -1041,20 +1011,10 @@ function diffProps(
         ) {
           continue;
         }
-        if (isEvent) {
-          const result = recordJsxEvent(diffContext, vnode, key, newValue, currentFile);
-          patchEventDispatch ||= result;
-        } else {
-          patchProperty(diffContext, vnode, key, newValue, currentFile);
-        }
-      }
-    } else if (newValue != null) {
-      if (isEvent) {
-        const result = recordJsxEvent(diffContext, vnode, key, newValue, currentFile);
-        patchEventDispatch ||= result;
-      } else {
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }
+    } else if (newValue != null) {
+      patchProperty(diffContext, vnode, key, newValue, currentFile);
     }
   }
 
@@ -1063,15 +1023,15 @@ function diffProps(
     for (const key in oldAttrs) {
       if (
         !_hasOwnProperty.call(newAttrs, key) &&
-        !key.startsWith(HANDLER_PREFIX) &&
+        // do not remove special attributes
+        key.charAt(0) !== ':' &&
+        // we keep these handler props to indicate to qwikloader that these events are used
         !isHtmlAttributeAnEventName(key)
       ) {
         patchProperty(diffContext, vnode, key, null, currentFile);
       }
     }
   }
-
-  return patchEventDispatch;
 }
 
 const patchProperty = (
@@ -1081,15 +1041,20 @@ const patchProperty = (
   value: any,
   currentFile: string | null
 ) => {
+  // During CSR we do handlers via qDispatch
+  if (isHtmlAttributeAnEventName(key)) {
+    registerEventHandlers(key, value, vnode.node as QElement, vnode, diffContext);
+    return;
+  }
   if (
     // set only property for iteration item, not an attribute
     key === ITERATION_ITEM_SINGLE ||
-    key === ITERATION_ITEM_MULTI ||
-    key.charAt(0) === HANDLER_PREFIX
+    key === ITERATION_ITEM_MULTI
   ) {
     // TODO: there is a potential deoptimization here, because we are setting different keys on props.
     // Eager bailout - Insufficient type feedback for generic keyed access
     vnode_setProp(vnode, key, value);
+    vnode.flags |= VNodeFlags.HasIterationItems | VNodeFlags.InflatedIterationItems;
     return;
   }
   const originalValue = value;
@@ -1159,36 +1124,12 @@ const patchProperty = (
   );
 };
 
-const recordJsxEvent = (
-  diffContext: DiffContext,
-  vnode: ElementVNode,
-  key: string,
-  value: any,
-  currentFile: string | null
-) => {
-  const data = getEventDataFromHtmlAttribute(key);
-  if (data) {
-    const props = vnode.props;
-    const [scope, eventName] = data;
-    const scopedEvent = getScopedEventName(scope, eventName);
-    const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
-    const scopedEventKey = ':' + scopedEvent;
-    if (props && _hasOwnProperty.call(props, scopedEventKey)) {
-      return false;
-    }
-    patchProperty(diffContext, vnode, scopedEventKey, value, currentFile);
-    registerQwikLoaderEvent(diffContext, loaderScopedEvent);
-    return true;
-  }
-  return false;
-};
-
 function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
   const qWindow = import.meta.env.TEST
     ? (diffContext.container.document.defaultView as qWindow | null)
     : (window as unknown as qWindow);
   if (qWindow) {
-    (qWindow.qwikevents ||= [] as any).push(eventName);
+    (qWindow._qwikEv ||= [] as any).push(eventName);
   }
 }
 
@@ -2003,9 +1944,4 @@ function containsWrappedSignal(data: unknown[], signal: Signal<any>): boolean {
   return false;
 }
 
-/**
- * This marks the property as immutable. It is needed for the QRLs so that QwikLoader can get a hold
- * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
- */
-export const HANDLER_PREFIX = ':';
 let count = 0;

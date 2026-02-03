@@ -1,11 +1,10 @@
 import { getDomContainer } from '@qwik.dev/core';
-import type { ClientContainer } from '@qwik.dev/core/internal';
+import type { ClientContainer, EventHandler } from '@qwik.dev/core/internal';
 import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
 import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/types';
-import { EventNameHtmlScope, fromCamelToKebabCase } from '../core/shared/utils/event-names';
+import { fromCamelToKebabCase } from '../core/shared/utils/event-names';
 import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
-import { delay } from '../core/shared/utils/promises';
 import { createWindow } from './document';
 import type { MockDocument, MockWindow } from './types';
 import { waitForDrain } from './util';
@@ -69,13 +68,11 @@ export interface ElementFixtureOptions {
   html?: string;
 }
 
-function isDocumentOrWindowEvent(scope: QwikLoaderEventScope): boolean {
-  return scope === '-document' || scope === '-window';
-}
-
 /**
  * Trigger an event in unit tests on an element. Needs to be kept in sync with the Qwik Loader event
  * dispatching.
+ *
+ * Events can be either case sensitive element-scoped events or scoped kebab-case.
  *
  * Future deprecation candidate.
  *
@@ -89,20 +86,24 @@ export async function trigger(
   options?: { waitForIdle?: boolean }
 ): Promise<void> {
   const waitForIdle = options?.waitForIdle ?? true;
-
-  let scope: QwikLoaderEventScope = '';
-  if (eventName.startsWith(':')) {
-    // :document:event or :window:event
-    const colonIndex = eventName.substring(1).indexOf(':');
-    // we need to add `-` for event, because of scope of the qwik loader
-    scope = ('-' + eventName.substring(1, colonIndex + 1)) as '-document' | '-window';
-    eventName = eventName.substring(colonIndex + 2);
-    // Scoped events must be queried
-    if (scope === '-document') {
-      queryOrElement = `[on-document\\:${fromCamelToKebabCase(eventName)}]`;
-    } else {
-      queryOrElement = `[on-window\\:${fromCamelToKebabCase(eventName)}]`;
+  let scope: QwikLoaderEventScope;
+  let kebabName: string;
+  let scopedKebabName: string;
+  if (eventName.charAt(1) === ':') {
+    scopedKebabName = eventName;
+    scope = eventName.charAt(0) as QwikLoaderEventScope;
+    kebabName = eventName.substring(2);
+    if (kebabName === 'DOMContentLoaded') {
+      kebabName = '-d-o-m-content-loaded';
+      scopedKebabName = scope + ':' + kebabName;
     }
+  } else {
+    scope = 'e';
+    kebabName = fromCamelToKebabCase(eventName);
+    scopedKebabName = 'e:' + kebabName;
+  }
+  if (scope !== 'e') {
+    queryOrElement = `[q-${scope}\\:${kebabName}]`;
   }
 
   const elements =
@@ -118,18 +119,13 @@ export async function trigger(
       container = getDomContainer(element as HTMLElement);
     }
 
+    const { bubbles = true, cancelable = true, ...rest } = eventPayload ?? {};
     const event = new Event(eventName, {
-      bubbles: true,
-      cancelable: true,
+      bubbles,
+      cancelable,
     });
-    Object.assign(event, eventPayload);
-    const prefix = scope
-      ? scope === '-document'
-        ? EventNameHtmlScope.document
-        : EventNameHtmlScope.window
-      : EventNameHtmlScope.on;
-    const attrName = prefix + fromCamelToKebabCase(eventName);
-    await dispatch(element, attrName, event, scope);
+    Object.assign(event, rest);
+    await dispatch(element, event, scopedKebabName, kebabName);
   }
   if (waitForIdle && container) {
     await waitForDrain(container);
@@ -144,31 +140,40 @@ const QContainerSelector = '[q\\:container]';
 /** Dispatch in the same way that Qwik Loader does, for testing purposes. */
 export const dispatch = async (
   element: Element | null,
-  attrName: string,
   event: Event,
-  scope: QwikLoaderEventScope
+  scopedKebabName: string,
+  kebabName: string
 ) => {
-  const isDocumentOrWindow = isDocumentOrWindowEvent(scope);
-  const preventAttributeName =
-    PREVENT_DEFAULT + (isDocumentOrWindow ? event.type.substring(1) : event.type);
-  const stopPropagationName = STOP_PROPAGATION + event.type;
+  const preventAttributeName = PREVENT_DEFAULT + kebabName;
+  const stopPropagationName = STOP_PROPAGATION + kebabName;
   while (element) {
-    const preventDefault = element.hasAttribute(preventAttributeName);
-    const stopPropagation = element.hasAttribute(stopPropagationName);
-    if (preventDefault) {
-      event.preventDefault();
+    if (kebabName) {
+      const preventDefault = element.hasAttribute(preventAttributeName);
+      const stopPropagation = element.hasAttribute(stopPropagationName);
+      if (preventDefault) {
+        event.preventDefault();
+      }
+      if (stopPropagation) {
+        event.stopPropagation();
+      }
     }
-    if (stopPropagation) {
-      event.stopPropagation();
-    }
-    if ('qDispatchEvent' in (element as QElement)) {
-      (element as QElement).qDispatchEvent!(event, scope);
-      await delay(0); // Unsure why this is needed for tests
-      return;
-    } else if (element.hasAttribute(attrName)) {
-      const qrls = element.getAttribute(attrName)!;
+    if ('_qDispatch' in (element as QElement)) {
+      const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
+      if (handlers) {
+        if (Array.isArray(handlers)) {
+          for (const handler of handlers.flat(2)) {
+            if (handler) {
+              await (handler as EventHandler)(event, element);
+            }
+          }
+        } else {
+          await (handlers as EventHandler)(event, element);
+        }
+      }
+    } else if (element.hasAttribute('q-' + scopedKebabName)) {
+      const qrls = element.getAttribute('q-' + scopedKebabName)!;
       try {
-        for (const qrl of qrls.split('\n')) {
+        for (const qrl of qrls.split('|')) {
           const [chunk, symbol, captures] = qrl.split('#');
           let fn: Function;
           if (chunk) {
@@ -194,7 +199,7 @@ export const dispatch = async (
       }
       return;
     }
-    element = element.parentElement;
+    element = event.bubbles && !event.cancelBubble ? element.parentElement : null;
   }
 };
 
@@ -210,5 +215,5 @@ export function cleanupAttrs(innerHTML: string | undefined): any {
     ?.replaceAll(/ q:key="[^"]+"/g, '')
     .replaceAll(/ :=""/g, '')
     .replaceAll(/ :="[^"]+"/g, '')
-    .replaceAll(/ on:\w+="[^"]+"/g, '');
+    .replaceAll(/ q-.:\w+="[^"]+"/g, '');
 }

@@ -17,7 +17,8 @@ import type { SsrNodeFlags } from '../shared/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
 
 export type SsrAttrKey = string;
-export type SsrAttrValue = string | Signal<any> | Promise<any> | boolean | object | null;
+type SimpleSsrAttrValue = string | Signal<SimpleSsrAttrValue> | boolean | object | null;
+export type SsrAttrValue = SimpleSsrAttrValue | Promise<SimpleSsrAttrValue>;
 export type SsrAttrs = Array<SsrAttrKey | SsrAttrValue>;
 
 /** @internal */

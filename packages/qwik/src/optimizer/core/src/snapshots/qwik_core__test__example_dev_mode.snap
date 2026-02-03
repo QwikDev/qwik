@@ -30,45 +30,19 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(i_ckEPmXZlub0
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM;;;;;IAMhB\"}")
-============================= test.tsx_App_component_Cmp_p_on_click_9VylW0qB00s.js (ENTRY POINT)==
-
-export const App_component_Cmp_p_on_click_9VylW0qB00s = ()=>console.log('warn');
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAM8B,IAAM,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_Cmp_p_on_click_9VylW0qB00s",
-  "entry": null,
-  "displayName": "test.tsx_App_component_Cmp_p_on_click",
-  "hash": "9VylW0qB00s",
-  "canonicalFilename": "test.tsx_App_component_Cmp_p_on_click_9VylW0qB00s",
-  "path": "",
-  "extension": "js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    144,
-    169
-  ]
-}
-*/
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
-const i_9VylW0qB00s = ()=>import("./test.tsx_App_component_Cmp_p_on_click_9VylW0qB00s");
+const i_Yl4ybrJWrt4 = ()=>import("./test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4");
 export const App_component_ckEPmXZlub0 = ()=>{
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
-        "on:click": /*#__PURE__*/ qrlDEV(i_9VylW0qB00s, "App_component_Cmp_p_on_click_9VylW0qB00s", {
+        "q-e:click": /*#__PURE__*/ qrlDEV(i_Yl4ybrJWrt4, "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
             file: "/user/qwik/src/test.tsx",
             lo: 144,
             hi: 169,
-            displayName: "test.tsx_App_component_Cmp_p_on_click"
+            displayName: "test.tsx_App_component_Cmp_p_q_e_click"
         })
     }, "Hello Qwik", 3, null, {
         fileName: "test.tsx",
@@ -82,7 +56,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B;IAC7B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,UAAQ;;;;;;OAA6B;;;;;;;;;AAGzD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B;IAC7B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ;;;;;;OAA6B;;;;;;;;;AAGzD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -100,6 +74,32 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     88,
     200
+  ]
+}
+*/
+============================= test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.js (ENTRY POINT)==
+
+export const App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = ()=>console.log('warn');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yDAM8B,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Cmp_p_q_e_click",
+  "hash": "Yl4ybrJWrt4",
+  "canonicalFilename": "test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    144,
+    169
   ]
 }
 */

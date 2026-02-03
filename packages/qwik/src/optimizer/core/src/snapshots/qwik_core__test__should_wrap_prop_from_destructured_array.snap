@@ -53,24 +53,35 @@ expression: output
 			);
 		});
 		
-============================= test.tsx_test_component_div_button_on_click_4abkecKXGAE.js (ENTRY POINT)==
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_9metqqaxlN8 = ()=>import("./test.tsx_Input_component_9metqqaxlN8");
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export const Input = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9metqqaxlN8, "Input_component_9metqqaxlN8"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIE,OAAO,MAAM,sBAAQ,8EAanB;AAEF,6BAAe,6EA2BZ\"}")
+============================= test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
-export const test_component_div_button_on_click_4abkecKXGAE = ()=>{
+export const test_component_div_button_q_e_click_2TvarUvNGmU = ()=>{
     const store = _captures[0];
     store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8DA8BuB;;IACjB,MAAM,MAAM,CAAC,IAAI,GAAG,MAAM,MAAM,CAAC,IAAI,GAAG,YAAY\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DA8BuB;;IACjB,MAAM,MAAM,CAAC,IAAI,GAAG,MAAM,MAAM,CAAC,IAAI,GAAG,YAAY\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "test_component_div_button_on_click_4abkecKXGAE",
+  "name": "test_component_div_button_q_e_click_2TvarUvNGmU",
   "entry": null,
-  "displayName": "test.tsx_test_component_div_button_on_click",
-  "hash": "4abkecKXGAE",
-  "canonicalFilename": "test.tsx_test_component_div_button_on_click_4abkecKXGAE",
+  "displayName": "test.tsx_test_component_div_button_q_e_click",
+  "hash": "2TvarUvNGmU",
+  "canonicalFilename": "test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU",
   "path": "",
   "extension": "js",
   "parent": "test_component_LUXeXe0DQrg",
@@ -86,17 +97,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.js ==
-
-import { componentQrl } from "@qwik.dev/core";
-import { qrl } from "@qwik.dev/core";
-const i_9metqqaxlN8 = ()=>import("./test.tsx_Input_component_9metqqaxlN8");
-const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
-export const Input = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9metqqaxlN8, "Input_component_9metqqaxlN8"));
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIE,OAAO,MAAM,sBAAQ,8EAanB;AAEF,6BAAe,6EA2BZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Input } from "./test";
@@ -110,7 +110,7 @@ const _hf0 = (p0)=>p0.errors.test;
 const _hf0_str = "p0.errors.test";
 const _hf1 = (p0)=>p0.store5.errors.test;
 const _hf1_str = "p0.store5.errors.test";
-const i_4abkecKXGAE = ()=>import("./test.tsx_test_component_div_button_on_click_4abkecKXGAE");
+const i_2TvarUvNGmU = ()=>import("./test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU");
 export const test_component_LUXeXe0DQrg = ()=>{
     const [store, math] = [
         useStore({
@@ -141,7 +141,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
     const form2 = useForm2();
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         /*#__PURE__*/ _jsxSorted("button", null, {
-            "on:click": /*#__PURE__*/ qrl(i_4abkecKXGAE, "test_component_div_button_on_click_4abkecKXGAE", [
+            "q-e:click": /*#__PURE__*/ qrl(i_2TvarUvNGmU, "test_component_div_button_q_e_click_2TvarUvNGmU", [
                 store
             ])
         }, "click", 3, null),
@@ -171,7 +171,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;mBAkCa,GAAM,MAAM,CAAC,IAAI;;mBAIhB,GAZJ,OAYW,MAAM,CAAC,IAAI;;;0CAnBJ;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,UAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK;;;YACL,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;;;AAQV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;mBAkCa,GAAM,MAAM,CAAC,IAAI;;mBAIhB,GAZJ,OAYW,MAAM,CAAC,IAAI;;;0CAnBJ;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,WAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK;;;YACL,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;;;AAQV\"}")
 /*
 {
   "origin": "test.tsx",

@@ -1,8 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
-import type { SignalImpl, ValueOrPromise } from 'packages/qwik/src/server/qwik-types';
+import type { SignalImpl } from 'packages/qwik/src/server/qwik-types';
 import { getDomContainer } from '../client/dom-container';
 import { vnode_locate } from '../client/vnode-utils';
-import type { QwikDocument } from '../document';
 import { unwrapStore } from '../index';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
@@ -11,14 +10,11 @@ import type { SubscriptionData } from '../reactive-primitives/subscription-data'
 import type { Consumer, EffectProperty, EffectSubscription } from '../reactive-primitives/types';
 import { assertDefined } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
-import { deserializeCaptures, setCaptures } from '../shared/qrl/qrl-class';
 import type { Container, HostElement } from '../shared/types';
 import { RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
 import { isObject } from '../shared/utils/types';
 import { setLocale } from './use-locale';
-
-declare const document: QwikDocument;
 
 // Simplified version of `ServerRequestEvent` from `@qwik.dev/router` package.
 export interface SimplifiedServerRequestEvent<T = unknown> {
@@ -118,7 +114,7 @@ export function invokeApply<FN extends (...args: any) => any>(
   }
 }
 
-const newInvokeContextFromDOM = (event: Event, element: Element) => {
+export const newInvokeContextFromDOM = (event: Event, element: Element) => {
   const domContainer = getDomContainer(element);
   const hostElement = vnode_locate(domContainer.rootVNode, element);
   const locale = domContainer.$locale$;
@@ -127,28 +123,6 @@ const newInvokeContextFromDOM = (event: Event, element: Element) => {
   context.$container$ = domContainer;
   return context;
 };
-
-export function invokeFromDOM<EL extends Element, EV extends Event>(
-  element: EL,
-  event: EV,
-  captureIds: string | undefined,
-  handler: (context: InvokeContext, event: EV, element: EL) => ValueOrPromise<unknown>
-) {
-  const previousContext = _context;
-  try {
-    _context = newInvokeContextFromDOM(event, element);
-    /**
-     * We can be called from DOM with serialized captures on `this`, but also directly via
-     * qDispatch, and then we should not touch the captures
-     */
-    if (typeof captureIds === 'string') {
-      setCaptures(captureIds ? deserializeCaptures(_context.$container$!, captureIds) : null);
-    }
-    return handler(_context, event, element);
-  } finally {
-    _context = previousContext;
-  }
-}
 
 export function newRenderInvokeContext(
   locale: string | undefined,

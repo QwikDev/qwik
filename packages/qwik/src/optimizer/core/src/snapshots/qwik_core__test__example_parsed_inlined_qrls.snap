@@ -58,7 +58,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
             _wrapProp(store, "count")
         ], 3, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", {
-            "on:click": /*#__PURE__*/ inlinedQrl(()=>{
+            "q-e:click": /*#__PURE__*/ inlinedQrl(()=>{
                 const [store] = useLexicalScope();
                 return store.count++;
             }, "s_odz7eidI4GM", [
@@ -70,7 +70,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 export const STYLES = ".red { color: red; }";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,iBAAiB;AAEhG,OAAO,MAAM,MAAM,WAAW,GAAG,sCAAwB;IACxD,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IACA,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,UAAQ,2BAAa;gBACpB,MAAM,CAAC,MAAM,GAAG;gBAChB,OAAO,MAAM,KAAK;YACnB;;;iBAGU;KAGZ;AAEH,qBAAiC;AAEjC,OAAO,MAAM,SAAS,uBAAuB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,iBAAiB;AAEhG,OAAO,MAAM,MAAM,WAAW,GAAG,sCAAwB;IACxD,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IACA,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,WAAQ,2BAAa;gBACpB,MAAM,CAAC,MAAM,GAAG;gBAChB,OAAO,MAAM,KAAK;YACnB;;;iBAGU;KAGZ;AAEH,qBAAiC;AAEjC,OAAO,MAAM,SAAS,uBAAuB\"}")
 == DIAGNOSTICS ==
 
 []

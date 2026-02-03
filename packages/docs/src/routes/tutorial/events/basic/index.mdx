@@ -34,7 +34,7 @@ Consider the following simplified HTML of the application below.
 ```HTML
 <html>
   <body>
-    <button on:click="chunk-abc.js#App_onClick">
+    <button q-e:click="chunk-abc.js#App_onClick">
       Click Me
     </button>
     <script id="Qwikloader">....</script>
@@ -49,10 +49,10 @@ Consider the following simplified HTML of the application below.
 - TypeScript rules ensure you don't skip any places where the `$` should appear.
 
 2. The optimizer looks for the `$` and extracts the function wrapped by `$` into a separate [lazy-loadable chunk](../../../docs/(qwik)/advanced/optimizer/index.mdx).
-3. As the server renders the page, the JSX is executed and notices that there is a click listener. The click listener is serialized into the `<button>` element as `on:click` attribute. Qwik then knows how to hook this event back up on the client.
+3. As the server renders the page, the JSX is executed and notices that there is a click listener. The click listener is serialized into the `<button>` element as `q-e:click` attribute. Qwik then knows how to hook this event back up on the client.
 4. Qwikloader scripts get inlined into HTML. The Qwikloader script sets up a global listener for all events in the browser. Qwikloader is about 1kb and executes in about 1ms.
-5. When a user clicks on the button, the Qwikloader intercepts the event and looks for an element with `on:click` attribute.
-6. The `on:click` attribute contains:
+5. When a user clicks on the button, the Qwikloader intercepts the event and looks for an element with `q-e:click` attribute.
+6. The `q-e:click` attribute contains:
    - The URL to download the associated code.
      - To avoid delays between click and execution, Qwik prefetches the code related to the given component.
    - A symbol that is exported by the downloaded chunk that contains the function needs to execute.

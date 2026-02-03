@@ -64,10 +64,10 @@ In other frameworks, lazy-loading chunks of the application becomes a developmen
 Qwik solves the above issue by serializing the event listeners into DOM like so:
 
 ```html
-<button on:click="./chunk.js#handler_symbol">click me</button>
+<button q-e:click="./chunk.js#handler_symbol">click me</button>
 ```
 
-Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `on:click` attribute contains all of the information to resume the application without doing anything eagerly.
+Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `q-e:click` attribute contains all of the information to resume the application without doing anything eagerly.
 
 1. [Qwikloader](https://qwik.dev/docs/advanced/qwikloader/) sets up a single global listener instead of many individual listeners per DOM element. This step can be done with no application code present.
 2. The HTML contains a URL to the chunk and symbol name. The attribute tells Qwikloader which code chunk to download and which symbol to retrieve from the chunk and then to be executed.

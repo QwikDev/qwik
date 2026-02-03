@@ -35,40 +35,6 @@ export const App = component$((props) => {
 	);
 })
 
-============================= test.tsx_App_component_div_on_click_V4v7mvdC0xU.js (ENTRY POINT)==
-
-import { _captures } from "@qwik.dev/core";
-export const App_component_div_on_click_V4v7mvdC0xU = ()=>{
-    const count2 = _captures[0], state = _captures[1];
-    return state.count += count2;
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAeiB;;WAAM,MAAM,KAAK,IAAE\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_div_on_click_V4v7mvdC0xU",
-  "entry": null,
-  "displayName": "test.tsx_App_component_div_on_click",
-  "hash": "V4v7mvdC0xU",
-  "canonicalFilename": "test.tsx_App_component_div_on_click_V4v7mvdC0xU",
-  "path": "",
-  "extension": "js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    340,
-    365
-  ],
-  "captureNames": [
-    "count2",
-    "state"
-  ]
-}
-*/
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
@@ -85,25 +51,84 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAwB,QAAQ,QAAQ,iBAAiB;AACzD,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,4EAoBjB\"}")
-============================= test.tsx_App_component_div_button_on_click_5a2ivZyN1Y0.js (ENTRY POINT)==
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useCounter } from "./test";
+import { useStore } from "@qwik.dev/core";
+const i_UB6Fs5a3bd8 = ()=>import("./test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8");
+const i_mi4E1piTWe8 = ()=>import("./test.tsx_App_component_div_q_e_click_mi4E1piTWe8");
+export const App_component_ckEPmXZlub0 = (props)=>{
+    const state = useCounter();
+    const thing = useStore({
+        thing: 0
+    });
+    const count2 = state.count * 2;
+    const App_component_div_button_q_e_click_UB6Fs5a3bd8 = /*#__PURE__*/ qrl(i_UB6Fs5a3bd8, "App_component_div_button_q_e_click_UB6Fs5a3bd8", [
+        props,
+        state,
+        thing
+    ]);
+    return /*#__PURE__*/ _jsxSorted("div", {
+        "q-e:click": /*#__PURE__*/ qrl(i_mi4E1piTWe8, "App_component_div_q_e_click_mi4E1piTWe8", [
+            count2,
+            state
+        ])
+    }, null, [
+        /*#__PURE__*/ _jsxSorted("span", null, null, _wrapProp(state, "count"), 3, null),
+        buttons.map((btn)=>/*#__PURE__*/ _jsxSorted("button", {
+                "q-e:click": App_component_div_button_q_e_click_UB6Fs5a3bd8,
+                "q:p": btn
+            }, null, _wrapProp(btn, "name"), 0, "u6_0"))
+    ], 0, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAQ8B,CAAC;IAC9B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;;;;;;IAC7B,qBACC,WAAC;QAAI,WAAQ;;;;;sBACZ,WAAC,8BAAM;QACN,QAAQ,GAAG,CAAC,CAAA,oBACZ,WAAC;gBACA,WAAQ;uBAFG;+BAIV;;AAON\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    181,
+    580
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
 import { STEP } from "./test";
-export const App_component_div_button_on_click_5a2ivZyN1Y0 = (_, _1, btn)=>{
+export const App_component_div_button_q_e_click_UB6Fs5a3bd8 = (_, _1, btn)=>{
     const props = _captures[0], state = _captures[1], thing = _captures[2];
     return state.count += btn.offset + thing + STEP + 2 + props.step;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6DAmBe,QAFC;;WAEK,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OARzC,IAQyD,MAAM,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;8DAmBe,QAFC;;WAEK,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OARzC,IAQyD,MAAM,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_button_on_click_5a2ivZyN1Y0",
+  "name": "App_component_div_button_q_e_click_UB6Fs5a3bd8",
   "entry": null,
-  "displayName": "test.tsx_App_component_div_button_on_click",
-  "hash": "5a2ivZyN1Y0",
-  "canonicalFilename": "test.tsx_App_component_div_button_on_click_5a2ivZyN1Y0",
+  "displayName": "test.tsx_App_component_div_button_q_e_click",
+  "hash": "UB6Fs5a3bd8",
+  "canonicalFilename": "test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
@@ -126,62 +151,37 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+============================= test.tsx_App_component_div_q_e_click_mi4E1piTWe8.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@qwik.dev/core";
-import { _wrapProp } from "@qwik.dev/core";
-import { qrl } from "@qwik.dev/core";
-import { useCounter } from "./test";
-import { useStore } from "@qwik.dev/core";
-const i_5a2ivZyN1Y0 = ()=>import("./test.tsx_App_component_div_button_on_click_5a2ivZyN1Y0");
-const i_V4v7mvdC0xU = ()=>import("./test.tsx_App_component_div_on_click_V4v7mvdC0xU");
-export const App_component_ckEPmXZlub0 = (props)=>{
-    const state = useCounter();
-    const thing = useStore({
-        thing: 0
-    });
-    const count2 = state.count * 2;
-    const App_component_div_button_on_click_5a2ivZyN1Y0 = /*#__PURE__*/ qrl(i_5a2ivZyN1Y0, "App_component_div_button_on_click_5a2ivZyN1Y0", [
-        props,
-        state,
-        thing
-    ]);
-    return /*#__PURE__*/ _jsxSorted("div", {
-        "on:click": /*#__PURE__*/ qrl(i_V4v7mvdC0xU, "App_component_div_on_click_V4v7mvdC0xU", [
-            count2,
-            state
-        ])
-    }, null, [
-        /*#__PURE__*/ _jsxSorted("span", null, null, _wrapProp(state, "count"), 3, null),
-        buttons.map((btn)=>/*#__PURE__*/ _jsxSorted("button", {
-                "on:click": App_component_div_button_on_click_5a2ivZyN1Y0,
-                "q:p": btn
-            }, null, _wrapProp(btn, "name"), 0, "u6_0"))
-    ], 0, "u6_1");
+import { _captures } from "@qwik.dev/core";
+export const App_component_div_q_e_click_mi4E1piTWe8 = ()=>{
+    const count2 = _captures[0], state = _captures[1];
+    return state.count += count2;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAQ8B,CAAC;IAC9B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;;;;;;IAC7B,qBACC,WAAC;QAAI,UAAQ;;;;;sBACZ,WAAC,8BAAM;QACN,QAAQ,GAAG,CAAC,CAAA,oBACZ,WAAC;gBACA,UAAQ;uBAFG;+BAIV;;AAON\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";uDAeiB;;WAAM,MAAM,KAAK,IAAE\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "name": "App_component_div_q_e_click_mi4E1piTWe8",
   "entry": null,
-  "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "displayName": "test.tsx_App_component_div_q_e_click",
+  "hash": "mi4E1piTWe8",
+  "canonicalFilename": "test.tsx_App_component_div_q_e_click_mi4E1piTWe8",
   "path": "",
   "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
   "loc": [
-    181,
-    580
+    340,
+    365
   ],
-  "paramNames": [
-    "props"
+  "captureNames": [
+    "count2",
+    "state"
   ]
 }
 */

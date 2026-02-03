@@ -51,46 +51,6 @@ export const App = component$(() => {
       );
     });
 
-============================= test.tsx_App_component_div_tr_td_a_on_click_Ikaw4baZqAM.js (ENTRY POINT)==
-
-import { _captures } from "@qwik.dev/core";
-export const App_component_div_tr_td_a_on_click_Ikaw4baZqAM = (_, _1, row)=>{
-    const selectedItem = _captures[0];
-    if (selectedItem.value) selectedItem.value.selected.value = false;
-    selectedItem.value = row.value;
-    row.value.selected.value = true;
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8DAe8B,QARH;;IASL,IAAI,aAAa,KAAK,EACpB,aAAa,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG;IAEtC,aAAa,KAAK,GAAG,IAAI,KAAK;IAC9B,IAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_div_tr_td_a_on_click_Ikaw4baZqAM",
-  "entry": null,
-  "displayName": "test.tsx_App_component_div_tr_td_a_on_click",
-  "hash": "Ikaw4baZqAM",
-  "canonicalFilename": "test.tsx_App_component_div_tr_td_a_on_click_Ikaw4baZqAM",
-  "path": "",
-  "extension": "js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    561,
-    838
-  ],
-  "paramNames": [
-    "_",
-    "_",
-    "row"
-  ],
-  "captureNames": [
-    "selectedItem"
-  ]
-}
-*/
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
@@ -100,25 +60,25 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,OAAO,MAAM,oBAAM,4EA0CZ\"}")
-============================= test.tsx_App_component_div_tr_td_a_on_click_1_0BckO6FtVZU.js (ENTRY POINT)==
+============================= test.tsx_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
-export const App_component_div_tr_td_a_on_click_1_0BckO6FtVZU = (_, _1, row)=>{
+export const App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48 = (_, _1, row)=>{
     const data = _captures[0];
     const dataValue = untrack(()=>data.value);
     data.value = dataValue.toSpliced(dataValue.findIndex((d)=>d.value.id === row.value.id), 1);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEA4B8B,QArBH;;IAsBL,MAAM,YAAY,QAAQ,IAAM,KAAK,KAAK;IAC1C,KAAK,KAAK,GAAG,UAAU,SAAS,CAC9B,UAAU,SAAS,CAAC,CAAC,IAAM,EAAE,KAAK,CAAC,EAAE,KAAK,IAAI,KAAK,CAAC,EAAE,GACtD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEA4B8B,QArBH;;IAsBL,MAAM,YAAY,QAAQ,IAAM,KAAK,KAAK;IAC1C,KAAK,KAAK,GAAG,UAAU,SAAS,CAC9B,UAAU,SAAS,CAAC,CAAC,IAAM,EAAE,KAAK,CAAC,EAAE,KAAK,IAAI,KAAK,CAAC,EAAE,GACtD\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_tr_td_a_on_click_1_0BckO6FtVZU",
+  "name": "App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48",
   "entry": null,
-  "displayName": "test.tsx_App_component_div_tr_td_a_on_click_1",
-  "hash": "0BckO6FtVZU",
-  "canonicalFilename": "test.tsx_App_component_div_tr_td_a_on_click_1_0BckO6FtVZU",
+  "displayName": "test.tsx_App_component_div_tr_td_a_q_e_click_1",
+  "hash": "40fnSAlYI48",
+  "canonicalFilename": "test.tsx_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
@@ -151,15 +111,15 @@ const _hf1 = (p0)=>p0.value.id;
 const _hf1_str = "p0.value.id";
 const _hf2 = (p0)=>p0.value.label.value;
 const _hf2_str = "p0.value.label.value";
-const i_0BckO6FtVZU = ()=>import("./test.tsx_App_component_div_tr_td_a_on_click_1_0BckO6FtVZU");
-const i_Ikaw4baZqAM = ()=>import("./test.tsx_App_component_div_tr_td_a_on_click_Ikaw4baZqAM");
+const i_40fnSAlYI48 = ()=>import("./test.tsx_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48");
+const i_lgbZkJXyLtg = ()=>import("./test.tsx_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg");
 export const App_component_ckEPmXZlub0 = ()=>{
     const data = useSignal([]);
     const selectedItem = useSignal(null);
-    const App_component_div_tr_td_a_on_click_Ikaw4baZqAM = /*#__PURE__*/ qrl(i_Ikaw4baZqAM, "App_component_div_tr_td_a_on_click_Ikaw4baZqAM", [
+    const App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg = /*#__PURE__*/ qrl(i_lgbZkJXyLtg, "App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg", [
         selectedItem
     ]);
-    const App_component_div_tr_td_a_on_click_1_0BckO6FtVZU = /*#__PURE__*/ qrl(i_0BckO6FtVZU, "App_component_div_tr_td_a_on_click_1_0BckO6FtVZU", [
+    const App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48 = /*#__PURE__*/ qrl(i_40fnSAlYI48, "App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48", [
         data
     ]);
     return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row)=>/*#__PURE__*/ _jsxSorted("tr", {
@@ -175,7 +135,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
             /*#__PURE__*/ _jsxSorted("td", null, {
                 class: "col-md-4"
             }, /*#__PURE__*/ _jsxSorted("a", {
-                "on:click": App_component_div_tr_td_a_on_click_Ikaw4baZqAM,
+                "q-e:click": App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg,
                 "q:p": row
             }, null, _fnSignal(_hf2, [
                 row
@@ -183,7 +143,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
             /*#__PURE__*/ _jsxSorted("td", null, {
                 class: "col-md-1"
             }, /*#__PURE__*/ _jsxSorted("a", {
-                "on:click": App_component_div_tr_td_a_on_click_1_0BckO6FtVZU,
+                "q-e:click": App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48,
                 "q:p": row
             }, null, /*#__PURE__*/ _jsxSorted("span", null, {
                 "aria-hidden": "true"
@@ -195,7 +155,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAUuB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAEvB,GAAI,KAAK,CAAC,EAAE;;mBAW7B,GAAI,KAAK,CAAC,KAAK,CAAC,KAAK;;;;yCArBZ;IAC7B,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,eAAe,UAAsB;;;;;;;IACxC,qBACI,WAAC,mBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,oBACb,WAAC;YAEC,KAAK;;;;0BAEL,WAAC;gBAAG,OAAM;;;;0BACV,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;uBARD;;;;0BAmBX,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;uBArBD;mCA6BP,WAAC;gBAAK,eAAY;eAAO;0BAG7B,WAAC;gBAAG,OAAM;;cA9BL,QAAQ,IAAM,IAAI,KAAK,CAAC,EAAE;AAmC3C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAUuB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAEvB,GAAI,KAAK,CAAC,EAAE;;mBAW7B,GAAI,KAAK,CAAC,KAAK,CAAC,KAAK;;;;yCArBZ;IAC7B,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,eAAe,UAAsB;;;;;;;IACxC,qBACI,WAAC,mBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,oBACb,WAAC;YAEC,KAAK;;;;0BAEL,WAAC;gBAAG,OAAM;;;;0BACV,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,WAAQ;uBARD;;;;0BAmBX,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,WAAQ;uBArBD;mCA6BP,WAAC;gBAAK,eAAY;eAAO;0BAG7B,WAAC;gBAAG,OAAM;;cA9BL,QAAQ,IAAM,IAAI,KAAK,CAAC,EAAE;AAmC3C\"}")
 /*
 {
   "origin": "test.tsx",
@@ -213,6 +173,46 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     99,
     1547
+  ]
+}
+*/
+============================= test.tsx_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg = (_, _1, row)=>{
+    const selectedItem = _captures[0];
+    if (selectedItem.value) selectedItem.value.selected.value = false;
+    selectedItem.value = row.value;
+    row.value.selected.value = true;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DAe8B,QARH;;IASL,IAAI,aAAa,KAAK,EACpB,aAAa,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG;IAEtC,aAAa,KAAK,GAAG,IAAI,KAAK;IAC9B,IAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_tr_td_a_q_e_click",
+  "hash": "lgbZkJXyLtg",
+  "canonicalFilename": "test.tsx_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    561,
+    838
+  ],
+  "paramNames": [
+    "_",
+    "_",
+    "row"
+  ],
+  "captureNames": [
+    "selectedItem"
   ]
 }
 */

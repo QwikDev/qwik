@@ -6,6 +6,7 @@ import type { Signal } from './signal.public';
 import {
   type AsyncCtx,
   type AsyncQRL,
+  type AsyncSignalOptions,
   type ComputedOptions,
   type ComputeQRL,
   type SerializerArg,
@@ -34,12 +35,13 @@ export const createComputedSignal = <T>(
 /** @internal */
 export const createAsyncSignal = <T>(
   qrl: QRL<(ctx: AsyncCtx) => Promise<T>>,
-  options?: ComputedOptions
+  options?: AsyncSignalOptions<T>
 ): AsyncSignalImpl<T> => {
   return new AsyncSignalImpl<T>(
     options?.container || null,
     qrl as AsyncQRL<T>,
-    getComputedSignalFlags(options?.serializationStrategy || 'never')
+    getComputedSignalFlags(options?.serializationStrategy || 'never'),
+    options
   );
 };
 

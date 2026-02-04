@@ -155,19 +155,21 @@ export const inflate = (
         boolean,
         Error,
         unknown?,
+        number?,
       ];
       asyncSignal.$computeQrl$ = d[0];
       asyncSignal[_EFFECT_BACK_REF] = d[1];
       asyncSignal.$effects$ = new Set(d[2]);
       asyncSignal.$loadingEffects$ = new Set(d[3]);
       asyncSignal.$errorEffects$ = new Set(d[4]);
-      asyncSignal.$untrackedLoading$ = d[5];
+      asyncSignal.$untrackedLoading$ = d[5] || false;
       asyncSignal.$untrackedError$ = d[6];
       const hasValue = d.length > 7;
       if (hasValue) {
         asyncSignal.$untrackedValue$ = d[7];
         asyncSignal.$promiseValue$ = d[7];
       }
+      asyncSignal.$pollMs$ = d[8] ?? 0;
       asyncSignal.$flags$ |= SignalFlags.INVALID;
       break;
     }

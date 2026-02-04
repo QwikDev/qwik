@@ -14,12 +14,14 @@ export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 let preloadCount = 0;
-const queue: BundleImport[] = [];
+
+export const internalQueue: BundleImport[] = [];
+const activePreloads: BundleImport[] = [];
 
 export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
   console.log(
-    `Preloader ${Date.now() - loadStart}ms ${preloadCount}/${queue.length} queued>`,
+    `Preloader ${Date.now() - loadStart}ms ${preloadCount}/${internalQueue.length} queued>`,
     ...args
   );
 };
@@ -29,11 +31,12 @@ export const resetQueue = () => {
   queueDirty = false;
   shouldResetFactor = true;
   preloadCount = 0;
-  queue.length = 0;
+  internalQueue.length = 0;
 };
+
 export const sortQueue = () => {
   if (queueDirty) {
-    queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
+    internalQueue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
     queueDirty = false;
   }
 };
@@ -48,7 +51,7 @@ export const getQueue = () => {
   sortQueue();
   let probability = 0.4;
   const result: (string | number)[] = [];
-  for (const b of queue) {
+  for (const b of internalQueue) {
     const nextProbability = Math.round((1 - b.$inverseProbability$) * 10);
     if (nextProbability !== probability) {
       probability = nextProbability;
@@ -69,12 +72,12 @@ export const getQueue = () => {
  * We make sure to first preload the high priority items.
  */
 export const trigger = () => {
-  if (!queue.length) {
+  if (!internalQueue.length) {
     return;
   }
   sortQueue();
-  while (queue.length) {
-    const bundle = queue[0];
+  while (internalQueue.length) {
+    const bundle = internalQueue[0];
     const inverseProbability = bundle.$inverseProbability$;
     const probability = 1 - inverseProbability;
     const allowedPreloads = graph
@@ -83,7 +86,7 @@ export const trigger = () => {
         5;
     // When we're 99% sure, everything needs to be queued
     if (probability >= 0.99 || preloadCount < allowedPreloads) {
-      queue.shift();
+      internalQueue.shift();
       preloadOne(bundle);
     } else {
       break;
@@ -93,7 +96,7 @@ export const trigger = () => {
    * The low priority bundles are opportunistic, and we want to give the browser some breathing room
    * for other resources, so we cycle between 4 and 10 outstanding modulepreloads.
    */
-  if (config.$DEBUG$ && !queue.length) {
+  if (config.$DEBUG$ && !internalQueue.length) {
     const loaded = [...bundles.values()].filter((b) => b.$state$ > BundleImportState_None);
     const waitTime = loaded.reduce((acc, b) => acc + b.$waitedMs$, 0);
     const loadTime = loaded.reduce((acc, b) => acc + b.$loadedMs$, 0);
@@ -126,18 +129,27 @@ const preloadOne = (bundle: BundleImport) => {
   // Needed when rel is 'preload'
   link.as = 'script';
   // Handle completion of the preload
-  link.onload = link.onerror = () => {
+  link.onload = () => {
     preloadCount--;
+    activePreloads.shift();
     const end = Date.now();
     bundle.$loadedMs$ = end - start;
     bundle.$state$ = BundleImportState_Loaded;
     config.$DEBUG$ && log(`>> done after ${bundle.$loadedMs$}ms`, bundle.$name$);
+
+    const userEventPreloads = activePreloads.filter((item) => item.$inverseProbability$ <= 0.01);
+    window.dispatchEvent(
+      new CustomEvent('newPreloaderInfo', {
+        detail: { userEventPreloads, activePreloads },
+      })
+    );
     // Keep the <head> clean
     link.remove();
+    activePreloads.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
+
     // More bundles may be ready to preload
     trigger();
   };
-
   doc.head.appendChild(link);
 };
 
@@ -173,7 +185,8 @@ export const adjustProbabilities = (
   ) {
     if (bundle.$state$ === BundleImportState_None) {
       bundle.$state$ = BundleImportState_Queued;
-      queue.push(bundle);
+      internalQueue.push(bundle);
+      activePreloads.push(bundle);
       config.$DEBUG$ &&
         log(`queued ${Math.round((1 - bundle.$inverseProbability$) * 100)}%`, bundle.$name$);
     }
@@ -222,6 +235,7 @@ export const adjustProbabilities = (
   }
 };
 
+/** @internal */
 export const handleBundle = (name: string, inverseProbability: number) => {
   const bundle = getBundle(name);
   if (bundle && bundle.$inverseProbability$ > inverseProbability) {
@@ -231,6 +245,7 @@ export const handleBundle = (name: string, inverseProbability: number) => {
 
 let depsCount: number;
 
+/** @internal */
 export const preload = (name: string | (number | string)[], probability?: number) => {
   if (!name?.length) {
     return;

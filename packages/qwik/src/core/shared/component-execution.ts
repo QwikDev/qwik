@@ -259,6 +259,7 @@ function addUseOnEvent(
   }
 }
 
+const getValue = (o: any) => o.value;
 /**
  * Finds the first element node in the JSX output.
  *
@@ -279,7 +280,7 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
     } else if (isPromise<JSXOutput>(jsx)) {
       return maybeThen(jsx, (jsx) => findFirstElementNode(jsx));
     } else if (isSignal(jsx)) {
-      return findFirstElementNode(untrack(() => jsx.value as JSXOutput));
+      return findFirstElementNode(untrack(getValue, jsx));
     }
   }
   return null;

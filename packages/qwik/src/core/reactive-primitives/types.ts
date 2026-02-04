@@ -5,7 +5,7 @@ import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/serdes/verify';
 import type { ComputedFn } from '../use/use-computed';
-import type { AsyncComputedFn } from '../use/use-async-computed';
+import type { AsyncFn } from '../use/use-async';
 import type { Container, SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ISsrNode } from '../ssr/ssr-types';
@@ -34,16 +34,49 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
 }
 
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
-export type AsyncComputedCtx = {
+export type AsyncCtx = {
   track: Tracker;
   cleanup: (callback: () => void) => void;
 };
-export type AsyncComputeQRL<T> = QRLInternal<AsyncComputedFn<T>>;
+export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 
 /** @public */
 export interface ComputedOptions {
   serializationStrategy?: SerializationStrategy;
   container?: Container;
+}
+
+/** @public */
+export interface AsyncSignalOptions<T> extends ComputedOptions {
+  /**
+   * Like useSignal's `initial`; prevents the throw on first read when uninitialized
+   *
+   * @deprecated Not implemented yet
+   */
+  initial?: T | (() => T);
+  /**
+   * When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function
+   * inputs to change.
+   *
+   * @deprecated Not implemented yet
+   * @default false
+   */
+  eagerCleanup?: boolean;
+  /**
+   * Wait for previous invocation to complete before running again.
+   *
+   * @deprecated Not implemented yet
+   * @default true
+   */
+  awaitPrevious?: boolean;
+  /**
+   * In the browser, re-run the function after `poll` ms if subscribers exist, even when no input
+   * state changed. If `0`, does not poll.
+   *
+   * @deprecated Not implemented yet
+   * @default 0
+   */
+  poll?: number;
 }
 
 export const enum SignalFlags {
@@ -57,10 +90,15 @@ export const enum WrappedSignalFlags {
 }
 
 export const enum SerializationSignalFlags {
+  SERIALIZATION_STRATEGY_NEVER = 8,
+  SERIALIZATION_STRATEGY_ALWAYS = 16,
   // TODO: implement this in the future
-  // SERIALIZATION_STRATEGY_AUTO = 8,
-  SERIALIZATION_STRATEGY_NEVER = 16,
-  SERIALIZATION_STRATEGY_ALWAYS = 32,
+  // SERIALIZATION_STRATEGY_AUTO = SERIALIZATION_STRATEGY_NEVER | SERIALIZATION_STRATEGY_ALWAYS,
+}
+
+export const enum AsyncSignalFlags {
+  EAGER_CLEANUP = 32,
+  AWAIT_PREVIOUS = 64,
 }
 
 export type AllSignalFlags = SignalFlags | WrappedSignalFlags | SerializationSignalFlags;

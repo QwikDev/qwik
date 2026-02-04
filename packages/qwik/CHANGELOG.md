@@ -113,13 +113,13 @@
 
 ### Minor Changes
 
-- ✨ `useAsyncComputed$`: rename .resolve() to .promise() (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
+- ✨ `useAsync$`: rename .resolve() to .promise() (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
 
 - ✨ introduce deferUpdates option for useTask$ (by [@Varixo](https://github.com/Varixo) in [#8107](https://github.com/QwikDev/qwik/pull/8107))
 
 - ✨ support promises in attributes (by [@Varixo](https://github.com/Varixo) in [#8117](https://github.com/QwikDev/qwik/pull/8117))
 
-- ✨ change behavior of useAsyncComputed$ to throw only once (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
+- ✨ change behavior of useAsync$ to throw only once (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
 
 ### Patch Changes
 
@@ -326,7 +326,7 @@
 
 ### Minor Changes
 
-- ✨ new hook - useAsyncComputed$ in replacement of useComputed$ with async operations (by [@Varixo](https://github.com/Varixo) in [#7589](https://github.com/QwikDev/qwik/pull/7589))
+- ✨ new hook - useAsync$ in replacement of useComputed$ with async operations (by [@Varixo](https://github.com/Varixo) in [#7589](https://github.com/QwikDev/qwik/pull/7589))
 
 ### Patch Changes
 
@@ -914,7 +914,7 @@
   Again, to get the same functionality use `useTask` or `useResource` instead, or this function:
 
   ```tsx
-  export const useAsyncComputed$ = (qrlFn: QRL<() => Promise<any>>) => {
+  export const useAsync$ = (qrlFn: QRL<() => Promise<any>>) => {
     const sig = useSignal();
     useTask(({ track }) => {
       const result = track(qrlFn);

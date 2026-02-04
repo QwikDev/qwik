@@ -1,7 +1,7 @@
-import { component$, useAsyncComputed$ } from '@qwik.dev/core';
+import { component$, useAsync$ } from '@qwik.dev/core';
 
 export default component$(() => {
-  const async1 = useAsyncComputed$(() => Promise.resolve(1));
+  const async1 = useAsync$(() => Promise.resolve(1));
 
   function notQrl() {
     const x = 1;

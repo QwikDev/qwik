@@ -193,6 +193,7 @@ export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
 
+const getValue = <T extends { value: any }>(obj: T) => obj.value;
 /** @internal */
 export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
@@ -210,6 +211,7 @@ export const routeLoaderQrl = ((
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
     For more information check: https://qwik.dev/docs/re-exporting-loaders/`);
     }
+    const loaderData = state[id];
     // Force the signal to be initialized.
     // It is an async computed signal.
     // We have two options:
@@ -217,8 +219,8 @@ export const routeLoaderQrl = ((
     // - we don't have data yet, so we need to fetch it from the server
     // Calling it will trigger fetch the data from the server.
     // Under the hood, it will throw a promise and await for it, so the client will load the data synchronously.
-    untrack(() => state[id].value);
-    return state[id];
+    untrack(getValue, loaderData);
+    return loaderData;
   }
   loader.__brand = 'server_loader' as const;
   loader.__qrl = loaderQrl;

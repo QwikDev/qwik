@@ -1,5 +1,12 @@
+import {
+  vnode_getFirstChild,
+  vnode_getProp,
+  vnode_getText,
+  vnode_isTextVNode,
+  vnode_isVNode,
+} from '../../client/vnode-utils';
 import { _EFFECT_BACK_REF } from '../../internal';
-import type { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
+import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import type { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import { getStoreHandler, unwrapStore } from '../../reactive-primitives/impl/store';
@@ -10,7 +17,7 @@ import {
   NEEDS_COMPUTATION,
   SignalFlags,
   type AllSignalFlags,
-  type AsyncComputeQRL,
+  type AsyncQRL,
   type Consumer,
   type EffectSubscription,
   type StoreFlags,
@@ -19,31 +26,17 @@ import type { ResourceReturnInternal } from '../../use/use-resource';
 import type { Task } from '../../use/use-task';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
+import { JSXNodeImpl } from '../jsx/jsx-node';
 import { Fragment, Props } from '../jsx/jsx-runtime';
 import { PropsProxy } from '../jsx/props-proxy';
-import { JSXNodeImpl } from '../jsx/jsx-node';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
-import {
-  _CONST_PROPS,
-  _OWNER,
-  _PROPS_HANDLER,
-  _UNINITIALIZED,
-  _VAR_PROPS,
-} from '../utils/constants';
-import { allocate, pendingStoreTargets } from './allocate';
-import { needsInflation } from './deser-proxy';
-import { resolvers } from './allocate';
-import { TypeIds } from './constants';
-import {
-  vnode_getFirstChild,
-  vnode_getProp,
-  vnode_getText,
-  vnode_isTextVNode,
-  vnode_isVNode,
-} from '../../client/vnode-utils';
+import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
+import { allocate, pendingStoreTargets, resolvers } from './allocate';
+import { TypeIds } from './constants';
+import { needsInflation } from './deser-proxy';
 
 export let loading = Promise.resolve();
 
@@ -151,10 +144,10 @@ export const inflate = (
       inflateWrappedSignalValue(signal);
       break;
     }
-    case TypeIds.AsyncComputedSignal: {
-      const asyncComputed = target as AsyncComputedSignalImpl<unknown>;
+    case TypeIds.AsyncSignal: {
+      const asyncSignal = target as AsyncSignalImpl<unknown>;
       const d = data as [
-        AsyncComputeQRL<unknown>,
+        AsyncQRL<unknown>,
         Map<EffectProperty | string, EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
@@ -163,19 +156,19 @@ export const inflate = (
         Error,
         unknown?,
       ];
-      asyncComputed.$computeQrl$ = d[0];
-      asyncComputed[_EFFECT_BACK_REF] = d[1];
-      asyncComputed.$effects$ = new Set(d[2]);
-      asyncComputed.$loadingEffects$ = new Set(d[3]);
-      asyncComputed.$errorEffects$ = new Set(d[4]);
-      asyncComputed.$untrackedLoading$ = d[5];
-      asyncComputed.$untrackedError$ = d[6];
+      asyncSignal.$computeQrl$ = d[0];
+      asyncSignal[_EFFECT_BACK_REF] = d[1];
+      asyncSignal.$effects$ = new Set(d[2]);
+      asyncSignal.$loadingEffects$ = new Set(d[3]);
+      asyncSignal.$errorEffects$ = new Set(d[4]);
+      asyncSignal.$untrackedLoading$ = d[5];
+      asyncSignal.$untrackedError$ = d[6];
       const hasValue = d.length > 7;
       if (hasValue) {
-        asyncComputed.$untrackedValue$ = d[7];
-        asyncComputed.$promiseValue$ = d[7];
+        asyncSignal.$untrackedValue$ = d[7];
+        asyncSignal.$promiseValue$ = d[7];
       }
-      asyncComputed.$flags$ |= SignalFlags.INVALID;
+      asyncSignal.$flags$ |= SignalFlags.INVALID;
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal

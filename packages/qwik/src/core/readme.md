@@ -30,11 +30,29 @@ See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocum
 
 @public
 
+# `useSignal`
+
+Creates an object with a single reactive `.value` property, that Qwik can track across serializations.
+
+Use it to create state for your application. The object has a getter and setter to track reads and writes of the `.value` property. When the value changes, any functions that read from it will re-run.
+
+Prefer `useSignal` over `useStore` when possible, as it is more efficient.
+
+### Example
+
+<docs code="./examples.tsx#use-signal"/>
+
+@public
+
 # `useStore`
 
-Creates an object that Qwik can track across serializations.
+Creates a reactive object that Qwik can track across serialization.
 
-Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+Use it to create state for your application. The returned object is a Proxy that tracks reads and writes. When any of the properties change, the functions that read those properties will re-run.
+
+`Store`s are deep by default, meaning that any objects assigned to properties will also become `Store`s. This includes arrays.
+
+Prefer `useSignal` over `useStore` when possible, as it is more efficient.
 
 ### Example
 

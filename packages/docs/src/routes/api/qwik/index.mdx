@@ -120,18 +120,18 @@ Expression which should be lazy loaded
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
-## AsyncComputedFn
+## AsyncFn
 
 ```typescript
-export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
+export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 
-## AsyncComputedReadonlySignal
+## AsyncSignal
 
 ```typescript
-export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T>
+export interface AsyncSignal<T = unknown> extends ComputedSignal<T>
 ```
 
 **Extends:** [ComputedSignal](#computedsignal)&lt;T&gt;
@@ -161,7 +161,7 @@ Description
 
 </td><td>
 
-Error \| null
+Error \| undefined
 
 </td><td>
 
@@ -196,7 +196,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[promise()](#asynccomputedreadonlysignal-promise)
+[promise()](#asyncsignal-promise)
 
 </td><td>
 
@@ -206,19 +206,6 @@ A promise that resolves when the value is computed.
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
-
-## AsyncComputedReturnType
-
-```typescript
-export type AsyncComputedReturnType<T> =
-  T extends Promise<infer T>
-    ? AsyncComputedReadonlySignal<T>
-    : AsyncComputedReadonlySignal<T>;
-```
-
-**References:** [AsyncComputedReadonlySignal](#asynccomputedreadonlysignal)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts)
 
 ## cache
 
@@ -333,11 +320,11 @@ export interface CounterProps {
   step?: number;
 }
 export const Counter = component$((props: CounterProps) => {
-  const state = useStore({ count: props.initialValue || 0 });
+  const state = useSignal(props.initialValue || 0);
   return (
     <div>
-      <span>{state.count}</span>
-      <button onClick$={() => (state.count += props.step || 1)}>+</button>
+      <span>{state.value}</span>
+      <button onClick$={() => (state.value += props.step || 1)}>+</button>
     </div>
   );
 });
@@ -830,15 +817,15 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
-## createAsyncComputed$
+## createAsync$
 
 Create an async computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals or async operation. When the signals change, the computed signal is recalculated.
 
 The QRL must be a function which returns the value of the signal. The function must not have side effects, and it can be async.
 
 ```typescript
-createAsyncComputed$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) =>
-  AsyncComputedReturnType<T>;
+createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) =>
+  AsyncSignal<T>;
 ```
 
 <table><thead><tr><th>
@@ -882,7 +869,7 @@ _(Optional)_
 
 **Returns:**
 
-[AsyncComputedReturnType](#asynccomputedreturntype)&lt;T&gt;
+[AsyncSignal](#asyncsignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
@@ -892,7 +879,7 @@ Create a computed signal which is calculated from the given QRL. A computed sign
 
 The QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.
 
-If you need the function to be async, use `useAsyncComputed$` instead.
+If you need the function to be async, use `useAsync$` instead.
 
 ```typescript
 createComputed$: <T>(qrl: () => T, options?: ComputedOptions) =>
@@ -8880,6 +8867,8 @@ const Cmp = component$(() => {
   useTask$(({ track }) => {
     // Any signals or stores accessed inside the task will be tracked
     const count = track(() => store.count);
+    // For stores you can also pass the store and specify the property
+    track(store, "count");
     // You can also pass a signal to track() directly
     const signalCount = track(signal);
     store.doubleCount = count + signalCount;
@@ -9010,17 +8999,21 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts)
 
-## useAsyncComputed$
+## useAsync$
 
-Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+Creates an AsyncSignal which holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.
 
-The function must be synchronous and must not have any side effects.
+If the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.
+
+While the async function is running, the `loading` property will be set to `true`. Once the function completes, `loading` will be set to `false`.
+
+If the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.
+
+If the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.
 
 ```typescript
-useAsyncComputed$: <T>(
-  qrl: AsyncComputedFn<T>,
-  options?: ComputedOptions | undefined,
-) => AsyncComputedReturnType<T>;
+useAsync$: <T>(qrl: AsyncFn<T>, options?: ComputedOptions | undefined) =>
+  AsyncSignal<T>;
 ```
 
 <table><thead><tr><th>
@@ -9042,7 +9035,7 @@ qrl
 
 </td><td>
 
-[AsyncComputedFn](#asynccomputedfn)&lt;T&gt;
+[AsyncFn](#asyncfn)&lt;T&gt;
 
 </td><td>
 
@@ -9064,9 +9057,9 @@ _(Optional)_
 
 **Returns:**
 
-[AsyncComputedReturnType](#asynccomputedreturntype)&lt;T&gt;
+[AsyncSignal](#asyncsignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 
 ## useComputed$
 
@@ -9128,10 +9121,11 @@ _(Optional)_
 
 Stores a value which is retained for the lifetime of the component. Subsequent calls to `useConstant` will always return the first value given.
 
-If the value is a function, the function is invoked once to calculate the actual value.
+If the value is a function, the function is invoked once to calculate the actual value. You can then also pass arguments to call the function with, so that you don't need to create a new function on every render.
 
 ```typescript
-useConstant: <T>(value: (() => T) | T) => T;
+useConstant: <T, A extends any[]>(value: ((...args: A) => T) | T, ...args: A) =>
+  T;
 ```
 
 <table><thead><tr><th>
@@ -9153,7 +9147,18 @@ value
 
 </td><td>
 
-(() =&gt; T) \| T
+((...args: A) =&gt; T) \| T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+args
+
+</td><td>
+
+A
 
 </td><td>
 
@@ -9163,6 +9168,14 @@ value
 **Returns:**
 
 T
+
+```tsx
+const fixedRandomValue = useConstant(() => Math.random);
+const otherFixedRandomValue = useConstant(Math.random);
+
+const getConfig = (env: string) => { ... }
+const config = useConstant(getConfig, environment);
+```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
@@ -9682,6 +9695,43 @@ T \| undefined
 
 ## useSignal
 
+Creates an object with a single reactive `.value` property, that Qwik can track across serializations.
+
+Use it to create state for your application. The object has a getter and setter to track reads and writes of the `.value` property. When the value changes, any functions that read from it will re-run.
+
+Prefer `useSignal` over `useStore` when possible, as it is more efficient.
+
+### Example
+
+```tsx
+const Signals = component$(() => {
+  const counter = useSignal(1);
+  const text = useSignal('changeme');
+  const toggle = useSignal(false);
+
+  // useSignal() can also accept a function to calculate the initial value
+  const state = useSignal(() => {
+    return expensiveInitialValue();
+  });
+
+  return (
+    <div>
+      <button onClick$={() => counter.value++}>Counter: {counter.value}</button>
+      {
+        // pass signal values as the value, the optimizer will make it pass the signal
+      }
+      <Child state={state.value} />
+      {
+        // signals can be bound to inputs. A property named `bind:x` implies that the property
+is a signal
+      }
+      <input type="text" bind:value={text} />
+      <input type="checkbox" bind:checked={toggle} />
+    </div>
+  );
+});
+```
+
 ```typescript
 useSignal: UseSignal;
 ```
@@ -9689,6 +9739,43 @@ useSignal: UseSignal;
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
 ## UseSignal
+
+Creates an object with a single reactive `.value` property, that Qwik can track across serializations.
+
+Use it to create state for your application. The object has a getter and setter to track reads and writes of the `.value` property. When the value changes, any functions that read from it will re-run.
+
+Prefer `useSignal` over `useStore` when possible, as it is more efficient.
+
+### Example
+
+```tsx
+const Signals = component$(() => {
+  const counter = useSignal(1);
+  const text = useSignal('changeme');
+  const toggle = useSignal(false);
+
+  // useSignal() can also accept a function to calculate the initial value
+  const state = useSignal(() => {
+    return expensiveInitialValue();
+  });
+
+  return (
+    <div>
+      <button onClick$={() => counter.value++}>Counter: {counter.value}</button>
+      {
+        // pass signal values as the value, the optimizer will make it pass the signal
+      }
+      <Child state={state.value} />
+      {
+        // signals can be bound to inputs. A property named `bind:x` implies that the property
+is a signal
+      }
+      <input type="text" bind:value={text} />
+      <input type="checkbox" bind:checked={toggle} />
+    </div>
+  );
+});
+```
 
 ```typescript
 useSignal: UseSignal;
@@ -9698,9 +9785,13 @@ useSignal: UseSignal;
 
 ## useStore
 
-Creates an object that Qwik can track across serializations.
+Creates a reactive object that Qwik can track across serialization.
 
-Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+Use it to create state for your application. The returned object is a Proxy that tracks reads and writes. When any of the properties change, the functions that read those properties will re-run.
+
+`Store`s are deep by default, meaning that any objects assigned to properties will also become `Store`s. This includes arrays.
+
+Prefer `useSignal` over `useStore` when possible, as it is more efficient.
 
 ### Example
 

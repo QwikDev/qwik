@@ -42,6 +42,11 @@ env:
   # Disable incremental build, speeds up CI
   CARGO_INCREMENTAL: 0
 
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
 jobs:
   changes:
     name: Setup
@@ -909,8 +914,6 @@ jobs:
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Fixup package.json files
         run: pnpm run release.fixup-package-json

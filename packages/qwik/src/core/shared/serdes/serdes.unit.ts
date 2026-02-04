@@ -2,6 +2,7 @@ import {
   $,
   _verifySerializable,
   componentQrl,
+  createAsync$,
   createComputedQrl,
   createSerializer$,
   createSignal,
@@ -9,6 +10,7 @@ import {
   noSerialize,
   NoSerializeSymbol,
   SerializerSymbol,
+  type AsyncSignal,
 } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { _deserialize, _fnSignal, _serialize, _wrapProp } from '../../internal';
@@ -31,6 +33,7 @@ import { _dumpState } from './dump-state';
 import { _createDeserializeContainer } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
 import { _serializationWeakRef } from './serialize';
+import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 
 const DEBUG = false;
 
@@ -674,6 +677,14 @@ describe('shared-serialization', () => {
           serializationStrategy: 'always',
         }
       );
+      const polling = createAsyncSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'polling',
+          [foo]
+        ),
+        { pollMs: 100 }
+      );
 
       await retryOnPromise(() => {
         // note that this won't subscribe because we're not setting up the context
@@ -682,52 +693,49 @@ describe('shared-serialization', () => {
         expect(always.value).toBe(2);
       });
 
-      const objs = await serialize(dirty, clean, never, always);
+      const objs = await serialize(dirty, clean, never, always, polling);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 AsyncSignal [
-          QRL "5#6#4"
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant false
+          QRL "6#7#5"
         ]
         1 AsyncSignal [
-          QRL "5#7#4"
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant false
+          QRL "6#8#5"
         ]
         2 AsyncSignal [
-          QRL "5#8#4"
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant false
+          QRL "6#9#5"
         ]
         3 AsyncSignal [
-          QRL "5#9#4"
+          QRL "6#10#5"
           Constant undefined
           Constant undefined
           Constant undefined
           Constant undefined
-          Constant false
+          Constant undefined
           Constant undefined
           {number} 2
         ]
-        4 Signal [
+        4 AsyncSignal [
+          QRL "6#11#5"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant NEEDS_COMPUTATION
+          {number} 100
+        ]
+        5 Signal [
           {number} 1
         ]
-        5 {string} "mock-chunk"
-        6 {string} "dirty"
-        7 {string} "clean"
-        8 {string} "never"
-        9 {string} "always"
-        (214 chars)"
+        6 {string} "mock-chunk"
+        7 {string} "dirty"
+        8 {string} "clean"
+        9 {string} "never"
+        10 {string} "always"
+        11 {string} "polling"
+        (217 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -1009,6 +1017,16 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.WrappedSignal));
     it.todo(title(TypeIds.ComputedSignal));
     it.todo(title(TypeIds.SerializerSignal));
+    it(title(TypeIds.AsyncSignal), async () => {
+      const asyncSignal = createAsync$(async () => 123, { pollMs: 50 });
+      const objs = await serialize(asyncSignal);
+      const restored = deserialize(objs)[0] as AsyncSignal<number>;
+      expect(isSignal(restored)).toBeTruthy();
+      expect((restored as AsyncSignalImpl<number>).$pollMs$).toBe(50);
+      await restored.promise();
+      // note that this won't subscribe because we're not setting up the context
+      expect(restored.value).toBe(123);
+    });
     // this requires a domcontainer
     it(title(TypeIds.Store), async () => {
       const orig: any = { a: { b: true } };

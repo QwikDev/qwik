@@ -424,6 +424,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
         const isInvalid = value.$flags$ & SignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
+        const pollMs = value instanceof AsyncSignalImpl ? value.$pollMs$ : 0;
 
         if (shouldAlwaysSerialize) {
           v = value.$untrackedValue$;
@@ -443,14 +444,14 @@ export async function serialize(serializationContext: SerializationContext): Pro
           out.push(
             value.$loadingEffects$,
             value.$errorEffects$,
-            value.$untrackedLoading$,
+            value.$untrackedLoading$ || undefined,
             value.$untrackedError$
           );
         }
 
         let keepUndefined = false;
 
-        if (v !== NEEDS_COMPUTATION) {
+        if (v !== NEEDS_COMPUTATION || pollMs) {
           out.push(v);
 
           if (!isAsync && v === undefined) {
@@ -461,6 +462,9 @@ export async function serialize(serializationContext: SerializationContext): Pro
              */
             keepUndefined = true;
           }
+        }
+        if (pollMs) {
+          out.push(pollMs);
         }
         output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out, keepUndefined);
       } else {

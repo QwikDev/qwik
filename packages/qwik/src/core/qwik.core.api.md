@@ -189,14 +189,16 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
+// Warning: (ae-forgotten-export) The symbol "AsyncSignalOptions" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncSignal<T>;
+export const createAsync$: <T>(qrl: () => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
 
 // Warning: (ae-forgotten-export) The symbol "AsyncSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const createAsyncQrl: <T>(qrl: QRL<(ctx: AsyncCtx) => Promise<T>>, options?: ComputedOptions) => AsyncSignalImpl<T>;
+export const createAsyncQrl: <T>(qrl: QRL<(ctx: AsyncCtx) => Promise<T>>, options?: AsyncSignalOptions<T>) => AsyncSignalImpl<T>;
 
 // @public
 export const createComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>;

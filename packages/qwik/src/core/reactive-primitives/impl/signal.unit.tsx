@@ -7,7 +7,7 @@ import { inlinedQrl } from '../../shared/qrl/qrl';
 import { type QRLInternal } from '../../shared/qrl/qrl-class';
 import { type QRL } from '../../shared/qrl/qrl.public';
 import type { Container, HostElement } from '../../shared/types';
-import { retryOnPromise } from '../../shared/utils/promises';
+import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import {
@@ -21,6 +21,7 @@ import {
   createComputedQrl,
   createSerializer$,
   createSignal,
+  createAsync$,
   type ComputedSignal,
   type SerializerSignal,
   type Signal,
@@ -29,6 +30,7 @@ import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from '../../shared/utils/markers';
 import type { ComputedSignalImpl } from './computed-signal-impl';
+import type { AsyncSignalImpl } from './async-signal-impl';
 
 class Foo {
   constructor(public val: number = 0) {}
@@ -268,6 +270,65 @@ describe('signal', () => {
         expect(wrapped).not.toBe(signal);
         const wrapped2 = _wrapProp(wrapped);
         expect(wrapped2).toBe(wrapped);
+      });
+    });
+    describe('async signal with poll', () => {
+      it('should store poll ms on instance', async () => {
+        await withContainer(async () => {
+          const pollMs = 50;
+          const signal = createAsync$(async () => 42, { pollMs }) as AsyncSignalImpl<number>;
+
+          // Verify poll is stored on instance
+          expect(signal.$pollMs$).toBe(pollMs);
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should clear poll timeout on invalidate', async () => {
+        await withContainer(async () => {
+          const pollMs = 1;
+          const signal = createAsync$(async () => 42, { pollMs }) as AsyncSignalImpl<number>;
+
+          // Subscribe to create effects
+          await retryOnPromise(async () => {
+            effect$(() => signal.value);
+          });
+
+          // Invalidate signal - should clear any pending poll timeout
+          signal.invalidate();
+
+          // Poll timeout should be cleared
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should poll', async () => {
+        await withContainer(async () => {
+          const pollMs = 1;
+          const ref = { count: 42 };
+          const signal = createAsync$(async () => ref.count++, {
+            pollMs,
+          }) as AsyncSignalImpl<number>;
+
+          // Subscribe to create effects
+          await retryOnPromise(async () => {
+            effect$(() => signal.value);
+            await delay(10);
+            expect(signal.value).toBeGreaterThan(42);
+          });
+        });
+      });
+
+      it('should preserve poll setting for SSR hydration', async () => {
+        await withContainer(async () => {
+          const pollMs = 75;
+          const signal = createAsync$(async () => 99, { pollMs }) as AsyncSignalImpl<number>;
+
+          // Verify poll is preserved on instance (for SSR scenarios)
+          // Even on SSR (when isBrowser is false), the pollMs should be stored
+          // so that if the signal is hydrated on the browser, polling can resume
+          expect(signal.$pollMs$).toBe(pollMs);
+        });
       });
     });
   });

@@ -1,3 +1,4 @@
+import { isBrowser } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
 import type { NoSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
@@ -13,6 +14,7 @@ import {
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
   SignalFlags,
+  type AsyncSignalOptions,
 } from '../types';
 import { scheduleEffects } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
@@ -39,15 +41,19 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   $destroy$: NoSerialize<() => void> | null;
   $promiseValue$: T | typeof NEEDS_COMPUTATION = NEEDS_COMPUTATION;
   private $promise$: ValueOrPromise<T> | null = null;
+  $pollMs$: number = 0;
+  $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined = undefined;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
   constructor(
     container: Container | null,
     fn: AsyncQRL<T>,
-    flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID
+    flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID,
+    options?: AsyncSignalOptions<T>
   ) {
     super(container, fn, flags);
+    this.$pollMs$ = options?.pollMs || 0;
   }
 
   /**
@@ -95,6 +101,11 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   }
 
   override invalidate() {
+    // clear the poll timeout before invalidating
+    if (this.$pollTimeoutId$ !== undefined) {
+      clearTimeout(this.$pollTimeoutId$);
+      this.$pollTimeoutId$ = undefined;
+    }
     // clear the promise, we need to get function again
     this.$promise$ = null;
     super.invalidate();
@@ -142,6 +153,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
             this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
             scheduleEffects(this.$container$, this, this.$effects$);
           }
+          this.$scheduleNextPoll$();
         })
         .catch((err) => {
           if (isPromise(err)) {
@@ -152,6 +164,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
           this.$promiseValue$ = err;
           this.untrackedLoading = false;
           this.untrackedError = err;
+          this.$scheduleNextPoll$();
         });
 
       if (isFirstComputation) {
@@ -225,5 +238,20 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
       this.$flags$ |= SignalFlags.RUN_EFFECTS;
     }
     return didChange;
+  }
+
+  private $scheduleNextPoll$() {
+    if ((isBrowser || import.meta.env.TEST) && this.$pollMs$ > 0 && this.$effects$?.size) {
+      if (this.$pollTimeoutId$ !== undefined) {
+        clearTimeout(this.$pollTimeoutId$);
+      }
+      this.$pollTimeoutId$ = setTimeout(() => {
+        this.invalidate();
+        if (this.$effects$?.size) {
+          retryOnPromise(this.$computeIfNeeded$.bind(this));
+        }
+      }, this.$pollMs$);
+      this.$pollTimeoutId$?.unref?.();
+    }
   }
 }

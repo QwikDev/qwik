@@ -221,46 +221,32 @@
       "mdFile": "core._.md"
     },
     {
-      "name": "AsyncComputedFn",
-      "id": "asynccomputedfn",
+      "name": "AsyncFn",
+      "id": "asyncfn",
       "hierarchy": [
         {
-          "name": "AsyncComputedFn",
-          "id": "asynccomputedfn"
+          "name": "AsyncFn",
+          "id": "asyncfn"
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
-      "mdFile": "core.asynccomputedfn.md"
+      "content": "```typescript\nexport type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts",
+      "mdFile": "core.asyncfn.md"
     },
     {
-      "name": "AsyncComputedReadonlySignal",
-      "id": "asynccomputedreadonlysignal",
+      "name": "AsyncSignal",
+      "id": "asyncsignal",
       "hierarchy": [
         {
-          "name": "AsyncComputedReadonlySignal",
-          "id": "asynccomputedreadonlysignal"
+          "name": "AsyncSignal",
+          "id": "asyncsignal"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| null\n\n\n</td><td>\n\nThe error that occurred while computing the signal.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[promise()](#asynccomputedreadonlysignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
-      "mdFile": "core.asynccomputedreadonlysignal.md"
-    },
-    {
-      "name": "AsyncComputedReturnType",
-      "id": "asynccomputedreturntype",
-      "hierarchy": [
-        {
-          "name": "AsyncComputedReturnType",
-          "id": "asynccomputedreturntype"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;\n```\n**References:** [AsyncComputedReadonlySignal](#asynccomputedreadonlysignal)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
-      "mdFile": "core.asynccomputedreturntype.md"
+      "mdFile": "core.asyncsignal.md"
     },
     {
       "name": "cache",
@@ -334,7 +320,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponent$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Component<PROPS>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nonMount\n\n\n</td><td>\n\n[OnRenderFn](#onrenderfn)<!-- -->&lt;PROPS&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[Component](#component)<!-- -->&lt;PROPS&gt;",
+      "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useSignal(props.initialValue || 0);\n  return (\n    <div>\n      <span>{state.value}</span>\n      <button onClick$={() => (state.value += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponent$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Component<PROPS>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nonMount\n\n\n</td><td>\n\n[OnRenderFn](#onrenderfn)<!-- -->&lt;PROPS&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[Component](#component)<!-- -->&lt;PROPS&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts",
       "mdFile": "core.component_.md"
     },
@@ -451,18 +437,18 @@
       "mdFile": "core.correctedtoggleevent.md"
     },
     {
-      "name": "createAsyncComputed$",
-      "id": "createasynccomputed_",
+      "name": "createAsync$",
+      "id": "createasync_",
       "hierarchy": [
         {
-          "name": "createAsyncComputed$",
-          "id": "createasynccomputed_"
+          "name": "createAsync$",
+          "id": "createasync_"
         }
       ],
       "kind": "Function",
-      "content": "Create an async computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals or async operation. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it can be async.\n\n\n```typescript\ncreateAsyncComputed$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncComputedReturnType](#asynccomputedreturntype)<!-- -->&lt;T&gt;",
+      "content": "Create an async computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals or async operation. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it can be async.\n\n\n```typescript\ncreateAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
-      "mdFile": "core.createasynccomputed_.md"
+      "mdFile": "core.createasync_.md"
     },
     {
       "name": "createComputed$",
@@ -474,7 +460,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.\n\nIf you need the function to be async, use `useAsyncComputed$` instead.\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
+      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.\n\nIf you need the function to be async, use `useAsync$` instead.\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.createcomputed_.md"
     },
@@ -1257,20 +1243,20 @@
     },
     {
       "name": "promise",
-      "id": "asynccomputedreadonlysignal-promise",
+      "id": "asyncsignal-promise",
       "hierarchy": [
         {
-          "name": "AsyncComputedReadonlySignal",
-          "id": "asynccomputedreadonlysignal-promise"
+          "name": "AsyncSignal",
+          "id": "asyncsignal-promise"
         },
         {
           "name": "promise",
-          "id": "asynccomputedreadonlysignal-promise"
+          "id": "asyncsignal-promise"
         }
       ],
       "kind": "MethodSignature",
       "content": "A promise that resolves when the value is computed.\n\n\n```typescript\npromise(): Promise<T>;\n```\n**Returns:**\n\nPromise&lt;T&gt;",
-      "mdFile": "core.asynccomputedreadonlysignal.promise.md"
+      "mdFile": "core.asyncsignal.promise.md"
     },
     {
       "name": "PropFunction",
@@ -2318,7 +2304,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "Used to signal to Qwik which state should be watched for changes.\n\nThe `Tracker` is passed into the `taskFn` of `useTask`<!-- -->. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `taskFn` to rerun.\n\n\\#\\#\\# Example\n\nThe `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `taskFn` to rerun.\n\n```tsx\nconst Cmp = component$(() => {\n  const store = useStore({ count: 0, doubleCount: 0 });\n  const signal = useSignal(0);\n  useTask$(({ track }) => {\n    // Any signals or stores accessed inside the task will be tracked\n    const count = track(() => store.count);\n    // You can also pass a signal to track() directly\n    const signalCount = track(signal);\n    store.doubleCount = count + signalCount;\n  });\n  return (\n    <div>\n      <span>\n        {store.count} / {store.doubleCount}\n      </span>\n      <button\n        onClick$={() => {\n          store.count++;\n          signal.value++;\n        }}\n      >\n        +\n      </button>\n    </div>\n  );\n});\n```\n\n\n```typescript\nexport interface Tracker \n```",
+      "content": "Used to signal to Qwik which state should be watched for changes.\n\nThe `Tracker` is passed into the `taskFn` of `useTask`<!-- -->. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `taskFn` to rerun.\n\n\\#\\#\\# Example\n\nThe `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `taskFn` to rerun.\n\n```tsx\nconst Cmp = component$(() => {\n  const store = useStore({ count: 0, doubleCount: 0 });\n  const signal = useSignal(0);\n  useTask$(({ track }) => {\n    // Any signals or stores accessed inside the task will be tracked\n    const count = track(() => store.count);\n    // For stores you can also pass the store and specify the property\n    track(store, 'count');\n    // You can also pass a signal to track() directly\n    const signalCount = track(signal);\n    store.doubleCount = count + signalCount;\n  });\n  return (\n    <div>\n      <span>\n        {store.count} / {store.doubleCount}\n      </span>\n      <button\n        onClick$={() => {\n          store.count++;\n          signal.value++;\n        }}\n      >\n        +\n      </button>\n    </div>\n  );\n});\n```\n\n\n```typescript\nexport interface Tracker \n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "core.tracker.md"
     },
@@ -2351,18 +2337,18 @@
       "mdFile": "core.unwrapstore.md"
     },
     {
-      "name": "useAsyncComputed$",
-      "id": "useasynccomputed_",
+      "name": "useAsync$",
+      "id": "useasync_",
       "hierarchy": [
         {
-          "name": "useAsyncComputed$",
-          "id": "useasynccomputed_"
+          "name": "useAsync$",
+          "id": "useasync_"
         }
       ],
       "kind": "Function",
-      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseAsyncComputed$: <T>(qrl: AsyncComputedFn<T>, options?: ComputedOptions | undefined) => AsyncComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[AsyncComputedFn](#asynccomputedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncComputedReturnType](#asynccomputedreturntype)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
-      "mdFile": "core.useasynccomputed_.md"
+      "content": "Creates an AsyncSignal which holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.\n\nIf the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.\n\nWhile the async function is running, the `loading` property will be set to `true`<!-- -->. Once the function completes, `loading` will be set to `false`<!-- -->.\n\nIf the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.\n\nIf the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.\n\n\n```typescript\nuseAsync$: <T>(qrl: AsyncFn<T>, options?: ComputedOptions | undefined) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[AsyncFn](#asyncfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts",
+      "mdFile": "core.useasync_.md"
     },
     {
       "name": "useComputed$",
@@ -2388,7 +2374,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Stores a value which is retained for the lifetime of the component. Subsequent calls to `useConstant` will always return the first value given.\n\nIf the value is a function, the function is invoked once to calculate the actual value.\n\n\n```typescript\nuseConstant: <T>(value: (() => T) | T) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n(() =&gt; T) \\| T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT",
+      "content": "Stores a value which is retained for the lifetime of the component. Subsequent calls to `useConstant` will always return the first value given.\n\nIf the value is a function, the function is invoked once to calculate the actual value. You can then also pass arguments to call the function with, so that you don't need to create a new function on every render.\n\n\n```typescript\nuseConstant: <T, A extends any[]>(value: ((...args: A) => T) | T, ...args: A) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n((...args: A) =&gt; T) \\| T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nargs\n\n\n</td><td>\n\nA\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT\n\n\n\n```tsx\nconst fixedRandomValue = useConstant(() => Math.random);\nconst otherFixedRandomValue = useConstant(Math.random);\n\nconst getConfig = (env: string) => { ... }\nconst config = useConstant(getConfig, environment);\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "core.useconstant.md"
     },
@@ -2542,7 +2528,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nuseSignal: UseSignal\n```",
+      "content": "Creates an object with a single reactive `.value` property, that Qwik can track across serializations.\n\nUse it to create state for your application. The object has a getter and setter to track reads and writes of the `.value` property. When the value changes, any functions that read from it will re-run.\n\nPrefer `useSignal` over `useStore` when possible, as it is more efficient.\n\n\\#\\#\\# Example\n\n```tsx\nconst Signals = component$(() => {\n  const counter = useSignal(1);\n  const text = useSignal('changeme');\n  const toggle = useSignal(false);\n\n  // useSignal() can also accept a function to calculate the initial value\n  const state = useSignal(() => {\n    return expensiveInitialValue();\n  });\n\n  return (\n    <div>\n      <button onClick$={() => counter.value++}>Counter: {counter.value}</button>\n      {\n        // pass signal values as the value, the optimizer will make it pass the signal\n      }\n      <Child state={state.value} />\n      {\n        // signals can be bound to inputs. A property named `bind:x` implies that the property\nis a signal\n      }\n      <input type=\"text\" bind:value={text} />\n      <input type=\"checkbox\" bind:checked={toggle} />\n    </div>\n  );\n});\n```\n\n\n```typescript\nuseSignal: UseSignal\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "core.usesignal.md"
     },
@@ -2556,7 +2542,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nuseSignal: UseSignal\n```",
+      "content": "Creates an object with a single reactive `.value` property, that Qwik can track across serializations.\n\nUse it to create state for your application. The object has a getter and setter to track reads and writes of the `.value` property. When the value changes, any functions that read from it will re-run.\n\nPrefer `useSignal` over `useStore` when possible, as it is more efficient.\n\n\\#\\#\\# Example\n\n```tsx\nconst Signals = component$(() => {\n  const counter = useSignal(1);\n  const text = useSignal('changeme');\n  const toggle = useSignal(false);\n\n  // useSignal() can also accept a function to calculate the initial value\n  const state = useSignal(() => {\n    return expensiveInitialValue();\n  });\n\n  return (\n    <div>\n      <button onClick$={() => counter.value++}>Counter: {counter.value}</button>\n      {\n        // pass signal values as the value, the optimizer will make it pass the signal\n      }\n      <Child state={state.value} />\n      {\n        // signals can be bound to inputs. A property named `bind:x` implies that the property\nis a signal\n      }\n      <input type=\"text\" bind:value={text} />\n      <input type=\"checkbox\" bind:checked={toggle} />\n    </div>\n  );\n});\n```\n\n\n```typescript\nuseSignal: UseSignal\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "core.usesignal.md"
     },
@@ -2570,7 +2556,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Creates an object that Qwik can track across serializations.\n\nUse `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`<!-- -->s to refer to the store.\n\n\\#\\#\\# Example\n\nExample showing how `useStore` is used in Counter example to keep track of the count.\n\n```tsx\nconst Stores = component$(() => {\n  const counter = useCounter(1);\n\n  // Reactivity happens even for nested objects and arrays\n  const userData = useStore({\n    name: 'Manu',\n    address: {\n      address: '',\n      city: '',\n    },\n    orgs: [],\n  });\n\n  // useStore() can also accept a function to calculate the initial value\n  const state = useStore(() => {\n    return {\n      value: expensiveInitialValue(),\n    };\n  });\n\n  return (\n    <div>\n      <div>Counter: {counter.value}</div>\n      <Child userData={userData} state={state} />\n    </div>\n  );\n});\n\nfunction useCounter(step: number) {\n  // Multiple stores can be created in custom hooks for convenience and composability\n  const counterStore = useStore({\n    value: 0,\n  });\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      counterStore.value += step;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n  return counterStore;\n}\n```\n\n\n```typescript\nuseStore: <STATE extends object>(initialState: STATE | (() => STATE), opts?: UseStoreOptions) => STATE\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninitialState\n\n\n</td><td>\n\nSTATE \\| (() =&gt; STATE)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[UseStoreOptions](#usestoreoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nSTATE",
+      "content": "Creates a reactive object that Qwik can track across serialization.\n\nUse it to create state for your application. The returned object is a Proxy that tracks reads and writes. When any of the properties change, the functions that read those properties will re-run.\n\n`Store`<!-- -->s are deep by default, meaning that any objects assigned to properties will also become `Store`<!-- -->s. This includes arrays.\n\nPrefer `useSignal` over `useStore` when possible, as it is more efficient.\n\n\\#\\#\\# Example\n\nExample showing how `useStore` is used in Counter example to keep track of the count.\n\n```tsx\nconst Stores = component$(() => {\n  const counter = useCounter(1);\n\n  // Reactivity happens even for nested objects and arrays\n  const userData = useStore({\n    name: 'Manu',\n    address: {\n      address: '',\n      city: '',\n    },\n    orgs: [],\n  });\n\n  // useStore() can also accept a function to calculate the initial value\n  const state = useStore(() => {\n    return {\n      value: expensiveInitialValue(),\n    };\n  });\n\n  return (\n    <div>\n      <div>Counter: {counter.value}</div>\n      <Child userData={userData} state={state} />\n    </div>\n  );\n});\n\nfunction useCounter(step: number) {\n  // Multiple stores can be created in custom hooks for convenience and composability\n  const counterStore = useStore({\n    value: 0,\n  });\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      counterStore.value += step;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n  return counterStore;\n}\n```\n\n\n```typescript\nuseStore: <STATE extends object>(initialState: STATE | (() => STATE), opts?: UseStoreOptions) => STATE\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninitialState\n\n\n</td><td>\n\nSTATE \\| (() =&gt; STATE)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[UseStoreOptions](#usestoreoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nSTATE",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts",
       "mdFile": "core.usestore.md"
     },

@@ -14,7 +14,9 @@ import { isDomRef } from './serialization-context';
 // Keep last
 import { Fragment } from '../jsx/jsx-runtime';
 
-export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): boolean => {
+const getKeyVal = <T>(value: T, key: keyof T) => value[key];
+
+export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet()): boolean => {
   if (
     value == null ||
     typeof value === 'string' ||
@@ -33,22 +35,17 @@ export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): bo
       value = getStoreTarget(value);
     }
     if (proto == Object.prototype) {
-      for (const key in value) {
+      for (const key in value as object) {
         // if the value is a props proxy, then sometimes we could create a component-level subscription,
         // so we should call untrack here to avoid tracking the value
-        if (
-          !canSerialize(
-            untrack(() => value[key]),
-            seen
-          )
-        ) {
+        if (!canSerialize(untrack(getKeyVal, value, key as keyof typeof value), seen)) {
           return false;
         }
       }
       return true;
     } else if (proto == Array.prototype) {
-      for (let i = 0; i < value.length; i++) {
-        if (!canSerialize(value[i], seen)) {
+      for (let i = 0; i < (value as unknown[]).length; i++) {
+        if (!canSerialize((value as unknown[])[i], seen)) {
           return false;
         }
       }

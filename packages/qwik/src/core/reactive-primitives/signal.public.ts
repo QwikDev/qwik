@@ -4,10 +4,9 @@ import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
   createSerializerSignal as createSerializerQrl,
-  createAsyncComputedSignal as createAsyncComputedQrl,
+  createAsyncSignal as createAsyncQrl,
 } from './signal-api';
 import type { ComputedReturnType } from '../use/use-computed';
-import type { AsyncComputedReturnType } from '../use/use-async-computed';
 export { isSignal } from './utils';
 
 /** @public */
@@ -16,11 +15,11 @@ export interface ReadonlySignal<T = unknown> {
 }
 
 /** @public */
-export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
+export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
   /** Whether the signal is currently loading. */
   loading: boolean;
   /** The error that occurred while computing the signal. */
-  error: Error | null;
+  error: Error | undefined;
   /** A promise that resolves when the value is computed. */
   promise(): Promise<T>;
 }
@@ -91,7 +90,7 @@ export const createSignal: {
  * The QRL must be a function which returns the value of the signal. The function must not have side
  * effects, and it must be synchronous.
  *
- * If you need the function to be async, use `useAsyncComputed$` instead.
+ * If you need the function to be async, use `useAsync$` instead.
  *
  * @public
  */
@@ -111,11 +110,9 @@ export { createComputedQrl };
  *
  * @public
  */
-export const createAsyncComputed$: <T>(
-  qrl: () => Promise<T>,
-  options?: ComputedOptions
-) => AsyncComputedReturnType<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncComputedQrl as any);
-export { createAsyncComputedQrl };
+export const createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncSignal<T> =
+  /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
+export { createAsyncQrl };
 
 /**
  * Create a signal that holds a custom serializable value. See {@link useSerializer$} for more

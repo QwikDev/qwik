@@ -5,7 +5,7 @@ import {
   vnode_isVNode,
   vnode_locate,
 } from '../../client/vnode-utils';
-import { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
+import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
@@ -98,8 +98,8 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return new WrappedSignalImpl(container as any, null!, null!, null!);
     case TypeIds.ComputedSignal:
       return new ComputedSignalImpl(container as any, null!);
-    case TypeIds.AsyncComputedSignal:
-      return new AsyncComputedSignalImpl(container as any, null!);
+    case TypeIds.AsyncSignal:
+      return new AsyncSignalImpl(container as any, null!);
     case TypeIds.SerializerSignal:
       return new SerializerSignalImpl(container as any, null!);
     case TypeIds.Store: {

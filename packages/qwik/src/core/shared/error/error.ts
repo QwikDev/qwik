@@ -90,7 +90,7 @@ export const enum QError {
   materializeVNodeDataError = 27,
   cannotCoerceSignal = 28,
   computedNotSync = 29,
-  computedReadOnly = 30,
+  UNUSED_30 = 30,
   wrappedReadOnly = 31,
   unsafeAttr = 32,
   serializerSymbolRejectedPromise = 33,

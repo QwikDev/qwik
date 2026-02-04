@@ -1,5 +1,5 @@
 import { component$, useTask$ } from '@qwik.dev/core';
-import { userData } from '../../test-fixtures/async-computed/exported';
+import { userData } from '../../test-fixtures/use-async-top/exported';
 
 export default component$(() => {
   useTask$(() => {

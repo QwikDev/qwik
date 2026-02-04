@@ -6,7 +6,7 @@ import {
   Fragment as Projection,
   Fragment as Signal,
   Slot,
-  useAsyncComputed$,
+  useAsync$,
   useSignal,
   useStylesScoped$,
   useStylesScopedQrl,
@@ -602,7 +602,7 @@ describe.each([
   it('should await for async component jsx output before setting style scoped id', async () => {
     (globalThis as any).rawStyleId = '';
     const Cmp = component$(() => {
-      const sig = useAsyncComputed$(async () => {
+      const sig = useAsync$(async () => {
         return 'computed';
       });
       sig.value;

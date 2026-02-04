@@ -10,7 +10,7 @@ import { untrack } from '../../use/use-core';
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new WeakSet();
-  return untrack(() => _verifySerializable(value, seen, '_', preMessage));
+  return untrack(_verifySerializable, value, seen, '_', preMessage) as T;
 };
 
 const _verifySerializable = <T>(

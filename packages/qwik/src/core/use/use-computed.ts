@@ -1,54 +1,25 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
-import { throwIfQRLNotResolved } from '../reactive-primitives/utils';
-import type { ComputedSignal, Signal } from '../reactive-primitives/signal.public';
-import { useSequentialScope } from './use-sequential-scope';
+import type { ComputedSignal } from '../reactive-primitives/signal.public';
 import { createComputedSignal } from '../reactive-primitives/signal-api';
-import type { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
-import type { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
 import type { ComputedOptions } from '../reactive-primitives/types';
+import { useConstant } from './use-signal';
 
 /** @public */
 export type ComputedFn<T> = () => T;
 /** @public */
 export type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;
 
-export const useComputedCommon = <
-  T,
-  S,
-  FUNC extends Function = ComputedFn<T>,
-  RETURN = ComputedReturnType<T>,
->(
-  qrl: QRL<FUNC>,
-  createFn: (
-    qrl: QRL<any>,
-    options?: ComputedOptions
-  ) => ComputedSignalImpl<T> | AsyncComputedSignalImpl<T> | SerializerSignalImpl<T, S>,
-  options?: ComputedOptions
-): RETURN => {
-  const { val, set } = useSequentialScope<Signal<T>>();
-  if (val) {
-    return val as any;
-  }
-  assertQrl(qrl);
-  const signal = createFn(qrl, options);
-  set(signal);
-
-  // Note that we first save the signal
-  // and then we throw to load the qrl
-  // This is why we can't use useConstant, we need to keep using the same qrl object
-  throwIfQRLNotResolved(qrl);
-  return signal as any;
+const creator = <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions) => {
+  qrl.resolve();
+  return createComputedSignal(qrl, options);
 };
-
 /** @internal */
 export const useComputedQrl = <T>(
   qrl: QRL<ComputedFn<T>>,
   options?: ComputedOptions
 ): ComputedReturnType<T> => {
-  return useComputedCommon(qrl, createComputedSignal, options);
+  return useConstant(creator<T>, qrl, options) as any;
 };
 
 /**

@@ -23,7 +23,7 @@ import {
   _waitUntilRendered,
   forceStoreEffects,
   SerializerSymbol,
-  type AsyncComputedReadonlySignal,
+  type AsyncSignal,
   type ClientContainer,
   type SerializationStrategy,
   type ValueOrPromise,
@@ -180,7 +180,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   // This object contains the signals for the loaders
   // It is used for the loaders context RouteStateContext
-  const loaderState: Record<string, AsyncComputedReadonlySignal<unknown>> = {};
+  const loaderState: Record<string, AsyncSignal<unknown>> = {};
 
   for (const [key, value] of Object.entries(env.response.loaders)) {
     loadersObject[key] = value;

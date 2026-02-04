@@ -6,7 +6,7 @@ import type {
   Signal,
   ValueOrPromise,
 } from '@qwik.dev/core';
-import type { AsyncComputedReadonlySignal, SerializationStrategy } from '@qwik.dev/core/internal';
+import type { AsyncSignal, SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
   EnvGetter,
   RequestEvent,
@@ -809,7 +809,7 @@ export type FailReturn<T> = T & Failed;
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
   : ReadonlySignal<TYPE>) &
-  Pick<AsyncComputedReadonlySignal, 'promise' | 'loading' | 'error'>;
+  Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
 
 /** @public */
 export type Loader<RETURN> = {

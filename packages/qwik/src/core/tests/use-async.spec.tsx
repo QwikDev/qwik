@@ -9,7 +9,7 @@ import {
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { useAsyncComputed$ } from '../use/use-async-computed';
+import { useAsync$ } from '../use/use-async';
 import { delay } from '../shared/utils/promises';
 
 const debug = false; //true;
@@ -18,11 +18,11 @@ Error.stackTraceLimit = 100;
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
-])('$render.name: useAsyncComputed', ({ render }) => {
+])('$render.name: useAsync', ({ render }) => {
   it('should resolve promise in computed result', async () => {
     const Counter = component$(() => {
       const count = useSignal(1);
-      const doubleCount = useAsyncComputed$(({ track }) => Promise.resolve(track(count) * 2));
+      const doubleCount = useAsync$(({ track }) => Promise.resolve(track(count) * 2));
       return <button onClick$={() => count.value++}>{doubleCount.value}</button>;
     });
     const { vNode, container } = await render(<Counter />, { debug });
@@ -55,10 +55,10 @@ describe.each([
   it('should compute async computed result from async computed result', async () => {
     const Counter = component$(() => {
       const count = useSignal(1);
-      const doubleCount = useAsyncComputed$(({ track }) => {
+      const doubleCount = useAsync$(({ track }) => {
         return Promise.resolve(track(count) * 2);
       });
-      const quadrupleCount = useAsyncComputed$(({ track }) => {
+      const quadrupleCount = useAsync$(({ track }) => {
         return Promise.resolve(track(doubleCount) * 2);
       });
       return <button onClick$={() => count.value++}>{quadrupleCount.value}</button>;
@@ -91,7 +91,7 @@ describe.each([
   it('should resolve delayed promise in computed result', async () => {
     const Counter = component$(() => {
       const count = useSignal(1);
-      const doubleCount = useAsyncComputed$(
+      const doubleCount = useAsync$(
         ({ track }) =>
           new Promise<number>((resolve) => {
             setTimeout(() => {
@@ -126,7 +126,7 @@ describe.each([
     (globalThis as any).log = [];
     const Counter = component$(() => {
       const count = useSignal(1);
-      const doubleCount = useAsyncComputed$(() => Promise.reject(new Error('test')));
+      const doubleCount = useAsync$(() => Promise.reject(new Error('test')));
 
       useTask$(({ track }) => {
         track(doubleCount);
@@ -144,7 +144,7 @@ describe.each([
     (globalThis as any).log = [];
     const Counter = component$(() => {
       const count = useSignal(1);
-      const doubleCount = useAsyncComputed$(() => Promise.resolve(undefined));
+      const doubleCount = useAsync$(() => Promise.resolve(undefined));
 
       return <button onClick$={() => count.value++}>{doubleCount.value}</button>;
     });
@@ -161,7 +161,7 @@ describe.each([
   it('should render as attribute', async () => {
     const Counter = component$(() => {
       const count = useSignal(1);
-      const doubleCount = useAsyncComputed$(({ track }) => Promise.resolve(track(count) * 2));
+      const doubleCount = useAsync$(({ track }) => Promise.resolve(track(count) * 2));
       return <button data-count={doubleCount.value} onClick$={() => count.value++}></button>;
     });
     const { vNode, container } = await render(<Counter />, { debug });
@@ -182,7 +182,7 @@ describe.each([
   it('should render var prop as attribute', async () => {
     const Counter = component$(() => {
       const count = useSignal(1);
-      const doubleCount = useAsyncComputed$(({ track }) => Promise.resolve(track(count) * 2));
+      const doubleCount = useAsync$(({ track }) => Promise.resolve(track(count) * 2));
       return _jsxSorted(
         'button',
         {
@@ -217,7 +217,7 @@ describe.each([
         new Promise<void>((res) => ((globalThis as any).delay.resolve = res));
       const Counter = component$(() => {
         const count = useSignal(1);
-        const doubleCount = useAsyncComputed$(async ({ track }) => {
+        const doubleCount = useAsync$(async ({ track }) => {
           const countValue = track(count);
           if (countValue > 1) {
             await (globalThis as any).delay();
@@ -267,7 +267,7 @@ describe.each([
     it('should show error state', async () => {
       const Counter = component$(() => {
         const count = useSignal(1);
-        const doubleCount = useAsyncComputed$(async ({ track }) => {
+        const doubleCount = useAsync$(async ({ track }) => {
           const countValue = track(count);
           if (countValue > 1) {
             throw new Error('test');
@@ -310,7 +310,7 @@ describe.each([
       (globalThis as any).log = [];
       const Counter = component$(() => {
         const count = useSignal(1);
-        const doubleCount = useAsyncComputed$(() => Promise.resolve(count.value * 2));
+        const doubleCount = useAsync$(() => Promise.resolve(count.value * 2));
 
         useTask$(async () => {
           await doubleCount.promise();
@@ -332,7 +332,7 @@ describe.each([
       (globalThis as any).log = [];
 
       const Child = component$(() => {
-        const asyncValue = useAsyncComputed$(({ cleanup }) => {
+        const asyncValue = useAsync$(({ cleanup }) => {
           cleanup(() => {
             (globalThis as any).log.push('cleanup');
           });
@@ -372,7 +372,7 @@ describe.each([
 
       const Counter = component$(() => {
         const count = useSignal(1);
-        const asyncValue = useAsyncComputed$(({ track, cleanup }) => {
+        const asyncValue = useAsync$(({ track, cleanup }) => {
           const current = track(count);
           cleanup(() => {
             (globalThis as any).log.push('cleanup');

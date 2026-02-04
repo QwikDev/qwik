@@ -819,12 +819,10 @@ Description
 
 ## createAsync$
 
-Create an async computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals or async operation. When the signals change, the computed signal is recalculated.
-
-The QRL must be a function which returns the value of the signal. The function must not have side effects, and it can be async.
+Create a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`.
 
 ```typescript
-createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) =>
+createAsync$: <T>(qrl: () => Promise<T>, options?: AsyncSignalOptions<T>) =>
   AsyncSignal<T>;
 ```
 
@@ -858,7 +856,7 @@ options
 
 </td><td>
 
-[ComputedOptions](#computedoptions)
+AsyncSignalOptions&lt;T&gt;
 
 </td><td>
 
@@ -879,7 +877,7 @@ Create a computed signal which is calculated from the given QRL. A computed sign
 
 The QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.
 
-If you need the function to be async, use `useAsync$` instead.
+If you need the function to be async, use `createAsync$` instead (don't forget to use `track()`).
 
 ```typescript
 createComputed$: <T>(qrl: () => T, options?: ComputedOptions) =>

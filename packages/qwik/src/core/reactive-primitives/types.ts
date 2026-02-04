@@ -58,25 +58,26 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    * When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function
    * inputs to change.
    *
+   * Defaults to `false`, meaning cleanup happens only when inputs change.
+   *
    * @deprecated Not implemented yet
-   * @default false
    */
   eagerCleanup?: boolean;
   /**
    * Wait for previous invocation to complete before running again.
    *
+   * Defaults to `true`.
+   *
    * @deprecated Not implemented yet
-   * @default true
    */
   awaitPrevious?: boolean;
   /**
-   * In the browser, re-run the function after `poll` ms if subscribers exist, even when no input
+   * In the browser, re-run the function after `pollMs` ms if subscribers exist, even when no input
    * state changed. If `0`, does not poll.
    *
-   * @deprecated Not implemented yet
-   * @default 0
+   * Defaults to `0`.
    */
-  poll?: number;
+  pollMs?: number;
 }
 
 export const enum SignalFlags {

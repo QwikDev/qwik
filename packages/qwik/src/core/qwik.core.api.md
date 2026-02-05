@@ -21,6 +21,7 @@ export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     error: Error | undefined;
     loading: boolean;
+    pollMs: number;
     promise(): Promise<T>;
 }
 

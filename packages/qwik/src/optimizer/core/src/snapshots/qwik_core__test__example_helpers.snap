@@ -71,19 +71,25 @@ export const TestButton = component$(
   }
 );
 
-============================= test.js ==
+============================= test_TestButton_AArpfTnm3AA.js ==
 
+import "./test_utils_BBrpfTnm3BB";
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 const i_uFrpfTnm3bA = ()=>import("./test.tsx_TestButton_component_uFrpfTnm3bA");
+
+export const TestButton = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_uFrpfTnm3bA, "TestButton_component_uFrpfTnm3bA"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAwB,KAAK,QAAwB,iBAAiB;AAEtE,IAAI,UAAU,QAAQ,QAAQ;AAC9B,UAAU;AACV,OAAO,MAAM,SAAS;IACpB,IAAI,YAAY,WAAW,QAAQ,GAAG,CAAC;AACzC,EAAE;AAEF,OAAO,MAAM,2BAAa,mFA+BxB\"}")
+============================= test_utils_BBrpfTnm3BB.js ==
+
 import { isDev } from "@qwik.dev/core";
-let globEnv = isDev ? "dev" : "prod";
+export let globEnv = isDev ? "dev" : "prod";
 globEnv = "special";
 export const topLevelHelper = ()=>{
     if (globEnv === "special") console.log("topLevelHelper");
 };
-export const TestButton = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_uFrpfTnm3bA, "TestButton_component_uFrpfTnm3bA"));
-export { globEnv as _auto_globEnv };
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAwB,KAAK,QAA6D,iBAAiB;AAI3G,IAAI,UAAU,QAAQ,QAAQ;AAC9B,UAAU;AACV,OAAO,MAAM,iBAAiB;IAC5B,IAAI,YAAY,WAAW,QAAQ,GAAG,CAAC;AACzC,EAAE;AAEF,OAAO,MAAM,2BAAa,mFAqDxB\"}")
@@ -123,7 +129,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_TestButton_component_useOnDocument_ke1LKtHBiD8.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
-import { topLevelHelper } from "./test";
+import { topLevelHelper } from "./test_utils_BBrpfTnm3BB";
 export const TestButton_component_useOnDocument_ke1LKtHBiD8 = async (event)=>{
     const contextCounter = _captures[0], counter = _captures[1], innerHelper$ = _captures[2];
     console.log("mousemove", event);
@@ -202,7 +208,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
-import { topLevelHelper } from "./test";
+import { topLevelHelper } from "./test_utils_BBrpfTnm3BB";
 export const TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4 = async ()=>{
     const counter = _captures[0], innerHelper$ = _captures[1], innerInnerHelper$ = _captures[2];
     topLevelHelper();
@@ -320,9 +326,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_TestButton_component_innerHelper_Edy17D0e3sg.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
-import { externalHelper } from "./helpers";
-import { _auto_globEnv as globEnv } from "./test";
-import { topLevelHelper } from "./test";
+import { externalHelper } from "./helpers_utils_DDrpfTnm3DD";
+import { topLevelHelper, globEnv } from "./test_utils_BBrpfTnm3BB";
 export const TestButton_component_innerHelper_Edy17D0e3sg = async (param1, { param2, param3 })=>{
     const counter = _captures[0], env = _captures[1], innerInnerHelper$ = _captures[2];
     counter.value = counter.value + param1 + param2 + param3;

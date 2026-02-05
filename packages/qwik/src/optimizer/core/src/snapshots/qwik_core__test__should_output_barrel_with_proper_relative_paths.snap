@@ -9,10 +9,11 @@ expression: output
 export { TestButton } from './test';
 export { topLevelHelper } from './test';
 
-============================= index.js ==
+============================= index_CCrpfTnm3CC.js ==
 
-export { TestButton } from './test';
-export { topLevelHelper } from './test';
+
+export { TestButton } from './test_TestButton_AArpfTnm3AA';
+export { topLevelHelper } from './test_utils_BBrpfTnm3BB';
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/index.ts\"],\"names\":[],\"mappings\":\"AACA,SAAS,UAAU,QAAQ,SAAS;AACpC,SAAS,cAAc,QAAQ,SAAS\"}")

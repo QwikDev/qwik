@@ -86,6 +86,96 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		// filler to maintain line offsets
 	})
 }
+#[test]
+fn should_output_barrel_with_proper_relative_paths() {
+	test_input!(TestInput {
+		code: r#"
+export { TestButton } from './test';
+export { topLevelHelper } from './test';
+"#
+		.to_string(),
+		filename: "index.ts".to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_helpers() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, isDev, QRL, useSignal, useTask$, useOnDocument, useContext } from "@qwik.dev/core";
+import { contextCounterId } from "./context";
+import { externalHelper } from "./helpers";
+
+let globEnv = isDev ? "dev" : "prod";
+globEnv = "special";
+export const topLevelHelper = () => {
+  if (globEnv === "special") console.log("topLevelHelper");
+};
+
+export const TestButton = component$(
+  ({ onTripleClick$ }: { onTripleClick$: QRL<() => void> }) => {
+    let env = isDev ? "dev" : "prod";
+    env = "special";
+
+    const counter = useSignal(0);
+
+	const innerInnerHelper$ = $(() => {
+		console.log("innerInnerHelper$");
+	});
+
+    const innerHelper$ = $(async (param1: number, {param2, param3}: {param2: number, param3: number}) => {
+		counter.value = counter.value + param1 + param2 + param3;
+		if (env === "special" && globEnv === "special") console.log("innerHelper$");
+		topLevelHelper();
+		externalHelper();
+		await innerInnerHelper$();
+    });
+
+	const contextCounter = useContext(contextCounterId);
+
+	useTask$(() => {
+		contextCounter.value += 10;
+	});
+
+    useOnDocument("mousemove", $(async (event) => {
+		console.log("mousemove", event);
+		counter.value++;
+		if(contextCounter.value > 10) console.log("contextCounter", contextCounter.value);
+		topLevelHelper();
+		await innerHelper$(1, {param2: 2, param3: 3});
+    }));
+
+    return (
+      <>
+        <button
+          onClick$={[
+            $(async () => {
+              topLevelHelper();
+			  await innerInnerHelper$();
+              await innerHelper$(1, {param2: 2, param3: 3});
+              counter.value++;
+            }),
+            $(async () => {
+              await onTripleClick$();
+            }),
+          ]}
+        >
+          {counter.value}
+        </button>
+      </>
+    );
+  }
+);
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
 
 #[test]
 fn example_1() {

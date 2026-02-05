@@ -41,7 +41,7 @@ export const createAsyncSignal = <T>(
     options?.container || null,
     qrl as AsyncQRL<T>,
     getComputedSignalFlags(options?.serializationStrategy || 'never'),
-    options
+    options?.pollMs || 0
   );
 };
 

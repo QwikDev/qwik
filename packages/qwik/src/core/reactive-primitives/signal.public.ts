@@ -20,6 +20,11 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
   loading: boolean;
   /** The error that occurred while computing the signal. */
   error: Error | undefined;
+  /**
+   * Poll interval in ms. Writable and immediately effective when the signal has consumers. If set
+   * to `0`, polling stops.
+   */
+  pollMs: number;
   /** A promise that resolves when the value is computed. */
   promise(): Promise<T>;
 }

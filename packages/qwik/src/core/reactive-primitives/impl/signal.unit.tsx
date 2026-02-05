@@ -279,7 +279,26 @@ describe('signal', () => {
           const signal = createAsync$(async () => 42, { pollMs }) as AsyncSignalImpl<number>;
 
           // Verify poll is stored on instance
+          expect(signal.pollMs).toBe(pollMs);
           expect(signal.$pollMs$).toBe(pollMs);
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should update pollMs and reschedule with consumers', async () => {
+        await withContainer(async () => {
+          const signal = createAsync$(async () => 42, { pollMs: 0 }) as AsyncSignalImpl<number>;
+
+          signal.pollMs = 1;
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+
+          await retryOnPromise(async () => {
+            effect$(() => signal.value);
+          });
+
+          expect(signal.$pollTimeoutId$).toBeDefined();
+
+          signal.pollMs = 0;
           expect(signal.$pollTimeoutId$).toBeUndefined();
         });
       });

@@ -14,7 +14,6 @@ import {
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
   SignalFlags,
-  type AsyncSignalOptions,
 } from '../types';
 import { scheduleEffects } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
@@ -50,10 +49,10 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     container: Container | null,
     fn: AsyncQRL<T>,
     flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID,
-    options?: AsyncSignalOptions<T>
+    pollMs: number = 0
   ) {
     super(container, fn, flags);
-    this.$pollMs$ = options?.pollMs || 0;
+    this.pollMs = pollMs;
   }
 
   /**
@@ -98,6 +97,21 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
 
   get untrackedError() {
     return this.$untrackedError$;
+  }
+
+  get pollMs() {
+    return this.$pollMs$;
+  }
+
+  set pollMs(value: number) {
+    if (this.$pollTimeoutId$ !== undefined) {
+      clearTimeout(this.$pollTimeoutId$);
+      this.$pollTimeoutId$ = undefined;
+    }
+    this.$pollMs$ = value;
+    if (this.$pollMs$ > 0 && this.$effects$?.size) {
+      this.$scheduleNextPoll$();
+    }
   }
 
   override invalidate() {

@@ -48,11 +48,7 @@ export interface ComputedOptions {
 
 /** @public */
 export interface AsyncSignalOptions<T> extends ComputedOptions {
-  /**
-   * Like useSignal's `initial`; prevents the throw on first read when uninitialized
-   *
-   * @deprecated Not implemented yet
-   */
+  /** Like useSignal's `initial`; prevents the throw on first read when uninitialized */
   initial?: T | (() => T);
   /**
    * When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function

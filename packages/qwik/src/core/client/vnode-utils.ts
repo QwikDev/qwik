@@ -563,6 +563,23 @@ export function vnode_walkVNode(
   } while (true as boolean);
 }
 
+export function vnode_getDOMChildNode(
+  journal: VNodeJournal,
+  root: ElementVNode | TextVNode
+): Element | Text {
+  if (vnode_isElementVNode(root)) {
+    return root.node!;
+  } else {
+    /**
+     * If we are collecting text nodes, we need to ensure that they are inflated. If not inflated we
+     * would return a single text node which represents many actual text nodes, or removing a single
+     * text node would remove many text nodes.
+     */
+    vnode_ensureTextInflated(journal, root);
+    return root.node!;
+  }
+}
+
 export function vnode_getDOMChildNodes(
   journal: VNodeJournal,
   root: VNode,
@@ -1007,6 +1024,96 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
 export const vnode_applyJournal = _flushJournal;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const vnode_insertElementBefore = (
+  journal: VNodeJournal,
+  parent: ElementVNode | VirtualVNode,
+  newChild: ElementVNode,
+  insertBefore: VNode | null
+) => {
+  ensureElementOrVirtualVNode(parent);
+  const parentIsElement = vnode_isElementVNode(parent);
+  if (parentIsElement) {
+    ensureMaterialized(parent);
+  }
+
+  const newChildCurrentParent = newChild.parent as ElementVNode | null;
+  if (newChild === insertBefore) {
+    // invalid insertBefore. We can't insert before self reference
+    // prevent infinity loop and putting self reference to next sibling
+    if (newChildCurrentParent) {
+      // early return, as the newChild is already in the tree and we are already in the correct position
+      return;
+    } else {
+      // if the newChild is not in the tree, than we insert it at the end of the list
+      insertBefore = null;
+    }
+  }
+
+  const childNode = newChild.node;
+  const parentIsDeleted = parent.flags & VNodeFlags.Deleted;
+
+  const parentNode = parentIsElement ? parent.node : vnode_getDomParent(parent, false)!;
+
+  if (parentNode && !parentIsDeleted) {
+    addVNodeOperation(
+      journal,
+      createInsertOrMoveOperation(childNode, parentNode, vnode_findInsertBefore(journal, parent, insertBefore)?.node ?? null)
+    );
+  }
+
+  // link newChild into the previous/next list
+  vnode_connectSiblings(parent, newChild, insertBefore);
+  if (parentIsDeleted) {
+    // if the parent is deleted, then the new child is also deleted
+    newChild.flags |= VNodeFlags.Deleted;
+  }
+};
+
+const vnode_findInsertBefore = (
+  journal: VNodeJournal,
+  parent: ElementVNode | VirtualVNode,
+  insertBefore: VNode | null,
+) => {
+  let adjustedInsertBefore: ElementVNode | TextVNode | null = null;
+  if (insertBefore == null) {
+    if (vnode_isVirtualVNode(parent)) {
+      // If `insertBefore` is null, than we need to insert at the end of the list.
+      // Well, not quite. If the parent is a virtual node, our "last node" is not the same
+      // as the DOM "last node". So in that case we need to look for the "next node" from
+      // our parent.
+      adjustedInsertBefore = vnode_getDomSibling(parent, true, false);
+    }
+  } else if (vnode_isVirtualVNode(insertBefore)) {
+    // If the `insertBefore` is virtual, than we need to descend into the virtual and find e actual
+    adjustedInsertBefore = vnode_getDomSibling(insertBefore, true, true);
+  } else {
+    adjustedInsertBefore = insertBefore as ElementVNode | TextVNode;
+  }
+  adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
+  return adjustedInsertBefore;
+};
+
+const vnode_connectSiblings = (
+  parent: ElementVNode | VirtualVNode,
+  vNode: VNode,
+  vNext: VNode | null,
+) => {
+  const vPrevious = vNext ? vNext.previousSibling : (parent.lastChild as VNode | null);
+  if (vNext) {
+    vNext.previousSibling = vNode;
+  } else {
+    parent.lastChild = vNode;
+  }
+  if (vPrevious) {
+    vPrevious.nextSibling = vNode;
+  } else {
+    parent.firstChild = vNode;
+  }
+  vNode.previousSibling = vPrevious;
+  vNode.nextSibling = vNext;
+  vNode.parent = parent;
+};
 
 export const vnode_insertBefore = (
   journal: VNodeJournal,

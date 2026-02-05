@@ -76,6 +76,7 @@ import {
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
+  vnode_insertElementBefore,
   vnode_isElementVNode,
   vnode_isProjection,
   vnode_isTextVNode,
@@ -615,12 +616,12 @@ function expectSlot(diffContext: DiffContext) {
 
   const vProjectedNode = vHost
     ? vnode_getProp<VirtualVNode | null>(
-        vHost as VirtualVNode,
-        slotNameKey,
-        // for slots this id is vnode ref id
-        null // Projections should have been resolved through container.ensureProjectionResolved
-        //(id) => vnode_locate(container.rootVNode, id)
-      )
+      vHost as VirtualVNode,
+      slotNameKey,
+      // for slots this id is vnode ref id
+      null // Projections should have been resolved through container.ensureProjectionResolved
+      //(id) => vnode_locate(container.rootVNode, id)
+    )
     : null;
 
   if (vProjectedNode == null) {
@@ -896,7 +897,7 @@ function createNewElement(
     }
   }
 
-  vnode_insertBefore(
+  vnode_insertElementBefore(
     diffContext.journal,
     diffContext.vParent as ElementVNode,
     diffContext.vNewNode as ElementVNode,
@@ -1485,10 +1486,10 @@ function expectComponent(diffContext: DiffContext, component: Function) {
         componentHost &&
         (vnode_isVirtualVNode(componentHost)
           ? vnode_getProp<OnRenderFn<any> | null>(
-              componentHost as VirtualVNode,
-              OnRenderProp,
-              null
-            ) === null
+            componentHost as VirtualVNode,
+            OnRenderProp,
+            null
+          ) === null
           : true)
       ) {
         componentHost = componentHost.parent;
@@ -1620,7 +1621,7 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
  *   </Projection>
  * ```
  */
-function Projection() {}
+function Projection() { }
 
 function handleProps(
   host: VirtualVNode,

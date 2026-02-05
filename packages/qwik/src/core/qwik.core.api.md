@@ -213,6 +213,9 @@ export const createComputedQrl: <T>(qrl: QRL<() => T>, options?: ComputedOptions
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
+// @internal
+export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null) => _QRLInternal<TYPE>;
+
 // Warning: (ae-forgotten-export) The symbol "SerializerArg" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SerializerSignal" needs to be exported by the entry point index.d.ts
 //
@@ -717,6 +720,14 @@ export type _QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
 // @internal
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
 
+// Warning: (ae-forgotten-export) The symbol "SyncQRLInternal" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export function _qrlToString(serializationContext: SerializationContext, qrl: _QRLInternal | SyncQRLInternal): string;
+
+// @internal (undocumented)
+export function _qrlToString(serializationContext: SerializationContext, qrl: _QRLInternal | SyncQRLInternal, raw: true): [string, string, string | null];
+
 // @public @deprecated (undocumented)
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 
@@ -885,6 +896,9 @@ export interface RenderSSROptions {
     // (undocumented)
     stream: StreamWriter;
 }
+
+// @internal
+export function _res(this: string | undefined, _: any, element: Element): void;
 
 // @internal (undocumented)
 export const _resolveContextWithoutSequentialScope: <STATE>(context: ContextId<STATE>) => STATE | undefined;
@@ -1740,12 +1754,12 @@ export const untrack: <T, A extends any[]>(expr: ((...args: A) => T) | Signal<T>
 export const unwrapStore: <T>(value: T) => T;
 
 // @public
-export const useAsync$: <T>(qrl: AsyncFn<T>, options?: ComputedOptions | undefined) => AsyncSignal<T>;
+export const useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions) => AsyncSignal<T>;
+export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
 
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) => ComputedReturnType<T>;

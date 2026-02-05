@@ -9025,7 +9025,7 @@ If the value has not yet been resolved, reading the AsyncSignal will throw a Pro
 If the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.
 
 ```typescript
-useAsync$: <T>(qrl: AsyncFn<T>, options?: ComputedOptions | undefined) =>
+useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) =>
   AsyncSignal<T>;
 ```
 
@@ -9059,7 +9059,7 @@ options
 
 </td><td>
 
-[ComputedOptions](#computedoptions) \| undefined
+AsyncSignalOptions&lt;T&gt; \| undefined
 
 </td><td>
 

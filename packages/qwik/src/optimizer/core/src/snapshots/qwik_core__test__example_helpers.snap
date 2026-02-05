@@ -17,23 +17,23 @@ export const topLevelHelper = () => {
 };
 
 export const TestButton = component$(
-  ({ onTripleClick$ }: { onTripleClick$: QRL<() => void> }) => {
+  ({ onTripleClick }: { onTripleClick: () => void }) => {
     let env = isDev ? "dev" : "prod";
     env = "special";
 
     const counter = useSignal(0);
 
-	const innerInnerHelper$ = $(() => {
-		console.log("innerInnerHelper$");
-	});
+	const innerInnerHelper = () => {
+		console.log("innerInnerHelper");
+	};
 
-    const innerHelper$ = $(async (param1: number, {param2, param3}: {param2: number, param3: number}) => {
-		counter.value = counter.value + param1 + param2 + param3;
+    const innerHelper = () => {
+		counter.value++;
 		if (env === "special" && globEnv === "special") console.log("innerHelper$");
 		topLevelHelper();
 		externalHelper();
-		await innerInnerHelper$();
-    });
+		innerInnerHelper();
+    };
 
 	const contextCounter = useContext(contextCounterId);
 
@@ -41,13 +41,13 @@ export const TestButton = component$(
 		contextCounter.value += 10;
 	});
 
-    useOnDocument("mousemove", $(async (event) => {
+    useOnDocument$("mousemove", (event) => {
 		console.log("mousemove", event);
 		counter.value++;
 		if(contextCounter.value > 10) console.log("contextCounter", contextCounter.value);
-		topLevelHelper();
-		await innerHelper$(1, {param2: 2, param3: 3});
-    }));
+		helper();
+		innerHelper();
+    });
 
     return (
       <>
@@ -130,13 +130,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { _captures } from "@qwik.dev/core";
 import { topLevelHelper } from "./test_utils_BBrpfTnm3BB";
-export const TestButton_component_useOnDocument_ke1LKtHBiD8 = async (event)=>{
-    const contextCounter = _captures[0], counter = _captures[1], innerHelper$ = _captures[2];
+import { innerHelper } from "./test_internal_utils_DDrpfTnm3DD";
+export const TestButton_component_useOnDocument_ke1LKtHBiD8 = (event)=>{
+    const contextCounter = _captures[0], counter = _captures[1], env = _captures[2];
     console.log("mousemove", event);
     counter.value++;
     if (contextCounter.value > 10) console.log("contextCounter", contextCounter.value);
     topLevelHelper();
-    await innerHelper$(1, {
+    innerHelper({counter, env}, 1, {
         param2: 2,
         param3: 3
     });
@@ -168,7 +169,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captureNames": [
     "contextCounter",
     "counter",
-    "innerHelper$"
   ]
 }
 */
@@ -208,12 +208,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
-import { topLevelHelper } from "./test_utils_BBrpfTnm3BB";
+import { helper } from "./test_utils_BBrpfTnm3BB";
+import { innerHelper } from "./test_internal_utils_DDrpfTnm3DD";
 export const TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4 = async ()=>{
-    const counter = _captures[0], innerHelper$ = _captures[1], innerInnerHelper$ = _captures[2];
+    const counter = _captures[0], env = _captures[1];
     topLevelHelper();
-    await innerInnerHelper$();
-    await innerHelper$(1, {
+    innerInnerHelper();
+    innerHelper({counter, env}, 1, {
         param2: 2,
         param3: 3
     });
@@ -242,8 +243,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "captureNames": [
     "counter",
-    "innerHelper$",
-    "innerInnerHelper$"
   ]
 }
 */
@@ -256,40 +255,31 @@ import { contextCounterId } from "./context";
 import { isDev } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useContext } from "@qwik.dev/core";
-import { useOnDocument } from "@qwik.dev/core";
+import { useOnDocumentQrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 const i_0YD06DOCnSs = ()=>import("./test.tsx_TestButton_component_Fragment_button_q_e_click_1_0YD06DOCnSs");
-const i_Edy17D0e3sg = ()=>import("./test.tsx_TestButton_component_innerHelper_Edy17D0e3sg");
 const i_K6S9SSHyiUc = ()=>import("./test.tsx_TestButton_component_useTask_K6S9SSHyiUc");
-const i_PqCJvh1cYuo = ()=>import("./test.tsx_TestButton_component_innerInnerHelper_PqCJvh1cYuo");
 const i_hOLZleZIsX4 = ()=>import("./test.tsx_TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4");
 const i_ke1LKtHBiD8 = ()=>import("./test.tsx_TestButton_component_useOnDocument_ke1LKtHBiD8");
 export const TestButton_component_uFrpfTnm3bA = (_rawProps)=>{
     let env = isDev ? "dev" : "prod";
     env = "special";
     const counter = useSignal(0);
-    const innerInnerHelper$ = /*#__PURE__*/ qrl(i_PqCJvh1cYuo, "TestButton_component_innerInnerHelper_PqCJvh1cYuo");
-    const innerHelper$ = /*#__PURE__*/ qrl(i_Edy17D0e3sg, "TestButton_component_innerHelper_Edy17D0e3sg", [
-        counter,
-        env,
-        innerInnerHelper$
-    ]);
     const contextCounter = useContext(contextCounterId);
     useTaskQrl(/*#__PURE__*/ qrl(i_K6S9SSHyiUc, "TestButton_component_useTask_K6S9SSHyiUc", [
         contextCounter
     ]));
-    useOnDocument("mousemove", /*#__PURE__*/ qrl(i_ke1LKtHBiD8, "TestButton_component_useOnDocument_ke1LKtHBiD8", [
+    useOnDocumentQrl("mousemove", /*#__PURE__*/ qrl(i_ke1LKtHBiD8, "TestButton_component_useOnDocument_ke1LKtHBiD8", [
         contextCounter,
         counter,
-        innerHelper$
+        env,
     ]));
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("button", {
         "q-e:click": [
             /*#__PURE__*/ qrl(i_hOLZleZIsX4, "TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4", [
                 counter,
-                innerHelper$,
-                innerInnerHelper$
+                env,
             ]),
             /*#__PURE__*/ qrl(i_0YD06DOCnSs, "TestButton_component_Fragment_button_q_e_click_1_0YD06DOCnSs", [
                 _rawProps
@@ -322,77 +312,45 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "_rawProps"
   ]
 }
-*/
-============================= test.tsx_TestButton_component_innerHelper_Edy17D0e3sg.js (ENTRY POINT)==
+============================= test_internal_utils_DDrpfTnm3DD.js ==
 
-import { _captures } from "@qwik.dev/core";
 import { externalHelper } from "./helpers_utils_DDrpfTnm3DD";
 import { topLevelHelper, globEnv } from "./test_utils_BBrpfTnm3BB";
-export const TestButton_component_innerHelper_Edy17D0e3sg = async (param1, { param2, param3 })=>{
-    const counter = _captures[0], env = _captures[1], innerInnerHelper$ = _captures[2];
+
+export const innerInnerHelper = ()=>{
+    console.log("innerInnerHelper$");
+};
+
+export const innerHelper = ({counter, env}, param1, { param2, param3 })=>{
     counter.value = counter.value + param1 + param2 + param3;
     if (env === "special" && globEnv === "special") console.log("innerHelper$");
     topLevelHelper();
     externalHelper();
-    await innerInnerHelper$();
+    innerInnerHelper();
 };
 
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;4DAsB2B,OAAO,QAAgB,EAAC,MAAM,EAAE,MAAM,EAAmC;;IAClG,QAAQ,KAAK,GAAG,QAAQ,KAAK,GAAG,SAAS,SAAS;IAClD,IAAI,QAAQ,aAAa,YAAY,WAAW,QAAQ,GAAG,CAAC;IAC5D;IACA;IACA,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAwB,KAAK,QAAwB,iBAAiB;AAEtE,IAAI,UAAU,QAAQ,QAAQ;AAC9B,UAAU;AACV,OAAO,MAAM,SAAS;IACpB,IAAI,YAAY,WAAW,QAAQ,GAAG,CAAC;AACzC,EAAE;AAEF,OAAO,MAAM,2BAAa,mFA+BxB\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "TestButton_component_innerHelper_Edy17D0e3sg",
+  "name": "test_internal_utils_DDrpfTnm3DD",
   "entry": null,
-  "displayName": "test.tsx_TestButton_component_innerHelper",
+  "displayName": "test_internal_utils",
   "hash": "Edy17D0e3sg",
-  "canonicalFilename": "test.tsx_TestButton_component_innerHelper_Edy17D0e3sg",
+  "canonicalFilename": "test_test_internal_utils_DDrpfTnm3DD",
   "path": "",
   "extension": "js",
   "parent": "TestButton_component_uFrpfTnm3bA",
-  "ctxKind": "function",
-  "ctxName": "$",
+  "ctxKind": "utils",
+  "ctxName": "internalUtils",
   "captures": true,
   "loc": [
-    666,
-    959
-  ],
-  "paramNames": [
-    "param1",
-    "{param2, param3}"
+    527,
+    646
   ],
   "captureNames": [
     "counter",
-    "env",
-    "innerInnerHelper$"
-  ]
-}
-*/
-============================= test.tsx_TestButton_component_innerInnerHelper_PqCJvh1cYuo.js (ENTRY POINT)==
-
-export const TestButton_component_innerInnerHelper_PqCJvh1cYuo = ()=>{
-    console.log("innerInnerHelper$");
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAkB6B;IAC3B,QAAQ,GAAG,CAAC;AACb\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "TestButton_component_innerInnerHelper_PqCJvh1cYuo",
-  "entry": null,
-  "displayName": "test.tsx_TestButton_component_innerInnerHelper",
-  "hash": "PqCJvh1cYuo",
-  "canonicalFilename": "test.tsx_TestButton_component_innerInnerHelper_PqCJvh1cYuo",
-  "path": "",
-  "extension": "js",
-  "parent": "TestButton_component_uFrpfTnm3bA",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    589,
-    635
+    "env"
   ]
 }
 */

@@ -169,7 +169,8 @@ export const inflate = (
         asyncSignal.$untrackedValue$ = d[7];
         asyncSignal.$promiseValue$ = d[7];
       }
-      asyncSignal.$pollMs$ = d[8] ?? 0;
+      // Note, we use the setter so that it schedules polling if needed
+      asyncSignal.pollMs = d[8] ?? 0;
       asyncSignal.$flags$ |= SignalFlags.INVALID;
       break;
     }

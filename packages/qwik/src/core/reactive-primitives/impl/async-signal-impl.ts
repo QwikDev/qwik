@@ -1,5 +1,6 @@
 import { isBrowser } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
+import { isServerPlatform } from '../../shared/platform/platform';
 import type { NoSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
 import { isPromise, retryOnPromise } from '../../shared/utils/promises';
@@ -38,7 +39,9 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   $loadingEffects$: undefined | Set<EffectSubscription> = undefined;
   $errorEffects$: undefined | Set<EffectSubscription> = undefined;
   $destroy$: NoSerialize<() => void> | null;
+  /** The awaited result or error of the computation */
   $promiseValue$: T | typeof NEEDS_COMPUTATION = NEEDS_COMPUTATION;
+  /** The currently running computation */
   private $promise$: ValueOrPromise<T> | null = null;
   $pollMs$: number = 0;
   $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined = undefined;
@@ -104,10 +107,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   }
 
   set pollMs(value: number) {
-    if (this.$pollTimeoutId$ !== undefined) {
-      clearTimeout(this.$pollTimeoutId$);
-      this.$pollTimeoutId$ = undefined;
-    }
+    this.$clearNextPoll$();
     this.$pollMs$ = value;
     if (this.$pollMs$ > 0 && this.$effects$?.size) {
       this.$scheduleNextPoll$();
@@ -115,11 +115,6 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   }
 
   override invalidate() {
-    // clear the poll timeout before invalidating
-    if (this.$pollTimeoutId$ !== undefined) {
-      clearTimeout(this.$pollTimeoutId$);
-      this.$pollTimeoutId$ = undefined;
-    }
     // clear the promise, we need to get function again
     this.$promise$ = null;
     super.invalidate();
@@ -196,50 +191,17 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     }
   }
 
+  // TODO it would be nice to wait for all computations in the container, for tests
   private async $promiseComputation$(): Promise<T> {
     if (!this.$promise$) {
+      this.$clearNextPoll$();
+
       const [cleanup] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
+
       this.$promise$ = this.$computeQrl$.getFn()({
         track: trackFn(this, this.$container$),
         cleanup,
       }) as ValueOrPromise<T>;
-
-      // TODO implement these
-      // const arg: {
-      //   track: Tracker;
-      //   cleanup: ReturnType<typeof cleanupFn>[0];
-      //   poll: (ms: number) => void;
-      // } = {
-      //   poll: (ms: number) => {
-      //     setTimeout(() => {
-      //       super.invalidate();
-      //       if (this.$effects$?.size) {
-      //         this.$computeIfNeeded$();
-      //       }
-      //     }, ms);
-      //   },
-      // } as any;
-      // Object.defineProperty(arg, 'track', {
-      //   get() {
-      //     const fn = trackFn(this, this.$container$);
-      //     arg.track = fn;
-      //     return fn;
-      //   },
-      //   configurable: true,
-      //   enumerable: true,
-      //   writable: true,
-      // });
-      // Object.defineProperty(arg, 'cleanup', {
-      //   get() {
-      //     const [fn] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
-      //     arg.cleanup = fn;
-      //     return fn;
-      //   },
-      //   configurable: true,
-      //   enumerable: true,
-      //   writable: true,
-      // });
-      // this.$promise$ = this.$computeQrl$.getFn()(arg) as ValueOrPromise<T>;
     }
     return this.$promise$;
   }
@@ -254,8 +216,18 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     return didChange;
   }
 
+  private $clearNextPoll$() {
+    if (this.$pollTimeoutId$ !== undefined) {
+      clearTimeout(this.$pollTimeoutId$);
+      this.$pollTimeoutId$ = undefined;
+    }
+  }
   private $scheduleNextPoll$() {
-    if ((isBrowser || import.meta.env.TEST) && this.$pollMs$ > 0 && this.$effects$?.size) {
+    if (
+      (isBrowser || (import.meta.env.TEST && !isServerPlatform())) &&
+      this.$pollMs$ > 0 &&
+      this.$effects$?.size
+    ) {
       if (this.$pollTimeoutId$ !== undefined) {
         clearTimeout(this.$pollTimeoutId$);
       }

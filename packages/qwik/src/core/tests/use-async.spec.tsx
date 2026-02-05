@@ -4,12 +4,13 @@ import {
   _jsxSorted,
   _wrapProp,
   component$,
+  useAsync$,
+  useConstant,
   useSignal,
   useTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { useAsync$ } from '../use/use-async';
 import { delay } from '../shared/utils/promises';
 
 const debug = false; //true;
@@ -389,6 +390,43 @@ describe.each([
 
       await trigger(container.element, 'button', 'click');
       expect((globalThis as any).log).toEqual(['cleanup', 'cleanup']);
+    });
+
+    it('should resume polling AsyncSignal with d:qidle on SSR', async () => {
+      // This test verifies that polling AsyncSignals are tracked during serialization
+      // and a d:qidle event is added to resume polling on document idle
+      const Counter = component$(() => {
+        const start = useConstant(Date.now);
+        const elapsed = useAsync$(async () => Date.now() - start, { pollMs: 50 });
+        return (
+          <div>
+            <div id="elapsed">{elapsed.value}</div>
+            <button
+              onClick$={() => {
+                elapsed.pollMs = elapsed.pollMs ? 0 : 50;
+              }}
+            >
+              Toggle updates
+            </button>
+          </div>
+        );
+      });
+
+      const { container } = await render(<Counter />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(container.element, null, 'd:qidle');
+      }
+      const elapsedBefore = Number(container.element.querySelector('#elapsed')!.textContent);
+      await delay(100);
+      const elapsedAfter = Number(container.element.querySelector('#elapsed')!.textContent);
+      expect(elapsedAfter).toBeGreaterThan(elapsedBefore);
+
+      await trigger(container.element, 'button', 'click'); // disable polling
+      const elapsedWhenStopped = Number(container.element.querySelector('#elapsed')!.textContent);
+      await delay(100);
+      const elapsedAfterStop = Number(container.element.querySelector('#elapsed')!.textContent);
+      expect(elapsedAfterStop).toEqual(elapsedWhenStopped);
     });
   });
 });

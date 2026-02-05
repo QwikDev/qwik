@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 182
+assertion_line: 272
 expression: output
 ---
 ==INPUT==
@@ -177,13 +177,47 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo",
   "path": "",
   "extension": "js",
-  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "parent": "ImporterButton_component_Fragment_3_rMP9d0WRjd0",
   "ctxKind": "jSXProp",
   "ctxName": "onTripleClick$",
   "captures": false,
   "loc": [
-    1780,
-    1816
+    1833,
+    1869
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_Fragment_4_HfgtyJc8h1c.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_Fragment_4_HfgtyJc8h1c = ()=>{
+    const QrlComponent = _captures[0], counter = _captures[1];
+    return counter.value > 1 && counter.value < 50 && QrlComponent();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DAyES;;WAAM,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,MAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_4_HfgtyJc8h1c",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_4",
+  "hash": "HfgtyJc8h1c",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_4_HfgtyJc8h1c",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1893,
+    1956
+  ],
+  "captureNames": [
+    "QrlComponent",
+    "counter"
   ]
 }
 */
@@ -217,6 +251,40 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "captureNames": [
     "contextCounter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_Fragment_button_ptHy9p8tomg.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_Fragment_button_ptHy9p8tomg = ()=>{
+    const computed = _captures[0], counter = _captures[1];
+    return counter.value > 1 ? counter.value : computed.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";oEA+DyB;;WAAM,QAAQ,KAAK,GAAG,IAAI,QAAQ,KAAK,GAAG,SAAS,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_button_ptHy9p8tomg",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_button",
+  "hash": "ptHy9p8tomg",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_button_ptHy9p8tomg",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1333,
+    1389
+  ],
+  "captureNames": [
+    "computed",
+    "counter"
   ]
 }
 */
@@ -258,6 +326,40 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
+============================= test.tsx_ImporterButton_component_Fragment_4H30KvDjrH8.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_Fragment_4H30KvDjrH8 = ()=>{
+    const asyncCounter = _captures[0], counter = _captures[1];
+    return counter.value > 1 && counter.value < 50 && asyncCounter.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6DAmES;;WAAM,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,MAAM,aAAa,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_4H30KvDjrH8",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment",
+  "hash": "4H30KvDjrH8",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_4H30KvDjrH8",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1499,
+    1566
+  ],
+  "captureNames": [
+    "asyncCounter",
+    "counter"
+  ]
+}
+*/
 ============================= test.tsx_ImporterButton_component_Fragment_button_q_e_click_GeoU97NxWYI.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -287,6 +389,107 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     1266
   ],
   "captureNames": [
+    "counter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_Fragment_1_0pSa9fMI948.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_Fragment_1_0pSa9fMI948 = ()=>{
+    const computedCounter = _captures[0], counter = _captures[1];
+    return counter.value > 1 && counter.value < 50 && computedCounter.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DAoES;;WAAM,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,MAAM,gBAAgB,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_1_0pSa9fMI948",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_1",
+  "hash": "0pSa9fMI948",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_1_0pSa9fMI948",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1578,
+    1648
+  ],
+  "captureNames": [
+    "computedCounter",
+    "counter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_Fragment_button_1_PocDFnKy35E.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_Fragment_button_1_PocDFnKy35E = ()=>{
+    const contextCounter = _captures[0];
+    return contextCounter.value > 10 && contextCounter.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sEAgEW;;WAAM,eAAe,KAAK,GAAG,MAAM,eAAe,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_button_1_PocDFnKy35E",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_button_1",
+  "hash": "PocDFnKy35E",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_button_1_PocDFnKy35E",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1403,
+    1458
+  ],
+  "captureNames": [
+    "contextCounter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_Fragment_5_EXss0V8XHJ4.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_Fragment_5_EXss0V8XHJ4 = ()=>{
+    const componentSignal = _captures[0], counter = _captures[1];
+    return counter.value > 1 && counter.value < 50 && componentSignal.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DA0ES;;WAAM,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,MAAM,gBAAgB,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_5_EXss0V8XHJ4",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_5",
+  "hash": "EXss0V8XHJ4",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_5_EXss0V8XHJ4",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1968,
+    2038
+  ],
+  "captureNames": [
+    "componentSignal",
     "counter"
   ]
 }
@@ -357,12 +560,117 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
+============================= test.tsx_ImporterButton_component_Fragment_6_lmKPXyLcDtQ.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { _auto_InlinedComponent as InlinedComponent } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+export const ImporterButton_component_Fragment_6_lmKPXyLcDtQ = ()=>{
+    const counter = _captures[0];
+    return counter.value > 1 && counter.value < 50 && /*#__PURE__*/ _jsxSorted(InlinedComponent, null, null, null, 3, "u6_5");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+DA2ES;;WAAM,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,oBAAM,WAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_6_lmKPXyLcDtQ",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_6",
+  "hash": "lmKPXyLcDtQ",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_6_lmKPXyLcDtQ",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    2050,
+    2119
+  ],
+  "captureNames": [
+    "counter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_Fragment_2_ucG1gmx0b9o.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+export const ImporterButton_component_Fragment_2_ucG1gmx0b9o = ()=>{
+    const counter = _captures[0];
+    return counter.value > 1 && counter.value < 50 ? /*#__PURE__*/ _jsxSorted("div", null, null, "Hi there", 3, "u6_3") : null;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;+DAqES;;WAAM,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,mBAAK,WAAC,mBAAI,yBAAiB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_2_ucG1gmx0b9o",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_2",
+  "hash": "ucG1gmx0b9o",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_2_ucG1gmx0b9o",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1660,
+    1734
+  ],
+  "captureNames": [
+    "counter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_Fragment_3_rMP9d0WRjd0.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { TestButton } from "@repo/utils";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_pDP6riPHVEo = ()=>import("./test.tsx_ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo");
+export const ImporterButton_component_Fragment_3_rMP9d0WRjd0 = ()=>{
+    const counter = _captures[0];
+    return counter.value > 1 && counter.value < 50 && /*#__PURE__*/ _jsxSorted(TestButton, null, {
+        onTripleClick$: /*#__PURE__*/ qrl(i_pDP6riPHVEo, "ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo")
+    }, null, 3, "u6_4");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;+DAsES;;WAAM,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,oBAC5C,WAAC;QAAW,cAAc\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_3_rMP9d0WRjd0",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_3",
+  "hash": "rMP9d0WRjd0",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_3_rMP9d0WRjd0",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1746,
+    1881
+  ],
+  "captureNames": [
+    "counter"
+  ]
+}
+*/
 ============================= test.tsx_ImporterButton_component_NRnrWFsxTd8.js (ENTRY POINT)==
 
-import { _auto_InlinedComponent as InlinedComponent } from "./test";
-import { TestButton } from "@repo/utils";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
-import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { counterContextId } from "./context";
 import { qrl } from "@qwik.dev/core";
@@ -371,19 +679,21 @@ import { useComputedQrl } from "@qwik.dev/core";
 import { useContext } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
-const _hf0 = (p0, p1)=>p1.value > 1 ? p1.value : p0.value;
-const _hf0_str = "p1.value>1?p1.value:p0.value";
-const _hf1 = (p0)=>p0.value > 10 && p0.value;
-const _hf1_str = "p0.value>10&&p0.value";
-const _hf2 = (p0, p1)=>p1.value > 1 && p1.value < 50 && p0.value;
-const _hf2_str = "p1.value>1&&p1.value<50&&p0.value";
+const i_0pSa9fMI948 = ()=>import("./test.tsx_ImporterButton_component_Fragment_1_0pSa9fMI948");
+const i_4H30KvDjrH8 = ()=>import("./test.tsx_ImporterButton_component_Fragment_4H30KvDjrH8");
 const i_7Ndirk4ZG68 = ()=>import("./test.tsx_ImporterButton_component_computedCounter_useComputed_7Ndirk4ZG68");
+const i_EXss0V8XHJ4 = ()=>import("./test.tsx_ImporterButton_component_Fragment_5_EXss0V8XHJ4");
 const i_GeoU97NxWYI = ()=>import("./test.tsx_ImporterButton_component_Fragment_button_q_e_click_GeoU97NxWYI");
+const i_HfgtyJc8h1c = ()=>import("./test.tsx_ImporterButton_component_Fragment_4_HfgtyJc8h1c");
 const i_J0IZIZEad3g = ()=>import("./test.tsx_ImporterButton_component_useTask_1_J0IZIZEad3g");
 const i_MtRgNE0xV1g = ()=>import("./test.tsx_ImporterButton_component_useTask_MtRgNE0xV1g");
+const i_PocDFnKy35E = ()=>import("./test.tsx_ImporterButton_component_Fragment_button_1_PocDFnKy35E");
 const i_eFEh2KesO7s = ()=>import("./test.tsx_ImporterButton_component_computed_useComputed_eFEh2KesO7s");
-const i_pDP6riPHVEo = ()=>import("./test.tsx_ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo");
+const i_lmKPXyLcDtQ = ()=>import("./test.tsx_ImporterButton_component_Fragment_6_lmKPXyLcDtQ");
+const i_ptHy9p8tomg = ()=>import("./test.tsx_ImporterButton_component_Fragment_button_ptHy9p8tomg");
+const i_rMP9d0WRjd0 = ()=>import("./test.tsx_ImporterButton_component_Fragment_3_rMP9d0WRjd0");
 const i_rT3QYtgCLko = ()=>import("./test.tsx_ImporterButton_component_asyncCounter_useAsyncComputed_rT3QYtgCLko");
+const i_ucG1gmx0b9o = ()=>import("./test.tsx_ImporterButton_component_Fragment_2_ucG1gmx0b9o");
 const i_xrKIEduTFSA = ()=>import("./test.tsx_ImporterButton_component_componentSignal_useSignal_xrKIEduTFSA");
 export const ImporterButton_component_NRnrWFsxTd8 = (_rawProps)=>{
     const counter = useSignal(0);
@@ -415,38 +725,45 @@ export const ImporterButton_component_NRnrWFsxTd8 = (_rawProps)=>{
             ]
         }, null, [
             "Import Button ",
-            _fnSignal(_hf0, [
+            /*#__PURE__*/ qrl(i_ptHy9p8tomg, "ImporterButton_component_Fragment_button_ptHy9p8tomg", [
                 computed,
                 counter
-            ], _hf0_str),
-            _fnSignal(_hf1, [
+            ]),
+            /*#__PURE__*/ qrl(i_PocDFnKy35E, "ImporterButton_component_Fragment_button_1_PocDFnKy35E", [
                 contextCounter
-            ], _hf1_str)
-        ], 2, null),
+            ])
+        ], 0, null),
         /*#__PURE__*/ _jsxSorted("br", null, null, null, 3, null),
-        _fnSignal(_hf2, [
+        /*#__PURE__*/ qrl(i_4H30KvDjrH8, "ImporterButton_component_Fragment_4H30KvDjrH8", [
             asyncCounter,
             counter
-        ], _hf2_str),
-        _fnSignal(_hf2, [
+        ]),
+        /*#__PURE__*/ qrl(i_0pSa9fMI948, "ImporterButton_component_Fragment_1_0pSa9fMI948", [
             computedCounter,
             counter
-        ], _hf2_str),
-        counter.value > 1 && counter.value < 50 ? /*#__PURE__*/ _jsxSorted("div", null, null, "Hi there", 3, "u6_3") : null,
-        counter.value > 1 && counter.value < 50 && /*#__PURE__*/ _jsxSorted(TestButton, null, {
-            onTripleClick$: /*#__PURE__*/ qrl(i_pDP6riPHVEo, "ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo")
-        }, null, 3, "u6_4"),
-        counter.value > 1 && counter.value < 50 && QrlComponent(),
-        _fnSignal(_hf2, [
+        ]),
+        /*#__PURE__*/ qrl(i_ucG1gmx0b9o, "ImporterButton_component_Fragment_2_ucG1gmx0b9o", [
+            counter
+        ]),
+        /*#__PURE__*/ qrl(i_rMP9d0WRjd0, "ImporterButton_component_Fragment_3_rMP9d0WRjd0", [
+            counter
+        ]),
+        /*#__PURE__*/ qrl(i_HfgtyJc8h1c, "ImporterButton_component_Fragment_4_HfgtyJc8h1c", [
+            QrlComponent,
+            counter
+        ]),
+        /*#__PURE__*/ qrl(i_EXss0V8XHJ4, "ImporterButton_component_Fragment_5_EXss0V8XHJ4", [
             componentSignal,
             counter
-        ], _hf2_str),
-        counter.value > 1 && counter.value < 50 && /*#__PURE__*/ _jsxSorted(InlinedComponent, null, null, null, 3, "u6_5")
+        ]),
+        /*#__PURE__*/ qrl(i_lmKPXyLcDtQ, "ImporterButton_component_Fragment_6_lmKPXyLcDtQ", [
+            counter
+        ])
     ], 1, "u6_6");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;uBA+DuB,GAAQ,KAAK,GAAG,IAAI,GAAQ,KAAK,GAAG,GAAS,KAAK;;mBAChE,GAAe,KAAK,GAAG,MAAM,GAAe,KAAK;;uBAGnD,GAAQ,KAAK,GAAG,KAAK,GAAQ,KAAK,GAAG,MAAM,GAAa,KAAK;;;;;;;;;;oDAjDR;IAC1D,MAAM,UAAU,UAAU;IAE1B,MAAM,eAAe;;;IAOrB,MAAM,kBAAkB;;;IAIxB,MAAM,iBAAiB,WAAW;IAElC;;;IAIA,MAAM,eAAe,kBAAM,WAAC,mBAAI;IAEhC,MAAM,kBAAkB;IAIxB;;;IAKA,MAAM,WAAW;;;IAIjB,qBACE;sBACE,WAAC;YACC,aAAU;;;;0BAtC6C;aA2CtD;;YACF;;;;;;;;;sBAID,WAAC;;;;;;;;;QAGA,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,mBAAK,WAAC,mBAAI,yBAAiB;QAChE,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,oBACpC,WAAC;YAAW,cAAc;;QAE3B,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,MAAM;;;;;QAE3C,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,oBAAM,WAAC;;AAGnD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;;;;;;;;;;;;oDAkB4D;IAC1D,MAAM,UAAU,UAAU;IAE1B,MAAM,eAAe;;;IAOrB,MAAM,kBAAkB;;;IAIxB,MAAM,iBAAiB,WAAW;IAElC;;;IAIA,MAAM,eAAe,kBAAM,WAAC,mBAAI;IAEhC,MAAM,kBAAkB;IAIxB;;;IAKA,MAAM,WAAW;;;IAIjB,qBACE;sBACE,WAAC;YACC,aAAU;;;;0BAtC6C;aA2CtD;;YACF;;;;;;;;;sBAID,WAAC;;;;;;;;;;;;;;;;;;;;;;;;;;;AAYP\"}")
 /*
 {
   "origin": "test.tsx",
@@ -463,7 +780,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     381,
-    2055
+    2136
   ],
   "paramNames": [
     "_rawProps"

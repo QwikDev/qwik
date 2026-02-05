@@ -178,6 +178,96 @@ export const TestButton = component$(
 }
 
 #[test]
+fn example_conditional_jsx() {
+	test_input!(TestInput {
+		code: r#"
+import {
+  $,
+  Component,
+  component$,
+  PropsOf,
+  QRL,
+  useAsyncComputed$,
+  useComputed$,
+  useContext,
+  useSignal,
+  useTask$,
+} from "@qwik.dev/core";
+import { helper, TestButton } from "@repo/utils";
+import { counterContextId } from "./context";
+
+const InlinedComponent = () => <div>Inlined Component</div>;
+
+export const ImporterButton = component$<PropsOf<"button">>(({ onClick$ }) => {
+  const counter = useSignal(0);
+
+  const asyncCounter = useAsyncComputed$(({ track }) => {
+    track(() => counter.value);
+    return new Promise((resolve) =>
+      setTimeout(() => resolve(counter.value * 2), 1000)
+    );
+  });
+
+  const computedCounter = useComputed$(() => {
+    return counter.value * 2;
+  });
+
+  const contextCounter = useContext(counterContextId);
+
+  useTask$(() => {
+    contextCounter.value += 11;
+  });
+
+  const QrlComponent = () => <div>Qrl Component</div>;
+
+  const componentSignal = useSignal<QRL<Component<PropsOf<"div">>>>(
+    $(() => <div>Hello</div>)
+  );
+
+  useTask$(async ({ track }) => {
+    track(() => counter.value);
+    helper();
+  });
+
+  const computed = useComputed$(() => {
+    return counter.value * 2;
+  });
+
+  return (
+    <>
+      <button
+        onClick$={[
+          $(() => {
+            counter.value++;
+          }),
+          onClick$,
+        ]}
+      >
+        Import Button {counter.value > 1 ? counter.value : computed.value}
+        {contextCounter.value > 10 && contextCounter.value}
+      </button>
+      <br />
+      {counter.value > 1 && counter.value < 50 && asyncCounter.value}
+      {counter.value > 1 && counter.value < 50 && computedCounter.value}
+      {counter.value > 1 && counter.value < 50 ? <div>Hi there</div> : null}
+      {counter.value > 1 && counter.value < 50 && (
+        <TestButton onTripleClick$={() => console.log("TRIPLE CLICKED!")} />
+      )}
+      {counter.value > 1 && counter.value < 50 && QrlComponent()}
+      {counter.value > 1 && counter.value < 50 && componentSignal.value}
+      {counter.value > 1 && counter.value < 50 && <InlinedComponent />}
+    </>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_1() {
 	test_input!(TestInput {
 		code: r#"

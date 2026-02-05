@@ -1,0 +1,475 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 182
+expression: output
+---
+==INPUT==
+
+
+import {
+  $,
+  Component,
+  component$,
+  PropsOf,
+  QRL,
+  useAsyncComputed$,
+  useComputed$,
+  useContext,
+  useSignal,
+  useTask$,
+} from "@qwik.dev/core";
+import { helper, TestButton } from "@repo/utils";
+import { counterContextId } from "./context";
+
+const InlinedComponent = () => <div>Inlined Component</div>;
+
+export const ImporterButton = component$<PropsOf<"button">>(({ onClick$ }) => {
+  const counter = useSignal(0);
+
+  const asyncCounter = useAsyncComputed$(({ track }) => {
+    track(() => counter.value);
+    return new Promise((resolve) =>
+      setTimeout(() => resolve(counter.value * 2), 1000)
+    );
+  });
+
+  const computedCounter = useComputed$(() => {
+    return counter.value * 2;
+  });
+
+  const contextCounter = useContext(counterContextId);
+
+  useTask$(() => {
+    contextCounter.value += 11;
+  });
+
+  const QrlComponent = () => <div>Qrl Component</div>;
+
+  const componentSignal = useSignal<QRL<Component<PropsOf<"div">>>>(
+    $(() => <div>Hello</div>)
+  );
+
+  useTask$(async ({ track }) => {
+    track(() => counter.value);
+    helper();
+  });
+
+  const computed = useComputed$(() => {
+    return counter.value * 2;
+  });
+
+  return (
+    <>
+      <button
+        onClick$={[
+          $(() => {
+            counter.value++;
+          }),
+          onClick$,
+        ]}
+      >
+        Import Button {counter.value > 1 ? counter.value : computed.value}
+        {contextCounter.value > 10 && contextCounter.value}
+      </button>
+      <br />
+      {counter.value > 1 && counter.value < 50 && asyncCounter.value}
+      {counter.value > 1 && counter.value < 50 && computedCounter.value}
+      {counter.value > 1 && counter.value < 50 ? <div>Hi there</div> : null}
+      {counter.value > 1 && counter.value < 50 && (
+        <TestButton onTripleClick$={() => console.log("TRIPLE CLICKED!")} />
+      )}
+      {counter.value > 1 && counter.value < 50 && QrlComponent()}
+      {counter.value > 1 && counter.value < 50 && componentSignal.value}
+      {counter.value > 1 && counter.value < 50 && <InlinedComponent />}
+    </>
+  );
+});
+
+============================= test.js ==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_NRnrWFsxTd8 = ()=>import("./test.tsx_ImporterButton_component_NRnrWFsxTd8");
+const InlinedComponent = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, "Inlined Component", 3, "u6_0");
+export const ImporterButton = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_NRnrWFsxTd8, "ImporterButton_component_NRnrWFsxTd8"));
+export { InlinedComponent as _auto_InlinedComponent };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAgBA,MAAM,mBAAmB,kBAAM,WAAC,mBAAI;AAEpC,OAAO,MAAM,+BAAiB,uFA4D3B\"}")
+============================= test.tsx_ImporterButton_component_componentSignal_useSignal_xrKIEduTFSA.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+export const ImporterButton_component_componentSignal_useSignal_xrKIEduTFSA = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, "Hello", 3, "u6_2");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8EAyCM,kBAAM,WAAC,mBAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_componentSignal_useSignal_xrKIEduTFSA",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_componentSignal_useSignal",
+  "hash": "xrKIEduTFSA",
+  "canonicalFilename": "test.tsx_ImporterButton_component_componentSignal_useSignal_xrKIEduTFSA",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    960,
+    982
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_asyncCounter_useAsyncComputed_rT3QYtgCLko.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_asyncCounter_useAsyncComputed_rT3QYtgCLko = (_rawProps)=>{
+    const counter = _captures[0];
+    _rawProps.track(()=>counter.value);
+    return new Promise((resolve)=>setTimeout(()=>resolve(counter.value * 2), 1000));
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kFAqByC;;IACrC,UADwC,MAClC,IAAM,QAAQ,KAAK;IACzB,OAAO,IAAI,QAAQ,CAAC,UAClB,WAAW,IAAM,QAAQ,QAAQ,KAAK,GAAG,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_asyncCounter_useAsyncComputed_rT3QYtgCLko",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_asyncCounter_useAsyncComputed",
+  "hash": "rT3QYtgCLko",
+  "canonicalFilename": "test.tsx_ImporterButton_component_asyncCounter_useAsyncComputed_rT3QYtgCLko",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "useAsyncComputed$",
+  "captures": true,
+  "loc": [
+    475,
+    627
+  ],
+  "paramNames": [
+    "_rawProps"
+  ],
+  "captureNames": [
+    "counter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo.js (ENTRY POINT)==
+
+export const ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo = ()=>console.log("TRIPLE CLICKED!");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sFAuEoC,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_TestButton_onTripleClick",
+  "hash": "pDP6riPHVEo",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "jSXProp",
+  "ctxName": "onTripleClick$",
+  "captures": false,
+  "loc": [
+    1780,
+    1816
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_useTask_MtRgNE0xV1g.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_useTask_MtRgNE0xV1g = ()=>{
+    const contextCounter = _captures[0];
+    contextCounter.value += 11;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4DAkCW;;IACP,eAAe,KAAK,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_useTask_MtRgNE0xV1g",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_useTask",
+  "hash": "MtRgNE0xV1g",
+  "canonicalFilename": "test.tsx_ImporterButton_component_useTask_MtRgNE0xV1g",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    782,
+    825
+  ],
+  "captureNames": [
+    "contextCounter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_useTask_1_J0IZIZEad3g.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { helper } from "@repo/utils";
+export const ImporterButton_component_useTask_1_J0IZIZEad3g = async ({ track })=>{
+    const counter = _captures[0];
+    track(()=>counter.value);
+    helper();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;8DA4CW,OAAO,EAAE,KAAK,EAAE;;IACvB,MAAM,IAAM,QAAQ,KAAK;IACzB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_useTask_1_J0IZIZEad3g",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_useTask_1",
+  "hash": "J0IZIZEad3g",
+  "canonicalFilename": "test.tsx_ImporterButton_component_useTask_1_J0IZIZEad3g",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    1001,
+    1073
+  ],
+  "paramNames": [
+    "{track}"
+  ],
+  "captureNames": [
+    "counter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_Fragment_button_q_e_click_GeoU97NxWYI.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_Fragment_button_q_e_click_GeoU97NxWYI = ()=>{
+    const counter = _captures[0];
+    counter.value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8EAyDY;;IACA,QAAQ,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_Fragment_button_q_e_click_GeoU97NxWYI",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_Fragment_button_q_e_click",
+  "hash": "GeoU97NxWYI",
+  "canonicalFilename": "test.tsx_ImporterButton_component_Fragment_button_q_e_click_GeoU97NxWYI",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    1218,
+    1266
+  ],
+  "captureNames": [
+    "counter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_computedCounter_useComputed_7Ndirk4ZG68.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_computedCounter_useComputed_7Ndirk4ZG68 = ()=>{
+    const counter = _captures[0];
+    return counter.value * 2;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gFA4BuC;;IACnC,OAAO,QAAQ,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_computedCounter_useComputed_7Ndirk4ZG68",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_computedCounter_useComputed",
+  "hash": "7Ndirk4ZG68",
+  "canonicalFilename": "test.tsx_ImporterButton_component_computedCounter_useComputed_7Ndirk4ZG68",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    670,
+    711
+  ],
+  "captureNames": [
+    "counter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_computed_useComputed_eFEh2KesO7s.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const ImporterButton_component_computed_useComputed_eFEh2KesO7s = ()=>{
+    const counter = _captures[0];
+    return counter.value * 2;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yEAiDgC;;IAC5B,OAAO,QAAQ,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_computed_useComputed_eFEh2KesO7s",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component_computed_useComputed",
+  "hash": "eFEh2KesO7s",
+  "canonicalFilename": "test.tsx_ImporterButton_component_computed_useComputed_eFEh2KesO7s",
+  "path": "",
+  "extension": "js",
+  "parent": "ImporterButton_component_NRnrWFsxTd8",
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    1109,
+    1150
+  ],
+  "captureNames": [
+    "counter"
+  ]
+}
+*/
+============================= test.tsx_ImporterButton_component_NRnrWFsxTd8.js (ENTRY POINT)==
+
+import { _auto_InlinedComponent as InlinedComponent } from "./test";
+import { TestButton } from "@repo/utils";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { counterContextId } from "./context";
+import { qrl } from "@qwik.dev/core";
+import { useAsyncComputedQrl } from "@qwik.dev/core";
+import { useComputedQrl } from "@qwik.dev/core";
+import { useContext } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+const _hf0 = (p0, p1)=>p1.value > 1 ? p1.value : p0.value;
+const _hf0_str = "p1.value>1?p1.value:p0.value";
+const _hf1 = (p0)=>p0.value > 10 && p0.value;
+const _hf1_str = "p0.value>10&&p0.value";
+const _hf2 = (p0, p1)=>p1.value > 1 && p1.value < 50 && p0.value;
+const _hf2_str = "p1.value>1&&p1.value<50&&p0.value";
+const i_7Ndirk4ZG68 = ()=>import("./test.tsx_ImporterButton_component_computedCounter_useComputed_7Ndirk4ZG68");
+const i_GeoU97NxWYI = ()=>import("./test.tsx_ImporterButton_component_Fragment_button_q_e_click_GeoU97NxWYI");
+const i_J0IZIZEad3g = ()=>import("./test.tsx_ImporterButton_component_useTask_1_J0IZIZEad3g");
+const i_MtRgNE0xV1g = ()=>import("./test.tsx_ImporterButton_component_useTask_MtRgNE0xV1g");
+const i_eFEh2KesO7s = ()=>import("./test.tsx_ImporterButton_component_computed_useComputed_eFEh2KesO7s");
+const i_pDP6riPHVEo = ()=>import("./test.tsx_ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo");
+const i_rT3QYtgCLko = ()=>import("./test.tsx_ImporterButton_component_asyncCounter_useAsyncComputed_rT3QYtgCLko");
+const i_xrKIEduTFSA = ()=>import("./test.tsx_ImporterButton_component_componentSignal_useSignal_xrKIEduTFSA");
+export const ImporterButton_component_NRnrWFsxTd8 = (_rawProps)=>{
+    const counter = useSignal(0);
+    const asyncCounter = useAsyncComputedQrl(/*#__PURE__*/ qrl(i_rT3QYtgCLko, "ImporterButton_component_asyncCounter_useAsyncComputed_rT3QYtgCLko", [
+        counter
+    ]));
+    const computedCounter = useComputedQrl(/*#__PURE__*/ qrl(i_7Ndirk4ZG68, "ImporterButton_component_computedCounter_useComputed_7Ndirk4ZG68", [
+        counter
+    ]));
+    const contextCounter = useContext(counterContextId);
+    useTaskQrl(/*#__PURE__*/ qrl(i_MtRgNE0xV1g, "ImporterButton_component_useTask_MtRgNE0xV1g", [
+        contextCounter
+    ]));
+    const QrlComponent = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, "Qrl Component", 3, "u6_1");
+    const componentSignal = useSignal(/*#__PURE__*/ qrl(i_xrKIEduTFSA, "ImporterButton_component_componentSignal_useSignal_xrKIEduTFSA"));
+    useTaskQrl(/*#__PURE__*/ qrl(i_J0IZIZEad3g, "ImporterButton_component_useTask_1_J0IZIZEad3g", [
+        counter
+    ]));
+    const computed = useComputedQrl(/*#__PURE__*/ qrl(i_eFEh2KesO7s, "ImporterButton_component_computed_useComputed_eFEh2KesO7s", [
+        counter
+    ]));
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": [
+                /*#__PURE__*/ qrl(i_GeoU97NxWYI, "ImporterButton_component_Fragment_button_q_e_click_GeoU97NxWYI", [
+                    counter
+                ]),
+                _rawProps.onClick$
+            ]
+        }, null, [
+            "Import Button ",
+            _fnSignal(_hf0, [
+                computed,
+                counter
+            ], _hf0_str),
+            _fnSignal(_hf1, [
+                contextCounter
+            ], _hf1_str)
+        ], 2, null),
+        /*#__PURE__*/ _jsxSorted("br", null, null, null, 3, null),
+        _fnSignal(_hf2, [
+            asyncCounter,
+            counter
+        ], _hf2_str),
+        _fnSignal(_hf2, [
+            computedCounter,
+            counter
+        ], _hf2_str),
+        counter.value > 1 && counter.value < 50 ? /*#__PURE__*/ _jsxSorted("div", null, null, "Hi there", 3, "u6_3") : null,
+        counter.value > 1 && counter.value < 50 && /*#__PURE__*/ _jsxSorted(TestButton, null, {
+            onTripleClick$: /*#__PURE__*/ qrl(i_pDP6riPHVEo, "ImporterButton_component_Fragment_TestButton_onTripleClick_pDP6riPHVEo")
+        }, null, 3, "u6_4"),
+        counter.value > 1 && counter.value < 50 && QrlComponent(),
+        _fnSignal(_hf2, [
+            componentSignal,
+            counter
+        ], _hf2_str),
+        counter.value > 1 && counter.value < 50 && /*#__PURE__*/ _jsxSorted(InlinedComponent, null, null, null, 3, "u6_5")
+    ], 1, "u6_6");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;uBA+DuB,GAAQ,KAAK,GAAG,IAAI,GAAQ,KAAK,GAAG,GAAS,KAAK;;mBAChE,GAAe,KAAK,GAAG,MAAM,GAAe,KAAK;;uBAGnD,GAAQ,KAAK,GAAG,KAAK,GAAQ,KAAK,GAAG,MAAM,GAAa,KAAK;;;;;;;;;;oDAjDR;IAC1D,MAAM,UAAU,UAAU;IAE1B,MAAM,eAAe;;;IAOrB,MAAM,kBAAkB;;;IAIxB,MAAM,iBAAiB,WAAW;IAElC;;;IAIA,MAAM,eAAe,kBAAM,WAAC,mBAAI;IAEhC,MAAM,kBAAkB;IAIxB;;;IAKA,MAAM,WAAW;;;IAIjB,qBACE;sBACE,WAAC;YACC,aAAU;;;;0BAtC6C;aA2CtD;;YACF;;;;;;;;;sBAID,WAAC;;;;;;;;;QAGA,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,mBAAK,WAAC,mBAAI,yBAAiB;QAChE,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,oBACpC,WAAC;YAAW,cAAc;;QAE3B,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,MAAM;;;;;QAE3C,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,oBAAM,WAAC;;AAGnD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ImporterButton_component_NRnrWFsxTd8",
+  "entry": null,
+  "displayName": "test.tsx_ImporterButton_component",
+  "hash": "NRnrWFsxTd8",
+  "canonicalFilename": "test.tsx_ImporterButton_component_NRnrWFsxTd8",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    381,
+    2055
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

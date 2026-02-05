@@ -15,6 +15,7 @@ import {
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
   SignalFlags,
+  type AsyncSignalOptions,
 } from '../types';
 import { scheduleEffects } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
@@ -52,9 +53,20 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     container: Container | null,
     fn: AsyncQRL<T>,
     flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID,
-    pollMs: number = 0
+    options?: AsyncSignalOptions<T>
   ) {
     super(container, fn, flags);
+    const pollMs = options?.pollMs || 0;
+    const initial = options?.initial;
+
+    // Handle initial value - eagerly evaluate if function, set $untrackedValue$ and $promiseValue$
+    // Do NOT call setValue() which would clear the INVALID flag and prevent async computation
+    if (initial !== undefined) {
+      const initialValue = typeof initial === 'function' ? (initial as () => T)() : initial;
+      this.$untrackedValue$ = initialValue;
+      this.$promiseValue$ = initialValue;
+    }
+
     this.pollMs = pollMs;
   }
 

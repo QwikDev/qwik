@@ -39,6 +39,12 @@ class Foo {
   }
 }
 
+let computeInitialCalls = 0;
+const computeInitialFn = async () => {
+  computeInitialCalls++;
+  return 42;
+};
+
 describe('signal types', () => {
   it('Signal<T>', () => () => {
     const signal = createSignal(1);
@@ -347,6 +353,104 @@ describe('signal', () => {
           // Even on SSR (when isBrowser is false), the pollMs should be stored
           // so that if the signal is hydrated on the browser, polling can resume
           expect(signal.$pollMs$).toBe(pollMs);
+        });
+      });
+
+      it('should return initial value on first read', async () => {
+        await withContainer(async () => {
+          const signal = createAsync$(async () => 42, {
+            initial: 10,
+          }) as AsyncSignalImpl<number>;
+
+          // First read should return initial value without throwing
+          expect(signal.value).toBe(10);
+          // Promise value should be set to initial
+          expect((signal as any).$promiseValue$).toBe(10);
+        });
+      });
+
+      it('should invoke compute on first read without promise()', async () => {
+        await withContainer(async () => {
+          computeInitialCalls = 0;
+          const signal = createAsync$(computeInitialFn, {
+            initial: 10,
+          }) as AsyncSignalImpl<number>;
+
+          // First read should return initial value
+          expect(signal.value).toBe(10);
+          // Compute function should have been called to start computation
+          expect(computeInitialCalls).toBe(1);
+          await retryOnPromise(() => {
+            if (signal.value !== 42) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return signal.value;
+          });
+          expect(signal.value).toBe(42);
+        });
+      });
+
+      it('should eagerly evaluate initial function on construction', async () => {
+        await withContainer(async () => {
+          let initCalls = 0;
+          const signal = createAsync$(async () => 42, {
+            initial: () => {
+              initCalls++;
+              return 20;
+            },
+          }) as AsyncSignalImpl<number>;
+
+          // Initial function should be called immediately during construction
+          expect(initCalls).toBe(1);
+          // First read should return initial value
+          expect(signal.value).toBe(20);
+        });
+      });
+
+      it('should propagate initial function errors immediately', async () => {
+        await withContainer(async () => {
+          const error = new Error('initial failed');
+          expect(() => {
+            createAsync$(async () => 42, {
+              initial: () => {
+                throw error;
+              },
+            });
+          }).toThrow(error);
+        });
+      });
+
+      it('initial and pollMs should work together', async () => {
+        await withContainer(async () => {
+          const pollMs = 1;
+          const signal = createAsync$(async () => 42, {
+            initial: 10,
+            pollMs,
+          }) as AsyncSignalImpl<number>;
+
+          // Should have initial value
+          expect(signal.value).toBe(10);
+          // Should have poll interval stored
+          expect(signal.pollMs).toBe(pollMs);
+          expect(signal.$pollMs$).toBe(pollMs);
+        });
+      });
+
+      it('initial value should be replaced by computed promise', async () => {
+        await withContainer(async () => {
+          const signal = createAsync$(async () => 42, {
+            initial: 10,
+          }) as AsyncSignalImpl<number>;
+
+          // Start with initial value
+          expect(signal.value).toBe(10);
+
+          // Wait for the async promise to resolve
+          const resolvedValue = await signal.promise();
+
+          // After promise resolves, should have computed value
+          expect(resolvedValue).toBe(42);
+          expect(signal.value).toBe(42);
         });
       });
     });

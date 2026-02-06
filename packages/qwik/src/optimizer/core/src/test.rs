@@ -268,6 +268,35 @@ export const ImporterButton = component$<PropsOf<"button">>(({ onClick$ }) => {
 }
 
 #[test]
+fn example_increment() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const TestButton = component$(() => {
+   const count = useSignal(0);
+   const increment$ = $(() => {
+      console.log("incrementing");
+      count.value++
+    });
+   return (
+      <button onClick$={async () => {
+        await increment$(); 
+        console.log("incremented");
+      }}>
+        click me
+      </button>
+    );
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_1() {
 	test_input!(TestInput {
 		code: r#"

@@ -46,6 +46,10 @@ export const trackFn =
     });
   };
 
+/**
+ * This adds $destroy$ to the target if a cleanup function is registered. It must be called before
+ * running any computations again.
+ */
 export const cleanupFn = <T extends Destroyable>(
   target: T,
   handleError: (err: unknown) => void
@@ -57,6 +61,7 @@ export const cleanupFn = <T extends Destroyable>(
         cleanupFns = [];
         target.$destroy$ = noSerialize(() => {
           target.$destroy$ = null;
+          // TODO handle promises
           for (const fn of cleanupFns!) {
             try {
               fn();

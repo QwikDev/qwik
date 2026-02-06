@@ -75,11 +75,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
    * has resolved or rejected.
    */
   get loading(): boolean {
-    return setupSignalValueAccess(
-      this,
-      () => (this.$loadingEffects$ ||= new Set()),
-      () => this.untrackedLoading
-    );
+    return setupSignalValueAccess(this, '$loadingEffects$', 'untrackedLoading');
   }
 
   set untrackedLoading(value: boolean) {
@@ -96,11 +92,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
 
   /** The error that occurred when the signal was resolved. */
   get error(): Error | undefined {
-    return setupSignalValueAccess(
-      this,
-      () => (this.$errorEffects$ ||= new Set()),
-      () => this.untrackedError
-    );
+    return setupSignalValueAccess(this, '$errorEffects$', 'untrackedError');
   }
 
   set untrackedError(value: Error | undefined) {

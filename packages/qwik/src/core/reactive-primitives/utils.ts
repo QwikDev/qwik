@@ -66,7 +66,7 @@ export const addQrlToSerializationCtx = (
   effectSubscriber: EffectSubscription,
   container: Container | null
 ) => {
-  if (container) {
+  if ((container as SSRContainer | null)?.serializationCtx) {
     const effect = effectSubscriber.consumer;
     const property = effectSubscriber.property;
     let qrl: QRL | null = null;
@@ -75,7 +75,7 @@ export const addQrlToSerializationCtx = (
     } else if (effect instanceof ComputedSignalImpl) {
       qrl = effect.$computeQrl$;
     } else if (property === EffectProperty.COMPONENT) {
-      qrl = container.getHostProp<QRL>(effect as VNode, OnRenderProp);
+      qrl = container!.getHostProp<QRL>(effect as VNode, OnRenderProp);
     }
     if (qrl) {
       (container as SSRContainer).serializationCtx.$eventQrls$.add(qrl);

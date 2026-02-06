@@ -24,8 +24,7 @@ export abstract class _SharedContainer implements Container {
   $buildBase$: string | null = null;
   $renderPromise$: Promise<void> | null = null;
   $resolveRenderPromise$: (() => void) | null = null;
-  $cursorCount$: number = 0;
-  $pausedCursorCount$: number = 0;
+  $pendingCount$: number = 0;
 
   constructor(serverData: Record<string, any>, locale: string) {
     this.$serverData$ = serverData;
@@ -65,6 +64,13 @@ export abstract class _SharedContainer implements Container {
       this.$storeProxyMap$,
       writer
     );
+  }
+
+  $checkPendingCount$(): void {
+    if (this.$pendingCount$ === 0) {
+      this.$resolveRenderPromise$?.();
+      this.$renderPromise$ = null;
+    }
   }
 
   abstract ensureProjectionResolved(host: HostElement): void;

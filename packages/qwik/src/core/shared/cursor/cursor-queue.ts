@@ -16,8 +16,7 @@ const globalCursorQueue: Cursor[] = [];
 const pausedCursorQueue: Cursor[] = [];
 
 /**
- * Adds a cursor to the global queue. If the cursor already exists, it's removed and re-added to
- * maintain correct priority order.
+ * Adds a cursor to the global queue.
  *
  * @param cursor - The cursor to add
  */
@@ -35,7 +34,7 @@ export function addCursorToQueue(container: Container, cursor: Cursor): void {
 
   globalCursorQueue.splice(insertIndex, 0, cursor);
 
-  container.$cursorCount$++;
+  container.$pendingCount$++;
   container.$renderPromise$ ||= new Promise((r) => (container.$resolveRenderPromise$ = r));
 }
 
@@ -68,7 +67,7 @@ export function getHighestPriorityCursor(): Cursor | null {
 export function pauseCursor(cursor: Cursor, container: Container): void {
   pausedCursorQueue.push(cursor);
   removeCursorFromQueue(cursor, container, true);
-  container.$pausedCursorCount$++;
+  container.$pendingCount$++;
 }
 
 export function resumeCursor(cursor: Cursor, container: Container): void {
@@ -79,7 +78,7 @@ export function resumeCursor(cursor: Cursor, container: Container): void {
       pausedCursorQueue[index] = pausedCursorQueue[lastIndex];
     }
     pausedCursorQueue.pop();
-    container.$pausedCursorCount$--;
+    container.$pendingCount$--;
   }
   addCursorToQueue(container, cursor);
 }
@@ -107,6 +106,6 @@ export function removeCursorFromQueue(
     // }
     // globalCursorQueue.pop();
     globalCursorQueue.splice(index, 1);
-    container.$cursorCount$--;
+    container.$pendingCount$--;
   }
 }

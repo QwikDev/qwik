@@ -26,8 +26,8 @@ export interface Container {
   $buildBase$: string | null;
   $renderPromise$: Promise<void> | null;
   $resolveRenderPromise$: (() => void) | null;
-  $cursorCount$: number;
-  $pausedCursorCount$: number;
+  $pendingCount$: number;
+  $checkPendingCount$(): void;
 
   handleError(err: any, $host$: HostElement | null): void;
   getParentHost(host: HostElement): HostElement | null;

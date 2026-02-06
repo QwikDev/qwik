@@ -1853,12 +1853,14 @@ export function vnode_toString(
       if (vnode.dirty) {
         attrs.push(` dirty:${vnode.dirty}`);
       }
-      vnode_getAttrKeys(container!, vnode).forEach((key) => {
-        if (key !== DEBUG_TYPE && key !== debugStyleScopeIdPrefixAttr) {
-          const value = vnode_getProp(vnode!, key, null);
-          attrs.push(' ' + key + '=' + qwikDebugToString(value));
-        }
-      });
+      if (container) {
+        vnode_getAttrKeys(container, vnode).forEach((key) => {
+          if (key !== DEBUG_TYPE && key !== debugStyleScopeIdPrefixAttr) {
+            const value = vnode_getProp(vnode!, key, null);
+            attrs.push(' ' + key + '=' + qwikDebugToString(value));
+          }
+        });
+      }
       const name =
         (colorize ? NAME_COL_PREFIX : '') +
         (VirtualTypeName[vnode_getProp<string>(vnode, DEBUG_TYPE, null) || VirtualType.Virtual] ||
@@ -1883,7 +1885,7 @@ export function vnode_toString(
       if (vnode.dirtyChildren) {
         attrs.push(` dirtyChildren[${vnode.dirtyChildren.length}]`);
       }
-      const keys = vnode_getAttrKeys(container!, vnode);
+      const keys = container ? vnode_getAttrKeys(container, vnode) : [];
       for (const key of keys) {
         const value = vnode_getProp(vnode!, key, null);
         attrs.push(' ' + key + '=' + qwikDebugToString(value));

@@ -51,6 +51,9 @@ test-results
 .netlify
 sandbox
 
+# AI tools
+.planning
+
 # We need to ignore this because "changesets" will try to replace it
 /CHANGELOG.md
 

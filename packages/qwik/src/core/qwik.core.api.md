@@ -971,7 +971,7 @@ export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) =>
 // @internal
 export function _run(this: string, event: Event, element: Element): ValueOrPromise<unknown>;
 
-// @public (undocumented)
+// @public
 export type SerializationStrategy = 'never' | 'always';
 
 // @internal

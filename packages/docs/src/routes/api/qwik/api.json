@@ -1940,7 +1940,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type SerializationStrategy = 'never' | 'always';\n```",
+      "content": "Serialization strategy for computed and async signals. This determines whether to serialize their value during SSR.\n\n- `never`<!-- -->: The value is never serialized. When the component is resumed, the value will be recalculated when it is first read. - `always`<!-- -->: The value is always serialized. This is the default.\n\n\\*\\*IMPORTANT\\*\\*: When you use `never`<!-- -->, your serialized HTML is smaller, but the recalculation will trigger subscriptions, meaning that other signals using this signal will recalculate, even if this signal didn't change.\n\nThis is normally not a problem, but for async signals it may mean fetching something again.\n\n\n```typescript\nexport type SerializationStrategy = 'never' | 'always';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/types.ts",
       "mdFile": "core.serializationstrategy.md"
     },

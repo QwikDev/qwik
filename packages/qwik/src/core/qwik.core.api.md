@@ -22,7 +22,7 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     error: Error | undefined;
     loading: boolean;
     pollMs: number;
-    promise(): Promise<T>;
+    promise(): Promise<void>;
 }
 
 // @internal
@@ -109,15 +109,15 @@ export interface _Container {
     // (undocumented)
     $buildBase$: string | null;
     // (undocumented)
-    $currentUniqueId$: number;
+    $checkPendingCount$(): void;
     // (undocumented)
-    $cursorCount$: number;
+    $currentUniqueId$: number;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
     readonly $locale$: string;
     // (undocumented)
-    $pausedCursorCount$: number;
+    $pendingCount$: number;
     // (undocumented)
     $renderPromise$: Promise<void> | null;
     // (undocumented)
@@ -990,9 +990,9 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     $buildBase$: string | null;
     // (undocumented)
-    $currentUniqueId$: number;
+    $checkPendingCount$(): void;
     // (undocumented)
-    $cursorCount$: number;
+    $currentUniqueId$: number;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
@@ -1000,7 +1000,7 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     readonly $locale$: string;
     // (undocumented)
-    $pausedCursorCount$: number;
+    $pendingCount$: number;
     // (undocumented)
     $renderPromise$: Promise<void> | null;
     // (undocumented)

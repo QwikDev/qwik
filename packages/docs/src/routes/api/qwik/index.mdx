@@ -165,7 +165,7 @@ Error \| undefined
 
 </td><td>
 
-The error that occurred while computing the signal.
+The error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed.
 
 </td></tr>
 <tr><td>
@@ -180,7 +180,17 @@ boolean
 
 </td><td>
 
-Whether the signal is currently loading.
+Whether the signal is currently loading. This will trigger lazy loading of the signal, so you can use it like this:
+
+```tsx
+signal.loading ? (
+  <Loading />
+) : signal.error ? (
+  <Error />
+) : (
+  <Component value={signal.value} />
+);
+```
 
 </td></tr>
 <tr><td>
@@ -215,7 +225,7 @@ Description
 
 </td><td>
 
-A promise that resolves when the value is computed.
+A promise that resolves when the value is computed or rejected.
 
 </td></tr>
 </tbody></table>
@@ -2631,15 +2641,15 @@ opts
 
 ## promise
 
-A promise that resolves when the value is computed.
+A promise that resolves when the value is computed or rejected.
 
 ```typescript
-promise(): Promise<T>;
+promise(): Promise<void>;
 ```
 
 **Returns:**
 
-Promise&lt;T&gt;
+Promise&lt;void&gt;
 
 ## PropFunction
 

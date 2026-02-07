@@ -128,7 +128,22 @@ export interface QContainerElement extends Element {
   _qwikjson_?: any;
 }
 
-/** @public */
+/**
+ * Serialization strategy for computed and async signals. This determines whether to serialize their
+ * value during SSR.
+ *
+ * - `never`: The value is never serialized. When the component is resumed, the value will be
+ *   recalculated when it is first read.
+ * - `always`: The value is always serialized. This is the default.
+ *
+ * **IMPORTANT**: When you use `never`, your serialized HTML is smaller, but the recalculation will
+ * trigger subscriptions, meaning that other signals using this signal will recalculate, even if
+ * this signal didn't change.
+ *
+ * This is normally not a problem, but for async signals it may mean fetching something again.
+ *
+ * @public
+ */
 export type SerializationStrategy =
   // TODO: implement this in the future
   // 'auto' |

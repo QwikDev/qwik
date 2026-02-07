@@ -28,7 +28,7 @@ export const createComputedSignal = <T>(
   return new ComputedSignalImpl<T>(
     options?.container || null,
     qrl as ComputeQRL<T>,
-    getComputedSignalFlags(options?.serializationStrategy || 'never')
+    getComputedSignalFlags(options?.serializationStrategy || 'always')
   );
 };
 

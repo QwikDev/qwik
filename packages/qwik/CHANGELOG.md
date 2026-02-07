@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.21
+
+### Major Changes
+
+- BREAKING (if you used previous betas): `useAsyncComputed$` is renamed to `useAsync$`. This reflects the many uses for it, not just computing. (by [@wmertens](https://github.com/wmertens) in [#8297](https://github.com/QwikDev/qwik/pull/8297))
+
 ## 2.0.0-beta.20
 
 ### Major Changes

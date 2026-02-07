@@ -109,10 +109,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$flags$ &= ~SignalFlags.INVALID;
       const didChange = untrackedValue !== this.$untrackedValue$;
       if (didChange) {
-        // skip first computation when value is not changed
-        if (this.$untrackedValue$ !== NEEDS_COMPUTATION) {
-          this.$flags$ |= SignalFlags.RUN_EFFECTS;
-        }
+        this.$flags$ |= SignalFlags.RUN_EFFECTS;
         this.$untrackedValue$ = untrackedValue;
       }
     } finally {

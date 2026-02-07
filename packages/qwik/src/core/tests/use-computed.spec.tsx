@@ -467,13 +467,13 @@ describe.each([
       expect((globalThis as any).logCount).toBe(1);
 
       await trigger(document.body, 'button', 'click');
-      expect((globalThis as any).logCount).toBe(1);
-      await trigger(document.body, 'button', 'click');
       expect((globalThis as any).logCount).toBe(2);
       await trigger(document.body, 'button', 'click');
-      expect((globalThis as any).logCount).toBe(2);
+      expect((globalThis as any).logCount).toBe(3);
       await trigger(document.body, 'button', 'click');
-      expect((globalThis as any).logCount).toBe(2);
+      expect((globalThis as any).logCount).toBe(3);
+      await trigger(document.body, 'button', 'click');
+      expect((globalThis as any).logCount).toBe(3);
     });
   });
 

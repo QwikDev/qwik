@@ -16,17 +16,28 @@ export interface ReadonlySignal<T = unknown> {
 
 /** @public */
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
-  /** Whether the signal is currently loading. */
+  /**
+   * Whether the signal is currently loading. This will trigger lazy loading of the signal, so you
+   * can use it like this:
+   *
+   * ```tsx
+   * signal.loading ? <Loading /> : signal.error ? <Error /> : <Component
+   * value={signal.value} />
+   * ```
+   */
   loading: boolean;
-  /** The error that occurred while computing the signal. */
+  /**
+   * The error that occurred while computing the signal, if any. This will be cleared when the
+   * signal is successfully computed.
+   */
   error: Error | undefined;
   /**
    * Poll interval in ms. Writable and immediately effective when the signal has consumers. If set
    * to `0`, polling stops.
    */
   pollMs: number;
-  /** A promise that resolves when the value is computed. */
-  promise(): Promise<T>;
+  /** A promise that resolves when the value is computed or rejected. */
+  promise(): Promise<void>;
 }
 
 /**

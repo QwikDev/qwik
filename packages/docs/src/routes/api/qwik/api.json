@@ -244,7 +244,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading.\n\n\n</td></tr>\n<tr><td>\n\n[pollMs](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nPoll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`<!-- -->, polling stops.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading. This will trigger lazy loading of the signal, so you can use it like this:\n\n```tsx\nsignal.loading ? <Loading /> : signal.error ? <Error /> : <Component\nvalue={signal.value} />\n```\n\n\n</td></tr>\n<tr><td>\n\n[pollMs](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nPoll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`<!-- -->, polling stops.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed or rejected.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.asyncsignal.md"
     },
@@ -1255,7 +1255,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "A promise that resolves when the value is computed.\n\n\n```typescript\npromise(): Promise<T>;\n```\n**Returns:**\n\nPromise&lt;T&gt;",
+      "content": "A promise that resolves when the value is computed or rejected.\n\n\n```typescript\npromise(): Promise<void>;\n```\n**Returns:**\n\nPromise&lt;void&gt;",
       "mdFile": "core.asyncsignal.promise.md"
     },
     {

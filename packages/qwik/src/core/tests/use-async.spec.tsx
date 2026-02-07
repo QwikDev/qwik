@@ -1,11 +1,13 @@
 import {
   $,
   Fragment as Signal,
+  Slot,
   _jsxSorted,
   _wrapProp,
   component$,
   useAsync$,
   useConstant,
+  useErrorBoundary,
   useSignal,
   useTask$,
 } from '@qwik.dev/core';
@@ -123,22 +125,43 @@ describe.each([
     );
   });
 
-  it('should handle error if promise is rejected', async () => {
+  it('should throw error on value if promise is rejected', async () => {
     (globalThis as any).log = [];
-    const Counter = component$(() => {
-      const count = useSignal(1);
-      const doubleCount = useAsync$(() => Promise.reject(new Error('test')));
-
-      useTask$(({ track }) => {
-        track(doubleCount);
-
-        (globalThis as any).log.push((doubleCount as any).untrackedError.message);
-      });
-
-      return <button onClick$={() => count.value++}>{(doubleCount as any).value}</button>;
+    const ErrorBoundary = component$(() => {
+      const store = useErrorBoundary();
+      (globalThis as any).log.push(`rendering error boundary, ${store.error || 'no error'}`);
+      return store.error ? <div>{JSON.stringify(store.error)}</div> : <Slot />;
     });
-    await render(<Counter />, { debug });
-    expect((globalThis as any).log).toEqual(['test']);
+    const Counter = component$(() => {
+      (globalThis as any).log.push('rendering counter');
+      const doubleCount = useAsync$(() => Promise.reject(new Error('test')));
+      return <div>{doubleCount.value}</div>;
+    });
+    let threw = false;
+    try {
+      await render(
+        <ErrorBoundary>
+          <Counter />,
+        </ErrorBoundary>,
+        { debug }
+      );
+    } catch (e) {
+      threw = true;
+    }
+    if (render === ssrRenderToDom) {
+      expect((globalThis as any).log).toEqual([
+        'rendering error boundary, no error',
+        'rendering counter',
+      ]);
+      expect(threw).toBe(true);
+    } else {
+      expect((globalThis as any).log).toEqual([
+        'rendering error boundary, no error',
+        'rendering counter',
+        'rendering error boundary, Error: test',
+      ]);
+      expect(threw).toBe(false);
+    }
   });
 
   it('should handle undefined as promise result', async () => {
@@ -220,8 +243,10 @@ describe.each([
         const count = useSignal(1);
         const doubleCount = useAsync$(async ({ track }) => {
           const countValue = track(count);
-          if (countValue > 1) {
+          if (countValue === 2) {
             await (globalThis as any).delay();
+          } else {
+            await delay(10);
           }
           return countValue * 2;
         });
@@ -232,17 +257,33 @@ describe.each([
         );
       });
       const { vNode, container } = await render(<Counter />, { debug });
-      await waitForDrain(container);
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>
-            <Signal ssr-required>{'2'}</Signal>
-          </button>
-        </>
-      );
+      if (render === ssrRenderToDom) {
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              <Signal ssr-required>{'2'}</Signal>
+            </button>
+          </>
+        );
+      } else {
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              <Signal ssr-required>{'loading'}</Signal>
+            </button>
+          </>
+        );
+        await delay(20);
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              <Signal ssr-required>{'2'}</Signal>
+            </button>
+          </>
+        );
+      }
 
       await trigger(container.element, 'button', 'click');
-
       expect(vNode).toMatchVDOM(
         <>
           <button>
@@ -251,7 +292,7 @@ describe.each([
         </>
       );
 
-      await (globalThis as any).delay.resolve();
+      (globalThis as any).delay.resolve();
       await waitForDrain(container);
       await waitForDrain(container);
       expect(vNode).toMatchVDOM(

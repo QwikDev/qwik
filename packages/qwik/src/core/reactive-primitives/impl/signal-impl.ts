@@ -29,7 +29,7 @@ export class SignalImpl<T = any> implements Signal<T> {
   $wrappedSignal$: WrappedSignalImpl<T> | null = null;
 
   constructor(container: Container | null, value: T) {
-    this.$container$ = container;
+    this.$container$ = container || tryGetInvokeContext()?.$container$ || null;
     this.$untrackedValue$ = value;
     DEBUG && log('new', this);
   }
@@ -54,10 +54,12 @@ export class SignalImpl<T = any> implements Signal<T> {
   get value() {
     const ctx = tryGetInvokeContext();
     if (!ctx) {
+      DEBUG && log('read->no-ctx', pad('\n' + this.toString(), '  '));
       return this.untrackedValue;
     }
     if (this.$container$ === null) {
       if (!ctx.$container$) {
+        DEBUG && log('read->no-container', pad('\n' + this.toString(), '  '));
         return this.untrackedValue;
       }
       // Grab the container now we have access to it
@@ -83,13 +85,21 @@ export class SignalImpl<T = any> implements Signal<T> {
         addQrlToSerializationCtx(effectSubscriber, this.$container$);
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
     }
+    DEBUG && log('read no sub', pad('\n' + this.toString(), '  '));
     return this.untrackedValue;
   }
 
   set value(value) {
     if (value !== this.$untrackedValue$) {
       DEBUG &&
-        log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), '  '));
+        log(
+          'Signal.set',
+          this.$untrackedValue$,
+          '->',
+          value,
+          pad('\n' + this.toString(), '  '),
+          this.$effects$ ? 'subs: ' + this.$effects$.size : 'no subs'
+        );
       this.$untrackedValue$ = value;
       scheduleEffects(this.$container$, this, this.$effects$);
     }

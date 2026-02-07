@@ -426,11 +426,11 @@ export async function serialize(serializationContext: SerializationContext): Pro
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
         const pollMs = value instanceof AsyncSignalImpl ? value.$pollMs$ : 0;
 
-        if (shouldAlwaysSerialize) {
+        if (isInvalid || isSkippable) {
+          v = NEEDS_COMPUTATION;
+        } else if (shouldAlwaysSerialize) {
           v = value.$untrackedValue$;
         } else if (shouldNeverSerialize) {
-          v = NEEDS_COMPUTATION;
-        } else if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
         }
 
@@ -441,12 +441,8 @@ export async function serialize(serializationContext: SerializationContext): Pro
         ];
         const isAsync = value instanceof AsyncSignalImpl;
         if (isAsync) {
-          out.push(
-            value.$loadingEffects$,
-            value.$errorEffects$,
-            value.$untrackedLoading$ || undefined,
-            value.$untrackedError$
-          );
+          // After SSR, the signal is never loading, so no need to send it
+          out.push(value.$loadingEffects$, value.$errorEffects$, value.$untrackedError$);
         }
 
         let keepUndefined = false;

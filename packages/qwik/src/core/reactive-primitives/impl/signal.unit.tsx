@@ -364,8 +364,6 @@ describe('signal', () => {
 
           // First read should return initial value without throwing
           expect(signal.value).toBe(10);
-          // Promise value should be set to initial
-          expect((signal as any).$promiseValue$).toBe(10);
         });
       });
 
@@ -446,10 +444,9 @@ describe('signal', () => {
           expect(signal.value).toBe(10);
 
           // Wait for the async promise to resolve
-          const resolvedValue = await signal.promise();
+          await signal.promise();
 
           // After promise resolves, should have computed value
-          expect(resolvedValue).toBe(42);
           expect(signal.value).toBe(42);
         });
       });

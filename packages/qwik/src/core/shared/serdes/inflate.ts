@@ -152,7 +152,6 @@ export const inflate = (
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
-        boolean,
         Error,
         unknown?,
         number?,
@@ -162,16 +161,17 @@ export const inflate = (
       asyncSignal.$effects$ = new Set(d[2]);
       asyncSignal.$loadingEffects$ = new Set(d[3]);
       asyncSignal.$errorEffects$ = new Set(d[4]);
-      asyncSignal.$untrackedLoading$ = d[5] || false;
-      asyncSignal.$untrackedError$ = d[6];
-      const hasValue = d.length > 7;
+      asyncSignal.$untrackedError$ = d[5];
+      const hasValue = d.length > 6;
       if (hasValue) {
-        asyncSignal.$untrackedValue$ = d[7];
-        asyncSignal.$promiseValue$ = d[7];
+        asyncSignal.$untrackedValue$ = d[6];
+      }
+      if (asyncSignal.$untrackedValue$ !== NEEDS_COMPUTATION) {
+        // If we have a value after SSR, it will always be mean the signal was not invalid
+        asyncSignal.$flags$ &= ~SignalFlags.INVALID;
       }
       // Note, we use the setter so that it schedules polling if needed
-      asyncSignal.pollMs = d[8] ?? 0;
-      asyncSignal.$flags$ |= SignalFlags.INVALID;
+      asyncSignal.pollMs = d[7] ?? 0;
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal
@@ -201,12 +201,11 @@ export const inflate = (
       const hasValue = d.length > 3;
       if (hasValue) {
         computed.$untrackedValue$ = d[3];
-        // The serialized signal is always invalid so it can recreate the custom object
-        if (typeId === TypeIds.SerializerSignal) {
-          computed.$flags$ |= SignalFlags.INVALID;
-        }
-      } else {
-        computed.$flags$ |= SignalFlags.INVALID;
+      }
+      if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
+        // If we have a value after SSR, it will always be mean the signal was not invalid
+        // The serialized signal is always left invalid so it can recreate the custom object
+        computed.$flags$ &= ~SignalFlags.INVALID;
       }
       break;
     }

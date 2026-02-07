@@ -1,10 +1,9 @@
-import { isBrowser } from '@qwik.dev/core/build';
+import { isBrowser, isServer } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { NoSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
 import { isPromise, retryOnPromise } from '../../shared/utils/promises';
-import type { ValueOrPromise } from '../../shared/utils/types';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
@@ -40,10 +39,8 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   $loadingEffects$: undefined | Set<EffectSubscription> = undefined;
   $errorEffects$: undefined | Set<EffectSubscription> = undefined;
   $destroy$: NoSerialize<() => void> | null;
-  /** The awaited result or error of the computation */
-  $promiseValue$: T | typeof NEEDS_COMPUTATION = NEEDS_COMPUTATION;
-  /** The currently running computation */
-  private $promise$: ValueOrPromise<T> | null = null;
+  /** A promise for the currently running computation */
+  private $promise$: Promise<void> | null = null;
   $pollMs$: number = 0;
   $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined = undefined;
 
@@ -52,7 +49,8 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   constructor(
     container: Container | null,
     fn: AsyncQRL<T>,
-    flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID,
+    flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID |
+      SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS,
     options?: AsyncSignalOptions<T>
   ) {
     super(container, fn, flags);
@@ -64,7 +62,6 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     if (initial !== undefined) {
       const initialValue = typeof initial === 'function' ? (initial as () => T)() : initial;
       this.$untrackedValue$ = initialValue;
-      this.$promiseValue$ = initialValue;
     }
 
     this.pollMs = pollMs;
@@ -73,6 +70,9 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   /**
    * Loading is true if the signal is still waiting for the promise to resolve, false if the promise
    * has resolved or rejected.
+   *
+   * Accessing .loading will trigger computation if needed, since it's often used like
+   * `signal.loading ? <Loading /> : signal.value`.
    */
   get loading(): boolean {
     return setupSignalValueAccess(this, '$loadingEffects$', 'untrackedLoading');
@@ -87,6 +87,12 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   }
 
   get untrackedLoading() {
+    this.$computeIfNeeded$();
+    // During SSR there's no such thing as loading state, we must render complete results
+    if ((import.meta.env.TEST ? isServerPlatform() : isServer) && this.$promise$) {
+      DEBUG && log('Throwing loading promise for SSR');
+      throw this.$promise$;
+    }
     return this.$untrackedLoading$;
   }
 
@@ -118,106 +124,92 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     }
   }
 
+  /** Invalidates the signal, causing it to re-compute its value. */
   override invalidate() {
     // clear the promise, we need to get function again
     this.$promise$ = null;
-    super.invalidate();
+    this.$flags$ |= SignalFlags.INVALID;
+    if (this.$effects$?.size) {
+      this.promise();
+    }
   }
 
-  async promise(): Promise<T> {
-    // make sure we get a new promise during the next computation
-    this.$promise$ = null;
-    await retryOnPromise(this.$computeIfNeeded$.bind(this));
-    return this.$untrackedValue$!;
+  /** Returns a promise resolves when the signal finished computing. */
+  async promise(): Promise<void> {
+    this.$computeIfNeeded$();
+    await this.$promise$;
   }
 
-  $computeIfNeeded$() {
-    if (!(this.$flags$ & SignalFlags.INVALID)) {
+  /** Run the computation if needed */
+  $computeIfNeeded$(): void {
+    if (!(this.$flags$ & SignalFlags.INVALID) || this.$promise$) {
       return;
     }
+    DEBUG && log('Starting new async computation');
 
-    const untrackedValue =
-      // first time
-      this.$promiseValue$ === NEEDS_COMPUTATION ||
-      // or after invalidation
-      this.$promise$ === null
-        ? this.$promiseComputation$()
-        : this.$promiseValue$;
+    this.$flags$ &= ~SignalFlags.INVALID;
 
-    if (isPromise<T>(untrackedValue)) {
-      const isFirstComputation = this.$promiseValue$ === NEEDS_COMPUTATION;
+    this.$clearNextPoll$();
+
+    // TODO keep set of cleanups per invocation and clean up when invalidated
+    // probably use a proxy for the props, lazy create tracker/cleanup/abort
+    cleanupDestroyable(this);
+    const [cleanup] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
+    const args = {
+      track: trackFn(this, this.$container$),
+      cleanup,
+    };
+    const fn = this.$computeQrl$.resolved;
+    // TODO wait for all computations in the container, for SSR and tests
+    // need to always wait for all computations to resolve before continuing SSR stream
+    const result = fn
+      ? retryOnPromise(() => fn(args))
+      : this.$computeQrl$.resolve().then((resolvedFn) => retryOnPromise(() => resolvedFn(args)));
+
+    if (isPromise<T>(result)) {
       this.untrackedLoading = true;
-      this.untrackedError = undefined;
+      // we leave error as-is until result
 
-      if (this.$promiseValue$ !== NEEDS_COMPUTATION) {
-        // skip cleanup after resuming
-        cleanupDestroyable(this);
-      }
-
-      const promise = untrackedValue
+      this.$promise$ = result
         .then((promiseValue) => {
+          this.$promise$ = null;
           DEBUG && log('Promise resolved', promiseValue);
-          this.$promiseValue$ = promiseValue;
+          // Note that these assignments run setters
           this.untrackedLoading = false;
           this.untrackedError = undefined;
-          if (this.setValue(promiseValue)) {
-            DEBUG && log('Scheduling effects for subscribers', this.$effects$?.size);
+          this.value = promiseValue;
 
-            this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
-            scheduleEffects(this.$container$, this, this.$effects$);
-          }
           this.$scheduleNextPoll$();
         })
         .catch((err) => {
-          if (isPromise(err)) {
-            // ignore promise errors, they will be handled
-            return;
-          }
+          this.$promise$ = null;
           DEBUG && log('Error caught in promise.catch', err);
-          this.$promiseValue$ = err;
           this.untrackedLoading = false;
           this.untrackedError = err;
           this.$scheduleNextPoll$();
         });
-
-      if (isFirstComputation) {
-        // we want to throw only the first time
-        // the next time we will return stale value
-        throw promise;
-      } else {
-        DEBUG &&
-          log('Returning stale value', this.$untrackedValue$, 'while computing', untrackedValue);
-        // Return the promise so the scheduler can track it as a running chore
-        return promise;
-      }
     } else {
-      this.setValue(untrackedValue);
+      this.untrackedError = undefined;
+      this.value = result;
     }
   }
 
-  // TODO it would be nice to wait for all computations in the container, for tests
-  private async $promiseComputation$(): Promise<T> {
-    if (!this.$promise$) {
-      this.$clearNextPoll$();
-
-      const [cleanup] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
-
-      this.$promise$ = this.$computeQrl$.getFn()({
-        track: trackFn(this, this.$container$),
-        cleanup,
-      }) as ValueOrPromise<T>;
+  get untrackedValue() {
+    this.$computeIfNeeded$();
+    if (this.$promise$) {
+      if (this.$untrackedValue$ === NEEDS_COMPUTATION) {
+        DEBUG && log('Throwing promise while computing initial value', this);
+        throw this.$promise$;
+      }
+      DEBUG &&
+        log('Returning stale value', this.$untrackedValue$, 'while computing', this.$promise$);
+      return this.$untrackedValue$;
     }
-    return this.$promise$;
-  }
-
-  private setValue(value: T) {
-    this.$flags$ &= ~SignalFlags.INVALID;
-    const didChange = value !== this.$untrackedValue$;
-    if (didChange) {
-      this.$untrackedValue$ = value;
-      this.$flags$ |= SignalFlags.RUN_EFFECTS;
+    if (this.$untrackedError$) {
+      DEBUG && log('Throwing error while reading value', this);
+      throw this.$untrackedError$;
     }
-    return didChange;
+    return this.$untrackedValue$;
   }
 
   private $clearNextPoll$() {
@@ -228,19 +220,14 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   }
   private $scheduleNextPoll$() {
     if (
-      (isBrowser || (import.meta.env.TEST && !isServerPlatform())) &&
+      (import.meta.env.TEST ? !isServerPlatform() : isBrowser) &&
       this.$pollMs$ > 0 &&
       this.$effects$?.size
     ) {
       if (this.$pollTimeoutId$ !== undefined) {
         clearTimeout(this.$pollTimeoutId$);
       }
-      this.$pollTimeoutId$ = setTimeout(() => {
-        this.invalidate();
-        if (this.$effects$?.size) {
-          retryOnPromise(this.$computeIfNeeded$.bind(this));
-        }
-      }, this.$pollMs$);
+      this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$pollMs$);
       this.$pollTimeoutId$?.unref?.();
     }
   }

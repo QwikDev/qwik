@@ -47,7 +47,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   ) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
-    super(container, NEEDS_COMPUTATION);
+    super(container || fn.$container$, NEEDS_COMPUTATION);
     this.$computeQrl$ = fn;
     this.$flags$ = flags;
   }

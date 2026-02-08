@@ -10,7 +10,6 @@ import {
 } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { type NoSerialize } from '../shared/serdes/verify';
 import { type Container, type HostElement } from '../shared/types';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
@@ -141,7 +140,7 @@ export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
   $el$: HostElement;
   $qrl$: QRLInternal<T>;
   $state$: B | undefined;
-  $destroy$: NoSerialize<() => void> | null;
+  $destroy$: (() => void) | null;
 }
 
 /** @public */
@@ -222,7 +221,7 @@ export class Task<T = unknown, B = T>
     public $el$: HostElement,
     public $qrl$: QRLInternal<T>,
     public $state$: Signal<B> | ResourceReturnInternal<B> | undefined,
-    public $destroy$: NoSerialize<() => void> | null
+    public $destroy$: (() => void) | null
   ) {
     super();
   }

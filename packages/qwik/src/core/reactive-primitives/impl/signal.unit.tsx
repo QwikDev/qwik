@@ -11,6 +11,7 @@ import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import {
+  type AsyncCtx,
   EffectProperty,
   SignalFlags,
   type InternalReadonlySignal,
@@ -22,6 +23,7 @@ import {
   createSerializer$,
   createSignal,
   createAsync$,
+  createAsyncQrl,
   type ComputedSignal,
   type SerializerSignal,
   type Signal,
@@ -356,6 +358,38 @@ describe('signal', () => {
         });
       });
 
+      it('should run async cleanups before next compute', async () => {
+        await withContainer(async () => {
+          const dep = createSignal(0);
+          const ref = { cleanupCalls: 0 };
+
+          const signal = (await retryOnPromise(() =>
+            createAsyncQrl(
+              $(async ({ track, cleanup }: AsyncCtx) => {
+                track(() => dep.value);
+                cleanup(async () => {
+                  await delay(10);
+                  ref.cleanupCalls++;
+                });
+                return ref.cleanupCalls;
+              })
+            )
+          )) as AsyncSignalImpl<number>;
+
+          await retryOnPromise(() => {
+            effect$(() => signal.value);
+          });
+
+          expect(signal.value).toBe(0);
+
+          dep.value = 1;
+          await signal.promise();
+
+          expect(signal.value).toBe(1);
+          expect(ref.cleanupCalls).toBe(1);
+        });
+      });
+
       it('should return initial value on first read', async () => {
         await withContainer(async () => {
           const signal = createAsync$(async () => 42, {
@@ -376,6 +410,7 @@ describe('signal', () => {
 
           // First read should return initial value
           expect(signal.value).toBe(10);
+          await true;
           // Compute function should have been called to start computation
           expect(computeInitialCalls).toBe(1);
           await retryOnPromise(() => {

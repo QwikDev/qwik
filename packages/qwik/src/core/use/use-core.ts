@@ -84,7 +84,7 @@ export function useBindInvokeContext<FN extends (...args: any) => any>(
   }
   const ctx = getInvokeContext();
   return function (this: unknown, ...args: Parameters<FN>) {
-    return (invokeApply<FN>).call(this, ctx, fn!, args);
+    return invokeApply.call(this, ctx, fn!, args);
   } as FN;
 }
 
@@ -99,16 +99,16 @@ export function invoke<FN extends (...args: any[]) => any>(
 }
 
 /** Call a function with the given InvokeContext and array of arguments. */
-export function invokeApply<FN extends (...args: any) => any>(
-  this: unknown,
+export function invokeApply<FN extends (this: THIS, ...args: any[]) => any, THIS>(
+  this: THIS,
   context: InvokeContext | undefined,
   fn: FN,
-  args: Parameters<FN>
+  args?: Parameters<FN>
 ): ReturnType<FN> {
   const previousContext = _context;
   try {
     _context = context;
-    return fn.apply(this, args);
+    return fn.apply(this, args!);
   } finally {
     _context = previousContext;
   }
@@ -219,7 +219,7 @@ export const trackSignal = <T>(
   try {
     trackInvocation.$effectSubscriber$ = getSubscriber(subscriber, property, data);
     trackInvocation.$container$ = container;
-    return invoke(trackInvocation, fn);
+    return invokeApply(trackInvocation, fn);
   } finally {
     trackInvocation.$effectSubscriber$ = previousSubscriber;
     trackInvocation.$container$ = previousContainer;

@@ -1274,10 +1274,10 @@ describe('vNode-diff', () => {
             await container.$renderPromise$;
 
             // Ensure one subscription exists for both wrapped and inner
-            expect(wrapped.$effects$).not.toBeNull();
+            expect(wrapped.$effects$).toBeDefined();
             const wrappedEffectsAfterFirst = wrapped.$effects$!.size;
             expect(wrappedEffectsAfterFirst).toBeGreaterThan(0);
-            expect(inner.$effects$).not.toBeNull();
+            expect(inner.$effects$).toBeDefined();
             const innerEffectsAfterFirst = inner.$effects$!.size;
             expect(innerEffectsAfterFirst).toBeGreaterThan(0);
 

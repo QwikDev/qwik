@@ -163,7 +163,8 @@ import {
   VNodeFlagsIndex,
 } from './types';
 import {
-  vnode_getDomChildrenWithCorrectNamespacesToInsert,
+  getNewElementNamespaceData,
+  vnode_cloneElementWithNamespace,
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { mergeMaps } from '../shared/utils/maps';
@@ -1028,7 +1029,7 @@ export const vnode_applyJournal = _flushJournal;
 export const vnode_insertElementBefore = (
   journal: VNodeJournal,
   parent: ElementVNode | VirtualVNode,
-  newChild: ElementVNode,
+  newChild: ElementVNode | TextVNode,
   insertBefore: VNode | null
 ) => {
   ensureElementOrVirtualVNode(parent);
@@ -1050,15 +1051,21 @@ export const vnode_insertElementBefore = (
     }
   }
 
+  vnode_unlinkFromOldParent(journal, newChildCurrentParent, parent, newChild);
+
   const childNode = newChild.node;
   const parentIsDeleted = parent.flags & VNodeFlags.Deleted;
 
-  const parentNode = parentIsElement ? parent.node : vnode_getDomParent(parent, false)!;
+  const parentNode = parentIsElement ? parent.node : vnode_getDomParent(parent, false);
 
   if (parentNode && !parentIsDeleted) {
     addVNodeOperation(
       journal,
-      createInsertOrMoveOperation(childNode, parentNode, vnode_findInsertBefore(journal, parent, insertBefore)?.node ?? null)
+      createInsertOrMoveOperation(
+        childNode as Element | Text,
+        parentNode,
+        vnode_findInsertBefore(journal, parent, insertBefore)?.node ?? null
+      )
     );
   }
 
@@ -1070,10 +1077,112 @@ export const vnode_insertElementBefore = (
   }
 };
 
+export const vnode_insertVirtualBefore = (
+  journal: VNodeJournal,
+  parent: ElementVNode | VirtualVNode,
+  newChild: VirtualVNode,
+  insertBefore: VNode | null
+) => {
+  ensureElementOrVirtualVNode(parent);
+  const parentIsElement = vnode_isElementVNode(parent);
+  if (parentIsElement) {
+    ensureMaterialized(parent);
+  }
+
+  const newChildCurrentParent = newChild.parent as ElementVNode | null;
+  if (newChild === insertBefore) {
+    // invalid insertBefore. We can't insert before self reference
+    // prevent infinity loop and putting self reference to next sibling
+    if (newChildCurrentParent) {
+      // early return, as the newChild is already in the tree and we are already in the correct position
+      return;
+    } else {
+      // if the newChild is not in the tree, than we insert it at the end of the list
+      insertBefore = null;
+    }
+  }
+
+  const parentIsDeleted = parent.flags & VNodeFlags.Deleted;
+  const domParentVNode = parentIsElement ? parent : vnode_getDomParentVNode(parent, false);
+  const parentNode = domParentVNode?.node;
+  const adjustedInsertBefore = vnode_findInsertBefore(journal, parent, insertBefore);
+  const adjustedInsertBeforeNode = adjustedInsertBefore?.node ?? null;
+
+  const isProjection = vnode_isProjection(parent);
+  if (isProjection && domParentVNode && (domParentVNode.flags & VNodeFlags.NS_html) !== 0) {
+    /**
+     * Find the parent node and the dom children with the correct namespaces before we unlink the
+     * previous node. If we don't do this, we will end up with situations where we inflate text
+     * nodes from shared text node not correctly.
+     *
+     * Example:
+     *
+     * ```
+     * <Component>
+     *   <Projection>a</Projection>
+     *   <Projection>b</Projection>
+     * </Component>
+     * ```
+     *
+     * Projection nodes are virtual nodes, so they don't have a dom parent. They will be written to
+     * the q:template element if not visible at the start. Inside the q:template element, the
+     * projection nodes will be streamed as single text node "ab". We need to split it, but if we
+     * unlink the previous or next sibling, we don't know that after "a" node is "b". So we need to
+     * find children first (and inflate them).
+     */
+    const { elementNamespace, elementNamespaceFlag } = getNewElementNamespaceData(
+      domParentVNode,
+      newChild
+    );
+    vnode_walkVNode(newChild, (vNode) => {
+      if (vnode_isTextVNode(vNode)) {
+        addVNodeOperation(
+          journal,
+          createInsertOrMoveOperation(vNode.node!, parentNode!, adjustedInsertBeforeNode)
+        );
+      } else if (vnode_isElementVNode(vNode)) {
+        if ((vNode.flags & VNodeFlags.NAMESPACE_MASK) !== elementNamespaceFlag) {
+          const newChildElement = vnode_cloneElementWithNamespace(
+            vNode,
+            domParentVNode,
+            elementNamespace,
+            elementNamespaceFlag
+          );
+
+          if (newChildElement) {
+            vNode.node = newChildElement;
+          }
+        }
+        addVNodeOperation(
+          journal,
+          createInsertOrMoveOperation(vNode.node!, parentNode!, adjustedInsertBeforeNode)
+        );
+      }
+    });
+  } else if (parentNode && !parentIsDeleted) {
+    vnode_walkVNode(newChild, (vNode) => {
+      if (vnode_isElementOrTextVNode(vNode)) {
+        addVNodeOperation(
+          journal,
+          createInsertOrMoveOperation(vNode.node!, parentNode, adjustedInsertBeforeNode)
+        );
+      }
+    });
+  }
+
+  vnode_unlinkFromOldParent(journal, newChildCurrentParent, parent, newChild);
+
+  vnode_connectSiblings(parent, newChild, insertBefore);
+  if (parentIsDeleted) {
+    // if the parent is deleted, then the new child is also deleted
+    newChild.flags |= VNodeFlags.Deleted;
+  }
+};
+
 const vnode_findInsertBefore = (
   journal: VNodeJournal,
   parent: ElementVNode | VirtualVNode,
-  insertBefore: VNode | null,
+  insertBefore: VNode | null
 ) => {
   let adjustedInsertBefore: ElementVNode | TextVNode | null = null;
   if (insertBefore == null) {
@@ -1097,7 +1206,7 @@ const vnode_findInsertBefore = (
 const vnode_connectSiblings = (
   parent: ElementVNode | VirtualVNode,
   vNode: VNode,
-  vNext: VNode | null,
+  vNext: VNode | null
 ) => {
   const vPrevious = vNext ? vNext.previousSibling : (parent.lastChild as VNode | null);
   if (vNext) {
@@ -1115,60 +1224,12 @@ const vnode_connectSiblings = (
   vNode.parent = parent;
 };
 
-export const vnode_insertBefore = (
+const vnode_unlinkFromOldParent = (
   journal: VNodeJournal,
-  parent: ElementVNode | VirtualVNode,
-  newChild: VNode,
-  insertBefore: VNode | null
+  currentParent: ElementVNode | VirtualVNode | null,
+  newParent: ElementVNode | VirtualVNode,
+  newChild: VNode
 ) => {
-  ensureElementOrVirtualVNode(parent);
-  if (vnode_isElementVNode(parent)) {
-    ensureMaterialized(parent);
-  }
-  const newChildCurrentParent = newChild.parent as ElementVNode | VirtualVNode | null;
-  if (newChild === insertBefore) {
-    // invalid insertBefore. We can't insert before self reference
-    // prevent infinity loop and putting self reference to next sibling
-    if (newChildCurrentParent) {
-      // early return, as the newChild is already in the tree and we are already in the correct position
-      return;
-    } else {
-      // if the newChild is not in the tree, than we insert it at the end of the list
-      insertBefore = null;
-    }
-  }
-
-  /**
-   * Find the parent node and the dom children with the correct namespaces before we unlink the
-   * previous node. If we don't do this, we will end up with situations where we inflate text nodes
-   * from shared text node not correctly.
-   *
-   * Example:
-   *
-   * ```
-   * <Component>
-   *   <Projection>a</Projection>
-   *   <Projection>b</Projection>
-   * </Component>
-   * ```
-   *
-   * Projection nodes are virtual nodes, so they don't have a dom parent. They will be written to
-   * the q:template element if not visible at the start. Inside the q:template element, the
-   * projection nodes will be streamed as single text node "ab". We need to split it, but if we
-   * unlink the previous or next sibling, we don't know that after "a" node is "b". So we need to
-   * find children first (and inflate them).
-   */
-  const domParentVNode = vnode_getDomParentVNode(parent, false);
-  const parentNode = domParentVNode && domParentVNode.node;
-  let domChildren: (ElementVNode | TextVNode)[] | null = null;
-  if (domParentVNode) {
-    domChildren = vnode_getDomChildrenWithCorrectNamespacesToInsert(
-      journal,
-      domParentVNode,
-      newChild
-    );
-  }
-
   /**
    * Ensure that the previous node is unlinked.
    *
@@ -1207,62 +1268,25 @@ export const vnode_insertBefore = (
    * ```
    */
   if (
-    newChildCurrentParent &&
-    (newChild.previousSibling || newChild.nextSibling || newChildCurrentParent !== parent)
+    currentParent &&
+    (newChild.previousSibling || newChild.nextSibling || currentParent !== newParent)
   ) {
-    vnode_remove(journal, newChildCurrentParent, newChild, false);
+    vnode_remove(journal, currentParent, newChild, false);
   }
+};
 
-  const parentIsDeleted = parent.flags & VNodeFlags.Deleted;
-
-  let adjustedInsertBefore: VNode | null = null;
-  // if the parent is deleted, then we don't need to insert the new child
-  if (!parentIsDeleted) {
-    if (insertBefore == null) {
-      if (vnode_isVirtualVNode(parent)) {
-        // If `insertBefore` is null, than we need to insert at the end of the list.
-        // Well, not quite. If the parent is a virtual node, our "last node" is not the same
-        // as the DOM "last node". So in that case we need to look for the "next node" from
-        // our parent.
-        adjustedInsertBefore = vnode_getDomSibling(parent, true, false);
-      }
-    } else if (vnode_isVirtualVNode(insertBefore)) {
-      // If the `insertBefore` is virtual, than we need to descend into the virtual and find e actual
-      adjustedInsertBefore = vnode_getDomSibling(insertBefore, true, true);
-    } else {
-      adjustedInsertBefore = insertBefore;
-    }
-    adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
-
-    if (domChildren && domChildren.length) {
-      for (const child of domChildren) {
-        addVNodeOperation(
-          journal,
-          createInsertOrMoveOperation(child.node!, parentNode!, vnode_getNode(adjustedInsertBefore))
-        );
-      }
-    }
-  }
-
-  // link newChild into the previous/next list
-  const vNext = insertBefore;
-  const vPrevious = vNext ? vNext.previousSibling : (parent.lastChild as VNode | null);
-  if (vNext) {
-    vNext.previousSibling = newChild;
+export const vnode_insertBefore = (
+  journal: VNodeJournal,
+  parent: ElementVNode | VirtualVNode,
+  newChild: VNode,
+  insertBefore: VNode | null
+) => {
+  if (vnode_isElementOrTextVNode(newChild)) {
+    vnode_insertElementBefore(journal, parent, newChild, insertBefore);
+    return;
   } else {
-    parent.lastChild = newChild;
-  }
-  if (vPrevious) {
-    vPrevious.nextSibling = newChild;
-  } else {
-    parent.firstChild = newChild;
-  }
-  newChild.previousSibling = vPrevious;
-  newChild.nextSibling = vNext;
-  newChild.parent = parent;
-  if (parentIsDeleted) {
-    // if the parent is deleted, then the new child is also deleted
-    newChild.flags |= VNodeFlags.Deleted;
+    vnode_insertVirtualBefore(journal, parent, newChild as VirtualVNode, insertBefore);
+    return;
   }
 };
 

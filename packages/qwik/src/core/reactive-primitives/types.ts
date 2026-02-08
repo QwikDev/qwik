@@ -51,6 +51,12 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
   /** Like useSignal's `initial`; prevents the throw on first read when uninitialized */
   initial?: T | (() => T);
   /**
+   * Maximum number of concurrent computations. Use `0` for unlimited.
+   *
+   * Defaults to `1`.
+   */
+  concurrency?: number;
+  /**
    * When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function
    * inputs to change.
    *

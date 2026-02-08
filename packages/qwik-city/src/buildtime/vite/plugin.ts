@@ -267,6 +267,25 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           }
         }
       }
+
+      // Generate public API file
+      if (qwikPlugin) {
+        const manifest = qwikPlugin.api.getManifest();
+        if (manifest) {
+          const publicApi = Object.fromEntries(
+            Object.entries(manifest.symbols).filter(
+              ([_, symbol]) =>
+                symbol.displayName?.endsWith('serverQrl_rpc') && symbol.ctxKind === 'function'
+            )
+          );
+
+          this.emitFile({
+            type: 'asset',
+            fileName: QWIK_CITY_PUBLIC_API,
+            source: JSON.stringify(publicApi, null, 2),
+          });
+        }
+      }
     },
 
     closeBundle: {
@@ -326,3 +345,4 @@ export const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 const QWIK_CITY_ENTRIES_ID = '@qwik-city-entries';
 const QWIK_CITY = '@builder.io/qwik-city';
 const QWIK_CITY_SW_REGISTER = '@qwik-city-sw-register';
+const QWIK_CITY_PUBLIC_API = 'q-public-api.json';

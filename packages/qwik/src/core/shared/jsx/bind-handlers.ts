@@ -35,3 +35,14 @@ export function _chk(this: string | undefined, _: any, element: HTMLInputElement
   const signal = _captures![0] as Signal;
   signal.value = element.checked;
 }
+
+/**
+ * Resumes selected state (e.g. polling AsyncSignals) by deserializing captures. Used for
+ * document:onQIdle to resume async signals with active polling.
+ *
+ * @internal
+ */
+export function _res(this: string | undefined, _: any, element: Element) {
+  maybeScopeFromQL(this, element);
+  // Captures are deserialized, signals are now resumed
+}

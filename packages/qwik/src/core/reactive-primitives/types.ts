@@ -36,7 +36,7 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
 export type AsyncCtx = {
   track: Tracker;
-  cleanup: (callback: () => void) => void;
+  cleanup: (callback: () => void | Promise<void>) => void;
 };
 export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 
@@ -48,35 +48,32 @@ export interface ComputedOptions {
 
 /** @public */
 export interface AsyncSignalOptions<T> extends ComputedOptions {
-  /**
-   * Like useSignal's `initial`; prevents the throw on first read when uninitialized
-   *
-   * @deprecated Not implemented yet
-   */
+  /** Like useSignal's `initial`; prevents the throw on first read when uninitialized */
   initial?: T | (() => T);
   /**
    * When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function
    * inputs to change.
    *
+   * Defaults to `false`, meaning cleanup happens only when inputs change.
+   *
    * @deprecated Not implemented yet
-   * @default false
    */
   eagerCleanup?: boolean;
   /**
    * Wait for previous invocation to complete before running again.
    *
+   * Defaults to `true`.
+   *
    * @deprecated Not implemented yet
-   * @default true
    */
   awaitPrevious?: boolean;
   /**
-   * In the browser, re-run the function after `poll` ms if subscribers exist, even when no input
+   * In the browser, re-run the function after `pollMs` ms if subscribers exist, even when no input
    * state changed. If `0`, does not poll.
    *
-   * @deprecated Not implemented yet
-   * @default 0
+   * Defaults to `0`.
    */
-  poll?: number;
+  pollMs?: number;
 }
 
 export const enum SignalFlags {

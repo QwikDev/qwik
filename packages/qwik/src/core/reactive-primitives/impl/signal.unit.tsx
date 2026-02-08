@@ -7,10 +7,11 @@ import { inlinedQrl } from '../../shared/qrl/qrl';
 import { type QRLInternal } from '../../shared/qrl/qrl-class';
 import { type QRL } from '../../shared/qrl/qrl.public';
 import type { Container, HostElement } from '../../shared/types';
-import { retryOnPromise } from '../../shared/utils/promises';
+import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import {
+  type AsyncCtx,
   EffectProperty,
   SignalFlags,
   type InternalReadonlySignal,
@@ -21,6 +22,8 @@ import {
   createComputedQrl,
   createSerializer$,
   createSignal,
+  createAsync$,
+  createAsyncQrl,
   type ComputedSignal,
   type SerializerSignal,
   type Signal,
@@ -29,6 +32,7 @@ import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from '../../shared/utils/markers';
 import type { ComputedSignalImpl } from './computed-signal-impl';
+import type { AsyncSignalImpl } from './async-signal-impl';
 
 class Foo {
   constructor(public val: number = 0) {}
@@ -36,6 +40,12 @@ class Foo {
     this.val = val;
   }
 }
+
+let computeInitialCalls = 0;
+const computeInitialFn = async () => {
+  computeInitialCalls++;
+  return 42;
+};
 
 describe('signal types', () => {
   it('Signal<T>', () => () => {
@@ -268,6 +278,212 @@ describe('signal', () => {
         expect(wrapped).not.toBe(signal);
         const wrapped2 = _wrapProp(wrapped);
         expect(wrapped2).toBe(wrapped);
+      });
+    });
+    describe('async signal with poll', () => {
+      it('should store poll ms on instance', async () => {
+        await withContainer(async () => {
+          const pollMs = 50;
+          const signal = createAsync$(async () => 42, { pollMs }) as AsyncSignalImpl<number>;
+
+          // Verify poll is stored on instance
+          expect(signal.pollMs).toBe(pollMs);
+          expect(signal.$pollMs$).toBe(pollMs);
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should update pollMs and reschedule with consumers', async () => {
+        await withContainer(async () => {
+          const signal = createAsync$(async () => 42, { pollMs: 0 }) as AsyncSignalImpl<number>;
+
+          signal.pollMs = 1;
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+
+          await retryOnPromise(async () => {
+            effect$(() => signal.value);
+          });
+
+          expect(signal.$pollTimeoutId$).toBeDefined();
+
+          signal.pollMs = 0;
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should clear poll timeout on invalidate', async () => {
+        await withContainer(async () => {
+          const pollMs = 1;
+          const signal = createAsync$(async () => 42, { pollMs }) as AsyncSignalImpl<number>;
+
+          // Subscribe to create effects
+          await retryOnPromise(async () => {
+            effect$(() => signal.value);
+          });
+
+          // Invalidate signal - should clear any pending poll timeout
+          signal.invalidate();
+
+          // Poll timeout should be cleared
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should poll', async () => {
+        await withContainer(async () => {
+          const pollMs = 1;
+          const ref = { count: 42 };
+          const signal = createAsync$(async () => ref.count++, {
+            pollMs,
+          }) as AsyncSignalImpl<number>;
+
+          // Subscribe to create effects
+          await retryOnPromise(async () => {
+            effect$(() => signal.value);
+            await delay(10);
+            expect(signal.value).toBeGreaterThan(42);
+          });
+        });
+      });
+
+      it('should preserve poll setting for SSR hydration', async () => {
+        await withContainer(async () => {
+          const pollMs = 75;
+          const signal = createAsync$(async () => 99, { pollMs }) as AsyncSignalImpl<number>;
+
+          // Verify poll is preserved on instance (for SSR scenarios)
+          // Even on SSR (when isBrowser is false), the pollMs should be stored
+          // so that if the signal is hydrated on the browser, polling can resume
+          expect(signal.$pollMs$).toBe(pollMs);
+        });
+      });
+
+      it('should run async cleanups before next compute', async () => {
+        await withContainer(async () => {
+          const dep = createSignal(0);
+          const ref = { cleanupCalls: 0 };
+
+          const signal = (await retryOnPromise(() =>
+            createAsyncQrl(
+              $(async ({ track, cleanup }: AsyncCtx) => {
+                track(() => dep.value);
+                cleanup(async () => {
+                  await delay(10);
+                  ref.cleanupCalls++;
+                });
+                return ref.cleanupCalls;
+              })
+            )
+          )) as AsyncSignalImpl<number>;
+
+          await retryOnPromise(() => {
+            effect$(() => signal.value);
+          });
+
+          expect(signal.value).toBe(0);
+
+          dep.value = 1;
+          await signal.promise();
+
+          expect(signal.value).toBe(1);
+          expect(ref.cleanupCalls).toBe(1);
+        });
+      });
+
+      it('should return initial value on first read', async () => {
+        await withContainer(async () => {
+          const signal = createAsync$(async () => 42, {
+            initial: 10,
+          }) as AsyncSignalImpl<number>;
+
+          // First read should return initial value without throwing
+          expect(signal.value).toBe(10);
+        });
+      });
+
+      it('should invoke compute on first read without promise()', async () => {
+        await withContainer(async () => {
+          computeInitialCalls = 0;
+          const signal = createAsync$(computeInitialFn, {
+            initial: 10,
+          }) as AsyncSignalImpl<number>;
+
+          // First read should return initial value
+          expect(signal.value).toBe(10);
+          await true;
+          // Compute function should have been called to start computation
+          expect(computeInitialCalls).toBe(1);
+          await retryOnPromise(() => {
+            if (signal.value !== 42) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return signal.value;
+          });
+          expect(signal.value).toBe(42);
+        });
+      });
+
+      it('should eagerly evaluate initial function on construction', async () => {
+        await withContainer(async () => {
+          let initCalls = 0;
+          const signal = createAsync$(async () => 42, {
+            initial: () => {
+              initCalls++;
+              return 20;
+            },
+          }) as AsyncSignalImpl<number>;
+
+          // Initial function should be called immediately during construction
+          expect(initCalls).toBe(1);
+          // First read should return initial value
+          expect(signal.value).toBe(20);
+        });
+      });
+
+      it('should propagate initial function errors immediately', async () => {
+        await withContainer(async () => {
+          const error = new Error('initial failed');
+          expect(() => {
+            createAsync$(async () => 42, {
+              initial: () => {
+                throw error;
+              },
+            });
+          }).toThrow(error);
+        });
+      });
+
+      it('initial and pollMs should work together', async () => {
+        await withContainer(async () => {
+          const pollMs = 1;
+          const signal = createAsync$(async () => 42, {
+            initial: 10,
+            pollMs,
+          }) as AsyncSignalImpl<number>;
+
+          // Should have initial value
+          expect(signal.value).toBe(10);
+          // Should have poll interval stored
+          expect(signal.pollMs).toBe(pollMs);
+          expect(signal.$pollMs$).toBe(pollMs);
+        });
+      });
+
+      it('initial value should be replaced by computed promise', async () => {
+        await withContainer(async () => {
+          const signal = createAsync$(async () => 42, {
+            initial: 10,
+          }) as AsyncSignalImpl<number>;
+
+          // Start with initial value
+          expect(signal.value).toBe(10);
+
+          // Wait for the async promise to resolve
+          await signal.promise();
+
+          // After promise resolves, should have computed value
+          expect(signal.value).toBe(42);
+        });
       });
     });
   });

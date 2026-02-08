@@ -269,7 +269,11 @@ You can use this to instantiate a custom class.
 
 ### `useAsync$()`
 
-`useAsync$()` is similar to `useComputed$()`, but it allows the computed function to be asynchronous. It returns a signal that has the result of the async function.If you read it before the async function has completed, it will stop execution and re-run the reading function when the async function is resolved.
+`useAsync$()` is similar to `useComputed$()`, but it allows the compute function to be asynchronous. It returns a signal that has the result of the async function. The common use case is to fetch data asynchronously, possibly based on other signals (you need to read those with `track()`).
+
+If you read the `.value` before the async function has completed, it will throw a `Promise` for the result, which causes Qwik to wait until that resolves and then re-run the reading function.
+
+You can pass the `pollMs` option to have the async function re-execute periodically. This is useful to keep data fresh.
 
 ### `useResource$()`
 

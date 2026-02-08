@@ -505,13 +505,26 @@ describe('shared-serialization', () => {
           Array [
             Signal [
               {number} 3
+              EffectSubscription [
+                RootRef 1
+                {string} "."
+                Set [
+                  RootRef 2
+                ]
+                Constant null
+              ]
             ]
             {string} "value"
           ]
-          Constant undefined
+          Map [
+            {string} "."
+            RootRef 3
+          ]
           {number} 7
         ]
-        (66 chars)"
+        2 RootRef "1 1 0"
+        3 RootRef "2 1"
+        (123 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -702,7 +715,17 @@ describe('shared-serialization', () => {
         ]
         1 AsyncSignal [
           QRL "6#8#5"
-          Constant undefined
+          Map [
+            {string} ":"
+            EffectSubscription [
+              RootRef 1
+              {string} ":"
+              Set [
+                RootRef 5
+              ]
+              Constant null
+            ]
+          ]
           Constant undefined
           Constant undefined
           Constant undefined
@@ -711,10 +734,31 @@ describe('shared-serialization', () => {
         ]
         2 AsyncSignal [
           QRL "6#9#5"
+          Map [
+            {string} ":"
+            EffectSubscription [
+              RootRef 2
+              {string} ":"
+              Set [
+                RootRef 5
+              ]
+              Constant null
+            ]
+          ]
         ]
         3 AsyncSignal [
           QRL "6#10#5"
-          Constant undefined
+          Map [
+            {string} ":"
+            EffectSubscription [
+              RootRef 3
+              {string} ":"
+              Set [
+                RootRef 5
+              ]
+              Constant null
+            ]
+          ]
           Constant undefined
           Constant undefined
           Constant undefined
@@ -733,6 +777,9 @@ describe('shared-serialization', () => {
         ]
         5 Signal [
           {number} 1
+          RootRef 12
+          RootRef 13
+          RootRef 14
         ]
         6 {string} "mock-chunk"
         7 {string} "dirty"
@@ -740,7 +787,10 @@ describe('shared-serialization', () => {
         9 {string} "never"
         10 {string} "always"
         11 {string} "polling"
-        (233 chars)"
+        12 RootRef "1 1 1"
+        13 RootRef "2 1 1"
+        14 RootRef "3 1 1"
+        (387 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {

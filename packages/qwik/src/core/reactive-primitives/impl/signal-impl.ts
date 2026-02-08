@@ -52,18 +52,16 @@ export class SignalImpl<T = any> implements Signal<T> {
   }
 
   get value() {
+    // Important: first read, then subscribe. Otherwise, initial compute invalidation will cause the reading subscriber to be marked invalid.
+    const val = this.untrackedValue;
     const ctx = tryGetInvokeContext();
     if (!ctx) {
       DEBUG && log('read->no-ctx', pad('\n' + this.toString(), '  '));
-      return this.untrackedValue;
+      return val;
     }
     if (this.$container$ === null) {
-      if (!ctx.$container$) {
-        DEBUG && log('read->no-container', pad('\n' + this.toString(), '  '));
-        return this.untrackedValue;
-      }
       // Grab the container now we have access to it
-      this.$container$ = ctx.$container$;
+      this.$container$ = ctx.$container$!;
     } else {
       isDev &&
         assertTrue(
@@ -86,7 +84,7 @@ export class SignalImpl<T = any> implements Signal<T> {
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
     }
     DEBUG && log('read no sub', pad('\n' + this.toString(), '  '));
-    return this.untrackedValue;
+    return val;
   }
 
   set value(value) {
@@ -114,12 +112,16 @@ export class SignalImpl<T = any> implements Signal<T> {
 
   toString() {
     if (isDev) {
-      return (
-        `[${this.constructor.name}${(this as any).$flags$ & SignalFlags.INVALID ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
-        (Array.from(this.$effects$ || [])
-          .map((e) => '\n -> ' + pad(qwikDebugToString(e.consumer), '    '))
-          .join('\n') || '')
-      );
+      try {
+        return (
+          `[${this.constructor.name}${(this as any).$flags$ & SignalFlags.INVALID ? ' INVALID' : ''} ${this.$untrackedValue$}]` +
+          (Array.from(this.$effects$ || [])
+            .map((e) => '\n -> ' + pad(qwikDebugToString(e.consumer), '    '))
+            .join('\n') || '')
+        );
+      } catch (e) {
+        return `[${this.constructor.name} <cannot stringify>]`;
+      }
     } else {
       return this.constructor.name;
     }

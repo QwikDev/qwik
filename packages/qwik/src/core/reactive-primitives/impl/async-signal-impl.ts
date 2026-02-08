@@ -24,10 +24,6 @@ import { setupSignalValueAccess } from './signal-impl';
  *
  * - `eagerCleanup`: boolean - whether to run cleanups eagerly when there are no more subscribers, or
  *   to wait until the next computation/destroy.
- * - Concurrent: number (default 1) - how many concurrent computations to allow, 0 for unlimited. If
- *   the limit is reached, marking the signal as invalid will not trigger a new computation until
- *   one of the running computations finishes. This can be used to prevent overload when the signal
- *   is invalidated frequently.
  * - AbortOnInvalidate: boolean (default false) - whether to abort the current computation when the
  *   signal is invalidated. This requires the compute function to accept an AbortSignal and handle
  *   it properly, so it's opt-in. When true, if the signal is invalidated while a computation is
@@ -41,8 +37,12 @@ const log = (...args: any[]) =>
   // eslint-disable-next-line no-console
   console.log('ASYNC COMPUTED SIGNAL', ...args.map(qwikDebugToString));
 
-class RunningAsyncCompute<T> implements AsyncCtx {
+/** Retains job metadata and also serves as the argument for the compute function */
+class AsyncJob<T> implements AsyncCtx {
+  /** First holds the compute promise and then the cleanup promise */
   $promise$: Promise<void> | null = null;
+  $cleanupRequested$: boolean = false;
+  $canWrite$: boolean = true;
   $track$: AsyncCtx['track'] | undefined;
   $cleanups$: Parameters<AsyncCtx['cleanup']>[0][] | undefined;
 
@@ -55,39 +55,6 @@ class RunningAsyncCompute<T> implements AsyncCtx {
   cleanup(callback: () => void) {
     if (typeof callback === 'function') {
       (this.$cleanups$ ||= []).push(callback);
-    }
-  }
-
-  async $runCleanups$(): Promise<void> {
-    if (this.$promise$) {
-      await this.$promise$;
-    }
-    const cleanups = this.$cleanups$;
-    if (cleanups?.length) {
-      let complete: Promise<void> | undefined;
-      const onError = (err: any) => {
-        const handleError = this.$signal$.$container$?.handleError;
-        if (handleError) {
-          handleError(err, null!);
-        } else {
-          console.error('Error in async signal cleanup', err);
-        }
-      };
-      // Keep this sync-ish so sync functions run immediately.
-      await Promise.all(
-        cleanups.map((fn) => {
-          try {
-            const result = fn();
-            if (isPromise(result)) {
-              return result.catch(onError);
-            }
-          } catch (err) {
-            onError(err);
-          }
-        })
-      );
-      cleanups.length = 0;
-      return complete;
     }
   }
 }
@@ -105,7 +72,10 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
 
   $loadingEffects$: undefined | Set<EffectSubscription> = undefined;
   $errorEffects$: undefined | Set<EffectSubscription> = undefined;
-  $current$: RunningAsyncCompute<T> | null = null;
+  $current$: AsyncJob<T> | null = null;
+  // TODO only create the array if concurrency > 1
+  $jobs$: AsyncJob<T>[] = [];
+  $concurrency$: number = 1;
   $pollMs$: number = 0;
   $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined = undefined;
 
@@ -120,6 +90,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   ) {
     super(container, fn, flags);
     const pollMs = options?.pollMs || 0;
+    const concurrency = options?.concurrency ?? 1;
     const initial = options?.initial;
 
     // Handle initial value - eagerly evaluate if function, set $untrackedValue$ and $promiseValue$
@@ -129,6 +100,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
       this.$untrackedValue$ = initialValue;
     }
 
+    this.$concurrency$ = concurrency;
     this.pollMs = pollMs;
   }
 
@@ -210,75 +182,88 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
 
   /** Run the computation if needed */
   $computeIfNeeded$(): void {
-    if (!(this.$flags$ & SignalFlags.INVALID) || this.$current$?.$promise$) {
+    if (!(this.$flags$ & SignalFlags.INVALID)) {
       return;
     }
+    this.$clearNextPoll$();
+
+    if (this.$current$) {
+      this.$requestCleanups$(this.$current$);
+    }
+
+    const limit = this.$concurrency$ === 0 ? Number.POSITIVE_INFINITY : this.$concurrency$;
+    if (this.$jobs$.length >= limit) {
+      DEBUG && log(`Concurrency limit ${limit} reached, not starting new computation`);
+      // We requested cleanups for all the previous jobs, once one finishes it will be removed from the jobs array and trigger computeIfNeeded
+      return;
+    }
+
     DEBUG && log('Starting new async computation');
 
     this.$flags$ &= ~SignalFlags.INVALID;
 
-    this.$clearNextPoll$();
-
     // We put the actual computation in a separate method so we can easily retain the promise
-    const prev = this.$current$;
-    this.$current$ = new RunningAsyncCompute(this);
-    this.$current$.$promise$ = this.$runComputation$(prev);
+    const running = new AsyncJob(this);
+    this.$current$ = running;
+    this.$jobs$.push(running);
+    running.$promise$ = this.$runComputation$(running);
   }
 
-  async $runComputation$(prev: RunningAsyncCompute<T> | null): Promise<void> {
-    const running = this.$current$!;
+  async $runComputation$(running: AsyncJob<T>): Promise<void> {
+    const isCurrent = () => running === this.$current$;
 
     this.untrackedLoading = true;
 
     const fn = this.$computeQrl$.resolved || (await this.$computeQrl$.resolve());
-
-    await prev?.$runCleanups$();
 
     try {
       const value = await retryOnPromise(fn.bind(null, running));
 
       running.$promise$ = null;
 
-      if (this.$current$ === running) {
+      if (running.$canWrite$) {
+        const index = this.$jobs$.indexOf(running);
+        if (index !== -1) {
+          for (let i = 0; i < index; i++) {
+            this.$jobs$[i].$canWrite$ = false;
+          }
+        }
+
         DEBUG && log('Promise resolved', value);
         // we leave error as-is until result
 
         // Note that these assignments run setters
         this.untrackedError = undefined;
         this.value = value;
-      } else {
-        DEBUG && log('old Promise resolved, not assigning', value);
-        // The new computation will have already called the cleanups, so we can just exit here without doing anything
-        return;
       }
     } catch (err) {
       running.$promise$ = null;
-      if (this.$current$ === running) {
-        DEBUG && log('Error caught in promise.catch', err);
-        this.untrackedLoading = false;
+      DEBUG && log('Error caught in promise.catch', err);
+      if (isCurrent()) {
         this.untrackedError = err as Error;
-      } else {
-        DEBUG && log('Error caught in old promise, not assigning', err);
-        // The new computation will have already called the cleanups, so we can just exit here without doing anything
-        return;
       }
     }
 
-    this.untrackedLoading = false;
+    if (isCurrent()) {
+      this.untrackedLoading = false;
 
-    if (this.$flags$ & SignalFlags.INVALID) {
-      DEBUG && log('Computation finished but signal is invalid, re-running');
-      // we became invalid again while running, so we need to re-run the computation to get the new promise
-      this.$computeIfNeeded$();
-    } else {
-      this.$scheduleNextPoll$();
+      if (this.$flags$ & SignalFlags.INVALID) {
+        DEBUG && log('Computation finished but signal is invalid, re-running');
+        // we became invalid again while running, so we need to re-run the computation to get the new promise
+        this.$computeIfNeeded$();
+      } else {
+        this.$scheduleNextPoll$();
+      }
     }
   }
 
-  /** Called after SSR */
-  $destroy$() {
+  /** Called after SSR/unmount */
+  async $destroy$() {
     this.$clearNextPoll$();
-    return this.$current$?.$runCleanups$();
+    if (this.$current$) {
+      await this.$requestCleanups$(this.$current$);
+    }
+    await Promise.all(this.$jobs$.map((job) => job.$promise$));
   }
 
   get untrackedValue() {
@@ -305,11 +290,61 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
       this.$pollTimeoutId$ = undefined;
     }
   }
+
   private $scheduleNextPoll$() {
     if ((import.meta.env.TEST ? !isServerPlatform() : isBrowser) && this.$pollMs$ > 0) {
       this.$clearNextPoll$();
       this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$pollMs$);
       this.$pollTimeoutId$?.unref?.();
     }
+  }
+
+  async $requestCleanups$(job: AsyncJob<T>) {
+    if (job.$cleanupRequested$) {
+      return job.$promise$;
+    }
+    DEBUG && log('Requesting cleanups for job', job);
+    job.$cleanupRequested$ = true;
+    job.$promise$ = Promise.resolve(job.$promise$).then(
+      () => (job.$promise$ = this.$runCleanups$(job))
+    );
+  }
+  /** Clean up and trigger signal compute once complete */
+  async $runCleanups$(job: AsyncJob<T>) {
+    const cleanups = job.$cleanups$;
+    if (cleanups?.length) {
+      DEBUG && log('cleanup start', job);
+      const onError = (err: any) => {
+        const handleError = this.$container$?.handleError;
+        if (handleError) {
+          handleError(err, null!);
+        } else {
+          console.error('Error in async signal cleanup', err);
+        }
+      };
+      DEBUG && log('cleanup start for real', job);
+      // Keep this sync-ish so sync functions run immediately.
+      await Promise.all(
+        cleanups.map((fn) => {
+          try {
+            const result = fn();
+            if (isPromise(result)) {
+              return result.catch(onError);
+            }
+          } catch (err) {
+            onError(err);
+          }
+        })
+      );
+      cleanups.length = 0;
+      DEBUG && log('cleanup finished', job);
+    }
+    // Now trigger compute
+    const jobs = this.$jobs$;
+    const idx = jobs.indexOf(job);
+    if (idx !== -1) {
+      jobs.splice(idx, 1);
+    }
+    this.$computeIfNeeded$();
   }
 }

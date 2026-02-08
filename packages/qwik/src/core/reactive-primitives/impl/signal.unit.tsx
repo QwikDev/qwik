@@ -390,6 +390,110 @@ describe('signal', () => {
         });
       });
 
+      it('should allow concurrent computations and apply newest completed value', async () => {
+        await withContainer(async () => {
+          const ref = {
+            started: 0,
+            resolvers: [] as Array<(value: number) => void>,
+          };
+          const signal = (await retryOnPromise(() =>
+            createAsync$(
+              async () => {
+                ref.started++;
+                return new Promise<number>((resolve) => {
+                  ref.resolvers.push(resolve);
+                });
+              },
+              { concurrency: 2, initial: 0 } as any
+            )
+          )) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await retryOnPromise(() => {
+            if (ref.started !== 1) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return ref.started;
+          });
+
+          await signal.invalidate();
+
+          expect(ref.started).toBe(2);
+          expect(ref.resolvers.length).toBe(2);
+
+          ref.resolvers[1](2);
+
+          await retryOnPromise(() => {
+            if (signal.value !== 2) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return signal.value;
+          });
+
+          expect(signal.value).toBe(2);
+
+          ref.resolvers[0](1);
+          await delay(0);
+
+          expect(signal.value).toBe(2);
+        });
+      });
+
+      it('should only write errors from current computation', async () => {
+        await withContainer(async () => {
+          const ref = {
+            started: 0,
+            resolvers: [] as Array<(value: number) => void>,
+            rejecters: [] as Array<(error: Error) => void>,
+          };
+          const signal = (await retryOnPromise(() =>
+            createAsync$(
+              async () => {
+                ref.started++;
+                return new Promise<number>((resolve, reject) => {
+                  ref.resolvers.push(resolve);
+                  ref.rejecters.push(reject);
+                });
+              },
+              { concurrency: 2, initial: 0 } as any
+            )
+          )) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await retryOnPromise(() => {
+            if (ref.started !== 1) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return ref.started;
+          });
+
+          await signal.invalidate();
+
+          await retryOnPromise(() => {
+            if (ref.started !== 2) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return ref.started;
+          });
+
+          const error = new Error('non-current failure');
+          ref.rejecters[0](error);
+          ref.resolvers[1](5);
+
+          await retryOnPromise(() => {
+            if (signal.value !== 5) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return signal.value;
+          });
+
+          expect(signal.value).toBe(5);
+          expect(signal.error).toBeUndefined();
+        });
+      });
+
       it('should return initial value on first read', async () => {
         await withContainer(async () => {
           const signal = createAsync$(async () => 42, {

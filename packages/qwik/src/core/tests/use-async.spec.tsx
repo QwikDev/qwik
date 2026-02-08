@@ -374,11 +374,11 @@ describe.each([
       (globalThis as any).log = [];
 
       const Child = component$(() => {
-        const asyncValue = useAsync$(({ cleanup }) => {
+        const asyncValue = useAsync$(async ({ cleanup }) => {
           cleanup(() => {
             (globalThis as any).log.push('cleanup');
           });
-          return Promise.resolve(1);
+          return 1;
         });
         return <div>{asyncValue.value}</div>;
       });
@@ -400,9 +400,8 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       // on server after resuming cleanup is not called yet
       // on client it is called as usual
-      expect((globalThis as any).log).toEqual(
-        render === ssrRenderToDom ? ['cleanup'] : ['cleanup']
-      );
+      // so now the log is equal
+      expect((globalThis as any).log).toEqual(['cleanup']);
       await trigger(container.element, 'button', 'click'); //show
       await trigger(container.element, 'button', 'click'); //hide
       // on server and client cleanup called again

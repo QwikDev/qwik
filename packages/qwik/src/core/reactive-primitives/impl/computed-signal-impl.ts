@@ -1,18 +1,24 @@
+import { isDev } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
 import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
-import type { Container } from '../../shared/types';
-import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
-import { invoke, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
-import { scheduleEffects, throwIfQRLNotResolved } from '../utils';
-import { getSubscriber } from '../subscriber';
-import { SerializationSignalFlags, ComputeQRL, EffectSubscription } from '../types';
-import { EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
-import { SignalImpl } from './signal-impl';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
+import type { Container } from '../../shared/types';
+import { isPromise, retryOnPromise } from '../../shared/utils/promises';
+import { invokeApply, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
-import { isDev } from '@qwik.dev/core/build';
 import { clearEffectSubscription } from '../cleanup';
+import { getSubscriber } from '../subscriber';
+import {
+  ComputeQRL,
+  EffectProperty,
+  EffectSubscription,
+  NEEDS_COMPUTATION,
+  SerializationSignalFlags,
+  SignalFlags,
+} from '../types';
+import { throwIfQRLNotResolved } from '../utils';
+import { SignalImpl } from './signal-impl';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -56,24 +62,17 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     this.$flags$ |= SignalFlags.INVALID;
     const ctx = newInvokeContext();
     ctx.$container$ = this.$container$ || undefined;
-    maybeThen(
-      retryOnPromise(() => invoke.call(this, ctx, this.$computeIfNeeded$)),
-      () => {
-        if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
-          this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
-          scheduleEffects(this.$container$, this, this.$effects$);
+    // @ts-expect-error it's confused about args any[] vs []
+    const running = retryOnPromise(invokeApply.bind(this, ctx, this.$computeIfNeeded$));
+    if (running) {
+      running.catch((err: unknown) => {
+        if (this.$container$) {
+          this.$container$.handleError(err, null);
+        } else {
+          console.error('Error during computation', err);
         }
-      }
-    );
-  }
-
-  /**
-   * Use this to force running subscribers, for example when the calculated value has mutated but
-   * remained the same object
-   */
-  force() {
-    this.$flags$ |= SignalFlags.RUN_EFFECTS;
-    super.force();
+      });
+    }
   }
 
   get untrackedValue() {
@@ -107,11 +106,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       DEBUG && log('Signal.$compute$', untrackedValue);
 
       this.$flags$ &= ~SignalFlags.INVALID;
-      const didChange = untrackedValue !== this.$untrackedValue$;
-      if (didChange) {
-        this.$flags$ |= SignalFlags.RUN_EFFECTS;
-        this.$untrackedValue$ = untrackedValue;
-      }
+      super.value = untrackedValue;
     } finally {
       if (ctx) {
         ctx.$effectSubscriber$ = previousEffectSubscription;

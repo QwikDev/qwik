@@ -36,7 +36,7 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
 export type AsyncCtx = {
   track: Tracker;
-  cleanup: (callback: () => void) => void;
+  cleanup: (callback: () => void | Promise<void>) => void;
 };
 export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 

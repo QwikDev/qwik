@@ -390,6 +390,179 @@ describe('signal', () => {
         });
       });
 
+      it('should provide abortSignal that is aborted on cleanup', async () => {
+        await withContainer(async () => {
+          const dep = createSignal(0);
+          const ref = { aborted: false };
+
+          const signal = (await retryOnPromise(() =>
+            createAsyncQrl(
+              $(async ({ track, abortSignal }: AsyncCtx) => {
+                track(() => dep.value);
+                abortSignal.addEventListener('abort', () => {
+                  ref.aborted = true;
+                });
+                return dep.value;
+              })
+            )
+          )) as AsyncSignalImpl<number>;
+
+          await retryOnPromise(() => {
+            effect$(() => signal.value);
+          });
+
+          expect(signal.value).toBe(0);
+          expect(ref.aborted).toBe(false);
+
+          // Trigger re-computation which should run cleanup and abort
+          dep.value = 1;
+          await signal.promise();
+
+          expect(signal.value).toBe(1);
+          expect(ref.aborted).toBe(true);
+        });
+      });
+
+      it('should lazily create abortController only when accessed', async () => {
+        await withContainer(async () => {
+          const signal = (await retryOnPromise(() =>
+            createAsyncQrl(
+              $(async () => {
+                return 42;
+              })
+            )
+          )) as AsyncSignalImpl<number>;
+
+          await retryOnPromise(() => {
+            effect$(() => signal.value);
+          });
+
+          // AbortController should not be created if abortSignal is never accessed
+          const job = signal.$current$;
+          expect(job).toBeTruthy();
+          expect(job?.$abortController$).toBeUndefined();
+        });
+      });
+
+      it('should create abortController when abortSignal is accessed', async () => {
+        await withContainer(async () => {
+          const ref = { capturedSignal: undefined as AbortSignal | undefined };
+
+          const signal = (await retryOnPromise(() =>
+            createAsyncQrl(
+              $(async ({ abortSignal }: AsyncCtx) => {
+                ref.capturedSignal = abortSignal;
+                return 42;
+              })
+            )
+          )) as AsyncSignalImpl<number>;
+
+          await retryOnPromise(() => {
+            effect$(() => signal.value);
+          });
+
+          // AbortController should be created when abortSignal is accessed
+          const job = signal.$current$;
+          expect(job).toBeTruthy();
+          expect(job?.$abortController$).toBeInstanceOf(AbortController);
+          expect(ref.capturedSignal).toBeInstanceOf(AbortSignal);
+          expect(ref.capturedSignal?.aborted).toBe(false);
+        });
+      });
+
+      it('should abort current computation via signal.abort()', async () => {
+        await withContainer(async () => {
+          const ref = {
+            aborted: false,
+            resolve: undefined as ((value: number) => void) | undefined,
+          };
+
+          const signal = createAsync$(
+            async ({ abortSignal }) => {
+              abortSignal.addEventListener('abort', () => {
+                ref.aborted = true;
+              });
+              return new Promise<number>((resolve) => {
+                ref.resolve = resolve;
+              });
+            },
+            { initial: 0 }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          expect(ref.resolve).toBeDefined();
+
+          signal.abort();
+
+          expect(ref.aborted).toBe(true);
+
+          ref.resolve?.(1);
+          await delay(0);
+        });
+      });
+
+      it('should abort immediately in $requestCleanups$ before waiting for task promise', async () => {
+        await withContainer(async () => {
+          const ref = {
+            abortedBeforeTaskComplete: false,
+            taskResolve: undefined as ((value: number) => void) | undefined,
+          };
+
+          const signal = createAsync$(async ({ abortSignal }) => {
+            // Listen for abort
+            abortSignal.addEventListener('abort', () => {
+              // Check if task is still running (taskResolve exists)
+              if (ref.taskResolve) {
+                ref.abortedBeforeTaskComplete = true;
+              }
+            });
+
+            // Create a long-running task
+            return new Promise<number>((resolve) => {
+              ref.taskResolve = resolve;
+            });
+          }) as AsyncSignalImpl<number>;
+          // Subscribe with initial value to avoid promise throw
+          const signal2 = (await retryOnPromise(() =>
+            createAsync$(async () => 0, { initial: 0 })
+          )) as AsyncSignalImpl<number>;
+
+          effect$(() => {
+            // Read signal2 to establish effect without throwing
+            return signal2.value;
+          });
+
+          // Manually trigger computation for signal
+          signal.$computeIfNeeded$();
+
+          // Wait for task to start using a simple timeout
+          await new Promise((resolve) => setTimeout(resolve, 10));
+
+          // Verify task is running
+          expect(ref.taskResolve).toBeDefined();
+
+          // Request cleanup while task is still running
+          const job = signal.$current$;
+          expect(job).toBeTruthy();
+          if (job) {
+            signal.$requestCleanups$(job);
+          }
+
+          // Abort should be called immediately, before task completes
+          expect(ref.abortedBeforeTaskComplete).toBe(true);
+
+          // Clean up by resolving the task
+          if (ref.taskResolve) {
+            ref.taskResolve(99);
+          }
+
+          // Wait for cleanup to complete
+          await delay(10);
+        });
+      });
+
       it('should allow concurrent computations and apply newest completed value', async () => {
         await withContainer(async () => {
           const ref = {

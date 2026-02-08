@@ -120,6 +120,18 @@ Expression which should be lazy loaded
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
+## abort
+
+Abort the current computation and run cleanups if needed.
+
+```typescript
+abort(): void;
+```
+
+**Returns:**
+
+void
+
 ## AsyncFn
 
 ```typescript
@@ -220,6 +232,15 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[abort()](#asyncsignal-abort)
+
+</td><td>
+
+Abort the current computation and run cleanups if needed.
+
+</td></tr>
+<tr><td>
 
 [promise()](#asyncsignal-promise)
 
@@ -847,8 +868,10 @@ Description
 Create a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`.
 
 ```typescript
-createAsync$: <T>(qrl: () => Promise<T>, options?: AsyncSignalOptions<T>) =>
-  AsyncSignal<T>;
+createAsync$: <T>(
+  qrl: (arg: AsyncCtx) => Promise<T>,
+  options?: AsyncSignalOptions<T>,
+) => AsyncSignal<T>;
 ```
 
 <table><thead><tr><th>
@@ -870,7 +893,7 @@ qrl
 
 </td><td>
 
-() =&gt; Promise&lt;T&gt;
+(arg: AsyncCtx) =&gt; Promise&lt;T&gt;
 
 </td><td>
 

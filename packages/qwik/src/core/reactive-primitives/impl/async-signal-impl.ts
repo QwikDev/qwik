@@ -24,12 +24,6 @@ import { setupSignalValueAccess } from './signal-impl';
  *
  * - `eagerCleanup`: boolean - whether to run cleanups eagerly when there are no more subscribers, or
  *   to wait until the next computation/destroy.
- * - AbortOnInvalidate: boolean (default false) - whether to abort the current computation when the
- *   signal is invalidated. This requires the compute function to accept an AbortSignal and handle
- *   it properly, so it's opt-in. When true, if the signal is invalidated while a computation is
- *   running, the current computation will be aborted (if possible) and a new computation will be
- *   started according to the concurrency limit.
- * - Abort: the callback receives an AbortSignal which is aborted when the signal is invalidated. The
  */
 
 const DEBUG = false;
@@ -45,11 +39,16 @@ class AsyncJob<T> implements AsyncCtx {
   $canWrite$: boolean = true;
   $track$: AsyncCtx['track'] | undefined;
   $cleanups$: Parameters<AsyncCtx['cleanup']>[0][] | undefined;
+  $abortController$: AbortController | undefined;
 
   constructor(readonly $signal$: AsyncSignalImpl<T>) {}
 
   get track(): AsyncCtx['track'] {
     return (this.$track$ ||= trackFn(this.$signal$, this.$signal$.$container$));
+  }
+
+  get abortSignal(): AbortSignal {
+    return (this.$abortController$ ||= new AbortController()).signal;
   }
 
   cleanup(callback: () => void) {
@@ -169,6 +168,13 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
       // compute in next microtask
       await true;
       this.$computeIfNeeded$();
+    }
+  }
+
+  /** Abort the current computation and run cleanups if needed. */
+  abort(): void {
+    if (this.$current$) {
+      this.$requestCleanups$(this.$current$);
     }
   }
 
@@ -305,6 +311,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     }
     DEBUG && log('Requesting cleanups for job', job);
     job.$cleanupRequested$ = true;
+    job.$abortController$?.abort();
     job.$promise$ = Promise.resolve(job.$promise$).then(
       () => (job.$promise$ = this.$runCleanups$(job))
     );

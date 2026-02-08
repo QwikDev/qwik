@@ -221,6 +221,23 @@
       "mdFile": "core._.md"
     },
     {
+      "name": "abort",
+      "id": "asyncsignal-abort",
+      "hierarchy": [
+        {
+          "name": "AsyncSignal",
+          "id": "asyncsignal-abort"
+        },
+        {
+          "name": "abort",
+          "id": "asyncsignal-abort"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Abort the current computation and run cleanups if needed.\n\n\n```typescript\nabort(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "core.asyncsignal.abort.md"
+    },
+    {
       "name": "AsyncFn",
       "id": "asyncfn",
       "hierarchy": [
@@ -244,7 +261,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading. This will trigger lazy loading of the signal, so you can use it like this:\n\n```tsx\nsignal.loading ? <Loading /> : signal.error ? <Error /> : <Component\nvalue={signal.value} />\n```\n\n\n</td></tr>\n<tr><td>\n\n[pollMs](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nPoll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`<!-- -->, polling stops.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed or rejected.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading. This will trigger lazy loading of the signal, so you can use it like this:\n\n```tsx\nsignal.loading ? <Loading /> : signal.error ? <Error /> : <Component\nvalue={signal.value} />\n```\n\n\n</td></tr>\n<tr><td>\n\n[pollMs](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nPoll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`<!-- -->, polling stops.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort()](#asyncsignal-abort)\n\n\n</td><td>\n\nAbort the current computation and run cleanups if needed.\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed or rejected.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.asyncsignal.md"
     },
@@ -446,7 +463,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`<!-- -->.\n\n\n```typescript\ncreateAsync$: <T>(qrl: () => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\nAsyncSignalOptions&lt;T&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
+      "content": "Create a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`<!-- -->.\n\n\n```typescript\ncreateAsync$: <T>(qrl: (arg: AsyncCtx) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(arg: AsyncCtx) =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\nAsyncSignalOptions&lt;T&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncSignal](#asyncsignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.createasync_.md"
     },

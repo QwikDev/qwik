@@ -37,6 +37,7 @@ export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
 export type AsyncCtx = {
   track: Tracker;
   cleanup: (callback: () => void | Promise<void>) => void;
+  abortSignal: AbortSignal;
 };
 export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 

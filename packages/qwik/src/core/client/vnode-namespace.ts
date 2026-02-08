@@ -141,7 +141,7 @@ function cloneDomTreeWithNamespace(
  * traverse the tree using depth-first search and clones the elements using
  * `cloneElementWithNamespace`.
  */
-function vnode_cloneElementWithNamespace(
+export function vnode_cloneElementWithNamespace(
   elementVNode: ElementVNode,
   parentVNode: ElementVNode,
   namespace: string,

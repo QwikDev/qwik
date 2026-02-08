@@ -1,5 +1,5 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { AsyncSignalOptions, ComputedOptions, SerializerArg } from './types';
+import type { AsyncCtx, AsyncSignalOptions, ComputedOptions, SerializerArg } from './types';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
@@ -38,6 +38,8 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
   pollMs: number;
   /** A promise that resolves when the value is computed or rejected. */
   promise(): Promise<void>;
+  /** Abort the current computation and run cleanups if needed. */
+  abort(): void;
 }
 
 /**
@@ -123,7 +125,7 @@ export { createComputedQrl };
  * @public
  */
 export const createAsync$: <T>(
-  qrl: () => Promise<T>,
+  qrl: (arg: AsyncCtx) => Promise<T>,
   options?: AsyncSignalOptions<T>
 ) => AsyncSignal<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
 export { createAsyncQrl };

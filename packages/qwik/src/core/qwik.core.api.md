@@ -19,6 +19,7 @@ export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
 
 // @public (undocumented)
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
+    abort(): void;
     error: Error | undefined;
     loading: boolean;
     pollMs: number;
@@ -193,7 +194,7 @@ export interface CorrectedToggleEvent extends Event {
 // Warning: (ae-forgotten-export) The symbol "AsyncSignalOptions" needs to be exported by the entry point index.d.ts
 //
 // @public
-export const createAsync$: <T>(qrl: () => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
+export const createAsync$: <T>(qrl: (arg: AsyncCtx) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
 
 // Warning: (ae-forgotten-export) The symbol "AsyncSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal

@@ -154,7 +154,11 @@ import {
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
-import { getDomContainer } from './dom-container';
+import {
+  _getQContainerElement,
+  getDomContainer,
+  getDomContainerFromQContainerElement,
+} from './dom-container';
 import {
   type ClientContainer,
   type ContainerElement,
@@ -589,11 +593,11 @@ export function vnode_getDOMContainer(vNode: VNode): ClientContainer | null {
   let cursor: VNode | null = vNode;
   while (cursor) {
     if (vnode_isElementVNode(cursor)) {
-      try {
-        return getDomContainer(cursor.node);
-      } catch {
+      const qContainerElement = _getQContainerElement(cursor.node);
+      if (!qContainerElement) {
         return null;
       }
+      return getDomContainerFromQContainerElement(qContainerElement!);
     }
     cursor = cursor.parent;
   }
@@ -1829,8 +1833,16 @@ export function vnode_toString(
   materialize: boolean = false,
   siblings = false,
   colorize: boolean = true,
-  container = this && vnode_getDOMContainer(this)
+  container: Container | null = null
 ): string {
+  if (this && !container) {
+    try {
+      container = vnode_getDOMContainer(this);
+    } catch {
+      // ignore, as this is only for debugging
+    }
+  }
+
   let vnode = this;
   if (depth === 0) {
     return '...';

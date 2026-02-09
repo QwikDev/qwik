@@ -215,7 +215,7 @@ Note that deep store updates don't mutate the store itself, so `store[item].coun
 
 During SSR, each component will wait until all tasks are completed before outputting the HTML for that component. So a task can be called multiple times during SSR if the tracked state changes due to other tasks.
 
-> **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/core/state/#usecomputed) instead.
+> **Note**: If all you want to do is compute a new state from an existing state synchronously, use [`useComputed$()`](/docs/core/state/#usecomputed). For async derivations (like search-as-you-type), use [`useAsync$()`](/docs/core/state/#useasync) and cancel in-flight work with `cleanup()` and `AbortController`.
 
 <CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" style={{ height: '6em' }} >
 ```tsx

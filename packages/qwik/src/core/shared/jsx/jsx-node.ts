@@ -1,6 +1,7 @@
 import type { QRL } from '../qrl/qrl.public';
 import { EMPTY_OBJ } from '../utils/flyweight';
 import { logWarn } from '../utils/log';
+import { isObjectEmpty } from '../utils/objects';
 import { qDev, seal } from '../utils/qdev';
 import { isObject } from '../utils/types';
 import { _chk, _val } from './bind-handlers';
@@ -31,8 +32,8 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
   ) {
     this.toSort = !!toSort;
     this.key = key === null || key === undefined ? null : typeof key === 'string' ? key : '' + key;
-    this.varProps = !varProps || isEmpty(varProps) ? EMPTY_OBJ : varProps;
-    this.constProps = !constProps || isEmpty(constProps) ? null : constProps;
+    this.varProps = !varProps || isObjectEmpty(varProps) ? EMPTY_OBJ : varProps;
+    this.constProps = !constProps || isObjectEmpty(constProps) ? null : constProps;
     if (qDev && dev) {
       this.dev = {
         ...dev,
@@ -83,8 +84,4 @@ export const isJSXNode = <T>(n: unknown): n is JSXNodeInternal<T> => {
   } else {
     return n instanceof JSXNodeImpl;
   }
-};
-
-const isEmpty = (obj: Record<string, unknown>) => {
-  return Object.keys(obj).length === 0;
 };

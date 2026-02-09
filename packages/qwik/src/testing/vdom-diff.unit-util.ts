@@ -31,6 +31,7 @@ import {
   vnode_newVirtual,
   vnode_setAttr,
   vnode_setProp,
+  vnode_toString,
 } from '../core/client/vnode-utils';
 
 import { format } from 'prettier';
@@ -292,7 +293,10 @@ function diffJsxVNodeChildren(
       }`
     );
     diffs.push('EXPECTED', jsxToHTML(expected, '  '));
-    diffs.push('RECEIVED', received.toString());
+    diffs.push(
+      'RECEIVED',
+      vnode_toString.call(received, 20, '  ', true, false, false, container as any)
+    );
   }
   path.pop();
 }

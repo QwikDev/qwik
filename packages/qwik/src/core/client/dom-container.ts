@@ -53,7 +53,7 @@ import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
   vnode_createErrorDiv,
   vnode_getProp,
-  vnode_insertBefore,
+  vnode_insertElementBefore,
   vnode_isElementVNode,
   vnode_isVirtualVNode,
   vnode_locate,
@@ -177,7 +177,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
           const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
           // If the host is different then we need to insert errored-host in the same position as the host.
           const insertBefore = insertHost === vHost ? null : vHostNextSibling;
-          vnode_insertBefore(
+          vnode_insertElementBefore(
             journal,
             insertHost as ElementVNode | VirtualVNode,
             vErrorDiv,

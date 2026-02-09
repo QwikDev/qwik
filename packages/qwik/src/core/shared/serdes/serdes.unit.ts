@@ -699,6 +699,22 @@ describe('shared-serialization', () => {
         ),
         { pollMs: 100 }
       );
+      const concurrent = createAsyncSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'concurrent',
+          [foo]
+        ),
+        { concurrency: 23 }
+      );
+      const timeout = createAsyncSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'timeout',
+          [foo]
+        ),
+        { timeout: 5000 }
+      );
 
       await retryOnPromise(() => {
         // note that this won't subscribe because we're not setting up the context
@@ -707,21 +723,21 @@ describe('shared-serialization', () => {
         expect(always.value).toBe(2);
       });
 
-      const objs = await serialize(dirty, clean, never, always, polling);
+      const objs = await serialize(dirty, clean, never, always, polling, concurrent, timeout);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 AsyncSignal [
-          QRL "6#7#5"
+          QRL "8#9#7"
         ]
         1 AsyncSignal [
-          QRL "6#8#5"
+          QRL "8#10#7"
           Map [
             {string} ":"
             EffectSubscription [
               RootRef 1
               {string} ":"
               Set [
-                RootRef 5
+                RootRef 7
               ]
               Constant null
             ]
@@ -733,28 +749,28 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         2 AsyncSignal [
-          QRL "6#9#5"
+          QRL "8#11#7"
           Map [
             {string} ":"
             EffectSubscription [
               RootRef 2
               {string} ":"
               Set [
-                RootRef 5
+                RootRef 7
               ]
               Constant null
             ]
           ]
         ]
         3 AsyncSignal [
-          QRL "6#10#5"
+          QRL "8#12#7"
           Map [
             {string} ":"
             EffectSubscription [
               RootRef 3
               {string} ":"
               Set [
-                RootRef 5
+                RootRef 7
               ]
               Constant null
             ]
@@ -766,7 +782,7 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         4 AsyncSignal [
-          QRL "6#11#5"
+          QRL "8#13#7"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -775,22 +791,47 @@ describe('shared-serialization', () => {
           Constant NEEDS_COMPUTATION
           {number} 100
         ]
-        5 Signal [
-          {number} 1
-          RootRef 12
-          RootRef 13
-          RootRef 14
+        5 AsyncSignal [
+          QRL "8#14#7"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant NEEDS_COMPUTATION
+          Constant undefined
+          {number} 23
         ]
-        6 {string} "mock-chunk"
-        7 {string} "dirty"
-        8 {string} "clean"
-        9 {string} "never"
-        10 {string} "always"
-        11 {string} "polling"
-        12 RootRef "1 1 1"
-        13 RootRef "2 1 1"
-        14 RootRef "3 1 1"
-        (387 chars)"
+        6 AsyncSignal [
+          QRL "8#15#7"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant NEEDS_COMPUTATION
+          Constant undefined
+          Constant undefined
+          {number} 5000
+        ]
+        7 Signal [
+          {number} 1
+          RootRef 16
+          RootRef 17
+          RootRef 18
+        ]
+        8 {string} "mock-chunk"
+        9 {string} "dirty"
+        10 {string} "clean"
+        11 {string} "never"
+        12 {string} "always"
+        13 {string} "polling"
+        14 {string} "concurrent"
+        15 {string} "timeout"
+        16 RootRef "1 1 1"
+        17 RootRef "2 1 1"
+        18 RootRef "3 1 1"
+        (520 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -1084,7 +1125,11 @@ describe('shared-serialization', () => {
       expect((restored as AsyncSignalImpl<number>).$flags$ & SignalFlags.INVALID).toBeFalsy();
     });
     it(`${title(TypeIds.AsyncSignal)} invalid`, async () => {
-      const asyncSignal = createAsync$(async () => 123, { pollMs: 50 });
+      const asyncSignal = createAsync$(async () => 123, {
+        pollMs: 50,
+        timeout: 1000,
+        concurrency: 3,
+      });
       const objs = await serialize(asyncSignal);
       const restored = deserialize(objs)[0] as AsyncSignal<number>;
       expect(isSignal(restored)).toBeTruthy();
@@ -1092,6 +1137,8 @@ describe('shared-serialization', () => {
       expect((restored as AsyncSignalImpl<number>).$flags$ & SignalFlags.INVALID).toBeTruthy();
       await restored.promise();
       expect((restored as AsyncSignalImpl<number>).$untrackedValue$).toBe(123);
+      expect((restored as AsyncSignalImpl<number>).$concurrency$).toBe(3);
+      expect((restored as AsyncSignalImpl<number>).$timeoutMs$).toBe(1000);
     });
     // this requires a domcontainer
     it(title(TypeIds.Store), async () => {

@@ -155,6 +155,8 @@ export const inflate = (
         Error,
         unknown?,
         number?,
+        number?,
+        number?,
       ];
       asyncSignal.$computeQrl$ = d[0];
       asyncSignal[_EFFECT_BACK_REF] = d[1];
@@ -172,6 +174,8 @@ export const inflate = (
       }
       // Note, we use the setter so that it schedules polling if needed
       asyncSignal.pollMs = d[7] ?? 0;
+      asyncSignal.$concurrency$ = d[8] ?? 1;
+      asyncSignal.$timeoutMs$ = d[9] ?? 0;
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal

@@ -10,6 +10,7 @@ import {
   useErrorBoundary,
   useSignal,
   useTask$,
+  type AsyncSignal,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -300,6 +301,22 @@ describe.each([
           <button>
             <Signal ssr-required>{'4'}</Signal>
           </button>
+        </>
+      );
+    });
+    it('should not show initial value after SSR', async () => {
+      const ref = {} as { s: AsyncSignal<number> };
+      const Cmp = component$(() => {
+        const asyncValue = useAsync$(async () => 42, { initial: 10 });
+        ref.s = asyncValue;
+        return <div>{asyncValue.value}</div>;
+      });
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <div>
+            <Signal>{'42'}</Signal>
+          </div>
         </>
       );
     });

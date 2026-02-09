@@ -588,7 +588,7 @@ describe('signal', () => {
 
           expect(ref.aborted).toBe(true);
           expect(signal.error).toBeInstanceOf(Error);
-          expect(signal.error?.message).toContain('Timeout');
+          expect(signal.error?.message).toContain('timeout');
 
           ref.resolve?.(1);
           await delay(0);

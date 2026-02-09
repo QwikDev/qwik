@@ -168,7 +168,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   override async invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
     this.$clearNextPoll$();
-    if (this.$effects$?.size) {
+    if (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size) {
       // compute in next microtask
       await true;
       this.$computeIfNeeded$();
@@ -230,9 +230,10 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
       if (this.$timeoutMs$) {
         this.$computationTimeoutId$ = setTimeout(() => {
           running.$abortController$?.abort();
-          const error = new Error(`Timeout after ${this.$timeoutMs$}ms`);
+          const error = new Error(`timeout`);
           if (isCurrent()) {
             this.untrackedError = error;
+            running.$canWrite$ = false;
           }
         }, this.$timeoutMs$);
       }
@@ -265,8 +266,6 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     }
 
     if (isCurrent()) {
-      this.untrackedLoading = false;
-
       clearTimeout(this.$computationTimeoutId$);
 
       if (this.$flags$ & SignalFlags.INVALID) {
@@ -274,6 +273,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
         // we became invalid again while running, so we need to re-run the computation to get the new promise
         this.$computeIfNeeded$();
       } else {
+        this.untrackedLoading = false;
         this.$scheduleNextPoll$();
       }
     }
@@ -292,7 +292,10 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   get untrackedValue() {
     this.$computeIfNeeded$();
     if (this.$current$?.$promise$) {
-      if (this.$untrackedValue$ === NEEDS_COMPUTATION) {
+      if (
+        this.$untrackedValue$ === NEEDS_COMPUTATION ||
+        (import.meta.env.TEST ? isServerPlatform() : isServer)
+      ) {
         DEBUG && log('Throwing promise while computing initial value', this);
         throw this.$current$?.$promise$;
       }

@@ -424,7 +424,16 @@ export async function serialize(serializationContext: SerializationContext): Pro
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
         const isInvalid = value.$flags$ & SignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
-        const pollMs = value instanceof AsyncSignalImpl ? value.$pollMs$ : 0;
+        const pollMs =
+          value instanceof AsyncSignalImpl && value.$pollMs$ > 0 ? value.$pollMs$ : undefined;
+        const concurrency =
+          value instanceof AsyncSignalImpl && value.$concurrency$ !== 1
+            ? value.$concurrency$
+            : undefined;
+        const timeout =
+          value instanceof AsyncSignalImpl && value.$timeoutMs$ !== 0
+            ? value.$timeoutMs$
+            : undefined;
 
         if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
@@ -447,10 +456,15 @@ export async function serialize(serializationContext: SerializationContext): Pro
 
         let keepUndefined = false;
 
-        if (v !== NEEDS_COMPUTATION || pollMs) {
+        if (
+          v !== NEEDS_COMPUTATION ||
+          pollMs !== undefined ||
+          concurrency !== undefined ||
+          timeout !== undefined
+        ) {
           out.push(v);
 
-          if (!isAsync && v === undefined) {
+          if (v === undefined) {
             /**
              * If value is undefined, we need to keep it in the output. If we don't do that, later
              * during resuming, the value will be set to symbol(invalid) with flag invalid, and
@@ -459,8 +473,10 @@ export async function serialize(serializationContext: SerializationContext): Pro
             keepUndefined = true;
           }
         }
-        if (pollMs) {
+        if (isAsync) {
           out.push(pollMs);
+          out.push(concurrency);
+          out.push(timeout);
         }
         output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out, keepUndefined);
       } else {

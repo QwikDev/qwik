@@ -513,16 +513,20 @@ function registerQrlHandlers(attr: Attr, key: string, container: Container, elem
 
 /** Walks the direct children of a parent node and calls the callback for each child. */
 export function vnode_walkDirectChildren(
+  journal: VNodeJournal,
   vParent: VNode,
   callback: (vNode: ElementVNode | TextVNode, vParent: VNode | null) => boolean | void
 ): void {
   let vNode = vnode_getFirstChild(vParent);
   while (vNode) {
-    if (vnode_isElementOrTextVNode(vNode)) {
+    if (vnode_isTextVNode(vNode)) {
+      vnode_ensureTextInflated(journal, vNode);
+      callback(vNode, vParent);
+    } else if (vnode_isElementVNode(vNode)) {
       callback(vNode, vParent);
     } else {
       // for virtual nodes, we need to walk their children
-      vnode_walkDirectChildren(vNode, callback);
+      vnode_walkDirectChildren(journal, vNode, callback);
     }
     vNode = vNode.nextSibling as VNode | null;
   }
@@ -1155,7 +1159,7 @@ export const vnode_insertVirtualBefore = (
       domParentVNode,
       newChild
     );
-    vnode_walkDirectChildren(newChild, (vNode) => {
+    vnode_walkDirectChildren(journal, newChild, (vNode) => {
       if (vnode_isTextVNode(vNode)) {
         addVNodeOperation(
           journal,
@@ -1185,11 +1189,7 @@ export const vnode_insertVirtualBefore = (
     parentNode &&
     !parentIsDeleted
   ) {
-    vnode_walkDirectChildren(newChild, (vNode) => {
-      const isText = vnode_isTextVNode(vNode);
-      if (isText) {
-        vnode_ensureTextInflated(journal, vNode);
-      }
+    vnode_walkDirectChildren(journal, newChild, (vNode) => {
       addVNodeOperation(
         journal,
         createInsertOrMoveOperation(vNode.node!, parentNode, adjustedInsertBeforeNode)
@@ -1340,18 +1340,17 @@ export const vnode_remove = (
   }
 
   if (removeDOM) {
-    const domParent = vnode_getDomParent(vParent, false);
     const isInnerHTMLParent = vnode_getProp(vParent, dangerouslySetInnerHTML, null) !== null;
     if (isInnerHTMLParent) {
       // ignore children, as they are inserted via innerHTML
       return;
     }
-    const children = vnode_getDOMChildNodes(journal, vToRemove, true);
-    //&& //journal.push(VNodeOperationType.Remove, domParent, ...children);
-    if (domParent && children.length) {
-      for (const child of children) {
-        addVNodeOperation(journal, createDeleteOperation(child.node!));
-      }
+    if (vnode_isElementOrTextVNode(vToRemove)) {
+      addVNodeOperation(journal, createDeleteOperation(vToRemove.node!));
+    } else {
+      vnode_walkDirectChildren(journal, vToRemove, (vNode) => {
+        addVNodeOperation(journal, createDeleteOperation(vNode.node!));
+      });
     }
   }
 

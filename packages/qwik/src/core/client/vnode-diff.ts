@@ -626,35 +626,34 @@ function expectSlot(diffContext: DiffContext) {
     : null;
 
   if (vProjectedNode == null) {
-    // Nothing to project, so render content of the slot.
-    vnode_insertBefore(
-      diffContext.journal,
-      diffContext.vParent as ElementVNode | VirtualVNode,
-      (diffContext.vNewNode = vnode_newVirtual()),
-      diffContext.vCurrent && getInsertBefore(diffContext)
-    );
+    diffContext.vNewNode = vnode_newVirtual();
     vnode_setProp(diffContext.vNewNode as VirtualVNode, QSlot, slotNameKey);
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.vNewNode);
     isDev &&
-      vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
-    isDev && vnode_setProp(diffContext.vNewNode as VirtualVNode, 'q:code', 'expectSlot' + count++);
+      vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection); // Nothing to project, so render content of the slot.
+    vnode_insertBefore(
+      diffContext.journal,
+      diffContext.vParent as ElementVNode | VirtualVNode,
+      diffContext.vNewNode,
+      diffContext.vCurrent && getInsertBefore(diffContext)
+    );
     return false;
   } else if (vProjectedNode === diffContext.vCurrent) {
     // All is good.
   } else {
     // move from q:template to the target node
     const oldParent = vProjectedNode.parent;
-    vnode_insertBefore(
-      diffContext.journal,
-      diffContext.vParent as ElementVNode | VirtualVNode,
-      (diffContext.vNewNode = vProjectedNode),
-      diffContext.vCurrent && getInsertBefore(diffContext)
-    );
+    diffContext.vNewNode = vProjectedNode;
     vnode_setProp(diffContext.vNewNode as VirtualVNode, QSlot, slotNameKey);
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.vNewNode);
     isDev &&
       vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
-    isDev && vnode_setProp(diffContext.vNewNode as VirtualVNode, 'q:code', 'expectSlot' + count++);
+    vnode_insertBefore(
+      diffContext.journal,
+      diffContext.vParent as ElementVNode | VirtualVNode,
+      diffContext.vNewNode,
+      diffContext.vCurrent && getInsertBefore(diffContext)
+    );
 
     // If we moved from a q:template and it's now empty, remove it
     if (
@@ -1945,5 +1944,3 @@ function containsWrappedSignal(data: unknown[], signal: Signal<any>): boolean {
   }
   return false;
 }
-
-let count = 0;

@@ -13,17 +13,13 @@ import {
   ensureElementVNode,
   fastNamespaceURI,
   shouldIgnoreChildren,
-  vnode_getDOMChildNodes,
   vnode_getDomParentVNode,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_isElementVNode,
-  vnode_isTextVNode,
-  type VNodeJournal,
 } from './vnode-utils';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
-import type { TextVNode } from '../shared/vnode/text-vnode';
 
 export const isForeignObjectElement = (elementName: string) => {
   return isDev ? elementName.toLowerCase() === 'foreignobject' : elementName === 'foreignObject';
@@ -50,58 +46,6 @@ export const vnode_getElementNamespaceFlags = (element: Element) => {
       return VNodeFlags.NS_html;
   }
 };
-
-export function vnode_getDomChildrenWithCorrectNamespacesToInsert(
-  journal: VNodeJournal,
-  domParentVNode: ElementVNode,
-  newChild: VNode
-): (ElementVNode | TextVNode)[] {
-  const { elementNamespace, elementNamespaceFlag } = getNewElementNamespaceData(
-    domParentVNode,
-    newChild
-  );
-
-  let domChildren: (ElementVNode | TextVNode)[] = [];
-  if (elementNamespace === HTML_NS) {
-    // parent is in the default namespace, so just get the dom children. This is the fast path.
-    domChildren = vnode_getDOMChildNodes(journal, newChild, true);
-  } else {
-    // parent is in a different namespace, so we need to clone the children with the correct namespace.
-    // The namespace cannot be changed on nodes, so we need to clone these nodes
-    const children = vnode_getDOMChildNodes(journal, newChild, true);
-
-    for (let i = 0; i < children.length; i++) {
-      const childVNode = children[i];
-      if (vnode_isTextVNode(childVNode)) {
-        // text nodes are always in the default namespace
-        domChildren.push(childVNode);
-        continue;
-      }
-      if (
-        (childVNode.flags & VNodeFlags.NAMESPACE_MASK) ===
-        (domParentVNode.flags & VNodeFlags.NAMESPACE_MASK)
-      ) {
-        // if the child and parent have the same namespace, we don't need to clone the element
-        domChildren.push(childVNode);
-        continue;
-      }
-
-      // clone the element with the correct namespace
-      const newChildElement = vnode_cloneElementWithNamespace(
-        childVNode,
-        domParentVNode,
-        elementNamespace,
-        elementNamespaceFlag
-      );
-
-      if (newChildElement) {
-        childVNode.node = newChildElement;
-        domChildren.push(childVNode);
-      }
-    }
-  }
-  return domChildren;
-}
 
 /** This function clones an element with a different namespace, including the children */
 function cloneDomTreeWithNamespace(

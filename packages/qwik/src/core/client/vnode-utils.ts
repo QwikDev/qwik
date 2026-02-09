@@ -1402,15 +1402,12 @@ export const vnode_truncate = (
   isDev && assertDefined(vDelete, 'Missing vDelete.');
   const parent = vnode_getDomParent(vParent, true);
   if (parent && removeDOM) {
-    if (vnode_isElementVNode(vParent)) {
+    if (vnode_isElementOrTextVNode(vParent)) {
       addVNodeOperation(journal, createRemoveAllChildrenOperation(vParent.node!));
     } else {
-      const children = vnode_getDOMChildNodes(journal, vParent, true);
-      if (children.length) {
-        for (const child of children) {
-          addVNodeOperation(journal, createDeleteOperation(child.node!));
-        }
-      }
+      vnode_walkDirectChildren(journal, vParent, (vNode) => {
+        addVNodeOperation(journal, createDeleteOperation(vNode.node!));
+      });
     }
   }
   const vPrevious = vDelete.previousSibling;

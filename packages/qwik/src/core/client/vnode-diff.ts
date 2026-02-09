@@ -76,6 +76,8 @@ import {
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
+  vnode_insertElementBefore,
+  vnode_insertVirtualBefore,
   vnode_isElementVNode,
   vnode_isProjection,
   vnode_isTextVNode,
@@ -93,6 +95,7 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode-utils';
+import { isObjectEmpty } from '../shared/utils/objects';
 
 export interface DiffContext {
   container: ClientContainer;
@@ -624,35 +627,34 @@ function expectSlot(diffContext: DiffContext) {
     : null;
 
   if (vProjectedNode == null) {
-    // Nothing to project, so render content of the slot.
-    vnode_insertBefore(
-      diffContext.journal,
-      diffContext.vParent as ElementVNode | VirtualVNode,
-      (diffContext.vNewNode = vnode_newVirtual()),
-      diffContext.vCurrent && getInsertBefore(diffContext)
-    );
+    diffContext.vNewNode = vnode_newVirtual();
     vnode_setProp(diffContext.vNewNode as VirtualVNode, QSlot, slotNameKey);
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.vNewNode);
     isDev &&
-      vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
-    isDev && vnode_setProp(diffContext.vNewNode as VirtualVNode, 'q:code', 'expectSlot' + count++);
+      vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection); // Nothing to project, so render content of the slot.
+    vnode_insertBefore(
+      diffContext.journal,
+      diffContext.vParent as ElementVNode | VirtualVNode,
+      diffContext.vNewNode,
+      diffContext.vCurrent && getInsertBefore(diffContext)
+    );
     return false;
   } else if (vProjectedNode === diffContext.vCurrent) {
     // All is good.
   } else {
     // move from q:template to the target node
     const oldParent = vProjectedNode.parent;
-    vnode_insertBefore(
-      diffContext.journal,
-      diffContext.vParent as ElementVNode | VirtualVNode,
-      (diffContext.vNewNode = vProjectedNode),
-      diffContext.vCurrent && getInsertBefore(diffContext)
-    );
+    diffContext.vNewNode = vProjectedNode;
     vnode_setProp(diffContext.vNewNode as VirtualVNode, QSlot, slotNameKey);
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.vNewNode);
     isDev &&
       vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
-    isDev && vnode_setProp(diffContext.vNewNode as VirtualVNode, 'q:code', 'expectSlot' + count++);
+    vnode_insertBefore(
+      diffContext.journal,
+      diffContext.vParent as ElementVNode | VirtualVNode,
+      diffContext.vNewNode,
+      diffContext.vCurrent && getInsertBefore(diffContext)
+    );
 
     // If we moved from a q:template and it's now empty, remove it
     if (
@@ -896,7 +898,7 @@ function createNewElement(
     }
   }
 
-  vnode_insertBefore(
+  vnode_insertElementBefore(
     diffContext.journal,
     diffContext.vParent as ElementVNode,
     diffContext.vNewNode as ElementVNode,
@@ -912,16 +914,28 @@ function registerEventHandlers(
   diffContext: DiffContext
 ) {
   const scopedKebabName = key.slice(2);
-  if (!Array.isArray(value)) {
-    value = [value];
-  }
-  const handlers: EventHandler[] = [];
-  for (const handler of (value as (QRLInternal<(...args: any[]) => void> | undefined)[]).flat(2)) {
-    if (handler) {
-      handlers.push(runEventHandlerQRL.bind(null, handler));
+  if (Array.isArray(value)) {
+    const arr = value as (QRLInternal<(...args: any[]) => void> | undefined)[];
+    const handlers: EventHandler[] = [];
+    for (let i = 0; i < arr.length; i++) {
+      const item = arr[i];
+      if (Array.isArray(item)) {
+        for (let j = 0; j < item.length; j++) {
+          const handler = item[j];
+          if (handler) {
+            handlers.push(runEventHandlerQRL.bind(null, handler));
+          }
+        }
+      } else if (item) {
+        handlers.push(runEventHandlerQRL.bind(null, item));
+      }
     }
+    (element._qDispatch ||= {})[scopedKebabName] = handlers;
+  } else if (value) {
+    (element._qDispatch ||= {})[scopedKebabName] = [
+      runEventHandlerQRL.bind(null, value as QRLInternal<(...args: any[]) => void>),
+    ];
   }
-  (element._qDispatch ||= {})[scopedKebabName] = handlers;
 
   // window and document events need attrs so qwik loader can find them
   // TODO only do these when not already present
@@ -1347,7 +1361,7 @@ function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: stri
 
   // For fragments without a key, always create a new virtual node (ensures rerender semantics)
   if (jsxKey === null || diffContext.isCreationMode) {
-    vnode_insertBefore(
+    vnode_insertVirtualBefore(
       diffContext.journal,
       diffContext.vParent as VirtualVNode,
       (diffContext.vNewNode = vnode_newVirtual()),
@@ -1367,7 +1381,7 @@ function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: stri
       true
     )
   ) {
-    vnode_insertBefore(
+    vnode_insertVirtualBefore(
       diffContext.journal,
       diffContext.vParent as VirtualVNode,
       (diffContext.vNewNode = vnode_newVirtual()),
@@ -1516,7 +1530,7 @@ function insertNewComponent(
   if (host) {
     clearAllEffects(diffContext.container, host);
   }
-  vnode_insertBefore(
+  vnode_insertVirtualBefore(
     diffContext.journal,
     diffContext.vParent as VirtualVNode,
     (diffContext.vNewNode = vnode_newVirtual()),
@@ -1530,7 +1544,7 @@ function insertNewComponent(
 }
 
 function insertNewInlineComponent(diffContext: DiffContext) {
-  vnode_insertBefore(
+  vnode_insertVirtualBefore(
     diffContext.journal,
     diffContext.vParent as VirtualVNode,
     (diffContext.vNewNode = vnode_newVirtual()),
@@ -1556,9 +1570,9 @@ function expectText(diffContext: DiffContext, text: string) {
       return;
     }
   }
-  vnode_insertBefore(
+  vnode_insertElementBefore(
     diffContext.journal,
-    diffContext.vParent as VirtualVNode,
+    diffContext.vParent,
     (diffContext.vNewNode = vnode_newText(
       (import.meta.env.TEST ? diffContext.container.document : document).createTextNode(text),
       text
@@ -1724,7 +1738,7 @@ function isPropsEmpty(props: Record<string, any> | null | undefined): boolean {
   if (!props) {
     return true;
   }
-  return Object.keys(props).length === 0;
+  return isObjectEmpty(props);
 }
 
 /**
@@ -1943,5 +1957,3 @@ function containsWrappedSignal(data: unknown[], signal: Signal<any>): boolean {
   }
   return false;
 }
-
-let count = 0;

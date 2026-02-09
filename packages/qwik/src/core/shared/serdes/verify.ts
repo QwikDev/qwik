@@ -57,6 +57,10 @@ const _verifySerializable = <T>(
           });
           return value;
         }
+        // We don't want to walk internal objects, assume we already checked the contents
+        if ((unwrapped as any).__brand) {
+          return value;
+        }
         if (isSerializableObject(unwrapped)) {
           for (const [key, item] of Object.entries(unwrapped)) {
             _verifySerializable(item, seen, ctx + '.' + key);

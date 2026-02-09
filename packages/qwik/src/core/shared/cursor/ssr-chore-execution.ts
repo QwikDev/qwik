@@ -1,5 +1,4 @@
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
-import { runResource, type ResourceDescriptor } from '../../use/use-resource';
 import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
 import { SsrNodeFlags, type Container } from '../types';
 import { ELEMENT_SEQ } from '../utils/markers';
@@ -83,13 +82,7 @@ function executeTasksChore(container: Container, ssrNode: ISsrNode): ValueOrProm
         continue;
       }
 
-      let result: ValueOrPromise<void>;
-      // Check if it's a resource
-      if (task.$flags$ & TaskFlags.RESOURCE) {
-        result = runResource(task as ResourceDescriptor<TaskFn>, container, ssrNode);
-      } else {
-        result = runTask(task, container, ssrNode);
-      }
+      const result = runTask(task, container, ssrNode);
       promise = promise ? promise.then(() => result as Promise<void>) : (result as Promise<void>);
     }
   }

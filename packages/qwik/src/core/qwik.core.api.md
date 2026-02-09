@@ -14,8 +14,8 @@ export const $: <T>(expression: T) => QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "AsyncCtx" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
+// @public
+export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
 
 // @public (undocumented)
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
@@ -194,13 +194,13 @@ export interface CorrectedToggleEvent extends Event {
 // Warning: (ae-forgotten-export) The symbol "AsyncSignalOptions" needs to be exported by the entry point index.d.ts
 //
 // @public
-export const createAsync$: <T>(qrl: (arg: AsyncCtx) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
+export const createAsync$: <T>(qrl: (arg: AsyncCtx<T>) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
 
 // Warning: (ae-forgotten-export) The symbol "AsyncSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const createAsyncQrl: <T>(qrl: QRL<(ctx: AsyncCtx) => Promise<T>>, options?: AsyncSignalOptions<T>) => AsyncSignalImpl<T>;
+export const createAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => AsyncSignalImpl<T>;
 
 // @public
 export const createComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>;
@@ -904,23 +904,17 @@ export function _res(this: string | undefined, _: any, element: Element): void;
 // @internal (undocumented)
 export const _resolveContextWithoutSequentialScope: <STATE>(context: ContextId<STATE>) => STATE | undefined;
 
-// @public
-export const Resource: <T>(props: ResourceProps<T>) => JSXOutput;
+// @public @deprecated
+export const Resource: <T>({ value, onResolved, onPending, onRejected, }: ResourceProps<T>) => JSXOutput;
 
 // @public (undocumented)
-export interface ResourceCtx<T> {
-    // (undocumented)
+export interface ResourceCtx<T = unknown> extends AsyncCtx<T> {
+    // @deprecated (undocumented)
     cache(policyOrMilliseconds: number | 'immutable'): void;
-    // (undocumented)
-    cleanup(callback: () => void): void;
-    // (undocumented)
-    readonly previous: T | undefined;
-    // (undocumented)
-    readonly track: Tracker;
 }
 
 // @public (undocumented)
-export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx) => ValueOrPromise<T>;
 
 // @public
 export interface ResourceOptions {
@@ -928,12 +922,7 @@ export interface ResourceOptions {
 }
 
 // @public (undocumented)
-export interface ResourcePending<T> {
-    // (undocumented)
-    readonly loading: boolean;
-    // (undocumented)
-    readonly value: Promise<T>;
-}
+export type ResourcePending<T> = ResourceReturn<T>;
 
 // @public (undocumented)
 export interface ResourceProps<T> {
@@ -948,26 +937,24 @@ export interface ResourceProps<T> {
 }
 
 // @public (undocumented)
-export interface ResourceRejected<T> {
-    // (undocumented)
-    readonly loading: boolean;
-    // (undocumented)
-    readonly value: Promise<T>;
-}
+export type ResourceRejected<T> = ResourceReturn<T>;
 
 // @public (undocumented)
-export interface ResourceResolved<T> {
-    // (undocumented)
-    readonly loading: boolean;
-    // (undocumented)
-    readonly value: Promise<T>;
-}
+export type ResourceResolved<T> = ResourceReturn<T>;
 
 // @public (undocumented)
-export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
+export type ResourceReturn<T> = {
+    readonly value: Promise<T>;
+    readonly loading: boolean;
+};
 
 // @internal (undocumented)
 export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
+
+// @internal
+export const _rsc: <T>(arg: ResourceCtx<T>) => Promise<{
+    r: T;
+}>;
 
 // @internal
 export function _run(this: string, event: Event, element: Element): ValueOrPromise<unknown>;
@@ -1803,8 +1790,8 @@ export const useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl
 // @public
 export const useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
 
-// @public
-export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
+// @public @deprecated
+export const useResource$: <T>(qrl: ResourceFn<T>, opts?: ResourceOptions | undefined) => ResourceReturn<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useResourceQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //

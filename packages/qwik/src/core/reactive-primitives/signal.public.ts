@@ -125,7 +125,7 @@ export { createComputedQrl };
  * @public
  */
 export const createAsync$: <T>(
-  qrl: (arg: AsyncCtx) => Promise<T>,
+  qrl: (arg: AsyncCtx<T>) => Promise<T>,
   options?: AsyncSignalOptions<T>
 ) => AsyncSignal<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
 export { createAsyncQrl };

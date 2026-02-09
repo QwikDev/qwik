@@ -25,7 +25,6 @@ import {
   SignalFlags,
   StoreFlags,
 } from '../../reactive-primitives/types';
-import { createResourceReturn } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { QError } from '../error/error';
 import { inlinedQrl } from '../qrl/qrl';
@@ -376,24 +375,6 @@ describe('shared-serialization', () => {
         3 {string} "task_qrl"
         4 RootRef "0 5 0"
         (101 chars)"
-      `);
-    });
-    it(title(TypeIds.Resource), async () => {
-      // Note: we just serialize as a store
-      const res = createResourceReturn(null!, undefined, Promise.resolve(123));
-      res._state = 'resolved';
-      res._resolved = 123;
-      expect(await dump(res)).toMatchInlineSnapshot(`
-        "
-        0 ForwardRef 0
-        1 Resource [
-          Constant true
-          {number} 123
-        ]
-        2 ForwardRefs [
-          1
-        ]
-        (27 chars)"
       `);
     });
     it(title(TypeIds.Component), async () => {
@@ -1087,21 +1068,6 @@ describe('shared-serialization', () => {
       expect(task.$qrl$.$symbol$).toEqual(qrl.$symbol$);
       expect(task.$el$).toEqual(shared1);
       expect(task.$state$).toEqual(shared2);
-    });
-    it(title(TypeIds.Resource), async () => {
-      const res = createResourceReturn(null!, undefined, Promise.resolve(shared1));
-      res._state = 'resolved';
-      res._resolved = shared1;
-      const objs = await serialize(res);
-      const restored = deserialize(objs)[0] as any;
-      const value = await restored.value;
-      expect(value).toEqual(shared1);
-      expect(restored._state).toBe('resolved');
-      // TODO requires a domcontainer
-      // also not sure if this holds true
-      // the promise result isn't a store
-      // but the resource is
-      // expect(restored._resolved).toBe(value);
     });
     it.todo(title(TypeIds.Component));
     it(title(TypeIds.Signal), async () => {

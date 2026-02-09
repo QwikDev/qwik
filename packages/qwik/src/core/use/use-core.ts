@@ -11,7 +11,7 @@ import type { Consumer, EffectProperty, EffectSubscription } from '../reactive-p
 import { assertDefined } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import type { Container, HostElement } from '../shared/types';
-import { RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
+import { RenderEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
 import { isObject } from '../shared/utils/types';
 import { setLocale } from './use-locale';
@@ -27,8 +27,7 @@ export type PossibleEvents =
   | Event
   | SimplifiedServerRequestEvent
   | typeof TaskEvent
-  | typeof RenderEvent
-  | typeof ResourceEvent;
+  | typeof RenderEvent;
 
 export interface RenderInvokeContext extends InvokeContext {
   // The below are just always-defined attributes of InvokeContext.

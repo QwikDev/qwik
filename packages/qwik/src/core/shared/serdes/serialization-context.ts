@@ -88,10 +88,10 @@ export interface SerializationContext {
 
   $eventQrls$: Set<QRL>;
   $eventNames$: Set<string>;
-  $resources$: Set<ResourceReturnInternal<unknown>>;
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
   $eagerResume$: Set<unknown>;
+  $resources$: Set<ResourceReturnInternal<any>>;
 
   $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
@@ -236,10 +236,10 @@ export const createSerializationContext = (
     $writer$: writer,
     $eventQrls$: new Set<QRL>(),
     $eventNames$: new Set<string>(),
-    $resources$: new Set<ResourceReturnInternal<unknown>>(),
     $renderSymbols$: new Set<string>(),
     $storeProxyMap$: storeProxyMap,
     $eagerResume$: eagerResume,
+    $resources$: new Set<ResourceReturnInternal<any>>(),
     $getProp$: getProp,
     $setProp$: setProp,
   };

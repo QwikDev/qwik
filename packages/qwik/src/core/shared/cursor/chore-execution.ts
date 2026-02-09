@@ -1,6 +1,5 @@
 import { type VNodeJournal } from '../../client/vnode-utils';
 import { vnode_diff } from '../../client/vnode-diff';
-import { runResource, type ResourceDescriptor } from '../../use/use-resource';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
 import { executeComponent } from '../component-execution';
 import type { OnRenderFn } from '../component.public';
@@ -76,11 +75,7 @@ export function executeTasks(
         continue;
       }
 
-      // Check if it's a resource
-      if (task.$flags$ & TaskFlags.RESOURCE) {
-        // Resources: just run, don't save promise anywhere
-        runResource(task as ResourceDescriptor<TaskFn>, container, vNode);
-      } else if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
+      if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
         // VisibleTasks: store for execution after flush (don't execute now)
         (cursorData.afterFlushTasks ||= []).push(task);
       } else {

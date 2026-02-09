@@ -275,6 +275,37 @@ If you read the `.value` before the async function has completed, it will throw 
 
 You can pass the `pollMs` option to have the async function re-execute periodically. This is useful to keep data fresh.
 
+For search-as-you-type, use `track()` plus `cleanup()` with an `AbortController` so in-flight requests are canceled on each keystroke:
+
+```tsx
+import { component$, useAsync$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const query = useSignal('');
+
+  const results = useAsync$(async ({ track, abortSignal }) => {
+    const q = track(query);
+    if (!q) return [] as string[];
+
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, {
+      signal: abortSignal,
+    });
+    return (await res.json()) as string[];
+  }, { initial: [] });
+
+  return (
+    <>
+      <input bind:value={query} placeholder="Search" />
+      <ul>
+        {results.value.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </>
+  );
+});
+```
+
 ### `useResource$()`
 
 Use `useResource$()` to create a computed value that is derived asynchronously. It's the asynchronous version of `useComputed$()`, which includes the `state` of the resource (loading, resolved, rejected) on top of the value.

@@ -1964,7 +1964,7 @@ export const _vnode_isTextVNode: (vNode: _VNode) => vNode is _TextVNode;
 export const _vnode_isVirtualVNode: (vNode: _VNode) => vNode is _VirtualVNode;
 
 // @internal (undocumented)
-export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean, container?: ClientContainer | null): string;
+export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean, container?: _Container | null): string;
 
 // @internal
 export const enum _VNodeFlags {

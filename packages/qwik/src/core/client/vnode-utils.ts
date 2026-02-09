@@ -511,6 +511,23 @@ function registerQrlHandlers(attr: Attr, key: string, container: Container, elem
   (element._qDispatch ||= {})[scopedKebabName] = handlers;
 }
 
+/** Walks the direct children of a parent node and calls the callback for each child. */
+export function vnode_walkDirectChildren(
+  vParent: VNode,
+  callback: (vNode: ElementVNode | TextVNode, vParent: VNode | null) => boolean | void
+): void {
+  let vNode = vnode_getFirstChild(vParent);
+  while (vNode) {
+    if (vnode_isElementOrTextVNode(vNode)) {
+      callback(vNode, vParent);
+    } else {
+      // for virtual nodes, we need to walk their children
+      vnode_walkDirectChildren(vNode, callback);
+    }
+    vNode = vNode.nextSibling as VNode | null;
+  }
+}
+
 /** Walks the VNode tree and materialize it using `vnode_getFirstChild`. */
 export function vnode_walkVNode(
   vNode: VNode,
@@ -1102,14 +1119,18 @@ export const vnode_insertVirtualBefore = (
     }
   }
 
+  vnode_unlinkFromOldParent(journal, newChildCurrentParent, parent, newChild);
+
   const parentIsDeleted = parent.flags & VNodeFlags.Deleted;
   const domParentVNode = parentIsElement ? parent : vnode_getDomParentVNode(parent, false);
   const parentNode = domParentVNode?.node;
   const adjustedInsertBefore = vnode_findInsertBefore(journal, parent, insertBefore);
   const adjustedInsertBeforeNode = adjustedInsertBefore?.node ?? null;
-
-  const isProjection = vnode_isProjection(parent);
-  if (isProjection && domParentVNode && (domParentVNode.flags & VNodeFlags.NS_html) !== 0) {
+  const isProjection = vnode_isProjection(newChild);
+  if (isProjection && domParentVNode && (domParentVNode.flags & VNodeFlags.NAMESPACE_MASK) !== 0) {
+    const domParentVNode = vnode_getDomParentVNode(parent, false);
+    const adjustedInsertBeforeNode =
+      vnode_findInsertBefore(journal, parent, insertBefore)?.node ?? null;
     /**
      * Find the parent node and the dom children with the correct namespaces before we unlink the
      * previous node. If we don't do this, we will end up with situations where we inflate text
@@ -1134,17 +1155,17 @@ export const vnode_insertVirtualBefore = (
       domParentVNode,
       newChild
     );
-    vnode_walkVNode(newChild, (vNode) => {
+    vnode_walkDirectChildren(newChild, (vNode) => {
       if (vnode_isTextVNode(vNode)) {
         addVNodeOperation(
           journal,
           createInsertOrMoveOperation(vNode.node!, parentNode!, adjustedInsertBeforeNode)
         );
-      } else if (vnode_isElementVNode(vNode)) {
+      } else {
         if ((vNode.flags & VNodeFlags.NAMESPACE_MASK) !== elementNamespaceFlag) {
           const newChildElement = vnode_cloneElementWithNamespace(
             vNode,
-            domParentVNode,
+            domParentVNode!,
             elementNamespace,
             elementNamespaceFlag
           );
@@ -1159,18 +1180,22 @@ export const vnode_insertVirtualBefore = (
         );
       }
     });
-  } else if (parentNode && !parentIsDeleted) {
-    vnode_walkVNode(newChild, (vNode) => {
-      if (vnode_isElementOrTextVNode(vNode)) {
-        addVNodeOperation(
-          journal,
-          createInsertOrMoveOperation(vNode.node!, parentNode, adjustedInsertBeforeNode)
-        );
+  } else if (
+    // for projection there can be no parent node
+    parentNode &&
+    !parentIsDeleted
+  ) {
+    vnode_walkDirectChildren(newChild, (vNode) => {
+      const isText = vnode_isTextVNode(vNode);
+      if (isText) {
+        vnode_ensureTextInflated(journal, vNode);
       }
+      addVNodeOperation(
+        journal,
+        createInsertOrMoveOperation(vNode.node!, parentNode, adjustedInsertBeforeNode)
+      );
     });
   }
-
-  vnode_unlinkFromOldParent(journal, newChildCurrentParent, parent, newChild);
 
   vnode_connectSiblings(parent, newChild, insertBefore);
   if (parentIsDeleted) {
@@ -1283,10 +1308,8 @@ export const vnode_insertBefore = (
 ) => {
   if (vnode_isElementOrTextVNode(newChild)) {
     vnode_insertElementBefore(journal, parent, newChild, insertBefore);
-    return;
   } else {
     vnode_insertVirtualBefore(journal, parent, newChild as VirtualVNode, insertBefore);
-    return;
   }
 };
 

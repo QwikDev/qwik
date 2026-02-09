@@ -1,0 +1,88 @@
+name: AI Issue Triage
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    if: github.repository == 'QwikDev/qwik'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check account age (skip accounts < 30 days)
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const user = await github.rest.users.getByUsername({
+              username: context.payload.issue.user.login
+            });
+            const created = new Date(user.data.created_at);
+            const days = (Date.now() - created) / (1000 * 60 * 60 * 24);
+            return days >= 30;
+
+      - uses: actions/checkout@v6
+        if: steps.check.outputs.result == 'true'
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: anomalyco/opencode/github@latest
+        if: steps.check.outputs.result == 'true'
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        with:
+          model: opencode/kimi-k2.5
+          prompt: |
+            You are a Qwik framework issue triager. Analyze the newly opened issue and apply the correct labels.
+
+            ## Repository Context
+
+            Qwik is a resumable JavaScript framework. The monorepo contains:
+            - **Qwik Runtime** — Core framework (signals, components, QRLs, rendering)
+            - **Optimizer** — Rust-based SWC transform for code splitting
+            - **Router** — File-based routing, loaders, actions, middleware (formerly Qwik City)
+            - **SSR** — Server-side rendering and streaming
+            - **Preloader** — Bundle prefetching system
+            - **Starters / CLI** — Project scaffolding
+
+            ## Available Labels
+
+            **Type labels (pick exactly one):**
+            - `bug` — Something isn't working
+            - `enhancement` — New feature or request
+            - `docs` — Documentation improvements
+            - `DX` — Developer experience issue
+
+            **Component labels (pick one or more if clear from the issue):**
+            - `runtime` — Core framework runtime
+            - `Optimizer` — Rust optimizer / code splitting
+            - `Router` — Routing, loaders, actions, middleware
+            - `SSR` — Server-side rendering
+            - `Preloader` — Bundle prefetching
+            - `starters` — CLI / starter templates
+            - `styling` — CSS / styling related
+            - `types` — TypeScript types
+            - `reactivity` — Signals, stores, reactivity system
+            - `Insights` — Analytics / insights package
+
+            **Status labels (apply if applicable):**
+            - `needs reproduction` — Bug report lacks a minimal reproduction
+            - `missing info` — Issue template is incomplete or missing important details
+            - `good first issue` — Simple enough for newcomers
+
+            ## Rules
+
+            1. Always apply exactly ONE type label.
+            2. Apply component labels only when the issue clearly relates to that area.
+            3. For bug reports: if no reproduction link is provided, apply `needs reproduction`.
+            4. For bug reports: if the issue template is mostly empty, apply `missing info`.
+            5. Do NOT apply `good first issue` unless the fix is obviously trivial.
+            6. Do NOT remove the default `needs triage` label — a human will remove it during review.
+            7. Do NOT comment on the issue — only apply labels.

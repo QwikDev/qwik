@@ -918,12 +918,6 @@ jobs:
       - name: Fixup package.json files
         run: pnpm run release.fixup-package-json
 
-      - name: Commit Build Artifacts
-        if: github.event_name == 'push'
-        env:
-          QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-        run: pnpm run qwik-push-build-repos
-
       - name: Publish packages for testing
         if: github.event_name != 'workflow_dispatch'
         run: pnpm release.pkg-pr-new

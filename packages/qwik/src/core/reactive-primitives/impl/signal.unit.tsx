@@ -563,6 +563,38 @@ describe('signal', () => {
         });
       });
 
+      it('should abort current computation on timeout and set error', async () => {
+        await withContainer(async () => {
+          const ref = {
+            aborted: false,
+            resolve: undefined as ((value: number) => void) | undefined,
+          };
+
+          const signal = createAsync$(
+            async ({ abortSignal }) => {
+              abortSignal.addEventListener('abort', () => {
+                ref.aborted = true;
+              });
+              return new Promise<number>((resolve) => {
+                ref.resolve = resolve;
+              });
+            },
+            { initial: 0, timeout: 5 }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await delay(10);
+
+          expect(ref.aborted).toBe(true);
+          expect(signal.error).toBeInstanceOf(Error);
+          expect(signal.error?.message).toContain('Timeout');
+
+          ref.resolve?.(1);
+          await delay(0);
+        });
+      });
+
       it('should allow concurrent computations and apply newest completed value', async () => {
         await withContainer(async () => {
           const ref = {

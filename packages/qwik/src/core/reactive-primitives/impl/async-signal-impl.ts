@@ -77,6 +77,8 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   $concurrency$: number = 1;
   $pollMs$: number = 0;
   $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined = undefined;
+  $timeoutMs$: number | undefined;
+  $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
@@ -91,6 +93,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     const pollMs = options?.pollMs || 0;
     const concurrency = options?.concurrency ?? 1;
     const initial = options?.initial;
+    const timeout = options?.timeout;
 
     // Handle initial value - eagerly evaluate if function, set $untrackedValue$ and $promiseValue$
     // Do NOT call setValue() which would clear the INVALID flag and prevent async computation
@@ -100,6 +103,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     }
 
     this.$concurrency$ = concurrency;
+    this.$timeoutMs$ = timeout;
     this.pollMs = pollMs;
   }
 
@@ -223,6 +227,16 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     const fn = this.$computeQrl$.resolved || (await this.$computeQrl$.resolve());
 
     try {
+      if (this.$timeoutMs$) {
+        this.$computationTimeoutId$ = setTimeout(() => {
+          running.$abortController$?.abort();
+          const error = new Error(`Timeout after ${this.$timeoutMs$}ms`);
+          if (isCurrent()) {
+            this.untrackedError = error;
+          }
+        }, this.$timeoutMs$);
+      }
+
       const value = await retryOnPromise(fn.bind(null, running));
 
       running.$promise$ = null;
@@ -253,6 +267,8 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     if (isCurrent()) {
       this.untrackedLoading = false;
 
+      clearTimeout(this.$computationTimeoutId$);
+
       if (this.$flags$ & SignalFlags.INVALID) {
         DEBUG && log('Computation finished but signal is invalid, re-running');
         // we became invalid again while running, so we need to re-run the computation to get the new promise
@@ -266,6 +282,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   /** Called after SSR/unmount */
   async $destroy$() {
     this.$clearNextPoll$();
+    clearTimeout(this.$computationTimeoutId$);
     if (this.$current$) {
       await this.$requestCleanups$(this.$current$);
     }

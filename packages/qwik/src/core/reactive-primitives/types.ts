@@ -81,6 +81,15 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    * Defaults to `0`.
    */
   pollMs?: number;
+  /**
+   * Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the
+   * computation is aborted and an error is thrown.
+   *
+   * If `0`, no timeout is applied.
+   *
+   * Defaults to `0`.
+   */
+  timeout?: number;
 }
 
 export const enum SignalFlags {

@@ -91,13 +91,12 @@ export const renderToStream = async (
 
   const snapshotResult = getSnapshotResult(ssrContainer);
 
-  const isDynamic = snapshotResult.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: ssrContainer.size,
-    isStatic: !isDynamic,
+    isStatic: false,
     timing: timing,
   };
 

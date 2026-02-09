@@ -32,23 +32,37 @@ const log = (...args: any[]) =>
   console.log('ASYNC COMPUTED SIGNAL', ...args.map(qwikDebugToString));
 
 /** Retains job metadata and also serves as the argument for the compute function */
-class AsyncJob<T> implements AsyncCtx {
+class AsyncJob<T> implements AsyncCtx<T> {
   /** First holds the compute promise and then the cleanup promise */
   $promise$: Promise<void> | null = null;
   $cleanupRequested$: boolean = false;
   $canWrite$: boolean = true;
-  $track$: AsyncCtx['track'] | undefined;
-  $cleanups$: Parameters<AsyncCtx['cleanup']>[0][] | undefined;
+  $track$: AsyncCtx<T>['track'] | undefined;
+  $cleanups$: Parameters<AsyncCtx<T>['cleanup']>[0][] | undefined;
   $abortController$: AbortController | undefined;
 
   constructor(readonly $signal$: AsyncSignalImpl<T>) {}
 
-  get track(): AsyncCtx['track'] {
+  get track(): AsyncCtx<T>['track'] {
     return (this.$track$ ||= trackFn(this.$signal$, this.$signal$.$container$));
   }
 
   get abortSignal(): AbortSignal {
     return (this.$abortController$ ||= new AbortController()).signal;
+  }
+
+  /** Backward compatible cache method for resource */
+  cache(): void {
+    console.error(
+      'useResource cache() method does not do anything. Use `useAsync$` instead of `useResource$`, use the `pollMs` option for polling behavior.'
+    );
+  }
+
+  get previous(): T | undefined {
+    const val = this.$signal$.$untrackedValue$;
+    if (val !== NEEDS_COMPUTATION) {
+      return val;
+    }
   }
 
   cleanup(callback: () => void) {

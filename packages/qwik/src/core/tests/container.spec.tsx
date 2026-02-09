@@ -421,12 +421,6 @@ describe('serializer v2', () => {
       });
     });
 
-    describe('ResourceSerializer, ////// ' + TypeIds.Resource, () => {
-      it.todo('should serialize and deserialize', async () => {
-        ///
-      });
-    });
-
     describe('ComponentSerializer, ///// ' + TypeIds.Component, () => {
       it('should serialize and deserialize', async () => {
         const obj = component$(() => <div />);

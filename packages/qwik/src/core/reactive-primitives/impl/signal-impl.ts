@@ -82,8 +82,9 @@ export class SignalImpl<T = any> implements Signal<T> {
       (import.meta.env.TEST ? !isDomContainer(this.$container$) : isServer) &&
         addQrlToSerializationCtx(effectSubscriber, this.$container$);
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
+    } else {
+      DEBUG && log('read no sub', pad('\n' + this.toString(), '  '));
     }
-    DEBUG && log('read no sub', pad('\n' + this.toString(), '  '));
     return val;
   }
 

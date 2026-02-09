@@ -134,9 +134,13 @@ void
 
 ## AsyncFn
 
+Note, we don't pass the generic type to AsyncCtx because it causes TypeScript to not infer the type of the resource correctly. The type is only used for the `previous` property, which is not commonly used, and can be easily cast if needed.
+
 ```typescript
-export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
+export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
 ```
+
+**References:** [ValueOrPromise](#valueorpromise)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 
@@ -254,6 +258,10 @@ A promise that resolves when the value is computed or rejected.
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 ## cache
+
+> Warning: This API is now obsolete.
+>
+> Does not do anything
 
 ```typescript
 cache(policyOrMilliseconds: number | 'immutable'): void;
@@ -869,7 +877,7 @@ Create a signal holding a `.value` which is calculated from the given async func
 
 ```typescript
 createAsync$: <T>(
-  qrl: (arg: AsyncCtx) => Promise<T>,
+  qrl: (arg: AsyncCtx<T>) => Promise<T>,
   options?: AsyncSignalOptions<T>,
 ) => AsyncSignal<T>;
 ```
@@ -893,7 +901,7 @@ qrl
 
 </td><td>
 
-(arg: AsyncCtx) =&gt; Promise&lt;T&gt;
+(arg: AsyncCtx&lt;T&gt;) =&gt; Promise&lt;T&gt;
 
 </td><td>
 
@@ -3745,51 +3753,42 @@ StreamWriter
 
 ## Resource
 
-This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
-
-`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
-
-The status can be one of the following:
-
-- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.
-
-Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`.
-
-### Example
-
-Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
+> Warning: This API is now obsolete.
+>
+> Use `useAsync$` instead, which is more efficient, and has a more flexible API. Just read the `loading` and `error` properties from the returned signal to determine the status.
 
 ```tsx
 const Cmp = component$(() => {
-  const cityS = useSignal("");
+  const city = useSignal("");
 
-  const weatherResource = useResource$(async ({ track, cleanup }) => {
-    const cityName = track(cityS);
-    const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
+  const weather = useAsync$(async ({ track, cleanup, abortSignal }) => {
+    const cityName = track(city);
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
-      signal: abortController.signal,
+      signal: abortSignal,
     });
-    const data = await res.json();
-    return data as { temp: number };
+    const temp = (await res.json()) as { temp: number };
+    return temp;
   });
 
   return (
     <div>
-      <input name="city" bind:value={cityS} />
-      <Resource
-        value={weatherResource}
-        onResolved={(weather) => {
-          return <div>Temperature: {weather.temp}</div>;
-        }}
-      />
+      <input name="city" bind:value={city} />
+      <div>
+        Temperature:{" "}
+        {weather.loading
+          ? "Loading..."
+          : weather.error
+            ? `Error: ${weather.error.message}`
+            : weather.value.temp}
+      </div>
     </div>
   );
 });
 ```
 
 ```typescript
-Resource: <T>(props: ResourceProps<T>) => JSXOutput;
+Resource: <T>({ value, onResolved, onPending, onRejected }: ResourceProps<T>) =>
+  JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -3807,7 +3806,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-props
+\{ value, onResolved, onPending, onRejected, }
 
 </td><td>
 
@@ -3827,57 +3826,10 @@ props
 ## ResourceCtx
 
 ```typescript
-export interface ResourceCtx<T>
+export interface ResourceCtx<T = unknown> extends AsyncCtx<T>
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[previous](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-T \| undefined
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[track](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-[Tracker](#tracker)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**Extends:** AsyncCtx&lt;T&gt;
 
 <table><thead><tr><th>
 
@@ -3895,13 +3847,6 @@ Description
 </td><td>
 
 </td></tr>
-<tr><td>
-
-[cleanup(callback)](#)
-
-</td><td>
-
-</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
@@ -3909,7 +3854,7 @@ Description
 ## ResourceFn
 
 ```typescript
-export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx) => ValueOrPromise<T>;
 ```
 
 **References:** [ResourceCtx](#resourcectx), [ValueOrPromise](#valueorpromise)
@@ -3963,57 +3908,10 @@ _(Optional)_ Timeout in milliseconds. If the resource takes more than the specif
 ## ResourcePending
 
 ```typescript
-export interface ResourcePending<T>
+export type ResourcePending<T> = ResourceReturn<T>;
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[loading](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[value](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-Promise&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [ResourceReturn](#resourcereturn)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
@@ -4105,127 +4003,31 @@ _(Optional)_
 ## ResourceRejected
 
 ```typescript
-export interface ResourceRejected<T>
+export type ResourceRejected<T> = ResourceReturn<T>;
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[loading](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[value](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-Promise&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [ResourceReturn](#resourcereturn)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceResolved
 
 ```typescript
-export interface ResourceResolved<T>
+export type ResourceResolved<T> = ResourceReturn<T>;
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[loading](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[value](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-Promise&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [ResourceReturn](#resourcereturn)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceReturn
 
 ```typescript
-export type ResourceReturn<T> =
-  | ResourcePending<T>
-  | ResourceResolved<T>
-  | ResourceRejected<T>;
+export type ResourceReturn<T> = {
+  readonly value: Promise<T>;
+  readonly loading: boolean;
+};
 ```
-
-**References:** [ResourcePending](#resourcepending), [ResourceResolved](#resourceresolved), [ResourceRejected](#resourcerejected)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
@@ -9565,6 +9367,10 @@ void
 
 ## useResource$
 
+> Warning: This API is now obsolete.
+>
+> Use `useAsync$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useAsync$` for new code and when updating existing code.
+
 This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
 
 `useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
@@ -9575,42 +9381,11 @@ The status can be one of the following:
 
 Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`.
 
-### Example
-
-Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
-
-```tsx
-const Cmp = component$(() => {
-  const cityS = useSignal("");
-
-  const weatherResource = useResource$(async ({ track, cleanup }) => {
-    const cityName = track(cityS);
-    const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
-    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
-      signal: abortController.signal,
-    });
-    const data = await res.json();
-    return data as { temp: number };
-  });
-
-  return (
-    <div>
-      <input name="city" bind:value={cityS} />
-      <Resource
-        value={weatherResource}
-        onResolved={(weather) => {
-          return <div>Temperature: {weather.temp}</div>;
-        }}
-      />
-    </div>
-  );
-});
-```
-
 ```typescript
-useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) =>
-  ResourceReturn<T>;
+useResource$: <T>(
+  qrl: import("./use-resource").ResourceFn<T>,
+  opts?: import("./use-resource").ResourceOptions | undefined,
+) => import("./use-resource").ResourceReturn<T>;
 ```
 
 <table><thead><tr><th>
@@ -9628,11 +9403,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-generatorFn
+qrl
 
 </td><td>
 
-[ResourceFn](#resourcefn)&lt;T&gt;
+import("./use-resource").[ResourceFn](#resourcefn)&lt;T&gt;
 
 </td><td>
 
@@ -9643,7 +9418,7 @@ opts
 
 </td><td>
 
-[ResourceOptions](#resourceoptions)
+import("./use-resource").[ResourceOptions](#resourceoptions) \| undefined
 
 </td><td>
 
@@ -9654,7 +9429,7 @@ _(Optional)_
 
 **Returns:**
 
-[ResourceReturn](#resourcereturn)&lt;T&gt;
+import("./use-resource").[ResourceReturn](#resourcereturn)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts)
 

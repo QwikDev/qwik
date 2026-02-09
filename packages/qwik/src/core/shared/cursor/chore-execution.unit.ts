@@ -21,7 +21,6 @@ import { ELEMENT_SEQ, ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../utils
 import type { Props } from '../jsx/jsx-runtime';
 import { SignalFlags } from '../../reactive-primitives/types';
 import type { ElementVNode } from '../vnode/element-vnode';
-import { runResource } from '../../use/use-resource';
 import { runTask } from '../../use/use-task';
 import { vnode_diff } from '../../client/vnode-diff';
 import { executeComponent } from '../component-execution';
@@ -29,10 +28,6 @@ import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
-
-vi.mock('../../use/use-resource', () => ({
-  runResource: vi.fn(),
-}));
 
 vi.mock('../../use/use-task', async () => {
   const actual = await vi.importActual<typeof import('../../use/use-task')>('../../use/use-task');
@@ -172,14 +167,12 @@ describe('executeTasks', () => {
   it('should return early if no elementSeq', () => {
     executeTasks(vNode, container, cursorData);
     expect(runTask).not.toHaveBeenCalled();
-    expect(runResource).not.toHaveBeenCalled();
   });
 
   it('should return early if elementSeq is empty', () => {
     container.setHostProp(vNode, ELEMENT_SEQ, []);
     executeTasks(vNode, container, cursorData);
     expect(runTask).not.toHaveBeenCalled();
-    expect(runResource).not.toHaveBeenCalled();
   });
 
   it('should skip task if not dirty', () => {
@@ -189,17 +182,6 @@ describe('executeTasks', () => {
 
     executeTasks(vNode, container, cursorData);
     expect(runTask).not.toHaveBeenCalled();
-  });
-
-  it('should run resource task without saving promise', () => {
-    const task = createMockTask(TaskFlags.RESOURCE | TaskFlags.DIRTY, vNode as any);
-    container.setHostProp(vNode, ELEMENT_SEQ, [task]);
-
-    executeTasks(vNode, container, cursorData);
-
-    expect(runResource).toHaveBeenCalledWith(task, container, vNode);
-    expect(cursorData.afterFlushTasks).toBe(null);
-    expect(cursorData.extraPromises).toBe(null);
   });
 
   it('should store visible task in afterFlushTasks', () => {
@@ -256,16 +238,14 @@ describe('executeTasks', () => {
   });
 
   it('should handle multiple tasks of different types', () => {
-    const resourceTask = createMockTask(TaskFlags.RESOURCE | TaskFlags.DIRTY, vNode as any);
     const visibleTask = createMockTask(TaskFlags.VISIBLE_TASK | TaskFlags.DIRTY, vNode as any);
     const regularTask = createMockTask(TaskFlags.TASK | TaskFlags.DIRTY, vNode as any);
 
-    container.setHostProp(vNode, ELEMENT_SEQ, [resourceTask, visibleTask, regularTask]);
+    container.setHostProp(vNode, ELEMENT_SEQ, [visibleTask, regularTask]);
     vi.mocked(runTask).mockReturnValue(undefined);
 
     executeTasks(vNode, container, cursorData);
 
-    expect(runResource).toHaveBeenCalledWith(resourceTask, container, vNode);
     expect(cursorData.afterFlushTasks).toEqual([visibleTask]);
     expect(runTask).toHaveBeenCalledWith(regularTask, container, vNode);
   });

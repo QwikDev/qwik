@@ -20,7 +20,6 @@ import {
 } from '../../reactive-primitives/types';
 import { isSerializerObj } from '../../reactive-primitives/utils';
 import type { SsrAttrs } from '../../ssr/ssr-types';
-import type { ResourceReturnInternal } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
@@ -311,41 +310,26 @@ export async function serialize(serializationContext: SerializationContext): Pro
         value.data,
       ]);
     } else if (isStore(value)) {
-      if (isResource(value)) {
-        // let render know about the resource
-        serializationContext.$resources$.add(value);
-        // TODO the effects include the resource return which has duplicate data
-        const forwardRefId = resolvePromise(value.value, $addRoot$, (resolved, resolvedValue) => {
-          return new PromiseResult(
-            TypeIds.Resource,
-            resolved,
-            resolvedValue,
-            getStoreHandler(value)!.$effects$
-          );
-        });
-        output(TypeIds.ForwardRef, forwardRefId);
-      } else {
-        const storeHandler = getStoreHandler(value)!;
-        const storeTarget = getStoreTarget(value);
-        const flags = storeHandler.$flags$;
-        const effects = storeHandler.$effects$;
+      const storeHandler = getStoreHandler(value)!;
+      const storeTarget = getStoreTarget(value);
+      const flags = storeHandler.$flags$;
+      const effects = storeHandler.$effects$;
 
-        // We need to retain the nested stores too, they won't be found from the target
-        const innerStores = [];
-        for (const prop in storeTarget) {
-          const propValue = (storeTarget as any)[prop];
-          const innerStore = $storeProxyMap$.get(propValue);
-          if (innerStore) {
-            innerStores.push(innerStore);
-          }
+      // We need to retain the nested stores too, they won't be found from the target
+      const innerStores = [];
+      for (const prop in storeTarget) {
+        const propValue = (storeTarget as any)[prop];
+        const innerStore = $storeProxyMap$.get(propValue);
+        if (innerStore) {
+          innerStores.push(innerStore);
         }
-
-        const out = [storeTarget, flags, effects, ...innerStores];
-        while (out[out.length - 1] === undefined) {
-          out.pop();
-        }
-        output(TypeIds.Store, out);
       }
+
+      const out = [storeTarget, flags, effects, ...innerStores];
+      while (out[out.length - 1] === undefined) {
+        out.pop();
+      }
+      output(TypeIds.Store, out);
     } else if (isSerializerObj(value)) {
       const result = value[SerializerSymbol](value);
       if (isPromise(result)) {
@@ -584,9 +568,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
       });
       output(TypeIds.ForwardRef, forwardRefId);
     } else if (value instanceof PromiseResult) {
-      if (value.$type$ === TypeIds.Resource) {
-        output(TypeIds.Resource, [value.$resolved$, value.$value$, value.$effects$]);
-      } else if (value.$type$ === TypeIds.SerializerSignal) {
+      if (value.$type$ === TypeIds.SerializerSignal) {
         if (value.$qrl$) {
           output(TypeIds.SerializerSignal, [value.$qrl$, value.$effects$, value.$value$]);
         } else if (value.$resolved$) {
@@ -776,10 +758,6 @@ function isObjectLiteral(obj: unknown): obj is object {
   // In all other cases it is a subclass which requires more checks.
   const prototype = Object.getPrototypeOf(obj);
   return prototype == null || prototype === Object.prototype || prototype === Array.prototype;
-}
-
-function isResource<T = unknown>(value: object): value is ResourceReturnInternal<T> {
-  return '__brand' in value && value.__brand === 'resource';
 }
 
 function serializeWrappingFn(

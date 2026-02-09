@@ -34,10 +34,22 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
 }
 
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
-export type AsyncCtx = {
+export type AsyncCtx<T = unknown> = {
   track: Tracker;
+  /**
+   * Register a cleanup callback to be called when the async computation is aborted or completed.
+   * The next invocation will await the previous cleanup. If you do not want this, do not return a
+   * Promise.
+   */
   cleanup: (callback: () => void | Promise<void>) => void;
-  abortSignal: AbortSignal;
+  /**
+   * A lazily created AbortSignal, for interrupting the async computation when needed, e.g. when the
+   * component is unmounted or the computation is invalidated. Pass it to `fetch` or other APIs that
+   * support it to ensure that unnecessary work is not performed.
+   */
+  readonly abortSignal: AbortSignal;
+  /** The result of the previous computation, if any */
+  readonly previous: T | undefined;
 };
 export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 

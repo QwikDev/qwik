@@ -22,7 +22,6 @@ import {
   type EffectSubscription,
   type StoreFlags,
 } from '../../reactive-primitives/types';
-import type { ResourceReturnInternal } from '../../use/use-resource';
 import type { Task } from '../../use/use-task';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
@@ -79,20 +78,6 @@ export const inflate = (
       task.$el$ = v[3] as HostElement;
       task[_EFFECT_BACK_REF] = v[4] as Map<EffectProperty | string, EffectSubscription> | undefined;
       task.$state$ = v[5];
-      break;
-    case TypeIds.Resource:
-      const [resolved, result, effects] = data as [boolean, unknown, any];
-      const resource = target as ResourceReturnInternal<unknown>;
-      if (resolved) {
-        resource.value = Promise.resolve(result);
-        resource._resolved = result;
-        resource._state = 'resolved';
-      } else {
-        resource.value = Promise.reject(result);
-        resource._error = result as Error;
-        resource._state = 'rejected';
-      }
-      getStoreHandler(target as object)!.$effects$ = effects;
       break;
     case TypeIds.Component:
       (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];

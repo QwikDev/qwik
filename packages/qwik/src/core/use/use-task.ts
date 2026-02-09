@@ -17,7 +17,6 @@ import { type ValueOrPromise } from '../shared/utils/types';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { newInvokeContext } from './use-core';
-import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupDestroyable } from './utils/destroyable';
 import { cleanupFn, trackFn } from './utils/tracker';
@@ -25,11 +24,10 @@ import { cleanupFn, trackFn } from './utils/tracker';
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
   TASK = 1 << 1,
-  RESOURCE = 1 << 2,
-  DIRTY = 1 << 3,
-  RENDER_BLOCKING = 1 << 4,
-  NEEDS_CLEANUP = 1 << 5,
-  EVENTS_REGISTERED = 1 << 6,
+  DIRTY = 1 << 2,
+  RENDER_BLOCKING = 1 << 3,
+  NEEDS_CLEANUP = 1 << 4,
+  EVENTS_REGISTERED = 1 << 5,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -213,14 +211,14 @@ export const runTask = (
 
 export class Task<T = unknown, B = T>
   extends BackRef
-  implements DescriptorBase<unknown, Signal<B> | ResourceReturnInternal<B>>
+  implements DescriptorBase<unknown, Signal<B>>
 {
   constructor(
     public $flags$: number,
     public $index$: number,
     public $el$: HostElement,
     public $qrl$: QRLInternal<T>,
-    public $state$: Signal<B> | ResourceReturnInternal<B> | undefined,
+    public $state$: Signal<B> | undefined,
     public $destroy$: (() => void) | null
   ) {
     super();

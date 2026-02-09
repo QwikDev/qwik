@@ -1,20 +1,15 @@
 import {
   Fragment as Component,
-  Resource,
   Fragment as Signal,
   component$,
   componentQrl,
-  createContextId,
   getDomContainer,
   getPlatform,
   inlinedQrl,
   render,
   setPlatform,
-  useContextProvider,
   useLexicalScope,
   useOn,
-  useResource$,
-  useResourceQrl,
   useServerData,
   useSignal,
   useTask$,
@@ -38,13 +33,8 @@ import type {
   StreamWriter,
   StreamingOptions,
 } from '../../server/types';
-import {
-  _fnSignal,
-  _getDomContainer,
-  type _ContainerElement,
-  type _DomContainer,
-} from '../internal';
 import { vnode_getFirstChild } from '../client/vnode-utils';
+import { _fnSignal, type _ContainerElement } from '../internal';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
 
@@ -263,7 +253,7 @@ describe('render api', () => {
           manifest: defaultManifest,
         });
         expect(result).toMatchObject({
-          isStatic: true,
+          isStatic: false,
           timing: expect.any(Object),
           manifest: expect.any(Object),
           snapshotResult: expect.any(Object),
@@ -794,59 +784,6 @@ describe('render api', () => {
       });
     });
     describe('snapshotResult', () => {
-      it('should contain resources', async () => {
-        const ctxId = createContextId<any>('foo');
-        const ResourceComponent = component$(() => {
-          const rsrc = useResourceQrl(inlinedQrl(() => 'RESOURCE_VALUE', 's_resource'));
-          // refer to the resource so it's not optimized away
-          useContextProvider(ctxId, rsrc);
-          return (
-            <div>
-              <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
-            </div>
-          );
-        });
-        const result = await renderToStringAndSetPlatform(
-          <body>
-            <ResourceComponent />
-          </body>,
-          {
-            containerTagName: 'html',
-          }
-        );
-        expect(result.snapshotResult?.qrls).toHaveLength(1);
-        expect(result.snapshotResult?.resources).toHaveLength(1);
-        expect(result.snapshotResult?.funcs).toHaveLength(0);
-      });
-      it('should contain qrls and resources', async () => {
-        const ResourceAndSignalComponent = component$(() => {
-          const sig = useSignal(0);
-          // the resource should be dynamic to be added to the snapshot,
-          // so we use the track function for that
-          const rsrc = useResource$(({ track }) => track(sig));
-          return (
-            <button
-              onClick$={() => {
-                sig.value++;
-              }}
-            >
-              <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
-              {sig.value + 'test'}
-            </button>
-          );
-        });
-        const result = await renderToStringAndSetPlatform(
-          <body>
-            <ResourceAndSignalComponent />
-          </body>,
-          {
-            containerTagName: 'html',
-          }
-        );
-        expect(result.snapshotResult?.qrls).toHaveLength(3);
-        expect(result.snapshotResult?.resources).toHaveLength(1);
-        expect(result.snapshotResult?.funcs).toHaveLength(1);
-      });
       it('should contain qrls', async () => {
         const FunctionComponent = componentQrl(
           inlinedQrl(() => {

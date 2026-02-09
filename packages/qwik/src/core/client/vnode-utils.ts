@@ -585,75 +585,6 @@ export function vnode_walkVNode(
   } while (true as boolean);
 }
 
-export function vnode_getDOMChildNode(
-  journal: VNodeJournal,
-  root: ElementVNode | TextVNode
-): Element | Text {
-  if (vnode_isElementVNode(root)) {
-    return root.node!;
-  } else {
-    /**
-     * If we are collecting text nodes, we need to ensure that they are inflated. If not inflated we
-     * would return a single text node which represents many actual text nodes, or removing a single
-     * text node would remove many text nodes.
-     */
-    vnode_ensureTextInflated(journal, root);
-    return root.node!;
-  }
-}
-
-export function vnode_getDOMChildNodes(
-  journal: VNodeJournal,
-  root: VNode,
-  isVNode: true,
-  childNodes?: (ElementVNode | TextVNode)[]
-): (ElementVNode | TextVNode)[];
-export function vnode_getDOMChildNodes(
-  journal: VNodeJournal,
-  root: VNode,
-  isVNode?: false,
-  childNodes?: (Element | Text)[]
-): (Element | Text)[];
-export function vnode_getDOMChildNodes(
-  journal: VNodeJournal,
-  root: VNode,
-  isVNode: boolean = false,
-  childNodes: (ElementVNode | TextVNode | Element | Text)[] = []
-): (ElementVNode | TextVNode | Element | Text)[] {
-  if (vnode_isElementOrTextVNode(root)) {
-    if (vnode_isTextVNode(root)) {
-      /**
-       * If we are collecting text nodes, we need to ensure that they are inflated. If not inflated
-       * we would return a single text node which represents many actual text nodes, or removing a
-       * single text node would remove many text nodes.
-       */
-      vnode_ensureTextInflated(journal, root);
-    }
-    childNodes.push(isVNode ? root : vnode_getNode(root)!);
-    return childNodes;
-  }
-  let vNode = vnode_getFirstChild(root);
-  while (vNode) {
-    if (vnode_isElementVNode(vNode)) {
-      childNodes.push(isVNode ? vNode : vnode_getNode(vNode)!);
-    } else if (vnode_isTextVNode(vNode)) {
-      /**
-       * If we are collecting text nodes, we need to ensure that they are inflated. If not inflated
-       * we would return a single text node which represents many actual text nodes, or removing a
-       * single text node would remove many text nodes.
-       */
-      vnode_ensureTextInflated(journal, vNode);
-      childNodes.push(isVNode ? vNode : vnode_getNode(vNode)!);
-    } else {
-      isVNode
-        ? vnode_getDOMChildNodes(journal, vNode, true, childNodes as (ElementVNode | TextVNode)[])
-        : vnode_getDOMChildNodes(journal, vNode, false, childNodes as (Element | Text)[]);
-    }
-    vNode = vNode.nextSibling as VNode | null;
-  }
-  return childNodes;
-}
-
 export function vnode_getDOMContainer(vNode: VNode): ClientContainer | null {
   let cursor: VNode | null = vNode;
   while (cursor) {
@@ -974,9 +905,18 @@ export const vnode_createErrorDiv = (
 
   const vErrorDiv = vnode_newElement(errorDiv, 'errored-host');
 
-  vnode_getDOMChildNodes(journal, host, true).forEach((child) => {
-    vnode_insertBefore(journal, vErrorDiv, child, null);
-  });
+  if (vnode_isElementOrTextVNode(host)) {
+    vnode_insertBefore(journal, vErrorDiv, host, null);
+  } else {
+    // first collect all the children, we can't move them while walking the children
+    const children: VNode[] = [];
+    vnode_walkDirectChildren(journal, host, (vNode) => {
+      children.push(vNode);
+    });
+    for (let i = 0; i < children.length; i++) {
+      vnode_insertBefore(journal, vErrorDiv, children[i], null);
+    }
+  }
   return vErrorDiv;
 };
 

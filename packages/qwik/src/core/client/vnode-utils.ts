@@ -1788,7 +1788,7 @@ export const vnode_getAttrKeys = (
     const keys: string[] = [];
     const props = vnode.props;
     if (props) {
-      for (const key of Object.keys(props)) {
+      for (const key in props) {
         if (!key.startsWith(Q_PROPS_SEPARATOR)) {
           keys.push(key);
         }
@@ -2086,8 +2086,8 @@ function materializeFromVNodeData(
     if (!container) {
       container = getDomContainer(element);
     }
-    for (const component of components as VirtualVNode[]) {
-      container.ensureProjectionResolved(component);
+    for (let i = 0; i < (components as VirtualVNode[]).length; i++) {
+      container.ensureProjectionResolved(components[i]);
     }
     components = null;
   }

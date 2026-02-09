@@ -95,6 +95,7 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode-utils';
+import { isObjectEmpty } from '../shared/utils/objects';
 
 export interface DiffContext {
   container: ClientContainer;
@@ -1725,7 +1726,7 @@ function isPropsEmpty(props: Record<string, any> | null | undefined): boolean {
   if (!props) {
     return true;
   }
-  return Object.keys(props).length === 0;
+  return isObjectEmpty(props);
 }
 
 /**

@@ -60,8 +60,8 @@ export function _flushJournal(journal: VNodeJournal): void {
       } else {
         const doc = batchParent!.ownerDocument || (batchParent as Document);
         const fragment = doc.createDocumentFragment();
-        for (const node of batchNodes) {
-          fragment.appendChild(node);
+        for (let i = 0; i < batchNodes.length; i++) {
+          fragment.appendChild(batchNodes[i]);
         }
         fastInsertBefore(batchParent!, fragment, batchBefore);
       }
@@ -72,7 +72,8 @@ export function _flushJournal(journal: VNodeJournal): void {
     }
   };
 
-  for (const operation of journal) {
+  for (let i = 0; i < journal.length; i++) {
+    const operation = journal[i];
     if (operation instanceof InsertOrMoveOperation) {
       if (batchParent === operation.parent && batchBefore === operation.beforeTarget) {
         if (!batchNodes) {

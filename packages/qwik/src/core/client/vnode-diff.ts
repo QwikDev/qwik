@@ -914,16 +914,28 @@ function registerEventHandlers(
   diffContext: DiffContext
 ) {
   const scopedKebabName = key.slice(2);
-  if (!Array.isArray(value)) {
-    value = [value];
-  }
-  const handlers: EventHandler[] = [];
-  for (const handler of (value as (QRLInternal<(...args: any[]) => void> | undefined)[]).flat(2)) {
-    if (handler) {
-      handlers.push(runEventHandlerQRL.bind(null, handler));
+  if (Array.isArray(value)) {
+    const arr = value as (QRLInternal<(...args: any[]) => void> | undefined)[];
+    const handlers: EventHandler[] = [];
+    for (let i = 0; i < arr.length; i++) {
+      const item = arr[i];
+      if (Array.isArray(item)) {
+        for (let j = 0; j < item.length; j++) {
+          const handler = item[j];
+          if (handler) {
+            handlers.push(runEventHandlerQRL.bind(null, handler));
+          }
+        }
+      } else if (item) {
+        handlers.push(runEventHandlerQRL.bind(null, item));
+      }
     }
+    (element._qDispatch ||= {})[scopedKebabName] = handlers;
+  } else if (value) {
+    (element._qDispatch ||= {})[scopedKebabName] = [
+      runEventHandlerQRL.bind(null, value as QRLInternal<(...args: any[]) => void>),
+    ];
   }
-  (element._qDispatch ||= {})[scopedKebabName] = handlers;
 
   // window and document events need attrs so qwik loader can find them
   // TODO only do these when not already present

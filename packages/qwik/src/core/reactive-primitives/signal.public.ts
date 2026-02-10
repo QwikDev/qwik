@@ -39,7 +39,7 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
   /** A promise that resolves when the value is computed or rejected. */
   promise(): Promise<void>;
   /** Abort the current computation and run cleanups if needed. */
-  abort(): void;
+  abort(reason?: any): void;
 }
 
 /**

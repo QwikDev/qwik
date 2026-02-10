@@ -430,7 +430,7 @@ interface AsyncSignal<T> {
   error: Error | undefined;
   interval: number;
   promise(): Promise<void>;
-  abort(): void;
+  abort(reason?: any): void;
 }
 ```
 
@@ -439,7 +439,7 @@ interface AsyncSignal<T> {
 - `error: Error | undefined`: the error if the async function failed
 - `interval: number`: the current polling interval in milliseconds. This can be updated to change the polling interval or to stop polling by setting it to `0`.
 - `promise(): Promise<void>`: a function that can be called to start the async function. It returns a promise that resolves when the async function completes, but not its result. That needs to be read from `value` or `error`.
-- `abort(): void`: a function that can be called to abort the currently running async function and run cleanups if needed.
+- `abort(reason?: any): void`: a function that can be called to abort the currently running async function and run cleanups if needed. The reason is passed to the abortSignal.
 
 ## Passing state
 

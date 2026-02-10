@@ -504,6 +504,40 @@ describe('signal', () => {
         });
       });
 
+      it('should forward reason to abortSignal when calling abort(reason)', async () => {
+        await withContainer(async () => {
+          const ref = {
+            capturedReason: undefined as any,
+            resolve: undefined as ((value: number) => void) | undefined,
+          };
+
+          const signal = createAsync$(
+            async ({ abortSignal }) => {
+              abortSignal.addEventListener('abort', () => {
+                ref.capturedReason = abortSignal.reason;
+              });
+              return new Promise<number>((resolve) => {
+                ref.resolve = resolve;
+              });
+            },
+            { initial: 0 }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          expect(ref.resolve).toBeDefined();
+
+          const customReason = new Error('Custom abort reason');
+          signal.abort(customReason);
+
+          expect(ref.capturedReason).toBe(customReason);
+
+          ref.resolve?.(1);
+          await delay(0);
+        });
+      });
+
       it('should abort immediately in $requestCleanups$ before waiting for task promise', async () => {
         await withContainer(async () => {
           const ref = {

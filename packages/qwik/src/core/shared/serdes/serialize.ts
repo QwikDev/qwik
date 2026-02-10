@@ -408,8 +408,8 @@ export async function serialize(serializationContext: SerializationContext): Pro
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
         const isInvalid = value.$flags$ & SignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
-        const pollMs =
-          value instanceof AsyncSignalImpl && value.$pollMs$ > 0 ? value.$pollMs$ : undefined;
+        const interval =
+          value instanceof AsyncSignalImpl && value.$interval$ > 0 ? value.$interval$ : undefined;
         const concurrency =
           value instanceof AsyncSignalImpl && value.$concurrency$ !== 1
             ? value.$concurrency$
@@ -442,7 +442,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
 
         if (
           v !== NEEDS_COMPUTATION ||
-          pollMs !== undefined ||
+          interval !== undefined ||
           concurrency !== undefined ||
           timeout !== undefined
         ) {
@@ -458,7 +458,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
           }
         }
         if (isAsync) {
-          out.push(pollMs);
+          out.push(interval);
           out.push(concurrency);
           out.push(timeout);
         }

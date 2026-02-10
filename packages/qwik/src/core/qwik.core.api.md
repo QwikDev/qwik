@@ -21,8 +21,8 @@ export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     abort(): void;
     error: Error | undefined;
+    interval: number;
     loading: boolean;
-    pollMs: number;
     promise(): Promise<void>;
 }
 
@@ -34,7 +34,7 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
     // @deprecated
     eagerCleanup?: boolean;
     initial?: T | (() => T);
-    pollMs?: number;
+    interval?: number;
     timeout?: number;
 }
 

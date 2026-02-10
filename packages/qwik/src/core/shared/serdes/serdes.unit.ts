@@ -678,7 +678,7 @@ describe('shared-serialization', () => {
           'polling',
           [foo]
         ),
-        { pollMs: 100 }
+        { interval: 100 }
       );
       const concurrent = createAsyncSignal(
         inlinedQrl(
@@ -1092,14 +1092,14 @@ describe('shared-serialization', () => {
     });
     it(`${title(TypeIds.AsyncSignal)} invalid`, async () => {
       const asyncSignal = createAsync$(async () => 123, {
-        pollMs: 50,
+        interval: 50,
         timeout: 1000,
         concurrency: 3,
       });
       const objs = await serialize(asyncSignal);
       const restored = deserialize(objs)[0] as AsyncSignal<number>;
       expect(isSignal(restored)).toBeTruthy();
-      expect((restored as AsyncSignalImpl<number>).$pollMs$).toBe(50);
+      expect((restored as AsyncSignalImpl<number>).$interval$).toBe(50);
       expect((restored as AsyncSignalImpl<number>).$flags$ & SignalFlags.INVALID).toBeTruthy();
       await restored.promise();
       expect((restored as AsyncSignalImpl<number>).$untrackedValue$).toBe(123);

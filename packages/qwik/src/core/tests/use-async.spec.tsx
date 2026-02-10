@@ -454,13 +454,13 @@ describe.each([
       // and a d:qidle event is added to resume polling on document idle
       const Counter = component$(() => {
         const start = useConstant(Date.now);
-        const elapsed = useAsync$(async () => Date.now() - start, { pollMs: 50 });
+        const elapsed = useAsync$(async () => Date.now() - start, { interval: 50 });
         return (
           <div>
             <div id="elapsed">{elapsed.value}</div>
             <button
               onClick$={() => {
-                elapsed.pollMs = elapsed.pollMs ? 0 : 50;
+                elapsed.interval = elapsed.interval ? 0 : 50;
               }}
             >
               Toggle updates

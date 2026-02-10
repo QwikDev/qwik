@@ -88,7 +88,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.ComputedSignal:
       return new ComputedSignalImpl(container as any, null!);
     case TypeIds.AsyncSignal:
-      return new AsyncSignalImpl(container as any, null!, undefined, { pollMs: 0 });
+      return new AsyncSignalImpl(container as any, null!, undefined, { interval: 0 });
     case TypeIds.SerializerSignal:
       return new SerializerSignalImpl(container as any, null!);
     case TypeIds.Store: {

@@ -158,7 +158,7 @@ export const inflate = (
         asyncSignal.$flags$ &= ~SignalFlags.INVALID;
       }
       // Note, we use the setter so that it schedules polling if needed
-      asyncSignal.pollMs = d[7] ?? 0;
+      asyncSignal.interval = d[7] ?? 0;
       asyncSignal.$concurrency$ = d[8] ?? 1;
       asyncSignal.$timeoutMs$ = d[9] ?? 0;
       break;

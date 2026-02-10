@@ -54,7 +54,7 @@ class AsyncJob<T> implements AsyncCtx<T> {
   /** Backward compatible cache method for resource */
   cache(): void {
     console.error(
-      'useResource cache() method does not do anything. Use `useAsync$` instead of `useResource$`, use the `pollMs` option for polling behavior.'
+      'useResource cache() method does not do anything. Use `useAsync$` instead of `useResource$`, use the `interval` option for polling behavior.'
     );
   }
 
@@ -89,7 +89,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   // TODO only create the array if concurrency > 1
   $jobs$: AsyncJob<T>[] = [];
   $concurrency$: number = 1;
-  $pollMs$: number = 0;
+  $interval$: number = 0;
   $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined = undefined;
   $timeoutMs$: number | undefined;
   $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
@@ -104,7 +104,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     options?: AsyncSignalOptions<T>
   ) {
     super(container, fn, flags);
-    const pollMs = options?.pollMs || 0;
+    const interval = options?.interval || 0;
     const concurrency = options?.concurrency ?? 1;
     const initial = options?.initial;
     const timeout = options?.timeout;
@@ -118,7 +118,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
 
     this.$concurrency$ = concurrency;
     this.$timeoutMs$ = timeout;
-    this.pollMs = pollMs;
+    this.interval = interval;
   }
 
   /**
@@ -166,14 +166,14 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     return this.$untrackedError$;
   }
 
-  get pollMs() {
-    return this.$pollMs$;
+  get interval() {
+    return this.$interval$;
   }
 
-  set pollMs(value: number) {
+  set interval(value: number) {
     this.$clearNextPoll$();
-    this.$pollMs$ = value;
-    if (this.$pollMs$ > 0 && this.$effects$?.size) {
+    this.$interval$ = value;
+    if (this.$interval$ > 0 && this.$effects$?.size) {
       this.$scheduleNextPoll$();
     }
   }
@@ -332,9 +332,9 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   }
 
   private $scheduleNextPoll$() {
-    if ((import.meta.env.TEST ? !isServerPlatform() : isBrowser) && this.$pollMs$ > 0) {
+    if ((import.meta.env.TEST ? !isServerPlatform() : isBrowser) && this.$interval$ > 0) {
       this.$clearNextPoll$();
-      this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$pollMs$);
+      this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$interval$);
       this.$pollTimeoutId$?.unref?.();
     }
   }

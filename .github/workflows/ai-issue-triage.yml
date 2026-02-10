@@ -5,6 +5,7 @@ on:
     types: [opened]
 
 permissions:
+  id-token: write
   contents: read
   issues: write
 

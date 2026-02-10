@@ -11,7 +11,7 @@ import {
   SerializerSymbol,
 } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _fnSignal, _wrapProp } from '../../internal';
+import { _deserialize, _fnSignal, _serialize, _wrapProp } from '../../internal';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import { createStore } from '../../reactive-primitives/impl/store';
@@ -1529,6 +1529,19 @@ describe('shared-serialization', () => {
     );
     expect(consoleSpy).toHaveBeenCalledWith('oh no');
     consoleSpy.mockRestore();
+  });
+});
+
+describe('serializer - internal', () => {
+  it('_serialize', async () => {
+    const a = { a: 1 };
+    const ser = await _serialize({ a, b: [a] });
+    expect(ser).toMatchInlineSnapshot(`"[5,[0,"a",5,[0,"a",0,1],0,"b",4,[1,1]],1,"0 1"]"`);
+  });
+  it('_deserialize', async () => {
+    const ser = await _serialize({ a: 1 });
+    const des = _deserialize(ser);
+    expect(des).toEqual({ a: 1 });
   });
 });
 

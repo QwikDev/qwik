@@ -5,9 +5,6 @@ on:
     types: [opened]
 
 permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
   issues: write
 
 jobs:
@@ -28,64 +25,108 @@ jobs:
             const days = (Date.now() - created) / (1000 * 60 * 60 * 24);
             return days >= 30;
 
-      - uses: actions/checkout@v6
+      - name: AI triage and apply labels
         if: steps.check.outputs.result == 'true'
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-
-      - uses: anomalyco/opencode/github@latest
-        if: steps.check.outputs.result == 'true'
+        uses: actions/github-script@v7
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          model: opencode/kimi-k2.5
-          use_github_token: true
-          prompt: |
-            You are a Qwik framework issue triager. Analyze the newly opened issue and apply the correct labels.
+          script: |
+            const issue = context.payload.issue;
+            const issueText = `Title: ${issue.title}\n\nBody: ${issue.body || '(empty)'}`;
 
-            ## Repository Context
+            // Call OpenCode Zen API (OpenAI-compatible)
+            const response = await fetch('https://opencode.ai/zen/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.OPENCODE_API_KEY}`
+              },
+              body: JSON.stringify({
+                model: 'kimi-k2.5',
+                messages: [
+                  {
+                    role: 'system',
+                    content: `You are a Qwik framework issue triager. Given an issue, respond with ONLY a JSON array of label strings to apply. No explanation, no markdown, just the JSON array.
 
-            Qwik is a resumable JavaScript framework. The monorepo contains:
-            - **Qwik Runtime** — Core framework (signals, components, QRLs, rendering)
-            - **Optimizer** — Rust-based SWC transform for code splitting
-            - **Router** — File-based routing, loaders, actions, middleware (formerly Qwik City)
-            - **SSR** — Server-side rendering and streaming
-            - **Preloader** — Bundle prefetching system
-            - **Starters / CLI** — Project scaffolding
+            Available labels:
 
-            ## Available Labels
+            Type (pick exactly one):
+            - "bug" — Something isn't working
+            - "enhancement" — New feature or request
 
-            **Type labels (pick exactly one):**
-            - `bug` — Something isn't working
-            - `enhancement` — New feature or request
-            - `docs` — Documentation improvements
-            - `DX` — Developer experience issue
+            Component (pick if clearly relevant):
+            - "runtime", "Optimizer", "Router", "SSR", "Preloader", "starters", "styling", "types", "reactivity", "Insights", "docs", "DX"
 
-            **Component labels (pick one or more if clear from the issue):**
-            - `runtime` — Core framework runtime
-            - `Optimizer` — Rust optimizer / code splitting
-            - `Router` — Routing, loaders, actions, middleware
-            - `SSR` — Server-side rendering
-            - `Preloader` — Bundle prefetching
-            - `starters` — CLI / starter templates
-            - `styling` — CSS / styling related
-            - `types` — TypeScript types
-            - `reactivity` — Signals, stores, reactivity system
-            - `Insights` — Analytics / insights package
+            Status (apply if applicable):
+            - "needs reproduction" — Bug report lacks a reproduction link
+            - "missing info" — Issue template is mostly empty
 
-            **Status labels (apply if applicable):**
-            - `needs reproduction` — Bug report lacks a minimal reproduction
-            - `missing info` — Issue template is incomplete or missing important details
-            - `good first issue` — Simple enough for newcomers
+            Rules:
+            1. Always include exactly ONE type label.
+            2. For bugs without a reproduction link, include "needs reproduction".
+            3. For issues with mostly empty body, include "missing info".
+            4. Do NOT include "good first issue" unless the fix is obviously trivial.
+            5. Respond with ONLY a JSON array like: ["bug", "runtime", "needs reproduction"]`
+                  },
+                  {
+                    role: 'user',
+                    content: issueText
+                  }
+                ],
+                temperature: 0
+              })
+            });
 
-            ## Rules
+            if (!response.ok) {
+              const text = await response.text();
+              core.setFailed(`Zen API error ${response.status}: ${text}`);
+              return;
+            }
 
-            1. Always apply exactly ONE type label.
-            2. Apply component labels only when the issue clearly relates to that area.
-            3. For bug reports: if no reproduction link is provided, apply `needs reproduction`.
-            4. For bug reports: if the issue template is mostly empty, apply `missing info`.
-            5. Do NOT apply `good first issue` unless the fix is obviously trivial.
-            6. Do NOT remove the default `needs triage` label — a human will remove it during review.
-            7. Do NOT comment on the issue — only apply labels.
+            const data = await response.json();
+            const content = data.choices[0].message.content.trim();
+
+            // Parse labels from response
+            let labels;
+            try {
+              labels = JSON.parse(content);
+            } catch {
+              // Try extracting JSON array from response
+              const match = content.match(/\[[\s\S]*\]/);
+              if (match) {
+                labels = JSON.parse(match[0]);
+              } else {
+                core.setFailed(`Could not parse labels from: ${content}`);
+                return;
+              }
+            }
+
+            if (!Array.isArray(labels) || labels.length === 0) {
+              core.setFailed(`Invalid labels response: ${content}`);
+              return;
+            }
+
+            // Fetch actual repo labels to validate against
+            const repoLabels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const allowed = new Set(repoLabels.map(l => l.name));
+            const valid = labels.filter(l => allowed.has(l));
+
+            if (valid.length === 0) {
+              core.setFailed(`No valid labels found in: ${JSON.stringify(labels)}`);
+              return;
+            }
+
+            // Apply labels
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              labels: valid
+            });
+
+            core.info(`Applied labels: ${valid.join(', ')}`);

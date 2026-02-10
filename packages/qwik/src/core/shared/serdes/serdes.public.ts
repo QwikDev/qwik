@@ -9,11 +9,10 @@ import { isDev } from '@qwik.dev/core/build';
 /**
  * Serialize data to string using SerializationContext.
  *
- * @param data - Data to serialize
  * @internal
  */
 
-export async function _serialize(data: unknown[]): Promise<string> {
+export async function _serialize<T>(data: T): Promise<string> {
   const serializationContext = createSerializationContext(
     null,
     null,
@@ -23,9 +22,7 @@ export async function _serialize(data: unknown[]): Promise<string> {
     new WeakMap<any, any>()
   );
 
-  for (const root of data) {
-    serializationContext.$addRoot$(root);
-  }
+  serializationContext.$addRoot$(data);
   await serializationContext.$serialize$();
   return serializationContext.$writer$.toString();
 }
@@ -36,21 +33,17 @@ export async function _serialize(data: unknown[]): Promise<string> {
  * @internal
  */
 
-export function _deserialize(rawStateData: string | null): unknown[] {
+export function _deserialize<T>(rawStateData: string): T {
   if (rawStateData == null) {
-    return [];
+    throw new Error('No state data to deserialize');
   }
   const stateData = JSON.parse(rawStateData);
-  if (!Array.isArray(stateData)) {
-    return [];
+  if (!Array.isArray(stateData) || stateData.length < 2 || typeof stateData[0] !== 'number') {
+    throw new Error('Invalid state data');
   }
 
   const container = _createDeserializeContainer(stateData);
-  const output = [];
-  for (let i = 0; i < stateData.length; i += 2) {
-    output[i / 2] = deserializeData(container, stateData[i], stateData[i + 1]);
-  }
-  return output;
+  return deserializeData(container, stateData[0], stateData[1]);
 }
 
 export function getObjectById(id: number | string, stateData: unknown[]): unknown {

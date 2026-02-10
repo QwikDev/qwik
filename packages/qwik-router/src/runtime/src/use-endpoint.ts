@@ -59,7 +59,7 @@ export const loadClientData = async (
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
-          const [clientData] = _deserialize(text) as [ClientPageData];
+          const clientData = _deserialize<ClientPageData>(text);
           if (!clientData) {
             // Something went wrong, show to the user
             location.href = url.href;

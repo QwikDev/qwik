@@ -6,7 +6,10 @@ import {
 } from "@qwik.dev/core";
 import { domRender, ssrRenderToDom, trigger } from "@qwik.dev/core/testing";
 import { beforeEach, describe, expect, it } from "vitest";
-import { Issue5506, SlotParent } from "./slot";
+import {
+  SlotProjectedContentNotUpdatingDomIssue5506,
+  SlotParent,
+} from "./slot";
 
 //////////////////////////////
 // TODO make this part of qwik/testing somehow
@@ -62,7 +65,10 @@ describe.each([
 
   describe("regression", () => {
     it("#5506", async ({ expect }) => {
-      const { document, vNode } = await render(<Issue5506 />, { debug });
+      const { document, vNode } = await render(
+        <SlotProjectedContentNotUpdatingDomIssue5506 />,
+        { debug },
+      );
       expect(vNode).toMatchVDOM(
         <Component>
           <div key="QT_89" id="issue-5506-div">

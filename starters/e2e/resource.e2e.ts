@@ -132,7 +132,7 @@ test.describe("resource serialization", () => {
     await expect(button3).toHaveText("ERROR: Error: timeout 2");
   });
 
-  test("issue 2014", async ({ page }) => {
+  test("issue 2014 - resource signal resumability", async ({ page }) => {
     const button1 = page.locator("#issue-2014-btn");
     await expect(button1).toHaveText("0(count is here: 0)");
     await button1.click();

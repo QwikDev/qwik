@@ -79,7 +79,9 @@ test.describe("signals", () => {
       await expect(body).toHaveCSS("background-color", "rgb(0, 0, 0)");
     });
 
-    test("issue 1681", async ({ page }) => {
+    test("issue 1681 - signal text node replacement and whitespace", async ({
+      page,
+    }) => {
       const result = page.locator("#issue-1681-return");
       const button = page.locator("#issue-1681-btn");
 
@@ -88,7 +90,7 @@ test.describe("signals", () => {
       await expect(result).toHaveText("Count A is 1 Count B is 1");
     });
 
-    test("issue 1733", async ({ page }) => {
+    test("issue 1733 - store conditional rendering", async ({ page }) => {
       const button = page.locator("#issue1733-btn");
       const spanSignal = page.locator("#issue1733-signal");
       const spanTrue = page.locator("#issue1733-true");
@@ -109,7 +111,7 @@ test.describe("signals", () => {
       await expect(h1).toHaveText("Message");
     });
 
-    test("issue 1884", async ({ page }) => {
+    test("issue 1884 - state reactivity comparison", async ({ page }) => {
       const button = page.locator("#issue1884-btn");
       const text0 = page.locator(".issue1884-text:nth-child(1)");
       const text1 = page.locator(".issue1884-text:nth-child(2)");
@@ -129,12 +131,14 @@ test.describe("signals", () => {
       await expect(text3).toHaveCSS("color", "rgb(255, 0, 0)");
     });
 
-    test("issue 2000", async ({ page }) => {
+    test("issue 2000 - textarea renders with html comment markers", async ({
+      page,
+    }) => {
       const textArea = page.locator("#textarea");
       await expect(textArea).toHaveValue("body { background: white}");
     });
 
-    test("issue 2176", async ({ page }) => {
+    test("issue 2176 - signal vs store props reactivity", async ({ page }) => {
       const btn = page.locator("#issue-2176-btn");
       const results = page.locator(".issue-2176-result");
       await expect(results).toHaveText([
@@ -185,7 +189,7 @@ test.describe("signals", () => {
       ]);
     });
 
-    test("issue 2245", async ({ page }) => {
+    test("issue 2245 - class reactivity signal store", async ({ page }) => {
       const btn = page.locator("#issue-2245-btn");
       const results = page.locator(".issue-2245-results p");
       await expect(results).toHaveCount(16);
@@ -204,7 +208,9 @@ test.describe("signals", () => {
       }
     });
 
-    test("issue 2245-b", async ({ page }) => {
+    test("issue 2245-b - class reactivity signal store (b)", async ({
+      page,
+    }) => {
       const btn = page.locator("#issue-2245-b-btn");
       const results = page.locator(".issue-2245-b-results p");
       await expect(results).toHaveCSS("color", "rgb(0, 0, 0)");
@@ -228,7 +234,7 @@ test.describe("signals", () => {
       await expect(results).toHaveClass("change hidden");
     });
 
-    test("issue 2311", async ({ page }) => {
+    test("issue 2311 - ternary dom node update", async ({ page }) => {
       const btn = page.locator("#issue-2311-btn");
       const results = page.locator("#issue-2311-results > *");
       await expect(results).toHaveText([
@@ -260,7 +266,7 @@ test.describe("signals", () => {
       ]);
     });
 
-    test("issue 2344", async ({ page }) => {
+    test("issue 2344 - textarea value signal update", async ({ page }) => {
       const btn = page.locator("#issue-2344-btn");
       const results = page.locator("#issue-2344-results");
       await expect(results).toHaveValue("Content");
@@ -268,7 +274,7 @@ test.describe("signals", () => {
       await expect(results).toHaveValue("Content");
     });
 
-    test("issue 2930", async ({ page }) => {
+    test("issue 2930 - useStore deep dom update", async ({ page }) => {
       const input = page.locator("#issue-2930-input");
       const results = page.locator(".issue-2930-result");
       await expect(results).toHaveText([
@@ -287,7 +293,7 @@ test.describe("signals", () => {
       ]);
     });
 
-    test("issue 3212", async ({ page }) => {
+    test("issue 3212 - signal destructuring in child", async ({ page }) => {
       const result0 = page.locator("#issue-3212-result-0");
       const result1 = page.locator("#issue-3212-result-1");
       const result2 = page.locator("#issue-3212-result-2");
@@ -315,7 +321,7 @@ test.describe("signals", () => {
       await expect(signal).toHaveText("Increment 2");
     });
 
-    test("issue 3415", async ({ page }) => {
+    test("issue 3415 - dangerouslySetInnerHTML signal", async ({ page }) => {
       const result = page.locator("#issue-3415-result");
       const button = page.locator("#issue-3415-button");
       await expect(result).toHaveText("foo");
@@ -383,7 +389,7 @@ test.describe("signals", () => {
       await expect(textarea).toBeDisabled();
     });
 
-    test("issue 3482", async ({ page }) => {
+    test("issue 3482 - store data attribute key", async ({ page }) => {
       const button = page.locator("#issue-3482-button");
       const result = page.locator("#issue-3482-result");
 
@@ -399,7 +405,7 @@ test.describe("signals", () => {
       await expect(result).toHaveAttribute("data-count", "1");
     });
 
-    test("issue 3663", async ({ page }) => {
+    test("issue 3663 - store custom keys serialization", async ({ page }) => {
       const button = page.locator("#issue-3663-button");
       const result = page.locator(".issue-3663-result");
       await expect(result).toHaveText(["0", "0", "0"]);
@@ -411,7 +417,7 @@ test.describe("signals", () => {
       await expect(result).toHaveText(["3", "3", "3"]);
     });
 
-    test("issue 3440", async ({ page }) => {
+    test("issue 3440 - signal serialization null error", async ({ page }) => {
       const results = page.locator(".issue-3440-results");
       const remove = page.locator("#issue-3440-remove");
       await expect(results).toHaveText([
@@ -427,12 +433,14 @@ test.describe("signals", () => {
       await expect(results).toHaveText([]);
     });
 
-    test("issue 4174", async ({ page }) => {
+    test("issue 4174 - useStore uninitialized keys", async ({ page }) => {
       const result = page.locator("#issue-4174-result");
       await expect(result).toHaveText("Store: visible-task");
     });
 
-    test("issue 4249", async ({ page }) => {
+    test("issue 4249 - signals ternary unnecessary rerenders", async ({
+      page,
+    }) => {
       const first = page.locator("#issue-4249-first");
       const second = page.locator("#issue-4249-second");
       const result = page.locator("#issue-4249-result");
@@ -450,7 +458,7 @@ test.describe("signals", () => {
       await expect(result).toHaveAttribute("data-value", "collision");
     });
 
-    test("issue 4228", async ({ page }) => {
+    test("issue 4228 - excessive rerendering store props", async ({ page }) => {
       const buttonA = page.locator("#issue-4228-button-a");
       const buttonB = page.locator("#issue-4228-button-b");
       const buttonC = page.locator("#issue-4228-button-c");
@@ -503,7 +511,9 @@ test.describe("signals", () => {
       await expect(resultTotal).toHaveText("6:6");
     });
 
-    test("issue 4368", async ({ page }) => {
+    test("issue 4368 - props spreading useResource reactivity", async ({
+      page,
+    }) => {
       const input = page.locator("#issue-4368-input");
       const button = page.locator("#issue-4368-button");
 
@@ -516,7 +526,7 @@ test.describe("signals", () => {
       await expect(button).not.toBeDisabled();
     });
 
-    test("issue 4868", async ({ page }) => {
+    test("issue 4868 - useComputed value not reflected", async ({ page }) => {
       const btn1 = page.locator("#issue-4868-btn-1");
       const btn2 = page.locator("#issue-4868-btn-2");
       const json = page.locator("#issue-4868-json");
@@ -585,7 +595,7 @@ test.describe("signals", () => {
 });
 
 test.describe("regressions", () => {
-  test("issue 5001", async ({ page }) => {
+  test("issue 5001 - naked object store reactivity", async ({ page }) => {
     await page.goto("/e2e/signals/issue-5001");
     await expect(page.locator(".count")).toHaveText("0");
     await page.locator("button").click();

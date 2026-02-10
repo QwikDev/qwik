@@ -57,7 +57,7 @@ test.describe("render", () => {
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
     });
 
-    test("issue1475", async ({ page }) => {
+    test("issue 1475 - inline jsx component order", async ({ page }) => {
       const button = page.locator("#issue-1475-button");
       const result = page.locator("#issue-1475-result");
 
@@ -128,7 +128,7 @@ test.describe("render", () => {
       await expect(renders3).toHaveText("1");
     });
 
-    test("issue2563", async ({ page }) => {
+    test("issue 2563 - bindings not printing", async ({ page }) => {
       const string = page.locator("#issue-2563-string");
       const obj = page.locator("#issue-2563-obj");
       const operation = page.locator("#issue-2563-operation");
@@ -138,7 +138,7 @@ test.describe("render", () => {
       await expect(operation).toHaveText("4+1=5");
     });
 
-    test("issue2608", async ({ page }) => {
+    test("issue 2608 - broken rendering behavior", async ({ page }) => {
       const toggle = page.locator("#issue-2608-btn");
       const input = page.locator("#issue-2608-input");
 
@@ -151,7 +151,7 @@ test.describe("render", () => {
       await expect(input).toHaveValue("some text");
     });
 
-    test("issue2800", async ({ page }) => {
+    test("issue 2800 - store new key reactivity", async ({ page }) => {
       const button = page.locator("#issue-2800-btn");
       const results = page.locator("#issue-2800-result > li");
 
@@ -178,7 +178,7 @@ test.describe("render", () => {
       ]);
     });
 
-    test("issue2889", async ({ page }) => {
+    test("issue 2889 - date serialization deep store", async ({ page }) => {
       const result1 = page.locator("#issue-2889-result1");
       const result2 = page.locator("#issue-2889-result2");
 
@@ -186,7 +186,7 @@ test.describe("render", () => {
       await expect(result2).toHaveText("Filtered Deeds: 2");
     });
 
-    test("issue3116", async ({ page }) => {
+    test("issue 3116 - prop render function", async ({ page }) => {
       const result = page.locator("#issue-3116-result");
 
       await expect(result).toHaveText("this comes from render$");
@@ -201,7 +201,7 @@ test.describe("render", () => {
       await expect(result).toHaveText(["1. First", "2. Second", "BOTTOM"]);
     });
 
-    test("issue2414", async ({ page }) => {
+    test("issue 2414 - array items display order", async ({ page }) => {
       const sortByAge = page.locator("#issue-2414-age");
       const sortBySize = page.locator("#issue-2414-size");
       const sortById = page.locator("#issue-2414-id");
@@ -246,12 +246,12 @@ test.describe("render", () => {
       await expect(id).toHaveText(list.map((a) => String(a[2])));
     });
 
-    test("issue3178", async ({ page }) => {
+    test("issue 3178 - proxy ownKeys symbol", async ({ page }) => {
       const result = page.locator("#issue-3178");
       await expect(result).toHaveText("Hello");
     });
 
-    test("issue3398", async ({ page }) => {
+    test("issue 3398 - dynamic element tag set property", async ({ page }) => {
       const toggle = page.locator("#issue-3398-button");
       await expect(page.locator("h1#issue-3398-tag")).toHaveText("Hello h1");
       await expect(page.locator("h1#issue-3398-tag")).not.toHaveAttribute(
@@ -274,7 +274,9 @@ test.describe("render", () => {
       );
     });
 
-    test("issue3479", async ({ page }) => {
+    test("issue 3479 - click handlers executed multiple times", async ({
+      page,
+    }) => {
       const increment = page.locator("#issue-3479-button");
       const result = page.locator("#issue-3479-result");
 
@@ -287,7 +289,7 @@ test.describe("render", () => {
       await expect(result).toHaveText("3");
     });
 
-    test("issue3481", async ({ page }) => {
+    test("issue 3481 - spread replaces existing props", async ({ page }) => {
       const increment = page.locator("#issue-3481-button");
       const result1 = page.locator("#issue-3481-result1");
       const result2 = page.locator("#issue-3481-result2");
@@ -309,17 +311,17 @@ test.describe("render", () => {
       await expect(result2).toHaveCSS("color", "rgb(255, 0, 0)");
     });
 
-    test("issue3468", async ({ page }) => {
+    test("issue 3468 - react import key spread loop", async ({ page }) => {
       const cards = page.locator(".issue-3468-card");
       await expect(cards).toHaveText(["a:", "b:", "c:", "d:"]);
     });
 
-    test("issue3542", async ({ page }) => {
+    test("issue 3542 - undefined variable after upgrade", async ({ page }) => {
       const result = page.locator("#issue-3542-result");
       await expect(result).toHaveText("CODE IS 1");
     });
 
-    test("issue3643", async ({ page }) => {
+    test("issue 3643 - for loop items accumulate", async ({ page }) => {
       const result = page.locator("#issue-3643-result");
       const result2 = page.locator("#issue-3643-result-2");
       const button = page.locator("#issue-3643-button");
@@ -353,7 +355,7 @@ test.describe("render", () => {
       await expect(result).toHaveText("Changed");
     });
 
-    test("issue3731", async ({ page }) => {
+    test("issue 3731 - wrong dynamic list rendering", async ({ page }) => {
       const button = page.locator("#issue-3731-button");
       const results = page.locator(".issue-3731-result");
       await expect(results).toHaveText([
@@ -381,7 +383,9 @@ test.describe("render", () => {
       ]);
     });
 
-    test("issue3702", async ({ page }) => {
+    test("issue 3702 - optimizer syntax error conditional", async ({
+      page,
+    }) => {
       const button = page.locator("#issue-3702-button");
       const result = page.locator("#issue-3702-result");
       await expect(result).toHaveAttribute("data-title", "Bye 0");
@@ -391,12 +395,12 @@ test.describe("render", () => {
       await expect(result).toHaveAttribute("data-title", "Bye 2");
     });
 
-    test("issue3795", async ({ page }) => {
+    test("issue 3795 - variable assignments optimized", async ({ page }) => {
       const result = page.locator("#issue-3795-result");
       await expect(result).toHaveText("foo foobar");
     });
 
-    test("issue4029", async ({ page }) => {
+    test("issue 4029 - dynamic components with signals", async ({ page }) => {
       const toggle = page.locator("#issue-4029-toggle");
       const result = page.locator("#issue-4029-result");
       await expect(result).toHaveText("CompA");
@@ -450,7 +454,7 @@ test.describe("render", () => {
       }
     });
 
-    test("issue4292", async ({ page }) => {
+    test("issue 4292 - proxy ownKeys duplicate entries", async ({ page }) => {
       const button = page.locator("#issue-4292-result");
       await expect(button).toHaveText("Hello, World!");
       await expect(button).toHaveAttribute("aria-label", "a1");
@@ -465,19 +469,19 @@ test.describe("render", () => {
       await expect(button).toHaveAttribute("title", "a1");
     });
 
-    test("issue 4386", async ({ page }) => {
+    test("issue 4386 - optimizer removes local const", async ({ page }) => {
       const result = page.locator("#issue-4386-result");
       await expect(result).toHaveText("1");
     });
 
-    test("issue 4455", async ({ page }) => {
+    test("issue 4455 - range input initial value step", async ({ page }) => {
       const input1 = page.locator("#issue-4455-input1");
       const input2 = page.locator("#issue-4455-input2");
       await expect(input1).toHaveValue("0.5");
       await expect(input2).toHaveValue("0.5");
     });
 
-    test("issue 5266", async ({ page }) => {
+    test("issue 5266 - dynamic tag breaks reactivity", async ({ page }) => {
       const tag = page.locator("#issue-5266-tag");
       const button = page.locator("#issue-5266-button");
       await page.locator("#issue-5266-render").click();
@@ -531,7 +535,7 @@ test.describe("render", () => {
     await expect(ref).not.toHaveText("data");
   });
 
-  test("issue4346", async ({ page }) => {
+  test("issue 4346 - undefined ref prop", async ({ page }) => {
     const result = page.locator("#issue-4346-result");
     const toggle = page.locator("#issue-4346-toggle");
     await expect(result).toHaveText("Hello");

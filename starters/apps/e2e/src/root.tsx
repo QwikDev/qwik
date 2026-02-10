@@ -22,7 +22,7 @@ import { ResourceFn } from "./components/resource/resource-fn";
 import { ResourceSerialization } from "./components/resource/resource-serialization";
 import { Weather } from "./components/resource/weather";
 import { Resuming1 } from "./components/resuming/resuming";
-import Issue5001 from "./components/signals/Issue_5001";
+import NakedObjectStoreReactivityIssue5001 from "./components/signals/NakedObjectStoreReactivityIssue5001";
 import { Signals } from "./components/signals/signals";
 import { SlotParent } from "./components/slot/slot";
 import { StreamingRoot } from "./components/streaming/streaming";
@@ -64,7 +64,7 @@ const tests: Record<string, FunctionComponent> = {
   "/e2e/mount": () => <MountRoot />,
   "/e2e/ref": () => <RefRoot />,
   "/e2e/signals": () => <Signals />,
-  "/e2e/signals/issue-5001": () => <Issue5001 />,
+  "/e2e/signals/issue-5001": () => <NakedObjectStoreReactivityIssue5001 />,
   "/e2e/attributes": () => <Attributes />,
   "/e2e/events-client": () => <EventsClient />,
   "/e2e/no-resume": () => <NoResume />,

@@ -261,12 +261,12 @@ test.describe("attributes", () => {
       await expect(renders).toHaveText("5");
     });
 
-    test("issue 3622", async ({ page }) => {
+    test("issue 3622 - select value after navigation", async ({ page }) => {
       const select = page.locator("#issue-3622-result");
       await expect(select).toHaveValue("option1");
     });
 
-    test("issue 4718 (null)", async ({ page }) => {
+    test("issue 4718 - null attribute not removed", async ({ page }) => {
       const button = page.locator("#issue-4718-null-result");
 
       await expect(button).toHaveAttribute("data-works", "some value");
@@ -281,7 +281,7 @@ test.describe("attributes", () => {
       await expect(button).not.toHaveAttribute("title");
     });
 
-    test("issue 4718 (undefined)", async ({ page }) => {
+    test("issue 4718 - undefined attribute not removed", async ({ page }) => {
       const button = page.locator("#issue-4718-undefined-result");
 
       await expect(button).toHaveAttribute("data-works", "some value");

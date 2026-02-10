@@ -130,3 +130,25 @@ jobs:
             });
 
             core.info(`Applied labels: ${valid.join(', ')}`);
+
+            // Post follow-up comments for status labels
+            // (labeling-issues.yml won't fire because GITHUB_TOKEN labels don't trigger labeled events)
+            const author = issue.user.login;
+
+            if (valid.includes('needs reproduction')) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `Hello @${author}. Please provide a [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) using a GitHub repository or [StackBlitz](https://qwik.new).\n[Here](https://antfu.me/posts/why-reproductions-are-required#why-reproduction) is why we really need a minimal reproduction.\nThanks 🙏`
+              });
+            }
+
+            if (valid.includes('missing info')) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `Hello @${author}. Please provide the missing information requested above.\nIssues marked with \`missing info\` will be automatically closed if they have no activity within 14 days.\nThanks 🙏`
+              });
+            }

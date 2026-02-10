@@ -5,6 +5,7 @@ import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../../ssr/ss
 import type { ResourceReturnInternal } from '../../use/use-resource';
 import type { QRL } from '../qrl/qrl.public';
 import type { ObjToProxyMap } from '../types';
+import type { ValueOrPromise } from '../utils/types';
 import { serialize } from './serialize';
 
 /** A selection of attributes of the real thing */
@@ -42,7 +43,7 @@ interface AddRootFn {
   (obj: unknown, returnRef: true): SeenRef;
 }
 export interface SerializationContext {
-  $serialize$: () => void;
+  $serialize$: () => ValueOrPromise<void>;
 
   $symbolToChunkResolver$: SymbolToChunkResolver;
 

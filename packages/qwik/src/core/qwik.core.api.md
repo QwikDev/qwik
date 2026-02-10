@@ -238,7 +238,7 @@ export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.
 }
 
 // @internal
-export function _deserialize(rawStateData: string | null): unknown[];
+export function _deserialize<T>(rawStateData: string | null): T;
 
 // @public (undocumented)
 export interface DevJSX {
@@ -958,7 +958,7 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
 export type SerializationStrategy = 'never' | 'always';
 
 // @internal
-export function _serialize(data: unknown[]): Promise<string>;
+export function _serialize<T>(data: T): Promise<string>;
 
 // @public
 export const SerializerSymbol: unique symbol;

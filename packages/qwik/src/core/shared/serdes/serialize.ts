@@ -11,6 +11,7 @@ import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primiti
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  AsyncSignalFlags,
   EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
@@ -418,6 +419,10 @@ export async function serialize(serializationContext: SerializationContext): Pro
           value instanceof AsyncSignalImpl && value.$timeoutMs$ !== 0
             ? value.$timeoutMs$
             : undefined;
+        const eagerCleanup =
+          value instanceof AsyncSignalImpl && value.$flags$ & AsyncSignalFlags.EAGER_CLEANUP
+            ? true
+            : undefined;
 
         if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
@@ -461,6 +466,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
           out.push(interval);
           out.push(concurrency);
           out.push(timeout);
+          out.push(eagerCleanup);
         }
         output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out, keepUndefined);
       } else {

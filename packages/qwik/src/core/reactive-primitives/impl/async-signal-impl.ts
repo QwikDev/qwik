@@ -8,6 +8,7 @@ import { _EFFECT_BACK_REF, type BackRef } from '../backref';
 import {
   AsyncQRL,
   type AsyncCtx,
+  AsyncSignalFlags,
   EffectProperty,
   EffectSubscription,
   NEEDS_COMPUTATION,
@@ -18,6 +19,7 @@ import {
 import { scheduleEffects } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
+import type { AsyncSignal } from '../signal.public';
 
 /**
  * Planned features:
@@ -79,7 +81,10 @@ class AsyncJob<T> implements AsyncCtx<T> {
  *
  * # ================================
  */
-export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> implements BackRef {
+export class AsyncSignalImpl<T>
+  extends ComputedSignalImpl<T, AsyncQRL<T>>
+  implements BackRef, AsyncSignal<T>
+{
   $untrackedLoading$: boolean = false;
   $untrackedError$: Error | undefined = undefined;
 
@@ -108,6 +113,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     const concurrency = options?.concurrency ?? 1;
     const initial = options?.initial;
     const timeout = options?.timeout;
+    const eagerCleanup = options?.eagerCleanup;
 
     // Handle initial value - eagerly evaluate if function, set $untrackedValue$ and $promiseValue$
     // Do NOT call setValue() which would clear the INVALID flag and prevent async computation
@@ -118,6 +124,9 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
 
     this.$concurrency$ = concurrency;
     this.$timeoutMs$ = timeout;
+    if (eagerCleanup) {
+      this.$flags$ |= AsyncSignalFlags.EAGER_CLEANUP;
+    }
     this.interval = interval;
   }
 
@@ -194,6 +203,21 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
     if (this.$current$) {
       this.$requestCleanups$(this.$current$);
     }
+  }
+
+  /** Schedule eager cleanup on next macro task if no subscribers remain. */
+  $scheduleEagerCleanup$(): void {
+    if (!(this.$flags$ & AsyncSignalFlags.EAGER_CLEANUP) || this.$hasSubscribers$()) {
+      return;
+    }
+    if (!(import.meta.env.TEST ? !isServerPlatform() : isBrowser)) {
+      return;
+    }
+    setTimeout(() => {
+      if (!this.$hasSubscribers$()) {
+        this.abort();
+      }
+    }, 0);
   }
 
   /** Returns a promise resolves when the signal finished computing. */
@@ -337,6 +361,10 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
       this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$interval$);
       this.$pollTimeoutId$?.unref?.();
     }
+  }
+
+  private $hasSubscribers$(): boolean {
+    return !!(this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size);
   }
 
   async $requestCleanups$(job: AsyncJob<T>) {

@@ -74,8 +74,6 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    * inputs to change.
    *
    * Defaults to `false`, meaning cleanup happens only when inputs change.
-   *
-   * @deprecated Not implemented yet
    */
   eagerCleanup?: boolean;
   /**
@@ -126,7 +124,11 @@ export const enum AsyncSignalFlags {
   AWAIT_PREVIOUS = 64,
 }
 
-export type AllSignalFlags = SignalFlags | WrappedSignalFlags | SerializationSignalFlags;
+export type AllSignalFlags =
+  | SignalFlags
+  | WrappedSignalFlags
+  | SerializationSignalFlags
+  | AsyncSignalFlags;
 
 /**
  * Effect is something which needs to happen (side-effect) due to signal value change.

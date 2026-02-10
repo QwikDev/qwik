@@ -46,20 +46,30 @@ jobs:
             -d "{\"assignees\":[\"${AUTHOR}\"]}" \
             https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/assignees
 
-      - name: Add to project as "In progress" (draft)
-        if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == true
-        uses: actions/add-to-project@v0.6.1
+      - name: Add PR to Qwik Development project
+        id: add-project
+        if: steps.team.outputs.isCore == 'true'
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: https://github.com/orgs/QwikDev/projects/1
           github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
-          fields: |
-            Status: In progress
 
-      - name: Add to project as "Waiting For Review" (ready)
-        if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == false
-        uses: actions/add-to-project@v0.6.1
+      - name: Set status to "In progress" (draft)
+        if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == true
+        uses: titoportas/update-project-fields@v0.1.0
         with:
           project-url: https://github.com/orgs/QwikDev/projects/1
           github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
-          fields: |
-            Status: Waiting For Review
+          item-id: ${{ steps.add-project.outputs.itemId }}
+          field-keys: Status
+          field-values: In progress
+
+      - name: Set status to "Waiting For Review" (ready)
+        if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == false
+        uses: titoportas/update-project-fields@v0.1.0
+        with:
+          project-url: https://github.com/orgs/QwikDev/projects/1
+          github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
+          item-id: ${{ steps.add-project.outputs.itemId }}
+          field-keys: Status
+          field-values: Waiting For Review

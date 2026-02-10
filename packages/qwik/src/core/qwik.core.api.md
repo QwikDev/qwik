@@ -26,6 +26,18 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     promise(): Promise<void>;
 }
 
+// @public (undocumented)
+export interface AsyncSignalOptions<T> extends ComputedOptions {
+    // @deprecated
+    awaitPrevious?: boolean;
+    concurrency?: number;
+    // @deprecated
+    eagerCleanup?: boolean;
+    initial?: T | (() => T);
+    pollMs?: number;
+    timeout?: number;
+}
+
 // @internal
 export let _captures: Readonly<unknown[]> | null;
 
@@ -191,8 +203,6 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
-// Warning: (ae-forgotten-export) The symbol "AsyncSignalOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const createAsync$: <T>(qrl: (arg: AsyncCtx<T>) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
 

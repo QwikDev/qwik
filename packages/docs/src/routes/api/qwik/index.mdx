@@ -257,6 +257,137 @@ A promise that resolves when the value is computed or rejected.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
+## AsyncSignalOptions
+
+```typescript
+export interface AsyncSignalOptions<T> extends ComputedOptions
+```
+
+**Extends:** [ComputedOptions](#computedoptions)
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[awaitPrevious?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Wait for previous invocation to complete before running again.
+
+Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+[concurrency?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of concurrent computations. Use `0` for unlimited.
+
+Defaults to `1`.
+
+</td></tr>
+<tr><td>
+
+[eagerCleanup?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function inputs to change.
+
+Defaults to `false`, meaning cleanup happens only when inputs change.
+
+</td></tr>
+<tr><td>
+
+[initial?](#)
+
+</td><td>
+
+</td><td>
+
+T \| (() =&gt; T)
+
+</td><td>
+
+_(Optional)_ Like useSignal's `initial`; prevents the throw on first read when uninitialized
+
+</td></tr>
+<tr><td>
+
+[pollMs?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ In the browser, re-run the function after `pollMs` ms if subscribers exist, even when no input state changed. If `0`, does not poll.
+
+Defaults to `0`.
+
+</td></tr>
+<tr><td>
+
+[timeout?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the computation is aborted and an error is thrown.
+
+If `0`, no timeout is applied.
+
+Defaults to `0`.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/types.ts)
+
 ## cache
 
 > Warning: This API is now obsolete.
@@ -912,7 +1043,7 @@ options
 
 </td><td>
 
-AsyncSignalOptions&lt;T&gt;
+[AsyncSignalOptions](#asyncsignaloptions)&lt;T&gt;
 
 </td><td>
 
@@ -8902,7 +9033,7 @@ options
 
 </td><td>
 
-AsyncSignalOptions&lt;T&gt; \| undefined
+[AsyncSignalOptions](#asyncsignaloptions)&lt;T&gt; \| undefined
 
 </td><td>
 

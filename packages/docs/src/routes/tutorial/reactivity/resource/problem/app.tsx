@@ -26,11 +26,13 @@ export default component$(() => {
         </label>
       </p>
       <section>
-        {/* Use <Resource> to display the data from the useResource$() function. */}
-        {/* To help, here's a callback function to display the data on resolved. */}
-        {/* (repos) => (
+        {/* Display the async signal data using its properties. */}
+        {/* To help, here's a callback function to display the data: */}
+        {/* reposResource.loading && <div>Loading...</div> */}
+        {/* reposResource.error && <div>Error: {reposResource.error.message}</div> */}
+        {/* reposResource.value && (
             <ul>
-              {repos.map((repo) => (
+              {reposResource.value.map((repo) => (
                 <li>
                   <a href={`https://github.com/${githubOrg.value}/${repo}`}>{repo}</a>
                 </li>

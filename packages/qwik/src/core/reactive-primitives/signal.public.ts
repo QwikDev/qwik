@@ -35,7 +35,7 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
    * Poll interval in ms. Writable and immediately effective when the signal has consumers. If set
    * to `0`, polling stops.
    */
-  pollMs: number;
+  interval: number;
   /** A promise that resolves when the value is computed or rejected. */
   promise(): Promise<void>;
   /** Abort the current computation and run cleanups if needed. */

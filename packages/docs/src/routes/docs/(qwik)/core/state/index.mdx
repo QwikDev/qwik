@@ -344,7 +344,7 @@ As we see in the example above, `useAsync$()` returns an `AsyncSignal<T>` object
 > - `useAsync$` does not block rendering while the value is being resolved.
 > - `useAsync$` provides reactive `.loading` and `.error` properties, which can be used to show loading spinners or error messages in the UI.
 > `useAsync$` also provides an `abortSignal` that can be used to cancel the async operation when the component is destroyed or when the async function is re-run due to a change in tracked state.
-> `useAsync$` has built-in support for polling with `pollMs`, which allows you to re-run the async function at a specified interval, as long as it is used somewhere.
+> `useAsync$` has built-in support for polling with `interval`, which allows you to re-run the async function at a specified interval, as long as it is used somewhere.
 > `useTask$` on the other hand is useful for running any code that doesn't need to return a value or directly affect the rendering of the component, implementing logic based on reactive state.
 >
 > See [`routeLoader$`](/docs/(qwikrouter)/route-loader/index.mdx) for fetching data early as part of initial HTTP request.
@@ -360,7 +360,7 @@ function useAsync$<T>(
     abortSignal: AbortSignal;
     previous: T | undefined;
   }) => Promise<T>,
-  options?: { initial?: T; pollMs?: number; concurrency?: number; timeout?: number }
+  options?: { initial?: T; interval?: number; concurrency?: number; timeout?: number }
 ): AsyncSignal<T>;
 ```
 
@@ -378,7 +378,7 @@ The callback passed to `useAsync$()` runs as soon as it is read. That means that
 Options:
 
 - `initial`: the initial value of the async signal before the async function resolves. This is useful to show some initial data while the async function is still loading. If not provided, reading the value before it's resolved will throw a `Promise`, which is Qwik's way of ensuring the current function will re-run when the value is available.
-- `pollMs`: if provided, the async function will be re-run every `pollMs` milliseconds, as long as the async signal is used somewhere. This is useful to keep data fresh.
+- `interval`: if provided, the async function will be re-run every `interval` milliseconds, as long as the async signal is used somewhere. This is useful to keep data fresh.
 - `concurrency`: controls what happens when the async function is still running and it needs to be re-run (because of a change in tracked signals or because of polling).
   - The default is `concurrency: 1`, which means that the currently running async function and its cleanups have to complete before a new one starts.
   - If set to a number, there can be be up to that number currently in flight before new calls need to wait for one of them to complete. `0` means no limit.

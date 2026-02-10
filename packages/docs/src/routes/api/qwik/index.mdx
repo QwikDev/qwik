@@ -186,6 +186,21 @@ The error that occurred while computing the signal, if any. This will be cleared
 </td></tr>
 <tr><td>
 
+[interval](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+Poll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`, polling stops.
+
+</td></tr>
+<tr><td>
+
 [loading](#)
 
 </td><td>
@@ -207,21 +222,6 @@ signal.loading ? (
   <Component value={signal.value} />
 );
 ```
-
-</td></tr>
-<tr><td>
-
-[pollMs](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-Poll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`, polling stops.
 
 </td></tr>
 </tbody></table>
@@ -350,7 +350,7 @@ _(Optional)_ Like useSignal's `initial`; prevents the throw on first read when u
 </td></tr>
 <tr><td>
 
-[pollMs?](#)
+[interval?](#)
 
 </td><td>
 
@@ -360,7 +360,7 @@ number
 
 </td><td>
 
-_(Optional)_ In the browser, re-run the function after `pollMs` ms if subscribers exist, even when no input state changed. If `0`, does not poll.
+_(Optional)_ In the browser, re-run the function after `interval` ms if subscribers exist, even when no input state changed. If `0`, does not poll.
 
 Defaults to `0`.
 

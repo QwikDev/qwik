@@ -463,10 +463,10 @@ function maybeAddPollingAsyncSignalToEagerResume(
   const unwrappedSignal = signal instanceof WrappedSignalImpl ? signal.$unwrapIfSignal$() : signal;
 
   if (unwrappedSignal instanceof AsyncSignalImpl) {
-    const pollMs = unwrappedSignal.$pollMs$;
+    const interval = unwrappedSignal.$interval$;
     // Don't check for $effects$ here - effects are added later during tracking.
     // The AsyncSignal's polling mechanism will check for effects before scheduling.
-    if (pollMs > 0) {
+    if (interval > 0) {
       serializationCtx.$addRoot$(unwrappedSignal);
       serializationCtx.$eagerResume$.add(unwrappedSignal);
     }

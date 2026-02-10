@@ -283,21 +283,21 @@ describe('signal', () => {
     describe('async signal with poll', () => {
       it('should store poll ms on instance', async () => {
         await withContainer(async () => {
-          const pollMs = 50;
-          const signal = createAsync$(async () => 42, { pollMs }) as AsyncSignalImpl<number>;
+          const interval = 50;
+          const signal = createAsync$(async () => 42, { interval }) as AsyncSignalImpl<number>;
 
           // Verify poll is stored on instance
-          expect(signal.pollMs).toBe(pollMs);
-          expect(signal.$pollMs$).toBe(pollMs);
+          expect(signal.interval).toBe(interval);
+          expect(signal.$interval$).toBe(interval);
           expect(signal.$pollTimeoutId$).toBeUndefined();
         });
       });
 
-      it('should update pollMs and reschedule with consumers', async () => {
+      it('should update interval and reschedule with consumers', async () => {
         await withContainer(async () => {
-          const signal = createAsync$(async () => 42, { pollMs: 0 }) as AsyncSignalImpl<number>;
+          const signal = createAsync$(async () => 42, { interval: 0 }) as AsyncSignalImpl<number>;
 
-          signal.pollMs = 1;
+          signal.interval = 1;
           expect(signal.$pollTimeoutId$).toBeUndefined();
 
           await retryOnPromise(async () => {
@@ -306,15 +306,15 @@ describe('signal', () => {
 
           expect(signal.$pollTimeoutId$).toBeDefined();
 
-          signal.pollMs = 0;
+          signal.interval = 0;
           expect(signal.$pollTimeoutId$).toBeUndefined();
         });
       });
 
       it('should clear poll timeout on invalidate', async () => {
         await withContainer(async () => {
-          const pollMs = 1;
-          const signal = createAsync$(async () => 42, { pollMs }) as AsyncSignalImpl<number>;
+          const interval = 1;
+          const signal = createAsync$(async () => 42, { interval }) as AsyncSignalImpl<number>;
 
           // Subscribe to create effects
           await retryOnPromise(async () => {
@@ -331,10 +331,10 @@ describe('signal', () => {
 
       it('should poll', async () => {
         await withContainer(async () => {
-          const pollMs = 1;
+          const interval = 1;
           const ref = { count: 42 };
           const signal = createAsync$(async () => ref.count++, {
-            pollMs,
+            interval,
           }) as AsyncSignalImpl<number>;
 
           // Subscribe to create effects
@@ -348,13 +348,13 @@ describe('signal', () => {
 
       it('should preserve poll setting for SSR hydration', async () => {
         await withContainer(async () => {
-          const pollMs = 75;
-          const signal = createAsync$(async () => 99, { pollMs }) as AsyncSignalImpl<number>;
+          const interval = 75;
+          const signal = createAsync$(async () => 99, { interval }) as AsyncSignalImpl<number>;
 
           // Verify poll is preserved on instance (for SSR scenarios)
-          // Even on SSR (when isBrowser is false), the pollMs should be stored
+          // Even on SSR (when isBrowser is false), the interval should be stored
           // so that if the signal is hydrated on the browser, polling can resume
-          expect(signal.$pollMs$).toBe(pollMs);
+          expect(signal.$interval$).toBe(interval);
         });
       });
 
@@ -762,19 +762,19 @@ describe('signal', () => {
         });
       });
 
-      it('initial and pollMs should work together', async () => {
+      it('initial and interval should work together', async () => {
         await withContainer(async () => {
-          const pollMs = 1;
+          const interval = 1;
           const signal = createAsync$(async () => 42, {
             initial: 10,
-            pollMs,
+            interval,
           }) as AsyncSignalImpl<number>;
 
           // Should have initial value
           expect(signal.value).toBe(10);
           // Should have poll interval stored
-          expect(signal.pollMs).toBe(pollMs);
-          expect(signal.$pollMs$).toBe(pollMs);
+          expect(signal.interval).toBe(interval);
+          expect(signal.$interval$).toBe(interval);
         });
       });
 

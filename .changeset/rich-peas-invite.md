@@ -2,7 +2,7 @@
 '@qwik.dev/core': minor
 ---
 
-FEAT: `useAsync$()` now has `pollMs`, which re-runs the compute function on intervals. You can change signal.pollMs to enable/disable it, and if you set it during SSR it will automatically resume to do the polling.
+FEAT: `useAsync$()` now has `interval`, which re-runs the compute function on intervals. You can change signal.interval to enable/disable it, and if you set it during SSR it will automatically resume to do the polling.
   This way, you can auto-update data on the client without needing to set up timers or events. For example, you can show a "time ago" string that updates every minute, or you can poll an API for updates, and change the poll interval when the window goes idle.
 
 - FEAT: `useAsync$()` now has a `concurrency` option, which limits the number of concurrent executions of the compute function. If a new execution is triggered while the limit is reached, it will wait for the previous ones to finish before starting. This is useful for preventing overload when the compute function is expensive or when it involves network requests. The default value is 1, which means that a new execution will wait for the previous one to finish before starting. Setting it to 0 allows unlimited concurrent executions.

@@ -87,12 +87,12 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    */
   awaitPrevious?: boolean;
   /**
-   * In the browser, re-run the function after `pollMs` ms if subscribers exist, even when no input
-   * state changed. If `0`, does not poll.
+   * In the browser, re-run the function after `interval` ms if subscribers exist, even when no
+   * input state changed. If `0`, does not poll.
    *
    * Defaults to `0`.
    */
-  pollMs?: number;
+  interval?: number;
   /**
    * Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the
    * computation is aborted and an error is thrown.

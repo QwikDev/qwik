@@ -109,7 +109,7 @@ async function runNext(
         const accept = requestEv.request.headers.get('Accept');
         if (accept && !accept.includes('text/html')) {
           requestEv.headers.set('Content-Type', 'application/qwik-json');
-          requestEv.send(status, await _serialize([e.data]));
+          requestEv.send(status, await _serialize(e.data));
         } else {
           // TODO render the custom error route
           requestEv.html(status, getErrorHtml(status, e.data));

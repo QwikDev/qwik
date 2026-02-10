@@ -433,7 +433,7 @@ export const serverQrl = <T extends ServerFunction>(
       return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
     } else {
       // Running on the client, we need to call the function via HTTP
-      const filteredArgs = args.map((arg: unknown) => {
+      let filteredArgs: unknown[] | undefined = args.map((arg: unknown) => {
         if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
           return new FormData(arg.target);
         } else if (arg instanceof Event) {
@@ -443,6 +443,9 @@ export const serverQrl = <T extends ServerFunction>(
         }
         return arg;
       });
+      if (!filteredArgs.length) {
+        filteredArgs = undefined;
+      }
       const qrlHash = qrl.getHash();
       // Handled by `pureServerFunction` middleware
       let query = '';
@@ -460,12 +463,13 @@ export const serverQrl = <T extends ServerFunction>(
       };
       // Serialize the arguments in an array so they don't deduplicate
       // If there is captured scope, include it in the serialization
+      // This is deserialized by runServerFunction()
       const captured = qrl.getCaptured();
-      let toSend: unknown[];
+      let toSend: [] | [typeof filteredArgs] | [typeof filteredArgs, ...unknown[]] = [filteredArgs];
       if (captured?.length) {
-        toSend = [filteredArgs, captured];
+        toSend = [filteredArgs, ...captured];
       } else {
-        toSend = filteredArgs.length ? [filteredArgs] : [];
+        toSend = filteredArgs ? [filteredArgs] : [];
       }
       const body = await _serialize(toSend);
       if (method === 'GET') {
@@ -490,7 +494,7 @@ export const serverQrl = <T extends ServerFunction>(
         })();
       } else if (contentType === 'application/qwik-json') {
         const str = await res.text();
-        const [obj] = _deserialize(str);
+        const obj = _deserialize(str);
         if (res.status >= 400) {
           throw obj;
         }
@@ -572,7 +576,7 @@ const deserializeStream = async function* (
       const lines = buffer.split(/\n/);
       buffer = lines.pop()!;
       for (const line of lines) {
-        const [deserializedData] = _deserialize(line);
+        const deserializedData = _deserialize(line);
         yield deserializedData;
       }
     }

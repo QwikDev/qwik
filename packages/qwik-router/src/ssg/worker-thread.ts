@@ -190,7 +190,7 @@ async function workerRender(
                     };
                   });
 
-                  const serialized = await _serialize([qData]);
+                  const serialized = await _serialize(qData);
                   dataWriter.write(serialized);
 
                   writePromises.push(

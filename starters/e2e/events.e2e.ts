@@ -71,7 +71,7 @@ test.describe("events", () => {
     await expect(countPropagation).toHaveText("countPropagationStopped: 1");
   });
 
-  test("issue 3948", async ({ page }) => {
+  test("issue 3948 - useOn window conditional render", async ({ page }) => {
     const always = page.locator("#issue-3948-always");
     const toggle = page.locator("#issue-3948-toggle");
     const html = page.locator("html");

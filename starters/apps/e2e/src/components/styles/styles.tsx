@@ -46,7 +46,7 @@ export const StylesChildren = component$<{ v: number }>(({ v }) => {
           </Fragment>
         ))}
       </div>
-      <Issue1945 />
+      <ConditionalSlotScopedStyleIssue1945 />
       <IssueScopedAndFineGrained />
     </div>
   );
@@ -64,7 +64,7 @@ export const Child = component$((props: { index: number }) => {
   );
 });
 
-export const Issue1945 = component$(() => {
+export const ConditionalSlotScopedStyleIssue1945 = component$(() => {
   useStylesScoped$(`h1 {
     background-color: blue;
   }

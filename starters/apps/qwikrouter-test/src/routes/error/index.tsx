@@ -2,10 +2,10 @@ import { component$, $ } from "@qwik.dev/core";
 import { ErrorBoundary } from "@qwik.dev/router";
 
 export default component$(() => {
-  return <Issue7227 />;
+  return <UseErrorBoundaryNoEffectIssue7227 />;
 });
 
-const Issue7227 = component$(() => {
+const UseErrorBoundaryNoEffectIssue7227 = component$(() => {
   return (
     <ErrorBoundary
       fallback$={$((error: any) => {

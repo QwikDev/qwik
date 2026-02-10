@@ -38,7 +38,7 @@ export const ResourceSerialization = component$(() => {
 
   return (
     <>
-      <Issue2014 />
+      <ResourceSignalResumabilityIssue2014 />
       <IssueRaceCondition />
       <Resource
         value={resourceSuccess}
@@ -83,7 +83,7 @@ export const ResourceSerialization = component$(() => {
   );
 });
 
-export const Issue2014 = component$(() => {
+export const ResourceSignalResumabilityIssue2014 = component$(() => {
   const count = useSignal(0);
   console.log("render");
 

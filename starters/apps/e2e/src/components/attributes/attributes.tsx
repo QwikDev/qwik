@@ -166,15 +166,15 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
       </div>
       <div id="input-value">{input.value}</div>
       <input id="input-copy" value={input.value} />
-      <Issue3622 />
-      <Issue4718Null />
-      <Issue4718Undefined />
+      <SelectValueAfterNavigationIssue3622 />
+      <NullAttributeNotRemovedIssue4718Null />
+      <UndefinedAttributeNotRemovedIssue4718Undefined />
       <div id="renderCount">Render {v}</div>
     </>
   );
 });
 
-export const Issue3622 = component$(() => {
+export const SelectValueAfterNavigationIssue3622 = component$(() => {
   return (
     <div>
       <select id="issue-3622-result" value="option1">
@@ -185,7 +185,7 @@ export const Issue3622 = component$(() => {
   );
 });
 
-export const Issue4718Undefined = component$(() => {
+export const UndefinedAttributeNotRemovedIssue4718Undefined = component$(() => {
   const signal = useSignal<string | undefined>("some value");
 
   return (
@@ -204,7 +204,7 @@ export const Issue4718Undefined = component$(() => {
   );
 });
 
-export const Issue4718Null = component$(() => {
+export const NullAttributeNotRemovedIssue4718Null = component$(() => {
   const signal = useSignal<string | null>("some value");
 
   return (

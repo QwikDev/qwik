@@ -212,7 +212,7 @@ test.describe("slot", () => {
       await expect(modalContent).not.toBeHidden();
     });
 
-    test("issue 2688", async ({ page }) => {
+    test("issue 2688 - dynamic slot name insert before", async ({ page }) => {
       const result = page.locator("#issue-2688-result");
       const button = page.locator("#issue-2688-button");
       const count = page.locator("#btn-count");
@@ -237,7 +237,7 @@ test.describe("slot", () => {
       await expect(result).toHaveText("Alpha 5", { useInnerText: true });
     });
 
-    test("issue 2751", async ({ page }) => {
+    test("issue 2751 - nested routes useLocation error", async ({ page }) => {
       const result = page.locator("#issue-2751-result");
       const button = page.locator("#issue-2751-toggle");
       await expect(result).toHaveText("Bogus 0 0 0");
@@ -255,12 +255,12 @@ test.describe("slot", () => {
       await expect(result).toHaveText("Bogus 6 6 6");
     });
 
-    test("issue 3565", async ({ page }) => {
+    test("issue 3565 - slot not available via useContext", async ({ page }) => {
       const result = page.locator("#issue-3565-result");
       await expect(result).toHaveText("Own contentcontent projected");
     });
 
-    test("issue 3607", async ({ page }) => {
+    test("issue 3607 - async signal update slot content", async ({ page }) => {
       const button = page.locator("#issue-3607-result");
       await expect(button).toHaveText("Load more");
       await button.click();
@@ -271,7 +271,7 @@ test.describe("slot", () => {
       await expect(button).toHaveText("Loading...");
     });
 
-    test("issue 3727", async ({ page }) => {
+    test("issue 3727 - route action result navigation", async ({ page }) => {
       const navigate = page.locator("#issue-3727-navigate");
       await navigate.click();
       const results = page.locator("#issue-3727-results > li");
@@ -283,7 +283,7 @@ test.describe("slot", () => {
       await expect(results).toHaveText(["item 0", "item 1"]);
     });
 
-    test("issue 4215", async ({ page }) => {
+    test("issue 4215 - svg icon slot conditional render", async ({ page }) => {
       const svg = page.locator("#issue-4215-svg");
       const toggle = page.locator("#issue-4215-toggle");
       async function getNamespaceURI() {
@@ -304,7 +304,9 @@ test.describe("slot", () => {
       );
     });
 
-    test("issue 4283", async ({ page }) => {
+    test("issue 4283 - content duplication delayed visible task", async ({
+      page,
+    }) => {
       const result = page.locator("#issue-4283-result");
       await expect(result).toHaveText(
         `Hide until visible\n\nContent\n\nindex page`,
@@ -314,7 +316,9 @@ test.describe("slot", () => {
       );
     });
 
-    test("issue 4658", async ({ page }) => {
+    test("issue 4658 - conditional root node layout breaks", async ({
+      page,
+    }) => {
       const button = page.locator("#issue-4658-toggle");
       const inner = page.locator("#issue-4658-inner");
       const top = page.locator("#issue-4658-top");
@@ -329,7 +333,7 @@ test.describe("slot", () => {
     });
   }
 
-  test("issue 5270", async ({ page }) => {
+  test("issue 5270 - context hidden slot breaks ssr", async ({ page }) => {
     const button = page.locator("#issue-5270-button");
     const div = page.locator("#issue-5270-div");
     await expect(div).toBeHidden();
@@ -338,7 +342,9 @@ test.describe("slot", () => {
     await expect(div).toHaveText("Ctx: hello");
   });
 
-  test("issue 5506", async ({ page }) => {
+  test("issue 5506 - slot projected content not updating dom", async ({
+    page,
+  }) => {
     const input = page.locator("#input-5506");
     await expect(input).toBeChecked();
     await input.click();

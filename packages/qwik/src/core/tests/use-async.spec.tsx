@@ -417,7 +417,7 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       // on server after resuming cleanup is not called yet
       // on client it is called as usual
-      // so now the log is equal
+      // so from this point the log is equal for ssr and client
       expect((globalThis as any).log).toEqual(['cleanup']);
       await trigger(container.element, 'button', 'click'); //show
       await trigger(container.element, 'button', 'click'); //hide

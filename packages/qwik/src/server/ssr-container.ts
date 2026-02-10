@@ -901,21 +901,27 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.serializationCtx.$roots$.length) {
       return;
     }
-    const attrs: string[] = ['type', 'qwik/state'];
 
-    // Add q-d:qidle attribute if there are signals to eagerly resume
-    if (this.serializationCtx.$eagerResume$.size > 0) {
-      const qrl = createQRL(null, '_res', _res, null, [...this.serializationCtx.$eagerResume$]);
-      const qrlStr = qrlToString(this.serializationCtx, qrl);
-      attrs.push('q-d:qidle', qrlStr);
-      // Add 'd:qidle' to event names set
-      this.serializationCtx.$eventNames$.add('d:qidle');
-    }
+    const attrs = this.stateScriptAttrs();
 
     this.openElement('script', null, attrs);
     return maybeThen(this.serializationCtx.$serialize$(), () => {
       this.closeElement();
     });
+  }
+
+  /** Add q-d:qidle attribute to eagerly resume some state if needed */
+  private stateScriptAttrs(): string[] {
+    const attrs = ['type', 'qwik/state'];
+    const eagerResume = this.serializationCtx.$eagerResume$;
+    if (eagerResume.size > 0) {
+      const qrl = createQRL(null, '_res', _res, null, [...eagerResume]);
+      const qrlStr = qrlToString(this.serializationCtx, qrl);
+      attrs.push('q-d:qidle', qrlStr);
+      // Add 'd:qidle' to event names set
+      this.serializationCtx.$eventNames$.add('d:qidle');
+    }
+    return attrs;
   }
 
   private emitSyncFnsData() {

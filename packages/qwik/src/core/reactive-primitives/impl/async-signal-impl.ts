@@ -150,6 +150,7 @@ export class AsyncSignalImpl<T>
   }
 
   get untrackedLoading() {
+    // reading `.loading` means someone is interested in the result, so we should trigger the computation. The alternative is eager computation or imperative calls to invalidate; this seems nicer.
     this.$computeIfNeeded$();
     // During SSR there's no such thing as loading state, we must render complete results
     if ((import.meta.env.TEST ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
@@ -217,12 +218,13 @@ export class AsyncSignalImpl<T>
       if (!this.$hasSubscribers$()) {
         this.abort();
       }
-    }, 0);
+    });
   }
 
   /** Returns a promise resolves when the signal finished computing. */
   async promise(): Promise<void> {
     this.$computeIfNeeded$();
+    // Wait for the current computation to finish, but if we became invalid while running, we need to wait for the new computation instead. So we loop until we are no longer invalid
     while (this.$current$?.$promise$) {
       await this.$current$?.$promise$;
     }

@@ -57,18 +57,6 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     }
   }
 
-  /**
-   * Use this to force running subscribers, for example when the calculated value has mutated but
-   * remained the same object.
-   */
-  force() {
-    this.$flags$ |= SignalFlags.RUN_EFFECTS;
-    if (this.$container$ && this.$hostElement$) {
-      this.$container$.setHostProp(this.$hostElement$ as HostElement, HOST_SIGNAL, this);
-      markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
-    }
-  }
-
   get untrackedValue() {
     this.$computeIfNeeded$();
     isDev && assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');

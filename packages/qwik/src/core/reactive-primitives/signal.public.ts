@@ -1,5 +1,5 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { ComputedOptions, SerializerArg } from './types';
+import type { AsyncCtx, AsyncSignalOptions, ComputedOptions, SerializerArg } from './types';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
@@ -16,12 +16,30 @@ export interface ReadonlySignal<T = unknown> {
 
 /** @public */
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
-  /** Whether the signal is currently loading. */
+  /**
+   * Whether the signal is currently loading. This will trigger lazy loading of the signal, so you
+   * can use it like this:
+   *
+   * ```tsx
+   * signal.loading ? <Loading /> : signal.error ? <Error /> : <Component
+   * value={signal.value} />
+   * ```
+   */
   loading: boolean;
-  /** The error that occurred while computing the signal. */
+  /**
+   * The error that occurred while computing the signal, if any. This will be cleared when the
+   * signal is successfully computed.
+   */
   error: Error | undefined;
-  /** A promise that resolves when the value is computed. */
-  promise(): Promise<T>;
+  /**
+   * Poll interval in ms. Writable and immediately effective when the signal has consumers. If set
+   * to `0`, polling stops.
+   */
+  interval: number;
+  /** A promise that resolves when the value is computed or rejected. */
+  promise(): Promise<void>;
+  /** Abort the current computation and run cleanups if needed. */
+  abort(reason?: any): void;
 }
 
 /**
@@ -90,7 +108,7 @@ export const createSignal: {
  * The QRL must be a function which returns the value of the signal. The function must not have side
  * effects, and it must be synchronous.
  *
- * If you need the function to be async, use `useAsync$` instead.
+ * If you need the function to be async, use `createAsync$` instead (don't forget to use `track()`).
  *
  * @public
  */
@@ -101,17 +119,15 @@ export const createComputed$: <T>(
 export { createComputedQrl };
 
 /**
- * Create an async computed signal which is calculated from the given QRL. A computed signal is a
- * signal which is calculated from other signals or async operation. When the signals change, the
- * computed signal is recalculated.
- *
- * The QRL must be a function which returns the value of the signal. The function must not have side
- * effects, and it can be async.
+ * Create a signal holding a `.value` which is calculated from the given async function (QRL). The
+ * standalone version of `useAsync$`.
  *
  * @public
  */
-export const createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncSignal<T> =
-  /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
+export const createAsync$: <T>(
+  qrl: (arg: AsyncCtx<T>) => Promise<T>,
+  options?: AsyncSignalOptions<T>
+) => AsyncSignal<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
 export { createAsyncQrl };
 
 /**

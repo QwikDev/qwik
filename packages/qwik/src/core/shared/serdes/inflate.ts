@@ -13,6 +13,7 @@ import { getStoreHandler, unwrapStore } from '../../reactive-primitives/impl/sto
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import type { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  AsyncSignalFlags,
   EffectProperty,
   NEEDS_COMPUTATION,
   SignalFlags,
@@ -22,7 +23,6 @@ import {
   type EffectSubscription,
   type StoreFlags,
 } from '../../reactive-primitives/types';
-import type { ResourceReturnInternal } from '../../use/use-resource';
 import type { Task } from '../../use/use-task';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
@@ -79,20 +79,6 @@ export const inflate = (
       task.$el$ = v[3] as HostElement;
       task[_EFFECT_BACK_REF] = v[4] as Map<EffectProperty | string, EffectSubscription> | undefined;
       task.$state$ = v[5];
-      break;
-    case TypeIds.Resource:
-      const [resolved, result, effects] = data as [boolean, unknown, any];
-      const resource = target as ResourceReturnInternal<unknown>;
-      if (resolved) {
-        resource.value = Promise.resolve(result);
-        resource._resolved = result;
-        resource._state = 'resolved';
-      } else {
-        resource.value = Promise.reject(result);
-        resource._error = result as Error;
-        resource._state = 'rejected';
-      }
-      getStoreHandler(target as object)!.$effects$ = effects;
       break;
     case TypeIds.Component:
       (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
@@ -152,23 +138,35 @@ export const inflate = (
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
-        boolean,
         Error,
         unknown?,
+        number?,
+        number?,
+        number?,
+        // Maybe we should serialize flags instead
+        boolean?,
       ];
       asyncSignal.$computeQrl$ = d[0];
       asyncSignal[_EFFECT_BACK_REF] = d[1];
       asyncSignal.$effects$ = new Set(d[2]);
       asyncSignal.$loadingEffects$ = new Set(d[3]);
       asyncSignal.$errorEffects$ = new Set(d[4]);
-      asyncSignal.$untrackedLoading$ = d[5];
-      asyncSignal.$untrackedError$ = d[6];
-      const hasValue = d.length > 7;
+      asyncSignal.$untrackedError$ = d[5];
+      const hasValue = d.length > 6;
       if (hasValue) {
-        asyncSignal.$untrackedValue$ = d[7];
-        asyncSignal.$promiseValue$ = d[7];
+        asyncSignal.$untrackedValue$ = d[6];
       }
-      asyncSignal.$flags$ |= SignalFlags.INVALID;
+      if (asyncSignal.$untrackedValue$ !== NEEDS_COMPUTATION) {
+        // If we have a value after SSR, it will always be mean the signal was not invalid
+        asyncSignal.$flags$ &= ~SignalFlags.INVALID;
+      }
+      // Note, we use the setter so that it schedules polling if needed
+      asyncSignal.interval = d[7] ?? 0;
+      asyncSignal.$concurrency$ = d[8] ?? 1;
+      asyncSignal.$timeoutMs$ = d[9] ?? 0;
+      if (d[10]) {
+        asyncSignal.$flags$ |= AsyncSignalFlags.EAGER_CLEANUP;
+      }
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal
@@ -198,12 +196,11 @@ export const inflate = (
       const hasValue = d.length > 3;
       if (hasValue) {
         computed.$untrackedValue$ = d[3];
-        // The serialized signal is always invalid so it can recreate the custom object
-        if (typeId === TypeIds.SerializerSignal) {
-          computed.$flags$ |= SignalFlags.INVALID;
-        }
-      } else {
-        computed.$flags$ |= SignalFlags.INVALID;
+      }
+      if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
+        // If we have a value after SSR, it will always be mean the signal was not invalid
+        // The serialized signal is always left invalid so it can recreate the custom object
+        computed.$flags$ &= ~SignalFlags.INVALID;
       }
       break;
     }

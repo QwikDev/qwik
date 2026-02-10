@@ -7,20 +7,24 @@ import { inlinedQrl } from '../../shared/qrl/qrl';
 import { type QRLInternal } from '../../shared/qrl/qrl-class';
 import { type QRL } from '../../shared/qrl/qrl.public';
 import type { Container, HostElement } from '../../shared/types';
-import { retryOnPromise } from '../../shared/utils/promises';
+import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import {
+  type AsyncCtx,
   EffectProperty,
   SignalFlags,
   type InternalReadonlySignal,
   type InternalSignal,
 } from '../types';
+import { clearAllEffects } from '../cleanup';
 import {
   createComputed$,
   createComputedQrl,
   createSerializer$,
   createSignal,
+  createAsync$,
+  createAsyncQrl,
   type ComputedSignal,
   type SerializerSignal,
   type Signal,
@@ -29,6 +33,7 @@ import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from '../../shared/utils/markers';
 import type { ComputedSignalImpl } from './computed-signal-impl';
+import type { AsyncSignalImpl } from './async-signal-impl';
 
 class Foo {
   constructor(public val: number = 0) {}
@@ -36,6 +41,12 @@ class Foo {
     this.val = val;
   }
 }
+
+let computeInitialCalls = 0;
+const computeInitialFn = async () => {
+  computeInitialCalls++;
+  return 42;
+};
 
 describe('signal types', () => {
   it('Signal<T>', () => () => {
@@ -268,6 +279,587 @@ describe('signal', () => {
         expect(wrapped).not.toBe(signal);
         const wrapped2 = _wrapProp(wrapped);
         expect(wrapped2).toBe(wrapped);
+      });
+    });
+    describe('async signal with poll', () => {
+      it('should store poll ms on instance', async () => {
+        await withContainer(async () => {
+          const interval = 50;
+          const signal = createAsync$(async () => 42, { interval }) as AsyncSignalImpl<number>;
+
+          // Verify poll is stored on instance
+          expect(signal.interval).toBe(interval);
+          expect(signal.$interval$).toBe(interval);
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should update interval and reschedule with consumers', async () => {
+        await withContainer(async () => {
+          const signal = createAsync$(async () => 42, { interval: 0 }) as AsyncSignalImpl<number>;
+
+          signal.interval = 1;
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+
+          await retryOnPromise(async () => {
+            effect$(() => signal.value);
+          });
+
+          expect(signal.$pollTimeoutId$).toBeDefined();
+
+          signal.interval = 0;
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should clear poll timeout on invalidate', async () => {
+        await withContainer(async () => {
+          const interval = 1;
+          const signal = createAsync$(async () => 42, { interval }) as AsyncSignalImpl<number>;
+
+          // Subscribe to create effects
+          await retryOnPromise(async () => {
+            effect$(() => signal.value);
+          });
+
+          // Invalidate signal - should clear any pending poll timeout
+          signal.invalidate();
+
+          // Poll timeout should be cleared
+          expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should poll', async () => {
+        await withContainer(async () => {
+          const interval = 1;
+          const ref = { count: 42 };
+          const signal = createAsync$(async () => ref.count++, {
+            interval,
+          }) as AsyncSignalImpl<number>;
+
+          // Subscribe to create effects
+          await retryOnPromise(async () => {
+            effect$(() => signal.value);
+            await delay(10);
+            expect(signal.value).toBeGreaterThan(42);
+          });
+        });
+      });
+
+      it('should preserve poll setting for SSR hydration', async () => {
+        await withContainer(async () => {
+          const interval = 75;
+          const signal = createAsync$(async () => 99, { interval }) as AsyncSignalImpl<number>;
+
+          // Verify poll is preserved on instance (for SSR scenarios)
+          // Even on SSR (when isBrowser is false), the interval should be stored
+          // so that if the signal is hydrated on the browser, polling can resume
+          expect(signal.$interval$).toBe(interval);
+        });
+      });
+
+      it('should run async cleanups before next compute', async () => {
+        await withContainer(async () => {
+          const dep = createSignal(0);
+          const ref = { cleanupCalls: 0 };
+
+          const signal = (await retryOnPromise(() =>
+            createAsyncQrl(
+              $(async ({ track, cleanup }: AsyncCtx) => {
+                track(() => dep.value);
+                cleanup(async () => {
+                  await delay(10);
+                  ref.cleanupCalls++;
+                });
+                return ref.cleanupCalls;
+              })
+            )
+          )) as AsyncSignalImpl<number>;
+
+          await retryOnPromise(() => {
+            effect$(() => signal.value);
+          });
+
+          expect(signal.value).toBe(0);
+
+          dep.value = 1;
+          await signal.promise();
+
+          expect(signal.value).toBe(1);
+          expect(ref.cleanupCalls).toBe(1);
+        });
+      });
+
+      it('should provide abortSignal that is aborted on cleanup', async () => {
+        await withContainer(async () => {
+          const dep = createSignal(0);
+          const ref = { aborted: false };
+
+          const signal = (await retryOnPromise(() =>
+            createAsyncQrl(
+              $(async ({ track, abortSignal }: AsyncCtx) => {
+                track(() => dep.value);
+                abortSignal.addEventListener('abort', () => {
+                  ref.aborted = true;
+                });
+                return dep.value;
+              })
+            )
+          )) as AsyncSignalImpl<number>;
+
+          await retryOnPromise(() => {
+            effect$(() => signal.value);
+          });
+
+          expect(signal.value).toBe(0);
+          expect(ref.aborted).toBe(false);
+
+          // Trigger re-computation which should run cleanup and abort
+          dep.value = 1;
+          await signal.promise();
+
+          expect(signal.value).toBe(1);
+          expect(ref.aborted).toBe(true);
+        });
+      });
+
+      it('should lazily create abortController only when accessed', async () => {
+        await withContainer(async () => {
+          const signal = (await retryOnPromise(() =>
+            createAsyncQrl(
+              $(async () => {
+                return 42;
+              })
+            )
+          )) as AsyncSignalImpl<number>;
+
+          await retryOnPromise(() => {
+            effect$(() => signal.value);
+          });
+
+          // AbortController should not be created if abortSignal is never accessed
+          const job = signal.$current$;
+          expect(job).toBeTruthy();
+          expect(job?.$abortController$).toBeUndefined();
+        });
+      });
+
+      it('should create abortController when abortSignal is accessed', async () => {
+        await withContainer(async () => {
+          const ref = { capturedSignal: undefined as AbortSignal | undefined };
+
+          const signal = (await retryOnPromise(() =>
+            createAsyncQrl(
+              $(async ({ abortSignal }: AsyncCtx) => {
+                ref.capturedSignal = abortSignal;
+                return 42;
+              })
+            )
+          )) as AsyncSignalImpl<number>;
+
+          await retryOnPromise(() => {
+            effect$(() => signal.value);
+          });
+
+          // AbortController should be created when abortSignal is accessed
+          const job = signal.$current$;
+          expect(job).toBeTruthy();
+          expect(job?.$abortController$).toBeInstanceOf(AbortController);
+          expect(ref.capturedSignal).toBeInstanceOf(AbortSignal);
+          expect(ref.capturedSignal?.aborted).toBe(false);
+        });
+      });
+
+      it('should abort current computation via signal.abort()', async () => {
+        await withContainer(async () => {
+          const ref = {
+            aborted: false,
+            resolve: undefined as ((value: number) => void) | undefined,
+          };
+
+          const signal = createAsync$(
+            async ({ abortSignal }) => {
+              abortSignal.addEventListener('abort', () => {
+                ref.aborted = true;
+              });
+              return new Promise<number>((resolve) => {
+                ref.resolve = resolve;
+              });
+            },
+            { initial: 0 }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          expect(ref.resolve).toBeDefined();
+
+          signal.abort();
+
+          expect(ref.aborted).toBe(true);
+
+          ref.resolve?.(1);
+          await delay(0);
+        });
+      });
+
+      it('should forward reason to abortSignal when calling abort(reason)', async () => {
+        await withContainer(async () => {
+          const ref = {
+            capturedReason: undefined as any,
+            resolve: undefined as ((value: number) => void) | undefined,
+          };
+
+          const signal = createAsync$(
+            async ({ abortSignal }) => {
+              abortSignal.addEventListener('abort', () => {
+                ref.capturedReason = abortSignal.reason;
+              });
+              return new Promise<number>((resolve) => {
+                ref.resolve = resolve;
+              });
+            },
+            { initial: 0 }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          expect(ref.resolve).toBeDefined();
+
+          const customReason = new Error('Custom abort reason');
+          signal.abort(customReason);
+
+          expect(ref.capturedReason).toBe(customReason);
+
+          ref.resolve?.(1);
+          await delay(0);
+        });
+      });
+
+      it('should abort immediately in $requestCleanups$ before waiting for task promise', async () => {
+        await withContainer(async () => {
+          const ref = {
+            abortedBeforeTaskComplete: false,
+            taskResolve: undefined as ((value: number) => void) | undefined,
+          };
+
+          const signal = createAsync$(async ({ abortSignal }) => {
+            // Listen for abort
+            abortSignal.addEventListener('abort', () => {
+              // Check if task is still running (taskResolve exists)
+              if (ref.taskResolve) {
+                ref.abortedBeforeTaskComplete = true;
+              }
+            });
+
+            // Create a long-running task
+            return new Promise<number>((resolve) => {
+              ref.taskResolve = resolve;
+            });
+          }) as AsyncSignalImpl<number>;
+          // Subscribe with initial value to avoid promise throw
+          const signal2 = (await retryOnPromise(() =>
+            createAsync$(async () => 0, { initial: 0 })
+          )) as AsyncSignalImpl<number>;
+
+          effect$(() => {
+            // Read signal2 to establish effect without throwing
+            return signal2.value;
+          });
+
+          // Manually trigger computation for signal
+          signal.$computeIfNeeded$();
+
+          // Wait for task to start using a simple timeout
+          await new Promise((resolve) => setTimeout(resolve, 10));
+
+          // Verify task is running
+          expect(ref.taskResolve).toBeDefined();
+
+          // Request cleanup while task is still running
+          const job = signal.$current$;
+          expect(job).toBeTruthy();
+          if (job) {
+            signal.$requestCleanups$(job);
+          }
+
+          // Abort should be called immediately, before task completes
+          expect(ref.abortedBeforeTaskComplete).toBe(true);
+
+          // Clean up by resolving the task
+          if (ref.taskResolve) {
+            ref.taskResolve(99);
+          }
+
+          // Wait for cleanup to complete
+          await delay(10);
+        });
+      });
+
+      it('should abort current computation on timeout and set error', async () => {
+        await withContainer(async () => {
+          const ref = {
+            aborted: false,
+            resolve: undefined as ((value: number) => void) | undefined,
+          };
+
+          const signal = createAsync$(
+            async ({ abortSignal }) => {
+              abortSignal.addEventListener('abort', () => {
+                ref.aborted = true;
+              });
+              return new Promise<number>((resolve) => {
+                ref.resolve = resolve;
+              });
+            },
+            { initial: 0, timeout: 5 }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await delay(10);
+
+          expect(ref.aborted).toBe(true);
+          expect(signal.error).toBeInstanceOf(Error);
+          expect(signal.error?.message).toContain('timeout');
+
+          ref.resolve?.(1);
+          await delay(0);
+        });
+      });
+
+      it('should allow concurrent computations and apply newest completed value', async () => {
+        await withContainer(async () => {
+          const ref = {
+            started: 0,
+            resolvers: [] as Array<(value: number) => void>,
+          };
+          const signal = (await retryOnPromise(() =>
+            createAsync$(
+              async () => {
+                ref.started++;
+                return new Promise<number>((resolve) => {
+                  ref.resolvers.push(resolve);
+                });
+              },
+              { concurrency: 2, initial: 0 } as any
+            )
+          )) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await retryOnPromise(() => {
+            if (ref.started !== 1) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return ref.started;
+          });
+
+          await signal.invalidate();
+
+          expect(ref.started).toBe(2);
+          expect(ref.resolvers.length).toBe(2);
+
+          ref.resolvers[1](2);
+
+          await retryOnPromise(() => {
+            if (signal.value !== 2) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return signal.value;
+          });
+
+          expect(signal.value).toBe(2);
+
+          ref.resolvers[0](1);
+          await delay(0);
+
+          expect(signal.value).toBe(2);
+        });
+      });
+
+      it('should eagerly cleanup on unsubscribe and abort', async () => {
+        await withContainer(async () => {
+          const ref = { aborted: false, cleanupCalls: 0 };
+
+          const signal = createAsync$(
+            async ({ abortSignal, cleanup }) => {
+              abortSignal.addEventListener('abort', () => {
+                ref.aborted = true;
+              });
+              cleanup(() => {
+                ref.cleanupCalls++;
+              });
+              return 1;
+            },
+            { initial: 0, eagerCleanup: true }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+          await signal.promise();
+
+          expect(ref.cleanupCalls).toBe(0);
+          expect(ref.aborted).toBe(false);
+
+          clearAllEffects(container, task!);
+
+          await delay(0);
+
+          expect(ref.aborted).toBe(true);
+          expect(ref.cleanupCalls).toBe(1);
+        });
+      });
+
+      it('should only write errors from current computation', async () => {
+        await withContainer(async () => {
+          const ref = {
+            started: 0,
+            resolvers: [] as Array<(value: number) => void>,
+            rejecters: [] as Array<(error: Error) => void>,
+          };
+          const signal = (await retryOnPromise(() =>
+            createAsync$(
+              async () => {
+                ref.started++;
+                return new Promise<number>((resolve, reject) => {
+                  ref.resolvers.push(resolve);
+                  ref.rejecters.push(reject);
+                });
+              },
+              { concurrency: 2, initial: 0 } as any
+            )
+          )) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+
+          await retryOnPromise(() => {
+            if (ref.started !== 1) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return ref.started;
+          });
+
+          await signal.invalidate();
+
+          await retryOnPromise(() => {
+            if (ref.started !== 2) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return ref.started;
+          });
+
+          const error = new Error('non-current failure');
+          ref.rejecters[0](error);
+          ref.resolvers[1](5);
+
+          await retryOnPromise(() => {
+            if (signal.value !== 5) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return signal.value;
+          });
+
+          expect(signal.value).toBe(5);
+          expect(signal.error).toBeUndefined();
+        });
+      });
+
+      it('should return initial value on first read', async () => {
+        await withContainer(async () => {
+          const signal = createAsync$(async () => 42, {
+            initial: 10,
+          }) as AsyncSignalImpl<number>;
+
+          // First read should return initial value without throwing
+          expect(signal.value).toBe(10);
+        });
+      });
+
+      it('should invoke compute on first read without promise()', async () => {
+        await withContainer(async () => {
+          computeInitialCalls = 0;
+          const signal = createAsync$(computeInitialFn, {
+            initial: 10,
+          }) as AsyncSignalImpl<number>;
+
+          // First read should return initial value
+          expect(signal.value).toBe(10);
+          await true;
+          // Compute function should have been called to start computation
+          expect(computeInitialCalls).toBe(1);
+          await retryOnPromise(() => {
+            if (signal.value !== 42) {
+              throw new Promise((resolve) => setTimeout(resolve, 0));
+            }
+            return signal.value;
+          });
+          expect(signal.value).toBe(42);
+        });
+      });
+
+      it('should eagerly evaluate initial function on construction', async () => {
+        await withContainer(async () => {
+          let initCalls = 0;
+          const signal = createAsync$(async () => 42, {
+            initial: () => {
+              initCalls++;
+              return 20;
+            },
+          }) as AsyncSignalImpl<number>;
+
+          // Initial function should be called immediately during construction
+          expect(initCalls).toBe(1);
+          // First read should return initial value
+          expect(signal.value).toBe(20);
+        });
+      });
+
+      it('should propagate initial function errors immediately', async () => {
+        await withContainer(async () => {
+          const error = new Error('initial failed');
+          expect(() => {
+            createAsync$(async () => 42, {
+              initial: () => {
+                throw error;
+              },
+            });
+          }).toThrow(error);
+        });
+      });
+
+      it('initial and interval should work together', async () => {
+        await withContainer(async () => {
+          const interval = 1;
+          const signal = createAsync$(async () => 42, {
+            initial: 10,
+            interval,
+          }) as AsyncSignalImpl<number>;
+
+          // Should have initial value
+          expect(signal.value).toBe(10);
+          // Should have poll interval stored
+          expect(signal.interval).toBe(interval);
+          expect(signal.$interval$).toBe(interval);
+        });
+      });
+
+      it('initial value should be replaced by computed promise', async () => {
+        await withContainer(async () => {
+          const signal = createAsync$(async () => 42, {
+            initial: 10,
+          }) as AsyncSignalImpl<number>;
+
+          // Start with initial value
+          expect(signal.value).toBe(10);
+
+          // Wait for the async promise to resolve
+          await signal.promise();
+
+          // After promise resolves, should have computed value
+          expect(signal.value).toBe(42);
+        });
       });
     });
   });

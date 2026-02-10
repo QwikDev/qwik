@@ -1,5 +1,7 @@
 export { _noopQrl, _noopQrlDEV, _regSymbol } from './shared/qrl/qrl';
 export type { QRLInternal as _QRLInternal } from './shared/qrl/qrl-class';
+export { createQRL as _createQRL } from './shared/qrl/qrl-class';
+export { qrlToString as _qrlToString } from './shared/serdes/qrl-to-string';
 // ^ keep this above to avoid circular dependency issues
 
 export {
@@ -41,7 +43,7 @@ export {
   isStringifiable as _isStringifiable,
   type Stringifiable as _Stringifiable,
 } from './shared-types';
-export { _chk, _val } from './shared/jsx/bind-handlers';
+export { _chk, _res, _val } from './shared/jsx/bind-handlers';
 export { _jsxC, _jsxQ, _jsxS, _jsxSorted, _jsxSplit } from './shared/jsx/jsx-internal';
 export { isJSXNode as _isJSXNode } from './shared/jsx/jsx-node';
 export { _getConstProps, _getVarProps } from './shared/jsx/props-proxy';
@@ -69,3 +71,5 @@ export {
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { isTask as _isTask, scheduleTask as _task } from './use/use-task';
 export { _captures } from './shared/qrl/qrl-class';
+export { _rsc } from './use/use-resource';
+export type { AsyncSignalOptions } from './reactive-primitives/types';

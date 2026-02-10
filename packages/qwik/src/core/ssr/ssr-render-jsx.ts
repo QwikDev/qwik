@@ -1,5 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import { _run } from '../client/run-qrl';
+import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
@@ -130,6 +131,7 @@ function processJSXNode(
         enqueue(value[i]);
       }
     } else if (isSignal(value)) {
+      maybeAddPollingAsyncSignalToEagerResume(ssr.serializationCtx, value);
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getOrCreateLastNode();
       const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
@@ -347,6 +349,7 @@ export function toSsrAttrs(
     }
 
     if (isSignal(value)) {
+      maybeAddPollingAsyncSignalToEagerResume(options.serializationCtx, value);
       // write signal as is. We will track this signal inside `writeAttrs`
       if (isClassAttr(key)) {
         // additionally append styleScopedId for class attr
@@ -449,6 +452,24 @@ function addPreventDefaultEventToSerializationContext(
   const eventName = 'e' + key.substring(14);
   if (eventName) {
     serializationCtx.$eventNames$.add(eventName);
+  }
+}
+
+function maybeAddPollingAsyncSignalToEagerResume(
+  serializationCtx: SerializationContext,
+  signal: unknown
+) {
+  // Unwrap if it's a WrappedSignalImpl
+  const unwrappedSignal = signal instanceof WrappedSignalImpl ? signal.$unwrapIfSignal$() : signal;
+
+  if (unwrappedSignal instanceof AsyncSignalImpl) {
+    const interval = unwrappedSignal.$interval$;
+    // Don't check for $effects$ here - effects are added later during tracking.
+    // The AsyncSignal's polling mechanism will check for effects before scheduling.
+    if (interval > 0) {
+      serializationCtx.$addRoot$(unwrappedSignal);
+      serializationCtx.$eagerResume$.add(unwrappedSignal);
+    }
   }
 }
 

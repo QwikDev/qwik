@@ -20,7 +20,8 @@ contributors:
   - aendel
   - jemsco
   - varixo
-updated_at: '2025-11-08T03:33:22Z'
+  - wmertens
+updated_at: '2026-02-10T12:00:00Z'
 created_at: '2023-03-31T02:40:50Z'
 ---
 
@@ -38,7 +39,7 @@ Tasks are meant for running asynchronous operations as part of component initial
 > - Tasks run before rendering and can block rendering.
 > - Subsequent task re-executions (when tracked state changes) block rendering by default, but can be configured to not block DOM updates with `deferUpdates: false`.
 
-`useTask$()` should be your default go-to API for running either synchronous or asynchronous work as part of component initialization or state change. It is only when you can't achieve what you need with `useTask$()` that you should consider using `useVisibleTask$()` or `useResource$()`.
+`useTask$()` should be your default go-to API for running either synchronous or asynchronous work as part of component initialization or state change. It is only when you can't achieve what you need with `useTask$()` that you should consider using `useVisibleTask$()`.
 
 The basic use case for `useTask$()` is to perform work on component initialization. `useTask$()` has these properties:
 - It can run on either the server or in the browser.
@@ -50,7 +51,7 @@ Tasks can also be used to perform work when a component state changes. In this c
 
 Sometimes a task needs to run only on the browser and after rendering, in that case, you should use [`useVisibleTask$()`](#usevisibletask).
 
-> **Note**: If you need to fetch data asynchronously and not block rendering, you should use [`useResource$()`](/docs/core/state/#useresource).  [`useResource$()`](/docs/core/state/#useresource) does not block rendering while the resource is being resolved.
+> **Note**: If you need to fetch data asynchronously and not block rendering, you should use [`useAsync$()`](/docs/core/state/#useasync). `useAsync$()` does not block rendering while the async value is being resolved.
 
 ## Lifecycle
 Resumability is "Lazy execution", it's the ability to build the "framework state" (component boundaries, etc) on the server, and have it exist on the client without re-executing the framework again.
@@ -179,7 +180,7 @@ Use `useTask$()` when you need to:
 - Run code only once before the component is first rendered  
 - Programmatically run side-effect code when state changes
 
-> Note, if you're thinking about loading data using `fetch()` inside of `useTask$`, consider using [`useResource$()`](/docs/core/state/#useresource) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
+> Note, if you're thinking about loading data using `fetch()` inside of `useTask$`, consider using [`useAsync$()`](/docs/core/state/#useasync) instead. This API is more convenient.
 
 ### On mount
 
@@ -215,7 +216,7 @@ Note that deep store updates don't mutate the store itself, so `store[item].coun
 
 During SSR, each component will wait until all tasks are completed before outputting the HTML for that component. So a task can be called multiple times during SSR if the tracked state changes due to other tasks.
 
-> **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/core/state/#usecomputed) instead.
+> **Note**: If all you want to do is compute a new state from an existing state synchronously, use [`useComputed$()`](/docs/core/state/#usecomputed). For async derivations (like search-as-you-type), use [`useAsync$()`](/docs/core/state/#useasync) and cancel in-flight work with `cleanup()` and `AbortController`.
 
 <CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" style={{ height: '6em' }} >
 ```tsx

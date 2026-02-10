@@ -68,6 +68,11 @@ function clearAsyncSignal(producer: AsyncSignalImpl<unknown>, effect: EffectSubs
   if (pendingEffects && pendingEffects.has(effect)) {
     pendingEffects.delete(effect);
   }
+  const errorEffects = producer.$errorEffects$;
+  if (errorEffects && errorEffects.has(effect)) {
+    errorEffects.delete(effect);
+  }
+  producer.$scheduleEagerCleanup$();
 }
 
 function clearStoreOrProps(producer: StoreHandler | PropsProxyHandler, effect: EffectSubscription) {

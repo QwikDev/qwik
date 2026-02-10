@@ -1,16 +1,14 @@
-import type { NoSerialize } from '../../shared/serdes/verify';
 import { logError } from '../../shared/utils/log';
 
-export type Destroyable = { $destroy$: NoSerialize<() => void> | null };
+export type Destroyable = { $destroy$: (() => void) | null };
 
 export const cleanupDestroyable = (destroyable: Destroyable) => {
-  const destroy = destroyable.$destroy$;
-  if (destroy) {
-    destroyable.$destroy$ = null;
+  if (destroyable.$destroy$) {
     try {
-      destroy();
+      destroyable.$destroy$();
     } catch (err) {
       logError(err);
     }
+    destroyable.$destroy$ = null;
   }
 };

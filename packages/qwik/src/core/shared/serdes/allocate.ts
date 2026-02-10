@@ -13,7 +13,6 @@ import { getOrCreateStore } from '../../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData, type NodePropData } from '../../reactive-primitives/subscription-data';
 import { EffectSubscription, StoreFlags } from '../../reactive-primitives/types';
-import { createResourceReturn } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { componentQrl } from '../component.public';
 import { qError, QError } from '../error/error';
@@ -71,16 +70,6 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     }
     case TypeIds.Task:
       return new Task(-1, -1, null!, null!, null!, null);
-    case TypeIds.Resource: {
-      const res = createResourceReturn(
-        container as any,
-        // we don't care about the timeout value
-        undefined,
-        undefined
-      );
-      res.loading = false;
-      return res;
-    }
     case TypeIds.URL:
       return new URL(value as string);
     case TypeIds.Date:
@@ -99,7 +88,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.ComputedSignal:
       return new ComputedSignalImpl(container as any, null!);
     case TypeIds.AsyncSignal:
-      return new AsyncSignalImpl(container as any, null!);
+      return new AsyncSignalImpl(container as any, null!, undefined, { interval: 0 });
     case TypeIds.SerializerSignal:
       return new SerializerSignalImpl(container as any, null!);
     case TypeIds.Store: {

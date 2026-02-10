@@ -64,7 +64,7 @@ export default component$(() => {
 ```
 
 
-## Moving signal reads to `useTask$` or `useComputed$`
+## Moving signal reads to `useTask$`, `useComputed$`, or `useAsync$`
 
 This is similar to the tip above.
 
@@ -73,7 +73,7 @@ the function that the "read" is happening at, will re-run again
 on every change to that signal.
 
 That’s why it’s better to "read" values (and track them)
-inside of `useTask$` or `useComputed$` functions instead of inside component functions,
+inside of `useTask$`, `useComputed$`, or `useAsync$` functions instead of inside component functions,
 whenever possible.
 
 Because otherwise, your component function will re-run
@@ -102,6 +102,23 @@ export default component$(() => {
   return (
     <div>{doubleCount.value}</div>
   );
+});
+```
+
+For async derived values (like search suggestions), use `useAsync$` and abort in-flight work on each keystroke:
+
+```tsx title="Async derived value with cancellation"
+export default component$(() => {
+  const query = useSignal('');
+  const results = useAsync$(async ({ track, abortSignal }) => {
+    const q = track(query);
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, {
+      signal: abortSignal,
+    });
+    return res.json();
+  }, { initial: [] });
+
+  return <div>{results.value.length} results</div>;
 });
 ```
 

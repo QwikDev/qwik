@@ -34,9 +34,22 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
 }
 
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
-export type AsyncCtx = {
+export type AsyncCtx<T = unknown> = {
   track: Tracker;
-  cleanup: (callback: () => void) => void;
+  /**
+   * Register a cleanup callback to be called when the async computation is aborted or completed.
+   * The next invocation will await the previous cleanup. If you do not want this, do not return a
+   * Promise.
+   */
+  cleanup: (callback: () => void | Promise<void>) => void;
+  /**
+   * A lazily created AbortSignal, for interrupting the async computation when needed, e.g. when the
+   * component is unmounted or the computation is invalidated. Pass it to `fetch` or other APIs that
+   * support it to ensure that unnecessary work is not performed.
+   */
+  readonly abortSignal: AbortSignal;
+  /** The result of the previous computation, if any */
+  readonly previous: T | undefined;
 };
 export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 
@@ -48,35 +61,45 @@ export interface ComputedOptions {
 
 /** @public */
 export interface AsyncSignalOptions<T> extends ComputedOptions {
-  /**
-   * Like useSignal's `initial`; prevents the throw on first read when uninitialized
-   *
-   * @deprecated Not implemented yet
-   */
+  /** Like useSignal's `initial`; prevents the throw on first read when uninitialized */
   initial?: T | (() => T);
+  /**
+   * Maximum number of concurrent computations. Use `0` for unlimited.
+   *
+   * Defaults to `1`.
+   */
+  concurrency?: number;
   /**
    * When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function
    * inputs to change.
    *
-   * @deprecated Not implemented yet
-   * @default false
+   * Defaults to `false`, meaning cleanup happens only when inputs change.
    */
   eagerCleanup?: boolean;
   /**
    * Wait for previous invocation to complete before running again.
    *
+   * Defaults to `true`.
+   *
    * @deprecated Not implemented yet
-   * @default true
    */
   awaitPrevious?: boolean;
   /**
-   * In the browser, re-run the function after `poll` ms if subscribers exist, even when no input
-   * state changed. If `0`, does not poll.
+   * In the browser, re-run the function after `interval` ms if subscribers exist, even when no
+   * input state changed. If `0`, does not poll.
    *
-   * @deprecated Not implemented yet
-   * @default 0
+   * Defaults to `0`.
    */
-  poll?: number;
+  interval?: number;
+  /**
+   * Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the
+   * computation is aborted and an error is thrown.
+   *
+   * If `0`, no timeout is applied.
+   *
+   * Defaults to `0`.
+   */
+  timeout?: number;
 }
 
 export const enum SignalFlags {
@@ -101,7 +124,11 @@ export const enum AsyncSignalFlags {
   AWAIT_PREVIOUS = 64,
 }
 
-export type AllSignalFlags = SignalFlags | WrappedSignalFlags | SerializationSignalFlags;
+export type AllSignalFlags =
+  | SignalFlags
+  | WrappedSignalFlags
+  | SerializationSignalFlags
+  | AsyncSignalFlags;
 
 /**
  * Effect is something which needs to happen (side-effect) due to signal value change.

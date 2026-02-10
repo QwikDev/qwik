@@ -10,7 +10,7 @@ import {
   SignalFlags,
   type ComputeQRL,
 } from '../types';
-import { throwIfQRLNotResolved } from '../utils';
+import { scheduleEffects, throwIfQRLNotResolved } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 
 const DEBUG = false;
@@ -38,6 +38,9 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
       return;
     }
     throwIfQRLNotResolved(this.$computeQrl$);
+
+    this.$flags$ &= ~SignalFlags.INVALID;
+
     let arg = (this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!;
     if (typeof arg === 'function') {
       arg = arg();
@@ -55,15 +58,16 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
       EffectProperty.VNODE,
       this.$container$!
     );
+    this.$didInitialize$ = true;
+
     DEBUG && log('SerializerSignal.$compute$', untrackedValue);
+    // We allow forcing the update of the signal without changing the value, for example when the deserialized value is the same reference as the old value but its internals have changed. In that case we want to trigger effects that depend on this signal, even though the value is the same.
     const didChange =
       (this.$didInitialize$ && untrackedValue !== 'undefined') ||
       untrackedValue !== this.$untrackedValue$;
-    this.$flags$ &= ~SignalFlags.INVALID;
-    this.$didInitialize$ = true;
     if (didChange) {
-      this.$flags$ |= SignalFlags.RUN_EFFECTS;
       this.$untrackedValue$ = untrackedValue as T;
+      scheduleEffects(this.$container$, this, this.$effects$);
     }
   }
 }

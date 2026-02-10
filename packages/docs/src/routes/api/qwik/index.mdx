@@ -120,11 +120,55 @@ Expression which should be lazy loaded
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
-## AsyncFn
+## abort
+
+Abort the current computation and run cleanups if needed.
 
 ```typescript
-export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
+abort(reason?: any): void;
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+reason
+
+</td><td>
+
+any
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void
+
+## AsyncFn
+
+Note, we don't pass the generic type to AsyncCtx because it causes TypeScript to not infer the type of the resource correctly. The type is only used for the `previous` property, which is not commonly used, and can be easily cast if needed.
+
+```typescript
+export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
+```
+
+**References:** [ValueOrPromise](#valueorpromise)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 
@@ -165,7 +209,22 @@ Error \| undefined
 
 </td><td>
 
-The error that occurred while computing the signal.
+The error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed.
+
+</td></tr>
+<tr><td>
+
+[interval](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+Poll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`, polling stops.
 
 </td></tr>
 <tr><td>
@@ -180,7 +239,17 @@ boolean
 
 </td><td>
 
-Whether the signal is currently loading.
+Whether the signal is currently loading. This will trigger lazy loading of the signal, so you can use it like this:
+
+```tsx
+signal.loading ? (
+  <Loading />
+) : signal.error ? (
+  <Error />
+) : (
+  <Component value={signal.value} />
+);
+```
 
 </td></tr>
 </tbody></table>
@@ -196,18 +265,162 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[abort(reason)](#asyncsignal-abort)
+
+</td><td>
+
+Abort the current computation and run cleanups if needed.
+
+</td></tr>
+<tr><td>
+
 [promise()](#asyncsignal-promise)
 
 </td><td>
 
-A promise that resolves when the value is computed.
+A promise that resolves when the value is computed or rejected.
 
 </td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
+## AsyncSignalOptions
+
+```typescript
+export interface AsyncSignalOptions<T> extends ComputedOptions
+```
+
+**Extends:** [ComputedOptions](#computedoptions)
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[awaitPrevious?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Wait for previous invocation to complete before running again.
+
+Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+[concurrency?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of concurrent computations. Use `0` for unlimited.
+
+Defaults to `1`.
+
+</td></tr>
+<tr><td>
+
+[eagerCleanup?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function inputs to change.
+
+Defaults to `false`, meaning cleanup happens only when inputs change.
+
+</td></tr>
+<tr><td>
+
+[initial?](#)
+
+</td><td>
+
+</td><td>
+
+T \| (() =&gt; T)
+
+</td><td>
+
+_(Optional)_ Like useSignal's `initial`; prevents the throw on first read when uninitialized
+
+</td></tr>
+<tr><td>
+
+[interval?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ In the browser, re-run the function after `interval` ms if subscribers exist, even when no input state changed. If `0`, does not poll.
+
+Defaults to `0`.
+
+</td></tr>
+<tr><td>
+
+[timeout?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the computation is aborted and an error is thrown.
+
+If `0`, no timeout is applied.
+
+Defaults to `0`.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/types.ts)
+
 ## cache
+
+> Warning: This API is now obsolete.
+>
+> Does not do anything
 
 ```typescript
 cache(policyOrMilliseconds: number | 'immutable'): void;
@@ -819,13 +1032,13 @@ Description
 
 ## createAsync$
 
-Create an async computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals or async operation. When the signals change, the computed signal is recalculated.
-
-The QRL must be a function which returns the value of the signal. The function must not have side effects, and it can be async.
+Create a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`.
 
 ```typescript
-createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) =>
-  AsyncSignal<T>;
+createAsync$: <T>(
+  qrl: (arg: AsyncCtx<T>) => Promise<T>,
+  options?: AsyncSignalOptions<T>,
+) => AsyncSignal<T>;
 ```
 
 <table><thead><tr><th>
@@ -847,7 +1060,7 @@ qrl
 
 </td><td>
 
-() =&gt; Promise&lt;T&gt;
+(arg: AsyncCtx&lt;T&gt;) =&gt; Promise&lt;T&gt;
 
 </td><td>
 
@@ -858,7 +1071,7 @@ options
 
 </td><td>
 
-[ComputedOptions](#computedoptions)
+[AsyncSignalOptions](#asyncsignaloptions)&lt;T&gt;
 
 </td><td>
 
@@ -879,7 +1092,7 @@ Create a computed signal which is calculated from the given QRL. A computed sign
 
 The QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.
 
-If you need the function to be async, use `useAsync$` instead.
+If you need the function to be async, use `createAsync$` instead (don't forget to use `track()`).
 
 ```typescript
 createComputed$: <T>(qrl: () => T, options?: ComputedOptions) =>
@@ -2618,15 +2831,15 @@ opts
 
 ## promise
 
-A promise that resolves when the value is computed.
+A promise that resolves when the value is computed or rejected.
 
 ```typescript
-promise(): Promise<T>;
+promise(): Promise<void>;
 ```
 
 **Returns:**
 
-Promise&lt;T&gt;
+Promise&lt;void&gt;
 
 ## PropFunction
 
@@ -3699,51 +3912,42 @@ StreamWriter
 
 ## Resource
 
-This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
-
-`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
-
-The status can be one of the following:
-
-- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.
-
-Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`.
-
-### Example
-
-Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
+> Warning: This API is now obsolete.
+>
+> Use `useAsync$` instead, which is more efficient, and has a more flexible API. Just read the `loading` and `error` properties from the returned signal to determine the status.
 
 ```tsx
 const Cmp = component$(() => {
-  const cityS = useSignal("");
+  const city = useSignal("");
 
-  const weatherResource = useResource$(async ({ track, cleanup }) => {
-    const cityName = track(cityS);
-    const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
+  const weather = useAsync$(async ({ track, cleanup, abortSignal }) => {
+    const cityName = track(city);
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
-      signal: abortController.signal,
+      signal: abortSignal,
     });
-    const data = await res.json();
-    return data as { temp: number };
+    const temp = (await res.json()) as { temp: number };
+    return temp;
   });
 
   return (
     <div>
-      <input name="city" bind:value={cityS} />
-      <Resource
-        value={weatherResource}
-        onResolved={(weather) => {
-          return <div>Temperature: {weather.temp}</div>;
-        }}
-      />
+      <input name="city" bind:value={city} />
+      <div>
+        Temperature:{" "}
+        {weather.loading
+          ? "Loading..."
+          : weather.error
+            ? `Error: ${weather.error.message}`
+            : weather.value.temp}
+      </div>
     </div>
   );
 });
 ```
 
 ```typescript
-Resource: <T>(props: ResourceProps<T>) => JSXOutput;
+Resource: <T>({ value, onResolved, onPending, onRejected }: ResourceProps<T>) =>
+  JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -3761,7 +3965,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-props
+\{ value, onResolved, onPending, onRejected, }
 
 </td><td>
 
@@ -3781,57 +3985,10 @@ props
 ## ResourceCtx
 
 ```typescript
-export interface ResourceCtx<T>
+export interface ResourceCtx<T = unknown> extends AsyncCtx<T>
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[previous](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-T \| undefined
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[track](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-[Tracker](#tracker)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**Extends:** AsyncCtx&lt;T&gt;
 
 <table><thead><tr><th>
 
@@ -3849,13 +4006,6 @@ Description
 </td><td>
 
 </td></tr>
-<tr><td>
-
-[cleanup(callback)](#)
-
-</td><td>
-
-</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
@@ -3863,7 +4013,7 @@ Description
 ## ResourceFn
 
 ```typescript
-export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx) => ValueOrPromise<T>;
 ```
 
 **References:** [ResourceCtx](#resourcectx), [ValueOrPromise](#valueorpromise)
@@ -3917,57 +4067,10 @@ _(Optional)_ Timeout in milliseconds. If the resource takes more than the specif
 ## ResourcePending
 
 ```typescript
-export interface ResourcePending<T>
+export type ResourcePending<T> = ResourceReturn<T>;
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[loading](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[value](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-Promise&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [ResourceReturn](#resourcereturn)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
@@ -4059,131 +4162,43 @@ _(Optional)_
 ## ResourceRejected
 
 ```typescript
-export interface ResourceRejected<T>
+export type ResourceRejected<T> = ResourceReturn<T>;
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[loading](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[value](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-Promise&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [ResourceReturn](#resourcereturn)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceResolved
 
 ```typescript
-export interface ResourceResolved<T>
+export type ResourceResolved<T> = ResourceReturn<T>;
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[loading](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[value](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-Promise&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [ResourceReturn](#resourcereturn)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceReturn
 
 ```typescript
-export type ResourceReturn<T> =
-  | ResourcePending<T>
-  | ResourceResolved<T>
-  | ResourceRejected<T>;
+export type ResourceReturn<T> = {
+  readonly value: Promise<T>;
+  readonly loading: boolean;
+};
 ```
-
-**References:** [ResourcePending](#resourcepending), [ResourceResolved](#resourceresolved), [ResourceRejected](#resourcerejected)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## SerializationStrategy
+
+Serialization strategy for computed and async signals. This determines whether to serialize their value during SSR.
+
+- `never`: The value is never serialized. When the component is resumed, the value will be recalculated when it is first read. - `always`: The value is always serialized. This is the default.
+
+\*\*IMPORTANT\*\*: When you use `never`, your serialized HTML is smaller, but the recalculation will trigger subscriptions, meaning that other signals using this signal will recalculate, even if this signal didn't change.
+
+This is normally not a problem, but for async signals it may mean fetching something again.
 
 ```typescript
 export type SerializationStrategy = "never" | "always";
@@ -9012,7 +9027,7 @@ If the value has not yet been resolved, reading the AsyncSignal will throw a Pro
 If the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.
 
 ```typescript
-useAsync$: <T>(qrl: AsyncFn<T>, options?: ComputedOptions | undefined) =>
+useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) =>
   AsyncSignal<T>;
 ```
 
@@ -9046,7 +9061,7 @@ options
 
 </td><td>
 
-[ComputedOptions](#computedoptions) \| undefined
+[AsyncSignalOptions](#asyncsignaloptions)&lt;T&gt; \| undefined
 
 </td><td>
 
@@ -9511,6 +9526,10 @@ void
 
 ## useResource$
 
+> Warning: This API is now obsolete.
+>
+> Use `useAsync$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useAsync$` for new code and when updating existing code.
+
 This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
 
 `useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
@@ -9521,42 +9540,11 @@ The status can be one of the following:
 
 Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`.
 
-### Example
-
-Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
-
-```tsx
-const Cmp = component$(() => {
-  const cityS = useSignal("");
-
-  const weatherResource = useResource$(async ({ track, cleanup }) => {
-    const cityName = track(cityS);
-    const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
-    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
-      signal: abortController.signal,
-    });
-    const data = await res.json();
-    return data as { temp: number };
-  });
-
-  return (
-    <div>
-      <input name="city" bind:value={cityS} />
-      <Resource
-        value={weatherResource}
-        onResolved={(weather) => {
-          return <div>Temperature: {weather.temp}</div>;
-        }}
-      />
-    </div>
-  );
-});
-```
-
 ```typescript
-useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) =>
-  ResourceReturn<T>;
+useResource$: <T>(
+  qrl: import("./use-resource").ResourceFn<T>,
+  opts?: import("./use-resource").ResourceOptions | undefined,
+) => import("./use-resource").ResourceReturn<T>;
 ```
 
 <table><thead><tr><th>
@@ -9574,11 +9562,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-generatorFn
+qrl
 
 </td><td>
 
-[ResourceFn](#resourcefn)&lt;T&gt;
+import("./use-resource").[ResourceFn](#resourcefn)&lt;T&gt;
 
 </td><td>
 
@@ -9589,7 +9577,7 @@ opts
 
 </td><td>
 
-[ResourceOptions](#resourceoptions)
+import("./use-resource").[ResourceOptions](#resourceoptions) \| undefined
 
 </td><td>
 
@@ -9600,7 +9588,7 @@ _(Optional)_
 
 **Returns:**
 
-[ResourceReturn](#resourcereturn)&lt;T&gt;
+import("./use-resource").[ResourceReturn](#resourcereturn)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts)
 

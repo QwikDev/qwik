@@ -1,15 +1,19 @@
 import {
   $,
   Fragment as Signal,
+  Slot,
   _jsxSorted,
   _wrapProp,
   component$,
+  useAsync$,
+  useConstant,
+  useErrorBoundary,
   useSignal,
   useTask$,
+  type AsyncSignal,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { useAsync$ } from '../use/use-async';
 import { delay } from '../shared/utils/promises';
 
 const debug = false; //true;
@@ -122,22 +126,43 @@ describe.each([
     );
   });
 
-  it('should handle error if promise is rejected', async () => {
+  it('should throw error on value if promise is rejected', async () => {
     (globalThis as any).log = [];
-    const Counter = component$(() => {
-      const count = useSignal(1);
-      const doubleCount = useAsync$(() => Promise.reject(new Error('test')));
-
-      useTask$(({ track }) => {
-        track(doubleCount);
-
-        (globalThis as any).log.push((doubleCount as any).untrackedError.message);
-      });
-
-      return <button onClick$={() => count.value++}>{(doubleCount as any).value}</button>;
+    const ErrorBoundary = component$(() => {
+      const store = useErrorBoundary();
+      (globalThis as any).log.push(`rendering error boundary, ${store.error || 'no error'}`);
+      return store.error ? <div>{JSON.stringify(store.error)}</div> : <Slot />;
     });
-    await render(<Counter />, { debug });
-    expect((globalThis as any).log).toEqual(['test']);
+    const Counter = component$(() => {
+      (globalThis as any).log.push('rendering counter');
+      const doubleCount = useAsync$(() => Promise.reject(new Error('test')));
+      return <div>{doubleCount.value}</div>;
+    });
+    let threw = false;
+    try {
+      await render(
+        <ErrorBoundary>
+          <Counter />,
+        </ErrorBoundary>,
+        { debug }
+      );
+    } catch (e) {
+      threw = true;
+    }
+    if (render === ssrRenderToDom) {
+      expect((globalThis as any).log).toEqual([
+        'rendering error boundary, no error',
+        'rendering counter',
+      ]);
+      expect(threw).toBe(true);
+    } else {
+      expect((globalThis as any).log).toEqual([
+        'rendering error boundary, no error',
+        'rendering counter',
+        'rendering error boundary, Error: test',
+      ]);
+      expect(threw).toBe(false);
+    }
   });
 
   it('should handle undefined as promise result', async () => {
@@ -219,8 +244,10 @@ describe.each([
         const count = useSignal(1);
         const doubleCount = useAsync$(async ({ track }) => {
           const countValue = track(count);
-          if (countValue > 1) {
+          if (countValue === 2) {
             await (globalThis as any).delay();
+          } else {
+            await delay(10);
           }
           return countValue * 2;
         });
@@ -231,17 +258,33 @@ describe.each([
         );
       });
       const { vNode, container } = await render(<Counter />, { debug });
-      await waitForDrain(container);
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>
-            <Signal ssr-required>{'2'}</Signal>
-          </button>
-        </>
-      );
+      if (render === ssrRenderToDom) {
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              <Signal ssr-required>{'2'}</Signal>
+            </button>
+          </>
+        );
+      } else {
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              <Signal ssr-required>{'loading'}</Signal>
+            </button>
+          </>
+        );
+        await delay(20);
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              <Signal ssr-required>{'2'}</Signal>
+            </button>
+          </>
+        );
+      }
 
       await trigger(container.element, 'button', 'click');
-
       expect(vNode).toMatchVDOM(
         <>
           <button>
@@ -250,7 +293,7 @@ describe.each([
         </>
       );
 
-      await (globalThis as any).delay.resolve();
+      (globalThis as any).delay.resolve();
       await waitForDrain(container);
       await waitForDrain(container);
       expect(vNode).toMatchVDOM(
@@ -258,6 +301,22 @@ describe.each([
           <button>
             <Signal ssr-required>{'4'}</Signal>
           </button>
+        </>
+      );
+    });
+    it('should not show initial value after SSR', async () => {
+      const ref = {} as { s: AsyncSignal<number> };
+      const Cmp = component$(() => {
+        const asyncValue = useAsync$(async () => 42, { initial: 10 });
+        ref.s = asyncValue;
+        return <div>{asyncValue.value}</div>;
+      });
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <div>
+            <Signal>{'42'}</Signal>
+          </div>
         </>
       );
     });
@@ -332,11 +391,11 @@ describe.each([
       (globalThis as any).log = [];
 
       const Child = component$(() => {
-        const asyncValue = useAsync$(({ cleanup }) => {
+        const asyncValue = useAsync$(async ({ cleanup }) => {
           cleanup(() => {
             (globalThis as any).log.push('cleanup');
           });
-          return Promise.resolve(1);
+          return 1;
         });
         return <div>{asyncValue.value}</div>;
       });
@@ -358,9 +417,8 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       // on server after resuming cleanup is not called yet
       // on client it is called as usual
-      expect((globalThis as any).log).toEqual(
-        render === ssrRenderToDom ? ['cleanup'] : ['cleanup']
-      );
+      // so from this point the log is equal for ssr and client
+      expect((globalThis as any).log).toEqual(['cleanup']);
       await trigger(container.element, 'button', 'click'); //show
       await trigger(container.element, 'button', 'click'); //hide
       // on server and client cleanup called again
@@ -389,6 +447,43 @@ describe.each([
 
       await trigger(container.element, 'button', 'click');
       expect((globalThis as any).log).toEqual(['cleanup', 'cleanup']);
+    });
+
+    it('should resume polling AsyncSignal with d:qidle on SSR', async () => {
+      // This test verifies that polling AsyncSignals are tracked during serialization
+      // and a d:qidle event is added to resume polling on document idle
+      const Counter = component$(() => {
+        const start = useConstant(Date.now);
+        const elapsed = useAsync$(async () => Date.now() - start, { interval: 50 });
+        return (
+          <div>
+            <div id="elapsed">{elapsed.value}</div>
+            <button
+              onClick$={() => {
+                elapsed.interval = elapsed.interval ? 0 : 50;
+              }}
+            >
+              Toggle updates
+            </button>
+          </div>
+        );
+      });
+
+      const { container } = await render(<Counter />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(container.element, null, 'd:qidle');
+      }
+      const elapsedBefore = Number(container.element.querySelector('#elapsed')!.textContent);
+      await delay(100);
+      const elapsedAfter = Number(container.element.querySelector('#elapsed')!.textContent);
+      expect(elapsedAfter).toBeGreaterThan(elapsedBefore);
+
+      await trigger(container.element, 'button', 'click'); // disable polling
+      const elapsedWhenStopped = Number(container.element.querySelector('#elapsed')!.textContent);
+      await delay(100);
+      const elapsedAfterStop = Number(container.element.querySelector('#elapsed')!.textContent);
+      expect(elapsedAfterStop).toEqual(elapsedWhenStopped);
     });
   });
 });

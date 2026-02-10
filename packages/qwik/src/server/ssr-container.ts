@@ -1,6 +1,9 @@
 /** @file Public APIs for the SSR */
 import { isDev } from '@qwik.dev/core/build';
 import {
+  _createQRL as createQRL,
+  _qrlToString as qrlToString,
+  _res,
   _SubscriptionData as SubscriptionData,
   _SharedContainer,
   _jsxSorted,
@@ -898,10 +901,27 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.serializationCtx.$roots$.length) {
       return;
     }
-    this.openElement('script', null, ['type', 'qwik/state']);
+
+    const attrs = this.stateScriptAttrs();
+
+    this.openElement('script', null, attrs);
     return maybeThen(this.serializationCtx.$serialize$(), () => {
       this.closeElement();
     });
+  }
+
+  /** Add q-d:qidle attribute to eagerly resume some state if needed */
+  private stateScriptAttrs(): string[] {
+    const attrs = ['type', 'qwik/state'];
+    const eagerResume = this.serializationCtx.$eagerResume$;
+    if (eagerResume.size > 0) {
+      const qrl = createQRL(null, '_res', _res, null, [...eagerResume]);
+      const qrlStr = qrlToString(this.serializationCtx, qrl);
+      attrs.push('q-d:qidle', qrlStr);
+      // Add 'd:qidle' to event names set
+      this.serializationCtx.$eventNames$.add('d:qidle');
+    }
+    return attrs;
   }
 
   private emitSyncFnsData() {

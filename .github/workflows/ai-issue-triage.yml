@@ -60,14 +60,12 @@ jobs:
 
             Status (apply if applicable):
             - "needs reproduction" — Bug report lacks a reproduction link
-            - "missing info" — Issue template is mostly empty
 
             Rules:
             1. Always include exactly ONE type label.
             2. For bugs without a reproduction link, include "needs reproduction".
-            3. For issues with mostly empty body, include "missing info".
-            4. Do NOT include "good first issue" unless the fix is obviously trivial.
-            5. Respond with ONLY a JSON array like: ["bug", "runtime", "needs reproduction"]`
+            3. Do NOT include "good first issue" unless the fix is obviously trivial.
+            4. Respond with ONLY a JSON array like: ["bug", "runtime", "needs reproduction"]`
                   },
                   {
                     role: 'user',
@@ -131,24 +129,14 @@ jobs:
 
             core.info(`Applied labels: ${valid.join(', ')}`);
 
-            // Post follow-up comments for status labels
+            // Post follow-up comment for needs reproduction
             // (labeling-issues.yml won't fire because GITHUB_TOKEN labels don't trigger labeled events)
-            const author = issue.user.login;
-
             if (valid.includes('needs reproduction')) {
+              const author = issue.user.login;
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
-                body: `Hello @${author}. Please provide a [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) using a GitHub repository or [StackBlitz](https://qwik.new).\n[Here](https://antfu.me/posts/why-reproductions-are-required#why-reproduction) is why we really need a minimal reproduction.\nThanks 🙏`
-              });
-            }
-
-            if (valid.includes('missing info')) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                body: `Hello @${author}. Please provide the missing information requested above.\nIssues marked with \`missing info\` will be automatically closed if they have no activity within 14 days.\nThanks 🙏`
+                body: `Hello @${author}. Please provide a [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) using a GitHub repository or [StackBlitz](https://qwik.new).\n[Here](https://antfu.me/posts/why-reproductions-are-required#why-reproduction) is why reproductions help us fix issues faster.\nThanks 🙏`
               });
             }

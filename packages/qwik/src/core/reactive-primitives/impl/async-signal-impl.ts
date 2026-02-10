@@ -199,9 +199,9 @@ export class AsyncSignalImpl<T>
   }
 
   /** Abort the current computation and run cleanups if needed. */
-  abort(): void {
+  abort(reason?: any): void {
     if (this.$current$) {
-      this.$requestCleanups$(this.$current$);
+      this.$requestCleanups$(this.$current$, reason);
     }
   }
 
@@ -367,13 +367,13 @@ export class AsyncSignalImpl<T>
     return !!(this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size);
   }
 
-  async $requestCleanups$(job: AsyncJob<T>) {
+  async $requestCleanups$(job: AsyncJob<T>, reason?: any) {
     if (job.$cleanupRequested$) {
       return job.$promise$;
     }
     DEBUG && log('Requesting cleanups for job', job);
     job.$cleanupRequested$ = true;
-    job.$abortController$?.abort();
+    job.$abortController$?.abort(reason);
     job.$promise$ = Promise.resolve(job.$promise$).then(
       () => (job.$promise$ = this.$runCleanups$(job))
     );

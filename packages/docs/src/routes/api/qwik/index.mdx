@@ -125,8 +125,36 @@ Expression which should be lazy loaded
 Abort the current computation and run cleanups if needed.
 
 ```typescript
-abort(): void;
+abort(reason?: any): void;
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+reason
+
+</td><td>
+
+any
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 
 **Returns:**
 
@@ -237,7 +265,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[abort()](#asyncsignal-abort)
+[abort(reason)](#asyncsignal-abort)
 
 </td><td>
 

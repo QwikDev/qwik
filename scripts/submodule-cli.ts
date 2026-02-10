@@ -16,8 +16,13 @@ export async function submoduleCli(config: BuildConfig) {
     target: nodeTarget,
     sourcemap: false,
     bundle: true,
-    banner: { js: getBanner('@qwik.dev/core/cli', config.distVersion) },
-    outExtension: { '.js': '.mjs' },
+    banner: {
+      js: [
+        getBanner('@qwik.dev/core/cli', config.distVersion),
+        `import { createRequire } from 'node:module';`,
+        `const require = createRequire(import.meta.url);`,
+      ].join('\n'),
+    },
     plugins: [
       {
         name: 'colorAlias',
@@ -35,7 +40,7 @@ export async function submoduleCli(config: BuildConfig) {
         },
       },
     ],
-    external: ['prettier', 'typescript', 'ts-morph', 'semver', 'ignore', 'execa'],
+    external: ['prettier', 'typescript', 'ts-morph', 'semver', 'ignore'],
     define: {
       'globalThis.CODE_MOD': 'true',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),

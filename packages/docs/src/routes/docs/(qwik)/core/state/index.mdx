@@ -349,6 +349,40 @@ As we see in the example above, `useAsync$()` returns an `AsyncSignal<T>` object
 >
 > See [`routeLoader$`](/docs/(qwikrouter)/route-loader/index.mdx) for fetching data early as part of initial HTTP request.
 
+#### Channel example
+
+In this example, we use `useAsync$()` to get updates from a server using Server-Sent Events (SSE). Note that it writes to its own value, updating its subscribers.
+To be able to refer to itself, the signal needs to be in an object.
+
+```tsx
+import { component$, useAsync$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const _ref = {} as { state: AsyncSignal<string> };
+  _ref.state = useAsync$<string[]>(
+    ({ track, abortSignal }) => {
+      const url = new URL('/api/state-channel');
+      const eventSource = new EventSource(url);
+
+      eventSource.onmessage = (event) => {
+        _ref.state.value = event.data;
+      };
+
+      abortSignal.addEventListener('abort', () => {
+        eventSource.close();
+      });
+
+      return 'init';
+    },
+    // Close the channel as soon as there are no subscribers
+    { eagerCleanup: true }
+  );
+  const state = _ref.state;
+
+  return <div>Current state is: {state.value}</div>;
+});
+```
+
 #### API
 
 The API of `useAsync$()` (and `createAsync$()`) is as follows:
@@ -360,7 +394,7 @@ function useAsync$<T>(
     abortSignal: AbortSignal;
     previous: T | undefined;
   }) => Promise<T>,
-  options?: { initial?: T; interval?: number; concurrency?: number; timeout?: number }
+  options?: { initial?: T; interval?: number; concurrency?: number; timeout?: number; eagerCleanup?: boolean }
 ): AsyncSignal<T>;
 ```
 
@@ -385,6 +419,7 @@ Options:
   - No matter the `concurrency` setting, whenever the signal is invalidated, the currently running async function will be aborted using the `abortSignal`. It's up to you to decide to use the signal or not.
   - The cleanups are awaited, so if you do not want that, you should not return a Promise.
 - `timeout`: if provided, the async function will be automatically aborted if it takes longer than the specified time to resolve.
+- `eagerCleanup`: if set to `true`, the async function will be aborted as soon as there are no subscribers to the async signal, instead of waiting for the next time it needs to be re-run. This is useful to free up resources as soon as they are not needed anymore.
 
 The returned `AsyncSignal<T>` has the following (reactive) properties:
 

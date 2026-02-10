@@ -17,6 +17,7 @@ import {
   type InternalReadonlySignal,
   type InternalSignal,
 } from '../types';
+import { clearAllEffects } from '../cleanup';
 import {
   createComputed$,
   createComputedQrl,
@@ -642,6 +643,38 @@ describe('signal', () => {
           await delay(0);
 
           expect(signal.value).toBe(2);
+        });
+      });
+
+      it('should eagerly cleanup on unsubscribe and abort', async () => {
+        await withContainer(async () => {
+          const ref = { aborted: false, cleanupCalls: 0 };
+
+          const signal = createAsync$(
+            async ({ abortSignal, cleanup }) => {
+              abortSignal.addEventListener('abort', () => {
+                ref.aborted = true;
+              });
+              cleanup(() => {
+                ref.cleanupCalls++;
+              });
+              return 1;
+            },
+            { initial: 0, eagerCleanup: true }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+          await signal.promise();
+
+          expect(ref.cleanupCalls).toBe(0);
+          expect(ref.aborted).toBe(false);
+
+          clearAllEffects(container, task!);
+
+          await delay(0);
+
+          expect(ref.aborted).toBe(true);
+          expect(ref.cleanupCalls).toBe(1);
         });
       });
 

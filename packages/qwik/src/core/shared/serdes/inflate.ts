@@ -13,6 +13,7 @@ import { getStoreHandler, unwrapStore } from '../../reactive-primitives/impl/sto
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import type { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  AsyncSignalFlags,
   EffectProperty,
   NEEDS_COMPUTATION,
   SignalFlags,
@@ -142,6 +143,8 @@ export const inflate = (
         number?,
         number?,
         number?,
+        // Maybe we should serialize flags instead
+        boolean?,
       ];
       asyncSignal.$computeQrl$ = d[0];
       asyncSignal[_EFFECT_BACK_REF] = d[1];
@@ -161,6 +164,9 @@ export const inflate = (
       asyncSignal.interval = d[7] ?? 0;
       asyncSignal.$concurrency$ = d[8] ?? 1;
       asyncSignal.$timeoutMs$ = d[9] ?? 0;
+      if (d[10]) {
+        asyncSignal.$flags$ |= AsyncSignalFlags.EAGER_CLEANUP;
+      }
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal

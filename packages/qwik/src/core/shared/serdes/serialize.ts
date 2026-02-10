@@ -409,20 +409,12 @@ export async function serialize(serializationContext: SerializationContext): Pro
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
         const isInvalid = value.$flags$ & SignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
-        const interval =
-          value instanceof AsyncSignalImpl && value.$interval$ > 0 ? value.$interval$ : undefined;
-        const concurrency =
-          value instanceof AsyncSignalImpl && value.$concurrency$ !== 1
-            ? value.$concurrency$
-            : undefined;
-        const timeout =
-          value instanceof AsyncSignalImpl && value.$timeoutMs$ !== 0
-            ? value.$timeoutMs$
-            : undefined;
+        const isAsync = value instanceof AsyncSignalImpl;
+        const interval = isAsync && value.$interval$ > 0 ? value.$interval$ : undefined;
+        const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
+        const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
         const eagerCleanup =
-          value instanceof AsyncSignalImpl && value.$flags$ & AsyncSignalFlags.EAGER_CLEANUP
-            ? true
-            : undefined;
+          isAsync && value.$flags$ & AsyncSignalFlags.EAGER_CLEANUP ? true : undefined;
 
         if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
@@ -437,7 +429,6 @@ export async function serialize(serializationContext: SerializationContext): Pro
           filterEffectBackRefs(value[_EFFECT_BACK_REF]),
           value.$effects$,
         ];
-        const isAsync = value instanceof AsyncSignalImpl;
         if (isAsync) {
           // After SSR, the signal is never loading, so no need to send it
           out.push(value.$loadingEffects$, value.$errorEffects$, value.$untrackedError$);

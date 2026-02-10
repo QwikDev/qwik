@@ -1,4 +1,4 @@
-import jsxAstUtils from 'jsx-ast-utils';
+import jsxAstUtils from 'jsx-ast-utils-x';
 import { QwikEslintExamples } from '../examples';
 
 // ------------------------------------------------------------------------------

@@ -29,7 +29,7 @@ export class SignalImpl<T = any> implements Signal<T> {
   $wrappedSignal$: WrappedSignalImpl<T> | null = null;
 
   constructor(container: Container | null, value: T) {
-    this.$container$ = container;
+    this.$container$ = container || tryGetInvokeContext()?.$container$ || null;
     this.$untrackedValue$ = value;
     DEBUG && log('new', this);
   }
@@ -52,16 +52,16 @@ export class SignalImpl<T = any> implements Signal<T> {
   }
 
   get value() {
+    // Important: first read, then subscribe. Otherwise, initial compute invalidation will cause the reading subscriber to be marked invalid.
+    const val = this.untrackedValue;
     const ctx = tryGetInvokeContext();
     if (!ctx) {
-      return this.untrackedValue;
+      DEBUG && log('read->no-ctx', pad('\n' + this.toString(), '  '));
+      return val;
     }
     if (this.$container$ === null) {
-      if (!ctx.$container$) {
-        return this.untrackedValue;
-      }
       // Grab the container now we have access to it
-      this.$container$ = ctx.$container$;
+      this.$container$ = ctx.$container$!;
     } else {
       isDev &&
         assertTrue(
@@ -82,14 +82,23 @@ export class SignalImpl<T = any> implements Signal<T> {
       (import.meta.env.TEST ? !isDomContainer(this.$container$) : isServer) &&
         addQrlToSerializationCtx(effectSubscriber, this.$container$);
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
+    } else {
+      DEBUG && log('read no sub', pad('\n' + this.toString(), '  '));
     }
-    return this.untrackedValue;
+    return val;
   }
 
   set value(value) {
     if (value !== this.$untrackedValue$) {
       DEBUG &&
-        log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), '  '));
+        log(
+          'Signal.set',
+          this.$untrackedValue$,
+          '->',
+          value,
+          pad('\n' + this.toString(), '  '),
+          this.$effects$ ? 'subs: ' + this.$effects$.size : 'no subs'
+        );
       this.$untrackedValue$ = value;
       scheduleEffects(this.$container$, this, this.$effects$);
     }
@@ -104,12 +113,16 @@ export class SignalImpl<T = any> implements Signal<T> {
 
   toString() {
     if (isDev) {
-      return (
-        `[${this.constructor.name}${(this as any).$flags$ & SignalFlags.INVALID ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
-        (Array.from(this.$effects$ || [])
-          .map((e) => '\n -> ' + pad(qwikDebugToString(e.consumer), '    '))
-          .join('\n') || '')
-      );
+      try {
+        return (
+          `[${this.constructor.name}${(this as any).$flags$ & SignalFlags.INVALID ? ' INVALID' : ''} ${this.$untrackedValue$}]` +
+          (Array.from(this.$effects$ || [])
+            .map((e) => '\n -> ' + pad(qwikDebugToString(e.consumer), '    '))
+            .join('\n') || '')
+        );
+      } catch (e) {
+        return `[${this.constructor.name} <cannot stringify>]`;
+      }
     } else {
       return this.constructor.name;
     }
@@ -119,40 +132,36 @@ export class SignalImpl<T = any> implements Signal<T> {
   }
 }
 
-export const setupSignalValueAccess = <T, S>(
-  target: SignalImpl<T>,
-  effectsFn: () => Set<EffectSubscription>,
-  returnValueFn: () => S
-) => {
+export const setupSignalValueAccess = <Sig extends SignalImpl<any>, Prop extends keyof Sig>(
+  target: Sig,
+  effectsProp: keyof Sig,
+  valueProp: Prop
+): Sig[Prop] => {
   const ctx = tryGetInvokeContext();
-  if (!ctx) {
-    return returnValueFn();
-  }
-  if (target.$container$ === null) {
-    if (!ctx.$container$) {
-      return returnValueFn();
-    }
-    // Grab the container now we have access to it
-    target.$container$ = ctx.$container$;
-  } else {
+  // We need a container for this
+  // Grab the container if we have access to it
+  if (ctx && (target.$container$ ||= ctx.$container$ || null)) {
     isDev &&
       assertTrue(
         !ctx.$container$ || ctx.$container$ === target.$container$,
         'Do not use signals across containers'
       );
+    const effectSubscriber = ctx.$effectSubscriber$;
+    if (effectSubscriber) {
+      // Let's make sure that we have a reference to this effect.
+      // Adding reference is essentially adding a subscription, so if the signal
+      // changes we know who to notify.
+      ensureContainsSubscription(
+        ((target[effectsProp] as Set<EffectSubscription>) ||= new Set()),
+        effectSubscriber
+      );
+      // But when effect is scheduled in needs to be able to know which signals
+      // to unsubscribe from. So we need to store the reference from the effect back
+      // to this signal.
+      ensureContainsBackRef(effectSubscriber, target);
+      addQrlToSerializationCtx(effectSubscriber, target.$container$);
+      DEBUG && log('read->sub', pad('\n' + target.toString(), '  '));
+    }
   }
-  const effectSubscriber = ctx.$effectSubscriber$;
-  if (effectSubscriber) {
-    // Let's make sure that we have a reference to this effect.
-    // Adding reference is essentially adding a subscription, so if the signal
-    // changes we know who to notify.
-    ensureContainsSubscription(effectsFn(), effectSubscriber);
-    // But when effect is scheduled in needs to be able to know which signals
-    // to unsubscribe from. So we need to store the reference from the effect back
-    // to this signal.
-    ensureContainsBackRef(effectSubscriber, target);
-    addQrlToSerializationCtx(effectSubscriber, target.$container$);
-    DEBUG && log('read->sub', pad('\n' + target.toString(), '  '));
-  }
-  return returnValueFn();
+  return target[valueProp];
 };

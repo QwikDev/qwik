@@ -12,8 +12,7 @@ export const ErrorBoundary = component$((props: ErrorBoundaryProps) => {
   useOnWindow(
     'qerror',
     $((e: CustomEvent) => {
-      // we are allowed to write to our "read-only" store
-      (store.error as any) = e.detail.error;
+      store.error = e.detail.error;
     })
   );
 

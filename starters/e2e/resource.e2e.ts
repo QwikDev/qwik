@@ -24,10 +24,10 @@ test.describe("resource", () => {
     logsContent += "[WATCH] 1 after\n";
     // second task starts and modifies tracking resource value
     logsContent += "[WATCH] 2 before\n";
-    // resource starts again
-    logsContent += "[RESOURCE] 1 before\n";
     // second task finishes
     logsContent += "[WATCH] 2 after\n";
+    // resource starts again
+    logsContent += "[RESOURCE] 1 before\n";
     // first resource trigger finishes
     logsContent += "[RESOURCE] 1 after\n\n";
     // second resource trigger finishes
@@ -66,10 +66,10 @@ test.describe("resource", () => {
     logsContent += "[WATCH] 1 after\n";
     // second task starts and modifies tracking resource value
     logsContent += "[WATCH] 2 before\n";
-    // resource starts again
-    logsContent += "[RESOURCE] 1 before\n";
     // second task finishes
     logsContent += "[WATCH] 2 after\n";
+    // resource starts again
+    logsContent += "[RESOURCE] 1 before\n";
     // first resource trigger finishes
     logsContent += "[RESOURCE] 1 after\n\n";
     // second resource trigger finishes

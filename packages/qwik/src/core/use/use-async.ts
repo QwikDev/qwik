@@ -1,20 +1,30 @@
 import { createAsyncSignal } from '../reactive-primitives/signal-api';
 import { type AsyncSignal } from '../reactive-primitives/signal.public';
-import type { AsyncCtx, ComputedOptions } from '../reactive-primitives/types';
+import type { AsyncCtx, AsyncSignalOptions } from '../reactive-primitives/types';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
+import type { ValueOrPromise } from '../shared/utils/types';
 import { useConstant } from './use-signal';
 
-/** @public */
-export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
+/**
+ * Note, we don't pass the generic type to AsyncCtx because it causes TypeScript to not infer the
+ * type of the resource correctly. The type is only used for the `previous` property, which is not
+ * commonly used, and can be easily cast if needed.
+ *
+ * @public
+ */
+export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
 
-const creator = <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions) => {
+const creator = <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => {
   qrl.resolve();
   return createAsyncSignal(qrl, options);
 };
 
 /** @internal */
-export const useAsyncQrl = <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions): AsyncSignal<T> => {
+export const useAsyncQrl = <T>(
+  qrl: QRL<AsyncFn<T>>,
+  options?: AsyncSignalOptions<T>
+): AsyncSignal<T> => {
   return useConstant(creator<T>, qrl, options);
 };
 

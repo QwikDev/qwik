@@ -11,6 +11,7 @@ import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primiti
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  AsyncSignalFlags,
   EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
@@ -20,7 +21,6 @@ import {
 } from '../../reactive-primitives/types';
 import { isSerializerObj } from '../../reactive-primitives/utils';
 import type { SsrAttrs } from '../../ssr/ssr-types';
-import type { ResourceReturnInternal } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
@@ -311,41 +311,26 @@ export async function serialize(serializationContext: SerializationContext): Pro
         value.data,
       ]);
     } else if (isStore(value)) {
-      if (isResource(value)) {
-        // let render know about the resource
-        serializationContext.$resources$.add(value);
-        // TODO the effects include the resource return which has duplicate data
-        const forwardRefId = resolvePromise(value.value, $addRoot$, (resolved, resolvedValue) => {
-          return new PromiseResult(
-            TypeIds.Resource,
-            resolved,
-            resolvedValue,
-            getStoreHandler(value)!.$effects$
-          );
-        });
-        output(TypeIds.ForwardRef, forwardRefId);
-      } else {
-        const storeHandler = getStoreHandler(value)!;
-        const storeTarget = getStoreTarget(value);
-        const flags = storeHandler.$flags$;
-        const effects = storeHandler.$effects$;
+      const storeHandler = getStoreHandler(value)!;
+      const storeTarget = getStoreTarget(value);
+      const flags = storeHandler.$flags$;
+      const effects = storeHandler.$effects$;
 
-        // We need to retain the nested stores too, they won't be found from the target
-        const innerStores = [];
-        for (const prop in storeTarget) {
-          const propValue = (storeTarget as any)[prop];
-          const innerStore = $storeProxyMap$.get(propValue);
-          if (innerStore) {
-            innerStores.push(innerStore);
-          }
+      // We need to retain the nested stores too, they won't be found from the target
+      const innerStores = [];
+      for (const prop in storeTarget) {
+        const propValue = (storeTarget as any)[prop];
+        const innerStore = $storeProxyMap$.get(propValue);
+        if (innerStore) {
+          innerStores.push(innerStore);
         }
-
-        const out = [storeTarget, flags, effects, ...innerStores];
-        while (out[out.length - 1] === undefined) {
-          out.pop();
-        }
-        output(TypeIds.Store, out);
       }
+
+      const out = [storeTarget, flags, effects, ...innerStores];
+      while (out[out.length - 1] === undefined) {
+        out.pop();
+      }
+      output(TypeIds.Store, out);
     } else if (isSerializerObj(value)) {
       const result = value[SerializerSymbol](value);
       if (isPromise(result)) {
@@ -424,12 +409,18 @@ export async function serialize(serializationContext: SerializationContext): Pro
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
         const isInvalid = value.$flags$ & SignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
+        const isAsync = value instanceof AsyncSignalImpl;
+        const interval = isAsync && value.$interval$ > 0 ? value.$interval$ : undefined;
+        const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
+        const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
+        const eagerCleanup =
+          isAsync && value.$flags$ & AsyncSignalFlags.EAGER_CLEANUP ? true : undefined;
 
-        if (shouldAlwaysSerialize) {
+        if (isInvalid || isSkippable) {
+          v = NEEDS_COMPUTATION;
+        } else if (shouldAlwaysSerialize) {
           v = value.$untrackedValue$;
         } else if (shouldNeverSerialize) {
-          v = NEEDS_COMPUTATION;
-        } else if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
         }
 
@@ -438,22 +429,22 @@ export async function serialize(serializationContext: SerializationContext): Pro
           filterEffectBackRefs(value[_EFFECT_BACK_REF]),
           value.$effects$,
         ];
-        const isAsync = value instanceof AsyncSignalImpl;
         if (isAsync) {
-          out.push(
-            value.$loadingEffects$,
-            value.$errorEffects$,
-            value.$untrackedLoading$,
-            value.$untrackedError$
-          );
+          // After SSR, the signal is never loading, so no need to send it
+          out.push(value.$loadingEffects$, value.$errorEffects$, value.$untrackedError$);
         }
 
         let keepUndefined = false;
 
-        if (v !== NEEDS_COMPUTATION) {
+        if (
+          v !== NEEDS_COMPUTATION ||
+          interval !== undefined ||
+          concurrency !== undefined ||
+          timeout !== undefined
+        ) {
           out.push(v);
 
-          if (!isAsync && v === undefined) {
+          if (v === undefined) {
             /**
              * If value is undefined, we need to keep it in the output. If we don't do that, later
              * during resuming, the value will be set to symbol(invalid) with flag invalid, and
@@ -461,6 +452,12 @@ export async function serialize(serializationContext: SerializationContext): Pro
              */
             keepUndefined = true;
           }
+        }
+        if (isAsync) {
+          out.push(interval);
+          out.push(concurrency);
+          out.push(timeout);
+          out.push(eagerCleanup);
         }
         output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out, keepUndefined);
       } else {
@@ -568,9 +565,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
       });
       output(TypeIds.ForwardRef, forwardRefId);
     } else if (value instanceof PromiseResult) {
-      if (value.$type$ === TypeIds.Resource) {
-        output(TypeIds.Resource, [value.$resolved$, value.$value$, value.$effects$]);
-      } else if (value.$type$ === TypeIds.SerializerSignal) {
+      if (value.$type$ === TypeIds.SerializerSignal) {
         if (value.$qrl$) {
           output(TypeIds.SerializerSignal, [value.$qrl$, value.$effects$, value.$value$]);
         } else if (value.$resolved$) {
@@ -760,10 +755,6 @@ function isObjectLiteral(obj: unknown): obj is object {
   // In all other cases it is a subclass which requires more checks.
   const prototype = Object.getPrototypeOf(obj);
   return prototype == null || prototype === Object.prototype || prototype === Array.prototype;
-}
-
-function isResource<T = unknown>(value: object): value is ResourceReturnInternal<T> {
-  return '__brand' in value && value.__brand === 'resource';
 }
 
 function serializeWrappingFn(

@@ -6,10 +6,12 @@ import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-cl
 import { isSyncQrl } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
 
+/** @internal */
 export function qrlToString(
   serializationContext: SerializationContext,
   qrl: QRLInternal | SyncQRLInternal
 ): string;
+/** @internal */
 export function qrlToString(
   serializationContext: SerializationContext,
   qrl: QRLInternal | SyncQRLInternal,

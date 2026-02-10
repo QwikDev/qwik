@@ -76,16 +76,12 @@ The status can be one of the following:
 
 Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`.
 
-### Example
-
-Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
-
-<docs code="./examples.tsx#use-resource"/>
-
+@see useAsync$
 @see Resource
 @see ResourceReturn
 
 @public
+@deprecated Use `useAsync$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useAsync$` for new code and when updating existing code.
 
 # `useTask`
 

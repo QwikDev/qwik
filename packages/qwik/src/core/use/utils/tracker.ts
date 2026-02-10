@@ -9,7 +9,6 @@ import { getSubscriber } from '../../reactive-primitives/subscriber';
 import { EffectProperty, STORE_ALL_PROPS, type Consumer } from '../../reactive-primitives/types';
 import { isSignal } from '../../reactive-primitives/utils';
 import { qError, QError } from '../../shared/error/error';
-import { noSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
 import { isFunction, isObject } from '../../shared/utils/types';
 import { invoke, newInvokeContext } from '../use-core';
@@ -46,6 +45,10 @@ export const trackFn =
     });
   };
 
+/**
+ * This adds $destroy$ to the target if a cleanup function is registered. It must be called before
+ * running any computations again.
+ */
 export const cleanupFn = <T extends Destroyable>(
   target: T,
   handleError: (err: unknown) => void
@@ -55,8 +58,9 @@ export const cleanupFn = <T extends Destroyable>(
     if (typeof fn == 'function') {
       if (!cleanupFns) {
         cleanupFns = [];
-        target.$destroy$ = noSerialize(() => {
+        target.$destroy$ = () => {
           target.$destroy$ = null;
+          // TODO handle promises
           for (const fn of cleanupFns!) {
             try {
               fn();
@@ -64,7 +68,7 @@ export const cleanupFn = <T extends Destroyable>(
               handleError(err);
             }
           }
-        });
+        };
       }
       cleanupFns.push(fn);
     }

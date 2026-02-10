@@ -2,6 +2,8 @@ import { Rule } from 'eslint';
 import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
 import * as eslint from 'eslint'; // For Scope types
 const ISSERVER = 'isServer';
+const GLOBALAPIS = ['process', '__dirname', '__filename', 'module'];
+const PRESETNODEAPIS = ['fs', 'os', 'path', 'child_process', 'http', 'https', 'Buffer'];
 // Helper function: checks if a node is a descendant of another node
 function isNodeDescendantOf(descendantNode, ancestorNode): boolean {
   if (!ancestorNode) {
@@ -35,18 +37,7 @@ export const scopeUseTask: Rule.RuleModule = {
           forbiddenApis: {
             type: 'array',
             items: { type: 'string' },
-            default: [
-              'process',
-              'fs',
-              'os',
-              'path',
-              'child_process',
-              'http',
-              'https',
-              'Buffer',
-              '__dirname',
-              '__filename',
-            ],
+            default: PRESETNODEAPIS,
           },
         },
         additionalProperties: false,
@@ -62,18 +53,7 @@ export const scopeUseTask: Rule.RuleModule = {
   create(context: Rule.RuleContext): Rule.RuleListener {
     const options = context.options[0] || {};
     const forbiddenApis = new Set<string>(
-      options.forbiddenApis || [
-        'process',
-        'fs',
-        'os',
-        'path',
-        'child_process',
-        'http',
-        'https',
-        'Buffer',
-        '__dirname',
-        '__filename',
-      ]
+      options.forbiddenApis || PRESETNODEAPIS.concat(GLOBALAPIS)
     );
     const serverGuardIdentifier: string = ISSERVER;
     const sourceCode = context.sourceCode;
@@ -93,7 +73,6 @@ export const scopeUseTask: Rule.RuleModule = {
      */
     function isApiUsageGuarded(apiOrCallNode, functionContextNode): boolean {
       let currentParentNode: TSESTree.Node | undefined = apiOrCallNode.parent;
-
       while (
         currentParentNode &&
         currentParentNode !== functionContextNode.body &&
@@ -161,6 +140,11 @@ export const scopeUseTask: Rule.RuleModule = {
 
       // Try to find the variable starting from the current scope and going upwards
       let currentScopeForSearch: eslint.Scope.Scope | null = scope;
+
+      if (!GLOBALAPIS.includes(identifierNode.name)) {
+        return true;
+      }
+
       while (currentScopeForSearch) {
         const foundVar = currentScopeForSearch.variables.find(
           (v) => v.name === identifierNode.name
@@ -178,13 +162,9 @@ export const scopeUseTask: Rule.RuleModule = {
         currentScopeForSearch = currentScopeForSearch.upper;
       }
 
-      if (!variable) {
-        // Cannot find variable, assume it's not a shadowed global for safety,
-        // though this state implies an undeclared variable (another ESLint rule should catch this).
-        return false;
-      }
+      // If we didn't find a variable, it might be a global API or an undeclared variable.
 
-      if (variable.defs.length === 0) {
+      if (!variable || variable.defs.length === 0) {
         // No definitions usually means it's an implicit global (e.g., 'process' in Node.js environment).
         // Such a variable is NOT considered "shadowed by a user declaration".
         return false;
@@ -418,7 +398,6 @@ export const scopeUseTask: Rule.RuleModule = {
                 targetFunctionNode.body.type === AST_NODE_TYPES.BlockStatement
                   ? targetFunctionNode.body
                   : targetFunctionNode.body;
-
               analyzeNodeContent(nodeToAnalyze, targetFunctionNode, callNode);
             }
           }

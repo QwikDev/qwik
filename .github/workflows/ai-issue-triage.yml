@@ -37,8 +37,10 @@ jobs:
         if: steps.check.outputs.result == 'true'
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           model: opencode/kimi-k2.5
+          use_github_token: true
           prompt: |
             You are a Qwik framework issue triager. Analyze the newly opened issue and apply the correct labels.
 

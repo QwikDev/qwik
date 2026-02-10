@@ -105,12 +105,14 @@ test.describe("context", () => {
       ]);
     });
 
-    test("issue 1971", async ({ page }) => {
+    test("issue 1971 - useContext conditional link rendering", async ({
+      page,
+    }) => {
       const value = page.locator("#issue1971-value");
       await expect(value).toHaveText("Value: hello!");
     });
 
-    test("issue 2087", async ({ page }) => {
+    test("issue 2087 - context via slot client resume", async ({ page }) => {
       const btn1 = page.locator("#issue2087_btn1");
       const btn2 = page.locator("#issue2087_btn2");
       const rootA = page.locator("#issue2087_symbol_RootA");
@@ -137,7 +139,7 @@ test.describe("context", () => {
       await expect(nestedB).toHaveText("Symbol NestedB, context value: yes");
     });
 
-    test("issue 2894", async ({ page }) => {
+    test("issue 2894 - context provider child access", async ({ page }) => {
       const btn = page.locator("#issue2894-button");
       const value = page.locator("#issue2894-value");
 
@@ -152,7 +154,7 @@ test.describe("context", () => {
       await expect(value).toBeVisible();
     });
 
-    test("issue 5356", async ({ page }) => {
+    test("issue 5356 - dynamic class update regression", async ({ page }) => {
       const btn1 = page.locator("#issue5356-button-1");
       const btn2 = page.locator("#issue5356-button-2");
       const child1 = page.locator("#issue5356-child-1");

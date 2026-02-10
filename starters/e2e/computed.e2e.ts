@@ -62,7 +62,7 @@ test.describe("computed", () => {
       await expect(button).toContainText("1");
     });
 
-    test("issue 3482", async ({ page }) => {
+    test("issue 3482 - spread computed value update", async ({ page }) => {
       const button = page.locator("#issue-3482-button");
       const div = page.locator("#issue-3482-div");
       const classEl = page.locator("#issue-3482-class");
@@ -85,7 +85,7 @@ test.describe("computed", () => {
       await expect(datanuEl).toHaveText("data-nu: 2");
     });
 
-    test("issue 3488", async ({ page }) => {
+    test("issue 3488 - useComputed navigation loss", async ({ page }) => {
       const result = page.locator("#issue-3488-result");
       const button = page.locator("#issue-3488-button");
       await expect(result).toHaveText("class-0");

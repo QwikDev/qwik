@@ -118,31 +118,31 @@ export const SignalsChildren = component$<{ rerenderCount: number }>(
           id={id.value}
           styles={styles.value}
         />
-        <Issue1681 />
-        <Issue1733 />
+        <SignalTextNodeReplacementAndWhitespaceIssue1681 />
+        <StoreConditionalRenderingIssue1733 />
         <SideEffect />
-        <Issue1884 />
-        <Issue2176 />
-        <Issue2245 />
-        <Issue2245B />
+        <StateReactivityComparisonIssue1884 />
+        <SignalVsStorePropsReactivityIssue2176 />
+        <ClassReactivitySignalStoreIssue2245 />
+        <ClassReactivitySignalStoreBIssue2245 />
         <ComplexClassSignals />
-        <Issue2311 />
-        <Issue2344 />
-        <Issue2928 />
-        <Issue2930 />
-        <Issue3212 />
+        <TernaryDomNodeUpdateIssue2311 />
+        <TextareaValueSignalUpdateIssue2344 />
+        <FormFieldStoreValuesIssue2928 />
+        <UseStoreDeepDomUpdateIssue2930 />
+        <SignalDestructuringInChildIssue3212 />
         <FineGrainedTextSub />
         <FineGrainedUnsubs />
-        <Issue3415 />
+        <DangerouslySetInnerHtmlSignalIssue3415 />
         <BindSignal />
-        <Issue3482 />
-        <Issue3663 />
-        <Issue3440 />
-        <Issue4174 />
-        <Issue4249 />
-        <Issue4228 />
-        <Issue4368 />
-        <Issue4868 />
+        <StoreDataAttributeKeyIssue3482 />
+        <StoreCustomKeysSerializationIssue3663 />
+        <SignalSerializationNullErrorIssue3440 />
+        <UseStoreUninitializedKeysIssue4174 />
+        <SignalsTernaryUnnecessaryRerendersIssue4249 />
+        <ExcessiveRerenderingStorePropsIssue4228 />
+        <PropsSpreadingUseResourceReactivityIssue4368 />
+        <UseComputedValueNotReflectedIssue4868 />
         <ManySignals />
         <span id="rerender-check">{rerenderCount}</span>
       </div>
@@ -194,22 +194,24 @@ export const C = ({ who, count }: any) => (
   </>
 );
 
-export const Issue1681 = component$(() => {
-  const signal = useSignal(0);
+export const SignalTextNodeReplacementAndWhitespaceIssue1681 = component$(
+  () => {
+    const signal = useSignal(0);
 
-  return (
-    <div>
-      <button id="issue-1681-btn" onClick$={() => signal.value++}>
-        Click
-      </button>{" "}
-      <span id="issue-1681-return">
-        <C who={"A"} count={signal.value} /> <C who={"B"} count={signal} />
-      </span>
-    </div>
-  );
-});
+    return (
+      <div>
+        <button id="issue-1681-btn" onClick$={() => signal.value++}>
+          Click
+        </button>{" "}
+        <span id="issue-1681-return">
+          <C who={"A"} count={signal.value} /> <C who={"B"} count={signal} />
+        </span>
+      </div>
+    );
+  },
+);
 
-export const Issue1733 = component$(() => {
+export const StoreConditionalRenderingIssue1733 = component$(() => {
   const store = useStore({ open: false });
   return (
     <>
@@ -237,7 +239,7 @@ export const SideEffect = component$(() => {
   );
 });
 
-export const Issue1884 = component$(() => {
+export const StateReactivityComparisonIssue1884 = component$(() => {
   const state = useStore({
     value: "",
     bool: false,
@@ -273,7 +275,7 @@ export const Test = component$(({ active }: { active: boolean | string }) => {
   );
 });
 
-export const Issue2176 = component$(() => {
+export const SignalVsStorePropsReactivityIssue2176 = component$(() => {
   const data = useSignal({ text: "testing", flag: false, num: 1 });
   const store = useStore({ text: "testing", flag: false, num: 1 });
   return (
@@ -456,7 +458,7 @@ export const Test2Child = component$(() => {
   );
 });
 
-export const Issue2245 = component$(() => {
+export const ClassReactivitySignalStoreIssue2245 = component$(() => {
   useStyles$(`
 span.true { font-weight: bold; }
 span.false { font-style: italic; }
@@ -529,7 +531,7 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
   );
 });
 
-export const Issue2245B = component$(() => {
+export const ClassReactivitySignalStoreBIssue2245 = component$(() => {
   const colors = ["black", "red", "blue", "green", "purple"];
   const store = useStore({ color: "black", n: 0, flag: false });
   const colorSignal = useSignal("black");
@@ -591,7 +593,7 @@ type MyStore = {
   text: string;
 };
 
-export const Issue2311 = component$(() => {
+export const TernaryDomNodeUpdateIssue2311 = component$(() => {
   const store = useStore<MyStore>({
     condition: false,
     text: "Hello",
@@ -639,7 +641,7 @@ export const Issue2311 = component$(() => {
   );
 });
 
-export const Issue2344 = component$(() => {
+export const TextareaValueSignalUpdateIssue2344 = component$(() => {
   const classSig = useSignal("abc");
   return (
     <>
@@ -659,7 +661,7 @@ export const Issue2344 = component$(() => {
   );
 });
 
-export const Issue2928 = component$(() => {
+export const FormFieldStoreValuesIssue2928 = component$(() => {
   const store = useStore(
     {
       controls: {
@@ -703,7 +705,7 @@ export const FormDebug = component$<{ ctrl: any }>((props) => {
   );
 });
 
-export const Issue2930 = component$(() => {
+export const UseStoreDeepDomUpdateIssue2930 = component$(() => {
   const group = useStore(
     {
       controls: {
@@ -747,7 +749,7 @@ export const Stringify = component$<{
   return <pre class="issue-2930-result">{JSON.stringify(props.data)}</pre>;
 });
 
-export const Issue3212Child = component$(
+export const SignalDestructuringInChildIssue3212Child = component$(
   (props: { signal: Signal<number> }) => {
     return <>{props.signal.value}</>;
   },
@@ -758,14 +760,14 @@ export function useMySignal() {
   return { signal };
 }
 
-export const Issue3212 = component$(() => {
+export const SignalDestructuringInChildIssue3212 = component$(() => {
   const stuff = useMySignal();
   const signal = stuff.signal;
   return (
     <div>
-      <h2>Issue3212</h2>
+      <h2>SignalDestructuringInChildIssue3212</h2>
       <div id="issue-3212-result-0">
-        <Issue3212Child signal={stuff.signal} />
+        <SignalDestructuringInChildIssue3212Child signal={stuff.signal} />
       </div>
       <div id="issue-3212-result-1">{stuff.signal.value}</div>
       <div id="issue-3212-result-2">{stuff.signal}</div>
@@ -833,7 +835,7 @@ export const FineGrainedUnsubs = component$(() => {
   );
 });
 
-export const Issue3415 = component$(() => {
+export const DangerouslySetInnerHtmlSignalIssue3415 = component$(() => {
   const signal = useSignal("<b>foo</b>");
 
   return (
@@ -867,7 +869,7 @@ export const BindSignal = component$(() => {
   );
 });
 
-export const Issue3482 = component$(() => {
+export const StoreDataAttributeKeyIssue3482 = component$(() => {
   const count = useStore({
     "data-foo": 0,
   });
@@ -888,7 +890,7 @@ export const Issue3482 = component$(() => {
   );
 });
 
-export const Issue3663 = component$(() => {
+export const StoreCustomKeysSerializationIssue3663 = component$(() => {
   const store = useStore({
     "Custom Counter": 0,
   });
@@ -901,7 +903,9 @@ export const Issue3663 = component$(() => {
       <div class="issue-3663-result" data-value={store["Custom Counter"]}>
         {store["Custom Counter"]}
       </div>
-      <Issue3663Cmp prop={store["Custom Counter"]} />
+      <StoreCustomKeysSerializationIssue3663Cmp
+        prop={store["Custom Counter"]}
+      />
       <div class="issue-3663-result" data-value={a}>
         {a}
       </div>
@@ -909,7 +913,7 @@ export const Issue3663 = component$(() => {
   );
 });
 
-function Issue3663Cmp(props: { prop: number }) {
+function StoreCustomKeysSerializationIssue3663Cmp(props: { prop: number }) {
   return (
     <div class="issue-3663-result" data-value={props.prop}>
       {props.prop}
@@ -917,7 +921,7 @@ function Issue3663Cmp(props: { prop: number }) {
   );
 }
 
-export const Issue3440 = component$(() => {
+export const SignalSerializationNullErrorIssue3440 = component$(() => {
   const name = useSignal("Demo");
   const blogs = useStore([
     {
@@ -952,7 +956,7 @@ export const Issue3440 = component$(() => {
   );
 });
 
-export const Issue4174 = component$(() => {
+export const UseStoreUninitializedKeysIssue4174 = component$(() => {
   const storeWithoutInit = useStore<{ value?: string }>({});
 
   useVisibleTask$(
@@ -969,7 +973,7 @@ export const Issue4174 = component$(() => {
   );
 });
 
-export const Issue4249 = component$(() => {
+export const SignalsTernaryUnnecessaryRerendersIssue4249 = component$(() => {
   const first = useSignal("");
   const second = useSignal("");
 
@@ -1075,7 +1079,7 @@ export const DisplayTotal = component$<Props>(({ counters }) => {
     </>
   );
 });
-export const Issue4228 = component$(() => {
+export const ExcessiveRerenderingStorePropsIssue4228 = component$(() => {
   const signal = useSignal(0);
   const counter = useStore({
     countA: 0,
@@ -1146,7 +1150,7 @@ const MyTextButton = component$<{ text: string }>((props) => {
   );
 });
 
-export const Issue4368 = component$(() => {
+export const PropsSpreadingUseResourceReactivityIssue4368 = component$(() => {
   const text = useSignal("");
 
   const textResource = useResource$(async (ctx) => {
@@ -1192,11 +1196,11 @@ const options = [
   },
 ];
 
-export const Issue4868 = component$(() => {
+export const UseComputedValueNotReflectedIssue4868 = component$(() => {
   const selected = useSignal<{ id: number; src?: string }>(options[0]);
   return (
     <div>
-      <Issue4868BigCard data={selected.value} />
+      <UseComputedValueNotReflectedIssue4868BigCard data={selected.value} />
       {options.map((d) => (
         <>
           <button
@@ -1213,43 +1217,48 @@ export const Issue4868 = component$(() => {
   );
 });
 
-export const Issue4868BigCard = component$<PropsType>((props) => {
-  // Using a reference to another const will somehow prevent the useComputed$ in the Card element to use the correct context
-  const noImg = __CFG__.noImg;
+export const UseComputedValueNotReflectedIssue4868BigCard =
+  component$<PropsType>((props) => {
+    // Using a reference to another const will somehow prevent the useComputed$ in the Card element to use the correct context
+    const noImg = __CFG__.noImg;
 
-  // Assigning static value here will make the Card component and useComputed$ within work as expected
-  // const noImg = 'https://placehold.co/600x400?text=No%20IMG';
+    // Assigning static value here will make the Card component and useComputed$ within work as expected
+    // const noImg = 'https://placehold.co/600x400?text=No%20IMG';
 
-  return (
-    <div
-      style={{
-        flexDirection: "column",
-        border: "1px solid red",
-        padding: "1rem",
-        gap: "1rem",
-      }}
-    >
-      <Issue4868Card src={props.data.src || noImg} />
-      <div id="issue-4868-json">{JSON.stringify(props.data)}</div>
-    </div>
-  );
-});
-
-export const Issue4868Card = component$((props: { src: string }) => {
-  const { src } = props;
-
-  const src$ = useComputed$(() => {
-    // do something very important with the src
-    return props.src + "&useComputed$";
+    return (
+      <div
+        style={{
+          flexDirection: "column",
+          border: "1px solid red",
+          padding: "1rem",
+          gap: "1rem",
+        }}
+      >
+        <UseComputedValueNotReflectedIssue4868Card
+          src={props.data.src || noImg}
+        />
+        <div id="issue-4868-json">{JSON.stringify(props.data)}</div>
+      </div>
+    );
   });
 
-  return (
-    <div style={{ border: "1px solid white", padding: "1rem" }}>
-      <p id="issue-4868-props">Card props.src: {src}</p>
-      <p id="issue-4868-usecomputed">Card useComputed$: {src$.value}</p>
-    </div>
-  );
-});
+export const UseComputedValueNotReflectedIssue4868Card = component$(
+  (props: { src: string }) => {
+    const { src } = props;
+
+    const src$ = useComputed$(() => {
+      // do something very important with the src
+      return props.src + "&useComputed$";
+    });
+
+    return (
+      <div style={{ border: "1px solid white", padding: "1rem" }}>
+        <p id="issue-4868-props">Card props.src: {src}</p>
+        <p id="issue-4868-usecomputed">Card useComputed$: {src$.value}</p>
+      </div>
+    );
+  },
+);
 
 export const ManySignals = component$(() => {
   const signals = useConstant(() => {

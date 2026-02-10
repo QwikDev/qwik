@@ -39,7 +39,7 @@ test.describe("effect-client", () => {
     await expect(msg).toHaveText("run");
   });
 
-  test("issue 1717", async ({ page }) => {
+  test("issue 1717 - custom hook clientEffect", async ({ page }) => {
     const value1 = page.locator("#issue-1717-value1");
     const value2 = page.locator("#issue-1717-value2");
     const meta = page.locator("#issue-1717-meta");
@@ -48,7 +48,7 @@ test.describe("effect-client", () => {
     await expect(meta).toHaveText("Sub: 10 Renders: 1");
   });
 
-  test("issue 2015", async ({ page }) => {
+  test("issue 2015 - async clientEffect blocking", async ({ page }) => {
     const order = page.locator("#issue-2015-order");
     // check for non-blocking behavior of visible tasks, order is not guaranteed
     await expect(order).toHaveText(
@@ -56,7 +56,9 @@ test.describe("effect-client", () => {
     );
   });
 
-  test("issue 1955", async ({ page }) => {
+  test("issue 1955 - projection component root clientEffect", async ({
+    page,
+  }) => {
     const results = page.locator("#issue-1955-results");
     await expect(results).toHaveText("run");
   });
@@ -71,7 +73,7 @@ test.describe("effect-client", () => {
     await expect(nuCleanups).toHaveText("2");
   });
 
-  test("issue 4432", async ({ page }) => {
+  test("issue 4432 - visible task after destruction", async ({ page }) => {
     const button = page.locator("#issue-4432-button");
     const logs = page.locator("#issue-4432-logs");
     await expect(logs).toHaveText("VisibleTask ChildA /\n");

@@ -55,11 +55,11 @@ export const ContextApp = component$(({ count }: { count: number }) => {
         <Level2 />
       </ContextFromSlot>
 
-      <Issue1971 />
-      <Issue2087 />
-      <Issue2894 />
-      <Issue5356 />
-      <Issue5793 />
+      <UseContextConditionalLinkRenderingIssue1971 />
+      <ContextViaSlotClientResumeIssue2087 />
+      <ContextProviderChildAccessIssue2894 />
+      <DynamicClassUpdateRegressionIssue5356 />
+      <ScalarContextValuesIssue5793 />
       <div id="context-app-count">{count}</div>
     </div>
   );
@@ -141,53 +141,65 @@ export const Level3 = component$(() => {
   );
 });
 
-export const Issue1971 = component$(() => {
+export const UseContextConditionalLinkRenderingIssue1971 = component$(() => {
   return (
-    <Issue1971Provider>
-      <Issue1971Child />
-    </Issue1971Provider>
+    <UseContextConditionalLinkRenderingIssue1971Provider>
+      <UseContextConditionalLinkRenderingIssue1971Child />
+    </UseContextConditionalLinkRenderingIssue1971Provider>
   );
 });
 
-export const Issue1971Context = createContextId<any>("issue-1971");
+export const UseContextConditionalLinkRenderingIssue1971Context =
+  createContextId<any>("issue-1971");
 
-export const Issue1971Provider = component$(() => {
-  useContextProvider(Issue1971Context, {
-    value: "hello!",
-  });
+export const UseContextConditionalLinkRenderingIssue1971Provider = component$(
+  () => {
+    useContextProvider(UseContextConditionalLinkRenderingIssue1971Context, {
+      value: "hello!",
+    });
 
-  return <Slot></Slot>;
-});
+    return <Slot></Slot>;
+  },
+);
 
-export const Issue1971Child = component$(() => {
-  const show = useSignal(false);
-  useVisibleTask$(() => {
-    show.value = true;
-  });
-  return (
-    <>
-      <div>Test 1: {show.value && <Issue1971Consumer />}</div>
-    </>
-  );
-});
+export const UseContextConditionalLinkRenderingIssue1971Child = component$(
+  () => {
+    const show = useSignal(false);
+    useVisibleTask$(() => {
+      show.value = true;
+    });
+    return (
+      <>
+        <div>
+          Test 1:{" "}
+          {show.value && (
+            <UseContextConditionalLinkRenderingIssue1971Consumer />
+          )}
+        </div>
+      </>
+    );
+  },
+);
 
-export const Issue1971Consumer = component$(() => {
-  const ctx = useContext(Issue1971Context);
-  return <div id="issue1971-value">Value: {ctx.value}</div>;
-});
+export const UseContextConditionalLinkRenderingIssue1971Consumer = component$(
+  () => {
+    const ctx = useContext(UseContextConditionalLinkRenderingIssue1971Context);
+    return <div id="issue1971-value">Value: {ctx.value}</div>;
+  },
+);
 
 export const Ctx = createContextId<{ t: string }>("issue-2087");
 
-export const Issue2087 = component$(() => {
+export const ContextViaSlotClientResumeIssue2087 = component$(() => {
   return (
     <>
-      <Issue2087_Root />
-      <Issue2087_Nested />
+      <ContextViaSlotClientResumeIssue2087_Root />
+      <ContextViaSlotClientResumeIssue2087_Nested />
     </>
   );
 });
 
-export const Issue2087_Root = component$(() => {
+export const ContextViaSlotClientResumeIssue2087_Root = component$(() => {
   const t = useSignal(0);
   return (
     <Provider>
@@ -200,7 +212,7 @@ export const Issue2087_Root = component$(() => {
   );
 });
 
-export const Issue2087_Nested = component$(() => {
+export const ContextViaSlotClientResumeIssue2087_Nested = component$(() => {
   const t = useSignal(0);
   return (
     <Provider>
@@ -229,18 +241,18 @@ export const Provider = component$(() => {
 });
 
 export const CTX_2894 = createContextId<{ foo: string }>("issue-2894");
-export const Issue2894 = component$(() => {
+export const ContextProviderChildAccessIssue2894 = component$(() => {
   useContextProvider(CTX_2894, { foo: "bar" });
   return (
     <>
-      <Issue2894_Projector>
-        <Issue2894_Consumer />
-      </Issue2894_Projector>
+      <ContextProviderChildAccessIssue2894_Projector>
+        <ContextProviderChildAccessIssue2894_Consumer />
+      </ContextProviderChildAccessIssue2894_Projector>
     </>
   );
 });
 
-export const Issue2894_Projector = component$(() => {
+export const ContextProviderChildAccessIssue2894_Projector = component$(() => {
   const signal = useSignal(false);
   if (!signal.value) {
     return (
@@ -258,19 +270,20 @@ export const Issue2894_Projector = component$(() => {
   );
 });
 
-export const Issue2894_Consumer = component$(() => {
+export const ContextProviderChildAccessIssue2894_Consumer = component$(() => {
   const ctx = useContext(CTX_2894);
   return <div id="issue2894-value">Value: {ctx.foo}</div>;
 });
 
-export const Issue5356Context = createContextId<object>("issue-5356");
-export const Issue5356 = component$(() => {
-  useContextProvider(Issue5356Context, {});
+export const DynamicClassUpdateRegressionIssue5356Context =
+  createContextId<object>("issue-5356");
+export const DynamicClassUpdateRegressionIssue5356 = component$(() => {
+  useContextProvider(DynamicClassUpdateRegressionIssue5356Context, {});
 
-  return <Issue5356_Parent />;
+  return <DynamicClassUpdateRegressionIssue5356_Parent />;
 });
 
-export const Issue5356_Parent = component$(() => {
+export const DynamicClassUpdateRegressionIssue5356_Parent = component$(() => {
   const signal = useSignal(1);
 
   const children = [1, 2];
@@ -286,7 +299,7 @@ export const Issue5356_Parent = component$(() => {
 
       <>
         {children.map((value) => (
-          <Issue5356_Child
+          <DynamicClassUpdateRegressionIssue5356_Child
             key={value}
             value={value}
             active={signal.value === value}
@@ -295,32 +308,39 @@ export const Issue5356_Parent = component$(() => {
       </>
       <>
         {[
-          <Issue5356_Child value={3} active={signal.value === 1} />,
-          <Issue5356_Child value={4} active={signal.value === 2} />,
+          <DynamicClassUpdateRegressionIssue5356_Child
+            value={3}
+            active={signal.value === 1}
+          />,
+          <DynamicClassUpdateRegressionIssue5356_Child
+            value={4}
+            active={signal.value === 2}
+          />,
         ]}
       </>
     </div>
   );
 });
 
-export const Issue5356_Child = component$<{ value: number; active: boolean }>(
-  (props) => {
-    useContext(Issue5356Context);
+export const DynamicClassUpdateRegressionIssue5356_Child = component$<{
+  value: number;
+  active: boolean;
+}>((props) => {
+  useContext(DynamicClassUpdateRegressionIssue5356Context);
 
-    return (
-      <div id={`issue5356-child-${props.value}`}>
-        Child {props.value}, active: {props.active ? "true" : "false"}
-      </div>
-    );
-  },
-);
-
-export const Issue5793 = component$(() => {
-  useContextProvider(ContextString, "yes");
-  return <Issue5793_Child />;
+  return (
+    <div id={`issue5356-child-${props.value}`}>
+      Child {props.value}, active: {props.active ? "true" : "false"}
+    </div>
+  );
 });
 
-export const Issue5793_Child = component$(() => {
+export const ScalarContextValuesIssue5793 = component$(() => {
+  useContextProvider(ContextString, "yes");
+  return <ScalarContextValuesIssue5793_Child />;
+});
+
+export const ScalarContextValuesIssue5793_Child = component$(() => {
   const s = useContext(ContextString);
   return <div id="issue5793-value">{s}</div>;
 });

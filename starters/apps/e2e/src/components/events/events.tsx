@@ -71,7 +71,7 @@ export const Events = component$(() => {
       <p id="count-propagation">
         countPropagationStopped: {store.propagationStoppedCount}
       </p>
-      <Issue3948 />
+      <UseOnWindowConditionalRenderIssue3948 />
     </div>
   );
 });
@@ -119,7 +119,7 @@ export const Listener = component$((props: { name: string }) => {
   );
 });
 
-export const Issue3948 = component$(() => {
+export const UseOnWindowConditionalRenderIssue3948 = component$(() => {
   const showingToggle = useSignal(false);
 
   return (

@@ -10,9 +10,9 @@ export const ComputedRoot = component$(() => {
       </button>
       <span id="render-count">Renders: {rerender.value}</span>
       <ComputedBasic />
-      <Issue3482 />
-      <Issue3488 />
-      <Issue5738 />
+      <SpreadComputedValueUpdateIssue3482 />
+      <UseComputedNavigationLossIssue3488 />
+      <ComputedSignalSerializationRefsIssue5738 />
       <ShouldHandleMultipleComputeds />
       <ShouldResolveComputedQrlEarly />
       <ShouldRetryWhenThereIsNoQRL />
@@ -41,7 +41,7 @@ export const ComputedBasic = component$(() => {
   );
 });
 
-export const Issue3482 = component$((props) => {
+export const SpreadComputedValueUpdateIssue3482 = component$((props) => {
   const count = useSignal(0);
 
   const attributes = useComputed$(() => {
@@ -75,7 +75,7 @@ export const TextContent = component$(
   },
 );
 
-export const Issue3488 = component$(() => {
+export const UseComputedNavigationLossIssue3488 = component$(() => {
   const count = useSignal(0);
 
   const data = useComputed$(() => {
@@ -94,7 +94,7 @@ export const Issue3488 = component$(() => {
   );
 });
 
-export const Issue5738 = component$(() => {
+export const ComputedSignalSerializationRefsIssue5738 = component$(() => {
   const foo = useSignal(0);
   const comp = useComputed$(() => {
     return foo.value * 2;

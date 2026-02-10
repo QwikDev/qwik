@@ -57,7 +57,7 @@ export {
 export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
 export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
-export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';
+export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
 export { _restProps } from './shared/utils/prop';
 export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
@@ -73,3 +73,4 @@ export { isTask as _isTask, scheduleTask as _task } from './use/use-task';
 export { _captures } from './shared/qrl/qrl-class';
 export { _rsc } from './use/use-resource';
 export type { AsyncSignalOptions } from './reactive-primitives/types';
+export { setEvent as _setEvent } from './ssr/ssr-events';

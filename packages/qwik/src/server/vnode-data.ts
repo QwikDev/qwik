@@ -1,4 +1,4 @@
-import type { ISsrNode, SsrAttrs } from './qwik-types';
+import type { ISsrNode, Props } from './qwik-types';
 import { SsrNode } from './ssr-node';
 import type { CleanupQueue } from './ssr-container';
 import { VNodeDataFlag } from './types';
@@ -31,7 +31,7 @@ import { _EMPTY_ARRAY } from '@qwik.dev/core/internal';
  * this data needs to be serialized into a string and stored in the DOM as a script tag which has
  * deferent serialization format.
  */
-export type VNodeData = [VNodeDataFlag, ...(SsrAttrs | number)[]];
+export type VNodeData = [VNodeDataFlag, ...(Props | number)[]];
 
 export const OPEN_FRAGMENT = Number.MAX_SAFE_INTEGER;
 export const CLOSE_FRAGMENT = Number.MAX_SAFE_INTEGER - 1;
@@ -67,7 +67,7 @@ export function vNodeData_addTextSize(vNodeData: VNodeData, size: number) {
   }
 }
 
-export function vNodeData_openFragment(vNodeData: VNodeData, attrs: SsrAttrs) {
+export function vNodeData_openFragment(vNodeData: VNodeData, attrs: Props) {
   vNodeData.push(attrs, OPEN_FRAGMENT);
   vNodeData[0] |= VNodeDataFlag.VIRTUAL_NODE;
 }
@@ -76,7 +76,7 @@ export function vNodeData_closeFragment(vNodeData: VNodeData) {
 }
 
 export function vNodeData_openElement(vNodeData: VNodeData) {
-  vNodeData.push([], WRITE_ELEMENT_ATTRS);
+  vNodeData.push({}, WRITE_ELEMENT_ATTRS);
   vNodeData[0] |= VNodeDataFlag.ELEMENT_NODE;
 }
 
@@ -93,7 +93,7 @@ export function vNodeData_createSsrNodeReference(
   let attributesIndex = -1;
   for (let i = 1; i < vNodeData.length; i++) {
     const value = vNodeData[i];
-    if (Array.isArray(value)) {
+    if (typeof value === 'object' && value !== null) {
       attributesIndex = i;
       i++; // skip the `OPEN_FRAGMENT` or `WRITE_ELEMENT_ATTRS` value
       if (vNodeData[i] !== WRITE_ELEMENT_ATTRS) {

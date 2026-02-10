@@ -7,7 +7,6 @@ import type {
   SymbolMapper,
   SymbolMapperFn,
 } from '@qwik.dev/core/optimizer';
-import type { SsrAttrValue } from './qwik-types';
 
 /** @public */
 export interface SerializeDocumentOptions {
@@ -256,7 +255,7 @@ export const enum VNodeDataFlag {
 
 export type BackpatchEntry = {
   attrName: string;
-  value: Awaited<SsrAttrValue>;
+  value: Awaited<string | boolean | null>;
 };
 
 export type { QwikManifest, ServerQwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

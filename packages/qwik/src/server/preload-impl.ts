@@ -71,22 +71,23 @@ export const preloaderPre = (
      * We add modulepreloads even when the script is at the top because they already fire during
      * html download
      */
-    const preloaderLinkAttrs = ['rel', 'modulepreload', 'href', preloaderBundle];
+    const preloaderLinkAttrs: Record<string, string> = {
+      rel: 'modulepreload',
+      href: preloaderBundle,
+    };
     if (nonce) {
-      preloaderLinkAttrs.push('nonce', nonce);
+      preloaderLinkAttrs['nonce'] = nonce;
     }
-    container.openElement('link', null, preloaderLinkAttrs);
+    container.openElement('link', null, preloaderLinkAttrs, null, null, null);
     container.closeElement();
-    container.openElement('link', null, [
-      'rel',
-      'preload',
-      'href',
-      bundleGraphPath,
-      'as',
-      'fetch',
-      'crossorigin',
-      'anonymous',
-    ]);
+    container.openElement(
+      'link',
+      null,
+      { rel: 'preload', href: bundleGraphPath, as: 'fetch', crossorigin: 'anonymous' },
+      null,
+      null,
+      null
+    );
     container.closeElement();
 
     const script =
@@ -94,22 +95,26 @@ export const preloaderPre = (
       `import("${preloaderBundle}").then(({l})=>` +
       `l(${JSON.stringify(base)},b${optsStr})` +
       `);`;
-    const scriptAttrs = ['type', 'module', 'async', true, 'crossorigin', 'anonymous'];
+    const scriptAttrs: Record<string, string | boolean> = {
+      type: 'module',
+      async: true,
+      crossorigin: 'anonymous',
+    };
     if (nonce) {
-      scriptAttrs.push('nonce', nonce);
+      scriptAttrs['nonce'] = nonce;
     }
-    container.openElement('script', null, scriptAttrs);
+    container.openElement('script', null, scriptAttrs, null, null, null);
     container.write(script);
     container.closeElement();
   }
 
   const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
   if (corePath) {
-    const linkAttrs = ['rel', 'modulepreload', 'href', corePath];
+    const linkAttrs: Record<string, string> = { rel: 'modulepreload', href: corePath };
     if (nonce) {
-      linkAttrs.push('nonce', nonce);
+      linkAttrs['nonce'] = nonce;
     }
-    container.openElement('link', null, linkAttrs);
+    container.openElement('link', null, linkAttrs, null, null, null);
     container.closeElement();
   }
 };
@@ -192,11 +197,11 @@ export const includePreloader = (
      * import the preloader as well and have all the state there, plus it makes it easy to write a
      * complex implementation.
      */
-    const attrs = ['type', 'module', 'async', true, 'q:type', 'preload'];
+    const attrs: Record<string, string> = { type: 'module', async: 'true', 'q:type': 'preload' };
     if (nonce) {
-      attrs.push('nonce', nonce);
+      attrs['nonce'] = nonce;
     }
-    container.openElement('script', null, attrs);
+    container.openElement('script', null, attrs, null, null, null);
     container.write(script);
     container.closeElement();
   }

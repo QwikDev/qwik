@@ -10,16 +10,11 @@ import type {
   ValueOrPromise,
 } from '../../server/qwik-types';
 import type { VNodeData } from '../../server/vnode-data';
-import type { Signal } from '../reactive-primitives/signal.public';
+import type { Props } from '../shared/jsx/jsx-runtime';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { SsrNodeFlags } from '../shared/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
-
-export type SsrAttrKey = string;
-type SimpleSsrAttrValue = string | Signal<SimpleSsrAttrValue> | boolean | object | null;
-export type SsrAttrValue = SimpleSsrAttrValue | Promise<SimpleSsrAttrValue>;
-export type SsrAttrs = Array<SsrAttrKey | SsrAttrValue>;
 
 /** @internal */
 export interface StreamWriter {
@@ -78,19 +73,20 @@ export interface SSRContainer extends Container {
   openElement(
     elementName: string,
     key: string | null,
-    varAttrs: SsrAttrs | null,
-    constAttrs?: SsrAttrs | null,
-    currentFile?: string | null
+    varAttrs: Props,
+    constAttrs: Props | null,
+    styleScopedId: string | null,
+    currentFile: string | null
   ): string | undefined;
   closeElement(): ValueOrPromise<void>;
 
-  openFragment(attrs: SsrAttrs): void;
+  openFragment(attrs: Props): void;
   closeFragment(): void;
 
-  openProjection(attrs: SsrAttrs): void;
+  openProjection(attrs: Props): void;
   closeProjection(): void;
 
-  openComponent(attrs: SsrAttrs): void;
+  openComponent(attrs: Props): void;
   getComponentFrame(projectionDepth: number): ISsrComponentFrame | null;
   getParentComponentFrame(): ISsrComponentFrame | null;
   closeComponent(): Promise<void>;

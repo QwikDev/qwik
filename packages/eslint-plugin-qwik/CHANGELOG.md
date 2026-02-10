@@ -1,5 +1,11 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.23
+
+### Patch Changes
+
+- 🐞🩹 eslint-plugin: detect node API usage more accurately (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7664](https://github.com/QwikDev/qwik/pull/7664))
+
 ## 2.0.0-beta.22
 
 ## 2.0.0-beta.21

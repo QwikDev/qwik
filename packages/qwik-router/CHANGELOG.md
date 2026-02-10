@@ -1,5 +1,12 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.23
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @qwik.dev/core@2.0.0-beta.23
+
 ## 2.0.0-beta.22
 
 ### Patch Changes

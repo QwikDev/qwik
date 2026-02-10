@@ -46,14 +46,7 @@ jobs:
             -d "{\"assignees\":[\"${AUTHOR}\"]}" \
             https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/assignees
 
-      - name: Add PR to Qwik Development project
-        if: steps.team.outputs.isCore == 'true'
-        uses: actions/add-to-project@v0.6.1
-        with:
-          project-url: https://github.com/orgs/QwikDev/projects/1
-          github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
-
-      - name: Ensure project + set Status to "In progress" (draft)
+      - name: Add to project as "In progress" (draft)
         if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == true
         uses: actions/add-to-project@v0.6.1
         with:
@@ -62,7 +55,7 @@ jobs:
           fields: |
             Status: In progress
 
-      - name: Ensure project + set Status to "Waiting For Review" (ready)
+      - name: Add to project as "Waiting For Review" (ready)
         if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == false
         uses: actions/add-to-project@v0.6.1
         with:

@@ -28,7 +28,7 @@ export const SlotParent = component$(() => {
       {state.render && (
         <>
           <div id="isRendered">Hi</div>
-          <Issue1630>
+          <DefaultSlotHidesSiblingsIssue1630>
             <Child id="slot-child" q:slot="slot-content">
               Component Slot Content
             </Child>
@@ -36,11 +36,11 @@ export const SlotParent = component$(() => {
               P Slot Content
             </p>
             <p id="noslot-p">Non-Slotted Content</p>
-          </Issue1630>
-          <Issue1410>
+          </DefaultSlotHidesSiblingsIssue1630>
+          <ModalSlotRerenderOnReopenIssue1410>
             <span id="modal-content">Model content</span>
-          </Issue1410>
-          <Issue2688 count={state.count} />
+          </ModalSlotRerenderOnReopenIssue1410>
+          <DynamicSlotNameInsertBeforeIssue2688 count={state.count} />
           <Projector state={state} id="btn1">
             {!state.removeContent && <>DEFAULT {state.count}</>}
             <span q:slot="ignore">IGNORE</span>
@@ -57,19 +57,21 @@ export const SlotParent = component$(() => {
               {!state.removeContent && <>INSIDE THING {state.count}</>}
             </Projector>
           </Thing>
-          <Issue2751 />
+          <NestedRoutesUseLocationErrorIssue2751 />
 
-          <Issue3565 model={Issue3565Model} />
+          <SlotNotAvailableViaUseContextIssue3565
+            model={SlotNotAvailableViaUseContextIssue3565Model}
+          />
 
-          <Issue3607 />
-          <Issue3727 />
-          <Issue4215 />
-          <Issue4283>
+          <AsyncSignalUpdateSlotContentIssue3607 />
+          <RouteActionResultNavigationIssue3727 />
+          <SvgIconSlotConditionalRenderIssue4215 />
+          <ContentDuplicationDelayedVisibleTaskIssue4283>
             <p>index page</p>
-          </Issue4283>
-          <Issue4658 />
-          <Issue5270 />
-          <Issue5506 />
+          </ContentDuplicationDelayedVisibleTaskIssue4283>
+          <ConditionalRootNodeLayoutBreaksIssue4658 />
+          <ContextHiddenSlotBreaksSsrIssue5270 />
+          <SlotProjectedContentNotUpdatingDomIssue5506 />
         </>
       )}
       <div>
@@ -125,7 +127,7 @@ export const SlotParent = component$(() => {
   );
 });
 
-export const Issue1630 = component$(() => {
+export const DefaultSlotHidesSiblingsIssue1630 = component$(() => {
   const store = useStore({ open: true });
 
   return (
@@ -150,7 +152,7 @@ export const Child = component$((props: { id?: string }) => {
   );
 });
 
-export const Issue1410 = component$(() => {
+export const ModalSlotRerenderOnReopenIssue1410 = component$(() => {
   const store = useStore({ open: true });
 
   return (
@@ -211,34 +213,36 @@ export const Switch = component$((props: { name: string }) => {
   return <Slot name={props.name} />;
 });
 
-export const Issue2688 = component$(({ count }: { count: number }) => {
-  const store = useStore({ flip: false });
+export const DynamicSlotNameInsertBeforeIssue2688 = component$(
+  ({ count }: { count: number }) => {
+    const store = useStore({ flip: false });
 
-  return (
-    <>
-      <button
-        id="issue-2688-button"
-        onClick$={() => (store.flip = !store.flip)}
-      >
-        Toggle switch
-      </button>
-      <div id="issue-2688-result">
-        <Switch name={store.flip ? "b" : "a"}>
-          <div q:slot="a">Alpha {count}</div>
-          <div q:slot="b">Bravo {count}</div>
-        </Switch>
-      </div>
-    </>
-  );
-});
-
-const Issue2751Context = createContextId<Signal<number>>(
-  "CleanupCounterContext",
+    return (
+      <>
+        <button
+          id="issue-2688-button"
+          onClick$={() => (store.flip = !store.flip)}
+        >
+          Toggle switch
+        </button>
+        <div id="issue-2688-result">
+          <Switch name={store.flip ? "b" : "a"}>
+            <div q:slot="a">Alpha {count}</div>
+            <div q:slot="b">Bravo {count}</div>
+          </Switch>
+        </div>
+      </>
+    );
+  },
 );
 
-export const Issue2751 = component$(() => {
+const NestedRoutesUseLocationErrorIssue2751Context = createContextId<
+  Signal<number>
+>("CleanupCounterContext");
+
+export const NestedRoutesUseLocationErrorIssue2751 = component$(() => {
   const signal = useSignal(0);
-  useContextProvider(Issue2751Context, signal);
+  useContextProvider(NestedRoutesUseLocationErrorIssue2751Context, signal);
 
   return (
     <>
@@ -270,7 +274,7 @@ export const CleanupA = component$<CleanupProps>((props) => {
 });
 
 export const Bogus = component$(() => {
-  const signal = useContext(Issue2751Context);
+  const signal = useContext(NestedRoutesUseLocationErrorIssue2751Context);
   const count = signal.value;
   return (
     <div>
@@ -279,7 +283,7 @@ export const Bogus = component$(() => {
   );
 });
 
-export const Issue3565Model = component$(() => {
+export const SlotNotAvailableViaUseContextIssue3565Model = component$(() => {
   return (
     <div id="issue-3565-result">
       Own content
@@ -288,7 +292,7 @@ export const Issue3565Model = component$(() => {
   );
 });
 
-export const Issue3565 = component$(
+export const SlotNotAvailableViaUseContextIssue3565 = component$(
   ({ model: Model }: { model: string | FunctionComponent }) => {
     return (
       <>
@@ -300,34 +304,41 @@ export const Issue3565 = component$(
   },
 );
 
-export const Issue3607 = component$(() => {
+export const AsyncSignalUpdateSlotContentIssue3607 = component$(() => {
   const show = useSignal(false);
   return (
-    <Issue3607Button
+    <AsyncSignalUpdateSlotContentIssue3607Button
       loading={show.value}
       onClick$={() => {
         show.value = !show.value;
       }}
     >
       {show.value ? "Loading..." : "Load more"}
-    </Issue3607Button>
+    </AsyncSignalUpdateSlotContentIssue3607Button>
   );
 });
 
-export const Issue3607Button = component$(({ onClick$ }: any) => {
-  return (
-    <>
-      <button id="issue-3607-result" onClick$={onClick$} class="btn">
-        <Slot />
-      </button>
-    </>
-  );
-});
+export const AsyncSignalUpdateSlotContentIssue3607Button = component$(
+  ({ onClick$ }: any) => {
+    return (
+      <>
+        <button id="issue-3607-result" onClick$={onClick$} class="btn">
+          <Slot />
+        </button>
+      </>
+    );
+  },
+);
 
-const CTX = createContextId<Signal<any[]>>("content-Issue3727");
+const CTX = createContextId<Signal<any[]>>(
+  "content-RouteActionResultNavigationIssue3727",
+);
 
-export const Issue3727 = component$(() => {
-  const content = useSignal<any[]>([Issue3727ParentA, Issue3727ChildA]);
+export const RouteActionResultNavigationIssue3727 = component$(() => {
+  const content = useSignal<any[]>([
+    RouteActionResultNavigationIssue3727ParentA,
+    RouteActionResultNavigationIssue3727ChildA,
+  ]);
   useContextProvider(CTX, content);
 
   const contentsLen = content.value.length;
@@ -340,7 +351,7 @@ export const Issue3727 = component$(() => {
   return cmp;
 });
 
-export const Issue3727ParentA = component$(() => {
+export const RouteActionResultNavigationIssue3727ParentA = component$(() => {
   return (
     <main id="Issue3727ParentA">
       <Slot />
@@ -348,7 +359,7 @@ export const Issue3727ParentA = component$(() => {
   );
 });
 
-export const Issue3727ParentB = component$(() => {
+export const RouteActionResultNavigationIssue3727ParentB = component$(() => {
   return (
     <main id="Issue3727ParentB">
       <Slot />
@@ -356,7 +367,7 @@ export const Issue3727ParentB = component$(() => {
   );
 });
 
-export const Issue3727ChildA = component$(() => {
+export const RouteActionResultNavigationIssue3727ChildA = component$(() => {
   const content = useContext(CTX);
 
   return (
@@ -365,7 +376,10 @@ export const Issue3727ChildA = component$(() => {
       <button
         id="issue-3727-navigate"
         onClick$={() => {
-          content.value = [Issue3727ParentB, Issue3727ChildB];
+          content.value = [
+            RouteActionResultNavigationIssue3727ParentB,
+            RouteActionResultNavigationIssue3727ChildB,
+          ];
         }}
       >
         Navigate
@@ -374,7 +388,7 @@ export const Issue3727ChildA = component$(() => {
   );
 });
 
-export const Issue3727ChildB = component$(() => {
+export const RouteActionResultNavigationIssue3727ChildB = component$(() => {
   const copyList = useSignal<string[]>([]);
   const content = useContext(CTX);
   return (
@@ -383,7 +397,10 @@ export const Issue3727ChildB = component$(() => {
       <button
         id="issue-3727-add"
         onClick$={async () => {
-          content.value = [Issue3727ParentB, Issue3727ChildB];
+          content.value = [
+            RouteActionResultNavigationIssue3727ParentB,
+            RouteActionResultNavigationIssue3727ChildB,
+          ];
           copyList.value = [...copyList.value, `item ${copyList.value.length}`];
         }}
       >
@@ -411,7 +428,7 @@ export const QwikSvgWithSlot = component$(() => {
   );
 });
 
-export const Issue4215 = component$(() => {
+export const SvgIconSlotConditionalRenderIssue4215 = component$(() => {
   const $visible = useSignal<boolean>(true);
 
   return (
@@ -466,7 +483,7 @@ export const HideUntilVisible = component$(() => {
   );
 });
 
-export const Issue4283 = component$(() => {
+export const ContentDuplicationDelayedVisibleTaskIssue4283 = component$(() => {
   return (
     <HideUntilVisible>
       <p>Content</p>
@@ -475,10 +492,10 @@ export const Issue4283 = component$(() => {
   );
 });
 
-export const Issue4658Context =
+export const ConditionalRootNodeLayoutBreaksIssue4658Context =
   createContextId<Signal<boolean>>("issue-4658-context");
-export const Issue4658Inner = component$(() => {
-  const toggle = useContext(Issue4658Context);
+export const ConditionalRootNodeLayoutBreaksIssue4658Inner = component$(() => {
+  const toggle = useContext(ConditionalRootNodeLayoutBreaksIssue4658Context);
   return (
     <>
       <main>
@@ -493,18 +510,18 @@ export const Issue4658Inner = component$(() => {
   );
 });
 
-export const Issue4658 = component$(() => {
+export const ConditionalRootNodeLayoutBreaksIssue4658 = component$(() => {
   const toggle = useSignal(false);
-  useContextProvider(Issue4658Context, toggle);
+  useContextProvider(ConditionalRootNodeLayoutBreaksIssue4658Context, toggle);
   return (
     <>
-      <Issue4658Inner>
+      <ConditionalRootNodeLayoutBreaksIssue4658Inner>
         {toggle.value ? (
           <h1 id="issue-4658-top">AAA</h1>
         ) : (
           <h1 id="issue-4658-top">BBB</h1>
         )}
-      </Issue4658Inner>
+      </ConditionalRootNodeLayoutBreaksIssue4658Inner>
       <button
         id="issue-4658-toggle"
         onClick$={() => {
@@ -517,9 +534,13 @@ export const Issue4658 = component$(() => {
   );
 });
 
-const Issue5270Context = createContextId<{ hi: string }>("5270");
+const ContextHiddenSlotBreaksSsrIssue5270Context = createContextId<{
+  hi: string;
+}>("5270");
 export const ProviderParent = component$(() => {
-  useContextProvider(Issue5270Context, { hi: "hello" });
+  useContextProvider(ContextHiddenSlotBreaksSsrIssue5270Context, {
+    hi: "hello",
+  });
   const s = useSignal(false);
   return (
     <div>
@@ -532,11 +553,13 @@ export const ProviderParent = component$(() => {
   );
 });
 const ContextChild = component$(() => {
-  const t = useContext(Issue5270Context);
+  const t = useContext(ContextHiddenSlotBreaksSsrIssue5270Context);
   return <div id="issue-5270-div">Ctx: {t.hi}</div>;
 });
-export const Issue5270 = component$(() => {
-  useContextProvider(Issue5270Context, { hi: "wrong" });
+export const ContextHiddenSlotBreaksSsrIssue5270 = component$(() => {
+  useContextProvider(ContextHiddenSlotBreaksSsrIssue5270Context, {
+    hi: "wrong",
+  });
   return (
     <ProviderParent>
       <ContextChild />
@@ -544,7 +567,7 @@ export const Issue5270 = component$(() => {
   );
 });
 
-export const Toggle5506 = component$<any>((props) => {
+export const ToggleIssue5506 = component$<any>((props) => {
   return (
     <>
       <label>
@@ -560,14 +583,14 @@ export const Toggle5506 = component$<any>((props) => {
   );
 });
 
-export const SlotParent5506 = component$(() => <Slot />);
+export const SlotParentIssue5506 = component$(() => <Slot />);
 
 // This breaks signal propagation, if you put this expression directly in the JSX prop it works
 function coerceBoolean(value: string) {
   return value === "true";
 }
 
-export const Issue5506 = component$(() => {
+export const SlotProjectedContentNotUpdatingDomIssue5506 = component$(() => {
   const sig = useSignal("true");
   const render = useSignal(0);
   const onClick$ = $(() => {
@@ -577,15 +600,15 @@ export const Issue5506 = component$(() => {
 
   return (
     <div id="issue-5506-div">
-      <SlotParent5506 key={render.value}>
-        <Toggle5506
+      <SlotParentIssue5506 key={render.value}>
+        <ToggleIssue5506
           id="input-5506"
           checked={coerceBoolean(sig.value)}
           onClick$={onClick$}
         />
         <br />
         <button onClick$={() => render.value++}>Rerender on client</button>
-      </SlotParent5506>
+      </SlotParentIssue5506>
     </div>
   );
 });

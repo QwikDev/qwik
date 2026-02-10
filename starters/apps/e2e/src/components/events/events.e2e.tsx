@@ -1,7 +1,7 @@
 import type { ClientContainer, DomContainer } from "@qwik.dev/core/internal";
 import { domRender, ssrRenderToDom, trigger } from "@qwik.dev/core/testing";
 import { beforeEach, describe, expect, it } from "vitest";
-import { Issue3948 } from "./events";
+import { UseOnWindowConditionalRenderIssue3948 } from "./events";
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -10,14 +10,16 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])("$render.name: events.e2e", ({ render }) => {
-  describe("<Issue3948/>", () => {
+  describe("<UseOnWindowConditionalRenderIssue3948/>", () => {
     let document: Document;
     // let vNode: VNode;
     let container: ClientContainer | DomContainer;
     // let getStyles: () => Record<string, string | string[]>;
 
     beforeEach(async () => {
-      const result = await render(<Issue3948 />, { debug });
+      const result = await render(<UseOnWindowConditionalRenderIssue3948 />, {
+        debug,
+      });
       document = result.document;
       // vNode = result.vNode!;
       container = result.container;

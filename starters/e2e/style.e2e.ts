@@ -60,7 +60,7 @@ test.describe("styles", () => {
       expect(el2.length).toBe(9);
     });
 
-    test("issue 1945", async ({ page }) => {
+    test("issue 1945 - conditional slot scoped style", async ({ page }) => {
       const btn = page.locator("#issue1945-btn");
       const h1 = page.locator("#issue1945-1");
       const h2 = page.locator("#issue1945-2");

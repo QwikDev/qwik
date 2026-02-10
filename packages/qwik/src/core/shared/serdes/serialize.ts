@@ -20,12 +20,11 @@ import {
   type SerializerArg,
 } from '../../reactive-primitives/types';
 import { isSerializerObj } from '../../reactive-primitives/utils';
-import type { SsrAttrs } from '../../ssr/ssr-types';
 import { Task } from '../../use/use-task';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
 import { isJSXNode } from '../jsx/jsx-node';
-import { Fragment } from '../jsx/jsx-runtime';
+import { Fragment, type Props } from '../jsx/jsx-runtime';
 import { isPropsProxy } from '../jsx/props-proxy';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';
@@ -42,6 +41,7 @@ import {
   type SeenRef,
   type SerializationContext,
 } from './serialization-context';
+import { isObjectEmpty } from '../utils/objects';
 
 /**
  * Format:
@@ -500,11 +500,12 @@ export async function serialize(serializationContext: SerializationContext): Pro
           const childVNodeData = child.vnodeData;
           if (childVNodeData) {
             // add all back refs to the roots
-            for (const value of childVNodeData) {
+            for (let i = 0; i < childVNodeData.length; i++) {
+              const value = childVNodeData[i];
               if (isSsrAttrs(value)) {
-                const backRefKeyIndex = value.findIndex((v) => v === QBackRefs);
-                if (backRefKeyIndex !== -1) {
-                  $addRoot$(value[backRefKeyIndex + 1]);
+                const backRefs = value[QBackRefs];
+                if (backRefs) {
+                  $addRoot$(backRefs);
                 }
               }
             }
@@ -718,15 +719,12 @@ function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, va
 const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unknown) => void) => {
   for (const value of vnodeData) {
     if (isSsrAttrs(value)) {
-      for (let i = 1; i < value.length; i += 2) {
-        const keyValue = value[i - 1];
-        const attrValue = value[i];
+      for (const key in value) {
+        const attrValue = value[key];
         if (
           attrValue == null ||
           typeof attrValue === 'string' ||
-          // skip empty props
-          (keyValue === ELEMENT_PROPS &&
-            Object.keys(attrValue as Record<string, unknown>).length === 0)
+          (key === ELEMENT_PROPS && isObjectEmpty(attrValue as Record<string, unknown>))
         ) {
           continue;
         }
@@ -736,8 +734,8 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
   }
 };
 
-const isSsrAttrs = (value: number | SsrAttrs): value is SsrAttrs =>
-  Array.isArray(value) && value.length > 0;
+const isSsrAttrs = (value: number | Props): value is Props =>
+  typeof value === 'object' && value !== null && !isObjectEmpty(value);
 
 /**
  * When serializing the object we need check if it is URL, RegExp, Map, Set, etc. This is time

@@ -8,6 +8,7 @@ import {
   _SharedContainer,
   _jsxSorted,
   _jsxSplit,
+  _setEvent,
   _walkJSX,
   isSignal,
   type Signal,
@@ -55,6 +56,11 @@ import {
   qError,
   retryOnPromise,
   serializeAttribute,
+  isHtmlAttributeAnEventName,
+  isPreventDefault,
+  ITERATION_ITEM_SINGLE,
+  ITERATION_ITEM_MULTI,
+  isObjectEmpty,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -65,11 +71,9 @@ import {
   type JSXChildren,
   type JSXNodeInternal,
   type JSXOutput,
+  type Props,
   type SerializationContext,
   type SignalImpl,
-  type SsrAttrKey,
-  type SsrAttrValue,
-  type SsrAttrs,
   type StreamWriter,
   type SymbolToChunkResolver,
   type ValueOrPromise,
@@ -184,6 +188,11 @@ const EMPTY_OBJ = {};
  */
 export type CleanupQueue = any[][];
 
+const QTemplateProps = {
+  hidden: true,
+  'aria-hidden': true,
+};
+
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public isHtml: boolean;
@@ -289,7 +298,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   addBackpatchEntry(
     ssrNodeId: string,
     attrName: string,
-    serializedValue: Awaited<SsrAttrValue>
+    serializedValue: string | boolean | null
   ): void {
     // we want to always parse as decimal here
     const elementIndex = parseInt(ssrNodeId, 10);
@@ -371,15 +380,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     this.$serverData$.containerAttributes = containerAttributes;
 
-    const containerAttributeArray = Object.entries(containerAttributes).reduce<string[]>(
-      (acc, [key, value]) => {
-        acc.push(key, value);
-        return acc;
-      },
-      []
-    );
-
-    this.openElement(this.tag, null, containerAttributeArray);
+    this.openElement(this.tag, null, containerAttributes);
   }
 
   /** Renders closing tag for current container */
@@ -393,9 +394,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openElement(
     elementName: string,
     key: string | null,
-    varAttrs: SsrAttrs | null,
-    constAttrs?: SsrAttrs | null,
-    currentFile?: string | null
+    varAttrs: Props | null,
+    constAttrs: Props | null = null,
+    styleScopedId: string | null = null,
+    currentFile: string | null = null
   ): string | undefined {
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
@@ -429,17 +431,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // create here for writeAttrs method to use it
     const lastNode = this.getOrCreateLastNode();
     if (varAttrs) {
-      innerHTML = this.writeAttrs(elementName, varAttrs, false, currentFile);
+      innerHTML = this.writeAttrs(elementName, varAttrs, false, styleScopedId, currentFile);
     }
     this.write(' ' + Q_PROPS_SEPARATOR);
     if (key !== null) {
       this.write(`="${key}"`);
-    } else if (isDev) {
+    } else if (import.meta.env.TEST) {
       // Domino sometimes does not like empty attributes, so we need to add a empty value
       this.write('=""');
     }
-    if (constAttrs && constAttrs.length) {
-      innerHTML = this.writeAttrs(elementName, constAttrs, true, currentFile) || innerHTML;
+    if (constAttrs && !isObjectEmpty(constAttrs)) {
+      innerHTML =
+        this.writeAttrs(elementName, constAttrs, true, styleScopedId, currentFile) || innerHTML;
     }
     this.write('>');
 
@@ -517,7 +520,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   /** Writes opening data to vNodeData for fragment boundaries */
-  openFragment(attrs: SsrAttrs) {
+  openFragment(attrs: Props) {
     this.lastNode = null;
     vNodeData_openFragment(this.currentElementFrame!.vNodeData, attrs);
     // create SSRNode and add it as component child to serialize its vnode data
@@ -534,7 +537,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
-  openProjection(attrs: SsrAttrs) {
+  openProjection(attrs: Props) {
     this.openFragment(attrs);
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
@@ -553,7 +556,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   /** Writes opening data to vNodeData for component boundaries */
-  openComponent(attrs: SsrAttrs) {
+  openComponent(attrs: Props) {
     this.openFragment(attrs);
     this.currentComponentNode = this.getOrCreateLastNode();
     this.componentStack.push(new SsrComponentFrame(this.currentComponentNode));
@@ -592,7 +595,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
 
-    this.openElement(QTemplate, null, ['hidden', true, 'aria-hidden', 'true'], null);
+    this.openElement(QTemplate, null, QTemplateProps, null);
 
     const scopedStyleId = componentFrame.projectionScopedStyle;
     for (let i = 0; i < componentFrame.slots.length; i += 2) {
@@ -601,8 +604,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
       this.openFragment(
         isDev
-          ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, componentFrame.componentNode.id]
-          : [QSlotParent, componentFrame.componentNode.id]
+          ? { [DEBUG_TYPE]: VirtualType.Projection, [QSlotParent]: componentFrame.componentNode.id }
+          : { [QSlotParent]: componentFrame.componentNode.id }
       );
       const lastNode = this.getOrCreateLastNode();
       if (lastNode.vnodeData) {
@@ -708,7 +711,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private _styleNode(styleId: string, content: string) {
-    this.openElement('style', null, [QStyle, styleId]);
+    this.openElement('style', null, {
+      [QStyle]: styleId,
+    });
     this.write(content);
     this.closeElement();
   }
@@ -752,8 +757,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.serializationCtx.$roots$.length) {
       return;
     }
-    this.openElement('script', null, ['type', 'qwik/vnode']);
-    const vNodeAttrsStack: SsrAttrs[] = [];
+    this.openElement('script', null, { type: 'qwik/vnode' });
+    const vNodeAttrsStack: Props[] = [];
     const vNodeData = this.vNodeDatas;
     let lastSerializedIdx = 0;
 
@@ -769,7 +774,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           flag &
           (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
         ) {
-          let fragmentAttrs: SsrAttrs | null = null;
+          let fragmentAttrs: Props | null = null;
           /**
            * We keep track of how many virtual open/close fragments we have seen so far. Normally we
            * should not have to do it, but if you put a fragment around `<body>` tag than we start
@@ -780,7 +785,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           let depth = 0;
           for (let i = 1; i < vNode.length; i++) {
             const value = vNode[i];
-            if (Array.isArray(value)) {
+            if (typeof value === 'object' && value !== null) {
               vNodeAttrsStack.push(fragmentAttrs!);
               fragmentAttrs = value;
             } else if (value === OPEN_FRAGMENT) {
@@ -796,7 +801,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               this.write(VNodeDataChar.CLOSE_CHAR);
             } else if (value === WRITE_ELEMENT_ATTRS) {
               // this is executed only for VNodeDataFlag.ELEMENT_NODE and written as `||some encoded attrs here||`
-              if (fragmentAttrs && fragmentAttrs.length) {
+              if (fragmentAttrs && !isObjectEmpty(fragmentAttrs)) {
                 // double `|` to handle the case when the separator character is also at the beginning or end of the string
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
@@ -827,12 +832,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeElement();
   }
 
-  private writeFragmentAttrs(fragmentAttrs: SsrAttrs): void {
-    for (let i = 0; i < fragmentAttrs.length; ) {
-      const key = fragmentAttrs[i++] as string;
-      let value = fragmentAttrs[i++] as string;
+  private writeFragmentAttrs(fragmentAttrs: Props): void {
+    for (const key in fragmentAttrs) {
+      let value = fragmentAttrs[key] as string;
       let encodeValue = false;
-      // if (key !== DEBUG_TYPE) continue;
       if (typeof value !== 'string') {
         const rootId = this.addRoot(value);
         // We didn't add the vnode data, so we are only interested in the vnode position
@@ -911,13 +914,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   /** Add q-d:qidle attribute to eagerly resume some state if needed */
-  private stateScriptAttrs(): string[] {
-    const attrs = ['type', 'qwik/state'];
+  private stateScriptAttrs(): Props {
+    const attrs: Props = { type: 'qwik/state' };
     const eagerResume = this.serializationCtx.$eagerResume$;
     if (eagerResume.size > 0) {
       const qrl = createQRL(null, '_res', _res, null, [...eagerResume]);
       const qrlStr = qrlToString(this.serializationCtx, qrl);
-      attrs.push('q-d:qidle', qrlStr);
+      attrs['q-d:qidle'] = qrlStr;
       // Add 'd:qidle' to event names set
       this.serializationCtx.$eventNames$.add('d:qidle');
     }
@@ -927,9 +930,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private emitSyncFnsData() {
     const fns = this.serializationCtx.$syncFns$;
     if (fns.length) {
-      const scriptAttrs = ['q:func', 'qwik/json'];
+      const scriptAttrs: Record<string, string> = { 'q:func': 'qwik/json' };
       if (this.renderOptions.serverData?.nonce) {
-        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+        scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
       }
       this.openElement('script', null, scriptAttrs);
       this.write(Q_FUNCS_PREFIX.replace('HASH', this.$instanceHash$));
@@ -948,7 +951,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           elementIndex,
           backpatchEntry.attrName,
           isSignal(backpatchEntry.value)
-            ? (backpatchEntry.value as SignalImpl<string>).untrackedValue
+            ? (backpatchEntry.value as unknown as SignalImpl<string>).untrackedValue
             : (backpatchEntry.value as string)
         );
       }
@@ -958,9 +961,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     if (patches.length > 0) {
       this.isBackpatchExecutorEmitted = true;
-      const scriptAttrs = ['type', ELEMENT_BACKPATCH_DATA];
+      const scriptAttrs: Record<string, string> = { type: ELEMENT_BACKPATCH_DATA };
       if (this.renderOptions.serverData?.nonce) {
-        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+        scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
       }
       this.openElement('script', null, scriptAttrs);
       this.write(JSON.stringify(patches));
@@ -973,9 +976,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
 
-    const scriptAttrs = ['type', 'text/javascript'];
+    const scriptAttrs: Record<string, string> = { type: 'text/javascript' };
     if (this.renderOptions.serverData?.nonce) {
-      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
     }
     this.openElement('script', null, scriptAttrs);
 
@@ -998,17 +1001,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.qlInclude = QwikLoaderInclude.Done;
       // always emit the preload+import. It will probably be used at some point on the site
       const qwikLoaderBundle = this.$buildBase$ + this.resolvedManifest.manifest.qwikLoader!;
-      const linkAttrs = ['rel', 'modulepreload', 'href', qwikLoaderBundle];
+      const linkAttrs: Record<string, string> = { rel: 'modulepreload', href: qwikLoaderBundle };
       const nonce = this.renderOptions.serverData?.nonce;
       if (nonce) {
-        linkAttrs.push('nonce', nonce);
+        linkAttrs['nonce'] = nonce;
       }
       this.openElement('link', null, linkAttrs);
       this.closeElement();
       // browser must support modules for Qwik to work
-      const scriptAttrs = ['async', true, 'type', 'module', 'src', qwikLoaderBundle];
+      const scriptAttrs: Record<string, string | boolean> = {
+        async: true,
+        type: 'module',
+        src: qwikLoaderBundle,
+      };
       if (nonce) {
-        scriptAttrs.push('nonce', nonce);
+        scriptAttrs['nonce'] = nonce;
       }
       this.openElement('script', null, scriptAttrs);
       this.closeElement();
@@ -1020,9 +1027,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // if at the end, only include when snapshot is not static
     const qwikLoaderScript = getQwikLoaderScript({ debug: this.renderOptions.debug });
     // module + async lets it run asap without waiting for DOM, even when inline
-    const scriptAttrs = ['id', 'qwikloader', 'async', true, 'type', 'module'];
+    const scriptAttrs: Record<string, string | boolean> = {
+      id: 'qwikloader',
+      async: true,
+      type: 'module',
+    };
     if (this.renderOptions.serverData?.nonce) {
-      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
     }
     this.openElement('script', null, scriptAttrs);
     this.write(qwikLoaderScript);
@@ -1043,10 +1054,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (eventNames.length > 0) {
       // TODO fix qwikloader so it handles qvisible added after init
       // const scriptAttrs = ['async', true, 'type', 'module'];
-      const scriptAttrs = [];
+      const scriptAttrs: Record<string, string> = {};
       const nonce = this.renderOptions.serverData?.nonce;
       if (nonce) {
-        scriptAttrs.push('nonce', nonce);
+        scriptAttrs['nonce'] = nonce;
       }
       this.openElement('script', null, scriptAttrs);
       this.write(`(window._qwikEv||(window._qwikEv=[])).push(`);
@@ -1171,105 +1182,98 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private writeAttrs(
     tag: string,
-    attrs: SsrAttrs,
+    attrs: Props,
     isConst: boolean,
-    currentFile?: string | null
+    styleScopedId: string | null,
+    currentFile: string | null
   ): string | undefined {
     let innerHTML: string | undefined = undefined;
-    if (attrs.length) {
-      for (let i = 0; i < attrs.length; i++) {
-        let key = attrs[i++] as SsrAttrKey;
-        let value = attrs[i] as SsrAttrValue;
-        let styleScopedId: string | null = null;
-
-        if (isSSRUnsafeAttr(key)) {
-          if (isDev) {
-            throw qError(QError.unsafeAttr, [key]);
-          }
-          continue;
+    for (let key in attrs) {
+      let value = attrs[key];
+      if (isSSRUnsafeAttr(key)) {
+        if (isDev) {
+          throw qError(QError.unsafeAttr, [key]);
         }
+        continue;
+      }
 
-        if (key === 'class' && Array.isArray(value)) {
-          // value is a signal and key is a class, we need to retrieve data first
-          const [signalValue, styleId] = value;
-          value = signalValue;
-          styleScopedId = styleId;
+      if (isHtmlAttributeAnEventName(key)) {
+        const eventValue = _setEvent(this.serializationCtx, key, value);
+        if (eventValue) {
+          value = eventValue;
         }
-
-        if (key === 'ref') {
-          const lastNode = this.getOrCreateLastNode();
-          if (isSignal(value)) {
-            (value as SignalImpl<unknown>).$untrackedValue$ = new DomRef(lastNode);
-            continue;
-          } else if (typeof value === 'function') {
-            value(new DomRef(lastNode));
-            continue;
-          } else if (value == null) {
-            continue;
-          } else {
-            throw qError(QError.invalidRefValue, [currentFile]);
-          }
-        }
-
+      } else if (key === 'ref') {
+        const lastNode = this.getOrCreateLastNode();
         if (isSignal(value)) {
-          const lastNode = this.getOrCreateLastNode();
-          const signalData = new SubscriptionData({
-            $scopedStyleIdPrefix$: styleScopedId,
-            $isConst$: isConst,
-          });
-
-          const signal = value as Signal<unknown>;
-          value = retryOnPromise(() =>
-            this.trackSignalValue(signal, lastNode, key, signalData)
-          ) as Promise<string>;
+          (value as SignalImpl<unknown>).$untrackedValue$ = new DomRef(lastNode);
+          continue;
+        } else if (typeof value === 'function') {
+          value(new DomRef(lastNode));
+          continue;
+        } else if (value == null) {
+          continue;
+        } else {
+          throw qError(QError.invalidRefValue, [currentFile]);
         }
-
-        if (isPromise<SsrAttrValue>(value)) {
-          const lastNode = this.getOrCreateLastNode();
-          this.addPromiseAttribute(value);
-          value.then((resolvedValue) => {
-            this.addBackpatchEntry(lastNode.id, key, resolvedValue);
-          });
+      } else if (isSignal(value)) {
+        const lastNode = this.getOrCreateLastNode();
+        const signalData = new SubscriptionData({
+          $scopedStyleIdPrefix$: styleScopedId,
+          $isConst$: isConst,
+        });
+        const signal = value as Signal<unknown>;
+        value = retryOnPromise(() =>
+          this.trackSignalValue(signal, lastNode, key, signalData)
+        ) as Promise<string>;
+      }
+      if (isPromise<string | boolean | null>(value)) {
+        const lastNode = this.getOrCreateLastNode();
+        this.addPromiseAttribute(value);
+        value.then((resolvedValue) => {
+          this.addBackpatchEntry(lastNode.id, key, resolvedValue);
+        });
+        continue;
+      }
+      if (key === dangerouslySetInnerHTML) {
+        if (value) {
+          innerHTML = String(value);
+          key = QContainerAttr;
+          value = QContainerValue.HTML;
+        }
+        // we can skip this attribute for a style node
+        // because we skip materializing the style node
+        if (tag === 'style') {
           continue;
         }
-
-        if (key === dangerouslySetInnerHTML) {
-          if (value) {
-            innerHTML = String(value);
-            key = QContainerAttr;
-            value = QContainerValue.HTML;
+      }
+      if (tag === 'textarea' && key === 'value') {
+        if (value && typeof value !== 'string') {
+          if (isDev) {
+            throw qError(QError.wrongTextareaValue, [currentFile, value]);
           }
-          // we can skip this attribute for a style node
-          // because we skip materializing the style node
-          if (tag === 'style') {
-            continue;
-          }
+          continue;
         }
+        innerHTML = escapeHTML((value as string) || '');
+        key = QContainerAttr;
+        value = QContainerValue.TEXT;
+      }
 
-        if (tag === 'textarea' && key === 'value') {
-          if (value && typeof value !== 'string') {
-            if (isDev) {
-              throw qError(QError.wrongTextareaValue, [currentFile, value]);
-            }
-            continue;
-          }
-          innerHTML = escapeHTML(value || '');
-          key = QContainerAttr;
-          value = QContainerValue.TEXT;
-        }
+      if (isPreventDefault(key)) {
+        addPreventDefaultEventToSerializationContext(this.serializationCtx, key);
+      } else if (key === ITERATION_ITEM_SINGLE || key === ITERATION_ITEM_MULTI) {
+        value = this.serializationCtx.$addRoot$(value);
+      }
 
-        const serializedValue = serializeAttribute(key, value, styleScopedId);
+      const serializedValue = serializeAttribute(key, value, styleScopedId);
+      if (serializedValue != null && serializedValue !== false) {
+        this.write(' ');
+        this.write(key);
+        if (serializedValue !== true) {
+          this.write('="');
+          const strValue = escapeHTML(String(serializedValue));
+          this.write(strValue);
 
-        if (serializedValue != null && serializedValue !== false) {
-          this.write(' ');
-          this.write(key);
-          if (serializedValue !== true) {
-            this.write('="');
-            const strValue = escapeHTML(String(serializedValue));
-            this.write(strValue);
-
-            this.write('"');
-          }
+          this.write('"');
         }
       }
     }
@@ -1289,14 +1293,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 }
 
-const isQwikStyleElement = (tag: string, attrs: SsrAttrs | null | undefined) => {
+const isQwikStyleElement = (tag: string, attrs: Props | null) => {
   if (tag === 'style' && attrs != null) {
-    for (let i = 0; i < attrs.length; i = i + 2) {
-      const attr = attrs[i];
-      if (attr === QStyle || attr === QScopedStyle) {
-        return true;
-      }
-    }
+    return (
+      Object.prototype.hasOwnProperty.call(attrs, QStyle) ||
+      Object.prototype.hasOwnProperty.call(attrs, QScopedStyle)
+    );
   }
   return false;
 };
@@ -1332,4 +1334,15 @@ function isSSRUnsafeAttr(name: string): boolean {
 
 function hash() {
   return Math.random().toString(36).slice(2);
+}
+
+function addPreventDefaultEventToSerializationContext(
+  serializationCtx: SerializationContext,
+  key: string
+) {
+  // skip the `preventdefault`, leave the ':'
+  const eventName = 'e' + key.substring(14);
+  if (eventName) {
+    serializationCtx.$eventNames$.add(eventName);
+  }
 }

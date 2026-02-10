@@ -33,15 +33,15 @@ describe('SSR Container', () => {
     container.openContainer();
     // Add a large content to exceed 30KB while opening the next element
     const largeContent = 'x'.repeat(30 * 1024);
-    container.openElement('div', null, null);
+    container.openElement('div', null, {}, null, null, null);
     container.textNode(largeContent);
     await container.closeElement();
     // Add a style element with QStyle attribute
-    container.openElement('style', null, [QStyle, 'my-style-id']);
+    container.openElement('style', null, { [QStyle]: 'my-style-id' }, null, null, null);
     container.write('.my-class { color: red; }');
     await container.closeElement();
     // Add another regular elementm
-    container.openElement('div', null, null);
+    container.openElement('div', null, {}, null, null, null);
     await container.closeElement();
     await container.closeContainer();
 

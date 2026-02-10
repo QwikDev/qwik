@@ -60,6 +60,7 @@ export async function submoduleServer(config: BuildConfig) {
             if (
               args.path.includes('util') ||
               args.path.includes('shared') ||
+              args.path.includes('ssr') ||
               // we allow building preloader into server builds
               args.path.includes('preloader')
             ) {

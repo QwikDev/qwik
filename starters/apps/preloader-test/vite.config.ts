@@ -65,7 +65,7 @@ export default defineConfig((): UserConfig => {
     plugins: [
       qwikRouter(),
       qwikVite({ debug: true }),
-      createBulkPlugin(),
+      // createBulkPlugin(),
       tsconfigPaths({ root: "." }),
       basicSsl(),
     ],

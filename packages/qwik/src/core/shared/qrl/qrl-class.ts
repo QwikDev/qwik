@@ -314,12 +314,9 @@ export const createQRL = <TYPE>(
     );
   }
 
-  if (isBrowser && symbol) {
-    /**
-     * Preloading the symbol instead of the chunk allows us to get probabilities for the bundle
-     * based on its contents.
-     */
-    preload(symbol, 0.8);
+  if (isBrowser && chunk) {
+    /** Preloading the chunk when we create the QRL. */
+    preload(chunk, 0.8);
   }
   return qrl;
 };

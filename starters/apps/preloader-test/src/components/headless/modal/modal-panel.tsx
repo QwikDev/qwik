@@ -15,7 +15,6 @@ import {
 
 import { modalContextId } from "./modal-context";
 
-import styles from "./modal.css?inline";
 import { useModal } from "./use-modal";
 
 import { enableBodyScroll } from "body-scroll-lock-upgrade";
@@ -29,7 +28,6 @@ export type ModalProps = Omit<PropsOf<"dialog">, "open"> & {
 };
 
 export const HModalPanel = component$((props: PropsOf<"dialog">) => {
-  useStyles$(styles);
   const {
     activateFocusTrap,
     closeModal,
@@ -45,7 +43,9 @@ export const HModalPanel = component$((props: PropsOf<"dialog">) => {
   useTask$(async function toggleModal({ track, cleanup }) {
     const isOpen = track(() => context.showSig.value);
 
-    if (!panelRef.value) return;
+    if (!panelRef.value) {
+      return;
+    }
 
     const focusTrap = await trapFocus(panelRef.value);
 
@@ -62,9 +62,13 @@ export const HModalPanel = component$((props: PropsOf<"dialog">) => {
     }
 
     cleanup(async () => {
-      if (isServer) return;
+      if (isServer) {
+        return;
+      }
       await deactivateFocusTrap(focusTrap);
-      if (!panelRef.value) return;
+      if (!panelRef.value) {
+        return;
+      }
       enableBodyScroll(panelRef.value);
     });
   });

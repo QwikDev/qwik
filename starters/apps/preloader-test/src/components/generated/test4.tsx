@@ -4,7 +4,6 @@ export default component$(() => {
   const count = useSignal(0);
   useTask$(({ track }) => {
     track(() => count.value);
-    console.log("count", count.value);
   });
   return (
     <>

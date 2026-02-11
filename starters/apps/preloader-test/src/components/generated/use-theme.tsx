@@ -5,52 +5,42 @@ export const useTheme = () => {
   useVisibleTask$(({ track }) => {
     track(() => theme.value);
     theme.value = "dark";
-    console.log("visible theme", theme.value);
   });
 
   useTask$(({ track }) => {
     track(() => theme.value);
-    console.log("theme", theme.value);
   });
 
   useTask$(({ track }) => {
     track(() => theme.value);
-    console.log("theme", theme.value);
   });
 
   useTask$(({ track }) => {
     track(() => theme.value);
-    console.log("theme", theme.value);
   });
 
   useTask$(({ track }) => {
     track(() => theme.value);
-    console.log("theme", theme.value);
   });
 
   useTask$(({ track }) => {
     track(() => theme.value);
-    console.log("theme", theme.value);
   });
 
   useTask$(({ track }) => {
     track(() => theme.value);
-    console.log("theme", theme.value);
   });
 
   useTask$(({ track }) => {
     track(() => theme.value);
-    console.log("theme", theme.value);
   });
 
   useTask$(({ track }) => {
     track(() => theme.value);
-    console.log("theme", theme.value);
   });
 
   useTask$(({ track }) => {
     track(() => theme.value);
-    console.log("theme", theme.value);
   });
   return theme;
 };

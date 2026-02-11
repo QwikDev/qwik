@@ -14,9 +14,7 @@ export default component$(() => {
   const count = useSignal(0);
 
   useTask$(({ track }) => {
-    console.log("counter4 useTask running count", count.value);
     track(() => count.value);
-    console.log("counter4 useTask finished count value", count.value);
   });
 
   useContextProvider(CounterContext, count);
@@ -25,9 +23,7 @@ export default component$(() => {
     <>
       <button
         onClick$={() => {
-          console.log("onClick executing");
           count.value++;
-          console.log("signal changed");
         }}
       >
         Increment

@@ -17,7 +17,6 @@ export default component$(() => {
 
   useTask$(({ track }) => {
     track(() => quadrupleCount.value);
-    console.log("quadrupleCount", quadrupleCount.value);
   });
 
   const heightupleCount = useComputed$(() => doubleCount.value * 4);

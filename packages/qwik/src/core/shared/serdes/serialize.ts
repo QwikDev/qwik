@@ -42,6 +42,14 @@ import {
   type SerializationContext,
 } from './serialization-context';
 import { isObjectEmpty } from '../utils/objects';
+import {
+  BRACKET_CLOSE,
+  BRACKET_OPEN,
+  CLOSE_TAG,
+  COMMA,
+  ESCAPED_CLOSE_TAG,
+  QUOTE,
+} from '../ssr-const';
 
 /**
  * Format:
@@ -77,7 +85,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
     keepUndefined: boolean,
     writeFn: (value: unknown, idx: number) => void
   ) => {
-    $writer$.write('[');
+    $writer$.write(BRACKET_OPEN);
     let separator = false;
     let length;
     if (keepUndefined) {
@@ -91,31 +99,43 @@ export async function serialize(serializationContext: SerializationContext): Pro
     }
     for (let i = 0; i < length; i++) {
       if (separator) {
-        $writer$.write(',');
+        $writer$.write(COMMA);
       } else {
         separator = true;
       }
       writeFn(value[i], i);
     }
-    $writer$.write(']');
+    $writer$.write(BRACKET_CLOSE);
+  };
+
+  /** Whether a string needs JSON escaping (quote, backslash, or control chars). */
+  const stringNeedsJsonEscape = (str: string): boolean => {
+    for (let i = 0; i < str.length; i++) {
+      const c = str.charCodeAt(i);
+      if (c < 32 || c === 34 || c === 92) {
+        return true;
+      }
+    }
+    return false;
   };
 
   /** Output a type,value pair. If the value is an array, it calls writeValue on each item. */
   const output = (type: number, value: number | string | any[], keepUndefined?: boolean) => {
-    $writer$.write(`${type},`);
     if (typeof value === 'number') {
-      $writer$.write(value.toString());
+      $writer$.write(type + COMMA + value);
     } else if (typeof value === 'string') {
-      const s = JSON.stringify(value);
+      const s = stringNeedsJsonEscape(value) ? JSON.stringify(value) : QUOTE + value + QUOTE;
+      $writer$.write(type + COMMA);
       let angleBracketIdx: number = -1;
       let lastIdx = 0;
-      while ((angleBracketIdx = s.indexOf('</', lastIdx)) !== -1) {
+      while ((angleBracketIdx = s.indexOf(CLOSE_TAG, lastIdx)) !== -1) {
         $writer$.write(s.slice(lastIdx, angleBracketIdx));
-        $writer$.write('<\\/');
+        $writer$.write(ESCAPED_CLOSE_TAG);
         lastIdx = angleBracketIdx + 2;
       }
       $writer$.write(lastIdx === 0 ? s : s.slice(lastIdx));
     } else {
+      $writer$.write(type + COMMA);
       outputArray(value, !!keepUndefined, (valueItem, idx) => {
         writeValue(valueItem, idx);
       });
@@ -629,17 +649,17 @@ export async function serialize(serializationContext: SerializationContext): Pro
   }
 
   const outputRoots = async () => {
-    $writer$.write('[');
+    $writer$.write(BRACKET_OPEN);
     const { $roots$ } = serializationContext;
     while (rootIdx < $roots$.length || promises.size) {
       if (rootIdx !== 0) {
-        $writer$.write(',');
+        $writer$.write(COMMA);
       }
 
       let separator = false;
       for (; rootIdx < $roots$.length; rootIdx++) {
         if (separator) {
-          $writer$.write(',');
+          $writer$.write(COMMA);
         } else {
           separator = true;
         }
@@ -661,8 +681,8 @@ export async function serialize(serializationContext: SerializationContext): Pro
         lastIdx--;
       }
       if (lastIdx >= 0) {
-        $writer$.write(',');
-        $writer$.write(TypeIds.ForwardRefs + ',');
+        $writer$.write(COMMA);
+        $writer$.write(TypeIds.ForwardRefs + COMMA);
         const out =
           lastIdx === forwardRefs.length - 1 ? forwardRefs : forwardRefs.slice(0, lastIdx + 1);
         // We could also implement RLE of -1 values
@@ -672,7 +692,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
       }
     }
 
-    $writer$.write(']');
+    $writer$.write(BRACKET_CLOSE);
   };
 
   await outputRoots();

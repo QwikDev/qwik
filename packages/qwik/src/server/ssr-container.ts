@@ -1,20 +1,25 @@
 /** @file Public APIs for the SSR */
 import { isDev } from '@qwik.dev/core/build';
 import {
-  _createQRL as createQRL,
-  _qrlToString as qrlToString,
-  _res,
   _SubscriptionData as SubscriptionData,
   _SharedContainer,
   _jsxSorted,
   _jsxSplit,
+  _res,
   _setEvent,
   _walkJSX,
+  _createQRL as createQRL,
   isSignal,
+  _qrlToString as qrlToString,
   type Signal,
 } from '@qwik.dev/core/internal';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
+  ATTR_EQUALS_QUOTE,
+  BRACKET_CLOSE,
+  BRACKET_OPEN,
+  CLOSE_TAG,
+  COMMA,
   DEBUG_TYPE,
   ELEMENT_BACKPATCH_DATA,
   ELEMENT_ID,
@@ -22,7 +27,13 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
+  EMPTY_ATTR,
+  GT,
+  ITERATION_ITEM_MULTI,
+  ITERATION_ITEM_SINGLE,
+  LT,
   OnRenderProp,
+  PAREN_CLOSE,
   QBackRefs,
   QBaseAttr,
   QContainerAttr,
@@ -39,15 +50,20 @@ import {
   QSlotParent,
   QStyle,
   QTemplate,
+  QUOTE,
   QVersionAttr,
   Q_PROPS_SEPARATOR,
+  SPACE,
   VNodeDataChar,
   VNodeDataSeparator,
   VirtualType,
   convertStyleIdsToString,
   dangerouslySetInnerHTML,
-  escapeHTML,
   encodeVNodeDataString,
+  escapeHTML,
+  isHtmlAttributeAnEventName,
+  isObjectEmpty,
+  isPreventDefault,
   isPromise,
   mapArray_get,
   mapArray_has,
@@ -56,11 +72,6 @@ import {
   qError,
   retryOnPromise,
   serializeAttribute,
-  isHtmlAttributeAnEventName,
-  isPreventDefault,
-  ITERATION_ITEM_SINGLE,
-  ITERATION_ITEM_MULTI,
-  isObjectEmpty,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -186,18 +197,6 @@ const QTemplateProps = {
   hidden: true,
   'aria-hidden': true,
 };
-
-// Pre-allocated common strings to reduce allocation overhead
-const HTML_LT = '<';
-const HTML_GT = '>';
-const HTML_CLOSE_TAG = '</';
-const HTML_SPACE = ' ';
-const HTML_ATTR_EQUALS_QUOTE = '="';
-const HTML_QUOTE = '"';
-const HTML_EMPTY_ATTR = '=""';
-const HTML_BRACKET_OPEN = '[';
-const HTML_BRACKET_CLOSE = ']';
-const HTML_PAREN_CLOSE = ')';
 
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
@@ -443,7 +442,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.emitContainerDataFrame = this.currentElementFrame;
     }
     vNodeData_openElement(this.currentElementFrame!.vNodeData);
-    this.write(HTML_LT);
+    this.write(LT);
     this.write(elementName);
     // create here for writeAttrs method to use it
     const lastNode = this.getOrCreateLastNode();
@@ -455,13 +454,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write(`="${key}"`);
     } else if (import.meta.env.TEST) {
       // Domino sometimes does not like empty attributes, so we need to add a empty value
-      this.write(HTML_EMPTY_ATTR);
+      this.write(EMPTY_ATTR);
     }
     if (constAttrs && !isObjectEmpty(constAttrs)) {
       innerHTML =
         this.writeAttrs(elementName, constAttrs, true, styleScopedId, currentFile) || innerHTML;
     }
-    this.write(HTML_GT);
+    this.write(GT);
 
     if (lastNode) {
       lastNode.setTreeNonUpdatable();
@@ -512,9 +511,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const currentFrame = this.popFrame();
     const elementName = currentFrame.elementName!;
     if (!isSelfClosingTag(elementName)) {
-      this.write(HTML_CLOSE_TAG);
+      this.write(CLOSE_TAG);
       this.write(elementName);
-      this.write(HTML_GT);
+      this.write(GT);
     }
     this.lastNode = null;
     if (this.qlInclude === QwikLoaderInclude.Inline) {
@@ -942,9 +941,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
       this.openElement('script', null, scriptAttrs);
       this.write(Q_FUNCS_PREFIX.replace('HASH', this.$instanceHash$));
-      this.write(HTML_BRACKET_OPEN);
-      this.writeArray(fns, ',');
-      this.write(HTML_BRACKET_CLOSE);
+      this.write(BRACKET_OPEN);
+      this.writeArray(fns, COMMA);
+      this.write(BRACKET_CLOSE);
       this.closeElement();
     }
   }
@@ -1067,8 +1066,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
       this.openElement('script', null, scriptAttrs);
       this.write(`(window._qwikEv||(window._qwikEv=[])).push(`);
-      this.writeArray(eventNames, ', ');
-      this.write(HTML_PAREN_CLOSE);
+      this.writeArray(eventNames, COMMA);
+      this.write(PAREN_CLOSE);
       this.closeElement();
     }
   }
@@ -1274,14 +1273,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
       const serializedValue = serializeAttribute(key, value, styleScopedId);
       if (serializedValue != null && serializedValue !== false) {
-        this.write(HTML_SPACE);
+        this.write(SPACE);
         this.write(key);
         if (serializedValue !== true) {
-          this.write(HTML_ATTR_EQUALS_QUOTE);
+          this.write(ATTR_EQUALS_QUOTE);
           const strValue = escapeHTML(String(serializedValue));
           this.write(strValue);
-
-          this.write(HTML_QUOTE);
+          this.write(QUOTE);
         }
       }
     }

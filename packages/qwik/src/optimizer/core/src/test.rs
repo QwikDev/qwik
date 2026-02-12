@@ -272,22 +272,50 @@ fn example_increment() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, useSignal } from "@qwik.dev/core";
+import { Child } from "./child";
 
 export const TestButton = component$(() => {
-   const count = useSignal(0);
-   const increment$ = $(() => {
-      console.log("incrementing");
-      count.value++
-    });
-   return (
-      <button onClick$={async () => {
-        await increment$(); 
-        console.log("incremented");
-      }}>
-        click me
-      </button>
-    );
-})
+	const count = useSignal(0);
+	const increment$ = $(() => {
+		console.log("incrementing");
+		count.value++;
+	});
+	return (
+		<>
+		<button
+			onClick$={async () => {
+			await increment$();
+			console.log("incremented");
+			}}
+		>
+			TestButton {count.value}
+		</button>
+		<Child handleClick$={increment$} count={count} />
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_Child_handleClick() {
+	test_input!(TestInput {
+		code: r#"
+import {
+	$,
+	component$,
+	QRL,
+	useSignal,
+} from "@qwik.dev/core";
+
+export const Child = component$(({ handleClick$ }: { handleClick$: QRL<() => void> }) => {
+	return <button onClick$={async () => await handleClick$()}>child button</button>;
+});
 "#
 		.to_string(),
 		transpile_ts: true,

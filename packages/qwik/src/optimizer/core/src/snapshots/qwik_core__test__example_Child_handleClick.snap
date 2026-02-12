@@ -1,0 +1,102 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 306
+expression: output
+---
+==INPUT==
+
+
+import {
+	$,
+	component$,
+	QRL,
+	useSignal,
+} from "@qwik.dev/core";
+
+export const Child = component$(({ handleClick$ }: { handleClick$: QRL<() => void> }) => {
+	return <button onClick$={async () => await handleClick$()}>child button</button>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_9GyF01GDKqw = ()=>import("./test.tsx_Child_component_9GyF01GDKqw");
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9GyF01GDKqw, "Child_component_9GyF01GDKqw"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAQA,OAAO,MAAM,sBAAQ,8EAElB\"}")
+============================= test.tsx_Child_component_button_q_e_click_29XSxgunOYM.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const Child_component_button_q_e_click_29XSxgunOYM = async ()=>{
+    const _rawProps = _captures[0];
+    return await _rawProps.handleClick$();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4DAS0B;;WAAY,MAAM,UADT\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_button_q_e_click_29XSxgunOYM",
+  "entry": null,
+  "displayName": "test.tsx_Child_component_button_q_e_click",
+  "hash": "29XSxgunOYM",
+  "canonicalFilename": "test.tsx_Child_component_button_q_e_click_29XSxgunOYM",
+  "path": "",
+  "extension": "js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    189,
+    221
+  ],
+  "captureNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_29XSxgunOYM = ()=>import("./test.tsx_Child_component_button_q_e_click_29XSxgunOYM");
+export const Child_component_9GyF01GDKqw = (_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": /*#__PURE__*/ qrl(i_29XSxgunOYM, "Child_component_button_q_e_click_29XSxgunOYM", [
+            _rawProps
+        ])
+    }, null, "child button", 2, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAQgC;IAC/B,qBAAO,WAAC;QAAO,WAAQ;;;aAAoC;AAC5D\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_9GyF01GDKqw",
+  "entry": null,
+  "displayName": "test.tsx_Child_component",
+  "hash": "9GyF01GDKqw",
+  "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    104,
+    247
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

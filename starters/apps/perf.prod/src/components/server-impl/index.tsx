@@ -6,6 +6,7 @@ import {
   type QRL,
   type Signal,
 } from "@qwik.dev/core";
+import type { _ElementVNode } from "@qwik.dev/core/internal";
 
 const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
 const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore
@@ -18,15 +19,20 @@ let nextId = 1;
 type Row = {
   id: number;
   label: Signal<string>;
+  selected: Signal<boolean>;
 };
 
-const buildData = (count: number) => {
+const buildData = (count: number): Signal<Row>[] => {
   const data = new Array(count);
   for (let i = 0; i < count; i++) {
     const label = createSignal(
       `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`,
     );
-    data[i] = createSignal({ id: nextId++, label });
+    data[i] = createSignal({
+      id: nextId++,
+      label,
+      selected: createSignal(false),
+    });
   }
   return data;
 };
@@ -54,14 +60,14 @@ const Button = component$<ButtonProps>(({ id, text, click$ }) => {
 
 export default component$(() => {
   const data = useSignal<Signal<Row>[]>(buildData(10_000));
-  const selected = useSignal<number | null>(null);
+  const selectedItem = useSignal<Row | null>(null);
 
   return (
     <div class="container">
       <div class="jumbotron">
         <div class="row">
           <div class="col-md-6">
-            <h1>Qwik Signal Implementation - Server Create 10k</h1>
+            <h1>Qwik Signal Server Implementation</h1>
           </div>
           <div class="col-md-6">
             <div class="row">
@@ -122,12 +128,20 @@ export default component$(() => {
           {data.value.map((row) => {
             return (
               <tr
-                key={untrack(() => row.value.id)}
-                class={selected.value === row.value.id ? "danger" : ""}
+                key={untrack(() => row.value.id + "")}
+                class={row.value.selected.value ? "danger" : ""}
               >
                 <td class="col-md-1">{row.value.id}</td>
                 <td class="col-md-4">
-                  <a onClick$={() => (selected.value = row.value.id)}>
+                  <a
+                    onClick$={() => {
+                      if (selectedItem.value) {
+                        selectedItem.value.selected.value = false;
+                      }
+                      selectedItem.value = row.value;
+                      row.value.selected.value = true;
+                    }}
+                  >
                     {row.value.label.value}
                   </a>
                 </td>
@@ -135,16 +149,15 @@ export default component$(() => {
                   <a
                     onClick$={() => {
                       const dataValue = untrack(() => data.value);
-                      const currentRow = row.value;
                       data.value = dataValue.toSpliced(
-                        dataValue.findIndex(
-                          (d) => d.value.id === currentRow.id,
-                        ),
+                        dataValue.findIndex((d) => d.value.id === row.value.id),
                         1,
                       );
                     }}
                   >
-                    <span aria-hidden="true">x</span>
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true">
+                      x
+                    </span>
                   </a>
                 </td>
                 <td class="col-md-6" />

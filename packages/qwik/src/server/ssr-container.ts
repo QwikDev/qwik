@@ -244,6 +244,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private vNodeDatas: VNodeData[] = [];
   private componentStack: ISsrComponentFrame[] = [];
   private cleanupQueue: CleanupQueue = [];
+  private emitContainerDataFrame: ElementFrame | null = null;
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
@@ -389,12 +390,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$serverData$.containerAttributes = containerAttributes;
 
     this.openElement(this.tag, null, containerAttributes);
+    if (!this.isHtml) {
+      // For micro-frontends emit before closing the root custom container element.
+      this.emitContainerDataFrame = this.currentElementFrame;
+    }
   }
 
   /** Renders closing tag for current container */
   closeContainer(): ValueOrPromise<void> {
-    const result = this.closeElement();
-    return result;
+    return this.closeElement();
   }
 
   private $noScriptHere$: number = 0;
@@ -434,6 +438,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
 
     this.createAndPushFrame(elementName, this.depthFirstElementCount++, currentFile);
+    if (this.isHtml && elementName === 'body' && this.emitContainerDataFrame === null) {
+      // For full document rendering emit before closing </body>.
+      this.emitContainerDataFrame = this.currentElementFrame;
+    }
     vNodeData_openElement(this.currentElementFrame!.vNodeData);
     this.write(HTML_LT);
     this.write(elementName);
@@ -463,7 +471,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Renders closing tag for DOM element */
   closeElement(): ValueOrPromise<void> {
-    if (this.shouldEmitDataBeforeClosingElement()) {
+    if (this.currentElementFrame === this.emitContainerDataFrame) {
+      this.emitContainerDataFrame = null;
       // start snapshot timer
       this.onRenderDone();
       const snapshotTimer = createTimer();
@@ -476,18 +485,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       );
     }
     this._closeElement();
-  }
-
-  private shouldEmitDataBeforeClosingElement(): boolean {
-    const currentFrame = this.currentElementFrame!;
-    return (
-      /**
-       * - Micro-frontends don't have html tag, emit data before closing custom element
-       * - Regular applications should emit data inside body
-       */
-      (currentFrame.parent === null && currentFrame.elementName !== 'html') ||
-      currentFrame.elementName === 'body'
-    );
   }
 
   private onRenderDone() {

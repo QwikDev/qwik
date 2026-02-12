@@ -117,8 +117,8 @@ export interface RenderResult {
     isStatic: boolean;
     // (undocumented)
     manifest?: ServerQwikManifest;
-    // (undocumented)
-    snapshotResult: SnapshotResult | undefined;
+    // @deprecated (undocumented)
+    snapshotResult?: SnapshotResult | undefined;
 }
 
 // @public (undocumented)

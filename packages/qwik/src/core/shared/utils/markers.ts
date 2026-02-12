@@ -92,7 +92,6 @@ export const USE_ON_LOCAL_SEQ_IDX = NON_SERIALIZABLE_MARKER_PREFIX + 'onIdx';
 export const USE_ON_LOCAL_FLAGS = NON_SERIALIZABLE_MARKER_PREFIX + 'onFlags';
 
 // comment nodes
-export const FLUSH_COMMENT = 'qkssr-f';
 export const STREAM_BLOCK_START_COMMENT = 'qkssr-pu';
 export const STREAM_BLOCK_END_COMMENT = 'qkssr-po';
 

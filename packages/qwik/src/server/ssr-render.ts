@@ -1,11 +1,11 @@
 import { getSymbolHash, setServerPlatform } from './platform';
-import { FLUSH_COMMENT, STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from './qwik-copy';
 import type {
   JSXOutput,
   ResolvedManifest,
-  SSRContainer,
   SymbolMapper,
   StreamWriter,
+  FlushControl,
+  SSRContainer,
 } from './qwik-types';
 import type {
   QwikManifest,
@@ -70,12 +70,13 @@ export const renderToStream = async (
       ? opts.locale(opts)
       : opts.serverData?.locale || opts.locale || opts.containerAttributes?.locale || '';
 
-  const { stream, flush, networkFlushes } = handleStreaming(opts, timing);
+  const { stream, flush, flushControl, networkFlushes } = handleStreaming(opts, timing);
 
   const ssrContainer = ssrCreateContainer({
     tagName: containerTagName,
     locale,
     writer: stream,
+    flushControl,
     timing,
     buildBase,
     resolvedManifest,
@@ -123,10 +124,6 @@ function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
       };
 }
 
-const FLUSH_COMMENT_HTML = '<!--' + FLUSH_COMMENT + '-->';
-const STREAM_BLOCK_START_COMMENT_HTML = '<!--' + STREAM_BLOCK_START_COMMENT + '-->';
-const STREAM_BLOCK_END_COMMENT_HTML = '<!--' + STREAM_BLOCK_END_COMMENT + '-->';
-
 function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResult['timing']) {
   const firstFlushTimer = createTimer();
   let stream = opts.stream;
@@ -139,6 +136,11 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
     maximumChunk: 10_000,
   };
   const nativeStream = stream;
+
+  // Stream block buffering state
+  let streamBlockDepth = 0;
+  let streamBlockBuffer: string = '';
+  let streamBlockBufferSize = 0;
 
   function flush() {
     if (buffer) {
@@ -154,15 +156,44 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
 
   function enqueue(chunk: string) {
     const len = chunk.length;
-    bufferSize += len;
-    buffer += chunk;
+    if (streamBlockDepth > 0) {
+      // Inside a stream block, accumulate in stream block buffer
+      streamBlockBuffer += chunk;
+      streamBlockBufferSize += len;
+    } else {
+      // Normal buffering
+      bufferSize += len;
+      buffer += chunk;
+    }
   }
+
+  function streamBlockStart() {
+    streamBlockDepth++;
+  }
+
+  function streamBlockEnd() {
+    streamBlockDepth--;
+    if (streamBlockDepth === 0 && streamBlockBuffer) {
+      // Move block buffer to main buffer and flush as one chunk
+      buffer += streamBlockBuffer;
+      bufferSize += streamBlockBufferSize;
+      streamBlockBuffer = '';
+      streamBlockBufferSize = 0;
+      flush();
+    }
+  }
+
+  const flushControl: FlushControl = {
+    flush,
+    streamBlockStart,
+    streamBlockEnd,
+  };
 
   switch (inOrderStreaming.strategy) {
     case 'disabled':
       stream = {
         write(chunk: string) {
-          if (shouldSkipChunk(chunk)) {
+          if (chunk === undefined || chunk === null) {
             return;
           }
           enqueue(chunk);
@@ -172,7 +203,7 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
     case 'direct':
       stream = {
         write(chunk: string) {
-          if (shouldSkipChunk(chunk)) {
+          if (chunk === undefined || chunk === null) {
             return;
           }
           nativeStream.write(chunk);
@@ -180,8 +211,6 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
       };
       break;
     case 'auto':
-      let openedSSRStreamBlocks = 0;
-      let forceFlush = false;
       const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
       const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
       stream = {
@@ -190,38 +219,12 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
             return;
           }
 
-          // Fast path: check if it's a special comment (all start with '<!--')
-          if (
-            chunk.charCodeAt(0) === 60 /** < */ &&
-            chunk.charCodeAt(1) === 33 /** ! */ &&
-            chunk.charCodeAt(2) === 45 /** - */ &&
-            chunk.charCodeAt(3) === 45 /** - */
-          ) {
-            if (chunk === FLUSH_COMMENT_HTML) {
-              forceFlush = true;
-            } else if (chunk === STREAM_BLOCK_START_COMMENT_HTML) {
-              openedSSRStreamBlocks++;
-            } else if (chunk === STREAM_BLOCK_END_COMMENT_HTML) {
-              openedSSRStreamBlocks--;
-              if (openedSSRStreamBlocks === 0) {
-                forceFlush = true;
-              }
-            } else {
-              // Regular comment
-              bufferSize += chunk.length;
-              buffer += chunk;
-            }
-          } else {
-            // Regular chunk
-            bufferSize += chunk.length;
-            buffer += chunk;
-          }
+          enqueue(chunk);
 
-          // Check if we should flush
-          if (openedSSRStreamBlocks === 0) {
+          // Check if we should flush (only if not inside a stream block)
+          if (streamBlockDepth === 0) {
             const maxBufferSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
-            if (forceFlush || bufferSize >= maxBufferSize) {
-              forceFlush = false;
+            if (bufferSize >= maxBufferSize) {
               flush();
             }
           }
@@ -233,22 +236,9 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
   return {
     stream,
     flush,
+    flushControl,
     networkFlushes,
   };
-}
-
-function shouldSkipChunk(chunk: string): boolean {
-  return (
-    chunk === undefined ||
-    chunk === null ||
-    (chunk.charCodeAt(0) === 60 /** < */ &&
-      chunk.charCodeAt(1) === 33 /** ! */ &&
-      chunk.charCodeAt(2) === 45 /** - */ &&
-      chunk.charCodeAt(3) === 45 /** - */ &&
-      (chunk === FLUSH_COMMENT_HTML ||
-        chunk === STREAM_BLOCK_START_COMMENT_HTML ||
-        chunk === STREAM_BLOCK_END_COMMENT_HTML))
-  );
 }
 
 /**

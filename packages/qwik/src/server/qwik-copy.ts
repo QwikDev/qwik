@@ -28,7 +28,6 @@ export {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
-  FLUSH_COMMENT,
   NON_SERIALIZABLE_MARKER_PREFIX,
   OnRenderProp,
   QBackRefs,
@@ -49,8 +48,6 @@ export {
   QVersionAttr,
   Q_PROPS_SEPARATOR,
   ELEMENT_BACKPATCH_DATA,
-  STREAM_BLOCK_END_COMMENT,
-  STREAM_BLOCK_START_COMMENT,
   dangerouslySetInnerHTML,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';

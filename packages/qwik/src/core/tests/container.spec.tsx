@@ -575,6 +575,11 @@ async function withContainer(
 ): Promise<ClientContainer> {
   const ssrContainer: SSRContainer = ssrCreateContainer({
     tagName: opts.containerTag || 'div',
+    flushControl: {
+      flush: () => {},
+      streamBlockStart: () => {},
+      streamBlockEnd: () => {},
+    },
   });
   ssrContainer.openContainer();
   ssrFn(ssrContainer);
@@ -587,7 +592,14 @@ async function withContainer(
 }
 
 async function toHTML(jsx: JSXOutput): Promise<string> {
-  const ssrContainer = ssrCreateContainer({ tagName: 'div' });
+  const ssrContainer = ssrCreateContainer({
+    tagName: 'div',
+    flushControl: {
+      flush: () => {},
+      streamBlockStart: () => {},
+      streamBlockEnd: () => {},
+    },
+  });
   ssrContainer.openContainer();
   walkJSX(jsx, {
     enter: (jsx) => {

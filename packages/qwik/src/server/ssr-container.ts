@@ -64,6 +64,7 @@ import {
 } from './qwik-copy';
 import {
   type ContextId,
+  type FlushControl,
   type HostElement,
   type SSRContainer as ISSRContainer,
   type ISsrComponentFrame,
@@ -95,6 +96,8 @@ import {
   type BackpatchEntry,
   type RenderOptions,
   type RenderToStreamResult,
+  type SSRContainerOptions,
+  type SSRRenderOptions,
 } from './types';
 import { createTimer } from './utils';
 import {
@@ -111,16 +114,6 @@ import {
   type VNodeData,
 } from './vnode-data';
 
-export interface SSRRenderOptions {
-  locale?: string;
-  tagName?: string;
-  writer?: StreamWriter;
-  timing?: RenderToStreamResult['timing'];
-  buildBase?: string;
-  resolvedManifest?: ResolvedManifest;
-  renderOptions?: RenderOptions;
-}
-
 enum QwikLoaderInclude {
   Module,
   Inline,
@@ -132,6 +125,7 @@ export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
   return new SSRContainer({
     tagName: opts.tagName || 'div',
     writer: opts.writer || new StringBufferWriter(),
+    flushControl: opts.flushControl,
     locale: opts.locale || '',
     timing: opts.timing || {
       firstFlush: 0,
@@ -209,6 +203,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public isHtml: boolean;
   public writer: StreamWriter;
+  public flushControl: FlushControl;
   public timing: RenderToStreamResult['timing'];
   public size = 0;
   public resolvedManifest: ResolvedManifest;
@@ -255,7 +250,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private qlInclude: QwikLoaderInclude;
   private promiseAttributes: Array<Promise<any>> | null = null;
 
-  constructor(opts: Required<SSRRenderOptions>) {
+  constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
       const idx = symbol.lastIndexOf('_');
@@ -272,6 +267,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.tag = opts.tagName;
     this.isHtml = opts.tagName === 'html';
     this.writer = opts.writer;
+    this.flushControl = opts.flushControl;
     this.timing = opts.timing;
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;

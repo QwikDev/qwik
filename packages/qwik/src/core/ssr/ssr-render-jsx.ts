@@ -10,7 +10,13 @@ import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
-import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
+import {
+  SSRComment,
+  SSRRaw,
+  SSRStream,
+  SSRStreamBlock,
+  type SSRStreamChildren,
+} from '../shared/jsx/utils.public';
 import { type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
@@ -18,7 +24,6 @@ import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
-  FLUSH_COMMENT,
   QDefaultSlot,
   QScopedStyle,
   QSlot,
@@ -133,7 +138,7 @@ function processJSXNode(
       enqueue(ssr.closeFragment);
       enqueue(value);
       enqueue(Promise);
-      enqueue(() => ssr.commentNode(FLUSH_COMMENT));
+      enqueue(() => ssr.flushControl.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
         for await (const chunk of value) {
@@ -141,7 +146,7 @@ function processJSXNode(
             currentStyleScoped: options.styleScoped,
             parentComponentFrame: options.parentComponentFrame,
           });
-          ssr.commentNode(FLUSH_COMMENT);
+          ssr.flushControl.flush();
         }
       });
     } else {
@@ -239,7 +244,7 @@ function processJSXNode(
         } else if (type === SSRComment) {
           ssr.commentNode(directGetPropsProxyProp(jsx, 'data') || '');
         } else if (type === SSRStream) {
-          ssr.commentNode(FLUSH_COMMENT);
+          ssr.flushControl.flush();
           const generator = jsx.children as SSRStreamChildren;
           let value: AsyncGenerator | Promise<void>;
           if (isFunction(generator)) {
@@ -249,7 +254,7 @@ function processJSXNode(
                   currentStyleScoped: options.styleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });
-                ssr.commentNode(FLUSH_COMMENT);
+                ssr.flushControl.flush();
               },
             });
           } else {
@@ -260,6 +265,10 @@ function processJSXNode(
           isPromise(value) && enqueue(Promise);
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
+        } else if (type === SSRStreamBlock) {
+          ssr.flushControl.streamBlockStart();
+          enqueue(() => ssr.flushControl.streamBlockEnd());
+          enqueue(jsx.children as JSXOutput);
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an object for props, we always modify props for a component
           const componentAttrs: Record<string, string | null> = {};

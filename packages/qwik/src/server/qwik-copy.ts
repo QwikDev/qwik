@@ -66,3 +66,17 @@ export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
 export { isHtmlAttributeAnEventName, isPreventDefault } from '../core/shared/utils/event-names';
 export { ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI } from '../core/shared/utils/markers';
 export { isObjectEmpty } from '../core/shared/utils/objects';
+export {
+  LT,
+  GT,
+  CLOSE_TAG,
+  ESCAPED_CLOSE_TAG,
+  SPACE,
+  ATTR_EQUALS_QUOTE,
+  QUOTE,
+  EMPTY_ATTR,
+  BRACKET_OPEN,
+  BRACKET_CLOSE,
+  PAREN_CLOSE,
+  COMMA,
+} from '../core/shared/ssr-const';

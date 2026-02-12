@@ -38,12 +38,6 @@ import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer } from './ssr-types';
 
-class ParentComponentData {
-  constructor(
-    public $scopedStyle$: string | null,
-    public $componentFrame$: ISsrComponentFrame | null
-  ) {}
-}
 class MaybeAsyncSignal {}
 
 type StackFn = () => ValueOrPromise<void>;
@@ -52,10 +46,20 @@ type StackValue = ValueOrPromise<
   | StackFn
   | Promise<JSXOutput>
   | typeof Promise
-  | ParentComponentData
   | AsyncGenerator
   | typeof MaybeAsyncSignal
 >;
+
+function setParentOptions(
+  mutable: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null },
+  styleScoped: string | null,
+  parentComponentFrame: ISsrComponentFrame | null
+): StackFn {
+  return () => {
+    mutable.currentStyleScoped = styleScoped;
+    mutable.parentComponentFrame = parentComponentFrame;
+  };
+}
 
 /** @internal */
 export async function _walkJSX(
@@ -71,30 +75,21 @@ export async function _walkJSX(
   const drain = async (): Promise<void> => {
     while (stack.length) {
       const value = stack.pop();
-      if (value instanceof ParentComponentData) {
-        options.currentStyleScoped = value.$scopedStyle$;
-        options.parentComponentFrame = value.$componentFrame$;
-        continue;
-      } else if (value === MaybeAsyncSignal) {
-        // It could be an async signal, but it is not resolved yet, we need to wait for it.
-        // We could do that in the processJSXNode,
-        // but it will mean that we need to await it there, and it will return a promise.
-        // We probably want to avoid creating a promise for all jsx nodes.
+      // Reference equality first (no prototype walk), then typeof
+      if (value === MaybeAsyncSignal) {
         const trackFn = stack.pop() as () => StackValue;
         await retryOnPromise(() => stack.push(trackFn()));
         continue;
-      } else if (typeof value === 'function') {
+      }
+      if (typeof value === 'function') {
         if (value === Promise) {
           stack.push(await (stack.pop() as Promise<JSXOutput>));
-          continue;
+        } else {
+          await (value as StackFn).apply(ssr);
         }
-        await (value as StackFn).apply(ssr);
         continue;
       }
-      processJSXNode(ssr, enqueue, value as JSXOutput, {
-        styleScoped: options.currentStyleScoped,
-        parentComponentFrame: options.parentComponentFrame,
-      });
+      processJSXNode(ssr, enqueue, value as JSXOutput, options);
     }
   };
   await drain();
@@ -104,10 +99,7 @@ function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
   value: JSXOutput,
-  options: {
-    styleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-  }
+  options: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null }
 ) {
   // console.log('processJSXNode', value);
   if (value == null) {
@@ -143,7 +135,7 @@ function processJSXNode(
       enqueue(async () => {
         for await (const chunk of value) {
           await _walkJSX(ssr, chunk as JSXOutput, {
-            currentStyleScoped: options.styleScoped,
+            currentStyleScoped: options.currentStyleScoped,
             parentComponentFrame: options.parentComponentFrame,
           });
           ssr.flushControl.flush();
@@ -154,7 +146,7 @@ function processJSXNode(
       const type = jsx.type;
       // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
-        appendClassIfScopedStyleExists(jsx, options.styleScoped);
+        appendClassIfScopedStyleExists(jsx, options.currentStyleScoped);
         let qwikInspectorAttrValue: string | null = null;
         if (isDev && jsx.dev && jsx.type !== 'head') {
           qwikInspectorAttrValue = getFileLocationFromJsx(jsx.dev);
@@ -168,7 +160,7 @@ function processJSXNode(
           jsx.key,
           jsx.varProps,
           jsx.constProps,
-          options.styleScoped,
+          options.currentStyleScoped,
           qwikInspectorAttrValue
         );
         if (innerHTML) {
@@ -217,7 +209,9 @@ function processJSXNode(
             const slotName = getSlotName(host, jsx, ssr);
             projectionAttrs[QSlot] = slotName;
 
-            enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
+            enqueue(
+              setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
+            );
             enqueue(ssr.closeProjection);
             const slotDefaultChildren: JSXChildren | null = jsx.children || null;
             const slotChildren =
@@ -227,7 +221,8 @@ function processJSXNode(
             }
             enqueue(slotChildren as JSXOutput);
             enqueue(
-              new ParentComponentData(
+              setParentOptions(
+                options,
                 componentFrame.projectionScopedStyle,
                 componentFrame.projectionComponentFrame
               )
@@ -251,7 +246,7 @@ function processJSXNode(
             value = generator({
               async write(chunk) {
                 await _walkJSX(ssr, chunk, {
-                  currentStyleScoped: options.styleScoped,
+                  currentStyleScoped: options.currentStyleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });
                 ssr.flushControl.flush();
@@ -280,12 +275,14 @@ function processJSXNode(
           const componentFrame = ssr.getParentComponentFrame()!;
           componentFrame!.distributeChildrenIntoSlots(
             jsx.children,
-            options.styleScoped,
+            options.currentStyleScoped,
             options.parentComponentFrame
           );
 
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
-          enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
+          enqueue(
+            setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
+          );
           enqueue(ssr.closeComponent);
           if (isPromise(jsxOutput)) {
             // Defer reading QScopedStyle until after the promise resolves
@@ -294,12 +291,12 @@ function processJSXNode(
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 
               enqueue(resolvedOutput);
-              enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+              enqueue(setParentOptions(options, compStyleComponentId, componentFrame));
             });
           } else {
             enqueue(jsxOutput);
             const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
-            enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+            enqueue(setParentOptions(options, compStyleComponentId, componentFrame));
           }
         } else {
           const inlineComponentProps: Record<string, string | null> = { [ELEMENT_KEY]: jsx.key };

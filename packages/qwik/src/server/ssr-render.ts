@@ -123,6 +123,10 @@ function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
       };
 }
 
+const FLUSH_COMMENT_HTML = '<!--' + FLUSH_COMMENT + '-->';
+const STREAM_BLOCK_START_COMMENT_HTML = '<!--' + STREAM_BLOCK_START_COMMENT + '-->';
+const STREAM_BLOCK_END_COMMENT_HTML = '<!--' + STREAM_BLOCK_END_COMMENT + '-->';
+
 function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResult['timing']) {
   const firstFlushTimer = createTimer();
   let stream = opts.stream;
@@ -185,22 +189,41 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
           if (chunk === undefined || chunk === null) {
             return;
           }
-          if (chunk === '<!--' + FLUSH_COMMENT + '-->') {
-            forceFlush = true;
-          } else if (chunk === '<!--' + STREAM_BLOCK_START_COMMENT + '-->') {
-            openedSSRStreamBlocks++;
-          } else if (chunk === '<!--' + STREAM_BLOCK_END_COMMENT + '-->') {
-            openedSSRStreamBlocks--;
-            if (openedSSRStreamBlocks === 0) {
+
+          // Fast path: check if it's a special comment (all start with '<!--')
+          if (
+            chunk.charCodeAt(0) === 60 /** < */ &&
+            chunk.charCodeAt(1) === 33 /** ! */ &&
+            chunk.charCodeAt(2) === 45 /** - */ &&
+            chunk.charCodeAt(3) === 45 /** - */
+          ) {
+            if (chunk === FLUSH_COMMENT_HTML) {
               forceFlush = true;
+            } else if (chunk === STREAM_BLOCK_START_COMMENT_HTML) {
+              openedSSRStreamBlocks++;
+            } else if (chunk === STREAM_BLOCK_END_COMMENT_HTML) {
+              openedSSRStreamBlocks--;
+              if (openedSSRStreamBlocks === 0) {
+                forceFlush = true;
+              }
+            } else {
+              // Regular comment
+              bufferSize += chunk.length;
+              buffer += chunk;
             }
           } else {
-            enqueue(chunk);
+            // Regular chunk
+            bufferSize += chunk.length;
+            buffer += chunk;
           }
-          const maxBufferSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
-          if (openedSSRStreamBlocks === 0 && (forceFlush || bufferSize >= maxBufferSize)) {
-            forceFlush = false;
-            flush();
+
+          // Check if we should flush
+          if (openedSSRStreamBlocks === 0) {
+            const maxBufferSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
+            if (forceFlush || bufferSize >= maxBufferSize) {
+              forceFlush = false;
+              flush();
+            }
           }
         },
       };
@@ -218,9 +241,13 @@ function shouldSkipChunk(chunk: string): boolean {
   return (
     chunk === undefined ||
     chunk === null ||
-    chunk === '<!--' + FLUSH_COMMENT + '-->' ||
-    chunk === '<!--' + STREAM_BLOCK_START_COMMENT + '-->' ||
-    chunk === '<!--' + STREAM_BLOCK_END_COMMENT + '-->'
+    (chunk.charCodeAt(0) === 60 /** < */ &&
+      chunk.charCodeAt(1) === 33 /** ! */ &&
+      chunk.charCodeAt(2) === 45 /** - */ &&
+      chunk.charCodeAt(3) === 45 /** - */ &&
+      (chunk === FLUSH_COMMENT_HTML ||
+        chunk === STREAM_BLOCK_START_COMMENT_HTML ||
+        chunk === STREAM_BLOCK_END_COMMENT_HTML))
   );
 }
 

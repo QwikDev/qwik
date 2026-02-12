@@ -193,6 +193,18 @@ const QTemplateProps = {
   'aria-hidden': true,
 };
 
+// Pre-allocated common strings to reduce allocation overhead
+const HTML_LT = '<';
+const HTML_GT = '>';
+const HTML_CLOSE_TAG = '</';
+const HTML_SPACE = ' ';
+const HTML_ATTR_EQUALS_QUOTE = '="';
+const HTML_QUOTE = '"';
+const HTML_EMPTY_ATTR = '=""';
+const HTML_BRACKET_OPEN = '[';
+const HTML_BRACKET_CLOSE = ']';
+const HTML_PAREN_CLOSE = ')';
+
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public isHtml: boolean;
@@ -385,7 +397,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Renders closing tag for current container */
   closeContainer(): ValueOrPromise<void> {
-    return this.closeElement();
+    const result = this.closeElement();
+    return result;
   }
 
   private $noScriptHere$: number = 0;
@@ -426,7 +439,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     this.createAndPushFrame(elementName, this.depthFirstElementCount++, currentFile);
     vNodeData_openElement(this.currentElementFrame!.vNodeData);
-    this.write('<');
+    this.write(HTML_LT);
     this.write(elementName);
     // create here for writeAttrs method to use it
     const lastNode = this.getOrCreateLastNode();
@@ -438,13 +451,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write(`="${key}"`);
     } else if (import.meta.env.TEST) {
       // Domino sometimes does not like empty attributes, so we need to add a empty value
-      this.write('=""');
+      this.write(HTML_EMPTY_ATTR);
     }
     if (constAttrs && !isObjectEmpty(constAttrs)) {
       innerHTML =
         this.writeAttrs(elementName, constAttrs, true, styleScopedId, currentFile) || innerHTML;
     }
-    this.write('>');
+    this.write(HTML_GT);
 
     if (lastNode) {
       lastNode.setTreeNonUpdatable();
@@ -506,9 +519,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const currentFrame = this.popFrame();
     const elementName = currentFrame.elementName!;
     if (!isSelfClosingTag(elementName)) {
-      this.write('</');
+      this.write(HTML_CLOSE_TAG);
       this.write(elementName);
-      this.write('>');
+      this.write(HTML_GT);
     }
     this.lastNode = null;
     if (this.qlInclude === QwikLoaderInclude.Inline) {
@@ -936,9 +949,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
       this.openElement('script', null, scriptAttrs);
       this.write(Q_FUNCS_PREFIX.replace('HASH', this.$instanceHash$));
-      this.write('[');
+      this.write(HTML_BRACKET_OPEN);
       this.writeArray(fns, ',');
-      this.write(']');
+      this.write(HTML_BRACKET_CLOSE);
       this.closeElement();
     }
   }
@@ -1062,7 +1075,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.openElement('script', null, scriptAttrs);
       this.write(`(window._qwikEv||(window._qwikEv=[])).push(`);
       this.writeArray(eventNames, ', ');
-      this.write(')');
+      this.write(HTML_PAREN_CLOSE);
       this.closeElement();
     }
   }
@@ -1266,14 +1279,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
       const serializedValue = serializeAttribute(key, value, styleScopedId);
       if (serializedValue != null && serializedValue !== false) {
-        this.write(' ');
+        this.write(HTML_SPACE);
         this.write(key);
         if (serializedValue !== true) {
-          this.write('="');
+          this.write(HTML_ATTR_EQUALS_QUOTE);
           const strValue = escapeHTML(String(serializedValue));
           this.write(strValue);
 
-          this.write('"');
+          this.write(HTML_QUOTE);
         }
       }
     }

@@ -188,7 +188,7 @@ function processJSXNode(
         children != null && enqueue(children);
       } else if (isFunction(type)) {
         if (type === Fragment) {
-          let attrs: Record<string, string | null> =
+          const attrs: Record<string, string | null> =
             jsx.key != null ? { [ELEMENT_KEY]: jsx.key } : {};
           if (isDev) {
             attrs[DEBUG_TYPE] = VirtualType.Fragment; // Add debug info.

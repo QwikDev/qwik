@@ -52,6 +52,16 @@ export interface ISsrComponentFrame {
   hasSlot(slotName: string): boolean;
 }
 
+/** @internal */
+export interface FlushControl {
+  /** Force an immediate flush of the buffer to the network */
+  flush(): void;
+  /** Start a stream block - content will be buffered until the block ends */
+  streamBlockStart(): void;
+  /** End a stream block - flushes the accumulated block as a single chunk */
+  streamBlockEnd(): void;
+}
+
 export type SymbolToChunkResolver = (symbol: string) => string;
 
 export interface SSRContainer extends Container {
@@ -59,6 +69,7 @@ export interface SSRContainer extends Container {
   readonly isHtml: boolean;
   readonly size: number;
   readonly writer: StreamWriter;
+  readonly flushControl: FlushControl;
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly resolvedManifest: ResolvedManifest;

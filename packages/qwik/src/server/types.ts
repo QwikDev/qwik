@@ -7,6 +7,7 @@ import type {
   SymbolMapper,
   SymbolMapperFn,
 } from '@qwik.dev/core/optimizer';
+import type { FlushControl } from './qwik-types';
 
 /** @public */
 export interface SerializeDocumentOptions {
@@ -123,7 +124,8 @@ export interface RenderToStringResult extends RenderResult {
 
 /** @public */
 export interface RenderResult {
-  snapshotResult: SnapshotResult | undefined;
+  /** @deprecated Not longer used in v2 */
+  snapshotResult?: SnapshotResult | undefined;
   isStatic: boolean;
   manifest?: ServerQwikManifest;
 }
@@ -139,6 +141,19 @@ export type QwikLoaderOptions =
       /** @deprecated No longer used. */
       position?: 'top' | 'bottom';
     };
+
+export interface SSRRenderOptions {
+  flushControl: FlushControl;
+  locale?: string;
+  tagName?: string;
+  writer?: StreamWriter;
+  timing?: RenderToStreamResult['timing'];
+  buildBase?: string;
+  resolvedManifest?: ResolvedManifest;
+  renderOptions?: RenderOptions;
+}
+
+export type SSRContainerOptions = Required<SSRRenderOptions>;
 
 /** @public */
 export interface RenderOptions extends SerializeDocumentOptions {

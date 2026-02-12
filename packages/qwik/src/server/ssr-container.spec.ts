@@ -27,6 +27,11 @@ describe('SSR Container', () => {
       renderOptions: {
         qwikLoader: 'inline', // Force inline loader
       },
+      flushControl: {
+        flush: () => {},
+        streamBlockStart: () => {},
+        streamBlockEnd: () => {},
+      },
     });
 
     // Open container
@@ -63,6 +68,11 @@ describe('SSR Container', () => {
     const container = ssrCreateContainer({
       tagName: 'div',
       writer,
+      flushControl: {
+        flush: () => {},
+        streamBlockStart: () => {},
+        streamBlockEnd: () => {},
+      },
     });
     container.openContainer();
 

@@ -1224,6 +1224,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         } else {
           throw qError(QError.invalidRefValue, [currentFile]);
         }
+      } else if (key === ITERATION_ITEM_SINGLE || key === ITERATION_ITEM_MULTI) {
+        // skip serialization of iteration item single or multi
       } else if (isSignal(value)) {
         const lastNode = this.getOrCreateLastNode();
         const signalData = new SubscriptionData({

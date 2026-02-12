@@ -5,7 +5,6 @@ import type {
   SymbolMapper,
   StreamWriter,
   FlushControl,
-  SSRContainer,
 } from './qwik-types';
 import type {
   QwikManifest,
@@ -13,7 +12,6 @@ import type {
   RenderToStreamResult,
   RenderToStringOptions,
   RenderToStringResult,
-  SnapshotResult,
 } from './types';
 import { createTimer, getBuildBase } from './utils';
 import { ssrCreateContainer } from './ssr-container';
@@ -90,10 +88,7 @@ export const renderToStream = async (
   // Flush remaining chunks in the buffer
   flush();
 
-  const snapshotResult = getSnapshotResult(ssrContainer);
-
   const result: RenderToStreamResult = {
-    snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: ssrContainer.size,
@@ -103,26 +98,6 @@ export const renderToStream = async (
 
   return result;
 };
-
-function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
-  const hasListeners = !ssrContainer.isStatic();
-  // TODO
-  const canRender = false;
-
-  return hasListeners
-    ? {
-        funcs: Array.from(ssrContainer.serializationCtx.$syncFns$),
-        mode: canRender ? 'render' : 'listeners',
-        qrls: Array.from(ssrContainer.serializationCtx.$eventQrls$),
-        resources: Array.from(ssrContainer.serializationCtx.$resources$),
-      }
-    : {
-        funcs: [],
-        mode: 'static',
-        qrls: [],
-        resources: Array.from(ssrContainer.serializationCtx.$resources$),
-      };
-}
 
 function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResult['timing']) {
   const firstFlushTimer = createTimer();

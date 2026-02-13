@@ -235,6 +235,7 @@
     "release.prepare": "pnpm build --prepare-release",
     "serve": "node --require ./scripts/runBefore.ts --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "node --require ./scripts/runBefore.ts --inspect-brk --conditions=development starters/dev-server.ts 3300",
+    "serve.perf": "node --require ./scripts/runBefore.ts --inspect --conditions=development --log-deopt --log-ic --log-maps --log-maps-details --log-code --log-source-code --prof --log-internal-timer-events --detailed-line-info --logfile=v8.log --no-logfile-per-isolate starters/dev-server.ts 3300",
     "start": "pnpm run --stream \"/.*\\.watch/\"",
     "test": "pnpm build.full && pnpm test.unit && pnpm test.e2e",
     "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit && test.e2e.integrations",

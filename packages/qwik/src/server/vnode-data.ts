@@ -114,7 +114,7 @@ export function vNodeData_createSsrNodeReference(
       stack[stack.length - 1]++;
     }
   }
-  let refId = String(depthFirstElementIdx);
+  let refId = depthFirstElementIdx + '';
   if (vNodeData[0] & (VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.TEXT_DATA)) {
     // encode as alphanumeric only for virtual and text nodes
     for (let i = 0; i < stack.length; i++) {

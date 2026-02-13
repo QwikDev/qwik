@@ -732,6 +732,20 @@
       "mdFile": "core.functioncomponent.md"
     },
     {
+      "name": "getClientManifest",
+      "id": "getclientmanifest",
+      "hierarchy": [
+        {
+          "name": "getClientManifest",
+          "id": "getclientmanifest"
+        }
+      ],
+      "kind": "Function",
+      "content": "Returns the client build manifest, which includes the mappings from symbols to bundles, the bundlegraph etc.\n\n\n```typescript\ngetClientManifest: () => ServerQwikManifest\n```\n**Returns:**\n\nServerQwikManifest",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/get-client-manifest.ts",
+      "mdFile": "core.getclientmanifest.md"
+    },
+    {
       "name": "getDomContainer",
       "id": "getdomcontainer",
       "hierarchy": [

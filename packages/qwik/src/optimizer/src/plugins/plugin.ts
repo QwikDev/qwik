@@ -539,6 +539,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         };
       }
     } else if (pathId.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
+      if (!importerId || !importerId.includes('core')) {
+        console.error(
+          `${importerId}: importing ${QWIK_CLIENT_MANIFEST_ID} is deprecated. Use \`getClientManifest()\` instead.`
+        );
+      }
       debug(`resolveId(${count})`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
       result = {
         id: QWIK_CLIENT_MANIFEST_ID,
@@ -1207,10 +1212,11 @@ export const QWIK_JSX_DEV_RUNTIME_ID = '@qwik.dev/core/jsx-dev-runtime';
 
 export const QWIK_CORE_SERVER = '@qwik.dev/core/server';
 
+/** Internal use only - use `getClientManifest()` instead */
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const QWIK_PRELOADER_ID = '@qwik.dev/core/preloader';
-
+/** @internal virtual import to ensure the _run etc handlers are exported as-is */
 export const QWIK_HANDLERS_ID = '@qwik-handlers';
 
 export const SRC_DIR_DEFAULT = 'src';

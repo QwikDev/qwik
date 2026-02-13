@@ -29,7 +29,12 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      '@qwik-client-manifest',
+      'node:async_hooks',
+    ],
     plugins: [
       {
         name: 'setVersion',
@@ -64,7 +69,7 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   const inputCore = join(config.distQwikPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
-    external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: ['@qwik.dev/core/preloader', '@qwik-client-manifest', 'node:async_hooks'],
     input: inputCore,
     onwarn: rollupOnWarn,
     plugins: [
@@ -213,7 +218,12 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   const esm = await build({
     ...opts,
-    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      '@qwik-client-manifest',
+      'node:async_hooks',
+    ],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });

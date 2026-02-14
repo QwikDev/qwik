@@ -130,7 +130,7 @@ function processJSXNode(
       enqueue(ssr.closeFragment);
       enqueue(value);
       enqueue(Promise);
-      enqueue(() => ssr.flushControl.flush());
+      enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
         for await (const chunk of value) {
@@ -138,7 +138,7 @@ function processJSXNode(
             currentStyleScoped: options.currentStyleScoped,
             parentComponentFrame: options.parentComponentFrame,
           });
-          ssr.flushControl.flush();
+          ssr.streamHandler.flush();
         }
       });
     } else {
@@ -239,7 +239,7 @@ function processJSXNode(
         } else if (type === SSRComment) {
           ssr.commentNode(directGetPropsProxyProp(jsx, 'data') || '');
         } else if (type === SSRStream) {
-          ssr.flushControl.flush();
+          ssr.streamHandler.flush();
           const generator = jsx.children as SSRStreamChildren;
           let value: AsyncGenerator | Promise<void>;
           if (isFunction(generator)) {
@@ -249,7 +249,7 @@ function processJSXNode(
                   currentStyleScoped: options.currentStyleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });
-                ssr.flushControl.flush();
+                ssr.streamHandler.flush();
               },
             });
           } else {
@@ -261,8 +261,8 @@ function processJSXNode(
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (type === SSRStreamBlock) {
-          ssr.flushControl.streamBlockStart();
-          enqueue(() => ssr.flushControl.streamBlockEnd());
+          ssr.streamHandler.streamBlockStart();
+          enqueue(() => ssr.streamHandler.streamBlockEnd());
           enqueue(jsx.children as JSXOutput);
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an object for props, we always modify props for a component

@@ -28,6 +28,8 @@ import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { type SSRContainer } from '../ssr/ssr-types';
 import type { VNode } from '../shared/vnode/vnode';
 import { retryOnPromise } from '../shared/utils/promises';
+import { StreamHandler } from '../../server/ssr-stream-handler';
+import type { RenderToStreamOptions } from '../../server/types';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -575,11 +577,11 @@ async function withContainer(
 ): Promise<ClientContainer> {
   const ssrContainer: SSRContainer = ssrCreateContainer({
     tagName: opts.containerTag || 'div',
-    flushControl: {
-      flush: () => {},
-      streamBlockStart: () => {},
-      streamBlockEnd: () => {},
-    },
+    streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+      firstFlush: 0,
+      render: 0,
+      snapshot: 0,
+    }),
   });
   ssrContainer.openContainer();
   ssrFn(ssrContainer);
@@ -594,11 +596,11 @@ async function withContainer(
 async function toHTML(jsx: JSXOutput): Promise<string> {
   const ssrContainer = ssrCreateContainer({
     tagName: 'div',
-    flushControl: {
-      flush: () => {},
-      streamBlockStart: () => {},
-      streamBlockEnd: () => {},
-    },
+    streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+      firstFlush: 0,
+      render: 0,
+      snapshot: 0,
+    }),
   });
   ssrContainer.openContainer();
   walkJSX(jsx, {

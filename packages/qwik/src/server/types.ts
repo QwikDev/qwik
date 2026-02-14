@@ -7,7 +7,7 @@ import type {
   SymbolMapper,
   SymbolMapperFn,
 } from '@qwik.dev/core/optimizer';
-import type { FlushControl } from './qwik-types';
+import type { StreamHandler } from './ssr-stream-handler';
 
 /** @public */
 export interface SerializeDocumentOptions {
@@ -143,7 +143,7 @@ export type QwikLoaderOptions =
     };
 
 export interface SSRRenderOptions {
-  flushControl: FlushControl;
+  streamHandler: StreamHandler;
   locale?: string;
   tagName?: string;
   writer?: StreamWriter;

@@ -511,7 +511,7 @@ describe('render api', () => {
         });
         expect(result.html).toContain(
           '(window._qwikEv||(window._qwikEv=[])).push(' +
-            '"e:focus", "e:-my---custom", "e:click", "e:dblclick", "d:focus", "e:another-custom", "e:blur", "w:click")'
+            '"e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click")'
         );
       });
     });

@@ -9,17 +9,19 @@ import { EffectProperty, NEEDS_COMPUTATION, SignalFlags, WrappedSignalFlags } fr
 import { isSignal, scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
 import { markVNodeDirty } from '../../shared/vnode/vnode-dirty';
-import { _EFFECT_BACK_REF, type BackRef } from '../backref';
+import { _EFFECT_BACK_REF } from '../backref';
 import { HOST_SIGNAL } from '../../shared/cursor/cursor-props';
 import { isDev } from '@qwik.dev/core/build';
 
-export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
+export class WrappedSignalImpl<T> extends SignalImpl<T> {
   $args$: any[];
   $func$: (...args: any[]) => T;
   $funcStr$: string | null;
 
   $flags$: AllSignalFlags;
   $hostElement$: HostElement | undefined = undefined;
+  // important: don't use implemnets BackRef here
+  // it causes v8 optimizations eager bailouts, because of not consistent class shape
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
   constructor(

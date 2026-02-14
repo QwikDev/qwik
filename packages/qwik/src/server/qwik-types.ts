@@ -25,7 +25,7 @@ export type {
   ISsrNode,
   SSRContainer,
   StreamWriter,
-  FlushControl,
+  IStreamHandler,
 } from '../core/ssr/ssr-types';
 export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 export type { SymbolToChunkResolver } from '../core/ssr/ssr-types';

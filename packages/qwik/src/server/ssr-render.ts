@@ -1,11 +1,5 @@
 import { getSymbolHash, setServerPlatform } from './platform';
-import type {
-  JSXOutput,
-  ResolvedManifest,
-  SymbolMapper,
-  StreamWriter,
-  FlushControl,
-} from './qwik-types';
+import type { JSXOutput, ResolvedManifest, SymbolMapper, StreamWriter } from './qwik-types';
 import type {
   QwikManifest,
   RenderToStreamOptions,
@@ -13,9 +7,10 @@ import type {
   RenderToStringOptions,
   RenderToStringResult,
 } from './types';
-import { createTimer, getBuildBase } from './utils';
+import { getBuildBase } from './utils';
 import { ssrCreateContainer } from './ssr-container';
 import { manifest as builtManifest } from '@qwik-client-manifest';
+import { StreamHandler } from './ssr-stream-handler';
 
 /**
  * Creates a server-side `document`, renders to root node to the document, then serializes the
@@ -68,13 +63,13 @@ export const renderToStream = async (
       ? opts.locale(opts)
       : opts.serverData?.locale || opts.locale || opts.containerAttributes?.locale || '';
 
-  const { stream, flush, flushControl, networkFlushes } = handleStreaming(opts, timing);
+  const streamHandler = new StreamHandler(opts, timing);
 
   const ssrContainer = ssrCreateContainer({
     tagName: containerTagName,
     locale,
-    writer: stream,
-    flushControl,
+    writer: streamHandler.stream,
+    streamHandler,
     timing,
     buildBase,
     resolvedManifest,
@@ -86,10 +81,10 @@ export const renderToStream = async (
   await ssrContainer.$renderPromise$;
 
   // Flush remaining chunks in the buffer
-  flush();
+  streamHandler.flush();
 
   const result: RenderToStreamResult = {
-    flushes: networkFlushes,
+    flushes: streamHandler.networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: ssrContainer.size,
     isStatic: false,
@@ -98,123 +93,6 @@ export const renderToStream = async (
 
   return result;
 };
-
-function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResult['timing']) {
-  const firstFlushTimer = createTimer();
-  let stream = opts.stream;
-  let bufferSize = 0;
-  let buffer: string = '';
-  let networkFlushes = 0;
-  const inOrderStreaming = opts.streaming?.inOrder ?? {
-    strategy: 'auto',
-    maximumInitialChunk: 20_000,
-    maximumChunk: 10_000,
-  };
-  const nativeStream = stream;
-
-  // Stream block buffering state
-  let streamBlockDepth = 0;
-  let streamBlockBuffer: string = '';
-  let streamBlockBufferSize = 0;
-
-  function flush() {
-    if (buffer) {
-      nativeStream.write(buffer);
-      buffer = '';
-      bufferSize = 0;
-      networkFlushes++;
-      if (networkFlushes === 1) {
-        timing.firstFlush = firstFlushTimer();
-      }
-    }
-  }
-
-  function enqueue(chunk: string) {
-    const len = chunk.length;
-    if (streamBlockDepth > 0) {
-      // Inside a stream block, accumulate in stream block buffer
-      streamBlockBuffer += chunk;
-      streamBlockBufferSize += len;
-    } else {
-      // Normal buffering
-      bufferSize += len;
-      buffer += chunk;
-    }
-  }
-
-  function streamBlockStart() {
-    streamBlockDepth++;
-  }
-
-  function streamBlockEnd() {
-    streamBlockDepth--;
-    if (streamBlockDepth === 0 && streamBlockBuffer) {
-      // Move block buffer to main buffer and flush as one chunk
-      buffer += streamBlockBuffer;
-      bufferSize += streamBlockBufferSize;
-      streamBlockBuffer = '';
-      streamBlockBufferSize = 0;
-      flush();
-    }
-  }
-
-  const flushControl: FlushControl = {
-    flush,
-    streamBlockStart,
-    streamBlockEnd,
-  };
-
-  switch (inOrderStreaming.strategy) {
-    case 'disabled':
-      stream = {
-        write(chunk: string) {
-          if (chunk === undefined || chunk === null) {
-            return;
-          }
-          enqueue(chunk);
-        },
-      };
-      break;
-    case 'direct':
-      stream = {
-        write(chunk: string) {
-          if (chunk === undefined || chunk === null) {
-            return;
-          }
-          nativeStream.write(chunk);
-        },
-      };
-      break;
-    case 'auto':
-      const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
-      const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
-      stream = {
-        write(chunk) {
-          if (chunk === undefined || chunk === null) {
-            return;
-          }
-
-          enqueue(chunk);
-
-          // Check if we should flush (only if not inside a stream block)
-          if (streamBlockDepth === 0) {
-            const maxBufferSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
-            if (bufferSize >= maxBufferSize) {
-              flush();
-            }
-          }
-        },
-      };
-      break;
-  }
-
-  return {
-    stream,
-    flush,
-    flushControl,
-    networkFlushes,
-  };
-}
 
 /**
  * Merges a given manifest with the built manifest and provides mappings for symbols.

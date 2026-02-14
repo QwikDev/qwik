@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ssrCreateContainer } from './ssr-container';
 import { QStyle, VNodeDataChar, encodeVNodeDataString } from './qwik-copy';
-import { VNodeDataFlag } from './types';
+import { VNodeDataFlag, type RenderToStreamOptions } from './types';
 import { OPEN_FRAGMENT, CLOSE_FRAGMENT } from './vnode-data';
+import { StreamHandler } from './ssr-stream-handler';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -27,11 +28,11 @@ describe('SSR Container', () => {
       renderOptions: {
         qwikLoader: 'inline', // Force inline loader
       },
-      flushControl: {
-        flush: () => {},
-        streamBlockStart: () => {},
-        streamBlockEnd: () => {},
-      },
+      streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+        firstFlush: 0,
+        render: 0,
+        snapshot: 0,
+      }),
     });
 
     // Open container
@@ -68,11 +69,11 @@ describe('SSR Container', () => {
     const container = ssrCreateContainer({
       tagName: 'div',
       writer,
-      flushControl: {
-        flush: () => {},
-        streamBlockStart: () => {},
-        streamBlockEnd: () => {},
-      },
+      streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+        firstFlush: 0,
+        render: 0,
+        snapshot: 0,
+      }),
     });
     container.openContainer();
 

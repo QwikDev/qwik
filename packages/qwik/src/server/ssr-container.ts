@@ -75,11 +75,11 @@ import {
 } from './qwik-copy';
 import {
   type ContextId,
-  type FlushControl,
   type HostElement,
   type SSRContainer as ISSRContainer,
   type ISsrComponentFrame,
   type ISsrNode,
+  type IStreamHandler,
   type JSXChildren,
   type JSXNodeInternal,
   type JSXOutput,
@@ -136,7 +136,7 @@ export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
   return new SSRContainer({
     tagName: opts.tagName || 'div',
     writer: opts.writer || new StringBufferWriter(),
-    flushControl: opts.flushControl,
+    streamHandler: opts.streamHandler,
     locale: opts.locale || '',
     timing: opts.timing || {
       firstFlush: 0,
@@ -202,7 +202,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public isHtml: boolean;
   public writer: StreamWriter;
-  public flushControl: FlushControl;
+  public streamHandler: IStreamHandler;
   public timing: RenderToStreamResult['timing'];
   public size = 0;
   public resolvedManifest: ResolvedManifest;
@@ -267,7 +267,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.tag = opts.tagName;
     this.isHtml = opts.tagName === 'html';
     this.writer = opts.writer;
-    this.flushControl = opts.flushControl;
+    this.streamHandler = opts.streamHandler;
     this.timing = opts.timing;
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;

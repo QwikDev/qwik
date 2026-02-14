@@ -524,14 +524,16 @@ export class Serializer {
       }
       if (value.children) {
         // can be static, but we need to save vnode data structure + discover the back refs
-        for (const child of value.children) {
+        const childrenLength = value.children.length;
+        for (let i = 0; i < childrenLength; i++) {
+          const child = value.children[i];
           const childVNodeData = child.vnodeData;
           if (childVNodeData) {
             // add all back refs to the roots
             for (let i = 0; i < childVNodeData.length; i++) {
               const value = childVNodeData[i];
               if (isSsrAttrs(value)) {
-                const backRefs = value[QBackRefs];
+                const backRefs = tryGetBackRefs(value);
                 if (backRefs) {
                   this.$serializationContext$.$addRoot$(backRefs);
                 }
@@ -544,13 +546,11 @@ export class Serializer {
     } else if (typeof FormData !== 'undefined' && value instanceof FormData) {
       // FormData is generally used only once so don't bother with references
       const array: string[] = [];
-      value.forEach((value, key) => {
-        if (typeof value === 'string') {
-          array.push(key, value);
-        } else {
-          array.push(key, value.name);
+      for (const [k, v] of value.entries()) {
+        if (typeof v === 'string') {
+          array.push(k, v);
         }
-      });
+      }
       this.output(TypeIds.FormData, array);
     } else if (value instanceof URLSearchParams) {
       this.output(TypeIds.URLSearchParams, value.toString());
@@ -611,8 +611,9 @@ export class Serializer {
       }
     } else if (value instanceof Uint8Array) {
       let buf = '';
-      for (const c of value) {
-        buf += String.fromCharCode(c);
+      const length = value.length;
+      for (let i = 0; i < length; i++) {
+        buf += String.fromCharCode(value[i]);
       }
       const out = btoa(buf).replace(/=+$/, '');
       this.output(TypeIds.Uint8Array, out);
@@ -749,7 +750,9 @@ function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, va
 }
 
 const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unknown) => void) => {
-  for (const value of vnodeData) {
+  const length = vnodeData.length;
+  for (let i = 0; i < length; i++) {
+    const value = vnodeData[i];
     if (isSsrAttrs(value)) {
       for (const key in value) {
         const attrValue = value[key];
@@ -814,6 +817,12 @@ function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | u
     }
   }
   return effectBackRefToSerialize;
+}
+
+function tryGetBackRefs(props: Props): Map<string, EffectSubscription> | undefined {
+  return Object.prototype.hasOwnProperty.call(props, QBackRefs)
+    ? (props[QBackRefs] as Map<string, EffectSubscription>)
+    : undefined;
 }
 
 class SerializationWeakRef {

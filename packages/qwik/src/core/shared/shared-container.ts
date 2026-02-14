@@ -59,7 +59,6 @@ export abstract class _SharedContainer implements Container {
       NodeConstructor,
       DomRefConstructor,
       symbolToChunkResolver,
-      this.getHostProp.bind(this),
       this.setHostProp.bind(this),
       this.$storeProxyMap$,
       writer

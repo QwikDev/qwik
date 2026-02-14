@@ -94,7 +94,6 @@ describe('serialization', () => {
       null,
       null,
       () => '',
-      () => '',
       () => {},
       new WeakMap<any, any>()
     );

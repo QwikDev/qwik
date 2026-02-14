@@ -17,7 +17,6 @@ export async function _serialize<T>(data: T): Promise<string> {
     null,
     null,
     () => '',
-    () => '',
     () => {},
     new WeakMap<any, any>()
   );

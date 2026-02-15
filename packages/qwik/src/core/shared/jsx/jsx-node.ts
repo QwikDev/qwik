@@ -6,7 +6,7 @@ import { qDev, seal } from '../utils/qdev';
 import { isObject } from '../utils/types';
 import { _chk, _val } from './bind-handlers';
 import { type Props } from './jsx-runtime';
-import { createPropsProxy } from './props-proxy';
+import { createPropsProxy, isPropsProxy } from './props-proxy';
 import type { DevJSX, FunctionComponent, JSXNodeInternal } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
@@ -77,6 +77,9 @@ export const isJSXNode = <T>(n: unknown): n is JSXNodeInternal<T> => {
       _hasOwnProperty.call(n, 'props') &&
       _hasOwnProperty.call(n, 'type')
     ) {
+      if (isPropsProxy(n)) {
+        return false;
+      }
       logWarn(`Duplicate implementations of "JSXNode" found`);
       return true;
     }

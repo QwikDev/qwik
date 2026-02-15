@@ -5000,6 +5000,57 @@ export const App = component$(() => {
 }
 
 #[test]
+fn should_extract_multiple_qrls_with_item_and_index() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const loop: string[] = ['abcd', 'xyz'];
+  return (
+    <div>
+      {loop.map((item, index) => {
+        return <div onClick$={() => console.log(item)} onHover$={() => console.log(index)}>{item}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_multiple_qrls_with_item_and_index_and_capture_ref() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const foo = useSignal('hi');
+  const bar = useSignal('ho');
+  const loop: string[] = ['abcd', 'xyz'];
+  return (
+    <div>
+      {loop.map((item, index) => {
+        return <div onClick$={() => console.log(item, foo.value)} onHover$={() => console.log(bar.value, index)}>{item}</div>
+      })}
+    </div>
+  );
+});
+
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_extract_single_qrl_with_nested_components() {
 	test_input!(TestInput {
 		code: r#"

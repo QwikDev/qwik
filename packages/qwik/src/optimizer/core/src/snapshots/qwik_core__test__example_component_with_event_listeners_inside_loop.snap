@@ -143,7 +143,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "_",
-    "_",
+    "_1",
     "key"
   ],
   "captureNames": [
@@ -182,7 +182,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "_",
-    "_",
+    "_1",
     "i"
   ],
   "captureNames": [
@@ -221,7 +221,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "_",
-    "_",
+    "_1",
     "item"
   ],
   "captureNames": [
@@ -388,7 +388,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "_",
-    "_",
+    "_1",
     "i"
   ],
   "captureNames": [
@@ -427,7 +427,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "_",
-    "_",
+    "_1",
     "item"
   ],
   "captureNames": [
@@ -465,7 +465,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "_",
-    "_",
+    "_1",
     "item"
   ],
   "captureNames": [

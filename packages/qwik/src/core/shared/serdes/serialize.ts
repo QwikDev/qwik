@@ -11,7 +11,6 @@ import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primiti
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
-  AsyncSignalFlags,
   EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
@@ -439,8 +438,11 @@ export class Serializer {
         const interval = isAsync && value.$interval$ > 0 ? value.$interval$ : undefined;
         const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
         const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
-        const eagerCleanup =
-          isAsync && value.$flags$ & AsyncSignalFlags.EAGER_CLEANUP ? true : undefined;
+
+        // Send the flags but remove the serialization bits and default to 0 when undefined
+        const asyncFlags =
+          (isAsync && value.$flags$ & ~SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES) ||
+          undefined;
 
         if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
@@ -458,6 +460,7 @@ export class Serializer {
         if (isAsync) {
           // After SSR, the signal is never loading, so no need to send it
           out.push(value.$loadingEffects$, value.$errorEffects$, value.$untrackedError$);
+          out.push(asyncFlags || undefined);
         }
 
         let keepUndefined = false;
@@ -483,7 +486,6 @@ export class Serializer {
           out.push(interval);
           out.push(concurrency);
           out.push(timeout);
-          out.push(eagerCleanup);
         }
         this.output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out, keepUndefined);
       } else {

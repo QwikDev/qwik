@@ -94,6 +94,7 @@ export const useConstant = <T, A extends any[]>(value: ((...args: A) => T) | T, 
   if (val != null) {
     return val;
   }
+  // We don't want to create a subscription since we only run this once
   // Note: We are not using `invoke` here because we don't want to clear the context
   value = isFunction(value) && !isQwikComponent(value) ? untrack(value, ...args) : value;
   return set(value as T);

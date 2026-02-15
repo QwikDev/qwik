@@ -2,12 +2,7 @@ import { isDev, isServer } from '@qwik.dev/core/build';
 import { vnode_isVNode } from '../client/vnode-utils';
 import { isSignal } from '../reactive-primitives/utils';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
-import {
-  invokeApply,
-  newRenderInvokeContext,
-  untrack,
-  type RenderInvokeContext,
-} from '../use/use-core';
+import { invokeApply, newRenderInvokeContext, type RenderInvokeContext } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
@@ -36,6 +31,7 @@ import { EventNameHtmlScope } from './utils/event-names';
 import { isServerPlatform } from './platform/platform';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { ChoreBits } from './vnode/enums/chore-bits.enum';
+import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -259,7 +255,6 @@ function addUseOnEvent(
   }
 }
 
-const getValue = (o: any) => o.value;
 /**
  * Finds the first element node in the JSX output.
  *
@@ -280,7 +275,7 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
     } else if (isPromise<JSXOutput>(jsx)) {
       return maybeThen(jsx, (jsx) => findFirstElementNode(jsx));
     } else if (isSignal(jsx)) {
-      return findFirstElementNode(untrack(getValue, jsx));
+      return findFirstElementNode((jsx as SignalImpl).untrackedValue);
     }
   }
   return null;

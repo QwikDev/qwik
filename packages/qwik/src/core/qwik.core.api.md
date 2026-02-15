@@ -30,6 +30,7 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
 export interface AsyncSignalOptions<T> extends ComputedOptions {
     // @deprecated
     awaitPrevious?: boolean;
+    clientOnly?: boolean;
     concurrency?: number;
     eagerCleanup?: boolean;
     initial?: T | (() => T);
@@ -501,7 +502,7 @@ export interface ISsrComponentFrame {
 }
 
 // @internal (undocumented)
-export const _isStore: (value: StoreTarget) => boolean;
+export const _isStore: (value: object) => boolean;
 
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;

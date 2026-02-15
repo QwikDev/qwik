@@ -1571,6 +1571,41 @@ impl<'a> QwikTransform<'a> {
 				let mut static_subtree = !has_spread_props;
 				let mut added_iter_var_prop = false; // Track if we've already added q:p or q:ps
 
+				// Collect all iteration variables used by any handler on this element (in loop order)
+				let element_iter_vars: Vec<ast::Ident> = if self.loop_depth > 0 && !is_fn {
+					if let Some(iter_vars) = self.iteration_var_stack.last() {
+						let mut used_syms: HashSet<(Atom, SyntaxContext)> = HashSet::new();
+						for prop in props.iter() {
+							if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) = prop
+							{
+								let key = match &node.key {
+									ast::PropName::Ident(ref ident) => Some(ident.sym.clone()),
+									ast::PropName::Str(ref s) => Some(s.value.clone()),
+									_ => None,
+								};
+								if key.as_ref().and_then(convert_qrl_word).is_some()
+									&& matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
+								{
+									for var in iter_vars {
+										if expr_uses_ident(&node.value, &id!(var)) {
+											used_syms.insert((var.sym.clone(), var.ctxt));
+										}
+									}
+								}
+							}
+						}
+						iter_vars
+							.iter()
+							.filter(|var| used_syms.contains(&(var.sym.clone(), var.ctxt)))
+							.cloned()
+							.collect()
+					} else {
+						Vec::new()
+					}
+				} else {
+					Vec::new()
+				};
+
 				for prop in props.into_iter() {
 					let mut name_token = false;
 					// If we have spread props, all the props that come before it are variable even if they're static
@@ -1681,31 +1716,11 @@ impl<'a> QwikTransform<'a> {
 								{
 									if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 									{
-										// Check which iteration variables this specific handler uses
-										let used_iter_vars: Vec<ast::Ident> = if self.loop_depth > 0
-											&& !is_fn
-										{
-											if let Some(iter_vars) = self.iteration_var_stack.last()
-											{
-												iter_vars
-													.iter()
-													.filter(|var| {
-														expr_uses_ident(&node.value, &id!(var))
-													})
-													.cloned()
-													.collect()
-											} else {
-												Vec::new()
-											}
-										} else {
-											Vec::new()
-										};
-
-										// Transform event handler if it uses iteration variables
-										let transformed_value = if !used_iter_vars.is_empty() {
+										// Transform event handler with element's full iteration var list (so param order matches q:ps)
+										let transformed_value = if !element_iter_vars.is_empty() {
 											transform_event_handler_with_iter_var(
 												*node.value.clone(),
-												&used_iter_vars,
+												&element_iter_vars,
 											)
 										} else {
 											*node.value.clone()
@@ -1745,18 +1760,18 @@ impl<'a> QwikTransform<'a> {
 											&mut const_props,
 										);
 
-										// Add q:p (single) or q:ps (multiple) prop if this handler uses iteration variables
-										// Only add it once per element, even if multiple handlers use the same iteration variables
-										if !used_iter_vars.is_empty()
+										// Add q:p (single) or q:ps (multiple) prop for all iteration vars used on this element
+										// Only add it once per element, even if multiple handlers use different iteration variables
+										if !element_iter_vars.is_empty()
 											&& !is_fn && !added_iter_var_prop
 										{
 											let (prop_name, row_value): (&str, Box<ast::Expr>) =
-												if used_iter_vars.len() == 1 {
+												if element_iter_vars.len() == 1 {
 													// Single parameter: use q:p without array
 													(
 														"q:p",
 														Box::new(ast::Expr::Ident(
-															used_iter_vars[0].clone(),
+															element_iter_vars[0].clone(),
 														)),
 													)
 												} else {
@@ -1765,7 +1780,7 @@ impl<'a> QwikTransform<'a> {
 														"q:ps",
 														Box::new(ast::Expr::Array(ast::ArrayLit {
 															span: DUMMY_SP,
-															elems: used_iter_vars
+															elems: element_iter_vars
 																.iter()
 																.map(|ident| {
 																	Some(ast::ExprOrSpread {
@@ -3477,102 +3492,122 @@ fn expr_uses_ident(expr: &ast::Expr, target_id: &Id) -> bool {
 	checker.found
 }
 
-/// Transform event handler to add iteration variables as parameters
-/// Converts: onClick$(() => cart.push(item)}
-/// To: onClick$((_, __, item) => cart.push(item))
-/// Or: onClick$(() => clickedIndex.value = idx)
-/// To: onClick$((_, __, row, idx) => clickedIndex.value = idx)
-/// Only adds iteration variables that are actually used in the handler
-fn transform_event_handler_with_iter_var(expr: ast::Expr, iter_vars: &[ast::Ident]) -> ast::Expr {
-	// Check which iteration variables are actually used
-	let used_iter_vars: Vec<&ast::Ident> = iter_vars
-		.iter()
-		.filter(|var| expr_uses_ident(&expr, &id!(var)))
-		.collect();
+/// Placeholder param for event handler slot: 0 => _, 1 => _1, 2 => _2, ...
+fn event_handler_placeholder_pat(slot_index: usize) -> ast::Pat {
+	let sym = if slot_index == 0 {
+		Atom::from("_")
+	} else {
+		Atom::from(format!("_{}", slot_index))
+	};
+	ast::Pat::Ident(ast::BindingIdent {
+		id: ast::Ident::new(sym, DUMMY_SP, SyntaxContext::empty()),
+		type_ann: None,
+	})
+}
 
-	if used_iter_vars.is_empty() {
+/// Push one param: use value if present, otherwise placeholder for slot_index.
+fn push_event_handler_param(
+	new_params: &mut Vec<ast::Pat>,
+	value: Option<ast::Pat>,
+	slot_index: usize,
+) {
+	new_params.push(value.unwrap_or_else(|| event_handler_placeholder_pat(slot_index)));
+}
+
+/// Build the parameter patterns for an event handler: (event, element) plus iteration vars.
+/// Used by both arrow and fn handlers; caller wraps in `ast::Param` for fn.
+fn build_event_handler_param_pats(
+	existing_param_count: usize,
+	get_existing_pat: impl Fn(usize) -> ast::Pat,
+	element_iter_vars: &[ast::Ident],
+	used: &[bool],
+	last_used_index: Option<usize>,
+) -> Vec<ast::Pat> {
+	let mut new_params = Vec::new();
+
+	// Positions 0 and 1: event, element (placeholders _ and _1)
+	for slot_index in 0..2 {
+		let value = (slot_index < existing_param_count).then(|| get_existing_pat(slot_index));
+		push_event_handler_param(&mut new_params, value, slot_index);
+	}
+
+	// Element iteration vars up to last used: use real ident if handler uses it, else placeholder _2, _3, ...
+	if let Some(last) = last_used_index {
+		for (i, iter_var) in element_iter_vars.iter().enumerate().take(last + 1) {
+			let slot_index = 2 + i;
+			let value = if used[i] {
+				Some(ast::Pat::Ident(ast::BindingIdent {
+					id: iter_var.clone(),
+					type_ann: None,
+				}))
+			} else {
+				None
+			};
+			push_event_handler_param(&mut new_params, value, slot_index);
+		}
+	}
+
+	// Any additional existing parameters beyond the first 2
+	for i in 2..existing_param_count {
+		new_params.push(get_existing_pat(i));
+	}
+
+	new_params
+}
+
+/// Transform event handler to add iteration variables as parameters.
+/// Takes the element's full list of iteration vars (in loop order) so param order matches q:ps.
+/// For each var: if the handler uses it, add that ident; otherwise add a placeholder (_2, _3, ...).
+/// Converts: onClick$(() => cart.push(item)) with element_iter_vars [item, index]
+/// To: onClick$((_, _1, item) => cart.push(item))
+/// Or: onClick$(() => clickedIndex.value = idx)
+/// To: onClick$((_, _1, _2, idx) => clickedIndex.value = idx)
+/// Or: onClick$(() => console.log(item, idx))
+/// To: onClick$((_, _1, item, idx) => console.log(item, idx))
+fn transform_event_handler_with_iter_var(
+	expr: ast::Expr,
+	element_iter_vars: &[ast::Ident],
+) -> ast::Expr {
+	if element_iter_vars.is_empty() {
 		return expr;
 	}
 
+	// Compute which vars this handler uses before matching (expr is moved in the match)
+	let used: Vec<bool> = element_iter_vars
+		.iter()
+		.map(|var| expr_uses_ident(&expr, &id!(var)))
+		.collect();
+	// Only add params up to and including the last used var; skip trailing unused (no placeholder)
+	let last_used_index = used.iter().rposition(|&u| u);
+
 	match expr {
 		ast::Expr::Arrow(mut arrow) => {
-			// Count existing parameters
-			let existing_params = arrow.params.len();
-
-			// We need: event (0), element (1), then used iteration variables
-			let mut new_params = Vec::new();
-
-			// Add existing params or placeholders for positions 0 and 1
-			for i in 0..2 {
-				if i < existing_params {
-					new_params.push(arrow.params[i].clone());
-				} else {
-					// Add placeholder parameter
-					new_params.push(ast::Pat::Ident(ast::BindingIdent {
-						id: private_ident!("_"),
-						type_ann: None,
-					}));
-				}
-			}
-
-			// Add only the iteration variables that are actually used
-			for iter_var in &used_iter_vars {
-				new_params.push(ast::Pat::Ident(ast::BindingIdent {
-					id: (*iter_var).clone(),
-					type_ann: None,
-				}));
-			}
-
-			// Add any additional existing parameters beyond the first 2
-			for i in 2..existing_params {
-				new_params.push(arrow.params[i].clone());
-			}
-
+			let new_params = build_event_handler_param_pats(
+				arrow.params.len(),
+				|i| arrow.params[i].clone(),
+				element_iter_vars,
+				&used,
+				last_used_index,
+			);
 			arrow.params = new_params;
 			ast::Expr::Arrow(arrow)
 		}
 		ast::Expr::Fn(mut fn_expr) => {
-			// Count existing parameters
-			let existing_params = fn_expr.function.params.len();
-
-			// We need: event (0), element (1), then used iteration variables
-			let mut new_params = Vec::new();
-
-			// Add existing params or placeholders for positions 0 and 1
-			for i in 0..2 {
-				if i < existing_params {
-					new_params.push(fn_expr.function.params[i].clone());
-				} else {
-					// Add placeholder parameter
-					new_params.push(ast::Param {
-						span: DUMMY_SP,
-						decorators: vec![],
-						pat: ast::Pat::Ident(ast::BindingIdent {
-							id: private_ident!("_"),
-							type_ann: None,
-						}),
-					});
-				}
-			}
-
-			// Add only the iteration variables that are actually used
-			for iter_var in &used_iter_vars {
-				new_params.push(ast::Param {
+			let pats = build_event_handler_param_pats(
+				fn_expr.function.params.len(),
+				|i| fn_expr.function.params[i].pat.clone(),
+				element_iter_vars,
+				&used,
+				last_used_index,
+			);
+			fn_expr.function.params = pats
+				.into_iter()
+				.map(|pat| ast::Param {
 					span: DUMMY_SP,
 					decorators: vec![],
-					pat: ast::Pat::Ident(ast::BindingIdent {
-						id: (*iter_var).clone(),
-						type_ann: None,
-					}),
-				});
-			}
-
-			// Add any additional existing parameters beyond the first 2
-			for i in 2..existing_params {
-				new_params.push(fn_expr.function.params[i].clone());
-			}
-
-			fn_expr.function.params = new_params;
+					pat,
+				})
+				.collect();
 			ast::Expr::Fn(fn_expr)
 		}
 		_ => expr,

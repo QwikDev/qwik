@@ -139,34 +139,42 @@ export const inflate = (
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Error,
+        number?,
         unknown?,
         number?,
         number?,
         number?,
-        // Maybe we should serialize flags instead
-        boolean?,
       ];
-      asyncSignal.$computeQrl$ = d[0];
-      asyncSignal[_EFFECT_BACK_REF] = d[1];
-      asyncSignal.$effects$ = new Set(d[2]);
-      asyncSignal.$loadingEffects$ = new Set(d[3]);
-      asyncSignal.$errorEffects$ = new Set(d[4]);
-      asyncSignal.$untrackedError$ = d[5];
-      const hasValue = d.length > 6;
+      asyncSignal.$computeQrl$ = d[0] as AsyncQRL<unknown>;
+      asyncSignal[_EFFECT_BACK_REF] = d[1] as
+        | Map<EffectProperty | string, EffectSubscription>
+        | undefined;
+      asyncSignal.$effects$ = new Set(d[2] as EffectSubscription[]);
+      asyncSignal.$loadingEffects$ = new Set(d[3] as EffectSubscription[]);
+      asyncSignal.$errorEffects$ = new Set(d[4] as EffectSubscription[]);
+      asyncSignal.$untrackedError$ = d[5] as Error;
+
+      asyncSignal.$flags$ = (d[6] as number) ?? 0;
+
+      if (asyncSignal.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
+        // If it's client only, it was serialized because it pretended to be loading
+        asyncSignal.$untrackedLoading$ = true;
+      }
+
+      const hasValue = d.length > 7;
       if (hasValue) {
-        asyncSignal.$untrackedValue$ = d[6];
+        asyncSignal.$untrackedValue$ = d[7];
       }
-      if (asyncSignal.$untrackedValue$ !== NEEDS_COMPUTATION) {
-        // If we have a value after SSR, it will always be mean the signal was not invalid
-        asyncSignal.$flags$ &= ~SignalFlags.INVALID;
+      // can happen when never serialize etc
+      if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION) {
+        asyncSignal.$flags$ |= SignalFlags.INVALID;
       }
+
       // Note, we use the setter so that it schedules polling if needed
-      asyncSignal.interval = d[7] ?? 0;
-      asyncSignal.$concurrency$ = d[8] ?? 1;
-      asyncSignal.$timeoutMs$ = d[9] ?? 0;
-      if (d[10]) {
-        asyncSignal.$flags$ |= AsyncSignalFlags.EAGER_CLEANUP;
-      }
+      asyncSignal.interval = (d[8] ?? 0) as number;
+
+      asyncSignal.$concurrency$ = (d[9] ?? 1) as number;
+      asyncSignal.$timeoutMs$ = (d[10] ?? 0) as number;
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal

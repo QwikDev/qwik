@@ -92,6 +92,13 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    */
   interval?: number;
   /**
+   * When true, the async computation is postponed to the browser. On SSR, the signal remains
+   * INVALID and does not execute the function. On the client, it will compute on first read.
+   *
+   * Defaults to `false`.
+   */
+  clientOnly?: boolean;
+  /**
    * Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the
    * computation is aborted and an error is thrown.
    *
@@ -115,13 +122,14 @@ export const enum WrappedSignalFlags {
 export const enum SerializationSignalFlags {
   SERIALIZATION_STRATEGY_NEVER = 8,
   SERIALIZATION_STRATEGY_ALWAYS = 16,
+  SERIALIZATION_ALL_STRATEGIES = SERIALIZATION_STRATEGY_NEVER | SERIALIZATION_STRATEGY_ALWAYS,
   // TODO: implement this in the future
   // SERIALIZATION_STRATEGY_AUTO = SERIALIZATION_STRATEGY_NEVER | SERIALIZATION_STRATEGY_ALWAYS,
 }
 
 export const enum AsyncSignalFlags {
   EAGER_CLEANUP = 32,
-  AWAIT_PREVIOUS = 64,
+  CLIENT_ONLY = 64,
 }
 
 export type AllSignalFlags =

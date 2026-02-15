@@ -12,6 +12,7 @@ import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import {
   type AsyncCtx,
+  AsyncSignalFlags,
   EffectProperty,
   SignalFlags,
   type InternalReadonlySignal,
@@ -859,6 +860,141 @@ describe('signal', () => {
 
           // After promise resolves, should have computed value
           expect(signal.value).toBe(42);
+        });
+      });
+
+      describe('clientOnly', () => {
+        it('should set CLIENT_ONLY flag when clientOnly option is true', async () => {
+          await withContainer(async () => {
+            const signal = createAsync$(async () => 42, {
+              initial: 10,
+              clientOnly: true,
+            }) as AsyncSignalImpl<number>;
+
+            // Verify flag is set on instance
+            expect(signal.$flags$ & AsyncSignalFlags.CLIENT_ONLY).toBe(
+              AsyncSignalFlags.CLIENT_ONLY
+            );
+          });
+        });
+
+        it('should not set CLIENT_ONLY flag when clientOnly option is false or omitted', async () => {
+          await withContainer(async () => {
+            const signal = createAsync$(async () => 42, {
+              initial: 10,
+            }) as AsyncSignalImpl<number>;
+
+            // Verify flag is NOT set
+            expect(signal.$flags$ & AsyncSignalFlags.CLIENT_ONLY).toBe(0);
+          });
+        });
+
+        it('should compute on browser when clientOnly is set', async () => {
+          await withContainer(async () => {
+            const ref = { computeCalls: 0 };
+            const signal = createAsync$(
+              async () => {
+                ref.computeCalls++;
+                return 42;
+              },
+              { initial: 10, clientOnly: true }
+            ) as AsyncSignalImpl<number>;
+
+            // Subscribe to force computation
+            await retryOnPromise(async () => {
+              effect$(() => signal.value);
+            });
+
+            // Wait for computation to complete
+            await signal.promise();
+
+            // On browser, computation should complete normally
+            expect(signal.value).toBe(42);
+            expect(ref.computeCalls).toBe(1);
+          });
+        });
+
+        it('should work with eagerCleanup together', async () => {
+          await withContainer(async () => {
+            const ref = {
+              computeCalls: 0,
+              cleanupCalls: 0,
+              aborted: false,
+            };
+
+            const signal = createAsync$(
+              async ({ abortSignal, cleanup }) => {
+                ref.computeCalls++;
+                abortSignal.addEventListener('abort', () => {
+                  ref.aborted = true;
+                });
+                cleanup(() => {
+                  ref.cleanupCalls++;
+                });
+                return 42;
+              },
+              { initial: 10, clientOnly: true, eagerCleanup: true }
+            ) as AsyncSignalImpl<number>;
+
+            // Both flags should be set
+            expect(signal.$flags$ & AsyncSignalFlags.CLIENT_ONLY).toBe(
+              AsyncSignalFlags.CLIENT_ONLY
+            );
+            expect(signal.$flags$ & AsyncSignalFlags.EAGER_CLEANUP).toBe(
+              AsyncSignalFlags.EAGER_CLEANUP
+            );
+
+            // Subscribe and let computation start
+            await retryOnPromise(async () => {
+              effect$(() => signal.value);
+            });
+
+            await signal.promise();
+            expect(ref.computeCalls).toBe(1);
+
+            // Unsubscribe - should trigger eager cleanup
+            clearAllEffects(container, task!);
+
+            await delay(0);
+
+            // eagerCleanup should have been triggered
+            expect(ref.aborted).toBe(true);
+            expect(ref.cleanupCalls).toBe(1);
+          });
+        });
+
+        it('should work with abort reason together', async () => {
+          await withContainer(async () => {
+            const ref = {
+              capturedReason: undefined as any,
+              resolve: undefined as ((value: number) => void) | undefined,
+            };
+
+            const signal = createAsync$(
+              async ({ abortSignal }) => {
+                abortSignal.addEventListener('abort', () => {
+                  ref.capturedReason = abortSignal.reason;
+                });
+                return new Promise<number>((resolve) => {
+                  ref.resolve = resolve;
+                });
+              },
+              { initial: 0, clientOnly: true }
+            ) as AsyncSignalImpl<number>;
+
+            effect$(() => signal.value);
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            expect(ref.resolve).toBeDefined();
+
+            const customReason = new Error('ClientOnly abort');
+            signal.abort(customReason);
+
+            expect(ref.capturedReason).toBe(customReason);
+
+            ref.resolve?.(1);
+            await delay(0);
+          });
         });
       });
     });

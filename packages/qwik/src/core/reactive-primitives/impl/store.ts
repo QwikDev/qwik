@@ -69,7 +69,7 @@ export const unwrapStore = <T>(value: T): T => {
 };
 
 /** @internal */
-export const isStore = (value: StoreTarget): boolean => {
+export const isStore = (value: object): boolean => {
   return STORE_TARGET in value;
 };
 

@@ -1041,5 +1041,89 @@ describe.each([
         </Component>
       );
     });
+
+    it('#8309 -should run visible cleanup on unmount', async () => {
+      (globalThis as any).log = [] as string[];
+      const Foo = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('entry /foo');
+          cleanup(() => {
+            (globalThis as any).log.push('cleanup /foo');
+          });
+          return () => {
+            (globalThis as any).log.push('return /foo');
+          };
+        });
+
+        return (
+          <div>
+            <p>You are in /foo</p>
+          </div>
+        );
+      });
+
+      const Layout = component$(() => {
+        return <Slot />;
+      });
+
+      const Main = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('entry /');
+          cleanup(() => {
+            (globalThis as any).log.push('cleanup /');
+          });
+          return () => {
+            (globalThis as any).log.push('return /');
+          };
+        });
+
+        return (
+          <div>
+            <p>You are in /</p>
+          </div>
+        );
+      });
+
+      const Cmp = component$(() => {
+        const toggle = useSignal(true);
+        return (
+          <div>
+            <h1>Hello from Qwik!</h1>
+            <button
+              onClick$={() => {
+                toggle.value = !toggle.value;
+              }}
+            >
+              toggle
+            </button>
+            {toggle.value ? (
+              <Main />
+            ) : (
+              <Layout>
+                <Foo />
+              </Layout>
+            )}
+          </div>
+        );
+      });
+
+      const { container } = await render(<Cmp />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(container.document.body, 'div', 'qvisible');
+      }
+      expect((globalThis as any).log).toEqual(['entry /']);
+      await trigger(container.document.body, 'button', 'click');
+      expect((globalThis as any).log).toEqual(['entry /', 'cleanup /', 'return /', 'entry /foo']);
+      await trigger(container.document.body, 'button', 'click');
+      expect((globalThis as any).log).toEqual([
+        'entry /',
+        'cleanup /',
+        'return /',
+        'entry /foo',
+        'cleanup /foo',
+        'return /foo',
+        'entry /',
+      ]);
+    });
   });
 });

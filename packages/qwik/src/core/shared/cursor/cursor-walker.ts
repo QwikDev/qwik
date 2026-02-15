@@ -146,6 +146,12 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       // if deleted, run cleanup if needed
       if (currentVNode.dirty & ChoreBits.CLEANUP) {
         executeCleanup(currentVNode, container);
+      } else if (currentVNode.dirty & ChoreBits.CHILDREN) {
+        const next = tryDescendDirtyChildren(container, cursorData, currentVNode, cursor);
+        if (next !== null) {
+          currentVNode = next;
+          continue;
+        }
       }
       // Clear dirty bits and move to next node
       currentVNode.dirty &= ~ChoreBits.DIRTY_MASK;
@@ -167,16 +173,9 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       } else if (currentVNode.dirty & ChoreBits.COMPUTE) {
         result = executeCompute(currentVNode, container);
       } else if (currentVNode.dirty & ChoreBits.CHILDREN) {
-        const dirtyChildren = currentVNode.dirtyChildren;
-        if (!dirtyChildren || dirtyChildren.length === 0) {
-          // No dirty children
-          currentVNode.dirty &= ~ChoreBits.CHILDREN;
-        } else {
-          partitionDirtyChildren(dirtyChildren, currentVNode);
-          currentVNode.nextDirtyChildIndex = 0;
-          // descend
-          currentVNode = getNextVNode(dirtyChildren[0], cursor)!;
-          setCursorPosition(container, cursorData, currentVNode);
+        const next = tryDescendDirtyChildren(container, cursorData, currentVNode, cursor);
+        if (next !== null) {
+          currentVNode = next;
           continue;
         }
       }
@@ -249,6 +248,28 @@ function finishWalk(
 export function resolveCursor(container: Container): void {
   DEBUG && console.warn(`walkCursor: cursor resolved, ${container.$pendingCount$} remaining`);
   container.$checkPendingCount$();
+}
+
+/**
+ * If the vNode has dirty children, partitions them, sets cursor to first dirty child, and returns
+ * that child. Otherwise clears CHILDREN bit and returns null.
+ */
+function tryDescendDirtyChildren(
+  container: Container,
+  cursorData: CursorData,
+  currentVNode: VNode,
+  cursor: Cursor
+): VNode | null {
+  const dirtyChildren = currentVNode.dirtyChildren;
+  if (!dirtyChildren || dirtyChildren.length === 0) {
+    currentVNode.dirty &= ~ChoreBits.CHILDREN;
+    return null;
+  }
+  partitionDirtyChildren(dirtyChildren, currentVNode);
+  currentVNode.nextDirtyChildIndex = 0;
+  const next = getNextVNode(dirtyChildren[0], cursor)!;
+  setCursorPosition(container, cursorData, next);
+  return next;
 }
 
 /**

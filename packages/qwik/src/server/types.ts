@@ -7,7 +7,7 @@ import type {
   SymbolMapper,
   SymbolMapperFn,
 } from '@qwik.dev/core/optimizer';
-import type { SsrAttrValue } from './qwik-types';
+import type { StreamHandler } from './ssr-stream-handler';
 
 /** @public */
 export interface SerializeDocumentOptions {
@@ -124,7 +124,8 @@ export interface RenderToStringResult extends RenderResult {
 
 /** @public */
 export interface RenderResult {
-  snapshotResult: SnapshotResult | undefined;
+  /** @deprecated Not longer used in v2 */
+  snapshotResult?: SnapshotResult | undefined;
   isStatic: boolean;
   manifest?: ServerQwikManifest;
 }
@@ -140,6 +141,19 @@ export type QwikLoaderOptions =
       /** @deprecated No longer used. */
       position?: 'top' | 'bottom';
     };
+
+export interface SSRRenderOptions {
+  streamHandler: StreamHandler;
+  locale?: string;
+  tagName?: string;
+  writer?: StreamWriter;
+  timing?: RenderToStreamResult['timing'];
+  buildBase?: string;
+  resolvedManifest?: ResolvedManifest;
+  renderOptions?: RenderOptions;
+}
+
+export type SSRContainerOptions = Required<SSRRenderOptions>;
 
 /** @public */
 export interface RenderOptions extends SerializeDocumentOptions {
@@ -256,7 +270,7 @@ export const enum VNodeDataFlag {
 
 export type BackpatchEntry = {
   attrName: string;
-  value: Awaited<SsrAttrValue>;
+  value: Awaited<string | boolean | null>;
 };
 
 export type { QwikManifest, ServerQwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

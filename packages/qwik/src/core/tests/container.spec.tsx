@@ -26,9 +26,10 @@ import { _qrlSync } from '../shared/qrl/qrl.public';
 import { TypeIds } from '../shared/serdes/constants';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { type SSRContainer } from '../ssr/ssr-types';
-import { toSsrAttrs } from '../ssr/ssr-render-jsx';
 import type { VNode } from '../shared/vnode/vnode';
 import { retryOnPromise } from '../shared/utils/promises';
+import { StreamHandler } from '../../server/ssr-stream-handler';
+import type { RenderToStreamOptions } from '../../server/types';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -120,13 +121,13 @@ describe('serializer v2', () => {
       // doesn't use the vnode so not serialized
       it('should retrieve element', async () => {
         const clientContainer = await withContainer((ssr) => {
-          ssr.openElement('div', null, ['id', 'parent']);
+          ssr.openElement('div', null, { id: 'parent' }, null, null, null);
           ssr.textNode('Hello');
-          ssr.openElement('span', null, ['id', 'myId']);
+          ssr.openElement('span', null, { id: 'myId' }, null, null, null);
           const node = ssr.getOrCreateLastNode();
           ssr.addRoot({ someProp: node });
           ssr.textNode('Hello');
-          ssr.openElement('b', null, ['id', 'child']);
+          ssr.openElement('b', null, { id: 'child' }, null, null, null);
           ssr.closeElement();
           ssr.closeElement();
           ssr.closeElement();
@@ -137,9 +138,9 @@ describe('serializer v2', () => {
       });
       it('should retrieve text node', async () => {
         const clientContainer = await withContainer((ssr) => {
-          ssr.openElement('div', null, ['id', 'parent']);
+          ssr.openElement('div', null, { id: 'parent' }, null, null, null);
           ssr.textNode('Hello');
-          ssr.openElement('span', null, ['id', 'myId']);
+          ssr.openElement('span', null, { id: 'myId' }, null, null, null);
           ssr.textNode('Greetings');
           ssr.textNode(' ');
           ssr.textNode('World');
@@ -147,7 +148,7 @@ describe('serializer v2', () => {
           expect(node.id).toBe('2C');
           ssr.textNode('!');
           ssr.addRoot({ someProp: node });
-          ssr.openElement('b', null, ['id', 'child']);
+          ssr.openElement('b', null, { id: 'child' }, null, null, null);
           ssr.closeElement();
           ssr.closeElement();
           ssr.closeElement();
@@ -157,18 +158,18 @@ describe('serializer v2', () => {
       });
       it('should retrieve text node in Fragments', async () => {
         const clientContainer = await withContainer((ssr) => {
-          ssr.openElement('div', null, ['id', 'parent']);
+          ssr.openElement('div', null, { id: 'parent' }, null, null, null);
           ssr.textNode('Hello');
-          ssr.openElement('span', null, ['id', 'div']); // 2
+          ssr.openElement('span', null, { id: 'div' }, null, null, null); // 2
           ssr.textNode('Greetings'); // 2A
           ssr.textNode(' '); // 2B
-          ssr.openFragment([]); // 2C
+          ssr.openFragment({}); // 2C
           ssr.textNode('World'); // 2CA
           const node = ssr.getOrCreateLastNode();
           expect(node.id).toBe('2CA');
           ssr.textNode('!');
           ssr.addRoot({ someProp: node });
-          ssr.openElement('b', null, ['id', 'child']);
+          ssr.openElement('b', null, { id: 'child' }, null, null, null);
           ssr.closeElement();
           ssr.closeFragment();
           ssr.closeElement();
@@ -523,11 +524,11 @@ describe('serializer v2', () => {
       await expect(() =>
         withContainer(
           (ssr) => {
-            ssr.openElement('body', null, [], null, filePath);
-            ssr.openElement('p', null, [], null, filePath);
-            ssr.openFragment([]);
-            ssr.openElement('b', null, [], null, filePath);
-            ssr.openElement('div', null, [], null, filePath);
+            ssr.openElement('body', null, {}, null, null, filePath);
+            ssr.openElement('p', null, {}, null, null, filePath);
+            ssr.openFragment({});
+            ssr.openElement('b', null, {}, null, null, filePath);
+            ssr.openElement('div', null, {}, null, null, filePath);
           },
           { containerTag: 'html' }
         )
@@ -550,9 +551,9 @@ describe('serializer v2', () => {
       const filePath = '/some/path/test-file.tsx';
       await expect(() =>
         withContainer((ssr) => {
-          ssr.openElement('img', null, [], null, filePath);
-          ssr.openFragment([]);
-          ssr.openElement('div', null, [], null, filePath);
+          ssr.openElement('img', null, {}, null, null, filePath);
+          ssr.openFragment({});
+          ssr.openElement('div', null, {}, null, null, filePath);
         })
       ).rejects.toThrowError(
         [
@@ -576,6 +577,11 @@ async function withContainer(
 ): Promise<ClientContainer> {
   const ssrContainer: SSRContainer = ssrCreateContainer({
     tagName: opts.containerTag || 'div',
+    streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+      firstFlush: 0,
+      render: 0,
+      snapshot: 0,
+    }),
   });
   ssrContainer.openContainer();
   ssrFn(ssrContainer);
@@ -588,7 +594,14 @@ async function withContainer(
 }
 
 async function toHTML(jsx: JSXOutput): Promise<string> {
-  const ssrContainer = ssrCreateContainer({ tagName: 'div' });
+  const ssrContainer = ssrCreateContainer({
+    tagName: 'div',
+    streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+      firstFlush: 0,
+      render: 0,
+      snapshot: 0,
+    }),
+  });
   ssrContainer.openContainer();
   walkJSX(jsx, {
     enter: (jsx) => {
@@ -601,20 +614,9 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
           }
           jsx.constProps['class'] = '';
         }
-        ssrContainer.openElement(
-          jsx.type,
-          jsx.key,
-          toSsrAttrs(jsx.varProps, {
-            serializationCtx: ssrContainer.serializationCtx,
-            styleScopedId: null,
-          }),
-          toSsrAttrs(jsx.constProps, {
-            serializationCtx: ssrContainer.serializationCtx,
-            styleScopedId: null,
-          })
-        );
+        ssrContainer.openElement(jsx.type, jsx.key, jsx.varProps, jsx.constProps, null, null);
       } else {
-        ssrContainer.openFragment([]);
+        ssrContainer.openFragment({});
       }
     },
     leave: (jsx) => {

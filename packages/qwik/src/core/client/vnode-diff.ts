@@ -62,9 +62,9 @@ import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
-import { runEventHandlerQRL } from './run-qrl';
+import { runEventHandlerQRL } from '../client/run-qrl';
 import { VNodeFlags, type ClientContainer } from './types';
-import { mapApp_findIndx } from './util-mapArray';
+import { mapApp_findIndx, mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
 import {
   vnode_ensureElementInflated,
@@ -541,11 +541,10 @@ function descendContentToProject(
     const props = host.props;
     if (props) {
       // we need to create empty projections for all the slots to remove unused slots content
-      for (const prop of Object.keys(props)) {
+      for (const prop in props) {
         if (isSlotProp(prop)) {
           const slotName = prop;
-          projections.push(slotName);
-          projections.push(createProjectionJSXNode(slotName));
+          mapArray_set(projections, slotName, createProjectionJSXNode(slotName), 0);
         }
       }
     }

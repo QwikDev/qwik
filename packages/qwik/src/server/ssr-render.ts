@@ -1,23 +1,16 @@
 import { getSymbolHash, setServerPlatform } from './platform';
-import { FLUSH_COMMENT, STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from './qwik-copy';
-import type {
-  JSXOutput,
-  ResolvedManifest,
-  SSRContainer,
-  SymbolMapper,
-  StreamWriter,
-} from './qwik-types';
+import type { JSXOutput, ResolvedManifest, SymbolMapper, StreamWriter } from './qwik-types';
 import type {
   QwikManifest,
   RenderToStreamOptions,
   RenderToStreamResult,
   RenderToStringOptions,
   RenderToStringResult,
-  SnapshotResult,
 } from './types';
-import { createTimer, getBuildBase } from './utils';
+import { getBuildBase } from './utils';
 import { ssrCreateContainer } from './ssr-container';
 import { manifest as builtManifest } from '@qwik-client-manifest';
+import { StreamHandler } from './ssr-stream-handler';
 
 /**
  * Creates a server-side `document`, renders to root node to the document, then serializes the
@@ -70,12 +63,13 @@ export const renderToStream = async (
       ? opts.locale(opts)
       : opts.serverData?.locale || opts.locale || opts.containerAttributes?.locale || '';
 
-  const { stream, flush, networkFlushes } = handleStreaming(opts, timing);
+  const streamHandler = new StreamHandler(opts, timing);
 
   const ssrContainer = ssrCreateContainer({
     tagName: containerTagName,
     locale,
-    writer: stream,
+    writer: streamHandler.stream,
+    streamHandler,
     timing,
     buildBase,
     resolvedManifest,
@@ -87,13 +81,10 @@ export const renderToStream = async (
   await ssrContainer.$renderPromise$;
 
   // Flush remaining chunks in the buffer
-  flush();
-
-  const snapshotResult = getSnapshotResult(ssrContainer);
+  streamHandler.flush();
 
   const result: RenderToStreamResult = {
-    snapshotResult,
-    flushes: networkFlushes,
+    flushes: streamHandler.networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: ssrContainer.size,
     isStatic: false,
@@ -102,127 +93,6 @@ export const renderToStream = async (
 
   return result;
 };
-
-function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
-  const hasListeners = !ssrContainer.isStatic();
-  // TODO
-  const canRender = false;
-
-  return hasListeners
-    ? {
-        funcs: Array.from(ssrContainer.serializationCtx.$syncFns$),
-        mode: canRender ? 'render' : 'listeners',
-        qrls: Array.from(ssrContainer.serializationCtx.$eventQrls$),
-        resources: Array.from(ssrContainer.serializationCtx.$resources$),
-      }
-    : {
-        funcs: [],
-        mode: 'static',
-        qrls: [],
-        resources: Array.from(ssrContainer.serializationCtx.$resources$),
-      };
-}
-
-function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResult['timing']) {
-  const firstFlushTimer = createTimer();
-  let stream = opts.stream;
-  let bufferSize = 0;
-  let buffer: string = '';
-  let networkFlushes = 0;
-  const inOrderStreaming = opts.streaming?.inOrder ?? {
-    strategy: 'auto',
-    maximumInitialChunk: 20_000,
-    maximumChunk: 10_000,
-  };
-  const nativeStream = stream;
-
-  function flush() {
-    if (buffer) {
-      nativeStream.write(buffer);
-      buffer = '';
-      bufferSize = 0;
-      networkFlushes++;
-      if (networkFlushes === 1) {
-        timing.firstFlush = firstFlushTimer();
-      }
-    }
-  }
-
-  function enqueue(chunk: string) {
-    const len = chunk.length;
-    bufferSize += len;
-    buffer += chunk;
-  }
-
-  switch (inOrderStreaming.strategy) {
-    case 'disabled':
-      stream = {
-        write(chunk: string) {
-          if (shouldSkipChunk(chunk)) {
-            return;
-          }
-          enqueue(chunk);
-        },
-      };
-      break;
-    case 'direct':
-      stream = {
-        write(chunk: string) {
-          if (shouldSkipChunk(chunk)) {
-            return;
-          }
-          nativeStream.write(chunk);
-        },
-      };
-      break;
-    case 'auto':
-      let openedSSRStreamBlocks = 0;
-      let forceFlush = false;
-      const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
-      const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
-      stream = {
-        write(chunk) {
-          if (chunk === undefined || chunk === null) {
-            return;
-          }
-          if (chunk === '<!--' + FLUSH_COMMENT + '-->') {
-            forceFlush = true;
-          } else if (chunk === '<!--' + STREAM_BLOCK_START_COMMENT + '-->') {
-            openedSSRStreamBlocks++;
-          } else if (chunk === '<!--' + STREAM_BLOCK_END_COMMENT + '-->') {
-            openedSSRStreamBlocks--;
-            if (openedSSRStreamBlocks === 0) {
-              forceFlush = true;
-            }
-          } else {
-            enqueue(chunk);
-          }
-          const maxBufferSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
-          if (openedSSRStreamBlocks === 0 && (forceFlush || bufferSize >= maxBufferSize)) {
-            forceFlush = false;
-            flush();
-          }
-        },
-      };
-      break;
-  }
-
-  return {
-    stream,
-    flush,
-    networkFlushes,
-  };
-}
-
-function shouldSkipChunk(chunk: string): boolean {
-  return (
-    chunk === undefined ||
-    chunk === null ||
-    chunk === '<!--' + FLUSH_COMMENT + '-->' ||
-    chunk === '<!--' + STREAM_BLOCK_START_COMMENT + '-->' ||
-    chunk === '<!--' + STREAM_BLOCK_END_COMMENT + '-->'
-  );
-}
 
 /**
  * Merges a given manifest with the built manifest and provides mappings for symbols.

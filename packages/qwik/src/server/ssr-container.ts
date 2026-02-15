@@ -1221,7 +1221,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           throw qError(QError.invalidRefValue, [currentFile]);
         }
       } else if (key === ITERATION_ITEM_SINGLE || key === ITERATION_ITEM_MULTI) {
-        // skip serialization of iteration item single or multi
+        value = this.serializationCtx.$addRoot$(value);
       } else if (isSignal(value)) {
         const lastNode = this.getOrCreateLastNode();
         const signalData = new SubscriptionData({
@@ -1252,6 +1252,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (tag === 'style') {
           continue;
         }
+      } else if (isPreventDefault(key)) {
+        addPreventDefaultEventToSerializationContext(this.serializationCtx, key);
       }
       if (tag === 'textarea' && key === 'value') {
         if (value && typeof value !== 'string') {
@@ -1263,12 +1265,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         innerHTML = escapeHTML((value as string) || '');
         key = QContainerAttr;
         value = QContainerValue.TEXT;
-      }
-
-      if (isPreventDefault(key)) {
-        addPreventDefaultEventToSerializationContext(this.serializationCtx, key);
-      } else if (key === ITERATION_ITEM_SINGLE || key === ITERATION_ITEM_MULTI) {
-        value = this.serializationCtx.$addRoot$(value);
       }
 
       const serializedValue = serializeAttribute(key, value, styleScopedId);

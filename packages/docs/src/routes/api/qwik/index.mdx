@@ -329,6 +329,23 @@ Defaults to `true`.
 </td></tr>
 <tr><td>
 
+[clientOnly?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ When true, the async computation is postponed to the browser. On SSR, the signal remains INVALID and does not execute the function. On the client, it will compute on first read.
+
+Defaults to `false`.
+
+</td></tr>
+<tr><td>
+
 [concurrency?](#)
 
 </td><td>

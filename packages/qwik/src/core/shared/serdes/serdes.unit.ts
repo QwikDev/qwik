@@ -709,6 +709,12 @@ describe('shared-serialization', () => {
         "
         0 AsyncSignal [
           QRL "8#9#7"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          {number} 1
         ]
         1 AsyncSignal [
           QRL "8#10#7"
@@ -723,6 +729,7 @@ describe('shared-serialization', () => {
               Constant null
             ]
           ]
+          Constant undefined
           Constant undefined
           Constant undefined
           Constant undefined
@@ -760,6 +767,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
+          Constant undefined
           {number} 2
         ]
         4 AsyncSignal [
@@ -769,6 +777,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
+          {number} 1
           Constant NEEDS_COMPUTATION
           {number} 100
         ]
@@ -779,6 +788,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
+          {number} 1
           Constant NEEDS_COMPUTATION
           Constant undefined
           {number} 23
@@ -790,6 +800,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
+          {number} 1
           Constant NEEDS_COMPUTATION
           Constant undefined
           Constant undefined
@@ -812,7 +823,7 @@ describe('shared-serialization', () => {
         16 RootRef "1 1 1"
         17 RootRef "2 1 1"
         18 RootRef "3 1 1"
-        (520 chars)"
+        (564 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {

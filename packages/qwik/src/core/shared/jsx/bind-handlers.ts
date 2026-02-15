@@ -1,6 +1,8 @@
 import { _captures, deserializeCaptures, setCaptures } from '../../shared/qrl/qrl-class';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { getDomContainer } from '../../client/dom-container';
+import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
+import { AsyncSignalFlags } from '../../reactive-primitives/types';
 
 /**
  * Qwikloader provides the captures string of the QRL when calling a handler. In that case we must
@@ -44,5 +46,13 @@ export function _chk(this: string | undefined, _: any, element: HTMLInputElement
  */
 export function _res(this: string | undefined, _: any, element: Element) {
   maybeScopeFromQL(this, element);
-  // Captures are deserialized, signals are now resumed
+  // Captures are deserialized, now trigger computation on AsyncSignals
+  if (_captures) {
+    for (const capture of _captures) {
+      if (capture instanceof AsyncSignalImpl && capture.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
+        capture.$computeIfNeeded$();
+      }
+      // note that polling async signals will automatically schedule themselves so no action needed
+    }
+  }
 }

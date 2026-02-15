@@ -10,10 +10,13 @@ import {
   useErrorBoundary,
   useSignal,
   useTask$,
+  useVisibleTask$,
   type AsyncSignal,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
+import type { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
+import { NEEDS_COMPUTATION } from '../reactive-primitives/types';
 import { delay } from '../shared/utils/promises';
 
 const debug = false; //true;
@@ -383,6 +386,223 @@ describe.each([
       expect((globalThis as any).log).toEqual(['task', 2]);
 
       (globalThis as any).log = undefined;
+    });
+  });
+
+  describe('clientOnly', () => {
+    it('should skip computation on SSR and eagerly compute on client (with subscribers)', async () => {
+      const Counter = component$(() => {
+        const count = useSignal(1);
+        const asyncValue = useAsync$(async ({ track }) => track(count) * 2, {
+          clientOnly: true,
+          initial: 0,
+        });
+        return (
+          <div>
+            {asyncValue.loading ? (
+              <div id="loading">loading...</div>
+            ) : (
+              <div id="value">{asyncValue.value}</div>
+            )}
+            <button onClick$={() => count.value++}></button>
+          </div>
+        );
+      });
+
+      const { vNode, container } = await render(<Counter />, { debug });
+      if (render === ssrRenderToDom) {
+        // On SSR with clientOnly: true, should NOT compute during SSR
+        // The signal should stay loading (because computation was skipped)
+        expect(vNode).toMatchVDOM(
+          <>
+            <div>
+              <div id="loading">loading...</div>
+              <button></button>
+            </div>
+          </>
+        );
+
+        await trigger(container.element, null, 'd:qidle');
+        await waitForDrain(container);
+        expect(vNode).toMatchVDOM(
+          <>
+            <div>
+              <div id="value">
+                <Signal ssr-required>{'2'}</Signal>
+              </div>
+              <button></button>
+            </div>
+          </>
+        );
+      } else {
+        // On pure DOM render, clientOnly doesn't prevent computation
+        // Should compute immediately and show value
+        expect(vNode).toMatchVDOM(
+          <>
+            <div>
+              <div id="value">
+                <Signal ssr-required>{'2'}</Signal>
+              </div>
+              <button></button>
+            </div>
+          </>
+        );
+      }
+    });
+
+    it('should be loading on resume)', async () => {
+      const Counter = component$(() => {
+        const asyncValue = useAsync$(async ({ previous }) => 6, {
+          clientOnly: true,
+          initial: 0,
+        }) as AsyncSignalImpl<number>;
+        useVisibleTask$(
+          () => {
+            (globalThis as any).loading = asyncValue.$untrackedLoading$;
+            (globalThis as any).value = asyncValue.$untrackedValue$;
+          },
+          // This fires before the document:onQIdle where clientOnly signals are resumed
+          { strategy: 'document-ready' }
+        );
+        return (
+          <div>
+            {asyncValue.loading ? `loading... ${asyncValue.$untrackedValue$}` : asyncValue.value}
+          </div>
+        );
+      });
+
+      const { vNode, container } = await render(<Counter />, {
+        debug,
+      });
+      if (render === ssrRenderToDom) {
+        expect(vNode).toMatchVDOM(
+          <div>
+            <Signal ssr-required>{'loading... 0'}</Signal>
+          </div>
+        );
+        await trigger(container.element, null, 'd:qinit');
+        // We don't serialize value if the signal is invalid
+        expect((globalThis as any).value).toBe(NEEDS_COMPUTATION);
+        expect((globalThis as any).loading).toBe(true);
+        await trigger(container.element, null, 'd:qidle');
+        await waitForDrain(container);
+        expect(vNode).toMatchVDOM(
+          <div>
+            <Signal ssr-required>{'6'}</Signal>
+          </div>
+        );
+      } else {
+        expect(vNode).toMatchVDOM(
+          <>
+            <div>
+              <Signal ssr-required>{'6'}</Signal>
+            </div>
+          </>
+        );
+      }
+    });
+
+    it('should NOT compute clientOnly signals without subscribers', async () => {
+      // Track which signals computed
+      (globalThis as any).__asyncComputations__ = {
+        unused: false,
+        used: false,
+      };
+
+      const Counter = component$(() => {
+        const count = useSignal(1);
+        // Not used on purpose
+        useAsync$(
+          ({ track }) => {
+            (globalThis as any).__asyncComputations__.unused = true;
+            const current = track(count);
+            return Promise.resolve(current * 2);
+          },
+          { clientOnly: true, initial: 0 }
+        );
+        const asyncValue = useAsync$(
+          ({ track }) => {
+            (globalThis as any).__asyncComputations__.used = true;
+            const current = track(count);
+            return Promise.resolve(current * 3);
+          },
+          { clientOnly: true, initial: 0 }
+        );
+        return (
+          <div>
+            {asyncValue.loading ? (
+              <div id="loading">loading...</div>
+            ) : (
+              <div id="value">{asyncValue.value}</div>
+            )}
+            <button onClick$={() => count.value++}></button>
+          </div>
+        );
+      });
+
+      const { vNode } = await render(<Counter />, { debug });
+
+      if (render === ssrRenderToDom) {
+        // On SSR, both signals should be skipped
+        expect((globalThis as any).__asyncComputations__.unused).toBe(false);
+        expect((globalThis as any).__asyncComputations__.used).toBe(false);
+        expect(vNode).toMatchVDOM(
+          <>
+            <div>
+              <div id="loading">loading...</div>
+              <button></button>
+            </div>
+          </>
+        );
+      } else {
+        // On client, only the used signal should compute
+        await delay(10);
+        // Verify unused signal was NOT computed
+        expect((globalThis as any).__asyncComputations__.unused).toBe(false);
+        // Verify used signal WAS computed
+        expect((globalThis as any).__asyncComputations__.used).toBe(true);
+        expect(vNode).toMatchVDOM(
+          <>
+            <div>
+              <div id="value">
+                <Signal ssr-required>{'3'}</Signal>
+              </div>
+              <button></button>
+            </div>
+          </>
+        );
+      }
+    });
+
+    it('should throw when reading .value from clientOnly signal without initial value during SSR', async () => {
+      const Counter = component$(() => {
+        const asyncValue = useAsync$(async () => 42, {
+          clientOnly: true,
+          // No initial value provided
+        });
+        return <div>{asyncValue.value}</div>;
+      });
+
+      if (render === ssrRenderToDom) {
+        // During SSR, accessing .value on a clientOnly signal without initial value should throw
+        let threwError = false;
+        let errorMessage = '';
+        try {
+          await render(<Counter />, { debug });
+        } catch (e) {
+          threwError = true;
+          errorMessage = (e as Error).message;
+        }
+
+        expect(threwError).toBe(true);
+        expect(errorMessage).toContain('cannot read .value from clientOnly async signal');
+      } else {
+        // During client render, clientOnly signals compute eagerly, so it should work
+        // (or at least not throw with the "cannot read" error)
+        const { vNode } = await render(<Counter />, { debug });
+        // Should render successfully with the computed value
+        expect(vNode).toBeDefined();
+      }
     });
   });
 

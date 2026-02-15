@@ -3,23 +3,24 @@ import { qwikDebugToString } from '../../debug';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { Container } from '../../shared/types';
 import { isPromise, retryOnPromise } from '../../shared/utils/promises';
+import type { SSRContainer } from '../../ssr/ssr-types';
 import { trackFn } from '../../use/utils/tracker';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
+import type { AsyncSignal } from '../signal.public';
 import {
   AsyncQRL,
-  type AsyncCtx,
   AsyncSignalFlags,
   EffectProperty,
   EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
   SignalFlags,
+  type AsyncCtx,
   type AsyncSignalOptions,
 } from '../types';
 import { scheduleEffects } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
-import type { AsyncSignal } from '../signal.public';
 
 /**
  * Planned features:
@@ -95,9 +96,9 @@ export class AsyncSignalImpl<T>
   $jobs$: AsyncJob<T>[] = [];
   $concurrency$: number = 1;
   $interval$: number = 0;
-  $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined = undefined;
   $timeoutMs$: number | undefined;
-  $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
+  declare $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined;
+  declare $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
@@ -109,11 +110,12 @@ export class AsyncSignalImpl<T>
     options?: AsyncSignalOptions<T>
   ) {
     super(container, fn, flags);
-    const interval = options?.interval || 0;
+    const interval = options?.interval;
     const concurrency = options?.concurrency ?? 1;
     const initial = options?.initial;
     const timeout = options?.timeout;
     const eagerCleanup = options?.eagerCleanup;
+    const clientOnly = options?.clientOnly;
 
     // Handle initial value - eagerly evaluate if function, set $untrackedValue$ and $promiseValue$
     // Do NOT call setValue() which would clear the INVALID flag and prevent async computation
@@ -123,11 +125,18 @@ export class AsyncSignalImpl<T>
     }
 
     this.$concurrency$ = concurrency;
-    this.$timeoutMs$ = timeout;
+    if (timeout) {
+      this.$timeoutMs$ = timeout;
+    }
     if (eagerCleanup) {
       this.$flags$ |= AsyncSignalFlags.EAGER_CLEANUP;
     }
-    this.interval = interval;
+    if (clientOnly) {
+      this.$flags$ |= AsyncSignalFlags.CLIENT_ONLY;
+    }
+    if (interval) {
+      this.interval = interval;
+    }
   }
 
   /**
@@ -233,6 +242,16 @@ export class AsyncSignalImpl<T>
   /** Run the computation if needed */
   $computeIfNeeded$(): void {
     if (!(this.$flags$ & SignalFlags.INVALID)) {
+      return;
+    }
+    // Skip computation on SSR for clientOnly signals
+    if (
+      (import.meta.env.TEST ? isServerPlatform() : isServer) &&
+      this.$flags$ & AsyncSignalFlags.CLIENT_ONLY
+    ) {
+      // We must pretend to load, and register as a listener for the captures
+      this.$untrackedLoading$ = true;
+      (this.$container$ as SSRContainer)?.serializationCtx.$eagerResume$.add(this);
       return;
     }
     this.$clearNextPoll$();
@@ -346,6 +365,17 @@ export class AsyncSignalImpl<T>
     if (this.$untrackedError$) {
       DEBUG && log('Throwing error while reading value', this);
       throw this.$untrackedError$;
+    }
+    // For clientOnly signals without initial value during SSR, throw if trying to read value
+    // During SSR, clientOnly signals are skipped, so there's no computed value available
+    if (
+      (import.meta.env.TEST ? isServerPlatform() : isServer) &&
+      this.$flags$ & AsyncSignalFlags.CLIENT_ONLY &&
+      this.$untrackedValue$ === NEEDS_COMPUTATION
+    ) {
+      throw new Error(
+        'During SSR, cannot read .value from clientOnly async signal without an initial value. Use .loading or provide an initial value.'
+      );
     }
     return this.$untrackedValue$;
   }

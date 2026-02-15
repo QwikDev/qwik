@@ -560,7 +560,7 @@ jobs:
 
   ############ BUILD DOCS ############
   build-docs:
-    if: always() && needs.changes.outputs.build-docs == 'true'
+    if: always() && needs.changes.result == 'success' && needs.build-other-packages.result == 'success'
     name: Build Docs
     needs:
       - changes

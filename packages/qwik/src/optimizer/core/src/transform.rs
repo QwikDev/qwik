@@ -1583,7 +1583,7 @@ impl<'a> QwikTransform<'a> {
 									ast::PropName::Str(ref s) => Some(s.value.clone()),
 									_ => None,
 								};
-								if key.as_ref().and_then(|k| convert_qrl_word(k)).is_some()
+								if key.as_ref().and_then(convert_qrl_word).is_some()
 									&& matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 								{
 									for var in iter_vars {

@@ -1193,6 +1193,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     currentFile: string | null
   ): string | undefined {
     let innerHTML: string | undefined = undefined;
+    let isLoopElement = null;
     for (let key in attrs) {
       let value = attrs[key];
       if (isSSRUnsafeAttr(key)) {
@@ -1203,7 +1204,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
 
       if (isHtmlAttributeAnEventName(key)) {
-        const eventValue = _setEvent(this.serializationCtx, key, value);
+        if (isLoopElement === null) {
+          // check this only once for the entire element
+          isLoopElement = attributesContainsIterationProp(attrs);
+        }
+        const eventValue = _setEvent(this.serializationCtx, key, value, isLoopElement);
         if (eventValue) {
           value = eventValue;
         }
@@ -1303,6 +1308,13 @@ const isQwikStyleElement = (tag: string, attrs: Props | null) => {
     );
   }
   return false;
+};
+
+const attributesContainsIterationProp = (attrs: Props): boolean => {
+  return (
+    Object.prototype.hasOwnProperty.call(attrs, ITERATION_ITEM_SINGLE) ||
+    Object.prototype.hasOwnProperty.call(attrs, ITERATION_ITEM_MULTI)
+  );
 };
 
 function newTagError(text: string) {

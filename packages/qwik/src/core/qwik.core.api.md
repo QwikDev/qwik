@@ -981,7 +981,7 @@ export function _serialize<T>(data: T): Promise<string>;
 export const SerializerSymbol: unique symbol;
 
 // @internal (undocumented)
-export function _setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown): string | null;
+export function _setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown, isLoopElement: boolean): string | null;
 
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;

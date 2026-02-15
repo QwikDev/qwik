@@ -1,5 +1,17 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.24
+
+### Minor Changes
+
+- ✨ `useAsync$` `clientOnly` option, to load a value on document-idle on the client (by [@wmertens](https://github.com/wmertens) in [#8348](https://github.com/QwikDev/qwik/pull/8348))
+
+### Patch Changes
+
+- 🐞🩹 descending dirty children for deleted parent (by [@Varixo](https://github.com/Varixo) in [#8358](https://github.com/QwikDev/qwik/pull/8358))
+
+- 🐞🩹 handling qrl captures in a loop (by [@Varixo](https://github.com/Varixo) in [#8355](https://github.com/QwikDev/qwik/pull/8355))
+
 ## 2.0.0-beta.23
 
 ## 2.0.0-beta.22

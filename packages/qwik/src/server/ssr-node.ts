@@ -1,5 +1,10 @@
 import type { JSXNode } from '@qwik.dev/core';
-import { _isJSXNode as isJSXNode, _EMPTY_ARRAY, _EFFECT_BACK_REF } from '@qwik.dev/core/internal';
+import {
+  _isJSXNode as isJSXNode,
+  _EMPTY_ARRAY,
+  _EMPTY_OBJ,
+  _EFFECT_BACK_REF,
+} from '@qwik.dev/core/internal';
 import { isDev } from '@qwik.dev/core/build';
 import {
   QSlotParent,
@@ -15,7 +20,7 @@ import {
   SsrNodeFlags,
   ChoreBits,
 } from './qwik-copy';
-import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
+import type { ISsrNode, ISsrComponentFrame, JSXChildren, Props } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
 import type { VNodeData } from './vnode-data';
 
@@ -38,10 +43,10 @@ export class SsrNode implements ISsrNode {
   public dirty = ChoreBits.NONE;
 
   public children: ISsrNode[] | null = null;
-  private attrs: SsrAttrs;
+  private attrs: Props;
 
   /** Local props which don't serialize; */
-  private localProps: SsrAttrs | null = null;
+  private localProps: Props | null = null;
 
   get [_EFFECT_BACK_REF]() {
     return this.getProp(QBackRefs);
@@ -58,7 +63,7 @@ export class SsrNode implements ISsrNode {
     this.id = id;
     this.flags = SsrNodeFlags.Updatable;
     this.attrs =
-      this.attributesIndex >= 0 ? (this.vnodeData[this.attributesIndex] as SsrAttrs) : _EMPTY_ARRAY;
+      this.attributesIndex >= 0 ? (this.vnodeData[this.attributesIndex] as Props) : _EMPTY_OBJ;
 
     this.parentComponent?.addChild(this);
 
@@ -68,13 +73,13 @@ export class SsrNode implements ISsrNode {
   }
 
   setProp(name: string, value: any): void {
-    if (this.attrs === _EMPTY_ARRAY) {
+    if (this.attrs === _EMPTY_OBJ) {
       this.setEmptyArrayAsVNodeDataAttributes();
     }
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      mapArray_set(this.localProps || (this.localProps = []), name, value, 0);
+      (this.localProps ||= {})[name] = value;
     } else {
-      mapArray_set(this.attrs, name, value, 0);
+      this.attrs[name] = value;
     }
     if (name == ELEMENT_SEQ && value) {
       // Sequential Arrays contain Tasks. And Tasks contain cleanup functions.
@@ -85,33 +90,33 @@ export class SsrNode implements ISsrNode {
 
   private setEmptyArrayAsVNodeDataAttributes() {
     if (this.attributesIndex >= 0) {
-      this.vnodeData[this.attributesIndex] = [];
-      this.attrs = this.vnodeData[this.attributesIndex] as SsrAttrs;
+      this.vnodeData[this.attributesIndex] = {};
+      this.attrs = this.vnodeData[this.attributesIndex] as Props;
     } else {
       // we need to insert a new empty array at index 1
       // this can be inefficient, but it is only done once per node and probably not often
       const newAttributesIndex = this.vnodeData.length > 1 ? 1 : 0;
-      this.vnodeData.splice(newAttributesIndex, 0, []);
+      this.vnodeData.splice(newAttributesIndex, 0, {});
       this.attributesIndex = newAttributesIndex;
-      this.attrs = this.vnodeData[this.attributesIndex] as SsrAttrs;
+      this.attrs = this.vnodeData[this.attributesIndex] as Props;
     }
   }
 
   getProp(name: string): any {
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      return this.localProps ? mapArray_get(this.localProps, name, 0) : null;
+      return this.localProps ? (this.localProps[name] ?? null) : null;
     } else {
-      return mapArray_get(this.attrs, name, 0);
+      return this.attrs[name] ?? null;
     }
   }
 
   removeProp(name: string): void {
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       if (this.localProps) {
-        mapApp_remove(this.localProps, name, 0);
+        delete this.localProps[name];
       }
     } else {
-      mapApp_remove(this.attrs, name, 0);
+      delete this.attrs[name];
     }
   }
 
@@ -136,14 +141,11 @@ export class SsrNode implements ISsrNode {
   toString(): string {
     if (isDev) {
       let stringifiedAttrs = '';
-      for (let i = 0; i < this.attrs.length; i += 2) {
-        const key = this.attrs[i];
-        const value = this.attrs[i + 1];
+      for (const key in this.attrs) {
+        const value = this.attrs[key];
         stringifiedAttrs += `${key}=`;
         stringifiedAttrs += `${typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*'}`;
-        if (i < this.attrs.length - 2) {
-          stringifiedAttrs += ', ';
-        }
+        stringifiedAttrs += ', ';
       }
       return `<SSRNode id="${this.id}" ${stringifiedAttrs} />`;
     } else {

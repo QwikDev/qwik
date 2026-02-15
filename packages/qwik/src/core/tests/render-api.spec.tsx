@@ -256,7 +256,6 @@ describe('render api', () => {
           isStatic: false,
           timing: expect.any(Object),
           manifest: expect.any(Object),
-          snapshotResult: expect.any(Object),
           html: expect.any(String),
         });
       });
@@ -512,7 +511,7 @@ describe('render api', () => {
         });
         expect(result.html).toContain(
           '(window._qwikEv||(window._qwikEv=[])).push(' +
-            '"e:focus", "e:-my---custom", "e:click", "e:dblclick", "d:focus", "e:another-custom", "e:blur", "w:click")'
+            '"e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click")'
         );
       });
     });
@@ -781,111 +780,6 @@ describe('render api', () => {
         expect(cleanupAttrs(result.html)).toContain(
           '<script id="qwikloader" async type="module">min</script>'
         );
-      });
-    });
-    describe('snapshotResult', () => {
-      it('should contain qrls', async () => {
-        const FunctionComponent = componentQrl(
-          inlinedQrl(() => {
-            const sig = useSignal(0);
-            const fn = (v: number) => 'aaa' + v;
-            return (
-              <button
-                onClick$={inlinedQrl(
-                  () => {
-                    const [sig] = useLexicalScope();
-                    sig.value++;
-                  },
-                  's_click',
-                  [sig]
-                )}
-              >
-                {fn(sig.value)}
-              </button>
-            );
-          }, 's_cmpFunction')
-        );
-        const result = await renderToStringAndSetPlatform(<FunctionComponent />, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.qrls).toHaveLength(2);
-        expect(result.snapshotResult?.resources).toHaveLength(0);
-        expect(result.snapshotResult?.funcs).toHaveLength(0);
-      });
-      it('should contain qrls and funcs', async () => {
-        const CounterDerived = component$((props: { initial: number }) => {
-          const count = useSignal(props.initial);
-          return (
-            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
-              Count: {_fnSignal((p0) => p0.value, [count], 'p0.value')}!
-            </button>
-          );
-        });
-        const result = await renderToStringAndSetPlatform(
-          <body>
-            <CounterDerived initial={123} />
-          </body>,
-          {
-            containerTagName: 'html',
-          }
-        );
-        expect(result.snapshotResult?.qrls).toHaveLength(1);
-        expect(result.snapshotResult?.resources).toHaveLength(0);
-        expect(result.snapshotResult?.funcs).toHaveLength(1);
-      });
-      it('should set static mode', async () => {
-        let result = await renderToStringAndSetPlatform(<div>static content</div>, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.mode).toEqual('static');
-
-        const StaticComponent = componentQrl(
-          inlinedQrl(() => {
-            return <div>static content</div>;
-          }, 's_static')
-        );
-
-        result = await renderToStringAndSetPlatform(<StaticComponent />, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.mode).toEqual('static');
-      });
-      it('should set listeners mode', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.mode).toEqual('listeners');
-      });
-      it.todo('should set render mode', async () => {
-        const ComponentA = componentQrl(
-          inlinedQrl(() => {
-            const test = useSignal(0);
-            const fn = (a: number) => a + 'abcd';
-
-            return (
-              <div>
-                <button
-                  onClick$={inlinedQrl(
-                    () => {
-                      const [test] = useLexicalScope();
-                      test.value++;
-                    },
-                    's_click',
-                    [test]
-                  )}
-                >
-                  Test
-                </button>
-                {fn(test.value)}
-              </div>
-            );
-          }, 's_comp')
-        );
-
-        const result = await renderToStringAndSetPlatform(<ComponentA />, {
-          containerTagName: 'div',
-        });
-        expect(result.snapshotResult?.mode).toEqual('render');
       });
     });
   });

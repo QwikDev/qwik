@@ -10,26 +10,20 @@ import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
-import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
-import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
-import { isQrl } from '../shared/qrl/qrl-utils';
-import type { QRL } from '../shared/qrl/qrl.public';
-import { qrlToString, type SerializationContext } from '../shared/serdes/index';
+import {
+  SSRComment,
+  SSRRaw,
+  SSRStream,
+  SSRStreamBlock,
+  type SSRStreamChildren,
+} from '../shared/jsx/utils.public';
+import { type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
-import {
-  getEventDataFromHtmlAttribute,
-  getScopedEventName,
-  isHtmlAttributeAnEventName,
-  isPreventDefault,
-} from '../shared/utils/event-names';
-import { EMPTY_ARRAY } from '../shared/utils/flyweight';
+import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
-  FLUSH_COMMENT,
-  ITERATION_ITEM_MULTI,
-  ITERATION_ITEM_SINGLE,
   QDefaultSlot,
   QScopedStyle,
   QSlot,
@@ -38,19 +32,12 @@ import {
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
-import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
-import { serializeAttribute } from '../shared/utils/styles';
+import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
+import type { ISsrComponentFrame, ISsrNode, SSRContainer } from './ssr-types';
 
-class ParentComponentData {
-  constructor(
-    public $scopedStyle$: string | null,
-    public $componentFrame$: ISsrComponentFrame | null
-  ) {}
-}
 class MaybeAsyncSignal {}
 
 type StackFn = () => ValueOrPromise<void>;
@@ -59,10 +46,20 @@ type StackValue = ValueOrPromise<
   | StackFn
   | Promise<JSXOutput>
   | typeof Promise
-  | ParentComponentData
   | AsyncGenerator
   | typeof MaybeAsyncSignal
 >;
+
+function setParentOptions(
+  mutable: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null },
+  styleScoped: string | null,
+  parentComponentFrame: ISsrComponentFrame | null
+): StackFn {
+  return () => {
+    mutable.currentStyleScoped = styleScoped;
+    mutable.parentComponentFrame = parentComponentFrame;
+  };
+}
 
 /** @internal */
 export async function _walkJSX(
@@ -78,30 +75,21 @@ export async function _walkJSX(
   const drain = async (): Promise<void> => {
     while (stack.length) {
       const value = stack.pop();
-      if (value instanceof ParentComponentData) {
-        options.currentStyleScoped = value.$scopedStyle$;
-        options.parentComponentFrame = value.$componentFrame$;
-        continue;
-      } else if (value === MaybeAsyncSignal) {
-        // It could be an async signal, but it is not resolved yet, we need to wait for it.
-        // We could do that in the processJSXNode,
-        // but it will mean that we need to await it there, and it will return a promise.
-        // We probably want to avoid creating a promise for all jsx nodes.
+      // Reference equality first (no prototype walk), then typeof
+      if (value === MaybeAsyncSignal) {
         const trackFn = stack.pop() as () => StackValue;
         await retryOnPromise(() => stack.push(trackFn()));
         continue;
-      } else if (typeof value === 'function') {
+      }
+      if (typeof value === 'function') {
         if (value === Promise) {
           stack.push(await (stack.pop() as Promise<JSXOutput>));
-          continue;
+        } else {
+          await (value as StackFn).apply(ssr);
         }
-        await (value as StackFn).apply(ssr);
         continue;
       }
-      processJSXNode(ssr, enqueue, value as JSXOutput, {
-        styleScoped: options.currentStyleScoped,
-        parentComponentFrame: options.parentComponentFrame,
-      });
+      processJSXNode(ssr, enqueue, value as JSXOutput, options);
     }
   };
   await drain();
@@ -111,10 +99,7 @@ function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
   value: JSXOutput,
-  options: {
-    styleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-  }
+  options: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null }
 ) {
   // console.log('processJSXNode', value);
   if (value == null) {
@@ -132,7 +117,7 @@ function processJSXNode(
       }
     } else if (isSignal(value)) {
       maybeAddPollingAsyncSignalToEagerResume(ssr.serializationCtx, value);
-      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
+      ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.WrappedSignal } : EMPTY_OBJ);
       const signalNode = ssr.getOrCreateLastNode();
       const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
       enqueue(ssr.closeFragment);
@@ -141,19 +126,19 @@ function processJSXNode(
       );
       enqueue(MaybeAsyncSignal);
     } else if (isPromise(value)) {
-      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
+      ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.Awaited } : EMPTY_OBJ);
       enqueue(ssr.closeFragment);
       enqueue(value);
       enqueue(Promise);
-      enqueue(() => ssr.commentNode(FLUSH_COMMENT));
+      enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
         for await (const chunk of value) {
           await _walkJSX(ssr, chunk as JSXOutput, {
-            currentStyleScoped: options.styleScoped,
+            currentStyleScoped: options.currentStyleScoped,
             parentComponentFrame: options.parentComponentFrame,
           });
-          ssr.commentNode(FLUSH_COMMENT);
+          ssr.streamHandler.flush();
         }
       });
     } else {
@@ -161,7 +146,7 @@ function processJSXNode(
       const type = jsx.type;
       // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
-        appendClassIfScopedStyleExists(jsx, options.styleScoped);
+        appendClassIfScopedStyleExists(jsx, options.currentStyleScoped);
         let qwikInspectorAttrValue: string | null = null;
         if (isDev && jsx.dev && jsx.type !== 'head') {
           qwikInspectorAttrValue = getFileLocationFromJsx(jsx.dev);
@@ -173,15 +158,9 @@ function processJSXNode(
         const innerHTML = ssr.openElement(
           type,
           jsx.key,
-          toSsrAttrs(jsx.varProps, {
-            serializationCtx: ssr.serializationCtx,
-            styleScopedId: options.styleScoped,
-            toSort: jsx.toSort,
-          }),
-          toSsrAttrs(jsx.constProps, {
-            serializationCtx: ssr.serializationCtx,
-            styleScopedId: options.styleScoped,
-          }),
+          jsx.varProps,
+          jsx.constProps,
+          options.currentStyleScoped,
           qwikInspectorAttrValue
         );
         if (innerHTML) {
@@ -206,9 +185,10 @@ function processJSXNode(
         children != null && enqueue(children);
       } else if (isFunction(type)) {
         if (type === Fragment) {
-          let attrs = jsx.key != null ? [ELEMENT_KEY, jsx.key] : EMPTY_ARRAY;
+          const attrs: Record<string, string | null> =
+            jsx.key != null ? { [ELEMENT_KEY]: jsx.key } : {};
           if (isDev) {
-            attrs = [DEBUG_TYPE, VirtualType.Fragment, ...attrs]; // Add debug info.
+            attrs[DEBUG_TYPE] = VirtualType.Fragment; // Add debug info.
           }
           ssr.openFragment(attrs);
           enqueue(ssr.closeFragment);
@@ -219,15 +199,19 @@ function processJSXNode(
           const componentFrame = options.parentComponentFrame;
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
-            const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
-            projectionAttrs.push(QSlotParent, compId);
+            const projectionAttrs: Record<string, string | null> = isDev
+              ? { [DEBUG_TYPE]: VirtualType.Projection }
+              : {};
+            projectionAttrs[QSlotParent] = compId;
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
             const node = ssr.getOrCreateLastNode();
             const slotName = getSlotName(host, jsx, ssr);
-            projectionAttrs.push(QSlot, slotName);
+            projectionAttrs[QSlot] = slotName;
 
-            enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
+            enqueue(
+              setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
+            );
             enqueue(ssr.closeProjection);
             const slotDefaultChildren: JSXChildren | null = jsx.children || null;
             const slotChildren =
@@ -237,30 +221,35 @@ function processJSXNode(
             }
             enqueue(slotChildren as JSXOutput);
             enqueue(
-              new ParentComponentData(
+              setParentOptions(
+                options,
                 componentFrame.projectionScopedStyle,
                 componentFrame.projectionComponentFrame
               )
             );
           } else {
             // Even thought we are not projecting we still need to leave a marker for the slot.
-            ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Projection] : EMPTY_ARRAY);
+            let projectionAttrs = EMPTY_OBJ;
+            if (isDev) {
+              projectionAttrs = { [DEBUG_TYPE]: VirtualType.Projection };
+            }
+            ssr.openFragment(projectionAttrs);
             ssr.closeFragment();
           }
         } else if (type === SSRComment) {
           ssr.commentNode(directGetPropsProxyProp(jsx, 'data') || '');
         } else if (type === SSRStream) {
-          ssr.commentNode(FLUSH_COMMENT);
+          ssr.streamHandler.flush();
           const generator = jsx.children as SSRStreamChildren;
           let value: AsyncGenerator | Promise<void>;
           if (isFunction(generator)) {
             value = generator({
               async write(chunk) {
                 await _walkJSX(ssr, chunk, {
-                  currentStyleScoped: options.styleScoped,
+                  currentStyleScoped: options.currentStyleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });
-                ssr.commentNode(FLUSH_COMMENT);
+                ssr.streamHandler.flush();
               },
             });
           } else {
@@ -271,19 +260,29 @@ function processJSXNode(
           isPromise(value) && enqueue(Promise);
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
+        } else if (type === SSRStreamBlock) {
+          ssr.streamHandler.streamBlockStart();
+          enqueue(() => ssr.streamHandler.streamBlockEnd());
+          enqueue(jsx.children as JSXOutput);
         } else if (isQwikComponent(type)) {
-          // prod: use new instance of an array for props, we always modify props for a component
-          ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
+          // prod: use new instance of an object for props, we always modify props for a component
+          const componentAttrs: Record<string, string | null> = {};
+          if (isDev) {
+            componentAttrs[DEBUG_TYPE] = VirtualType.Component;
+          }
+          ssr.openComponent(componentAttrs);
           const host = ssr.getOrCreateLastNode();
           const componentFrame = ssr.getParentComponentFrame()!;
           componentFrame!.distributeChildrenIntoSlots(
             jsx.children,
-            options.styleScoped,
+            options.currentStyleScoped,
             options.parentComponentFrame
           );
 
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
-          enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
+          enqueue(
+            setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
+          );
           enqueue(ssr.closeComponent);
           if (isPromise(jsxOutput)) {
             // Defer reading QScopedStyle until after the promise resolves
@@ -292,20 +291,19 @@ function processJSXNode(
               const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
 
               enqueue(resolvedOutput);
-              enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+              enqueue(setParentOptions(options, compStyleComponentId, componentFrame));
             });
           } else {
             enqueue(jsxOutput);
             const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
-            enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+            enqueue(setParentOptions(options, compStyleComponentId, componentFrame));
           }
         } else {
-          const inlineComponentProps = [ELEMENT_KEY, jsx.key];
-          ssr.openFragment(
-            isDev
-              ? [DEBUG_TYPE, VirtualType.InlineComponent, ...inlineComponentProps]
-              : inlineComponentProps
-          );
+          const inlineComponentProps: Record<string, string | null> = { [ELEMENT_KEY]: jsx.key };
+          if (isDev) {
+            inlineComponentProps[DEBUG_TYPE] = VirtualType.InlineComponent;
+          }
+          ssr.openFragment(inlineComponentProps);
           enqueue(ssr.closeFragment);
           const component = ssr.getComponentFrame(0);
           const jsxOutput = applyInlineComponent(
@@ -319,139 +317,6 @@ function processJSXNode(
         }
       }
     }
-  }
-}
-
-interface SsrAttrsOptions {
-  serializationCtx: SerializationContext;
-  styleScopedId: string | null;
-  toSort?: boolean;
-}
-
-export function toSsrAttrs(
-  record: Record<string, unknown> | null | undefined,
-  options: SsrAttrsOptions
-): SsrAttrs | null {
-  if (record == null) {
-    return null;
-  }
-  const ssrAttrs: SsrAttrs = [];
-  const handleProp = (key: string, value: unknown) => {
-    if (value == null) {
-      return;
-    }
-    if (isHtmlAttributeAnEventName(key)) {
-      const eventValue = setEvent(options.serializationCtx, key, value);
-      if (eventValue) {
-        ssrAttrs.push(key, eventValue);
-      }
-      return;
-    }
-
-    if (isSignal(value)) {
-      maybeAddPollingAsyncSignalToEagerResume(options.serializationCtx, value);
-      // write signal as is. We will track this signal inside `writeAttrs`
-      if (isClassAttr(key)) {
-        // additionally append styleScopedId for class attr
-        ssrAttrs.push(key, [value, options.styleScopedId]);
-      } else {
-        ssrAttrs.push(key, value);
-      }
-
-      return;
-    }
-
-    if (isPreventDefault(key)) {
-      addPreventDefaultEventToSerializationContext(options.serializationCtx, key);
-    } else if (key === ITERATION_ITEM_SINGLE || key === ITERATION_ITEM_MULTI) {
-      value = options.serializationCtx.$addRoot$(value);
-    }
-
-    value = serializeAttribute(key, value, options.styleScopedId);
-
-    ssrAttrs.push(key, value as string);
-  };
-  if (options.toSort) {
-    const keys = Object.keys(record).sort();
-    for (const key of keys) {
-      handleProp(key, record[key]);
-    }
-  } else {
-    for (const key in record) {
-      handleProp(key, record[key]);
-    }
-  }
-  return ssrAttrs;
-}
-
-function setEvent(
-  serializationCtx: SerializationContext,
-  key: string,
-  rawValue: unknown
-): string | null {
-  let value: string | null = null;
-  const qrls = rawValue;
-
-  const appendToValue = (valueToAppend: string) => {
-    value = (value == null ? '' : value + '|') + valueToAppend;
-  };
-  const getQrlString = (qrl: QRLInternal<unknown>) => {
-    /**
-     * If there are captures we need to schedule so everything is executed in the right order + qrls
-     * are resolved.
-     *
-     * For internal qrls (starting with `_`) we assume that they do the right thing.
-     */
-    if (!qrl.$symbol$.startsWith('_') && qrl.$captures$?.length) {
-      qrl = createQRL(null, '_run', _run, null, [qrl]);
-    }
-    return qrlToString(serializationCtx, qrl);
-  };
-
-  if (Array.isArray(qrls)) {
-    for (let i = 0; i <= qrls.length; i++) {
-      const qrl: unknown = qrls[i];
-      if (isQrl(qrl)) {
-        appendToValue(getQrlString(qrl));
-        addQwikEventToSerializationContext(serializationCtx, key, qrl);
-      } else if (qrl != null) {
-        // nested arrays etc.
-        const nestedValue = setEvent(serializationCtx, key, qrl);
-        if (nestedValue) {
-          appendToValue(nestedValue);
-        }
-      }
-    }
-  } else if (isQrl(qrls)) {
-    value = getQrlString(qrls);
-    addQwikEventToSerializationContext(serializationCtx, key, qrls);
-  }
-
-  return value;
-}
-
-function addQwikEventToSerializationContext(
-  serializationCtx: SerializationContext,
-  key: string,
-  qrl: QRL
-) {
-  const data = getEventDataFromHtmlAttribute(key);
-  if (data) {
-    const [scope, eventName] = data;
-    const scopedEvent = getScopedEventName(scope, eventName);
-    serializationCtx.$eventNames$.add(scopedEvent);
-    serializationCtx.$eventQrls$.add(qrl);
-  }
-}
-
-function addPreventDefaultEventToSerializationContext(
-  serializationCtx: SerializationContext,
-  key: string
-) {
-  // skip the `preventdefault`, leave the ':'
-  const eventName = 'e' + key.substring(14);
-  if (eventName) {
-    serializationCtx.$eventNames$.add(eventName);
   }
 }
 

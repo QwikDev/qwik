@@ -104,7 +104,7 @@ export const fastSkipSerialize = (obj: unknown): boolean => {
   return (
     !!obj &&
     (isObject(obj) || typeof obj === 'function') &&
-    (NoSerializeSymbol in obj || noSerializeSet.has(obj))
+    (noSerializeSet.has(obj) || NoSerializeSymbol in obj)
   );
 };
 

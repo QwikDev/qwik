@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ssrCreateContainer } from './ssr-container';
 import { QStyle, VNodeDataChar, encodeVNodeDataString } from './qwik-copy';
-import { VNodeDataFlag } from './types';
+import { VNodeDataFlag, type RenderToStreamOptions } from './types';
 import { OPEN_FRAGMENT, CLOSE_FRAGMENT } from './vnode-data';
+import { StreamHandler } from './ssr-stream-handler';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -27,21 +28,26 @@ describe('SSR Container', () => {
       renderOptions: {
         qwikLoader: 'inline', // Force inline loader
       },
+      streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+        firstFlush: 0,
+        render: 0,
+        snapshot: 0,
+      }),
     });
 
     // Open container
     container.openContainer();
     // Add a large content to exceed 30KB while opening the next element
     const largeContent = 'x'.repeat(30 * 1024);
-    container.openElement('div', null, null);
+    container.openElement('div', null, {}, null, null, null);
     container.textNode(largeContent);
     await container.closeElement();
     // Add a style element with QStyle attribute
-    container.openElement('style', null, [QStyle, 'my-style-id']);
+    container.openElement('style', null, { [QStyle]: 'my-style-id' }, null, null, null);
     container.write('.my-class { color: red; }');
     await container.closeElement();
     // Add another regular elementm
-    container.openElement('div', null, null);
+    container.openElement('div', null, {}, null, null, null);
     await container.closeElement();
     await container.closeContainer();
 
@@ -63,6 +69,11 @@ describe('SSR Container', () => {
     const container = ssrCreateContainer({
       tagName: 'div',
       writer,
+      streamHandler: new StreamHandler({} as RenderToStreamOptions, {
+        firstFlush: 0,
+        render: 0,
+        snapshot: 0,
+      }),
     });
     container.openContainer();
 

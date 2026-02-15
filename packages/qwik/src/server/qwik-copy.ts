@@ -28,7 +28,6 @@ export {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
-  FLUSH_COMMENT,
   NON_SERIALIZABLE_MARKER_PREFIX,
   OnRenderProp,
   QBackRefs,
@@ -49,8 +48,6 @@ export {
   QVersionAttr,
   Q_PROPS_SEPARATOR,
   ELEMENT_BACKPATCH_DATA,
-  STREAM_BLOCK_END_COMMENT,
-  STREAM_BLOCK_START_COMMENT,
   dangerouslySetInnerHTML,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';
@@ -66,3 +63,20 @@ export { initPreloader } from '../core/preloader/bundle-graph';
 export { SsrNodeFlags } from '../core/shared/types';
 export { isPromise, retryOnPromise } from '../core/shared/utils/promises';
 export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
+export { isHtmlAttributeAnEventName, isPreventDefault } from '../core/shared/utils/event-names';
+export { ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI } from '../core/shared/utils/markers';
+export { isObjectEmpty } from '../core/shared/utils/objects';
+export {
+  LT,
+  GT,
+  CLOSE_TAG,
+  ESCAPED_CLOSE_TAG,
+  SPACE,
+  ATTR_EQUALS_QUOTE,
+  QUOTE,
+  EMPTY_ATTR,
+  BRACKET_OPEN,
+  BRACKET_CLOSE,
+  PAREN_CLOSE,
+  COMMA,
+} from '../core/shared/ssr-const';

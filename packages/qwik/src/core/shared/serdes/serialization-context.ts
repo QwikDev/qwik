@@ -2,11 +2,10 @@ import type { VNodeData } from '../../../server/vnode-data';
 import type { _EFFECT_BACK_REF } from '../../internal';
 import type { EffectProperty, EffectSubscription } from '../../reactive-primitives/types';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../../ssr/ssr-types';
-import type { ResourceReturnInternal } from '../../use/use-resource';
 import type { QRL } from '../qrl/qrl.public';
 import type { ObjToProxyMap } from '../types';
 import type { ValueOrPromise } from '../utils/types';
-import { serialize } from './serialize';
+import { Serializer } from './serialize';
 
 /** A selection of attributes of the real thing */
 type SsrNode = {
@@ -91,10 +90,143 @@ export interface SerializationContext {
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
   $eagerResume$: Set<unknown>;
-  $resources$: Set<ResourceReturnInternal<any>>;
 
-  $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
+}
+
+class SerializationContextImpl implements SerializationContext {
+  private $seenObjsMap$ = new Map<unknown, SeenRef>();
+  private $syncFnMap$ = new Map<string, number>();
+  public $syncFns$: string[] = [];
+  public $roots$: unknown[] = [];
+  public $eagerResume$: Set<unknown> = new Set();
+  public $eventQrls$: Set<QRL> = new Set();
+  public $eventNames$: Set<string> = new Set();
+  public $renderSymbols$: Set<string> = new Set();
+  private $serializer$: Serializer;
+
+  constructor(
+    /**
+     * Node constructor, for instanceof checks.
+     *
+     * A node constructor can be null. For example on the client we can't serialize DOM nodes as
+     * server will not know what to do with them.
+     */
+    public NodeConstructor: {
+      new (...rest: any[]): { __brand__: 'SsrNode' };
+    } | null,
+    /** DomRef constructor, for instanceof checks. */
+    public DomRefConstructor: {
+      new (...rest: any[]): { __brand__: 'DomRef' };
+    } | null,
+    public $symbolToChunkResolver$: SymbolToChunkResolver,
+    public $setProp$: (obj: any, prop: string, value: any) => void,
+    public $storeProxyMap$: ObjToProxyMap,
+    public $writer$: StreamWriter
+  ) {
+    this.$serializer$ = new Serializer(this);
+  }
+
+  async $serialize$(): Promise<void> {
+    return await this.$serializer$.serialize();
+  }
+
+  getSeenRef(obj: unknown) {
+    return this.$seenObjsMap$.get(obj);
+  }
+
+  $markSeen$(obj: unknown, parent: SeenRef | undefined, index: number) {
+    const ref = { $index$: index, $parent$: parent };
+    this.$seenObjsMap$.set(obj, ref);
+    return ref;
+  }
+
+  /**
+   * Returns a path string representing the path from roots through all parents to the object.
+   * Format: "3 2 0" where each number is the index within its parent, from root to leaf.
+   */
+  $getObjectPath$(ref: SeenRef) {
+    // Traverse up through parent references to build a path
+    const path = [];
+    while (ref.$parent$) {
+      path.unshift(ref.$index$);
+      ref = ref.$parent$;
+    }
+    // Now we are at root, but it could be a backref
+    path.unshift(ref.$index$);
+
+    return path.join(' ');
+  }
+
+  $promoteToRoot$(ref: SeenRef, index?: number) {
+    const path = this.$getObjectPath$(ref) as string;
+    if (index === undefined) {
+      index = this.$roots$.length;
+    }
+    this.$roots$[index] = new SerializationBackRef(path);
+    ref.$parent$ = null;
+    ref.$index$ = index;
+  }
+
+  $addRoot$(obj: any, returnRef: true): SeenRef;
+  $addRoot$(obj: any, returnRef?: never): number;
+  $addRoot$(obj: any, returnRef: boolean = false): number | SeenRef {
+    let seen = this.$seenObjsMap$.get(obj);
+    let index: number;
+
+    if (!seen) {
+      index = this.$roots$.length;
+      seen = {
+        $index$: index,
+        // TODO benchmark with and without $parent$
+        // $parent$: undefined
+      };
+      this.$seenObjsMap$.set(obj, seen);
+      this.$roots$.push(obj);
+    } else {
+      if (seen.$parent$) {
+        this.$promoteToRoot$(seen);
+      }
+      index = seen.$index$;
+    }
+
+    return returnRef ? seen : index;
+  }
+
+  $isSsrNode$(obj: unknown): obj is SsrNode {
+    return this.NodeConstructor ? obj instanceof this.NodeConstructor : false;
+  }
+
+  $isDomRef$(obj: unknown): obj is DomRef {
+    return this.DomRefConstructor ? obj instanceof this.DomRefConstructor : false;
+  }
+
+  $hasRootId$(obj: any) {
+    const id = this.$seenObjsMap$.get(obj);
+    return id && (id.$parent$ ? undefined : id.$index$);
+  }
+
+  $addSyncFn$(funcStr: string | null, argCount: number, fn: Function): number {
+    const isFullFn = funcStr == null;
+    if (isFullFn) {
+      funcStr = ((fn as any).serialized as string) || fn.toString();
+    }
+    let id = this.$syncFnMap$.get(funcStr!);
+    if (id === undefined) {
+      id = this.$syncFns$.length;
+      this.$syncFnMap$.set(funcStr!, id);
+      if (isFullFn) {
+        this.$syncFns$.push(funcStr!);
+      } else {
+        let code = '(';
+        for (let i = 0; i < argCount; i++) {
+          code += (i == 0 ? 'p' : ',p') + i;
+        }
+        this.$syncFns$.push((code += ')=>' + funcStr));
+      }
+    }
+    return id;
+  }
 }
 
 export const createSerializationContext = (
@@ -112,7 +244,6 @@ export const createSerializationContext = (
     new (...rest: any[]): { __brand__: 'DomRef' };
   } | null,
   symbolToChunkResolver: SymbolToChunkResolver,
-  getProp: (obj: any, prop: string) => any,
   setProp: (obj: any, prop: string, value: any) => void,
   storeProxyMap: ObjToProxyMap,
   writer?: StreamWriter
@@ -124,123 +255,17 @@ export const createSerializationContext = (
       toString: () => buffer.join(''),
     } as StreamWriter;
   }
-  const seenObjsMap = new Map<unknown, SeenRef>();
-  const syncFnMap = new Map<string, number>();
-  const syncFns: string[] = [];
-  const roots: unknown[] = [];
-  const eagerResume = new Set<unknown>();
-
-  const getSeenRef = (obj: unknown) => seenObjsMap.get(obj);
-  const $markSeen$ = (obj: unknown, parent: SeenRef | undefined, index: number) => {
-    const ref = { $index$: index, $parent$: parent };
-    seenObjsMap.set(obj, ref);
-    return ref;
-  };
-
-  /**
-   * Returns a path string representing the path from roots through all parents to the object.
-   * Format: "3 2 0" where each number is the index within its parent, from root to leaf.
-   */
-  const $getObjectPath$ = (ref: SeenRef) => {
-    // Traverse up through parent references to build a path
-    const path = [];
-    while (ref.$parent$) {
-      path.unshift(ref.$index$);
-      ref = ref.$parent$;
-    }
-    // Now we are at root, but it could be a backref
-    path.unshift(ref.$index$);
-
-    return path.join(' ');
-  };
-
-  const $promoteToRoot$ = (ref: SeenRef, index?: number) => {
-    const path = $getObjectPath$(ref) as string;
-    if (index === undefined) {
-      index = roots.length;
-    }
-    roots[index] = new SerializationBackRef(path);
-    ref.$parent$ = null;
-    ref.$index$ = index;
-  };
-
-  const $addRoot$ = ((obj: any, returnRef?: boolean) => {
-    let seen = seenObjsMap.get(obj);
-    let index: number;
-
-    if (!seen) {
-      index = roots.length;
-      seen = {
-        $index$: index,
-        // TODO benchmark with and without $parent$
-        // $parent$: undefined
-      };
-      seenObjsMap.set(obj, seen);
-      roots.push(obj);
-    } else {
-      if (seen.$parent$) {
-        $promoteToRoot$(seen);
-      }
-      index = seen.$index$;
-    }
-
-    return returnRef ? seen : index;
-  }) as AddRootFn;
-
-  const isSsrNode = (
-    NodeConstructor ? (obj) => obj instanceof NodeConstructor : ((() => false) as any)
-  ) as (obj: unknown) => obj is SsrNode;
 
   isDomRef = (
     DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : ((() => false) as any)
   ) as (obj: unknown) => obj is DomRef;
 
-  return {
-    async $serialize$(): Promise<void> {
-      return await serialize(this);
-    },
-    $isSsrNode$: isSsrNode,
-    $isDomRef$: isDomRef,
-    $symbolToChunkResolver$: symbolToChunkResolver,
-    getSeenRef,
-    $roots$: roots,
-    $markSeen$,
-    $hasRootId$: (obj: any) => {
-      const id = seenObjsMap.get(obj);
-      return id && (id.$parent$ ? undefined : id.$index$);
-    },
-    $promoteToRoot$,
-    $addRoot$,
-    $syncFns$: syncFns,
-    $addSyncFn$: (funcStr: string | null, argCount: number, fn: Function) => {
-      const isFullFn = funcStr == null;
-      if (isFullFn) {
-        funcStr = ((fn as any).serialized as string) || fn.toString();
-      }
-      let id = syncFnMap.get(funcStr!);
-      if (id === undefined) {
-        id = syncFns.length;
-        syncFnMap.set(funcStr!, id);
-        if (isFullFn) {
-          syncFns.push(funcStr!);
-        } else {
-          let code = '(';
-          for (let i = 0; i < argCount; i++) {
-            code += (i == 0 ? 'p' : ',p') + i;
-          }
-          syncFns.push((code += ')=>' + funcStr));
-        }
-      }
-      return id;
-    },
-    $writer$: writer,
-    $eventQrls$: new Set<QRL>(),
-    $eventNames$: new Set<string>(),
-    $renderSymbols$: new Set<string>(),
-    $storeProxyMap$: storeProxyMap,
-    $eagerResume$: eagerResume,
-    $resources$: new Set<ResourceReturnInternal<any>>(),
-    $getProp$: getProp,
-    $setProp$: setProp,
-  };
+  return new SerializationContextImpl(
+    NodeConstructor,
+    DomRefConstructor,
+    symbolToChunkResolver,
+    setProp,
+    storeProxyMap,
+    writer
+  );
 };

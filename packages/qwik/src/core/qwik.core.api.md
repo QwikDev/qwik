@@ -352,6 +352,9 @@ export class _ElementVNode extends _VirtualVNode {
 // @internal (undocumented)
 export const _EMPTY_ARRAY: any[];
 
+// @internal (undocumented)
+export const _EMPTY_OBJ: Record<string, any>;
+
 // @public (undocumented)
 export interface ErrorBoundaryStore {
     // (undocumented)
@@ -976,6 +979,9 @@ export function _serialize<T>(data: T): Promise<string>;
 
 // @public
 export const SerializerSymbol: unique symbol;
+
+// @internal (undocumented)
+export function _setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown): string | null;
 
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;

@@ -29,7 +29,6 @@ import {
   QFN_KEY,
 } from './constants';
 import { RouteStateContext } from './contexts';
-import { deepFreeze } from './deepFreeze';
 import type { FormSubmitCompletedDetail } from './form-component';
 import type {
   ActionConstructor,
@@ -430,7 +429,7 @@ export const serverQrl = <T extends ServerFunction>(
         );
       }
 
-      return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
+      return qrl.apply(requestEvent, args);
     } else {
       // Running on the client, we need to call the function via HTTP
       let filteredArgs: unknown[] | undefined = args.map((arg: unknown) => {

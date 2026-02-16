@@ -103,8 +103,21 @@ async function submoduleCoreProd(config: BuildConfig) {
             module: true,
             toplevel: true,
             compress: {
-              module: true,
+              defaults: true,
+              hoist_funs: true,
+              keep_fargs: false,
+              pure_getters: true,
+              pure_new: true,
               toplevel: true,
+              unsafe_arrows: true,
+              unsafe_math: true,
+              unsafe_symbols: true,
+              unsafe: true,
+
+              passes: 3,
+              ecma: 2020,
+              module: true,
+
               global_defs: {
                 // special global that when set to false will remove all dev code entirely
                 // developer production builds could use core.min.js directly, or setup
@@ -117,11 +130,6 @@ async function submoduleCoreProd(config: BuildConfig) {
                 'globalThis.qRuntimeQrl': false,
                 'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
               },
-              ecma: 2020,
-              passes: 3,
-              pure_getters: true,
-              unsafe_symbols: true,
-              keep_fargs: false,
             },
             mangle: {
               toplevel: true,
@@ -166,10 +174,33 @@ async function submoduleCoreProd(config: BuildConfig) {
 async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
   const result = await minify(code, {
     compress: {
-      pure_getters: true,
-      unsafe_symbols: true,
+      defaults: false,
+      booleans: true,
+      conditionals: true,
+      dead_code: true,
+      evaluate: true,
+      hoist_props: true,
+      keep_classnames: true,
       keep_fargs: false,
-      join_vars: false,
+      keep_fnames: true,
+      keep_infinity: true,
+      loops: true,
+      properties: true,
+      pure_getters: true,
+      pure_new: true,
+      reduce_funcs: true,
+      reduce_vars: true,
+      side_effects: true,
+      toplevel: true,
+      unsafe_arrows: true,
+      unsafe_math: true,
+      unsafe_symbols: true,
+      unsafe: true,
+      unused: true,
+
+      passes: 3,
+      ecma: 2020,
+      module: true,
 
       global_defs: {
         'globalThis.qDev': false,

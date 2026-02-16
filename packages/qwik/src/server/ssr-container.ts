@@ -10,7 +10,6 @@ import {
   _walkJSX,
   _createQRL as createQRL,
   isSignal,
-  _qrlToString as qrlToString,
   type Signal,
 } from '@qwik.dev/core/internal';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
@@ -923,11 +922,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const attrs: Props = { type: 'qwik/state' };
     const eagerResume = this.serializationCtx.$eagerResume$;
     if (eagerResume.size > 0) {
-      const qrl = createQRL(null, '_res', _res, null, [...eagerResume]);
-      const qrlStr = qrlToString(this.serializationCtx, qrl);
-      attrs['q-d:qidle'] = qrlStr;
-      // Add 'd:qidle' to event names set
-      this.serializationCtx.$eventNames$.add('d:qidle');
+      attrs['q-d:qidle'] = createQRL(null, '_res', _res, null, [...eagerResume]);
     }
     return attrs;
   }
@@ -1208,10 +1203,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           // check this only once for the entire element
           isLoopElement = attributesContainsIterationProp(attrs);
         }
-        const eventValue = _setEvent(this.serializationCtx, key, value, isLoopElement);
-        if (eventValue) {
-          value = eventValue;
-        }
+        value = _setEvent(this.serializationCtx, key, value, isLoopElement);
       } else if (key === 'ref') {
         const lastNode = this.getOrCreateLastNode();
         if (isSignal(value)) {

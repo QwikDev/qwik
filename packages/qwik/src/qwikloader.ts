@@ -123,14 +123,12 @@ const dispatch = async (
   if (handlers) {
     if (handlers.length) {
       for (const handler of handlers) {
-        const result = (handler as any)?.(ev, element);
+        const result = handler?.(ev, element);
         // only await if there is a promise returned so everything stays sync if possible
         if (isPromise(result)) {
           await result;
         }
       }
-    } else {
-      await (handlers as any)(ev, element);
     }
     return;
   }

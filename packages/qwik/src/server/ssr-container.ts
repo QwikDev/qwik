@@ -1050,8 +1050,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (this.qlInclude !== QwikLoaderInclude.Done) {
         this.emitQwikLoaderInline();
       }
-      // emit the used events so the loader can subscribe to them
-      this.emitQwikEvents(Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)));
+      if (this.renderOptions.qwikLoader !== 'never') {
+        // emit the used events so the loader can subscribe to them
+        this.emitQwikEvents(
+          Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s))
+        );
+      }
     }
   }
 
@@ -1208,10 +1212,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           // check this only once for the entire element
           isLoopElement = attributesContainsIterationProp(attrs);
         }
-        const eventValue = _setEvent(this.serializationCtx, key, value, isLoopElement);
-        if (eventValue) {
-          value = eventValue;
-        }
+        value = _setEvent(this.serializationCtx, key, value, isLoopElement);
       } else if (key === 'ref') {
         const lastNode = this.getOrCreateLastNode();
         if (isSignal(value)) {

@@ -33,7 +33,7 @@ export function setEvent(
   };
 
   if (Array.isArray(qrls)) {
-    for (let i = 0; i <= qrls.length; i++) {
+    for (let i = 0; i < qrls.length; i++) {
       const qrl: unknown = qrls[i];
       if (isQrl(qrl)) {
         appendToValue(getQrlString(qrl));
@@ -49,6 +49,8 @@ export function setEvent(
   } else if (isQrl(qrls)) {
     value = getQrlString(qrls);
     addQwikEventToSerializationContext(serializationCtx, key, qrls);
+  } else if (typeof qrls === 'string') {
+    value = qrls;
   }
 
   return value;

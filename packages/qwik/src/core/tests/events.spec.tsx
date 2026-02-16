@@ -58,4 +58,19 @@ describe.each([
       </Component>
     );
   });
+
+  it('should not throw if event handler is array with undefined value', async () => {
+    const Cmp = component$(() => {
+      return <button onClick$={[undefined]}></button>;
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button></button>
+      </Component>
+    );
+  });
 });

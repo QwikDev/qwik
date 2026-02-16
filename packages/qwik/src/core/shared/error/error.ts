@@ -36,7 +36,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 27
       'Cannot coerce a Signal, use `.value` instead', // 28
       'useComputed$ QRL {{0}} {{1}} cannot return a Promise', // 29
-      'ComputedSignal is read-only', // 30
+      '===\nQwik version {{0}} already imported while importing {{1}}.\nThis can lead to issues due to duplicated shared structures.\nVerify that the Qwik libraries you\'re using are in "resolve.noExternal[]" and in "optimizeDeps.exclude".\n===\n', // 30
       'WrappedSignal is read-only', // 31
       'Attribute value is unsafe for SSR {{0}}', // 32
       'SerializerSymbol function returned rejected promise', // 33
@@ -55,7 +55,8 @@ export const codeToText = (code: number, ...parts: any[]): string => {
     return `Code(Q${code}): ${text}`;
   } else {
     // cute little hack to give roughly the correct line number. Update the line number if it shifts.
-    return `Code(Q${code}) https://github.com/QwikDev/qwik/blob/main/packages/qwik/src/core/error/error.ts#L${8 + code}`;
+    // TODO change the URL after merging into main
+    return `Code(Q${code}) https://github.com/QwikDev/qwik/blob/build/v2/packages/qwik/src/core/shared/error/error.ts#${parts.join()}L${9 + code}`;
   }
 };
 
@@ -90,7 +91,7 @@ export const enum QError {
   materializeVNodeDataError = 27,
   cannotCoerceSignal = 28,
   computedNotSync = 29,
-  UNUSED_30 = 30,
+  duplicateQwik = 30,
   wrappedReadOnly = 31,
   unsafeAttr = 32,
   serializerSymbolRejectedPromise = 33,

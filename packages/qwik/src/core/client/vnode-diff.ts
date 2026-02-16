@@ -929,7 +929,9 @@ function registerEventHandlers(
         handlers.push(runEventHandlerQRL.bind(null, item));
       }
     }
-    (element._qDispatch ||= {})[scopedKebabName] = handlers;
+    if (handlers.length > 0) {
+      (element._qDispatch ||= {})[scopedKebabName] = handlers;
+    }
   } else if (value) {
     (element._qDispatch ||= {})[scopedKebabName] = [
       runEventHandlerQRL.bind(null, value as QRLInternal<(...args: any[]) => void>),

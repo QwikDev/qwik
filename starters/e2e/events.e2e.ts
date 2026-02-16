@@ -93,6 +93,46 @@ test.describe("events", () => {
   });
 });
 
+test.describe("events with client rerender", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/e2e/events");
+    page.on("pageerror", (err) => expect(err).toEqual(undefined));
+    page.on("console", (msg) => {
+      if (msg.type() === "error") {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
+  });
+
+  function eventsTest() {
+    test("should not throw if event handler is array with undefined value", async ({
+      page,
+    }) => {
+      const button = page.locator("#undefined-event-handler");
+      await button.click();
+      await expect(button).toHaveText("Should not throw");
+    });
+
+    test("should execute all event handlers", async ({ page }) => {
+      const button = page.locator("#execute-all-event-handlers");
+      await expect(button).toHaveText("1 / 1");
+      await button.click();
+      await expect(button).toHaveText("2 / 3");
+    });
+  }
+
+  eventsTest();
+
+  test.describe("client rerender", () => {
+    test.beforeEach(async ({ page }) => {
+      const toggleRender = page.locator("#rerender");
+      await toggleRender.click();
+      await expect(page.locator("#render-count")).toHaveText("1");
+    });
+    eventsTest();
+  });
+});
+
 test.describe("broadcast-events", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/e2e/broadcast-events");

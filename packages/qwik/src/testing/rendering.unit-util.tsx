@@ -233,7 +233,8 @@ function isQwikScript(node: ElementVNode): boolean {
       vnode_getProp(node, 'id', null) === 'qwikloader' ||
       element.getAttribute('type') === 'qwik/state' ||
       element.getAttribute('type') === ELEMENT_BACKPATCH_DATA ||
-      element.getAttribute('id') === 'qwikloader')
+      element.getAttribute('id') === 'qwikloader' ||
+      element.innerHTML.includes('window._qwikEv'))
   );
 }
 

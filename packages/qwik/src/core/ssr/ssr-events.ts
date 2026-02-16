@@ -49,8 +49,6 @@ export function setEvent(
   } else if (isQrl(qrls)) {
     value = getQrlString(qrls);
     addQwikEventToSerializationContext(serializationCtx, key, qrls);
-  } else if (typeof qrls === 'string') {
-    value = qrls;
   }
 
   return value;

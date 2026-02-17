@@ -10,6 +10,7 @@ import {
   useSignal,
   useStore,
   useVisibleTask$,
+  type Signal as SignalType,
   type FunctionComponent,
   type PublicProps,
 } from '@qwik.dev/core';
@@ -754,5 +755,69 @@ describe.each([
     });
 
     await expect(render(<Cmp />, { debug })).resolves.not.toThrow();
+  });
+
+  it('should rerender inline component in projection', async () => {
+    const Link = component$(() => {
+      return (
+        <a>
+          <Slot />
+        </a>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const bool = useSignal(false);
+
+      const FnComp: FunctionComponent<{ bool: SignalType<boolean> }> = (props) => {
+        return (
+          <button
+            onClick$={() => {
+              props.bool.value = !props.bool.value;
+            }}
+          >
+            Change {JSON.stringify(props.bool.value)}
+          </button>
+        );
+      };
+
+      return (
+        <Link>
+          <FnComp bool={bool} />
+        </Link>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <a>
+            <Projection>
+              <InlineComponent>
+                <button>{'Change false'}</button>
+              </InlineComponent>
+            </Projection>
+          </a>
+        </Component>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <a>
+            <Projection>
+              <InlineComponent>
+                <button>{'Change true'}</button>
+              </InlineComponent>
+            </Projection>
+          </a>
+        </Component>
+      </Component>
+    );
   });
 });

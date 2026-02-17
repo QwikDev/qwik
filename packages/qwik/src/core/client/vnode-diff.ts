@@ -1506,7 +1506,7 @@ function expectComponent(diffContext: DiffContext, component: Function) {
             ) === null
           : true)
       ) {
-        componentHost = componentHost.parent;
+        componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
       }
 
       const jsxOutput = executeComponent(

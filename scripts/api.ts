@@ -9,6 +9,13 @@ import { type BuildConfig, panic, copyFile, ensureDir } from './util.ts';
  * production build.
  */
 export async function apiExtractorQwik(config: BuildConfig) {
+  // preloader
+  createTypesApi(
+    config,
+    join(config.srcQwikDir, 'core', 'preloader'),
+    join(config.distQwikPkgDir, 'preloader.d.ts'),
+    '.'
+  );
   // core
   // Run the api extractor for each of the submodules
   createTypesApi(

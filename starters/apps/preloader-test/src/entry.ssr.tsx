@@ -19,8 +19,9 @@ import Root from "./root";
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
     preloader: {
-      debug: true,
-      ssrPreloads: 10,
+      debug: false,
+      ssrPreloads: 0,
+      maxIdlePreloads: 1,
     },
     ...opts,
     // Use container attributes to set attributes on the html tag.

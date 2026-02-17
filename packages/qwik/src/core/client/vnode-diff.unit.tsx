@@ -1,6 +1,7 @@
 import {
   $,
   Fragment,
+  Slot,
   _fnSignal,
   _jsxSorted,
   component$,
@@ -34,6 +35,7 @@ import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
 
 describe('vNode-diff', () => {
   it('should find no difference', () => {
@@ -95,6 +97,112 @@ describe('vNode-diff', () => {
       vnode_diff(container, journal, <div>{undefined}</div>, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(<div></div>);
+    });
+
+    describe('2 empty texts', () => {
+      it('should correctly diff 2 empty texts with element node', () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          _jsxSorted('div', null, null, ['', ''], 0, 'KA_0')
+        );
+        const emptyFragment = (vNode as ElementVNode).firstChild?.nextSibling;
+        expect(emptyFragment).toBeDefined();
+        const journal: VNodeJournal = [];
+        vnode_diff(
+          container,
+          journal,
+          _jsxSorted(
+            'div',
+            null,
+            null,
+            [_jsxSorted('div', null, null, 'Child 1', 0, null), ''],
+            0,
+            'KA_0'
+          ),
+          vParent,
+          vParent,
+          null
+        );
+        _flushJournal(journal);
+        expect((vNode as ElementVNode).firstChild?.nextSibling === emptyFragment).toBeTruthy();
+      });
+
+      it('should correctly diff 2 empty texts with fragment node', () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          _jsxSorted('div', null, null, ['', ''], 0, 'KA_0')
+        );
+        const emptyFragment = (vNode as ElementVNode).firstChild?.nextSibling;
+        expect(emptyFragment).toBeDefined();
+        const journal: VNodeJournal = [];
+        vnode_diff(
+          container,
+          journal,
+          _jsxSorted(
+            'div',
+            null,
+            null,
+            [_jsxSorted(Fragment, null, null, 'Child 1', 0, null), ''],
+            0,
+            'KA_0'
+          ),
+          vParent,
+          vParent,
+          null
+        );
+        _flushJournal(journal);
+        expect((vNode as ElementVNode).firstChild?.nextSibling === emptyFragment).toBeTruthy();
+      });
+
+      it('should correctly diff 2 empty texts with slot node', () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          _jsxSorted('div', null, null, ['', ''], 0, 'KA_0')
+        );
+        const emptyFragment = (vNode as ElementVNode).firstChild?.nextSibling;
+        expect(emptyFragment).toBeDefined();
+        const journal: VNodeJournal = [];
+        vnode_diff(
+          container,
+          journal,
+          _jsxSorted(
+            'div',
+            null,
+            null,
+            [_jsxSorted(Slot, null, null, null, 0, null), ''],
+            0,
+            'KA_0'
+          ),
+          vParent,
+          vParent,
+          null
+        );
+        _flushJournal(journal);
+        expect((vNode as ElementVNode).firstChild?.nextSibling === emptyFragment).toBeTruthy();
+      });
+      it('should correctly diff 2 empty texts with component node', () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          _jsxSorted('div', null, null, ['', ''], 0, 'KA_0')
+        );
+        const emptyFragment = (vNode as ElementVNode).firstChild?.nextSibling;
+        expect(emptyFragment).toBeDefined();
+        const journal: VNodeJournal = [];
+        const Cmp = component$(() => <div>Hello</div>);
+        vnode_diff(
+          container,
+          journal,
+          _jsxSorted(
+            'div',
+            null,
+            null,
+            [_jsxSorted(Cmp as JSXChildren, null, null, [], 0, null), ''],
+            0,
+            'KA_0'
+          ),
+          vParent,
+          vParent,
+          null
+        );
+        _flushJournal(journal);
+        expect((vNode as ElementVNode).firstChild?.nextSibling === emptyFragment).toBeTruthy();
+      });
     });
   });
   describe('element', () => {

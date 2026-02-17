@@ -264,7 +264,7 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
         if (isJSXNode(diffContext.jsxValue)) {
           const type = diffContext.jsxValue.type;
           if (typeof type === 'string') {
-            expectNoMoreTextNodes(diffContext);
+            expectNoTextNode(diffContext);
             expectElement(diffContext, diffContext.jsxValue, type);
 
             const hasDangerousInnerHTML =
@@ -278,11 +278,11 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
             }
           } else if (typeof type === 'function') {
             if (type === Fragment) {
-              expectNoMoreTextNodes(diffContext);
+              expectNoTextNode(diffContext);
               expectVirtual(diffContext, VirtualType.Fragment, diffContext.jsxValue.key);
               descend(diffContext, diffContext.jsxValue.children, true);
             } else if (type === Slot) {
-              expectNoMoreTextNodes(diffContext);
+              expectNoTextNode(diffContext);
               if (!expectSlot(diffContext)) {
                 // nothing to project, so try to render the Slot default content.
                 descend(diffContext, diffContext.jsxValue.children, true);
@@ -303,7 +303,7 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
               expectNoMore(diffContext);
             } else {
               // Must be a component
-              expectNoMoreTextNodes(diffContext);
+              expectNoTextNode(diffContext);
               expectComponent(diffContext, type);
             }
           }
@@ -778,9 +778,8 @@ function expectNoMore(diffContext: DiffContext) {
   }
 }
 
-function expectNoMoreTextNodes(diffContext: DiffContext) {
-  while (diffContext.vCurrent !== null && vnode_isTextVNode(diffContext.vCurrent)) {
-    cleanup(diffContext.container, diffContext.journal, diffContext.vCurrent, diffContext.cursor);
+function expectNoTextNode(diffContext: DiffContext) {
+  if (diffContext.vCurrent !== null && vnode_isTextVNode(diffContext.vCurrent)) {
     const toRemove = diffContext.vCurrent;
     diffContext.vCurrent = peekNextSibling(diffContext.vCurrent);
     vnode_remove(diffContext.journal, diffContext.vParent, toRemove, true);

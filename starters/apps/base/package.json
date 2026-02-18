@@ -18,10 +18,10 @@
   "devDependencies": {
     "@builder.io/qwik": "latest",
     "@builder.io/qwik-city": "latest",
-    "@eslint/js": "latest",
+    "@eslint/js": "^9",
     "@types/node": "latest",
     "typescript-eslint": "latest",
-    "eslint": "latest",
+    "eslint": "^9",
     "eslint-plugin-qwik": "latest",
     "globals": "latest",
     "prettier": "latest",

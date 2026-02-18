@@ -164,7 +164,7 @@
   "license": "MIT",
   "main": "./dist/core.mjs",
   "peerDependencies": {
-    "vite": ">=5 <8"
+    "vite": ">=5 <8 || npm:rolldown-vite@>=7 <8"
   },
   "repository": {
     "type": "git",

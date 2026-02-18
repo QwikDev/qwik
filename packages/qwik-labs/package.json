@@ -38,7 +38,7 @@
   ],
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "vite": ">=5 <8",
+    "vite": ">=5 <8 || npm:rolldown-vite@>=7 <8",
     "zod": "3.25.48"
   },
   "private": true,

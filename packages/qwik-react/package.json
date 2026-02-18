@@ -40,7 +40,7 @@
     "@types/react-dom": "^18",
     "react": "^18",
     "react-dom": "^18",
-    "vite": ">=5 <8"
+    "vite": ">=5 <8 || npm:rolldown-vite@>=7 <8"
   },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {

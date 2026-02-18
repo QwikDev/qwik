@@ -10,14 +10,7 @@ import type { Container, HostElement } from '../../shared/types';
 import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
-import {
-  type AsyncCtx,
-  AsyncSignalFlags,
-  EffectProperty,
-  SignalFlags,
-  type InternalReadonlySignal,
-  type InternalSignal,
-} from '../types';
+import { type AsyncCtx, AsyncSignalFlags, EffectProperty, SignalFlags } from '../types';
 import { clearAllEffects } from '../cleanup';
 import {
   createComputed$,
@@ -170,10 +163,10 @@ describe('signal', () => {
 
     it('basic subscription operation', async () => {
       await withContainer(async () => {
-        const a = createSignal(2) as InternalSignal<number>;
-        const b = createSignal(10) as InternalSignal<number>;
+        const a = createSignal(2) as Signal<number>;
+        const b = createSignal(10) as Signal<number>;
         await retryOnPromise(() => {
-          let signal!: InternalReadonlySignal<number>;
+          let signal!: Signal<number>;
           effect$(() => {
             signal =
               signal ||
@@ -202,8 +195,8 @@ describe('signal', () => {
 
     it('should track when recomputing computed signal', async () => {
       await withContainer(async () => {
-        const a = createSignal(true) as InternalSignal<boolean>;
-        const b = createSignal(true) as InternalSignal<boolean>;
+        const a = createSignal(true) as Signal<boolean>;
+        const b = createSignal(true) as Signal<boolean>;
         let signal!: ComputedSignalImpl<boolean>;
 
         (globalThis as any).waitPromiseResolve = null;

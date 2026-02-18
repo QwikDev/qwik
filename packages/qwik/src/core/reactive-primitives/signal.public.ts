@@ -9,12 +9,81 @@ import {
 import type { ComputedReturnType } from '../use/use-computed';
 export { isSignal } from './utils';
 
-/** @public */
+/** @public @deprecated not used */
 export interface ReadonlySignal<T = unknown> {
   readonly value: T;
 }
 
-/** @public */
+/**
+ * A signal is a reactive value which can be read and written. When the signal is written, all tasks
+ * which are tracking the signal will be re-run and all components that read the signal will be
+ * re-rendered.
+ *
+ * Furthermore, when a signal value is passed as a prop to a component, the optimizer will
+ * automatically forward the signal. This means that `return <div title={signal.value}>hi</div>`
+ * will update the `title` attribute when the signal changes without having to re-render the
+ * component.
+ *
+ * @public
+ */
+export interface Signal<T = any> {
+  /** Reading from this subscribes to updates; writing to this triggers updates. */
+  value: T;
+  /** Reading from this does not subscribe to updates; writing to this does not trigger updates. */
+  untrackedValue: T;
+  /**
+   * Use this to force running subscribers, for example when the value mutated but remained the same
+   * object.
+   */
+  force(): void;
+}
+
+/**
+ * A computed signal is a signal which is calculated from other signals. When the signals change,
+ * the computed signal is recalculated, and if the result changed, all tasks which are tracking the
+ * signal will be re-run and all components that read the signal will be re-rendered.
+ *
+ * @public
+ */
+export interface ComputedSignal<T> extends Signal<T> {
+  /** Use this to force recalculation. */
+  invalidate(): void;
+}
+
+/**
+ * A serializer signal holds a custom serializable value. See `useSerializer$` for more details.
+ *
+ * @public
+ */
+export interface SerializerSignal<T> extends ComputedSignal<T> {
+  /** Fake property to make the serialization linter happy */
+  __no_serialize__: true;
+}
+
+/**
+ * An AsyncSignal holds the result of the given async function. If the function uses `track()` to
+ * track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result
+ * changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers
+ * (components, tasks etc) that read the AsyncSignal will be updated.
+ *
+ * If the async function throws an error, the AsyncSignal will capture the error and set the `error`
+ * property. The error can be cleared by re-running the async function successfully.
+ *
+ * While the async function is running, the `.loading` property will be set to `true`. Once the
+ * function completes, `loading` will be set to `false`.
+ *
+ * If the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will
+ * retry the component or task once the value resolves.
+ *
+ * If the value has been resolved, but the async function is re-running, reading the AsyncSignal
+ * will subscribe to it and return the last resolved value until the new value is ready. As soon as
+ * the new value is ready, the subscribers will be updated.
+ *
+ * If the async function threw an error, reading the `.value` will throw that same error. Read from
+ * `.error` to check if there was an error.
+ *
+ * @public
+ */
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
   /**
    * Whether the signal is currently loading. This will trigger lazy loading of the signal, so you
@@ -40,53 +109,6 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
   promise(): Promise<void>;
   /** Abort the current computation and run cleanups if needed. */
   abort(reason?: any): void;
-}
-
-/**
- * A signal is a reactive value which can be read and written. When the signal is written, all tasks
- * which are tracking the signal will be re-run and all components that read the signal will be
- * re-rendered.
- *
- * Furthermore, when a signal value is passed as a prop to a component, the optimizer will
- * automatically forward the signal. This means that `return <div title={signal.value}>hi</div>`
- * will update the `title` attribute when the signal changes without having to re-render the
- * component.
- *
- * @public
- */
-export interface Signal<T = any> extends ReadonlySignal<T> {
-  value: T;
-}
-
-/**
- * A computed signal is a signal which is calculated from other signals. When the signals change,
- * the computed signal is recalculated, and if the result changed, all tasks which are tracking the
- * signal will be re-run and all components that read the signal will be re-rendered.
- *
- * @public
- */
-export interface ComputedSignal<T> extends ReadonlySignal<T> {
-  /**
-   * Use this to force running subscribers, for example when the calculated value mutates but
-   * remains the same object.
-   */
-  force(): void;
-
-  /**
-   * Use this to force recalculation and running subscribers, for example when the calculated value
-   * mutates but remains the same object.
-   */
-  invalidate(): void;
-}
-
-/**
- * A serializer signal holds a custom serializable value. See `useSerializer$` for more details.
- *
- * @public
- */
-export interface SerializerSignal<T> extends ComputedSignal<T> {
-  /** Fake property to make the serialization linter happy */
-  __no_serialize__: true;
 }
 
 /**

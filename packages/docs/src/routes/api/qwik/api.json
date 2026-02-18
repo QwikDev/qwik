@@ -261,7 +261,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed.\n\n\n</td></tr>\n<tr><td>\n\n[interval](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nPoll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`<!-- -->, polling stops.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading. This will trigger lazy loading of the signal, so you can use it like this:\n\n```tsx\nsignal.loading ? <Loading /> : signal.error ? <Error /> : <Component\nvalue={signal.value} />\n```\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#asyncsignal-abort)\n\n\n</td><td>\n\nAbort the current computation and run cleanups if needed.\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed or rejected.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "An AsyncSignal holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.\n\nIf the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.\n\nWhile the async function is running, the `.loading` property will be set to `true`<!-- -->. Once the function completes, `loading` will be set to `false`<!-- -->.\n\nIf the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.\n\nIf the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.\n\nIf the async function threw an error, reading the `.value` will throw that same error. Read from `.error` to check if there was an error.\n\n\n```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\nThe error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed.\n\n\n</td></tr>\n<tr><td>\n\n[interval](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nPoll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`<!-- -->, polling stops.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading. This will trigger lazy loading of the signal, so you can use it like this:\n\n```tsx\nsignal.loading ? <Loading /> : signal.error ? <Error /> : <Component\nvalue={signal.value} />\n```\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#asyncsignal-abort)\n\n\n</td><td>\n\nAbort the current computation and run cleanups if needed.\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed or rejected.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.asyncsignal.md"
     },
@@ -421,7 +421,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\n\n```typescript\nexport interface ComputedSignal<T> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[force()](#computedsignal-force)\n\n\n</td><td>\n\nUse this to force running subscribers, for example when the calculated value mutates but remains the same object.\n\n\n</td></tr>\n<tr><td>\n\n[invalidate()](#computedsignal-invalidate)\n\n\n</td><td>\n\nUse this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\n\n```typescript\nexport interface ComputedSignal<T> extends Signal<T> \n```\n**Extends:** [Signal](#signal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[invalidate()](#computedsignal-invalidate)\n\n\n</td><td>\n\nUse this to force recalculation.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.computedsignal.md"
     },
@@ -674,20 +674,20 @@
     },
     {
       "name": "force",
-      "id": "computedsignal-force",
+      "id": "signal-force",
       "hierarchy": [
         {
-          "name": "ComputedSignal",
-          "id": "computedsignal-force"
+          "name": "Signal",
+          "id": "signal-force"
         },
         {
           "name": "force",
-          "id": "computedsignal-force"
+          "id": "signal-force"
         }
       ],
       "kind": "MethodSignature",
-      "content": "Use this to force running subscribers, for example when the calculated value mutates but remains the same object.\n\n\n```typescript\nforce(): void;\n```\n**Returns:**\n\nvoid",
-      "mdFile": "core.computedsignal.force.md"
+      "content": "Use this to force running subscribers, for example when the value mutated but remained the same object.\n\n\n```typescript\nforce(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "core.signal.force.md"
     },
     {
       "name": "forceStoreEffects",
@@ -877,7 +877,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object.\n\n\n```typescript\ninvalidate(): void;\n```\n**Returns:**\n\nvoid",
+      "content": "Use this to force recalculation.\n\n\n```typescript\ninvalidate(): void;\n```\n**Returns:**\n\nvoid",
       "mdFile": "core.computedsignal.invalidate.md"
     },
     {
@@ -1761,7 +1761,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ReadonlySignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[value](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "> Warning: This API is now obsolete.\n> \n> not used\n> \n\n\n```typescript\nexport interface ReadonlySignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[value](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.readonlysignal.md"
     },
@@ -2013,7 +2013,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "A signal is a reactive value which can be read and written. When the signal is written, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nFurthermore, when a signal value is passed as a prop to a component, the optimizer will automatically forward the signal. This means that `return <div title={signal.value}>hi</div>` will update the `title` attribute when the signal changes without having to re-render the component.\n\n\n```typescript\nexport interface Signal<T = any> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[value](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "A signal is a reactive value which can be read and written. When the signal is written, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nFurthermore, when a signal value is passed as a prop to a component, the optimizer will automatically forward the signal. This means that `return <div title={signal.value}>hi</div>` will update the `title` attribute when the signal changes without having to re-render the component.\n\n\n```typescript\nexport interface Signal<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[untrackedValue](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nReading from this does not subscribe to updates; writing to this does not trigger updates.\n\n\n</td></tr>\n<tr><td>\n\n[value](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nReading from this subscribes to updates; writing to this triggers updates.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[force()](#signal-force)\n\n\n</td><td>\n\nUse this to force running subscribers, for example when the value mutated but remained the same object.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.signal.md"
     },

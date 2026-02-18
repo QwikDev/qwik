@@ -19,7 +19,8 @@ import RawPlugin from 'esbuild-plugin-raw';
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 
-  await generatePlatformBindingsData(config);
+  // Uncomment this to regenerate the platform binding map for the optimizer. This is only necessary when adding new platform bindings to qwik, and should be committed to source control.
+  // await generatePlatformBindingsData(config);
 
   async function buildOptimizer() {
     const opts: BuildOptions = {

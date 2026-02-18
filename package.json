@@ -10,7 +10,7 @@
     "syncpack": {
       "versionGroups": [
         {
-          "label": "Be lenient in vite versions for prod. v4 is broken, v5 is good",
+          "label": "Be lenient in vite versions for prod and peer. v4 is broken, v5 is good. Allow rolldown-vite",
           "dependencyTypes": [
             "prod",
             "peer"
@@ -18,7 +18,7 @@
           "dependencies": [
             "vite"
           ],
-          "pinVersion": ">=5 <8"
+          "pinVersion": ">=5 <8 || npm:rolldown-vite@>=7 <8"
         },
         {
           "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",

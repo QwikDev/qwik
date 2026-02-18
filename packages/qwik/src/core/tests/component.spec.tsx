@@ -4,8 +4,9 @@ import {
   Fragment,
   Fragment as InlineComponent,
   Fragment as Projection,
-  SSRComment,
   Fragment as Signal,
+  Fragment as Awaited,
+  SSRComment,
   SkipRender,
   Slot,
   _jsxSorted,
@@ -20,6 +21,7 @@ import {
   useVisibleTask$,
   type JSXOutput,
   type PropsOf,
+  type QRL,
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -3093,6 +3095,131 @@ describe.each([
     await trigger(document.body, 'button#apply', 'click');
 
     await expect(document.body.querySelector('#error')).not.toMatchDOM('<p id="error"></p>');
+  });
+
+  it('should correctly diff 2 empty texts with element node', async () => {
+    const Cmp = component$(() => {
+      const counter = useSignal(0);
+      const QrlComponent = $(() => <div>Outside Component</div>);
+
+      const componentSignal = useSignal<QRL<any>>($(() => <div>Hello</div>));
+      return (
+        <>
+          <button
+            onClick$={() => {
+              counter.value++;
+            }}
+          >
+            Import Button {counter.value}
+          </button>
+          <br />
+          {counter.value > 0 && <div>Hi there</div>}
+          {counter.value > 0 && QrlComponent()}
+          {counter.value > 0 && componentSignal.value}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            {'Import Button '}
+            <Signal ssr-required>0</Signal>
+          </button>
+          <br />
+          {''}
+          {''}
+          <Signal ssr-required>{''}</Signal>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            {'Import Button '}
+            <Signal ssr-required>1</Signal>
+          </button>
+          <br />
+          <div>Hi there</div>
+          <Awaited ssr-required>
+            <div>Outside Component</div>
+          </Awaited>
+          <Signal ssr-required>
+            <Awaited ssr-required>
+              <div>Hello</div>
+            </Awaited>
+          </Signal>
+        </Fragment>
+      </Component>
+    );
+  });
+  it('should correctly diff 2 empty texts with virtual node', async () => {
+    const Cmp = component$(() => {
+      const counter = useSignal(0);
+      const QrlComponent = $(() => <div>Outside Component</div>);
+
+      const componentSignal = useSignal<QRL<any>>($(() => <div>Hello</div>));
+      return (
+        <>
+          <button
+            onClick$={() => {
+              counter.value++;
+            }}
+          >
+            Import Button {counter.value}
+          </button>
+          <br />
+          {counter.value > 0 && <>Hi there</>}
+          {counter.value > 0 && QrlComponent()}
+          {counter.value > 0 && componentSignal.value}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            {'Import Button '}
+            <Signal ssr-required>0</Signal>
+          </button>
+          <br />
+          {''}
+          {''}
+          <Signal ssr-required>{''}</Signal>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            {'Import Button '}
+            <Signal ssr-required>1</Signal>
+          </button>
+          <br />
+          <Fragment ssr-required>Hi there</Fragment>
+          <Awaited ssr-required>
+            <div>Outside Component</div>
+          </Awaited>
+          <Signal ssr-required>
+            <Awaited ssr-required>
+              <div>Hello</div>
+            </Awaited>
+          </Signal>
+        </Fragment>
+      </Component>
+    );
   });
 
   describe('regression', () => {

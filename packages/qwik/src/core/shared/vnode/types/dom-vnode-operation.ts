@@ -1,5 +1,3 @@
-import { VNodeOperationType } from '../enums/vnode-operation-type.enum';
-
 export type VNodeOperation =
   | DeleteOperation
   | RemoveAllChildrenOperation
@@ -16,7 +14,6 @@ export class RemoveAllChildrenOperation {
 }
 
 export class SetTextOperation {
-  operationType = VNodeOperationType.SetText;
   constructor(
     public target: Text,
     public text: string

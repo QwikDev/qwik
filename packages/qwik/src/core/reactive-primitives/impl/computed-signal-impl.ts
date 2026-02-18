@@ -80,6 +80,9 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     isDev && assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
+  set untrackedValue(value: T) {
+    this.$untrackedValue$ = value;
+  }
 
   $computeIfNeeded$() {
     if (!(this.$flags$ & SignalFlags.INVALID)) {

@@ -1,6 +1,5 @@
 import type { Task, Tracker } from '../use/use-task';
 import type { SubscriptionData } from './subscription-data';
-import type { ReadonlySignal } from './signal.public';
 import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/serdes/verify';
@@ -23,15 +22,6 @@ import type { ISsrNode } from '../ssr/ssr-types';
  * "marked as dirty" flag.
  */
 export const NEEDS_COMPUTATION: any = Symbol('invalid');
-
-export interface InternalReadonlySignal<T = unknown> extends ReadonlySignal<T> {
-  readonly untrackedValue: T;
-}
-
-export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
-  value: T;
-  untrackedValue: T;
-}
 
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
 export type AsyncCtx<T = unknown> = {

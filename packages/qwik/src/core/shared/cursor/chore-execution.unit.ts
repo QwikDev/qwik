@@ -28,6 +28,7 @@ import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
+import type { Signal } from '../../reactive-primitives/signal.public';
 
 vi.mock('../../use/use-task', async () => {
   const actual = await vi.importActual<typeof import('../../use/use-task')>('../../use/use-task');
@@ -496,7 +497,7 @@ describe('executeNodeProps', () => {
     setNodePropData(vNode, 'id', {
       value: {
         value: null,
-      },
+      } as Signal<any>,
       isConst: false,
       scopedStyleIdPrefix: null,
     });

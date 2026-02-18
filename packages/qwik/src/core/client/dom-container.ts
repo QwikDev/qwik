@@ -148,9 +148,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   $hoistStyles$(): void {
     const document = this.element.ownerDocument;
     const head = document.head;
-    const styles = document.querySelectorAll(QStylesAllSelector);
-    for (let i = 0; i < styles.length; i++) {
-      head.appendChild(styles[i]);
+    const styles = document.body.querySelectorAll(QStylesAllSelector);
+    const styleTagCount = styles.length;
+    if (styleTagCount) {
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < styleTagCount; i++) {
+        fragment.appendChild(styles[i]);
+      }
+      head.appendChild(fragment);
     }
   }
 

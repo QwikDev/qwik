@@ -86,7 +86,6 @@ export function processVNodeData(document: Document) {
   // Process all of the `qwik/vnode` script tags by attaching them to the corresponding containers.
   const attachVnodeDataAndRefs = (element: Document | ShadowRoot) => {
     Array.from(element.querySelectorAll('script[type="qwik/vnode"]')).forEach((script) => {
-      script.setAttribute('type', 'x-qwik/vnode');
       const qContainerElement = script.closest('[q\\:container]') as ContainerElement | null;
       qContainerElement!.qVnodeData = script.textContent!;
       qContainerElement!.qVNodeRefs = new Map<number, Element | ElementVNode>();

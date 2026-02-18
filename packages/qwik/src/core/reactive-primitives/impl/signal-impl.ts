@@ -42,11 +42,10 @@ export class SignalImpl<T = any> implements Signal<T> {
     scheduleEffects(this.$container$, this, this.$effects$);
   }
 
+  // We need this to be getter/setter so subclasses can override them
   get untrackedValue() {
     return this.$untrackedValue$;
   }
-
-  // TODO: should we disallow setting the value directly?
   set untrackedValue(value: T) {
     this.$untrackedValue$ = value;
   }

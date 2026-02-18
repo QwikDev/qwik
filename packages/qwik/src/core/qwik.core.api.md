@@ -17,7 +17,7 @@ export const $: <T>(expression: T) => QRL<T>;
 // @public
 export type AsyncFn<T> = (ctx: AsyncCtx) => ValueOrPromise<T>;
 
-// @public (undocumented)
+// @public
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     abort(reason?: any): void;
     error: Error | undefined;
@@ -107,8 +107,7 @@ export interface ComputedOptions {
 export type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;
 
 // @public
-export interface ComputedSignal<T> extends ReadonlySignal<T> {
-    force(): void;
+export interface ComputedSignal<T> extends Signal<T> {
     invalidate(): void;
 }
 
@@ -863,7 +862,7 @@ export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
 // @public @deprecated (undocumented)
 export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export interface ReadonlySignal<T = unknown> {
     // (undocumented)
     readonly value: T;
@@ -1045,8 +1044,9 @@ export abstract class _SharedContainer implements _Container {
 }
 
 // @public
-export interface Signal<T = any> extends ReadonlySignal<T> {
-    // (undocumented)
+export interface Signal<T = any> {
+    force(): void;
+    untrackedValue: T;
     value: T;
 }
 

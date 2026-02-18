@@ -139,6 +139,41 @@ export class AsyncSignalImpl<T>
     }
   }
 
+  get untrackedValue() {
+    this.$computeIfNeeded$();
+    if (this.$current$?.$promise$) {
+      if (
+        this.$untrackedValue$ === NEEDS_COMPUTATION ||
+        (import.meta.env.TEST ? isServerPlatform() : isServer)
+      ) {
+        DEBUG && log('Throwing promise while computing initial value', this);
+        throw this.$current$?.$promise$;
+      }
+      DEBUG &&
+        log('Returning stale value', this.$untrackedValue$, 'while computing', this.$current$);
+      return this.$untrackedValue$;
+    }
+    if (this.$untrackedError$) {
+      DEBUG && log('Throwing error while reading value', this);
+      throw this.$untrackedError$;
+    }
+    // For clientOnly signals without initial value during SSR, throw if trying to read value
+    // During SSR, clientOnly signals are skipped, so there's no computed value available
+    if (
+      (import.meta.env.TEST ? isServerPlatform() : isServer) &&
+      this.$flags$ & AsyncSignalFlags.CLIENT_ONLY &&
+      this.$untrackedValue$ === NEEDS_COMPUTATION
+    ) {
+      throw new Error(
+        'During SSR, cannot read .value from clientOnly async signal without an initial value. Use .loading or provide an initial value.'
+      );
+    }
+    return this.$untrackedValue$;
+  }
+  set untrackedValue(value: T) {
+    this.$untrackedValue$ = value;
+  }
+
   /**
    * Loading is true if the signal is still waiting for the promise to resolve, false if the promise
    * has resolved or rejected.
@@ -346,38 +381,6 @@ export class AsyncSignalImpl<T>
       await this.$requestCleanups$(this.$current$);
     }
     await Promise.all(this.$jobs$.map((job) => job.$promise$));
-  }
-
-  get untrackedValue() {
-    this.$computeIfNeeded$();
-    if (this.$current$?.$promise$) {
-      if (
-        this.$untrackedValue$ === NEEDS_COMPUTATION ||
-        (import.meta.env.TEST ? isServerPlatform() : isServer)
-      ) {
-        DEBUG && log('Throwing promise while computing initial value', this);
-        throw this.$current$?.$promise$;
-      }
-      DEBUG &&
-        log('Returning stale value', this.$untrackedValue$, 'while computing', this.$current$);
-      return this.$untrackedValue$;
-    }
-    if (this.$untrackedError$) {
-      DEBUG && log('Throwing error while reading value', this);
-      throw this.$untrackedError$;
-    }
-    // For clientOnly signals without initial value during SSR, throw if trying to read value
-    // During SSR, clientOnly signals are skipped, so there's no computed value available
-    if (
-      (import.meta.env.TEST ? isServerPlatform() : isServer) &&
-      this.$flags$ & AsyncSignalFlags.CLIENT_ONLY &&
-      this.$untrackedValue$ === NEEDS_COMPUTATION
-    ) {
-      throw new Error(
-        'During SSR, cannot read .value from clientOnly async signal without an initial value. Use .loading or provide an initial value.'
-      );
-    }
-    return this.$untrackedValue$;
   }
 
   private $clearNextPoll$() {

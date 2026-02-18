@@ -2005,6 +2005,8 @@ routeAction$: ActionConstructor;
 
 ## RouteData
 
+In the SSR build, you get `routeName` and `moduleLoaders`, and on the client side, you also get `originalPathname` and `routeBundleNames`.
+
 ```typescript
 export type RouteData =
   | [routeName: string, moduleLoaders: ModuleLoader[]]

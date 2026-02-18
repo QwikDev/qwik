@@ -24,6 +24,7 @@ async function getEntryModule() {
   try {
     return await import('./node');
   } catch (e) {
-    throw new Error(`Unsupported platform`, { cause: e });
+    console.error(e);
+    throw new Error(`Could not load SSG platform`, { cause: e });
   }
 }

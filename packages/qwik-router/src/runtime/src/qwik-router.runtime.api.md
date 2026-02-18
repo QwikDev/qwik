@@ -426,7 +426,7 @@ export const routeActionQrl: ActionConstructorQRL;
 
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export type RouteData = [
 routeName: string,
 moduleLoaders: ModuleLoader[]

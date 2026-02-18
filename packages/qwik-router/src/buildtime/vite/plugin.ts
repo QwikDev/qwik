@@ -21,7 +21,6 @@ import type {
   QwikRouterVitePluginOptions,
 } from './types';
 import { validatePlugin } from './validate-plugin';
-import { getRouterIndexTags, makeRouterDevMiddleware } from './dev-middleware';
 
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 /**
@@ -192,6 +191,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       });
 
       if (userOpts?.devSsrServer !== false) {
+        const { makeRouterDevMiddleware } = await import('./dev-middleware');
         // this callback runs after all other middlewares have been added, so we can SSR as the last middleware
         return () => {
           server.middlewares.use(makeRouterDevMiddleware(server, ctx!));
@@ -199,10 +199,11 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       }
     },
 
-    transformIndexHtml() {
+    async transformIndexHtml() {
       if (viteCommand !== 'serve') {
         return;
       }
+      const { getRouterIndexTags } = await import('./dev-middleware');
       return getRouterIndexTags(devServer!);
     },
 

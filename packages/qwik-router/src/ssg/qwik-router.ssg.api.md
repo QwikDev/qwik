@@ -33,6 +33,7 @@ export interface StaticGenerateOptions extends SsgRenderOptions {
     renderModulePath: string;
     // (undocumented)
     rootDir?: string;
+    ssgEntryModulePath?: string;
 }
 
 // @public (undocumented)

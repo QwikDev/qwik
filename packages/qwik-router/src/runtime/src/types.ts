@@ -258,7 +258,12 @@ export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader; //| Route
 export type MenuModuleLoader = () => Promise<MenuModule>;
 
 export type RouteLoaderInfo = [qrl: string, expires: number, live?: true];
-/** @public */
+/**
+ * In the SSR build, you get `routeName` and `moduleLoaders`, and on the client side, you also get
+ * `originalPathname` and `routeBundleNames`.
+ *
+ * @public
+ */
 export type RouteData =
   // SSR side
   | [

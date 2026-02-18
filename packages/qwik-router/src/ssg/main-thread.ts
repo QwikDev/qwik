@@ -7,7 +7,7 @@ import { formatError } from '../buildtime/vite/format-error';
 import { msToString } from '../utils/format';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
 import { extractParamNames } from './extract-params';
-import { generateNotFoundPages } from './not-found';
+// import { generateNotFoundPages } from './not-found';
 import { createRouteTester } from './routes';
 import type { SsgOptions, SsgResult, SsgRoute, System } from './types';
 
@@ -19,9 +19,14 @@ export async function mainThread(sys: System) {
   const log = await sys.createLogger();
   log.info('\n' + bold(green('Starting Qwik Router SSG...')));
 
-  const qwikRouterConfig: QwikRouterConfig = (
-    await import(pathToFileURL(opts.qwikRouterConfigModulePath).href)
-  ).default;
+  const ssgEntry = await import(pathToFileURL(opts.ssgEntryModulePath!).href);
+  const qwikRouterConfig: QwikRouterConfig = ssgEntry.qwikRouterConfig;
+  if (!qwikRouterConfig) {
+    throw new Error(
+      `qwikRouterConfig is not exported from the SSG entry module ${opts.ssgEntryModulePath}. Please ensure your SSG entry module exports a qwikRouterConfig object.`
+    );
+  }
+  console.trace(`Loaded qwikRouterConfig from ${opts.ssgEntryModulePath}`, qwikRouterConfig); // --- DEBUG ---
 
   const queue: SsgRoute[] = [];
   const active = new Set<string>();
@@ -29,7 +34,7 @@ export async function mainThread(sys: System) {
   const trailingSlash = !!qwikRouterConfig.trailingSlash;
   const includeRoute = createRouteTester(opts.basePathname || '/', opts.include, opts.exclude);
 
-  return new Promise<SsgResult>((resolve, reject) => {
+  return new Promise<SsgResult>(async (resolve, reject) => {
     try {
       const timer = sys.createTimer();
       const generatorResult: SsgResult = {
@@ -45,7 +50,7 @@ export async function mainThread(sys: System) {
       const completed = async () => {
         const closePromise = main.close();
 
-        await generateNotFoundPages(sys, opts, routes);
+        // await generateNotFoundPages(sys, opts, routes);
 
         generatorResult.duration = timer();
 
@@ -78,6 +83,9 @@ export async function mainThread(sys: System) {
       };
 
       const next = () => {
+        console.debug(
+          `Main thread checking queue. Active: ${active.size}, Queue: ${queue.length}, Workers available: ${main.hasAvailableWorker()}`
+        ); // --- DEBUG ---
         while (!isCompleted && main.hasAvailableWorker() && queue.length > 0) {
           const staticRoute = queue.shift();
           if (staticRoute) {
@@ -107,6 +115,7 @@ export async function mainThread(sys: System) {
       };
 
       const render = async (staticRoute: SsgRoute) => {
+        console.debug(`Main thread starting render for ${staticRoute.pathname}`);
         try {
           active.add(staticRoute.pathname);
 
@@ -146,8 +155,9 @@ export async function mainThread(sys: System) {
       };
 
       const addToQueue = (pathname: string | undefined | null, params: PathParams | undefined) => {
+        console.debug(`Adding to queue: ${pathname}, params: ${JSON.stringify(params)}`);
         if (pathname) {
-          pathname = new URL(pathname, `https://qwik.dev`).pathname;
+          pathname = new URL(pathname, `http://localhost`).pathname;
 
           if (pathname !== opts.basePathname) {
             if (trailingSlash) {
@@ -222,7 +232,7 @@ export async function mainThread(sys: System) {
         flushQueue();
       };
 
-      loadStaticRoutes().catch((e) => {
+      await loadStaticRoutes().catch((e) => {
         console.error('SSG route loading failed', e);
         reject(e);
       });
@@ -234,17 +244,10 @@ export async function mainThread(sys: System) {
 }
 
 function validateOptions(opts: SsgOptions) {
-  if (!opts.qwikRouterConfigModulePath) {
-    if (!opts.qwikCityPlanModulePath) {
-      throw new Error(`Missing "qwikRouterConfigModulePath" option`);
-    } else {
-      console.warn(
-        '`qwikCityPlanModulePath` is deprecated. Use `qwikRouterConfigModulePath` instead.'
-      );
-    }
-  }
-  if (!opts.renderModulePath) {
-    throw new Error(`Missing "renderModulePath" option`);
+  if (!opts.ssgEntryModulePath) {
+    throw new Error(
+      'SSG entry module path is required for SSG. This should be provided by the SSG adapter and point to the module that exports the "ssgRender" function and "qwikRouterConfig" object.'
+    );
   }
 
   let siteOrigin = opts.origin;

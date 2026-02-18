@@ -5,6 +5,7 @@ export function createRouteTester(
 ) {
   const includes = routesToRegExps(includeRoutes);
   const excludes = routesToRegExps(excludeRoutes);
+  console.log(`Include routes: ${includeRoutes}, Exclude routes: ${excludeRoutes}`); // --- DEBUG ---
 
   return (pathname: string) => {
     if (pathname.endsWith('404.html')) {

@@ -810,7 +810,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RouteData = [\n    routeName: string,\n    moduleLoaders: ModuleLoader[]\n] | [\n    routeName: string,\n    moduleLoaders: ModuleLoader[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
+      "content": "In the SSR build, you get `routeName` and `moduleLoaders`<!-- -->, and on the client side, you also get `originalPathname` and `routeBundleNames`<!-- -->.\n\n\n```typescript\nexport type RouteData = [\n    routeName: string,\n    moduleLoaders: ModuleLoader[]\n] | [\n    routeName: string,\n    moduleLoaders: ModuleLoader[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.routedata.md"
     },

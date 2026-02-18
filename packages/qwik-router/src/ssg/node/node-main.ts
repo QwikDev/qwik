@@ -93,6 +93,7 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
           } catch (e) {
             ssgWorker.activeTasks--;
             mainTasks.delete(staticRoute.pathname);
+            console.error(`Failed to post message to worker for ${staticRoute.pathname}`, e);
             reject(e);
           }
         });
@@ -114,6 +115,9 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
     nodeWorker.on('message', (msg: WorkerOutputMessage) => {
       switch (msg.type) {
         case 'render': {
+          console.debug(
+            `Worker thread (ID: ${nodeWorker.threadId}) completed render for ${msg.pathname} (ok: ${msg.ok})`
+          );
           const mainTask = mainTasks.get(msg.pathname);
           if (mainTask) {
             mainTasks.delete(msg.pathname);

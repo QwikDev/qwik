@@ -5383,6 +5383,60 @@ export const Child = component$(() => {
 	});
 }
 
+#[test]
+fn should_not_add_capture_refs_to_component_inside_function() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+function test() {
+  const Child = component$(() => {
+    return <div>Child</div>;
+  });
+  const Parent = component$(() => {
+    const sig = useSignal(0);
+    console.log(sig.value);
+    return (
+      <div onClick$={() => sig.value++}>
+        <Child />
+      </div>
+    );
+  });
+  return Parent;
+}
+export default component$(() => {
+  return <div>{test()}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_move_component_to_module_scope() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const Foo = component$(()  => { 
+  const bar = useSignal(13); 
+  const Cmp = component$(() => {
+    console.log(bar);
+    return <></>;
+  });
+return <div>a</div>
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

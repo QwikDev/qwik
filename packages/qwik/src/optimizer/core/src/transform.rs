@@ -129,6 +129,12 @@ pub struct QwikTransform<'a> {
 	hoisted_qrls: Vec<Vec<(String, ast::VarDeclarator)>>,
 	fn_depth: u32,
 	in_callback: bool,
+	/// Tracks function-local `const X = component$(...)` idents that have been hoisted to module
+	/// level. These must be excluded from `_captures` in enclosing QRL segments.
+	hoistable_static_idents: HashSet<Id>,
+	/// Module-level `const` declarations for component$ vars hoisted out of function scopes.
+	/// Emitted after QRL import closures (`extra_top_items`) but before the original module body.
+	hoisted_component_decls: Vec<ast::ModuleItem>,
 }
 
 pub struct QwikTransformOptions<'a> {
@@ -276,6 +282,8 @@ impl<'a> QwikTransform<'a> {
 			hoisted_qrls: Vec::new(),
 			fn_depth: 0,
 			in_callback: false,
+			hoistable_static_idents: HashSet::new(),
+			hoisted_component_decls: Vec::new(),
 			options,
 		}
 	}
@@ -602,7 +610,10 @@ impl<'a> QwikTransform<'a> {
 			}
 		}
 
-		let (scoped_idents, is_const) = compute_scoped_idents(&descendent_idents, &decl_collect);
+		let (mut scoped_idents, is_const) =
+			compute_scoped_idents(&descendent_idents, &decl_collect);
+		// Filter out hoistable static idents (component$ vars hoisted to module level)
+		scoped_idents.retain(|id| !self.hoistable_static_idents.contains(id));
 
 		if contains_side_effect {
 			return (None, scoped_idents.is_empty());
@@ -699,9 +710,10 @@ impl<'a> QwikTransform<'a> {
 		let (mut scoped_idents, is_const) =
 			compute_scoped_idents(&descendent_idents, &decl_collect);
 
-		// Filter out function parameters from scoped_idents
-		// Parameters don't need to be captured via _captures
-		scoped_idents.retain(|id| !param_idents.contains(id));
+		// Exclude function parameters (no capture needed) and any component$ vars that
+		// were hoisted to module level (imported by the segment, not captured at runtime).
+		scoped_idents
+			.retain(|id| !param_idents.contains(id) && !self.hoistable_static_idents.contains(id));
 
 		if !can_capture && !scoped_idents.is_empty() {
 			HANDLER.with(|handler| {
@@ -2567,6 +2579,52 @@ impl<'a> QwikTransform<'a> {
 			}
 		}
 	}
+
+	/// Hoist a single `const X = componentQrl(...)` declarator (which lives inside a function)
+	/// to module level so that sibling QRL segments can import it rather than capture it.
+	///
+	/// After this call:
+	/// - A module-level `const _auto_X = componentQrl(...)` is queued in `hoisted_component_decls`.
+	/// - The in-function declarator's init is replaced with a reference to the hoisted binding.
+	/// - The fn-local id is registered in `hoistable_static_idents` so capture analysis skips it.
+	fn hoist_component_var_decl(&mut self, decl: &mut ast::VarDeclarator, fn_id: Id) {
+		let Some(init) = decl.init.take() else {
+			return;
+		};
+
+		let auto_sym: Atom = format!("_auto_{}", fn_id.0).into();
+		let hoisted_ident = private_ident!(auto_sym.clone());
+		let hoisted_id = id!(hoisted_ident);
+
+		// Emit module-level const (placed after QRL import closures, before module body).
+		self.hoisted_component_decls
+			.push(ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(
+				Box::new(make_const_var_decl(hoisted_ident.clone(), init)),
+			))));
+
+		// Rewrite the in-function binding to reference the hoisted var.
+		decl.init = Some(Box::new(ast::Expr::Ident(hoisted_ident)));
+
+		// Register fn-local name as an export alias so code_move.rs generates the import.
+		self.options
+			.global_collect
+			.add_export(fn_id.clone(), Some(auto_sym));
+
+		// Export the hoisted binding itself.
+		if self
+			.options
+			.global_collect
+			.add_export(hoisted_id.clone(), None)
+		{
+			self.extra_bottom_items.insert(
+				hoisted_id.clone(),
+				create_synthetic_named_export(&hoisted_id, None),
+			);
+		}
+
+		// Prevent capture analysis from treating this as a runtime dependency.
+		self.hoistable_static_idents.insert(fn_id);
+	}
 }
 
 impl<'a> Fold for QwikTransform<'a> {
@@ -2622,6 +2680,7 @@ impl<'a> Fold for QwikTransform<'a> {
 				}),
 		);
 		body.extend(self.extra_top_items.values().cloned());
+		body.extend(self.hoisted_component_decls.iter().cloned());
 		body.append(&mut module_body);
 		body.extend(self.extra_bottom_items.values().cloned());
 
@@ -2630,6 +2689,11 @@ impl<'a> Fold for QwikTransform<'a> {
 
 	// Variable tracking
 	fn fold_var_decl(&mut self, node: ast::VarDecl) -> ast::VarDecl {
+		let is_const = node.kind == ast::VarDeclKind::Const;
+		// Pre-scan: record which idents are candidates for hoisting (const X = component$(...)
+		// inside a function). The actual hoist decision is made post-fold once we know whether
+		// the emitted componentQrl carries a captures array.
+		let mut candidates: Vec<Id> = vec![];
 		if let Some(current_scope) = self.decl_stack.last_mut() {
 			for decl in &node.decls {
 				let mut identifiers: Vec<(Id, Span)> = Vec::with_capacity(node.decls.len() + 2);
@@ -2637,15 +2701,35 @@ impl<'a> Fold for QwikTransform<'a> {
 				let mut static_identifiers: Vec<Id> = vec![];
 				collect_static_identifiers(&mut static_identifiers, &decl.name, &decl.init);
 
-				let is_const = node.kind == ast::VarDeclKind::Const;
-
-				for ident in identifiers {
+				for ident in &identifiers {
 					let is_static = static_identifiers.contains(&ident.0);
-					current_scope.push((ident.0, IdentType::Var(is_const && is_static)));
+					current_scope.push((ident.0.clone(), IdentType::Var(is_const && is_static)));
+					if is_const
+						&& self.fn_depth > 0
+						&& is_component_qrl_init(&decl.init, &self.qcomponent_fn)
+					{
+						candidates.push(ident.0.clone());
+					}
 				}
 			}
 		}
-		node.fold_children_with(self)
+
+		// Fold children first so component$(...) is rewritten to componentQrl(qrl(..., [captures?])).
+		// We inspect the folded init to decide whether captures are present; if they are, the
+		// component closes over local state and cannot safely be moved to a higher scope.
+		let mut result = node.fold_children_with(self);
+
+		for decl in &mut result.decls {
+			if let ast::Pat::Ident(ref binding) = decl.name {
+				let fn_id = id!(binding.id);
+				if candidates.contains(&fn_id) && !component_qrl_has_captures(decl.init.as_deref())
+				{
+					self.hoist_component_var_decl(decl, fn_id);
+				}
+			}
+		}
+
+		result
 	}
 
 	fn fold_var_declarator(&mut self, node: ast::VarDeclarator) -> ast::VarDeclarator {
@@ -3790,6 +3874,73 @@ fn is_return_static(expr: &Option<Box<ast::Expr>>) -> bool {
 		})) => ident.sym.ends_with('$') || ident.sym.ends_with("Qrl") || ident.sym.starts_with("use"),
 		Some(_) => false,
 		None => true,
+	}
+}
+
+/// Returns `true` if `expr` is a call to the local binding of `component$`.
+///
+/// `qcomponent_fn` is the resolved import id for `component$`; it correctly handles
+/// renamed imports (e.g. `import { component$ as cmp$ }`).  Hoisting is decided before
+/// `fold_children_with` rewrites the callee, so we match on the original `component$`
+/// binding rather than the already-converted `componentQrl` form.
+fn is_component_qrl_init(expr: &Option<Box<ast::Expr>>, qcomponent_fn: &Option<Id>) -> bool {
+	let Some(qcfn) = qcomponent_fn else {
+		return false;
+	};
+	matches!(
+		expr,
+		Some(box ast::Expr::Call(ast::CallExpr {
+			callee: ast::Callee::Expr(box ast::Expr::Ident(ident)),
+			..
+		})) if ident.sym == qcfn.0 && ident.ctxt == qcfn.1
+	)
+}
+
+/// Returns `true` if the already-folded `componentQrl(qrl(fn, sym, [cap, ...]))` expression
+/// has a non-empty captures array as the third argument of the inner `qrl()` call.
+///
+/// Shape after folding: `componentQrl( qrl( importFn, "sym" [, [cap1, cap2, ...]] ) )`
+/// A third argument means this component closes over local variables and must not be hoisted
+/// past the scope where those variables are defined.
+fn component_qrl_has_captures(init: Option<&ast::Expr>) -> bool {
+	let Some(ast::Expr::Call(outer)) = init else {
+		return false;
+	};
+	// outer.args[0] is the qrl(…) call
+	let Some(ast::ExprOrSpread {
+		expr: inner_expr, ..
+	}) = outer.args.first()
+	else {
+		return false;
+	};
+	let ast::Expr::Call(inner) = inner_expr.as_ref() else {
+		return false;
+	};
+	// Third argument is the captures array; its presence (even if empty) means captures exist.
+	if let Some(ast::ExprOrSpread { expr, .. }) = inner.args.get(2) {
+		if let ast::Expr::Array(arr) = expr.as_ref() {
+			return !arr.elems.is_empty();
+		}
+	}
+	false
+}
+
+/// Build a simple `const <ident> = <init>` declaration node.
+fn make_const_var_decl(ident: ast::Ident, init: Box<ast::Expr>) -> ast::VarDecl {
+	ast::VarDecl {
+		span: DUMMY_SP,
+		ctxt: Default::default(),
+		kind: ast::VarDeclKind::Const,
+		declare: false,
+		decls: vec![ast::VarDeclarator {
+			span: DUMMY_SP,
+			name: ast::Pat::Ident(ast::BindingIdent {
+				id: ident,
+				type_ann: None,
+			}),
+			init: Some(init),
+			definite: false,
+		}],
 	}
 }
 

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 5049
+assertion_line: 5076
 expression: output
 ---
 ==INPUT==
@@ -20,28 +20,30 @@ const Foo = component$(function() {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+const i_AuJ9mTBx5YA = ()=>import("./test.tsx_Foo_component_Inner_component_AuJ9mTBx5YA");
 const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
+const _auto_Inner = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_AuJ9mTBx5YA, "Foo_component_Inner_component_AuJ9mTBx5YA"));
 /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"));
+export { _auto_Inner };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;cAEY\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;kCAIgB;cAFJ\"}")
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
+import { _auto_Inner as Inner } from "./test";
+import { _auto_Inner } from "./test";
 import { _jsxSorted } from "@qwik.dev/core";
-import { componentQrl } from "@qwik.dev/core";
-import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
-const i_AuJ9mTBx5YA = ()=>import("./test.tsx_Foo_component_Inner_component_AuJ9mTBx5YA");
 export const Foo_component_HTDRsvUbLiE = function() {
     const data = useSignal([]);
-    const Inner = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_AuJ9mTBx5YA, "Foo_component_Inner_component_AuJ9mTBx5YA"));
+    const Inner = _auto_Inner;
     return /*#__PURE__*/ _jsxSorted(Inner, null, {
         data: data
     }, null, 3, "u6_2");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAEuB;IACrB,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,sBAAQ;IAId,qBAAO,WAAC;QAAM,MAAM;;AACtB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAEuB;IACrB,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM;IAIN,qBAAO,WAAC;QAAM,MAAM;;AACtB\"}")
 /*
 {
   "origin": "test.tsx",

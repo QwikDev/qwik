@@ -1166,8 +1166,8 @@ export type Loader<RETURN> = {
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
   infer VALIDATOR
 >
-  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
-  : ReadonlySignal<TYPE>) &
+  ? Signal<ValueOrPromise<VALIDATOR>>
+  : Signal<TYPE>) &
   Pick<AsyncSignal, "promise" | "loading" | "error">;
 ```
 

@@ -16,7 +16,6 @@ import { QRL } from '@qwik.dev/core';
 import { QRLEventHandlerMulti } from '@qwik.dev/core';
 import { QwikIntrinsicElements } from '@qwik.dev/core';
 import { QwikJSX } from '@qwik.dev/core';
-import type { ReadonlySignal } from '@qwik.dev/core';
 import { Render } from '@qwik.dev/core/server';
 import { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent } from '@qwik.dev/router/middleware/request-handler';
@@ -27,6 +26,7 @@ import { RequestEventLoader } from '@qwik.dev/router/middleware/request-handler'
 import { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handler';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
+import type { Signal } from '@qwik.dev/core';
 import type * as v from 'valibot';
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { ValueOrPromise as ValueOrPromise_2 } from '@qwik.dev/core/internal';
@@ -265,7 +265,7 @@ type Loader_2<RETURN> = {
 export { Loader_2 as Loader }
 
 // @public (undocumented)
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
+export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //

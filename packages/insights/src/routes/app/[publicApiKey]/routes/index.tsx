@@ -1,9 +1,9 @@
+import { component$ } from '@qwik.dev/core';
 import { routeLoader$, useLocation } from '@qwik.dev/router';
-import { component$, type ReadonlySignal } from '@qwik.dev/core';
 import { RoutesIcon } from '~/components/icons/routes';
 import { getDB } from '~/db';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
-import { getRouteNames, type RouteRow } from '~/db/sql-routes';
+import { getRouteNames } from '~/db/sql-routes';
 
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -15,7 +15,7 @@ export const useRouteData = routeLoader$(async ({ params }) => {
 
 export default component$(() => {
   const location = useLocation();
-  const routesData: ReadonlySignal<RouteRow[]> = useRouteData();
+  const routesData = useRouteData();
   const baseLink = `/app/${location.params.publicApiKey}/routes/`;
   return (
     <div>

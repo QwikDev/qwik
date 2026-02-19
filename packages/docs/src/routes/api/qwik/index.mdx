@@ -774,6 +774,13 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[force()](#computedsignal-force)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [invalidate()](#computedsignal-invalidate)
 
 </td><td>
@@ -1582,7 +1589,9 @@ export type EventHandler<EV = Event, EL = Element> = {
 
 ## force
 
-Use this to force running subscribers, for example when the value mutated but remained the same object.
+> Warning: This API is now obsolete.
+>
+> Use `trigger()` instead
 
 ```typescript
 force(): void;
@@ -4362,11 +4371,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[force()](#signal-force)
+[trigger()](#signal-trigger)
 
 </td><td>
 
-Use this to force running subscribers, for example when the value mutated but remained the same object.
+Use this to trigger running subscribers, for example when the value mutated but remained the same object.
 
 </td></tr>
 </tbody></table>
@@ -8970,6 +8979,18 @@ export interface Tracker
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
+## trigger
+
+Use this to trigger running subscribers, for example when the value mutated but remained the same object.
+
+```typescript
+trigger(): void;
+```
+
+**Returns:**
+
+void
 
 ## untrack
 

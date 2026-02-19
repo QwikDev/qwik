@@ -35,9 +35,13 @@ export class SignalImpl<T = any> implements Signal<T> {
   }
 
   /**
-   * Use this to force running subscribers, for example when the calculated value has mutated but
+   * Use this to trigger running subscribers, for example when the calculated value has mutated but
    * remained the same object
    */
+  trigger() {
+    scheduleEffects(this.$container$, this, this.$effects$);
+  }
+  /** @deprecated Use `trigger()` instead */
   force() {
     scheduleEffects(this.$container$, this, this.$effects$);
   }

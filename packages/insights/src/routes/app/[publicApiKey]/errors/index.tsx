@@ -1,9 +1,9 @@
-import { type ReadonlySignal, component$ } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
-import { getDB, errorTable, type ErrorRow } from '~/db';
 import { eq, sql } from 'drizzle-orm';
 import { ErrorIcon } from '~/components/icons/error';
 import { type PopupEvent } from '~/components/popup-manager';
+import { errorTable, getDB, type ErrorRow } from '~/db';
 
 export const useErrors = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -18,7 +18,7 @@ export const useErrors = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
-  const errors: ReadonlySignal<ErrorRow[]> = useErrors();
+  const errors = useErrors();
   return (
     <div>
       <h1 class="h3">

@@ -32,10 +32,10 @@ export interface Signal<T = any> {
   /** Reading from this does not subscribe to updates; writing to this does not trigger updates. */
   untrackedValue: T;
   /**
-   * Use this to force running subscribers, for example when the value mutated but remained the same
-   * object.
+   * Use this to trigger running subscribers, for example when the value mutated but remained the
+   * same object.
    */
-  force(): void;
+  trigger(): void;
 }
 
 /**
@@ -46,6 +46,8 @@ export interface Signal<T = any> {
  * @public
  */
 export interface ComputedSignal<T> extends Signal<T> {
+  /** @deprecated Use `trigger()` instead */
+  force(): void;
   /** Use this to force recalculation. */
   invalidate(): void;
 }

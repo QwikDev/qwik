@@ -108,6 +108,8 @@ export type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSig
 
 // @public
 export interface ComputedSignal<T> extends Signal<T> {
+    // @deprecated (undocumented)
+    force(): void;
     invalidate(): void;
 }
 
@@ -1045,7 +1047,7 @@ export abstract class _SharedContainer implements _Container {
 
 // @public
 export interface Signal<T = any> {
-    force(): void;
+    trigger(): void;
     untrackedValue: T;
     value: T;
 }

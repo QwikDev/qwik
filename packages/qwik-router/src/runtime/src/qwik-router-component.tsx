@@ -450,7 +450,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }));
         if (!pageData) {
           // Reset the path to the current path
-          (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
+          routeInternal.untrackedValue = { type: navType, dest: trackUrl };
           return;
         }
         const newHref = pageData.href;
@@ -512,7 +512,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           routeLocationTarget.params = params;
         }
 
-        (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
+        routeInternal.untrackedValue = { type: navType, dest: trackUrl };
 
         // Needs to be done after routeLocation is updated
         const resolvedHead = resolveHead(
@@ -526,7 +526,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         // Update content
         content.headings = pageModule.headings;
         content.menu = menu;
-        (contentInternal as any).untrackedValue = noSerialize(contentModules);
+        contentInternal.untrackedValue = noSerialize(contentModules);
 
         // Update document head
         documentHead.links = resolvedHead.links;
@@ -752,7 +752,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
           const navigate = () => {
             clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
-            (contentInternal as any).force();
+            contentInternal.trigger();
             return _waitUntilRendered(container!);
           };
 

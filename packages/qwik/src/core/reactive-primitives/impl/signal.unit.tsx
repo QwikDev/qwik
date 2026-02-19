@@ -234,7 +234,7 @@ describe('signal', () => {
       });
     });
 
-    it('force', async () => {
+    it('trigger', async () => {
       await withContainer(async () => {
         const obj = { count: 0 };
         const computed = await retryOnPromise(() => {
@@ -259,8 +259,8 @@ describe('signal', () => {
         await flushSignals();
         expect(log).toEqual([1]);
         expect(obj.count).toBe(2);
-        // force notify
-        computed.force();
+        // trigger notify
+        computed.trigger();
         await flushSignals();
         expect(log).toEqual([1, 2]);
       });
@@ -893,7 +893,7 @@ describe('signal', () => {
               { initial: 10, clientOnly: true }
             ) as AsyncSignalImpl<number>;
 
-            // Subscribe to force computation
+            // Subscribe to trigger computation
             await retryOnPromise(async () => {
               effect$(() => signal.value);
             });

@@ -1,4 +1,4 @@
-import { component$, type ReadonlySignal } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { routeLoader$, useLocation } from '@qwik.dev/router';
 import Histogram from '~/components/histogram';
 import { RoutesIcon } from '~/components/icons/routes';
@@ -18,7 +18,7 @@ export const useRouteData = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
-  const symbolData: ReadonlySignal<SymbolData[]> = useRouteData();
+  const symbolData = useRouteData();
   const route = decodeURIComponent(useLocation().params.route);
   return (
     <div>

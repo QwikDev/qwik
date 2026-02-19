@@ -1,5 +1,29 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.24
+
+### Minor Changes
+
+- ✨ Signals now expose `.untrackedValue`, which allows you to read the value without subscribing, and `.trigger()`, which allows you to trigger running subscribers, for example when you changed `.untrackedValue` earlier, or the value mutated but remained the same object. (by [@wmertens](https://github.com/wmertens) in [#6903](https://github.com/QwikDev/qwik/pull/6903))
+
+- ✨ `useAsync$` `clientOnly` option, to load a value on document-idle on the client (by [@wmertens](https://github.com/wmertens) in [#8348](https://github.com/QwikDev/qwik/pull/8348))
+
+### Patch Changes
+
+- perf: less style recalculations on resume (by [@Varixo](https://github.com/Varixo) in [#8366](https://github.com/QwikDev/qwik/pull/8366))
+
+- 🐞🩹 array of undefineds as event handler (by [@Varixo](https://github.com/Varixo) in [#8363](https://github.com/QwikDev/qwik/pull/8363))
+
+- 🐞🩹 inline components now correctly subscribe to signals (by [@Varixo](https://github.com/Varixo) in [#8365](https://github.com/QwikDev/qwik/pull/8365))
+
+- 🐞🩹 descending dirty children for deleted parent (by [@Varixo](https://github.com/Varixo) in [#8358](https://github.com/QwikDev/qwik/pull/8358))
+
+- 🐞🩹 diffing empty texts with element or virtual was sometimes incorrect (by [@Varixo](https://github.com/Varixo) in [#8367](https://github.com/QwikDev/qwik/pull/8367))
+
+- 🐞🩹 serializing falsy event handlers (by [@Varixo](https://github.com/Varixo) in [#8361](https://github.com/QwikDev/qwik/pull/8361))
+
+- 🐞🩹 handling qrl captures in a loop (by [@Varixo](https://github.com/Varixo) in [#8355](https://github.com/QwikDev/qwik/pull/8355))
+
 ## 2.0.0-beta.23
 
 ## 2.0.0-beta.22

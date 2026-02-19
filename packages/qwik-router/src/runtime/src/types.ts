@@ -2,7 +2,6 @@ import type {
   NoSerialize,
   QRL,
   QwikIntrinsicElements,
-  ReadonlySignal,
   Signal,
   ValueOrPromise,
 } from '@qwik.dev/core';
@@ -807,8 +806,8 @@ export type FailReturn<T> = T & Failed;
 
 /** @public */
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
-  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
-  : ReadonlySignal<TYPE>) &
+  ? Signal<ValueOrPromise<VALIDATOR>>
+  : Signal<TYPE>) &
   Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
 
 /** @public */

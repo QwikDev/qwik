@@ -1,11 +1,11 @@
-import { type ReadonlySignal, component$ } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
+import Histogram, { delayColors, latencyColors } from '~/components/histogram';
+import { ManifestIcon } from '~/components/icons/manifest';
+import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { type OutgoingEdge, dbGetOutgoingEdges } from '~/db/sql-edges';
 import { BUCKETS, vectorSum } from '~/stats/vector';
-import Histogram, { delayColors, latencyColors } from '~/components/histogram';
-import { SymbolTile } from '~/components/symbol-tile';
-import { ManifestIcon } from '~/components/icons/manifest';
 
 interface OutgoingInfo {
   symbol: string;
@@ -34,7 +34,7 @@ export const useData = routeLoader$<OutgoingInfo>(async ({ params, query }) => {
 });
 
 export default component$(() => {
-  const data: ReadonlySignal<OutgoingInfo> = useData();
+  const data = useData();
   return (
     <div>
       <h1>

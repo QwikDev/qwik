@@ -111,7 +111,7 @@ describe.each([
         <button
           onClick$={() => {
             count.value.inc();
-            count.force();
+            count.trigger();
           }}
         >
           {count.value.count}

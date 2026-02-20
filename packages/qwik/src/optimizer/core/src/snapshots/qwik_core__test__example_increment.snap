@@ -11,21 +11,21 @@ import { Child } from "./child";
 
 export const TestButton = component$(() => {
 	const count = useSignal(0);
-	const increment$ = $(() => {
+	const increment = () => {
 		console.log("incrementing");
 		count.value++;
-	});
+	};
 	return (
 		<>
 		<button
-			onClick$={async () => {
-			await increment$();
+			onClick$={() => {
+			increment();
 			console.log("incremented");
 			}}
 		>
 			TestButton {count.value}
 		</button>
-		<Child handleClick$={increment$} count={count} />
+		<Child handleClick$={increment} count={count} />
 		</>
 	);
 });
@@ -42,9 +42,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+import { TestButton_component_increment_V6FcLe11OrU } from "./test.tsx_TestButton_component_increment_V6FcLe11OrU.js";
 export const TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4 = async ()=>{
-    const increment$ = _captures[0];
-    await increment$();
+    const count = _captures[0];
+    await TestButton_component_increment_V6FcLe11OrU({count});
     console.log("incremented");
 };
 
@@ -69,7 +70,41 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     362
   ],
   "captureNames": [
-    "increment$"
+    "increment"
+  ]
+}
+*/
+============================= test.tsx_TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { TestButton_component_increment_V6FcLe11OrU } from "./test.tsx_TestButton_component_increment_V6FcLe11OrU.js";
+export const TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo = ()=>{
+    const count = _captures[0];
+    return TestButton_component_increment_V6FcLe11OrU({count});
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2EAoBuB;;WAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component_Fragment_Child_handleClick",
+  "hash": "j4GCqunfTqo",
+  "canonicalFilename": "test.tsx_TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo",
+  "path": "",
+  "extension": "js",
+  "parent": "TestButton_component_uFrpfTnm3bA",
+  "ctxKind": "jSXProp",
+  "ctxName": "handleClick$",
+  "captures": true,
+  "loc": [
+    431,
+    449
+  ],
+  "captureNames": [
+    "increment"
   ]
 }
 */
@@ -81,31 +116,30 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
-const i_V6FcLe11OrU = ()=>import("./test.tsx_TestButton_component_increment_V6FcLe11OrU");
+const i_j4GCqunfTqo = ()=>import("./test.tsx_TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo");
 const i_hOLZleZIsX4 = ()=>import("./test.tsx_TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4");
 export const TestButton_component_uFrpfTnm3bA = ()=>{
     const count = useSignal(0);
-    const increment$ = /*#__PURE__*/ qrl(i_V6FcLe11OrU, "TestButton_component_increment_V6FcLe11OrU", [
-        count
-    ]);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("button", null, {
             "q-e:click": /*#__PURE__*/ qrl(i_hOLZleZIsX4, "TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4", [
-                increment$
+                count
             ])
         }, [
             "TestButton ",
             _wrapProp(count)
         ], 3, null),
         /*#__PURE__*/ _jsxSorted(Child, null, {
-            handleClick$: increment$,
+            handleClick$: /*#__PURE__*/ qrl(i_j4GCqunfTqo, "TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo", [
+                count
+            ]),
             count: count
         }, null, 3, "u6_0")
     ], 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAIqC;IACpC,MAAM,QAAQ,UAAU;IACxB,MAAM;;;IAIN,qBACC;sBACA,WAAC;YACA,WAAQ;;;;YAIR;sBACY;;sBAEb,WAAC;YAAM,cAAc;YAAY,OAAO;;;AAG1C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;gDAIqC;IACpC,MAAM,QAAQ,UAAU;IACxB,MAAM;;;IAIN,qBACC;sBACA,WAAC;YACA,WAAQ;;;;YAIR;sBACY;;sBAEb,WAAC;YAAM,YAAY;;;YAAsB,OAAO;;;AAGlD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -122,15 +156,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     132,
-    471
+    479
   ]
 }
 */
 ============================= test.tsx_TestButton_component_increment_V6FcLe11OrU.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
-export const TestButton_component_increment_V6FcLe11OrU = ()=>{
-    const count = _captures[0];
+export const TestButton_component_increment_V6FcLe11OrU = ({count})=>{
     console.log("incrementing");
     count.value++;
 };

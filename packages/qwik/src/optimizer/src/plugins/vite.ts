@@ -1,4 +1,4 @@
-import type { UserConfig, ViteDevServer, Plugin as VitePlugin, BuildOptions } from 'vite';
+import type { ViteDevServer, Plugin as VitePlugin, BuildOptions, UserConfig } from 'vite';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -28,7 +28,7 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { configurePreviewServer, getViteIndexTags } from './dev';
 import { isVirtualId } from './vite-utils';
-import type { ResolvedId } from 'rollup';
+import type { ResolvedId } from 'rolldown';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -235,13 +235,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             '@builder.io/qwik/testing': '@qwik.dev/core/testing',
           },
         },
-        esbuild:
-          viteCommand === 'serve'
-            ? false
-            : {
-                logLevel: 'error',
-                jsx: 'automatic',
-              },
         optimizeDeps: {
           exclude: [
             // using optimized deps for qwik libraries will lead to duplicate imports
@@ -290,6 +283,25 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         },
       };
 
+      if (this.meta.rolldownVersion) {
+        updatedViteConfig.oxc =
+          viteCommand === 'serve'
+            ? false
+            : {
+                jsx: {
+                  runtime: 'automatic',
+                },
+              };
+      } else {
+        updatedViteConfig.esbuild =
+          viteCommand === 'serve'
+            ? false
+            : {
+                logLevel: 'error',
+                jsx: 'automatic',
+              };
+      }
+
       if (!qwikViteOpts.csr) {
         updatedViteConfig.build!.cssCodeSplit = false;
         if (opts.outDir) {
@@ -304,7 +316,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             useAssetsDir,
             opts.outDir
           ),
-          preserveEntrySignatures: 'exports-only',
+          preserveEntrySignatures: 'allow-extension',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
               return;

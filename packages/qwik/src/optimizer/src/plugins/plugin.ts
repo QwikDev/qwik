@@ -1,3 +1,4 @@
+import type { ChunkingContext, CodeSplittingOptions, ModuleInfo } from 'rolldown';
 import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
 import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/shared/utils/hash_code';
@@ -22,6 +23,7 @@ import type {
 import { convertManifestToBundleGraph } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import { isVirtualId, isWin, parseId } from './vite-utils';
+import type { ManualChunkMeta } from 'rollup';
 
 const REG_CTX_NAME = ['server'];
 
@@ -1034,7 +1036,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     }
   }
 
-  const manualChunks: Rollup.ManualChunksOption = (id: string, { getModuleInfo }) => {
+  const QwikChunkingFunction = (id: string, ctx: ChunkingContext) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
@@ -1054,7 +1056,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
       }
     }
 
-    const module = getModuleInfo(id);
+    const module = ctx?.getModuleInfo(id);
     if (module) {
       const segment = module.meta.segment as SegmentAnalysis | undefined;
       if (segment) {
@@ -1077,6 +1079,22 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
 
     // The rest is non-qwik code. We let rollup handle it.
     return null;
+  };
+
+  const manualChunks = (id: string, ctx: ChunkingContext) => {
+    return QwikChunkingFunction(id, ctx);
+  };
+
+  const codeSplitting: CodeSplittingOptions = {
+    includeDependenciesRecursively: false,
+    groups: [
+      {
+        name: (id: string, ctx: ChunkingContext) => {
+          console.log('CODE SPLITTING meta', id, ctx.getModuleInfo(id)?.meta);
+          return QwikChunkingFunction(id, ctx);
+        },
+      },
+    ],
   };
 
   async function generateManifest(
@@ -1151,6 +1169,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     configureServer,
     handleHotUpdate,
     manualChunks,
+    codeSplitting,
     generateManifest,
   };
 }

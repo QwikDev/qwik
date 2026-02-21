@@ -1,5 +1,7 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.24
+
 ## 2.0.0-beta.23
 
 ### Patch Changes

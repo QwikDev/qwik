@@ -1,5 +1,12 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.24
+
+### Patch Changes
+
+- Updated dependencies [[`a986de2`](https://github.com/QwikDev/qwik/commit/a986de20bde8489bf41e8d543754b0cf228dbd86), [`d36a103`](https://github.com/QwikDev/qwik/commit/d36a1031a123b7fa39db1193f1b92d0468f30b68), [`37fa0a7`](https://github.com/QwikDev/qwik/commit/37fa0a7437886d1d236e9099b04c4af9cef3aee6), [`59fadcf`](https://github.com/QwikDev/qwik/commit/59fadcf8f8edf5b309762c3aa3b3feba3bfc4d3d), [`37cb49e`](https://github.com/QwikDev/qwik/commit/37cb49e2418c4bfbc97cf27791e71fc34966d84d), [`fb5c9f3`](https://github.com/QwikDev/qwik/commit/fb5c9f39f732b1ca7986108bcc559e9601df93a9), [`adc03b1`](https://github.com/QwikDev/qwik/commit/adc03b1caa82ea3f9b43541e7f20a976cb1a5641), [`7d4f8ae`](https://github.com/QwikDev/qwik/commit/7d4f8aec6e4267f48c96c801a5587f6ee358b842), [`bedef2e`](https://github.com/QwikDev/qwik/commit/bedef2e8ef9f72efd0634c4f562005be90911232)]:
+  - @qwik.dev/core@2.0.0-beta.24
+
 ## 2.0.0-beta.23
 
 ### Patch Changes

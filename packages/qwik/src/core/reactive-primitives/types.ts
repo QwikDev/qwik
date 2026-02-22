@@ -8,6 +8,7 @@ import type { AsyncFn } from '../use/use-async';
 import type { Container, SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ISsrNode } from '../ssr/ssr-types';
+import type { PropsProxy } from '../shared/jsx/props-proxy';
 
 /**
  * # ================================
@@ -179,10 +180,12 @@ export class EffectSubscription {
   constructor(
     public consumer: Consumer,
     public property: EffectProperty | string,
-    public backRef: Set<SignalImpl | StoreTarget> | null = null,
+    public backRef: Set<EffectBackRef> | null = null,
     public data: SubscriptionData | null = null
   ) {}
 }
+
+export type EffectBackRef = SignalImpl | StoreTarget | PropsProxy;
 
 export const enum EffectProperty {
   COMPONENT = ':',

@@ -22,6 +22,7 @@ import {
   type AllSignalFlags,
   type AsyncQRL,
   type Consumer,
+  type EffectBackRef,
   type EffectSubscription,
   type StoreFlags,
 } from '../../reactive-primitives/types';
@@ -101,6 +102,7 @@ export const inflate = (
       const storeHandler = getStoreHandler(target as object)!;
       storeHandler.$flags$ = flags as StoreFlags;
       storeHandler.$effects$ = effects as any;
+      restoreEffectBackRefForEffectsMap(storeHandler.$effects$, store);
       break;
     }
     case TypeIds.Signal: {
@@ -108,6 +110,7 @@ export const inflate = (
       const d = data as [unknown, ...EffectSubscription[]];
       signal.$untrackedValue$ = d[0];
       signal.$effects$ = new Set(d.slice(1) as EffectSubscription[]);
+      restoreEffectBackRefForEffects(signal.$effects$, signal);
       break;
     }
     case TypeIds.WrappedSignal: {
@@ -121,6 +124,7 @@ export const inflate = (
       signal.$hostElement$ = d[3];
       signal.$effects$ = new Set(d.slice(4) as EffectSubscription[]);
       inflateWrappedSignalValue(signal);
+      restoreEffectBackRefForEffects(signal.$effects$, signal);
       break;
     }
     case TypeIds.AsyncSignal: {
@@ -164,6 +168,9 @@ export const inflate = (
 
       asyncSignal.$concurrency$ = (d[8] ?? 1) as number;
       asyncSignal.$timeoutMs$ = (d[9] ?? 0) as number;
+      restoreEffectBackRefForEffects(asyncSignal.$effects$, asyncSignal);
+      restoreEffectBackRefForEffects(asyncSignal.$loadingEffects$, asyncSignal);
+      restoreEffectBackRefForEffects(asyncSignal.$errorEffects$, asyncSignal);
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal
@@ -193,6 +200,7 @@ export const inflate = (
         // The serialized signal is always left invalid so it can recreate the custom object
         computed.$flags$ &= ~SignalFlags.INVALID;
       }
+      restoreEffectBackRefForEffects(computed.$effects$, computed);
       break;
     }
     case TypeIds.Error: {
@@ -271,7 +279,9 @@ export const inflate = (
         owner._proxy = propsProxy;
       }
       propsProxy[_OWNER] = owner;
-      propsProxy[_PROPS_HANDLER].$effects$ = d[3];
+      const propsHandler = propsProxy[_PROPS_HANDLER];
+      propsHandler.$effects$ = d[3];
+      restoreEffectBackRefForEffectsMap(propsHandler.$effects$, propsProxy);
       break;
     case TypeIds.SubscriptionData: {
       const effectData = target as SubscriptionData;
@@ -281,17 +291,11 @@ export const inflate = (
     }
     case TypeIds.EffectSubscription: {
       const effectSub = target as EffectSubscription;
-      const d = data as [
-        Consumer,
-        EffectProperty | string,
-        Set<SignalImpl | object> | null,
-        SubscriptionData | null,
-      ];
+      const d = data as [Consumer, EffectProperty | string, SubscriptionData | null];
       effectSub.consumer = d[0];
       effectSub.property = d[1];
-      effectSub.backRef = d[2];
-      effectSub.data = d[3];
-      restoreEffectBackRef(effectSub);
+      effectSub.data = d[2];
+      restoreEffectBackRefForConsumer(effectSub);
       break;
     }
     default:
@@ -360,7 +364,7 @@ export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
   }
 }
 
-function restoreEffectBackRef(effect: EffectSubscription): void {
+function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {
   const isServerSide = import.meta.env.TEST ? isServerPlatform() : isServer;
   const consumerBackRef = effect.consumer as BackRef;
   if (isServerSide && !consumerBackRef) {
@@ -369,4 +373,27 @@ function restoreEffectBackRef(effect: EffectSubscription): void {
   }
   consumerBackRef[_EFFECT_BACK_REF] ||= new Map();
   consumerBackRef[_EFFECT_BACK_REF].set(effect.property, effect);
+}
+
+function restoreEffectBackRefForEffects(
+  effects: Set<EffectSubscription> | null | undefined,
+  consumer: EffectBackRef
+): void {
+  if (effects) {
+    for (const effect of effects) {
+      effect.backRef ||= new Set();
+      effect.backRef.add(consumer);
+    }
+  }
+}
+
+function restoreEffectBackRefForEffectsMap(
+  effectsMap: Map<string | symbol, Set<EffectSubscription>> | null | undefined,
+  consumer: EffectBackRef
+): void {
+  if (effectsMap) {
+    for (const [, effects] of effectsMap) {
+      restoreEffectBackRefForEffects(effects, consumer);
+    }
+  }
 }

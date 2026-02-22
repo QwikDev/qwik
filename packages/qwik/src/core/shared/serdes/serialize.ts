@@ -329,12 +329,7 @@ export class Serializer {
         value.data.$isConst$,
       ]);
     } else if (value instanceof EffectSubscription) {
-      this.output(TypeIds.EffectSubscription, [
-        value.consumer,
-        value.property,
-        value.backRef,
-        value.data,
-      ]);
+      this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;
       const storeTarget = getStoreTarget(value);

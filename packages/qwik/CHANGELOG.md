@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.25
+
+### Minor Changes
+
+- ✨ serialized state should be up to 30% smaller (by [@Varixo](https://github.com/Varixo) in [#8375](https://github.com/QwikDev/qwik/pull/8375))
+
 ## 2.0.0-beta.24
 
 ### Minor Changes

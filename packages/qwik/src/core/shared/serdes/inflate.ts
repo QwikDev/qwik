@@ -1,3 +1,4 @@
+import { isServer } from '@qwik.dev/core/build';
 import {
   vnode_getFirstChild,
   vnode_getProp,
@@ -6,9 +7,10 @@ import {
   vnode_isVNode,
 } from '../../client/vnode-utils';
 import { _EFFECT_BACK_REF } from '../../internal';
+import type { BackRef } from '../../reactive-primitives/backref';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
-import type { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
+import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import { getStoreHandler, unwrapStore } from '../../reactive-primitives/impl/store';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import type { SubscriptionData } from '../../reactive-primitives/subscription-data';
@@ -29,6 +31,7 @@ import { qError, QError } from '../error/error';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { Fragment, Props } from '../jsx/jsx-runtime';
 import { PropsProxy } from '../jsx/props-proxy';
+import { isServerPlatform } from '../platform/platform';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
@@ -77,8 +80,7 @@ export const inflate = (
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
-      task[_EFFECT_BACK_REF] = v[4] as Map<EffectProperty | string, EffectSubscription> | undefined;
-      task.$state$ = v[5];
+      task.$state$ = v[4];
       break;
     case TypeIds.Component:
       (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
@@ -110,23 +112,14 @@ export const inflate = (
     }
     case TypeIds.WrappedSignal: {
       const signal = target as WrappedSignalImpl<unknown>;
-      const d = data as [
-        number,
-        unknown[],
-        Map<EffectProperty | string, EffectSubscription> | undefined,
-        AllSignalFlags,
-        HostElement,
-        ...EffectSubscription[],
-      ];
+      const d = data as [number, unknown[], AllSignalFlags, HostElement, ...EffectSubscription[]];
       signal.$func$ = container.getSyncFn(d[0]);
       signal.$args$ = d[1];
-      signal[_EFFECT_BACK_REF] = d[2];
       signal.$untrackedValue$ = NEEDS_COMPUTATION;
-      signal.$flags$ = d[3];
+      signal.$flags$ = d[2];
       signal.$flags$ |= SignalFlags.INVALID;
-      signal.$hostElement$ = d[4];
-      signal.$effects$ = new Set(d.slice(5) as EffectSubscription[]);
-
+      signal.$hostElement$ = d[3];
+      signal.$effects$ = new Set(d.slice(4) as EffectSubscription[]);
       inflateWrappedSignalValue(signal);
       break;
     }
@@ -134,7 +127,6 @@ export const inflate = (
       const asyncSignal = target as AsyncSignalImpl<unknown>;
       const d = data as [
         AsyncQRL<unknown>,
-        Map<EffectProperty | string, EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
@@ -146,24 +138,21 @@ export const inflate = (
         number?,
       ];
       asyncSignal.$computeQrl$ = d[0] as AsyncQRL<unknown>;
-      asyncSignal[_EFFECT_BACK_REF] = d[1] as
-        | Map<EffectProperty | string, EffectSubscription>
-        | undefined;
-      asyncSignal.$effects$ = new Set(d[2] as EffectSubscription[]);
-      asyncSignal.$loadingEffects$ = new Set(d[3] as EffectSubscription[]);
-      asyncSignal.$errorEffects$ = new Set(d[4] as EffectSubscription[]);
-      asyncSignal.$untrackedError$ = d[5] as Error;
+      asyncSignal.$effects$ = new Set(d[1] as EffectSubscription[]);
+      asyncSignal.$loadingEffects$ = new Set(d[2] as EffectSubscription[]);
+      asyncSignal.$errorEffects$ = new Set(d[3] as EffectSubscription[]);
+      asyncSignal.$untrackedError$ = d[4] as Error;
 
-      asyncSignal.$flags$ = (d[6] as number) ?? 0;
+      asyncSignal.$flags$ = (d[5] as number) ?? 0;
 
       if (asyncSignal.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
         // If it's client only, it was serialized because it pretended to be loading
         asyncSignal.$untrackedLoading$ = true;
       }
 
-      const hasValue = d.length > 7;
+      const hasValue = d.length > 6;
       if (hasValue) {
-        asyncSignal.$untrackedValue$ = d[7];
+        asyncSignal.$untrackedValue$ = d[6];
       }
       // can happen when never serialize etc
       if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION) {
@@ -171,22 +160,17 @@ export const inflate = (
       }
 
       // Note, we use the setter so that it schedules polling if needed
-      asyncSignal.interval = (d[8] ?? 0) as number;
+      asyncSignal.interval = (d[7] ?? 0) as number;
 
-      asyncSignal.$concurrency$ = (d[9] ?? 1) as number;
-      asyncSignal.$timeoutMs$ = (d[10] ?? 0) as number;
+      asyncSignal.$concurrency$ = (d[8] ?? 1) as number;
+      asyncSignal.$timeoutMs$ = (d[9] ?? 0) as number;
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal
     case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
       const computed = target as ComputedSignalImpl<unknown>;
-      const d = data as [
-        QRLInternal<() => {}>,
-        Map<EffectProperty | string, EffectSubscription> | undefined,
-        EffectSubscription[] | undefined,
-        unknown?,
-      ];
+      const d = data as [QRLInternal<() => {}>, EffectSubscription[] | undefined, unknown?];
       computed.$computeQrl$ = d[0];
       /**
        * If we try to compute value and the qrl is not resolved, then system throws an error with
@@ -197,13 +181,12 @@ export const inflate = (
         // ignore preload errors
       });
       loading = loading.finally(() => p);
-      computed[_EFFECT_BACK_REF] = d[1];
-      if (d[2]) {
-        computed.$effects$ = new Set(d[2]);
+      if (d[1]) {
+        computed.$effects$ = new Set(d[1]);
       }
-      const hasValue = d.length > 3;
+      const hasValue = d.length > 2;
       if (hasValue) {
-        computed.$untrackedValue$ = d[3];
+        computed.$untrackedValue$ = d[2];
       }
       if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
         // If we have a value after SSR, it will always be mean the signal was not invalid
@@ -308,16 +291,18 @@ export const inflate = (
       effectSub.property = d[1];
       effectSub.backRef = d[2];
       effectSub.data = d[3];
+      restoreEffectBackRef(effectSub);
       break;
     }
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
-}; /**
+};
+
+/**
  * Restores an array eagerly. If you need it lazily, use `deserializeData(container, TypeIds.Array,
  * array)` instead
  */
-
 export const _eagerDeserializeArray = (
   container: DeserializeContainer,
   data: unknown[],
@@ -328,6 +313,7 @@ export const _eagerDeserializeArray = (
   }
   return output;
 };
+
 export function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
   if (typeId === TypeIds.Plain) {
     return value;
@@ -338,6 +324,7 @@ export function deserializeData(container: DeserializeContainer, typeId: number,
   }
   return propValue;
 }
+
 export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
   if (signal.$hostElement$ !== null && vnode_isVNode(signal.$hostElement$)) {
     const hostVNode = signal.$hostElement$ as VirtualVNode;
@@ -371,4 +358,15 @@ export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
       }
     }
   }
+}
+
+function restoreEffectBackRef(effect: EffectSubscription): void {
+  const isServerSide = import.meta.env.TEST ? isServerPlatform() : isServer;
+  const consumerBackRef = effect.consumer as BackRef;
+  if (isServerSide && !consumerBackRef) {
+    // on browser, we don't serialize for example VNodes, so then on server side we don't have consumer
+    return;
+  }
+  consumerBackRef[_EFFECT_BACK_REF] ||= new Map();
+  consumerBackRef[_EFFECT_BACK_REF].set(effect.property, effect);
 }

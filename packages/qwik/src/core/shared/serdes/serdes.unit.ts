@@ -13,9 +13,10 @@ import {
   type AsyncSignal,
 } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _deserialize, _fnSignal, _serialize, _wrapProp } from '../../internal';
+import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _serialize, _wrapProp } from '../../internal';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
+import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { createStore } from '../../reactive-primitives/impl/store';
 import { createAsyncSignal } from '../../reactive-primitives/signal-api';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
@@ -361,7 +362,6 @@ describe('shared-serialization', () => {
           {number} 0
           {number} 0
           RootRef 1
-          Constant undefined
           Object [
             {string} "shared"
             {number} 2
@@ -373,8 +373,8 @@ describe('shared-serialization', () => {
         ]
         2 {string} "mock-chunk"
         3 {string} "task_qrl"
-        4 RootRef "0 5 0"
-        (101 chars)"
+        4 RootRef "0 4 0"
+        (97 chars)"
       `);
     });
     it(title(TypeIds.Component), async () => {
@@ -478,7 +478,6 @@ describe('shared-serialization', () => {
           Array [
             {number} 3
           ]
-          Constant undefined
           {number} 5
         ]
         1 WrappedSignal [
@@ -497,15 +496,10 @@ describe('shared-serialization', () => {
             ]
             {string} "value"
           ]
-          Map [
-            {string} "."
-            RootRef 3
-          ]
           {number} 7
         ]
         2 RootRef "1 1 0"
-        3 RootRef "2 1"
-        (123 chars)"
+        (96 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -529,7 +523,6 @@ describe('shared-serialization', () => {
         1 ComputedSignal [
           QRL "6#8#5"
           Constant undefined
-          Constant undefined
           {number} 2
         ]
         2 ComputedSignal [
@@ -537,7 +530,6 @@ describe('shared-serialization', () => {
         ]
         3 ComputedSignal [
           QRL "6#10#5"
-          Constant undefined
           Constant undefined
           {number} 4
         ]
@@ -553,7 +545,7 @@ describe('shared-serialization', () => {
         9 {string} "describe_describe_it_never_createComputed_1HbLed7JXyo"
         10 {string} "describe_describe_it_always_createComputed_4nMmgHlUOog"
         11 {string} "describe_describe_it_noSer_createComputed_pXwl00hYYQQ"
-        (417 chars)"
+        (409 chars)"
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {
@@ -594,25 +586,21 @@ describe('shared-serialization', () => {
           SerializerSignal [
             QRL "1#2"
             Constant undefined
-            Constant undefined
             {number} 4
           ]
           SerializerSignal [
             QRL "1#3"
-            Constant undefined
             Constant undefined
             Constant NEEDS_COMPUTATION
           ]
           SerializerSignal [
             QRL "1#4"
             Constant undefined
-            Constant undefined
             {number} 4
           ]
           ForwardRef 0
           SerializerSignal [
             QRL "1#5"
-            Constant undefined
             Constant undefined
             Constant NEEDS_COMPUTATION
           ]
@@ -631,7 +619,7 @@ describe('shared-serialization', () => {
         8 ForwardRefs [
           6
         ]
-        (466 chars)"
+        (450 chars)"
       `);
     });
     it(title(TypeIds.AsyncSignal), async () => {
@@ -713,22 +701,10 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          Constant undefined
           {number} 1
         ]
         1 AsyncSignal [
           QRL "8#10#7"
-          Map [
-            {string} ":"
-            EffectSubscription [
-              RootRef 1
-              {string} ":"
-              Set [
-                RootRef 7
-              ]
-              Constant null
-            ]
-          ]
           Constant undefined
           Constant undefined
           Constant undefined
@@ -738,31 +714,9 @@ describe('shared-serialization', () => {
         ]
         2 AsyncSignal [
           QRL "8#11#7"
-          Map [
-            {string} ":"
-            EffectSubscription [
-              RootRef 2
-              {string} ":"
-              Set [
-                RootRef 7
-              ]
-              Constant null
-            ]
-          ]
         ]
         3 AsyncSignal [
           QRL "8#12#7"
-          Map [
-            {string} ":"
-            EffectSubscription [
-              RootRef 3
-              {string} ":"
-              Set [
-                RootRef 7
-              ]
-              Constant null
-            ]
-          ]
           Constant undefined
           Constant undefined
           Constant undefined
@@ -776,14 +730,12 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          Constant undefined
           {number} 1
           Constant NEEDS_COMPUTATION
           {number} 100
         ]
         5 AsyncSignal [
           QRL "8#14#7"
-          Constant undefined
           Constant undefined
           Constant undefined
           Constant undefined
@@ -799,7 +751,6 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          Constant undefined
           {number} 1
           Constant NEEDS_COMPUTATION
           Constant undefined
@@ -808,9 +759,30 @@ describe('shared-serialization', () => {
         ]
         7 Signal [
           {number} 1
-          RootRef 16
-          RootRef 17
-          RootRef 18
+          EffectSubscription [
+            RootRef 1
+            {string} ":"
+            Set [
+              RootRef 7
+            ]
+            Constant null
+          ]
+          EffectSubscription [
+            RootRef 2
+            {string} ":"
+            Set [
+              RootRef 7
+            ]
+            Constant null
+          ]
+          EffectSubscription [
+            RootRef 3
+            {string} ":"
+            Set [
+              RootRef 7
+            ]
+            Constant null
+          ]
         ]
         8 {string} "mock-chunk"
         9 {string} "dirty"
@@ -820,10 +792,7 @@ describe('shared-serialization', () => {
         13 {string} "polling"
         14 {string} "concurrent"
         15 {string} "timeout"
-        16 RootRef "1 1 1"
-        17 RootRef "2 1 1"
-        18 RootRef "3 1 1"
-        (564 chars)"
+        (470 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -1147,6 +1116,110 @@ describe('shared-serialization', () => {
       const effect = deserialize(objs)[0] as SubscriptionData;
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
+    });
+  });
+
+  describe('effect backref restoration', () => {
+    /**
+     * _EFFECT_BACK_REF is not serialized; it is restored during inflate via restoreEffectBackRef.
+     * These tests serialize different consumers (Task, Signal, ComputedSignal) with effect
+     * subscriptions, then assert that after deserialize each consumer has the same effect backrefs
+     * (map from property -> EffectSubscription).
+     */
+    it('restores effect backref when consumer is Task', async () => {
+      const qrl = inlinedQrl(0, 's_zero') as any;
+      const shared = { x: 1 };
+      const task = new Task(0, 0, shared as any, qrl, shared as any, null);
+      const effect = new EffectSubscription(task, EffectProperty.COMPONENT, null, null);
+      const carrier = createSignal(0);
+      (carrier as SignalImpl).$effects$ = new Set([effect]);
+
+      const objs = await serialize(task, carrier);
+      const [restoredTask, restoredCarrier] = deserialize(objs) as [Task, SignalImpl];
+      const restoredEffect = [...restoredCarrier.$effects$!][0];
+
+      expect(restoredTask[_EFFECT_BACK_REF]).toBeDefined();
+      expect(restoredTask[_EFFECT_BACK_REF]!.get(EffectProperty.COMPONENT)).toBe(restoredEffect);
+      expect(restoredEffect.consumer).toBe(restoredTask);
+      expect(restoredEffect.property).toBe(EffectProperty.COMPONENT);
+    });
+
+    it('restores effect backref when consumer is SignalImpl', async () => {
+      const consumerSignal = createSignal('hi');
+      const effect = new EffectSubscription(
+        consumerSignal as SignalImpl,
+        EffectProperty.VNODE,
+        null,
+        null
+      );
+      const carrier = createSignal(0);
+      (carrier as SignalImpl).$effects$ = new Set([effect]);
+
+      const objs = await serialize(consumerSignal, carrier);
+      const [restoredConsumer, restoredCarrier] = deserialize(objs) as [SignalImpl, SignalImpl];
+      const restoredEffect = [...restoredCarrier.$effects$!][0];
+
+      expect((restoredConsumer as any)[_EFFECT_BACK_REF]).toBeDefined();
+      expect((restoredConsumer as any)[_EFFECT_BACK_REF].get(EffectProperty.VNODE)).toBe(
+        restoredEffect
+      );
+      expect(restoredEffect.consumer).toBe(restoredConsumer);
+      expect(restoredEffect.property).toBe(EffectProperty.VNODE);
+    });
+
+    it('restores effect backref when consumer is ComputedSignalImpl', async () => {
+      const computed = createComputed$(() => 1, { serializationStrategy: 'always' });
+      const impl = computed as unknown as ComputedSignalImpl<number>;
+      const effect = new EffectSubscription(impl, EffectProperty.VNODE, null, null);
+      const carrier = createSignal(0);
+      (carrier as SignalImpl).$effects$ = new Set([effect]);
+
+      const objs = await serialize(impl, carrier);
+      const [restoredComputed, restoredCarrier] = deserialize(objs) as [
+        ComputedSignalImpl<number>,
+        SignalImpl,
+      ];
+      const restoredEffect = [...restoredCarrier.$effects$!][0];
+
+      expect(restoredComputed[_EFFECT_BACK_REF]).toBeDefined();
+      expect(restoredComputed[_EFFECT_BACK_REF]!.get(EffectProperty.VNODE)).toBe(restoredEffect);
+      expect(restoredEffect.consumer).toBe(restoredComputed);
+      expect(restoredEffect.property).toBe(EffectProperty.VNODE);
+    });
+
+    it('restores multiple effect backrefs on the same consumer (Task)', async () => {
+      const qrl = inlinedQrl(0, 's_zero') as any;
+      const shared = {} as any;
+      const task = new Task(0, 0, shared, qrl, undefined, null);
+      const effect1 = new EffectSubscription(task, EffectProperty.COMPONENT, null, null);
+      const effect2 = new EffectSubscription(task, 'customProp', null, null);
+      const carrier = createSignal(0);
+      (carrier as SignalImpl).$effects$ = new Set([effect1, effect2]);
+
+      const objs = await serialize(task, carrier);
+      const [restoredTask, restoredCarrier] = deserialize(objs) as [Task, SignalImpl];
+      const effects = [...restoredCarrier.$effects$!];
+
+      expect(restoredTask[_EFFECT_BACK_REF]).toBeDefined();
+      expect(restoredTask[_EFFECT_BACK_REF]!.size).toBe(2);
+      expect(restoredTask[_EFFECT_BACK_REF]!.get(EffectProperty.COMPONENT)).toBe(effects[0]);
+      expect(restoredTask[_EFFECT_BACK_REF]!.get('customProp')).toBe(effects[1]);
+      expect(effects[0].consumer).toBe(restoredTask);
+      expect(effects[1].consumer).toBe(restoredTask);
+    });
+
+    it('restores effect backref with string property (e.g. attribute name)', async () => {
+      const consumerSignal = createSignal(0);
+      const effect = new EffectSubscription(consumerSignal as SignalImpl, 'data-value', null, null);
+      const carrier = createSignal(null);
+      (carrier as SignalImpl).$effects$ = new Set([effect]);
+
+      const objs = await serialize(consumerSignal, carrier);
+      const [restoredConsumer, restoredCarrier] = deserialize(objs) as [SignalImpl, SignalImpl];
+      const restoredEffect = [...restoredCarrier.$effects$!][0];
+
+      expect((restoredConsumer as any)[_EFFECT_BACK_REF].get('data-value')).toBe(restoredEffect);
+      expect(restoredEffect.property).toBe('data-value');
     });
   });
 

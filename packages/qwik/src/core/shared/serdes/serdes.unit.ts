@@ -16,8 +16,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _serialize, _wrapProp } from '../../internal';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
+import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
-import { createStore } from '../../reactive-primitives/impl/store';
+import { createStore, getStoreHandler, unwrapStore } from '../../reactive-primitives/impl/store';
 import { createAsyncSignal } from '../../reactive-primitives/signal-api';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
@@ -33,6 +34,10 @@ import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { retryOnPromise } from '../utils/promises';
+import { Fragment } from '../jsx/jsx-runtime';
+import { JSXNodeImpl } from '../jsx/jsx-node';
+import { createPropsProxy } from '../jsx/props-proxy';
+import { _OWNER, _PROPS_HANDLER } from '../utils/constants';
 import { _constants, _typeIdNames, TypeIds } from './constants';
 import { _dumpState } from './dump-state';
 import { _createDeserializeContainer } from './serdes.public';
@@ -454,11 +459,10 @@ describe('shared-serialization', () => {
               ]
               {string} ":"
               Constant null
-              Constant null
             ]
           ]
         ]
-        (55 chars)"
+        (51 chars)"
       `);
     });
     it(title(TypeIds.WrappedSignal), async () => {
@@ -488,9 +492,6 @@ describe('shared-serialization', () => {
               EffectSubscription [
                 RootRef 1
                 {string} "."
-                Set [
-                  RootRef 2
-                ]
                 Constant null
               ]
             ]
@@ -498,8 +499,7 @@ describe('shared-serialization', () => {
           ]
           {number} 7
         ]
-        2 RootRef "1 1 0"
-        (96 chars)"
+        (77 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -762,25 +762,16 @@ describe('shared-serialization', () => {
           EffectSubscription [
             RootRef 1
             {string} ":"
-            Set [
-              RootRef 7
-            ]
             Constant null
           ]
           EffectSubscription [
             RootRef 2
             {string} ":"
-            Set [
-              RootRef 7
-            ]
             Constant null
           ]
           EffectSubscription [
             RootRef 3
             {string} ":"
-            Set [
-              RootRef 7
-            ]
             Constant null
           ]
         ]
@@ -792,7 +783,7 @@ describe('shared-serialization', () => {
         13 {string} "polling"
         14 {string} "concurrent"
         15 {string} "timeout"
-        (470 chars)"
+        (443 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -1121,10 +1112,10 @@ describe('shared-serialization', () => {
 
   describe('effect backref restoration', () => {
     /**
-     * _EFFECT_BACK_REF is not serialized; it is restored during inflate via restoreEffectBackRef.
-     * These tests serialize different consumers (Task, Signal, ComputedSignal) with effect
-     * subscriptions, then assert that after deserialize each consumer has the same effect backrefs
-     * (map from property -> EffectSubscription).
+     * _EFFECT_BACK_REF is not serialized; it is restored during inflate These tests serialize
+     * different consumers (Task, Signal, ComputedSignal) with effect subscriptions, then assert
+     * that after deserialize each consumer has the same effect backrefs (map from property ->
+     * EffectSubscription).
      */
     it('restores effect backref when consumer is Task', async () => {
       const qrl = inlinedQrl(0, 's_zero') as any;
@@ -1220,6 +1211,147 @@ describe('shared-serialization', () => {
 
       expect((restoredConsumer as any)[_EFFECT_BACK_REF].get('data-value')).toBe(restoredEffect);
       expect(restoredEffect.property).toBe('data-value');
+    });
+  });
+
+  describe('reactive primitives: effect backRef after deserialize', () => {
+    /**
+     * When we serialize Signal/Store/PropsProxy and deserialize, inflate restores each effect's
+     * backRef to point at the producer (signal, store target, or props proxy). These tests assert
+     * that every effect in the producer's $effects$ has that producer in effect.backRef.
+     */
+    const makeEffect = () =>
+      new EffectSubscription(
+        new Task(0, 0, {} as any, inlinedQrl(0, 's_zero') as any, {} as any, null),
+        EffectProperty.COMPONENT,
+        null,
+        null
+      );
+
+    it('SignalImpl: all effects have signal in backRef after deserialize', async () => {
+      const sig = createSignal(42) as SignalImpl;
+      sig.$effects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(sig);
+      const restored = deserialize(objs)[0] as SignalImpl;
+
+      expect(restored.$effects$).toBeDefined();
+      expect(restored.$effects$!.size).toBe(1);
+      const restoredEffect = [...restored.$effects$!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
+    });
+
+    it('WrappedSignalImpl: all effects have signal in backRef after deserialize', async () => {
+      const wrapped = _fnSignal(
+        (p0: number) => p0 + 1,
+        [3],
+        '(p0)=>p0+1'
+      ) as WrappedSignalImpl<number>;
+      wrapped.$effects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(wrapped);
+      const restored = deserialize(objs)[0] as WrappedSignalImpl<number>;
+
+      expect(restored.$effects$).toBeDefined();
+      expect(restored.$effects$!.size).toBe(1);
+      const restoredEffect = [...restored.$effects$!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
+    });
+
+    it('ComputedSignalImpl: all effects have signal in backRef after deserialize', async () => {
+      const computed = createComputed$(() => 1, { serializationStrategy: 'always' });
+      const impl = computed as unknown as ComputedSignalImpl<number>;
+      impl.$effects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(impl);
+      const restored = deserialize(objs)[0] as ComputedSignalImpl<number>;
+
+      expect(restored.$effects$).toBeDefined();
+      expect(restored.$effects$!.size).toBe(1);
+      const restoredEffect = [...restored.$effects$!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
+    });
+
+    it('AsyncSignalImpl: all effects (value/loading/error) have signal in backRef after deserialize', async () => {
+      const asyncSig = createAsyncSignal(
+        inlinedQrl(() => Promise.resolve(1), 'async_one', [])
+      ) as AsyncSignalImpl<number>;
+      asyncSig.$effects$ = new Set([makeEffect()]);
+      asyncSig.$loadingEffects$ = new Set([makeEffect()]);
+      asyncSig.$errorEffects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(asyncSig);
+      const restored = deserialize(objs)[0] as AsyncSignalImpl<number>;
+
+      for (const effectSet of [
+        restored.$effects$,
+        restored.$loadingEffects$,
+        restored.$errorEffects$,
+      ]) {
+        expect(effectSet).toBeDefined();
+        expect(effectSet!.size).toBe(1);
+        const restoredEffect = [...effectSet!][0];
+        expect(restoredEffect.backRef).toBeDefined();
+        expect(restoredEffect.backRef!.has(restored)).toBe(true);
+      }
+    });
+
+    it('SerializerSignalImpl: all effects have signal in backRef after deserialize', async () => {
+      const serializer = createSerializer$({
+        deserialize: (n?: number) => new MyCustomSerializable(n ?? 3),
+        serialize: (obj) => obj.n,
+      }) as unknown as SerializerSignalImpl<MyCustomSerializable, number>;
+      serializer.$effects$ = new Set([makeEffect()]);
+
+      const objs = await serialize(serializer);
+      const restored = deserialize(objs)[0] as SerializerSignalImpl<MyCustomSerializable, number>;
+
+      expect(restored.$effects$).toBeDefined();
+      expect(restored.$effects$!.size).toBe(1);
+      const restoredEffect = [...restored.$effects$!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
+    });
+
+    it('store: all effects have store target in backRef after deserialize', async () => {
+      const target = { count: 0 };
+      const store = createStore(null, target, StoreFlags.RECURSIVE);
+      const handler = getStoreHandler(store)!;
+      handler.$effects$ = new Map([['count', new Set([makeEffect()])]]);
+
+      const objs = await serialize(store);
+      const restoredStore = deserialize(objs)[0] as typeof store;
+      const restoredTarget = unwrapStore(restoredStore);
+      const restoredHandler = getStoreHandler(restoredStore)!;
+
+      expect(restoredHandler.$effects$).toBeDefined();
+      const effectsSet = restoredHandler.$effects$!.get('count');
+      expect(effectsSet).toBeDefined();
+      expect(effectsSet!.size).toBe(1);
+      const restoredEffect = [...effectsSet!][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restoredTarget)).toBe(true);
+    });
+
+    it('props-proxy: all effects have props proxy in backRef after deserialize', async () => {
+      const owner = new JSXNodeImpl(Fragment, {}, null, null, null);
+      const propsProxy = createPropsProxy(owner);
+      const handler = (propsProxy as any)[_PROPS_HANDLER];
+      handler.$effects$ = new Map([['x', new Set([makeEffect()])]]);
+
+      const objs = await serialize(propsProxy);
+      const restored = deserialize(objs)[0] as typeof propsProxy;
+
+      expect((restored as any)[_PROPS_HANDLER].$effects$).toBeDefined();
+      const effectsSet = (restored as any)[_PROPS_HANDLER].$effects$.get('x');
+      expect(effectsSet).toBeDefined();
+      expect(effectsSet.size).toBe(1);
+      const restoredEffect = [...effectsSet][0];
+      expect(restoredEffect.backRef).toBeDefined();
+      expect(restoredEffect.backRef!.has(restored)).toBe(true);
     });
   });
 

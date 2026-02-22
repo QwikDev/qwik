@@ -2,7 +2,6 @@ import { isDev } from '@qwik.dev/core/build';
 import { VNodeDataFlag, type StreamWriter } from '../../../server/types';
 import type { VNodeData } from '../../../server/vnode-data';
 import { vnode_isVNode } from '../../client/vnode-utils';
-import { _EFFECT_BACK_REF } from '../../internal';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
@@ -49,6 +48,7 @@ import {
   ESCAPED_CLOSE_TAG,
   QUOTE,
 } from '../ssr-const';
+import { _EFFECT_BACK_REF } from '../../reactive-primitives/backref';
 
 /**
  * Format:
@@ -329,12 +329,7 @@ export class Serializer {
         value.data.$isConst$,
       ]);
     } else if (value instanceof EffectSubscription) {
-      this.output(TypeIds.EffectSubscription, [
-        value.consumer,
-        value.property,
-        value.backRef,
-        value.data,
-      ]);
+      this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;
       const storeTarget = getStoreTarget(value);
@@ -408,12 +403,7 @@ export class Serializer {
           });
           this.output(TypeIds.ForwardRef, forwardRefId);
         } else {
-          this.output(TypeIds.SerializerSignal, [
-            value.$computeQrl$,
-            filterEffectBackRefs(value[_EFFECT_BACK_REF]),
-            value.$effects$,
-            maybeValue,
-          ]);
+          this.output(TypeIds.SerializerSignal, [value.$computeQrl$, value.$effects$, maybeValue]);
         }
         return;
       }
@@ -421,7 +411,6 @@ export class Serializer {
       if (value instanceof WrappedSignalImpl) {
         this.output(TypeIds.WrappedSignal, [
           ...serializeWrappingFn(this.$serializationContext$, value),
-          filterEffectBackRefs(value[_EFFECT_BACK_REF]),
           value.$flags$,
           value.$hostElement$,
           ...(value.$effects$ || []),
@@ -452,11 +441,7 @@ export class Serializer {
           v = NEEDS_COMPUTATION;
         }
 
-        const out: unknown[] = [
-          value.$computeQrl$,
-          filterEffectBackRefs(value[_EFFECT_BACK_REF]),
-          value.$effects$,
-        ];
+        const out: unknown[] = [value.$computeQrl$, value.$effects$];
         if (isAsync) {
           // After SSR, the signal is never loading, so no need to send it
           out.push(value.$loadingEffects$, value.$errorEffects$, value.$untrackedError$);
@@ -578,14 +563,7 @@ export class Serializer {
       }
       this.output(TypeIds.JSXNode, out);
     } else if (value instanceof Task) {
-      const out: unknown[] = [
-        value.$qrl$,
-        value.$flags$,
-        value.$index$,
-        value.$el$,
-        value[_EFFECT_BACK_REF],
-        value.$state$,
-      ];
+      const out: unknown[] = [value.$qrl$, value.$flags$, value.$index$, value.$el$, value.$state$];
       while (out[out.length - 1] === undefined) {
         out.pop();
       }
@@ -806,19 +784,6 @@ function serializeWrappingFn(
     value.$func$
   );
   return [syncFnId, value.$args$] as const;
-}
-
-function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | undefined) {
-  let effectBackRefToSerialize: Map<string, EffectSubscription> | undefined = undefined;
-  if (effectBackRef) {
-    for (const [effectProp, effect] of effectBackRef) {
-      if (effect.backRef) {
-        effectBackRefToSerialize ||= new Map<string, EffectSubscription>();
-        effectBackRefToSerialize.set(effectProp, effect);
-      }
-    }
-  }
-  return effectBackRefToSerialize;
 }
 
 function tryGetBackRefs(props: Props): Map<string, EffectSubscription> | undefined {

@@ -227,6 +227,188 @@ test('experimental[]', async () => {
   assert.deepEqual(opts.experimental, { [flag]: true } as any);
 });
 
+test('manualChunks falls back to cached segment metadata', async () => {
+  const segment = {
+    origin: 'routes/index.tsx',
+    name: 's_test',
+    entry: 'routes/index',
+    displayName: 'useTask$',
+    hash: 'test-hash',
+    canonicalFilename: 'q-test',
+    extension: 'js',
+    parent: null,
+    ctxKind: 'function',
+    ctxName: 'useTask$',
+    captures: false,
+    loc: [0, 0],
+  } as const;
+
+  const plugin = createQwikPlugin({
+    sys: {
+      cwd: () => process.cwd(),
+      env: 'node',
+      os: process.platform,
+      dynamicImport: async (path) => import(path),
+      strictDynamicImport: async (path) => import(path),
+      path: path as any,
+    },
+    binding: {
+      transform_modules: async () => ({
+        modules: [
+          {
+            path: 'routes/index.tsx',
+            isEntry: false,
+            code: 'export default 1;',
+            map: null,
+            segment: null,
+            origPath: null,
+          },
+          {
+            path: 'routes/index.tsx_s_test.js',
+            isEntry: false,
+            code: 'export const s_test = () => {};',
+            map: null,
+            segment,
+            origPath: null,
+          },
+        ],
+        diagnostics: [],
+        isTypeScript: true,
+        isJsx: true,
+      }),
+    },
+  });
+  await plugin.init();
+  await plugin.normalizeOptions({
+    target: 'client',
+    buildMode: 'production',
+  });
+  await plugin.buildStart({
+    resolve: async () => null,
+    emitFile: () => '0',
+  } as any);
+
+  const id = normalizePath(resolve(cwd, 'src', 'routes', 'index.tsx'));
+  const transformResult = (await plugin.transform(
+    {
+      addWatchFile: () => {},
+      emitFile: () => '0',
+      load: async () => null,
+    } as any,
+    `
+      import { component$, useTask$ } from '@qwik.dev/core';
+      export default component$(() => {
+        useTask$(() => {});
+        return <div>Hello</div>;
+      });
+    `,
+    id
+  )) as { meta?: { qwikdeps?: string[] } };
+
+  const depId = transformResult.meta?.qwikdeps?.[0];
+  expect(depId).toBeTruthy();
+
+  const withMeta = plugin.manualChunks(depId!, {
+    getModuleInfo: () => ({ id: depId, meta: { segment } }),
+  } as any);
+  const withoutMeta = plugin.manualChunks(depId!, {
+    getModuleInfo: () => ({ id: depId, meta: {} }),
+  } as any);
+
+  assert.deepEqual(withoutMeta, withMeta);
+});
+
+test('manualChunks normalizes cached segment entry', async () => {
+  const segment = {
+    origin: 'routing.qwik.mjs',
+    name: 'entry_createLoaderSignal',
+    entry:
+      '../node_modules/.pnpm/@qwik.dev_router@x/node_modules/@qwik.dev/router/lib/chunks/routing.qwik.mjs_entry_createLoaderSignal',
+    displayName: 'createLoaderSignal',
+    hash: 'hash',
+    canonicalFilename: 'q-file',
+    extension: 'js',
+    parent: null,
+    ctxKind: 'function',
+    ctxName: 'routeLoader$',
+    captures: false,
+    loc: [0, 0],
+  } as const;
+  const plugin = createQwikPlugin({
+    sys: {
+      cwd: () => process.cwd(),
+      env: 'node',
+      os: process.platform,
+      dynamicImport: async (path) => import(path),
+      strictDynamicImport: async (path) => import(path),
+      path: path as any,
+    },
+    binding: {
+      transform_modules: async () => ({
+        modules: [
+          {
+            path: 'routes/index.tsx',
+            isEntry: false,
+            code: 'export default 1;',
+            map: null,
+            segment: null,
+            origPath: null,
+          },
+          {
+            path: 'routing.qwik.mjs_entry_createLoaderSignal.js',
+            isEntry: false,
+            code: 'export const x = 1;',
+            map: null,
+            segment,
+            origPath: null,
+          },
+        ],
+        diagnostics: [],
+        isTypeScript: true,
+        isJsx: true,
+      }),
+    },
+  });
+  await plugin.init();
+  await plugin.normalizeOptions({
+    target: 'client',
+    buildMode: 'production',
+  });
+  await plugin.buildStart({
+    resolve: async () => null,
+    emitFile: () => '0',
+  } as any);
+
+  const id = normalizePath(resolve(cwd, 'src', 'routes', 'index.tsx'));
+  const transformResult = (await plugin.transform(
+    {
+      addWatchFile: () => {},
+      emitFile: () => '0',
+      load: async () => null,
+    } as any,
+    `
+      import { component$, useTask$ } from '@qwik.dev/core';
+      export default component$(() => {
+        useTask$(() => {});
+        return <div>Hello</div>;
+      });
+    `,
+    id
+  )) as { meta?: { qwikdeps?: string[] } };
+
+  const depId = transformResult.meta?.qwikdeps?.[0];
+  expect(depId).toBeTruthy();
+
+  const chunkName = plugin.manualChunks(depId!, {
+    getModuleInfo: () => ({ id: depId, meta: {} }),
+  } as any);
+
+  assert.deepEqual(
+    chunkName,
+    'node_modules/.pnpm/@qwik.dev_router@x/node_modules/@qwik.dev/router/lib/chunks/routing.qwik.mjs_entry_createLoaderSignal'
+  );
+});
+
 describe('resolveId', () => {
   test('qrls', async () => {
     const plugin = await mockPlugin();

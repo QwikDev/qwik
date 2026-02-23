@@ -63,6 +63,7 @@ export default defineConfig((): UserConfig => {
         ],
       },
     },
+    // @ts-expect-error - incompatible types between vite 7 and vite 8-beta
     plugins: [compiledStringPlugin()],
     clearScreen: false,
     optimizeDeps: {

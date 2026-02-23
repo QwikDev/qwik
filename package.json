@@ -11,7 +11,7 @@
     "syncpack": {
       "versionGroups": [
         {
-          "label": "Be lenient in vite versions for prod. v4 is broken, v5 is good",
+          "label": "Only accept vite 5 or higher",
           "dependencyTypes": [
             "prod",
             "peer"
@@ -19,7 +19,7 @@
           "dependencies": [
             "vite"
           ],
-          "pinVersion": ">=5 <8"
+          "pinVersion": ">=5 <9"
         },
         {
           "label": "vite-imagetools >9 creates different assets for ssr and client",

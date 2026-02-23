@@ -2003,6 +2003,16 @@ function materializeFromVNodeData(
         vnode_ensureElementKeyInflated(elementVNode);
         addVNode(elementVNode);
         child = fastNextSibling(child);
+        while (
+          // skip only elements, not text nodes
+          isElement(child) &&
+          shouldSkipElement(child)
+        ) {
+          child = fastNextSibling(child);
+          if (!child && value > 0) {
+            throw qError(QError.materializeVNodeDataError, [vData, peek(), nextToConsumeIdx]);
+          }
+        }
       }
       // collect the elements;
     } else if (peek() === VNodeDataChar.SCOPED_STYLE) {

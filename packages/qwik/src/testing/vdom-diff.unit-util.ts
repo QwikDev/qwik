@@ -143,11 +143,7 @@ function diffJsxVNode(
     return [path.join(' > ') + ' missing'];
   }
   if (!container.qContainer) {
-    try {
-      _getDomContainer(container);
-    } catch {
-      // ignore and hope for the best
-    }
+    _getDomContainer(container);
   }
 
   const diffs: string[] = [];

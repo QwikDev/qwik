@@ -9,6 +9,7 @@ import {
   vnode_getFirstChild,
   vnode_getProp,
   vnode_insertBefore,
+  vnode_insertElementBefore,
   vnode_locate,
   vnode_newElement,
   vnode_newText,
@@ -28,18 +29,27 @@ import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 
 describe('vnode', () => {
   let parent: ContainerElement;
+  let container: ContainerElement;
   let document: QDocument;
   let vParent: ElementVNode;
+  let vContainer: ElementVNode;
   let qVNodeRefs: Map<number, Element | ElementVNode>;
   let getVNode: (id: string) => VNode | null;
   let journal: VNodeJournal;
   beforeEach(() => {
     document = createDocument() as QDocument;
     document.qVNodeData = new WeakMap();
+    container = document.createElement('html') as ContainerElement;
+    container.setAttribute('q:container', 'resumed');
+    container.qVNodeRefs = qVNodeRefs = new Map();
     parent = document.createElement('test') as ContainerElement;
-    parent.qVNodeRefs = qVNodeRefs = new Map();
+    container.appendChild(parent);
     vParent = vnode_newUnMaterializedElement(parent);
-    getVNode = (id: string) => vnode_locate(vParent, id);
+    vContainer = vnode_newUnMaterializedElement(container);
+    getVNode = (id: string) => vnode_locate(vContainer, id);
+    journal = [];
+    vnode_insertElementBefore(journal, vContainer, vParent, null);
+    // ignore journal
     journal = [];
   });
   afterEach(() => {
@@ -3190,6 +3200,15 @@ describe('vnode', () => {
         </test>
       );
     });
+    it('should skip non-qwik elements in the middle', () => {
+      parent.innerHTML = '<div :>Hello</div><b>World</b><span :>Foo</span>';
+      expect(vParent).toMatchVDOM(
+        <test>
+          <div>Hello</div>
+          <span>Foo</span>
+        </test>
+      );
+    });
     it('should skip non-qwik elements in front of text nodes', () => {
       parent.innerHTML = '<div :>Hello</div><b>World</b>text';
       expect(vParent).toMatchVDOM(
@@ -3209,6 +3228,17 @@ describe('vnode', () => {
         <test>
           <div>World</div>
           <Fragment></Fragment>
+        </test>
+      );
+    });
+    it('should skip non-qwik elements in the middle', () => {
+      parent.innerHTML = '<div :>Hello</div><b>World</b><span :>Foo</span>';
+      document.qVNodeData.set(parent, '{}2');
+      expect(vParent).toMatchVDOM(
+        <test>
+          <Fragment></Fragment>
+          <div>Hello</div>
+          <span>Foo</span>
         </test>
       );
     });

@@ -94,7 +94,7 @@ describe('processVnodeData', () => {
           <div q:container="html" :><span></span></div>
           <div>ignore this</div>
           <b :>HelloWorld</b>
-          ${encodeVNode({ 2: '3', 4: 'FF' })}
+          ${encodeVNode({ 2: '2', 4: 'FF' })}
       </body>
       </html>
     `);
@@ -103,7 +103,6 @@ describe('processVnodeData', () => {
         <head />
         <body>
           <div dangerouslySetInnerHTML="<span></span>" {...qContainerHtml} />
-          <div>ignore this</div>
           <b>
             {'Hello'}
             {'World'}

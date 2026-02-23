@@ -23,7 +23,6 @@ import type {
 import { convertManifestToBundleGraph } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import { isVirtualId, isWin, parseId } from './vite-utils';
-import type { ManualChunkMeta } from 'rollup';
 
 const REG_CTX_NAME = ['server'];
 

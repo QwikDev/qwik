@@ -168,7 +168,7 @@
     "vite-imagetools": "9.0.0",
     "vite-plugin-dts": "4.5.4",
     "vite-tsconfig-paths": "6.0.4",
-    "vitest": "4.0.16",
+    "vitest": "4.0.18",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
     "zod": "3.25.48"

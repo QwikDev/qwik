@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
-import type { Plugin, UserConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import pkg from './package.json' with { type: 'json' };
+import type { UserConfig } from 'vite';
 
 export default defineConfig((): UserConfig => {
   return {
@@ -63,7 +63,7 @@ export default defineConfig((): UserConfig => {
         ],
       },
     },
-    plugins: [compiledStringPlugin() as Plugin],
+    plugins: [compiledStringPlugin()],
     clearScreen: false,
     optimizeDeps: {
       force: true,

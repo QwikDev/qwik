@@ -153,7 +153,7 @@
   "main": "./src/index.ts",
   "peerDependencies": {
     "prettier": "3.6.2",
-    "vite": ">=5 <8",
+    "vite": ">=5 <9",
     "vitest": ">=2 <5"
   },
   "peerDependenciesMeta": {

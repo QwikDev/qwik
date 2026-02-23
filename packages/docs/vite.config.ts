@@ -103,7 +103,7 @@ function overrideManualChunksForRepl(): Plugin {
     enforce: 'post',
     config(userConfig) {
       const prevOutput = userConfig.build?.rollupOptions?.output;
-      const prevManualChunks: Rollup.ManualChunksOption | undefined =
+      const prevManualChunks =
         prevOutput && !Array.isArray(prevOutput)
           ? (prevOutput as Rollup.OutputOptions).manualChunks
           : undefined;

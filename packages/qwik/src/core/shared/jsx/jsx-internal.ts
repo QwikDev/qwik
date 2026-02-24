@@ -91,6 +91,12 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
             constProps[attr] = constProps[k];
           }
           delete constProps[k];
+        } else if (k === BIND_CHECKED) {
+          // Set flag, will process after walk
+          bindCheckedSignal = constProps[k];
+        } else if (k === BIND_VALUE) {
+          // Set flag, will process after walk
+          bindValueSignal = constProps[k];
         }
         processedKeys.add(k);
       }
@@ -119,49 +125,71 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
         }
         processedKeys.add(k);
       }
+    }
 
-      // Handle bind:* - only in varProps, bind:* should be moved to varProps
-      if (bindCheckedSignal || bindValueSignal) {
-        if (!varPropsCopied) {
-          varProps = { ...varProps };
-          varPropsCopied = true;
-        }
+    // Handle bind:* - only in varProps, bind:* should be moved to varProps
+    if (bindCheckedSignal || bindValueSignal) {
+      if (!varPropsCopied) {
+        varProps = { ...varProps };
+        varPropsCopied = true;
+      }
 
-        if (bindCheckedSignal) {
+      varProps ||= {};
+
+      if (bindCheckedSignal) {
+        // Delete from both varProps and constProps if present
+        if (varProps && _hasOwnProperty.call(varProps, BIND_CHECKED)) {
           delete varProps[BIND_CHECKED];
-          varProps.checked = bindCheckedSignal;
-          const handler = createQRL(null, '_chk', _chk, null, [bindCheckedSignal]);
-
-          // Move q-e:input from constProps if it exists
-          if (constProps && _hasOwnProperty.call(constProps, 'q-e:input')) {
-            if (!constPropsCopied) {
-              constProps = { ...constProps };
-              constPropsCopied = true;
-            }
-            const existingHandler = constProps['q-e:input'];
-            delete constProps['q-e:input'];
-            toSort = mergeHandlers(varProps, 'q-e:input', existingHandler as any) || toSort;
-          }
-
-          toSort = mergeHandlers(varProps, 'q-e:input', handler) || toSort;
-        } else if (bindValueSignal) {
-          delete varProps[BIND_VALUE];
-          varProps.value = bindValueSignal;
-          const handler = createQRL(null, '_val', _val, null, [bindValueSignal]);
-
-          // Move q-e:input from constProps if it exists
-          if (constProps && _hasOwnProperty.call(constProps, 'q-e:input')) {
-            if (!constPropsCopied) {
-              constProps = { ...constProps };
-              constPropsCopied = true;
-            }
-            const existingHandler = constProps['q-e:input'];
-            delete constProps['q-e:input'];
-            toSort = mergeHandlers(varProps, 'q-e:input', existingHandler as any) || toSort;
-          }
-
-          toSort = mergeHandlers(varProps, 'q-e:input', handler) || toSort;
         }
+        if (constProps && _hasOwnProperty.call(constProps, BIND_CHECKED)) {
+          if (!constPropsCopied) {
+            constProps = { ...constProps };
+            constPropsCopied = true;
+          }
+          delete constProps[BIND_CHECKED];
+        }
+        varProps.checked = bindCheckedSignal;
+        const handler = createQRL(null, '_chk', _chk, null, [bindCheckedSignal]);
+
+        // Move q-e:input from constProps if it exists
+        if (constProps && _hasOwnProperty.call(constProps, 'q-e:input')) {
+          if (!constPropsCopied) {
+            constProps = { ...constProps };
+            constPropsCopied = true;
+          }
+          const existingHandler = constProps['q-e:input'];
+          delete constProps['q-e:input'];
+          toSort = mergeHandlers(varProps, 'q-e:input', existingHandler as any) || toSort;
+        }
+
+        toSort = mergeHandlers(varProps, 'q-e:input', handler) || toSort;
+      } else if (bindValueSignal) {
+        // Delete from both varProps and constProps if present
+        if (varProps && _hasOwnProperty.call(varProps, BIND_VALUE)) {
+          delete varProps[BIND_VALUE];
+        }
+        if (constProps && _hasOwnProperty.call(constProps, BIND_VALUE)) {
+          if (!constPropsCopied) {
+            constProps = { ...constProps };
+            constPropsCopied = true;
+          }
+          delete constProps[BIND_VALUE];
+        }
+        varProps.value = bindValueSignal;
+        const handler = createQRL(null, '_val', _val, null, [bindValueSignal]);
+
+        // Move q-e:input from constProps if it exists
+        if (constProps && _hasOwnProperty.call(constProps, 'q-e:input')) {
+          if (!constPropsCopied) {
+            constProps = { ...constProps };
+            constPropsCopied = true;
+          }
+          const existingHandler = constProps['q-e:input'];
+          delete constProps['q-e:input'];
+          toSort = mergeHandlers(varProps, 'q-e:input', existingHandler as any) || toSort;
+        }
+
+        toSort = mergeHandlers(varProps, 'q-e:input', handler) || toSort;
       }
     }
 

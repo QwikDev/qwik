@@ -5405,6 +5405,109 @@ export default component$(() => {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn should_transform_block_scoped_variables_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+        return <div onClick$={() => console.log(index)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_block_scoped_variables_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+		const value = val.toUpperCase();
+        return <div onClick$={() => console.log(value, index)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_block_scoped_variables_and_item_index_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+        return <div onClick$={() => console.log(val, i, index)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_block_scoped_variables_and_item_index_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+		const value = val.toUpperCase();
+        return <div onClick$={() => console.log(value, index, val, i)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

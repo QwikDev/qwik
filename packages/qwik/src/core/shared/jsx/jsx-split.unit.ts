@@ -306,6 +306,44 @@ describe('_jsxSplit', () => {
       expect(node.constProps?.['q-e:input']).toBe(handler);
       expect(node.varProps['q-e:input']).toBeUndefined();
     });
+
+    it('should move bind:value from const props to var props', async () => {
+      const signal = { value: 'test' };
+      const node = _jsxSplit(
+        'input',
+        null,
+        {
+          'bind:value': signal,
+        },
+        null,
+        0
+      );
+      expect(node.varProps['bind:value']).toBeUndefined();
+      expect(node.constProps?.['onInput$']).toBeUndefined();
+      expect(node.constProps?.['q-e:input']).toBeUndefined();
+
+      expect(node.varProps.value).toBe(signal);
+      expect(node.varProps['q-e:input']).toBeDefined();
+    });
+
+    it('should process bind:value for var props', async () => {
+      const signal = { value: 'test' };
+      const node = _jsxSplit(
+        'input',
+        {
+          'bind:value': signal,
+        },
+        null,
+        null,
+        0
+      );
+      expect(node.varProps['bind:value']).toBeUndefined();
+      expect(node.constProps?.['onInput$']).toBeUndefined();
+      expect(node.constProps?.['q-e:input']).toBeUndefined();
+
+      expect(node.varProps.value).toBe(signal);
+      expect(node.varProps['q-e:input']).toBeDefined();
+    });
   });
 
   describe('className to class conversion', () => {

@@ -5383,6 +5383,28 @@ export const Child = component$(() => {
 	});
 }
 
+#[test]
+fn should_make_component_jsx_split_with_bind() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'input'
+  const sig = useSignal(0)
+  return (
+    <div>
+      <Cmp bind:value={sig} />
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

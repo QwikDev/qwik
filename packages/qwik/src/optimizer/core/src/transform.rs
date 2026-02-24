@@ -1252,6 +1252,22 @@ impl<'a> QwikTransform<'a> {
 		key == &*BIND_VALUE || key == &*BIND_CHECKED
 	}
 
+	/// Checks if a component has bind:* directive props.
+	/// Components with bind directives need _jsxSplit for runtime handling.
+	fn component_has_bind_props(props: &[ast::PropOrSpread]) -> bool {
+		props.iter().any(|prop| {
+			if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) = prop {
+				match &node.key {
+					ast::PropName::Ident(ref ident) => Self::is_bind_prop(&ident.sym),
+					ast::PropName::Str(ref s) => Self::is_bind_prop(&s.value),
+					_ => false,
+				}
+			} else {
+				false
+			}
+		})
+	}
+
 	fn create_qrl(
 		&mut self,
 		path: Atom,
@@ -1566,7 +1582,13 @@ impl<'a> QwikTransform<'a> {
 					.count();
 
 				let has_spread_props = spread_props_count > 0;
-				let should_runtime_sort = has_spread_props;
+
+				// Check if we have bind:* props on a component (is_fn = true)
+				// Components with bind props need _jsxSplit for runtime handling
+				// In the edge case when fn is actually a string component at runtime
+				let has_component_bind_props = is_fn && Self::component_has_bind_props(&props);
+
+				let should_runtime_sort = has_spread_props || has_component_bind_props;
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
 				let mut added_iter_var_prop = false; // Track if we've already added q:p or q:ps

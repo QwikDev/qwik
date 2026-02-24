@@ -1,4 +1,4 @@
-import type { ViteDevServer, Plugin as VitePlugin, BuildOptions, UserConfig } from 'vite';
+import type { ViteDevServer, Plugin as VitePlugin, UserConfig } from 'vite';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -66,7 +66,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let viteAssetsDir: string | undefined;
   let srcDir: string | null = null;
   let rootDir: string | null = null;
-
   let ssrOutDir: string | null = null;
   // Cache the user-specified clientOutDir to use across multiple normalizeOptions calls
   const userClientOutDir = qwikViteOpts.client?.outDir;
@@ -150,7 +149,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             : qwikViteOpts.ssr?.input
           : undefined;
       const clientInput = target === 'client' ? qwikViteOpts.client?.input : undefined;
-      let input = viteConfig.build?.rollupOptions?.input || clientInput || ssrInput;
+      let input =
+        viteConfig.build?.[this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions']
+          ?.input ||
+        clientInput ||
+        ssrInput;
       if (input && typeof input === 'string') {
         input = [input];
       }
@@ -213,6 +216,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
       const qSerialize = viteConfig?.define?.[qSerializeKey] ?? isDevelopment;
 
+      const bundlerOptions = {
+        external: ['node:async_hooks'],
+        /**
+         * This is a workaround to have predictable chunk hashes between builds. It doesn't seem to
+         * impact the build time.
+         * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
+         */
+        maxParallelFileOps: 1,
+        // This will amend the existing input
+        input,
+      };
       const updatedViteConfig: UserConfig = {
         ssr: {
           noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
@@ -262,18 +276,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
-          rollupOptions: {
-            external: ['node:async_hooks'],
-            /**
-             * This is a workaround to have predictable chunk hashes between builds. It doesn't seem
-             * to impact the build time.
-             * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
-             */
-            maxParallelFileOps: 1,
-            // This will amend the existing input
-            input,
-            // temporary fix for rolldown-vite types
-          } as BuildOptions['rollupOptions'],
+          [this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions']: bundlerOptions,
         },
         define: {
           [qDevKey]: qDev,
@@ -307,23 +310,32 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (opts.outDir) {
           updatedViteConfig.build!.outDir = opts.outDir;
         }
-        const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
-        updatedViteConfig.build!.rollupOptions = {
-          ...updatedViteConfig.build!.rollupOptions,
-          output: await normalizeRollupOutputOptions(
-            qwikPlugin,
-            viteConfig.build?.rollupOptions?.output,
-            useAssetsDir,
-            opts.outDir
-          ),
-          preserveEntrySignatures: 'allow-extension',
-          onwarn: (warning, warn) => {
-            if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
-              return;
-            }
-            origOnwarn ? origOnwarn(warning, warn) : warn(warning);
-          },
-        };
+        const origOnwarn =
+          updatedViteConfig.build![this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions']
+            ?.onwarn;
+        updatedViteConfig.build![this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions'] =
+          {
+            ...updatedViteConfig.build![
+              this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions'
+            ],
+            output: await normalizeRollupOutputOptions(
+              qwikPlugin,
+              viteConfig.build?.[this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions']
+                ?.output,
+              useAssetsDir,
+              opts.outDir
+            ),
+            preserveEntrySignatures: 'allow-extension',
+            onwarn: (warning, warn) => {
+              if (
+                warning.plugin === 'typescript' &&
+                warning.message.includes('outputToFilesystem')
+              ) {
+                return;
+              }
+              origOnwarn ? origOnwarn(warning, warn) : warn(warning);
+            },
+          };
 
         if (opts.target === 'ssr') {
           // SSR Build
@@ -339,7 +351,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else if (opts.target === 'lib') {
           // Library Build
           updatedViteConfig.build!.minify = false;
-          updatedViteConfig.build!.rollupOptions.external = [
+          updatedViteConfig.build![
+            this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions'
+          ]!.external = [
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
@@ -388,7 +402,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       // Using vite.resolveId to check file if exist
       // for example input might be virtual file
-      const resolver = this.resolve.bind(this);
+      const resolver = (id: string) => this.resolve(id);
       await qwikPlugin.validateSource(resolver);
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {

@@ -221,7 +221,7 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
       vite:
-        specifier: v8.0.0-beta.15
+        specifier: 8.0.0-beta.15
         version: 8.0.0-beta.15(@types/node@24.10.0)(esbuild@0.27.2)(jiti@2.6.1)(terser@5.44.1)(yaml@2.8.2)
       vite-imagetools:
         specifier: 9.0.0
@@ -452,7 +452,7 @@ importers:
         specifier: 1.2.0
         version: 1.2.0(typescript@5.9.3)
       vite:
-        specifier: v8.0.0-beta.15
+        specifier: 8.0.0-beta.15
         version: 8.0.0-beta.15(@types/node@24.10.0)(esbuild@0.27.2)(jiti@2.6.1)(terser@5.44.1)(yaml@2.8.2)
       vite-tsconfig-paths:
         specifier: 6.0.4
@@ -574,7 +574,7 @@ importers:
         specifier: 8.52.0
         version: 8.52.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       vite:
-        specifier: v8.0.0-beta.15
+        specifier: 8.0.0-beta.15
         version: 8.0.0-beta.15(@types/node@24.10.0)(esbuild@0.27.2)(jiti@2.6.1)(terser@5.44.1)(yaml@2.8.2)
       vite-tsconfig-paths:
         specifier: 6.0.4
@@ -655,7 +655,7 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
       vite:
-        specifier: v8.0.0-beta.15
+        specifier: 8.0.0-beta.15
         version: 8.0.0-beta.15(@types/node@24.10.0)(esbuild@0.27.2)(jiti@2.6.1)(terser@5.44.1)(yaml@2.8.2)
 
   packages/qwik-router:

@@ -3162,35 +3162,54 @@ impl<'a> Fold for QwikTransform<'a> {
 			self.loop_depth += 1;
 			self.in_callback = true;
 			// Get ALL parameters from the callback function (e.g., item, index from map)
-			let iteration_vars = node
-				.args
-				.first()
-				.map_or(Vec::new(), |arg| match &*arg.expr {
-					ast::Expr::Arrow(arrow) => arrow
-						.params
-						.iter()
-						.filter_map(|param| {
-							if let ast::Pat::Ident(ident) = param {
-								Some(ident.id.clone())
-							} else {
-								None
+			let mut iteration_vars: Vec<ast::Ident> =
+				node.args
+					.first()
+					.map_or(Vec::new(), |arg| match &*arg.expr {
+						ast::Expr::Arrow(arrow) => arrow
+							.params
+							.iter()
+							.filter_map(|param| {
+								if let ast::Pat::Ident(ident) = param {
+									Some(ident.id.clone())
+								} else {
+									None
+								}
+							})
+							.collect(),
+						ast::Expr::Fn(func) => func
+							.function
+							.params
+							.iter()
+							.filter_map(|param| {
+								if let ast::Pat::Ident(ident) = &param.pat {
+									Some(ident.id.clone())
+								} else {
+									None
+								}
+							})
+							.collect(),
+						_ => Vec::new(),
+					});
+			// Also collect top-level `const <ident> = <expr>` declarations from the
+			// callback body. These derived consts (e.g. `const index = i + 1`) are in
+			// scope at the JSX render site so they can be passed via `q:p`/`q:ps` as
+			// positional arguments rather than captured via `_captures`.
+			if let Some(arg) = node.args.first() {
+				if let ast::Expr::Arrow(arrow) = &*arg.expr {
+					if let box ast::BlockStmtOrExpr::BlockStmt(ref block) = arrow.body {
+						for stmt in &block.stmts {
+							if let ast::Stmt::Decl(ast::Decl::Var(var)) = stmt {
+								if var.kind == ast::VarDeclKind::Const && var.decls.len() == 1 {
+									if let ast::Pat::Ident(ident) = &var.decls[0].name {
+										iteration_vars.push(ident.id.clone());
+									}
+								}
 							}
-						})
-						.collect(),
-					ast::Expr::Fn(func) => func
-						.function
-						.params
-						.iter()
-						.filter_map(|param| {
-							if let ast::Pat::Ident(ident) = &param.pat {
-								Some(ident.id.clone())
-							} else {
-								None
-							}
-						})
-						.collect(),
-					_ => Vec::new(),
-				});
+						}
+					}
+				}
+			}
 			self.iteration_var_stack.push(iteration_vars);
 		}
 

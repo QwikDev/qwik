@@ -1,0 +1,118 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 5464
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+		const value = val.toUpperCase();
+        return <div onClick$={() => console.log(value, index, val, i)}>{val}</div>
+      })}
+    </div>
+  );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,6EAWZ\"}")
+============================= test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps.js (ENTRY POINT)==
+
+export const test_component_div_div_q_e_click_Mc600uqO6ps = (_, _1, val, i, index, value)=>console.log(value, index, val, i);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4DAU8B,QAHR,KAAK,GACb,OACN,QAC4B,QAAQ,GAAG,CAAC,OAAO,OAAO,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_div_q_e_click_Mc600uqO6ps",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_div_q_e_click",
+  "hash": "Mc600uqO6ps",
+  "canonicalFilename": "test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    277,
+    316
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "val",
+    "i",
+    "index",
+    "value"
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const i_Mc600uqO6ps = ()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps");
+export const test_component_LUXeXe0DQrg = ()=>{
+    const arr = useSignal([
+        'a',
+        'b'
+    ]);
+    const test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(i_Mc600uqO6ps, "test_component_div_div_q_e_click_Mc600uqO6ps");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, arr.value.map((val, i)=>{
+        const index = i + 1;
+        const value = val.toUpperCase();
+        return /*#__PURE__*/ _jsxSorted("div", {
+            "q-e:click": test_component_div_div_q_e_click_Mc600uqO6ps,
+            "q:ps": [
+                val,
+                i,
+                index,
+                value
+            ]
+        }, null, val, 0, "u6_0");
+    }), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG0B;IACxB,MAAM,MAAM,UAAU;QAAC;QAAK;KAAI;;IAChC,qBACE,WAAC,mBACE,IAAI,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACnB,MAAM,QAAQ,IAAE;QACtB,MAAM,QAAQ,IAAI,WAAW;QACvB,qBAAO,WAAC;YAAI,WAAQ;;gBAHN;gBAAK;gBACb;gBACN;;iBACgE;IAClE;AAGN\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    85,
+    357
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

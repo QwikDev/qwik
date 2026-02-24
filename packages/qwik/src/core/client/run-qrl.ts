@@ -65,6 +65,10 @@ export function runEventHandlerQRL(
  * @internal
  */
 export function _run(this: string, event: Event, element: Element): ValueOrPromise<unknown> {
+  if (!element.isConnected) {
+    // ignore events on disconnected elements, this can happen when the event is triggered while the element is being removed
+    return;
+  }
   const ctx = newInvokeContextFromDOM(event, element);
   if (typeof this === 'string') {
     setCaptures(deserializeCaptures(ctx.$container$!, this));

@@ -1,4 +1,4 @@
-import { _serialize } from '@qwik.dev/core/internal';
+import { _serialize, isDev } from '@qwik.dev/core/internal';
 import type {
   LoadedRoute,
   RebuildRouteInfoInternal,
@@ -6,7 +6,7 @@ import type {
   RequestHandler,
 } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
-import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
+import { createRequestEvent, type RequestEventInternal } from './request-event';
 import { encoder } from './resolve-request-handlers';
 import type { ServerRequestEvent, StatusCodes } from './types';
 
@@ -116,7 +116,7 @@ async function runNext(
         }
         return e;
       }
-      if (getRequestMode(requestEv) !== 'dev') {
+      if (!isDev) {
         try {
           if (!requestEv.headersSent) {
             requestEv.headers.set('content-type', 'text/html; charset=utf-8');

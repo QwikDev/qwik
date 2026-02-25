@@ -244,7 +244,7 @@ export interface ServerRequestEvent<T = unknown> {
 }
 
 // @public (undocumented)
-export type ServerRequestMode = 'dev' | 'static' | 'server';
+export type ServerRequestMode = 'static' | 'server';
 
 // @public (undocumented)
 export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;

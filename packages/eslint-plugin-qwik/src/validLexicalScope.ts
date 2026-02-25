@@ -436,7 +436,11 @@ function _isTypeCapturable(
       };
     }
 
-    for (const symbol of type.getProperties()) {
+    const props =
+      (type.symbol.escapedName as string).endsWith('Signal') && type.getProperty('value')
+        ? [type.getProperty('value')!]
+        : type.getProperties();
+    for (const symbol of props) {
       const result = isSymbolCapturable(context, checker, symbol, node, opts, level + 1, seen);
       if (result) {
         const loc = result.location;

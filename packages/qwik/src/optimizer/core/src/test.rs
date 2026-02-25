@@ -5405,6 +5405,341 @@ export default component$(() => {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn should_transform_block_scoped_variables_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+        return <div onClick$={() => console.log(index)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_block_scoped_variables_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+		const value = val.toUpperCase();
+        return <div onClick$={() => console.log(value, index)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_block_scoped_variables_and_item_index_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+        return <div onClick$={() => console.log(val, i, index)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_block_scoped_variables_and_item_index_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+		const value = val.toUpperCase();
+        return <div onClick$={() => console.log(value, index, val, i)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_two_handlers_capturing_different_block_scope_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i + 1;
+        const label = val.toUpperCase();
+        return (
+          <div>
+            <button onClick$={() => console.log(index)}>{val}</button>
+            <span onKeyDown$={() => console.log(label)}>{label}</span>
+          </div>
+        )
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_handlers_capturing_cross_scope_in_nested_loops() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const matrix = useSignal([['a', 'b'], ['c', 'd']]);
+  return (
+    <div>
+      {matrix.value.map((row, i) => {
+        const rowIndex = i + 1;
+        return (
+          <div key={i}>
+            {row.map((cell, j) => {
+              const cellIndex = j + 1;
+              const cellKey = rowIndex + '-' + cellIndex;
+              return (
+                <span key={j}>
+                  <button onClick$={() => console.log(rowIndex, cellIndex)}>{cell}</button>
+                  <span onKeyDown$={() => console.log(cellKey, i, j)}>{cellKey}</span>
+                </span>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_same_element_one_handler_with_captures_one_without() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b']);
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i + 1;
+        return (
+          <div
+            onClick$={() => console.log(index)}
+            onKeyDown$={() => console.log('no capture')}
+          >
+            {val}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_nested_loops_handler_captures_only_inner_scope() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const matrix = useSignal([['a', 'b'], ['c', 'd']]);
+  return (
+    <div>
+      {matrix.value.map((row, i) => (
+        <div key={i}>
+          {row.map((cell, j) => {
+            const cellKey = cell + '-' + j;
+            return (
+              <span key={j}>
+                <button onClick$={() => console.log(cellKey)}>{cell}</button>
+              </span>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_three_nested_loops_handler_captures_outer_only() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const data = useSignal([
+    [['a', 'b'], ['c', 'd']],
+    [['e', 'f'], ['g', 'h']],
+  ]);
+  return (
+    <div>
+      {data.value.map((plane, pi) => {
+        const planeId = 'p' + pi;
+        return (
+          <div key={pi}>
+            {plane.map((row, ri) => (
+              <div key={ri}>
+                {row.map((cell, ci) => (
+                  <button key={ci} onClick$={() => console.log(planeId)}>
+                    {cell}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_handler_in_for_of_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b']);
+  const items = [];
+  for (const val of arr.value) {
+    items.push(
+      <div onClick$={() => console.log(val)}>{val}</div>
+    );
+  }
+  return <div>{items}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_multiple_handler_with_different_captures() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b']);
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const plusOne = i + 1;
+        const plusTwo = i + 2;
+        const double = i * 2;
+        return (
+          <div
+            onClick$={() => console.log(plusOne, double)}
+            onKeyDown$={() => console.log(plusTwo, double)}
+          >
+            {val}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

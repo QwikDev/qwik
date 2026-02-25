@@ -33,9 +33,6 @@ function customTerserPlugin(): Plugin {
             regex: '^\\$.+\\$$|^[A-Z][a-zA-Z]+$',
           },
         },
-        format: {
-          comments: true,
-        },
       });
 
       return result.code || null;

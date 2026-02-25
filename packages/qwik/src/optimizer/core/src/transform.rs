@@ -124,10 +124,12 @@ pub struct QwikTransform<'a> {
 	jsx_element_is_native: Vec<bool>,
 	hoisted_fn_signals: HashMap<String, Id>,
 	hoisted_fn_counter: u32,
-	loop_depth: u32,
 	iteration_var_stack: Vec<Vec<ast::Ident>>,
 	hoisted_qrls: Vec<Vec<(String, ast::VarDeclarator)>>,
-	fn_depth: u32,
+	/// For each hoisting scope, the decl_stack index of that function/arrow (used to map decl scope back to hoisted_qrls).
+	hoisting_scope_decl_indices: Vec<usize>,
+	/// Depths that are component boundaries (not loop callbacks). Used to hoist QRLs with captures to the current component's top.
+	component_depths: Vec<usize>,
 	in_callback: bool,
 }
 
@@ -271,10 +273,10 @@ impl<'a> QwikTransform<'a> {
 			jsx_element_is_native: Vec::new(),
 			hoisted_fn_signals: HashMap::new(),
 			hoisted_fn_counter: 0,
-			loop_depth: 0,
 			iteration_var_stack: Vec::new(),
 			hoisted_qrls: Vec::new(),
-			fn_depth: 0,
+			hoisting_scope_decl_indices: Vec::new(),
+			component_depths: Vec::new(),
 			in_callback: false,
 			options,
 		}
@@ -981,13 +983,76 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
+	/// Chooses which hoisting scope (0 = root component, 1 = first callback or nested component, …)
+	/// should receive a QRL's const declaration. Uses the segment just pushed in create_segment (segments.last()).
+	///
+	/// No captures: hoist one level up (current_depth - 1) so we get one QRL per handler type
+	/// without crossing component boundaries (nested component$ must keep its QRLs in its own scope).
+	///
+	/// Has captures: emit the QRL in the highest (outermost) scope where all captures are
+	/// still in scope. We find min_decl_scope and the smallest hoisting scope j that contains it.
+	/// When the segment has scoped_idents they are passed as qrl(..., [captures]); the captured
+	/// vars must be in scope at the QRL declaration site, so we use j only. When scoped_idents
+	/// is empty (captures only via q:p), hoist to the current component's top (depth 0 for root).
+	fn compute_hoist_target_depth(&self, current_depth: usize) -> usize {
+		self.segments
+			.last()
+			.map(|s| &s.data.scoped_idents)
+			.and_then(|scoped_idents| {
+				if scoped_idents.is_empty() {
+					// No capture array — hoist to current component's top (e.g. root = 0)
+					let current_component_depth = self
+						.component_depths
+						.iter()
+						.rev()
+						.find(|&&d| d <= current_depth)
+						.copied()
+						.unwrap_or(0);
+					Some(current_component_depth)
+				} else {
+					let min_decl_scope = (0..self.decl_stack.len()).find(|&i| {
+						scoped_idents.iter().all(|capture| {
+							let name = capture.0.as_ref();
+							self.decl_stack[0..=i]
+								.iter()
+								.any(|scope| scope.iter().any(|(id, _)| id.0.as_ref() == name))
+						})
+					})?;
+					// Smallest j = outermost scope whose body contains min_decl_scope
+					let j = self
+						.hoisting_scope_decl_indices
+						.iter()
+						.enumerate()
+						.find(|(_, &decl_idx)| decl_idx >= min_decl_scope.saturating_sub(1))
+						.map(|(idx, _)| idx)?;
+					let target = j.min(current_depth);
+					// scoped_idents non-empty => capture array in qrl(..., [captures]) => must be in scope
+					let has_capture_array = !scoped_idents.is_empty();
+					if has_capture_array {
+						Some(target)
+					} else {
+						let current_component_depth = self
+							.component_depths
+							.iter()
+							.rev()
+							.find(|&&d| d <= current_depth)
+							.copied()
+							.unwrap_or(0);
+						Some(target.min(current_component_depth))
+					}
+				}
+			})
+			.unwrap_or(current_depth)
+	}
+
 	/// Hoist QRL creation if inside a loop, or return the call expression as-is
 	fn hoist_qrl_if_needed(&mut self, converted_expr: ast::CallExpr, is_fn: bool) -> ast::Expr {
 		// Hoist QRLs only when inside a loop (for, while, .map(), etc.)
 		// This creates a single QRL declaration outside the loop for efficiency
 		// Don't hoist component$ QRLs (is_fn = true)
 		// Also need an active hoisting scope (hoisted_qrls not empty)
-		let should_hoist = self.loop_depth > 0 && !is_fn && !self.hoisted_qrls.is_empty();
+		let should_hoist =
+			!self.iteration_var_stack.is_empty() && !is_fn && !self.hoisted_qrls.is_empty();
 
 		if should_hoist {
 			// Extract symbol name from the QRL call (second argument)
@@ -1003,9 +1068,10 @@ impl<'a> QwikTransform<'a> {
 				};
 
 			let current_depth = self.hoisted_qrls.len() - 1;
+			let target_depth = self.compute_hoist_target_depth(current_depth);
 
-			// Check if we already hoisted this QRL at current depth
-			let existing_var = self.hoisted_qrls[current_depth]
+			// Check if we already hoisted this QRL at target depth
+			let existing_var = self.hoisted_qrls[target_depth]
 				.iter()
 				.find_map(|(name, _)| {
 					if name == &symbol_name {
@@ -1022,7 +1088,7 @@ impl<'a> QwikTransform<'a> {
 			if let Some(existing_ident) = existing_var {
 				existing_ident
 			} else {
-				// Hoist the QRL creation
+				// Hoist the QRL creation to the scope that contains all captures
 				let var_declarator = ast::VarDeclarator {
 					span: DUMMY_SP,
 					name: ast::Pat::Ident(ast::BindingIdent {
@@ -1037,7 +1103,7 @@ impl<'a> QwikTransform<'a> {
 					definite: false,
 				};
 
-				self.hoisted_qrls[current_depth].push((symbol_name.clone(), var_declarator));
+				self.hoisted_qrls[target_depth].push((symbol_name.clone(), var_declarator));
 
 				ast::Expr::Ident(ast::Ident::new(
 					Atom::from(symbol_name),
@@ -1594,7 +1660,9 @@ impl<'a> QwikTransform<'a> {
 				let mut added_iter_var_prop = false; // Track if we've already added q:p or q:ps
 
 				// Collect all iteration variables used by any handler on this element (in loop order)
-				let element_iter_vars: Vec<ast::Ident> = if self.loop_depth > 0 && !is_fn {
+				let element_iter_vars: Vec<ast::Ident> = if !self.iteration_var_stack.is_empty()
+					&& !is_fn
+				{
 					if let Some(iter_vars) = self.iteration_var_stack.last() {
 						let mut used_syms: HashSet<(Atom, SyntaxContext)> = HashSet::new();
 						for prop in props.iter() {
@@ -1867,17 +1935,19 @@ impl<'a> QwikTransform<'a> {
 									maybe_const_props.push(prop_to_add.fold_with(self));
 								} else {
 									// Check if the original expression captures any iteration variables
-									let captures_iteration_var = if self.loop_depth > 0 {
-										if let Some(iter_vars) = self.iteration_var_stack.last() {
-											iter_vars
-												.iter()
-												.any(|var| expr_uses_ident(&node.value, &id!(var)))
+									let captures_iteration_var =
+										if !self.iteration_var_stack.is_empty() {
+											if let Some(iter_vars) = self.iteration_var_stack.last()
+											{
+												iter_vars.iter().any(|var| {
+													expr_uses_ident(&node.value, &id!(var))
+												})
+											} else {
+												false
+											}
 										} else {
 											false
-										}
-									} else {
-										false
-									};
+										};
 
 									if let Some((getter, is_const)) =
 										self.convert_to_getter(&node.value)
@@ -2510,10 +2580,33 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
+	/// Push a hoisting scope for the current function/arrow if needed.
+	/// All functions create hoisting scopes EXCEPT callbacks (.map, .filter, etc.).
+	/// Callbacks inside a loop also get a scope so QRLs capturing loop vars can be placed there.
+	/// Returns true if a scope was created (caller should inject hoisted QRLs on exit).
+	fn enter_hoisting_scope(&mut self) -> bool {
+		let creates_hoisting_scope = !self.in_callback || !self.iteration_var_stack.is_empty();
+		if creates_hoisting_scope {
+			self.hoisting_scope_decl_indices
+				.push(self.decl_stack.len().saturating_sub(1));
+			self.hoisted_qrls.push(Vec::new());
+			if !self.in_callback {
+				self.component_depths
+					.push(self.hoisted_qrls.len().saturating_sub(1));
+			}
+		}
+		creates_hoisting_scope
+	}
+
 	/// Helper to inject hoisted QRLs into a block statement
 	/// Returns true if QRLs were injected
 	fn inject_hoisted_qrls_into_block(&mut self, stmts: &mut Vec<ast::Stmt>) -> bool {
+		let popped_depth = self.hoisted_qrls.len().saturating_sub(1);
 		if let Some(current_qrls) = self.hoisted_qrls.pop() {
+			self.hoisting_scope_decl_indices.pop();
+			if self.component_depths.last() == Some(&popped_depth) {
+				self.component_depths.pop();
+			}
 			if !current_qrls.is_empty() {
 				// Create const declarations for hoisted QRLs
 				let mut qrl_stmts = Vec::new();
@@ -2697,14 +2790,7 @@ impl<'a> Fold for QwikTransform<'a> {
 
 	fn fold_function(&mut self, node: ast::Function) -> ast::Function {
 		self.decl_stack.push(vec![]);
-		self.fn_depth += 1;
-
-		// All functions create hoisting scopes EXCEPT callbacks (.map, .filter, etc.)
-		// This matches arrow function behavior for consistency
-		let creates_hoisting_scope = !self.in_callback;
-		if creates_hoisting_scope {
-			self.hoisted_qrls.push(Vec::new());
-		}
+		let creates_hoisting_scope = self.enter_hoisting_scope();
 
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
@@ -2730,7 +2816,6 @@ impl<'a> Fold for QwikTransform<'a> {
 			}
 		}
 
-		self.fn_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();
@@ -2740,17 +2825,7 @@ impl<'a> Fold for QwikTransform<'a> {
 
 	fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
 		self.decl_stack.push(vec![]);
-		self.fn_depth += 1;
-
-		// All arrow functions create hoisting scopes EXCEPT callbacks (.map, .filter, etc.)
-		// This ensures:
-		// - Each component (Foo, Inner) has its own hoisting scope
-		// - Callbacks don't create scopes, so their QRLs hoist to the component level
-		// - Single QRL per loop for efficiency
-		let creates_hoisting_scope = !self.in_callback;
-		if creates_hoisting_scope {
-			self.hoisted_qrls.push(Vec::new());
-		}
+		let creates_hoisting_scope = self.enter_hoisting_scope();
 
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
@@ -2778,7 +2853,12 @@ impl<'a> Fold for QwikTransform<'a> {
 				ast::BlockStmtOrExpr::Expr(expr) => {
 					// For expression bodies, we need to check if there are QRLs to hoist
 					// If so, convert to block statement
+					let popped_depth = self.hoisted_qrls.len().saturating_sub(1);
 					if let Some(current_qrls) = self.hoisted_qrls.pop() {
+						self.hoisting_scope_decl_indices.pop();
+						if self.component_depths.last() == Some(&popped_depth) {
+							self.component_depths.pop();
+						}
 						if !current_qrls.is_empty() {
 							// Create const declarations for hoisted QRLs
 							let mut qrl_stmts = Vec::new();
@@ -2812,7 +2892,6 @@ impl<'a> Fold for QwikTransform<'a> {
 			}
 		}
 
-		self.fn_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();
@@ -2824,7 +2903,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.loop_depth += 1;
 
 		// Track the loop variable from the initialization
 		let iteration_vars = if let Some(ast::VarDeclOrExpr::VarDecl(ref var_decl)) = node.init {
@@ -2846,7 +2924,6 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		let o = node.fold_children_with(self);
 		self.iteration_var_stack.pop();
-		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2857,7 +2934,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.loop_depth += 1;
 
 		// Track the loop variable
 		let iteration_vars = match &node.left {
@@ -2882,7 +2958,6 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		let o = node.fold_children_with(self);
 		self.iteration_var_stack.pop();
-		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2893,7 +2968,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.loop_depth += 1;
 
 		// Track the loop variable
 		let iteration_vars = match &node.left {
@@ -2939,7 +3013,6 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		let o = node.fold_children_with(self);
 		self.iteration_var_stack.pop();
-		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2988,7 +3061,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.loop_depth += 1;
 
 		// Try to extract the iteration variable from the condition
 		// e.g., in "while (i < results.length)", extract "i"
@@ -3006,7 +3078,6 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		let o = node.fold_children_with(self);
 		self.iteration_var_stack.pop();
-		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -3159,38 +3230,56 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		// Track iteration variable for array methods
 		if is_iteration_method {
-			self.loop_depth += 1;
 			self.in_callback = true;
 			// Get ALL parameters from the callback function (e.g., item, index from map)
-			let iteration_vars = node
-				.args
-				.first()
-				.map_or(Vec::new(), |arg| match &*arg.expr {
-					ast::Expr::Arrow(arrow) => arrow
-						.params
-						.iter()
-						.filter_map(|param| {
-							if let ast::Pat::Ident(ident) = param {
-								Some(ident.id.clone())
-							} else {
-								None
+			let mut iteration_vars: Vec<ast::Ident> =
+				node.args
+					.first()
+					.map_or(Vec::new(), |arg| match &*arg.expr {
+						ast::Expr::Arrow(arrow) => arrow
+							.params
+							.iter()
+							.filter_map(|param| {
+								if let ast::Pat::Ident(ident) = param {
+									Some(ident.id.clone())
+								} else {
+									None
+								}
+							})
+							.collect(),
+						ast::Expr::Fn(func) => func
+							.function
+							.params
+							.iter()
+							.filter_map(|param| {
+								if let ast::Pat::Ident(ident) = &param.pat {
+									Some(ident.id.clone())
+								} else {
+									None
+								}
+							})
+							.collect(),
+						_ => Vec::new(),
+					});
+			// Also collect top-level `const <ident> = <expr>` declarations from the
+			// callback body. These derived consts (e.g. `const index = i + 1`) are in
+			// scope at the JSX render site so they can be passed via `q:p`/`q:ps` as
+			// positional arguments rather than captured via `_captures`.
+			if let Some(arg) = node.args.first() {
+				if let ast::Expr::Arrow(arrow) = &*arg.expr {
+					if let box ast::BlockStmtOrExpr::BlockStmt(ref block) = arrow.body {
+						for stmt in &block.stmts {
+							if let ast::Stmt::Decl(ast::Decl::Var(var)) = stmt {
+								if var.kind == ast::VarDeclKind::Const && var.decls.len() == 1 {
+									if let ast::Pat::Ident(ident) = &var.decls[0].name {
+										iteration_vars.push(ident.id.clone());
+									}
+								}
 							}
-						})
-						.collect(),
-					ast::Expr::Fn(func) => func
-						.function
-						.params
-						.iter()
-						.filter_map(|param| {
-							if let ast::Pat::Ident(ident) = &param.pat {
-								Some(ident.id.clone())
-							} else {
-								None
-							}
-						})
-						.collect(),
-					_ => Vec::new(),
-				});
+						}
+					}
+				}
+			}
 			self.iteration_var_stack.push(iteration_vars);
 		}
 
@@ -3301,7 +3390,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		// Clean up iteration tracking
 		if is_iteration_method {
 			self.iteration_var_stack.pop();
-			self.loop_depth -= 1;
 			self.in_callback = false;
 		}
 

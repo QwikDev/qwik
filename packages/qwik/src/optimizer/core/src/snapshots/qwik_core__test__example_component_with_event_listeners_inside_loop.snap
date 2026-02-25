@@ -249,13 +249,28 @@ export const App_component_ckEPmXZlub0 = ()=>{
     const results = useSignal([
         'foo'
     ]);
+    const App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = /*#__PURE__*/ qrl(i_Wau7C836nf0, "App_component_loopArrowFn_span_q_e_click_Wau7C836nf0", [
+        cart
+    ]);
+    const App_component_loopForI_span_q_e_click_PbCYbPM6etI = /*#__PURE__*/ qrl(i_PbCYbPM6etI, "App_component_loopForI_span_q_e_click_PbCYbPM6etI", [
+        cart,
+        results
+    ]);
+    const App_component_loopForOf_span_q_e_click_zlNGHYu926I = /*#__PURE__*/ qrl(i_zlNGHYu926I, "App_component_loopForOf_span_q_e_click_zlNGHYu926I", [
+        cart
+    ]);
+    const App_component_loopForIn_span_q_e_click_adzBGickx1U = /*#__PURE__*/ qrl(i_adzBGickx1U, "App_component_loopForIn_span_q_e_click_adzBGickx1U", [
+        cart,
+        results
+    ]);
+    const App_component_loopWhile_span_q_e_click_05kCMrZVn5E = /*#__PURE__*/ qrl(i_05kCMrZVn5E, "App_component_loopWhile_span_q_e_click_05kCMrZVn5E", [
+        cart,
+        results
+    ]);
     const App_component_div_button_q_e_click_UB6Fs5a3bd8 = /*#__PURE__*/ qrl(i_UB6Fs5a3bd8, "App_component_div_button_q_e_click_UB6Fs5a3bd8", [
         cart
     ]);
     function loopArrowFn(results) {
-        const App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = /*#__PURE__*/ qrl(i_Wau7C836nf0, "App_component_loopArrowFn_span_q_e_click_Wau7C836nf0", [
-            cart
-        ]);
         return results.map((item)=>/*#__PURE__*/ _jsxSorted("span", {
                 "q-e:click": App_component_loopArrowFn_span_q_e_click_Wau7C836nf0,
                 "q:p": item
@@ -263,10 +278,6 @@ export const App_component_ckEPmXZlub0 = ()=>{
     }
     function loopForI(results) {
         const items = [];
-        const App_component_loopForI_span_q_e_click_PbCYbPM6etI = /*#__PURE__*/ qrl(i_PbCYbPM6etI, "App_component_loopForI_span_q_e_click_PbCYbPM6etI", [
-            cart,
-            results
-        ]);
         for(let i = 0; i < results.length; i++)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "q-e:click": App_component_loopForI_span_q_e_click_PbCYbPM6etI,
             "q:p": i
@@ -278,9 +289,6 @@ export const App_component_ckEPmXZlub0 = ()=>{
     }
     function loopForOf(results) {
         const items = [];
-        const App_component_loopForOf_span_q_e_click_zlNGHYu926I = /*#__PURE__*/ qrl(i_zlNGHYu926I, "App_component_loopForOf_span_q_e_click_zlNGHYu926I", [
-            cart
-        ]);
         for (const item of results)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "q-e:click": App_component_loopForOf_span_q_e_click_zlNGHYu926I,
             "q:p": item
@@ -289,10 +297,6 @@ export const App_component_ckEPmXZlub0 = ()=>{
     }
     function loopForIn(results) {
         const items = [];
-        const App_component_loopForIn_span_q_e_click_adzBGickx1U = /*#__PURE__*/ qrl(i_adzBGickx1U, "App_component_loopForIn_span_q_e_click_adzBGickx1U", [
-            cart,
-            results
-        ]);
         for(const key in results)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "q-e:click": App_component_loopForIn_span_q_e_click_adzBGickx1U,
             "q:p": key
@@ -305,10 +309,6 @@ export const App_component_ckEPmXZlub0 = ()=>{
     function loopWhile(results) {
         const items = [];
         let i = 0;
-        const App_component_loopWhile_span_q_e_click_05kCMrZVn5E = /*#__PURE__*/ qrl(i_05kCMrZVn5E, "App_component_loopWhile_span_q_e_click_05kCMrZVn5E", [
-            cart,
-            results
-        ]);
         while(i < results.length){
             items.push(/*#__PURE__*/ _jsxSorted("span", {
                 "q-e:click": App_component_loopWhile_span_q_e_click_05kCMrZVn5E,
@@ -337,7 +337,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAyBe,EAAO,IAAG;;;;;;;;yCAvBK;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;;;;IACjC,SAAS,YAAY,OAAiB;;;;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,WAAQ;uBAFQ;qBAMf;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;;;;;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,WAAQ;mBAHL;;;;;QAWT,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;;;;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,WAAQ;mBAHH;iBAOJ;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;;;;;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,WAAQ;mBAHH;;;;;QAWX,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;;;;;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,WAAQ;uBAHP;;;;;YAUL;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,WAAQ;uBAHQ;;gBAEhB,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAyBe,EAAO,IAAG;;;;;;;;yCAvBK;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;;;;;;;;;;;;;;;;;;;;;;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,WAAQ;uBAFQ;qBAMf;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,WAAQ;mBAHL;;;;;QAWT,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,WAAQ;mBAHH;iBAOJ;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,WAAQ;mBAHH;;;;;QAWX,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,WAAQ;uBAHP;;;;;YAUL;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,WAAQ;uBAHQ;;gBAEhB,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
 /*
 {
   "origin": "test.tsx",

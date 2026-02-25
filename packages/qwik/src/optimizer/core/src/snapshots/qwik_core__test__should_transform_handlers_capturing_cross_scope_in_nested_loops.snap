@@ -1,0 +1,192 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 5521
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const matrix = useSignal([['a', 'b'], ['c', 'd']]);
+  return (
+    <div>
+      {matrix.value.map((row, i) => {
+        const rowIndex = i + 1;
+        return (
+          <div key={i}>
+            {row.map((cell, j) => {
+              const cellIndex = j + 1;
+              const cellKey = rowIndex + '-' + cellIndex;
+              return (
+                <span key={j}>
+                  <button onClick$={() => console.log(rowIndex, cellIndex)}>{cell}</button>
+                  <span onKeyDown$={() => console.log(cellKey, i, j)}>{cellKey}</span>
+                </span>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,6EAuBZ\"}")
+============================= test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = (_, _1, cellIndex)=>{
+    const rowIndex = _captures[0];
+    return console.log(rowIndex, cellIndex);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wEAgBoC,QAJhB;;WAIsB,QAAQ,GAAG,CAAC,UAAU\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_div_span_button_q_e_click_oBFNw2cK30o",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_div_span_button_q_e_click",
+  "hash": "oBFNw2cK30o",
+  "canonicalFilename": "test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    502,
+    540
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "cellIndex"
+  ],
+  "captureNames": [
+    "rowIndex"
+  ]
+}
+*/
+============================= test.tsx_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const test_component_div_div_span_span_q_e_keydown_SBPovprktLQ = (_, _1, j, cellKey)=>{
+    const i = _captures[0];
+    return console.log(cellKey, i, j);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wEAiBoC,QANR,GAER;;WAIsB,QAAQ,GAAG,CAAC,SAAS,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_div_span_span_q_e_keydown_SBPovprktLQ",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_div_span_span_q_e_keydown",
+  "hash": "SBPovprktLQ",
+  "canonicalFilename": "test.tsx_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onKeyDown$",
+  "captures": true,
+  "loc": [
+    594,
+    626
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "j",
+    "cellKey"
+  ],
+  "captureNames": [
+    "i"
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const i_SBPovprktLQ = ()=>import("./test.tsx_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ");
+const i_oBFNw2cK30o = ()=>import("./test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o");
+export const test_component_LUXeXe0DQrg = ()=>{
+    const matrix = useSignal([
+        [
+            'a',
+            'b'
+        ],
+        [
+            'c',
+            'd'
+        ]
+    ]);
+    return /*#__PURE__*/ _jsxSorted("div", null, null, matrix.value.map((row, i)=>{
+        const rowIndex = i + 1;
+        const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = /*#__PURE__*/ qrl(i_oBFNw2cK30o, "test_component_div_div_span_button_q_e_click_oBFNw2cK30o", [
+            rowIndex
+        ]);
+        const test_component_div_div_span_span_q_e_keydown_SBPovprktLQ = /*#__PURE__*/ qrl(i_SBPovprktLQ, "test_component_div_div_span_span_q_e_keydown_SBPovprktLQ", [
+            i
+        ]);
+        return /*#__PURE__*/ _jsxSorted("div", null, null, row.map((cell, j)=>{
+            const cellIndex = j + 1;
+            const cellKey = rowIndex + '-' + cellIndex;
+            return /*#__PURE__*/ _jsxSorted("span", null, null, [
+                /*#__PURE__*/ _jsxSorted("button", {
+                    "q-e:click": test_component_div_div_span_button_q_e_click_oBFNw2cK30o,
+                    "q:p": cellIndex
+                }, null, cell, 0, null),
+                /*#__PURE__*/ _jsxSorted("span", {
+                    "q-e:keydown": test_component_div_div_span_span_q_e_keydown_SBPovprktLQ,
+                    "q:ps": [
+                        j,
+                        cellKey
+                    ]
+                }, null, cellKey, 0, null)
+            ], 1, j);
+        }), 1, i);
+    }), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG0B;IACxB,MAAM,SAAS,UAAU;QAAC;YAAC;YAAK;SAAI;QAAE;YAAC;YAAK;SAAI;KAAC;IACjD,qBACE,WAAC,mBACE,OAAO,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACtB,MAAM,WAAW,IAAI;;;;;;;QACrB,qBACE,WAAC,mBACE,IAAI,GAAG,CAAC,CAAC,MAAM;YACd,MAAM,YAAY,IAAI;YACtB,MAAM,UAAU,WAAW,MAAM;YACjC,qBACE,WAAC;8BACC,WAAC;oBAAO,WAAQ;2BAJd;yBAIyD;8BAC3D,WAAC;oBAAK,aAAU;;wBANN;wBAER;;yBAImD;kBAF5C;QAKf,OAVQ;IAad;AAGN\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    85,
+    757
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

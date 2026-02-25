@@ -114,7 +114,7 @@ export const fastSkipSerialize = (obj: unknown): boolean => {
  * @public
  * @see noSerialize
  */
-export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
+export type NoSerialize<T> = (T & { __no_serialize__?: true }) | undefined;
 
 // <docs markdown="../../readme.md#noSerialize">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

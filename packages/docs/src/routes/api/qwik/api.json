@@ -1184,7 +1184,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__: true;\n}) | undefined;\n```",
+      "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__?: true;\n}) | undefined;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserialize.md"
     },
@@ -1198,7 +1198,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__: true;\n}) | undefined;\n```",
+      "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__?: true;\n}) | undefined;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserialize.md"
     },

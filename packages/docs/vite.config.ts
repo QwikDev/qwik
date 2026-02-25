@@ -180,6 +180,13 @@ export default defineConfig(() => {
       conditions: ['browser', 'worker', 'import', 'default'],
     },
     ssr: {
+      external: [
+        'prismjs',
+        'prismjs/components/prism-clike',
+        'prismjs/components/prism-jsx',
+        'prismjs/components/prism-markup',
+        'prismjs/components/prism-tsx',
+      ],
       noExternal: [
         '@mui/material',
         '@mui/system',

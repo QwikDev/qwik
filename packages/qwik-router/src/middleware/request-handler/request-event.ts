@@ -267,7 +267,10 @@ export function createRequestEvent(
     rewrite: (pathname: string) => {
       check();
       if (pathname.startsWith('http')) {
-        throw new Error('Rewrite does not support absolute urls');
+        throw new ServerError(
+          400,
+          isDev ? 'Rewrite does not support absolute urls' : 'Bad Request'
+        );
       }
       sharedMap.set(RequestEvIsRewrite, true);
       return exit(new RewriteMessage(pathname.replace(/\/+/g, '/')));

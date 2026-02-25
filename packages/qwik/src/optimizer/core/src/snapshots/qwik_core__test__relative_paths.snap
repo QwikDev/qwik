@@ -41,7 +41,11 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-import { _auto_useData as useData } from "./lib.mjs";
+const useData = ()=>{
+    return useStore({
+        count: 0
+    });
+};
 const i_8dWUa0cJAr4 = ()=>import("./lib.mjs_App_component_div_p_button_onClick_8dWUa0cJAr4.js");
 export const App_component_AkbU84a8zes = ()=>{
     const store = useData();
@@ -59,7 +63,7 @@ export const App_component_AkbU84a8zes = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;;;;yCAWyD;IACxD,MAAM,QAAQ;IACd,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,WAAQ;;;iBAME;KAGZ;AAEH\"}")
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;;MAKM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;;yCAEyD;IACxD,MAAM,QAAQ;IACd,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,WAAQ;;;iBAME;KAGZ;AAEH\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",
@@ -85,16 +89,10 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
 import { qrl } from "@qwik.dev/core";
 const i_AkbU84a8zes = ()=>import("./lib.mjs_App_component_AkbU84a8zes.js");
 import { componentQrl, useStore } from "@qwik.dev/core";
-const useData = ()=>{
-    return useStore({
-        count: 0
-    });
-};
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_AkbU84a8zes, "App_component_AkbU84a8zes"));
-export { useData as _auto_useData };
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,iBAAiB;AAIrF,MAAM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,4EAuBA\"}")
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,iBAAiB;AAUrF,OAAO,MAAM,MAAM,WAAW,GAAG,4EAuBA\"}")
 ============================= components/main.tsx_Local_component_jJ0v28bs0p8.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";

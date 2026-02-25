@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2409
+assertion_line: 2410
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 

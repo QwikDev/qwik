@@ -5706,6 +5706,40 @@ export default component$(() => {
 	});
 }
 
+#[test]
+fn should_transform_loop_multiple_handler_with_different_captures() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b']);
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const plusOne = i + 1;
+        const plusTwo = i + 2;
+        const double = i * 2;
+        return (
+          <div
+            onClick$={() => console.log(plusOne, double)}
+            onKeyDown$={() => console.log(plusTwo, double)}
+          >
+            {val}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

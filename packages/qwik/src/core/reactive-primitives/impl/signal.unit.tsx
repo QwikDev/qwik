@@ -22,6 +22,7 @@ import {
   type ComputedSignal,
   type SerializerSignal,
   type Signal,
+  type AsyncSignal,
 } from '../signal.public';
 import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
@@ -110,6 +111,20 @@ describe('signal types', () => {
       expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
       expectTypeOf(signal.value).toEqualTypeOf<Foo>();
     }
+  });
+  it('AsyncSignal<T>', () => async () => {
+    const signal = createAsync$(() => Promise.resolve(42));
+    expectTypeOf(signal).toEqualTypeOf<AsyncSignal<number>>();
+    expectTypeOf(signal).toExtend<Signal<number>>();
+    expectTypeOf(signal.trigger()).toEqualTypeOf<void>();
+    expectTypeOf(await signal.promise()).toEqualTypeOf<void>();
+    expectTypeOf(signal.value).toEqualTypeOf<number>();
+    expectTypeOf(signal.loading).toEqualTypeOf<boolean>();
+    expectTypeOf(signal.error).toEqualTypeOf<Error | undefined>();
+    expectTypeOf(signal.interval).toEqualTypeOf<number>();
+    expectTypeOf(signal.untrackedValue).toEqualTypeOf<number>();
+    expectTypeOf(signal.abort()).toEqualTypeOf<void>();
+    expectTypeOf(signal.invalidate()).toEqualTypeOf<void>();
   });
 });
 

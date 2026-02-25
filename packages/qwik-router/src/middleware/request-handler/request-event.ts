@@ -1,5 +1,10 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
-import { _deserialize, _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
+import {
+  _deserialize,
+  _UNINITIALIZED,
+  isDev,
+  type SerializationStrategy,
+} from '@qwik.dev/core/internal';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import {
   LoadedRouteProp,
@@ -207,8 +212,7 @@ export function createRequestEvent(
           );
         }
         if (loaders[id] === _UNINITIALIZED) {
-          const isDev = getRequestMode(requestEv) === 'dev';
-          await getRouteLoaderPromise(loaderOrAction, loaders, requestEv, isDev);
+          await getRouteLoaderPromise(loaderOrAction, loaders, requestEv);
         }
       }
 
@@ -313,7 +317,7 @@ export function createRequestEvent(
 
     getWritableStream: () => {
       if (writableStream === null) {
-        if (serverRequestEv.mode === 'dev') {
+        if (isDev) {
           const serverTiming = sharedMap.get(RequestEvShareServerTiming) as
             | [string, number][]
             | undefined;

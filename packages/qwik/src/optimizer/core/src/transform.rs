@@ -75,6 +75,7 @@ pub struct SegmentData {
 	pub display_name: Atom,
 	pub hash: Atom,
 	pub need_transform: bool,
+	pub migrated_root_vars: Vec<ast::ModuleItem>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -462,6 +463,7 @@ impl<'a> QwikTransform<'a> {
 			display_name,
 			need_transform: false,
 			hash,
+			migrated_root_vars: Vec::new(),
 		};
 		let should_emit = self.should_emit_segment(&segment_data);
 		if should_emit {
@@ -730,6 +732,7 @@ impl<'a> QwikTransform<'a> {
 			display_name,
 			need_transform: true,
 			hash,
+			migrated_root_vars: Vec::new(),
 		};
 		let should_emit = self.should_emit_segment(&segment_data);
 		if should_emit {

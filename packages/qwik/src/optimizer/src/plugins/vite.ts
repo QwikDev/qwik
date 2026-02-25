@@ -104,6 +104,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
 
+      const bundlerOptionsKey = this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions';
+
       let target: QwikBuildTarget;
       if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
         target = 'ssr';
@@ -149,11 +151,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             : qwikViteOpts.ssr?.input
           : undefined;
       const clientInput = target === 'client' ? qwikViteOpts.client?.input : undefined;
-      let input =
-        viteConfig.build?.[this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions']
-          ?.input ||
-        clientInput ||
-        ssrInput;
+      let input = viteConfig.build?.[bundlerOptionsKey]?.input || clientInput || ssrInput;
       if (input && typeof input === 'string') {
         input = [input];
       }
@@ -276,7 +274,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
-          [this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions']: bundlerOptions,
+          [bundlerOptionsKey]: bundlerOptions,
         },
         define: {
           [qDevKey]: qDev,
@@ -310,32 +308,23 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (opts.outDir) {
           updatedViteConfig.build!.outDir = opts.outDir;
         }
-        const origOnwarn =
-          updatedViteConfig.build![this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions']
-            ?.onwarn;
-        updatedViteConfig.build![this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions'] =
-          {
-            ...updatedViteConfig.build![
-              this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions'
-            ],
-            output: await normalizeRollupOutputOptions(
-              qwikPlugin,
-              viteConfig.build?.[this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions']
-                ?.output,
-              useAssetsDir,
-              opts.outDir
-            ),
-            preserveEntrySignatures: 'allow-extension',
-            onwarn: (warning, warn) => {
-              if (
-                warning.plugin === 'typescript' &&
-                warning.message.includes('outputToFilesystem')
-              ) {
-                return;
-              }
-              origOnwarn ? origOnwarn(warning, warn) : warn(warning);
-            },
-          };
+        const origOnwarn = updatedViteConfig.build![bundlerOptionsKey]?.onwarn;
+        updatedViteConfig.build![bundlerOptionsKey] = {
+          ...updatedViteConfig.build![bundlerOptionsKey],
+          output: await normalizeRollupOutputOptions(
+            qwikPlugin,
+            viteConfig.build?.[bundlerOptionsKey]?.output,
+            useAssetsDir,
+            opts.outDir
+          ),
+          preserveEntrySignatures: 'allow-extension',
+          onwarn: (warning, warn) => {
+            if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
+              return;
+            }
+            origOnwarn ? origOnwarn(warning, warn) : warn(warning);
+          },
+        };
 
         if (opts.target === 'ssr') {
           // SSR Build
@@ -351,9 +340,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else if (opts.target === 'lib') {
           // Library Build
           updatedViteConfig.build!.minify = false;
-          updatedViteConfig.build![
-            this.meta.rolldownVersion ? 'rolldownOptions' : 'rollupOptions'
-          ]!.external = [
+          updatedViteConfig.build![bundlerOptionsKey]!.external = [
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,

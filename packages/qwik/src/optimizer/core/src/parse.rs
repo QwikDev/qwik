@@ -8,8 +8,12 @@ use std::str;
 use crate::add_side_effect::SideEffectVisitor;
 use crate::clean_side_effects::Treeshaker;
 use crate::code_move::{new_module, NewModuleCtx};
-use crate::collector::global_collect;
+use crate::collector::{collect_from_pat, global_collect, Id};
 use crate::const_replace::ConstReplacerVisitor;
+use crate::dependency_analysis::{
+	analyze_root_dependencies, build_root_var_usage_map, find_migratable_vars,
+	topological_sort_variables, RootVarDecl,
+};
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
@@ -380,6 +384,23 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						}
 						segments = qwik_transform.segments.clone();
 						qt = Some(qwik_transform);
+
+						// Apply variable migration: move segment-exclusive root variables to their segments
+						if !segments.is_empty() {
+							let q = qt.as_ref().unwrap();
+							if let ast::Program::Module(ref mut module) = &mut program {
+								let migrated_ids = apply_variable_migration(
+									&mut segments,
+									module,
+									&q.options.global_collect,
+								);
+
+								// Remove migrated variables from root module exports
+								if !migrated_ids.is_empty() {
+									remove_migrated_exports(module, &migrated_ids);
+								}
+							}
+						}
 					}
 					program.visit_mut_with(&mut hygiene_with_config(Default::default()));
 					program.visit_mut_with(&mut fixer(None));
@@ -418,6 +439,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								leading_comments: comments_maps.0.clone(),
 								trailing_comments: comments_maps.1.clone(),
 								extra_top_items: &q.extra_top_items,
+								migrated_root_vars: &h.data.migrated_root_vars,
 							})?;
 							// we don't need to remove side effects because the optimizer only moves what's really used
 							if config.minify != MinifyMode::None {
@@ -778,4 +800,148 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 		normalized.push("");
 	}
 	normalized
+}
+
+/// Analyzes root variables and migrates segment-exclusive ones into their respective segments.
+/// This reduces the parent module footprint and improves code chunking.
+/// Returns the set of Id's that were migrated, so they can be removed from root exports.
+fn apply_variable_migration(
+	segments: &mut [Segment],
+	module: &ast::Module,
+	global_collect: &crate::collector::GlobalCollect,
+) -> std::collections::HashSet<Id> {
+	// Analyze root variable dependencies
+	let root_dependencies = analyze_root_dependencies(module, global_collect);
+
+	// Build usage map: which segments use which root variables
+	let root_var_usage = build_root_var_usage_map(segments, &root_dependencies);
+
+	// Find migratable variables: those used by exactly one segment and not exported
+	let migratable = find_migratable_vars(segments, &root_dependencies, &root_var_usage);
+
+	let mut migrated_ids = std::collections::HashSet::new();
+
+	// For each segment with migratable variables, extract and populate their declarations
+	for (seg_idx, var_ids) in migratable {
+		if seg_idx >= segments.len() {
+			continue;
+		}
+
+		// Sort variables by their dependencies (topological sort)
+		let sorted_var_ids = topological_sort_variables(&var_ids, &root_dependencies);
+
+		// Deduplicate declarations - multiple IDs can point to the same destructuring assignment
+		let mut seen_var_decls = std::collections::HashSet::new();
+		let mut unique_module_items = Vec::new();
+
+		for var_id in &sorted_var_ids {
+			if let Some(dep_info) = root_dependencies.get(var_id) {
+				// Compare by content, not pointer - create a hash of the declaration
+				let decl_key = match &dep_info.decl {
+					RootVarDecl::Var(decl) => format!("var:{:?}|{:?}", decl.name, decl.init),
+					RootVarDecl::Fn(decl) => format!("fn:{:?}", decl.ident),
+					RootVarDecl::Class(decl) => format!("class:{:?}", decl.ident),
+					RootVarDecl::TsEnum(decl) => format!("enum:{:?}", decl.id),
+				};
+
+				// Only add this var_decl if we haven't seen it before
+				if seen_var_decls.insert(decl_key) {
+					let module_item = match &dep_info.decl {
+						RootVarDecl::Var(decl) => {
+							let var_decl = ast::VarDecl {
+								span: swc_common::DUMMY_SP,
+								kind: ast::VarDeclKind::Const,
+								decls: vec![decl.clone()],
+								declare: false,
+								ctxt: swc_common::SyntaxContext::empty(),
+							};
+							ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(
+								var_decl,
+							))))
+						}
+						RootVarDecl::Fn(decl) => {
+							ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Fn(decl.clone())))
+						}
+						RootVarDecl::Class(decl) => {
+							ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Class(decl.clone())))
+						}
+						RootVarDecl::TsEnum(decl) => {
+							ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::TsEnum(decl.clone())))
+						}
+					};
+					unique_module_items.push(module_item);
+				}
+				migrated_ids.insert(var_id.clone());
+			}
+		}
+
+		// Populate the segment's migrated_root_vars with deduplicated items
+		segments[seg_idx].data.migrated_root_vars = unique_module_items;
+
+		// CRITICAL: Remove migrated variables from segment's local_idents and scoped_idents
+		// so that new_module() doesn't generate imports for them
+		segments[seg_idx]
+			.data
+			.local_idents
+			.retain(|id| !sorted_var_ids.contains(id));
+		segments[seg_idx]
+			.data
+			.scoped_idents
+			.retain(|id| !sorted_var_ids.contains(id));
+	}
+
+	migrated_ids
+}
+
+/// Removes exports and variable declarations for migrated variables from the root module.
+/// These variables are now defined in their respective segment files.
+fn remove_migrated_exports(module: &mut ast::Module, migrated_ids: &std::collections::HashSet<Id>) {
+	if migrated_ids.is_empty() {
+		return;
+	}
+
+	// Extract just the symbol names for comparison (ignore SyntaxContext)
+	let migrated_syms: std::collections::HashSet<_> =
+		migrated_ids.iter().map(|(sym, _)| sym.clone()).collect();
+
+	module.body.retain_mut(|item| {
+		match item {
+			// Remove export statements for migrated variables
+			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(export)) => {
+				export.specifiers.retain(|spec| {
+					if let ast::ExportSpecifier::Named(named) = spec {
+						if let ast::ModuleExportName::Ident(orig_ident) = &named.orig {
+							!migrated_syms.contains(&orig_ident.sym)
+						} else {
+							true
+						}
+					} else {
+						true
+					}
+				});
+				// Keep the export only if there are still specifiers
+				!export.specifiers.is_empty()
+			}
+			// Remove/filter variable declarations for migrated variables
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var_decl))) => {
+				var_decl.decls.retain(|decl| {
+					let mut ids = Vec::new();
+					let _ = collect_from_pat(&decl.name, &mut ids);
+					!ids.iter().any(|(id, _)| migrated_syms.contains(&id.0))
+				});
+				// Return true only if there are declarators left
+				!var_decl.decls.is_empty()
+			}
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Fn(function))) => {
+				!migrated_syms.contains(&function.ident.sym)
+			}
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Class(class))) => {
+				!migrated_syms.contains(&class.ident.sym)
+			}
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::TsEnum(enu))) => {
+				!migrated_syms.contains(&enu.id.sym)
+			}
+			_ => true,
+		}
+	});
 }

@@ -1,6 +1,11 @@
 // keep this import from qwik/build so the cjs build works
 import { isServer } from '@builder.io/qwik/build';
-import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
+import {
+  qError,
+  QError_dynamicImportFailed,
+  QError_qrlMissingChunk,
+  QError_qrlMissingContainer,
+} from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-class';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from '../util/qdev';
@@ -16,6 +21,8 @@ export const createPlatform = (): CorePlatform => {
         if (regSym) {
           return regSym;
         }
+        // we never lazy import on the server
+        throw qError(QError_dynamicImportFailed, symbolName);
       }
       if (!url) {
         throw qError(QError_qrlMissingChunk, symbolName);

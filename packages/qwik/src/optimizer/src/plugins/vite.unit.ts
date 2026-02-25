@@ -80,6 +80,50 @@ const bundlerMatrix = [
   },
 ];
 
+type BundlerOptionsKey = (typeof bundlerMatrix)[number]['bundlerOptionsKey'];
+
+const getBundlerOptions = (build: any, bundlerOptionsKey: BundlerOptionsKey) => {
+  const bundlerOptions = build[bundlerOptionsKey];
+  assert.ok(bundlerOptions, `Missing ${bundlerOptionsKey}`);
+  if (bundlerOptionsKey === 'rolldownOptions') {
+    assert.equal(build.rollupOptions, undefined);
+  } else {
+    assert.equal(build.rolldownOptions, undefined);
+  }
+  return bundlerOptions;
+};
+
+const expectTransformEngine = (
+  c: any,
+  bundlerOptionsKey: BundlerOptionsKey,
+  command: 'serve' | 'build'
+) => {
+  if (bundlerOptionsKey === 'rolldownOptions') {
+    assert.deepEqual(
+      c.oxc,
+      command === 'serve'
+        ? false
+        : {
+            jsx: {
+              runtime: 'automatic',
+            },
+          }
+    );
+    assert.equal(c.esbuild, undefined);
+  } else {
+    assert.deepEqual(
+      c.esbuild,
+      command === 'serve'
+        ? false
+        : {
+            logLevel: 'error',
+            jsx: 'automatic',
+          }
+    );
+    assert.equal(c.oxc, undefined);
+  }
+};
+
 describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptionsKey }) => {
   test('command: serve, mode: development', async () => {
     const initOpts = {
@@ -93,7 +137,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = await plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
     const outputOptions = bundlerOptions.output as Rollup.OutputOptions;
     const chunkFileNames = outputOptions.chunkFileNames as (
       chunkInfo: Rollup.PreRenderedChunk
@@ -128,14 +172,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
 
-    if (bundlerOptionsKey === 'rolldownOptions') {
-      assert.deepEqual(c.oxc, false);
-      assert.deepEqual(c.esbuild, undefined);
-      assert.deepEqual(build.rollupOptions, undefined);
-    } else {
-      assert.deepEqual(c.esbuild, false);
-      assert.deepEqual(c.oxc, undefined);
-    }
+    expectTransformEngine(c, bundlerOptionsKey, 'serve');
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -153,7 +190,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = await plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
     const outputOptions = bundlerOptions.output as Rollup.OutputOptions;
 
     assert.deepEqual(opts.target, 'client');
@@ -174,14 +211,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, undefined);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    if (bundlerOptionsKey === 'rolldownOptions') {
-      assert.deepEqual(c.oxc, false);
-      assert.deepEqual(c.esbuild, undefined);
-      assert.deepEqual(build.rollupOptions, undefined);
-    } else {
-      assert.deepEqual(c.esbuild, false);
-      assert.deepEqual(c.oxc, undefined);
-    }
+    expectTransformEngine(c, bundlerOptionsKey, 'serve');
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -199,7 +229,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = await plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
     const outputOptions = bundlerOptions.output as Rollup.OutputOptions;
     const chunkFileNames = outputOptions.chunkFileNames as (
       chunkInfo: Rollup.PreRenderedChunk
@@ -237,21 +267,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, undefined);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    if (bundlerOptionsKey === 'rolldownOptions') {
-      assert.deepEqual(c.oxc, {
-        jsx: {
-          runtime: 'automatic',
-        },
-      });
-      assert.deepEqual(c.esbuild, undefined);
-      assert.equal(build.rollupOptions, undefined);
-    } else {
-      assert.deepEqual(c.esbuild, {
-        logLevel: 'error',
-        jsx: 'automatic',
-      });
-      assert.deepEqual(c.oxc, undefined);
-    }
+    expectTransformEngine(c, bundlerOptionsKey, 'build');
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -269,7 +285,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = await plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
     const outputOptions = bundlerOptions.output as Rollup.OutputOptions;
 
     assert.deepEqual(opts.target, 'client');
@@ -294,21 +310,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, undefined);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    if (bundlerOptionsKey === 'rolldownOptions') {
-      assert.deepEqual(c.oxc, {
-        jsx: {
-          runtime: 'automatic',
-        },
-      });
-      assert.deepEqual(c.esbuild, undefined);
-      assert.equal(build.rollupOptions, undefined);
-    } else {
-      assert.deepEqual(c.esbuild, {
-        logLevel: 'error',
-        jsx: 'automatic',
-      });
-      assert.deepEqual(c.oxc, undefined);
-    }
+    expectTransformEngine(c, bundlerOptionsKey, 'build');
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -331,7 +333,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = await plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
     assert.deepEqual(opts.resolveQwikBuild, true);
 
     assert.deepEqual(opts.target, 'client');
@@ -355,7 +357,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = await plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
     const outputOptions = bundlerOptions.output as Rollup.OutputOptions;
 
     assert.deepEqual(opts.target, 'ssr');
@@ -381,22 +383,34 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, true);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    if (bundlerOptionsKey === 'rolldownOptions') {
-      assert.deepEqual(c.oxc, {
-        jsx: {
-          runtime: 'automatic',
-        },
-      });
-      assert.deepEqual(c.esbuild, undefined);
-      assert.equal(build.rollupOptions, undefined);
-    } else {
-      assert.deepEqual(c.esbuild, {
-        logLevel: 'error',
-        jsx: 'automatic',
-      });
-      assert.deepEqual(c.oxc, undefined);
-    }
+    expectTransformEngine(c, bundlerOptionsKey, 'build');
     assert.deepEqual(c.publicDir, false);
+  });
+
+  test('buildStart resolves relative ssr input', async () => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions(), srcDir: cwd });
+    await plugin.config.call(
+      configHookPluginContext,
+      { build: { ssr: 'src/entry.preview.tsx' } },
+      { command: 'build', mode: '' }
+    );
+
+    const calls: string[] = [];
+    const expectedResolvedId = normalizePath(resolve(cwd, 'src', 'entry.preview.tsx'));
+    const buildStartHook = plugin.buildStart as (this: any, options?: any) => Promise<void>;
+    await buildStartHook.call({
+      resolve: async (id: string) => {
+        calls.push(id);
+        return id === expectedResolvedId ? ({ id } as any) : null;
+      },
+      error: (msg: any) => {
+        throw new Error(`Unexpected error: ${msg}`);
+      },
+      warn: () => {},
+    } as any);
+
+    assert.deepEqual(calls[0], expectedResolvedId);
+    assert.deepEqual(calls.includes('src/entry.preview.tsx'), false);
   });
 
   test('command: serve, --mode ssr', async () => {
@@ -415,7 +429,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = await plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
 
     assert.deepEqual(opts.target, 'ssr');
     assert.deepEqual(opts.buildMode, 'development');
@@ -446,7 +460,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
 
     assert.deepEqual(opts.target, 'ssr');
     assert.deepEqual(opts.buildMode, 'development');
@@ -525,7 +539,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = await plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
     const outputOptions = bundlerOptions.output as Rollup.OutputOptions;
 
     assert.deepEqual(opts.target, 'lib');
@@ -581,7 +595,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     ))!;
     const opts = await plugin.api?.getOptions();
     const build = c.build!;
-    const bundlerOptions = build![bundlerOptionsKey]!;
+    const bundlerOptions = getBundlerOptions(build, bundlerOptionsKey);
     const outputOptions = bundlerOptions.output as Rollup.OutputOptions[];
 
     assert.deepEqual(opts.target, 'lib');

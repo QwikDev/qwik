@@ -2,6 +2,7 @@ import type { SerializeDocumentOptions } from './types';
 import { setPlatform } from '@builder.io/qwik';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import type { CorePlatformServer } from '../core/platform/types';
+import { qError, QError_dynamicImportFailed } from '../core/error/error';
 
 declare const require: (module: string) => Record<string, any>;
 
@@ -45,16 +46,8 @@ export function createPlatform(
       if (regSym) {
         return regSym;
       }
-
-      let modulePath = String(url);
-      if (!modulePath.endsWith('.js')) {
-        modulePath += '.js';
-      }
-      const module = require(modulePath);
-      if (!(symbolName in module)) {
-        throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${modulePath}'.`);
-      }
-      return module[symbolName];
+      // we never lazy import on the server
+      throw qError(QError_dynamicImportFailed, symbolName);
     },
     raf: () => {
       console.error('server can not rerender');

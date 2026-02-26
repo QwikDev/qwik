@@ -484,7 +484,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ServerRequestMode = 'dev' | 'static' | 'server';\n```",
+      "content": "```typescript\nexport type ServerRequestMode = 'static' | 'server';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
       "mdFile": "router.serverrequestmode.md"
     },

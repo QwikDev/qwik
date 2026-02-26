@@ -1,5 +1,10 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
-import { _deserialize, _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
+import {
+  _deserialize,
+  _UNINITIALIZED,
+  isDev,
+  type SerializationStrategy,
+} from '@qwik.dev/core/internal';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import {
   LoadedRouteProp,
@@ -207,8 +212,7 @@ export function createRequestEvent(
           );
         }
         if (loaders[id] === _UNINITIALIZED) {
-          const isDev = getRequestMode(requestEv) === 'dev';
-          await getRouteLoaderPromise(loaderOrAction, loaders, requestEv, isDev);
+          await getRouteLoaderPromise(loaderOrAction, loaders, requestEv);
         }
       }
 
@@ -263,7 +267,10 @@ export function createRequestEvent(
     rewrite: (pathname: string) => {
       check();
       if (pathname.startsWith('http')) {
-        throw new Error('Rewrite does not support absolute urls');
+        throw new ServerError(
+          400,
+          isDev ? 'Rewrite does not support absolute urls' : 'Bad Request'
+        );
       }
       sharedMap.set(RequestEvIsRewrite, true);
       return exit(new RewriteMessage(pathname.replace(/\/+/g, '/')));
@@ -313,7 +320,7 @@ export function createRequestEvent(
 
     getWritableStream: () => {
       if (writableStream === null) {
-        if (serverRequestEv.mode === 'dev') {
+        if (isDev) {
           const serverTiming = sharedMap.get(RequestEvShareServerTiming) as
             | [string, number][]
             | undefined;

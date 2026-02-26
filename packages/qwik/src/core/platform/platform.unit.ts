@@ -116,7 +116,7 @@ describe('core platform', () => {
       const result1 = platform.chunkForSymbol('mySymbol', 'chunk.js');
       expect(result1).toEqual(['mySymbol', 'chunk.js']);
 
-      const result2 = platform.chunkForSymbol('mySymbol');
+      const result2 = platform.chunkForSymbol('mySymbol', null);
       expect(result2).toEqual(['mySymbol', '_']);
     });
   });

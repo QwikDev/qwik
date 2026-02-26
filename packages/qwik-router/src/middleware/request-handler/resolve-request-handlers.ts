@@ -1,5 +1,5 @@
 import { inlinedQrl, type QRL } from '@qwik.dev/core';
-import { _serialize, _UNINITIALIZED, _verifySerializable } from '@qwik.dev/core/internal';
+import { _serialize, _UNINITIALIZED, _verifySerializable, isDev } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import {
@@ -200,7 +200,6 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
     }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
-    const isDev = getRequestMode(requestEv) === 'dev';
     if (isDev && method === 'GET') {
       if (requestEv.query.has(QACTION_KEY)) {
         console.warn(
@@ -225,7 +224,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
               `Expected request data for the action id ${selectedActionId} to be an object`
             );
           }
-          const result = await runValidators(requestEv, action.__validators, data, isDev);
+          const result = await runValidators(requestEv, action.__validators, data);
           if (!result.success) {
             loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
           } else {
@@ -253,10 +252,9 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
       return;
     }
     const loaders = getRequestLoaders(requestEv);
-    const isDev = getRequestMode(requestEv) === 'dev';
     if (routeLoaders.length > 0) {
       const resolvedLoadersPromises = routeLoaders.map((loader) =>
-        getRouteLoaderPromise(loader, loaders, requestEv, isDev)
+        getRouteLoaderPromise(loader, loaders, requestEv)
       );
       await Promise.all(resolvedLoadersPromises);
     }
@@ -266,15 +264,13 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
 export async function getRouteLoaderPromise(
   loader: LoaderInternal,
   loaders: Record<string, unknown>,
-  requestEv: RequestEventInternal,
-  isDev: boolean
+  requestEv: RequestEventInternal
 ) {
   const loaderId = loader.__id;
   loaders[loaderId] = runValidators(
     requestEv,
     loader.__validators,
-    undefined, // data
-    isDev
+    undefined // data
   )
     .then((res) => {
       if (res.success) {
@@ -308,8 +304,7 @@ export async function getRouteLoaderPromise(
 async function runValidators(
   requestEv: RequestEvent,
   validators: DataValidator[] | undefined,
-  data: unknown,
-  isDev: boolean
+  data: unknown
 ) {
   let lastResult: ValidatorReturn = {
     success: true,
@@ -346,7 +341,6 @@ async function runServerFunction(ev: RequestEvent) {
     ev.request.headers.get('Content-Type') === 'application/qwik-json'
   ) {
     ev.exit();
-    const isDev = getRequestMode(ev) === 'dev';
     const data = (await ev.parseBody()) as
       | [args?: unknown[] | undefined, ...captured: unknown[]]
       | undefined;

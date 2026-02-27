@@ -669,9 +669,8 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-          # Some tests are failing on firefox, disable for now
-          # - host: ubuntu-latest
-          #   browser: firefox
+          - host: ubuntu-latest
+            browser: firefox
           - host: windows-latest
             browser: chromium
           - host: macos-latest

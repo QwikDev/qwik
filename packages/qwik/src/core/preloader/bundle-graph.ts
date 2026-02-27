@@ -19,6 +19,7 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
   };
 };
 
+/** @internal */
 export const parseBundleGraph = (serialized: (string | number)[]) => {
   const graph: BundleGraph = new Map();
   let i = 0;
@@ -64,6 +65,7 @@ export const getBundle = (name: string) => {
 };
 
 /** Used in browser */
+/** @internal */
 export const loadBundleGraph = (
   basePath: string,
   serializedResponse?: ReturnType<typeof fetch>,
@@ -118,6 +120,7 @@ export const loadBundleGraph = (
 };
 
 /** Used during SSR */
+/** @internal */
 export const initPreloader = (
   serializedBundleGraph?: (string | number)[],
   opts?: {

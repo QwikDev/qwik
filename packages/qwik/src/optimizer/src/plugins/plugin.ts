@@ -66,6 +66,8 @@ const CLIENT_STRIP_CTX_NAME = [
  * @alpha
  */
 export enum ExperimentalFeatures {
+  /** Enable the usePreloaderInfo hook */
+  usePreloaderInfo = 'usePreloaderInfo',
   /** Enable the usePreventNavigate hook */
   preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "extends": "../../api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik/src/core/preloader/index.d.ts",
+  "newlineKind": "lf",
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "qwik.preloader",
+    "reportFolder": "<projectFolder>/src/core/preloader/",
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/preloader/"
+  },
+  "dtsRollup": {
+    "enabled": true,
+    "untrimmedFilePath": "<projectFolder>/dist/preloader.d.ts"
+  },
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>/../../dist-dev/api/qwik/preloader/docs.api.json"
+  }
+}

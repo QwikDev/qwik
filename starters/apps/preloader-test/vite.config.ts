@@ -64,8 +64,11 @@ export default defineConfig((): UserConfig => {
   return {
     plugins: [
       qwikCity(),
-      qwikVite({ debug: true }),
-      createBulkPlugin(),
+      qwikVite({
+        debug: true,
+        experimental: ["usePreloaderInfo"],
+      }),
+      // createBulkPlugin(),
       tsconfigPaths({ root: "." }),
       basicSsl(),
     ],

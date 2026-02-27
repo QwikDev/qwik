@@ -3,8 +3,11 @@ import {
   noSerialize,
   useContext,
   useServerData,
+  useSignal,
   useVisibleTask$,
   type QRL,
+  type ReadonlySignal,
+  type Signal,
 } from '@builder.io/qwik';
 import {
   ContentContext,
@@ -22,6 +25,8 @@ import type {
   RouteAction,
   PreventNavigateCallback,
 } from './types';
+
+import { isBrowser } from '@builder.io/qwik/build';
 
 /** @public */
 export const useContent = () => useContext(ContentContext);
@@ -95,3 +100,32 @@ export const usePreventNavigate$ = implicit$FirstArg(usePreventNavigateQrl);
 export const useAction = (): RouteAction => useContext(RouteActionContext);
 
 export const useQwikCityEnv = () => noSerialize(useServerData<QwikCityEnvData>('qwikcity'));
+
+/**
+ * Reactive hook exposing the current number of high-priority user-event preloads. Updates whenever
+ * the preloader recalculates the queue on the client.
+ *
+ * @alpha
+ */
+export const usePreloaderInfo = (): {
+  userEventPreloadsCount: ReadonlySignal<number>;
+  activePreloadsLength: ReadonlySignal;
+} => {
+  const userEventPreloadsCount: Signal<number> = useSignal(0);
+  const activePreloadsLength = useSignal(0);
+
+  useVisibleTask$(() => {
+    if (!isBrowser) {
+      return;
+    }
+    const handler = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail;
+      userEventPreloadsCount.value = detail?.userEventPreloads?.length;
+      activePreloadsLength.value = detail?.activePreloads.length;
+    };
+    window.addEventListener('newPreloaderInfo', handler);
+    return () => window.removeEventListener('newPreloaderInfo', handler);
+  });
+
+  return { userEventPreloadsCount, activePreloadsLength };
+};

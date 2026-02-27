@@ -113,6 +113,7 @@
       "require": "./dist/optimizer.cjs"
     },
     "./preloader": {
+      "types": "./dist/preloader.d.ts",
       "import": "./dist/preloader.mjs",
       "require": "./dist/preloader.cjs"
     },
@@ -145,6 +146,7 @@
     "optimizer.d.ts",
     "server.d.ts",
     "testing.d.ts",
+    "preloader.d.ts",
     "qwik-cli.cjs"
   ],
   "homepage": "https://qwik.dev/",

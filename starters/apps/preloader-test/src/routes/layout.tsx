@@ -1,5 +1,16 @@
-import { component$, Slot, useSignal, useStyles$ } from "@builder.io/qwik";
-import { Link, type DocumentHead } from "@builder.io/qwik-city";
+import {
+  $,
+  component$,
+  Slot,
+  useSignal,
+  useStyles$,
+  useVisibleTask$,
+} from "@builder.io/qwik";
+import {
+  Link,
+  type DocumentHead,
+  usePreloaderInfo,
+} from "@builder.io/qwik-city";
 
 export default component$(() => {
   useStyles$(`
@@ -59,6 +70,8 @@ export default component$(() => {
   const isSPA = useSignal(true);
   const LinkCmp = isSPA.value ? Link : "a";
 
+  const { userEventPreloadsCount, activePreloadsLength } = usePreloaderInfo();
+
   return (
     <div class="layout">
       <header class="header">
@@ -74,6 +87,7 @@ export default component$(() => {
             >
               Counters
             </LinkCmp>
+            {userEventPreloadsCount.value > 0 && <a>...loading</a>}
           </nav>
           <label class="toggle-label">
             <input type="checkbox" bind:checked={isSPA} />
@@ -81,6 +95,9 @@ export default component$(() => {
           </label>
         </div>
       </header>
+
+      <p>... user Event Preloads: {userEventPreloadsCount.value}</p>
+      <p>... active Preloads Length: {activePreloadsLength.value}</p>
 
       <main class="main container">
         <Slot />

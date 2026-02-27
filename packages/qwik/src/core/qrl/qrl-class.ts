@@ -15,7 +15,6 @@ import { getQFuncs, QInstance } from '../util/markers';
 import { isPromise, maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
-// @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@builder.io/qwik/preloader';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';

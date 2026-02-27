@@ -14,6 +14,7 @@
     "ts-morph": "27.0.2"
   },
   "devDependencies": {
+    "rolldown": "1.0.0-rc.5",
     "@croct/json5-parser": "0.2.2",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
@@ -22,7 +23,7 @@
     "image-size": "1.2.1",
     "kleur": "4.1.5",
     "prettier": "3.7.4",
-    "vitest": "4.0.16"
+    "vitest": "4.0.18"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -152,8 +153,8 @@
   "main": "./src/index.ts",
   "peerDependencies": {
     "prettier": "3.6.2",
-    "vite": ">=5 <8",
-    "vitest": ">=2 <4"
+    "vite": ">=5 <9",
+    "vitest": ">=2 <5"
   },
   "peerDependenciesMeta": {
     "vitest": {

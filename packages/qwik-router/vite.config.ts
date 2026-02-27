@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import pkg from './package.json' with { type: 'json' };
+import type { UserConfig } from 'vite';
 
-export default defineConfig(() => {
+export default defineConfig((): UserConfig => {
   return {
     build: {
       emptyOutDir: false,
@@ -62,6 +63,7 @@ export default defineConfig(() => {
         ],
       },
     },
+    // @ts-expect-error - incompatible types between vite 7 and vite 8-beta
     plugins: [compiledStringPlugin()],
     clearScreen: false,
     optimizeDeps: {

@@ -75,12 +75,8 @@ export const minifyClientScript = async (content: string) => {
 export const getLoaderJsonString = async (config: BuildConfig, name: string) => {
   const filePath = join(config.distQwikPkgDir, name);
   const content = await readFile(filePath, 'utf-8');
-  // Remove vite comments and leading/trailing whitespace
-  let cleaned = content.trim().replace(/\n?\/\*\s*@vite[^*]+\*\/\n?/g, '');
-  if (cleaned.endsWith(';')) {
-    cleaned = cleaned.slice(0, -1);
-  }
-  return JSON.stringify(cleaned);
+
+  return JSON.stringify(content);
 };
 
 /** Load each of the qwik scripts to be inlined with esbuild "define" as const variables. */

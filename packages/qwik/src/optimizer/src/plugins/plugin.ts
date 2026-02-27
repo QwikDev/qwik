@@ -1,3 +1,4 @@
+import type { ChunkingContext, CodeSplittingOptions, ModuleInfo } from 'rolldown';
 import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
 import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/shared/utils/hash_code';
@@ -89,8 +90,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const clientResults = new Map<string, TransformOutput>();
   const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
+  const clientSegments = new Map<string, SegmentAnalysis>();
+  const clientChunkNames = new Map<string, string>();
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
+  const serverSegments = new Map<string, SegmentAnalysis>();
   const parentIds = new Map<string, string>();
 
   let internalOptimizer: Optimizer | null = null;
@@ -376,26 +380,21 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return out;
   };
 
-  let hasValidatedSource = false;
-
   const validateSource = async (resolver: (id: string) => Promise<unknown | undefined>) => {
-    if (!hasValidatedSource) {
-      hasValidatedSource = true;
-
-      const sys = getSys();
-      if (sys.env === 'node') {
-        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-        if (!fs.existsSync(opts.rootDir)) {
-          throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
-        }
-        if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
-          throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
-        }
-        for (const [_, input] of Object.entries(opts.input || {})) {
-          const resolved = await resolver(input);
-          if (!resolved) {
-            throw new Error(`Qwik input "${input}" not found.`);
-          }
+    const sys = getSys();
+    if (sys.env === 'node') {
+      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+      if (!fs.existsSync(opts.rootDir)) {
+        throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
+      }
+      if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
+        throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
+      }
+      for (const [_, input] of Object.entries(opts.input || {})) {
+        const normalizedInput = normalizePath(sys.path.resolve(opts.rootDir, input));
+        const resolved = await resolver(normalizedInput);
+        if (!resolved) {
+          throw new Error(`Qwik input "${input}" not found.`);
         }
       }
     }
@@ -416,8 +415,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     debug(`transformedOutputs.clear()`);
+    clientResults.clear();
     clientTransformedOutputs.clear();
+    clientSegments.clear();
+    clientChunkNames.clear();
     serverTransformedOutputs.clear();
+    serverSegments.clear();
+    parentIds.clear();
 
     if (opts.target === 'client') {
       const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
@@ -435,6 +439,69 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const getIsServer = (viteOpts?: { ssr?: boolean }) => {
     return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
+  };
+
+  const getSegmentCache = (isServer: boolean) => (isServer ? serverSegments : clientSegments);
+
+  const setCachedSegment = (id: string, segment: SegmentAnalysis | null, isServer: boolean) => {
+    if (!segment) {
+      return;
+    }
+    const normalizedId = normalizePath(parseId(id).pathId);
+    const cache = getSegmentCache(isServer);
+    cache.set(id, segment);
+    cache.set(normalizedId, segment);
+  };
+
+  const getCachedSegment = (
+    id: string,
+    ctx?: ChunkingContext,
+    isServer = opts.target === 'ssr'
+  ): SegmentAnalysis | undefined => {
+    const cache = getSegmentCache(isServer);
+    const normalizedId = normalizePath(parseId(id).pathId);
+    const moduleInfo = ctx?.getModuleInfo(id) as ModuleInfo | null | undefined;
+    return (
+      cache.get(id) ??
+      cache.get(normalizedId) ??
+      (moduleInfo?.id ? cache.get(moduleInfo.id) : undefined) ??
+      (moduleInfo?.id ? cache.get(normalizePath(parseId(moduleInfo.id).pathId)) : undefined)
+    );
+  };
+
+  const sanitizeChunkGroupName = (name: string | null | undefined) => {
+    if (!name) {
+      return null;
+    }
+    if (!/^(\.\.?([/\\]|$)|[/\\]|[A-Za-z]:[/\\])/.test(name)) {
+      return name;
+    }
+
+    const normalizedName = name
+      .replace(/^[A-Za-z]:/, '')
+      .replace(/^(\.\.[/\\])+/, '')
+      .replace(/^\.[/\\]/, '')
+      .replace(/^[/\\]+/, '')
+      .replace(/[/\\]+/g, '-');
+
+    return normalizedName || null;
+  };
+
+  const normalizeChunkGroupName = (entry: string | null | undefined, srcDir: string) => {
+    if (!entry) {
+      return null;
+    }
+    const path = getPath();
+    const normalizedEntry = normalizePath(entry);
+    const absoluteEntry = path.isAbsolute(normalizedEntry)
+      ? normalizedEntry
+      : normalizePath(path.resolve(srcDir, normalizedEntry));
+    const rootRelativeEntry = normalizePath(path.relative(opts.rootDir, absoluteEntry));
+    const preferredName =
+      !rootRelativeEntry.startsWith('../') && !path.isAbsolute(rootRelativeEntry)
+        ? rootRelativeEntry
+        : absoluteEntry;
+    return sanitizeChunkGroupName(preferredName);
   };
 
   let resolveIdCount = 0;
@@ -708,6 +775,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (transformedModule) {
       debug(`load(${count})`, 'Found', id);
       const { code, map, segment } = transformedModule[0];
+      setCachedSegment(id, segment, isServer);
       return { code, map, meta: { segment } };
     }
 
@@ -805,6 +873,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const newOutput = await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
+      setCachedSegment(id, module.segment, isServer);
+      setCachedSegment(pathId, module.segment, isServer);
 
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
@@ -819,12 +889,22 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
+        if (mod.segment) {
+          mod.segment.entry = normalizeChunkGroupName(mod.segment.entry, srcDir);
+        }
+        if (!isServer && mod.segment) {
+          const chunkName = mod.segment.entry;
+          if (chunkName) {
+            clientChunkNames.set(mod.segment.hash, chunkName);
+          }
+        }
         // TODO handle noop modules
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
           debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
+          setCachedSegment(key, mod.segment, isServer);
           deps.add(key);
           if (opts.target === 'client' && !devServer) {
             // rollup must be told about all entry points
@@ -1018,11 +1098,20 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
       if (id) {
         debug('handleHotUpdate()', `invalidate ${id}`);
         clientResults.delete(id);
+        clientChunkNames.clear();
+        clientSegments.delete(id);
+        clientSegments.delete(normalizePath(parseId(id).pathId));
+        serverSegments.delete(id);
+        serverSegments.delete(normalizePath(parseId(id).pathId));
         for (const outputs of [clientTransformedOutputs, serverTransformedOutputs]) {
           for (const [key, [_, parentId]] of outputs) {
             if (parentId === id) {
               debug('handleHotUpdate()', `invalidate ${id} segment ${key}`);
               outputs.delete(key);
+              clientSegments.delete(key);
+              clientSegments.delete(normalizePath(parseId(key).pathId));
+              serverSegments.delete(key);
+              serverSegments.delete(normalizePath(parseId(key).pathId));
               const mod = ctx.server.moduleGraph.getModuleById(key);
               if (mod) {
                 ctx.server.moduleGraph.invalidateModule(mod);
@@ -1034,7 +1123,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     }
   }
 
-  const manualChunks: Rollup.ManualChunksOption = (id: string, { getModuleInfo }) => {
+  const QwikChunkingFunction = (id: string, ctx: ChunkingContext) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
@@ -1054,9 +1143,10 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
       }
     }
 
-    const module = getModuleInfo(id);
+    const module = ctx?.getModuleInfo(id);
     if (module) {
-      const segment = module.meta.segment as SegmentAnalysis | undefined;
+      const segment =
+        (module.meta.segment as SegmentAnalysis | undefined) ?? getCachedSegment(id, ctx, false);
       if (segment) {
         // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
         if (['qwikify$', 'useVisibleTask$', 'useComputed$'].includes(segment.ctxName)) {
@@ -1077,6 +1167,21 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
 
     // The rest is non-qwik code. We let rollup handle it.
     return null;
+  };
+
+  const manualChunks = (id: string, ctx: ChunkingContext) => {
+    return QwikChunkingFunction(id, ctx);
+  };
+
+  const codeSplitting: CodeSplittingOptions = {
+    includeDependenciesRecursively: false,
+    groups: [
+      {
+        name: (id: string, ctx: ChunkingContext) => {
+          return QwikChunkingFunction(id, ctx);
+        },
+      },
+    ],
   };
 
   async function generateManifest(
@@ -1151,6 +1256,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     configureServer,
     handleHotUpdate,
     manualChunks,
+    codeSplitting,
     generateManifest,
   };
 }

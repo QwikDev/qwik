@@ -11,7 +11,7 @@
     "syncpack": {
       "versionGroups": [
         {
-          "label": "Be lenient in vite versions for prod. v4 is broken, v5 is good",
+          "label": "Only accept vite 5 or higher",
           "dependencyTypes": [
             "prod",
             "peer"
@@ -19,7 +19,7 @@
           "dependencies": [
             "vite"
           ],
-          "pinVersion": ">=5 <8"
+          "pinVersion": ">=5 <9"
         },
         {
           "label": "vite-imagetools >9 creates different assets for ssr and client",
@@ -125,8 +125,8 @@
     "@types/semver": "7.7.1",
     "@types/tmp": "0.2.6",
     "@types/which-pm-runs": "1.0.2",
-    "@vitejs/plugin-basic-ssl": "2.1.0",
-    "@vitest/coverage-v8": "4.0.16",
+    "@vitejs/plugin-basic-ssl": "2.1.4",
+    "@vitest/coverage-v8": "4.0.18",
     "all-contributors-cli": "6.26.1",
     "brotli": "1.3.3",
     "create-qwik": "workspace:*",
@@ -164,11 +164,11 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.52.0",
     "vfile": "6.0.3",
-    "vite": "7.3.1",
+    "vite": "8.0.0-beta.15",
     "vite-imagetools": "9.0.0",
     "vite-plugin-dts": "4.5.4",
     "vite-tsconfig-paths": "6.0.4",
-    "vitest": "4.0.16",
+    "vitest": "4.0.18",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
     "zod": "3.25.48"

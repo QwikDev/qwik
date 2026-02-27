@@ -26,7 +26,7 @@
     "unist-util-visit": "^5.0.0",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
-    "vite": ">=5 <8",
+    "vite": ">=5 <9",
     "vite-imagetools": "9.0.0",
     "yaml": "^2.8.2",
     "zod": "^3.25.48"
@@ -169,7 +169,7 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "@qwik.dev/core": "workspace:^",
-    "vite": ">=5 <8"
+    "vite": ">=5 <9"
   },
   "publishConfig": {
     "access": "public"

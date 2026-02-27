@@ -19,6 +19,7 @@ import {
 } from './plugin';
 import { findDepPkgJsonPath } from './utils';
 import { isVirtualId } from './vite-utils';
+import type { OutputOptions } from 'rolldown';
 
 type QwikRollupPluginApi = {
   getOptimizer: () => Optimizer;
@@ -76,7 +77,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts, false) as any;
+      return normalizeOutputOptionsObject(qwikPlugin, rollupOutputOpts, false) as any;
     },
 
     async buildStart() {
@@ -129,10 +130,10 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
 export async function normalizeRollupOutputOptions(
   qwikPlugin: QwikPlugin,
-  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
+  rollupOutputOpts: OutputOptions | OutputOptions[] | undefined,
   useAssetsDir: boolean,
   outDir?: string
-): Promise<Rollup.OutputOptions | Rollup.OutputOptions[]> {
+): Promise<OutputOptions | OutputOptions[]> {
   if (Array.isArray(rollupOutputOpts)) {
     // make sure at least one output is present in every case
     if (!rollupOutputOpts.length) {
@@ -141,14 +142,14 @@ export async function normalizeRollupOutputOptions(
 
     return await Promise.all(
       rollupOutputOpts.map(async (outputOptsObj) => ({
-        ...(await normalizeRollupOutputOptionsObject(qwikPlugin, outputOptsObj, useAssetsDir)),
+        ...(await normalizeOutputOptionsObject(qwikPlugin, outputOptsObj, useAssetsDir)),
         dir: outDir || outputOptsObj.dir,
       }))
     );
   }
 
   return {
-    ...(await normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts, useAssetsDir)),
+    ...(await normalizeOutputOptionsObject(qwikPlugin, rollupOutputOpts, useAssetsDir)),
     dir: outDir || rollupOutputOpts?.dir,
   };
 }
@@ -182,15 +183,20 @@ const getChunkFileName = (
   }
 };
 
-export async function normalizeRollupOutputOptionsObject(
+export async function normalizeOutputOptionsObject(
   qwikPlugin: QwikPlugin,
-  rollupOutputOptsObj: Rollup.OutputOptions | undefined,
+  outputOptions: (OutputOptions & { onlyExplicitManualChunks?: boolean }) | undefined,
   useAssetsDir: boolean
-): Promise<Rollup.OutputOptions> {
-  const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
+): Promise<OutputOptions> {
+  const outputOpts = { ...outputOptions };
   const opts = qwikPlugin.getOptions();
   const optimizer = qwikPlugin.getOptimizer();
-  const manualChunks = qwikPlugin.manualChunks;
+  const internalManualChunks = qwikPlugin.manualChunks;
+  const internalCodeSplitting = qwikPlugin.codeSplitting;
+
+  if (internalCodeSplitting) {
+    outputOpts.codeSplitting = internalCodeSplitting;
+  }
 
   if (!outputOpts.assetFileNames) {
     // SEO likes readable asset names
@@ -211,15 +217,31 @@ export async function normalizeRollupOutputOptionsObject(
 
     // client should always be es
     outputOpts.format = 'es';
-    const prevManualChunks = outputOpts.manualChunks;
-    if (prevManualChunks && typeof prevManualChunks !== 'function') {
-      throw new Error('manualChunks must be a function');
+    const userManualChunks = outputOpts.manualChunks;
+    if (userManualChunks && typeof userManualChunks !== 'function') {
+      throw new Error(
+        'manualChunks must be a function for Qwik to group qrl segments back together'
+      );
     }
 
     // We need custom chunking for the client build
-    outputOpts.manualChunks = prevManualChunks
-      ? (id, meta) => prevManualChunks(id, meta) || manualChunks(id, meta)
-      : manualChunks;
+    outputOpts.manualChunks = userManualChunks
+      ? (id, meta) => userManualChunks(id, meta) || internalManualChunks(id, meta)
+      : internalManualChunks;
+
+    // User config: only object form is merged (boolean is never passed through)
+    const userCodeSplitting = outputOptions?.codeSplitting;
+    if (typeof userCodeSplitting === 'boolean') {
+      throw new Error(
+        'codeSplitting must be an object for Qwik to group qrl segments back together'
+      );
+    }
+
+    const codeSplitting = {
+      includeDependenciesRecursively: internalCodeSplitting.includeDependenciesRecursively,
+      groups: [...(internalCodeSplitting.groups ?? []), ...(userCodeSplitting?.groups ?? [])],
+    };
+    outputOpts.codeSplitting = codeSplitting;
   } else {
     // server production output, try to be similar to client
     if (!outputOpts.chunkFileNames) {

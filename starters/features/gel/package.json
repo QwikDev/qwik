@@ -1,0 +1,45 @@
+{
+  "description": "Gel: Graph Relational Database on top of Postgres",
+  "__qwik__": {
+    "displayName": "Integration: GelDB",
+    "priority": -10,
+    "docs": [
+      "https://www.geldata.com/docs/quickstart"
+    ],
+    "viteConfig": {},
+    "nextSteps": {
+      "lines": [
+        " Gel was installed with a simple DB schema and some demo routes,",
+        "",
+        "",
+        "TO GET STARTED!!",
+        "",
+        " #1: Run `pnpm run gel:ui` to access the Gel UI and see the database schema.",
+        "",
+        " #2: Run `pnpm run dev` to start the development server to see the demo routes.",
+        "",
+        "Other useful commands are: ",
+        "",
+        "  - `pnpm gel:migrate` to create and run migrations",
+        "",
+        "  - `pnpm gel:generate:queries` to generate your edgeql queries into js files",
+        "",
+        "  - `pnpm gel:generate:types` to generate interfaces and edgeql-js query builders",
+        "",
+        " Check out the Gel docs for more info:",
+        "   - https://www.geldata.com/docs/overview"
+      ]
+    }
+  },
+  "scripts": {
+    "gel:migrate": "gel migration create && gel migrate ",
+    "gel:generate:queries": "generate queries && generate queries --file",
+    "gel:generate:types": "generate interfaces && generate edgeql-js",
+    "gel:ui": "gel ui",
+    "postinstall": "gel init"
+  },
+  "dependencies": {
+    "@gel/generate": "^0.6.4",
+    "gel": "^2.1.1"
+  }
+}

@@ -210,43 +210,9 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
         );
       }
     }
-    if (method === 'POST') {
-      const selectedActionId = requestEv.query.get(QACTION_KEY);
-      if (selectedActionId) {
-        const serverActionsMap = globalThis._qwikActionsMap as
-          | Map<string, ActionInternal>
-          | undefined;
-        const action =
-          routeActions.find((action) => action.__id === selectedActionId) ??
-          serverActionsMap?.get(selectedActionId);
-        if (action) {
-          requestEv.sharedMap.set(RequestEvSharedActionId, selectedActionId);
-          const data = await requestEv.parseBody();
-          if (!data || typeof data !== 'object') {
-            throw new Error(
-              `Expected request data for the action id ${selectedActionId} to be an object`
-            );
-          }
-          const result = await runValidators(requestEv, action.__validators, data, isDev);
-          if (!result.success) {
-            loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
-          } else {
-            const actionResolved = isDev
-              ? await measure(requestEv, action.__qrl.getSymbol().split('_', 1)[0], () =>
-                  action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
-                )
-              : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
-            if (isDev) {
-              verifySerializable(qwikSerializer, actionResolved, action.__qrl);
-            }
-            loaders[selectedActionId] = actionResolved;
-          }
-        }
-      }
-    }
 
     if (routeLoaders.length > 0) {
-      const resolvedLoadersPromises = routeLoaders.map((loader) => {
+      const resolvedLoadersPromises = routeLoaders.map((loader: LoaderInternal) => {
         const loaderId = loader.__id;
         loaders[loaderId] = runValidators(
           requestEv,
@@ -285,6 +251,41 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
       });
 
       await Promise.all(resolvedLoadersPromises);
+    }
+
+    if (method === 'POST') {
+      const selectedActionId = requestEv.query.get(QACTION_KEY);
+      if (selectedActionId) {
+        const serverActionsMap = globalThis._qwikActionsMap as
+          | Map<string, ActionInternal>
+          | undefined;
+        const action =
+          routeActions.find((action) => action.__id === selectedActionId) ??
+          serverActionsMap?.get(selectedActionId);
+        if (action) {
+          requestEv.sharedMap.set(RequestEvSharedActionId, selectedActionId);
+          const data = await requestEv.parseBody();
+          if (!data || typeof data !== 'object') {
+            throw new Error(
+              `Expected request data for the action id ${selectedActionId} to be an object`
+            );
+          }
+          const result = await runValidators(requestEv, action.__validators, data, isDev);
+          if (!result.success) {
+            loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
+          } else {
+            const actionResolved = isDev
+              ? await measure(requestEv, action.__qrl.getSymbol().split('_', 1)[0], () =>
+                  action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
+                )
+              : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
+            if (isDev) {
+              verifySerializable(qwikSerializer, actionResolved, action.__qrl);
+            }
+            loaders[selectedActionId] = actionResolved;
+          }
+        }
+      }
     }
   };
 }

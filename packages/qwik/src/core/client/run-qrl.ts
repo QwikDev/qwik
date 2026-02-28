@@ -23,8 +23,15 @@ export function runEventHandlerQRL(
   handler: QRL<(...args: any[]) => void>,
   event: Event,
   element: Element,
-  ctx: InvokeContext = newInvokeContextFromDOM(event, element)
+  ctx?: InvokeContext
 ): void | Promise<void> {
+  if (!element.isConnected) {
+    // ignore events on disconnected elements, this can happen when the event is triggered while the element is being removed
+    return;
+  }
+  if (!ctx) {
+    ctx = newInvokeContextFromDOM(event, element);
+  }
   const container = ctx.$container$!;
   const hostElement = ctx.$hostElement$ as ElementVNode;
   vnode_ensureElementInflated(container, hostElement);

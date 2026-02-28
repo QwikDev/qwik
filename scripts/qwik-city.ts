@@ -35,7 +35,6 @@ export async function buildQwikCity(config: BuildConfig) {
     buildMiddlewareFirebase(config),
     buildStatic(config),
     buildStaticNode(config),
-    buildStaticDeno(config),
   ]);
 
   await buildRuntime(config);
@@ -634,19 +633,6 @@ async function buildStatic(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-  });
-}
-
-async function buildStaticDeno(config: BuildConfig) {
-  const entryPoints = [join(config.srcQwikCityDir, 'static', 'deno', 'index.ts')];
-
-  await build({
-    entryPoints,
-    outfile: join(config.distQwikCityPkgDir, 'static', 'deno.mjs'),
-    bundle: true,
-    platform: 'neutral',
-    format: 'esm',
-    plugins: [resolveRequestHandler('../middleware/request-handler/index.mjs')],
   });
 }
 

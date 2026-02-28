@@ -7,6 +7,7 @@ import type {
   OptimizerOptions,
   OptimizerSystem,
   QwikManifest,
+  SystemEnvironment,
   TransformModule,
 } from '../types';
 import { type BundleGraphAdder } from './bundle-graph';
@@ -191,7 +192,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             pluginOpts.input = viteConfig.build?.lib.entry;
           }
         }
-        if (sys.env === 'node' || sys.env === 'bun') {
+        if (hasNodeCompat(sys.env)) {
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
           try {
@@ -551,7 +552,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           );
 
           const sys = qwikPlugin.getSys();
-          if (tmpClientManifestPath && (sys.env === 'node' || sys.env === 'bun')) {
+          if (tmpClientManifestPath && hasNodeCompat(sys.env)) {
             // Client build should write the manifest to a tmp dir
             const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
             await fs.promises.writeFile(tmpClientManifestPath, clientManifestStr);
@@ -566,7 +567,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // ssr build
 
         const sys = qwikPlugin.getSys();
-        if (sys.env === 'node' || sys.env === 'bun') {
+        if (hasNodeCompat(sys.env)) {
           const outputs = Object.keys(rollupBundle);
 
           // In order to simplify executing the server script with a common script
@@ -758,7 +759,7 @@ const findQwikRoots = async (
   packageJsonDir: string
 ): Promise<QwikPackages[]> => {
   const paths = new Map<string, string>();
-  if (sys.env === 'node' || sys.env === 'bun') {
+  if (hasNodeCompat(sys.env)) {
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
     let prevPackageJsonDir: string | undefined;
     do {
@@ -818,6 +819,9 @@ const findQwikRoots = async (
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;
 };
+
+/** Whether the runtime supports Node standard library APIs (node:fs, node:os, etc.). */
+const hasNodeCompat = (env: SystemEnvironment) => env === 'node' || env === 'bun' || env === 'deno';
 
 const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
 const CLIENT_DEV_INPUT = 'entry.dev';

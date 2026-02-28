@@ -21,10 +21,7 @@ export async function generate(opts: StaticGenerateOptions) {
 export type { StaticGenerateOptions, StaticGenerateRenderOptions, StaticGenerateResult };
 
 function getEntryModulePath() {
-  if (isDeno()) {
-    return './deno.mjs';
-  }
-  if (isNode() || isBun()) {
+  if (isNode() || isBun() || isDeno()) {
     if (isCjs()) {
       return './node.cjs';
     }

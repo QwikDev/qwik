@@ -22,7 +22,9 @@ function propagatePath(target: VNode): void {
     const parent = reusablePath[i + 1] || target;
     parent.dirty |= ChoreBits.CHILDREN;
     parent.dirtyChildren ||= [];
-    parent.dirtyChildren.push(child);
+    if (!parent.dirtyChildren.includes(child)) {
+      parent.dirtyChildren.push(child);
+    }
   }
 }
 
@@ -32,7 +34,7 @@ function propagatePath(target: VNode): void {
  */
 function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
   reusablePath.push(vNode);
-  let current: VNode | null = vNode.parent || vNode.slotParent;
+  let current: VNode | null = vNode.slotParent || vNode.parent;
 
   while (current) {
     const isDirty = current.dirty & ChoreBits.DIRTY_MASK;
@@ -61,7 +63,7 @@ function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
     }
 
     reusablePath.push(current);
-    current = current.parent || current.slotParent;
+    current = current.slotParent || current.parent;
   }
   reusablePath.length = 0;
   throwErrorAndStop('Cursor root not found in current path!');
@@ -73,7 +75,7 @@ function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
  */
 function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
   reusablePath.push(vNode);
-  let current: VNode | null = vNode.parent || vNode.slotParent;
+  let current: VNode | null = vNode.slotParent || vNode.parent;
 
   while (current) {
     const currentIsCursor = isCursor(current);
@@ -85,7 +87,7 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
     }
 
     reusablePath.push(current);
-    current = current.parent || current.slotParent;
+    current = current.slotParent || current.parent;
   }
   reusablePath.length = 0;
   return false;
@@ -125,7 +127,7 @@ export function markVNodeDirty(
   if ((isRealDirty ? prevDirty & ChoreBits.DIRTY_MASK : prevDirty) || vNode === cursorRoot) {
     return;
   }
-  const parent = vNode.parent || vNode.slotParent;
+  const parent = vNode.slotParent || vNode.parent;
 
   // If cursorRoot is provided, propagate up to it
   if (cursorRoot && isRealDirty && parent && !parent.dirty) {
@@ -139,7 +141,9 @@ export function markVNodeDirty(
       parent.dirty |= ChoreBits.CHILDREN;
     }
     parent.dirtyChildren ||= [];
-    parent.dirtyChildren.push(vNode);
+    if (!parent.dirtyChildren.includes(vNode)) {
+      parent.dirtyChildren.push(vNode);
+    }
 
     if (isRealDirty && vNode.dirtyChildren) {
       // this node is maybe an ancestor of the current cursor position
@@ -151,7 +155,7 @@ export function markVNodeDirty(
         if (cursorPosition) {
           // find the ancestor of the cursor position that is current vNode
           while (cursorPosition !== cursor) {
-            cursorPosition = cursorPosition.parent || cursorPosition.slotParent!;
+            cursorPosition = cursorPosition.slotParent || cursorPosition.parent!;
             if (cursorPosition === vNode) {
               // set cursor position to this node
               cursorData.position = vNode;

@@ -178,15 +178,13 @@ function setAttribute(
   );
 }
 
-export const vnode_diff = (
+function createDiffContext(
   container: ClientContainer,
   journal: VNodeJournal,
-  jsxNode: JSXChildren,
-  vStartNode: VNode,
   cursor: Cursor,
   scopedStyleIdPrefix: string | null
-) => {
-  const diffContext: DiffContext = {
+): DiffContext {
+  return {
     container,
     journal,
     cursor,
@@ -217,6 +215,17 @@ export const vnode_diff = (
       }),
     },
   };
+}
+
+export const vnode_diff = (
+  container: ClientContainer,
+  journal: VNodeJournal,
+  jsxNode: JSXChildren,
+  vStartNode: VNode,
+  cursor: Cursor,
+  scopedStyleIdPrefix: string | null
+) => {
+  const diffContext = createDiffContext(container, journal, cursor, scopedStyleIdPrefix);
   ////////////////////////////////
 
   diff(diffContext, jsxNode, vStartNode);
@@ -1411,27 +1420,20 @@ function expectComponent(diffContext: DiffContext, component: Function) {
     const lookupKeysAreEqual = lookupKey === vNodeLookupKey;
     const hashesAreEqual = componentHash === vNodeComponentHash;
 
-    if (!lookupKeysAreEqual) {
-      if (
-        moveOrCreateKeyedNode(
-          diffContext,
-          null,
-          lookupKey,
-          lookupKey,
-          diffContext.vParent as VirtualVNode
-        )
-      ) {
+    if (lookupKeysAreEqual) {
+      if (hashesAreEqual) {
+        deleteFromSideBuffer(diffContext, null, lookupKey);
+      } else {
+        insertNewComponent(diffContext, host, componentQRL, jsxProps);
+        host = diffContext.vNewNode as VirtualVNode;
+        shouldRender = true;
+      }
+    } else {
+      if (moveOrCreateKeyedNode(diffContext, null, lookupKey, lookupKey, diffContext.vParent)) {
         insertNewComponent(diffContext, host, componentQRL, jsxProps);
         shouldRender = true;
       }
       host = (diffContext.vNewNode || diffContext.vCurrent) as VirtualVNode;
-    } else if (!hashesAreEqual || !jsxNode.key) {
-      insertNewComponent(diffContext, host, componentQRL, jsxProps);
-      host = diffContext.vNewNode as VirtualVNode;
-      shouldRender = true;
-    } else {
-      // delete the key from the side buffer if it is the same component
-      deleteFromSideBuffer(diffContext, null, lookupKey);
     }
 
     if (host) {
@@ -1441,7 +1443,14 @@ function expectComponent(diffContext: DiffContext, component: Function) {
         diffContext.container.$getObjectById$
       );
       if (!shouldRender) {
-        shouldRender ||= handleProps(host, jsxProps, vNodeProps, diffContext.container);
+        const propsChanged = handleProps(host, jsxProps, vNodeProps, diffContext.container);
+        // if props changed but key is null we need to insert a new component, because we need to execute hooks etc
+        if (propsChanged && jsxNode.key == null) {
+          insertNewComponent(diffContext, host, componentQRL, jsxProps);
+          host = diffContext.vNewNode as VirtualVNode;
+          shouldRender = true;
+        }
+        shouldRender ||= propsChanged;
       }
 
       if (shouldRender) {
@@ -1470,7 +1479,7 @@ function expectComponent(diffContext: DiffContext, component: Function) {
     const vNodeComponentHash = getComponentHash(host, diffContext.container.$getObjectById$);
     const isInlineComponent = vNodeComponentHash == null;
 
-    if ((host && !isInlineComponent) || lookupKey == null) {
+    if (host && !isInlineComponent) {
       insertNewInlineComponent(diffContext);
       host = diffContext.vNewNode as VirtualVNode;
     } else if (!lookupKeysAreEqual) {

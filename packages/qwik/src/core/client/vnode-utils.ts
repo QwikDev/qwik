@@ -701,13 +701,7 @@ const vnode_getDomSibling = (
   return null;
 };
 
-const vnode_ensureInflatedIfText = (journal: VNodeJournal, vNode: VNode): void => {
-  if (vnode_isTextVNode(vNode)) {
-    vnode_ensureTextInflated(journal, vNode);
-  }
-};
-
-const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
+export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode.flags;
   if ((flags & VNodeFlags.Inflated) === 0) {
@@ -1168,7 +1162,9 @@ const vnode_findInsertBefore = (
   } else {
     adjustedInsertBefore = insertBefore as ElementVNode | TextVNode;
   }
-  adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
+  adjustedInsertBefore &&
+    vnode_isTextVNode(adjustedInsertBefore) &&
+    vnode_ensureTextInflated(journal, adjustedInsertBefore);
   return adjustedInsertBefore;
 };
 

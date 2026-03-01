@@ -134,16 +134,17 @@
     "esbuild": "0.27.2",
     "eslint": "9.39.2",
     "eslint-plugin-qwik": "workspace:*",
-    "oxfmt": "0.27.0",
-    "oxlint": "1.42.0",
     "execa": "9.6.1",
     "express": "4.22.0",
     "globals": "17.0.0",
     "imagetools-core": "9.0.0",
     "install": "0.13.0",
+    "lint-staged": "^16.3.0",
     "memfs": "4.51.1",
     "monaco-editor": "0.54.0",
     "mri": "1.2.0",
+    "oxfmt": "0.27.0",
+    "oxlint": "1.42.0",
     "path-browserify": "1.0.1",
     "prompts": "2.4.2",
     "rollup": "4.55.1",
@@ -255,8 +256,15 @@
     "update.qwik.builds": "node --require ./scripts/runBefore.ts scripts/update-qwik-builds.ts packages/docs && node scripts/update-qwik-builds.ts packages/insights; pnpm install",
     "vitest": "vitest"
   },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+      "oxfmt --write",
+      "oxlint --quiet --deny-warnings"
+    ],
+    "*.{json,jsonc,css,html,md,mdx,yaml,yml}": "oxfmt --write"
+  },
   "simple-git-hooks": {
-    "pre-commit": "pnpm fmt.staged"
+    "pre-commit": "pnpm lint-staged"
   },
   "type": "module"
 }

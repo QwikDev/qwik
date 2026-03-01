@@ -18,7 +18,5 @@ packages/insights/drizzle
 packages/insights/.netlify
 packages/insights/scripts
 packages/insights/**/*.gen.d.ts
-packages/qwik-labs/lib-types
-packages/qwik-labs/vite
 **/q-insights.json
 packages/docs/public/builder

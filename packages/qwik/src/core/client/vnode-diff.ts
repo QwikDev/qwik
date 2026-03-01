@@ -1481,7 +1481,7 @@ function expectComponent(diffContext: DiffContext, component: Function) {
     const vNodeComponentHash = getComponentHash(host, diffContext.container.$getObjectById$);
     const isInlineComponent = vNodeComponentHash == null;
 
-    if (host && !isInlineComponent) {
+    if ((host && !isInlineComponent) || !host) {
       insertNewInlineComponent(diffContext);
       host = diffContext.vNewNode as VirtualVNode;
     } else if (!lookupKeysAreEqual) {

@@ -75,6 +75,7 @@ import {
   vnode_getProp,
   vnode_getText,
   vnode_getType,
+  vnode_inflateProjectionTrailingText,
   vnode_insertBefore,
   vnode_insertElementBefore,
   vnode_insertVirtualBefore,
@@ -657,6 +658,7 @@ function expectSlot(diffContext: DiffContext) {
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.vNewNode);
     isDev &&
       vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
+    vnode_inflateProjectionTrailingText(diffContext.journal, diffContext.vNewNode as VirtualVNode);
     vnode_insertBefore(
       diffContext.journal,
       diffContext.vParent as ElementVNode | VirtualVNode,

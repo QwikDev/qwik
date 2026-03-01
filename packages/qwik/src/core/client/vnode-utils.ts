@@ -544,7 +544,7 @@ export function vnode_walkVNode(
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
-    // Text nodes don't have subscriptions or children;
+    callback?.(vNode, null);
     return;
   }
   let vParent: VNode | null = null;
@@ -1237,6 +1237,49 @@ const vnode_unlinkFromOldParent = (
     (newChild.previousSibling || newChild.nextSibling || currentParent !== newParent)
   ) {
     vnode_remove(journal, currentParent, newChild, false);
+  }
+};
+
+/**
+ * When a projection vnode is about to be repositioned (moved in the vnode tree), its trailing text
+ * node must be inflated before the projection is unlinked from its current sibling chain.
+ * `vnode_ensureTextInflated` relies on `vnode_getDomSibling` to locate adjacent text nodes and
+ * decide which one is "last" (i.e. the one that gets to reuse the shared SSR DOM `Text` node). Once
+ * the projection is unlinked, its `nextSibling` becomes `null`, so `getDomSibling` can no longer
+ * cross the boundary to find a trailing sibling such as an empty-string text node — causing
+ * `isLastNode` to be `true` prematurely and corrupting the shared DOM text node. Inflating the
+ * trailing text node while the siblings are still connected gives it its own fresh DOM node and
+ * avoids the corruption.
+ *
+ * Example:
+ *
+ * ```
+ * <Component>
+ *   <button>
+ *     <InlineComponent>
+ *       <span>
+ *         "*"
+ *       </span>
+ *     </InlineComponent>
+ *     <Projection> // <-- this projection when unlinked from the siblings will cause the "test" text node to be considered the last node without inflating it
+ *       "test" // <-- this text node is sharing the same DOM node with the ""
+ *     </Projection>
+ *     "" <-- this text node is sharing the same DOM node with the "test"
+ *   </button>
+ * </Component>
+ * ```
+ */
+export const vnode_inflateProjectionTrailingText = (
+  journal: VNodeJournal,
+  projection: VirtualVNode
+): void => {
+  // Follow lastChild through any inner virtual wrappers to reach the actual trailing text node.
+  let last: VNode | null = projection;
+  while (last && vnode_isVirtualVNode(last)) {
+    last = (last as VirtualVNode).lastChild as VNode | null;
+  }
+  if (last && vnode_isTextVNode(last) && (last.flags & VNodeFlags.Inflated) === 0) {
+    vnode_ensureTextInflated(journal, last as TextVNode);
   }
 };
 

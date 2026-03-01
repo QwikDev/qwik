@@ -370,6 +370,47 @@ describe.each([
     );
   });
 
+  it('should correctly inflate shared text nodes when inline component before Slot disappears', async () => {
+    const Child = component$<{ show: boolean }>((props) => {
+      const InlineIcon = () => <span>*</span>;
+      return (
+        <button>
+          {props.show && <InlineIcon />}
+          <Slot />
+          {''}
+        </button>
+      );
+    });
+    const Parent = component$(() => {
+      const show = useSignal(true);
+      return (
+        <>
+          <button id="toggle" onClick$={() => (show.value = false)} />
+          <Child show={show.value}>test</Child>
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Fragment ssr-required>
+        <Fragment ssr-required>
+          <button id="toggle" />
+          <Fragment ssr-required>
+            <button>
+              <InlineComponent ssr-required>
+                <span ssr-required>*</span>
+              </InlineComponent>
+              <Projection ssr-required>{'test'}</Projection>
+              {''}
+            </button>
+          </Fragment>
+        </Fragment>
+      </Fragment>
+    );
+    await trigger(document.body, '#toggle', 'click');
+    expect(document.querySelector('button:not(#toggle)')!.textContent).toBe('test');
+  });
+
   it('should replace projection content with undefined', async () => {
     const Test = component$(() => {
       return (

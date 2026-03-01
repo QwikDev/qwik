@@ -17,6 +17,8 @@ Qwik City Deno middleware allows you to hook up Qwik City to a Deno server which
 - [Deno's integrated HTTP server](https://docs.deno.com/runtime/tutorials/http_server)
 - [Oak](https://oakserver.github.io/oak/)
 
+You can use either a Node-based package manager (pnpm, npm, yarn, bun) or native Deno commands to manage your project. The sections below show both options.
+
 ## Installation
 
 To integrate the `deno` adapter, use the `add` command:
@@ -74,6 +76,19 @@ bun run build
 </span>
 </PackageManagerTabs>
 
+Or with native Deno:
+
+```shell
+deno task build
+```
+
+You can also run the client and server builds separately:
+
+```shell
+deno task build.client
+deno task build.server
+```
+
 ## Serve
 
 To start the Deno server after a build:
@@ -101,9 +116,15 @@ bun run serve
 </span>
 </PackageManagerTabs>
 
+Or with native Deno:
+
+```shell
+deno task serve
+```
+
 ## Production deploy
 
-Since you are choosing Deno, here you are in your own, after running the `build` command:
+Since you are choosing Deno, here you are on your own after running the `build` command:
 
 - The `dist` folder will be created including all the static files.
 - The `server` folder will be created including all node server files.

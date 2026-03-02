@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 5559
+assertion_line: 5592
 expression: output
 ---
 ==INPUT==
@@ -31,11 +31,11 @@ export default component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,6EAiBZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,8CAiBZ\"}")
 ============================= test.tsx_test_component_div_div_q_e_keydown_a6RR59yQlXM.js (ENTRY POINT)==
 
 export const test_component_div_div_q_e_keydown_a6RR59yQlXM = (_, _1)=>console.log('no capture');
@@ -102,28 +102,26 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
-const i_Mc600uqO6ps = ()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps");
-const i_a6RR59yQlXM = ()=>import("./test.tsx_test_component_div_div_q_e_keydown_a6RR59yQlXM");
+const _qrl_test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps"), "test_component_div_div_q_e_click_Mc600uqO6ps");
+const _qrl_test_component_div_div_q_e_keydown_a6RR59yQlXM = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_keydown_a6RR59yQlXM"), "test_component_div_div_q_e_keydown_a6RR59yQlXM");
 export const test_component_LUXeXe0DQrg = ()=>{
     const arr = useSignal([
         'a',
         'b'
     ]);
-    const test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(i_Mc600uqO6ps, "test_component_div_div_q_e_click_Mc600uqO6ps");
-    const test_component_div_div_q_e_keydown_a6RR59yQlXM = /*#__PURE__*/ qrl(i_a6RR59yQlXM, "test_component_div_div_q_e_keydown_a6RR59yQlXM");
     return /*#__PURE__*/ _jsxSorted("div", null, null, arr.value.map((val, i)=>{
         const index = i + 1;
         return /*#__PURE__*/ _jsxSorted("div", {
-            "q-e:click": test_component_div_div_q_e_click_Mc600uqO6ps,
+            "q-e:click": _qrl_test_component_div_div_q_e_click_Mc600uqO6ps,
             "q:p": index
         }, {
-            "q-e:keydown": test_component_div_div_q_e_keydown_a6RR59yQlXM
+            "q-e:keydown": _qrl_test_component_div_div_q_e_keydown_a6RR59yQlXM
         }, val, 0, "u6_0");
     }), 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG0B;IACxB,MAAM,MAAM,UAAU;QAAC;QAAK;KAAI;;;IAChC,qBACE,WAAC,mBACE,IAAI,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACnB,MAAM,QAAQ,IAAI;QAClB,qBACE,WAAC;YACC,WAAQ;mBAHN;;YAIF,aAAU;WAET;IAGP;AAGN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG0B;IACxB,MAAM,MAAM,UAAU;QAAC;QAAK;KAAI;IAChC,qBACE,WAAC,mBACE,IAAI,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACnB,MAAM,QAAQ,IAAI;QAClB,qBACE,WAAC;YACC,WAAQ;mBAHN;;YAIF,aAAU;WAET;IAGP;AAGN\"}")
 /*
 {
   "origin": "test.tsx",

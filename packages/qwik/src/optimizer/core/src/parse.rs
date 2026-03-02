@@ -8,21 +8,26 @@ use std::str;
 use crate::add_side_effect::SideEffectVisitor;
 use crate::clean_side_effects::Treeshaker;
 use crate::code_move::{new_module, NewModuleCtx};
-use crate::collector::{collect_from_pat, global_collect, Id};
+use crate::collector::{collect_from_pat, global_collect, Id, Import, ImportKind};
 use crate::const_replace::ConstReplacerVisitor;
 use crate::dependency_analysis::{
-	analyze_root_dependencies, build_root_var_usage_map, find_migratable_vars,
-	topological_sort_variables, RootVarDecl,
+	analyze_root_dependencies, build_root_var_usage_map, find_migratable_vars, RootVarDecl,
+	RootVarDependency,
 };
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
 use crate::rename_imports::RenameTransform;
-use crate::transform::{QwikTransform, QwikTransformOptions, Segment, SegmentKind};
+use crate::transform::{
+	create_synthetic_named_export, QwikTransform, QwikTransformOptions, Segment, SegmentKind,
+};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
+use crate::words::{_INLINED_QRL_DEV, _NOOP_QRL_DEV, _QRL_DEV};
 use crate::EntryStrategy;
+use indexmap::IndexMap;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
+use swc_common::{Span, DUMMY_SP};
 
 use anyhow::{Context, Error};
 
@@ -387,16 +392,19 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
 						// Apply variable migration: move segment-exclusive root variables to their segments
 						if !segments.is_empty() {
-							let q = qt.as_ref().unwrap();
+							let q = qt.as_mut().unwrap();
 							if let ast::Program::Module(ref mut module) = &mut program {
 								let migrated_ids = apply_variable_migration(
 									&mut segments,
 									module,
-									&q.options.global_collect,
+									&mut q.options.global_collect,
 								);
 
 								// Remove migrated variables from root module exports
 								if !migrated_ids.is_empty() {
+									for id in &migrated_ids {
+										q.options.global_collect.remove_root_and_exports_for_id(id);
+									}
 									remove_migrated_exports(module, &migrated_ids);
 								}
 							}
@@ -426,6 +434,47 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							]
 							.concat();
 
+							// Create explicit imports for dev-mode QRL helpers
+							let mut explicit_imports = IndexMap::new();
+							if config.mode == EmitMode::Dev {
+								use swc_common::SyntaxContext;
+								let dev_import = Import {
+									source: q.options.core_module.clone(),
+									specifier: (*_QRL_DEV).clone(),
+									kind: ImportKind::Named,
+									synthetic: true,
+									asserts: None,
+								};
+								explicit_imports.insert(
+									((*_QRL_DEV).clone(), SyntaxContext::empty()),
+									dev_import.clone(),
+								);
+
+								let inlined_dev_import = Import {
+									source: q.options.core_module.clone(),
+									specifier: (*_INLINED_QRL_DEV).clone(),
+									kind: ImportKind::Named,
+									synthetic: true,
+									asserts: None,
+								};
+								explicit_imports.insert(
+									((*_INLINED_QRL_DEV).clone(), SyntaxContext::empty()),
+									inlined_dev_import,
+								);
+
+								let noop_dev_import = Import {
+									source: q.options.core_module.clone(),
+									specifier: (*_NOOP_QRL_DEV).clone(),
+									kind: ImportKind::Named,
+									synthetic: true,
+									asserts: None,
+								};
+								explicit_imports.insert(
+									((*_NOOP_QRL_DEV).clone(), SyntaxContext::empty()),
+									noop_dev_import,
+								);
+							}
+
 							let (mut segment_module, comments) = new_module(NewModuleCtx {
 								expr: h.expr,
 								path: &path_data,
@@ -440,6 +489,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								trailing_comments: comments_maps.1.clone(),
 								extra_top_items: &q.extra_top_items,
 								migrated_root_vars: &h.data.migrated_root_vars,
+								explicit_imports: &explicit_imports,
 							})?;
 							// we don't need to remove side effects because the optimizer only moves what's really used
 							if config.minify != MinifyMode::None {
@@ -807,8 +857,8 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 /// Returns the set of Id's that were migrated, so they can be removed from root exports.
 fn apply_variable_migration(
 	segments: &mut [Segment],
-	module: &ast::Module,
-	global_collect: &crate::collector::GlobalCollect,
+	module: &mut ast::Module,
+	global_collect: &mut crate::collector::GlobalCollect,
 ) -> std::collections::HashSet<Id> {
 	// Analyze root variable dependencies
 	let root_dependencies = analyze_root_dependencies(module, global_collect);
@@ -817,7 +867,12 @@ fn apply_variable_migration(
 	let root_var_usage = build_root_var_usage_map(segments, &root_dependencies);
 
 	// Find migratable variables: those used by exactly one segment and not exported
+	// This returns a BTreeMap for deterministic iteration order
 	let migratable = find_migratable_vars(segments, &root_dependencies, &root_var_usage);
+
+	// PHASE 1: Pre-declare all needed auto-exports BEFORE migration
+	// This ensures all dependencies are known upfront, preventing surprises during migration
+	precompute_and_declare_auto_exports(module, global_collect, &migratable, &root_dependencies);
 
 	let mut migrated_ids = std::collections::HashSet::new();
 
@@ -827,8 +882,10 @@ fn apply_variable_migration(
 			continue;
 		}
 
-		// Sort variables by their dependencies (topological sort)
-		let sorted_var_ids = topological_sort_variables(&var_ids, &root_dependencies);
+		// Sort variables topologically within the migration set so dependencies are declared first.
+		// Use source order as deterministic tie-breaker.
+		let sorted_var_ids = sort_migrated_vars_topologically(&var_ids, &root_dependencies);
+		let cyclic_var_ids = find_cyclic_migrated_vars(&sorted_var_ids, &root_dependencies);
 
 		// Deduplicate declarations - multiple IDs can point to the same destructuring assignment
 		let mut seen_var_decls = std::collections::HashSet::new();
@@ -846,7 +903,23 @@ fn apply_variable_migration(
 
 				// Only add this var_decl if we haven't seen it before
 				if seen_var_decls.insert(decl_key) {
-					let module_item = match &dep_info.decl {
+					match &dep_info.decl {
+						RootVarDecl::Var(decl) if cyclic_var_ids.contains(var_id) => {
+							if let Some(items) = create_cyclic_var_items(decl) {
+								unique_module_items.extend(items);
+							} else {
+								let var_decl = ast::VarDecl {
+									span: swc_common::DUMMY_SP,
+									kind: ast::VarDeclKind::Const,
+									decls: vec![decl.clone()],
+									declare: false,
+									ctxt: swc_common::SyntaxContext::empty(),
+								};
+								unique_module_items.push(ast::ModuleItem::Stmt(ast::Stmt::Decl(
+									ast::Decl::Var(Box::new(var_decl)),
+								)));
+							}
+						}
 						RootVarDecl::Var(decl) => {
 							let var_decl = ast::VarDecl {
 								span: swc_common::DUMMY_SP,
@@ -855,21 +928,26 @@ fn apply_variable_migration(
 								declare: false,
 								ctxt: swc_common::SyntaxContext::empty(),
 							};
-							ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(
-								var_decl,
-							))))
+							unique_module_items.push(ast::ModuleItem::Stmt(ast::Stmt::Decl(
+								ast::Decl::Var(Box::new(var_decl)),
+							)));
 						}
 						RootVarDecl::Fn(decl) => {
-							ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Fn(decl.clone())))
+							unique_module_items.push(ast::ModuleItem::Stmt(ast::Stmt::Decl(
+								ast::Decl::Fn(decl.clone()),
+							)));
 						}
 						RootVarDecl::Class(decl) => {
-							ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Class(decl.clone())))
+							unique_module_items.push(ast::ModuleItem::Stmt(ast::Stmt::Decl(
+								ast::Decl::Class(decl.clone()),
+							)));
 						}
 						RootVarDecl::TsEnum(decl) => {
-							ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::TsEnum(decl.clone())))
+							unique_module_items.push(ast::ModuleItem::Stmt(ast::Stmt::Decl(
+								ast::Decl::TsEnum(decl.clone()),
+							)));
 						}
-					};
-					unique_module_items.push(module_item);
+					}
 				}
 				migrated_ids.insert(var_id.clone());
 			}
@@ -893,16 +971,335 @@ fn apply_variable_migration(
 	migrated_ids
 }
 
+fn has_qrl_pattern(expr: &ast::Expr) -> bool {
+	match expr {
+		// Check for component$, routeAction$, routeLoader$, $(...) patterns
+		ast::Expr::Call(call) => {
+			// Check if callee is an identifier ending with $
+			if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &call.callee {
+				let name = ident.sym.as_ref();
+				if name.ends_with('$') {
+					return true;
+				}
+			}
+			// Recursively check arguments
+			call.args.iter().any(|arg| has_qrl_pattern(&arg.expr))
+		}
+		// Recursively check nested expressions
+		ast::Expr::Paren(paren) => has_qrl_pattern(&paren.expr),
+		ast::Expr::Seq(seq) => seq.exprs.iter().any(|e| has_qrl_pattern(e)),
+		ast::Expr::Cond(cond) => {
+			has_qrl_pattern(&cond.test) || has_qrl_pattern(&cond.cons) || has_qrl_pattern(&cond.alt)
+		}
+		ast::Expr::Bin(bin) => has_qrl_pattern(&bin.left) || has_qrl_pattern(&bin.right),
+		ast::Expr::Unary(unary) => has_qrl_pattern(&unary.arg),
+		ast::Expr::Update(update) => has_qrl_pattern(&update.arg),
+		ast::Expr::Member(member) => has_qrl_pattern(&member.obj),
+		ast::Expr::Array(array) => array
+			.elems
+			.iter()
+			.any(|elem| elem.as_ref().is_some_and(|e| has_qrl_pattern(&e.expr))),
+		ast::Expr::Object(obj) => obj.props.iter().any(|prop| match prop {
+			ast::PropOrSpread::Prop(p) => match &**p {
+				ast::Prop::KeyValue(kv) => has_qrl_pattern(&kv.value),
+				ast::Prop::Shorthand(_) => false,
+				ast::Prop::Assign(assign) => has_qrl_pattern(&assign.value),
+				ast::Prop::Getter(_) | ast::Prop::Setter(_) | ast::Prop::Method(_) => false,
+			},
+			ast::PropOrSpread::Spread(_) => false,
+		}),
+		ast::Expr::Arrow(arrow) => {
+			match &*arrow.body {
+				ast::BlockStmtOrExpr::BlockStmt(_) => false, // Content handled by visitor
+				ast::BlockStmtOrExpr::Expr(e) => has_qrl_pattern(e),
+			}
+		}
+		_ => false,
+	}
+}
+
+fn find_cyclic_migrated_vars(
+	var_ids: &[Id],
+	root_dependencies: &std::collections::HashMap<Id, RootVarDependency>,
+) -> std::collections::HashSet<Id> {
+	let var_set: std::collections::HashSet<Id> = var_ids.iter().cloned().collect();
+	let mut graph: std::collections::HashMap<Id, Vec<Id>> = std::collections::HashMap::new();
+
+	for var_id in var_ids {
+		let deps = root_dependencies
+			.get(var_id)
+			.map(|dep_info| {
+				dep_info
+					.depends_on
+					.iter()
+					.filter(|dep| var_set.contains(*dep))
+					.cloned()
+					.collect::<Vec<_>>()
+			})
+			.unwrap_or_default();
+		graph.insert(var_id.clone(), deps);
+	}
+
+	let mut cyclic = std::collections::HashSet::new();
+	for var_id in var_ids {
+		if let Some(deps) = graph.get(var_id) {
+			for dep in deps {
+				if dep == var_id {
+					cyclic.insert(var_id.clone());
+					break;
+				}
+
+				let mut visited = std::collections::HashSet::new();
+				if path_exists(dep, var_id, &graph, &mut visited) {
+					cyclic.insert(var_id.clone());
+					break;
+				}
+			}
+		}
+
+		// Also mark as cyclic if initializer contains QRL patterns,
+		// since these will create synthetic dependencies during transformation
+		// that could cause forward references
+		if let Some(dep_info) = root_dependencies.get(var_id) {
+			if let RootVarDecl::Var(decl) = &dep_info.decl {
+				if let Some(init) = &decl.init {
+					if has_qrl_pattern(init) && var_ids.len() > 1 {
+						// Only mark as cyclic if there are multiple vars being migrated
+						// to ensure safe ordering with two-phase emission
+						cyclic.insert(var_id.clone());
+					}
+				}
+			}
+		}
+	}
+
+	cyclic
+}
+
+fn path_exists(
+	start: &Id,
+	target: &Id,
+	graph: &std::collections::HashMap<Id, Vec<Id>>,
+	visited: &mut std::collections::HashSet<Id>,
+) -> bool {
+	if start == target {
+		return true;
+	}
+
+	if !visited.insert(start.clone()) {
+		return false;
+	}
+
+	if let Some(next_nodes) = graph.get(start) {
+		for next in next_nodes {
+			if path_exists(next, target, graph, visited) {
+				return true;
+			}
+		}
+	}
+
+	false
+}
+
+fn create_cyclic_var_items(decl: &ast::VarDeclarator) -> Option<Vec<ast::ModuleItem>> {
+	let ast::Pat::Ident(binding_ident) = &decl.name else {
+		return None;
+	};
+	let init = decl.init.clone()?;
+
+	let ident = binding_ident.id.clone();
+	let ident_for_assign = ident.clone();
+	let ident_for_let = ident;
+
+	let let_decl = ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+		span: swc_common::DUMMY_SP,
+		kind: ast::VarDeclKind::Let,
+		decls: vec![ast::VarDeclarator {
+			span: decl.span,
+			name: ast::Pat::Ident(ast::BindingIdent {
+				id: ident_for_let,
+				type_ann: None,
+			}),
+			init: None,
+			definite: false,
+		}],
+		declare: false,
+		ctxt: swc_common::SyntaxContext::empty(),
+	}))));
+
+	let assign_stmt = ast::ModuleItem::Stmt(ast::Stmt::Expr(ast::ExprStmt {
+		span: swc_common::DUMMY_SP,
+		expr: Box::new(ast::Expr::Assign(ast::AssignExpr {
+			span: swc_common::DUMMY_SP,
+			op: ast::AssignOp::Assign,
+			left: ast::AssignTarget::Simple(ast::SimpleAssignTarget::Ident(ast::BindingIdent {
+				id: ident_for_assign,
+				type_ann: None,
+			})),
+			right: init,
+		})),
+	}));
+
+	Some(vec![let_decl, assign_stmt])
+}
+
+fn sort_migrated_vars_topologically(
+	var_ids: &[Id],
+	root_dependencies: &std::collections::HashMap<Id, RootVarDependency>,
+) -> Vec<Id> {
+	if var_ids.len() <= 1 {
+		return var_ids.to_vec();
+	}
+
+	let var_set: std::collections::HashSet<Id> = var_ids.iter().cloned().collect();
+	let mut indegree: std::collections::HashMap<Id, usize> =
+		var_ids.iter().cloned().map(|id| (id, 0usize)).collect();
+	let mut outgoing: std::collections::HashMap<Id, Vec<Id>> =
+		var_ids.iter().cloned().map(|id| (id, Vec::new())).collect();
+
+	for var_id in var_ids {
+		if let Some(dep_info) = root_dependencies.get(var_id) {
+			for dep_id in &dep_info.depends_on {
+				// For dependencies, ignore self-references (a variable depending on itself)
+				// These create cycles that can't be topologically sorted
+				if dep_id == var_id {
+					continue;
+				}
+				if !var_set.contains(dep_id) {
+					continue;
+				}
+				if let Some(out) = outgoing.get_mut(dep_id) {
+					out.push(var_id.clone());
+				}
+				if let Some(deg) = indegree.get_mut(var_id) {
+					*deg += 1;
+				}
+			}
+		}
+	}
+
+	let sort_key = |var_id: &Id| {
+		let span = root_dependencies
+			.get(var_id)
+			.map(|dep| root_decl_span(&dep.decl))
+			.unwrap_or(DUMMY_SP);
+		(span.lo.0, span.hi.0, var_id.0.to_string())
+	};
+
+	let mut ready: Vec<Id> = indegree
+		.iter()
+		.filter_map(|(id, deg)| if *deg == 0 { Some(id.clone()) } else { None })
+		.collect();
+	ready.sort_by_key(&sort_key);
+
+	let mut result = Vec::with_capacity(var_ids.len());
+	while let Some(next) = ready.first().cloned() {
+		ready.remove(0);
+		result.push(next.clone());
+
+		if let Some(children) = outgoing.get(&next) {
+			for child in children {
+				if let Some(deg) = indegree.get_mut(child) {
+					*deg = deg.saturating_sub(1);
+					if *deg == 0 {
+						ready.push(child.clone());
+					}
+				}
+			}
+		}
+		ready.sort_by_key(&sort_key);
+	}
+
+	if result.len() == var_ids.len() {
+		result
+	} else {
+		let mut fallback = var_ids.to_vec();
+		fallback.sort_by_key(sort_key);
+		fallback
+	}
+}
+
+/// This runs BEFORE the actual variable migration to ensure all dependencies are known upfront.
+/// This prevents issues where migrated variables have dependencies that weren't exported yet.
+fn precompute_and_declare_auto_exports(
+	module: &mut ast::Module,
+	global_collect: &mut crate::collector::GlobalCollect,
+	migratable: &std::collections::BTreeMap<usize, Vec<Id>>,
+	root_dependencies: &std::collections::HashMap<Id, RootVarDependency>,
+) {
+	if migratable.is_empty() {
+		return;
+	}
+
+	// Build a map of which segment each variable is being migrated to
+	let segment_assignment: std::collections::BTreeMap<Id, usize> = migratable
+		.iter()
+		.flat_map(|(seg_idx, vars)| vars.iter().map(move |var_id| (var_id.clone(), *seg_idx)))
+		.collect();
+
+	let mut exports_to_declare = std::collections::BTreeMap::new();
+
+	// Step 1: Analyze what segments need and identify required exports
+	for (seg_idx, vars) in migratable {
+		for var_id in vars {
+			if let Some(dep_info) = root_dependencies.get(var_id) {
+				// Step 2: Check if dependencies of this variable need to be exported
+				for dep_id in &dep_info.depends_on {
+					// Skip if dependency is not in root, or if it's being migrated to same segment
+					if !global_collect.root.contains_key(dep_id) {
+						continue;
+					}
+
+					if let Some(dep_segment) = segment_assignment.get(dep_id) {
+						// Dependency is also being migrated to same segment - no export needed
+						if *dep_segment == *seg_idx {
+							continue;
+						}
+					}
+
+					// Check if dependency is already imported/exported
+					if let Some(dep_info) = root_dependencies.get(dep_id) {
+						if dep_info.is_imported || dep_info.is_exported {
+							continue;
+						}
+					}
+
+					// This dependency needs to be exported
+					if !exports_to_declare.contains_key(dep_id) {
+						exports_to_declare.insert(dep_id.clone(), format!("_auto_{}", dep_id.0));
+					}
+				}
+			}
+		}
+	}
+
+	// Step 3: Now declare all exports we computed
+	// This happens before any variable migration, so all dependencies are known upfront
+	for (id, exported_name) in exports_to_declare {
+		if global_collect.add_export(id.clone(), Some(exported_name.clone().into())) {
+			module.body.push(create_synthetic_named_export(
+				&id,
+				Some(exported_name.into()),
+			));
+		}
+	}
+}
+
+fn root_decl_span(decl: &RootVarDecl) -> Span {
+	match decl {
+		RootVarDecl::Var(var) => var.span,
+		RootVarDecl::Fn(func) => func.function.span,
+		RootVarDecl::Class(class) => class.class.span,
+		RootVarDecl::TsEnum(enu) => enu.span,
+	}
+}
+
 /// Removes exports and variable declarations for migrated variables from the root module.
 /// These variables are now defined in their respective segment files.
 fn remove_migrated_exports(module: &mut ast::Module, migrated_ids: &std::collections::HashSet<Id>) {
 	if migrated_ids.is_empty() {
 		return;
 	}
-
-	// Extract just the symbol names for comparison (ignore SyntaxContext)
-	let migrated_syms: std::collections::HashSet<_> =
-		migrated_ids.iter().map(|(sym, _)| sym.clone()).collect();
 
 	module.body.retain_mut(|item| {
 		match item {
@@ -911,7 +1308,7 @@ fn remove_migrated_exports(module: &mut ast::Module, migrated_ids: &std::collect
 				export.specifiers.retain(|spec| {
 					if let ast::ExportSpecifier::Named(named) = spec {
 						if let ast::ModuleExportName::Ident(orig_ident) = &named.orig {
-							!migrated_syms.contains(&orig_ident.sym)
+							!migrated_ids.contains(&(orig_ident.sym.clone(), orig_ident.ctxt))
 						} else {
 							true
 						}
@@ -927,21 +1324,179 @@ fn remove_migrated_exports(module: &mut ast::Module, migrated_ids: &std::collect
 				var_decl.decls.retain(|decl| {
 					let mut ids = Vec::new();
 					let _ = collect_from_pat(&decl.name, &mut ids);
-					!ids.iter().any(|(id, _)| migrated_syms.contains(&id.0))
+					!ids.iter().any(|(id, _)| migrated_ids.contains(id))
 				});
 				// Return true only if there are declarators left
 				!var_decl.decls.is_empty()
 			}
 			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Fn(function))) => {
-				!migrated_syms.contains(&function.ident.sym)
+				!migrated_ids.contains(&(function.ident.sym.clone(), function.ident.ctxt))
 			}
 			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Class(class))) => {
-				!migrated_syms.contains(&class.ident.sym)
+				!migrated_ids.contains(&(class.ident.sym.clone(), class.ident.ctxt))
 			}
 			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::TsEnum(enu))) => {
-				!migrated_syms.contains(&enu.id.sym)
+				!migrated_ids.contains(&(enu.id.sym.clone(), enu.id.ctxt))
 			}
 			_ => true,
 		}
 	});
+}
+
+#[cfg(test)]
+mod migration_cleanup_tests {
+	use super::*;
+	use std::collections::HashSet;
+	use swc_atoms::{atom, Atom};
+	use swc_common::{Globals, Mark, SyntaxContext, DUMMY_SP, GLOBALS};
+
+	#[test]
+	fn remove_migrated_exports_keeps_same_symbol_different_context() {
+		GLOBALS.set(&Globals::new(), || {
+			let ctxt_a = SyntaxContext::empty();
+			let ctxt_b = SyntaxContext::empty().apply_mark(Mark::new());
+
+			let ident_a = ast::Ident::new(atom!("RouteStateContext"), DUMMY_SP, ctxt_a);
+			let ident_b = ast::Ident::new(atom!("RouteStateContext"), DUMMY_SP, ctxt_b);
+
+			let make_decl = |ident: ast::Ident, value: &str| {
+				let var_decl = ast::VarDecl {
+					span: DUMMY_SP,
+					ctxt: Default::default(),
+					kind: ast::VarDeclKind::Const,
+					declare: false,
+					decls: vec![ast::VarDeclarator {
+						span: DUMMY_SP,
+						name: ast::Pat::Ident(ast::BindingIdent {
+							id: ident,
+							type_ann: None,
+						}),
+						init: Some(Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+							span: DUMMY_SP,
+							value: Atom::from(value),
+							raw: None,
+						})))),
+						definite: false,
+					}],
+				};
+				ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(var_decl))))
+			};
+
+			let mut module = ast::Module {
+				span: DUMMY_SP,
+				shebang: None,
+				body: vec![
+					make_decl(ident_a.clone(), "a"),
+					make_decl(ident_b.clone(), "b"),
+				],
+			};
+
+			let mut migrated_ids: HashSet<Id> = HashSet::new();
+			migrated_ids.insert((ident_a.sym.clone(), ident_a.ctxt));
+
+			remove_migrated_exports(&mut module, &migrated_ids);
+
+			assert_eq!(module.body.len(), 1);
+			match &module.body[0] {
+				ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var_decl))) => {
+					assert_eq!(var_decl.decls.len(), 1);
+					if let ast::Pat::Ident(binding) = &var_decl.decls[0].name {
+						assert_eq!(binding.id.sym, atom!("RouteStateContext"));
+						assert_eq!(binding.id.ctxt, ctxt_b);
+					} else {
+						panic!("expected ident pattern");
+					}
+				}
+				_ => panic!("expected var decl"),
+			}
+		});
+	}
+
+	#[test]
+	fn find_cyclic_migrated_vars_detects_self_and_mutual_cycles() {
+		let id_a: Id = (atom!("a"), SyntaxContext::empty());
+		let id_b: Id = (atom!("b"), SyntaxContext::empty());
+		let id_c: Id = (atom!("c"), SyntaxContext::empty());
+
+		let mk_decl = |name: &str| {
+			RootVarDecl::Var(ast::VarDeclarator {
+				span: DUMMY_SP,
+				name: ast::Pat::Ident(ast::BindingIdent {
+					id: ast::Ident::new(name.into(), DUMMY_SP, SyntaxContext::empty()),
+					type_ann: None,
+				}),
+				init: None,
+				definite: false,
+			})
+		};
+
+		let mut deps = HashMap::new();
+		deps.insert(
+			id_a.clone(),
+			RootVarDependency {
+				decl: mk_decl("a"),
+				is_imported: false,
+				is_exported: false,
+				depends_on: vec![id_a.clone()],
+			},
+		);
+		deps.insert(
+			id_b.clone(),
+			RootVarDependency {
+				decl: mk_decl("b"),
+				is_imported: false,
+				is_exported: false,
+				depends_on: vec![id_c.clone()],
+			},
+		);
+		deps.insert(
+			id_c.clone(),
+			RootVarDependency {
+				decl: mk_decl("c"),
+				is_imported: false,
+				is_exported: false,
+				depends_on: vec![id_b.clone()],
+			},
+		);
+
+		let cyclic = find_cyclic_migrated_vars(&[id_a.clone(), id_b.clone(), id_c.clone()], &deps);
+		assert!(cyclic.contains(&id_a));
+		assert!(cyclic.contains(&id_b));
+		assert!(cyclic.contains(&id_c));
+	}
+
+	#[test]
+	fn create_cyclic_var_items_emits_let_then_assign() {
+		let decl = ast::VarDeclarator {
+			span: DUMMY_SP,
+			name: ast::Pat::Ident(ast::BindingIdent {
+				id: ast::Ident::new(atom!("foo"), DUMMY_SP, SyntaxContext::empty()),
+				type_ann: None,
+			}),
+			init: Some(Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
+				span: DUMMY_SP,
+				value: 1.0,
+				raw: None,
+			})))),
+			definite: false,
+		};
+
+		let items = create_cyclic_var_items(&decl).expect("should build cyclic items");
+		assert_eq!(items.len(), 2);
+
+		match &items[0] {
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var_decl))) => {
+				assert_eq!(var_decl.kind, ast::VarDeclKind::Let);
+				assert_eq!(var_decl.decls.len(), 1);
+			}
+			_ => panic!("expected leading let declaration"),
+		}
+
+		match &items[1] {
+			ast::ModuleItem::Stmt(ast::Stmt::Expr(ast::ExprStmt { expr, .. })) => {
+				assert!(matches!(&**expr, ast::Expr::Assign(_)));
+			}
+			_ => panic!("expected trailing assignment statement"),
+		}
+	}
 }

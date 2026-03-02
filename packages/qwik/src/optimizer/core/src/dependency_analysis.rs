@@ -64,14 +64,20 @@ pub fn analyze_root_dependencies(
 				for spec in &named.specifiers {
 					if let ast::ExportSpecifier::Named(named_spec) = spec {
 						if let ast::ModuleExportName::Ident(ident) = &named_spec.orig {
-							// Check if the exported name is _auto_ (auto-export for segments)
 							if let Some(ast::ModuleExportName::Ident(exported_id)) =
 								&named_spec.exported
 							{
+								// Skip auto-exports used for segment internals.
 								let is_auto_export = exported_id.sym.starts_with("_auto_");
 								if !is_auto_export {
 									let id = (ident.sym.clone(), ident.ctxt);
 									user_exported.insert(id.clone());
+								}
+							} else {
+								// Plain `export { foo }` should be treated as user-exported.
+								if !ident.sym.starts_with("_auto_") {
+									let id = (ident.sym.clone(), ident.ctxt);
+									user_exported.insert(id);
 								}
 							}
 						}
@@ -307,8 +313,8 @@ fn collect_decl_idents(pat: &ast::Pat, idents: &mut Vec<Id>) {
 pub fn build_root_var_usage_map(
 	segments: &[crate::transform::Segment],
 	root_dependencies: &HashMap<Id, RootVarDependency>,
-) -> HashMap<Id, Vec<usize>> {
-	let mut usage_map: HashMap<Id, Vec<usize>> = HashMap::new();
+) -> indexmap::IndexMap<Id, Vec<usize>> {
+	let mut usage_map: indexmap::IndexMap<Id, Vec<usize>> = indexmap::IndexMap::new();
 
 	for (seg_idx, segment) in segments.iter().enumerate() {
 		// Check both local_idents and scoped_idents for variables used by this segment
@@ -334,9 +340,10 @@ pub fn build_root_var_usage_map(
 pub fn find_migratable_vars(
 	segments: &[crate::transform::Segment],
 	root_dependencies: &HashMap<Id, RootVarDependency>,
-	root_var_usage: &HashMap<Id, Vec<usize>>,
-) -> HashMap<usize, Vec<Id>> {
-	let mut migratable: HashMap<usize, Vec<Id>> = HashMap::new();
+	root_var_usage: &indexmap::IndexMap<Id, Vec<usize>>,
+) -> std::collections::BTreeMap<usize, Vec<Id>> {
+	let mut migratable: std::collections::BTreeMap<usize, Vec<Id>> =
+		std::collections::BTreeMap::new();
 
 	for (root_var_id, segments_using) in root_var_usage.iter() {
 		// Only migrate if:
@@ -359,6 +366,52 @@ pub fn find_migratable_vars(
 				}
 			}
 		}
+	}
+
+	// Safety filter: do not migrate a root var if it is still referenced by
+	// another root declaration that is not migrated to the same segment.
+	// This prevents removing module-scope declarations that are still required
+	// by the root module (e.g. routeLoaderQrl using RouteStateContext).
+	let mut changed = true;
+	while changed {
+		changed = false;
+
+		let assignment: std::collections::BTreeMap<Id, usize> = migratable
+			.iter()
+			.flat_map(|(seg_idx, vars)| vars.iter().map(move |var_id| (var_id.clone(), *seg_idx)))
+			.collect();
+
+		for (seg_idx, vars) in migratable.iter_mut() {
+			let before_len = vars.len();
+			vars.retain(|candidate_id| {
+				let candidate_target = assignment.get(candidate_id).copied().unwrap_or(*seg_idx);
+
+				let used_by_incompatible_root =
+					root_dependencies.iter().any(|(root_id, dep_info)| {
+						// Ignore self-dependency and non-root/import nodes
+						if root_id == candidate_id || dep_info.is_imported {
+							return false;
+						}
+
+						// Only relevant if this root declaration references the candidate
+						if !dep_info.depends_on.iter().any(|dep| dep == candidate_id) {
+							return false;
+						}
+
+						// Safe only when the referencing root declaration is migrated
+						// to the same segment as the candidate.
+						assignment.get(root_id).copied() != Some(candidate_target)
+					});
+
+				!used_by_incompatible_root
+			});
+
+			if vars.len() != before_len {
+				changed = true;
+			}
+		}
+
+		migratable.retain(|_, vars| !vars.is_empty());
 	}
 
 	migratable
@@ -394,67 +447,6 @@ fn collect_transitive_dependencies(
 							queue.push_back(dep.clone());
 						}
 					}
-				}
-			}
-		}
-	}
-
-	result
-}
-
-/// Topologically sorts variables by their dependencies.
-/// Returns variables in declaration order (dependencies first).
-pub fn topological_sort_variables(
-	var_ids: &[Id],
-	root_dependencies: &HashMap<Id, RootVarDependency>,
-) -> Vec<Id> {
-	let mut in_degree: HashMap<Id, usize> = HashMap::new();
-	let mut adj_list: HashMap<Id, Vec<Id>> = HashMap::new();
-
-	// Initialize
-	for var_id in var_ids {
-		if !in_degree.contains_key(var_id) {
-			in_degree.insert(var_id.clone(), 0);
-		}
-		if !adj_list.contains_key(var_id) {
-			adj_list.insert(var_id.clone(), Vec::new());
-		}
-	}
-
-	// Build graph: for each variable, add edges from its dependencies
-	for var_id in var_ids {
-		if let Some(dep_info) = root_dependencies.get(var_id) {
-			for dep in &dep_info.depends_on {
-				// Only consider dependencies within our set
-				if var_ids.iter().any(|v| v == dep) {
-					// dep -> var_id (var_id depends on dep)
-					adj_list
-						.entry(dep.clone())
-						.or_default()
-						.push(var_id.clone());
-					*in_degree.entry(var_id.clone()).or_insert(0) += 1;
-				}
-			}
-		}
-	}
-
-	// Kahn's algorithm
-	let mut queue: VecDeque<Id> = in_degree
-		.iter()
-		.filter(|(_, &degree)| degree == 0)
-		.map(|(id, _)| id.clone())
-		.collect();
-
-	let mut result = Vec::new();
-	while let Some(current) = queue.pop_front() {
-		result.push(current.clone());
-
-		if let Some(neighbors) = adj_list.get(&current) {
-			for neighbor in neighbors {
-				let new_degree = in_degree[neighbor] - 1;
-				in_degree.insert(neighbor.clone(), new_degree);
-				if new_degree == 0 {
-					queue.push_back(neighbor.clone());
 				}
 			}
 		}

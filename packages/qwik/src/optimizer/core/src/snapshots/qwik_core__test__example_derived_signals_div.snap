@@ -65,15 +65,15 @@ import { _fnSignal } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+import { useStore, mutable } from '@qwik.dev/core';
+import { dep } from './file';
+import styles from './styles.module.css';
 const _hf0 = (p0)=>12 + p0.value;
 const _hf0_str = "12+p0.value";
 const _hf1 = (p0)=>p0.address.city.name;
 const _hf1_str = "p0.address.city.name";
 const _hf2 = (p0)=>p0.address.city.name ? 'true' : 'false';
 const _hf2_str = 'p0.address.city.name?"true":"false"';
-import { useStore, mutable } from '@qwik.dev/core';
-import { dep } from './file';
-import styles from './styles.module.css';
 const App_component_ckEPmXZlub0 = (props)=>{
     const signal = useSignal(0);
     const store = useStore({});
@@ -120,7 +120,7 @@ const App_component_ckEPmXZlub0 = (props)=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBA8BwB,KAAK,GAAO,KAAK;;mBAE/B,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACf,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;AAhCrD,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;AAC3B,OAAO,YAAY,sBAAsB;kCAEX,CAAC;IAC9B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,MAAM,QAAQ,MAAM,OAAO,CAAC,KAAK;IAEjC,qBACC,WAAC;QACA,OAAO;YACN,MAAM,QAAQ,MAAM;YACpB,KAAK,QAAQ,MAAM;YACnB,SAAS;YACT,QAAQ;QACT;QAqBA,QAAQ;QACR,cAAc,YAAY,KAAK;QAC/B,gBAAgB,YAAY,KAAK,GAAG;QAGpC,UAAU,OAAO,KAAK;QACtB,WAAW,OAAO,KAAK,GAAG;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;QA3B1B,gBAAgB,OAAO,QAAQ;;QAD/B,aAAa,OAAO,GAAG;QAEvB,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe;QACf,YAAY,CAAC,IAAI,EAAE,IAAI;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;QAEpD,QAAQ;QACR,WAAW,YAAE;QACb,mBAAmB;;;QAEnB,KAAK;;;QACL,aAAa;;;QAEb,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;;AAc5B;AA7CA,OAAO,MAAM,oBAAM,+FA6ChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;AAC3B,OAAO,YAAY,sBAAsB;mBA0BjB,KAAK,GAAO,KAAK;;mBAE/B,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACf,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;kCA3BvB,CAAC;IAC9B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,MAAM,QAAQ,MAAM,OAAO,CAAC,KAAK;IAEjC,qBACC,WAAC;QACA,OAAO;YACN,MAAM,QAAQ,MAAM;YACpB,KAAK,QAAQ,MAAM;YACnB,SAAS;YACT,QAAQ;QACT;QAqBA,QAAQ;QACR,cAAc,YAAY,KAAK;QAC/B,gBAAgB,YAAY,KAAK,GAAG;QAGpC,UAAU,OAAO,KAAK;QACtB,WAAW,OAAO,KAAK,GAAG;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;QA3B1B,gBAAgB,OAAO,QAAQ;;QAD/B,aAAa,OAAO,GAAG;QAEvB,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe;QACf,YAAY,CAAC,IAAI,EAAE,IAAI;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;QAEpD,QAAQ;QACR,WAAW,YAAE;QACb,mBAAmB;;;QAEnB,KAAK;;;QACL,aAAa;;;QAEb,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;;AAc5B;AA7CA,OAAO,MAAM,oBAAM,+FA6ChB\"}")
 == DIAGNOSTICS ==
 
 []

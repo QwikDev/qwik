@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4199
+assertion_line: 4209
 expression: output
 ---
 ==INPUT==
@@ -46,13 +46,13 @@ export const ModelImg = component$<ModelProps>((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_CS20HgBlRYI = ()=>import("./test.tsx_Image_component_CS20HgBlRYI");
-const i_iJe6ICWVnyA = ()=>import("./test.tsx_ModelImg_component_iJe6ICWVnyA");
-export const Image = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_CS20HgBlRYI, "Image_component_CS20HgBlRYI"));
-export const ModelImg = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_iJe6ICWVnyA, "ModelImg_component_iJe6ICWVnyA"));
+const _qrl_Image_component_CS20HgBlRYI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Image_component_CS20HgBlRYI"), "Image_component_CS20HgBlRYI");
+const _qrl_ModelImg_component_iJe6ICWVnyA = /*#__PURE__*/ qrl(()=>import("./test.tsx_ModelImg_component_iJe6ICWVnyA"), "ModelImg_component_iJe6ICWVnyA");
+export const Image = /*#__PURE__*/ componentQrl(_qrl_Image_component_CS20HgBlRYI);
+export const ModelImg = /*#__PURE__*/ componentQrl(_qrl_ModelImg_component_iJe6ICWVnyA);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,MAAM,sBAAQ,8EAMlB;AAEH,OAAO,MAAM,yBAAW,iFAsBrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,MAAM,sBAAQ,+CAMlB;AAEH,OAAO,MAAM,yBAAW,kDAsBrB\"}")
 ============================= test.tsx_ModelImg_component_iJe6ICWVnyA.js (ENTRY POINT)==
 
 import { Image } from "./test";

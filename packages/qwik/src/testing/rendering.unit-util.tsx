@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Slot, component$, render, type JSXOutput } from '@qwik.dev/core';
+import { Slot, componentQrl, inlinedQrl, render, type JSXOutput } from '@qwik.dev/core';
 import { _getDomContainer } from '@qwik.dev/core/internal';
 import type {
   _ContainerElement,
@@ -355,10 +355,12 @@ function getHostVNode(vElement: _VNode | null) {
 }
 
 export const ErrorProvider = Object.assign(
-  component$(() => {
-    (ErrorProvider as any).error = null;
-    useContextProvider(ERROR_CONTEXT, ErrorProvider as any);
-    return <Slot />;
-  }),
+  componentQrl(
+    inlinedQrl(() => {
+      (ErrorProvider as any).error = null;
+      useContextProvider(ERROR_CONTEXT, ErrorProvider as any);
+      return <Slot />;
+    }, 's_ErrorProvider')
+  ),
   { error: null as any }
 );

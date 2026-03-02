@@ -46,7 +46,7 @@ describe('core platform', () => {
         didThrow = true;
         // The error should be a QError with code for dynamic import failed
         expect(e.message).toMatch(/Code\(Q\d+\)/);
-        expect(e.message).toContain('Dynamic import not found');
+        expect(e.message).toContain(`Dynamic import ${symbolName} not found`);
       }
       expect(didThrow).toBe(true);
     });

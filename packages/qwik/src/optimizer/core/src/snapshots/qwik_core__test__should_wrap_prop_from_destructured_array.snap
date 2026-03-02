@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4119
+assertion_line: 4129
 expression: output
 ---
 ==INPUT==
@@ -57,13 +57,13 @@ expression: output
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_9metqqaxlN8 = ()=>import("./test.tsx_Input_component_9metqqaxlN8");
-const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
-export const Input = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9metqqaxlN8, "Input_component_9metqqaxlN8"));
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+const _qrl_Input_component_9metqqaxlN8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Input_component_9metqqaxlN8"), "Input_component_9metqqaxlN8");
+const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+export const Input = /*#__PURE__*/ componentQrl(_qrl_Input_component_9metqqaxlN8);
+export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIE,OAAO,MAAM,sBAAQ,8EAanB;AAEF,6BAAe,6EA2BZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIE,OAAO,MAAM,sBAAQ,+CAanB;AAEF,6BAAe,8CA2BZ\"}")
 ============================= test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";

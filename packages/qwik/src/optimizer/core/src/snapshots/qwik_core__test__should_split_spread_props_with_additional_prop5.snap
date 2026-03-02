@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4529
+assertion_line: 4539
 expression: output
 ---
 ==INPUT==
@@ -26,14 +26,17 @@ import { _getConstProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAOE,6BAAe,6EAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAOE,6BAAe,8CAKZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
 function Hola(props) {
     return /*#__PURE__*/ _jsxSplit("div", {
         ..._getVarProps(props)
@@ -47,7 +50,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAGE,SAAS,KAAK,KAAU;IACvB,qBAAO,UAAC;wBAAQ;sBAAA;AACjB;0CAE0B;IAC1B,qBAAO,WAAC;sBACP,WAAC,mBAAI;sBACL,WAAC,mBAAI;;AAEN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGE,SAAS,KAAK,KAAU;IACvB,qBAAO,UAAC;wBAAQ;sBAAA;AACjB;0CAE0B;IAC1B,qBAAO,WAAC;sBACP,WAAC,mBAAI;sBACL,WAAC,mBAAI;;AAEN\"}")
 /*
 {
   "origin": "test.tsx",

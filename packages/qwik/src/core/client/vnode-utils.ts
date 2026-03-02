@@ -194,7 +194,7 @@ import { isCursor } from '../shared/cursor/cursor';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
-import { fastGetter } from './prototype-utils';
+import { createFastGetter, fastGetter } from './prototype-utils';
 import { decodeVNodeDataString } from '../shared/utils/character-escaping';
 import { parseQRL } from '../shared/serdes/index';
 
@@ -1534,13 +1534,7 @@ export const fastGetAttribute = (element: Element, key: string): string | null =
   return _fastGetAttribute.call(element, key);
 };
 
-let _fastNodeType: ((this: Node) => number) | null = null;
-const fastNodeType = (node: Node): number => {
-  if (!_fastNodeType) {
-    _fastNodeType = fastGetter<typeof _fastNodeType>(node, 'nodeType')!;
-  }
-  return _fastNodeType.call(node);
-};
+const fastNodeType = createFastGetter<Node, number>('nodeType');
 const fastIsTextOrElement = (node: Node): boolean => {
   const type = fastNodeType(node);
   return type === /* Node.TEXT_NODE */ 3 || type === /* Node.ELEMENT_NODE */ 1;
@@ -1609,13 +1603,7 @@ function getNodeAfterCommentNode(
   return null;
 }
 
-let _fastParentNode: ((this: Node) => Node | null) | null = null;
-const fastParentNode = (node: Node): Node | null => {
-  if (!_fastParentNode) {
-    _fastParentNode = fastGetter<typeof _fastParentNode>(node, 'parentNode')!;
-  }
-  return _fastParentNode.call(node);
-};
+const fastParentNode = createFastGetter<Node, Node | null>('parentNode');
 
 let _fastFirstChild: ((this: Node) => Node | null) | null = null;
 const fastFirstChild = (node: Node | null): Node | null => {
@@ -1629,40 +1617,11 @@ const fastFirstChild = (node: Node | null): Node | null => {
   return node;
 };
 
-let _fastNamespaceURI: ((this: Element) => string | null) | null = null;
-export const fastNamespaceURI = (element: Element): string | null => {
-  if (!_fastNamespaceURI) {
-    _fastNamespaceURI = fastGetter<typeof _fastNamespaceURI>(element, 'namespaceURI')!;
-  }
-  return _fastNamespaceURI.call(element);
-};
+export const fastNamespaceURI = createFastGetter<Element, string | null>('namespaceURI');
 
-let _fastNodeName: ((this: Element) => string | null) | null = null;
-export const fastNodeName = (element: Element): string | null => {
-  if (!_fastNodeName) {
-    _fastNodeName = fastGetter<typeof _fastNodeName>(element, 'nodeName')!;
-  }
-  return _fastNodeName.call(element);
-};
+export const fastNodeName = createFastGetter<Element, string | null>('nodeName');
 
-let _fastOwnerDocument: ((this: Node) => Document) | null = null;
-const fastOwnerDocument = (node: Node): Document => {
-  if (!_fastOwnerDocument) {
-    _fastOwnerDocument = fastGetter<typeof _fastOwnerDocument>(node, 'ownerDocument')!;
-  }
-  return _fastOwnerDocument.call(node)!;
-};
-
-const hasQStyleAttribute = (element: Element): boolean => {
-  return (
-    element.nodeName === 'STYLE' &&
-    (element.hasAttribute(QScopedStyle) || element.hasAttribute(QStyle))
-  );
-};
-
-const hasPropsSeparator = (element: Element): boolean => {
-  return element.hasAttribute(Q_PROPS_SEPARATOR);
-};
+const fastOwnerDocument = createFastGetter<Node, Document>('ownerDocument');
 
 const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vData?: string) => {
   let vFirstChild: VNode | null = null;
@@ -1809,15 +1768,6 @@ const processVNodeData = (
   while (peek() !== 0) {
     callback(peek, consumeValue, consume, getChar, nextToConsumeIdx);
   }
-};
-
-/** @internal */
-export const vnode_getNextSibling = (vnode: VNode): VNode | null => {
-  return vnode.nextSibling as VNode | null;
-};
-
-export const vnode_getPreviousSibling = (vnode: VNode): VNode | null => {
-  return vnode.previousSibling as VNode | null;
 };
 
 /** @internal */
@@ -1978,11 +1928,12 @@ const isLowercase = (ch: number) => /* `a` */ 97 <= ch && ch <= 122; /* `z` */
 function shouldSkipElement(element: Element) {
   return (
     // Skip over elements that don't have a props separator. They are not rendered by Qwik.
-    !hasPropsSeparator(element) ||
+    !element.hasAttribute(Q_PROPS_SEPARATOR) ||
     // We pretend that style element's don't exist as they can get moved out.
     // skip over style elements, as those need to be moved to the head
     // and are not included in the counts.
-    hasQStyleAttribute(element)
+    (element.nodeName === 'STYLE' &&
+      (element.hasAttribute(QScopedStyle) || element.hasAttribute(QStyle)))
   );
 }
 

@@ -60,13 +60,13 @@ import { _EFFECT_BACK_REF } from '../../reactive-primitives/backref';
  * - Therefore root indexes need to be doubled to get the actual index.
  */
 export class Serializer {
-  private rootIdx = 0;
-  private forwardRefs: number[] = [];
-  private forwardRefsId = 0;
-  private promises: Set<Promise<unknown>> = new Set();
-  private s11nWeakRefs = new Map<unknown, number>();
-  private parent: SeenRef | undefined;
-  private qrlMap = new Map<string, QRLInternal>();
+  private $rootIdx$ = 0;
+  private $forwardRefs$: number[] = [];
+  private $forwardRefsId$ = 0;
+  private $promises$: Set<Promise<unknown>> = new Set();
+  private $s11nWeakRefs$ = new Map<unknown, number>();
+  private $parent$: SeenRef | undefined;
+  private $qrlMap$ = new Map<string, QRLInternal>();
   private $writer$: StreamWriter;
 
   constructor(public $serializationContext$: SerializationContext) {
@@ -147,7 +147,7 @@ export class Serializer {
   ): SeenRef | undefined {
     let seen = this.$serializationContext$.getSeenRef(value);
 
-    const forwardRefIdx = !keepWeak && this.s11nWeakRefs.get(value);
+    const forwardRefIdx = !keepWeak && this.$s11nWeakRefs$.get(value);
 
     if (!seen) {
       if (keepWeak) {
@@ -159,7 +159,7 @@ export class Serializer {
         // Yes, no longer a weakref
         seen = this.$serializationContext$.$addRoot$(value, true);
       } else {
-        return this.$serializationContext$.$markSeen$(value, this.parent, index);
+        return this.$serializationContext$.$markSeen$(value, this.$parent$, index);
       }
     }
 
@@ -167,7 +167,7 @@ export class Serializer {
     if (seen.$parent$) {
       // Note, this means it was output before so we always need a backref
       // Special case: we're a root so instead of adding a backref, we replace ourself
-      if (!this.parent) {
+      if (!this.$parent$) {
         this.$serializationContext$.$promoteToRoot$(seen, index);
         value = this.$serializationContext$.$roots$[index];
       } else {
@@ -177,15 +177,15 @@ export class Serializer {
 
     // Check if there was a weakref to us
     if (typeof forwardRefIdx === 'number') {
-      this.forwardRefs[forwardRefIdx] = seen.$index$;
-      this.s11nWeakRefs.delete(value);
+      this.$forwardRefs$[forwardRefIdx] = seen.$index$;
+      this.$s11nWeakRefs$.delete(value);
     }
 
     // Now we know it's a root and we should output a RootRef
     const rootIdx = value instanceof SerializationBackRef ? value.$path$ : seen.$index$;
 
     // But make sure we do output ourselves
-    if (!this.parent && rootIdx === index) {
+    if (!this.$parent$ && rootIdx === index) {
       return seen;
     }
     this.output(TypeIds.RootRef, rootIdx);
@@ -264,14 +264,14 @@ export class Serializer {
                 // not a sync QRL, replace all parts with string references
                 data = `${this.$serializationContext$.$addRoot$(chunk)}#${this.$serializationContext$.$addRoot$(symbol)}${captures ? '#' + captures : ''}`;
                 // Since we map QRLs to strings, we need to keep track of this secondary mapping
-                const existing = this.qrlMap.get(data);
+                const existing = this.$qrlMap$.get(data);
                 if (existing) {
                   // We encountered the same QRL again, make it a root
                   const ref = this.$serializationContext$.$addRoot$(existing);
                   this.output(TypeIds.RootRef, ref);
                   return;
                 } else {
-                  this.qrlMap.set(data, value);
+                  this.$qrlMap$.set(data, value);
                 }
               } else {
                 // sync QRL
@@ -300,11 +300,11 @@ export class Serializer {
           } else {
             const newSeenRef = this.getSeenRefOrOutput(value, index);
             if (newSeenRef) {
-              const oldParent = this.parent;
-              this.parent = newSeenRef;
+              const oldParent = this.$parent$;
+              this.$parent$ = newSeenRef;
               // separate function for readability
               this.writeObjectValue(value);
-              this.parent = oldParent;
+              this.$parent$ = oldParent;
             }
           }
           break;
@@ -366,8 +366,8 @@ export class Serializer {
         this.output(TypeIds.ForwardRef, forwardRef);
       } else {
         // We replace ourselves with this value
-        const index = this.parent!.$index$;
-        this.parent = this.parent!.$parent$!;
+        const index = this.$parent$!.$index$;
+        this.$parent$ = this.$parent$!.$parent$!;
         this.writeValue(result, index);
       }
     } else if (isObjectLiteral(value)) {
@@ -579,8 +579,8 @@ export class Serializer {
           this.output(TypeIds.SerializerSignal, [value.$qrl$, value.$effects$, value.$value$]);
         } else if (value.$resolved$) {
           // We replace ourselves with this value
-          const index = this.parent!.$index$;
-          this.parent = this.parent!.$parent$!;
+          const index = this.$parent$!.$index$;
+          this.$parent$ = this.$parent$!.$parent$!;
           this.writeValue(value.$value$, index);
         } else {
           console.error(value.$value$);
@@ -600,12 +600,12 @@ export class Serializer {
     } else if (value instanceof SerializationWeakRef) {
       const obj = value.$obj$;
       // This will return a fake SeenRef if it's not been seen before
-      if (this.getSeenRefOrOutput(obj, this.parent!.$index$, true)) {
-        let forwardRefId = this.s11nWeakRefs.get(obj);
+      if (this.getSeenRefOrOutput(obj, this.$parent$!.$index$, true)) {
+        let forwardRefId = this.$s11nWeakRefs$.get(obj);
         if (forwardRefId === undefined) {
-          forwardRefId = this.forwardRefsId++;
-          this.s11nWeakRefs.set(obj, forwardRefId);
-          this.forwardRefs[forwardRefId] = -1;
+          forwardRefId = this.$forwardRefsId$++;
+          this.$s11nWeakRefs$.set(obj, forwardRefId);
+          this.$forwardRefs$[forwardRefId] = -1;
         }
         this.output(TypeIds.ForwardRef, forwardRefId);
       }
@@ -620,22 +620,22 @@ export class Serializer {
     promise: Promise<unknown>,
     classCreator: (didResolve: boolean, resolvedValue: unknown) => PromiseResult
   ) {
-    const forwardRefId = this.forwardRefsId++;
+    const forwardRefId = this.$forwardRefsId$++;
     promise
       .then((resolvedValue) => {
-        this.promises.delete(promise);
-        this.forwardRefs[forwardRefId] = this.$serializationContext$.$addRoot$(
+        this.$promises$.delete(promise);
+        this.$forwardRefs$[forwardRefId] = this.$serializationContext$.$addRoot$(
           classCreator(true, resolvedValue)
         ) as number;
       })
       .catch((err) => {
-        this.promises.delete(promise);
-        this.forwardRefs[forwardRefId] = this.$serializationContext$.$addRoot$(
+        this.$promises$.delete(promise);
+        this.$forwardRefs$[forwardRefId] = this.$serializationContext$.$addRoot$(
           classCreator(false, err)
         ) as number;
       });
 
-    this.promises.add(promise);
+    this.$promises$.add(promise);
 
     return forwardRefId;
   }
@@ -643,42 +643,42 @@ export class Serializer {
   private async outputRoots() {
     this.$writer$.write(BRACKET_OPEN);
     const { $roots$ } = this.$serializationContext$;
-    while (this.rootIdx < $roots$.length || this.promises.size) {
-      if (this.rootIdx !== 0) {
+    while (this.$rootIdx$ < $roots$.length || this.$promises$.size) {
+      if (this.$rootIdx$ !== 0) {
         this.$writer$.write(COMMA);
       }
 
       let separator = false;
-      for (; this.rootIdx < $roots$.length; this.rootIdx++) {
+      for (; this.$rootIdx$ < $roots$.length; this.$rootIdx$++) {
         if (separator) {
           this.$writer$.write(COMMA);
         } else {
           separator = true;
         }
-        this.writeValue($roots$[this.rootIdx], this.rootIdx);
+        this.writeValue($roots$[this.$rootIdx$], this.$rootIdx$);
       }
 
-      if (this.promises.size) {
+      if (this.$promises$.size) {
         try {
-          await Promise.race(this.promises);
+          await Promise.race(this.$promises$);
         } catch {
           // ignore rejections, they will be serialized as rejected promises
         }
       }
     }
 
-    if (this.forwardRefs.length) {
-      let lastIdx = this.forwardRefs.length - 1;
-      while (lastIdx >= 0 && this.forwardRefs[lastIdx] === -1) {
+    if (this.$forwardRefs$.length) {
+      let lastIdx = this.$forwardRefs$.length - 1;
+      while (lastIdx >= 0 && this.$forwardRefs$[lastIdx] === -1) {
         lastIdx--;
       }
       if (lastIdx >= 0) {
         this.$writer$.write(COMMA);
         this.$writer$.write(TypeIds.ForwardRefs + COMMA);
         const out =
-          lastIdx === this.forwardRefs.length - 1
-            ? this.forwardRefs
-            : this.forwardRefs.slice(0, lastIdx + 1);
+          lastIdx === this.$forwardRefs$.length - 1
+            ? this.$forwardRefs$
+            : this.$forwardRefs$.slice(0, lastIdx + 1);
         // We could also implement RLE of -1 values
         this.outputArray(out, true, (value) => {
           this.$writer$.write(String(value));

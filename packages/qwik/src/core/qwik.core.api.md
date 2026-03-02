@@ -293,8 +293,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
     // (undocumented)
-    $rawStateData$: unknown[];
-    // (undocumented)
     $setRawState$(id: number, vParent: _VNode): void;
     // (undocumented)
     $storeProxyMap$: ObjToProxyMap;

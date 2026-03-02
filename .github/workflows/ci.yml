@@ -41,7 +41,6 @@ env:
   # Disable incremental build, speeds up CI
   CARGO_INCREMENTAL: 0
 
-
 permissions:
   id-token: write
   contents: write
@@ -926,6 +925,8 @@ jobs:
           npm dist-tag add @qwik.dev/core@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
           npm dist-tag add @qwik.dev/router@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
           npm dist-tag add @qwik.dev/react@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Fixup package.json files
         run: pnpm run release.fixup-package-json

@@ -22,11 +22,11 @@ const chunkInfoMocks = [
   },
 ] as Rollup.PreRenderedChunk[];
 
-function mockOptimizerOptions(): OptimizerOptions {
+function mockOptimizerOptions(env: 'node' | 'deno' = 'node'): OptimizerOptions {
   return {
     sys: {
       cwd: () => process.cwd(),
-      env: 'node',
+      env,
       os: process.platform,
       dynamicImport: async (path) => import(path),
       strictDynamicImport: async (path) => import(path),
@@ -437,6 +437,51 @@ test('should use build.outDir config when assetsDir is _astro', async () => {
   ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/`)));
+});
+
+test('command: build, mode: production (deno)', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions('deno'),
+  };
+  const plugin = getPlugin(initOpts);
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'build', mode: 'production' }
+  ))!;
+  const opts = await plugin.api?.getOptions();
+
+  assert.deepEqual(opts.target, 'client');
+  assert.deepEqual(opts.buildMode, 'production');
+  assert.deepEqual(opts.resolveQwikBuild, true);
+
+  // Deno should produce the same config shape as Node
+  const build = c.build!;
+  assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
+  assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
+  assert.deepEqual(build.ssr, undefined);
+});
+
+test('command: build, --ssr entry.server.tsx (deno)', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions('deno'),
+  };
+  const plugin = getPlugin(initOpts);
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    { build: { ssr: resolve(cwd, 'src', 'entry.server.tsx') } },
+    { command: 'build', mode: '' }
+  ))!;
+  const opts = await plugin.api?.getOptions();
+
+  assert.deepEqual(opts.target, 'ssr');
+  assert.deepEqual(opts.buildMode, 'development');
+  assert.deepEqual(opts.entryStrategy, { type: 'hoist' });
+
+  const build = c.build!;
+  assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'server')));
+  assert.deepEqual(build.ssr, true);
+  assert.deepEqual(c.publicDir, false);
 });
 
 test('command: build, --mode lib', async () => {

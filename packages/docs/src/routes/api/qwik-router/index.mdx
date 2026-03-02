@@ -4,7 +4,7 @@ title: \@qwik.dev/qwik-router API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik-router
 
-## Action
+<h2 id="action">Action</h2>
 
 ```typescript
 export type Action<
@@ -20,7 +20,7 @@ export type Action<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ActionConstructor
+<h2 id="actionconstructor">ActionConstructor</h2>
 
 ```typescript
 export type ActionConstructor = {
@@ -140,7 +140,7 @@ export type ActionConstructor = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ActionReturn
+<h2 id="actionreturn">ActionReturn</h2>
 
 ```typescript
 export type ActionReturn<RETURN> = {
@@ -151,7 +151,7 @@ export type ActionReturn<RETURN> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ActionStore
+<h2 id="actionstore">ActionStore</h2>
 
 ```typescript
 export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
@@ -173,7 +173,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ContentHeading
+<h2 id="contentheading">ContentHeading</h2>
 
 ```typescript
 export interface ContentHeading
@@ -245,7 +245,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ContentMenu
+<h2 id="contentmenu">ContentMenu</h2>
 
 ```typescript
 export interface ContentMenu
@@ -321,7 +321,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## createRenderer
+<h2 id="createrenderer">createRenderer</h2>
 
 Creates the `render()` function that is required by `createQwikRouter()`. It requires a function that returns the `jsx` and `options` for the renderer.
 
@@ -386,7 +386,7 @@ const renderer = createRenderer((opts) => {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts)
 
-## DataValidator
+<h2 id="datavalidator">DataValidator</h2>
 
 ```typescript
 export type DataValidator<T extends Record<string, any> = {}> = {
@@ -398,7 +398,7 @@ export type DataValidator<T extends Record<string, any> = {}> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## DocumentHead
+<h2 id="documenthead">DocumentHead</h2>
 
 ```typescript
 export type DocumentHead =
@@ -410,7 +410,7 @@ export type DocumentHead =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## DocumentHeadProps
+<h2 id="documentheadprops">DocumentHeadProps</h2>
 
 ```typescript
 export interface DocumentHeadProps extends RouteLocation
@@ -484,7 +484,7 @@ ResolveSyncValue
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## DocumentHeadTags
+<h2 id="documentheadtags">DocumentHeadTags</h2>
 
 This renders all the tags collected from `head`.
 
@@ -511,7 +511,7 @@ DocumentHeadTags: import("@qwik.dev/core").Component<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/document-head-tags-component.tsx)
 
-## DocumentHeadValue
+<h2 id="documentheadvalue">DocumentHeadValue</h2>
 
 ```typescript
 export interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>>
@@ -640,7 +640,7 @@ _(Optional)_ Sets `document.title`.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## DocumentLink
+<h2 id="documentlink">DocumentLink</h2>
 
 ```typescript
 export type DocumentLink = QwikIntrinsicElements["link"];
@@ -648,7 +648,7 @@ export type DocumentLink = QwikIntrinsicElements["link"];
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## DocumentMeta
+<h2 id="documentmeta">DocumentMeta</h2>
 
 ```typescript
 export type DocumentMeta = QwikIntrinsicElements["meta"];
@@ -656,7 +656,7 @@ export type DocumentMeta = QwikIntrinsicElements["meta"];
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## DocumentScript
+<h2 id="documentscript">DocumentScript</h2>
 
 ```typescript
 export type DocumentScript = (
@@ -682,7 +682,7 @@ export type DocumentScript = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## DocumentStyle
+<h2 id="documentstyle">DocumentStyle</h2>
 
 ```typescript
 export type DocumentStyle = Readonly<
@@ -710,7 +710,7 @@ export type DocumentStyle = Readonly<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ErrorBoundary
+<h2 id="errorboundary">ErrorBoundary</h2>
 
 ```typescript
 ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
@@ -718,7 +718,7 @@ ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/error-boundary.tsx)
 
-## FailOfRest
+<h2 id="failofrest">FailOfRest</h2>
 
 ```typescript
 export type FailOfRest<REST extends readonly DataValidator[]> =
@@ -729,7 +729,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## FailReturn
+<h2 id="failreturn">FailReturn</h2>
 
 ```typescript
 export type FailReturn<T> = T & Failed;
@@ -737,7 +737,7 @@ export type FailReturn<T> = T & Failed;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## Form
+<h2 id="form">Form</h2>
 
 ```typescript
 Form: <O, I>(
@@ -789,7 +789,7 @@ import("@qwik.dev/core").JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx)
 
-## FormProps
+<h2 id="formprops">FormProps</h2>
 
 ```typescript
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'>
@@ -910,7 +910,7 @@ Defaults to `false`
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx)
 
-## FormSubmitSuccessDetail
+<h2 id="formsubmitsuccessdetail">FormSubmitSuccessDetail</h2>
 
 ```typescript
 export interface FormSubmitCompletedDetail<T>
@@ -963,7 +963,7 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx)
 
-## GetValidatorInputType
+<h2 id="getvalidatorinputtype">GetValidatorInputType</h2>
 
 ```typescript
 export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
@@ -978,7 +978,7 @@ export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## GetValidatorOutputType
+<h2 id="getvalidatoroutputtype">GetValidatorOutputType</h2>
 
 ```typescript
 export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
@@ -993,7 +993,7 @@ export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## GetValidatorType
+<h2 id="getvalidatortype">GetValidatorType</h2>
 
 ```typescript
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
@@ -1004,7 +1004,7 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## globalAction$
+<h2 id="globalaction_">globalAction$</h2>
 
 ```typescript
 globalAction$: ActionConstructor;
@@ -1012,7 +1012,7 @@ globalAction$: ActionConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-## JSONObject
+<h2 id="jsonobject">JSONObject</h2>
 
 ```typescript
 export type JSONObject = {
@@ -1024,7 +1024,7 @@ export type JSONObject = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## JSONValue
+<h2 id="jsonvalue">JSONValue</h2>
 
 ```typescript
 export type JSONValue =
@@ -1041,7 +1041,7 @@ export type JSONValue =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## Link
+<h2 id="link">Link</h2>
 
 ```typescript
 Link: import("@qwik.dev/core").Component<LinkProps>;
@@ -1049,7 +1049,7 @@ Link: import("@qwik.dev/core").Component<LinkProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx)
 
-## LinkProps
+<h2 id="linkprops">LinkProps</h2>
 
 ```typescript
 export interface LinkProps extends AnchorAttributes
@@ -1148,7 +1148,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/link-component.tsx)
 
-## Loader_2
+<h2 id="loader_2">Loader_2</h2>
 
 ```typescript
 export type Loader<RETURN> = {
@@ -1160,7 +1160,7 @@ export type Loader<RETURN> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## LoaderSignal
+<h2 id="loadersignal">LoaderSignal</h2>
 
 ```typescript
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
@@ -1173,7 +1173,7 @@ export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## MenuData
+<h2 id="menudata">MenuData</h2>
 
 ```typescript
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
@@ -1181,7 +1181,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## NavigationType_2
+<h2 id="navigationtype_2">NavigationType_2</h2>
 
 ```typescript
 export type NavigationType = "initial" | "form" | "link" | "popstate";
@@ -1189,7 +1189,7 @@ export type NavigationType = "initial" | "form" | "link" | "popstate";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## omitProps
+<h2 id="omitprops">omitProps</h2>
 
 > This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
@@ -1245,7 +1245,7 @@ Omit&lt;T, KEYS&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/typed-routes.ts)
 
-## PageModule
+<h2 id="pagemodule">PageModule</h2>
 
 ```typescript
 export interface PageModule extends RouteModule
@@ -1340,7 +1340,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## PathParams
+<h2 id="pathparams">PathParams</h2>
 
 ```typescript
 export declare type PathParams = Record<string, string>;
@@ -1348,7 +1348,7 @@ export declare type PathParams = Record<string, string>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## PreventNavigateCallback
+<h2 id="preventnavigatecallback">PreventNavigateCallback</h2>
 
 ```typescript
 export type PreventNavigateCallback = (
@@ -1358,7 +1358,7 @@ export type PreventNavigateCallback = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## Q_ROUTE
+<h2 id="q_route">Q_ROUTE</h2>
 
 ```typescript
 Q_ROUTE = "q:route";
@@ -1366,7 +1366,7 @@ Q_ROUTE = "q:route";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/constants.ts)
 
-## QWIK_CITY_SCROLLER
+<h2 id="qwik_city_scroller">QWIK_CITY_SCROLLER</h2>
 
 > Warning: This API is now obsolete.
 >
@@ -1378,7 +1378,7 @@ QWIK_CITY_SCROLLER = "_qCityScroller";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QWIK_ROUTER_SCROLLER
+<h2 id="qwik_router_scroller">QWIK_ROUTER_SCROLLER</h2>
 
 ```typescript
 QWIK_ROUTER_SCROLLER = "_qRouterScroller";
@@ -1386,7 +1386,7 @@ QWIK_ROUTER_SCROLLER = "_qRouterScroller";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikCityMockProvider
+<h2 id="qwikcitymockprovider">QwikCityMockProvider</h2>
 
 > Warning: This API is now obsolete.
 >
@@ -1398,7 +1398,7 @@ QwikCityMockProvider: import("@qwik.dev/core").Component<QwikRouterMockProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikCityPlan
+<h2 id="qwikcityplan">QwikCityPlan</h2>
 
 > Warning: This API is now obsolete.
 >
@@ -1412,7 +1412,7 @@ export type QwikCityPlan = QwikRouterConfig;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## QwikCityProps
+<h2 id="qwikcityprops">QwikCityProps</h2>
 
 > Warning: This API is now obsolete.
 >
@@ -1426,7 +1426,7 @@ export type QwikCityProps = QwikRouterProps;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikCityProvider
+<h2 id="qwikcityprovider">QwikCityProvider</h2>
 
 > Warning: This API is now obsolete.
 >
@@ -1438,7 +1438,7 @@ QwikCityProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikRouterConfig
+<h2 id="qwikrouterconfig">QwikRouterConfig</h2>
 
 ```typescript
 export interface QwikRouterConfig
@@ -1565,7 +1565,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## QwikRouterEnvData
+<h2 id="qwikrouterenvdata">QwikRouterEnvData</h2>
 
 ```typescript
 export interface QwikRouterEnvData
@@ -1657,7 +1657,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## QwikRouterMockActionProp
+<h2 id="qwikroutermockactionprop">QwikRouterMockActionProp</h2>
 
 ```typescript
 export interface QwikRouterMockActionProp<T = any>
@@ -1714,7 +1714,7 @@ The QRL function that will be called when the action is submitted.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikRouterMockLoaderProp
+<h2 id="qwikroutermockloaderprop">QwikRouterMockLoaderProp</h2>
 
 ```typescript
 export interface QwikRouterMockLoaderProp<T = any>
@@ -1771,7 +1771,7 @@ The loader function to mock.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikRouterMockProps
+<h2 id="qwikroutermockprops">QwikRouterMockProps</h2>
 
 ```typescript
 export interface QwikRouterMockProps
@@ -1895,7 +1895,7 @@ Default: `http://localhost/`
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikRouterMockProvider
+<h2 id="qwikroutermockprovider">QwikRouterMockProvider</h2>
 
 ```typescript
 QwikRouterMockProvider: import("@qwik.dev/core").Component<QwikRouterMockProps>;
@@ -1903,7 +1903,7 @@ QwikRouterMockProvider: import("@qwik.dev/core").Component<QwikRouterMockProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikRouterProps
+<h2 id="qwikrouterprops">QwikRouterProps</h2>
 
 ```typescript
 export interface QwikRouterProps
@@ -1947,7 +1947,7 @@ Default: `true`
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## QwikRouterProvider
+<h2 id="qwikrouterprovider">QwikRouterProvider</h2>
 
 This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component, unless you have a good reason to make your root component reactive.
 
@@ -1957,7 +1957,7 @@ QwikRouterProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## RendererOptions
+<h2 id="rendereroptions">RendererOptions</h2>
 
 ```typescript
 export type RendererOptions = Omit<RenderOptions, "serverData"> & {
@@ -1969,7 +1969,7 @@ export type RendererOptions = Omit<RenderOptions, "serverData"> & {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts)
 
-## RendererOutputOptions
+<h2 id="rendereroutputoptions">RendererOutputOptions</h2>
 
 ```typescript
 export type RendererOutputOptions = Omit<RenderOptions, "serverData"> & {
@@ -1983,7 +1983,7 @@ export type RendererOutputOptions = Omit<RenderOptions, "serverData"> & {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts)
 
-## ResolvedDocumentHead
+<h2 id="resolveddocumenthead">ResolvedDocumentHead</h2>
 
 ```typescript
 export type ResolvedDocumentHead<
@@ -1995,7 +1995,7 @@ export type ResolvedDocumentHead<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## routeAction$
+<h2 id="routeaction_">routeAction$</h2>
 
 ```typescript
 routeAction$: ActionConstructor;
@@ -2003,7 +2003,7 @@ routeAction$: ActionConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-## RouteData
+<h2 id="routedata">RouteData</h2>
 
 ```typescript
 export type RouteData =
@@ -2018,7 +2018,7 @@ export type RouteData =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## routeLoader$
+<h2 id="routeloader_">routeLoader$</h2>
 
 ```typescript
 routeLoader$: LoaderConstructor;
@@ -2026,7 +2026,7 @@ routeLoader$: LoaderConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-## RouteLocation
+<h2 id="routelocation">RouteLocation</h2>
 
 ```typescript
 export interface RouteLocation
@@ -2113,7 +2113,7 @@ URL
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## RouteNavigate
+<h2 id="routenavigate">RouteNavigate</h2>
 
 ```typescript
 export type RouteNavigate = QRL<
@@ -2135,7 +2135,7 @@ export type RouteNavigate = QRL<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## RouterOutlet
+<h2 id="routeroutlet">RouterOutlet</h2>
 
 ```typescript
 RouterOutlet: import("@qwik.dev/core").Component<unknown>;
@@ -2143,7 +2143,7 @@ RouterOutlet: import("@qwik.dev/core").Component<unknown>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/router-outlet-component.tsx)
 
-## server$
+<h2 id="server_">server$</h2>
 
 ```typescript
 server$: <T extends ServerFunction>(
@@ -2197,7 +2197,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-## ServerData
+<h2 id="serverdata">ServerData</h2>
 
 The server data that is provided by Qwik Router during SSR rendering. It can be retrieved with `useServerData(key)` in the server, but it is not available in the client.
 
@@ -2218,7 +2218,7 @@ export type ServerData = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ServerFunction
+<h2 id="serverfunction">ServerFunction</h2>
 
 ```typescript
 export type ServerFunction = {
@@ -2229,7 +2229,7 @@ export type ServerFunction = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ServerQRL
+<h2 id="serverqrl">ServerQRL</h2>
 
 You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.
 
@@ -2244,7 +2244,7 @@ export type ServerQRL<T extends ServerFunction> = QRL<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ServiceWorkerRegister
+<h2 id="serviceworkerregister">ServiceWorkerRegister</h2>
 
 Loads the service workers that are defined in the routes. Any file named `service-worker.*` (all JS extensions are allowed) will be picked up, bundled into a separate file, and registered as a service worker.
 
@@ -2287,7 +2287,7 @@ import("packages/qwik/public").JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/sw-component.tsx)
 
-## StaticGenerate
+<h2 id="staticgenerate">StaticGenerate</h2>
 
 ```typescript
 export interface StaticGenerate
@@ -2329,7 +2329,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## StaticGenerateHandler
+<h2 id="staticgeneratehandler">StaticGenerateHandler</h2>
 
 ```typescript
 export type StaticGenerateHandler = ({
@@ -2343,7 +2343,7 @@ export type StaticGenerateHandler = ({
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## StrictUnion
+<h2 id="strictunion">StrictUnion</h2>
 
 ```typescript
 export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
@@ -2351,7 +2351,7 @@ export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## TypedDataValidator
+<h2 id="typeddatavalidator">TypedDataValidator</h2>
 
 ```typescript
 export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
@@ -2359,7 +2359,7 @@ export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## untypedAppUrl
+<h2 id="untypedappurl">untypedAppUrl</h2>
 
 > This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
@@ -2429,7 +2429,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/typed-routes.ts)
 
-## useContent
+<h2 id="usecontent">useContent</h2>
 
 ```typescript
 useContent: () => import("./types").ContentState;
@@ -2441,7 +2441,7 @@ import("./types").ContentState
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
 
-## useDocumentHead
+<h2 id="usedocumenthead">useDocumentHead</h2>
 
 Returns the document head for the current page. The generic type describes the front matter.
 
@@ -2457,7 +2457,7 @@ Required&lt;[ResolvedDocumentHead](#resolveddocumenthead)&lt;FrontMatter&gt;&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
 
-## useLocation
+<h2 id="uselocation">useLocation</h2>
 
 ```typescript
 useLocation: () => RouteLocation;
@@ -2469,7 +2469,7 @@ useLocation: () => RouteLocation;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
 
-## useNavigate
+<h2 id="usenavigate">useNavigate</h2>
 
 ```typescript
 useNavigate: () => RouteNavigate;
@@ -2481,7 +2481,7 @@ useNavigate: () => RouteNavigate;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
 
-## usePreventNavigate$
+<h2 id="usepreventnavigate_">usePreventNavigate$</h2>
 
 Prevent navigation attempts. This hook registers a callback that will be called before SPA or browser navigation.
 
@@ -2539,7 +2539,7 @@ void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
 
-## useQwikRouter
+<h2 id="useqwikrouter">useQwikRouter</h2>
 
 This hook initializes Qwik Router, providing the necessary context for it to work.
 
@@ -2583,7 +2583,7 @@ void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
-## valibot$
+<h2 id="valibot_">valibot$</h2>
 
 > This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
@@ -2593,7 +2593,7 @@ valibot$: ValibotConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-## validator$
+<h2 id="validator_">validator$</h2>
 
 ```typescript
 validator$: ValidatorConstructor;
@@ -2601,7 +2601,7 @@ validator$: ValidatorConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-## ValidatorErrorKeyDotNotation
+<h2 id="validatorerrorkeydotnotation">ValidatorErrorKeyDotNotation</h2>
 
 ```typescript
 export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ""> =
@@ -2630,7 +2630,7 @@ export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ""> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ValidatorErrorType
+<h2 id="validatorerrortype">ValidatorErrorType</h2>
 
 ```typescript
 export type ValidatorErrorType<T, U = string> = {
@@ -2647,7 +2647,7 @@ export type ValidatorErrorType<T, U = string> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## ValidatorReturn
+<h2 id="validatorreturn">ValidatorReturn</h2>
 
 ```typescript
 export type ValidatorReturn<T extends Record<string, any> = {}> =
@@ -2657,7 +2657,7 @@ export type ValidatorReturn<T extends Record<string, any> = {}> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## zod$
+<h2 id="zod_">zod$</h2>
 
 ```typescript
 zod$: ZodConstructor;
@@ -2665,7 +2665,7 @@ zod$: ZodConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-## ZodConstructor
+<h2 id="zodconstructor">ZodConstructor</h2>
 
 ```typescript
 export type ZodConstructor = {

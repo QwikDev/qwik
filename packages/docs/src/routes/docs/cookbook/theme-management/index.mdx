@@ -5,7 +5,8 @@ contributors:
   - gioboa
   - aendel
   - chindris-mihai-alexandru
-updated_at: '2026-01-09T00:00:00Z'
+  - forresst
+updated_at: '2026-02-05T00:00:00Z'
 created_at: '2023-10-10T16:59:26Z'
 ---
 
@@ -44,15 +45,13 @@ bun run qwik add tailwind
 </span>
 </PackageManagerTabs>
 
-Enable dark mode in your `tailwind.config.js`:
+Enable dark mode in your `global.css`:
 
-```js
-module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
-  darkMode: "class",
-  theme: {},
-  plugins: [],
-};
+```css
+@import "tailwindcss";
+
+/* Add the line below to enable dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
 ```
 
 ## Basic Implementation

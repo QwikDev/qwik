@@ -4,7 +4,7 @@ title: \@builder.io/qwik/optimizer API Reference
 
 # [API](/api) &rsaquo; @builder.io/qwik/optimizer
 
-## basename
+<h2 id="path-basename">basename</h2>
 
 ```typescript
 basename(path: string, ext?: string): string;
@@ -53,7 +53,7 @@ _(Optional)_
 
 string
 
-## BundleGraphAdder
+<h2 id="bundlegraphadder">BundleGraphAdder</h2>
 
 A function that returns a map of bundle names to their dependencies.
 
@@ -71,7 +71,7 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/bundle-graph.ts)
 
-## ComponentEntryStrategy
+<h2 id="componententrystrategy">ComponentEntryStrategy</h2>
 
 ```typescript
 export interface ComponentEntryStrategy
@@ -126,7 +126,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## createOptimizer
+<h2 id="createoptimizer">createOptimizer</h2>
 
 ```typescript
 createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
@@ -166,7 +166,7 @@ Promise&lt;[Optimizer](#optimizer)&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts)
 
-## Diagnostic
+<h2 id="diagnostic">Diagnostic</h2>
 
 ```typescript
 export interface Diagnostic
@@ -284,7 +284,7 @@ string[] \| null
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## DiagnosticCategory
+<h2 id="diagnosticcategory">DiagnosticCategory</h2>
 
 ```typescript
 export type DiagnosticCategory = "error" | "warning" | "sourceError";
@@ -292,7 +292,7 @@ export type DiagnosticCategory = "error" | "warning" | "sourceError";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## dirname
+<h2 id="path-dirname">dirname</h2>
 
 ```typescript
 dirname(path: string): string;
@@ -328,9 +328,9 @@ string
 
 string
 
-## enableRequestRewrite
+<h2 id="experimentalfeatures-enablerequestrewrite">enableRequestRewrite</h2>
 
-## EntryStrategy
+<h2 id="entrystrategy">EntryStrategy</h2>
 
 ```typescript
 export type EntryStrategy =
@@ -347,7 +347,7 @@ export type EntryStrategy =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## ExperimentalFeatures
+<h2 id="experimentalfeatures">ExperimentalFeatures</h2>
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
@@ -428,7 +428,7 @@ valibot
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
 
-## extname
+<h2 id="path-extname">extname</h2>
 
 ```typescript
 extname(path: string): string;
@@ -464,7 +464,7 @@ string
 
 string
 
-## format
+<h2 id="path-format">format</h2>
 
 ```typescript
 format(pathObject: {
@@ -506,7 +506,7 @@ pathObject
 
 string
 
-## GlobalInjections
+<h2 id="globalinjections">GlobalInjections</h2>
 
 ```typescript
 export interface GlobalInjections
@@ -574,7 +574,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## InlineEntryStrategy
+<h2 id="inlineentrystrategy">InlineEntryStrategy</h2>
 
 ```typescript
 export interface InlineEntryStrategy
@@ -614,7 +614,7 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## isAbsolute
+<h2 id="path-isabsolute">isAbsolute</h2>
 
 ```typescript
 isAbsolute(path: string): boolean;
@@ -650,7 +650,7 @@ string
 
 boolean
 
-## join
+<h2 id="path-join">join</h2>
 
 ```typescript
 join(...paths: string[]): string;
@@ -686,7 +686,7 @@ string[]
 
 string
 
-## MinifyMode
+<h2 id="minifymode">MinifyMode</h2>
 
 ```typescript
 export type MinifyMode = "simplify" | "none";
@@ -694,7 +694,7 @@ export type MinifyMode = "simplify" | "none";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## normalize
+<h2 id="path-normalize">normalize</h2>
 
 ```typescript
 normalize(path: string): string;
@@ -730,9 +730,9 @@ string
 
 string
 
-## noSPA
+<h2 id="experimentalfeatures-nospa">noSPA</h2>
 
-## Optimizer
+<h2 id="optimizer">Optimizer</h2>
 
 ```typescript
 export interface Optimizer
@@ -821,7 +821,7 @@ Transforms the input code string, does not access the file system.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## OptimizerOptions
+<h2 id="optimizeroptions">OptimizerOptions</h2>
 
 ```typescript
 export interface OptimizerOptions
@@ -908,7 +908,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## OptimizerSystem
+<h2 id="optimizersystem">OptimizerSystem</h2>
 
 ```typescript
 export interface OptimizerSystem
@@ -1028,7 +1028,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## parse
+<h2 id="path-parse">parse</h2>
 
 ```typescript
 parse(path: string): {
@@ -1070,7 +1070,7 @@ string
 
 \{ root: string; dir: string; base: string; ext: string; name: string; }
 
-## Path
+<h2 id="path">Path</h2>
 
 ```typescript
 export interface Path
@@ -1238,9 +1238,9 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## preventNavigate
+<h2 id="experimentalfeatures-preventnavigate">preventNavigate</h2>
 
-## QwikAsset
+<h2 id="qwikasset">QwikAsset</h2>
 
 ```typescript
 export interface QwikAsset
@@ -1297,7 +1297,7 @@ Size of the asset
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## QwikBuildMode
+<h2 id="qwikbuildmode">QwikBuildMode</h2>
 
 ```typescript
 export type QwikBuildMode = "production" | "development";
@@ -1305,7 +1305,7 @@ export type QwikBuildMode = "production" | "development";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
 
-## QwikBuildTarget
+<h2 id="qwikbuildtarget">QwikBuildTarget</h2>
 
 ```typescript
 export type QwikBuildTarget = "client" | "ssr" | "lib" | "test";
@@ -1313,7 +1313,7 @@ export type QwikBuildTarget = "client" | "ssr" | "lib" | "test";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
 
-## QwikBundle
+<h2 id="qwikbundle">QwikBundle</h2>
 
 ```typescript
 export interface QwikBundle
@@ -1445,7 +1445,7 @@ Total size of this bundle's static import graph
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## QwikBundleGraph
+<h2 id="qwikbundlegraph">QwikBundleGraph</h2>
 
 Bundle graph.
 
@@ -1457,7 +1457,7 @@ export type QwikBundleGraph = Array<string | number>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## QwikManifest
+<h2 id="qwikmanifest">QwikManifest</h2>
 
 The metadata of the build. One of its uses is storing where QRL symbols are located.
 
@@ -1696,7 +1696,7 @@ The version of the manifest
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## qwikRollup
+<h2 id="qwikrollup">qwikRollup</h2>
 
 ```typescript
 export declare function qwikRollup(
@@ -1738,7 +1738,7 @@ any
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts)
 
-## QwikRollupPluginOptions
+<h2 id="qwikrolluppluginoptions">QwikRollupPluginOptions</h2>
 
 ```typescript
 export interface QwikRollupPluginOptions
@@ -1993,7 +1993,7 @@ _(Optional)_ Hook that's called after the build and provides all of the transfor
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts)
 
-## QwikSymbol
+<h2 id="qwiksymbol">QwikSymbol</h2>
 
 ```typescript
 export interface QwikSymbol
@@ -2137,7 +2137,7 @@ string \| null
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## qwikVite
+<h2 id="qwikvite">qwikVite</h2>
 
 The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll get the `QwikVitePlugin`.
 
@@ -2179,7 +2179,7 @@ any
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
-## QwikViteDevResponse
+<h2 id="qwikvitedevresponse">QwikViteDevResponse</h2>
 
 ```typescript
 export interface QwikViteDevResponse
@@ -2236,7 +2236,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
-## QwikVitePlugin
+<h2 id="qwikviteplugin">QwikVitePlugin</h2>
 
 This is the type of the "pre" Qwik Vite plugin. `qwikVite` actually returns a tuple of two plugins, but after Vite flattens them, you can find the plugin by name.
 
@@ -2250,7 +2250,7 @@ export type QwikVitePlugin = P<QwikVitePluginApi> & {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
-## QwikVitePluginApi
+<h2 id="qwikvitepluginapi">QwikVitePluginApi</h2>
 
 ```typescript
 export interface QwikVitePluginApi
@@ -2381,7 +2381,7 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
-## QwikVitePluginOptions
+<h2 id="qwikvitepluginoptions">QwikVitePluginOptions</h2>
 
 ```typescript
 export type QwikVitePluginOptions =
@@ -2391,7 +2391,7 @@ export type QwikVitePluginOptions =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
-## relative
+<h2 id="path-relative">relative</h2>
 
 ```typescript
 relative(from: string, to: string): string;
@@ -2438,7 +2438,7 @@ string
 
 string
 
-## resolve
+<h2 id="path-resolve">resolve</h2>
 
 ```typescript
 resolve(...paths: string[]): string;
@@ -2474,7 +2474,7 @@ string[]
 
 string
 
-## ResolvedManifest
+<h2 id="resolvedmanifest">ResolvedManifest</h2>
 
 ```typescript
 export interface ResolvedManifest
@@ -2540,7 +2540,7 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## SegmentAnalysis
+<h2 id="segmentanalysis">SegmentAnalysis</h2>
 
 ```typescript
 export interface SegmentAnalysis
@@ -2723,7 +2723,7 @@ string \| null
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## SegmentEntryStrategy
+<h2 id="segmententrystrategy">SegmentEntryStrategy</h2>
 
 ```typescript
 export interface SegmentEntryStrategy
@@ -2778,7 +2778,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## ServerQwikManifest
+<h2 id="serverqwikmanifest">ServerQwikManifest</h2>
 
 The manifest values that are needed for SSR.
 
@@ -2800,7 +2800,7 @@ export type ServerQwikManifest = Pick<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## SingleEntryStrategy
+<h2 id="singleentrystrategy">SingleEntryStrategy</h2>
 
 ```typescript
 export interface SingleEntryStrategy
@@ -2855,7 +2855,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## SmartEntryStrategy
+<h2 id="smartentrystrategy">SmartEntryStrategy</h2>
 
 ```typescript
 export interface SmartEntryStrategy
@@ -2910,7 +2910,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## SourceLocation
+<h2 id="sourcelocation">SourceLocation</h2>
 
 ```typescript
 export interface SourceLocation
@@ -3015,7 +3015,7 @@ number
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## SourceMapsOption
+<h2 id="sourcemapsoption">SourceMapsOption</h2>
 
 ```typescript
 export type SourceMapsOption = "external" | "inline" | undefined | null;
@@ -3023,7 +3023,7 @@ export type SourceMapsOption = "external" | "inline" | undefined | null;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## symbolMapper
+<h2 id="symbolmapper-variable">symbolMapper</h2>
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
@@ -3039,7 +3039,7 @@ symbolMapper: ReturnType<typeof createSymbolMapper>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite-dev-server.ts)
 
-## SymbolMapper
+<h2 id="symbolmapper-type-alias">SymbolMapper</h2>
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
@@ -3055,7 +3055,7 @@ symbolMapper: ReturnType<typeof createSymbolMapper>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## SymbolMapperFn
+<h2 id="symbolmapperfn">SymbolMapperFn</h2>
 
 ```typescript
 export type SymbolMapperFn = (
@@ -3069,7 +3069,7 @@ export type SymbolMapperFn = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## SystemEnvironment
+<h2 id="systemenvironment">SystemEnvironment</h2>
 
 ```typescript
 export type SystemEnvironment =
@@ -3083,7 +3083,7 @@ export type SystemEnvironment =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## transformFs
+<h2 id="optimizer-transformfs">transformFs</h2>
 
 Transforms the directory from the file system.
 
@@ -3121,7 +3121,7 @@ opts
 
 Promise&lt;[TransformOutput](#transformoutput)&gt;
 
-## TransformFsOptions
+<h2 id="transformfsoptions">TransformFsOptions</h2>
 
 ```typescript
 export interface TransformFsOptions extends TransformOptions
@@ -3163,7 +3163,7 @@ string[]
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## transformFsSync
+<h2 id="optimizer-transformfssync">transformFsSync</h2>
 
 Transforms the directory from the file system.
 
@@ -3201,7 +3201,7 @@ opts
 
 [TransformOutput](#transformoutput)
 
-## TransformModule
+<h2 id="transformmodule">TransformModule</h2>
 
 ```typescript
 export interface TransformModule
@@ -3306,7 +3306,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## TransformModuleInput
+<h2 id="transformmoduleinput">TransformModuleInput</h2>
 
 ```typescript
 export interface TransformModuleInput
@@ -3374,7 +3374,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## transformModules
+<h2 id="optimizer-transformmodules">transformModules</h2>
 
 Transforms the input code string, does not access the file system.
 
@@ -3412,7 +3412,7 @@ opts
 
 Promise&lt;[TransformOutput](#transformoutput)&gt;
 
-## TransformModulesOptions
+<h2 id="transformmodulesoptions">TransformModulesOptions</h2>
 
 ```typescript
 export interface TransformModulesOptions extends TransformOptions
@@ -3454,7 +3454,7 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## transformModulesSync
+<h2 id="optimizer-transformmodulessync">transformModulesSync</h2>
 
 Transforms the input code string, does not access the file system.
 
@@ -3492,7 +3492,7 @@ opts
 
 [TransformOutput](#transformoutput)
 
-## TransformOptions
+<h2 id="transformoptions">TransformOptions</h2>
 
 ```typescript
 export interface TransformOptions
@@ -3757,7 +3757,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## TransformOutput
+<h2 id="transformoutput">TransformOutput</h2>
 
 ```typescript
 export interface TransformOutput
@@ -3836,7 +3836,7 @@ boolean
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## TranspileOption
+<h2 id="transpileoption">TranspileOption</h2>
 
 ```typescript
 export type TranspileOption = boolean | undefined | null;
@@ -3844,9 +3844,9 @@ export type TranspileOption = boolean | undefined | null;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## valibot
+<h2 id="experimentalfeatures-valibot">valibot</h2>
 
-## versions
+<h2 id="versions">versions</h2>
 
 ```typescript
 versions: {

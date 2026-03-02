@@ -1,5 +1,18 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.26
+
+### Minor Changes
+
+- ✨ rewrite absolute url error will throw 400 instead of 500 (by [@Varixo](https://github.com/Varixo) in [#8389](https://github.com/QwikDev/qwik/pull/8389))
+
+### Patch Changes
+
+- 🐞🩹 Server-Timing header should be available in dev mode (by [@Varixo](https://github.com/Varixo) in [#8389](https://github.com/QwikDev/qwik/pull/8389))
+
+- Updated dependencies [[`82edabf`](https://github.com/QwikDev/qwik/commit/82edabfedb59ef817ae2c37ae8e4e67dbee26a3f), [`827f389`](https://github.com/QwikDev/qwik/commit/827f38924a17bd6a5bc808fb61f791cb8ed1f6a0), [`a22a98d`](https://github.com/QwikDev/qwik/commit/a22a98d363fecec6da736cf1655ea9b5f27c19f4), [`f64f15f`](https://github.com/QwikDev/qwik/commit/f64f15f60ca7009dcf4101604ad9c58edd777e06)]:
+  - @qwik.dev/core@2.0.0-beta.26
+
 ## 2.0.0-beta.25
 
 ### Patch Changes

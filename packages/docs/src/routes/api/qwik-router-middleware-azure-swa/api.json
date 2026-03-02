@@ -1,0 +1,76 @@
+{
+  "id": "qwik-router-middleware-azure-swa",
+  "package": "@qwik.dev/qwik-router/middleware/azure-swa",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `createQwikRouter` instead. Will be removed in V3\n> \n\n\n```typescript\ncreateQwikCity: typeof createQwikRouter\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
+      "mdFile": "router.createqwikcity.md"
+    },
+    {
+      "name": "createQwikRouter",
+      "id": "createqwikrouter",
+      "hierarchy": [
+        {
+          "name": "createQwikRouter",
+          "id": "createqwikrouter"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikRouterAzureOptions](#qwikrouterazureoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nAzureFunction",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
+      "mdFile": "router.createqwikrouter.md"
+    },
+    {
+      "name": "PlatformAzure",
+      "id": "platformazure",
+      "hierarchy": [
+        {
+          "name": "PlatformAzure",
+          "id": "platformazure"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformAzure extends Partial<Context> \n```\n**Extends:** Partial&lt;Context&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
+      "mdFile": "router.platformazure.md"
+    },
+    {
+      "name": "QwikCityAzureOptions",
+      "id": "qwikcityazureoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityAzureOptions",
+          "id": "qwikcityazureoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterAzureOptions` instead. Will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityAzureOptions = QwikRouterAzureOptions;\n```\n**References:** [QwikRouterAzureOptions](#qwikrouterazureoptions)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
+      "mdFile": "router.qwikcityazureoptions.md"
+    },
+    {
+      "name": "QwikRouterAzureOptions",
+      "id": "qwikrouterazureoptions",
+      "hierarchy": [
+        {
+          "name": "QwikRouterAzureOptions",
+          "id": "qwikrouterazureoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterAzureOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
+      "mdFile": "router.qwikrouterazureoptions.md"
+    }
+  ]
+}

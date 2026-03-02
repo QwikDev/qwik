@@ -1,0 +1,97 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4300
+expression: output
+---
+==INPUT==
+
+
+		import { component$, useStore } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const panelStore = useStore(() => ({
+				active: 'Input',
+				list: PANELS,
+			}));
+
+			return (
+				<div
+					stuff={panelStore.active ? 'yes' : 'no'}
+					class={{
+						'too-long-to-wrap': true,
+						'examples-panel-input': panelStore.active === 'Input',
+						'examples-panel-output': panelStore.active === 'Output',
+						'examples-panel-console': panelStore.active === 'Console',
+					}}
+				/>
+			);
+		});
+		export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+export const PANELS = [
+    'Examples',
+    'Input',
+    'Output',
+    'Console'
+];
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,6EAiBZ;AACH,OAAO,MAAM,SAAwB;IAAC;IAAY;IAAS;IAAU;CAAU,CAAC\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { PANELS } from "./test";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.active ? 'yes' : 'no';
+const _hf0_str = 'p0.active?"yes":"no"';
+export const test_component_LUXeXe0DQrg = ()=>{
+    const panelStore = useStore(()=>({
+            active: 'Input',
+            list: PANELS
+        }));
+    return /*#__PURE__*/ _jsxSorted("div", {
+        class: {
+            'too-long-to-wrap': true,
+            'examples-panel-input': panelStore.active === 'Input',
+            'examples-panel-output': panelStore.active === 'Output',
+            'examples-panel-console': panelStore.active === 'Console'
+        }
+    }, {
+        stuff: _fnSignal(_hf0, [
+            panelStore
+        ], _hf0_str)
+    }, null, 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAWY,GAAW,MAAM,GAAG,QAAQ;;0CARZ;IACzB,MAAM,aAAa,SAAS,IAAM,CAAC;YAClC,QAAQ;YACR,MAAM;QACP,CAAC;IAED,qBACC,WAAC;QAEA,OAAO;YACN,oBAAoB;YACpB,wBAAwB,WAAW,MAAM,KAAK;YAC9C,yBAAyB,WAAW,MAAM,KAAK;YAC/C,0BAA0B,WAAW,MAAM,KAAK;QACjD;;QANA,KAAK;;;;AASR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    88,
+    510
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

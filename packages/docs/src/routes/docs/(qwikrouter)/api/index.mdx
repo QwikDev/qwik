@@ -1,0 +1,636 @@
+---
+title: API Reference | Qwik Router
+description: Qwik Router API reference.
+contributors:
+  - manucorporat
+  - adamdbradley
+  - the-r3aper7
+  - nnelgxorz
+  - cunzaizhuyi
+  - jakovljevic-mladen
+  - barbosajlm
+  - Eucer
+  - eltociear
+  - literalpie
+  - Mhmdrza
+  - ulic75
+  - mhevery
+  - jordanw66
+  - igorbabko
+  - mrhoodz
+  - VinuB-Dev
+  - billykwok
+  - julianobrasil
+  - hamatoyogi
+  - srapport
+updated_at: '2023-10-03T18:53:23Z'
+created_at: '2023-03-20T23:45:13Z'
+---
+
+# API reference
+
+## `useContent()`
+
+The [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) function retrieves the nearest content information for the current route. The returned object includes:
+
+```ts
+headings: ContentHeading[] | undefined;
+menu: ContentMenu | undefined;
+```
+
+The `headings` array includes data about a markdown file's `<h1>` to `<h6>` [html heading elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements).
+
+Menus are contextual data declared with `menu.md` files. See [menus file definition](/docs/(qwikrouter)/advanced/menu/index.mdx) for more information on the file format and location.
+
+## `useDocumentHead()`
+
+Use the `useDocumentHead()` function to read the document [head metadata](/docs/(qwikrouter)/pages/index.mdx#head-export) that is generated from `head` exports and markdown files.
+
+`useDocumentHead()` retrieves a readonly `DocumentHeadValue` object:
+
+```ts
+export interface DocumentHeadValue<
+  FrontMatter extends Record<string, any> = Record<string, unknown>,
+> {
+  /** Sets `document.title`. */
+  readonly title?: string;
+  /** Used to manually set meta tags in the head. */
+  readonly meta?: readonly DocumentMeta[];
+  /** Used to manually append `<link>` elements to the `<head>`. */
+  readonly links?: readonly DocumentLink[];
+  /** Used to manually append `<style>` elements to the `<head>`. */
+  readonly styles?: readonly DocumentStyle[];
+  /** Used to manually append `<script>` elements to the `<head>`. */
+  readonly scripts?: readonly DocumentScript[];
+  /**
+   * Arbitrary object containing custom data. When the document head is created from markdown files,
+   * the frontmatter attributes that are not recognized as a well-known meta names (such as title,
+   * description, author, etc...), are stored in this property.
+   */
+  readonly frontmatter?: Readonly<FrontMatter>;
+}
+```
+
+To get this data into the `<head>` element of the document, you can do it manually, for example:
+
+```tsx
+import { component$ } from "@qwik.dev/core";
+import { useDocumentHead } from "@qwik.dev/router";
+
+/** Use inside of the `<head>` element in `src/root.tsx` */
+export const RouterHead = component$(() => {
+  const head = useDocumentHead();
+
+  return (
+    <>
+      {head.title && <title>{head.title}</title>}
+      {head.meta.map((m) => (
+        <meta {...m} />
+      ))}
+      {head.links.map((l) => (
+        <link {...l} />
+      ))}
+      {head.styles.map((s) => {
+        // Support for the old `props` property
+        const props = s.props || s;
+        return (
+          <style
+            {...props}
+            dangerouslySetInnerHTML={s.style || props.dangerouslySetInnerHTML}
+            key={s.key}
+          />
+        );
+      })}
+      {head.scripts.map((s) => {
+        // Support for the old `props` property
+        const props = s.props || s;
+        return (
+          <script
+            {...props}
+            dangerouslySetInnerHTML={s.script || props.dangerouslySetInnerHTML}
+            key={s.key}
+          />
+        );
+      })}
+    </>
+  );
+});
+```
+
+You can also use the [`DocumentHeadTags`](#documentheadtags) component to render the head tags.
+
+## `<DocumentHeadTags>`
+
+The `<DocumentHeadTags>` component renders the head tags collected from `head` exports and markdown files.
+
+Place it inside of the `<head>` element in `src/root.tsx`:
+
+```tsx
+// ...
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <link rel="canonical" href={loc.url.href} />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+        <DocumentHeadTags />
+      </head>
+// ...
+```
+
+You can partially override the head, for example if you want to change the title:
+
+```tsx
+import { DocumentHeadTags, useDocumentHead } from '@qwik.dev/router';
+
+export default component$(() => {
+  const head = useDocumentHead();
+  return <DocumentHeadTags title={`${head.title} - My App`} />;
+});
+```
+
+You don't have to use this component, you can also do it yourself for full control. Just copy the code from this component and modify it to your needs.
+
+Note that this component normally only runs once, during SSR. You can use Signals in your `src/root.tsx` to make runtime changes to `<head>` if needed.
+
+## `useLocation()`
+
+Use the [`useLocation()`](/docs/(qwikrouter)/api/index.mdx#uselocation) function to retrieve a `RouteLocation` object for the current location.
+
+The `useLocation()` function provides the current URL and params. It also determines if the app is currently navigating, which is useful for showing a loading indicator.
+
+```tsx
+export interface RouteLocation {
+  /**
+   * Route params extracted from the URL.
+   */
+  readonly params: Record<string, string>;
+  /**
+   * The current URL.
+   */
+  readonly url: URL;
+  /**
+   * True if the app is currently navigating.
+   */
+  readonly isNavigating: boolean;
+}
+```
+
+The return value of [`useLocation()`](/docs/(qwikrouter)/api/index.mdx#uselocation) is similar to `document.location`, but it is safe to use on the server where there is no global `location` object, and it's reactive so it can be tracked.
+
+### Path Route Parameters
+
+`useLocation()` encodes the [Route Parameters](/docs/(qwikrouter)/routing/index.mdx) as params.
+
+Assume you have:
+
+- File: `src/routes/sku/[skuId]/index.tsx`
+- User navigates to: `https://example.com/sku/1234`
+- Then the `skuId` can be retrieved through `useLocation().params.skuId`
+
+```tsx /useLocation/ title="src/routes/sku/[skuId]/index.tsx"
+import { component$ } from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/router';
+
+export default component$(() => {
+  const loc = useLocation();
+
+  return (
+    <>
+      <h1>SKU</h1>
+      {loc.isNavigating && <p>Loading...</p>}
+      <p>pathname: {loc.url.pathname}</p>
+      <p>skuId: {loc.params.skuId}</p>
+    </>
+  );
+});
+```
+
+The above code would generate:
+
+```html
+<h1>SKU</h1>
+<p>pathname: /sku/1234/</p>
+<p>skuId: 1234</p>
+```
+
+### `useLocation` in `root.tsx` is not supported
+
+To access the current url from `root.tsx` use this pattern:
+```ts
+const serverDataUrl = useServerData<string>('url');
+const url = new URL(serverDataUrl || 'https://unknown');
+```
+
+> Notice that `useLocation` is a read-only API, you should never attempt to mutate the values of the `loc` object returned. Instead look into the `useNavigate()` API.
+
+## `useNavigate()`
+
+The `useNavigate()` hook returns a function that programmatically navigates to the next page without requiring a user click or causing a full-page reload. This function can be called with a string argument to "push" a new path, or without arguments to cause an SPA refresh of the page. This is the API used by the `<Link>` component internally to support SPA navigation.
+
+```tsx {12,21} /useNavigate/
+import { component$ } from '@qwik.dev/core';
+import { useNavigate } from '@qwik.dev/router';
+
+export default component$(() => {
+  const nav = useNavigate();
+
+  return (
+    <>
+      <button
+        onClick$={async () => {
+          // SPA navigate to /dashboard
+          await nav('/dashboard');
+        }}
+      >
+        Go to dashboard
+      </button>
+
+      <button
+        onClick$={async() => {
+          // refresh page: call without arguments
+          await nav();
+        }}
+      >
+        Refresh page
+      </button>
+    </>
+  );
+});
+```
+
+This component has a button that when clicked, will navigate to `/dashboard` without causing a page reload.
+
+> Notice that for SEO, and accessibility it's better to use the `<Link>` component instead of `useNavigate()` programmatically to navigate to a new page after some user interaction.
+
+### Going back
+
+To programmatically navigate back to the previous page, use the useNavigate and useLocation hooks.
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import { useNavigate, useLocation } from '@qwik.dev/router';
+
+export const BackButton = component$(() => {
+  const nav = useNavigate();
+  const loc = useLocation();
+
+  return (
+    <button onClick$={() => loc.prevUrl ? window.history.back() : nav('/')}>
+      Go Back
+    </button>
+  );
+});
+
+```
+
+The fallback in the nav function ensures that if the previous URL (loc.prevUrl) is not available, the user is redirected to a default path (eg. the root path /). This is useful in scenarios where the navigation history might not include a previous URL, such as when the user directly lands on a specific page without navigating from another page within the app.
+
+> Notice that the **loc.prevUrl** is only available when the user navigates to a page using the [`useNavigate()`](#usenavigate) or [`<Link>`](/docs/cookbook/nav-link). It is not available when the user navigates to a page using [`the anchor element`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a).
+
+
+## `routeLoader$()`
+
+The `routeLoader$()` function is used to declare a new Server Loader in the given page/middleware or layout. Qwik Router will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders by importing them and calling the returned custom hook function in order to retrieve the data.
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useGetTime = routeLoader$(async () => {
+  return { time: new Date() }
+});
+export default component$(() => {
+  const signal = useGetTime(); // Signal<{time: Date}>
+  console.log('Date': signal.value.time);
+  return (
+    <div>{signal.value.time.toISOString()}</div>
+  )
+});
+```
+
+Please refer to the [Route Loader](/docs/(qwikrouter)/route-loader/index.mdx) section for more information.
+
+## `routeAction$()`
+
+The `routeAction$()` function is used to declare a new Server Action in the given page/middleware or layout. Qwik Router will execute only the invoked action after some user interaction (such as a button click or a form submission).
+
+Please refer to the [Server Actions](/docs/(qwikrouter)/action/index.mdx) section for more information.
+
+## List all routes with qwikRouterConfig.routes
+
+The `qwikRouterConfig.routes` property is used to retrieve the route list of your application.
+
+```tsx
+import qwikRouterConfig from '@qwik-router-config';
+
+const routes = qwikRouterConfig.routes;
+for (const route of routes) {
+	// your logic here
+}
+```
+
+## `useQwikRouter()`
+
+The `useQwikRouter()` function is used to initialize Qwik Router in the existing document, providing the necessary context for Qwik Router to work, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent), `useLocation()` and `<RouterOutlet />`.
+
+This hook should be located at the very root of your application. In most of the starters, you will find it in the `src/root.tsx` file.
+
+```tsx title="src/root.tsx"
+import { useQwikRouter } from '@qwik.dev/router';
+
+export default component$(() => {
+  useQwikRouter();
+
+  return (
+    <>
+      <head>
+        {/* ... */}
+      </head>
+      <body>
+        <RouterOutlet />
+      </body>
+    </>
+  );
+});
+```
+
+> `useQwikRouter()` should only be called once, in the root of your application. If your root component is reactive, you should move the reactive part into a child component, or you can use the `<QwikRouterProvider>` component instead.
+
+## `<QwikRouterProvider>`
+
+The `QwikRouterProvider` component is a wrapper around the `useQwikRouter()` hook. It does not render any DOM element, not even the matched route. We recommend using the hook instead of this component, except when your root component is reactive.
+
+```tsx title="src/root.tsx"
+import { QwikRouterProvider, RouterOutlet } from '@qwik.dev/router';
+
+export default component$(() => (
+  <QwikRouterProvider>
+    <head>
+      {/* ... */}
+    </head>
+    <body>
+      <RouterOutlet />
+    </body>
+  </QwikRouterProvider>
+));
+```
+
+## `<QwikRouterMockProvider>`
+
+The `QwikRouterMockProvider` component initializes a Qwik Router context for testing. It provides the necessary context for Qwik Router code to work in tests, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent). Vice versa for `useNavigate()`, `<Link>`, `useLocation()` and so on.
+It is recommended that you use this in your test files.
+
+> `QwikRouterMockProvider` does not render any DOM elements, meaning it won't be visible in snapshots
+
+If you are looking for a general example on how to integrate vitest into your Qwik look checkout the [vitest integration documentation](/docs/integrations/vitest/index.mdx)
+
+```tsx title="src/components/card.spec.tsx"
+import { createDOM } from '@qwik.dev/core/testing';
+import { QwikRouterMockProvider } from '@qwik.dev/router';
+import { test, expect } from 'vitest';
+
+// Component with two props. Uses <Link> internally. Omitted for brevity
+import { Card } from './card';
+
+const cases = [
+  {text: 'qwik', link:'https://qwik.dev/docs/api'}, 
+  {text: 'vitest', link: 'https://vitest.dev'}
+];
+
+test.each(cases)('should render card with %s %s', async ({text, link}) => {
+  const { screen, render } = await createDOM();
+  await render(
+    <QwikRouterMockProvider>
+      <Card text={text} link={link} />
+    </QwikRouterMockProvider>,
+  );
+  expect(screen.innerHTML).toMatchSnapshot();
+});
+```
+
+> A `goto` prop can be passed to customize the `navigate` behavior during tests
+
+```tsx title="src/components/button.spec.tsx"
+import { $ } from '@qwik.dev/core';
+import { createDOM } from '@qwik.dev/core/testing';
+import { test, expect, vi } from 'vitest';
+
+// Component with one prop. Uses useNavigate internally. Omitted for brevity
+import { Button } from '../button';
+
+const goto = vi.fn(async (path, options) => {
+  console.log(`Navigating to ${path} with ${options}`);
+});
+
+test('should render the button and navigate', async () => {
+  const { screen, render, userEvent } = await createDOM();
+  const goto$ = $(goto);
+  await render(
+    <QwikRouterMockProvider goto={goto$}>
+      <Button id="button" />
+    </QwikRouterMockProvider>,
+  );
+  expect(screen.innerHTML).toMatchSnapshot();
+  await userEvent('#button', 'click');
+  expect(goto).toHaveBeenCalled();
+});
+```
+
+> If you are using `routeLoader$`s in a Qwik Component that you want to test, you can provide a `loaders` prop to mock the data returned by the loaders
+
+```ts title="src/loaders/product.loader.ts"
+import { routeLoader$ } from '@builder.io/qwik-city';
+
+export const useProductData = routeLoader$(async () => {
+  const res = await fetch('https://.../product');
+  const product = (await res.json()) as Product;
+  return product;
+});
+```
+
+```tsx title="src/components/product.tsx"
+import { component$ } from '@builder.io/qwik';
+
+import { useProductData } from '../loaders/product.loader';
+
+export const Footer = component$(() => {
+  const signal = useProductData();
+  return <footer>Product name: {signal.value.product.name}</footer>;
+});
+```
+
+```tsx title="src/components/product.spec.tsx"
+import { createDOM } from '@builder.io/qwik/testing';
+import { test, expect } from 'vitest';
+
+import { Footer } from './product';
+import { useProductData } from '../loaders/product.loader';
+
+test('should render footer with product name', async () => {
+  const { screen, render } = await createDOM();
+  const loadersMock = [
+    {
+      loader: useProductData,
+      data: { product: { name: 'Test Product' } },
+    },
+  ];
+  await render(
+    <QwikCityMockProvider loaders={loadersMock}>
+      <Footer />
+    </QwikCityMockProvider>,
+  );
+  expect(screen.innerHTML).toMatchSnapshot();
+});
+```
+
+> The same approach can be used to mock `routeAction$`s by providing an `actions` prop to the `QwikCityMockProvider`
+
+```tsx title="src/components/user-form.spec.tsx"
+import { $ } from '@builder.io/qwik';
+import { createDOM } from '@builder.io/qwik/testing';
+import { test, expect } from 'vitest';
+
+import { UserForm } from './user-form';
+import { useAddUser } from '../loaders/add-user.action';
+
+test('should call addUser action with correct data', async () => {
+  const { screen, render } = await createDOM();
+  const actionsMock = [
+    {
+      action: useAddUser,
+      handler: $(async (data) => {
+        console.log('useAddUser action called with data:', data);
+      }),
+    },
+  ];
+  await render(
+    <QwikCityMockProvider actions={actionsMock}>
+      <UserForm />
+    </QwikCityMockProvider>,
+  );
+  expect(screen.innerHTML).toMatchSnapshot();
+});
+```
+
+## `<RouterOutlet>`
+
+The `RouterOutlet` component is responsible for rendering the matched route at a given moment, it internally uses the [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) to render the current page, as well as all of the nested layouts.
+
+This component is usually located as a child of `<body>`, in most of the starters you will find it in the `src/root.tsx` file (refer to the example in `QwikRouterProvider`).
+
+## `<Form>`
+
+The `Form` component is a wrapper around the native `<form>` element, and it's designed to work side by side with [Server Actions](/docs/(qwikrouter)/action/index.mdx#using-actions-with-form).
+
+Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled. In addition, it enhances the native `<form>` element by capturing the `submit` event and preventing the default behavior, so it will behave like an SPA (Single Page Application) instead of a full page reload.
+
+```tsx title="src/routes/login/index.tsx"
+import { component$ } from '@qwik.dev/core';
+import { Form, routeAction$ } from '@qwik.dev/router';
+
+// this action will be called when the form is submitted
+export const useLoginAction = routeAction$((data, { cookies, redirect }) => {
+  if (validate(data.username, data.password)) {
+    cookies.set('auth', getAuthToken(data.username));
+    throw redirect(302, '/dashboard');
+  }
+});
+
+export default component$(() => {
+  const login = useLoginAction();
+
+  return (
+    <Form action={login}>
+      <input type="text" name="username" />
+      <input type="password" name="password" />
+      <button type="submit">Login</button>
+    </Form>
+  );
+});
+```
+
+## `<Link>`
+
+The `Link` component works like the `<a>` anchor element, but instead of causing a full page to reload, it will navigate as a SPA (Single Page Navigation). This is useful if you need to navigate without losing your current state.
+
+> Notice that full-page reloads in Qwik are extremely cheap. Other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. Through investigation of internal testing, using `<a>` usually leads to the most snappy interactions.
+
+Under the hood, the `<Link>` component uses the [`useNavigate()`](/docs/(qwikrouter)/api/index.mdx#usenavigate) API and prevents the default behavior of the native `<a>`:
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import { useNavigate } from '@qwik.dev/router';
+
+export const Link = component$<LinkProps>((props) => {
+  const nav = useNavigate();
+
+  return (
+    <a
+      preventdefault:click
+      onClick$={() => {
+        nav(props.href);
+      }}
+      {...props}
+    >
+      <Slot />
+    </a>
+  );
+});
+```
+
+### Usage
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
+
+export default component$(() => {
+  return (
+    <div>
+      <a href="/docs" class="my-link">
+        full-page reload
+      </a>
+      <Link href="/docs" class="my-link">
+        spa navigation
+      </Link>
+    </div>
+  );
+});
+```
+
+### Prefetch
+
+Whether Qwik should prefetch and cache the target page of this `Link`, this includes invoking any `routeLoader$`, `onGet`, etc.
+
+This **improves UX performance** for client-side (**SPA**) navigations.
+
+Prefetching occurs when a the Link enters the viewport in production (`q-e:qvisible`), or with `mouseover`/`focus` during dev.
+
+Prefetching will not occur if the user has the **data saver** setting enabled.
+
+Setting this value to `"js"` will prefetch only javascript bundles required to render this page on the client, `false` will disable prefetching altogether.
+
+> Warning: if you have a menu with many links, all of them will be loaded immediately when you enter the production page, which may result with too many requests
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
+
+export default component$(() => {
+  return (
+    <div>
+      <Link href="/a" prefetch={false}>
+        page will not be prefetched
+      </Link>
+      <Link href="/b" prefetch="js">
+        page js will be prefetched
+      </Link>
+      <Link href="/c">
+        page content & js will be prefetched
+      </Link>
+    </div>
+  );
+});
+```

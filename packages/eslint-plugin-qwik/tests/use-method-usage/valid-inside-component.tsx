@@ -1,5 +1,4 @@
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik';
+import { component$, isServer, useSignal, useTask$ } from '@qwik.dev/core';
 
 export const InsideTask = component$(() => {
   const mySig = useSignal(0);

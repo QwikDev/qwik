@@ -1,6 +1,6 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@qwik.dev/core';
 
-import { type DocumentHead } from '@builder.io/qwik-city';
+import { type DocumentHead } from '@qwik.dev/router';
 import styles from './media.css?inline';
 
 /***/

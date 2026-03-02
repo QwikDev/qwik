@@ -1,27 +1,31 @@
-import { component$, useTask$, useSignal, useStyles$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik';
+import { component$, useAsync$, useSignal, useStyles$, type Signal } from '@qwik.dev/core';
 import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {
   useStyles$(HackerNewsCSS);
-  const data = useSignal<IStory[]>();
+  const page = useSignal(0);
 
-  useTask$(async () => {
-    if (isServer) {
-      const response = await fetch('https://node-hnapi.herokuapp.com/news?page=0');
-      data.value = await response.json();
-    }
+  const data = useAsync$<IStory[]>(async ({ track, abortSignal }) => {
+    const pageNum = track(page);
+    const response = await fetch(`https://node-hnapi.herokuapp.com/news?page=${pageNum}`, {
+      signal: abortSignal,
+    });
+    return await response.json();
   });
 
   return (
     <div class="hacker-news">
       <Nav />
-      <Stories stories={data.value} />
+      {data.loading ? <Loading /> : <Stories stories={data.value} bind:page={page} />}
     </div>
   );
 });
 
-export const Nav = component$(() => {
+const Loading = component$(() => {
+  return <div class="loading">Loading...</div>;
+});
+
+const Nav = component$(() => {
   return (
     <nav>
       <header class="header">
@@ -50,46 +54,46 @@ export const Nav = component$(() => {
   );
 });
 
-export const Stories = component$<{ stories?: IStory[] }>(({ stories }) => {
-  const page = 1;
-  const type = 'list';
-  return (
-    <main class="news-view">
-      <section class="news-list-nav">
-        {page > 1 ? (
-          <a class="page-link" href={`/?type=${type}&page=${page - 1}`} aria-label="Previous Page">
-            {'<'} prev
-          </a>
-        ) : (
-          <span class="page-link disabled" aria-disabled="true">
-            {'<'} prev
-          </span>
-        )}
-        <span>page {page}</span>
-        {stories && stories.length >= 29 ? (
-          <a class="page-link" href={`/?type=${type}&page=${page + 1}`} aria-label="Next Page">
-            more {'>'}
-          </a>
-        ) : (
-          <span class="page-link disabled" aria-disabled="true">
-            more {'>'}
-          </span>
-        )}
-      </section>
-      <article class="news-list">
-        {stories && (
-          <ul>
-            {stories.map((story: IStory) => (
-              <StoryPreview story={story} />
-            ))}
-          </ul>
-        )}
-      </article>
-    </main>
-  );
-});
+const Stories = component$<{ stories?: IStory[]; 'bind:page': Signal<number> }>(
+  ({ stories, 'bind:page': page }) => {
+    return (
+      <main class="news-view">
+        <section class="news-list-nav">
+          {page.value > 0 ? (
+            <button class="page-link" onClick$={() => (page.value -= 1)} aria-label="Previous Page">
+              {'<'} prev
+            </button>
+          ) : (
+            <span class="page-link disabled" aria-disabled="true">
+              {'<'} prev
+            </span>
+          )}
+          <span>page {page.value + 1}</span>
+          {stories && stories.length >= 29 ? (
+            <button class="page-link" onClick$={() => (page.value += 1)} aria-label="Next Page">
+              more {'>'}
+            </button>
+          ) : (
+            <span class="page-link disabled" aria-disabled="true">
+              more {'>'}
+            </span>
+          )}
+        </section>
+        <article class="news-list">
+          {stories && (
+            <ul>
+              {stories.map((story: IStory) => (
+                <StoryPreview story={story} />
+              ))}
+            </ul>
+          )}
+        </article>
+      </main>
+    );
+  }
+);
 
-export const StoryPreview = component$<{ story: IStory }>((props) => {
+const StoryPreview = component$<{ story: IStory }>((props) => {
   return (
     <li class="news-item">
       <span class="score">{props.story.points}</span>

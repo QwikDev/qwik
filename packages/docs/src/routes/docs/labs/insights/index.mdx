@@ -1,5 +1,5 @@
 ---
-title: "\U0001F9EA Insights | Qwik Labs"
+title: "\U0001F9EA Insights | Experimental"
 contributors:
   - mhevery
   - gioboa
@@ -31,14 +31,38 @@ The optimization consists of these parts:
 
 The `<Insights>` component should be added to your `root.tsx` file.
 
+To use it, you need to pass `experimental: ['insights']` as an option to the `qwikVite` plugin as such:
+
+```ts
+// vite.config.ts
+
+export default defineConfig(({ command, mode }): UserConfig => {
+  return {
+    plugins: [
+      // ... other plugins like qwikRouter() etc
+      qwikVite({
+        experimental: ['insights']
+        // ... other options
+      }),
+
+    ],
+    // ... rest of the config
+  };
+}
+
+```
+
+
 ```typescript
 // ...
-import { Insights } from '@builder.io/qwik-labs';
+import { Insights } from '@qwik.dev/core';
 
 export default component$(() => {
+  useQwikRouter();
+
   // ...
   return (
-    <QwikCityProvider>
+    <>
       <head>
         // ...
         <Insights
@@ -48,7 +72,7 @@ export default component$(() => {
       <body lang="en">
         // ...
       </body>
-    </QwikCityProvider>
+    </>
   );
 });
 ```
@@ -73,7 +97,7 @@ file: `vite.config.js`
 ```typescript
 //..
 import { defineConfig, loadEnv } from 'vite';
-import { qwikInsights } from '@builder.io/qwik-labs/vite';
+import { qwikInsights } from '@qwik.dev/core/insights/vite';
 
 export default defineConfig(async () => {
   return {

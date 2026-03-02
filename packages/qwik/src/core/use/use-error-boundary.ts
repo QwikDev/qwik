@@ -1,4 +1,4 @@
-import { type ErrorBoundaryStore, ERROR_CONTEXT } from '../render/error-handling';
+import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
 import { useContextProvider } from './use-context';
 import { useStore } from './use-store.public';
 

@@ -1,0 +1,138 @@
+---
+title: Menu | Advanced
+description: How to use menus to define site navigation.
+contributors:
+  - manucorporat
+  - adamdbradley
+  - the-r3aper7
+  - Oyemade
+  - mhevery
+  - nnelgxorz
+  - jakovljevic-mladen
+  - cunzaizhuyi
+  - AnthonyPAlicea
+  - mrhoodz
+  - hamatoyogi
+  - dejurin
+  - gioboa
+  - jemsco
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2023-03-20T23:45:13Z'
+---
+
+# Menu
+
+Menus allow you to describe the site navigation structure in a simple declarative way. Menus come in two steps:
+
+1. Defining a `menu.md` file that contains the menu structure for the directory it's in.
+2. Using the [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) function to retrieve the menu structure in a template for rendering. [Read more here](/docs/(qwikrouter)/api/index.mdx#usecontent)
+
+## File Structure
+
+First layout files as follows:
+
+```bash
+src/
+└── routes/
+    └── some/
+        ├── menu.md
+        ├── layout.tsx
+        └── path/
+            └── index.tsx  # https://example.com/some/path
+```
+
+Navigating to `https://example.com/some/path` activates:
+
+- `src/routes/some/path/index.tsx`: This component will be used for rendering the page content.
+- `src/routes/some/layout.tsx`: This layout will be used to provide content around the `src/routes/some/path/index.tsx`. Internally the layout can use `src/routes/some/menu.md` to render the menus.
+- `src/routes/some/menu.md`: This file will be used to declare the menu structure which will be rendered by `src/routes/some/layout.tsx`.
+
+## Declaring Menu Structure
+
+Use `menu.md` to declare the menu structure.
+
+- Use the headings (`#`, `##`, etc..) to define menu depth
+- Use the bulleted list (`-`) to define menu items.
+
+```markdown title="src/route/some/menu.md"
+# Docs
+
+## Getting Started
+
+- [Introduction](introduction/index.md)
+
+## Components
+
+- [Basics](/docs/(qwik)/core/basics/index.mdx)
+```
+
+## Retrieving Menu Structure
+
+At runtime, any component can retrieve the menu with [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) hook. The type returned is `ContentMenu`.
+
+The example above will return:
+
+```javascript
+{
+  text: "Docs",
+  items: [
+    {
+      text: "Getting Started",
+      items: [
+        {
+          text: "Introduction",
+          href: "/docs/introduction"
+        }
+      ],
+    },
+    {
+      text: "Components",
+      items: [
+        {
+          text: "Basics",
+          href: "/docs/(qwik)/core/basics"
+        }
+      ],
+    },
+  ],
+}
+```
+
+## Using `ContentMenu` in a layout
+
+While [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) can be invoked from any component that is part of the current route, it is typically used in a layout component (or a component used by layout) to render the menu. An example usage is shown here:
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import { useLocation, useContent } from '@qwik.dev/router';
+export default component$(() => {
+  const { menu } = useContent();
+  const { url } = useLocation();
+
+  return (
+    <nav class="menu">
+      {menu
+        ? menu.items?.map((item, index) => (
+            <div key={index}>
+              <h5>{item.text}</h5>
+              <ul>
+                {item.items?.map((item, subIndex) => (
+                  <li key={`item-${index}-${subIndex}`}>
+                    <a
+                      href={item.href}
+                      class={{
+                        'is-active': url.pathname === item.href,
+                      }}
+                    >
+                      {item.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        : null}
+    </nav>
+  );
+});
+```

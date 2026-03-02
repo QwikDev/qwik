@@ -1,46 +1,46 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1438
+assertion_line: 1549
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { sibling } from './sibling';
 
 export default component$(() => {
-    return (
-        <div onClick$={() => console.log(mongodb, sibling)}>
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log(mongodb, sibling)}>
+		</div>
+	);
 });
 
 
 ============================= src/routes/_repl/[id]/[[...slug]].js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js"), "slug_component_0AM8HPnkNs4"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_0AM8HPnkNs4 = ()=>import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_0AM8HPnkNs4, "slug_component_0AM8HPnkNs4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;AAIA,6BAAe,6HAKZ\"}")
-============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_onClick_xevvy0Qc7pA.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;AAIA,6BAAe,6EAKZ\"}")
+============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js (ENTRY POINT)==
 
 import { sibling } from "./sibling";
-export const slug_component_div_onClick_xevvy0Qc7pA = ()=>console.log(mongodb, sibling);
+export const slug_component_div_q_e_click_bCwVPYSTQ0w = ()=>console.log(mongodb, sibling);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";sDAMuB,IAAM,QAAQ,GAAG,CAAC,SAAS\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";wDAMiB,IAAM,QAAQ,GAAG,CAAC,SAAS\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
-  "name": "slug_component_div_onClick_xevvy0Qc7pA",
+  "name": "slug_component_div_q_e_click_bCwVPYSTQ0w",
   "entry": null,
-  "displayName": "[[...slug]].tsx_slug_component_div_onClick",
-  "hash": "xevvy0Qc7pA",
-  "canonicalFilename": "[[...slug]].tsx_slug_component_div_onClick_xevvy0Qc7pA",
+  "displayName": "[[...slug]].tsx_slug_component_div_q_e_click",
+  "hash": "bCwVPYSTQ0w",
+  "canonicalFilename": "[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w",
   "path": "src/routes/_repl/[id]",
   "extension": "js",
   "parent": "slug_component_0AM8HPnkNs4",
@@ -48,23 +48,24 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    157,
-    192
+    146,
+    181
   ]
 }
 */
 ============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_0AM8HPnkNs4.js ==
 
-import { _jsxQ } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_bCwVPYSTQ0w = ()=>import("./[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js");
 export const slug_component_0AM8HPnkNs4 = ()=>{
-    return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_div_onClick_xevvy0Qc7pA.js"), "slug_component_div_onClick_xevvy0Qc7pA")
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        "q-e:click": /*#__PURE__*/ qrl(i_bCwVPYSTQ0w, "slug_component_div_q_e_click_bCwVPYSTQ0w")
     }, null, 3, "W4_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;0CAI0B;IACtB,qBACI,MAAC;QAAI,QAAQ;;AAGrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;0CAI0B;IACzB,qBACC,WAAC;QAAI,WAAQ;;AAGf\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
@@ -80,8 +81,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    113,
-    218
+    111,
+    198
   ]
 }
 */

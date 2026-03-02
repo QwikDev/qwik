@@ -1,15 +1,15 @@
 import {
   component$,
-  useStore,
-  useResource$,
-  Resource,
-  useTask$,
   createContextId,
-  useContextProvider,
+  Resource,
   useContext,
+  useContextProvider,
+  useResource$,
+  useStore,
   useStyles$,
+  useTask$,
   type ResourceReturn,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 
 export interface WeatherData {
   name: string;
@@ -30,12 +30,11 @@ interface LogsContext {
 export const LOGS = createContextId<LogsContext>("qwik.logs.resource");
 
 export const ResourceApp = component$(() => {
-  const logs = {
+  const logs = useStore({
     content: "",
-  };
+  });
   useContextProvider(LOGS, logs);
 
-  logs.content += "[RENDER] <ResourceApp>\n";
   const state = useStore({
     count: 10,
     countDouble: 0,
@@ -61,28 +60,18 @@ export const ResourceApp = component$(() => {
   const resource = useResource$<number>(async ({ track }) => {
     logs.content += "[RESOURCE] 1 before\n";
     const count = track(() => state.countDoubleDouble);
-    await delay(2000);
+    await delay(1000);
 
-    logs.content += "[RESOURCE] 1 after\n";
+    logs.content += "[RESOURCE] 1 after\n\n";
     return count * 2;
   });
-
-  // const resource2 = useResource$<number>(async ({ track }) => {
-  //   logs.content += '[RESOURCE] 2 before\n';
-  //   const count = track(state, 'countDoubleDouble');
-  //   await delay(2000);
-
-  //   logs.content += '[RESOURCE] 2 after\n';
-  //   return count * 4;
-  // });
-  const resourceState = resource.loading ? "pending" : "resolved";
 
   return (
     <div>
       <button type="button" class="increment" onClick$={() => state.count++}>
         Increment
       </button>
-      <div id="outside-state">{resourceState}</div>
+      <div id="outside-state">{resource.loading ? "pending" : "resolved"}</div>
       <Results result={resource} />
     </div>
   );
@@ -95,8 +84,6 @@ export const Results = component$(
       white-space: pre;
     }`);
     const logs = useContext(LOGS);
-    logs.content += "[RENDER] <Results>\n\n\n";
-    const logscontent = logs.content + "";
 
     const state = useStore({
       count: 0,
@@ -123,7 +110,7 @@ export const Results = component$(
           }}
         />
 
-        <div class="logs">{logscontent}</div>
+        <div class="logs">{logs.content + ""}</div>
       </div>
     );
   },

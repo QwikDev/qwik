@@ -1,31 +1,31 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 568
+assertion_line: 678
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { $, component$, useTask$ } from '@builder.io/qwik';
+import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
 export const Works = component$((props) => {
-    const {countNested} = useStore({value:{count:0}}).value;
-    const countNested2 = countNested;
-    const {hello} = countNested2;
-    const bye = hello.bye;
-    const {ciao} = bye.italian;
+	const {countNested} = useStore({value:{count:0}}).value;
+	const countNested2 = countNested;
+	const {hello} = countNested2;
+	const bye = hello.bye;
+	const {ciao} = bye.italian;
 
 
-    return (
-        <div ciao={ciao} >{foo}</div>
-    );
+	return (
+		<div ciao={ciao} >{foo}</div>
+	);
 });
 
 ============================= test.jsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     const store = useStore({
         value: {
@@ -36,7 +36,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAC7B,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAO/C,QACK,IAAI,MAJM,AADH,MAHsC,MAA3C,YAEA,MACW,GAAG,CACF,OAAO,CAAnB,OAIgB,MAAM;AAEjC,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAChC,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAO/C,QACE,IAAI,MAJS,AADH,MAHsC,MAA3C,YAEA,MACW,GAAG,CACF,OAAO,CAAnB,OAIa,MAAM;AAE3B,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -1,65 +1,63 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1551
+assertion_line: 1662
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useTask$, useStore, useStyles$ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
 
 export const Parent = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useTask$(async () => {
-        state.text = await mongo.users();
-        redis.set(state.text);
-    });
+	// Double count watch
+	useTask$(async () => {
+		state.text = await mongo.users();
+		redis.set(state.text);
+	});
 
-    return (
-        <div onClick$={() => console.log('parent')}>
-            {state.text}
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log('parent')}>
+			{state.text}
+		</div>
+	);
 });
 
 export const Child = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useTask$(async () => {
-        state.text = await mongo.users();
-    });
+	// Double count watch
+	useTask$(async () => {
+		state.text = await mongo.users();
+	});
 
-    return (
-        <div onClick$={() => console.log('child')}>
-            {state.text}
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log('child')}>
+			{state.text}
+		</div>
+	);
 });
 
 ============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js ==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
 export const Parent_component_useTask_gDH1EtUWqBU = async ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     state.text = await mongo.users();
     redis.set(state.text);
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;oDAWa;;IACL,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;oDAWU;;IACR,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
@@ -75,32 +73,36 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    273,
-    365
+    253,
+    330
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_0TaiDayHrlo = ()=>import("./test.tsx_Parent_component_0TaiDayHrlo");
+const i_9GyF01GDKqw = ()=>import("./test.tsx_Child_component_9GyF01GDKqw");
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_0TaiDayHrlo, "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9GyF01GDKqw, "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,uHAgBnB;AAEH,OAAO,MAAM,sBAAQ,qHAelB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,MAAM,uBAAS,+EAgBnB;AAEH,OAAO,MAAM,sBAAQ,8EAelB\"}")
 ============================= test.tsx_Child_component_useTask_Oh4n7ZeqJkU.js ==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 export const Child_component_useTask_Oh4n7ZeqJkU = async ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     state.text = await mongo.users();
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDA6Ba;;IACL,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDA6BU;;IACR,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -116,35 +118,38 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    621,
-    682
+    541,
+    593
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */
 ============================= test.tsx_Parent_component_0TaiDayHrlo.js ==
 
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
-import { useTaskQrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+const i_gDH1EtUWqBU = ()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU");
+const i_zM9okM0TYrA = ()=>import("./test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA");
 export const Parent_component_0TaiDayHrlo = ()=>{
     const state = useStore({
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "Parent_component_useTask_gDH1EtUWqBU", [
+    useTaskQrl(/*#__PURE__*/ qrl(i_gDH1EtUWqBU, "Parent_component_useTask_gDH1EtUWqBU", [
         state
     ]));
-    return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_onClick_C5XE49Nqd3A"), "Parent_component_div_onClick_C5XE49Nqd3A")
-    }, _fnSignal((p0)=>p0.text, [
-        state
-    ], "p0.text"), 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        "q-e:click": /*#__PURE__*/ qrl(i_zM9okM0TYrA, "Parent_component_div_q_e_click_zM9okM0TYrA")
+    }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC;IAC7B,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,qBACI,MAAC;QAAI,QAAQ;uBACR,GAAM,IAAI;;;AAGvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;4CAKiC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,qBACC,WAAC;QAAI,WAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -160,61 +165,61 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    171,
-    483
+    169,
+    421
   ]
 }
 */
-============================= test.tsx_Parent_component_div_onClick_C5XE49Nqd3A.js (ENTRY POINT)==
+============================= test.tsx_Child_component_div_q_e_click_cROa4sult1s.js (ENTRY POINT)==
 
-export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
+export const Child_component_div_q_e_click_cROa4sult1s = ()=>console.log('child');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAiBuB,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yDAkCiB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Parent_component_div_onClick_C5XE49Nqd3A",
+  "name": "Child_component_div_q_e_click_cROa4sult1s",
   "entry": null,
-  "displayName": "test.tsx_Parent_component_div_onClick",
-  "hash": "C5XE49Nqd3A",
-  "canonicalFilename": "test.tsx_Parent_component_div_onClick_C5XE49Nqd3A",
+  "displayName": "test.tsx_Child_component_div_q_e_click",
+  "hash": "cROa4sult1s",
+  "canonicalFilename": "test.tsx_Child_component_div_q_e_click_cROa4sult1s",
   "path": "",
   "extension": "js",
-  "parent": "Parent_component_0TaiDayHrlo",
+  "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    405,
-    432
+    624,
+    650
   ]
 }
 */
 ============================= test.tsx_Child_component_9GyF01GDKqw.js ==
 
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
-import { useTaskQrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+const i_Oh4n7ZeqJkU = ()=>import("./test.tsx_Child_component_useTask_Oh4n7ZeqJkU");
+const i_cROa4sult1s = ()=>import("./test.tsx_Child_component_div_q_e_click_cROa4sult1s");
 export const Child_component_9GyF01GDKqw = ()=>{
     const state = useStore({
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_useTask_Oh4n7ZeqJkU"), "Child_component_useTask_Oh4n7ZeqJkU", [
+    useTaskQrl(/*#__PURE__*/ qrl(i_Oh4n7ZeqJkU, "Child_component_useTask_Oh4n7ZeqJkU", [
         state
     ]));
-    return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_div_onClick_elliVSnAiOQ"), "Child_component_div_onClick_elliVSnAiOQ")
-    }, _fnSignal((p0)=>p0.text, [
-        state
-    ], "p0.text"), 3, "u6_1");
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        "q-e:click": /*#__PURE__*/ qrl(i_cROa4sult1s, "Child_component_div_q_e_click_cROa4sult1s")
+    }, _wrapProp(state, "text"), 3, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC;IAC5B,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAIA,qBACI,MAAC;QAAI,QAAQ;uBACR,GAAM,IAAI;;;AAGvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;2CAuBgC;IAC/B,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAIA,qBACC,WAAC;QAAI,WAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -230,34 +235,34 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    519,
-    799
+    457,
+    683
   ]
 }
 */
-============================= test.tsx_Child_component_div_onClick_elliVSnAiOQ.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA.js (ENTRY POINT)==
 
-export const Child_component_div_onClick_elliVSnAiOQ = ()=>console.log('child');
+export const Parent_component_div_q_e_click_zM9okM0TYrA = ()=>console.log('parent');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAkCuB,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAiBiB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Child_component_div_onClick_elliVSnAiOQ",
+  "name": "Parent_component_div_q_e_click_zM9okM0TYrA",
   "entry": null,
-  "displayName": "test.tsx_Child_component_div_onClick",
-  "hash": "elliVSnAiOQ",
-  "canonicalFilename": "test.tsx_Child_component_div_onClick_elliVSnAiOQ",
+  "displayName": "test.tsx_Parent_component_div_q_e_click",
+  "hash": "zM9okM0TYrA",
+  "canonicalFilename": "test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA",
   "path": "",
   "extension": "js",
-  "parent": "Child_component_9GyF01GDKqw",
+  "parent": "Parent_component_0TaiDayHrlo",
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    722,
-    748
+    361,
+    388
   ]
 }
 */

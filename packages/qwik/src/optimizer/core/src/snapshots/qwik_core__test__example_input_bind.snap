@@ -1,82 +1,65 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1901
+assertion_line: 2013
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 
 export const Greeter = component$(() => {
-    const value = useSignal(0);
-    const checked = useSignal(false);
-    const stuff = useSignal();
-    return (
-        <>
-            <input bind:value={value} />
-            <input bind:checked={checked} />
-            <input bind:stuff={stuff} />
-            <div>{value}</div>
-            <div>{value.value}</div>
-        </>
+	const value = useSignal(0);
+	const checked = useSignal(false);
+	const stuff = useSignal();
+	return (
+		<>
+			<input bind:value={value} />
+			<input bind:checked={checked} />
+			<input bind:stuff={stuff} />
+			<div>{value}</div>
+			<div>{value.value}</div>
+		</>
 
-    )
+	)
 });
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { componentQrl } from "@qwik.dev/core";
+import { _val } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _chk } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const value = useSignal(0);
     const checked = useSignal(false);
     const stuff = useSignal();
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("input", null, {
-                "value": value,
-                "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
-                    const [value] = useLexicalScope();
-                    return value.value = elm.type == "number" ? elm.valueAsNumber : elm.value;
-                }, "s_6IZeYpXCNXA", [
-                    value
-                ])
-            }, null, 3, null),
-            /*#__PURE__*/ _jsxQ("input", null, {
-                "checked": checked,
-                "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
-                    const [checked] = useLexicalScope();
-                    return checked.value = elm.type == "number" ? elm.valueAsNumber : elm.checked;
-                }, "s_JPI3bLCVnso", [
-                    checked
-                ])
-            }, null, 3, null),
-            /*#__PURE__*/ _jsxQ("input", null, {
-                "stuff": stuff,
-                "onChange$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
-                    const [stuff] = useLexicalScope();
-                    return stuff.value = elm.type == "number" ? elm.valueAsNumber : elm.stuff;
-                }, "s_eyREJ0lZTFw", [
-                    stuff
-                ])
-            }, null, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, value, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.value, [
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("input", null, {
+            "value": value,
+            "q-e:input": inlinedQrl(_val, "_val", [
                 value
-            ], "p0.value"), 3, null)
-        ]
-    }, 3, "u6_0");
+            ])
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("input", null, {
+            "checked": checked,
+            "q-e:input": inlinedQrl(_chk, "_chk", [
+                checked
+            ])
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("input", null, {
+            "bind:stuff": stuff
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, value, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(value), 3, null)
+    ], 3, "u6_0");
 }, "s_n7HuG2hhU0Q"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW;IAC9B,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ;IACd,qBACI;;0BACI,MAAC;yBAAkB;;;2BAAA;;;;;0BACnB,MAAC;2BAAoB;;;2BAAA;;;;;0BACrB,MAAC;yBAAkB;;;2BAAA;;;;;0BACnB,MAAC,mBAAK;0BACN,MAAC,mCAAK,GAAM,KAAK;;;;;AAI7B,qBAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW;IACjC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ;IACd,qBACC;sBACC,WAAC;qBAAkB;;gBAAA;;;sBACnB,WAAC;uBAAoB;;gBAAA;;;sBACrB,WAAC;YAAD,cAAmB;;sBACnB,WAAC,mBAAK;sBACN,WAAC,6BAAK;;AAIT,qBAAG\"}")
 == DIAGNOSTICS ==
 
 []

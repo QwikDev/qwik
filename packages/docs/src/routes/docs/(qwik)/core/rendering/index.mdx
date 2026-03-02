@@ -43,7 +43,7 @@ Qwik presents a few differences from other JSX frameworks:
 - HTML attributes are preferred. `class` instead of `className`. `for` instead of `htmlFor`.
 
 ```tsx /component$/#a /onClick$/#b /class/#c
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export const MyComponent = component$((props) => {
   const count = useSignal(0);
@@ -75,7 +75,7 @@ export const MyComponent = component$((props) => {
 Qwik lazy loads components on an as-needed basis. To minimize the number of components to download, Qwik only descends into child components if the component's props have changed.
 
 ```tsx {9} /Child/#a
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export const Parent = component$(() => {
   const count = useSignal(0);
@@ -101,7 +101,7 @@ export const Child = component$((props: { name: string }) => {
 In many cases you'll want to render components by mapping an array in the render function with `items.map()`. It is required for every item of the list to have a unique `key` property passed to the first child of the mapping function. The `key` must be a string or number and must be unique within the list.
 
 ```tsx {6} /data.map/ /key/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const Parent = component$(() => {
   return (
@@ -123,7 +123,7 @@ export const Parent = component$(() => {
 Conditional rendering is done with the Javascipt [ternary operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator) `?`, the `&&` operator, or just by using `if` statements.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const show = useSignal(false);
@@ -155,7 +155,7 @@ The `bind` attribute is a convenient API for two-way data binding of an `<input>
 For checkbox inputs, you can use `bind:checked`, which binds the `checked` boolean to the specified signal.
 
 ```tsx /bind:value/ /bind:checked/ /firstName/#a /acceptConditions/#b
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const firstName = useSignal('');
@@ -177,7 +177,7 @@ export default component$(() => {
 The `bind:` is compiled away by the Qwik optimizer to a property set and an event handler, ie, it is just syntax sugar.
 
 ```tsx /bind:value/ /bind:checked/ /firstName/#a /acceptConditions/#b
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const count = useSignal(0);
@@ -186,7 +186,7 @@ export default component$(() => {
 
   return (
     <form>
-     {/* For number inputs, use `valueAsNumber` instead of `value` to get the numeric value directly */}
+      {/* For number inputs, use `valueAsNumber` instead of `value` to get the numeric value directly */}
       <input type="number"
         value={count.value}
         onInput$={(_, el) => count.value = el.valueAsNumber }

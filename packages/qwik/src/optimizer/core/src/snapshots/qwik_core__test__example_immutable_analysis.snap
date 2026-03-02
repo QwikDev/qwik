@@ -1,60 +1,59 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2026
+assertion_line: 2138
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore, $ } from '@builder.io/qwik';
+import { component$, useStore, $ } from '@qwik.dev/core';
 import importedValue from 'v';
 import styles from './styles.module.css';
 
 export const App = component$((props) => {
-    const {Model} = props;
-    const state = useStore({count: 0});
-    const remove = $((id: number) => {
-        const d = state.data;
-        d.splice(
-          d.findIndex((d) => d.id === id),
-          1
-        )
-      });
-    return (
-        <>
-            <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
-            <Div
-                class={styles.foo}
-                document={window.document}
-                onClick$={props.onClick$}
-                onEvent$={() => console.log('stuff')}
-                transparent$={() => {console.log('stuff')}}
-                immutable1="stuff"
-                immutable2={{
-                    foo: 'bar',
-                    baz: importedValue ? true : false,
-                }}
-                immutable3={2}
-                immutable4$={(ev) => console.log(state.count)}
-                immutable5={[1, 2, importedValue, null, {}]}
-            >
-                <p>Hello Qwik</p>
-            </Div>
-            [].map(() => (
-                <Model
-                    class={state}
-                    remove$={remove}
-                    mutable1={{
-                        foo: 'bar',
-                        baz: state.count ? true : false,
-                    }}
-                    mutable2={(() => console.log(state.count))()}
-                    mutable3={[1, 2, state, null, {}]}
-                />
-            ));
-        </>
-    );
+	const {Model} = props;
+	const state = useStore({count: 0});
+	const remove = $((id: number) => {
+		const d = state.data;
+		d.splice(
+			d.findIndex((d) => d.id === id),
+			1
+		)
+		});
+	return (
+		<>
+			<p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
+			<Div
+				class={styles.foo}
+				document={window.document}
+				onClick$={props.onClick$}
+				onEvent$={() => console.log('stuff')}
+				transparent$={() => {console.log('stuff')}}
+				immutable1="stuff"
+				immutable2={{
+					foo: 'bar',
+					baz: importedValue ? true : false,
+				}}
+				immutable3={2}
+				immutable4$={(ev) => console.log(state.count)}
+				immutable5={[1, 2, importedValue, null, {}]}
+			>
+				<p>Hello Qwik</p>
+			</Div>
+			[].map(() => (
+				<Model
+					class={state}
+					remove$={remove}
+					mutable1={{
+						foo: 'bar',
+						baz: state.count ? true : false,
+					}}
+					mutable2={(() => console.log(state.count))()}
+					mutable3={[1, 2, state, null, {}]}
+				/>
+			));
+		</>
+	);
 });
 
 ============================= test.tsx_App_component_Fragment_Div_onEvent_zrFduYbT3xM.js (ENTRY POINT)==
@@ -62,7 +61,7 @@ export const App = component$((props) => {
 export const App_component_Fragment_Div_onEvent_zrFduYbT3xM = ()=>console.log('stuff');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAsB0B,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAsBc,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -78,29 +77,30 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onEvent$",
   "captures": false,
   "loc": [
-    665,
-    691
+    543,
+    569
   ]
 }
 */
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,iHA4ChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAKA,OAAO,MAAM,oBAAM,4EA4ChB\"}")
 ============================= test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { _captures } from "@qwik.dev/core";
 export const App_component_Fragment_Div_immutable4_2zF7jA3Yti0 = (ev)=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     return console.log(state.count);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEA8B6B,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEA8BiB,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -116,8 +116,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "immutable4$",
   "captures": true,
   "loc": [
-    984,
-    1016
+    760,
+    792
+  ],
+  "paramNames": [
+    "ev"
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */
@@ -128,7 +134,7 @@ export const App_component_Fragment_Div_transparent_eeDEK6EM1oo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kEAuB8B;IAAO,QAAQ,GAAG,CAAC;AAAQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kEAuBkB;IAAO,QAAQ,GAAG,CAAC;AAAQ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -144,112 +150,89 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "transparent$",
   "captures": false,
   "loc": [
-    723,
-    751
+    589,
+    617
   ]
 }
 */
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _IMMUTABLE } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
 import importedValue from "v";
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
 import styles from "./styles.module.css";
-import { useStore } from "@builder.io/qwik";
+import { useStore } from "@qwik.dev/core";
+const _hf0 = (p0)=>({
+        foo: 'bar',
+        baz: p0.count ? true : false
+    });
+const _hf0_str = '{foo:"bar",baz:p0.count?true:false}';
+const i_2zF7jA3Yti0 = ()=>import("./test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0");
+const i_eeDEK6EM1oo = ()=>import("./test.tsx_App_component_Fragment_Div_transparent_eeDEK6EM1oo");
+const i_pU6yOC5P6sY = ()=>import("./test.tsx_App_component_remove_pU6yOC5P6sY");
+const i_zrFduYbT3xM = ()=>import("./test.tsx_App_component_Fragment_Div_onEvent_zrFduYbT3xM");
 export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
     });
-    const remove = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_remove_pU6yOC5P6sY"), "App_component_remove_pU6yOC5P6sY", [
+    const remove = /*#__PURE__*/ qrl(i_pU6yOC5P6sY, "App_component_remove_pU6yOC5P6sY", [
         state
     ]);
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("p", {
-                onClick$: props.onClick$
-            }, {
-                class: "stuff"
-            }, "Hello Qwik", 2, null),
-            /*#__PURE__*/ _jsxC(Div, {
-                get class () {
-                    return styles.foo;
-                },
-                get document () {
-                    return window.document;
-                },
-                onClick$: props.onClick$,
-                onEvent$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_Div_onEvent_zrFduYbT3xM"), "App_component_Fragment_Div_onEvent_zrFduYbT3xM"),
-                transparent$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_Div_transparent_eeDEK6EM1oo"), "App_component_Fragment_Div_transparent_eeDEK6EM1oo"),
-                immutable1: "stuff",
-                immutable2: {
-                    foo: 'bar',
-                    baz: importedValue ? true : false
-                },
-                immutable3: 2,
-                immutable4$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0"), "App_component_Fragment_Div_immutable4_2zF7jA3Yti0", [
-                    state
-                ]),
-                immutable5: [
-                    1,
-                    2,
-                    importedValue,
-                    null,
-                    {}
-                ],
-                children: /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, null),
-                [_IMMUTABLE]: {
-                    class: _IMMUTABLE,
-                    document: _IMMUTABLE,
-                    onEvent$: _IMMUTABLE,
-                    transparent$: _IMMUTABLE,
-                    immutable1: _IMMUTABLE,
-                    immutable2: _IMMUTABLE,
-                    immutable3: _IMMUTABLE,
-                    immutable4$: _IMMUTABLE,
-                    immutable5: _IMMUTABLE
-                }
-            }, 2, "u6_0"),
-            "[].map(() => (",
-            /*#__PURE__*/ _jsxC(props.Model, {
-                class: state,
-                remove$: remove,
-                get mutable1 () {
-                    return {
-                        foo: 'bar',
-                        baz: state.count ? true : false
-                    };
-                },
-                mutable2: (()=>console.log(state.count))(),
-                mutable3: [
-                    1,
-                    2,
-                    state,
-                    null,
-                    {}
-                ],
-                [_IMMUTABLE]: {
-                    class: _IMMUTABLE,
-                    remove$: _IMMUTABLE,
-                    mutable1: _fnSignal((p0)=>({
-                            foo: 'bar',
-                            baz: p0.count ? true : false
-                        }), [
-                        state
-                    ], '{foo:"bar",baz:p0.count?true:false}'),
-                    mutable3: _IMMUTABLE
-                }
-            }, 3, "u6_1"),
-            "));"
-        ]
-    }, 1, "u6_2");
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("p", {
+            "q-e:click": props.onClick$
+        }, {
+            class: "stuff"
+        }, "Hello Qwik", 2, null),
+        /*#__PURE__*/ _jsxSorted(Div, {
+            document: window.document,
+            onClick$: props.onClick$
+        }, {
+            class: styles.foo,
+            onEvent$: /*#__PURE__*/ qrl(i_zrFduYbT3xM, "App_component_Fragment_Div_onEvent_zrFduYbT3xM"),
+            transparent$: /*#__PURE__*/ qrl(i_eeDEK6EM1oo, "App_component_Fragment_Div_transparent_eeDEK6EM1oo"),
+            immutable1: "stuff",
+            immutable2: {
+                foo: 'bar',
+                baz: importedValue ? true : false
+            },
+            immutable3: 2,
+            immutable4$: /*#__PURE__*/ qrl(i_2zF7jA3Yti0, "App_component_Fragment_Div_immutable4_2zF7jA3Yti0", [
+                state
+            ]),
+            immutable5: [
+                1,
+                2,
+                importedValue,
+                null,
+                {}
+            ]
+        }, /*#__PURE__*/ _jsxSorted("p", null, null, "Hello Qwik", 3, null), 2, "u6_0"),
+        "[].map(() => (",
+        /*#__PURE__*/ _jsxSorted(props.Model, {
+            mutable2: (()=>console.log(state.count))()
+        }, {
+            class: state,
+            remove$: remove,
+            mutable1: _fnSignal(_hf0, [
+                state
+            ], _hf0_str),
+            mutable3: [
+                1,
+                2,
+                state,
+                null,
+                {}
+            ]
+        }, null, 3, "u6_1"),
+        "));"
+    ], 1, "u6_2");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yCAK8B,CAAC;IAE3B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;;0BACI,MAAC;gBAAgB,UAAU,MAAM,QAAQ;;gBAAtC,OAAM;eAAkC;0BAC3C,MAAC;oBACG;2BAAO,OAAO,GAAG;;oBACjB;2BAAU,OAAO,QAAQ;;gBACzB,UAAU,MAAM,QAAQ;gBACxB,QAAQ;gBACR,YAAY;gBACZ,YAAW;gBACX,YAAY;oBACR,KAAK;oBACL,KAAK,gBAAgB,OAAO;gBAChC;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe;oBAAM,CAAC;iBAAE;0BAE3C,cAAA,MAAC,iBAAE;;oBAdH,KAAK;oBACL,QAAQ;oBAER,QAAQ;oBACR,YAAY;oBACZ,UAAU;oBACV,UAAU;oBAIV,UAAU;oBACV,WAAW;oBACX,UAAU;;;YAGR;0BAEF,MA9BI,MAAT;gBA+BS,OAAO;gBACP,SAAS;oBACT;2BAAU;wBACN,KAAK;wBACL,KAAK,MAAM,KAAK,GAAG,OAAO;oBAC9B;;gBACA,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;gBACzC,UAAU;oBAAC;oBAAG;oBAAG;oBAAO;oBAAM,CAAC;iBAAE;;oBAPjC,KAAK;oBACL,OAAO;oBACP,QAAQ,kBAAE,CAAA;4BACN,KAAK;4BACL,KAAK,GAAM,KAAK,GAAG,OAAO;wBAC9B,CAAA;;;oBAEA,QAAQ;;;YACV;;;AAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;mBAuCe,CAAA;QACT,KAAK;QACL,KAAK,GAAM,KAAK,GAAG,OAAO;IAC3B,CAAA;;;;;;yCArCyB,CAAC;IAE9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,WAAC;YAAgB,aAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,WAAC;YAEA,UAAU,OAAO,QAAQ;YACzB,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YAGjB,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,OAAO;YAC7B;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe;gBAAM,CAAC;aAAE;yBAE3C,WAAC,iBAAE;QACE;sBAEL,WA9Ba,MAAT;YAqCH,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;;YANzC,OAAO;YACP,SAAS;YACT,QAAQ;;;YAKR,UAAU;gBAAC;gBAAG;gBAAG;gBAAO;gBAAM,CAAC;aAAE;;QAChC;;AAIN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -265,23 +248,25 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    166,
-    1591
+    164,
+    1148
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */
 ============================= test.tsx_App_component_remove_pU6yOC5P6sY.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { _captures } from "@qwik.dev/core";
 export const App_component_remove_pU6yOC5P6sY = (id)=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     const d = state.data;
     d.splice(d.findIndex((d)=>d.id === id), 1);
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAQqB,CAAC;;IACd,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACN,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAQkB,CAAC;;IACjB,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACP,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -297,8 +282,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    267,
-    405
+    256,
+    358
+  ],
+  "paramNames": [
+    "id"
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */

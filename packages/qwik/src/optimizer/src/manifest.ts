@@ -2,6 +2,10 @@ import type { Rollup } from 'vite';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
+// The handlers that are exported by the core package
+// See handlers.mjs
+const extraSymbols = new Set(['_chk', '_rsc', '_res', '_run', '_task', '_val']);
+
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
 // still further optimize the priorities depending on the user/document.
@@ -388,9 +392,13 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   }
 }
 
-const preloaderRegex = /[/\\]qwik[/\\]dist[/\\]preloader\.[cm]js$/;
-const coreRegex = /[/\\]qwik[/\\]dist[/\\]core\.[^/]*js$/;
-const qwikLoaderRegex = /[/\\]qwik[/\\]dist[/\\]qwikloader(\.debug)?\.[^/]*js$/;
+const preloaderRegex = /[/\\](core|qwik)[/\\]dist[/\\]preloader\.(|c|m)js$/;
+const coreRegex = /[/\\](core|qwik)[/\\]dist[/\\]core(\.min|\.prod)?\.(|c|m)js$/;
+const qwikLoaderRegex = /[/\\](core|qwik)[/\\](dist[/\\])?qwikloader(\.debug)?\.[^/]*js$/;
+/**
+ * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle
+ * files for the preloader, core, qwikloader and handlers. This information is used during SSR.
+ */
 export function generateManifestFromBundles(
   path: Path,
   segments: SegmentAnalysis[],
@@ -412,6 +420,7 @@ export function generateManifestFromBundles(
     },
     core: undefined,
     preloader: undefined,
+    qwikLoader: undefined,
     bundleGraphAsset: undefined,
     injections,
     mapping: {},
@@ -432,6 +441,8 @@ export function generateManifestFromBundles(
 
   let coreBundleName: string | undefined;
   let preloaderBundleName: string | undefined;
+  let qwikHandlersName: string | undefined;
+
   for (const outputBundle of Object.values(outputBundles)) {
     const bundleFileName = getBundleName(outputBundle.fileName);
     if (outputBundle.name === 'core') {
@@ -439,6 +450,9 @@ export function generateManifestFromBundles(
     }
     if (outputBundle.name === 'preloader') {
       preloaderBundleName = bundleFileName;
+    }
+    if (outputBundle.name === 'handlers') {
+      qwikHandlersName = bundleFileName;
     }
   }
   // We need to find our QRL exports
@@ -471,12 +485,11 @@ export function generateManifestFromBundles(
         }
       }
     }
-
     const bundleImports = outputBundle.imports
       // Tree shaking might remove imports
       .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))
-      .filter((i) => i !== preloaderBundleName && i !== coreBundleName)
+      .filter((i) => i !== preloaderBundleName && i !== coreBundleName && i !== qwikHandlersName)
       .filter(Boolean) as string[];
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
@@ -539,7 +552,27 @@ export function generateManifestFromBundles(
       parent: segment.parent,
       origin: segment.origin,
       loc: segment.loc,
+      paramNames: segment.paramNames,
+      captureNames: segment.captureNames,
     };
+  }
+  if (qwikHandlersName) {
+    for (const symbol of extraSymbols) {
+      manifest.symbols[symbol] = {
+        origin: 'Qwik core',
+        displayName: symbol,
+        canonicalFilename: '',
+        hash: symbol,
+        ctxKind: 'function',
+        ctxName: symbol,
+        captures: false,
+        parent: null,
+        loc: [0, 0],
+      };
+      manifest.mapping[symbol] = qwikHandlersName;
+    }
+  } else {
+    console.error('Qwik core bundle not found, is Qwik actually used in this project?');
   }
 
   for (const bundle of Object.values(manifest.bundles)) {

@@ -1,47 +1,47 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 415
+assertion_line: 416
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(({foo}) => {
-    const arg0 = 20;
-    return $(() => {
-        const fn = ({aaa}) => aaa;
-        return (
-            <div>
-              {foo}{fn()}{arg0}
-            </div>
-        )
-    });
+	const arg0 = 20;
+	return $(() => {
+		const fn = ({aaa}) => aaa;
+		return (
+			<div>
+				{foo}{fn()}{arg0}
+			</div>
+		)
+	});
 })
 
 export const Bar = component$(({bar}) => {
-    return $(() => {
-        return (
-            <div>
-              {bar}
-            </div>
-        )
-    });
+	return $(() => {
+		return (
+			<div>
+				{bar}
+			</div>
+		)
+	});
 })
 
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.jsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
-export const Foo_component_HTDRsvUbLiE = (props)=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY", [
-        props
+import { qrl } from "@qwik.dev/core";
+const i_DvU6FitWglY = ()=>import("./test.tsx_Foo_component_1_DvU6FitWglY");
+export const Foo_component_HTDRsvUbLiE = (_rawProps)=>{
+    return /*#__PURE__*/ qrl(i_DvU6FitWglY, "Foo_component_1_DvU6FitWglY", [
+        _rawProps
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAE1B;;;AAQJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAE7B;;;AAQD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -57,31 +57,37 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    83,
-    278
+    81,
+    221
+  ],
+  "paramNames": [
+    "_rawProps"
   ]
 }
 */
 ============================= test.jsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"));
-export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
+const i_L80pS8Hxf1Y = ()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y");
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"));
+export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_L80pS8Hxf1Y, "Bar_component_L80pS8Hxf1Y"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAUjB;AAEF,OAAO,MAAM,oBAAM,iHAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,4EAUjB;AAEF,OAAO,MAAM,oBAAM,4EAQjB\"}")
 ============================= test.tsx_Bar_component_L80pS8Hxf1Y.jsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
-export const Bar_component_L80pS8Hxf1Y = (props)=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_1_0xSyNSnVu3k"), "Bar_component_1_0xSyNSnVu3k", [
-        props
+import { qrl } from "@qwik.dev/core";
+const i_0xSyNSnVu3k = ()=>import("./test.tsx_Bar_component_1_0xSyNSnVu3k");
+export const Bar_component_L80pS8Hxf1Y = (_rawProps)=>{
+    return /*#__PURE__*/ qrl(i_0xSyNSnVu3k, "Bar_component_1_0xSyNSnVu3k", [
+        _rawProps
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B;IAC1B;;;AAOJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAe8B;IAC7B;;;AAOD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -97,25 +103,27 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    311,
-    438
+    254,
+    335
+  ],
+  "paramNames": [
+    "_rawProps"
   ]
 }
 */
 ============================= test.tsx_Foo_component_1_DvU6FitWglY.jsx (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { _captures } from "@qwik.dev/core";
 export const Foo_component_1_DvU6FitWglY = ()=>{
-    const [props] = useLexicalScope();
+    const _rawProps = _captures[0];
     const fn = ({ aaa })=>aaa;
     return <div>
-              {props.foo}{fn()}{20}
-            </div>;
+				{_rawProps.foo}{fn()}{20}
+			</div>;
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACK,IAAI;cACH,OANkB,KAMZ,MALH,GAKc;YACnB,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKU;;IACR,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACE,IAAI;IACJ,WAN4B,KAMtB,MALI,GAKO;GAClB,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -131,24 +139,26 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    130,
-    274
+    122,
+    217
+  ],
+  "captureNames": [
+    "_rawProps"
   ]
 }
 */
 ============================= test.tsx_Bar_component_1_0xSyNSnVu3k.jsx (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { _captures } from "@qwik.dev/core";
 export const Bar_component_1_0xSyNSnVu3k = ()=>{
-    const [props] = useLexicalScope();
+    const _rawProps = _captures[0];
     return <div>
-              {props.bar}
-            </div>;
+				{_rawProps.bar}
+			</div>;
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,IAAI;cACH,OAJkB,IAIb;YACP,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBU;;IACR,QACE,IAAI;IACJ,WAJ4B,IAIvB;GACN,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -164,8 +174,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    337,
-    434
+    277,
+    331
+  ],
+  "captureNames": [
+    "_rawProps"
   ]
 }
 */

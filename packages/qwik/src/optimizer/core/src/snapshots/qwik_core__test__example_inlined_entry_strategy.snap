@@ -1,43 +1,42 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1405
+assertion_line: 1516
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwik.dev/core';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 
 export const Child = component$(() => {
 
-    useStyles$('somestring');
-    const state = useStore({
-        count: 0
-    });
+	useStyles$('somestring');
+	const state = useStore({
+		count: 0
+	});
 
-    // Double count watch
-    useBrowserVisibleTask$(() => {
-        state.count = thing.doStuff() + import("./sibling");
-    });
+	// Double count watch
+	useBrowserVisibleTask$(() => {
+		state.count = thing.doStuff() + import("./sibling");
+	});
 
-    return (
-        <div onClick$={() => console.log(mongodb)}>
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log(mongodb)}>
+		</div>
+	);
 });
 
 
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { useStylesQrl } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { useBrowserVisibleTaskQrl } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
-import { useStore } from '@builder.io/qwik';
+import { componentQrl } from "@qwik.dev/core";
+import { useStylesQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { useBrowserVisibleTaskQrl } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { useStore } from '@qwik.dev/core';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
@@ -47,17 +46,17 @@ export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     });
     // Double count watch
     useBrowserVisibleTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
-        const [state] = useLexicalScope();
+        const state = _captures[0];
         state.count = thing.doStuff() + import("./sibling");
     }, "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state
     ]));
-    return <div onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "Child_component_div_onClick_elliVSnAiOQ")}>
-        </div>;
+    return <div q-e:click={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "Child_component_div_q_e_click_cROa4sult1s")}>
+		</div>;
 }, "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAA6C,QAAQ,QAAoB,mBAAmB;AAC5F,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;AAE9B,OAAO,MAAM,sBAAQ,sCAAW;IAE5B,sCAAW;IACX,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IAEA,qBAAqB;IACrB,kDAAuB;;QACnB,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;;;IAG3C,QACK,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;QAC3C,EAAE;AAEV,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAA6C,QAAQ,QAAoB,iBAAiB;AAC1F,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;AAE9B,OAAO,MAAM,sBAAQ,sCAAW;IAE/B,sCAAW;IACX,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBAAqB;IACrB,kDAAuB;;QACtB,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;;;IAGxC,QACE,IAAI,oCAAU,IAAM,QAAQ,GAAG,CAAC,wDAAU;EAC3C,EAAE;AAEJ,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

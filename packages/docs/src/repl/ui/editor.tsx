@@ -1,23 +1,23 @@
 import {
   component$,
-  type NoSerialize,
-  type QRL,
-  useVisibleTask$,
   useContext,
   useSignal,
   useStore,
   useTask$,
-} from '@builder.io/qwik';
-import type { IStandaloneCodeEditor } from './monaco';
+  useVisibleTask$,
+  type NoSerialize,
+  type QRL,
+} from '@qwik.dev/core';
+import { GlobalStore } from '../../context';
+import type { ReplAppInput, ReplStore } from '../types';
+import type { ICodeEditorViewState, IStandaloneCodeEditor } from './monaco';
 import {
   addQwikLibs,
   getEditorTheme,
-  type ICodeEditorViewState,
+  getMonaco,
   initMonacoEditor,
   updateMonacoEditor,
 } from './monaco';
-import type { ReplAppInput, ReplStore } from '../types';
-import { GlobalStore } from '../../context';
 
 export const Editor = component$((props: EditorProps) => {
   const hostRef = useSignal<Element>();
@@ -33,7 +33,7 @@ export const Editor = component$((props: EditorProps) => {
 
   useVisibleTask$(async () => {
     if (!store.editor) {
-      await initMonacoEditor(hostRef.value, props, store, props.store);
+      await initMonacoEditor(hostRef.value, props, store, props.store, globalStore.theme);
     }
     return () => {
       if (store.editor) {
@@ -42,12 +42,11 @@ export const Editor = component$((props: EditorProps) => {
     };
   });
 
-  useVisibleTask$(({ track }) => {
-    track(() => globalStore.theme);
-    if (globalStore.theme !== 'auto') {
-      store.editor?.updateOptions({
-        theme: getEditorTheme(globalStore.theme === 'dark'),
-      });
+  useVisibleTask$(async ({ track }) => {
+    const theme = track(globalStore, 'theme');
+    if (theme !== 'auto') {
+      const monaco = await getMonaco();
+      monaco.editor.setTheme(getEditorTheme(theme));
     }
   });
 

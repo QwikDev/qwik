@@ -1,16 +1,16 @@
 /* eslint-disable */
 import {
+  $,
   component$,
-  useTask$,
-  useStore,
-  useSignal,
-  type Signal,
   createContextId,
+  isServer,
   useContext,
   useContextProvider,
-  $,
-} from "@builder.io/qwik";
-import { isServer } from "@builder.io/qwik";
+  useSignal,
+  useStore,
+  useTask$,
+  type Signal,
+} from "@qwik.dev/core";
 
 interface State {
   count: number;
@@ -73,8 +73,8 @@ export const WatchShell = component$(
         <button id="add" onClick$={() => store.count++}>
           +
         </button>
-        <Issue1766Root />
-        <Issue2972 />
+        <DynamicTreeshakingUseWatchIssue1766Root />
+        <QrlApplyCallContextIssue2972 />
       </div>
     );
   },
@@ -99,7 +99,7 @@ export const GrandChild = component$<{ state: State }>((props) => {
 
 export const LinkPath = createContextId<{ value: string }>("link-path");
 
-export const Issue1766Root = component$(() => {
+export const DynamicTreeshakingUseWatchIssue1766Root = component$(() => {
   const loc = useStore({
     value: "/root",
   });
@@ -116,13 +116,13 @@ export const Issue1766Root = component$(() => {
 
   return (
     <>
-      <Issue1766 />
+      <DynamicTreeshakingUseWatchIssue1766 />
       <div id="issue-1766-loc">Loc: {final.value}</div>
     </>
   );
 });
 
-export const Issue1766 = component$(() => {
+export const DynamicTreeshakingUseWatchIssue1766 = component$(() => {
   const counter = useSignal(0);
   const second = useSignal("---");
 
@@ -136,7 +136,7 @@ export const Issue1766 = component$(() => {
   return (
     <div>
       <p id="issue-1766">{second.value}</p>
-      <Issue1766Child counter={counter} />
+      <DynamicTreeshakingUseWatchIssue1766Child counter={counter} />
     </div>
   );
 });
@@ -145,35 +145,37 @@ type Props = {
   counter: Signal<number>;
 };
 
-export const Issue1766Child = component$<Props>(({ counter }) => {
-  const state = useStore({ show: false });
-  return (
-    <>
-      {state.show ? (
-        <>
+export const DynamicTreeshakingUseWatchIssue1766Child = component$<Props>(
+  ({ counter }) => {
+    const state = useStore({ show: false });
+    return (
+      <>
+        {state.show ? (
+          <>
+            <button
+              id="show-btn-2"
+              onClick$={() => {
+                counter.value++;
+              }}
+            >
+              Bump In Child Component (Doesn't work)
+            </button>
+            <Link href="/page" />
+          </>
+        ) : (
           <button
-            id="show-btn-2"
+            id="show-btn"
             onClick$={() => {
-              counter.value++;
+              state.show = true;
             }}
           >
-            Bump In Child Component (Doesn't work)
+            Show Button
           </button>
-          <Link href="/page" />
-        </>
-      ) : (
-        <button
-          id="show-btn"
-          onClick$={() => {
-            state.show = true;
-          }}
-        >
-          Show Button
-        </button>
-      )}
-    </>
-  );
-});
+        )}
+      </>
+    );
+  },
+);
 
 export const Link = component$((props: { href: string }) => {
   const loc = useContext(LinkPath);
@@ -193,7 +195,7 @@ export function foo(this: any) {
   return this.value;
 }
 
-export const Issue2972 = component$(() => {
+export const QrlApplyCallContextIssue2972 = component$(() => {
   const message = useSignal("");
   useTask$(async () => {
     message.value = await $(foo).apply({ value: "passed" });

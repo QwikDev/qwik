@@ -1,4 +1,4 @@
-import { component$, implicit$FirstArg, type QRL } from "@builder.io/qwik";
+import { component$, implicit$FirstArg, type QRL } from "@qwik.dev/core";
 
 export function factoryQrl<P extends Record<string, any>>(
   componentQRL: QRL<(props: P) => any>,

@@ -1,5 +1,5 @@
-import { Resource, component$, useResource$, useStore } from '@builder.io/qwik';
-import { server$, useLocation } from '@builder.io/qwik-city';
+import { Resource, component$, useResource$, useStore } from '@qwik.dev/core';
+import { server$, useLocation } from '@qwik.dev/router';
 import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
 import { SymbolIcon } from '../icons/symbol';

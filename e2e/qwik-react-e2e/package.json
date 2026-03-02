@@ -1,17 +1,17 @@
 {
   "name": "qwik-react-test-app",
   "description": "Qwik react test app",
+  "devDependencies": {
+    "@qwik.dev/react": "workspace:*",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
   },
   "private": true,
-  "devDependencies": {
-    "@builder.io/qwik-react": "workspace:^",
-    "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
-  },
   "scripts": {
     "build": "qwik build",
     "build.client": "vite build",

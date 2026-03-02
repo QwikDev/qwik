@@ -1,4 +1,4 @@
-import type { RequestEvent } from '@builder.io/qwik-city';
+import type { RequestEvent } from '@qwik.dev/router';
 
 // Keep in sync with `public/_redirects`
 

@@ -1,0 +1,157 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4741
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+import mongo from 'mongodb';
+
+export const Greeter = component$(() => {
+	// Double count watch
+	useTask$(async () => {
+		await mongo.users();
+	});
+	return (
+		<div>
+			<div onClick$={() => {}}/>
+			<div onClick$={() => {}}/>
+			<div onClick$={() => {}}/>
+		</div>
+	)
+});
+
+
+============================= test.tsx_Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo.tsx (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAYkB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_e_click_1",
+  "hash": "s7p0zjWZpqo",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    263,
+    271
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_n7HuG2hhU0Q = ()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q");
+export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_n7HuG2hhU0Q, "Greeter_component_n7HuG2hhU0Q"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,wBAAU,gFAYpB\"}")
+============================= test.tsx_Greeter_component_div_div_q_e_click_wYSPnQEGCbA.tsx (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_e_click_wYSPnQEGCbA = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAWkB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_e_click_wYSPnQEGCbA",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_e_click",
+  "hash": "wYSPnQEGCbA",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_e_click_wYSPnQEGCbA",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    233,
+    241
+  ]
+}
+*/
+============================= test.tsx_Greeter_component_div_div_q_e_click_2_B9tqzgApK9E.tsx (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_e_click_2_B9tqzgApK9E = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAakB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_e_click_2_B9tqzgApK9E",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_e_click_2",
+  "hash": "B9tqzgApK9E",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_e_click_2_B9tqzgApK9E",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    293,
+    301
+  ]
+}
+*/
+============================= test.tsx_Greeter_component_n7HuG2hhU0Q.tsx (ENTRY POINT)==
+
+import mongo from "mongodb";
+import { qrl } from "@qwik.dev/core";
+const i_B9tqzgApK9E = ()=>import("./test.tsx_Greeter_component_div_div_q_e_click_2_B9tqzgApK9E");
+const i_s7p0zjWZpqo = ()=>import("./test.tsx_Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo");
+const i_wYSPnQEGCbA = ()=>import("./test.tsx_Greeter_component_div_div_q_e_click_wYSPnQEGCbA");
+export const Greeter_component_n7HuG2hhU0Q = ()=>{
+    // Double count watch
+    useTask$(async ()=>{
+        await mongo.users();
+    });
+    return <div>
+			<div q-e:click={/*#__PURE__*/ qrl(i_wYSPnQEGCbA, "Greeter_component_div_div_q_e_click_wYSPnQEGCbA")}/>
+			<div q-e:click={/*#__PURE__*/ qrl(i_s7p0zjWZpqo, "Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo")}/>
+			<div q-e:click={/*#__PURE__*/ qrl(i_B9tqzgApK9E, "Greeter_component_div_div_q_e_click_2_B9tqzgApK9E")}/>
+		</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;6CAIkC;IACjC,qBAAqB;IACrB,SAAS;QACR,MAAM,MAAM,KAAK;IAClB;IACA,QACE,IAAI;GACJ,CAAC,IAAI,iGAAqB;GAC1B,CAAC,IAAI,mGAAqB;GAC1B,CAAC,IAAI,mGAAqB;EAC3B,EAAE;AAEJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_n7HuG2hhU0Q",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component",
+  "hash": "n7HuG2hhU0Q",
+  "canonicalFilename": "test.tsx_Greeter_component_n7HuG2hhU0Q",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    114,
+    318
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -28,6 +28,7 @@
 /integrations/deployments/netlify-edge/ /deployments/netlify-edge/ 308
 /integrations/deployments/vercel-edge/ /deployments/vercel-edge/ 308
 
+/qwikcity/adaptors/ /docs/deployments/ 308
 /qwikcity/advanced/prefetching/ /docs/advanced/modules-prefetching/
 /qwikcity/content/component/ /docs/pages/ 308
 /qwikcity/content/head/ /docs/pages/ 308
@@ -71,6 +72,12 @@
 /docs/components/projection/ /docs/core/slots/ 308
 /docs/components/resource/ /docs/core/state/ 308
 /docs/cookbook/re-exporting-loaders/ /docs/re-exporting-loaders/ 308
+
+/docs/advanced/i18n/ /docs/integrations/i18n/ 308
+/docs/components/inline-components/ /docs/components/overview/ 308
+/docs/think-qwik/ /docs/concepts/think-qwik/ 308
+/docs/qwikcity/ /docs/qwikrouter/ 308
+/docs/qwikcity-deprecated-features/ /docs/qwikrouter-deprecated-features/ 308
 /docs/env-variables/ /docs/guides/env-variables/ 308
 /docs/overview /docs/ 308
 /docs/overview/ /docs/ 308
@@ -78,7 +85,9 @@
 
 # All wildcards (and only wildcards) must be below here
 
-/deployments/_ /docs/deployments/:splat 308
-/docs/components/_ /docs/core/:splat 308
-/integrations/_ /docs/integrations/:splat 308
-/qwikcity/_ /docs/:splat 308
+/deployments/* /docs/deployments/:splat 308
+/docs/components/* /docs/core/:splat 308
+/integrations/* /docs/integrations/:splat 308
+/qwikcity/* /docs/:splat 308
+/qwikcity/adaptors/* /docs/deployments/:splat 308
+/qwikrouter/* /docs/:splat 308

@@ -1,13 +1,11 @@
 import {
   component$,
   Resource,
-  SSRStream,
-  SSRStreamBlock,
   useResource$,
   useStore,
   useStyles$,
-} from "@builder.io/qwik";
-
+} from "@qwik.dev/core";
+import { SSRStream, SSRStreamBlock } from "@qwik.dev/core/internal";
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
     setTimeout(() => resolve(), time);
@@ -53,7 +51,7 @@ export const Streaming = component$(() => {
         <SSRStream>
           {async function (stream: any) {
             for (let i = 0; i < 10; i++) {
-              stream.write(`<li>raw: ${i}</li>`);
+              stream.write(<li>raw: {i}</li>);
               await delay(100);
             }
           }}
@@ -61,15 +59,15 @@ export const Streaming = component$(() => {
       </ol>
 
       <SSRStreamBlock>
-        <Cmp text="this 1" delay={1000}></Cmp>
-        <Cmp text="this 2" delay={1200}></Cmp>
+        <Cmp text="this_1" delay={200}></Cmp>
+        <Cmp text="this_2" delay={300}></Cmp>
       </SSRStreamBlock>
 
-      <Cmp text="this 3" delay={1500}></Cmp>
+      <Cmp text="this_3" delay={400}></Cmp>
 
       <SSRStreamBlock>
-        <Cmp text="this 4" delay={1000}></Cmp>
-        <Cmp text="this 4" delay={2000}></Cmp>
+        <Cmp text="this_4" delay={500}></Cmp>
+        <Cmp text="this_5" delay={600}></Cmp>
       </SSRStreamBlock>
     </div>
   );

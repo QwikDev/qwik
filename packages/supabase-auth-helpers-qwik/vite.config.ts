@@ -1,4 +1,4 @@
-import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig } from 'vite';
 import pkg from './package.json';
 
@@ -10,14 +10,14 @@ export default defineConfig((config) => {
       outDir: 'lib',
       lib: {
         entry: ['./src/index.ts'],
-        formats: ['es', 'cjs'],
-        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
+        formats: ['es'],
+        fileName: () => `index.qwik.mjs`,
       },
       rollupOptions: {
         external: [
-          '@builder.io/qwik',
-          '@builder.io/qwik-city',
-          '@builder.io/qwik/build',
+          '@qwik.dev/core',
+          '@qwik.dev/router',
+          '@qwik.dev/core/build',
           '@supabase/supabase-js',
           '@supabase/auth-helpers-shared',
         ],

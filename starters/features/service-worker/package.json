@@ -6,7 +6,7 @@
     "docs": [],
     "nextSteps": {
       "lines": [
-        "Now, make sure that you have `<ServiceWorkerRegister />` in your `src/root.tsx`. You can import it from `@builder.io/qwik-city`."
+        "Now, make sure that you have `<ServiceWorkerRegister />` in your `src/root.tsx`. You can import it from `@qwik.dev/router`."
       ]
     }
   }

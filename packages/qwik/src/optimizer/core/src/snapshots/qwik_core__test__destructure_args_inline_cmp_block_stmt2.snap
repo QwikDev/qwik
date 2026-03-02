@@ -1,0 +1,77 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3674
+expression: output
+---
+==INPUT==
+
+
+		export default (props: { data: any }) => {
+		  const { data } = props;
+          return (
+            <div
+              data-is-active={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />
+          );
+		};
+		
+============================= test.js ==
+
+import { _fnSignal } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.data.selectedOutputDetail === 'options';
+const _hf0_str = 'p0.data.selectedOutputDetail==="options"';
+const i_pFqTss400MA = ()=>import("./test.tsx_test_div_q_e_click_pFqTss400MA");
+export default ((props)=>{
+    return /*#__PURE__*/ _jsxSorted("div", {
+        "data-is-active": _fnSignal(_hf0, [
+            props
+        ], _hf0_str),
+        "q-e:click": /*#__PURE__*/ qrl(i_pFqTss400MA, "test_div_q_e_click_pFqTss400MA", [
+            props
+        ])
+    }, null, null, 2, "u6_0");
+});
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAK8B,GAHlB,KAGuB,oBAAoB,KAAK;;;AAJ1D,eAAe,CAAA,CAAC;IAER,qBACE,WAAC;QACC,gBAAc;;;QACd,WAAQ;;;;AAKpB,CAAA,EAAE\"}")
+============================= test.tsx_test_div_q_e_click_pFqTss400MA.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const test_div_q_e_click_pFqTss400MA = ()=>{
+    const props = _captures[0];
+    props.data.selectedOutputDetail = 'options';
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8CAMwB;;IAJH,MAAT,KAKS,oBAAoB,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_div_q_e_click_pFqTss400MA",
+  "entry": null,
+  "displayName": "test.tsx_test_div_q_e_click",
+  "hash": "pFqTss400MA",
+  "canonicalFilename": "test.tsx_test_div_q_e_click_pFqTss400MA",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    206,
+    284
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

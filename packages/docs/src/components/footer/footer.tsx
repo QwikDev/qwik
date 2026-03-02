@@ -1,16 +1,15 @@
-import { component$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
-
-import { QwikLogo } from '~/components/svgs/qwik-logo';
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
+import { BlueskyLogo } from '~/components/svgs/bluesky-logo';
 import { DiscordLogo } from '~/components/svgs/discord-logo';
 import { GithubLogo } from '~/components/svgs/github-logo';
+import { QwikLogo } from '~/components/svgs/qwik-logo';
 import { TwitterLogo } from '~/components/svgs/twitter-logo';
-import { BlueskyLogo } from '~/components/svgs/bluesky-logo';
 
 const linkColumns = [
   [
     { title: 'Docs', href: `/docs/` },
-    { title: 'Qwik City', href: `/docs/qwikcity/` },
+    { title: 'Qwik Router', href: `/docs/qwikrouter/` },
     { title: 'Ecosystem', href: `/ecosystem/` },
     { title: 'Playground', href: `/playground/` },
   ],

@@ -1,25 +1,25 @@
-import { $, component$, useOn, useSignal, useStore, useTask$, isBrowser } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
+import { $, component$, isBrowser, useOn, useSignal, useStore, useTask$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 import { toSnakeCase } from '../../utils/utils';
 
 // TODO: load the content of these files using fs instead of importing them
-import qwikCityMiddlewareAzureSwaApiData from './qwik-city-middleware-azure-swa/api.json';
-import qwikCityMiddlewareCloudflarePagesApiData from './qwik-city-middleware-cloudflare-pages/api.json';
-import qwikCityMiddlewareFirebaseApiData from './qwik-city-middleware-firebase/api.json';
-import qwikCityMiddlewareNetlifyEdgeApiData from './qwik-city-middleware-netlify-edge/api.json';
-import qwikCityMiddlewareNodeApiData from './qwik-city-middleware-node/api.json';
-import qwikCityMiddlewareRequestHandlerApiData from './qwik-city-middleware-request-handler/api.json';
-import qwikCityMiddlewareVercelEdgeApiData from './qwik-city-middleware-vercel-edge/api.json';
-import qwikCityStaticApiData from './qwik-city-static/api.json';
-import qwikCityViteAzureSwaApiData from './qwik-city-vite-azure-swa/api.json';
-import qwikCityViteCloudRunApiData from './qwik-city-vite-cloud-run/api.json';
-import qwikCityViteCloudflarePagesApiData from './qwik-city-vite-cloudflare-pages/api.json';
-import qwikCityViteNetlifyEdgeApiData from './qwik-city-vite-netlify-edge/api.json';
-import qwikCityViteNodeServerApiData from './qwik-city-vite-node-server/api.json';
-import qwikCityViteStaticApiData from './qwik-city-vite-static/api.json';
-import qwikCityViteVercelApiData from './qwik-city-vite-vercel/api.json';
-import qwikCityApiData from './qwik-city/api.json';
 import qwikOptimizerApiData from './qwik-optimizer/api.json';
+import qwikRouterMiddlewareAzureSwaApiData from './qwik-router-middleware-azure-swa/api.json';
+import qwikRouterMiddlewareCloudflarePagesApiData from './qwik-router-middleware-cloudflare-pages/api.json';
+import qwikRouterMiddlewareFirebaseApiData from './qwik-router-middleware-firebase/api.json';
+import qwikRouterMiddlewareNetlifyEdgeApiData from './qwik-router-middleware-netlify-edge/api.json';
+import qwikRouterMiddlewareNodeApiData from './qwik-router-middleware-node/api.json';
+import qwikRouterMiddlewareRequestHandlerApiData from './qwik-router-middleware-request-handler/api.json';
+import qwikRouterMiddlewareVercelEdgeApiData from './qwik-router-middleware-vercel-edge/api.json';
+import qwikRouterSsgApiData from './qwik-router-ssg/api.json';
+import qwikRouterViteAzureSwaApiData from './qwik-router-vite-azure-swa/api.json';
+import qwikRouterViteCloudRunApiData from './qwik-router-vite-cloud-run/api.json';
+import qwikRouterViteCloudflarePagesApiData from './qwik-router-vite-cloudflare-pages/api.json';
+import qwikRouterViteNetlifyEdgeApiData from './qwik-router-vite-netlify-edge/api.json';
+import qwikRouterViteNodeServerApiData from './qwik-router-vite-node-server/api.json';
+import qwikRouterViteSsgApiData from './qwik-router-vite-ssg/api.json';
+import qwikRouterViteVercelApiData from './qwik-router-vite-vercel/api.json';
+import qwikRouterApiData from './qwik-router/api.json';
 import qwikServerApiData from './qwik-server/api.json';
 import qwikTestingApiData from './qwik-testing/api.json';
 import qwikApiData from './qwik/api.json';
@@ -28,22 +28,22 @@ const _KINDS = new Set<string>();
 
 const apiData = {
   qwik: qwikApiData,
-  'qwik-city': qwikCityApiData,
-  'qwik-city-middleware-azure-swa': qwikCityMiddlewareAzureSwaApiData,
-  'qwik-city-middleware-cloudflare-pages': qwikCityMiddlewareCloudflarePagesApiData,
-  'qwik-city-middleware-netlify-edge': qwikCityMiddlewareNetlifyEdgeApiData,
-  'qwik-city-middleware-node': qwikCityMiddlewareNodeApiData,
-  'qwik-city-middleware-request-handler': qwikCityMiddlewareRequestHandlerApiData,
-  'qwik-city-middleware-vercel-edge': qwikCityMiddlewareVercelEdgeApiData,
-  'qwik-city-middleware-firebase': qwikCityMiddlewareFirebaseApiData,
-  'qwik-city-static': qwikCityStaticApiData,
-  'qwik-city-vite-azure-swa': qwikCityViteAzureSwaApiData,
-  'qwik-city-vite-cloud-run': qwikCityViteCloudRunApiData,
-  'qwik-city-vite-cloudflare-pages': qwikCityViteCloudflarePagesApiData,
-  'qwik-city-vite-node-server': qwikCityViteNodeServerApiData,
-  'qwik-city-vite-netlify-edge': qwikCityViteNetlifyEdgeApiData,
-  'qwik-city-vite-static': qwikCityViteStaticApiData,
-  'qwik-city-vite-vercel': qwikCityViteVercelApiData,
+  'qwik-router': qwikRouterApiData,
+  'qwik-router-middleware-azure-swa': qwikRouterMiddlewareAzureSwaApiData,
+  'qwik-router-middleware-cloudflare-pages': qwikRouterMiddlewareCloudflarePagesApiData,
+  'qwik-router-middleware-netlify-edge': qwikRouterMiddlewareNetlifyEdgeApiData,
+  'qwik-router-middleware-node': qwikRouterMiddlewareNodeApiData,
+  'qwik-router-middleware-request-handler': qwikRouterMiddlewareRequestHandlerApiData,
+  'qwik-router-middleware-vercel-edge': qwikRouterMiddlewareVercelEdgeApiData,
+  'qwik-router-middleware-firebase': qwikRouterMiddlewareFirebaseApiData,
+  'qwik-router-ssg': qwikRouterSsgApiData,
+  'qwik-router-vite-azure-swa': qwikRouterViteAzureSwaApiData,
+  'qwik-router-vite-cloud-run': qwikRouterViteCloudRunApiData,
+  'qwik-router-vite-cloudflare-pages': qwikRouterViteCloudflarePagesApiData,
+  'qwik-router-vite-node-server': qwikRouterViteNodeServerApiData,
+  'qwik-router-vite-netlify-edge': qwikRouterViteNetlifyEdgeApiData,
+  'qwik-router-vite-ssg': qwikRouterViteSsgApiData,
+  'qwik-router-vite-vercel': qwikRouterViteVercelApiData,
   'qwik-optimizer': qwikOptimizerApiData,
   'qwik-server': qwikServerApiData,
   'qwik-testing': qwikTestingApiData,
@@ -127,7 +127,7 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
       <h2
         data-icon={isCollapsed.value ? '→' : '↓'}
         class="section-title cursor-pointer"
-        onClick$={(e) => isCollapsed.value = !isCollapsed.value }
+        onClick$={() => isCollapsed.value = !isCollapsed.value }
       >
         <span>{data.id}</span>
       </h2>

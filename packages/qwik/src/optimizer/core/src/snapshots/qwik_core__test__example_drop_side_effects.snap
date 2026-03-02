@@ -1,14 +1,13 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 711
+assertion_line: 822
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
 import { clientSupabase } from 'supabase';
 import { Client } from 'openai';
 import { secret } from './secret';
@@ -18,30 +17,31 @@ const supabase = clientSupabase();
 const dfd = new Client(secret);
 
 (function() {
-    console.log('run');
-  })();
-  (() => {
-    console.log('run');
-  })();
+	console.log('run');
+	})();
+	(() => {
+	console.log('run');
+	})();
 
 sideEffect();
 
 export const api = server$(() => {
-    supabase.from('ffg').do(dfd);
+	supabase.from('ffg').do(dfd);
 });
 
 export default component$(() => {
-    return (
-      <button onClick$={() => await api()}></button>
-    )
-  });
+	return (
+		<button onClick$={() => await api()}></button>
+	)
+	});
 
 ============================= test.js ==
 
-import { serverQrl } from "@builder.io/qwik-city";
-import { _noopQrlDEV } from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-import { qrlDEV } from "@builder.io/qwik";
+import { serverQrl } from "@qwik.dev/router";
+import { _noopQrlDEV } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
 import { sideEffect } from './secret';
 (function() {
     console.log('run');
@@ -56,30 +56,30 @@ export const api = serverQrl(/*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0",
     hi: 0,
     displayName: "test.tsx_api_server"
 }));
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg", {
     file: "/user/qwik/src/test.tsx",
-    lo: 522,
-    hi: 605,
+    lo: 503,
+    hi: 575,
     displayName: "test.tsx_test_component"
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACG,QAAQ,GAAG,CAAC;AACd,CAAC;AACD,CAAC;IACC,QAAQ,GAAG,CAAC;AACd,CAAC;AAEH;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIV\"}")
-============================= test.tsx_test_component_button_onClick_DGk9xLyRokA.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACA,QAAQ,GAAG,CAAC;AACZ,CAAC;AACD,CAAC;IACD,QAAQ,GAAG,CAAC;AACZ,CAAC;AAEF;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIX\"}")
+============================= test.tsx_test_component_button_q_e_click_qwSL5gM03T4.js (ENTRY POINT)==
 
 import { api } from "./test";
-export const test_component_button_onClick_DGk9xLyRokA = ()=>await api();
+export const test_component_button_q_e_click_qwSL5gM03T4 = ()=>await api();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yDA0BwB,IAAM,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2DA0BoB,IAAM,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "test_component_button_onClick_DGk9xLyRokA",
+  "name": "test_component_button_q_e_click_qwSL5gM03T4",
   "entry": null,
-  "displayName": "test.tsx_test_component_button_onClick",
-  "hash": "DGk9xLyRokA",
-  "canonicalFilename": "test.tsx_test_component_button_onClick_DGk9xLyRokA",
+  "displayName": "test.tsx_test_component_button_q_e_click",
+  "hash": "qwSL5gM03T4",
+  "canonicalFilename": "test.tsx_test_component_button_q_e_click_qwSL5gM03T4",
   "path": "",
   "extension": "js",
   "parent": "test_component_LUXeXe0DQrg",
@@ -87,32 +87,33 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    567,
-    584
+    541,
+    558
   ]
 }
 */
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
-import { qrlDEV } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
+const i_qwSL5gM03T4 = ()=>import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4");
 export const test_component_LUXeXe0DQrg = ()=>{
-    return /*#__PURE__*/ _jsxQ("button", null, {
-        onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_onClick_DGk9xLyRokA"), "test_component_button_onClick_DGk9xLyRokA", {
+    return /*#__PURE__*/ _jsxSorted("button", null, {
+        "q-e:click": /*#__PURE__*/ qrlDEV(i_qwSL5gM03T4, "test_component_button_q_e_click_qwSL5gM03T4", {
             file: "/user/qwik/src/test.tsx",
-            lo: 567,
-            hi: 584,
-            displayName: "test.tsx_test_component_button_onClick"
+            lo: 541,
+            hi: 558,
+            displayName: "test.tsx_test_component_button_q_e_click"
         })
     }, null, 3, "u6_0", {
         fileName: "test.tsx",
         lineNumber: 27,
-        columnNumber: 7
+        columnNumber: 3
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAwB0B;IACtB,qBACE,MAAC;QAAO,QAAQ;;;;;;;;;;;AAEpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAwB0B;IACzB,qBACC,WAAC;QAAO,WAAQ;;;;;;;;;;;AAEjB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -128,8 +129,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    522,
-    605
+    503,
+    575
   ]
 }
 */

@@ -23,8 +23,8 @@ This allows NavLink to know the active state automatically based on navigation.
 
 <CodeFile src="/src/routes/demo/cookbook/nav-link/index.tsx">
 ```tsx
-import { Slot, component$ } from '@builder.io/qwik';
-import { Link, useLocation, type LinkProps } from '@builder.io/qwik-city';
+import { Slot, component$ } from '@qwik.dev/core';
+import { Link, useLocation, type LinkProps } from '@qwik.dev/router';
 
 type NavLinkProps = LinkProps & { activeClass?: string };
 
@@ -69,7 +69,7 @@ You can use NavLink with the addition of `activeClass` props:
 
 <CodeSandbox src="/src/routes/demo/cookbook/nav-link/example/index.tsx" style={{ height: '10em' }}>
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { NavLink } from '..';
 
 export default component$(() => {

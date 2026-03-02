@@ -1,4 +1,4 @@
-import { type QwikIntrinsicElements } from '@builder.io/qwik';
+import { type QwikIntrinsicElements } from '@qwik.dev/core';
 
 export const SlowIcon = function FluentAnimalTurtle24Regular(
   props: QwikIntrinsicElements['svg'],

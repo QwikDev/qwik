@@ -20,7 +20,6 @@ serde-wasm-bindgen = "0.6"
 wasm-bindgen = "0.2"
 parking_lot_core = "=0.9"
 console_error_panic_hook = { version = "0.1", optional = true }
-wee_alloc = { version = "0.4" }
 getrandom = { version = "0.2", features = ["js"] }
 
 [package.metadata.wasm-pack.profile.release]

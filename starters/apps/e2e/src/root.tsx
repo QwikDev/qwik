@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import type { FunctionComponent } from "@builder.io/qwik";
+import type { FunctionComponent } from "@qwik.dev/core";
+import { component$ } from "@qwik.dev/core";
 import { Async } from "./components/async/async";
 import { Attributes } from "./components/attributes/attributes";
 import { BroadcastEvents } from "./components/broadcast-events/broadcast-event";
@@ -10,6 +10,7 @@ import { ContextRoot } from "./components/context/context";
 import { EffectClient } from "./components/effect-client/effect-client";
 import { Events } from "./components/events/events";
 import { EventsClient } from "./components/events/events-client";
+import { RenderExceptions, UseTaskExceptions } from "./components/exceptions";
 import { Factory } from "./components/factory/factory";
 import { LexicalScope } from "./components/lexical-scope/lexicalScope";
 import { MountRoot } from "./components/mount/mount";
@@ -21,20 +22,22 @@ import { ResourceFn } from "./components/resource/resource-fn";
 import { ResourceSerialization } from "./components/resource/resource-serialization";
 import { Weather } from "./components/resource/weather";
 import { Resuming1 } from "./components/resuming/resuming";
-import Issue5001 from "./components/signals/Issue_5001";
+import NakedObjectStoreReactivityIssue5001 from "./components/signals/NakedObjectStoreReactivityIssue5001";
 import { Signals } from "./components/signals/signals";
 import { SlotParent } from "./components/slot/slot";
 import { StreamingRoot } from "./components/streaming/streaming";
 import { Styles } from "./components/styles/styles";
+import { SyncQRL } from "./components/sync-qrl/sync-qrl";
 import { Toggle } from "./components/toggle/toggle";
 import { TreeshakingApp } from "./components/treeshaking/treeshaking";
 import { TwoListeners } from "./components/two-listeners/twolisteners";
 import { UseId } from "./components/useid/useid";
 import { Watch } from "./components/watch/watch";
-import { SyncQRL } from "./components/resuming/sync-qrl";
-// import { RenderExceptions, UseTaskExceptions } from "./components/exceptions";
 
 import "./global.css";
+import { QRL } from "./components/qrl/qrl";
+import { AsyncRoot } from "./components/use-async/use-async";
+import { Backpatching } from "./components/backpatching/backpatching";
 
 const tests: Record<string, FunctionComponent> = {
   "/e2e/two-listeners": () => <TwoListeners />,
@@ -61,7 +64,7 @@ const tests: Record<string, FunctionComponent> = {
   "/e2e/mount": () => <MountRoot />,
   "/e2e/ref": () => <RefRoot />,
   "/e2e/signals": () => <Signals />,
-  "/e2e/signals/issue-5001": () => <Issue5001 />,
+  "/e2e/signals/issue-5001": () => <NakedObjectStoreReactivityIssue5001 />,
   "/e2e/attributes": () => <Attributes />,
   "/e2e/events-client": () => <EventsClient />,
   "/e2e/no-resume": () => <NoResume />,
@@ -69,8 +72,11 @@ const tests: Record<string, FunctionComponent> = {
   "/e2e/sync-qrl": () => <SyncQRL />,
   "/e2e/computed": () => <ComputedRoot />,
   "/e2e/build-variables": () => <BuildVariables />,
-  // "/e2e/exception/render": () => <RenderExceptions />,
-  // "/e2e/exception/use-task": () => <UseTaskExceptions />,
+  "/e2e/exception/render": () => <RenderExceptions />,
+  "/e2e/exception/use-task": () => <UseTaskExceptions />,
+  "/e2e/qrl": () => <QRL />,
+  "/e2e/async-computed": () => <AsyncRoot />,
+  "/e2e/backpatching": () => <Backpatching />,
 };
 
 export const Root = component$<{ pathname: string }>(({ pathname }) => {

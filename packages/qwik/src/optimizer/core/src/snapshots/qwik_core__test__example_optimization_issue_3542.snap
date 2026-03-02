@@ -1,53 +1,52 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 658
+assertion_line: 769
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const AtomStatus = component$(({ctx,atom})=>{
-    let status = atom.status;
-    if(!atom.real) {
-        status="WILL-VANISH"
-    } else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
-        status="WTFED"
-    }
-    return (
-        <span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
-        </span>
-    );
+	let status = atom.status;
+	if(!atom.real) {
+		status="WILL-VANISH"
+	} else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
+		status="WTFED"
+	}
+	return (
+		<span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
+		</span>
+	);
 })
 
 ============================= test.jsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
-    let status = props.atom.status;
-    if (!props.atom.real) status = "WILL-VANISH";
-    else if (JSON.stringify(props.atom.atom) == JSON.stringify(props.atom.real)) status = "WTFED";
-    return <span title={props.atom.ID} onClick$={/*#__PURE__*/ inlinedQrl((ev)=>{
-        const [props] = useLexicalScope();
-        return atomStatusClick(props.ctx, ev, [
-            props.atom
+import { componentQrl } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((_rawProps)=>{
+    let status = _rawProps.atom.status;
+    if (!_rawProps.atom.real) status = "WILL-VANISH";
+    else if (JSON.stringify(_rawProps.atom.atom) == JSON.stringify(_rawProps.atom.real)) status = "WTFED";
+    return <span title={_rawProps.atom.ID} q-e:click={/*#__PURE__*/ inlinedQrl((ev)=>{
+        const _rawProps = _captures[0];
+        return atomStatusClick(_rawProps.ctx, ev, [
+            _rawProps.atom
         ]);
-    }, "AtomStatus_component_span_onClick_Owf5fKaOlF0", [
-        props
+    }, "AtomStatus_component_span_q_e_click_0yqKAycyBF0", [
+        _rawProps
     ])} class={[
         "atom",
         status,
-        props.ctx.store[props.atom.ID] ? "selected" : null
+        _rawProps.ctx.store[_rawProps.atom.ID] ? "selected" : null
     ]}>
-        </span>;
+		</span>;
 }, "AtomStatus_component_hdwpoUtydSA"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,sCAAW;IACjC,IAAI,SAAS,MAD0B,KACrB,MAAM;IACxB,IAAG,CAAC,MAFmC,KAE9B,IAAI,EACT,SAAO;SACJ,IAAI,KAAK,SAAS,CAAC,MAJa,KAIR,IAAI,KAAG,KAAK,SAAS,CAAC,MAJd,KAImB,IAAI,GAC1D,SAAO;IAEX,QACK,KAAK,OAAO,MARsB,KAQjB,EAAE,EAAE,mCAAU,CAAC;;eAAK,sBARP,KAQ2B,IAAG;kBAR1B;SAQgC;;;QAAG,OAAO;QAAC;QAAO;QAAO,MAR7D,IAQiE,KAAK,CAAC,MARnE,KAQwE,EAAE,CAAC,GAAC,aAAW;KAAK,EAAE;QACjI,EAAE;AAEV,wCAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,sCAAW;IACpC,IAAI,SAAS,UAD6B,KACxB,MAAM;IACxB,IAAG,CAAC,UAFsC,KAEjC,IAAI,EACZ,SAAO;SACD,IAAI,KAAK,SAAS,CAAC,UAJgB,KAIX,IAAI,KAAG,KAAK,SAAS,CAAC,UAJX,KAIgB,IAAI,GAC7D,SAAO;IAER,QACE,KAAK,OAAO,UAR4B,KAQvB,EAAE,EAAE,oCAAU,CAAC;;eAAK,0BARD,KAQqB,IAAG;sBARpB;SAQ0B;;;QAAG,OAAO;QAAC;QAAO;QAAO,UARvD,IAQ2D,KAAK,CAAC,UAR7D,KAQkE,EAAE,CAAC,GAAC,aAAW;KAAK,EAAE;EACjI,EAAE;AAEJ,wCAAE\"}")
 == DIAGNOSTICS ==
 
 []

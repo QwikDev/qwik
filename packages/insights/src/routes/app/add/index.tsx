@@ -1,10 +1,9 @@
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 import { formAction$, useForm, zodForm$ } from '@modular-forms/qwik';
 import Container from '~/components/container';
 import { DiskIcon } from '~/components/icons/disk';
 import Layout from '~/components/layout';
 import { applicationTable, getDB, userApplicationMap } from '~/db';
-import { appUrl } from '~/routes.config';
 import { ApplicationForm } from '../[publicApiKey]/app.form';
 import styles from './styles.module.css';
 import { getInsightUser } from '~/routes/app/layout';
@@ -36,7 +35,7 @@ export const useFormAction = formAction$<ApplicationForm>(
       })
       .run();
 
-    redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey }));
+    redirect(302, `/app/${publicApiKey}/`);
   },
   zodForm$(ApplicationForm)
 );

@@ -1,5 +1,5 @@
-import { component$, Slot } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
+import type { RequestHandler } from '@qwik.dev/router';
+import { component$, Slot } from '@qwik.dev/core';
 
 export default component$(() => {
   return <Slot />;

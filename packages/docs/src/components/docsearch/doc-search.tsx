@@ -9,7 +9,7 @@ import {
   type Signal,
   $,
   sync$,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 import { Modal } from '@qwik-ui/headless';
 import type { DocSearchHit, InternalDocSearchHit } from './types';
 import { type ButtonTranslations } from './doc-search-button';
@@ -77,7 +77,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
     <div
       class={{ docsearch: true, 'ai-result-open': aiResultOpen.value }}
       window:onKeyDown$={[
-        sync$((event: KeyboardEvent) => {
+        sync$((event) => {
           if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
             event.preventDefault();
           }

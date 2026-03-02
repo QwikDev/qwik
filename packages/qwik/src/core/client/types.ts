@@ -1,0 +1,184 @@
+/** @file Public types for the client deserialization */
+
+import type { QRL } from '../shared/qrl/qrl.public';
+import type { Container } from '../shared/types';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
+
+export type ClientAttrKey = string;
+export type ClientAttrValue = string | null;
+export type ClientAttrs = Array<ClientAttrKey | ClientAttrValue>;
+
+/** @internal */
+export interface ClientContainer extends Container {
+  document: QDocument;
+  element: ContainerElement;
+  qContainer: string;
+  $locale$: string;
+  qManifestHash: string;
+  rootVNode: ElementVNode;
+  $forwardRefs$: Array<number> | null;
+  parseQRL<T = unknown>(qrl: string): QRL<T>;
+  $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
+}
+
+/** @internal */
+export interface ContainerElement extends HTMLElement {
+  qContainer?: ClientContainer;
+  /**
+   * Map of element ID to Element. If VNodeData has a reference to an element, then it is added to
+   * this map for later retrieval.
+   *
+   * Once retrieved the element is replaced with its VNode.
+   *
+   * NOTE: This map leaks memory! Once the application is resumed we don't know which element IDs
+   * are still in the deserialized state. we will probably need a GC cycle. Some process running in
+   * the idle time which processes few elements at a time to see if they are still referenced and
+   * removes them from the map if they are not.
+   */
+  qVNodeRefs?: Map<number, Element | ElementVNode>;
+
+  /** String from `<script type="qwik/vnode">` tag. */
+  qVnodeData?: string;
+}
+
+/** @internal */
+export interface QDocument extends Document {
+  /*
+   * Map of Element to VNodeData.
+   *
+   * This map is used to rebuild virtual nodes from the HTML. Missing extra text nodes, and Fragments.
+   */
+  qVNodeData: WeakMap<Element, string>;
+}
+
+/**
+ * Flags for VNode.
+ *
+ * # Materialize vs Inflation
+ *
+ * - Materialized: The node has all of its children. Specifically `firstChild`/`lastChild` are NOT
+ *   `undefined`. Materialization creates lazy instantiation of the children. NOTE: Only
+ *   ElementVNode need to be materialized.
+ * - Inflation:
+ *
+ *   - If Text: It means that it is safe to write to the node. When Text nodes are first Deserialized
+ *       multiple text nodes can share the same DOM node. On write the sibling text nodes need to be
+ *       converted into separate text nodes.
+ *   - If Element: It means that the element tag attributes have not yet been read from the DOM.
+ *
+ * Inflation and materialization are not the same, they are two independent things.
+ *
+ * @internal
+ */
+export const enum VNodeFlags {
+  Element /* ****************** */ = 0b00_000000001,
+  Virtual /* ****************** */ = 0b00_000000010,
+  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_000000011,
+  Text /* ********************* */ = 0b00_000000100,
+  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_000000101,
+  TYPE_MASK /* **************** */ = 0b00_000000111,
+  INFLATED_TYPE_MASK /* ******* */ = 0b00_000001111,
+  /// Extra flag which marks if a node needs to be inflated.
+  Inflated /* ***************** */ = 0b00_000001000,
+  /// Marks if the `ensureProjectionResolved` has been called on the node.
+  Resolved /* ***************** */ = 0b00_000010000,
+  /// Marks if the vnode is deleted.
+  Deleted /* ****************** */ = 0b00_000100000,
+  HasIterationItems /* ******** */ = 0b00_001000000,
+  InflatedIterationItems /* *** */ = 0b00_010000000,
+  /// Marks if the vnode is a cursor (has priority set).
+  Cursor /* ******************* */ = 0b00_100000000,
+  /// Flags for Namespace
+  NAMESPACE_MASK /* *********** */ = 0b11_000000000,
+  NEGATED_NAMESPACE_MASK /* ** */ = ~0b11_000000000,
+  NS_html /* ****************** */ = 0b00_000000000, // http://www.w3.org/1999/xhtml
+  NS_svg /* ******************* */ = 0b01_000000000, // http://www.w3.org/2000/svg
+  NS_math /* ****************** */ = 0b10_000000000, // http://www.w3.org/1998/Math/MathML
+}
+
+export const enum VNodeFlagsIndex {
+  mask /* ************** */ = 0b11_111111111,
+  shift /* ************* */ = 11,
+}
+
+export const enum VNodeProps {
+  flags = 0,
+  parent = 1,
+  previousSibling = 2,
+  nextSibling = 3,
+}
+
+export const enum ElementVNodeProps {
+  firstChild = 4,
+  lastChild = 5,
+  element = 6,
+  elementName = 7,
+  PROPS_OFFSET = 8,
+}
+
+/** @internal */
+// export type ElementVNode = [
+//   /// COMMON: VNodeProps
+//   VNodeFlags.Element, ////////////// 0 - Flags
+//   VNode | null, /////////////// 1 - Parent
+//   VNode | null, /////////////// 2 - Previous sibling
+//   VNode | null, /////////////// 3 - Next sibling
+//   /// SPECIFIC: ElementVNodeProps
+//   VNode | null | undefined, /// 4 - First child - undefined if children need to be materialize
+//   VNode | null | undefined, /// 5 - Last child - undefined if children need to be materialize
+//   Element, //////////////////// 6 - Element
+//   string | undefined, ///////// 7 - tag
+//   /// Props
+//   (string | null)[], /////// 8 - attrs
+// ] & { __brand__: 'ElementVNode' };
+
+export const enum TextVNodeProps {
+  node = 4,
+  text = 5,
+}
+
+/** @internal */
+// export type TextVNode = [
+//   /// COMMON: VNodeProps
+//   VNodeFlags.Text | VNodeFlags.Inflated, // 0 - Flags
+//   VNode | null, ///////////////// 1 - Parent
+//   VNode | null, ///////////////// 2 - Previous sibling
+//   VNode | null, ///////////////// 3 - Next sibling
+//   /// SPECIFIC: TextVNodeProps
+//   Text | null | undefined, ////// 4 - TextNode or SharedTextNode if Flags.SharedText
+//   string, /////////////////////// 5 - text content
+// ] & { __brand__: 'TextVNode' };
+
+export const enum VirtualVNodeProps {
+  firstChild = ElementVNodeProps.firstChild,
+  lastChild = ElementVNodeProps.lastChild,
+  PROPS_OFFSET = 6,
+}
+
+/** @internal */
+// export type VirtualVNode = [
+//   /// COMMON: VNodeProps
+//   VNodeFlags.Virtual, ///////////// 0 - Flags
+//   VNode | null, /////////////// 1 - Parent
+//   VNode | null, /////////////// 2 - Previous sibling
+//   VNode | null, /////////////// 3 - Next sibling
+//   /// SPECIFIC: VirtualVNodeProps
+//   VNode | null, /////////////// 4 - First child
+//   VNode | null, /////////////// 5 - Last child
+//   /// Props
+//   (string | null | boolean)[], /////// 6 - attrs
+// ] & { __brand__: 'FragmentNode' & 'HostElement' };
+
+/** @internal */
+// export type VNode = ElementVNode | TextVNode | VirtualVNode;
+
+/** @public */
+export interface RenderOptions {
+  serverData?: Record<string, any>;
+}
+
+/** @public */
+export interface RenderResult {
+  cleanup(): void;
+}

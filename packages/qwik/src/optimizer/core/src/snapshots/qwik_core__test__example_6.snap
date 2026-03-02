@@ -7,13 +7,12 @@ snapshot_kind: text
 ==INPUT==
 
 
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 export const sym1 = $((ctx) => console.log("1"));
 
 ============================= test.tsx_sym1_aXUrPXX5Lak.tsx (ENTRY POINT)==
 
 export const sym1_aXUrPXX5Lak = (ctx)=>console.log("1");
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gCAEsB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
@@ -32,18 +31,22 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    74,
-    99
+    72,
+    97
+  ],
+  "paramNames": [
+    "ctx"
   ]
 }
 */
 ============================= test.tsx ==
 
-import { qrl } from "@builder.io/qwik";
-export const sym1 = /*#__PURE__*/ qrl(()=>import("./test.tsx_sym1_aXUrPXX5Lak"), "sym1_aXUrPXX5Lak");
+import { qrl } from "@qwik.dev/core";
+const i_aXUrPXX5Lak = ()=>import("./test.tsx_sym1_aXUrPXX5Lak");
+export const sym1 = /*#__PURE__*/ qrl(i_aXUrPXX5Lak, "sym1_aXUrPXX5Lak");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,OAAO,MAAM,wFAAoC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,4DAAoC\"}")
 == DIAGNOSTICS ==
 
 []

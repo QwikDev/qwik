@@ -1,19 +1,25 @@
-import { defineConfig } from 'vitest/config';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [tsconfigPaths({ ignoreConfigErrors: true })],
+  plugins: [
+    qwikVite({
+      debug: !true,
+      srcDir: `./packages/qwik/src`,
+    }),
+    tsconfigPaths({ ignoreConfigErrors: true }),
+  ],
   test: {
+    root: 'packages',
     include: [
-      'packages/**/*.unit.?(c|m)[jt]s?(x)',
-      // Rust build cache
-      '!packages/qwik/**/target',
-      '!packages/qwik/dist',
-      '!packages/*/lib',
-      '!starters',
-      '!**/node_modules',
-      '!dist-dev',
+      '**/*.spec.?(c|m)[jt]s?(x)',
+      '**/*.unit.?(c|m)[jt]s?(x)',
+      '!*/(lib|dist|build|server|target)/**',
+      '!**/node_modules/**',
     ],
-    setupFiles: ['./vitest-setup.ts'],
+    setupFiles: ['../vitest-setup.ts'],
+    projects: ['..'],
+    testTimeout: 10000,
   },
 });

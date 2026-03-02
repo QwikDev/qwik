@@ -1,0 +1,17 @@
+# Workaround to cancel workflow runs from forked repositories
+name: Cancel
+on:
+  workflow_run:
+    workflows: ['ci']
+    types:
+      - requested
+jobs:
+  cancel:
+    permissions:
+      actions: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: styfle/cancel-workflow-action@0.12.1
+        if: github.event_name == 'pull_request'
+        with:
+          workflow_id: ${{ github.event.workflow.id }}

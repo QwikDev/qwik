@@ -1,4 +1,4 @@
-import { Slot, component$, useStylesScoped$ } from '@builder.io/qwik';
+import { Slot, component$, useStylesScoped$ } from '@qwik.dev/core';
 import CSS from './index.css?inline';
 
 const Tab = component$(() => {

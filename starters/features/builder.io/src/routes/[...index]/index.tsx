@@ -1,11 +1,11 @@
-import { component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import { fetchOneEntry, Content } from "@builder.io/sdk-qwik";
+import { Content, fetchOneEntry } from "@builder.io/sdk-qwik";
+import { component$ } from "@qwik.dev/core";
+import { routeLoader$ } from "@qwik.dev/router";
 import { CUSTOM_COMPONENTS } from "~/components/builder-registry";
 
 export const BUILDER_MODEL = "page";
 
-// Use Qwik City's `useBuilderContent` to get your content from Builder.
+// Use Qwik Router's `useBuilderContent` to get your content from Builder.
 // `routeLoader$()` takes an async function to fetch content
 // from Builder with `fetchOneEntry()`.
 export const useBuilderContent = routeLoader$(async (event) => {

@@ -1,5 +1,5 @@
 ---
-title: "\U0001F9EA usePreventNavigate | Qwik Labs"
+title: "\U0001F9EA usePreventNavigate | Experimental"
 description: Prevent navigation when your application has unsaved data.
 contributors:
   - wmertens
@@ -17,11 +17,11 @@ If the user can lose state by navigating away from the page, you can use `usePre
 
 The callback will be called with the URL that the user is trying to navigate to. If the callback returns `true`, the navigation will be prevented.
 
-You can return a Promise, and qwik-city will wait until the promise resolves before navigating.
+You can return a Promise, and qwik-router will wait until the promise resolves before navigating.
 
-However, in some cases the browser will navigate without calling qwik-city, such as when the user reloads the tab or navigates using `<a/>` instead of `<Link />`. When this happens, the answer must be synchronous, and user interaction is not allowed.
+However, in some cases the browser will navigate without calling qwik-router, such as when the user reloads the tab or navigates using `<a/>` instead of `<Link />`. When this happens, the answer must be synchronous, and user interaction is not allowed.
 
-You can tell the difference between qwik-city and browser navigation by looking at the provided URL. If the URL is `undefined`, the browser is navigating away, and you must respond synchronously.
+You can tell the difference between qwik-router and browser navigation by looking at the provided URL. If the URL is `undefined`, the browser is navigating away, and you must respond synchronously.
 
 Examples:
 

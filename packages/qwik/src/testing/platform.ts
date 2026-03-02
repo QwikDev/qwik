@@ -1,22 +1,20 @@
 import type { TestPlatform } from './types';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { getSymbolHash } from '../core/shared/qrl/qrl-utils';
 
 function createPlatform() {
-  interface Queue<T> {
-    fn: () => Promise<T>;
-    promise: Promise<T>;
-    resolve: (value: T) => void;
-    reject: (value: any) => void;
-  }
-
-  let render: Queue<any> | null = null;
-
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
+      const hash = getSymbolHash(symbolName);
+      const regSym = (globalThis as any).__qwik_reg_symbols?.get(hash);
+      if (regSym) {
+        return regSym;
+      }
       if (!url) {
+        console.error('Q-ERROR: importSymbol missing url for', symbolName);
         throw new Error('Missing URL');
       }
       if (!containerEl) {
@@ -39,24 +37,6 @@ function createPlatform() {
         return mod[symbolName];
       });
     },
-    nextTick: (renderMarked) => {
-      if (!render) {
-        render = {
-          fn: renderMarked,
-          promise: null!,
-          resolve: null!,
-          reject: null!,
-        };
-        render.promise = new Promise((resolve, reject) => {
-          render!.resolve = resolve;
-          render!.reject = reject;
-        });
-      } else if (renderMarked !== render.fn) {
-        // TODO(misko): proper error and test
-        throw new Error('Must be same function');
-      }
-      return render.promise;
-    },
     raf: (fn) => {
       return new Promise((resolve) => {
         // Do not use process.nextTick, as this will execute at same priority as promises.
@@ -68,14 +48,6 @@ function createPlatform() {
     },
     flush: async () => {
       await Promise.resolve();
-      if (render) {
-        try {
-          render.resolve(await render.fn());
-        } catch (e) {
-          render.reject(e);
-        }
-        render = null;
-      }
     },
     chunkForSymbol() {
       return undefined;
@@ -110,6 +82,9 @@ function toPath(url: URL) {
   const normalizedUrl = new URL(String(url));
   normalizedUrl.hash = '';
   normalizedUrl.search = '';
+  if (normalizedUrl.protocol !== 'file:') {
+    throw new Error(`Only file: protocol is supported in tests, got: ${normalizedUrl.href}`);
+  }
   const path = fileURLToPath(String(normalizedUrl));
   const importPaths = [path, ...testExts.map((ext) => path + ext)];
 

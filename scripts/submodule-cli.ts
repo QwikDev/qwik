@@ -4,20 +4,25 @@ import { join } from 'node:path';
 import { copyStartersDir } from './create-qwik-cli.ts';
 import { type BuildConfig, copyDir, getBanner, nodeTarget } from './util.ts';
 
-/** Builds @builder.io/qwik/cli */
+/** Builds @qwik.dev/core/cli */
 export async function submoduleCli(config: BuildConfig) {
   const submodule = 'cli';
 
   await build({
     entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
-    outfile: join(config.distQwikPkgDir, 'cli.cjs'),
-    format: 'cjs',
+    outfile: join(config.distQwikPkgDir, 'cli.mjs'),
+    format: 'esm',
     platform: 'node',
     target: nodeTarget,
     sourcemap: false,
     bundle: true,
-    banner: { js: getBanner('@builder.io/qwik/cli', config.distVersion) },
-    outExtension: { '.js': '.cjs' },
+    banner: {
+      js: [
+        getBanner('@qwik.dev/core/cli', config.distVersion),
+        `import { createRequire } from 'node:module';`,
+        `const require = createRequire(import.meta.url);`,
+      ].join('\n'),
+    },
     plugins: [
       {
         name: 'colorAlias',

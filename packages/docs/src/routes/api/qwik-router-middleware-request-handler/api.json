@@ -1,0 +1,540 @@
+{
+  "id": "qwik-router-middleware-request-handler",
+  "package": "@qwik.dev/qwik-router/middleware/request-handler",
+  "members": [
+    {
+      "name": "AbortMessage",
+      "id": "abortmessage",
+      "hierarchy": [
+        {
+          "name": "AbortMessage",
+          "id": "abortmessage"
+        }
+      ],
+      "kind": "Class",
+      "content": "```typescript\nexport declare class AbortMessage \n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/redirect-handler.ts",
+      "mdFile": "router.abortmessage.md"
+    },
+    {
+      "name": "append",
+      "id": "cookie-append",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-append"
+        },
+        {
+          "name": "append",
+          "id": "cookie-append"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Appends a `Response` cookie header using the `Set-Cookie` header.\n\nThe difference between `set()` and `append()` is that if the specified header already exists, `set()` will overwrite the existing value with the new one, whereas `append()` will append the new value onto the end of the set of values.\n\n\n```typescript\nappend(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\nstring \\| number \\| Record&lt;string, any&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[CookieOptions](#cookieoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "mdFile": "router.cookie.append.md"
+    },
+    {
+      "name": "CacheControl",
+      "id": "cachecontrol",
+      "hierarchy": [
+        {
+          "name": "CacheControl",
+          "id": "cachecontrol"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.cachecontrol.md"
+    },
+    {
+      "name": "ClientConn",
+      "id": "clientconn",
+      "hierarchy": [
+        {
+          "name": "ClientConn",
+          "id": "clientconn"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ClientConn \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[country?](./router.clientconn.country.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[ip?](./router.clientconn.ip.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.clientconn.md"
+    },
+    {
+      "name": "Cookie",
+      "id": "cookie",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Cookie \n```\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[append(name, value, options)](#cookie-append)\n\n\n</td><td>\n\nAppends a `Response` cookie header using the `Set-Cookie` header.\n\nThe difference between `set()` and `append()` is that if the specified header already exists, `set()` will overwrite the existing value with the new one, whereas `append()` will append the new value onto the end of the set of values.\n\n\n</td></tr>\n<tr><td>\n\n[delete(name, options)](#cookie-delete)\n\n\n</td><td>\n\nDeletes cookie value by name using the `Response` cookie header.\n\n\n</td></tr>\n<tr><td>\n\n[get(name)](#cookie-get)\n\n\n</td><td>\n\nGets a `Request` cookie header value by name.\n\n\n</td></tr>\n<tr><td>\n\n[getAll()](#cookie-getall)\n\n\n</td><td>\n\nGets all `Request` cookie headers.\n\n\n</td></tr>\n<tr><td>\n\n[has(name)](#cookie-has)\n\n\n</td><td>\n\nChecks if the `Request` cookie header name exists.\n\n\n</td></tr>\n<tr><td>\n\n[headers()](#cookie-headers)\n\n\n</td><td>\n\nReturns an array of all the set `Response` `Set-Cookie` header values.\n\n\n</td></tr>\n<tr><td>\n\n[set(name, value, options)](#cookie-set)\n\n\n</td><td>\n\nSets a `Response` cookie header using the `Set-Cookie` header.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.cookie.md"
+    },
+    {
+      "name": "CookieOptions",
+      "id": "cookieoptions",
+      "hierarchy": [
+        {
+          "name": "CookieOptions",
+          "id": "cookieoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie\n\n\n```typescript\nexport interface CookieOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[domain?](./router.cookieoptions.domain.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Defines the host to which the cookie will be sent. If omitted, this attribute defaults to the host of the current document URL, not including subdomains.\n\n\n</td></tr>\n<tr><td>\n\n[expires?](./router.cookieoptions.expires.md)\n\n\n</td><td>\n\n\n</td><td>\n\nDate \\| string\n\n\n</td><td>\n\n_(Optional)_ Indicates the maximum lifetime of the cookie as an HTTP-date timestamp. If both `expires` and `maxAge` are set, `maxAge` has precedence.\n\n\n</td></tr>\n<tr><td>\n\n[httpOnly?](./router.cookieoptions.httponly.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Forbids JavaScript from accessing the cookie, for example, through the `document.cookie` property.\n\n\n</td></tr>\n<tr><td>\n\n[maxAge?](./router.cookieoptions.maxage.md)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber \\| \\[number, 'seconds' \\| 'minutes' \\| 'hours' \\| 'days' \\| 'weeks'\\]\n\n\n</td><td>\n\n_(Optional)_ Indicates the number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately. If both `expires` and `maxAge` are set, `maxAge` has precedence. You can also use the array syntax to set the max-age using minutes, hours, days or weeks. For example, `{ maxAge: [3, \"days\"] }` would set the cookie to expire in 3 days.\n\n\n</td></tr>\n<tr><td>\n\n[path?](./router.cookieoptions.path.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Indicates the path that must exist in the requested URL for the browser to send the Cookie header.\n\n\n</td></tr>\n<tr><td>\n\n[sameSite?](./router.cookieoptions.samesite.md)\n\n\n</td><td>\n\n\n</td><td>\n\n'strict' \\| 'lax' \\| 'none' \\| 'Strict' \\| 'Lax' \\| 'None' \\| boolean\n\n\n</td><td>\n\n_(Optional)_ Controls whether or not a cookie is sent with cross-site requests, providing some protection against cross-site request forgery attacks (CSRF).\n\n\n</td></tr>\n<tr><td>\n\n[secure?](./router.cookieoptions.secure.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Indicates that the cookie is sent to the server only when a request is made with the `https:` scheme (except on localhost)\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.cookieoptions.md"
+    },
+    {
+      "name": "CookieValue",
+      "id": "cookievalue",
+      "hierarchy": [
+        {
+          "name": "CookieValue",
+          "id": "cookievalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface CookieValue \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[json](./router.cookievalue.json.md)\n\n\n</td><td>\n\n\n</td><td>\n\n&lt;T = unknown&gt;() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[number](./router.cookievalue.number.md)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; number\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[value](./router.cookievalue.value.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.cookievalue.md"
+    },
+    {
+      "name": "data",
+      "id": "servererror-data",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror-data"
+        },
+        {
+          "name": "data",
+          "id": "servererror-data"
+        }
+      ],
+      "kind": "Property",
+      "content": "```typescript\ndata: T;\n```",
+      "mdFile": "router.servererror.data.md"
+    },
+    {
+      "name": "DeferReturn",
+      "id": "deferreturn",
+      "hierarchy": [
+        {
+          "name": "DeferReturn",
+          "id": "deferreturn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type DeferReturn<T> = () => Promise<T>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.deferreturn.md"
+    },
+    {
+      "name": "delete",
+      "id": "cookie-delete",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-delete"
+        },
+        {
+          "name": "delete",
+          "id": "cookie-delete"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Deletes cookie value by name using the `Response` cookie header.\n\n\n```typescript\ndelete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\nPick&lt;[CookieOptions](#cookieoptions)<!-- -->, 'path' \\| 'domain' \\| 'sameSite'&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "mdFile": "router.cookie.delete.md"
+    },
+    {
+      "name": "EnvGetter",
+      "id": "envgetter",
+      "hierarchy": [
+        {
+          "name": "EnvGetter",
+          "id": "envgetter"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface EnvGetter \n```\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[get(key)](./router.envgetter.get.md)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.envgetter.md"
+    },
+    {
+      "name": "get",
+      "id": "cookie-get",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-get"
+        },
+        {
+          "name": "get",
+          "id": "cookie-get"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Gets a `Request` cookie header value by name.\n\n\n```typescript\nget(name: string): CookieValue | null;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[CookieValue](#cookievalue) \\| null",
+      "mdFile": "router.cookie.get.md"
+    },
+    {
+      "name": "getAll",
+      "id": "cookie-getall",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-getall"
+        },
+        {
+          "name": "getAll",
+          "id": "cookie-getall"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Gets all `Request` cookie headers.\n\n\n```typescript\ngetAll(): Record<string, CookieValue>;\n```\n**Returns:**\n\nRecord&lt;string, [CookieValue](#cookievalue)<!-- -->&gt;",
+      "mdFile": "router.cookie.getall.md"
+    },
+    {
+      "name": "getErrorHtml",
+      "id": "geterrorhtml",
+      "hierarchy": [
+        {
+          "name": "getErrorHtml",
+          "id": "geterrorhtml"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function getErrorHtml(status: number, e: any): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstatus\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ne\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/error-handler.ts",
+      "mdFile": "router.geterrorhtml.md"
+    },
+    {
+      "name": "has",
+      "id": "cookie-has",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-has"
+        },
+        {
+          "name": "has",
+          "id": "cookie-has"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Checks if the `Request` cookie header name exists.\n\n\n```typescript\nhas(name: string): boolean;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nboolean",
+      "mdFile": "router.cookie.has.md"
+    },
+    {
+      "name": "headers",
+      "id": "cookie-headers",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-headers"
+        },
+        {
+          "name": "headers",
+          "id": "cookie-headers"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Returns an array of all the set `Response` `Set-Cookie` header values.\n\n\n```typescript\nheaders(): string[];\n```\n**Returns:**\n\nstring\\[\\]",
+      "mdFile": "router.cookie.headers.md"
+    },
+    {
+      "name": "mergeHeadersCookies",
+      "id": "mergeheaderscookies",
+      "hierarchy": [
+        {
+          "name": "mergeHeadersCookies",
+          "id": "mergeheaderscookies"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nmergeHeadersCookies: (headers: Headers, cookies: CookieInterface) => Headers\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nheaders\n\n\n</td><td>\n\nHeaders\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ncookies\n\n\n</td><td>\n\n[CookieInterface](#cookie)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nHeaders",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/cookie.ts",
+      "mdFile": "router.mergeheaderscookies.md"
+    },
+    {
+      "name": "pathname",
+      "id": "rewritemessage-pathname",
+      "hierarchy": [
+        {
+          "name": "RewriteMessage",
+          "id": "rewritemessage-pathname"
+        },
+        {
+          "name": "pathname",
+          "id": "rewritemessage-pathname"
+        }
+      ],
+      "kind": "Property",
+      "content": "```typescript\nreadonly pathname: string;\n```",
+      "mdFile": "router.rewritemessage.pathname.md"
+    },
+    {
+      "name": "RedirectMessage",
+      "id": "redirectmessage",
+      "hierarchy": [
+        {
+          "name": "RedirectMessage",
+          "id": "redirectmessage"
+        }
+      ],
+      "kind": "Class",
+      "content": "```typescript\nexport declare class RedirectMessage extends AbortMessage \n```\n**Extends:** [AbortMessage](#abortmessage)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/redirect-handler.ts",
+      "mdFile": "router.redirectmessage.md"
+    },
+    {
+      "name": "RequestEvent",
+      "id": "requestevent",
+      "hierarchy": [
+        {
+          "name": "RequestEvent",
+          "id": "requestevent"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RequestEvent<PLATFORM = QwikRouterPlatform> extends RequestEventCommon<PLATFORM> \n```\n**Extends:** [RequestEventCommon](#requesteventcommon)<!-- -->&lt;PLATFORM&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[exited](./router.requestevent.exited.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nTrue if the middleware chain has finished executing.\n\n\n</td></tr>\n<tr><td>\n\n[getWritableStream](./router.requestevent.getwritablestream.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n() =&gt; WritableStream&lt;Uint8Array&gt;\n\n\n</td><td>\n\nLow-level access to write to the HTTP response stream. Once `getWritableStream()` is called, the status and headers can no longer be modified and will be sent over the network.\n\n\n</td></tr>\n<tr><td>\n\n[headersSent](./router.requestevent.headerssent.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nTrue if headers have been sent, preventing any more headers from being set.\n\n\n</td></tr>\n<tr><td>\n\n[next](./router.requestevent.next.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n() =&gt; Promise&lt;void&gt;\n\n\n</td><td>\n\nInvoke the next middleware function in the chain.\n\nNOTE: Ensure that the call to `next()` is `await`<!-- -->ed.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.requestevent.md"
+    },
+    {
+      "name": "RequestEventAction",
+      "id": "requesteventaction",
+      "hierarchy": [
+        {
+          "name": "RequestEventAction",
+          "id": "requesteventaction"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RequestEventAction<PLATFORM = QwikRouterPlatform> extends RequestEventCommon<PLATFORM> \n```\n**Extends:** [RequestEventCommon](#requesteventcommon)<!-- -->&lt;PLATFORM&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[fail](./router.requesteventaction.fail.md)\n\n\n</td><td>\n\n\n</td><td>\n\n&lt;T extends Record&lt;string, any&gt;&gt;(status: number, returnData: T) =&gt; FailReturn&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.requesteventaction.md"
+    },
+    {
+      "name": "RequestEventBase",
+      "id": "requesteventbase",
+      "hierarchy": [
+        {
+          "name": "RequestEventBase",
+          "id": "requesteventbase"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RequestEventBase<PLATFORM = QwikRouterPlatform> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[basePathname](./router.requesteventbase.basepathname.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe base pathname of the request, which can be configured at build time. Defaults to `/`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[cacheControl](./router.requesteventbase.cachecontrol.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(cacheControl: [CacheControl](#cachecontrol)<!-- -->, target?: CacheControlTarget) =&gt; void\n\n\n</td><td>\n\nConvenience method to set the Cache-Control header. Depending on your CDN, you may want to add another cacheControl with the second argument set to `CDN-Cache-Control` or any other value (we provide the most common values for auto-complete, but you can use any string you want).\n\nSee https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control and https://qwik.dev/docs/caching/\\#CDN-Cache-Controls for more information.\n\n\n</td></tr>\n<tr><td>\n\n[clientConn](./router.requesteventbase.clientconn.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ClientConn](#clientconn)\n\n\n</td><td>\n\nProvides information about the client connection, such as the IP address and the country the request originated from.\n\n\n</td></tr>\n<tr><td>\n\n[cookie](./router.requesteventbase.cookie.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[Cookie](#cookie)\n\n\n</td><td>\n\nHTTP request and response cookie. Use the `get()` method to retrieve a request cookie value. Use the `set()` method to set a response cookie value.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies\n\n\n</td></tr>\n<tr><td>\n\n[env](./router.requesteventbase.env.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[EnvGetter](#envgetter)\n\n\n</td><td>\n\nPlatform provided environment variables.\n\n\n</td></tr>\n<tr><td>\n\n[headers](./router.requesteventbase.headers.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nHeaders\n\n\n</td><td>\n\nHTTP response headers. Notice it will be empty until you first add a header. If you want to read the request headers, use `request.headers` instead.\n\nhttps://developer.mozilla.org/en-US/docs/Glossary/Response\\_header\n\n\n</td></tr>\n<tr><td>\n\n[method](./router.requesteventbase.method.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nHTTP request method.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Methods\n\n\n</td></tr>\n<tr><td>\n\n[originalUrl](./router.requesteventbase.originalurl.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL\n\n\n</td><td>\n\nThe original HTTP request URL.\n\nThis property was introduced to support the rewrite feature.\n\nIf rewrite is called, the url property will be changed to the rewritten url. while originalUrl will stay the same(e.g the url inserted to the address bar).\n\nIf rewrite is never called as part of the request, the url property and the originalUrl are equal.\n\n\n</td></tr>\n<tr><td>\n\n[params](./router.requesteventbase.params.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;Record&lt;string, string&gt;&gt;\n\n\n</td><td>\n\nURL path params which have been parsed from the current url pathname segments. Use `query` to instead retrieve the query string search params.\n\n\n</td></tr>\n<tr><td>\n\n[parseBody](./router.requesteventbase.parsebody.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n() =&gt; Promise&lt;unknown&gt;\n\n\n</td><td>\n\nThis method will check the request headers for a `Content-Type` header and parse the body accordingly. It supports `application/json`<!-- -->, `application/x-www-form-urlencoded`<!-- -->, and `multipart/form-data` content types.\n\nIf the `Content-Type` header is not set, it will return `null`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[pathname](./router.requesteventbase.pathname.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nURL pathname. Does not include the protocol, domain, query string (search params) or hash.\n\nhttps://developer.mozilla.org/en-US/docs/Web/API/URL/pathname\n\n\n</td></tr>\n<tr><td>\n\n[platform](./router.requesteventbase.platform.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nPLATFORM\n\n\n</td><td>\n\nPlatform specific data and functions\n\n\n</td></tr>\n<tr><td>\n\n[query](./router.requesteventbase.query.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURLSearchParams\n\n\n</td><td>\n\nURL Query Strings (URL Search Params). Use `params` to instead retrieve the route params found in the url pathname.\n\nhttps://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams\n\n\n</td></tr>\n<tr><td>\n\n[request](./router.requesteventbase.request.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRequest\n\n\n</td><td>\n\nHTTP request information.\n\n\n</td></tr>\n<tr><td>\n\n[sharedMap](./router.requesteventbase.sharedmap.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nMap&lt;string, any&gt;\n\n\n</td><td>\n\nShared Map across all the request handlers. Every HTTP request will get a new instance of the shared map. The shared map is useful for sharing data between request handlers.\n\n\n</td></tr>\n<tr><td>\n\n[signal](./router.requesteventbase.signal.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nAbortSignal\n\n\n</td><td>\n\nRequest's AbortSignal (same as `request.signal`<!-- -->). This signal indicates that the request has been aborted.\n\n\n</td></tr>\n<tr><td>\n\n[url](./router.requesteventbase.url.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL\n\n\n</td><td>\n\nHTTP request URL.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.requesteventbase.md"
+    },
+    {
+      "name": "RequestEventCommon",
+      "id": "requesteventcommon",
+      "hierarchy": [
+        {
+          "name": "RequestEventCommon",
+          "id": "requesteventcommon"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RequestEventCommon<PLATFORM = QwikRouterPlatform> extends RequestEventBase<PLATFORM> \n```\n**Extends:** [RequestEventBase](#requesteventbase)<!-- -->&lt;PLATFORM&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](./router.requesteventcommon.error.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nWhen called, the response will immediately end with the given status code. This could be useful to end a response with `404`<!-- -->, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.\n\n\n</td></tr>\n<tr><td>\n\n[exit](./router.requesteventcommon.exit.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n() =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[html](./router.requesteventcommon.html.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: StatusCodes, html: string) =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\nConvenience method to send an HTML body response. The response will be automatically set the `Content-Type` header to`text/html; charset=utf-8`<!-- -->. An `html()` response can only be called once.\n\n\n</td></tr>\n<tr><td>\n\n[json](./router.requesteventcommon.json.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: StatusCodes, data: any) =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\nConvenience method to JSON stringify the data and send it in the response. The response will be automatically set the `Content-Type` header to `application/json; charset=utf-8`<!-- -->. A `json()` response can only be called once.\n\n\n</td></tr>\n<tr><td>\n\n[locale](./router.requesteventcommon.locale.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(local?: string) =&gt; string\n\n\n</td><td>\n\nWhich locale the content is in.\n\nThe locale value can be retrieved from selected methods using `getLocale()`<!-- -->:\n\n\n</td></tr>\n<tr><td>\n\n[redirect](./router.requesteventcommon.redirect.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: RedirectCode, url: string) =&gt; [RedirectMessage](#redirectmessage)\n\n\n</td><td>\n\nURL to redirect to. When called, the response will immediately end with the correct redirect status and headers.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections\n\n\n</td></tr>\n<tr><td>\n\n[rewrite](./router.requesteventcommon.rewrite.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(pathname: string) =&gt; [RewriteMessage](#rewritemessage)\n\n\n</td><td>\n\nWhen called, qwik-router will execute the path's matching route flow.\n\nThe url in the browser will remain unchanged.\n\n\n</td></tr>\n<tr><td>\n\n[send](./router.requesteventcommon.send.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nSendMethod\n\n\n</td><td>\n\nSend a body response. The `Content-Type` response header is not automatically set when using `send()` and must be set manually. A `send()` response can only be called once.\n\n\n</td></tr>\n<tr><td>\n\n[status](./router.requesteventcommon.status.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode?: StatusCodes) =&gt; number\n\n\n</td><td>\n\nHTTP response status code. Sets the status code when called with an argument. Always returns the status code, so calling `status()` without an argument will can be used to return the current status code.\n\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Status\n\n\n</td></tr>\n<tr><td>\n\n[text](./router.requesteventcommon.text.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n(statusCode: StatusCodes, text: string) =&gt; [AbortMessage](#abortmessage)\n\n\n</td><td>\n\nConvenience method to send an text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`<!-- -->. An `text()` response can only be called once.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.requesteventcommon.md"
+    },
+    {
+      "name": "RequestEventLoader",
+      "id": "requesteventloader",
+      "hierarchy": [
+        {
+          "name": "RequestEventLoader",
+          "id": "requesteventloader"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface RequestEventLoader<PLATFORM = QwikRouterPlatform> extends RequestEventAction<PLATFORM> \n```\n**Extends:** [RequestEventAction](#requesteventaction)<!-- -->&lt;PLATFORM&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[defer](./router.requesteventloader.defer.md)\n\n\n</td><td>\n\n\n</td><td>\n\n&lt;T&gt;(returnData: Promise&lt;T&gt; \\| (() =&gt; Promise&lt;T&gt;)) =&gt; [DeferReturn](#deferreturn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolveValue](./router.requesteventloader.resolvevalue.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[ResolveValue](#resolvevalue)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.requesteventloader.md"
+    },
+    {
+      "name": "requestHandler",
+      "id": "requesthandler",
+      "hierarchy": [
+        {
+          "name": "requestHandler",
+          "id": "requesthandler"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;\n```\n**References:** [RequestEvent](#requestevent)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/request-handler.ts",
+      "mdFile": "router.requesthandler.md"
+    },
+    {
+      "name": "RequestHandler",
+      "id": "requesthandler",
+      "hierarchy": [
+        {
+          "name": "RequestHandler",
+          "id": "requesthandler"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;\n```\n**References:** [RequestEvent](#requestevent)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.requesthandler.md"
+    },
+    {
+      "name": "ResolveSyncValue",
+      "id": "resolvesyncvalue",
+      "hierarchy": [
+        {
+          "name": "ResolveSyncValue",
+          "id": "resolvesyncvalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ResolveSyncValue \n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.resolvesyncvalue.md"
+    },
+    {
+      "name": "ResolveValue",
+      "id": "resolvevalue",
+      "hierarchy": [
+        {
+          "name": "ResolveValue",
+          "id": "resolvevalue"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ResolveValue \n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.resolvevalue.md"
+    },
+    {
+      "name": "RewriteMessage",
+      "id": "rewritemessage",
+      "hierarchy": [
+        {
+          "name": "RewriteMessage",
+          "id": "rewritemessage"
+        }
+      ],
+      "kind": "Class",
+      "content": "```typescript\nexport declare class RewriteMessage extends AbortMessage \n```\n**Extends:** [AbortMessage](#abortmessage)\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[(constructor)(pathname)](./router.rewritemessage._constructor_.md)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `RewriteMessage` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[pathname](#rewritemessage-pathname)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/rewrite-handler.ts",
+      "mdFile": "router.rewritemessage.md"
+    },
+    {
+      "name": "ServerError",
+      "id": "servererror",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror"
+        }
+      ],
+      "kind": "Class",
+      "content": "```typescript\nexport declare class ServerError<T = any> extends Error \n```\n**Extends:** Error\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[(constructor)(status, data)](./router.servererror._constructor_.md)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `ServerError` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[data](#servererror-data)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[status](#servererror-status)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts",
+      "mdFile": "router.servererror.md"
+    },
+    {
+      "name": "ServerRenderOptions",
+      "id": "serverrenderoptions",
+      "hierarchy": [
+        {
+          "name": "ServerRenderOptions",
+          "id": "serverrenderoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ServerRenderOptions extends RenderOptions \n```\n**Extends:** RenderOptions\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[checkOrigin?](./router.serverrenderoptions.checkorigin.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean \\| 'lax-proto'\n\n\n</td><td>\n\n_(Optional)_ Protection against cross-site request forgery (CSRF) attacks.\n\nWhen `true`<!-- -->, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin. `lax-proto` is for SSL-terminating proxies\n\nBe careful when disabling this option as it may lead to CSRF attacks.\n\nDefaults to `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[qwikCityPlan?](./router.serverrenderoptions.qwikcityplan.md)\n\n\n</td><td>\n\n\n</td><td>\n\nQwikCityPlan\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[qwikRouterConfig?](./router.serverrenderoptions.qwikrouterconfig.md)\n\n\n</td><td>\n\n\n</td><td>\n\nQwikRouterConfig\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[render](./router.serverrenderoptions.render.md)\n\n\n</td><td>\n\n\n</td><td>\n\nRender\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.serverrenderoptions.md"
+    },
+    {
+      "name": "ServerRequestEvent",
+      "id": "serverrequestevent",
+      "hierarchy": [
+        {
+          "name": "ServerRequestEvent",
+          "id": "serverrequestevent"
+        }
+      ],
+      "kind": "Interface",
+      "content": "Request event created by the server.\n\n\n```typescript\nexport interface ServerRequestEvent<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[env](./router.serverrequestevent.env.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[EnvGetter](#envgetter)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getClientConn](./router.serverrequestevent.getclientconn.md)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [ClientConn](#clientconn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getWritableStream](./router.serverrequestevent.getwritablestream.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[ServerResponseHandler](#serverresponsehandler)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[locale](./router.serverrequestevent.locale.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[mode](./router.serverrequestevent.mode.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[ServerRequestMode](#serverrequestmode)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[platform](./router.serverrequestevent.platform.md)\n\n\n</td><td>\n\n\n</td><td>\n\nQwikRouterPlatform\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[request](./router.serverrequestevent.request.md)\n\n\n</td><td>\n\n\n</td><td>\n\nRequest\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[url](./router.serverrequestevent.url.md)\n\n\n</td><td>\n\n\n</td><td>\n\nURL\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.serverrequestevent.md"
+    },
+    {
+      "name": "ServerRequestMode",
+      "id": "serverrequestmode",
+      "hierarchy": [
+        {
+          "name": "ServerRequestMode",
+          "id": "serverrequestmode"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ServerRequestMode = 'static' | 'server';\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.serverrequestmode.md"
+    },
+    {
+      "name": "ServerResponseHandler",
+      "id": "serverresponsehandler",
+      "hierarchy": [
+        {
+          "name": "ServerResponseHandler",
+          "id": "serverresponsehandler"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;\n```\n**References:** [Cookie](#cookie)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
+      "mdFile": "router.serverresponsehandler.md"
+    },
+    {
+      "name": "set",
+      "id": "cookie-set",
+      "hierarchy": [
+        {
+          "name": "Cookie",
+          "id": "cookie-set"
+        },
+        {
+          "name": "set",
+          "id": "cookie-set"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Sets a `Response` cookie header using the `Set-Cookie` header.\n\n\n```typescript\nset(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\nstring \\| number \\| Record&lt;string, any&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[CookieOptions](#cookieoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "mdFile": "router.cookie.set.md"
+    },
+    {
+      "name": "status",
+      "id": "servererror-status",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror-status"
+        },
+        {
+          "name": "status",
+          "id": "servererror-status"
+        }
+      ],
+      "kind": "Property",
+      "content": "```typescript\nstatus: number;\n```",
+      "mdFile": "router.servererror.status.md"
+    }
+  ]
+}

@@ -1,5 +1,83 @@
 # create-qwik
 
+## 2.0.0-beta.25
+
+## 2.0.0-beta.24
+
+## 2.0.0-beta.23
+
+## 2.0.0-beta.22
+
+## 2.0.0-beta.21
+
+## 2.0.0-beta.20
+
+## 2.0.0-beta.19
+
+## 2.0.0-beta.18
+
+## 2.0.0-beta.17
+
+## 2.0.0-beta.16
+
+- FIX: add missing execa dependency
+
+## 2.0.0-beta.15
+
+## 2.0.0-beta.14
+
+### Major Changes
+
+- BREAKING: the CJS/UMD builds have been removed; ESM is well-supported everywhere and allows better optimizations. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8103](https://github.com/QwikDev/qwik/pull/8103))
+
+## 2.0.0-beta.13
+
+## 2.0.0-beta.12
+
+## 2.0.0-beta.11
+
+## 2.0.0-beta.10
+
+## 2.0.0-beta.9
+
+## 2.0.0-beta.8
+
+## 2.0.0-beta.7
+
+## 2.0.0-beta.6
+
+## 2.0.0-beta.5
+
+## 2.0.0-beta.4
+
+## 2.0.0-beta.3
+
+## 2.0.0-beta.2
+
+## 2.0.0-beta.1
+
+## 2.0.0-alpha.10
+
+## 2.0.0-alpha.9
+
+## 2.0.0-alpha.8
+
+## 2.0.0-alpha.7
+
+## 2.0.0-alpha.6
+
+## 2.0.0-alpha.5
+
+## 2.0.0-alpha.4
+
+## 2.0.0-alpha.3
+
+## 2.0.0-alpha.2
+
+## 2.0.0-alpha.1
+
+## 2.0.0-alpha.0
+
 ## 1.19.0
 
 ### Patch Changes
@@ -104,4 +182,4 @@
 
 - - built files are now under dist/ or lib/. All tools that respect package export maps should just work. (by [@wmertens](https://github.com/wmertens) in [#6715](https://github.com/QwikDev/qwik/pull/6715))
     If you have trouble with Typescript, ensure that you use `moduleResolution: "Bundler"` in your `tsconfig.json`.
-  - `@builder.io/qwik` no longer depends on `undici`
+  - `@qwik.dev/core` no longer depends on `undici`

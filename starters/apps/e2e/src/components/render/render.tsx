@@ -1,22 +1,24 @@
 import {
   component$,
+  createContextId,
+  event$,
+  isServer,
+  jsx,
+  SkipRender,
+  Slot,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useStylesScoped$,
   useTask$,
-  event$,
-  h,
-  jsx,
-  SkipRender,
-  SSRRaw,
-  HTMLFragment,
-  type PropsOf,
-  Slot,
-  type QRL,
   type JSXOutput,
-} from "@builder.io/qwik";
+  type PropsOf,
+  type QRL,
+  type Signal,
+} from "@qwik.dev/core";
+import { h, SSRComment, SSRRaw } from "@qwik.dev/core/internal";
 import { delay } from "../streaming/demo";
-import { isServer } from "@builder.io/qwik";
 
 export const Render = component$(() => {
   const rerender = useSignal(0);
@@ -57,12 +59,12 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
         Increment
       </button>
       <Child counter={state.counter}></Child>
-      <Issue1475 />
-      <Issue2563 />
-      <Issue2608 />
-      <Issue2800 />
-      <Issue2889 />
-      <Issue3116 />
+      <InlineJsxComponentOrderIssue1475 />
+      <BindingsNotPrintingIssue2563 />
+      <BrokenRenderingBehaviorIssue2608 />
+      <StoreNewKeyReactivityIssue2800 />
+      <DateSerializationDeepStoreIssue2889 />
+      <PropRenderFunctionIssue3116 />
       <CounterToggle />
       <PropsDestructuring
         message="Hello"
@@ -82,30 +84,31 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
         aria-count={state.count}
       />
       <IssueReorder />
-      <Issue2414 />
-      <Issue3178 />
-      <Issue3398 />
-      <Issue3479 />
-      <Issue3481 />
-      <Issue3468 />
+      <ArrayItemsDisplayOrderIssue2414 />
+      <ProxyOwnKeysSymbolIssue3178 />
+      <DynamicElementTagSetPropertyIssue3398 />
+      <ClickHandlersExecutedMultipleTimesIssue3479 />
+      <SpreadReplacesExistingPropsIssue3481 />
+      <ReactImportKeySpreadLoopIssue3468 />
       <Pr3475 />
-      <Issue3561 />
-      <Issue3542 atom={{ code: 1 }} />
-      <Issue3643 />
+      <DestructuringAssignmentBrokenIssue3561 />
+      <UndefinedVariableAfterUpgradeIssue3542 atom={{ code: 1 }} />
+      <ForLoopItemsAccumulateIssue3643 />
       <IssueChildrenSpread />
-      <Issue3731 />
-      <Issue3702 />
-      <Issue3795 />
-      <Issue4029 />
-      <Issue4346 />
+      <WrongDynamicListRenderingIssue3731 />
+      <OptimizerSyntaxErrorConditionalIssue3702 />
+      <VariableAssignmentsOptimizedIssue3795 />
+      <DynamicComponentsWithSignalsIssue4029 />
+      <UndefinedRefPropIssue4346 />
       <SkipRenderTest />
       <SSRRawTest />
-      <HTMLFragmentTest />
-      <Issue4292 />
-      <Issue4386 />
-      <Issue4455 />
-      <Issue5266 />
+      <ProxyOwnKeysDuplicateEntriesIssue4292 />
+      <OptimizerRemovesLocalConstIssue4386 />
+      <RangeInputInitialValueStepIssue4455 />
+      <DynamicTagBreaksReactivityIssue5266 />
       <DynamicButton id="dynamic-button" />;
+      <RerenderOnce />
+      <PropSpreadLogicBrokenCsrIssue8213 />
     </>
   );
 });
@@ -166,7 +169,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
   );
 });
 
-export const Issue1475 = component$(() => {
+export const InlineJsxComponentOrderIssue1475 = component$(() => {
   const render = useSignal(false);
   return (
     <>
@@ -178,7 +181,7 @@ export const Issue1475 = component$(() => {
           <>
             <h1>1. Before</h1>
             2. Some text
-            <LazyIssue1475 />
+            <LazyInlineJsxComponentOrderIssue1475 />
             {"\n"}
             <h2>3 After</h2>
             <p>Stuff</p>
@@ -195,7 +198,7 @@ export const Issue1475 = component$(() => {
   );
 });
 
-export const LazyIssue1475 = component$(() => {
+export const LazyInlineJsxComponentOrderIssue1475 = component$(() => {
   useTask$(async () => {
     await delay(50);
   });
@@ -282,7 +285,7 @@ export const PropsDestructuringNo = component$(
   },
 );
 
-export const Issue2563 = component$(() => {
+export const BindingsNotPrintingIssue2563 = component$(() => {
   const html = `hola`;
   const obj = { length: 4 };
   return (
@@ -294,7 +297,7 @@ export const Issue2563 = component$(() => {
   );
 });
 
-export const Issue2608 = component$(() => {
+export const BrokenRenderingBehaviorIssue2608 = component$(() => {
   const show = useSignal(false);
   return (
     <>
@@ -309,7 +312,7 @@ export const Issue2608 = component$(() => {
   );
 });
 
-export const Issue2800 = component$(() => {
+export const StoreNewKeyReactivityIssue2800 = component$(() => {
   const store = useStore<Record<string, number>>({
     alpha: 1,
     bravo: 2,
@@ -338,7 +341,7 @@ export const Issue2800 = component$(() => {
   );
 });
 
-export const Issue2889 = component$(() => {
+export const DateSerializationDeepStoreIssue2889 = component$(() => {
   const appState = useStore(
     {
       events: [
@@ -380,7 +383,7 @@ export const ProductRelations = component$((props: ProductRelationProps) => {
   return <div>{props.render$(["this comes from render$"])}</div>;
 });
 
-export const Issue3116 = component$(() => {
+export const PropRenderFunctionIssue3116 = component$(() => {
   return (
     <>
       <ProductRelations
@@ -428,7 +431,7 @@ export const IssueReorder = component$(() => {
   );
 });
 
-const Issue2414 = component$(() => {
+const ArrayItemsDisplayOrderIssue2414 = component$(() => {
   const sort = useSignal<"id" | "size" | "age">("size");
   const showTable = useSignal(true);
   const table = useStore({
@@ -457,19 +460,21 @@ const Issue2414 = component$(() => {
         <caption>Hello</caption>
         <colgroup></colgroup>
         <thead>
-          {(["size", "age", "id"] as const).map((c) => {
-            return (
-              <th
-                key={c}
-                id={`issue-2414-${c}`}
-                onClick$={() => {
-                  sort.value = c;
-                }}
-              >
-                {c}
-              </th>
-            );
-          })}
+          <tr>
+            {(["size", "age", "id"] as const).map((c) => {
+              return (
+                <th
+                  key={c}
+                  id={`issue-2414-${c}`}
+                  onClick$={() => {
+                    sort.value = c;
+                  }}
+                >
+                  {c}
+                </th>
+              );
+            })}
+          </tr>
         </thead>
         {showTable.value ? (
           <tbody>
@@ -498,7 +503,7 @@ const Issue2414 = component$(() => {
   );
 });
 
-const Issue3178 = component$(() => {
+const ProxyOwnKeysSymbolIssue3178 = component$(() => {
   const store = useStore(
     {
       elements: [] as Element[],
@@ -531,7 +536,7 @@ export const Title = component$((props: TitleProps) => {
   return <Tag id="issue-3398-tag">Hello {Tag}</Tag>;
 });
 
-export const Issue3398 = component$(() => {
+export const DynamicElementTagSetPropertyIssue3398 = component$(() => {
   const tag = useSignal<"h1" | "h2">("h1");
   return (
     <div>
@@ -546,7 +551,7 @@ export const Issue3398 = component$(() => {
   );
 });
 
-export const Issue3479 = component$(() => {
+export const ClickHandlersExecutedMultipleTimesIssue3479 = component$(() => {
   const count = useSignal(0);
   const attributes = {
     onClick$: event$(() => count.value++),
@@ -562,7 +567,7 @@ export const Issue3479 = component$(() => {
   );
 });
 
-export const Issue3481 = component$(() => {
+export const SpreadReplacesExistingPropsIssue3481 = component$(() => {
   useStylesScoped$(`
     .from-static {
       color: red;
@@ -601,7 +606,7 @@ export const Card = component$((props: any) => {
   );
 });
 
-export const Issue3468 = component$(() => {
+export const ReactImportKeySpreadLoopIssue3468 = component$(() => {
   return (
     <>
       {DATA.map((post) => (
@@ -619,7 +624,7 @@ export const Pr3475 = component$(() =>
   ))(useStore<{ key?: string }>({ key: "data" })),
 );
 
-export const Issue3561 = component$(() => {
+export const DestructuringAssignmentBrokenIssue3561 = component$(() => {
   const props = useStore({
     product: {
       currentVariant: {
@@ -647,15 +652,17 @@ export const Issue3561 = component$(() => {
   );
 });
 
-export const Issue3542 = component$(({ atom }: any) => {
-  let status = atom.status;
-  if (atom.code === 1) {
-    status = "CODE IS 1";
-  }
-  return <span id="issue-3542-result">{status}</span>;
-});
+export const UndefinedVariableAfterUpgradeIssue3542 = component$(
+  ({ atom }: any) => {
+    let status = atom.status;
+    if (atom.code === 1) {
+      status = "CODE IS 1";
+    }
+    return <span id="issue-3542-result">{status}</span>;
+  },
+);
 
-export const Issue3643 = component$(() => {
+export const ForLoopItemsAccumulateIssue3643 = component$(() => {
   const toggle = useSignal(false);
   return (
     <div>
@@ -719,7 +726,7 @@ const states = [
   ["cleanup", "usevisibletask", "think", "containers", "slots"],
 ];
 
-export const Issue3731 = component$(() => {
+export const WrongDynamicListRenderingIssue3731 = component$(() => {
   const state = useSignal(0);
   const signal = useSignal(states[0]);
   return (
@@ -738,37 +745,46 @@ export const Issue3731 = component$(() => {
       </button>
       <ul>
         {signal.value.map((item) => {
-          return <Issue3731Child key={item} value={item}></Issue3731Child>;
+          return (
+            <WrongDynamicListRenderingIssue3731Child
+              key={item}
+              value={item}
+            ></WrongDynamicListRenderingIssue3731Child>
+          );
         })}
       </ul>
     </div>
   );
 });
 
-export const Issue3731Child = component$((props: any) => {
-  return <div class="issue-3731-result">{props.value}</div>;
-});
+export const WrongDynamicListRenderingIssue3731Child = component$(
+  (props: any) => {
+    return <div class="issue-3731-result">{props.value}</div>;
+  },
+);
 
-export const Issue3702 = component$(({ description = "", other }: any) => {
-  const counter = useSignal(0);
-  return (
-    <div
-      id="issue-3702-result"
-      data-title={
-        description && "description" in other
-          ? `Hello ${counter.value}`
-          : `Bye ${counter.value}`
-      }
-    >
-      Issue3702
-      <button id="issue-3702-button" onClick$={() => counter.value++}>
-        Increment
-      </button>
-    </div>
-  );
-});
+export const OptimizerSyntaxErrorConditionalIssue3702 = component$(
+  ({ description = "", other }: any) => {
+    const counter = useSignal(0);
+    return (
+      <div
+        id="issue-3702-result"
+        data-title={
+          description && "description" in other
+            ? `Hello ${counter.value}`
+            : `Bye ${counter.value}`
+        }
+      >
+        OptimizerSyntaxErrorConditionalIssue3702
+        <button id="issue-3702-button" onClick$={() => counter.value++}>
+          Increment
+        </button>
+      </div>
+    );
+  },
+);
 
-export const Issue3795 = component$(() => {
+export const VariableAssignmentsOptimizedIssue3795 = component$(() => {
   let base = "foo";
   const firstAssignment = base;
   base += "bar";
@@ -780,7 +796,7 @@ export const Issue3795 = component$(() => {
   );
 });
 
-export const Issue4029 = component$(() => {
+export const DynamicComponentsWithSignalsIssue4029 = component$(() => {
   const Comp = useSignal<any>(CompA);
   return (
     <>
@@ -817,18 +833,9 @@ export const SSRRawTest = component$(() => {
       id="ssr-raw-test-result"
       data-mounted={isServer ? "server" : "browser"}
     >
+      <SSRComment data="q:container=html" />
       <SSRRaw data="<b>ssr raw test</b>" />
-    </div>
-  );
-});
-
-export const HTMLFragmentTest = component$(() => {
-  return (
-    <div
-      id="html-fragment-test-result"
-      data-mounted={isServer ? "server" : "browser"}
-    >
-      <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
+      <SSRComment data="/q:container" />
     </div>
   );
 });
@@ -855,7 +862,7 @@ export const TestB = component$<TestBProps>((props) => {
   );
 });
 
-export const Issue4292 = component$(() => {
+export const ProxyOwnKeysDuplicateEntriesIssue4292 = component$(() => {
   const $toggled = useSignal<boolean>(false);
 
   return (
@@ -869,13 +876,13 @@ export const Issue4292 = component$(() => {
           $toggled.value = !$toggled.value;
         }}
       >
-        <div>Hello, World!</div>
+        <span>Hello, World!</span>
       </TestB>
     </>
   );
 });
 
-export const Issue4346 = component$(() => {
+export const UndefinedRefPropIssue4346 = component$(() => {
   const toggle = useSignal(true);
   const ref = useSignal<HTMLDivElement>();
 
@@ -898,14 +905,14 @@ export const FOO_MAPPING = {
   C: 3,
 };
 
-export const Issue4386 = component$(() => {
+export const OptimizerRemovesLocalConstIssue4386 = component$(() => {
   const key = "A";
   const value = FOO_MAPPING[key];
 
   return <div id="issue-4386-result">{value}</div>;
 });
 
-export const Issue4455 = component$(() => {
+export const RangeInputInitialValueStepIssue4455 = component$(() => {
   return (
     <>
       <input
@@ -939,7 +946,7 @@ export const DynamicComponent = component$<{ b?: boolean; v: string }>(
     );
   },
 );
-export const Issue5266 = component$(() => {
+export const DynamicTagBreaksReactivityIssue5266 = component$(() => {
   const show = useSignal(false);
   const state = useSignal("foo");
   return (
@@ -970,3 +977,102 @@ export const DynamicButton = component$<any>(
     );
   },
 );
+
+const globalObj = ["foo", "bar"];
+const LogsProvider = createContextId<any[]>("logs");
+
+const RerenderOnceChild = component$<{ obj: string; foo: Signal<number> }>(
+  ({ obj, foo }) => {
+    const logs = useContext(LogsProvider);
+    logs.push("render Cmp", obj, foo.value);
+    return <span id="rerender-once-child">{JSON.stringify(logs)}</span>;
+  },
+);
+
+export const RerenderOnce = component$(() => {
+  const foo = useSignal(0);
+  const logs: any[] = [];
+  useContextProvider(LogsProvider, logs);
+  return (
+    <div>
+      <button
+        id="rerender-once-button"
+        onClick$={() => {
+          foo.value === 0 ? (foo.value = 1) : (foo.value = 0);
+        }}
+      >
+        click
+      </button>
+      <RerenderOnceChild obj={globalObj[foo.value]} foo={foo} />
+    </div>
+  );
+});
+
+const ctxId = createContextId<{
+  isTitle: Signal<boolean>;
+}>("my-PropSpreadLogicBrokenCsrIssue8213");
+const PropSpreadLogicBrokenCsrIssue8213Render = component$(
+  (props: any): JSXOutput => {
+    const {
+      fallback: _fallback,
+      jsxType: _jsxType,
+      movedProps,
+      ...rest
+    } = props;
+
+    const Comp = (props.jsxType ?? props.fallback) as any;
+
+    return (
+      <Comp {...rest} {...movedProps}>
+        <Slot />
+      </Comp>
+    );
+  },
+);
+const PropSpreadLogicBrokenCsrIssue8213Child = component$(() => {
+  const ctx = useContext(ctxId);
+  useTask$(() => {
+    ctx.isTitle.value = true;
+  });
+  return <Slot />;
+});
+const PropSpreadLogicBrokenCsrIssue8213Parent = component$((props: any) => {
+  const { align: _align, ...rest } = props;
+  const isTitle = useSignal(false);
+  const titleId = `title`;
+  useContextProvider(ctxId, {
+    isTitle,
+  });
+  return (
+    <>
+      <PropSpreadLogicBrokenCsrIssue8213Render
+        {...rest}
+        fallback="div"
+        id="issue-8213-render"
+        aria-labelledby={isTitle.value ? titleId : undefined}
+      >
+        <Slot />
+      </PropSpreadLogicBrokenCsrIssue8213Render>
+    </>
+  );
+});
+const PropSpreadLogicBrokenCsrIssue8213 = component$(() => {
+  const toggle = useSignal(false);
+  return (
+    <div>
+      <button
+        id="issue-8213-button"
+        onClick$={() => (toggle.value = !toggle.value)}
+      >
+        Toggle
+      </button>
+      {toggle.value && (
+        <PropSpreadLogicBrokenCsrIssue8213Parent data-testid="root">
+          <PropSpreadLogicBrokenCsrIssue8213Child>
+            Child
+          </PropSpreadLogicBrokenCsrIssue8213Child>
+        </PropSpreadLogicBrokenCsrIssue8213Parent>
+      )}
+    </div>
+  );
+});

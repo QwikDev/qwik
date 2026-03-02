@@ -8,14 +8,14 @@ export async function generateQwikApiMarkdownDocs(config: BuildConfig, apiJsonIn
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
 }
 
-export async function generateQwikCityApiMarkdownDocs(
+export async function generateQwikRouterApiMarkdownDocs(
   config: BuildConfig,
   apiJsonInputDir: string
 ) {
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city']);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'middleware']);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'static']);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'vite']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router', 'middleware']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router', 'static']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router', 'vite']);
 
   // doesn't really belong here, ah well
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-react']);
@@ -49,28 +49,28 @@ async function generateApiMarkdownSubPackageDocs(
     return;
   }
 
-  const subPkgName = ['@builder.io', ...names].filter((n) => n !== 'core').join('/');
+  const subPkgName = ['@qwik.dev', ...names].filter((n) => n !== 'core').join('/');
   console.log('📚', `Generate API ${subPkgName} markdown docs`);
 
-  const apiOuputDir = join(
+  const apiOutputDir = join(
     config.rootDir,
     'dist-dev',
     'api-docs',
     names.filter((n) => n !== 'core').join('-')
   );
-  mkdirSync(apiOuputDir, { recursive: true });
-  console.log(apiOuputDir);
+  mkdirSync(apiOutputDir, { recursive: true });
+  console.log(apiOutputDir);
 
   await execa(
     'api-documenter',
-    ['markdown', '--input-folder', subPkgInputDir, '--output-folder', apiOuputDir],
+    ['markdown', '--input-folder', subPkgInputDir, '--output-folder', apiOutputDir],
     {
       stdio: 'inherit',
       cwd: join(config.rootDir, 'node_modules', '.bin'),
     }
   );
 
-  await createApiData(config, docsApiJsonPath, apiOuputDir, subPkgName);
+  await createApiData(config, docsApiJsonPath, apiOutputDir, subPkgName);
 }
 
 async function createApiData(
@@ -82,7 +82,7 @@ async function createApiData(
   const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, 'utf-8'));
 
   const apiData: ApiData = {
-    id: subPkgName.replace('@builder.io/', '').replace(/\//g, '-'),
+    id: subPkgName.replace('@qwik.dev/', '').replace(/\//g, '-'),
     package: subPkgName,
     members: [],
   };
@@ -178,7 +178,7 @@ async function createApiData(
   });
 
   apiData.members.forEach((m) => {
-    m.content = m.content.replace(/\.\/qwik(.*)\.md/g, '#');
+    m.content = m.content.replace(/\.\/core(.*)\.md/g, '#');
   });
 
   apiData.members.sort((a, b) => {
@@ -311,7 +311,8 @@ function getMdFile(subPkgName: string, hierarchy: string[]) {
   for (const h of hierarchy) {
     mdFile += '.' + getSafeFilenameForName(h);
   }
-  return `qwik${subPkgName.includes('city') ? '-city' : ''}${mdFile}.md`;
+
+  return `${subPkgName.includes('router') ? 'router' : 'core'}${mdFile}.md`;
 }
 
 function getSafeFilenameForName(name: string): string {

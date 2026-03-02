@@ -19,7 +19,7 @@ A typical way to deal with these limitations is to split the event handling into
 1. `sync$()` which is called synchronously and can call methods such as `event.preventDefault()` and `event.stopPropagation()`.
 2. `$()` which is called asynchronously and can close over the state and call other functions, and has no restriction on the size.
 
-Because `sync$()` can't access the state what is the best strategy to deal with it? The answer is to use element attributes to pass state into the `sync$()` function.
+Because `sync$()` can't access the state, what is the best strategy to deal with it? The answer is to use element attributes to pass state into the `sync$()` function.
 > **NOTE:** If you only need to prevent the default behavior, you can simply use the standard [`preventDefault:{eventName}`](/docs/core/events/#prevent-default) syntax. This is strictly for when you need to chain events together synchronously
 
 ## Example: `sync$()` with state
@@ -36,7 +36,7 @@ In this example, we have a behavior where we want to prevent the default behavio
 
 <CodeFile src="/src/routes/demo/cookbook/sync-event/index.tsx">
 ```tsx
-import { component$, useSignal, sync$, $ } from '@builder.io/qwik';
+import { component$, useSignal, sync$, $ } from '@qwik.dev/core';
 
 export default component$(() => {
   const shouldPreventDefault = useSignal(true);
@@ -57,7 +57,7 @@ export default component$(() => {
         target="_blank"
         data-should-prevent-default={shouldPreventDefault.value}
         onClick$={[
-          sync$((e: MouseEvent, target: HTMLAnchorElement) => {
+          sync$((e, target) => {
             if (target.hasAttribute('data-should-prevent-default')) {
               e.preventDefault();
             }

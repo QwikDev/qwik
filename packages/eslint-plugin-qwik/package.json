@@ -1,22 +1,22 @@
 {
   "name": "eslint-plugin-qwik",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
-  "version": "1.19.0",
-  "author": "Builder Team",
+  "version": "2.0.0-beta.25",
+  "author": "Qwik Team",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@typescript-eslint/utils": "^8.56.1",
     "jsx-ast-utils": "^3.3.5"
   },
   "devDependencies": {
-    "@builder.io/qwik": "workspace:^",
-    "@builder.io/qwik-city": "workspace:^",
+    "@qwik.dev/core": "workspace:*",
+    "@qwik.dev/router": "workspace:*",
     "@types/estree": "1.0.8",
     "@typescript-eslint/rule-tester": "8.56.1",
     "redent": "4.0.0"
   },
   "engines": {
-    "node": ">=16.8.0 <18.0.0 || >=18.11"
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
   },
   "files": [
     "README.md",
@@ -24,7 +24,6 @@
   ],
   "homepage": "https://github.com/QwikDev/qwik#readme",
   "keywords": [
-    "builder.io",
     "eslint",
     "qwik"
   ],

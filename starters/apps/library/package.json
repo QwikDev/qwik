@@ -5,23 +5,22 @@
   "private": false,
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
-  "types": "./lib-types/index.d.ts",
+  "types": "./lib/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
+      "types": "./lib/index.d.ts",
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs",
-      "types": "./lib-types/index.d.ts"
+      "require": "./lib/index.qwik.cjs"
     }
   },
   "files": [
-    "lib",
-    "lib-types"
+    "lib"
   ],
   "scripts": {
     "build": "qwik build",
     "build.lib": "vite build --mode lib",
-    "build.types": "tsc --emitDeclarationOnly",
+    "build.types": "tsc -p tsconfig.types.json --emitDeclarationOnly --incremental false",
     "dev": "vite --mode ssr",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
@@ -33,17 +32,17 @@
     "release": "np"
   },
   "devDependencies": {
-    "@builder.io/qwik": "latest",
-    "@eslint/js": "^9",
+    "@qwik.dev/core": "latest",
+    "@qwik.dev/router": "latest",
+    "@eslint/js": "latest",
     "@types/node": "latest",
     "typescript-eslint": "latest",
-    "eslint": "^9",
+    "eslint": "latest",
     "eslint-plugin-qwik": "latest",
     "globals": "latest",
     "np": "^8.0.4",
     "prettier": "latest",
     "typescript": "latest",
-    "undici": "latest",
     "vite": "latest",
     "vite-tsconfig-paths": "^4.2.1"
   },

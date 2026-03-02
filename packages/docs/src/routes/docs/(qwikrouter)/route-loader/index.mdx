@@ -1,0 +1,331 @@
+---
+title: RouteLoader$ | Qwik Router
+contributors:
+  - manucorporat
+  - mhevery
+  - wtlin1228
+  - AnthonyPAlicea
+  - the-r3aper7
+  - hamatoyogi
+  - steve8708
+  - iamyuu
+  - n8sabes
+  - mrhoodz
+  - mjschwanitz
+  - adamdbradley
+  - gioboa
+  - Varixo
+updated_at: '2023-12-15T11:00:00Z'
+created_at: '2023-03-20T23:45:13Z'
+---
+
+# `routeLoader$()`
+
+Route Loaders load data in the server so it becomes available to use inside Qwik Components. They trigger when SPA/MPA navigation happens so they can be invoked by Qwik Components during rendering.
+
+Please note that route loaders should be exported only from `layout.tsx` or `index.tsx` files. But they can be declared in any valid way ES modules allow. To reuse a route loader across multiple `layout.tsx` or `index.tsx` files, define it in a separate file, export it, then import it in `layout.tsx` or `index.tsx` files and [`re-export`](/docs/(qwikrouter)/re-exporting-loaders/index.mdx) it as a named export.
+
+> If you want to manage common reusable `routeLoader$()`s it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](/docs/(qwikrouter)/re-exporting-loaders/index.mdx).
+
+```tsx /routeLoader$/ /useProductData/#a title="src/routes/product/[productId]/index.tsx"
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  // This code runs only on the server, after every navigation
+  const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
+  const product = await res.json();
+  return product as Product;
+});
+
+export default component$(() => {
+  // In order to access the `routeLoader$` data within a Qwik Component, you need to call the hook.
+  const signal = useProductDetails(); // Readonly<Signal<Product>>
+  return <p>Product name: {signal.value.product.name}</p>;
+});
+```
+
+Route Loaders are perfect to fetch data from a database or an API. For example you can use them to fetch data from a CMS, a weather API, or a list of users from your database.
+
+> You should not use a `routeLoader$` to create a REST API, for that you’d be better off using an [Endpoint](/docs/endpoints/), which allows you to have tight control over the response headers and body.
+
+## Multiple `routeLoader$`s
+
+Multiple `routeLoader$`s are allowed across the whole application, and they can be used in any Qwik Component. **You can even declare multiple `routeLoader$`s in the same file**.
+
+
+```tsx title="src/routes/layout.tsx"
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+import { Footer } from '../components/footer.tsx';
+
+export const useProductData = routeLoader$(async () => {
+  const res = await fetch('https://.../product');
+  const product = (await res.json()) as Product;
+  return product;
+});
+
+export default component$(() => {
+  const signal = useProductData();
+  return (
+    <main>
+      <Slot />
+      <Footer />
+    </main>
+  );
+});
+```
+
+```tsx title="src/components/footer.tsx"
+import { component$ } from '@qwik.dev/core';
+
+// Import the loader from the layout
+import { useProductData } from '../routes/layout.tsx';
+
+export const Footer = component$(() => {
+  // Consume the loader data
+  const signal = useProductData();
+  return <footer>Product name: {signal.value.product.name}</footer>;
+});
+```
+
+The above example shows using `useProductData()` in two different components across different files. This is intentional behavior.
+
+```tsx title="src/routes/admin/index.tsx"
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useLoginStatus = routeLoader$(async ({ cookie }) => {
+  return {
+    isUserLoggedIn: checkCookie(cookie),
+  };
+});
+
+export const useCurrentUser = routeLoader$(async ({ cookie }) => {
+  return {
+    user: currentUserFromCookie(cookie),
+  };
+});
+
+export default component$(() => {
+  const loginStatus = useLoginStatus();
+  const currentUser = useCurrentUser();
+  return (
+    <section>
+      <h1>Admin</h1>
+      {loginStatus.value.isUserLoggedIn ? (
+        <p>Welcome {currentUser.value.user.name}</p>
+      ) : (
+        <p>You are not logged in</p>
+      )}
+    </section>
+  );
+});
+```
+
+The above example shows two `routeLoader$`s being used in the same file. A generic `useLoginStatus` loader is used to check if the user is logged in, and a more specific `useCurrentUser` loader is used to retrieve the user data.
+
+## Loaders data serialization
+
+By default, route loader data is not serialized and sent to the client. Instead, it is discarded after server-side rendering (SSR). If a component on the client requires the data, it will be refetched (lazy-loaded).
+
+You can customize this behavior using the `serializationStrategy` option in the `routeLoader$()`. This option accepts one of three values:
+- `never` (Default): The data is never serialized. It is discarded after SSR and refetched on the client when needed.
+- `always`: The data is always serialized and included in the initial HTML response. It is immediately available on the client without needing to be refetched.
+- `auto`: Qwik automatically decides whether to serialize the data based on its size. If the data is small, it will be serialized. If it exceeds a certain threshold, it will be discarded and lazy-loaded on the client as needed.
+
+```tsx title="src/routes/product/[user]/index.tsx"
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  const res = await fetch(
+    `https://.../products/${requestEvent.params.productId}`
+  );
+  const product = await res.json();
+  return product;
+}, {
+  serializationStrategy: 'always', // 'never' | 'always' | 'auto'
+});
+```
+
+### Handling loading state for lazy loaded route loader data
+
+When using lazy-loaded data, you can handle the loading state in your Qwik Components by checking if the data is available. If not, you can render a loading indicator or placeholder content.
+
+```tsx title="src/routes/product/[user]/index.tsx"
+import { component$, useSignal } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  const res = await fetch(
+    `https://.../products/${requestEvent.params.productId}`
+  );
+  const product = await res.json();
+  return product;
+});
+
+export default component$(() => {
+  const data = useProductDetails();
+  const condition = useSignal(false);
+  return (
+    <>
+      Product name: {data.value.product.name}
+      <button onClick$={() => (condition.value = !condition.value)}>
+        Toggle
+      </button>
+      {condition.value ? <Child /> : <div />}
+    </>
+  );
+});
+
+// Will use lazy loaded data
+export const Child = component$(() => {
+  const data = useProductDetails();
+  return (
+    <div>
+      {data.loading ? (
+        <p>Loading product details...</p>
+      ) : (
+        <p>Product description: {data.value.product.description}</p>
+      )}
+    </div>
+  );
+});
+```
+
+### Global default serialization strategy
+It is possible to set a global default serialization strategy for all `routeLoader$`s in your application. This can be done by configuring the `qwikRouter` Vite plugin.
+Default value is `never`.
+
+```ts title="vite.config.ts"
+import { qwikRouter } from '@qwik.dev/router/vite';
+
+export default () => {
+  return {
+    //...
+    plugins: [
+      //...
+      qwikRouter({
+        // Set the default serialization strategy for all route loaders
+        defaultLoadersSerializationStrategy: 'always', // 'never' | 'always' | 'auto'
+      }),
+      //...
+    ],
+  }
+};
+```
+
+## RequestEvent
+
+Just like [middleware](/docs/middleware/) or [endpoint](/docs/endpoints/) `onRequest` and `onGet`, `routeLoader$`s have access to the [`RequestEvent`](/docs/middleware#requestevent) API which includes information about the current HTTP request.
+
+This information comes in handy when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers, or body manually.
+
+```tsx /requestEvent/ title="src/routes/product/[user]/index.tsx"
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProductRecommendations = routeLoader$(async (requestEvent) => {
+  console.log('Request headers:', requestEvent.request.headers);
+  console.log('Request cookies:', requestEvent.cookie);
+  console.log('Request url:', requestEvent.url);
+  console.log('Request method:', requestEvent.method);
+  console.log('Request params:', requestEvent.params);
+
+  // Use request details to fetch personalized data
+  const res = fetch(`https://.../recommendations?user=${requestEvent.params.user}`);
+  const recommendedProducts = (await res.json()) as Product[];
+
+  return recommendedProducts;
+});
+```
+
+## Access the `routeLoader$` data within another `routeLoader$`
+
+You can access the data from one `routeLoader$` inside another `routeLoader$` using the `requestEvent.resolveValue` method.
+
+```tsx /requestEvent/ title="src/routes/product/[productId]/index.tsx"
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
+  const product = await res.json();
+  return product;
+});
+
+export const useProductRecommendations = routeLoader$(async (requestEvent) => {
+  // Resolve the product details from the other loader
+  const product = await requestEvent.resolveValue(useProductDetails);
+
+  // Use the product details to fetch personalized data
+  const res = fetch(`https://.../recommendations?product=${product.id}`);
+  const recommendedProducts = (await res.json()) as Product[];
+
+  return recommendedProducts;
+});
+```
+
+> The same API can be used to access the data from a `routeAction$` or a `globalAction$`.
+
+## Failed values with `routeLoader$`
+
+`routeLoader$`s can use the `fail` method to return a failed value, which is a special value that indicates that the loader didn't succeed loading the expected data.
+
+In addition, the `fail` function allows `routeLoader$` to override the HTTP status code, for example retuning 404.
+
+This is useful when the loader needs to return an "error" value that is not `undefined`, but it also needs to indicate that the data failed to load.
+
+```tsx /requestEvent.fail/ /errorMessage/#a title="src/routes/product/[productId]/index.tsx"
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  const product = await db.from('products').filter('id', 'eq', requestEvent.params.productId);
+  if (!product) {
+    // Return a failed value to indicate that product was not found
+    return requestEvent.fail(404, {
+      errorMessage: 'Product not found'
+    });
+  }
+  return {
+    productName: product.name
+  };
+});
+
+export default component$(() => {
+  const product = useProductDetails();
+
+  if (product.value.errorMessage) {
+    // Render UI for failed value
+    return <div>{product.value.errorMessage}</div>;
+  }
+  return <div>Product name: {product.value.productName}</div>;
+});
+```
+
+## Handling Relative URLs in Loaders
+
+In the server-side execution environment, it's crucial to convert relative URLs to absolute URLs for proper functionality. This can be achieved by prefixing the relative URL with the `origin` from the `useLocation()` function.
+
+```tsx /location.url.origin + relativeUrl/ title="Make Absolute URL"
+import { component$ } from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/router';
+
+export default component$(() => {
+  const location = useLocation();
+  const relativeUrl = '/mock-data';
+  const absoluteUrl = location.url.origin + relativeUrl;
+
+  return (
+    <section>
+      <div>Relative URL: {relativeUrl}</div>
+      <div>Absolute URL: {absoluteUrl}</div>
+    </section>
+  );
+});
+```
+
+## Performance considerations
+
+Route Loaders are executed on the server, after every navigation. This means that they are executed every time a user navigates to a page in an SPA or MPA, and they are executed even if the user is navigating to the same page.
+
+Loaders execute after the Qwik Middleware handlers (`onRequest`, `onGet`, `onPost`, etc), and before the Qwik Components are rendered. This allows the loaders to start fetching data as soon as possible, reducing latency.

@@ -1,0 +1,76 @@
+{
+  "id": "qwik-router-middleware-firebase",
+  "package": "@qwik.dev/qwik-router/middleware/firebase",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `createQwikRouter` instead. Will be removed in V3\n> \n\n\n```typescript\ncreateQwikCity: typeof createQwikRouter\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/firebase/index.ts",
+      "mdFile": "router.createqwikcity.md"
+    },
+    {
+      "name": "createQwikRouter",
+      "id": "createqwikrouter",
+      "hierarchy": [
+        {
+          "name": "createQwikRouter",
+          "id": "createqwikrouter"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikRouter(opts: QwikRouterFirebaseOptions): (req: any, res: any) => Promise<void>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikRouterFirebaseOptions](#qwikrouterfirebaseoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n(req: any, res: any) =&gt; Promise&lt;void&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/firebase/index.ts",
+      "mdFile": "router.createqwikrouter.md"
+    },
+    {
+      "name": "PlatformFirebase",
+      "id": "platformfirebase",
+      "hierarchy": [
+        {
+          "name": "PlatformFirebase",
+          "id": "platformfirebase"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformFirebase extends Object \n```\n**Extends:** Object",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/firebase/index.ts",
+      "mdFile": "router.platformfirebase.md"
+    },
+    {
+      "name": "QwikCityFirebaseOptions",
+      "id": "qwikcityfirebaseoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityFirebaseOptions",
+          "id": "qwikcityfirebaseoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterFirebaseOptions` instead. Will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityFirebaseOptions = QwikRouterFirebaseOptions;\n```\n**References:** [QwikRouterFirebaseOptions](#qwikrouterfirebaseoptions)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/firebase/index.ts",
+      "mdFile": "router.qwikcityfirebaseoptions.md"
+    },
+    {
+      "name": "QwikRouterFirebaseOptions",
+      "id": "qwikrouterfirebaseoptions",
+      "hierarchy": [
+        {
+          "name": "QwikRouterFirebaseOptions",
+          "id": "qwikrouterfirebaseoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterFirebaseOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/firebase/index.ts",
+      "mdFile": "router.qwikrouterfirebaseoptions.md"
+    }
+  ]
+}

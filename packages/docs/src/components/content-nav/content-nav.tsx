@@ -1,5 +1,5 @@
-import { type ContentMenu, useContent, useLocation, Link } from '@builder.io/qwik-city';
-import { component$, useSignal, useStyles$, useTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useStyles$, useTask$ } from '@qwik.dev/core';
+import { type ContentMenu, Link, useContent, useLocation } from '@qwik.dev/router';
 import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(() => {

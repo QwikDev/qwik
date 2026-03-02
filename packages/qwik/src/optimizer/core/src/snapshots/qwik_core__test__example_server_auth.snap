@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1767
+assertion_line: 1878
 expression: output
 snapshot_kind: text
 ---
@@ -13,49 +13,51 @@ import Google from 'next-auth/providers/google'
 import {serverAuth$, auth$} from '@auth/qwik';
 
 export const { onRequest, logout, getSession, signup } = serverAuth$({
-    providers: [
-    GitHub({
-        clientId: process.env.GITHUB_ID,
-        clientSecret: process.env.GITHUB_SECRET
-    }),
-    Facebook({
-        clientId: import.meta.env.FACEBOOK_ID,
-        clientSecret: import.meta.env.FACEBOOK_SECRET
-    }),
-    Google({
-        clientId: process.env.GOOGLE_ID,
-        clientSecret: process.env.GOOGLE_SECRET
-    })
-    ]
+	providers: [
+	GitHub({
+		clientId: process.env.GITHUB_ID,
+		clientSecret: process.env.GITHUB_SECRET
+	}),
+	Facebook({
+		clientId: import.meta.env.FACEBOOK_ID,
+		clientSecret: import.meta.env.FACEBOOK_SECRET
+	}),
+	Google({
+		clientId: process.env.GOOGLE_ID,
+		clientSecret: process.env.GOOGLE_SECRET
+	})
+	]
 });
 
 export const { onRequest, logout, getSession, signup } = auth$({
-    providers: [
-    GitHub({
-        clientId: process.env.GITHUB_ID,
-        clientSecret: process.env.GITHUB_SECRET
-    }),
-    Facebook({
-        clientId: process.env.FACEBOOK_ID,
-        clientSecret: process.env.FACEBOOK_SECRET
-    }),
-    Google({
-        clientId: process.env.GOOGLE_ID,
-        clientSecret: process.env.GOOGLE_SECRET
-    })
-    ]
+	providers: [
+	GitHub({
+		clientId: process.env.GITHUB_ID,
+		clientSecret: process.env.GITHUB_SECRET
+	}),
+	Facebook({
+		clientId: process.env.FACEBOOK_ID,
+		clientSecret: process.env.FACEBOOK_SECRET
+	}),
+	Google({
+		clientId: process.env.GOOGLE_ID,
+		clientSecret: process.env.GOOGLE_SECRET
+	})
+	]
 });
 
 ============================= test.js ==
 
 import { serverAuthQrl } from "@auth/qwik";
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
 import { authQrl } from "@auth/qwik";
-export const { onRequest, logout, getSession, signup } = serverAuthQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_serverAuth_qVqpX2a0p9Y"), "serverAuth_qVqpX2a0p9Y"));
-export const { onRequest, logout, getSession, signup } = authQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_auth_GU0aY5QCETY"), "auth_GU0aY5QCETY"));
+const i_GU0aY5QCETY = ()=>import("./test.tsx_auth_GU0aY5QCETY");
+const i_qVqpX2a0p9Y = ()=>import("./test.tsx_serverAuth_qVqpX2a0p9Y");
+export const { onRequest, logout, getSession, signup } = serverAuthQrl(/*#__PURE__*/ qrl(i_qVqpX2a0p9Y, "serverAuth_qVqpX2a0p9Y"));
+export const { onRequest, logout, getSession, signup } = authQrl(/*#__PURE__*/ qrl(i_GU0aY5QCETY, "auth_GU0aY5QCETY"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAMA,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,4GAetD;AAEH,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,0FAetD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAMA,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,0EAetD;AAEH,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,8DAetD\"}")
 ============================= test.tsx_auth_GU0aY5QCETY.js (ENTRY POINT)==
 
 import Facebook from "next-auth/providers/facebook";
@@ -79,7 +81,7 @@ export const auth_GU0aY5QCETY = {
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;gCAuB+D;IAC3D,WAAW;QACX,OAAO;YACH,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QAC3C;QACA,SAAS;YACL,UAAU,QAAQ,GAAG,CAAC,WAAW;YACjC,cAAc,QAAQ,GAAG,CAAC,eAAe;QAC7C;QACA,OAAO;YACH,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QAC3C;KACC;AACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;gCAuB+D;IAC9D,WAAW;QACX,OAAO;YACN,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QACxC;QACA,SAAS;YACR,UAAU,QAAQ,GAAG,CAAC,WAAW;YACjC,cAAc,QAAQ,GAAG,CAAC,eAAe;QAC1C;QACA,OAAO;YACN,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QACxC;KACC;AACF\"}")
 /*
 {
   "origin": "test.tsx",
@@ -95,8 +97,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "auth$",
   "captures": false,
   "loc": [
-    704,
-    1065
+    644,
+    945
   ]
 }
 */
@@ -123,7 +125,7 @@ export const serverAuth_qVqpX2a0p9Y = {
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;sCAMqE;IACjE,WAAW;QACX,OAAO;YACH,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QAC3C;QACA,SAAS;YACL,UAAU,YAAY,GAAG,CAAC,WAAW;YACrC,cAAc,YAAY,GAAG,CAAC,eAAe;QACjD;QACA,OAAO;YACH,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QAC3C;KACC;AACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;sCAMqE;IACpE,WAAW;QACX,OAAO;YACN,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QACxC;QACA,SAAS;YACR,UAAU,YAAY,GAAG,CAAC,WAAW;YACrC,cAAc,YAAY,GAAG,CAAC,eAAe;QAC9C;QACA,OAAO;YACN,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QACxC;KACC;AACF\"}")
 /*
 {
   "origin": "test.tsx",
@@ -140,7 +142,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     268,
-    637
+    577
   ]
 }
 */

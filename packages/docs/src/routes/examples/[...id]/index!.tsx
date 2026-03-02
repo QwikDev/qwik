@@ -1,15 +1,21 @@
-import { component$, useStyles$, useTask$, useStore, useVisibleTask$ } from '@builder.io/qwik';
-import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder.io/qwik-city';
-import { Repl } from '../../../repl/ui';
-import styles from './examples.css?inline';
-import { Header } from '../../../components/header/header';
 import exampleSections, { type ExampleApp } from '@examples-data';
-import type { ReplAppInput } from '../../../repl/types';
-import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
+import {
+  component$,
+  isBrowser,
+  useStore,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
+import type { PathParams, RequestHandler, StaticGenerateHandler } from '@qwik.dev/router';
+import { useLocation, type DocumentHead } from '@qwik.dev/router';
+import { Header } from '../../../components/header/header';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
-import { isBrowser } from '@builder.io/qwik';
+import type { ReplAppInput } from '../../../repl/types';
+import { Repl } from '../../../repl/ui';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/ui/repl-share-url';
 import { setReplCorsHeaders } from '~/utils/utils';
+import styles from './examples.css?inline';
 
 export default component$(() => {
   useStyles$(styles);

@@ -1,10 +1,10 @@
 /* eslint-disable */
 import {
   component$,
-  useStore,
   createContextId,
   useContextProvider,
-} from "@builder.io/qwik";
+  useStore,
+} from "@qwik.dev/core";
 
 export const LOGS = createContextId<{ content: string }>("qwik.logs.resource");
 

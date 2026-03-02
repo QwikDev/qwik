@@ -1,22 +1,35 @@
 import {
+  $,
   component$,
+  useOnWindow,
+  useSignal,
   useStore,
   type QRL,
-  useSignal,
-  useOnWindow,
-  $,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 
 export const Events = component$(() => {
+  const rerenderCount = useSignal(0);
+
+  return (
+    <div>
+      <button id="rerender" onClick$={() => rerenderCount.value++}>
+        Rerender {rerenderCount.value}
+      </button>
+      <EventsParent key={rerenderCount.value} />
+      <p id="render-count">{rerenderCount.value}</p>
+    </div>
+  );
+});
+
+const EventsParent = component$(() => {
   const store = useStore({
     countTransparent: 0,
     countWrapped: 0,
     countAnchor: 0,
     propagationStoppedCount: 0,
   });
-
   return (
-    <div>
+    <>
       <Buttons
         onTransparentClick$={async () => {
           store.countTransparent++;
@@ -71,8 +84,10 @@ export const Events = component$(() => {
       <p id="count-propagation">
         countPropagationStopped: {store.propagationStoppedCount}
       </p>
-      <Issue3948 />
-    </div>
+      <UseOnWindowConditionalRenderIssue3948 />
+      <UndefinedEventHandler />
+      <ExecuteAllEventHandlers />
+    </>
   );
 });
 
@@ -119,13 +134,13 @@ export const Listener = component$((props: { name: string }) => {
   );
 });
 
-export const Issue3948 = component$(() => {
+export const UseOnWindowConditionalRenderIssue3948 = component$(() => {
   const showingToggle = useSignal(false);
 
   return (
     <>
       <Listener name="always" />
-      <label for="toggle">
+      <label for="issue-3948-toggle">
         <input
           id="issue-3948-toggle"
           type="checkbox"
@@ -135,5 +150,35 @@ export const Issue3948 = component$(() => {
       </label>
       {showingToggle.value && <Listener name="conditional" />}
     </>
+  );
+});
+
+const UndefinedEventHandler = component$(() => {
+  return (
+    <p>
+      <button id="undefined-event-handler" onClick$={[undefined]}>
+        Should not throw
+      </button>
+    </p>
+  );
+});
+
+const ExecuteAllEventHandlers = component$(() => {
+  const store1 = useStore({ count: 1 });
+  const store2 = useStore({ count: 1 });
+
+  const update = $(() => store2.count++);
+  return (
+    <button
+      id="execute-all-event-handlers"
+      onClick$={[
+        $(() => store1.count++),
+        update,
+        undefined,
+        [null, $(() => (store2.count += 1))],
+      ]}
+    >
+      {store1.count} / {store2.count}
+    </button>
   );
 });

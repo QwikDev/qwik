@@ -1,30 +1,31 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 914
+assertion_line: 1024
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@qwik.dev/core';
 import css1 from './global.css';
 import css2 from './style.css';
 import css3 from './style.css';
 
 export const App = component$(() => {
-    useStyles$(`${css1}${css2}`);
-    useStyles$(css3);
+	useStyles$(`${css1}${css2}`);
+	useStyles$(css3);
 })
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,oBAAM,iHAGjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAMA,OAAO,MAAM,oBAAM,4EAGjB\"}")
 ============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
 
 import css1 from "./global.css";
@@ -32,7 +33,7 @@ import css2 from "./style.css";
 export const App_component_useStyles_t35nSa5UV7U = `${css1}${css2}`;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAOe,GAAG,OAAO,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAOY,GAAG,OAAO,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -48,22 +49,24 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    212,
-    228
+    207,
+    223
   ]
 }
 */
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
-import { useStylesQrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+import { useStylesQrl } from "@qwik.dev/core";
+const i_t35nSa5UV7U = ()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U");
+const i_xBK4W0ZKWe8 = ()=>import("./test.tsx_App_component_useStyles_1_xBK4W0ZKWe8");
 export const App_component_ckEPmXZlub0 = ()=>{
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U"));
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_1_xBK4W0ZKWe8"), "App_component_useStyles_1_xBK4W0ZKWe8"));
+    useStylesQrl(/*#__PURE__*/ qrl(i_t35nSa5UV7U, "App_component_useStyles_t35nSa5UV7U"));
+    useStylesQrl(/*#__PURE__*/ qrl(i_xBK4W0ZKWe8, "App_component_useStyles_1_xBK4W0ZKWe8"));
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAM8B;IAC1B;IACA;AACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAM8B;IAC7B;IACA;AACD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -79,8 +82,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    189,
-    254
+    187,
+    246
   ]
 }
 */
@@ -90,7 +93,7 @@ import css3 from "./style.css";
 export const App_component_useStyles_1_xBK4W0ZKWe8 = css3;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQY\"}")
 /*
 {
   "origin": "test.tsx",
@@ -106,8 +109,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    246,
-    250
+    238,
+    242
   ]
 }
 */

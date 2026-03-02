@@ -28,7 +28,7 @@ async function scanForDocDirective(file: string, lines: string[]) {
         bookRef += '%3Fboth';
       }
       output.push(prefix + `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!`);
-      output.push(prefix + `// (edit ${bookRef}#${section} instead)`);
+      output.push(prefix + `// (edit ${bookRef}#${section} instead and run \`pnpm docs.sync\`)`);
       output.push(prefix + '/**');
       (await resolveComment(dirname(file), ref, section)).forEach((longLine) =>
         breakLongLine(longLine).forEach((line) =>
@@ -40,7 +40,7 @@ async function scanForDocDirective(file: string, lines: string[]) {
         const line2 = lines[row++];
         if (!isComment(line2)) {
           throw new Error(
-            'Missing end `</doc>` tag. Got: ' + line2 + '\n' + file + '[' + row + ']'
+            'Missing end `</docs>` tag. Got: ' + line2 + '\n' + file + '[' + row + ']'
           );
         }
         if (line2.indexOf('// </docs>') != -1) {

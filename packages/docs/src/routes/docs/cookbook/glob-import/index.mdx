@@ -42,19 +42,20 @@ const metaGlobComponents: Record<string, any> = await import.meta.glob('/src/com
 });
 ```
 
-## How to
+Do **not** use `eager: true` when importing Qwik components. This makes Vite combine multiple Qwik outputs together in a way that breaks Qwik.
+
+Since Qwik doesn't support Promises as components, that means you need to `await` their import. To do so, you can simply throw the promise and make sure the result is stored somewhere. Qwik will catch the promise and wait for it to resolve before rendering the component again.
+
+If you're using inline components or anything else, you can use `eager: true`, and the resulting object can be used as a normal object, keyed by the file path.
+
+As a workaround for now, you can use the build time `isDev` boolean from `"@qwik.dev/core"`:
 
 <CodeSandbox src="/src/routes/demo/cookbook/glob-import/">
 ```tsx
-import {
-  type Component,
-  component$,
-  useSignal,
-  useTask$,
-} from '@builder.io/qwik';
+import { component$, type Component } from '@qwik.dev/core';
 
-const metaGlobComponents: Record<string, any> = await import.meta.glob(
-  '/src/examples/*',
+const metaGlobComponents = import.meta.glob<Component>(
+  '/src/routes/demo/cookbook/glob-import/examples/*',
   { import: 'default' }
 );
 
@@ -68,15 +69,16 @@ export default component$(() => {
   );
 });
 
+const loaded: Record<string, Component> = {};
 export const MetaGlobExample = component$<{ name: string }>(({ name }) => {
-  const MetaGlobComponent = useSignal<Component<any>>();
-  const componentPath = `/src/examples/${name}.tsx`;
+  const Cmp = loaded[name];
+  if (!Cmp) {
+    const componentPath = `/src/routes/demo/cookbook/glob-import/examples/${name}.tsx`;
+    const promise = metaGlobComponents[componentPath]();
+    throw promise.then((c) => (loaded[name] = c));
+  }
 
-  useTask$(async () => {
-    MetaGlobComponent.value = await metaGlobComponents[componentPath]();
-  });
-
-  return <>{MetaGlobComponent.value && <MetaGlobComponent.value />}</>;
+  return <Cmp />;
 });
 ```
 </CodeSandbox>

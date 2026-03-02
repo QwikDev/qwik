@@ -1,0 +1,112 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3878
+expression: output
+---
+==INPUT==
+
+
+		import { component$, $, useSignal } from '@qwik.dev/core';
+		export const Cmp = component$(() => {
+			const toggleSig = useSignal(false);
+
+			const handleClick$ = $(() => {
+				toggleSig.value = !toggleSig.value;
+			});
+
+			return (
+				<button onClick$={handleClick$} data-open={toggleSig.value ? true : undefined}>
+					Removing data-open re-renders
+				</button>
+			);
+		});
+		
+============================= test.tsx_Cmp_component_handleClick_WawHV3HwS1A.ts (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const Cmp_component_handleClick_WawHV3HwS1A = ()=>{
+    const toggleSig = _captures[0];
+    toggleSig.value = !toggleSig.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAK0B;;IACtB,UAAU,KAAK,GAAG,CAAC,UAAU,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_handleClick_WawHV3HwS1A",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_handleClick",
+  "hash": "WawHV3HwS1A",
+  "canonicalFilename": "test.tsx_Cmp_component_handleClick_WawHV3HwS1A",
+  "path": "",
+  "extension": "ts",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    169,
+    221
+  ],
+  "captureNames": [
+    "toggleSig"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.ts (ENTRY POINT)==
+
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.value ? true : undefined;
+const _hf0_str = "p0.value?true:undefined";
+const i_WawHV3HwS1A = ()=>import("./test.tsx_Cmp_component_handleClick_WawHV3HwS1A");
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    const toggleSig = useSignal(false);
+    const handleClick$ = /*#__PURE__*/ qrl(i_WawHV3HwS1A, "Cmp_component_handleClick_WawHV3HwS1A", [
+        toggleSig
+    ]);
+    return /*#__PURE__*/ _jsxSorted("button", null, {
+        "q-e:click": handleClick$,
+        "data-open": _fnSignal(_hf0, [
+            toggleSig
+        ], _hf0_str)
+    }, "Removing data-open re-renders", 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAU+C,GAAU,KAAK,GAAG,OAAO;;;yCARxC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAAO,aAAU;QAAc,WAAS;;;OAAsC;AAIjF\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    95,
+    379
+  ]
+}
+*/
+============================= test.ts ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_4ryKJTOKjWE = ()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE");
+export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_4ryKJTOKjWE, "Cmp_component_4ryKJTOKjWE"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEE,OAAO,MAAM,oBAAM,4EAYhB\"}")
+== DIAGNOSTICS ==
+
+[]

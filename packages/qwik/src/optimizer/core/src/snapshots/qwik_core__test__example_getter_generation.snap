@@ -1,83 +1,80 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2964
+assertion_line: 3076
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    const store = useStore({
-        count: 0,
-        stuff: 0,
-        nested: {
-            count: 0
-        }
-    });
-    const signal = useSignal(0);
-    return (
-        <Cmp
-            prop={'true' + 1 ? 'true' : ''}
-            count={store.count}
-            nested={store.nested.count}
-            signal={signal}
-            store={store.stuff + 12}
-            value={signal.formData?.get('username')}
-        >
-        </Cmp>
-    );
+	const store = useStore({
+		count: 0,
+		stuff: 0,
+		nested: {
+			count: 0
+		}
+	});
+	const signal = useSignal(0);
+	return (
+		<Cmp
+			prop={'true' + 1 ? 'true' : ''}
+			count={store.count}
+			nested={store.nested.count}
+			signal={signal}
+			store={store.stuff + 12}
+			value={signal.formData?.get('username')}
+		>
+		</Cmp>
+	);
 });
 
 export const Cmp = component$((props) => {
-    return (
-        <>
-            <p data-value={props.count}>{props.nested.count}</p>
-            <p>Value {props.count}<span></span></p>
-        </>
-    );
+	return (
+		<>
+			<p data-value={props.count}>{props.nested.count}</p>
+			<p>Value {props.count}<span></span></p>
+		</>
+	);
 });
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
-export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_4ryKJTOKjWE = ()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE");
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_4ryKJTOKjWE, "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAoBhB;AAEH,OAAO,MAAM,oBAAM,iHAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,4EAoBhB;AAEH,OAAO,MAAM,oBAAM,4EAOhB\"}")
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.nested.count;
+const _hf0_str = "p0.nested.count";
 export const Cmp_component_4ryKJTOKjWE = (props)=>{
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("p", null, {
-                "data-value": _fnSignal((p0)=>p0.count, [
-                    props
-                ], "p0.count")
-            }, _fnSignal((p0)=>p0.nested.count, [
-                props
-            ], "p0.nested.count"), 3, null),
-            /*#__PURE__*/ _jsxQ("p", null, null, [
-                "Value ",
-                _fnSignal((p0)=>p0.count, [
-                    props
-                ], "p0.count"),
-                /*#__PURE__*/ _jsxQ("span", null, null, null, 3, null)
-            ], 3, null)
-        ]
-    }, 3, "u6_1");
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("p", {
+            "data-value": _wrapProp(props, "count")
+        }, null, _fnSignal(_hf0, [
+            props
+        ], _hf0_str), 1, null),
+        /*#__PURE__*/ _jsxSorted("p", null, null, [
+            "Value ",
+            _wrapProp(props, "count"),
+            /*#__PURE__*/ _jsxSorted("span", null, null, null, 3, null)
+        ], 1, null)
+    ], 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAyB8B,CAAC;IAC3B,qBACI;;0BACI,MAAC;gBAAE,YAAU,kBAAE,GAAM,KAAK;;;+BAAG,GAAM,MAAM,CAAC,KAAK;;;0BAC/C,MAAC;gBAAE;gCAAO,GAAM,KAAK;;;8BAAC,MAAC;;;;AAGnC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAgBW,GAAM,MAAM,CAAC,KAAK;;yCASC,CAAC;IAC9B,qBACC;sBACC,WAAC;YAAE,YAAU,YAAE;;;;sBACf,WAAC;YAAE;sBAAO;0BAAY,WAAC;;;AAG1B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -93,18 +90,27 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    580,
-    754
+    458,
+    596
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { Cmp } from "./test";
-import { _IMMUTABLE } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.nested.count;
+const _hf0_str = "p0.nested.count";
+const _hf1 = (p0)=>p0.stuff + 12;
+const _hf1_str = "p0.stuff+12";
+const _hf2 = (p0)=>p0.formData?.get('username');
+const _hf2_str = 'p0.formData?.get("username")';
 export const App_component_ckEPmXZlub0 = ()=>{
     const store = useStore({
         count: 0,
@@ -114,42 +120,24 @@ export const App_component_ckEPmXZlub0 = ()=>{
         }
     });
     const signal = useSignal(0);
-    return /*#__PURE__*/ _jsxC(Cmp, {
+    return /*#__PURE__*/ _jsxSorted(Cmp, null, {
         prop: 'true',
-        get count () {
-            return store.count;
-        },
-        get nested () {
-            return store.nested.count;
-        },
+        count: _wrapProp(store, "count"),
+        nested: _fnSignal(_hf0, [
+            store
+        ], _hf0_str),
         signal: signal,
-        get store () {
-            return store.stuff + 12;
-        },
-        get value () {
-            return signal.formData?.get('username');
-        },
-        [_IMMUTABLE]: {
-            prop: _IMMUTABLE,
-            count: _fnSignal((p0)=>p0.count, [
-                store
-            ], "p0.count"),
-            nested: _fnSignal((p0)=>p0.nested.count, [
-                store
-            ], "p0.nested.count"),
-            signal: _IMMUTABLE,
-            store: _fnSignal((p0)=>p0.stuff + 12, [
-                store
-            ], "p0.stuff+12"),
-            value: _fnSignal((p0)=>p0.formData?.get('username'), [
-                signal
-            ], 'p0.formData?.get("username")')
-        }
-    }, 3, "u6_0");
+        store: _fnSignal(_hf1, [
+            store
+        ], _hf1_str),
+        value: _fnSignal(_hf2, [
+            signal
+        ], _hf2_str)
+    }, null, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B;IAC1B,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,MAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;YACrB;mBAAO,OAAO,QAAQ,EAAE,IAAI;;;YAL5B,IAAI;YACJ,KAAK,kBAAE,GAAM,KAAK;;;YAClB,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;YAC1B,MAAM;YACN,KAAK,kBAAE,GAAM,KAAK,GAAG;;;YACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;;AAIxC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBAgBW,GAAM,MAAM,CAAC,KAAK;;mBAEnB,GAAM,KAAK,GAAG;;mBACd,GAAO,QAAQ,EAAE,IAAI;;yCAhBD;IAC7B,MAAM,QAAQ,SAAS;QACtB,OAAO;QACP,OAAO;QACP,QAAQ;YACP,OAAO;QACR;IACD;IACA,MAAM,SAAS,UAAU;IACzB,qBACC,WAAC;QACA,MAAmB;QACnB,KAAK,YAAE;QACP,MAAM;;;QACN,QAAQ;QACR,KAAK;;;QACL,KAAK;;;;AAIR\"}")
 /*
 {
   "origin": "test.tsx",
@@ -165,8 +153,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    90,
-    546
+    88,
+    424
   ]
 }
 */

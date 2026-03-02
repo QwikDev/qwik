@@ -1,0 +1,76 @@
+{
+  "id": "qwik-router-middleware-netlify-edge",
+  "package": "@qwik.dev/qwik-router/middleware/netlify-edge",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `createQwikRouter` instead. Will be removed in V3\n> \n\n\n```typescript\ncreateQwikCity: typeof createQwikRouter\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/netlify-edge/index.ts",
+      "mdFile": "router.createqwikcity.md"
+    },
+    {
+      "name": "createQwikRouter",
+      "id": "createqwikrouter",
+      "hierarchy": [
+        {
+          "name": "createQwikRouter",
+          "id": "createqwikrouter"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikRouter(opts: QwikRouterNetlifyOptions): (request: Request, context: Context) => Promise<Response>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikRouterNetlifyOptions](#qwikrouternetlifyoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n(request: Request, context: Context) =&gt; Promise&lt;Response&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/netlify-edge/index.ts",
+      "mdFile": "router.createqwikrouter.md"
+    },
+    {
+      "name": "PlatformNetlify",
+      "id": "platformnetlify",
+      "hierarchy": [
+        {
+          "name": "PlatformNetlify",
+          "id": "platformnetlify"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> \n```\n**Extends:** Partial&lt;Omit&lt;Context, 'next' \\| 'cookies'&gt;&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/netlify-edge/index.ts",
+      "mdFile": "router.platformnetlify.md"
+    },
+    {
+      "name": "QwikCityNetlifyOptions",
+      "id": "qwikcitynetlifyoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityNetlifyOptions",
+          "id": "qwikcitynetlifyoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterNetlifyOptions` instead. Will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityNetlifyOptions = QwikRouterNetlifyOptions;\n```\n**References:** [QwikRouterNetlifyOptions](#qwikrouternetlifyoptions)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/netlify-edge/index.ts",
+      "mdFile": "router.qwikcitynetlifyoptions.md"
+    },
+    {
+      "name": "QwikRouterNetlifyOptions",
+      "id": "qwikrouternetlifyoptions",
+      "hierarchy": [
+        {
+          "name": "QwikRouterNetlifyOptions",
+          "id": "qwikrouternetlifyoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterNetlifyOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/netlify-edge/index.ts",
+      "mdFile": "router.qwikrouternetlifyoptions.md"
+    }
+  ]
+}

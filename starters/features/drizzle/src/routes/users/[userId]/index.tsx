@@ -1,7 +1,7 @@
-import { component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { routeLoader$ } from "@qwik.dev/router";
+import { component$ } from "@qwik.dev/core";
 import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 import { schema } from "../../../../drizzle/schema";
 
 export const useGetUser = routeLoader$(async (requestEvent) => {

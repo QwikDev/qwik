@@ -12,7 +12,7 @@ import {
   useTask$,
   useVisibleTask$,
   type Signal,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 import { delay } from "../streaming/streaming";
 
 export const EffectClient = component$(() => {
@@ -25,11 +25,11 @@ export const EffectClient = component$(() => {
   console.log("<EffectClient> renders");
   return (
     <div>
-      <Issue1413 />
-      <Issue1717 />
-      <Issue2015 />
-      <Issue1955 />
       <CleanupEffects />
+      <ClientEffectConsoleLogIssue1413 />
+      <CustomHookClientEffectIssue1717 />
+      <AsyncClientEffectBlockingIssue2015 />
+      <ProjectionComponentRootClientEffectIssue1955 />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -43,7 +43,7 @@ export const EffectClient = component$(() => {
 
       <Timer />
       <Eager></Eager>
-      <Issue4432 />
+      <VisibleTaskAfterDestructionIssue4432 />
     </div>
   );
 });
@@ -157,7 +157,7 @@ export const FancyName = component$(() => {
 
 export const fancyName = "Some";
 
-export const Issue1413 = component$(() => {
+export const ClientEffectConsoleLogIssue1413 = component$(() => {
   useVisibleTask$(() => {
     console.log(fancyName);
   });
@@ -179,7 +179,7 @@ export function useDelay(value: string) {
   return ready;
 }
 
-export const Issue1717 = component$(() => {
+export const CustomHookClientEffectIssue1717 = component$(() => {
   const val1 = useDelay("value 1");
   const val2 = useDelay("value 2");
   const renders = useStore(
@@ -205,7 +205,7 @@ export const Issue1717 = component$(() => {
   );
 });
 
-export const Issue2015 = component$(() => {
+export const AsyncClientEffectBlockingIssue2015 = component$(() => {
   const state = useStore({
     logs: [] as string[],
   });
@@ -232,20 +232,26 @@ export const Issue2015 = component$(() => {
   return <div id="issue-2015-order">Order: {state.logs.join(" ")}</div>;
 });
 
-export const Issue1955Helper = component$(() => {
-  return (
-    <div id="issue-1955-results">
-      <Slot />
-    </div>
-  );
-});
+export const ProjectionComponentRootClientEffectIssue1955Helper = component$(
+  () => {
+    return (
+      <div id="issue-1955-results">
+        <Slot />
+      </div>
+    );
+  },
+);
 
-export const Issue1955 = component$(() => {
+export const ProjectionComponentRootClientEffectIssue1955 = component$(() => {
   const signal = useSignal("empty");
   useVisibleTask$(() => {
     signal.value = "run";
   });
-  return <Issue1955Helper>{signal.value + ""}</Issue1955Helper>;
+  return (
+    <ProjectionComponentRootClientEffectIssue1955Helper>
+      {signal.value + ""}
+    </ProjectionComponentRootClientEffectIssue1955Helper>
+  );
 });
 
 export const CleanupEffects = component$(() => {
@@ -274,16 +280,17 @@ export const CleanupEffectsChild = component$(
   },
 );
 
-const ContextIssue4432 = createContextId<{ url: URL; logs: string }>(
-  "issue-4432",
-);
+const ContextVisibleTaskAfterDestructionIssue4432 = createContextId<{
+  url: URL;
+  logs: string;
+}>("issue-4432");
 
-export const Issue4432 = component$(() => {
+export const VisibleTaskAfterDestructionIssue4432 = component$(() => {
   const loc = useStore({
     url: new URL("http://localhost:3000/"),
     logs: "",
   });
-  useContextProvider(ContextIssue4432, loc);
+  useContextProvider(ContextVisibleTaskAfterDestructionIssue4432, loc);
 
   return (
     <>
@@ -294,13 +301,15 @@ export const Issue4432 = component$(() => {
         Change
       </button>
       <pre id="issue-4432-logs">{loc.logs}</pre>
-      {loc.url.pathname === "/" && <Issue4432Child />}
+      {loc.url.pathname === "/" && (
+        <VisibleTaskAfterDestructionIssue4432Child />
+      )}
     </>
   );
 });
 
-export const Issue4432Child = component$(() => {
-  const state = useContext(ContextIssue4432);
+export const VisibleTaskAfterDestructionIssue4432Child = component$(() => {
+  const state = useContext(ContextVisibleTaskAfterDestructionIssue4432);
 
   const pathname = useComputed$(() => state.url.pathname);
 

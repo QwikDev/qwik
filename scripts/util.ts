@@ -20,25 +20,7 @@ import { minify, type MinifyOptions } from 'terser';
 import { promisify } from 'util';
 import { readPackageJson } from './package-json.ts';
 
-const stringOptions = [
-  'distBindingsDir',
-  'distQwikCityPkgDir',
-  'distQwikPkgDir',
-  'distVersion',
-  'dtsDir',
-  'packagesDir',
-  'platformTarget',
-  'rootDir',
-  'scriptsDir',
-  'setDistTag',
-  'srcNapiDir',
-  'srcQwikCityDir',
-  'srcQwikDir',
-  'srcQwikLabsDir',
-  'startersDir',
-  'tmpDir',
-  'tscDir',
-] as const;
+const stringOptions = ['distVersion', 'platformTarget', 'setDistTag'] as const;
 const booleanOptions = [
   'api',
   'cli',
@@ -48,13 +30,13 @@ const booleanOptions = [
   'dryRun',
   'eslint',
   'esmNode',
+  'insights',
   'platformBinding',
   'platformBindingWasmCopy',
   'prepareRelease',
   'qwik',
   'qwikauth',
-  'qwikcity',
-  'qwiklabs',
+  'qwikrouter',
   'qwikreact',
   'qwikworker',
   'release',
@@ -72,6 +54,21 @@ const booleanOptions = [
  */
 export type BuildConfig = { [key in (typeof stringOptions)[number]]: string } & {
   [key in (typeof booleanOptions)[number]]?: boolean;
+} & {
+  distBindingsDir: string;
+  distQwikRouterPkgDir: string;
+  distQwikPkgDir: string;
+  dtsDir: string;
+  packagesDir: string;
+  rootDir: string;
+  scriptsDir: string;
+  srcNapiDir: string;
+  optimizerDir: string;
+  srcQwikRouterDir: string;
+  srcQwikDir: string;
+  startersDir: string;
+  tmpDir: string;
+  tscDir: string;
 };
 
 const kebab = (str: string) => str.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}`);
@@ -80,11 +77,12 @@ const kebab = (str: string) => str.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}
  * Create the `BuildConfig` from the process args, and set the absolute paths the build will be
  * reading from and writing to.
  */
-export function loadConfig(args: string[] = []) {
+export function loadConfig(args: string[] = []): BuildConfig {
   const __dirname = fileURLToPath(new URL('.', import.meta.url));
   const rootDir = join(__dirname, '..');
   const packagesDir = join(rootDir, 'packages');
   const srcQwikDir = join(packagesDir, 'qwik', 'src');
+  const optimizerDir = join(packagesDir, 'qwik', 'src', 'optimizer', 'src');
   const distQwikPkgDir = join(packagesDir, 'qwik', 'dist');
   const tmpDir = join(rootDir, 'dist-dev');
   const knownOptions = [...stringOptions, ...booleanOptions] as const;
@@ -99,23 +97,6 @@ export function loadConfig(args: string[] = []) {
     boolean: [...booleanOptions],
     string: [...stringOptions],
     alias,
-    default: {
-      rootDir,
-      packagesDir,
-      srcQwikDir,
-      tmpDir,
-      srcQwikCityDir: join(packagesDir, 'qwik-city', 'src'),
-      srcQwikLabsDir: join(packagesDir, 'qwik-labs'),
-      srcNapiDir: join(srcQwikDir, 'napi'),
-      scriptsDir: join(rootDir, 'scripts'),
-      startersDir: join(rootDir, 'starters'),
-      distQwikPkgDir,
-      distQwikCityPkgDir: join(packagesDir, 'qwik-city', 'lib'),
-      distBindingsDir: join(packagesDir, 'qwik', 'bindings'),
-      tscDir: join(tmpDir, 'tsc-out'),
-      dtsDir: join(tmpDir, 'dts-out'),
-      esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,
-    } as BuildConfig,
   });
   const parseError =
     config._.length > 0
@@ -138,7 +119,24 @@ export function loadConfig(args: string[] = []) {
     process.exit(1);
   }
 
-  return config;
+  return {
+    ...config,
+    rootDir,
+    packagesDir,
+    optimizerDir,
+    srcQwikDir,
+    tmpDir,
+    srcQwikRouterDir: join(packagesDir, 'qwik-router', 'src'),
+    srcNapiDir: join(srcQwikDir, 'napi'),
+    scriptsDir: join(rootDir, 'scripts'),
+    startersDir: join(rootDir, 'starters'),
+    distQwikPkgDir,
+    distQwikRouterPkgDir: join(packagesDir, 'qwik-router', 'lib'),
+    distBindingsDir: join(packagesDir, 'qwik', 'bindings'),
+    tscDir: join(tmpDir, 'tsc-out'),
+    dtsDir: join(tmpDir, 'dts-out'),
+    esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,
+  };
 }
 
 export function terser(opts: MinifyOptions): RollupPlugin {
@@ -164,6 +162,22 @@ export function importPath(filter: RegExp, newModulePath: string) {
       build.onResolve({ filter }, () => ({
         path: newModulePath,
         external: true,
+        sideEffects: false,
+      }));
+    },
+  };
+  return plugin;
+}
+
+/** Esbuild plugin to mark an import as having external without side effects. */
+export function externalImportNoEffects(filter: RegExp) {
+  const plugin: Plugin = {
+    name: 'externalImportPlugin',
+    setup(build) {
+      build.onResolve({ filter }, ({ path }) => ({
+        path,
+        external: true,
+        sideEffects: false,
       }));
     },
   };
@@ -176,7 +190,7 @@ export const getBanner = (moduleName: string, version: string) => {
 /**
  * @license
  * ${moduleName} ${version}
- * Copyright Builder.io, Inc. All Rights Reserved.
+ * Copyright QwikDev. All Rights Reserved.
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/QwikDev/qwik/blob/main/LICENSE
  */
@@ -187,9 +201,9 @@ export const getBanner = (moduleName: string, version: string) => {
  * The JavaScript target we're going for. Reusing a constant just to make sure all the builds are
  * using the same target.
  */
-export const target = 'es2020';
+export const target = 'safari15.4';
 
-export const nodeTarget = 'node16';
+export const nodeTarget = 'es2024';
 
 /** Helper just to know which Node.js modules that should stay external. */
 export const nodeBuiltIns = [

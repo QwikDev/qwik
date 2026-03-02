@@ -19,7 +19,9 @@ contributors:
   - adamdbradley
   - aendel
   - jemsco
-updated_at: '2023-10-18T07:33:22Z'
+  - varixo
+  - wmertens
+updated_at: '2026-02-10T12:00:00Z'
 created_at: '2023-03-31T02:40:50Z'
 ---
 
@@ -33,21 +35,23 @@ Tasks are meant for running asynchronous operations as part of component initial
 > **Note**: Tasks are similar to `useEffect()` in React, but there are enough differences that we did not want to call them the same so as not to bring preexisting expectations about how they work. The main differences are:
 >
 > - Tasks are asynchronous.
-> - Task run on server and browser.
+> - Tasks run on server and browser.
 > - Tasks run before rendering and can block rendering.
+> - Subsequent task re-executions (when tracked state changes) block rendering by default, but can be configured to not block DOM updates with `deferUpdates: false`.
 
-`useTask$()` should be your default go-to API for running either synchronous or asynchronous work as part of component initialization or state change. It is only when you can't achieve what you need with `useTask$()` that you should consider using `useVisibleTask$()` or `useResource$()`.
+`useTask$()` should be your default go-to API for running either synchronous or asynchronous work as part of component initialization or state change. It is only when you can't achieve what you need with `useTask$()` that you should consider using `useVisibleTask$()`.
 
 The basic use case for `useTask$()` is to perform work on component initialization. `useTask$()` has these properties:
 - It can run on either the server or in the browser.
-- It runs before rendering and blocks rendering.
+- It runs before the initial rendering and blocks the initial render.
 - If multiple tasks are running then they are run sequentially in the order they were registered. An asynchronous task will block the next task from running until it completes.
+- By default, subsequent re-executions (when tracked state changes) do block DOM updates unless `deferUpdates: false` is specified.
 
 Tasks can also be used to perform work when a component state changes. In this case, the task will rerun every time the tracked state changes. See: [`track()`](#track).
 
 Sometimes a task needs to run only on the browser and after rendering, in that case, you should use [`useVisibleTask$()`](#usevisibletask).
 
-> **Note**: If you need to fetch data asynchronously and not block rendering, you should use [`useResource$()`](/docs/core/state/#useresource).  [`useResource$()`](/docs/core/state/#useresource) does not block rendering while the resource is being resolved.
+> **Note**: If you need to fetch data asynchronously and not block rendering, you should use [`useAsync$()`](/docs/core/state/#useasync). `useAsync$()` does not block rendering while the async value is being resolved.
 
 ## Lifecycle
 Resumability is "Lazy execution", it's the ability to build the "framework state" (component boundaries, etc) on the server, and have it exist on the client without re-executing the framework again.
@@ -59,7 +63,7 @@ When the user interacts with the application, it resumes on the client-side, con
 
 **In Qwik, there are only 3 lifecycle stages:**
 
-- `Task` - run before rendering and when tracked state changes. `Tasks` run sequentially, and block rendering.
+- `Task` - run before rendering and when tracked state changes. `Tasks` run sequentially, and block each other. They also can block rendering.
 - `Render` - runs after `TASK` and before `VisibleTask`
 - `VisibleTask` - runs after `Render` and when the component becomes visible
 
@@ -93,6 +97,28 @@ When the user interacts with the application, it resumes on the client-side, con
 
 `useTask$()` registers a hook to be executed upon component creation, it will run at least once either in the server or in the browser, depending on where the component is initially rendered.
 
+### Task options
+
+`useTask$()` accepts an optional second parameter of type `TaskOptions` to configure the task behavior.
+
+```typescript
+interface TaskOptions {
+  deferUpdates?: boolean;
+}
+```
+
+#### `deferUpdates`
+
+The `deferUpdates` option controls whether subsequent task re-executions (when tracked state changes) should block DOM updates.
+
+**Default behavior (`deferUpdates: false` or not specified):**
+- **Initial render**: The task blocks rendering (same as default)
+- **Subsequent runs**: The task blocks DOM updates until it completes - the journal flush is deferred until the task finishes
+
+**With `deferUpdates: true`:**
+- **Initial render**: The task blocks rendering (runs before the component renders for the first time)
+- **Subsequent runs**: The task runs asynchronously without blocking DOM updates
+
 Additionally, this task can be reactive and will re-execute when **tracked** [state](/docs/(qwik)/core/state/index.mdx) changes.
 
 **Notice that any subsequent re-execution of the task will always happen in the browser**, because reactivity is a browser-only thing.
@@ -110,13 +136,13 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 > If `useTask$()` does not track any state, it will run **exactly once**, either in the server **or** in the browser (**not both**), depending where the component is initially rendered. Effectively behaving like an "on-mount" hook.
 
-`useTask$()` will block the rendering of the component until after its async callback resolves, in other words, tasks execute sequentially even if they are asynchronous. (Only one task executes at a time).
+`useTask$()` will block the rendering of the component until after its async callback resolves. Tasks execute sequentially even if they are asynchronous (only one task executes at a time within a component). Subsequent re-executions (when tracking state changes) run asynchronously by default and block rendering unless `deferUpdates: false` is set.
 
 Take a look at the simplest use case of the task to run some asynchronous work on component initialization:
 
 <CodeSandbox src="/src/routes/demo/tasks/use-task/index.tsx" style={{ height: '6em' }}>
 ```tsx
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const fibonacci = useSignal<number[]>();
@@ -151,10 +177,10 @@ const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
 Use `useTask$()` when you need to:
 - Run async tasks before rendering
-- Run code only once before the component is first rendered
+- Run code only once before the component is first rendered  
 - Programmatically run side-effect code when state changes
 
-> Note, if you're thinking about loading data using `fetch()` inside of `useTask$`, consider using [`useResource$()`](/docs/core/state/#useresource) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
+> Note, if you're thinking about loading data using `fetch()` inside of `useTask$`, consider using [`useAsync$()`](/docs/core/state/#useasync) instead. This API is more convenient.
 
 ### On mount
 
@@ -164,7 +190,7 @@ This is without the inner track function, which is used to monitor specific piec
 `useTask$` runs always at least once when the component is first mounted.
 
 ```tsx {5-8}
-import { component$, useTask$ } from '@builder.io/qwik';
+import { component$, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
 
@@ -190,12 +216,11 @@ Note that deep store updates don't mutate the store itself, so `store[item].coun
 
 During SSR, each component will wait until all tasks are completed before outputting the HTML for that component. So a task can be called multiple times during SSR if the tracked state changes due to other tasks.
 
-> **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/core/state/#usecomputed) instead.
+> **Note**: If all you want to do is compute a new state from an existing state synchronously, use [`useComputed$()`](/docs/core/state/#usecomputed). For async derivations (like search-as-you-type), use [`useAsync$()`](/docs/core/state/#useasync) and cancel in-flight work with `cleanup()` and `AbortController`.
 
 <CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" style={{ height: '6em' }} >
 ```tsx
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik';
+import { component$, isServer, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const text = useSignal('Initial text');
@@ -237,7 +262,7 @@ const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 >
 > - The `useTask$()` blocks rendering until it completes. If you don't want to block rendering, make sure that the task is resolved, and run the delay work on a separate unconnected promise. In this example, we don't await `delay()` because it would block rendering.
 
-> Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@builder.io/qwik` as shown above.
+> Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@qwik.dev/core` as shown above.
 
 
 ### `track()` as a function
@@ -246,8 +271,7 @@ In the above example, `track()` was used to track a specific signal. However, `t
 
 <CodeSandbox src="/src/routes/demo/tasks/track-fn/index.tsx" style={{ height: '6em' }} >
 ```tsx
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik';
+import { component$, isServer, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const isUppercase = useSignal(false);
@@ -297,7 +321,7 @@ This example shows how to implement a debounce feature using the `cleanup()` fun
 
 <CodeSandbox src="/src/routes/demo/tasks/cleanup/index.tsx" style={{ height: '6em' }} >
 ```tsx
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const text = useSignal('');
@@ -332,13 +356,12 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 - runs after initial rendering.
 - does not block rendering.
 
-> **Caution**: The `useVisibleTask$()` should be used as a last resort, because it eagerly executes code on the client. Qwik, through [resumability](), goes out of its way to delay the execution of code on the client, and `useVisibleTask$()` is an escape hatch that should be used with caution. See [Best Practices](/docs/(qwikcity)/guides/best-practices/index.mdx#dont-register-events-eagerly-with-usevisibletask) for more details.
+> **Caution**: The `useVisibleTask$()` should be used as a last resort, because it eagerly executes code on the client. Qwik, through [resumability](), goes out of its way to delay the execution of code on the client, and `useVisibleTask$()` is an escape hatch that should be used with caution. See [Best Practices](/docs/(qwikrouter)/guides/best-practices/index.mdx#dont-register-events-eagerly-with-usevisibletask) for more details.
 > If you need to run a task on a client consider `useTask$()` with a server guard.
 >
 > <CodeSandbox src="/src/routes/demo/tasks/track-server-guard/index.tsx" style={{ height: '6em' }}>
 > ```tsx
-> import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-> import { isServer } from '@builder.io/qwik';
+> import { component$, isServer, useSignal, useTask$ } from '@qwik.dev/core';
 >
 > export default component$(() => {
 >   const text = useSignal('Initial text');
@@ -382,7 +405,7 @@ import {
   useSignal,
   useVisibleTask$,
   type Signal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 export default component$(() => {
   const isClockRunning = useSignal(false);
@@ -428,7 +451,7 @@ import {
   useSignal,
   useVisibleTask$,
   type Signal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 export default component$(() => {
   const isClockRunning = useSignal(false);

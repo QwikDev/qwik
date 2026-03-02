@@ -1,13 +1,12 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3574
+assertion_line: 3918
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-		import { component$, useSignal } from '@builder.io/qwik';
+		import { component$, useSignal } from '@qwik.dev/core';
 		const useFoo = (count) => {
 			const tag = (s) => {
 				const value = typeof s === "string" ? s : s[0];
@@ -28,32 +27,63 @@ snapshot_kind: text
 			);
 		});
 		
-============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+============================= test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw.ts (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { _auto_useFoo as useFoo } from "./test";
-import { useSignal } from "@builder.io/qwik";
-export const test_component_LUXeXe0DQrg = ()=>{
-    const count = useSignal(0);
-    const foo = useFoo(count);
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("p", null, null, foo("test"), 1, null),
-            /*#__PURE__*/ _jsxQ("p", null, null, foo`test`, 1, null),
-            /*#__PURE__*/ _jsxQ("button", null, {
-                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY"), "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
-                    count
-                ])
-            }, "Count up", 3, null)
-        ]
-    }, 1, "u6_0");
+import { _captures } from "@qwik.dev/core";
+export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = ()=>{
+    const count = _captures[0];
+    return count.value++;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;;0BACC,MAAC,iBAAG,IAAI;0BACR,MAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;0BACb,MAAC;gBAAO,QAAQ;;;eAAuB;;;AAG1C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";oEAiBuB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_Fragment_button_q_e_click_7MTd2pAiliw",
+  "entry": null,
+  "displayName": "test.tsx_test_component_Fragment_button_q_e_click",
+  "hash": "7MTd2pAiliw",
+  "canonicalFilename": "test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw",
+  "path": "",
+  "extension": "ts",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    418,
+    437
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { _auto_useFoo as useFoo } from "./test";
+import { useSignal } from "@qwik.dev/core";
+const i_7MTd2pAiliw = ()=>import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw");
+export const test_component_LUXeXe0DQrg = ()=>{
+    const count = useSignal(0);
+    const foo = useFoo(count);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("p", null, null, foo("test"), 1, null),
+        /*#__PURE__*/ _jsxSorted("p", null, null, foo`test`, 1, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": /*#__PURE__*/ qrl(i_7MTd2pAiliw, "test_component_Fragment_button_q_e_click_7MTd2pAiliw", [
+                count
+            ])
+        }, "Count up", 3, null)
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,WAAQ;;;WAAuB;;AAG1C\"}")
 /*
 {
   "origin": "test.tsx",
@@ -69,45 +99,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    259,
-    476
-  ]
-}
-*/
-============================= test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY.ts (ENTRY POINT)==
-
-import { useLexicalScope } from "@builder.io/qwik";
-export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
-    const [count] = useLexicalScope();
-    return count.value++;
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAiBuB;;WAAM,MAAM,KAAK\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_Fragment_button_onClick_eF3QEzgQWcY",
-  "entry": null,
-  "displayName": "test.tsx_test_component_Fragment_button_onClick",
-  "hash": "eF3QEzgQWcY",
-  "canonicalFilename": "test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY",
-  "path": "",
-  "extension": "ts",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    420,
-    439
+    257,
+    474
   ]
 }
 */
 ============================= test.ts ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
 const useFoo = (count)=>{
     const tag = (s)=>{
         const value = typeof s === "string" ? s : s[0];
@@ -115,11 +116,11 @@ const useFoo = (count)=>{
     };
     return tag;
 };
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 export { useFoo as _auto_useFoo };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEE,MAAM,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;AAEA,6BAAe,mHAUZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEE,MAAM,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;AAEA,6BAAe,6EAUZ\"}")
 == DIAGNOSTICS ==
 
 []

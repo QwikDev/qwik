@@ -1,66 +1,63 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3482
+assertion_line: 3594
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-        import { sync$, component$ } from "@builder.io/qwik";
+		import { sync$, component$ } from "@qwik.dev/core";
 
-        export default component$(() => {
-        return (
-            <>
-                <input onClick$={sync$(function(event, target) {
-                    // comment should be removed
-                    event.preventDefault();
-                })}/>
-                <input onClick$={sync$((event, target) => {
-                    event.preventDefault();
-                })}/>
-                <input onClick$={sync$((event, target) => event.preventDefault())}/>
-            </>
-        );
-        });
-        
+		export default component$(() => {
+		return (
+			<>
+				<input onClick$={sync$(function(event, target) {
+					// comment should be removed
+					event.preventDefault();
+				})}/>
+				<input onClick$={sync$((event, target) => {
+					event.preventDefault();
+				})}/>
+				<input onClick$={sync$((event, target) => event.preventDefault())}/>
+			</>
+		);
+		});
+		
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGQ,6BAAe,mHAaZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,6EAaZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { _qrlSync } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _qrlSync } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = ()=>{
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("input", {
-                onClick$: _qrlSync(function(event, target) {
-                    // comment should be removed
-                    event.preventDefault();
-                }, "function(event,target){event.preventDefault();}")
-            }, null, null, 2, null),
-            /*#__PURE__*/ _jsxQ("input", {
-                onClick$: _qrlSync((event, target)=>{
-                    event.preventDefault();
-                }, "(event,target)=>{event.preventDefault();}")
-            }, null, null, 2, null),
-            /*#__PURE__*/ _jsxQ("input", {
-                onClick$: _qrlSync((event, target)=>event.preventDefault(), "(event,target)=>event.preventDefault()")
-            }, null, null, 2, null)
-        ]
-    }, 1, "u6_0");
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("input", {
+            "q-e:click": _qrlSync(function(event, target) {
+                // comment should be removed
+                event.preventDefault();
+            }, "function(event,target){event.preventDefault();}")
+        }, null, null, 2, null),
+        /*#__PURE__*/ _jsxSorted("input", {
+            "q-e:click": _qrlSync((event, target)=>{
+                event.preventDefault();
+            }, "(event,target)=>{event.preventDefault();}")
+        }, null, null, 2, null),
+        /*#__PURE__*/ _jsxSorted("input", {
+            "q-e:click": _qrlSync((event, target)=>event.preventDefault(), "(event,target)=>event.preventDefault()")
+        }, null, null, 2, null)
+    ], 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAGkC;IAC1B,qBACI;;0BACI,MAAC;gBAAM,QAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM;oBACzC,4BAA4B;oBAC5B,MAAM,cAAc;gBACxB;;0BACA,MAAC;gBAAM,QAAQ,WAAQ,CAAC,OAAO;oBAC3B,MAAM,cAAc;gBACxB;;0BACA,MAAC;gBAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;;AAGtE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG4B;IAC1B,qBACC;sBACC,WAAC;YAAM,WAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM;gBAC5C,4BAA4B;gBAC5B,MAAM,cAAc;YACrB;;sBACA,WAAC;YAAM,WAAQ,WAAQ,CAAC,OAAO;gBAC9B,MAAM,cAAc;YACrB;;sBACA,WAAC;YAAM,WAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;AAGhE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -76,8 +73,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    99,
-    566
+    85,
+    411
   ]
 }
 */

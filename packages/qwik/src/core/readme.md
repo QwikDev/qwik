@@ -30,11 +30,29 @@ See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocum
 
 @public
 
+# `useSignal`
+
+Creates an object with a single reactive `.value` property, that Qwik can track across serializations.
+
+Use it to create state for your application. The object has a getter and setter to track reads and writes of the `.value` property. When the value changes, any functions that read from it will re-run.
+
+Prefer `useSignal` over `useStore` when possible, as it is more efficient.
+
+### Example
+
+<docs code="./examples.tsx#use-signal"/>
+
+@public
+
 # `useStore`
 
-Creates an object that Qwik can track across serializations.
+Creates a reactive object that Qwik can track across serialization.
 
-Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+Use it to create state for your application. The returned object is a Proxy that tracks reads and writes. When any of the properties change, the functions that read those properties will re-run.
+
+`Store`s are deep by default, meaning that any objects assigned to properties will also become `Store`s. This includes arrays.
+
+Prefer `useSignal` over `useStore` when possible, as it is more efficient.
 
 ### Example
 
@@ -56,18 +74,14 @@ The status can be one of the following:
 - `resolved` - the data is available.
 - `rejected` - the data is not available due to an error or timeout.
 
-Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing it, the resource status will never be `rejected`.
+Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`.
 
-### Example
-
-Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
-
-<docs code="./examples.tsx#use-resource"/>
-
+@see useAsync$
 @see Resource
 @see ResourceReturn
 
 @public
+@deprecated Use `useAsync$` instead, which is more powerful and flexible. `useResource$` is still available for backward compatibility but it is recommended to migrate to `useAsync$` for new code and when updating existing code.
 
 # `useTask`
 
@@ -160,6 +174,8 @@ Register a listener on the current component's host element.
 
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
 
+Events are case sensitive.
+
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
 @public
@@ -169,6 +185,8 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Register a listener on `window`.
 
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
+
+Events are case sensitive.
 
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
@@ -181,6 +199,8 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Register a listener on `document`.
 
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
+
+Events are case sensitive.
 
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
@@ -208,6 +228,7 @@ This method should not be present in the application source code.
 
 NOTE: `useLexicalScope` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
+@deprecated Use `_captures` instead.
 @internal
 
 # `QRL`
@@ -272,7 +293,7 @@ The above code needs to be serialized into DOM such as:
 
 ```
 <div q:base="/build/">
-  <button on:click="./chunk-abc.js#onClick">...</button>
+  <button q-e:click="./chunk-abc.js#onClick">...</button>
 </div>
 ```
 
@@ -391,7 +412,8 @@ Assign a value to a Context.
 
 Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.
 
-Context is a way to pass stores to the child components without prop-drilling.
+Context is a way to pass stores to the child components without prop-drilling. Note that scalar
+values are allowed, but for reactivity you need signals or stores.
 
 ### Example
 

@@ -1,18 +1,19 @@
-import { version as qwikVersion } from '@builder.io/qwik';
+import { version as qwikVersion } from '@qwik.dev/core';
 import type { PkgUrls } from '../types';
 
-import qBuild from '../../../node_modules/@builder.io/qwik/dist/build/index.d.ts?raw-source';
-import qCoreDts from '../../../node_modules/@builder.io/qwik/dist/core.d.ts?raw-source';
-import qCoreMinMjs from '../../../node_modules/@builder.io/qwik/dist/core.min.mjs?raw-source';
-import qCoreMjs from '../../../node_modules/@builder.io/qwik/dist/core.mjs?raw-source';
-import qOptimizerMjs from '../../../node_modules/@builder.io/qwik/dist/optimizer.mjs?raw-source';
-import qPreloaderMjs from '../../../node_modules/@builder.io/qwik/dist/preloader.mjs?raw-source';
+import qBuild from '../../../node_modules/@qwik.dev/core/dist/build/index.d.ts?raw-source';
+import qCoreDts from '../../../node_modules/@qwik.dev/core/dist/core-internal.d.ts?raw-source';
+import qCoreMinMjs from '../../../node_modules/@qwik.dev/core/dist/core.min.mjs?raw-source';
+import qCoreMjs from '../../../node_modules/@qwik.dev/core/dist/core.mjs?raw-source';
+import qOptimizerMjs from '../../../node_modules/@qwik.dev/core/dist/optimizer.mjs?raw-source';
+import qPreloaderMjs from '../../../node_modules/@qwik.dev/core/dist/preloader.mjs?raw-source';
+import qHandlersMjs from '../../../node_modules/@qwik.dev/core/handlers.mjs?raw-source';
 // we use the debug version for the repl so it's understandable
-import qQwikLoaderJs from '../../../node_modules/@builder.io/qwik/dist/qwikloader.debug.js?raw-source';
-import qServerMjs from '../../../node_modules/@builder.io/qwik/dist/server.mjs?raw-source';
-import qServerDts from '../../../node_modules/@builder.io/qwik/dist/server.d.ts?raw-source';
-import qWasmMjs from '../../../node_modules/@builder.io/qwik/bindings/qwik.wasm.mjs?raw-source';
-import qWasmBinUrl from '../../../node_modules/@builder.io/qwik/bindings/qwik_wasm_bg.wasm?raw-source';
+import qQwikLoaderJs from '../../../node_modules/@qwik.dev/core/dist/qwikloader.debug.js?raw-source';
+import qServerMjs from '../../../node_modules/@qwik.dev/core/dist/server.mjs?raw-source';
+import qServerDts from '../../../node_modules/@qwik.dev/core/dist/server.d.ts?raw-source';
+import qWasmMjs from '../../../node_modules/@qwik.dev/core/bindings/qwik.wasm.mjs?raw-source';
+import qWasmBinUrl from '../../../node_modules/@qwik.dev/core/bindings/qwik_wasm_bg.wasm?raw-source';
 
 import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
 
@@ -55,6 +56,7 @@ const qwikUrls: PkgUrls[string] = {
   '/dist/qwikloader.js': qQwikLoaderJs,
   '/bindings/qwik.wasm.mjs': qWasmMjs,
   '/bindings/qwik_wasm_bg.wasm': qWasmBinUrl,
+  '/handlers.mjs': qHandlersMjs,
 };
 export const bundled: PkgUrls = {
   [QWIK_PKG_NAME_V1]: qwikUrls,

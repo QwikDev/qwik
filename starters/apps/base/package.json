@@ -16,18 +16,17 @@
     "qwik": "qwik"
   },
   "devDependencies": {
-    "@builder.io/qwik": "latest",
-    "@builder.io/qwik-city": "latest",
-    "@eslint/js": "^9",
+    "@qwik.dev/core": "latest",
+    "@qwik.dev/router": "latest",
+    "@eslint/js": "latest",
     "@types/node": "latest",
     "typescript-eslint": "latest",
-    "eslint": "^9",
+    "eslint": "latest",
     "eslint-plugin-qwik": "latest",
     "globals": "latest",
     "prettier": "latest",
     "typescript": "latest",
     "typescript-plugin-css-modules": "latest",
-    "undici": "latest",
     "vite": "latest",
     "vite-tsconfig-paths": "^4.2.1"
   },

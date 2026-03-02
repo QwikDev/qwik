@@ -1,18 +1,76 @@
-export { _pauseFromContexts, _serializeData } from './container/pause';
-export { _noopQrl, _noopQrlDEV, _regSymbol } from './qrl/qrl';
-export { _renderSSR } from './render/ssr/render-ssr';
-export { _hW } from './render/dom/notify-render';
-export { _wrapSignal, _wrapProp } from './state/signal';
-export { _restProps } from './state/store';
-export { _IMMUTABLE } from './state/constants';
-export { _weakSerialize } from './state/common';
-export { _deserializeData } from './container/resume';
-export { verifySerializable as _verifySerializable } from './state/common';
+export { _noopQrl, _noopQrlDEV, _regSymbol } from './shared/qrl/qrl';
+export type { QRLInternal as _QRLInternal } from './shared/qrl/qrl-class';
+export { createQRL as _createQRL } from './shared/qrl/qrl-class';
+export { qrlToString as _qrlToString } from './shared/serdes/qrl-to-string';
+// ^ keep this above to avoid circular dependency issues
+
 export {
-  _getContextElement,
+  DomContainer as _DomContainer,
+  getDomContainer as _getDomContainer,
+} from './client/dom-container';
+export { _run } from './client/run-qrl';
+export type {
+  ContainerElement as _ContainerElement,
+  QDocument as _QDocument,
+  VNodeFlags as _VNodeFlags,
+} from './client/types';
+export {
+  mapApp_findIndx as _mapApp_findIndx,
+  mapArray_get as _mapArray_get,
+  mapArray_set as _mapArray_set,
+} from './client/util-mapArray';
+export {
+  vnode_ensureElementInflated as _vnode_ensureElementInflated,
+  vnode_getAttrKeys as _vnode_getAttrKeys,
+  vnode_getFirstChild as _vnode_getFirstChild,
+  vnode_isMaterialized as _vnode_isMaterialized,
+  vnode_isTextVNode as _vnode_isTextVNode,
+  vnode_isVirtualVNode as _vnode_isVirtualVNode,
+  vnode_toString as _vnode_toString,
+} from './client/vnode-utils';
+export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export type { Container as _Container } from './shared/types';
+export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
+export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
+export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
+export type { VNode as _VNode } from './shared/vnode/vnode';
+
+export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
+export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';
+export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
+export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
+export {
+  isStringifiable as _isStringifiable,
+  type Stringifiable as _Stringifiable,
+} from './shared-types';
+export { _chk, _res, _val } from './shared/jsx/bind-handlers';
+export { _jsxC, _jsxQ, _jsxS, _jsxSorted, _jsxSplit } from './shared/jsx/jsx-internal';
+export { isJSXNode as _isJSXNode } from './shared/jsx/jsx-node';
+export { _getConstProps, _getVarProps } from './shared/jsx/props-proxy';
+export { _fnSignal } from './shared/qrl/inlined-fn';
+export {
+  _deserialize,
+  _dumpState,
+  preprocessState as _preprocessState,
+  _serialize,
+} from './shared/serdes/index';
+export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
+export { _SharedContainer } from './shared/shared-container';
+export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
+export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
+export { _restProps } from './shared/utils/prop';
+export { _walkJSX } from './ssr/ssr-render-jsx';
+export { _resolveContextWithoutSequentialScope } from './use/use-context';
+export {
+  _getContextContainer,
   _getContextEvent,
+  _getContextHostElement,
   _jsxBranch,
   _waitUntilRendered,
 } from './use/use-core';
-export { _jsxQ, _jsxC, _jsxS } from './render/jsx/jsx-runtime';
-export { _fnSignal } from './qrl/inlined-fn';
+export { useLexicalScope } from './use/use-lexical-scope.public';
+export { isTask as _isTask, scheduleTask as _task } from './use/use-task';
+export { _captures } from './shared/qrl/qrl-class';
+export { _rsc } from './use/use-resource';
+export type { AsyncSignalOptions } from './reactive-primitives/types';
+export { setEvent as _setEvent } from './ssr/ssr-events';

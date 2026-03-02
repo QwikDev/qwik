@@ -82,7 +82,7 @@ bun run storybook
 The following demonstrates a simple story that uses a qwik component:
 
 ```tsx title="src/components/button.tsx"
-import { component$ } from "@builder.io/qwik";
+import { component$ } from "@qwik.dev/core";
 
 export interface ButtonProps {
   label: string;
@@ -115,13 +115,13 @@ export const Primary: Story = {
 };
 ```
 
-### Component That Uses QwikCity
+### Component That Uses Qwik Router
 
-When using Qwikcity, you must pass a context to the story by using the [`<QwikCityMockProvider>`](https://qwik.dev/docs/api/#qwikcitymockprovider):
+When using Qwik Router, you must pass a context to the story by using the [`<QwikRouterMockProvider>`](https://qwik.dev/docs/api/#qwikroutermockprovider):
 
 ```tsx title="src/components/with-link.tsx"
-import { component$ } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
+import { component$ } from "@qwik.dev/core";
+import { Link } from "@qwik.dev/router";
 
 export const WithLink = component$(() => {
   return (
@@ -132,7 +132,7 @@ export const WithLink = component$(() => {
 
 ```tsx title="src/components/with-link.stories.tsx"
 import type { Meta, StoryObj } from "storybook-framework-qwik";
-import { QwikCityMockProvider } from "@builder.io/qwik-city";
+import { QwikRouterMockProvider } from "@qwik.dev/router";
 
 import { WithLink } from "./with-link";
 
@@ -145,9 +145,9 @@ export default meta;
 
 export const Primary: Story = {
   render: () =>
-    <QwikCityMockProvider>
+    <QwikRouterMockProvider>
       <WithLink />
-    </QwikCityMockProvider>
+    </QwikRouterMockProvider>
 };
 ```
 

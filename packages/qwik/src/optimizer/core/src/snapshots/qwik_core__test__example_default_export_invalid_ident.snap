@@ -1,40 +1,67 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1484
+assertion_line: 1595
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
-    return (
-        <div onClick$={() => console.log(mongodb)}>
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log(mongodb)}>
+		</div>
+	);
 });
 
 
+============================= src/components/mongo/404.tsx__404_component_div_q_e_click_aMLnLWtkRhc.tsx (ENTRY POINT)==
+
+export const _404_component_div_q_e_click_aMLnLWtkRhc = ()=>console.log(mongodb);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"wDAKiB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/components/mongo/404.tsx",
+  "name": "_404_component_div_q_e_click_aMLnLWtkRhc",
+  "entry": null,
+  "displayName": "404.tsx__404_component_div_q_e_click",
+  "hash": "aMLnLWtkRhc",
+  "canonicalFilename": "404.tsx__404_component_div_q_e_click_aMLnLWtkRhc",
+  "path": "src/components/mongo",
+  "extension": "tsx",
+  "parent": "_404_component_zRvoWc98eqo",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    109,
+    135
+  ]
+}
+*/
 ============================= src/components/mongo/404.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_zRvoWc98eqo"), "_404_component_zRvoWc98eqo"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_zRvoWc98eqo = ()=>import("./404.tsx__404_component_zRvoWc98eqo");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_zRvoWc98eqo, "_404_component_zRvoWc98eqo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,kHAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,6EAKZ\"}")
 ============================= src/components/mongo/404.tsx__404_component_zRvoWc98eqo.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+const i_aMLnLWtkRhc = ()=>import("./404.tsx__404_component_div_q_e_click_aMLnLWtkRhc");
 export const _404_component_zRvoWc98eqo = ()=>{
-    return <div onClick$={/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_onClick_OiMo9dvEW9Q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
-        </div>;
+    return <div q-e:click={/*#__PURE__*/ qrl(i_aMLnLWtkRhc, "_404_component_div_q_e_click_aMLnLWtkRhc")}>
+		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B;IACtB,QACK,IAAI,uIAAsC;QAC3C,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;0CAG0B;IACzB,QACE,IAAI,yFAAsC;EAC3C,EAAE;AAEJ\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",
@@ -50,34 +77,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    76,
-    172
-  ]
-}
-*/
-============================= src/components/mongo/404.tsx__404_component_div_onClick_OiMo9dvEW9Q.tsx (ENTRY POINT)==
-
-export const _404_component_div_onClick_OiMo9dvEW9Q = ()=>console.log(mongodb);
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"sDAKuB,IAAM,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "src/components/mongo/404.tsx",
-  "name": "_404_component_div_onClick_OiMo9dvEW9Q",
-  "entry": null,
-  "displayName": "404.tsx__404_component_div_onClick",
-  "hash": "OiMo9dvEW9Q",
-  "canonicalFilename": "404.tsx__404_component_div_onClick_OiMo9dvEW9Q",
-  "path": "src/components/mongo",
-  "extension": "tsx",
-  "parent": "_404_component_zRvoWc98eqo",
-  "ctxKind": "jSXProp",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    120,
-    146
+    74,
+    152
   ]
 }
 */

@@ -1,4 +1,4 @@
-import { component$, useStore, useComputed$, type QwikMouseEvent } from '@builder.io/qwik';
+import { component$, useStore, useComputed$ } from '@qwik.dev/core';
 import { vectorMax, type Bucket } from '~/stats/vector';
 
 const height = 75;
@@ -51,7 +51,7 @@ export default component$<{
         style={{ height: height + 'px' }}
         onMouseEnter$={() => (callout.show = true)}
         onMouseLeave$={() => (callout.show = false)}
-        onMouseMove$={(event: QwikMouseEvent<MouseEvent>) => {
+        onMouseMove$={(event) => {
           callout.x = event.clientX;
           callout.y = event.clientY;
           const target = event.target as HTMLElement;

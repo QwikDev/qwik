@@ -1,0 +1,154 @@
+import type { StreamWriter } from '@qwik.dev/core/internal';
+import type { RenderOptions } from '@qwik.dev/core/server';
+import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
+
+export interface System {
+  createMainProcess: (() => Promise<MainContext>) | null;
+  createWorkerProcess: (
+    onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
+  ) => void | Promise<void>;
+  createLogger: () => Promise<Logger>;
+  getOptions: () => SsgOptions;
+  ensureDir: (filePath: string) => Promise<void>;
+  access: (path: string) => Promise<boolean>;
+  createWriteStream: (filePath: string) => StaticStreamWriter;
+  createTimer: () => () => number;
+  getRouteFilePath: (pathname: string, isHtml: boolean) => string;
+  getDataFilePath: (pathname: string) => string;
+  getEnv: (key: string) => string | undefined;
+  platform: { [key: string]: any };
+}
+
+export interface StaticStreamWriter extends StreamWriter {
+  write: (chunk: string | Buffer) => void;
+  end(callback?: () => void): void;
+  on(event: 'error', callback: (err: Error) => void): void;
+}
+
+export interface MainContext {
+  hasAvailableWorker: () => boolean;
+  render: (staticRoute: SsgRenderInput) => Promise<SsgWorkerRenderResult>;
+  close: () => Promise<void>;
+}
+
+export interface Logger {
+  info: (...msgs: any[]) => void;
+  error: (...msgs: any[]) => void;
+  debug: (...msgs: any[]) => void;
+}
+
+/** @public */
+export interface SsgRenderOptions extends RenderOptions {
+  /** File system directory where the static files should be written. */
+  outDir: string;
+  /**
+   * The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For
+   * example, `https://qwik.dev` has the protocol `https://` and domain `qwik.dev`. However, the
+   * `origin` does not include a `pathname`.
+   *
+   * The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate
+   * a complete URL rather than just the `pathname`. For example, in order to render a correct
+   * canonical tag URL or URLs within the `sitemap.xml`, the `origin` must be provided too.
+   *
+   * If the site also starts with a pathname other than `/`, please use the `basePathname` option in
+   * the Qwik Router config options.
+   */
+  origin: string;
+  /**
+   * Maximum number of workers to use while generating the static pages. Defaults to the number of
+   * CPUs available.
+   */
+  maxWorkers?: number;
+  /** Maximum number of tasks to be running at one time per worker. Defaults to `20`. */
+  maxTasksPerWorker?: number;
+  /**
+   * File system path to write the `sitemap.xml` to. Defaults to `sitemap.xml` and written to the
+   * root of the `outDir`. Setting to `null` will prevent the sitemap from being created.
+   */
+  sitemapOutFile?: string | null;
+  /** Log level. */
+  log?: 'debug';
+  /**
+   * Set to `false` if the generated static HTML files should not be written to disk. Setting to
+   * `false` is useful if the SSG should only write the `q-data.json` files to disk. Defaults to
+   * `true`.
+   */
+  emitHtml?: boolean;
+  /**
+   * Set to `false` if the generated `q-data.json` data files should not be written to disk.
+   * Defaults to `true`.
+   */
+  emitData?: boolean;
+  /**
+   * Set to `false` if the static build should not write custom or default `404.html` pages.
+   * Defaults to `true`.
+   */
+  emit404Pages?: boolean;
+  /**
+   * Defines file system routes relative to the source `routes` directory that should be static
+   * generated. Accepts wildcard behavior. This should not include the "base" pathname. If not
+   * provided, all routes will be static generated. `exclude` always takes priority over `include`.
+   */
+  include?: string[];
+  /**
+   * Defines file system routes relative to the source `routes` directory that should not be static
+   * generated. Accepts wildcard behavior. This should not include the "base" pathname. `exclude`
+   * always takes priority over `include`.
+   */
+  exclude?: string[];
+}
+
+/** @public */
+export interface SsgOptions extends SsgRenderOptions {
+  /**
+   * Path to the SSR module exporting the default render function. In most cases it'll be
+   * `./src/entry.ssr.tsx`.
+   */
+  renderModulePath: string;
+  /** Path to the Qwik Router Config module exporting the default `@qwik-router-config`. */
+  qwikRouterConfigModulePath: string;
+  /** @deprecated Use `qwikRouterConfigModulePath` instead. Will be removed in V3 */
+  qwikCityPlanModulePath?: string;
+  /** Defaults to `/` */
+  basePathname?: string;
+
+  rootDir?: string;
+}
+
+export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions {}
+
+export type WorkerInputMessage = SsgRenderInput | WorkerCloseMessage;
+
+export type WorkerOutputMessage = SsgWorkerRenderResult | WorkerCloseMessage;
+
+export interface SsgRenderInput extends SsgRoute {
+  type: 'render';
+}
+
+export interface SsgRoute {
+  pathname: string;
+  params: Record<string, string> | undefined;
+}
+
+export interface WorkerCloseMessage {
+  type: 'close';
+}
+
+export interface SsgWorkerRenderResult {
+  type: 'render';
+  pathname: string;
+  url: string;
+  ok: boolean;
+  error: { message: string; stack: string | undefined } | null;
+  filePath: string | null;
+  contentType: string | null;
+  resourceType: 'page' | '404' | null;
+}
+
+/** @public */
+export interface SsgResult {
+  duration: number;
+  rendered: number;
+  errors: number;
+  staticPaths: string[];
+}

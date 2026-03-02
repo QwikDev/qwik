@@ -23,8 +23,8 @@ Usually with Vite.js we do it like this:
 
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
-import { qwikCity } from '@builder.io/qwik-city/vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikRouter } from '@qwik.dev/router/vite';
 import { resolve } from 'node:path';
 /* VITE_IMPORTS */
 
@@ -37,7 +37,7 @@ export default defineConfig(() => {
       outDir: '../resources/', // This will be overrided to `dist` by qwikVite() setting
     },
     plugins: [
-      qwikCity({
+      qwikRouter({
         pagesDir,
         layouts: {
           default: resolve('src', 'layouts', 'default', 'default.tsx'),
@@ -58,15 +58,15 @@ So instead of changing the settings in Vite.js directly, we just need to change 
 
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
-import { qwikCity } from '@builder.io/qwik-city/vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikRouter } from '@qwik.dev/router/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => {
   return {
     ssr: { target: 'webworker', noExternal: true },
     plugins: [
-      qwikCity(),
+      qwikRouter(),
       qwikVite({
         client: {
           outDir: 'resources/', // This is the right setting

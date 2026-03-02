@@ -1,6 +1,6 @@
-import { component$, useId, useStylesScoped$ } from '@builder.io/qwik';
+import { component$, useId, useStylesScoped$ } from '@qwik.dev/core';
+import { useDocumentHead } from '@qwik.dev/router';
 import styles from './contributors.css?inline';
-import { useDocumentHead } from '@builder.io/qwik-city';
 
 export default component$(() => {
   useStylesScoped$(styles);

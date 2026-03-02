@@ -4,23 +4,22 @@
 
 /* eslint-disable no-console */
 
+import type { QwikManifest } from "@qwik.dev/core/optimizer";
+import type { Render, RenderToStreamOptions } from "@qwik.dev/core/server";
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
-import { build, type InlineConfig, type PluginOption } from "vite";
-import { join, relative, resolve } from "node:path";
 import {
+  existsSync,
   readdirSync,
+  readFileSync,
+  rmSync,
   statSync,
   unlinkSync,
-  rmSync,
-  existsSync,
-  readFileSync,
 } from "node:fs";
-import type { QwikManifest } from "@builder.io/qwik/optimizer";
-import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
-import type { PackageJSON } from "../scripts/types.ts";
+import { join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler.ts";
+import { build, type InlineConfig, type PluginOption } from "vite";
+import type { PackageJSON } from "../scripts/types.ts";
 
 const isWindows = process.platform === "win32";
 
@@ -44,15 +43,9 @@ const appNames = readdirSync(startersAppsDir).filter(
   (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== "base",
 );
 
-const rootDir = resolve(__dirname, "..");
-const packagesDir = resolve(rootDir, "packages");
-const qwikCityMjs = join(packagesDir, "qwik-city", "lib", "index.qwik.mjs");
-
-/** Used when qwik-city server is enabled */
-const qwikCityVirtualEntry = "@city-ssr-entry";
+/** Used when qwik-router server is enabled */
+const qwikRouterVirtualEntry = "@router-ssr-entry";
 const entrySsrFileName = "entry.ssr.tsx";
-const qwikCityNotFoundPaths = "@qwik-city-not-found-paths";
-const qwikCityStaticPaths = "@qwik-city-static-paths";
 
 Error.stackTraceLimit = 1000;
 
@@ -85,11 +78,11 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     const pkgPath = join(appDir, "package.json");
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, "utf-8"));
-    const enableCityServer = !!pkgJson.__qwik__?.qwikCity;
+    const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
 
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = buildApp(appDir, appName, enableCityServer);
+      clientManifest = buildApp(appDir, appName, enableRouterServer);
       cache.set(appDir, clientManifest);
     }
 
@@ -99,8 +92,8 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     } else {
       res.set("Content-Type", "text/html");
     }
-    if (enableCityServer) {
-      await cityApp(req, res, next, appDir);
+    if (enableRouterServer) {
+      await routerApp(req, res, next, appDir);
     } else {
       await ssrApp(req, res, appName, appDir, resolved);
       res.end();
@@ -117,9 +110,9 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 async function buildApp(
   appDir: string,
   appName: string,
-  enableCityServer: boolean,
+  enableRouterServer: boolean,
 ) {
-  const optimizer = await import("@builder.io/qwik/optimizer");
+  const optimizer = await import("@qwik.dev/core/optimizer");
   const appSrcDir = join(appDir, "src");
   const appDistDir = join(appDir, "dist");
   const appServerDir = join(appDir, "server");
@@ -132,28 +125,23 @@ async function buildApp(
 
   let clientManifest: QwikManifest | undefined = undefined;
   const plugins: PluginOption[] = [];
-  if (enableCityServer) {
+  if (enableRouterServer) {
     // ssr entry existed in service folder, use dev plugin to
     // 1. export router
     // 2. set basePath
     plugins.push({
       name: "devPlugin",
       resolveId(id) {
-        if (id.endsWith(qwikCityVirtualEntry)) {
-          return qwikCityVirtualEntry;
-        }
-        if (id === qwikCityStaticPaths || id === qwikCityNotFoundPaths) {
-          return "./" + id;
+        if (id.endsWith(qwikRouterVirtualEntry)) {
+          return qwikRouterVirtualEntry;
         }
       },
       load(id) {
-        if (id.endsWith(qwikCityVirtualEntry)) {
-          return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
-import qwikCityPlan from '@qwik-city-plan';
+        if (id.endsWith(qwikRouterVirtualEntry)) {
+          return `import { createQwikRouter } from '@qwik.dev/router/middleware/node';
 import render from '${escapeChars(resolve(appSrcDir, "entry.ssr"))}';
-const { router, notFound } = createQwikCity({
+const { router, notFound } = createQwikRouter({
   render,
-  qwikCityPlan,
   base: '${basePath}build/',
 });
 export {
@@ -162,21 +150,16 @@ export {
 }
 `;
         }
-        if (id.endsWith(qwikCityStaticPaths)) {
-          return `export function isStaticPath(method, url){ return false; };`;
-        }
-        if (id.endsWith(qwikCityNotFoundPaths)) {
-          const notFoundHtml = getErrorHtml(404, "Resource Not Found");
-          return `export function getNotFound(){ return ${JSON.stringify(
-            notFoundHtml,
-          )}; };`;
-        }
       },
     });
-    const qwikCityVite = await import("@builder.io/qwik-city/vite");
+    const qwikRouterVite = await import("@qwik.dev/router/vite");
+    // TODO when you add this, vite-imagetools images no longer become assets!!! (they still get emitted, but don't show up in the build)
+    // const qwikRouterSsg = await import(
+    //   "@qwik.dev/router/adapters/node-server/vite"
+    // );
 
     plugins.push(
-      qwikCityVite.qwikCity({
+      qwikRouterVite.qwikRouter({
         rewriteRoutes: [
           {
             paths: {
@@ -185,17 +168,20 @@ export {
           },
         ],
       }) as PluginOption,
+      // qwikRouterSsg.nodeServerAdapter({
+      //   ssg: null,
+      // }) as PluginOption,
     );
   }
 
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
-    mode: "development",
+    mode: isProd ? "production" : "development",
     configFile: false,
     base: basePath,
     ...extra,
     resolve: {
-      conditions: ["development"],
+      conditions: [isProd ? "production" : "development"],
       mainFields: [],
     },
   });
@@ -214,17 +200,9 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          /**
-           * normally qwik finds qwik-city via package.json but we don't want that
-           * because it causes it to try to lookup the special qwik city imports
-           * even when we're not actually importing qwik-city
-           */
-          disableVendorScan: true,
-          vendorRoots: enableCityServer ? [qwikCityMjs] : [],
-          entryStrategy: {
-            type: "segment",
-          },
+          entryStrategy: { type: "segment" },
           client: {
+            outDir: join(appDistDir, appName),
             manifestOutput(manifest) {
               clientManifest = manifest;
             },
@@ -238,15 +216,19 @@ export {
   await build(
     getInlineConf({
       build: {
+        emitAssets: true,
         minify: false,
-        ssr: enableCityServer
-          ? qwikCityVirtualEntry
+        ssr: enableRouterServer
+          ? qwikRouterVirtualEntry
           : resolve(appSrcDir, entrySsrFileName),
       },
       plugins: [
         ...plugins,
         optimizer.qwikVite({
           experimental: ["preventNavigate", "enableRequestRewrite"],
+          ssr: {
+            manifestInput: clientManifest,
+          },
         }),
       ],
       define: {
@@ -272,19 +254,20 @@ function removeDir(dir: string) {
       }
     });
     rmSync(dir);
-  } catch (e) {
+  } catch {
     /**/
   }
 }
 
-async function cityApp(
+async function routerApp(
   req: Request,
   res: Response,
   next: NextFunction,
   appDir: string,
 ) {
-  const ssrPath = join(appDir, "server", `${qwikCityVirtualEntry}.js`);
-
+  const ssrPath = join(appDir, "server", `${qwikRouterVirtualEntry}.js`);
+  // it's ok in the devserver to import core multiple times
+  (globalThis as any).__qwik = null;
   const mod = await import(file(ssrPath));
   const router: any = mod.router;
   router(req, res, () => {
@@ -302,6 +285,8 @@ async function ssrApp(
   manifest: QwikManifest,
 ) {
   const ssrPath = join(appDir, "server", "entry.ssr.js");
+  // it's ok in the devserver to import core multiple times
+  (globalThis as any).__qwik = null;
   const mod = await import(file(ssrPath));
   const render: Render = mod.default ?? mod.render;
 
@@ -353,13 +338,11 @@ function favicon(_: Request, res: Response) {
 }
 
 async function main() {
-  await patchGlobalFetch();
-
   const partytownPath = resolve(
     startersDir,
     "..",
     "node_modules",
-    "@builder.io",
+    "@qwik.dev",
     "partytown",
     "lib",
   );
@@ -392,23 +375,3 @@ async function main() {
 }
 
 main();
-
-async function patchGlobalFetch() {
-  if (
-    typeof global !== "undefined" &&
-    typeof globalThis.fetch !== "function" &&
-    typeof process !== "undefined" &&
-    process.versions.node
-  ) {
-    if (!globalThis.fetch) {
-      const { fetch, Headers, Request, Response, FormData } = await import(
-        "undici"
-      );
-      globalThis.fetch = fetch as any;
-      globalThis.Headers = Headers as any;
-      globalThis.Request = Request as any;
-      globalThis.Response = Response as any;
-      globalThis.FormData = FormData as any;
-    }
-  }
-}

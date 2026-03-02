@@ -7,15 +7,15 @@
  * - https://qwik.dev/docs/deployments/netlify-edge/
  *
  */
-import {
-  createQwikCity,
-  type PlatformNetlify,
-} from '@builder.io/qwik-city/middleware/netlify-edge';
-import qwikCityPlan from '@qwik-city-plan';
+import { createQwikRouter, type PlatformNetlify } from '@qwik.dev/router/middleware/netlify-edge';
 import render from './entry.ssr';
 
 declare global {
-  type QwikCityPlatform = PlatformNetlify;
+  type QwikRouterPlatform = PlatformNetlify;
 }
 
-export default createQwikCity({ render, qwikCityPlan, checkOrigin: false });
+export default createQwikRouter({
+  render,
+  // disable CSRF protection because we get called from everywhere
+  checkOrigin: false,
+});

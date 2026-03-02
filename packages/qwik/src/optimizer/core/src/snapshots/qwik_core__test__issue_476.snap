@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1978
+assertion_line: 2089
 expression: output
 snapshot_kind: text
 ---
@@ -10,17 +10,17 @@ snapshot_kind: text
 import { Counter } from "./counter.tsx";
 
 export const Root = () => {
-    return (
-        <html>
-            <head>
-                <meta charset="utf-8" />
-                <title>Qwik Blank App</title>
-            </head>
-            <body>
-                <Counter initial={3} />
-            </body>
-        </html>
-    );
+	return (
+		<html>
+			<head>
+				<meta charset="utf-8" />
+				<title>Qwik Blank App</title>
+			</head>
+			<body>
+				<Counter initial={3} />
+			</body>
+		</html>
+	);
 };
 
 ============================= test.tsx ==
@@ -28,18 +28,18 @@ export const Root = () => {
 import { Counter } from "./counter.tsx";
 export const Root = ()=>{
     return <html>
-            <head>
-                <meta charset="utf-8"/>
-                <title>Qwik Blank App</title>
-            </head>
-            <body>
-                <Counter initial={3}/>
-            </body>
-        </html>;
+			<head>
+				<meta charset="utf-8"/>
+				<title>Qwik Blank App</title>
+			</head>
+			<body>
+				<Counter initial={3}/>
+			</body>
+		</html>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,OAAO,QAAQ,gBAAgB;AAExC,OAAO,MAAM,OAAO;IAChB,QACK,KAAK;YACF,CAAC,KAAK;gBACF,CAAC,KAAK,QAAQ,SAAU;gBACxB,CAAC,MAAM,cAAc,EAAE,MAAM;YACjC,EAAE,KAAK;YACP,CAAC,KAAK;gBACF,CAAC,QAAQ,SAAS,IAAK;YAC3B,EAAE,KAAK;QACX,EAAE;AAEV,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,OAAO,QAAQ,gBAAgB;AAExC,OAAO,MAAM,OAAO;IACnB,QACE,KAAK;GACL,CAAC,KAAK;IACL,CAAC,KAAK,QAAQ,SAAU;IACxB,CAAC,MAAM,cAAc,EAAE,MAAM;GAC9B,EAAE,KAAK;GACP,CAAC,KAAK;IACL,CAAC,QAAQ,SAAS,IAAK;GACxB,EAAE,KAAK;EACR,EAAE;AAEJ,EAAE\"}")
 == DIAGNOSTICS ==
 
 []

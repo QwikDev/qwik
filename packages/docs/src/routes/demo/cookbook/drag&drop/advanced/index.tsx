@@ -1,4 +1,4 @@
-import { component$, sync$, useSignal, $ } from '@builder.io/qwik';
+import { component$, sync$, useSignal, $ } from '@qwik.dev/core';
 
 type Item = {
   id: number;

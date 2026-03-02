@@ -1,57 +1,55 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2142
+assertion_line: 2253
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export enum Thing {
-    A,
-    B
+	A,
+	B
 }
 
 export const App = component$(() => {
-    console.log(Thing.A);
-    return (
-        <>
-            <p class="stuff">Hello Qwik</p>
-        </>
-    );
+	console.log(Thing.A);
+	return (
+		<>
+			<p class="stuff">Hello Qwik</p>
+		</>
+	);
 });
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
 export var Thing = /*#__PURE__*/ function(Thing) {
     Thing[Thing["A"] = 0] = "A";
     Thing[Thing["B"] = 1] = "B";
     return Thing;
 }({});
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,IAAA,AAAK,+BAAA;;;WAAA;MAGX;AAED,OAAO,MAAM,oBAAM,iHAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,IAAA,AAAK,+BAAA;;;WAAA;MAGX;AAED,OAAO,MAAM,oBAAM,4EAOhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = ()=>{
     console.log(0);
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: /*#__PURE__*/ _jsxQ("p", null, {
-            class: "stuff"
-        }, "Hello Qwik", 3, null)
-    }, 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
+        class: "stuff"
+    }, "Hello Qwik", 3, null), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAQ8B;IAC1B,QAAQ,GAAG;IACX,qBACI;kBACI,cAAA,MAAC;YAAE,OAAM;WAAQ;;AAG7B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAQ8B;IAC7B,QAAQ,GAAG;IACX,qBACC,gDACC,WAAC;QAAE,OAAM;OAAQ;AAGpB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -67,8 +65,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    126,
-    248
+    118,
+    210
   ]
 }
 */

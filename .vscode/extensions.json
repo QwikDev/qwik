@@ -6,7 +6,6 @@
     "ms-playwright.playwright",
     "rust-lang.rust-analyzer",
     "ms-azuretools.vscode-docker",
-    "manucorporat.vermoji",
     "vadimcn.vscode-lldb",
     "streetsidesoftware.code-spell-checker",
     "vitest.explorer"

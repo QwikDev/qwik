@@ -1,24 +1,19 @@
 /* eslint-disable no-console */
-import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
+import { component$, useSignal, useAsync$ } from '@qwik.dev/core';
 
 export default component$(() => {
-  const github = useStore({
-    org: 'QwikDev',
-  });
+  const githubOrg = useSignal('QwikDev');
 
-  const reposResource = useResource$<string[]>(({ track, cleanup }) => {
+  const repos = useAsync$<string[]>(({ track, abortSignal }) => {
     // We need a way to re-run fetching data whenever the `github.org` changes.
     // Use `track` to trigger re-running of this data fetching function.
-    track(() => github.org);
+    const org = track(githubOrg);
 
-    // A good practice is to use `AbortController` to abort the fetching of data if
-    // new request comes in. We create a new `AbortController` and register a `cleanup`
-    // function which is called when this function re-runs.
-    const controller = new AbortController();
-    cleanup(() => controller.abort());
+    // The abortSignal is automatically aborted when this function re-runs,
+    // canceling any pending fetch requests.
 
     // Fetch the data and return the promises.
-    return getRepositories(github.org, controller);
+    return getRepositories(org, abortSignal);
   });
 
   console.log('Render');
@@ -27,24 +22,21 @@ export default component$(() => {
       <p>
         <label>
           GitHub username:
-          <input value={github.org} onInput$={(ev, el) => (github.org = el.value)} />
+          <input bind:value={githubOrg} />
         </label>
       </p>
       <section>
-        <Resource
-          value={reposResource}
-          onPending={() => <>Loading...</>}
-          onRejected={(error) => <>Error: {error.message}</>}
-          onResolved={(repos) => (
-            <ul>
-              {repos.map((repo) => (
-                <li>
-                  <a href={`https://github.com/${github.org}/${repo}`}>{repo}</a>
-                </li>
-              ))}
-            </ul>
-          )}
-        />
+        {repos.loading && <>Loading...</>}
+        {repos.error && <>Error: {repos.error.message}</>}
+        {repos.value && (
+          <ul>
+            {repos.value.map((repo) => (
+              <li>
+                <a href={`https://github.com/${githubOrg.value}/${repo}`}>{repo}</a>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );
@@ -52,11 +44,11 @@ export default component$(() => {
 
 export async function getRepositories(
   username: string,
-  controller?: AbortController
+  abortSignal?: AbortSignal
 ): Promise<string[]> {
   console.log('FETCH', `https://api.github.com/users/${username}/repos`);
   const resp = await fetch(`https://api.github.com/users/${username}/repos`, {
-    signal: controller?.signal,
+    signal: abortSignal,
   });
   console.log('FETCH resolved');
   const json = await resp.json();

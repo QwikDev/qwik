@@ -6,7 +6,7 @@ import {
   useSignal,
   $,
   type NoSerialize,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 import { CloseIcon } from '../icons/close';
 
 export const PopupManager = component$(() => {

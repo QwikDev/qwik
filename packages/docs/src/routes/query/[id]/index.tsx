@@ -1,5 +1,5 @@
-import { component$ } from '@builder.io/qwik';
-// import { routeLoader$, server$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+// import { routeLoader$, server$ } from '@qwik.dev/router';
 // import { createClient } from '@supabase/supabase-js';
 // import { normalizeLine, resolveContext } from '../../../components/qwik-gpt/search';
 

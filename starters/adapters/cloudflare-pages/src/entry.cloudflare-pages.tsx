@@ -8,16 +8,15 @@
  *
  */
 import {
-  createQwikCity,
+  createQwikRouter,
   type PlatformCloudflarePages,
-} from "@builder.io/qwik-city/middleware/cloudflare-pages";
-import qwikCityPlan from "@qwik-city-plan";
+} from "@qwik.dev/router/middleware/cloudflare-pages";
 import render from "./entry.ssr";
 
 declare global {
-  type QwikCityPlatform = PlatformCloudflarePages;
+  type QwikRouterPlatform = PlatformCloudflarePages;
 }
 
-const fetch = createQwikCity({ render, qwikCityPlan });
+const fetch = createQwikRouter({ render });
 
 export { fetch };

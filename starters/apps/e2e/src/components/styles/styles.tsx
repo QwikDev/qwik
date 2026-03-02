@@ -1,16 +1,16 @@
 import {
   component$,
-  useStylesScoped$,
-  useStore,
+  Fragment,
   Slot,
   useSignal,
-  Fragment,
-} from "@builder.io/qwik";
-import parent from "./parent.css?inline";
-import parent2 from "./parent2.css?inline";
+  useStore,
+  useStylesScoped$,
+} from "@qwik.dev/core";
 import child from "./child.css?inline";
 import child2 from "./child2.css?inline";
 import empty from "./empty.css?inline";
+import parent from "./parent.css?inline";
+import parent2 from "./parent2.css?inline";
 
 export const Styles = component$(() => {
   const reload = useSignal(0);
@@ -46,7 +46,7 @@ export const StylesChildren = component$<{ v: number }>(({ v }) => {
           </Fragment>
         ))}
       </div>
-      <Issue1945 />
+      <ConditionalSlotScopedStyleIssue1945 />
       <IssueScopedAndFineGrained />
     </div>
   );
@@ -64,7 +64,7 @@ export const Child = component$((props: { index: number }) => {
   );
 });
 
-export const Issue1945 = component$(() => {
+export const ConditionalSlotScopedStyleIssue1945 = component$(() => {
   useStylesScoped$(`h1 {
     background-color: blue;
   }

@@ -1,0 +1,71 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3697
+expression: output
+---
+==INPUT==
+
+
+		export default ({ data }: { data: any }) =>
+            <div
+              data-is-active={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />;
+		
+============================= test.js ==
+
+import { _fnSignal } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.data.selectedOutputDetail === 'options';
+const _hf0_str = 'p0.data.selectedOutputDetail==="options"';
+const i_pFqTss400MA = ()=>import("./test.tsx_test_div_q_e_click_pFqTss400MA");
+export default ((_rawProps)=>/*#__PURE__*/ _jsxSorted("div", {
+        "data-is-active": _fnSignal(_hf0, [
+            _rawProps
+        ], _hf0_str),
+        "q-e:click": /*#__PURE__*/ qrl(i_pFqTss400MA, "test_div_q_e_click_pFqTss400MA", [
+            _rawProps
+        ])
+    }, null, null, 2, "u6_0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAG8B,GAFV,KAEe,oBAAoB,KAAK;;;AAF1D,eAAe,CAAA,2BACL,WAAC;QACC,gBAAc;;;QACd,WAAQ;;;6BAGT,EAAE\"}")
+============================= test.tsx_test_div_q_e_click_pFqTss400MA.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const test_div_q_e_click_pFqTss400MA = ()=>{
+    const _rawProps = _captures[0];
+    _rawProps.data.selectedOutputDetail = 'options';
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8CAIwB;;IACR,UAJI,KAIC,oBAAoB,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_div_q_e_click_pFqTss400MA",
+  "entry": null,
+  "displayName": "test.tsx_test_div_q_e_click",
+  "hash": "pFqTss400MA",
+  "canonicalFilename": "test.tsx_test_div_q_e_click_pFqTss400MA",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    160,
+    238
+  ],
+  "captureNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

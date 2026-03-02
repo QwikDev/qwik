@@ -5,8 +5,8 @@ import {
   useSignal,
   $,
   useStyles$,
-} from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+} from "@qwik.dev/core";
+import type { DocumentHead } from "@qwik.dev/router";
 
 // This will be in a separate chunk due to dynamic import
 const getLibA = () => import("../vendor-lib/libA");

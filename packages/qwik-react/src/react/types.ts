@@ -1,4 +1,4 @@
-import type { QRL, Signal } from '@builder.io/qwik';
+import type { QRL, Signal } from '@qwik.dev/core';
 import type { FunctionComponent as ReactFC } from 'react';
 import type { Root } from 'react-dom/client';
 

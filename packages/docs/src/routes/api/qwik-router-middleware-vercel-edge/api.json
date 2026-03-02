@@ -1,0 +1,76 @@
+{
+  "id": "qwik-router-middleware-vercel-edge",
+  "package": "@qwik.dev/qwik-router/middleware/vercel-edge",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `createQwikRouter` instead. Will be removed in V3\n> \n\n\n```typescript\ncreateQwikCity: typeof createQwikRouter\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/vercel-edge/index.ts",
+      "mdFile": "router.createqwikcity.md"
+    },
+    {
+      "name": "createQwikRouter",
+      "id": "createqwikrouter",
+      "hierarchy": [
+        {
+          "name": "createQwikRouter",
+          "id": "createqwikrouter"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikRouter(opts: QwikRouterVercelEdgeOptions): (request: Request) => Promise<Response>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikRouterVercelEdgeOptions](#qwikrouterverceledgeoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n(request: Request) =&gt; Promise&lt;Response&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/vercel-edge/index.ts",
+      "mdFile": "router.createqwikrouter.md"
+    },
+    {
+      "name": "PlatformVercel",
+      "id": "platformvercel",
+      "hierarchy": [
+        {
+          "name": "PlatformVercel",
+          "id": "platformvercel"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformVercel \n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/vercel-edge/index.ts",
+      "mdFile": "router.platformvercel.md"
+    },
+    {
+      "name": "QwikCityVercelEdgeOptions",
+      "id": "qwikcityverceledgeoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityVercelEdgeOptions",
+          "id": "qwikcityverceledgeoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterVercelEdgeOptions` instead. Will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityVercelEdgeOptions = QwikRouterVercelEdgeOptions;\n```\n**References:** [QwikRouterVercelEdgeOptions](#qwikrouterverceledgeoptions)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/vercel-edge/index.ts",
+      "mdFile": "router.qwikcityverceledgeoptions.md"
+    },
+    {
+      "name": "QwikRouterVercelEdgeOptions",
+      "id": "qwikrouterverceledgeoptions",
+      "hierarchy": [
+        {
+          "name": "QwikRouterVercelEdgeOptions",
+          "id": "qwikrouterverceledgeoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterVercelEdgeOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/vercel-edge/index.ts",
+      "mdFile": "router.qwikrouterverceledgeoptions.md"
+    }
+  ]
+}

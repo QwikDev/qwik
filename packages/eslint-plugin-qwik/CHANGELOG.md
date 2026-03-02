@@ -1,5 +1,85 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.25
+
+## 2.0.0-beta.24
+
+## 2.0.0-beta.23
+
+### Patch Changes
+
+- 🐞🩹 eslint-plugin: detect node API usage more accurately (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7664](https://github.com/QwikDev/qwik/pull/7664))
+
+## 2.0.0-beta.22
+
+## 2.0.0-beta.21
+
+## 2.0.0-beta.20
+
+## 2.0.0-beta.19
+
+## 2.0.0-beta.18
+
+## 2.0.0-beta.17
+
+## 2.0.0-beta.16
+
+## 2.0.0-beta.15
+
+## 2.0.0-beta.14
+
+## 2.0.0-beta.13
+
+### Minor Changes
+
+- ✨ add eslint rule for resolving async computed (by [@Varixo](https://github.com/Varixo) in [#7881](https://github.com/QwikDev/qwik/pull/7881))
+
+## 2.0.0-beta.12
+
+## 2.0.0-beta.11
+
+## 2.0.0-beta.10
+
+## 2.0.0-beta.9
+
+## 2.0.0-beta.8
+
+## 2.0.0-beta.7
+
+## 2.0.0-beta.6
+
+## 2.0.0-beta.5
+
+## 2.0.0-beta.4
+
+## 2.0.0-beta.3
+
+## 2.0.0-beta.2
+
+## 2.0.0-beta.1
+
+## 2.0.0-alpha.10
+
+## 2.0.0-alpha.9
+
+## 2.0.0-alpha.8
+
+## 2.0.0-alpha.7
+
+## 2.0.0-alpha.6
+
+## 2.0.0-alpha.5
+
+## 2.0.0-alpha.4
+
+## 2.0.0-alpha.3
+
+## 2.0.0-alpha.2
+
+## 2.0.0-alpha.1
+
+## 2.0.0-alpha.0
+
 ## 1.19.0
 
 ## 1.18.0

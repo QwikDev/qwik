@@ -7,17 +7,17 @@ snapshot_kind: text
 ==INPUT==
 
 
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 const Header = $((decl1, {decl2}, [decl3]) => {
-    const {decl4, key: decl5} = this;
-    let [decl6, ...decl7] = stuff;
-    const decl8 = 1, decl9;
-    function decl10(decl11, {decl12}, [decl13]) {}
-    class decl14 {
-        method(decl15, {decl16}, [decl17]) {}
-    }
-    try{}catch(decl18){}
-    try{}catch({decl19}){}
+	const {decl4, key: decl5} = this;
+	let [decl6, ...decl7] = stuff;
+	const decl8 = 1, decl9;
+	function decl10(decl11, {decl12}, [decl13]) {}
+	class decl14 {
+		method(decl15, {decl16}, [decl17]) {}
+	}
+	try{}catch(decl18){}
+	try{}catch({decl19}){}
 });
 
 ============================= test.tsx_Header_WjUaUQN7Oxg.tsx (ENTRY POINT)==
@@ -26,10 +26,9 @@ export const Header_WjUaUQN7Oxg = (decl1, { decl2 }, [decl3])=>{
     const { decl4, key: decl5 } = this;
     let [decl6, ...decl7] = stuff;
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IACrC,MAAM,EAAC,KAAK,EAAE,KAAK,KAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;AAQ5B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IACxC,MAAM,EAAC,KAAK,EAAE,KAAK,KAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;AAQzB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -45,15 +44,21 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    69,
-    376
+    67,
+    344
+  ],
+  "paramNames": [
+    "decl1",
+    "{decl2}",
+    "[decl3]"
   ]
 }
 */
 ============================= test.tsx ==
 
-import { qrl } from "@builder.io/qwik";
-/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WjUaUQN7Oxg"), "Header_WjUaUQN7Oxg");
+import { qrl } from "@qwik.dev/core";
+const i_WjUaUQN7Oxg = ()=>import("./test.tsx_Header_WjUaUQN7Oxg");
+/*#__PURE__*/ qrl(i_WjUaUQN7Oxg, "Header_WjUaUQN7Oxg");
 
 
 Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")

@@ -1,0 +1,122 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 5591
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const matrix = useSignal([['a', 'b'], ['c', 'd']]);
+  return (
+    <div>
+      {matrix.value.map((row, i) => (
+        <div key={i}>
+          {row.map((cell, j) => {
+            const cellKey = cell + '-' + j;
+            return (
+              <span key={j}>
+                <button onClick$={() => console.log(cellKey)}>{cell}</button>
+              </span>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,6EAkBZ\"}")
+============================= test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o.js (ENTRY POINT)==
+
+export const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = (_, _1, cellKey)=>console.log(cellKey);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wEAakC,QAHhB,UAGsB,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_div_span_button_q_e_click_oBFNw2cK30o",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_div_span_button_q_e_click",
+  "hash": "oBFNw2cK30o",
+  "canonicalFilename": "test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    390,
+    416
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "cellKey"
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const i_oBFNw2cK30o = ()=>import("./test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o");
+export const test_component_LUXeXe0DQrg = ()=>{
+    const matrix = useSignal([
+        [
+            'a',
+            'b'
+        ],
+        [
+            'c',
+            'd'
+        ]
+    ]);
+    const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = /*#__PURE__*/ qrl(i_oBFNw2cK30o, "test_component_div_div_span_button_q_e_click_oBFNw2cK30o");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, matrix.value.map((row, i)=>/*#__PURE__*/ _jsxSorted("div", null, null, row.map((cell, j)=>{
+            const cellKey = cell + '-' + j;
+            return /*#__PURE__*/ _jsxSorted("span", null, null, /*#__PURE__*/ _jsxSorted("button", {
+                "q-e:click": test_component_div_div_span_button_q_e_click_oBFNw2cK30o,
+                "q:p": cellKey
+            }, null, cell, 0, null), 1, j);
+        }), 1, i)), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG0B;IACxB,MAAM,SAAS,UAAU;QAAC;YAAC;YAAK;SAAI;QAAE;YAAC;YAAK;SAAI;KAAC;;IACjD,qBACE,WAAC,mBACE,OAAO,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK,kBACtB,WAAC,mBACE,IAAI,GAAG,CAAC,CAAC,MAAM;YACd,MAAM,UAAU,OAAO,MAAM;YAC7B,qBACE,WAAC,kCACC,WAAC;gBAAO,WAAQ;uBAHd;qBAG6C,mBADtC;QAIf,OARQ;AAalB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    85,
+    527
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

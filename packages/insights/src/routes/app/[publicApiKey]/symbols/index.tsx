@@ -1,5 +1,5 @@
-import { type ReadonlySignal, component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
 import { SymbolIcon } from '~/components/icons/symbol';
@@ -111,7 +111,7 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
 });
 
 export default component$(() => {
-  const data: ReadonlySignal<SymbolsInfo> = useData();
+  const data = useData();
   return (
     <div>
       <h1 class="h3">

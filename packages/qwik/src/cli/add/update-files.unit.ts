@@ -1,7 +1,8 @@
 import { JsonObjectNode, JsonParser } from '@croct/json5-parser';
 import { fs } from 'memfs';
 import { join } from 'path';
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { normalizePath } from '../../testing/util';
 import type { FsUpdates, UpdateAppOptions } from '../types';
 import { mergeIntegrationDir } from './update-files';
 
@@ -9,30 +10,39 @@ vi.mock('node:fs', () => ({
   default: fs,
 }));
 
-function setup() {
-  const fakeSrcDir = 'srcDir/subSrcDir';
+let fakeSrcDir: string;
+let fakeDestDir: string;
+let fakeFileUpdates: FsUpdates;
+let fakeOpts: UpdateAppOptions;
+
+beforeEach(() => {
+  // Reset the mock filesystem before each test
+  fs.mkdirSync(join('srcDir', 'subSrcDir'), { recursive: true });
+  fs.mkdirSync(join('destDir', 'subDestDir'), { recursive: true });
+
+  fakeSrcDir = join('srcDir', 'subSrcDir');
   createFakeFiles(fakeSrcDir);
 
-  const fakeDestDir = 'destDir/subDestDir';
+  fakeDestDir = join('destDir', 'subDestDir');
 
-  const fakeFileUpdates: FsUpdates = {
+  fakeFileUpdates = {
     files: [],
     installedDeps: {},
     installedScripts: [],
   };
 
-  const fakeOpts: UpdateAppOptions = {
+  fakeOpts = {
     rootDir: fakeDestDir,
     integration: 'integration',
   };
+});
 
-  return {
-    fakeSrcDir,
-    fakeDestDir,
-    fakeFileUpdates,
-    fakeOpts,
-  };
-}
+afterEach(() => {
+  vi.clearAllMocks();
+  // Clean up the mock filesystem
+  fs.rmSync(join('srcDir'), { recursive: true, force: true });
+  fs.rmSync(join('destDir'), { recursive: true, force: true });
+});
 
 function createFakeFiles(dir: string) {
   // Create fake src files
@@ -54,24 +64,20 @@ function createFakeFiles(dir: string) {
 
 describe('mergeIntegrationDir', () => {
   test('should merge integration directory', async () => {
-    const { fakeSrcDir, fakeDestDir, fakeFileUpdates, fakeOpts } = setup();
-
     await mergeIntegrationDir(fakeFileUpdates, fakeOpts, fakeSrcDir, fakeDestDir);
 
-    const actualResults = fakeFileUpdates.files.map((f) => f.path);
+    const actualResults = fakeFileUpdates.files.map((f) => normalizePath(f.path));
     const expectedResults = [
-      'destDir/subDestDir/fake.ts',
-      'destDir/subDestDir/package.json',
+      normalizePath(join('destDir', 'subDestDir', 'fake.ts')),
+      normalizePath(join('destDir', 'subDestDir', 'package.json')),
       'destDir/subDestDir/.vscode/settings.json',
-      'destDir/subDestDir/src/global.css',
+      normalizePath(join('destDir', 'subDestDir', 'src', 'global.css')),
     ];
 
-    expect(actualResults).toEqual(expectedResults);
+    expect(actualResults.sort()).toEqual(expectedResults.sort());
   });
 
   test('should merge integration directory in a monorepo', async () => {
-    const { fakeSrcDir, fakeDestDir, fakeFileUpdates, fakeOpts } = setup();
-
     // Create a global file in the destination director
     const monorepoSubDir = join(fakeDestDir, 'apps', 'subpackage', 'src');
     fs.mkdirSync(monorepoSubDir, { recursive: true });
@@ -96,23 +102,23 @@ describe('mergeIntegrationDir', () => {
     fs.mkdirSync(join(fakeSrcDir, 'should-stay'), { recursive: true });
     fs.writeFileSync(join(fakeSrcDir, 'should-stay', 'should-also-stay.ts'), 'fake file');
 
-    fakeOpts.projectDir = 'apps/subpackage';
+    fakeOpts.projectDir = join('apps', 'subpackage');
     fakeOpts.installDeps = true;
     const fakeAlwaysInRoot = ['should-stay-in-root.ts', 'should-stay'];
 
     await mergeIntegrationDir(fakeFileUpdates, fakeOpts, fakeSrcDir, fakeDestDir, fakeAlwaysInRoot);
 
-    const actualResults = fakeFileUpdates.files.map((f) => f.path);
+    const actualResults = fakeFileUpdates.files.map((f) => normalizePath(f.path));
     const expectedResults = [
-      `destDir/subDestDir/apps/subpackage/fake.ts`,
-      `destDir/subDestDir/should-stay-in-root.ts`,
-      `destDir/subDestDir/package.json`,
-      `destDir/subDestDir/should-stay/should-also-stay.ts`,
+      normalizePath(join('destDir', 'subDestDir', 'apps', 'subpackage', 'fake.ts')),
+      normalizePath(join('destDir', 'subDestDir', 'should-stay-in-root.ts')),
+      normalizePath(join('destDir', 'subDestDir', 'package.json')),
+      normalizePath(join('destDir', 'subDestDir', 'should-stay', 'should-also-stay.ts')),
       'destDir/subDestDir/apps/subpackage/.vscode/settings.json',
-      `destDir/subDestDir/apps/subpackage/src/global.css`,
+      normalizePath(join('destDir', 'subDestDir', 'apps', 'subpackage', 'src', 'global.css')),
     ];
 
-    expect(actualResults).toEqual(expectedResults);
+    expect(actualResults.sort()).toEqual(expectedResults.sort());
 
     const tests = {
       'destDir/subDestDir/apps/subpackage/fake.ts': 'fake file',
@@ -124,7 +130,10 @@ describe('mergeIntegrationDir', () => {
       'destDir/subDestDir/apps/subpackage/src/global.css': 'p{color: red}\n\n/* CSS */\n',
     };
     for (const [fileName, content] of Object.entries(tests)) {
-      const file = fakeFileUpdates.files.find((f) => f.path === fileName);
+      const file = fakeFileUpdates.files.find((f) => normalizePath(f.path) === fileName);
+      if (!file) {
+        console.error(`File %s not found:`, fakeFileUpdates.files);
+      }
       expect(file?.content.toString()).toBe(content);
     }
   });

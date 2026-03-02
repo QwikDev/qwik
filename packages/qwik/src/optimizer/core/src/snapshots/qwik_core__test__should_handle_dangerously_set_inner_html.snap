@@ -1,0 +1,131 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3781
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from "@qwik.dev/core";
+		const Cmp = component$(() => {
+			const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
+			return (
+				<div>
+					<div>
+						<span id="first" dangerouslySetInnerHTML="vanilla HTML here" />
+					</div>
+					<div>
+						<span id="second" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
+					</div>
+					<div>
+						<span id="third" dangerouslySetInnerHTML={htmlSignal.value} class="after" />
+						<button
+							onClick$={() =>
+								(htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>")
+							}
+						></button>
+					</div>
+				</div>
+			);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_4ryKJTOKjWE = ()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE");
+/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_4ryKJTOKjWE, "Cmp_component_4ryKJTOKjWE"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;cAEc\"}")
+============================= test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = ()=>{
+    const htmlSignal = _captures[0];
+    return htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>";
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAeiB;;WACR,WAAW,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_div_div_button_q_e_click",
+  "hash": "kOQ2BgBVVS8",
+  "canonicalFilename": "test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    510,
+    596
+  ],
+  "captureNames": [
+    "htmlSignal"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_kOQ2BgBVVS8 = ()=>import("./test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8");
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted("span", null, {
+            id: "first",
+            dangerouslySetInnerHTML: "vanilla HTML here"
+        }, null, 3, null), 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted("span", null, {
+            id: "second",
+            dangerouslySetInnerHTML: "<h1>I'm an h1!</h1>",
+            class: "after"
+        }, null, 3, null), 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
+            /*#__PURE__*/ _jsxSorted("span", null, {
+                id: "third",
+                dangerouslySetInnerHTML: _wrapProp(htmlSignal),
+                class: "after"
+            }, null, 3, null),
+            /*#__PURE__*/ _jsxSorted("button", null, {
+                "q-e:click": /*#__PURE__*/ qrl(i_kOQ2BgBVVS8, "Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8", [
+                    htmlSignal
+                ])
+            }, null, 3, null)
+        ], 3, null)
+    ], 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAEyB;IACtB,MAAM,aAAa,UAAU;IAC7B,qBACC,WAAC;sBACA,WAAC,iCACA,WAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,WAAC,iCACA,WAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,WAAC;0BACA,WAAC;gBAAK,IAAG;gBAAQ,uBAAuB,YAAE;gBAAkB,OAAM;;0BAClE,WAAC;gBACA,WAAQ;;;;;;AAOb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    74,
+    655
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

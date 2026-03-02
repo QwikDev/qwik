@@ -1,0 +1,274 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4119
+expression: output
+---
+==INPUT==
+
+
+		import { component$, useStore, useTask$ } from '@qwik.dev/core';
+		import { useForm, useForm2 } from './some-file.ts';
+
+		export const Input = component$<{error: string, error2: string, error3: string}>(
+			(props) => {
+				useTask$(({ track }) => {
+					track(() => props.error);
+					track(() => props.error2);
+					track(() => props.error3);
+				});
+
+				return (
+					<>
+					</>
+				);
+			}
+		);
+
+		export default component$(() => {
+			const [store, math] = [useStore({errors: {}}), Math.random()];
+			const [[store2]] = [[useStore({errors: {}})]];
+			const { store3, math4 } = { store3: useStore({errors: {}}), math4: Math.random() };
+			const math2 = [Math.random()];
+			const { math3 } = { math3: Math.random() };
+			const [store4] = useForm();
+			const {store5} = useForm2();
+
+			return (
+				<div>
+					<button onClick$={() => {
+						store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
+					}}>click</button>
+					<Input 
+						error={store.errors.test}
+						error2={store2.errors.test}
+						error3={store3.errors.test}
+						error4={store4.errors.test}
+						error5={store5.errors.test}
+						math={math}
+						math2={math2}
+						math3={math3}
+						math4={math4}
+					/>
+				</div>
+			);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_9metqqaxlN8 = ()=>import("./test.tsx_Input_component_9metqqaxlN8");
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export const Input = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9metqqaxlN8, "Input_component_9metqqaxlN8"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIE,OAAO,MAAM,sBAAQ,8EAanB;AAEF,6BAAe,6EA2BZ\"}")
+============================= test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const test_component_div_button_q_e_click_2TvarUvNGmU = ()=>{
+    const store = _captures[0];
+    store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DA8BuB;;IACjB,MAAM,MAAM,CAAC,IAAI,GAAG,MAAM,MAAM,CAAC,IAAI,GAAG,YAAY\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_button_q_e_click_2TvarUvNGmU",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_button_q_e_click",
+  "hash": "2TvarUvNGmU",
+  "canonicalFilename": "test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    835,
+    921
+  ],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { Input } from "./test";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useForm } from "./some-file.ts";
+import { useForm2 } from "./some-file.ts";
+import { useStore } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.errors.test;
+const _hf0_str = "p0.errors.test";
+const _hf1 = (p0)=>p0.store5.errors.test;
+const _hf1_str = "p0.store5.errors.test";
+const i_2TvarUvNGmU = ()=>import("./test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU");
+export const test_component_LUXeXe0DQrg = ()=>{
+    const [store, math] = [
+        useStore({
+            errors: {}
+        }),
+        Math.random()
+    ];
+    const [[store2]] = [
+        [
+            useStore({
+                errors: {}
+            })
+        ]
+    ];
+    const { store3, math4 } = {
+        store3: useStore({
+            errors: {}
+        }),
+        math4: Math.random()
+    };
+    const math2 = [
+        Math.random()
+    ];
+    const { math3 } = {
+        math3: Math.random()
+    };
+    const [store4] = useForm();
+    const form2 = useForm2();
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": /*#__PURE__*/ qrl(i_2TvarUvNGmU, "test_component_div_button_q_e_click_2TvarUvNGmU", [
+                store
+            ])
+        }, "click", 3, null),
+        /*#__PURE__*/ _jsxSorted(Input, {
+            math: math,
+            math2: math2,
+            math3: math3,
+            math4: math4
+        }, {
+            error: _fnSignal(_hf0, [
+                store
+            ], _hf0_str),
+            error2: _fnSignal(_hf0, [
+                store2
+            ], _hf0_str),
+            error3: _fnSignal(_hf0, [
+                store3
+            ], _hf0_str),
+            error4: _fnSignal(_hf0, [
+                store4
+            ], _hf0_str),
+            error5: _fnSignal(_hf1, [
+                form2
+            ], _hf1_str)
+        }, null, 3, "u6_1")
+    ], 1, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;mBAkCa,GAAM,MAAM,CAAC,IAAI;;mBAIhB,GAZJ,OAYW,MAAM,CAAC,IAAI;;;0CAnBJ;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,WAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK;;;YACL,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;;;AAQV\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    434,
+    1225
+  ]
+}
+*/
+============================= test.tsx_Input_component_useTask_Sbgs9Wtfkt0.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const Input_component_useTask_Sbgs9Wtfkt0 = ({ track })=>{
+    const props = _captures[0];
+    track(()=>props.error);
+    track(()=>props.error2);
+    track(()=>props.error3);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mDAMa,CAAC,EAAE,KAAK,EAAE;;IAClB,MAAM,IAAM,MAAM,KAAK;IACvB,MAAM,IAAM,MAAM,MAAM;IACxB,MAAM,IAAM,MAAM,MAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Input_component_useTask_Sbgs9Wtfkt0",
+  "entry": null,
+  "displayName": "test.tsx_Input_component_useTask",
+  "hash": "Sbgs9Wtfkt0",
+  "canonicalFilename": "test.tsx_Input_component_useTask_Sbgs9Wtfkt0",
+  "path": "",
+  "extension": "js",
+  "parent": "Input_component_9metqqaxlN8",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    237,
+    354
+  ],
+  "paramNames": [
+    "{track}"
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Input_component_9metqqaxlN8.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+const i_Sbgs9Wtfkt0 = ()=>import("./test.tsx_Input_component_useTask_Sbgs9Wtfkt0");
+export const Input_component_9metqqaxlN8 = (props)=>{
+    useTaskQrl(/*#__PURE__*/ qrl(i_Sbgs9Wtfkt0, "Input_component_useTask_Sbgs9Wtfkt0", [
+        props
+    ]));
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, null, 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAKG,CAAC;IACA;;;IAMA,qBACC;AAGF\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Input_component_9metqqaxlN8",
+  "entry": null,
+  "displayName": "test.tsx_Input_component",
+  "hash": "9metqqaxlN8",
+  "canonicalFilename": "test.tsx_Input_component_9metqqaxlN8",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    211,
+    399
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

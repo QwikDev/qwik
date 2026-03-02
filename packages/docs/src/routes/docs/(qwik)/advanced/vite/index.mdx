@@ -27,17 +27,17 @@ After scaffolding a new Qwik project, you'll find a `vite.config.js` file in the
 
 ## Vite Plugins
 
-Qwik comes with two plugins that make it easy to use Vite with Qwik and Qwik City.
+Qwik comes with two plugins that make it easy to use Vite with Qwik and Qwik Router.
 
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
-import { qwikCity } from '@builder.io/qwik-city/vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikRouter } from '@qwik.dev/router/vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => {
   return {
-    plugins: [qwikCity(), qwikVite(), tsconfigPaths({ root: '.' })],
+    plugins: [qwikRouter(), qwikVite(), tsconfigPaths({ root: '.' })],
   };
 });
 ```
@@ -109,12 +109,6 @@ client?: {
      * Default `src/components/app/app.tsx`
      */
     input?: string[] | string;
-    /**
-     * Entry input for client-side only development with hot-module reloading.
-     * This is for Vite development only and does not use SSR.
-     * Default `src/entry.dev.tsx`
-     */
-    devInput?: string;
     /**
      * Output directory for the client build.
      * Default `dist`
@@ -199,9 +193,9 @@ devTools?: {
 };
 ```
 
-### `qwikCity()`
+### `qwikRouter()`
 
-To modify the configuration, you can pass an object to the `qwikCity` function. Possible options are:
+To modify the configuration, you can pass an object to the `qwikRouter` function. Possible options are:
 
 #### `routesDir`
 
@@ -246,7 +240,7 @@ trailingSlash?: boolean;
 
 ```js
 /**
- * Enable or disable MDX plugins included by default in qwik-city.
+ * Enable or disable MDX plugins included by default in qwik-router.
  */
 mdxPlugins?: MdxPlugins;
 ```

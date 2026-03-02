@@ -7,18 +7,16 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { createQwikCity } from "@builder.io/qwik-city/middleware/node";
-import qwikCityPlan from "@qwik-city-plan";
-import render from "./entry.ssr";
+import { createQwikRouter } from "@qwik.dev/router/middleware/node";
 import { createServer } from "node:http";
+import render from "./entry.ssr";
 
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3004;
 
-// Create the Qwik City express middleware
-const { router, notFound, staticFile } = createQwikCity({
+// Create the Qwik Router express middleware
+const { router, notFound, staticFile } = createQwikRouter({
   render,
-  qwikCityPlan,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
   },

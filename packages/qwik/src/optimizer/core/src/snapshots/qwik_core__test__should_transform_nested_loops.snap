@@ -1,0 +1,162 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 5097
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  const data2 = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map(row => (
+	  <div onClick$={() => console.log(row.value.id)}>
+		{data2.value.map(item => (
+		  <p onClick$={() => console.log(row.value.id, item.value.id)}>{row.value.id}-{item.value.id}</p>
+		))}
+	  </div>
+	))}
+  </div>;
+})
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
+/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;cAEY\"}")
+============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
+
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.value.id;
+const _hf0_str = "p0.value.id";
+const i_PjMbeUzoAMk = ()=>import("./test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk");
+const i_vKrX4PmH2aM = ()=>import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM");
+export const Foo_component_HTDRsvUbLiE = function() {
+    const data = useSignal([]);
+    const data2 = useSignal([]);
+    const Foo_component_div_div_q_e_click_vKrX4PmH2aM = /*#__PURE__*/ qrl(i_vKrX4PmH2aM, "Foo_component_div_div_q_e_click_vKrX4PmH2aM");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row)=>{
+        const Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = /*#__PURE__*/ qrl(i_PjMbeUzoAMk, "Foo_component_div_div_p_q_e_click_PjMbeUzoAMk", [
+            row
+        ]);
+        return /*#__PURE__*/ _jsxSorted("div", {
+            "q-e:click": Foo_component_div_div_q_e_click_vKrX4PmH2aM,
+            "q:p": row
+        }, null, data2.value.map((item)=>/*#__PURE__*/ _jsxSorted("p", {
+                "q-e:click": Foo_component_div_div_p_q_e_click_PjMbeUzoAMk,
+                "q:p": item
+            }, null, [
+                _fnSignal(_hf0, [
+                    row
+                ], _hf0_str),
+                "-",
+                _fnSignal(_hf0, [
+                    item
+                ], _hf0_str)
+            ], 0, "u6_0")), 0, "u6_1");
+    }), 1, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBASkE,GAAI,KAAK,CAAC,EAAE;;;;yCAPvD;IACrB,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,QAAQ,UAAyB,EAAE;;IACzC,qBAAO,WAAC,mBACR,KAAK,KAAK,CAAC,GAAG,CAAC,CAAA;;;;6BACd,WAAC;YAAI,WAAQ;mBADC;iBAEd,MAAM,KAAK,CAAC,GAAG,CAAC,CAAA,qBACf,WAAC;gBAAE,WAAQ;uBADI;;;;;gBAC4D;;;;;;AAK/E\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    89,
+    447
+  ]
+}
+*/
+============================= test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM.js (ENTRY POINT)==
+
+export const Foo_component_div_div_q_e_click_vKrX4PmH2aM = (_, _1, row)=>console.log(row.value.id);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2DAOkB,QADD,MACO,QAAQ,GAAG,CAAC,IAAI,KAAK,CAAC,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_div_div_q_e_click_vKrX4PmH2aM",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_div_q_e_click",
+  "hash": "vKrX4PmH2aM",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    252,
+    283
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "row"
+  ]
+}
+*/
+============================= test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = (_, _1, item)=>{
+    const row = _captures[0];
+    return console.log(row.value.id, item.value.id);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6DASiB,QADE;;WACI,QAAQ,GAAG,CAAC,IAAI,KAAK,CAAC,EAAE,EAAE,KAAK,KAAK,CAAC,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_div_div_p_q_e_click_PjMbeUzoAMk",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_div_p_q_e_click",
+  "hash": "PjMbeUzoAMk",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    332,
+    378
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "item"
+  ],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

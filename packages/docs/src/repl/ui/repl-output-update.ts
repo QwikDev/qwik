@@ -1,4 +1,4 @@
-import { unwrapStore } from '@builder.io/qwik';
+import { unwrapStore } from '@qwik.dev/core/internal';
 import type { ReplResult, ReplStore } from '../types';
 
 // Maybe we should change useStore to recursively notify subscribers when a top-level property changes
@@ -31,7 +31,7 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
   deepUpdate(store.clientBundles, result.clientBundles);
   deepUpdate(store.ssrModules, result.ssrModules);
 
-  if (result.diagnostics.length === 0) {
+  if (!result.diagnostics.some((d) => d.category === 'error' || d.category === 'sourceError')) {
     if (result.html && store.html !== result.html) {
       store.html = result.html;
       store.events = result.events;

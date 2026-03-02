@@ -1,41 +1,41 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 888
+assertion_line: 999
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { $, component$, useStyles$ } from '@builder.io/qwik';
+import { $, component$, useStyles$ } from '@qwik.dev/core';
 import css1 from './global.css';
 import css2 from './style.css';
 
 export const App = component$(() => {
-    const style = `${css1}${css2}`;
-    useStyles$(style);
-    const render = () => {
-        return (
-            <div></div>
-        )
-    };
-    return $(render);
+	const style = `${css1}${css2}`;
+	useStyles$(style);
+	const render = () => {
+		return (
+			<div></div>
+		)
+	};
+	return $(render);
 })
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,iHASjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAKA,OAAO,MAAM,oBAAM,4EASjB\"}")
 ============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
 
 export const App_component_useStyles_t35nSa5UV7U = style;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAOe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAOY\"}")
 /*
 {
   "origin": "test.tsx",
@@ -51,22 +51,26 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    219,
-    224
+    211,
+    216
   ]
 }
 */
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
-import { useStylesQrl } from "@builder.io/qwik";
+import css1 from "./global.css";
+import css2 from "./style.css";
+import { qrl } from "@qwik.dev/core";
+import { useStylesQrl } from "@qwik.dev/core";
+const i_t35nSa5UV7U = ()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U");
+const i_w0t0o3QMovU = ()=>import("./test.tsx_App_component_1_w0t0o3QMovU");
 export const App_component_ckEPmXZlub0 = ()=>{
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U"));
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+    useStylesQrl(/*#__PURE__*/ qrl(i_t35nSa5UV7U, "App_component_useStyles_t35nSa5UV7U"));
+    return /*#__PURE__*/ qrl(i_w0t0o3QMovU, "App_component_1_w0t0o3QMovU");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAK8B;IAE1B;IAMA;AACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAK8B;IAE7B;IAMA;AACD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -82,18 +86,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    160,
-    335
+    158,
+    297
   ]
 }
 */
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
 
 export const App_component_1_w0t0o3QMovU = render;
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAaa\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAaU\"}")
 /*
 {
   "origin": "test.tsx",
@@ -109,8 +112,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    325,
-    331
+    287,
+    293
   ]
 }
 */
@@ -124,8 +127,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "message": "Qrl($) scope is not a function, but it's capturing local identifiers: style",
     "highlights": [
       {
-        "lo": 219,
-        "hi": 224,
+        "lo": 211,
+        "hi": 216,
         "startLine": 8,
         "startCol": 16,
         "endLine": 8,
@@ -142,8 +145,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "message": "Qrl($) scope is not a function, but it's capturing local identifiers: render",
     "highlights": [
       {
-        "lo": 325,
-        "hi": 331,
+        "lo": 287,
+        "hi": 293,
         "startLine": 14,
         "startCol": 14,
         "endLine": 14,

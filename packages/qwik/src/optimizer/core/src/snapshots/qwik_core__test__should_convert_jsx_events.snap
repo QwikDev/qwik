@@ -1,0 +1,275 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4706
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+
+		const ManyEventsComponent = component$(() => {
+			return (
+				<div>
+					<button
+						onClick$={() => {}}
+						onDblClick$={() => {}}
+					>
+						click
+					</button>
+					<button
+						onClick$={() => {}}
+						onBlur$={() => {}}
+						on-anotherCustom$={() => {}}
+						document:onFocus$={() => {}}
+						window:onClick$={() => {}}
+					>
+						click
+					</button>
+				</div>
+			);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ndbrzxiyG3g = ()=>import("./test.tsx_ManyEventsComponent_component_ndbrzxiyG3g");
+/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ndbrzxiyG3g, "ManyEventsComponent_component_ndbrzxiyG3g"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;cAG8B\"}")
+============================= test.tsx_ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA.js (ENTRY POINT)==
+
+export const ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gFAagB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA",
+  "entry": null,
+  "displayName": "test.tsx_ManyEventsComponent_component_div_button_q_e_click_1",
+  "hash": "BOulU3QpiyA",
+  "canonicalFilename": "test.tsx_ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA",
+  "path": "",
+  "extension": "js",
+  "parent": "ManyEventsComponent_component_ndbrzxiyG3g",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    252,
+    260
+  ]
+}
+*/
+============================= test.tsx_ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs.js (ENTRY POINT)==
+
+export const ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8EAgByB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs",
+  "entry": null,
+  "displayName": "test.tsx_ManyEventsComponent_component_div_button_q_d_focus",
+  "hash": "fR03UCeyKSs",
+  "canonicalFilename": "test.tsx_ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs",
+  "path": "",
+  "extension": "js",
+  "parent": "ManyEventsComponent_component_ndbrzxiyG3g",
+  "ctxKind": "eventHandler",
+  "ctxName": "document:onFocus$",
+  "captures": false,
+  "loc": [
+    347,
+    355
+  ]
+}
+*/
+============================= test.tsx_ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY.js (ENTRY POINT)==
+
+export const ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6EAce,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY",
+  "entry": null,
+  "displayName": "test.tsx_ManyEventsComponent_component_div_button_q_e_blur",
+  "hash": "LVmlrV6TsTY",
+  "canonicalFilename": "test.tsx_ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY",
+  "path": "",
+  "extension": "js",
+  "parent": "ManyEventsComponent_component_ndbrzxiyG3g",
+  "ctxKind": "eventHandler",
+  "ctxName": "onBlur$",
+  "captures": false,
+  "loc": [
+    277,
+    285
+  ]
+}
+*/
+============================= test.tsx_ManyEventsComponent_component_ndbrzxiyG3g.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_BOulU3QpiyA = ()=>import("./test.tsx_ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA");
+const i_DjpgJ0bcgJs = ()=>import("./test.tsx_ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs");
+const i_LVmlrV6TsTY = ()=>import("./test.tsx_ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY");
+const i_VZGqMEVFles = ()=>import("./test.tsx_ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles");
+const i_ZC5Gt2v0qH0 = ()=>import("./test.tsx_ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0");
+const i_fR03UCeyKSs = ()=>import("./test.tsx_ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs");
+const i_z0X12CPQocg = ()=>import("./test.tsx_ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg");
+export const ManyEventsComponent_component_ndbrzxiyG3g = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": /*#__PURE__*/ qrl(i_z0X12CPQocg, "ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg"),
+            "q-e:dblclick": /*#__PURE__*/ qrl(i_VZGqMEVFles, "ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles")
+        }, "click", 3, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": /*#__PURE__*/ qrl(i_BOulU3QpiyA, "ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA"),
+            "q-e:blur": /*#__PURE__*/ qrl(i_LVmlrV6TsTY, "ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY"),
+            "q-e:another-custom": /*#__PURE__*/ qrl(i_ZC5Gt2v0qH0, "ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0"),
+            "q-d:focus": /*#__PURE__*/ qrl(i_fR03UCeyKSs, "ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs"),
+            "q-w:click": /*#__PURE__*/ qrl(i_DjpgJ0bcgJs, "ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs")
+        }, "click", 3, null)
+    ], 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yDAGyC;IACtC,qBACC,WAAC;sBACA,WAAC;YACA,WAAQ;YACR,cAAW;WACX;sBAGD,WAAC;YACA,WAAQ;YACR,UAAO;YACP,oBAAiB;YAHlB,WAQS;YART,WAQS;WAFR;;AAKJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ManyEventsComponent_component_ndbrzxiyG3g",
+  "entry": null,
+  "displayName": "test.tsx_ManyEventsComponent_component",
+  "hash": "ndbrzxiyG3g",
+  "canonicalFilename": "test.tsx_ManyEventsComponent_component_ndbrzxiyG3g",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    91,
+    444
+  ]
+}
+*/
+============================= test.tsx_ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0.js (ENTRY POINT)==
+
+export const ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0 = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uFAeyB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0",
+  "entry": null,
+  "displayName": "test.tsx_ManyEventsComponent_component_div_button_q_e_another_custom",
+  "hash": "ZC5Gt2v0qH0",
+  "canonicalFilename": "test.tsx_ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0",
+  "path": "",
+  "extension": "js",
+  "parent": "ManyEventsComponent_component_ndbrzxiyG3g",
+  "ctxKind": "eventHandler",
+  "ctxName": "on-anotherCustom$",
+  "captures": false,
+  "loc": [
+    312,
+    320
+  ]
+}
+*/
+============================= test.tsx_ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs.js (ENTRY POINT)==
+
+export const ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8EAiBuB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs",
+  "entry": null,
+  "displayName": "test.tsx_ManyEventsComponent_component_div_button_q_w_click",
+  "hash": "DjpgJ0bcgJs",
+  "canonicalFilename": "test.tsx_ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs",
+  "path": "",
+  "extension": "js",
+  "parent": "ManyEventsComponent_component_ndbrzxiyG3g",
+  "ctxKind": "eventHandler",
+  "ctxName": "window:onClick$",
+  "captures": false,
+  "loc": [
+    380,
+    388
+  ]
+}
+*/
+============================= test.tsx_ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg.js (ENTRY POINT)==
+
+export const ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8EAOgB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg",
+  "entry": null,
+  "displayName": "test.tsx_ManyEventsComponent_component_div_button_q_e_click",
+  "hash": "z0X12CPQocg",
+  "canonicalFilename": "test.tsx_ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg",
+  "path": "",
+  "extension": "js",
+  "parent": "ManyEventsComponent_component_ndbrzxiyG3g",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    150,
+    158
+  ]
+}
+*/
+============================= test.tsx_ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles.js (ENTRY POINT)==
+
+export const ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iFAQmB,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles",
+  "entry": null,
+  "displayName": "test.tsx_ManyEventsComponent_component_div_button_q_e_dblclick",
+  "hash": "VZGqMEVFles",
+  "canonicalFilename": "test.tsx_ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles",
+  "path": "",
+  "extension": "js",
+  "parent": "ManyEventsComponent_component_ndbrzxiyG3g",
+  "ctxKind": "eventHandler",
+  "ctxName": "onDblClick$",
+  "captures": false,
+  "loc": [
+    179,
+    187
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

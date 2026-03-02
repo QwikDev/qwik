@@ -1,51 +1,52 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2937
+assertion_line: 3049
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export const Issue3742 = component$(({description = '', other}: any) => {
-    const counter = useSignal(0);
-    return (
-      <div
-        title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
-      >
-        Issue3742
-        <button onClick$={() => counter.value++}>
-          Increment
-        </button>
-      </div>
-    )
-  });
-  
+	const counter = useSignal(0);
+	return (
+		<div
+		title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
+		>
+		Issue3742
+		<button onClick$={() => counter.value++}>
+			Increment
+		</button>
+		</div>
+	)
+	});
+	
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { useSignal } from '@builder.io/qwik';
-const Issue3742_component_div_button_onClick_a504K2BCEXg = ()=>{
-    const [counter] = useLexicalScope();
+import { componentQrl } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+const _hf0 = (p0, p1)=>(p0.description ?? '') && 'description' in p0.other ? `Hello ${p1.value}` : `Bye ${p1.value}`;
+const _hf0_str = '(p0.description??"")&&"description"in p0.other?`Hello ${p1.value}`:`Bye ${p1.value}`';
+import { useSignal } from '@qwik.dev/core';
+const Issue3742_component_div_button_q_e_click_95Hlm8WgsYY = ()=>{
+    const counter = _captures[0];
     return counter.value++;
 };
-const Issue3742_component_svSy0PlWTAw = (props)=>{
+const Issue3742_component_svSy0PlWTAw = (_rawProps)=>{
     const counter = useSignal(0);
-    return /*#__PURE__*/ _jsxQ("div", null, {
-        title: _fnSignal((p0, p1)=>(p1.description ?? '') && 'description' in p1.other ? `Hello ${p0.value}` : `Bye ${p0.value}`, [
-            counter,
-            props
-        ], '(p1.description??"")&&"description"in p1.other?`Hello ${p0.value}`:`Bye ${p0.value}`')
-    }, [
+    return /*#__PURE__*/ _jsxSorted("div", {
+        title: _fnSignal(_hf0, [
+            _rawProps,
+            counter
+        ], _hf0_str)
+    }, null, [
         "Issue3742",
-        /*#__PURE__*/ _jsxQ("button", null, {
-            onClick$: /*#__PURE__*/ inlinedQrl(Issue3742_component_div_button_onClick_a504K2BCEXg, "Issue3742_component_div_button_onClick_a504K2BCEXg", [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": /*#__PURE__*/ inlinedQrl(Issue3742_component_div_button_q_e_click_95Hlm8WgsYY, "Issue3742_component_div_button_q_e_click_95Hlm8WgsYY", [
                 counter
             ])
         }, "Increment", 3, null)
@@ -54,7 +55,7 @@ const Issue3742_component_svSy0PlWTAw = (props)=>{
 export const Issue3742 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Issue3742_component_svSy0PlWTAw, "Issue3742_component_svSy0PlWTAw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,SAAS,QAAQ,mBAAmB;2DAS/B;;WAAM,QAAQ,KAAK;;wCAPT;IAChC,MAAM,UAAU,UAAU;IAC1B,qBACE,MAAC;QACC,KAAK,sBAAE,AAAC,IAJsB,eAAc,OAIrB,oBAJyB,QAIC,CAAC,MAAM,EAAE,GAAQ,KAAK,EAAE,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,EAAE;;;;;QACnG;sBAEC,MAAC;YAAO,QAAQ;;;WAAyB;;AAK/C;AAZF,OAAO,MAAM,0BAAY,2GAYpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAOS,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,EAAE,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,EAAE;;AANpG,SAAqB,SAAS,QAAQ,iBAAiB;6DASnC;;WAAM,QAAQ,KAAK;;wCAPH;IACnC,MAAM,UAAU,UAAU;IAC1B,qBACC,WAAC;QACD,KAAK;;;;;QACJ;sBAED,WAAC;YAAO,WAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
 == DIAGNOSTICS ==
 
 []

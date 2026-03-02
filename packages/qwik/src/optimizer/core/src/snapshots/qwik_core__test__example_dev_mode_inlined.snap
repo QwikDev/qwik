@@ -1,57 +1,53 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2210
+assertion_line: 2322
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { inlinedQrlDEV } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { inlinedQrlDEV } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
-    return /*#__PURE__*/ _jsxC(Cmp, {
-        children: /*#__PURE__*/ _jsxQ("p", null, {
-            class: "stuff",
-            onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
-                file: "/user/qwik/src/test.tsx",
-                lo: 164,
-                hi: 189,
-                displayName: "test.tsx_App_component_Cmp_p_onClick"
-            })
-        }, "Hello Qwik", 3, null, {
-            fileName: "test.tsx",
-            lineNumber: 7,
-            columnNumber: 13
+    return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
+        class: "stuff",
+        "q-e:click": /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
+            file: "/user/qwik/src/test.tsx",
+            lo: 144,
+            hi: 169,
+            displayName: "test.tsx_App_component_Cmp_p_q_e_click"
         })
-    }, 3, "u6_0", {
+    }, "Hello Qwik", 3, null, {
+        fileName: "test.tsx",
+        lineNumber: 7,
+        columnNumber: 4
+    }), 3, "u6_0", {
         fileName: "test.tsx",
         lineNumber: 6,
-        columnNumber: 9
+        columnNumber: 3
     });
 }, "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
-    lo: 90,
-    hi: 229,
+    lo: 88,
+    hi: 200,
     displayName: "test.tsx_App_component"
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,yCAAW;IAC1B,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;WAAS;;;;;;;;;;AAGlE;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,yCAAW;IAC7B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;OAAS;;;;;;;;;AAGzD;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

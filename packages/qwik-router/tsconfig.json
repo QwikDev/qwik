@@ -1,0 +1,49 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@qwik.dev/router": ["packages/qwik-router/src/runtime/src/index.ts"],
+      "@qwik.dev/router/service-worker": [
+        "packages/qwik-router/src/runtime/src/service-worker/index.ts"
+      ],
+      "@qwik.dev/router/adapters/azure-swa/vite": [
+        "packages/qwik-router/src/adapters/azure-swa/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/cloudflare-pages/vite": [
+        "packages/qwik-router/src/adapters/cloudflare-pages/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/node-server/vite": [
+        "packages/qwik-router/src/adapters/node-server/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/netlify-edge/vite": [
+        "packages/qwik-router/src/adapters/netlify-edge/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/shared/vite": [
+        "packages/qwik-router/src/adapters/shared/vite/index.ts"
+      ],
+      "@qwik.dev/router/adapters/ssg/vite": ["packages/qwik-router/src/adapters/ssg/vite/index.ts"],
+      "@qwik.dev/router/middleware/azure-swa": ["packages/qwik-router/src/middleware/azure-swa"],
+      "@qwik.dev/router/middleware/aws-lambda": ["packages/qwik-router/src/middleware/aws-lambda"],
+      "@qwik.dev/router/middleware/cloudflare-pages": [
+        "packages/qwik-router/src/middleware/cloudflare-pages"
+      ],
+      "@qwik.dev/router/middleware/request-handler": [
+        "packages/qwik-router/src/middleware/request-handler"
+      ],
+      "@qwik.dev/router/middleware/node": ["packages/qwik-router/src/middleware/node"],
+      "@qwik.dev/router/middleware/netlify-edge": [
+        "packages/qwik-router/src/middleware/netlify-edge"
+      ],
+      "@qwik.dev/router/ssg": ["packages/qwik-router/src/ssg"],
+      "@qwik.dev/router/vite": ["packages/qwik-router/src/buildtime/vite"],
+
+      "@qwik-router-config": ["packages/qwik-router/src/runtime/src/qwik-router-config.ts"],
+      "@qwik-router-sw-register-build": [
+        "packages/qwik-router/src/buildtime/runtime-generation/sw-register-build.ts"
+      ],
+      "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"]
+    }
+  },
+  "include": ["."],
+  "exclude": ["dist"]
+}

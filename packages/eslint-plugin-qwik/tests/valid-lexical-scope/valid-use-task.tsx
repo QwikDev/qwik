@@ -1,4 +1,4 @@
-import { component$, useTask$ } from '@builder.io/qwik';
+import { component$, useTask$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const getMethod = () => {

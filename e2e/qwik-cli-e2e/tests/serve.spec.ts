@@ -22,7 +22,6 @@ beforeEach(() => {
 for (const type of ['empty', 'playground'] as QwikProjectType[]) {
   describe(`template: ${type}`, () => {
     beforeAll(() => {
-      console.log('================================================ scaffolding', type);
       const config = scaffoldQwikProject(type);
       global.tmpDir = config.tmpDir;
 
@@ -34,7 +33,7 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
         }
         config.cleanupFn();
       };
-    });
+    }, 120000);
 
     if (type === 'playground') {
       test(

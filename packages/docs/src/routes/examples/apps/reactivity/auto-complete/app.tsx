@@ -1,4 +1,4 @@
-import { component$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useAsync$, useSignal, type Signal } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
@@ -10,86 +10,78 @@ export default component$(() => {
       <a href="https://swapi.py4e.com/">Star Wars API</a>:
       <br />
       <br />
-      <AutoComplete></AutoComplete>
+      <AutoComplete />
     </article>
   );
 });
 
-interface IState {
-  searchInput: string;
-  searchResults: string[];
-  selectedValue: string;
-}
-
 export const AutoComplete = component$(() => {
-  const state = useStore<IState>({
-    searchInput: '',
-    searchResults: [],
-    selectedValue: '',
-  });
+  const searchInput = useSignal('');
+  const selectedValue = useSignal('');
 
-  useTask$(async ({ track }) => {
-    const searchInput = track(() => state.searchInput);
+  const searchResults = useAsync$<string[]>(
+    async ({ track, abortSignal }) => {
+      const query = track(searchInput);
 
-    if (!searchInput) {
-      state.searchResults = [];
-      return;
-    }
+      if (!query) {
+        return [];
+      }
 
-    const controller = new AbortController();
-    state.searchResults = await debouncedGetPeople(state.searchInput, controller);
+      // Debounce: wait 150ms before making the request
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
-    return () => {
-      controller.abort();
-    };
-  });
+      // If the signal was aborted during the debounce, this will throw
+      const response = await fetch(`https://swapi.py4e.com/api/people/?search=${query}`, {
+        signal: abortSignal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.results.map((people: { name: string }) => people.name);
+    },
+    { initial: [] }
+  );
 
   return (
     <div>
-      <input type="text" onInput$={(ev, el) => (state.searchInput = el.value)} />
-      <SuggestionsListComponent state={state}></SuggestionsListComponent>
+      <input type="text" bind:value={searchInput} />
+      <SuggestionsListComponent
+        results={searchResults.value}
+        query={searchInput.value}
+        bind:select={selectedValue}
+      />
     </div>
   );
 });
 
-export const SuggestionsListComponent = (props: { state: IState }) => {
-  const searchResults = props.state.searchResults;
-  return searchResults?.length ? (
+export const SuggestionsListComponent = component$<{
+  results: string[];
+  query: string;
+  'bind:select': Signal<string>;
+}>(({ results, query, 'bind:select': selected }) => {
+  return results.length ? (
     <ul>
-      {searchResults.map((suggestion) => {
-        return <li onClick$={() => (props.state.selectedValue = suggestion)}>{suggestion}</li>;
+      {results.map((suggestion) => {
+        return (
+          <li
+            style={{
+              cursor: 'pointer',
+              padding: '0.25em 0',
+              background: suggestion === selected.value ? '#eee' : 'transparent',
+            }}
+            onClick$={() => (selected.value = suggestion)}
+          >
+            {suggestion}
+          </li>
+        );
       })}
     </ul>
-  ) : props.state.searchInput ? (
+  ) : query ? (
     <p class="no-results">
       <em>No results</em>
     </p>
   ) : null;
-};
-
-const getPeople = (searchInput: string, controller?: AbortController): Promise<string[]> =>
-  fetch(`https://swapi.py4e.com/api/people/?search=${searchInput}`, {
-    signal: controller?.signal,
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((parsedResponse) => {
-      return parsedResponse.results.map((people: { name: string }) => people.name);
-    })
-    .catch((e) => console.error('fetch failed', e));
-
-function debounce<F extends (...args: any) => any>(fn: F, delay = 500) {
-  let timeoutId: ReturnType<typeof setTimeout>;
-
-  return (...args: Parameters<F>): Promise<ReturnType<F>> => {
-    return new Promise((resolve) => {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        resolve(fn(...(args as any[])));
-      }, delay);
-    });
-  };
-}
-
-const debouncedGetPeople = debounce(getPeople, 150);
+});

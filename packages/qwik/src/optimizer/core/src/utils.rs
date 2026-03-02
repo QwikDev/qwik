@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -46,7 +46,7 @@ impl PartialOrd for SourceLocation {
 pub struct Diagnostic {
 	pub category: DiagnosticCategory,
 	pub code: Option<String>,
-	pub file: JsWord,
+	pub file: Atom,
 	pub message: String,
 	pub highlights: Option<Vec<SourceLocation>>,
 	pub suggestions: Option<Vec<String>>,

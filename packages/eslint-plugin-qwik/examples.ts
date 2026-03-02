@@ -9,6 +9,7 @@ import { jsxNoScriptUrlExamples } from './src/jsxNoScriptUrl';
 import { loaderLocationExamples } from './src/loaderLocation';
 import { noReactPropsExamples } from './src/noReactProps';
 import { preferClasslistExamples } from './src/preferClasslist';
+import { serializerSignalUsageExamples } from './src/serializerSignalUsage';
 import { unusedServerExamples } from './src/unusedServer';
 import { useMethodUsageExamples } from './src/useMethodUsage';
 import { validLexicalScopeExamples } from './src/validLexicalScope';
@@ -38,4 +39,5 @@ export const examples = {
   'jsx-key': jsxKeyExamples,
   'unused-server': unusedServerExamples,
   'jsx-img': jsxImgExamples,
+  'serializer-signal-usage': serializerSignalUsageExamples,
 };

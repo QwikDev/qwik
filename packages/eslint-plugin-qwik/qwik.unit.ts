@@ -1,9 +1,9 @@
-import * as vitest from 'vitest';
 import { RuleTester, type RuleTesterConfig } from '@typescript-eslint/rule-tester';
+import { readFile, readdir, stat } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as vitest from 'vitest';
 import { rules } from './index';
-import { readdir, readFile, stat } from 'node:fs/promises';
-import { join, dirname } from 'path';
 
 // https://typescript-eslint.io/packages/rule-tester/#vitest
 RuleTester.afterAll = vitest.afterAll;
@@ -45,14 +45,14 @@ const isRuleName = (ruleName: string): ruleName is keyof typeof rules =>
 
 await (async function setupEsLintRuleTesters() {
   // list './test' directory content and set up one RuleTester per directory
-  let testDir = join(dirname(new URL(import.meta.url).pathname), './tests');
+  let testDir = join(dirname(fileURLToPath(import.meta.url)), './tests');
   const isWindows = process.platform === 'win32';
   if (isWindows && testDir.startsWith('\\')) {
     // in Windows testDir starts with a \ causing errors
     testDir = testDir.substring(1);
   }
 
-  const ruleNames = await readdir(testDir);
+  const ruleNames = (await readdir(testDir)) as (keyof typeof rules)[];
   for (const ruleName of ruleNames) {
     if (ruleName.endsWith('.json')) {
       continue;
@@ -100,7 +100,7 @@ await (async function setupEsLintRuleTesters() {
       }
     }
     if (valid.length || invalid.length) {
-      await ruleTester.run(ruleName, rule, { valid, invalid });
+      ruleTester.run(ruleName, rule as any, { valid, invalid });
     }
   }
 })();

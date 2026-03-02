@@ -1,42 +1,41 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1369
+assertion_line: 1480
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwik.dev/core';
 
 export const Child = component$(() => {
-    const state = useStore({
-        count: 0
-    });
+	const state = useStore({
+		count: 0
+	});
 
-    // Double count watch
-    useBrowserVisibleTask$(() => {
-        const timer = setInterval(() => {
-        state.count++;
-        }, 1000);
-        return () => {
-        clearInterval(timer);
-        }
-    });
+	// Double count watch
+	useBrowserVisibleTask$(() => {
+		const timer = setInterval(() => {
+		state.count++;
+		}, 1000);
+		return () => {
+		clearInterval(timer);
+		}
+	});
 
-    return (
-        <div>
-        {state.count}
-    </div>
-    );
+	return (
+		<div>
+		{state.count}
+	</div>
+	);
 });
 
 
 ============================= test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { _captures } from "@qwik.dev/core";
 export const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     const timer = setInterval(()=>{
         state.count++;
     }, 1000);
@@ -44,10 +43,9 @@ export const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = ()=>{
         clearInterval(timer);
     };
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAS2B;;IACnB,MAAM,QAAQ,YAAY;QAC1B,MAAM,KAAK;IACX,GAAG;IACH,OAAO;QACP,cAAc;IACd\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEASwB;;IACtB,MAAM,QAAQ,YAAY;QAC1B,MAAM,KAAK;IACX,GAAG;IACH,OAAO;QACP,cAAc;IACd\"}")
 /*
 {
   "origin": "test.tsx",
@@ -63,41 +61,44 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useBrowserVisibleTask$",
   "captures": true,
   "loc": [
-    244,
-    403
+    224,
+    344
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_9GyF01GDKqw = ()=>import("./test.tsx_Child_component_9GyF01GDKqw");
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9GyF01GDKqw, "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,qHAoBlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,sBAAQ,8EAoBlB\"}")
 ============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
 
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { useBrowserVisibleTaskQrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useBrowserVisibleTaskQrl } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+const i_0IGFPOyJmQA = ()=>import("./test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA");
 export const Child_component_9GyF01GDKqw = ()=>{
     const state = useStore({
         count: 0
     });
     // Double count watch
-    useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
+    useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(i_0IGFPOyJmQA, "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state
     ]));
-    return /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.count, [
-        state
-    ], "p0.count"), 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAGgC;IAC5B,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IAEA,qBAAqB;IACrB;;;IASA,qBACI,MAAC,mCACA,GAAM,KAAK;;;AAGpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;2CAGgC;IAC/B,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBAAqB;IACrB;;;IASA,qBACC,WAAC,6BACA;AAGH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -113,8 +114,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    128,
-    475
+    126,
+    395
   ]
 }
 */

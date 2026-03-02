@@ -32,7 +32,7 @@ The [optimizer](../optimizer/index.mdx) runs as a Vite plugin during bundling. T
 The `$` tells the optimizer which functions to extract into a separate file and which ones to leave untouched. The optimizer does not keep an internal list of magic functions, instead, it solely relies on the `$` suffix to know which functions to transform. The system is extendable and developers can create their own `$` functions, such as `myCustomFunction$()`.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   console.log('render');
@@ -43,7 +43,7 @@ export default component$(() => {
 The component above is split into multiple chunks thanks to the `$` syntax:
 
 ```js title="app.js"
-import { componentQrl, qrl } from '@builder.io/qwik';
+import { componentQrl, qrl } from '@qwik.dev/core';
 
 const App = /*#__PURE__*/ componentQrl(
   qrl(() => import('./app_component_akbu84a8zes.js'), 'App_component_AkbU84a8zes')
@@ -53,8 +53,8 @@ export { App };
 ```
 
 ```js title="app_component_akbu84a8zes.js"
-import { jsx as _jsx } from '@builder.io/qwik/jsx-runtime';
-import { qrl } from '@builder.io/qwik';
+import { jsx as _jsx } from '@qwik.dev/core/jsx-runtime';
+import { qrl } from '@qwik.dev/core';
 export const App_component_AkbU84a8zes = () => {
   console.log('render');
   return /*#__PURE__*/ _jsx('button', {

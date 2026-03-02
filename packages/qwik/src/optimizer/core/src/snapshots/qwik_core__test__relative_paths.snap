@@ -1,19 +1,18 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3305
+assertion_line: 3417
 expression: output
-snapshot_kind: text
 ---
 ============================= ../../node_modules/dep/dist/lib.mjs_App_component_div_p_button_onClick_8dWUa0cJAr4.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwik.dev/core";
 export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
     const [store] = useLexicalScope();
     return store.count++;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";8DAuByC;IACjB,MAAM,CAAC,MAAM,GAAG;IAChB,OAAO,MAAM,KAAK;AACtB\"}")
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";8DAuB0B;IACpB,MAAM,CAAC,MAAM,GAAG;IAChB,OAAO,MAAM,KAAK;AACnB\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",
@@ -25,32 +24,34 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   "path": "../../node_modules/dep/dist",
   "extension": "js",
   "parent": "App_component_AkbU84a8zes",
-  "ctxKind": "jSXProp",
-  "ctxName": "onClick$",
+  "ctxKind": "function",
+  "ctxName": "q-e:click",
   "captures": true,
   "loc": [
-    706,
-    838
+    570,
+    651
+  ],
+  "captureNames": [
+    "store"
   ]
 }
 */
 ============================= ../../node_modules/dep/dist/lib.mjs_App_component_AkbU84a8zes.js (ENTRY POINT)==
 
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 import { _auto_useData as useData } from "./lib.mjs";
+const i_8dWUa0cJAr4 = ()=>import("./lib.mjs_App_component_div_p_button_onClick_8dWUa0cJAr4.js");
 export const App_component_AkbU84a8zes = ()=>{
     const store = useData();
-    return /*#__PURE__*/ _jsxQ("div", null, null, [
-        /*#__PURE__*/ _jsxQ("p", null, null, [
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("p", null, null, [
             "Count: ",
-            _fnSignal((p0)=>p0.count, [
-                store
-            ], "p0.count")
+            _wrapProp(store, "count")
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("p", null, null, /*#__PURE__*/ _jsxQ("button", {
-            onClick$: /*#__PURE__*/ qrl(()=>import("./lib.mjs_App_component_div_p_button_onClick_8dWUa0cJAr4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+        /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": /*#__PURE__*/ qrl(i_8dWUa0cJAr4, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                 store
             ])
         }, null, "Click", 2, null), 1, null)
@@ -58,7 +59,7 @@ export const App_component_AkbU84a8zes = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;;;yCAWyD;IACrD,MAAM,QAAQ;IACd,OAAO,WAAW,GAAG,MAAK,mBACZ;QACN,WAAW,GAAG,MAAK,iBACL;YACN;4BACA,GAAM,KAAK;;;SACd;QAEL,WAAW,GAAG,MAAI,iBACJ,WAAW,GAAG,MAAI;YACxB,QAAQ;;;iBAME;KAGrB;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;;;;yCAWyD;IACxD,MAAM,QAAQ;IACd,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,WAAQ;;;iBAME;KAGZ;AAEH\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",
@@ -74,35 +75,36 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    315,
-    1037
+    299,
+    772
   ]
 }
 */
 ============================= ../../node_modules/dep/dist/lib.mjs ==
 
-import { qrl } from "@builder.io/qwik";
-import { componentQrl, useStore } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+const i_AkbU84a8zes = ()=>import("./lib.mjs_App_component_AkbU84a8zes.js");
+import { componentQrl, useStore } from "@qwik.dev/core";
 const useData = ()=>{
     return useStore({
         count: 0
     });
 };
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./lib.mjs_App_component_AkbU84a8zes.js"), "App_component_AkbU84a8zes"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_AkbU84a8zes, "App_component_AkbU84a8zes"));
 export { useData as _auto_useData };
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,mBAAmB;AAIvF,MAAM,UAAU;IACZ,OAAO,SAAS;QACZ,OAAO;IACX;AACJ;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,mHAuBA\"}")
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,iBAAiB;AAIrF,MAAM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,4EAuBA\"}")
 ============================= components/main.tsx_Local_component_jJ0v28bs0p8.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
 import { state } from "./sibling";
 export const Local_component_jJ0v28bs0p8 = ()=>{
-    return /*#__PURE__*/ _jsxQ("div", null, null, state, 3, "zp_0");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, state, 3, "zp_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;2CAIgC;IAC5B,qBACI,MAAC,mBAAK;AAEd\"}")
+Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;2CAIgC;IAC/B,qBACC,WAAC,mBAAK;AAER\"}")
 /*
 {
   "origin": "components/main.tsx",
@@ -118,19 +120,20 @@ Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoo
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    120,
-    175
+    118,
+    161
   ]
 }
 */
 ============================= components/main.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Local = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./main.tsx_Local_component_jJ0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_jJ0v28bs0p8 = ()=>import("./main.tsx_Local_component_jJ0v28bs0p8.js");
+export const Local = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_jJ0v28bs0p8, "Local_component_jJ0v28bs0p8"));
 
 
-Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,sBAAQ,wHAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,sBAAQ,8EAIlB\"}")
 == DIAGNOSTICS ==
 
 []

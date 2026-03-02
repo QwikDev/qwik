@@ -1,10 +1,4 @@
-/* eslint-disable */
-import {
-  component$,
-  useComputed$,
-  useSignal,
-  useTask$,
-} from "@builder.io/qwik";
+import { component$, useComputed$, useSignal, useTask$ } from "@qwik.dev/core";
 
 export const ComputedRoot = component$(() => {
   const rerender = useSignal(0);
@@ -14,10 +8,14 @@ export const ComputedRoot = component$(() => {
       <button id="rerender" onClick$={() => rerender.value++}>
         Rerender
       </button>
+      <span id="render-count">Renders: {rerender.value}</span>
       <ComputedBasic />
-      <Issue3482 />
-      <Issue3488 />
-      <Issue5738 />
+      <SpreadComputedValueUpdateIssue3482 />
+      <UseComputedNavigationLossIssue3488 />
+      <ComputedSignalSerializationRefsIssue5738 />
+      <ShouldHandleMultipleComputeds />
+      <ShouldResolveComputedQrlEarly />
+      <ShouldRetryWhenThereIsNoQRL />
     </div>
   );
 });
@@ -29,7 +27,6 @@ export const ComputedBasic = component$(() => {
   const triple = useComputed$(() => plus3.value * 3);
   const sum = useComputed$(() => double.value + plus3.value + triple.value);
 
-  console.log("here");
   return (
     <div>
       <div class="result">count: {count.value}</div>
@@ -44,7 +41,7 @@ export const ComputedBasic = component$(() => {
   );
 });
 
-export const Issue3482 = component$((props) => {
+export const SpreadComputedValueUpdateIssue3482 = component$((props) => {
   const count = useSignal(0);
 
   const attributes = useComputed$(() => {
@@ -78,7 +75,7 @@ export const TextContent = component$(
   },
 );
 
-export const Issue3488 = component$(() => {
+export const UseComputedNavigationLossIssue3488 = component$(() => {
   const count = useSignal(0);
 
   const data = useComputed$(() => {
@@ -97,7 +94,7 @@ export const Issue3488 = component$(() => {
   );
 });
 
-export const Issue5738 = component$(() => {
+export const ComputedSignalSerializationRefsIssue5738 = component$(() => {
   const foo = useSignal(0);
   const comp = useComputed$(() => {
     return foo.value * 2;
@@ -106,4 +103,87 @@ export const Issue5738 = component$(() => {
     foo.value = 1;
   });
   return <div id="issue-5738-result">Calc: {comp.value}</div>;
+});
+
+export const ShouldResolveComputedQrlEarly = component$(() => {
+  const trigger = useSignal(0);
+  const display = useSignal("not clicked yet");
+
+  const demo = useComputed$(() => "Hello");
+
+  // change attribute and read computed
+  useTask$(({ track }) => {
+    if (!track(trigger)) {
+      return;
+    }
+
+    // We don't immediately read the computed, but we do deserialize it from lexical scope, which should resolve it early.
+    setTimeout(
+      () => {
+        try {
+          display.value = demo.value + " world";
+        } catch {
+          // happens when we read another computed value that wasn't loaded yet
+          display.value = "computed not ready yet";
+        }
+      },
+      // give enough time for the computed to resolve
+      100,
+    );
+  });
+
+  return (
+    <>
+      <button id="early-computed-qrl" onClick$={() => trigger.value++}>
+        Click me! {display.value}
+      </button>
+    </>
+  );
+});
+
+export const ShouldHandleMultipleComputeds = component$(() => {
+  const isToggled = useSignal<boolean>(false);
+
+  const demo = useComputed$(() => 3);
+
+  // change attribute and read computed
+  const repro = useComputed$(() => {
+    if (!isToggled.value) {
+      return;
+    }
+
+    // happens when we read another computed value
+    return demo.value + 2;
+  });
+
+  return (
+    <>
+      <button
+        id="multiple-computed-qrl"
+        // also when tied to an attribute
+        data-test={repro.value}
+        onClick$={() => (isToggled.value = !isToggled.value)}
+      >
+        Click me! {repro.value}
+      </button>
+    </>
+  );
+});
+
+export const ShouldRetryWhenThereIsNoQRL = component$(() => {
+  const counter = useSignal(0);
+
+  const someComputed = useComputed$(() => {});
+
+  return (
+    <button
+      id="retry-no-qrl"
+      onClick$={() => {
+        someComputed.value;
+        counter.value++;
+      }}
+    >
+      {counter.value}
+    </button>
+  );
 });

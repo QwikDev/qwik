@@ -3,13 +3,13 @@
  * When building, the adapter config is used which loads this file and extends it.
  */
 import { defineConfig, type UserConfig, type Plugin } from "vite";
-import { qwikVite } from "@builder.io/qwik/optimizer";
-import { qwikCity } from "@builder.io/qwik-city/vite";
+import { qwikVite } from "@qwik.dev/core/optimizer";
+import { qwikRouter } from "@qwik.dev/router/vite";
 import crypto from "crypto";
 import tsconfigPaths from "vite-tsconfig-paths";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 /**
- * Note that Vite normally starts from `index.html` but the qwikCity plugin makes start at `src/entry.ssr.tsx` instead.
+ * Note that Vite normally starts from `index.html` but the qwikRouter plugin makes start at `src/entry.ssr.tsx` instead.
  */
 function createBulkPlugin(): Plugin {
   return {
@@ -63,9 +63,9 @@ function createBulkPlugin(): Plugin {
 export default defineConfig((): UserConfig => {
   return {
     plugins: [
-      qwikCity(),
+      qwikRouter(),
       qwikVite({ debug: true }),
-      createBulkPlugin(),
+      // createBulkPlugin(),
       tsconfigPaths({ root: "." }),
       basicSsl(),
     ],

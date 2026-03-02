@@ -1,45 +1,42 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 964
+assertion_line: 1075
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ as Component, $ as onRender, useStore } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender, useStore } from '@qwik.dev/core';
 
 export const App = Component((props) => {
-    const state = useStore({thing: 0});
+	const state = useStore({thing: 0});
 
-    return onRender(() => (
-        <div>{state.thing}</div>
-    ));
+	return onRender(() => (
+		<div>{state.thing}</div>
+	));
 });
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_NuXFTHRjvXE"), "App_Component_NuXFTHRjvXE"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_NuXFTHRjvXE = ()=>import("./test.tsx_App_Component_NuXFTHRjvXE");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_NuXFTHRjvXE, "App_Component_NuXFTHRjvXE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAMhB\"}")
 ============================= test.tsx_App_Component_1_A08tXHb9pEk.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _captures } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
 export const App_Component_1_A08tXHb9pEk = ()=>{
-    const [state] = useLexicalScope();
-    return /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.thing, [
-        state
-    ], "p0.thing"), 3, "u6_0");
+    const state = _captures[0];
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "thing"), 3, "u6_0");
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,MAAC,mCAAK,GAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMiB;;yBACf,WAAC,6BAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -55,26 +52,30 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    191,
-    237
+    183,
+    220
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */
 ============================= test.tsx_App_Component_NuXFTHRjvXE.js (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+const i_A08tXHb9pEk = ()=>import("./test.tsx_App_Component_1_A08tXHb9pEk");
 export const App_Component_NuXFTHRjvXE = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_1_A08tXHb9pEk"), "App_Component_1_A08tXHb9pEk", [
+    return /*#__PURE__*/ qrl(i_A08tXHb9pEk, "App_Component_1_A08tXHb9pEk", [
         state
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG6B,CAAC;IAC1B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG6B,CAAC;IAC7B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -90,8 +91,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    117,
-    241
+    115,
+    224
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

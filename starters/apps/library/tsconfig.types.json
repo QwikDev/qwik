@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "lib",
+    "noEmit": false
+  },
+  "exclude": [
+    "src/routes/**",
+    "src/root.tsx",
+    "src/entry.ssr.tsx",
+    "src/entry.dev.tsx"
+  ]
+}

@@ -1,5 +1,5 @@
-import { component$, useSignal, type ReadonlySignal, useComputed$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
 import { inArray } from 'drizzle-orm';
 import AppCard from '~/components/app-card';
 import Container from '~/components/container';
@@ -25,7 +25,7 @@ export const useApps = routeLoader$<ApplicationRow[]>(async ({ sharedMap }) => {
 });
 
 export default component$(() => {
-  const apps: ReadonlySignal<ApplicationRow[]> = useApps();
+  const apps = useApps();
   const filter = useSignal('');
   const filteredApps = useComputed$(() => {
     return apps.value.filter(

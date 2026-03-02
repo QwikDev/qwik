@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
 
+test.beforeEach(async ({ page }) => {
+  page.on('console', (msg) => {
+    // eslint-disable-next-line no-console
+    console.log(`[browser ${msg.type()}] ${msg.text()}`);
+  });
+});
+
 test.describe('Verifying Express Adapter', () => {
   test('should ignore unknown qdata', async ({ page, request }) => {
     page.goto('/');
@@ -24,5 +31,16 @@ test.describe('Verifying Express Adapter', () => {
     await page.getByRole('link', { name: 'go to profile' }).click();
 
     await expect(page.getByRole('heading', { name: 'Profile page' })).toBeVisible();
+  });
+
+  test('should load loaders context in minified prod mode', async ({ page }) => {
+    page.goto('/loaders');
+    const subpageLink = page.locator('#subpage-link');
+    await expect(subpageLink).toBeVisible();
+
+    await subpageLink.click();
+
+    await expect(page.getByRole('heading', { name: 'Sub page' })).toBeVisible();
+    await expect(page.locator('#subpage-loader-value')).toHaveText('42');
   });
 });

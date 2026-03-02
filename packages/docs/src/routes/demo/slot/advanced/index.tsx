@@ -1,4 +1,4 @@
-import { Slot, component$, useSignal } from '@builder.io/qwik';
+import { Slot, component$, useSignal } from '@qwik.dev/core';
 
 export const Collapsible = component$(() => {
   const isOpen = useSignal(true);

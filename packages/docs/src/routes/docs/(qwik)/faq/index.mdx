@@ -58,13 +58,9 @@ The outcome is that developers write extremely performant applications by defaul
 
 The short answer is that Qwik solves a problem that other frameworks can't solve. Qwik has instant-on startup performance no matter how complex the application is. Qwik apps deliver the same amount of initial JS regardless of the amount of components. [Qwik is the first open-source O(1) framework](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1).
 
-## What is Qwik City?
-
-[Qwik City](../../(qwikcity)/qwikcity/index.mdx) is just an extra set of APIs on top of Qwik. Think of it like _Qwik_ as the core, and _City_ as the extra APIs (routing, data loading, endpoints, etc.). We call it a meta-framework for Qwik. Qwik City is to Qwik, what Next.js is to React, what Nuxt is to Vue, or SvelteKit to Svelte.
-
 ## Is Qwik hard to learn?
 
-Qwik is designed with React (and other JSX based frameworks) in mind, ensuring it is [effortless to learn](/docs/(qwikcity)/guides/react-cheat-sheet/index.mdx) and promotes rapid productivity. Developing components is pretty much the same as React, and routing is inspired by Nextjs and others.
+Qwik is designed with React (and other JSX based frameworks) in mind, ensuring it is [effortless to learn](/docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx) and promotes rapid productivity. Developing components is pretty much the same as React, and routing is inspired by Nextjs and others.
 
 However, there are fundamentally [new concepts](../concepts/think-qwik/index.mdx) to learn, such as [Resumability](../concepts/resumable/index.mdx) and fine-grained reactivity, but we think the learning curve is not steep.
 
@@ -77,7 +73,7 @@ You might have noticed there are more [`$`](../advanced/dollar/index.mdx) signs 
 **Example:**
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   console.log('render');
@@ -88,7 +84,7 @@ export default component$(() => {
 Thanks to the `$` syntax, the component above is split into:
 
 ```js title="app.js"
-import { componentQrl, qrl } from '@builder.io/qwik';
+import { componentQrl, qrl } from '@qwik.dev/core';
 
 const App = /*#__PURE__*/ componentQrl(
   qrl(() => import('./app_component_akbu84a8zes.js'), 'App_component_AkbU84a8zes')
@@ -98,8 +94,8 @@ export { App };
 ```
 
 ```js title="app_component_akbu84a8zes.js"
-import { jsx as _jsx } from '@builder.io/qwik/jsx-runtime';
-import { qrl } from '@builder.io/qwik';
+import { jsx as _jsx } from '@qwik.dev/core/jsx-runtime';
+import { qrl } from '@qwik.dev/core';
 export const App_component_AkbU84a8zes = () => {
   console.log('render');
   return /*#__PURE__*/ _jsx('p', {
@@ -122,7 +118,7 @@ export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 
 Only if you _download_ it on user interaction. Instead, Qwik _prefetches_ the current page's JS modules in a background thread through the [service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers) and _retrieves_ those modules from the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) when the user interacts with the application.
 
-This strategy is called [Speculative Module Fetching](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx), and it is enabled by Resumability. Hydration frameworks must eagerly download and execute the code on page load to retrieve the event handlers, and therefore can't take advantage of speculative module fetching.
+This strategy is called [Speculative Module Fetching](../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx), and it is enabled by Resumability. Hydration frameworks must eagerly download and execute the code on page load to retrieve the event handlers, and therefore can't take advantage of speculative module fetching.
 
 ## How does Qwik know what to prefetch, and in which order?
 
@@ -138,7 +134,7 @@ Quite the opposite.
 
 Qwik does not need to prefetch everything to start running, while other frameworks do need to download the whole critical path to become interactive because of [hydration](https://www.builder.io/blog/hydration-is-pure-overhead).
 
-In fact, thanks to Qwik's ability to [reduce network waterfalls](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#reducing-network-waterfalls), it is likely that the requested modules have already been downloaded and stored in the browser's cache at the time of interaction. And even if they haven't yet been cached, Qwik can [avoid duplicating the requests](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#avoiding-duplicate-requests) and can instead keep fetching the modules that are being requested to start executing them as soon as possible. 
+In fact, thanks to Qwik's ability to [reduce network waterfalls](../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx#reducing-network-waterfalls), it is likely that the requested modules have already been downloaded and stored in the browser's cache at the time of interaction. And even if they haven't yet been cached, Qwik can [avoid duplicating the requests](../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx#avoiding-duplicate-requests) and can instead keep fetching the modules that are being requested to start executing them as soon as possible. 
 
 As a result, Qwik apps get to be responsive much faster, especially on slow networks.
 
@@ -223,13 +219,13 @@ We have the best of both worlds by using a vDOM sparingly. During creation, we e
 
 ## Is there a Router for Qwik?
 
-Yes! [Qwik City](../../(qwikcity)/qwikcity/index.mdx) includes a directory-based router, inspired by Next.js and others.
+Yes! [Qwik Router](../../(qwikrouter)/qwikrouter/index.mdx) includes a directory-based router, inspired by Next.js and others.
 
 ## Do I need a server to deploy Qwik apps?
 
 You can easily deploy a Qwik app in any [serverless environment thanks to our adapters](/docs/deployments/index.mdx). We also support a [vanilla-node adapter](/docs/deployments/node/index.mdx) for Node.js-based servers, such as Express.
 
-If there is no need for SSR, you can deploy your Qwik app as a static site thanks to our [SSG (Static Site Generation) adapter](/docs/(qwikcity)/guides/static-site-generation/index.mdx).
+If there is no need for SSR, you can deploy your Qwik app as a static site thanks to our [SSG (Static Site Generation) adapter](/docs/(qwikrouter)/guides/static-site-generation/index.mdx).
 
 ## Which is faster: SPAs (Single-Page Application) or MPAs (Multi-Page Application)?
 
@@ -241,14 +237,14 @@ Qwik is a unique framework that is both an MPA and an SPA at the same time.
 
 ## Can Qwik do SPA?
 
-Of course! [Qwik City](/docs/(qwikcity)/qwikcity/index.mdx) includes the `<Link>` component which triggers an SPA navigation.
+Of course! [Qwik Router](/docs/(qwikrouter)/qwikrouter/index.mdx) includes the `<Link>` component which triggers an SPA navigation.
 With Qwik, developers don't need to choose between an SPA or an MPA, every app is both at the same time.
 
 MPA vs SPA is no longer an architectural decision taken at the beginning of the project, but a decision made for every link.
 
 ## Can Qwik do Static Site Generation (SSG)?
 
-Yes! It's part of all Qwik City starters. Learn how to do [Static Site Generation here](/docs/(qwikcity)/guides/static-site-generation/index.mdx).
+Yes! It's part of all Qwik Router starters. Learn how to do [Static Site Generation here](/docs/(qwikrouter)/guides/static-site-generation/index.mdx).
 
 ## Can't I create an MPA or SPA with other frameworks?
 

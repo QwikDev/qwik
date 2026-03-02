@@ -1,10 +1,5 @@
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import {
-  routeLoader$,
-  Form,
-  routeAction$,
-  server$,
-} from '@builder.io/qwik-city';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+import { Form, routeAction$, routeLoader$, server$ } from '@qwik.dev/router';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {

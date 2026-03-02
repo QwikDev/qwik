@@ -23,7 +23,7 @@ you can use the `preventdefault:dragover` and `preventdefault:drop` attributes.
 
 <CodeFile src="/src/routes/demo/cookbook/drag&drop/basic">
 ```tsx
-import { component$, useSignal, sync$, $ } from '@builder.io/qwik';
+import { component$, useSignal, sync$, $ } from '@qwik.dev/core';
 
 export default component$(() => {
   const items1 = useSignal([
@@ -155,7 +155,7 @@ export default component$(() => {
 
 <CodeFile src="/src/routes/demo/cookbook/drag&drop/advanced">
 ```tsx
-import { component$, sync$, useSignal, $ } from '@builder.io/qwik';
+import { component$, sync$, useSignal, $ } from '@qwik.dev/core';
 
 type Item = {
   id: number;

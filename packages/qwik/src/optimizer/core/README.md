@@ -1,33 +1,7 @@
-# qwik-core
+# Qwik Optimizer
 
-## 1. Install rust
+See the contributing guide for more install information. If you want to updat the tests, run `pnpm run test.rust.update`. If you want to run a single test with dbg output:
 
-https://www.rust-lang.org/tools/install
-
-```
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-## 2. Build library
-
-```
-make build
-```
-
-or
-
-```
-cargo build
-```
-
-## 3. Run tests
-
-```
-make test
-```
-
-or
-
-```
-cargo test
+```shell
+cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml PARTIAL_NAME_OF_TEST -- --nocapture
 ```

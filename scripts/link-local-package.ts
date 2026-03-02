@@ -1,5 +1,5 @@
-import { link, mkdir, readdir, stat, rm } from 'fs/promises';
-import { join, dirname, resolve } from 'path';
+import { link, mkdir, readdir, rm, stat } from 'fs/promises';
+import { dirname, join, resolve } from 'path';
 
 console.log('');
 console.log('CREATING LOCALE PACKAGES');
@@ -7,16 +7,16 @@ const __dirname = dirname(new URL(import.meta.url).pathname);
 const workspace = resolve(join(__dirname, '..'));
 console.log('WORKSPACE', workspace);
 const node_modules = join(workspace, 'node_modules');
-const dstQwik = join(node_modules, '@builder.io', 'qwik');
-const dstQwikCity = join(node_modules, '@builder.io', 'qwik-city');
+const dstQwik = join(node_modules, '@qwik.dev', 'core');
+const dstQwikRouter = join(node_modules, '@qwik.dev', 'router');
 const srcQwik = join(workspace, 'packages', 'qwik', 'dist');
-const srcQwikCity = join(workspace, 'packages', 'qwik-city', 'lib');
+const srcQwikRouter = join(workspace, 'packages', 'qwik-router', 'lib');
 main();
 
 async function main() {
-  await mkdir(join(node_modules, '@builder.io'), { recursive: true });
+  await mkdir(join(node_modules, '@qwik.dev'), { recursive: true });
   linkDirFiles(srcQwik, dstQwik);
-  linkDirFiles(srcQwikCity, dstQwikCity);
+  linkDirFiles(srcQwikRouter, dstQwikRouter);
 }
 
 async function linkDirFiles(src: string, dst: string) {

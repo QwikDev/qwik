@@ -1,5 +1,4 @@
-import { component$, Slot } from '@builder.io/qwik';
-import { useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@qwik.dev/core';
 import STYLES from './demo-reset.css?inline';
 
 export default component$(() => {

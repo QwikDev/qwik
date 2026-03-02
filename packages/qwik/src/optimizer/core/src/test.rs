@@ -2,6 +2,7 @@
 
 use super::*;
 use serde_json::to_string_pretty;
+use swc_atoms::Atom;
 
 macro_rules! snapshot_res {
 	($res: expr, $prefix: expr) => {
@@ -49,15 +50,15 @@ macro_rules! test_input {
 }
 
 fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
-	let strip_exports: Option<Vec<JsWord>> = input
+	let strip_exports: Option<Vec<Atom>> = input
 		.strip_exports
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-	let reg_ctx_name: Option<Vec<JsWord>> = input
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+	let reg_ctx_name: Option<Vec<Atom>> = input
 		.reg_ctx_name
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-	let strip_ctx_name: Option<Vec<JsWord>> = input
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+	let strip_ctx_name: Option<Vec<Atom>> = input
 		.strip_ctx_name
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
 
 	transform_modules(TransformModulesOptions {
 		src_dir: input.src_dir,
@@ -90,16 +91,16 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 fn example_1() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component, onRender } from '@builder.io/qwik';
+import { $, component, onRender } from '@qwik.dev/core';
 
 export const renderHeader = $(() => {
-    return (
-        <div onClick={$((ctx) => console.log(ctx))}/>
-    );
+	return (
+		<div onClick={$((ctx) => console.log(ctx))}/>
+	);
 });
 const renderHeader = component($(() => {
-  console.log("mount");
-  return render;
+	console.log("mount");
+	return render;
 }));
 "#
 		.to_string(),
@@ -111,12 +112,12 @@ const renderHeader = component($(() => {
 fn example_2() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 export const Header = component$(() => {
-    console.log("mount");
-    return (
-        <div onClick={$((ctx) => console.log(ctx))}/>
-    );
+	console.log("mount");
+	return (
+		<div onClick={$((ctx) => console.log(ctx))}/>
+	);
 });
 "#
 		.to_string(),
@@ -128,15 +129,15 @@ export const Header = component$(() => {
 fn example_3() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 export const App = () => {
-    const Header = component$(() => {
-        console.log("mount");
-        return (
-            <div onClick={$((ctx) => console.log(ctx))}/>
-        );
-    });
-    return Header;
+	const Header = component$(() => {
+		console.log("mount");
+		return (
+			<div onClick={$((ctx) => console.log(ctx))}/>
+		);
+	});
+	return Header;
 });
 "#
 		.to_string(),
@@ -148,15 +149,15 @@ export const App = () => {
 fn example_4() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 export function App() {
-    const Header = component$(() => {
-        console.log("mount");
-        return (
-            <div onClick={$((ctx) => console.log(ctx))}/>
-        );
-    });
-    return Header;
+	const Header = component$(() => {
+		console.log("mount");
+		return (
+			<div onClick={$((ctx) => console.log(ctx))}/>
+		);
+	});
+	return Header;
 }
 "#
 		.to_string(),
@@ -168,14 +169,14 @@ export function App() {
 fn example_5() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 export const Header = component$(() => {
-    return (
-        <>
-            <div onClick={(ctx) => console.log("1")}/>
-            <div onClick={$((ctx) => console.log("2"))}/>
-        </>
-    );
+	return (
+		<>
+			<div onClick={(ctx) => console.log("1")}/>
+			<div onClick={$((ctx) => console.log("2"))}/>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -187,7 +188,7 @@ export const Header = component$(() => {
 fn example_6() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 export const sym1 = $((ctx) => console.log("1"));
 "#
 		.to_string(),
@@ -199,19 +200,19 @@ export const sym1 = $((ctx) => console.log("1"));
 fn example_7() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const Header = component$(() => {
-    console.log("mount");
-    return (
-        <div onClick={$((ctx) => console.log(ctx))}/>
-    );
-  });
+	console.log("mount");
+	return (
+		<div onClick={$((ctx) => console.log(ctx))}/>
+	);
+	});
 
 const App = component$(() => {
-    return (
-        <Header/>
-    );
+	return (
+		<Header/>
+	);
 });
 "#
 		.to_string(),
@@ -223,17 +224,17 @@ const App = component$(() => {
 fn example_8() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const Header = component$(() => {
-    return $((hola) => {
-        const hola = this;
-        const {something, styff} = hola;
-        const hello = hola.nothere.stuff[global];
-        return (
-            <Header/>
-        );
-    });
+	return $((hola) => {
+		const hola = this;
+		const {something, styff} = hola;
+		const hello = hola.nothere.stuff[global];
+		return (
+			<Header/>
+		);
+	});
 });
 "#
 		.to_string(),
@@ -245,17 +246,17 @@ export const Header = component$(() => {
 fn example_9() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 const Header = $((decl1, {decl2}, [decl3]) => {
-    const {decl4, key: decl5} = this;
-    let [decl6, ...decl7] = stuff;
-    const decl8 = 1, decl9;
-    function decl10(decl11, {decl12}, [decl13]) {}
-    class decl14 {
-        method(decl15, {decl16}, [decl17]) {}
-    }
-    try{}catch(decl18){}
-    try{}catch({decl19}){}
+	const {decl4, key: decl5} = this;
+	let [decl6, ...decl7] = stuff;
+	const decl8 = 1, decl9;
+	function decl10(decl11, {decl12}, [decl13]) {}
+	class decl14 {
+		method(decl15, {decl16}, [decl17]) {}
+	}
+	try{}catch(decl18){}
+	try{}catch({decl19}){}
 });
 "#
 		.to_string(),
@@ -268,24 +269,24 @@ fn example_10() {
 	test_input!(TestInput {
 		filename: "project/test.tsx".to_string(),
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 const Header = $((decl1, {decl2}, [decl3]) => {
 
-    const hola = ident1.no;
-    ident2;
-    const a = ident1 + ident3;
-    const b = ident1 + ident3;
-    ident4(ident5, [ident6], {ident7}, {key: ident8});
-    class Some {
-        prop = ident9;
-        method() {
-            return ident10;
-        }
-    }
+	const hola = ident1.no;
+	ident2;
+	const a = ident1 + ident3;
+	const b = ident1 + ident3;
+	ident4(ident5, [ident6], {ident7}, {key: ident8});
+	class Some {
+		prop = ident9;
+		method() {
+			return ident10;
+		}
+	}
 
-    return (
-        <div onClick={(ident11) => ident11 + ident12} required={false}/>
-    )
+	return (
+		<div onClick={(ident11) => ident11 + ident12} required={false}/>
+	)
 });
 "#
 		.to_string(),
@@ -298,23 +299,23 @@ fn example_11() {
 	test_input!(TestInput {
 		filename: "project/test.tsx".to_string(),
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
 import dep3 from "dep3/something";
 
 export const Header = component$(() => {
-    return (
-        <Header onClick={$((ev) => dep3(ev))}>
-            {dep2.stuff()}{bbar()}
-        </Header>
-    );
+	return (
+		<Header onClick={$((ev) => dep3(ev))}>
+			{dep2.stuff()}{bbar()}
+		</Header>
+	);
 });
 
 export const App = component$(() => {
-    return (
-        <Header>{foo()}</Header>
-    );
+	return (
+		<Header>{foo()}</Header>
+	);
 });
 "#
 		.to_string(),
@@ -327,14 +328,14 @@ export const App = component$(() => {
 fn example_functional_component() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, useStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@qwik.dev/core';
 const Header = component$(() => {
-    const thing = useStore();
-    const {foo, bar} = foo();
+	const thing = useStore();
+	const {foo, bar} = foo();
 
-    return (
-        <div>{thing}</div>
-    );
+	return (
+		<div>{thing}</div>
+	);
 });
 "#
 		.to_string(),
@@ -347,33 +348,33 @@ const Header = component$(() => {
 fn example_functional_component_2() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, useStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@qwik.dev/core';
 export const useCounter = () => {
-    return useStore({count: 0});
+	return useStore({count: 0});
 }
 
 export const STEP = 1;
 
 export const App = component$((props) => {
-    const state = useCounter();
-    const thing = useStore({thing: 0});
-    const STEP_2 = 2;
+	const state = useCounter();
+	const thing = useStore({thing: 0});
+	const STEP_2 = 2;
 
-    const count2 = state.count * 2;
-    return (
-        <div onClick$={() => state.count+=count2 }>
-            <span>{state.count}</span>
-            {buttons.map(btn => (
-                <button
-                    onClick$={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
-                >
-                    {btn.name}
-                </button>
-            ))}
+	const count2 = state.count * 2;
+	return (
+		<div onClick$={() => state.count+=count2 }>
+			<span>{state.count}</span>
+			{buttons.map(btn => (
+				<button
+					onClick$={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
+				>
+					{btn.name}
+				</button>
+			))}
 
-        </div>
+		</div>
 
-    );
+	);
 })
 "#
 		.to_string(),
@@ -387,20 +388,20 @@ export const App = component$((props) => {
 fn example_functional_component_capture_props() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, useStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
-    const state = useStore({count: 0});
-    const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
-    return $(() => {
-        return (
-            <div onClick$={() => state.count += count + total }>
-                {I2}{I3}{I4}{I5}{I6}{I7}{I8}
-                {C2}{C3}{C4}{C5}{C6}{C7}{C8}
-                {v1}{v2}{v3}
-            </div>
-        )
-    });
+	const state = useStore({count: 0});
+	const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
+	return $(() => {
+		return (
+			<div onClick$={() => state.count += count + total }>
+				{I2}{I3}{I4}{I5}{I6}{I7}{I8}
+				{C2}{C3}{C4}{C5}{C6}{C7}{C8}
+				{v1}{v2}{v3}
+			</div>
+		)
+	});
 })
 "#
 		.to_string(),
@@ -414,28 +415,28 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 fn example_multi_capture() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(({foo}) => {
-    const arg0 = 20;
-    return $(() => {
-        const fn = ({aaa}) => aaa;
-        return (
-            <div>
-              {foo}{fn()}{arg0}
-            </div>
-        )
-    });
+	const arg0 = 20;
+	return $(() => {
+		const fn = ({aaa}) => aaa;
+		return (
+			<div>
+				{foo}{fn()}{arg0}
+			</div>
+		)
+	});
 })
 
 export const Bar = component$(({bar}) => {
-    return $(() => {
-        return (
-            <div>
-              {bar}
-            </div>
-        )
-    });
+	return $(() => {
+		return (
+			<div>
+				{bar}
+			</div>
+		)
+	});
 })
 "#
 		.to_string(),
@@ -448,18 +449,18 @@ export const Bar = component$(({bar}) => {
 fn example_dead_code() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { deps } from 'deps';
 
 export const Foo = component$(({foo}) => {
-    useMount$(() => {
-        if (false) {
-            deps();
-        }
-    });
-    return (
-        <div />
-    );
+	useMount$(() => {
+		if (false) {
+			deps();
+		}
+	});
+	return (
+		<div />
+	);
 })
 "#
 		.to_string(),
@@ -472,17 +473,17 @@ export const Foo = component$(({foo}) => {
 fn example_with_tagname() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
-    return $(() => {
-        return (
-            <div>
-            </div>
-        )
-    });
+	return $(() => {
+		return (
+			<div>
+			</div>
+		)
+	});
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 "#
 		.to_string(),
@@ -494,15 +495,15 @@ export const Foo = component$(() => {
 fn example_with_style() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, useStyles$ } from '@builder.io/qwik';
+import { $, component$, useStyles$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
-    useStyles$('.class {}');
-    return (
-        <div class="class"/>
-    );
+	useStyles$('.class {}');
+	return (
+		<div class="class"/>
+	);
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 "#
 		.to_string(),
@@ -514,45 +515,155 @@ export const Foo = component$(() => {
 fn example_props_optimization() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, useTask$ } from '@builder.io/qwik';
+import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
 export const Works = component$(({
-    count,
-    some = 1+2,
-    hello = CONST,
-    stuff: hey,
-    stuffDefault: hey2 = 123,
-    ...rest}) => {
-    console.log(hey, some);
-    useTask$(({track}) => {
-        track(() => count);
-        console.log(count, rest, hey, some, hey2);
-    });
-    return (
-        <div some={some} params={{ some }} class={count} {...rest} override>{count}</div>
-    );
+	count,
+	some = 1+2,
+	hello = CONST,
+	stuff: hey,
+	stuffDefault: hey2 = 123,
+	...rest}) => {
+	console.log(hey, some);
+	useTask$(({track}) => {
+		track(() => count);
+		console.log(count, rest, hey, some, hey2);
+	});
+	return (
+		<div some={some} params={{ some }} class={count} {...rest} override>{count}</div>
+	);
 });
 
 export const NoWorks2 = component$(({count, stuff: {hey}}) => {
-    console.log(hey);
-    useTask$(({track}) => {
-        track(() => count);
-        console.log(count);
-    });
-    return (
-        <div class={count}>{count}</div>
-    );
+	console.log(hey);
+	useTask$(({track}) => {
+		track(() => count);
+		console.log(count);
+	});
+	return (
+		<div class={count}>{count}</div>
+	);
 });
 
 export const NoWorks3 = component$(({count, stuff = hola()}) => {
-    console.log(stuff);
-    useTask$(({track}) => {
-        track(() => count);
-        console.log(count);
-    });
-    return (
-        <div class={count}>{count}</div>
-    );
+	console.log(stuff);
+	useTask$(({track}) => {
+		track(() => count);
+		console.log(count);
+	});
+	return (
+		<div class={count}>{count}</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_props_wrapping() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@qwik.dev/core';
+export const Works = component$(({fromProps}) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div
+			computed={fromLocal + fromProps}
+			local={fromLocal}
+			props-wrap={fromProps}
+			props-only={{props: fromProps}}
+			props={{props: fromProps, local: fromLocal}}
+				>
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_props_wrapping2() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@qwik.dev/core';
+export const Works = component$((props: { fromProps: number }) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div
+			computed={fromLocal + props.fromProps}
+			local={fromLocal}
+			props-wrap={props.fromProps}
+			props-only={{props: props.fromProps}}
+			props={{props: props.fromProps, local: fromLocal}}
+				>
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_props_wrapping_children() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@qwik.dev/core';
+export const Works = component$(({fromProps}) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div>
+			{fromLocal}
+			{fromProps}
+			{fromLocal + fromProps}
+			{{props: fromProps}}
+			{{local: fromLocal}}
+			{{props: fromProps, local: fromLocal}}
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_props_wrapping_children2() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@qwik.dev/core';
+export const Works = component$((props) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div>
+		  before-
+			{fromLocal}
+			{props.fromProps}
+			{fromLocal + props.fromProps}
+			{{props: props.fromProps}}
+			{{local: fromLocal}}
+			{{props: props.fromProps, local: fromLocal}}
+			-after
+		</div>
+	);
 });
 "#
 		.to_string(),
@@ -567,19 +678,19 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
 fn example_use_optimization() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, useTask$ } from '@builder.io/qwik';
+import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
 export const Works = component$((props) => {
-    const {countNested} = useStore({value:{count:0}}).value;
-    const countNested2 = countNested;
-    const {hello} = countNested2;
-    const bye = hello.bye;
-    const {ciao} = bye.italian;
+	const {countNested} = useStore({value:{count:0}}).value;
+	const countNested2 = countNested;
+	const {hello} = countNested2;
+	const bye = hello.bye;
+	const {ciao} = bye.italian;
 
 
-    return (
-        <div ciao={ciao} >{foo}</div>
-    );
+	return (
+		<div ciao={ciao} >{foo}</div>
+	);
 });
 "#
 		.to_string(),
@@ -595,26 +706,26 @@ export const Works = component$((props) => {
 fn example_optimization_issue_3561() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const Issue3561 = component$(() => {
-    const props = useStore({
-      product: {
-        currentVariant: {
-          variantImage: 'image',
-          variantNumber: 'number',
-          setContents: 'contents',
-        },
-      },
-    });
-    const {
-      currentVariant: { variantImage, variantNumber, setContents } = {},
-    } = props.product;
+	const props = useStore({
+		product: {
+		currentVariant: {
+			variantImage: 'image',
+			variantNumber: 'number',
+			setContents: 'contents',
+		},
+		},
+	});
+	const {
+		currentVariant: { variantImage, variantNumber, setContents } = {},
+	} = props.product;
 
-    console.log(variantImage, variantNumber, setContents)
+	console.log(variantImage, variantNumber, setContents)
 
-    return <p></p>;
-  });
+	return <p></p>;
+	});
 "#
 		.to_string(),
 		transpile_jsx: false,
@@ -629,20 +740,20 @@ export const Issue3561 = component$(() => {
 fn example_optimization_issue_4386() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const FOO_MAPPING = {
-    A: 1,
-    B: 2,
-    C: 3,
-  };
+	A: 1,
+	B: 2,
+	C: 3,
+	};
 
-  export default component$(() => {
-    const key = 'A';
-    const value = FOO_MAPPING[key];
+	export default component$(() => {
+	const key = 'A';
+	const value = FOO_MAPPING[key];
 
-    return <>{value}</>;
-  });
+	return <>{value}</>;
+	});
 "#
 		.to_string(),
 		transpile_jsx: false,
@@ -656,46 +767,46 @@ export const FOO_MAPPING = {
 #[test]
 fn example_optimization_issue_3542() {
 	test_input!(TestInput {
-        code: r#"
-import { component$ } from '@builder.io/qwik';
+		code: r#"
+import { component$ } from '@qwik.dev/core';
 
 export const AtomStatus = component$(({ctx,atom})=>{
-    let status = atom.status;
-    if(!atom.real) {
-        status="WILL-VANISH"
-    } else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
-        status="WTFED"
-    }
-    return (
-        <span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
-        </span>
-    );
+	let status = atom.status;
+	if(!atom.real) {
+		status="WILL-VANISH"
+	} else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
+		status="WTFED"
+	}
+	return (
+		<span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
+		</span>
+	);
 })
 "#
-        .to_string(),
-        transpile_jsx: false,
-        entry_strategy: EntryStrategy::Inline,
-        transpile_ts: true,
-        is_server: Some(false),
-        ..TestInput::default()
-    });
+		.to_string(),
+		transpile_jsx: false,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		is_server: Some(false),
+		..TestInput::default()
+	});
 }
 
 #[test]
 fn example_optimization_issue_3795() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const Issue3795 = component$(() => {
-    let base = "foo";
-    const firstAssignment = base;
-    base += "bar";
-    const secondAssignment = base;
-    return (
-      <div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
-    )
-  });
+	let base = "foo";
+	const firstAssignment = base;
+	base += "bar";
+	const secondAssignment = base;
+	return (
+		<div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
+	)
+	});
 "#
 		.to_string(),
 		entry_strategy: EntryStrategy::Inline,
@@ -710,8 +821,8 @@ export const Issue3795 = component$(() => {
 fn example_drop_side_effects() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
 import { clientSupabase } from 'supabase';
 import { Client } from 'openai';
 import { secret } from './secret';
@@ -721,23 +832,23 @@ const supabase = clientSupabase();
 const dfd = new Client(secret);
 
 (function() {
-    console.log('run');
-  })();
-  (() => {
-    console.log('run');
-  })();
+	console.log('run');
+	})();
+	(() => {
+	console.log('run');
+	})();
 
 sideEffect();
 
 export const api = server$(() => {
-    supabase.from('ffg').do(dfd);
+	supabase.from('ffg').do(dfd);
 });
 
 export default component$(() => {
-    return (
-      <button onClick$={() => await api()}></button>
-    )
-  });
+	return (
+		<button onClick$={() => await api()}></button>
+	)
+	});
 "#
 		.to_string(),
 		entry_strategy: EntryStrategy::Segment,
@@ -754,16 +865,16 @@ export default component$(() => {
 fn example_reg_ctx_name_segments() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, server$ } from '@builder.io/qwik';
+import { $, component$, server$ } from '@qwik.dev/core';
 import { foo } from './foo';
 export const Works = component$((props) => {
-    const text = 'hola';
-    return (
-        <>
-        <div onClick$={server$(() => console.log('in server', text))}></div>
-        <div onClick$={() => foo()}></div>
-        </>
-    );
+	const text = 'hola';
+	return (
+		<>
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+		<div onClick$={() => foo()}></div>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -780,12 +891,12 @@ export const Works = component$((props) => {
 fn example_reg_ctx_name_segments_inlined() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, server$ } from '@builder.io/qwik';
+import { $, component$, server$ } from '@qwik.dev/core';
 export const Works = component$((props) => {
-    const text = 'hola';
-    return (
-        <div onClick$={server$(() => console.log('in server', text))}></div>
-    );
+	const text = 'hola';
+	return (
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+	);
 });
 "#
 		.to_string(),
@@ -801,14 +912,14 @@ export const Works = component$((props) => {
 fn example_reg_ctx_name_segments_hoisted() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, server$, useStyle$ } from '@builder.io/qwik';
+import { $, component$, server$, useStyle$ } from '@qwik.dev/core';
 
 export const Works = component$((props) => {
-    useStyle$(STYLES);
-    const text = 'hola';
-    return (
-        <div onClick$={server$(() => console.log('in server', text))}></div>
-    );
+	useStyle$(STYLES);
+	const text = 'hola';
+	return (
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+	);
 });
 
 const STYLES = '.class {}';
@@ -825,29 +936,29 @@ const STYLES = '.class {}';
 fn example_lightweight_functional() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
-export const Foo = component$(({color}) => {
-    return (
-        <div>
-            <Button {...props} />
-            <ButtonArrow {...props} />
-        </div>
-    );
+export const Foo = component$((props) => {
+	return (
+		<div>
+			<Button {...props} />
+			<ButtonArrow {...props} />
+		</div>
+	);
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 
 export function Button({text, color}) {
-    return (
-        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
-    );
+	return (
+		<button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
+	);
 }
 
 export const ButtonArrow = ({text, color}) => {
-    return (
-        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
-    );
+	return (
+		<button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
+	);
 }
 "#
 		.to_string(),
@@ -859,7 +970,7 @@ export const ButtonArrow = ({text, color}) => {
 fn example_invalid_references() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 const I1 = 12;
 const [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8] = obj;
@@ -867,13 +978,13 @@ function I9() {}
 class I10 {}
 
 export const App = component$(({count}) => {
-    console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
-    console.log(itsok, v1, v2, v3, obj);
-    return $(() => {
-        return (
-            <I10></I10>
-        )
-    });
+	console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
+	console.log(itsok, v1, v2, v3, obj);
+	return $(() => {
+		return (
+			<I10></I10>
+		)
+	});
 })
 "#
 		.to_string(),
@@ -887,19 +998,19 @@ export const App = component$(({count}) => {
 fn example_invalid_segment_expr1() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, useStyles$ } from '@builder.io/qwik';
+import { $, component$, useStyles$ } from '@qwik.dev/core';
 import css1 from './global.css';
 import css2 from './style.css';
 
 export const App = component$(() => {
-    const style = `${css1}${css2}`;
-    useStyles$(style);
-    const render = () => {
-        return (
-            <div></div>
-        )
-    };
-    return $(render);
+	const style = `${css1}${css2}`;
+	useStyles$(style);
+	const render = () => {
+		return (
+			<div></div>
+		)
+	};
+	return $(render);
 })
 "#
 		.to_string(),
@@ -913,14 +1024,14 @@ export const App = component$(() => {
 fn example_capture_imports() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@qwik.dev/core';
 import css1 from './global.css';
 import css2 from './style.css';
 import css3 from './style.css';
 
 export const App = component$(() => {
-    useStyles$(`${css1}${css2}`);
-    useStyles$(css3);
+	useStyles$(`${css1}${css2}`);
+	useStyles$(css3);
 })
 "#
 		.to_string(),
@@ -934,22 +1045,22 @@ export const App = component$(() => {
 fn example_capturing_fn_class() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    function hola() {
-      console.log('hola');
-    }
-    class Thing {}
-    class Other {}
+	function hola() {
+		console.log('hola');
+	}
+	class Thing {}
+	class Other {}
 
-    return $(() => {
-      hola();
-      new Thing();
-      return (
-          <div></div>
-      )
-    });
+	return $(() => {
+		hola();
+		new Thing();
+		return (
+			<div></div>
+		)
+	});
 })
 "#
 		.to_string(),
@@ -963,14 +1074,14 @@ export const App = component$(() => {
 fn example_renamed_exports() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ as Component, $ as onRender, useStore } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender, useStore } from '@qwik.dev/core';
 
 export const App = Component((props) => {
-    const state = useStore({thing: 0});
+	const state = useStore({thing: 0});
 
-    return onRender(() => (
-        <div>{state.thing}</div>
-    ));
+	return onRender(() => (
+		<div>{state.thing}</div>
+	));
 });
 "#
 		.to_string(),
@@ -985,7 +1096,7 @@ fn example_exports() {
 	test_input!(TestInput {
 		filename: "project/test.tsx".to_string(),
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
 
@@ -999,12 +1110,12 @@ export class bar {}
 export default function DefaultFn() {}
 
 export const Header = component$(() => {
-    return $(() => (
-        <Footer>
-            <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
-            <div>{v1}{v2}{v3}{obj}</div>
-        </Footer>
-    ))
+	return $(() => (
+		<Footer>
+			<div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
+			<div>{v1}{v2}{v3}{obj}</div>
+		</Footer>
+	))
 });
 
 export const Footer = component$();
@@ -1032,44 +1143,44 @@ export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
 fn example_jsx() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, h, Fragment } from '@builder.io/qwik';
+import { $, component$, h, Fragment } from '@qwik.dev/core';
 
 export const Lightweight = (props) => {
-    return (
-        <div>
-            <>
-                <div/>
-                <button {...props}/>
-            </>
-        </div>
-    )
+	return (
+		<div>
+			<>
+				<div/>
+				<button {...props}/>
+			</>
+		</div>
+	)
 };
 
 export const Foo = component$((props) => {
-    return $(() => {
-        return (
-            <div>
-                <>
-                    <div class="class"/>
-                    <div class="class"></div>
-                    <div class="class">12</div>
-                </>
-                <div class="class">
-                    <Lightweight {...props}/>
-                </div>
-                <div class="class">
-                    <div/>
-                    <div/>
-                    <div/>
-                </div>
-                <div class="class">
-                    {children}
-                </div>
-            </div>
-        )
-    });
+	return $(() => {
+		return (
+			<div>
+				<>
+					<div class="class"/>
+					<div class="class"></div>
+					<div class="class">12</div>
+				</>
+				<div class="class">
+					<Lightweight {...props}/>
+				</div>
+				<div class="class">
+					<div/>
+					<div/>
+					<div/>
+				</div>
+				<div class="class">
+					{children}
+				</div>
+			</div>
+		)
+	});
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 "#
 		.to_string(),
@@ -1083,36 +1194,36 @@ export const Foo = component$((props) => {
 fn example_jsx_listeners() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
 
-    return $(() => {
-        const handler = $(() => console.log('reused'));
-        return (
-            <div
-                onClick$={()=>console.log('onClick$')}
-                onDocumentScroll$={()=>console.log('onDocumentScroll')}
-                onDocumentScroll$={()=>console.log('onWindowScroll')}
+	return $(() => {
+		const handler = $(() => console.log('reused'));
+		return (
+			<div
+				onClick$={()=>console.log('onClick$')}
+				onDocumentScroll$={()=>console.log('onDocumentScroll')}
+				onDocumentScroll$={()=>console.log('onWindowScroll')}
 
-                on-cLick$={()=>console.log('on-cLick$')}
-                onDocument-sCroll$={()=>console.log('onDocument-sCroll')}
-                onDocument-scroLL$={()=>console.log('onDocument-scroLL')}
+				on-cLick$={()=>console.log('on-cLick$')}
+				onDocument-sCroll$={()=>console.log('onDocument-sCroll')}
+				onDocument-scroLL$={()=>console.log('onDocument-scroLL')}
 
-                host:onClick$={()=>console.log('host:onClick$')}
-                host:onDocumentScroll$={()=>console.log('host:onDocument:scroll')}
-                host:onDocumentScroll$={()=>console.log('host:onWindow:scroll')}
+				host:onClick$={()=>console.log('host:onClick$')}
+				host:onDocumentScroll$={()=>console.log('host:onDocument:scroll')}
+				host:onDocumentScroll$={()=>console.log('host:onWindow:scroll')}
 
-                onKeyup$={handler}
-                onDocument:keyup$={handler}
-                onWindow:keyup$={handler}
+				onKeyup$={handler}
+				onDocument:keyup$={handler}
+				onWindow:keyup$={handler}
 
-                custom$={()=>console.log('custom')}
-            />
-        )
-    });
+				custom$={()=>console.log('custom')}
+			/>
+		)
+	});
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 "#
 		.to_string(),
@@ -1126,8 +1237,8 @@ export const Foo = component$(() => {
 fn example_qwik_conflict() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, useStyles } from '@builder.io/qwik';
-import { qrl } from '@builder.io/qwik/what';
+import { $, component$, useStyles } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core/what';
 
 export const hW = 12;
 export const handleWatch = 42;
@@ -1136,26 +1247,26 @@ const componentQrl = () => console.log('not this', qrl());
 
 componentQrl();
 export const Foo = component$(() => {
-    useStyles$('thing');
-    const qwik = hW + handleWatch;
-    console.log(qwik);
-    const qrl = 23;
-    return (
-        <div onClick$={()=> console.log(qrl)}/>
-    )
+	useStyles$('thing');
+	const qwik = hW + handleWatch;
+	console.log(qwik);
+	const qrl = 23;
+	return (
+		<div onClick$={()=> console.log(qrl)}/>
+	)
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 
 export const Root = component$(() => {
-    useStyles($('thing'));
-    return $(() => {
-        return (
-            <div/>
-        )
-    });
+	useStyles($('thing'));
+	return $(() => {
+		return (
+			<div/>
+		)
+	});
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 "#
 		.to_string(),
@@ -1170,20 +1281,20 @@ fn example_fix_dynamic_import() {
 	test_input!(TestInput {
 		filename: "project/folder/test.tsx".to_string(),
 		code: r#"
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 import thing from "../state";
 
 export function foo() {
-    return import("../foo/state2")
+	return import("../foo/state2")
 }
 
 export const Header = component$(() => {
-    return (
-        <div>
-            {import("../folder/state3")}
-            {thing}
-        </div>
-    );
+	return (
+		<div>
+			{import("../folder/state3")}
+			{thing}
+		</div>
+	);
 });
 "#
 		.to_string(),
@@ -1196,29 +1307,29 @@ export const Header = component$(() => {
 fn example_custom_inlined_functions() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, $, useStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$, $, useStore, wrap, useEffect } from '@qwik.dev/core';
 
 export const useMemoQrl = (qrt) => {
-    useEffect(qrt);
+	useEffect(qrt);
 };
 
 export const useMemo$ = wrap(useMemoQrl);
 
 export const App = component$((props) => {
-    const state = useStore({count: 0});
-    useMemo$(() => {
-        console.log(state.count);
-    });
-    return $(() => (
-        <div>{state.count}</div>
-    ));
+	const state = useStore({count: 0});
+	useMemo$(() => {
+		console.log(state.count);
+	});
+	return $(() => (
+		<div>{state.count}</div>
+	));
 });
 
 export const Lightweight = (props) => {
-    useMemo$(() => {
-        console.log(state.count);
-    });
-});
+	useMemo$(() => {
+		console.log(state.count);
+	});
+};
 "#
 		.to_string(),
 		transpile_ts: true,
@@ -1230,44 +1341,44 @@ export const Lightweight = (props) => {
 #[test]
 fn example_missing_custom_inlined_functions() {
 	test_input!(TestInput {
-        code: r#"
-import { component$ as Component, $ as onRender, useStore, wrap, useEffect } from '@builder.io/qwik';
+		code: r#"
+import { component$ as Component, $ as onRender, useStore, wrap, useEffect } from '@qwik.dev/core';
 
 
 export const useMemo$ = (qrt) => {
-    useEffect(qrt);
+	useEffect(qrt);
 };
 
 export const App = component$((props) => {
-    const state = useStore({count: 0});
-    useMemo$(() => {
-        console.log(state.count);
-    });
-    return $(() => (
-        <div>{state.count}</div>
-    ));
+	const state = useStore({count: 0});
+	useMemo$(() => {
+		console.log(state.count);
+	});
+	return $(() => (
+		<div>{state.count}</div>
+	));
 });
 "#
-        .to_string(),
-        transpile_ts: true,
-        transpile_jsx: true,
-        ..TestInput::default()
-    });
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
 }
 
 #[test]
 fn example_skip_transform() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ as Component, $ as onRender } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender } from '@qwik.dev/core';
 
 export const handler = $(()=>console.log('hola'));
 
 export const App = component$((props) => {
-    useStyles$('hola');
-    return $(() => (
-        <div>{state.thing}</div>
-    ));
+	useStyles$('hola');
+	return $(() => (
+		<div>{state.thing}</div>
+	));
 });
 "#
 		.to_string(),
@@ -1281,13 +1392,13 @@ export const App = component$((props) => {
 fn example_explicit_ext_transpile() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, $, useStyles$ } from '@builder.io/qwik';
+import { component$, $, useStyles$ } from '@qwik.dev/core';
 
 export const App = component$((props) => {
-    useStyles$('hola');
-    return $(() => (
-        <div></div>
-    ));
+	useStyles$('hola');
+	return $(() => (
+		<div></div>
+	));
 });
 "#
 		.to_string(),
@@ -1302,13 +1413,13 @@ export const App = component$((props) => {
 fn example_explicit_ext_no_transpile() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, $, useStyles$ } from '@builder.io/qwik';
+import { component$, $, useStyles$ } from '@qwik.dev/core';
 
 export const App = component$((props) => {
-    useStyles$('hola');
-    return $(() => (
-        <div></div>
-    ));
+	useStyles$('hola');
+	return $(() => (
+		<div></div>
+	));
 });
 "#
 		.to_string(),
@@ -1327,11 +1438,11 @@ fn example_jsx_import_source() {
 import { qwikify$ } from './qwikfy';
 
 export const App = () => (
-    <div onClick$={()=>console.log('App')}></div>
+	<div onClick$={()=>console.log('App')}></div>
 );
 
 export const App2 = qwikify$(() => (
-    <div onClick$={()=>console.log('App2')}></div>
+	<div onClick$={()=>console.log('App2')}></div>
 ));
 "#
 		.to_string(),
@@ -1346,16 +1457,16 @@ export const App2 = qwikify$(() => (
 fn example_prod_node() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
-    return (
-        <div>
-            <div onClick$={() => console.log('first')}/>
-            <div onClick$={() => console.log('second')}/>
-            <div onClick$={() => console.log('third')}/>
-        </div>
-    );
+	return (
+		<div>
+			<div onClick$={() => console.log('first')}/>
+			<div onClick$={() => console.log('second')}/>
+			<div onClick$={() => console.log('third')}/>
+		</div>
+	);
 });
 "#
 		.to_string(),
@@ -1368,28 +1479,28 @@ export const Foo = component$(() => {
 fn example_use_client_effect() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwik.dev/core';
 
 export const Child = component$(() => {
-    const state = useStore({
-        count: 0
-    });
+	const state = useStore({
+		count: 0
+	});
 
-    // Double count watch
-    useBrowserVisibleTask$(() => {
-        const timer = setInterval(() => {
-        state.count++;
-        }, 1000);
-        return () => {
-        clearInterval(timer);
-        }
-    });
+	// Double count watch
+	useBrowserVisibleTask$(() => {
+		const timer = setInterval(() => {
+		state.count++;
+		}, 1000);
+		return () => {
+		clearInterval(timer);
+		}
+	});
 
-    return (
-        <div>
-        {state.count}
-    </div>
-    );
+	return (
+		<div>
+		{state.count}
+	</div>
+	);
 });
 
 "#
@@ -1404,26 +1515,26 @@ export const Child = component$(() => {
 fn example_inlined_entry_strategy() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwik.dev/core';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 
 export const Child = component$(() => {
 
-    useStyles$('somestring');
-    const state = useStore({
-        count: 0
-    });
+	useStyles$('somestring');
+	const state = useStore({
+		count: 0
+	});
 
-    // Double count watch
-    useBrowserVisibleTask$(() => {
-        state.count = thing.doStuff() + import("./sibling");
-    });
+	// Double count watch
+	useBrowserVisibleTask$(() => {
+		state.count = thing.doStuff() + import("./sibling");
+	});
 
-    return (
-        <div onClick$={() => console.log(mongodb)}>
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log(mongodb)}>
+		</div>
+	);
 });
 
 "#
@@ -1437,14 +1548,14 @@ export const Child = component$(() => {
 fn example_default_export() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { sibling } from './sibling';
 
 export default component$(() => {
-    return (
-        <div onClick$={() => console.log(mongodb, sibling)}>
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log(mongodb, sibling)}>
+		</div>
+	);
 });
 
 "#
@@ -1462,13 +1573,13 @@ export default component$(() => {
 fn example_default_export_index() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
-    return (
-        <div onClick$={() => console.log(mongodb)}>
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log(mongodb)}>
+		</div>
+	);
 });
 
 "#
@@ -1483,13 +1594,13 @@ export default component$(() => {
 fn example_default_export_invalid_ident() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
-    return (
-        <div onClick$={() => console.log(mongodb)}>
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log(mongodb)}>
+		</div>
+	);
 });
 
 "#
@@ -1503,36 +1614,36 @@ export default component$(() => {
 fn example_parsed_inlined_qrls() {
 	test_input!(TestInput {
 		code: r#"
-import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
+import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@qwik.dev/core';
 
 export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
-    useStyles$(inlinedQrl(STYLES, "STYLES_odz7dfdfdM"));
-    useStyles$(inlinedQrl(STYLES, "STYLES_odzdfdfdM"));
+	useStyles$(inlinedQrl(STYLES, "STYLES_odz7dfdfdM"));
+	useStyles$(inlinedQrl(STYLES, "STYLES_odzdfdfdM"));
 
-    const store = useStore({
-        count: 0
-    });
-    return /*#__PURE__*/ jsxs("div", {
-        children: [
-            /*#__PURE__*/ jsxs("p", {
-                children: [
-                    "Count: ",
-                    store.count
-                ]
-            }),
-            /*#__PURE__*/ jsx("p", {
-                children: /*#__PURE__*/ jsx("button", {
-                    onClick$: inlinedQrl(()=>{
-                        const [store] = useLexicalScope();
-                        return store.count++;
-                    }, "App_component_div_p_button_onClick_odz7eidI4GM", [
-                        store
-                    ]),
-                    children: "Click"
-                })
-            })
-        ]
-    });
+	const store = useStore({
+		count: 0
+	});
+	return /*#__PURE__*/ jsxs("div", {
+		children: [
+			/*#__PURE__*/ jsxs("p", {
+				children: [
+					"Count: ",
+					store.count
+				]
+			}),
+			/*#__PURE__*/ jsx("p", {
+				children: /*#__PURE__*/ jsx("button", {
+					onClick$: inlinedQrl(()=>{
+						const [store] = useLexicalScope();
+						return store.count++;
+					}, "App_component_div_p_button_onClick_odz7eidI4GM", [
+						store
+					]),
+					children: "Click"
+				})
+			})
+		]
+	});
 }, "App_component_Fh88JClhbC0"));
 
 export const STYLES = ".red { color: red; }";
@@ -1550,43 +1661,43 @@ export const STYLES = ".red { color: red; }";
 fn example_use_server_mount() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useTask$, useStore, useStyles$ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
 
 export const Parent = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useTask$(async () => {
-        state.text = await mongo.users();
-        redis.set(state.text);
-    });
+	// Double count watch
+	useTask$(async () => {
+		state.text = await mongo.users();
+		redis.set(state.text);
+	});
 
-    return (
-        <div onClick$={() => console.log('parent')}>
-            {state.text}
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log('parent')}>
+			{state.text}
+		</div>
+	);
 });
 
 export const Child = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useTask$(async () => {
-        state.text = await mongo.users();
-    });
+	// Double count watch
+	useTask$(async () => {
+		state.text = await mongo.users();
+	});
 
-    return (
-        <div onClick$={() => console.log('child')}>
-            {state.text}
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log('child')}>
+			{state.text}
+		</div>
+	);
 });
 "#
 		.to_string(),
@@ -1601,43 +1712,43 @@ export const Child = component$(() => {
 fn example_manual_chunks() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useTask$, useStore, useStyles$ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
 
 export const Parent = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useTask$(async () => {
-        state.text = await mongo.users();
-        redis.set(state.text);
-    });
+	// Double count watch
+	useTask$(async () => {
+		state.text = await mongo.users();
+		redis.set(state.text);
+	});
 
-    return (
-        <div onClick$={() => console.log('parent')}>
-            {state.text}
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log('parent')}>
+			{state.text}
+		</div>
+	);
 });
 
 export const Child = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useTask$(async () => {
-        state.text = await mongo.users();
-    });
+	// Double count watch
+	useTask$(async () => {
+		state.text = await mongo.users();
+	});
 
-    return (
-        <div onClick$={() => console.log('child')}>
-            {state.text}
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log('child')}>
+			{state.text}
+		</div>
+	);
 });
 "#
 		.to_string(),
@@ -1656,20 +1767,20 @@ export const Child = component$(() => {
 fn example_strip_exports_unused() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import mongodb from 'mongodb';
 
 export const onGet = () => {
-    const data = mongodb.collection.whatever;
-    return {
-        body: {
-        data
-        }
-    }
+	const data = mongodb.collection.whatever;
+	return {
+		body: {
+		data
+		}
+	}
 };
 
 export default component$(()=> {
-    return <div>cmp</div>
+	return <div>cmp</div>
 });
 "#
 		.to_string(),
@@ -1682,23 +1793,23 @@ export default component$(()=> {
 fn example_strip_exports_used() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useResource$ } from '@builder.io/qwik';
+import { component$, useResource$ } from '@qwik.dev/core';
 import mongodb from 'mongodb';
 
 export const onGet = () => {
-    const data = mongodb.collection.whatever;
-    return {
-        body: {
-        data
-        }
-    }
+	const data = mongodb.collection.whatever;
+	return {
+		body: {
+		data
+		}
+	}
 };
 
 export default component$(()=> {
-    useResource$(() => {
-        return onGet();
-    })
-    return <div>cmp</div>
+	useResource$(() => {
+		return onGet();
+	})
+	return <div>cmp</div>
 });
 "#
 		.to_string(),
@@ -1710,56 +1821,57 @@ export default component$(()=> {
 #[test]
 fn example_strip_server_code() {
 	test_input!(TestInput {
-        code: r#"
-import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
+		code: r#"
+import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
 import { handler } from 'serverless';
 
 export const Parent = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useTask$(async () => {
-        if (!isServer) return;
-        state.text = await mongo.users();
-        redis.set(state.text);
-    });
+	// Double count watch
+	useTask$(async () => {
+		if (!isServer) return;
+		state.text = await mongo.users();
+		redis.set(state.text);
+	});
 
-    serverStuff$(async () => {
-        // should be removed too
-        const a = $(() => {
-            // from $(), should not be removed
-        });
-        const b = client$(() => {
-            // from clien$(), should not be removed
-        });
-        return [a,b];
-    })
+	serverStuff$(async () => {
+		// should be removed too
+		const a = $(() => {
+			// from $(), should not be removed
+		});
+		const b = client$(() => {
+			// from clien$(), should not be removed
+		});
+		return [a,b];
+	})
 
-    serverLoader$(handler);
+	serverLoader$(handler);
 
-    useTask$(() => {
-        // Code
-    });
+	useTask$(() => {
+		// Code
+	});
 
-    return (
-        <div onClick$={() => console.log('parent')}>
-            {state.text}
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log('parent')}>
+			{state.text}
+		</div>
+	);
 });
 "#
-        .to_string(),
-        transpile_ts: true,
-        transpile_jsx: true,
-        entry_strategy: EntryStrategy::Segment,
-        strip_ctx_name: Some(vec!["server".into()]),
-        ..TestInput::default()
-    });
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Segment,
+		strip_ctx_name: Some(vec!["server".into()]),
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
 }
 
 #[test]
@@ -1772,37 +1884,37 @@ import Google from 'next-auth/providers/google'
 import {serverAuth$, auth$} from '@auth/qwik';
 
 export const { onRequest, logout, getSession, signup } = serverAuth$({
-    providers: [
-    GitHub({
-        clientId: process.env.GITHUB_ID,
-        clientSecret: process.env.GITHUB_SECRET
-    }),
-    Facebook({
-        clientId: import.meta.env.FACEBOOK_ID,
-        clientSecret: import.meta.env.FACEBOOK_SECRET
-    }),
-    Google({
-        clientId: process.env.GOOGLE_ID,
-        clientSecret: process.env.GOOGLE_SECRET
-    })
-    ]
+	providers: [
+	GitHub({
+		clientId: process.env.GITHUB_ID,
+		clientSecret: process.env.GITHUB_SECRET
+	}),
+	Facebook({
+		clientId: import.meta.env.FACEBOOK_ID,
+		clientSecret: import.meta.env.FACEBOOK_SECRET
+	}),
+	Google({
+		clientId: process.env.GOOGLE_ID,
+		clientSecret: process.env.GOOGLE_SECRET
+	})
+	]
 });
 
 export const { onRequest, logout, getSession, signup } = auth$({
-    providers: [
-    GitHub({
-        clientId: process.env.GITHUB_ID,
-        clientSecret: process.env.GITHUB_SECRET
-    }),
-    Facebook({
-        clientId: process.env.FACEBOOK_ID,
-        clientSecret: process.env.FACEBOOK_SECRET
-    }),
-    Google({
-        clientId: process.env.GOOGLE_ID,
-        clientSecret: process.env.GOOGLE_SECRET
-    })
-    ]
+	providers: [
+	GitHub({
+		clientId: process.env.GITHUB_ID,
+		clientSecret: process.env.GITHUB_SECRET
+	}),
+	Facebook({
+		clientId: process.env.FACEBOOK_ID,
+		clientSecret: process.env.FACEBOOK_SECRET
+	}),
+	Google({
+		clientId: process.env.GOOGLE_ID,
+		clientSecret: process.env.GOOGLE_SECRET
+	})
+	]
 });
 "#
 		.to_string(),
@@ -1817,7 +1929,7 @@ export const { onRequest, logout, getSession, signup } = auth$({
 fn example_strip_client_code() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useClientMount$, useStore, useTask$ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
@@ -1826,32 +1938,32 @@ import { b } from '../keep2';
 import { c } from '../../remove';
 
 export const Parent = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useClientMount$(async () => {
-        state.text = await mongo.users();
-        redis.set(state.text, a, b, c);
-    });
+	// Double count watch
+	useClientMount$(async () => {
+		state.text = await mongo.users();
+		redis.set(state.text, a, b, c);
+	});
 
-    useTask$(() => {
-        // Code
-    });
+	useTask$(() => {
+		// Code
+	});
 
-    return (
-        <div
-            shouldRemove$={() => state.text}
-            onClick$={() => console.log('parent', state, threejs)}
-        >
-            <Div
-                onClick$={() => console.log('keep')}
-                render$={() => state.text}
-            />
-            {state.text}
-        </div>
-    );
+	return (
+		<div
+			shouldRemove$={() => state.text}
+			onClick$={() => console.log('parent', state, threejs)}
+		>
+			<Div
+				onClick$={() => console.log('keep')}
+				render$={() => state.text}
+			/>
+			{state.text}
+		</div>
+	);
 });
 "#
 		.to_string(),
@@ -1869,22 +1981,22 @@ export const Parent = component$(() => {
 fn issue_150() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 import { hola } from 'sdfds';
 
 export const Greeter = component$(() => {
-    const stuff = useStore();
-    return $(() => {
-        return (
-            <div
-                class={{
-                    'foo': true,
-                    'bar': stuff.condition,
-                    'baz': hola ? 'true' : 'false',
-                }}
-            />
-        )
-    });
+	const stuff = useStore();
+	return $(() => {
+		return (
+			<div
+				class={{
+					'foo': true,
+					'bar': stuff.condition,
+					'baz': hola ? 'true' : 'false',
+				}}
+			/>
+		)
+	});
 });
 
 const d = $(()=>console.log('thing'));
@@ -1900,22 +2012,22 @@ const d = $(()=>console.log('thing'));
 fn example_input_bind() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 
 export const Greeter = component$(() => {
-    const value = useSignal(0);
-    const checked = useSignal(false);
-    const stuff = useSignal();
-    return (
-        <>
-            <input bind:value={value} />
-            <input bind:checked={checked} />
-            <input bind:stuff={stuff} />
-            <div>{value}</div>
-            <div>{value.value}</div>
-        </>
+	const value = useSignal(0);
+	const checked = useSignal(false);
+	const stuff = useSignal();
+	return (
+		<>
+			<input bind:value={value} />
+			<input bind:checked={checked} />
+			<input bind:stuff={stuff} />
+			<div>{value}</div>
+			<div>{value.value}</div>
+		</>
 
-    )
+	)
 });
 "#
 		.to_string(),
@@ -1931,11 +2043,11 @@ export const Greeter = component$(() => {
 fn example_import_assertion() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 import json from "./foo.json" assert { type: "json" };
 
 export const Greeter = component$(() => {
-    return json;
+	return json;
 });
 "#
 		.to_string(),
@@ -1951,7 +2063,7 @@ fn support_windows_paths() {
 		filename: r"components\apps\apps.tsx".to_string(),
 		src_dir: r"C:\users\apps".to_string(),
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 export const Greeter = component$(() => <div/>)
 "#
 		.to_string(),
@@ -1980,17 +2092,17 @@ fn issue_476() {
 import { Counter } from "./counter.tsx";
 
 export const Root = () => {
-    return (
-        <html>
-            <head>
-                <meta charset="utf-8" />
-                <title>Qwik Blank App</title>
-            </head>
-            <body>
-                <Counter initial={3} />
-            </body>
-        </html>
-    );
+	return (
+		<html>
+			<head>
+				<meta charset="utf-8" />
+				<title>Qwik Blank App</title>
+			</head>
+			<body>
+				<Counter initial={3} />
+			</body>
+		</html>
+	);
 };
 "#
 		.to_string(),
@@ -2004,14 +2116,14 @@ export const Root = () => {
 fn issue_964() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    console.log(function*(lo: any, t: any) {
-    console.log(yield (yield lo)(t.href).then((r) => r.json()));
-    });
+	console.log(function*(lo: any, t: any) {
+	console.log(yield (yield lo)(t.href).then((r) => r.json()));
+	});
 
-    return <p>Hello Qwik</p>;
+	return <p>Hello Qwik</p>;
 });
 "#
 		.to_string(),
@@ -2025,54 +2137,54 @@ export const App = component$(() => {
 fn example_immutable_analysis() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, $ } from '@builder.io/qwik';
+import { component$, useStore, $ } from '@qwik.dev/core';
 import importedValue from 'v';
 import styles from './styles.module.css';
 
 export const App = component$((props) => {
-    const {Model} = props;
-    const state = useStore({count: 0});
-    const remove = $((id: number) => {
-        const d = state.data;
-        d.splice(
-          d.findIndex((d) => d.id === id),
-          1
-        )
-      });
-    return (
-        <>
-            <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
-            <Div
-                class={styles.foo}
-                document={window.document}
-                onClick$={props.onClick$}
-                onEvent$={() => console.log('stuff')}
-                transparent$={() => {console.log('stuff')}}
-                immutable1="stuff"
-                immutable2={{
-                    foo: 'bar',
-                    baz: importedValue ? true : false,
-                }}
-                immutable3={2}
-                immutable4$={(ev) => console.log(state.count)}
-                immutable5={[1, 2, importedValue, null, {}]}
-            >
-                <p>Hello Qwik</p>
-            </Div>
-            [].map(() => (
-                <Model
-                    class={state}
-                    remove$={remove}
-                    mutable1={{
-                        foo: 'bar',
-                        baz: state.count ? true : false,
-                    }}
-                    mutable2={(() => console.log(state.count))()}
-                    mutable3={[1, 2, state, null, {}]}
-                />
-            ));
-        </>
-    );
+	const {Model} = props;
+	const state = useStore({count: 0});
+	const remove = $((id: number) => {
+		const d = state.data;
+		d.splice(
+			d.findIndex((d) => d.id === id),
+			1
+		)
+		});
+	return (
+		<>
+			<p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
+			<Div
+				class={styles.foo}
+				document={window.document}
+				onClick$={props.onClick$}
+				onEvent$={() => console.log('stuff')}
+				transparent$={() => {console.log('stuff')}}
+				immutable1="stuff"
+				immutable2={{
+					foo: 'bar',
+					baz: importedValue ? true : false,
+				}}
+				immutable3={2}
+				immutable4$={(ev) => console.log(state.count)}
+				immutable5={[1, 2, importedValue, null, {}]}
+			>
+				<p>Hello Qwik</p>
+			</Div>
+			[].map(() => (
+				<Model
+					class={state}
+					remove$={remove}
+					mutable1={{
+						foo: 'bar',
+						baz: state.count ? true : false,
+					}}
+					mutable2={(() => console.log(state.count))()}
+					mutable3={[1, 2, state, null, {}]}
+				/>
+			));
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2086,20 +2198,20 @@ export const App = component$((props) => {
 fn example_ts_enums_issue_1341() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 enum Thing {
-    A,
-    B
+	A,
+	B
 }
 
 export const App = component$(() => {
-    console.log(Thing.A);
-    return (
-        <>
-            <p class="stuff">Hello Qwik</p>
-        </>
-    );
+	console.log(Thing.A);
+	return (
+		<>
+			<p class="stuff">Hello Qwik</p>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2113,20 +2225,20 @@ export const App = component$(() => {
 fn example_ts_enums_no_transpile() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export enum Thing {
-    A,
-    B
+	A,
+	B
 }
 
 export const App = component$(() => {
-    console.log(Thing.A);
-    return (
-        <>
-            <p class="stuff">Hello Qwik</p>
-        </>
-    );
+	console.log(Thing.A);
+	return (
+		<>
+			<p class="stuff">Hello Qwik</p>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2141,20 +2253,20 @@ export const App = component$(() => {
 fn example_ts_enums() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export enum Thing {
-    A,
-    B
+	A,
+	B
 }
 
 export const App = component$(() => {
-    console.log(Thing.A);
-    return (
-        <>
-            <p class="stuff">Hello Qwik</p>
-        </>
-    );
+	console.log(Thing.A);
+	return (
+		<>
+			<p class="stuff">Hello Qwik</p>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2169,7 +2281,7 @@ fn special_jsx() {
 	test_input!(TestInput {
 		code: r#"
 // don't transpile jsx with non-plain-object props
-import { jsx } from '@builder.io/qwik';
+import { jsx } from '@qwik.dev/core';
 
 export const App = () => {
     const props = {}
@@ -2187,14 +2299,14 @@ export const App = () => {
 fn example_dev_mode() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 "#
 		.to_string(),
@@ -2209,14 +2321,14 @@ export const App = component$(() => {
 fn example_dev_mode_inlined() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 "#
 		.to_string(),
@@ -2232,14 +2344,14 @@ export const App = component$(() => {
 fn example_transpile_jsx_only() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props) => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 "#
 		.to_string(),
@@ -2254,37 +2366,37 @@ export const App = component$((props) => {
 fn example_spread_jsx() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
-import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { useDocumentHead, useLocation } from '@qwik.dev/router';
 
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
  */
 export const RouterHead = component$(() => {
-  const head = useDocumentHead();
-  const loc = useLocation();
+	const head = useDocumentHead();
+	const loc = useLocation();
 
-  return (
-    <>
-      <title>{head.title}</title>
+	return (
+	<>
+		<title>{head.title}</title>
 
-      <link rel="canonical" href={loc.href} />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="canonical" href={loc.href} />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-      {head.meta.map((m) => (
-        <meta {...m} />
-      ))}
+		{head.meta.map((m) => (
+			<meta {...m} />
+		))}
 
-      {head.links.map((l) => (
-        <link {...l} key={l.key} />
-      ))}
+		{head.links.map((l) => (
+			<link {...l} key={l.key} />
+		))}
 
-      {head.styles.map((s) => (
-        <style {...s.props} dangerouslySetInnerHTML={s.style} key={s.key} />
-      ))}
-    </>
-  );
+		{head.styles.map((s) => (
+			<style {...s.props} dangerouslySetInnerHTML={s.style} key={s.key} />
+		))}
+	</>
+	);
 });"#
 			.to_string(),
 		transpile_ts: true,
@@ -2297,19 +2409,19 @@ export const RouterHead = component$(() => {
 fn example_export_issue() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 const App = component$(() => {
-    return (
-        <div>hola</div>
-    );
+	return (
+		<div>hola</div>
+	);
 });
 
 
 export const Root = component$((props: Stuff) => {
-    return (
-        <App/>
-    );
+	return (
+		<App/>
+	);
 });
 
 const Other = 12;
@@ -2328,18 +2440,18 @@ export default App;
 fn example_jsx_keyed() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <>
-            <Cmp key="stuff"></Cmp>
-            <Cmp></Cmp>
-            <Cmp prop="23"></Cmp>
-            <Cmp prop="23" key={props.stuff}></Cmp>
-            <p key={props.stuff}>Hello Qwik</p>
-        </>
-    );
+	return (
+		<>
+			<Cmp key="stuff"></Cmp>
+			<Cmp></Cmp>
+			<Cmp prop="23"></Cmp>
+			<Cmp prop="23" key={props.stuff}></Cmp>
+			<p key={props.stuff}>Hello Qwik</p>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2354,18 +2466,18 @@ export const App = component$((props: Stuff) => {
 fn example_jsx_keyed_dev() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <>
-            <Cmp key="stuff"></Cmp>
-            <Cmp></Cmp>
-            <Cmp prop="23"></Cmp>
-            <Cmp prop="23" key={props.stuff}></Cmp>
-            <p key={props.stuff}>Hello Qwik</p>
-        </>
-    );
+	return (
+		<>
+			<Cmp key="stuff"></Cmp>
+			<Cmp></Cmp>
+			<Cmp prop="23"></Cmp>
+			<Cmp prop="23" key={props.stuff}></Cmp>
+			<p key={props.stuff}>Hello Qwik</p>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2383,99 +2495,99 @@ export const App = component$((props: Stuff) => {
 fn example_mutable_children() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, Slot, Fragment } from '@builder.io/qwik';
+import { component$, useStore, Slot, Fragment } from '@qwik.dev/core';
 import Image from './image.jpg?jsx';
 
 export function Fn1(props: Stuff) {
-    return (
-        <>
-            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
-        </>
-    );
+	return (
+		<>
+			<div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+		</>
+	);
 }
 
 export function Fn2(props: Stuff) {
-    return (
-        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
-    );
+	return (
+		<div>{prop.value && <Stuff></Stuff>}<div></div></div>
+	);
 }
 
 export function Fn3(props: Stuff) {
-    if (prop.value) {
-        return (
-            <Stuff></Stuff>
-        );
-    }
-    return (
-        <div></div>
-    );
+	if (prop.value) {
+		return (
+			<Stuff></Stuff>
+		);
+	}
+	return (
+		<div></div>
+	);
 }
 
 export function Fn4(props: Stuff) {
-    if (prop.value) {
-        return (
-            <div></div>
-        );
-    }
-    return (
-        <Stuff></Stuff>
-    );
+	if (prop.value) {
+		return (
+			<div></div>
+		);
+	}
+	return (
+		<Stuff></Stuff>
+	);
 }
 
 export const Arrow = (props: Stuff) => <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>;
 
 export const AppDynamic1 = component$((props: Stuff) => {
-    return (
-        <>
-            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
-        </>
-    );
+	return (
+		<>
+			<div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+		</>
+	);
 });
 export const AppDynamic2 = component$((props: Stuff) => {
-    return (
-        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
-    );
+	return (
+		<div>{prop.value && <Stuff></Stuff>}<div></div></div>
+	);
 });
 
 export const AppDynamic3 = component$((props: Stuff) => {
-    if (prop.value) {
-        return (
-            <Stuff></Stuff>
-        );
-    }
-    return (
-        <div></div>
-    );
+	if (prop.value) {
+		return (
+			<Stuff></Stuff>
+		);
+	}
+	return (
+		<div></div>
+	);
 });
 
 export const AppDynamic4 = component$((props: Stuff) => {
-    if (prop.value) {
-        return (
-            <div></div>
-        );
-    }
-    return (
-        <Stuff></Stuff>
-    );
+	if (prop.value) {
+		return (
+			<div></div>
+		);
+	}
+	return (
+		<Stuff></Stuff>
+	);
 });
 
 export const AppStatic = component$((props: Stuff) => {
-    return (
-        <>
-            <div>Static {f ? 1 : 3}</div>
-            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+	return (
+		<>
+			<div>Static {f ? 1 : 3}</div>
+			<div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
 
-            <div>{prop.value && <div></div>}</div>
-            <div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
-            <div>{prop.value && <><div></div></>}</div>
-            <div>{prop.value && <Image/>}</div>
-            <div>Static {f ? 1 : 3}</div>
-            <div>Static</div>
-            <div>Static {props.value}</div>
-            <div>Static {stuff()}</div>
-            <div>Static {stuff()}</div>
-        </>
-    );
+			<div>{prop.value && <div></div>}</div>
+			<div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
+			<div>{prop.value && <><div></div></>}</div>
+			<div>{prop.value && <Image/>}</div>
+			<div>Static {f ? 1 : 3}</div>
+			<div>Static</div>
+			<div>Static {props.value}</div>
+			<div>Static {stuff()}</div>
+			<div>Static {stuff()}</div>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2491,14 +2603,14 @@ export const AppStatic = component$((props: Stuff) => {
 fn example_immutable_function_components() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, Slot } from '@builder.io/qwik';
+import { component$, useStore, Slot } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <div>
-            <Slot/>
-        </div>
-    );
+	return (
+		<div>
+			<Slot/>
+		</div>
+	);
 });
 "#
 		.to_string(),
@@ -2513,14 +2625,14 @@ export const App = component$((props: Stuff) => {
 fn example_transpile_ts_only() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 "#
 		.to_string(),
@@ -2536,24 +2648,24 @@ export const App = component$((props: Stuff) => {
 fn example_class_name() {
 	test_input!(TestInput {
 		code: r#"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const App2 = component$(() => {
-    const signal = useSignal();
-    const computed = signal.value + 'foo';
-    return (
-        <>
-            <div className="hola"></div>
-            <div className={signal.value}></div>
-            <div className={signal}></div>
-            <div className={computed}></div>
+	const signal = useSignal();
+	const computed = signal.value + 'foo';
+	return (
+		<>
+			<div className="hola"></div>
+			<div className={signal.value}></div>
+			<div className={signal}></div>
+			<div className={computed}></div>
 
-            <Foo className="hola"></Foo>
-            <Foo className={signal.value}></Foo>
-            <Foo className={signal}></Foo>
-            <Foo className={computed}></Foo>
-        </>
-    );
+			<Foo className="hola"></Foo>
+			<Foo className={signal.value}></Foo>
+			<Foo className={signal}></Foo>
+			<Foo className={computed}></Foo>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2568,14 +2680,14 @@ export const App2 = component$(() => {
 fn example_preserve_filenames() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props) => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 "#
 		.to_string(),
@@ -2592,15 +2704,15 @@ export const App = component$((props) => {
 fn example_preserve_filenames_segments() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
-    foo();
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	foo();
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 
 export const foo = () => console.log('foo');
@@ -2619,8 +2731,8 @@ export const foo = () => console.log('foo');
 fn example_build_server() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, isDev, isServer as isServer2 } from '@builder.io/qwik';
-import { isServer, isBrowser as isb } from '@builder.io/qwik/build';
+import { component$, useStore, isDev, isServer as isServer2 } from '@qwik.dev/core';
+import { isServer, isBrowser as isb } from '@qwik.dev/core/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
@@ -2635,20 +2747,20 @@ export const functionThatNeedsWindow = () => {
 };
 
 export const App = component$(() => {
-    useMount$(() => {
-        if (isServer) {
-            console.log('server', mongodb());
-        }
-        if (isb) {
-            console.log('browser', new threejs());
-        }
-    });
-    return (
-        <Cmp>
-            {isServer2 && <p>server</p>}
-            {isb && <p>server</p>}
-        </Cmp>
-    );
+	useMount$(() => {
+		if (isServer) {
+			console.log('server', mongodb());
+		}
+		if (isb) {
+			console.log('browser', new threejs());
+		}
+	});
+	return (
+		<Cmp>
+			{isServer2 && <p>server</p>}
+			{isb && <p>server</p>}
+		</Cmp>
+	);
 });
 "#
 		.to_string(),
@@ -2662,56 +2774,56 @@ export const App = component$(() => {
 fn example_derived_signals_div() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, mutable } from '@builder.io/qwik';
+import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
 import styles from './styles.module.css';
 
 export const App = component$((props) => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    const count = props.counter.count;
+	const signal = useSignal(0);
+	const store = useStore({});
+	const count = props.counter.count;
 
-    return (
-        <div
-            class={{
-                even: count % 2 === 0,
-                odd: count % 2 === 1,
-                stable0: true,
-                hidden: false,
-            }}
-            staticClass={styles.foo}
-            staticDocument={window.document}
-            staticText="text"
-            staticText2={`text`}
-            staticNumber={1}
-            staticBoolean={true}
-            staticExpr={`text${12}`}
-            staticExpr2={typeof `text${12}` === 'string' ? 12 : 43}
+	return (
+		<div
+			class={{
+				even: count % 2 === 0,
+				odd: count % 2 === 1,
+				stable0: true,
+				hidden: false,
+			}}
+			staticClass={styles.foo}
+			staticDocument={window.document}
+			staticText="text"
+			staticText2={`text`}
+			staticNumber={1}
+			staticBoolean={true}
+			staticExpr={`text${12}`}
+			staticExpr2={typeof `text${12}` === 'string' ? 12 : 43}
 
-            signal={signal}
-            signalValue={signal.value}
-            signalComputedValue={12 + signal.value}
+			signal={signal}
+			signalValue={signal.value}
+			signalComputedValue={12 + signal.value}
 
-            store={store.address.city.name}
-            storeComputed={store.address.city.name ? 'true' : 'false'}
+			store={store.address.city.name}
+			storeComputed={store.address.city.name ? 'true' : 'false'}
 
-            dep={dep}
-            depAccess={dep.thing}
-            depComputed={dep.thing + 'stuff'}
+			dep={dep}
+			depAccess={dep.thing}
+			depComputed={dep.thing + 'stuff'}
 
-            global={globalThing}
-            globalAccess={globalThing.thing}
-            globalComputed={globalThing.thing + 'stuff'}
+			global={globalThing}
+			globalAccess={globalThing.thing}
+			globalComputed={globalThing.thing + 'stuff'}
 
 
-            noInline={signal.value()}
-            noInline2={signal.value + unknown()}
-            noInline3={mutable(signal)}
-            noInline4={signal.value + dep}
-        />
+			noInline={signal.value()}
+			noInline2={signal.value + unknown()}
+			noInline3={mutable(signal)}
+			noInline4={signal.value + dep}
+		/>
 
-    );
+	);
 });
 "#
 		.to_string(),
@@ -2726,16 +2838,16 @@ export const App = component$((props) => {
 fn example_issue_4438() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    const toggle = useSignal(false);
-    return (
-        <>
-            <div data-nu={toggle.value ? $localize`singular` : 'plural'}></div>
-            <div>{toggle.value ? $localize`singular` : $localize`plural`}</div>
-        </>
-    );
+	const toggle = useSignal(false);
+	return (
+		<>
+			<div data-nu={toggle.value ? $localize`singular` : 'plural'}></div>
+			<div>{toggle.value ? $localize`singular` : $localize`plural`}</div>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2750,47 +2862,47 @@ export const App = component$(() => {
 fn example_derived_signals_children() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, mutable } from '@builder.io/qwik';
+import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
 
 export const TextContent = component$((props) => {
-    return (
-        <>
-            <div>data-nu: {props['data-nu']}</div>
-            <div>class: {props.class}</div>
-        </>
-    );
+	return (
+		<>
+			<div>data-nu: {props['data-nu']}</div>
+			<div>class: {props.class}</div>
+		</>
+	);
 });
 
 export const App = component$(() => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    return (
-        <>
-            <div>text</div>
-            <div>{`text`}</div>
-            <div>{1}</div>
-            <div>{true}</div>
-            <div>{`text${12}`}</div>
-            <div>{typeof `text${12}` === 'string' ? 12 : 43}</div>
-            <div>{signal}</div>
-            <div>{signal.value}</div>
-            <div>{12 + signal.value}</div>
-            <div>{store.address.city.name}</div>
-            <div>{store.address.city.name ? 'true' : 'false'}</div>
-            <div>{dep}</div>
-            <div>{dep.thing}</div>
-            <div>{dep.thing + 'stuff'}</div>
-            <div>{globalThing}</div>
-            <div>{globalThing.thing}</div>
-            <div>{globalThing.thing + 'stuff'}</div>
-            <div>{signal.value()}</div>
-            <div>{signal.value + unknown()}</div>
-            <div>{mutable(signal)}</div>
-            <div>{signal.value + dep}</div>
-        </>
-    );
+	const signal = useSignal(0);
+	const store = useStore({});
+	return (
+		<>
+			<div>text</div>
+			<div>{`text`}</div>
+			<div>{1}</div>
+			<div>{true}</div>
+			<div>{`text${12}`}</div>
+			<div>{typeof `text${12}` === 'string' ? 12 : 43}</div>
+			<div>{signal}</div>
+			<div>{signal.value}</div>
+			<div>{12 + signal.value}</div>
+			<div>{store.address.city.name}</div>
+			<div>{store.address.city.name ? 'true' : 'false'}</div>
+			<div>{dep}</div>
+			<div>{dep.thing}</div>
+			<div>{dep.thing + 'stuff'}</div>
+			<div>{globalThing}</div>
+			<div>{globalThing.thing}</div>
+			<div>{globalThing.thing + 'stuff'}</div>
+			<div>{signal.value()}</div>
+			<div>{signal.value + unknown()}</div>
+			<div>{mutable(signal)}</div>
+			<div>{signal.value + dep}</div>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2805,38 +2917,38 @@ export const App = component$(() => {
 fn example_derived_signals_multiple_children() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, mutable } from '@builder.io/qwik';
+import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
 
 export const App = component$(() => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    return (
-        <>
-            <div>First text</div>
-            <div>First {`text`}</div>
-            <div>First {1}</div>
-            <div>First {true}</div>
-            <div>First {`text${12}`}</div>
-            <div>First {typeof `text${12}` === 'string' ? 12 : 43}</div>
-            <div>First {signal}</div>
-            <div>First {signal.value}</div>
-            <div>First {12 + signal.value}</div>
-            <div>First {store.address.city.name}</div>
-            <div>First {store.address.city.name ? 'true' : 'false'}</div>
-            <div>First {dep}</div>
-            <div>First {dep.thing}</div>
-            <div>First {dep.thing + 'stuff'}</div>
-            <div>First {globalThing}</div>
-            <div>First {globalThing.thing}</div>
-            <div>First {globalThing.thing + 'stuff'}</div>
-            <div>First {signal.value()}</div>
-            <div>First {signal.value + unknown()}</div>
-            <div>First {mutable(signal)}</div>
-            <div>First {signal.value + dep}</div>
-        </>
-    );
+	const signal = useSignal(0);
+	const store = useStore({});
+	return (
+		<>
+			<div>First text</div>
+			<div>First {`text`}</div>
+			<div>First {1}</div>
+			<div>First {true}</div>
+			<div>First {`text${12}`}</div>
+			<div>First {typeof `text${12}` === 'string' ? 12 : 43}</div>
+			<div>First {signal}</div>
+			<div>First {signal.value}</div>
+			<div>First {12 + signal.value}</div>
+			<div>First {store.address.city.name}</div>
+			<div>First {store.address.city.name ? 'true' : 'false'}</div>
+			<div>First {dep}</div>
+			<div>First {dep.thing}</div>
+			<div>First {dep.thing + 'stuff'}</div>
+			<div>First {globalThing}</div>
+			<div>First {globalThing.thing}</div>
+			<div>First {globalThing.thing + 'stuff'}</div>
+			<div>First {signal.value()}</div>
+			<div>First {signal.value + unknown()}</div>
+			<div>First {mutable(signal)}</div>
+			<div>First {signal.value + dep}</div>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2851,24 +2963,24 @@ export const App = component$(() => {
 fn example_derived_signals_complext_children() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, mutable } from '@builder.io/qwik';
+import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
 
 export const App = component$(() => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    return (
-        <>
-            <ul id="issue-2800-result">
-                {Object.entries(store).map(([key, value]) => (
-                <li>
-                    {key} - {value}
-                </li>
-                ))}
-            </ul>
-        </>
-    );
+	const signal = useSignal(0);
+	const store = useStore({});
+	return (
+		<>
+			<ul id="issue-2800-result">
+				{Object.entries(store).map(([key, value]) => (
+				<li>
+					{key} - {value}
+				</li>
+				))}
+			</ul>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -2883,45 +2995,45 @@ export const App = component$(() => {
 fn example_derived_signals_cmp() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, mutable } from '@builder.io/qwik';
+import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
 import {Cmp} from './cmp';
 
 export const App = component$(() => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    return (
-        <Cmp
-            staticText="text"
-            staticText2={`text`}
-            staticNumber={1}
-            staticBoolean={true}
-            staticExpr={`text${12}`}
-            staticExpr2={typeof `text${12}` === 'string' ? 12 : 43}
+	const signal = useSignal(0);
+	const store = useStore({});
+	return (
+		<Cmp
+			staticText="text"
+			staticText2={`text`}
+			staticNumber={1}
+			staticBoolean={true}
+			staticExpr={`text${12}`}
+			staticExpr2={typeof `text${12}` === 'string' ? 12 : 43}
 
-            signal={signal}
-            signalValue={signal.value}
-            signalComputedValue={12 + signal.value}
+			signal={signal}
+			signalValue={signal.value}
+			signalComputedValue={12 + signal.value}
 
-            store={store.address.city.name}
-            storeComputed={store.address.city.name ? 'true' : 'false'}
+			store={store.address.city.name}
+			storeComputed={store.address.city.name ? 'true' : 'false'}
 
-            dep={dep}
-            depAccess={dep.thing}
-            depComputed={dep.thing + 'stuff'}
+			dep={dep}
+			depAccess={dep.thing}
+			depComputed={dep.thing + 'stuff'}
 
-            global={globalThing}
-            globalAccess={globalThing.thing}
-            globalComputed={globalThing.thing + 'stuff'}
+			global={globalThing}
+			globalAccess={globalThing.thing}
+			globalComputed={globalThing.thing + 'stuff'}
 
 
-            noInline={signal.value()}
-            noInline2={signal.value + unknown()}
-            noInline3={mutable(signal)}
-            noInline4={signal.value + dep}
-        />
-    );
+			noInline={signal.value()}
+			noInline2={signal.value + unknown()}
+			noInline3={mutable(signal)}
+			noInline4={signal.value + dep}
+		/>
+	);
 });
 "#
 		.to_string(),
@@ -2935,65 +3047,65 @@ export const App = component$(() => {
 #[test]
 fn example_issue_33443() {
 	test_input!(TestInput {
-        code: r#"
-import { component$, useSignal } from '@builder.io/qwik';
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
 
 export const Issue3742 = component$(({description = '', other}: any) => {
-    const counter = useSignal(0);
-    return (
-      <div
-        title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
-      >
-        Issue3742
-        <button onClick$={() => counter.value++}>
-          Increment
-        </button>
-      </div>
-    )
-  });
-  "#
-        .to_string(),
-        transpile_jsx: true,
-        transpile_ts: true,
-        entry_strategy: EntryStrategy::Hoist,
-        ..TestInput::default()
-    });
+	const counter = useSignal(0);
+	return (
+		<div
+		title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
+		>
+		Issue3742
+		<button onClick$={() => counter.value++}>
+			Increment
+		</button>
+		</div>
+	)
+	});
+	"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
 }
 #[test]
 fn example_getter_generation() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    const store = useStore({
-        count: 0,
-        stuff: 0,
-        nested: {
-            count: 0
-        }
-    });
-    const signal = useSignal(0);
-    return (
-        <Cmp
-            prop={'true' + 1 ? 'true' : ''}
-            count={store.count}
-            nested={store.nested.count}
-            signal={signal}
-            store={store.stuff + 12}
-            value={signal.formData?.get('username')}
-        >
-        </Cmp>
-    );
+	const store = useStore({
+		count: 0,
+		stuff: 0,
+		nested: {
+			count: 0
+		}
+	});
+	const signal = useSignal(0);
+	return (
+		<Cmp
+			prop={'true' + 1 ? 'true' : ''}
+			count={store.count}
+			nested={store.nested.count}
+			signal={signal}
+			store={store.stuff + 12}
+			value={signal.formData?.get('username')}
+		>
+		</Cmp>
+	);
 });
 
 export const Cmp = component$((props) => {
-    return (
-        <>
-            <p data-value={props.count}>{props.nested.count}</p>
-            <p>Value {props.count}<span></span></p>
-        </>
-    );
+	return (
+		<>
+			<p data-value={props.count}>{props.nested.count}</p>
+			<p>Value {props.count}<span></span></p>
+		</>
+	);
 });
 "#
 		.to_string(),
@@ -3006,217 +3118,217 @@ export const Cmp = component$((props) => {
 #[test]
 fn example_qwik_react() {
 	test_input!(TestInput {
-        code: r#"
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
-import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+		code: r#"
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
+import { jsx, Fragment } from '@qwik.dev/core/jsx-runtime';
+import { isBrowser, isServer } from '@qwik.dev/core';
 
 function qwikifyQrl(reactCmpQrl) {
-    return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
-        const [reactCmpQrl] = useLexicalScope();
-        const hostElement = useHostElement();
-        const store = useStore({});
-        let run;
-        if (props['client:visible']) run = 'visible';
-        else if (props['client:load'] || props['client:only']) run = 'load';
-        useTaskQrl(inlinedQrl(async (track)=>{
-            const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
-            track(props);
-            if (isBrowser) {
-                if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
-                else {
-                    const [Cmp, client] = await Promise.all([
-                        reactCmpQrl.resolve(),
-                        import('./client-f762f78c.js')
-                    ]);
-                    let root;
-                    if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
-                    else {
-                        root = client.createRoot(hostElement);
-                        root.render(client.Main(Cmp, filterProps(props)));
-                    }
-                    store.data = noSerialize({
-                        client,
-                        cmp: Cmp,
-                        root
-                    });
-                }
-            }
-        }, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
-            hostElement,
-            props,
-            reactCmpQrl,
-            store
-        ]), {
-            run
-        });
-        if (isServer && !props['client:only']) {
-            const jsx$1 = Promise.all([
-                reactCmpQrl.resolve(),
-                import('./server-9ac6caad.js')
-            ]).then(([Cmp, server])=>{
-                const html = server.render(Cmp, filterProps(props));
-                return /*#__PURE__*/ jsx(Host, {
-                    dangerouslySetInnerHTML: html,
-                    [_IMMUTABLE]: [
-                        "dangerouslySetInnerHTML"
-                    ]
-                });
-            });
-            return /*#__PURE__*/ jsx(Fragment, {
-                children: jsx$1
-            });
-        }
-        return /*#__PURE__*/ jsx(Host, {
-            children: /*#__PURE__*/ jsx(SkipRerender, {})
-        });
-    }, "qwikifyQrl_component_zH94hIe0Ick", [
-        reactCmpQrl
-    ]), {
-        tagName: 'qwik-wrap'
-    });
+	return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+		const [reactCmpQrl] = useLexicalScope();
+		const hostElement = useHostElement();
+		const store = useStore({});
+		let run;
+		if (props['client:visible']) run = 'visible';
+		else if (props['client:load'] || props['client:only']) run = 'load';
+		useTaskQrl(inlinedQrl(async (track)=>{
+			const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
+			track(props);
+			if (isBrowser) {
+				if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+				else {
+					const [Cmp, client] = await Promise.all([
+						reactCmpQrl.resolve(),
+						import('./client-f762f78c.js')
+					]);
+					let root;
+					if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
+					else {
+						root = client.createRoot(hostElement);
+						root.render(client.Main(Cmp, filterProps(props)));
+					}
+					store.data = noSerialize({
+						client,
+						cmp: Cmp,
+						root
+					});
+				}
+			}
+		}, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+			hostElement,
+			props,
+			reactCmpQrl,
+			store
+		]), {
+			run
+		});
+		if (isServer && !props['client:only']) {
+			const jsx$1 = Promise.all([
+				reactCmpQrl.resolve(),
+				import('./server-9ac6caad.js')
+			]).then(([Cmp, server])=>{
+				const html = server.render(Cmp, filterProps(props));
+				return /*#__PURE__*/ jsx(Host, {
+					dangerouslySetInnerHTML: html,
+					[_IMMUTABLE]: [
+						"dangerouslySetInnerHTML"
+					]
+				});
+			});
+			return /*#__PURE__*/ jsx(Fragment, {
+				children: jsx$1
+			});
+		}
+		return /*#__PURE__*/ jsx(Host, {
+			children: /*#__PURE__*/ jsx(SkipRerender, {})
+		});
+	}, "qwikifyQrl_component_zH94hIe0Ick", [
+		reactCmpQrl
+	]), {
+		tagName: 'qwik-wrap'
+	});
 }
 const filterProps = (props)=>{
-    const obj = {};
-    Object.keys(props).forEach((key)=>{
-        if (!key.startsWith('client:')) obj[key] = props[key];
-    });
-    return obj;
+	const obj = {};
+	Object.keys(props).forEach((key)=>{
+		if (!key.startsWith('client:')) obj[key] = props[key];
+	});
+	return obj;
 };
 const qwikify$ = implicit$FirstArg(qwikifyQrl);
 
 async function renderToString(rootNode, opts) {
-    const mod = await import('./server-9ac6caad.js');
-    const result = await mod.renderToString(rootNode, opts);
-    const styles = mod.getGlobalStyleTag(result.html);
-    const finalHtml = styles + result.html;
-    return {
-        ...result,
-        html: finalHtml
-    };
+	const mod = await import('./server-9ac6caad.js');
+	const result = await mod.renderToString(rootNode, opts);
+	const styles = mod.getGlobalStyleTag(result.html);
+	const finalHtml = styles + result.html;
+	return {
+		...result,
+		html: finalHtml
+	};
 }
 
 export { qwikify$, qwikifyQrl, renderToString };
-        "#
-        .to_string(),
-        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
-        entry_strategy: EntryStrategy::Segment,
-        explicit_extensions: true,
-        ..TestInput::default()
-    });
+		"#
+		.to_string(),
+		filename: "../node_modules/@qwik.dev/react/index.qwik.mjs".to_string(),
+		entry_strategy: EntryStrategy::Segment,
+		explicit_extensions: true,
+		..TestInput::default()
+	});
 }
 
 #[test]
 fn example_qwik_react_inline() {
 	test_input!(TestInput {
-        code: r#"
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
-import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+		code: r#"
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
+import { jsx, Fragment } from '@qwik.dev/core/jsx-runtime';
+import { isBrowser, isServer } from '@qwik.dev/core';
 
 function qwikifyQrl(reactCmpQrl) {
-    return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
-        const [reactCmpQrl] = useLexicalScope();
-        const hostElement = useHostElement();
-        const store = useStore({});
-        let run;
-        if (props['client:visible']) run = 'visible';
-        else if (props['client:load'] || props['client:only']) run = 'load';
-        useTaskQrl(inlinedQrl(async (track)=>{
-            const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
-            track(props);
-            if (isBrowser) {
-                if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
-                else {
-                    const [Cmp, client] = await Promise.all([
-                        reactCmpQrl.resolve(),
-                        import('./client-f762f78c.js')
-                    ]);
-                    let root;
-                    if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
-                    else {
-                        root = client.createRoot(hostElement);
-                        root.render(client.Main(Cmp, filterProps(props)));
-                    }
-                    store.data = noSerialize({
-                        client,
-                        cmp: Cmp,
-                        root
-                    });
-                }
-            }
-        }, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
-            hostElement,
-            props,
-            reactCmpQrl,
-            store
-        ]), {
-            run
-        });
-        if (isServer && !props['client:only']) {
-            const jsx$1 = Promise.all([
-                reactCmpQrl.resolve(),
-                import('./server-9ac6caad.js')
-            ]).then(([Cmp, server])=>{
-                const html = server.render(Cmp, filterProps(props));
-                return /*#__PURE__*/ jsx(Host, {
-                    dangerouslySetInnerHTML: html,
-                    [_IMMUTABLE]: [
-                        "dangerouslySetInnerHTML"
-                    ]
-                });
-            });
-            return /*#__PURE__*/ jsx(Fragment, {
-                children: jsx$1
-            });
-        }
-        return /*#__PURE__*/ jsx(Host, {
-            children: /*#__PURE__*/ jsx(SkipRerender, {})
-        });
-    }, "qwikifyQrl_component_zH94hIe0Ick", [
-        reactCmpQrl
-    ]), {
-        tagName: 'qwik-wrap'
-    });
+	return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+		const [reactCmpQrl] = useLexicalScope();
+		const hostElement = useHostElement();
+		const store = useStore({});
+		let run;
+		if (props['client:visible']) run = 'visible';
+		else if (props['client:load'] || props['client:only']) run = 'load';
+		useTaskQrl(inlinedQrl(async (track)=>{
+			const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
+			track(props);
+			if (isBrowser) {
+				if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+				else {
+					const [Cmp, client] = await Promise.all([
+						reactCmpQrl.resolve(),
+						import('./client-f762f78c.js')
+					]);
+					let root;
+					if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
+					else {
+						root = client.createRoot(hostElement);
+						root.render(client.Main(Cmp, filterProps(props)));
+					}
+					store.data = noSerialize({
+						client,
+						cmp: Cmp,
+						root
+					});
+				}
+			}
+		}, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+			hostElement,
+			props,
+			reactCmpQrl,
+			store
+		]), {
+			run
+		});
+		if (isServer && !props['client:only']) {
+			const jsx$1 = Promise.all([
+				reactCmpQrl.resolve(),
+				import('./server-9ac6caad.js')
+			]).then(([Cmp, server])=>{
+				const html = server.render(Cmp, filterProps(props));
+				return /*#__PURE__*/ jsx(Host, {
+					dangerouslySetInnerHTML: html,
+					[_IMMUTABLE]: [
+						"dangerouslySetInnerHTML"
+					]
+				});
+			});
+			return /*#__PURE__*/ jsx(Fragment, {
+				children: jsx$1
+			});
+		}
+		return /*#__PURE__*/ jsx(Host, {
+			children: /*#__PURE__*/ jsx(SkipRerender, {})
+		});
+	}, "qwikifyQrl_component_zH94hIe0Ick", [
+		reactCmpQrl
+	]), {
+		tagName: 'qwik-wrap'
+	});
 }
 const filterProps = (props)=>{
-    const obj = {};
-    Object.keys(props).forEach((key)=>{
-        if (!key.startsWith('client:')) obj[key] = props[key];
-    });
-    return obj;
+	const obj = {};
+	Object.keys(props).forEach((key)=>{
+		if (!key.startsWith('client:')) obj[key] = props[key];
+	});
+	return obj;
 };
 const qwikify$ = implicit$FirstArg(qwikifyQrl);
 
 async function renderToString(rootNode, opts) {
-    const mod = await import('./server-9ac6caad.js');
-    const result = await mod.renderToString(rootNode, opts);
-    const styles = mod.getGlobalStyleTag(result.html);
-    const finalHtml = styles + result.html;
-    return {
-        ...result,
-        html: finalHtml
-    };
+	const mod = await import('./server-9ac6caad.js');
+	const result = await mod.renderToString(rootNode, opts);
+	const styles = mod.getGlobalStyleTag(result.html);
+	const finalHtml = styles + result.html;
+	return {
+		...result,
+		html: finalHtml
+	};
 }
 
 export { qwikify$, qwikifyQrl, renderToString };
-        "#
-        .to_string(),
-        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
-        entry_strategy: EntryStrategy::Inline,
-        explicit_extensions: true,
-        ..TestInput::default()
-    });
+		"#
+		.to_string(),
+		filename: "../node_modules/@qwik.dev/react/index.qwik.mjs".to_string(),
+		entry_strategy: EntryStrategy::Inline,
+		explicit_extensions: true,
+		..TestInput::default()
+	});
 }
 
 #[test]
-fn example_qwik_sdk_inline() {
+fn example_qwik_router_inline() {
 	test_input!(TestInput {
 		code: include_str!("fixtures/index.qwik.mjs").to_string(),
-		filename: "../node_modules/@builder.io/qwik-city/index.qwik.mjs".to_string(),
+		filename: "../node_modules/@qwik.dev/router/index.qwik.mjs".to_string(),
 		entry_strategy: EntryStrategy::Smart,
 		explicit_extensions: true,
-		// mode: EmitMode::Prod,
+		mode: EmitMode::Lib,
 		..TestInput::default()
 	});
 }
@@ -3224,50 +3336,50 @@ fn example_qwik_sdk_inline() {
 #[test]
 fn relative_paths() {
 	let dep = r#"
-import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@builder.io/qwik";
-import { jsx, jsxs } from "@builder.io/qwik/jsx-runtime";
+import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@qwik.dev/core";
+import { jsx, jsxs } from "@qwik.dev/core/jsx-runtime";
 import { state } from './sibling';
 
 const useData = () => {
-    return useStore({
-        count: 0
-    });
+	return useStore({
+		count: 0
+	});
 }
 
 export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
-    const store = useData();
-    return /*#__PURE__*/ jsxs("div", {
-        children: [
-            /*#__PURE__*/ jsxs("p", {
-                children: [
-                    "Count: ",
-                    store.count
-                ]
-            }),
-            /*#__PURE__*/ jsx("p", {
-                children: /*#__PURE__*/ jsx("button", {
-                    onClick$: inlinedQrl(()=>{
-                        const [store] = useLexicalScope();
-                        return store.count++;
-                    }, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
-                        store
-                    ]),
-                    children: "Click"
-                })
-            })
-        ]
-    });
+	const store = useData();
+	return /*#__PURE__*/ jsxs("div", {
+		children: [
+			/*#__PURE__*/ jsxs("p", {
+				children: [
+					"Count: ",
+					store.count
+				]
+			}),
+			/*#__PURE__*/ jsx("p", {
+				children: /*#__PURE__*/ jsx("button", {
+					onClick$: inlinedQrl(()=>{
+						const [store] = useLexicalScope();
+						return store.count++;
+					}, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+						store
+					]),
+					children: "Click"
+				})
+			})
+		]
+	});
 }, "App_component_AkbU84a8zes"));
 
 "#;
 	let code = r#"
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 import { state } from './sibling';
 
 export const Local = component$(() => {
-    return (
-        <div>{state}</div>
-    )
+	return (
+		<div>{state}</div>
+	)
 });
 "#;
 	let res = transform_modules(TransformModulesOptions {
@@ -3307,21 +3419,21 @@ export const Local = component$(() => {
 #[test]
 fn consistent_hashes() {
 	let code = r#"
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 
 export const Greeter = component$(() => {
-    // Double count watch
-    useTask$(async () => {
-        await mongo.users();
-    });
-    return (
-        <div>
-            <div onClick$={() => {}}/>
-            <div onClick$={() => {}}/>
-            <div onClick$={() => {}}/>
-        </div>
-    )
+	// Double count watch
+	useTask$(async () => {
+		await mongo.users();
+	});
+	return (
+		<div>
+			<div onClick$={() => {}}/>
+			<div onClick$={() => {}}/>
+			<div onClick$={() => {}}/>
+		</div>
+	)
 });
 
 "#;
@@ -3453,23 +3565,23 @@ export const Greeter = component$(() => {
 fn issue_5008() {
 	test_input!(TestInput {
 		code: r#"
-        import { component$, useStore } from "@builder.io/qwik";
+		import { component$, useStore } from "@qwik.dev/core";
 
-        export default component$(() => {
-        const store = useStore([{ value: 0 }]);
-        return (
-            <>
-            <button onClick$={() => store[0].value++}>+1</button>
-            {store.map(function (v, idx) {
-                return <div key={"fn_" + idx}>Function: {v.value}</div>;
-            })}
-            {store.map((v, idx) => (
-                <div key={"arrow_" + idx}>Arrow: {v.value}</div>
-            ))}
-            </>
-        );
-        });
-        "#
+		export default component$(() => {
+		const store = useStore([{ value: 0 }]);
+		return (
+			<>
+			<button onClick$={() => store[0].value++}>+1</button>
+			{store.map(function (v, idx) {
+				return <div key={"fn_" + idx}>Function: {v.value}</div>;
+			})}
+			{store.map((v, idx) => (
+				<div key={"arrow_" + idx}>Arrow: {v.value}</div>
+			))}
+			</>
+		);
+		});
+		"#
 		.to_string(),
 		transpile_ts: true,
 		transpile_jsx: true,
@@ -3481,23 +3593,216 @@ fn issue_5008() {
 fn example_of_synchronous_qrl() {
 	test_input!(TestInput {
 		code: r#"
-        import { sync$, component$ } from "@builder.io/qwik";
+		import { sync$, component$ } from "@qwik.dev/core";
 
-        export default component$(() => {
-        return (
-            <>
-                <input onClick$={sync$(function(event, target) {
-                    // comment should be removed
-                    event.preventDefault();
-                })}/>
-                <input onClick$={sync$((event, target) => {
-                    event.preventDefault();
-                })}/>
-                <input onClick$={sync$((event, target) => event.preventDefault())}/>
-            </>
-        );
-        });
-        "#
+		export default component$(() => {
+		return (
+			<>
+				<input onClick$={sync$(function(event, target) {
+					// comment should be removed
+					event.preventDefault();
+				})}/>
+				<input onClick$={sync$((event, target) => {
+					event.preventDefault();
+				})}/>
+				<input onClick$={sync$((event, target) => event.preventDefault())}/>
+			</>
+		);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_destructure_args() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from "@qwik.dev/core";
+
+		// the count results in _fnSignal because of the rename
+		// would be nice to consider it a prop too
+		export default component$(({ message, id, count: c, ...rest }: Record<string, any>) => {
+			const renders = useStore({ renders: 0 }, { reactive: false });
+			renders.renders++;
+			const rerenders = renders.renders + 0;
+			return (
+				<div id={id}>
+					<span {...rest}>
+					{message} {c}
+					</span>
+					<div class="renders">{rerenders}</div>
+				</div>
+			);
+		}
+		);
+	"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_inline_cmp_block_stmt() {
+	test_input!(TestInput {
+		code: r#"
+		export default ({ data }: { data: any }) => {
+          return (
+            <div
+              data-is-active={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />
+          );
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_inline_cmp_block_stmt2() {
+	test_input!(TestInput {
+		code: r#"
+		export default (props: { data: any }) => {
+		  const { data } = props;
+          return (
+            <div
+              data-is-active={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />
+          );
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_inline_cmp_expr_stmt() {
+	test_input!(TestInput {
+		code: r#"
+		export default ({ data }: { data: any }) =>
+            <div
+              data-is-active={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />;
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_colon_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from "@qwik.dev/core";
+		export default component$((props) => {
+			const { 'bind:value': bindValue } = props;
+			return (
+				<>
+				{bindValue}
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_colon_props2() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from "@qwik.dev/core";
+		export default component$((props) => {
+			const { 'bind:value': bindValue } = props;
+			const test = useSignal(bindValue);
+			return (
+				<>
+				{test.value}
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_colon_props3() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from "@qwik.dev/core";
+		export default component$((props) => {
+			const { test, ...rest } = props;
+			const test = useSignal(rest['bind:value']);
+			return (
+				<>
+				{test.value}
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_handle_dangerously_set_inner_html() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from "@qwik.dev/core";
+		const Cmp = component$(() => {
+			const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
+			return (
+				<div>
+					<div>
+						<span id="first" dangerouslySetInnerHTML="vanilla HTML here" />
+					</div>
+					<div>
+						<span id="second" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
+					</div>
+					<div>
+						<span id="third" dangerouslySetInnerHTML={htmlSignal.value} class="after" />
+						<button
+							onClick$={() =>
+								(htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>")
+							}
+						></button>
+					</div>
+				</div>
+			);
+		});
+		"#
 		.to_string(),
 		transpile_ts: true,
 		transpile_jsx: true,
@@ -3509,28 +3814,28 @@ fn example_of_synchronous_qrl() {
 fn example_noop_dev_mode() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore, serverStuff$, $ } from '@builder.io/qwik';
+import { component$, useStore, serverStuff$, $ } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    const stuff = useStore();
-    serverStuff$(async () => {
-        // should be removed but keep scope
-        console.log(stuff.count)
-    })
-    serverStuff$(async () => {
-        // should be removed
-    })
+	const stuff = useStore();
+	serverStuff$(async () => {
+		// should be removed but keep scope
+		console.log(stuff.count)
+	})
+	serverStuff$(async () => {
+		// should be removed
+	})
 
-    return (
-        <Cmp>
-            <p class="stuff" 
-                shouldRemove$={() => stuff.count}
-                onClick$={() => console.log('warn')}
-            >
-                Hello Qwik
-            </p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff"
+				shouldRemove$={() => stuff.count}
+				onClick$={() => console.log('warn')}
+			>
+				Hello Qwik
+			</p>
+		</Cmp>
+	);
 });
 "#
 		.to_string(),
@@ -3548,20 +3853,59 @@ export const App = component$(() => {
 fn lib_mode_fn_signal() {
 	test_input!(TestInput {
 		code: r#"
-    import { component$ } from '@builder.io/qwik';
-export const Counter = component$(() => {
-  const count = useSignal(0);
+		import { component$ } from '@qwik.dev/core';
+		export const Counter = component$(() => {
+			const count = useSignal(0);
 
-  return (
-    <div>
-      <p>Count: {count.value}</p>
-      <p>
-        <button onClick$={() => count.value++}>Increment</button>
-      </p>
-    </div>
-  );
-});
+			return (
+				<div>
+					<p>Count: {count.value}</p>
+					<p>
+						<button onClick$={() => count.value++}>Increment</button>
+					</p>
+				</div>
+			);
+		});
 "#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn ternary_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, $, useSignal } from '@qwik.dev/core';
+		export const Cmp = component$(() => {
+			const toggleSig = useSignal(false);
+
+			const handleClick$ = $(() => {
+				toggleSig.value = !toggleSig.value;
+			});
+
+			return (
+				<button onClick$={handleClick$} data-open={toggleSig.value ? true : undefined}>
+					Removing data-open re-renders
+				</button>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn transform_qrl_in_regular_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, $ } from '@qwik.dev/core';
+		export const Cmp = component$(() =>
+			<Cmp foo={$(() => console.log('hi there'))}>Hello Qwik</Cmp>);
+		"#
 		.to_string(),
 		transpile_jsx: true,
 		..TestInput::default()
@@ -3573,7 +3917,7 @@ fn impure_template_fns() {
 	// Should not mark the template function as static
 	test_input!(TestInput {
 		code: r#"
-		import { component$, useSignal } from '@builder.io/qwik';
+		import { component$, useSignal } from '@qwik.dev/core';
 		const useFoo = (count) => {
 			const tag = (s) => {
 				const value = typeof s === "string" ? s : s[0];
@@ -3600,27 +3944,1801 @@ fn impure_template_fns() {
 	});
 }
 
-// TODO(misko): Make this test work by implementing strict serialization.
-// #[test]
-// fn example_of_synchronous_qrl_that_cant_be_serialized() {
-//     test_input!(TestInput {
-//         code: r#"
-//         import { sync$, component$ } from "@builder.io/qwik";
+#[test]
+fn rename_builder_io() {
+	test_input!(TestInput {
+		code: r#"
+		import { $, component$ } from "@builder.io/qwik";
+		import { isDev } from "@builder.io/qwik/build";
+		import { stuff } from "@builder.io/qwik-city";
+		import { moreStuff } from "@builder.io/qwik-city/more/here";
+		import { qwikify$ } from "@builder.io/qwik-react";
+		import sdk from "@builder.io/sdk";
 
-//         export default component$(() => {
-//         return (
-//             <input onClick$={sync$(function(event, target) {
-//                 console.log(component$);
-//             })}/>
-//         );
-//         });
-//         "#
-//         .to_string(),
-//         transpile_ts: true,
-//         transpile_jsx: true,
-//         ..TestInput::default()
-//     });
-// }
+		export const Foo = qwikify$(MyReactComponent);
+
+		export const Bar = $("a thing");
+
+		export const App = component$(() => {
+			sdk.hello();
+			if (isDev) {
+				stuff()
+			} else {
+				moreStuff()
+			}
+			return "hi";
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_component_with_event_listeners_inside_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useStore, useSignal } from '@qwik.dev/core';
+export const App = component$(() => {
+      const cart = useStore<string[]>([]);
+      const results = useSignal(['foo']);
+      function loopArrowFn(results: string[]) {
+        return results.map((item) => (
+          <span
+            onClick$={() => {
+              cart.push(item);
+            }}
+          >
+            {item}
+          </span>
+        ));
+      }
+      function loopForI(results: string[]) {
+        const items = [];
+        for (let i = 0; i < results.length; i++) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(results[i]);
+              }}
+            >
+              {results[i]}
+            </span>
+          );
+        }
+        return items;
+      }
+      function loopForOf(results: string[]) {
+        const items = [];
+        for (const item of results) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(item);
+              }}
+            >
+              {item}
+            </span>
+          );
+        }
+        return items;
+      }
+      function loopForIn(results: string[]) {
+        const items = [];
+        for (const key in results) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(results[key]);
+              }}
+            >
+              {results[key]}
+            </span>
+          );
+        }
+        return items;
+      }
+      function loopWhile(results: string[]) {
+        const items = [];
+        let i = 0;
+        while (i < results.length) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(results[i]);
+              }}
+            >
+              {results[i]}
+            </span>
+          );
+          i++;
+        }
+        return items;
+      }
+      return (
+        <div>
+          {results.value.map((item) => (
+            <button
+              id="second"
+              onClick$={() => {
+                cart.push(item);
+              }}
+            >
+              {item}
+            </button>
+          ))}
+          {loopArrowFn(results.value)}
+          {loopForI(results.value)}
+          {loopForOf(results.value)}
+          {loopForIn(results.value)}
+          {loopWhile(results.value)}
+        </div>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_inner_inline_component_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useStore, useSignal } from '@qwik.dev/core';
+export default component$((props: { id: number }) => {
+      const renders = useStore(
+        {
+          count: 0,
+        },
+        { reactive: false }
+      );
+      renders.count++;
+      const rerenders = renders.count + 0;
+      const Id = (props: any) => <div>Id: {props.id}</div>;
+      return (
+        <>
+          <Id id={props.id} />
+          {rerenders}
+        </>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_prop_from_destructured_array() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useStore, useTask$ } from '@qwik.dev/core';
+		import { useForm, useForm2 } from './some-file.ts';
+
+		export const Input = component$<{error: string, error2: string, error3: string}>(
+			(props) => {
+				useTask$(({ track }) => {
+					track(() => props.error);
+					track(() => props.error2);
+					track(() => props.error3);
+				});
+
+				return (
+					<>
+					</>
+				);
+			}
+		);
+
+		export default component$(() => {
+			const [store, math] = [useStore({errors: {}}), Math.random()];
+			const [[store2]] = [[useStore({errors: {}})]];
+			const { store3, math4 } = { store3: useStore({errors: {}}), math4: Math.random() };
+			const math2 = [Math.random()];
+			const { math3 } = { math3: Math.random() };
+			const [store4] = useForm();
+			const {store5} = useForm2();
+
+			return (
+				<div>
+					<button onClick$={() => {
+						store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
+					}}>click</button>
+					<Input 
+						error={store.errors.test}
+						error2={store2.errors.test}
+						error3={store3.errors.test}
+						error4={store4.errors.test}
+						error5={store5.errors.test}
+						math={math}
+						math2={math2}
+						math3={math3}
+						math4={math4}
+					/>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_object_with_fn_signal() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export default component$((props) => {
+	// not destructure it so it is a var prop
+	const item = props.something.count;
+	return (
+		<>
+			<div data-no-wrap={item ? item * 2 : null} data-wrap={props.myobj.id + "test"}></div>
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_mark_props_as_var_props_for_inner_cmp() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useResource$, Resource } from "@qwik.dev/core";
+import { type ModelProps } from "./modelMenu";
+import { serverImg } from "~/routes/(authenticated)/layout";
+
+export const Image = component$((props) => {
+  return (
+    <>
+      <img src={`${props.src}`} />
+    </>
+  );
+});
+
+export const ModelImg = component$<ModelProps>((props) => {
+  const imgLoc = useResource$(async ({ track }) => {
+    track(() => props.store.model);
+    return await serverImg('some.png');
+  });
+  return (
+    <>
+      <Resource
+        value={imgLoc}
+        onRejected={() => <p>error ...</p>}
+        onResolved={(res) =>
+          res && (
+            <>
+              <Image
+                src={res}
+              />
+            </>
+          )
+        }
+      />
+    </>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_wrap_fn() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+import { A } from "./componentA";
+
+export const Cmp = component$(() => {
+	const currentStep = useSignal('STEP_1');
+	const currentType = useSignal<'NEXT' | 'PREVIOUS'>('PREVIOUS');
+
+	const getStep = (step: string, type: 'NEXT' | 'PREVIOUS') => {
+		return step === 'STEP_1' ? 'STEP_2' : 'STEP_1';
+	};
+
+	return (
+		<>
+			<button onClick$={() => (currentType.value = 'NEXT')}>CLICK</button>
+			<A href={getStep(currentStep.value, currentType.value)} />
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn issue_7216_add_test() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@builder.io/qwik';
+export default component$((props) => {
+  return (<p 
+		onHi$={() => 'hi'} 
+		{...props.foo} 
+		onHello$={props.helloHandler$} 
+		{...props.rest} 
+		onVar$={props.onVarHandler$} 
+		onConst$={() => 'const'} 
+		asd={"1"}
+	/>);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_store_expression() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useStore } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const panelStore = useStore(() => ({
+				active: 'Input',
+				list: PANELS,
+			}));
+
+			return (
+				<div
+					stuff={panelStore.active ? 'yes' : 'no'}
+					class={{
+						'too-long-to-wrap': true,
+						'examples-panel-input': panelStore.active === 'Input',
+						'examples-panel-output': panelStore.active === 'Output',
+						'examples-panel-console': panelStore.active === 'Console',
+					}}
+				/>
+			);
+		});
+		export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_wrap_var_template_string() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useComputed$ } from '@qwik.dev/core';
+		import { inlineTranslate } from 'translate-lib';
+
+		export default component$(() => {
+			const t = inlineTranslate();
+
+			const productTitle = useComputed$(() => {
+				return 'Test title';
+			});
+
+			return (
+				<img 
+					attr={t('home.imageAlt.founded-product:')}
+					alt={`${t('home.imageAlt.founded-product:')} ${productTitle.value}`} />
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_type_asserted_variables_in_template() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const count = useSignal(0);
+			return (
+				<div>
+					{(count as any).value}
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_logical_expression_in_template() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const count = useSignal(0);
+			const count2 = useSignal(0);
+			return (
+				<div>
+					{(count || count2).value}
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_wrap_ternary_function_operator_with_fn() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+
+		export default component$(() => {
+		const toggle = useSignal(true);
+		const t = (key: string) => key;
+		return (
+			<button
+				type="button"
+				title={
+				toggle.value !== ''
+					? t('app.message.exists@@there is a message for you')
+					: t('app.message.not_exists@@click to get a message!')
+				}
+			></button>
+		);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div {...props}></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div {...props} test="test"></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop2() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div test="test" {...props}></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop3() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+		import { Foo } from './foo';
+
+		export default component$((props) => {
+			return (
+				<Foo s={Math.random()} {...props} hello {...globalThis.nothing} />
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop4() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props: any) => {
+			return <button {...props} onClick$={() => props.onClick$()}></button>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop5() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		function Hola(props: any) {
+			return <div {...props}></div>;
+		}
+
+		export default component$(() => {
+		return <Hola>
+			<div>1</div>
+			<div>2</div>
+		</Hola>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_generate_conflicting_props_identifiers() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useComputed$, useTask$ } from '@qwik.dev/core'
+
+		export default component$(({ color, ...props }) => {
+		useComputed$(() => color)
+
+		useTask$(() => {
+			props.checked
+		})
+
+		return 'hi'
+		})
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		// important to use hoist entry strategy to test this case
+		// only in hoist mode there was an issue with conflicting props identifiers
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_convert_rest_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useTask$ } from '@qwik.dev/core'
+
+		export default component$<any>(({ ...props }) => {
+		useTask$(() => {
+			props.checked
+		})
+
+		return 'hi'
+		})
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_attributes_with_spread_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return <div {...props} class={[props.class, 'component']} />;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_attributes_with_spread_props_before_and_after() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return <div {...props} class={[props.class, 'component']} {...props} />;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_move_over_side_effects() {
+	test_input!(TestInput {
+		code: r#"
+		export const $promoteToRoot$ = (ref: SeenRef) => {
+			const path = $getObjectPath$(ref) as string;
+			// should stay before the push
+			const idx = roots.length;
+			roots.push(new BackRef(path));
+			ref.$parent$ = null;
+			ref.$index$ = idx;
+			return idx;
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_ignore_null_inlined_qrl() {
+	test_input!(TestInput {
+		code: r#"
+		import { inlinedQrl } from '@qwik.dev/core';
+
+		const foo = inlinedQrl(null, 'some_hash');
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn hoisted_fn_signal_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const data = { value: [
+    { value: { id: 1, selected: { value: true } } },
+    { value: { id: 2, selected: { value: false } } },
+    { value: { id: 3, selected: { value: true } } }
+  ]};
+  
+  return (
+    <table>
+      {data.value.map((row) => {
+        return (
+          <tr
+            key={row.value.id}
+            class={row.value.selected.value ? "danger" : ""}
+          >
+            <td>{row.value.id}</td>
+          </tr>
+        );
+      })}
+    </table>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_convert_jsx_events() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		const ManyEventsComponent = component$(() => {
+			return (
+				<div>
+					<button
+						onClick$={() => {}}
+						onDblClick$={() => {}}
+					>
+						click
+					</button>
+					<button
+						onClick$={() => {}}
+						onBlur$={() => {}}
+						on-anotherCustom$={() => {}}
+						document:onFocus$={() => {}}
+						window:onClick$={() => {}}
+					>
+						click
+					</button>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_event_names_without_jsx_transpile() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import mongo from 'mongodb';
+
+export const Greeter = component$(() => {
+	// Double count watch
+	useTask$(async () => {
+		await mongo.users();
+	});
+	return (
+		<div>
+			<div onClick$={() => {}}/>
+			<div onClick$={() => {}}/>
+			<div onClick$={() => {}}/>
+		</div>
+	)
+});
+
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_transform_events_on_non_elements() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { CustomComponent } from './custom-component';
+import { AnotherComponent } from './another-component';
+
+export const Greeter = component$(() => {
+	return (
+		<div>
+			<CustomComponent onClick$={() => {}}/>
+			{array.map(item => (
+				<AnotherComponent onClick$={() => {}}/>
+			))}
+		</div>
+	)
+});
+
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_bind_value_and_on_input() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal("");
+
+  return (
+    <input
+      onInput$={() => {
+        console.log("test");
+      }}
+      bind:value={localValue}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_bind_checked_and_on_input() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal(false);
+
+  return (
+    <input
+      onInput$={() => {
+        console.log("test");
+      }}
+      bind:checked={localValue}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_single_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+export const App = component$(() => {
+	const data = useSignal<Signal<any>[]>([]);
+	const selectedItem = useSignal<any | null>(null);
+    return (
+        <div>
+          {data.value.map((row) => (
+              <tr
+                key={untrack(() => row.value.id)}
+                class={row.value.selected.value ? "danger" : ""}
+              >
+                <td class="col-md-1">{row.value.id}</td>
+                <td class="col-md-4">
+                  <a
+                    onClick$={() => {
+                      if (selectedItem.value) {
+                        selectedItem.value.selected.value = false;
+                      }
+                      selectedItem.value = row.value;
+                      row.value.selected.value = true;
+                    }}
+                  >
+                    {row.value.label.value}
+                  </a>
+                </td>
+                <td class="col-md-1">
+                  <a
+                    onClick$={() => {
+                      const dataValue = untrack(() => data.value);
+                      data.value = dataValue.toSpliced(
+                        dataValue.findIndex((d) => d.value.id === row.value.id),
+                        1,
+                      );
+                    }}
+                  >
+                    <span aria-hidden="true">x</span>
+                  </a>
+                </td>
+                <td class="col-md-6" />
+              </tr>
+          ))}
+        </div>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_single_qrl_2() {
+	test_input!(TestInput {
+		code: r#"
+	  import { component$, useStore, useSignal } from '@qwik.dev/core';
+      const Parent = component$(() => {
+      const cart = useStore<Cart>([]);
+      const results = useSignal(['foo', 'bar']);
+
+      return (
+        <div>
+          <button id="first" onClick$={() => (results.value = ['item1', 'item2'])}></button>
+
+          {results.value.map((item, key) => (
+            <button
+              id={'second-' + key}
+              onClick$={() => {
+                cart.push(item);
+              }}
+            >
+              {item}
+            </button>
+          ))}
+          <ul>
+            {cart.map((item) => (
+              <li>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_single_qrl_with_index() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+export const App = component$(() => {
+	const data = useSignal<Signal<any>[]>([]);
+	const selectedItem = useSignal<any | null>(null);
+	const clickedIndex = useSignal<number | null>(null);
+    return (
+        <div>
+          {data.value.map((row, idx) => (
+              <tr
+                key={untrack(() => row.value.id)}
+                class={row.value.selected.value ? "danger" : ""}
+              >
+                <td class="col-md-1">{row.value.id}</td>
+                <td class="col-md-4">
+                  <a
+                    onClick$={() => {
+                      if (selectedItem.value) {
+                        selectedItem.value.selected.value = false;
+                      }
+                      selectedItem.value = row.value;
+                      row.value.selected.value = true;
+					  clickedIndex.value = idx;
+                    }}
+                  >
+                    {row.value.label.value}
+                  </a>
+                </td>
+                <td class="col-md-1">
+                  <a
+                    onClick$={() => {
+                      const dataValue = untrack(() => data.value);
+                      data.value = dataValue.toSpliced(
+                        dataValue.findIndex((d) => d.value.id === row.value.id),
+                        1,
+                      );
+                    }}
+                  >
+                    <span aria-hidden="true">x</span>
+                  </a>
+                </td>
+                <td class="col-md-6" />
+              </tr>
+          ))}
+        </div>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_multiple_qrls_with_item_and_index() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const loop: string[] = ['abcd', 'xyz'];
+  return (
+    <div>
+      {loop.map((item, index) => {
+        return <div onClick$={() => console.log(item)} onHover$={() => console.log(index)}>{item}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_multiple_qrls_with_item_and_index_and_capture_ref() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const foo = useSignal('hi');
+  const bar = useSignal('ho');
+  const loop: string[] = ['abcd', 'xyz'];
+  return (
+    <div>
+      {loop.map((item, index) => {
+        return <div onClick$={() => console.log(item, foo.value)} onHover$={() => console.log(bar.value, index)}>{item}</div>
+      })}
+    </div>
+  );
+});
+
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_single_qrl_with_nested_components() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(() => {
+  const data = useSignal<Signal<any>[]>([]);
+  const Inner = component$((props) => {
+    const data = props.data
+    return <div>{data.value.map(item => <p onClick$={() => console.log(item.value.id)}>{item.value.id}</p>)}</div>
+  })
+  return <Inner data={data} />
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_component_with_normal_function() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  const Inner = component$(function(props) {
+    const data = props.data
+    return <div>{data.value.map(item => <p onClick$={() => console.log(item.value.id)}>{item.value.id}</p>)}</div>
+  })
+  return <Inner data={data} />
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_nested_loops() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  const data2 = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map(row => (
+	  <div onClick$={() => console.log(row.value.id)}>
+		{data2.value.map(item => (
+		  <p onClick$={() => console.log(row.value.id, item.value.id)}>{row.value.id}-{item.value.id}</p>
+		))}
+	  </div>
+	))}
+  </div>;
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_event_handlers() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map(row => (
+	  <div onClick$={() => console.log(row.value.id)} onMouseOver$={() => console.log('over' + row.value.id)}>
+		<p onClick$={() => console.log('inner' + row.value.id)}>{item.value.id}</p>
+	  </div>
+	))}
+  </div>;
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_event_handlers_case2() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map((row, idx) => (
+	  <div onClick$={() => console.log(row.value.id, idx)} onMouseOver$={() => console.log('over' + row.value.id)}>
+		<p onClick$={() => console.log('inner' + row.value.id)}>{item.value.id}</p>
+	  </div>
+	))}
+  </div>;
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_on_input_and_bind_value() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal("");
+
+  return (
+    <input
+      bind:value={localValue}
+      onInput$={() => {
+        console.log("test");
+      }}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_on_input_and_bind_checked() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal(false);
+
+  return (
+    <input
+      bind:checked={localValue}
+      onInput$={() => {
+        console.log("test");
+      }}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_qrls_in_ternary_expression() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+	const enabled = useSignal(false);
+	const input = useSignal("");
+
+  return (
+     <input
+		id="input"
+		onInput$={
+		enabled.value
+			? $((ev, el) => {
+				input.value = el.value;
+			})
+			: undefined
+		}
+		onFocus$={() => {
+			enabled.value = true;
+		}}
+	/>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_transform_bind_value_in_var_props_for_jsx_split() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$((props) => {
+	const input = useSignal("");
+
+  return (
+		<>
+			{/* var props */}
+			<input
+				bind:value={input}
+				{...props}
+			/>
+			{/* const props */}
+			<input
+				{...props}
+				bind:value={input}
+			/>
+		</>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_transform_bind_checked_in_var_props_for_jsx_split() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$((props) => {
+	const input = useSignal(true);
+
+  return (
+		<>
+			{/* var props */}
+			<input
+				bind:checked={input}
+				{...props}
+			/>
+			{/* const props */}
+			<input
+				{...props}
+				bind:checked={input}
+			/>
+		</>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_bind_value_to_var_props() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+import { destructureBindings } from "./destructure-bindings";
+
+export const FieldInput = component$(
+  (props) => {
+    const initialValues = { value: undefined as string | undefined };
+    const rest = destructureBindings(props, initialValues);
+
+    return (
+      <input
+        {...rest}
+        bind:value={finalValue}
+		onClick$={() => {
+			console.log('clicked');
+		}}
+      />
+    );
+  }
+);
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_props_related_to_iteration_variables_to_var_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+import { TestComponent } from "./testComponent";
+
+export const Child = component$(() => {
+  const propCounterWithNested = useSignal(() => {
+  return {
+      data: [
+        { attributeInArray: { counter: globalThis.propsCounter++ } },
+        { attributeInArray: { counter: globalThis.propsCounter } },
+      ],
+    };
+  })
+  return (
+    <div>
+        {propCounterWithNested.value.data.map((item, index) => {
+          return (
+            <TestComponent
+              counter={item.attributeInArray.counter}
+              logString="Nested read through array"
+              key={index}
+            />
+          );
+        })}
+    </div>
+  );
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_make_component_jsx_split_with_bind() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'input'
+  const sig = useSignal(0)
+  return (
+    <div>
+      <Cmp bind:value={sig} />
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_block_scoped_variables_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+        return <div onClick$={() => console.log(index)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_block_scoped_variables_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+		const value = val.toUpperCase();
+        return <div onClick$={() => console.log(value, index)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_block_scoped_variables_and_item_index_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+        return <div onClick$={() => console.log(val, i, index)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_block_scoped_variables_and_item_index_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i+1;
+		const value = val.toUpperCase();
+        return <div onClick$={() => console.log(value, index, val, i)}>{val}</div>
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_two_handlers_capturing_different_block_scope_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b'])
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i + 1;
+        const label = val.toUpperCase();
+        return (
+          <div>
+            <button onClick$={() => console.log(index)}>{val}</button>
+            <span onKeyDown$={() => console.log(label)}>{label}</span>
+          </div>
+        )
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_handlers_capturing_cross_scope_in_nested_loops() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const matrix = useSignal([['a', 'b'], ['c', 'd']]);
+  return (
+    <div>
+      {matrix.value.map((row, i) => {
+        const rowIndex = i + 1;
+        return (
+          <div key={i}>
+            {row.map((cell, j) => {
+              const cellIndex = j + 1;
+              const cellKey = rowIndex + '-' + cellIndex;
+              return (
+                <span key={j}>
+                  <button onClick$={() => console.log(rowIndex, cellIndex)}>{cell}</button>
+                  <span onKeyDown$={() => console.log(cellKey, i, j)}>{cellKey}</span>
+                </span>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_same_element_one_handler_with_captures_one_without() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b']);
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const index = i + 1;
+        return (
+          <div
+            onClick$={() => console.log(index)}
+            onKeyDown$={() => console.log('no capture')}
+          >
+            {val}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_nested_loops_handler_captures_only_inner_scope() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const matrix = useSignal([['a', 'b'], ['c', 'd']]);
+  return (
+    <div>
+      {matrix.value.map((row, i) => (
+        <div key={i}>
+          {row.map((cell, j) => {
+            const cellKey = cell + '-' + j;
+            return (
+              <span key={j}>
+                <button onClick$={() => console.log(cellKey)}>{cell}</button>
+              </span>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_three_nested_loops_handler_captures_outer_only() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const data = useSignal([
+    [['a', 'b'], ['c', 'd']],
+    [['e', 'f'], ['g', 'h']],
+  ]);
+  return (
+    <div>
+      {data.value.map((plane, pi) => {
+        const planeId = 'p' + pi;
+        return (
+          <div key={pi}>
+            {plane.map((row, ri) => (
+              <div key={ri}>
+                {row.map((cell, ci) => (
+                  <button key={ci} onClick$={() => console.log(planeId)}>
+                    {cell}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_handler_in_for_of_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b']);
+  const items = [];
+  for (const val of arr.value) {
+    items.push(
+      <div onClick$={() => console.log(val)}>{val}</div>
+    );
+  }
+  return <div>{items}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_multiple_handler_with_different_captures() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const arr = useSignal(['a', 'b']);
+  return (
+    <div>
+      {arr.value.map((val, i) => {
+        const plusOne = i + 1;
+        const plusTwo = i + 2;
+        const double = i * 2;
+        return (
+          <div
+            onClick$={() => console.log(plusOne, double)}
+            onKeyDown$={() => console.log(plusTwo, double)}
+          >
+            {val}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
 
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()

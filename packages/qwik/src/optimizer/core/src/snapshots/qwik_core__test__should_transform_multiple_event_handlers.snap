@@ -1,0 +1,170 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 5096
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map(row => (
+	  <div onClick$={() => console.log(row.value.id)} onMouseOver$={() => console.log('over' + row.value.id)}>
+		<p onClick$={() => console.log('inner' + row.value.id)}>{item.value.id}</p>
+	  </div>
+	))}
+  </div>;
+})
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
+/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;cAEY\"}")
+============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const i_P9F6Osn3X6Y = ()=>import("./test.tsx_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y");
+const i_PjMbeUzoAMk = ()=>import("./test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk");
+const i_vKrX4PmH2aM = ()=>import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM");
+export const Foo_component_HTDRsvUbLiE = function() {
+    const data = useSignal([]);
+    const Foo_component_div_div_q_e_click_vKrX4PmH2aM = /*#__PURE__*/ qrl(i_vKrX4PmH2aM, "Foo_component_div_div_q_e_click_vKrX4PmH2aM");
+    const Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y = /*#__PURE__*/ qrl(i_P9F6Osn3X6Y, "Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y");
+    const Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = /*#__PURE__*/ qrl(i_PjMbeUzoAMk, "Foo_component_div_div_p_q_e_click_PjMbeUzoAMk");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row)=>/*#__PURE__*/ _jsxSorted("div", {
+            "q-e:click": Foo_component_div_div_q_e_click_vKrX4PmH2aM,
+            "q-e:mouseover": Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y,
+            "q:p": row
+        }, null, /*#__PURE__*/ _jsxSorted("p", {
+            "q-e:click": Foo_component_div_div_p_q_e_click_PjMbeUzoAMk,
+            "q:p": row
+        }, null, item.value.id, 0, null), 0, "u6_0")), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAEuB;IACrB,MAAM,OAAO,UAAyB,EAAE;;;;IACxC,qBAAO,WAAC,mBACR,KAAK,KAAK,CAAC,GAAG,CAAC,CAAA,oBACd,WAAC;YAAI,WAAQ;YAAmC,eAAY;mBAD9C;+BAEf,WAAC;YAAE,WAAQ;mBAFI;iBAE0C,KAAK,KAAK,CAAC,EAAE;AAIxE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    89,
+    400
+  ]
+}
+*/
+============================= test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM.js (ENTRY POINT)==
+
+export const Foo_component_div_div_q_e_click_vKrX4PmH2aM = (_, _1, row)=>console.log(row.value.id);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2DAMkB,QADD,MACO,QAAQ,GAAG,CAAC,IAAI,KAAK,CAAC,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_div_div_q_e_click_vKrX4PmH2aM",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_div_q_e_click",
+  "hash": "vKrX4PmH2aM",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    206,
+    237
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "row"
+  ]
+}
+*/
+============================= test.tsx_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y.js (ENTRY POINT)==
+
+export const Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y = (_, _1, row)=>console.log('over' + row.value.id);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAMiE,QADhD,MACsD,QAAQ,GAAG,CAAC,SAAS,IAAI,KAAK,CAAC,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_div_q_e_mouseover",
+  "hash": "P9F6Osn3X6Y",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onMouseOver$",
+  "captures": false,
+  "loc": [
+    253,
+    293
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "row"
+  ]
+}
+*/
+============================= test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk.js (ENTRY POINT)==
+
+export const Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = (_, _1, row)=>console.log('inner' + row.value.id);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6DAOe,QAFE,MAEI,QAAQ,GAAG,CAAC,UAAU,IAAI,KAAK,CAAC,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_div_div_p_q_e_click_PjMbeUzoAMk",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_div_p_q_e_click",
+  "hash": "PjMbeUzoAMk",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    311,
+    352
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "row"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

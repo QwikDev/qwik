@@ -1,27 +1,55 @@
-import { $, type QRL } from '../qrl/qrl.public';
-import { assertQrl } from '../qrl/qrl-class';
+import type { QRLInternal, ValueOrPromise } from '../../server/qwik-types';
+import { qwikDebugToString } from '../debug';
+import { _captures } from '../internal';
+import { createStore } from '../reactive-primitives/impl/store';
 import {
-  type ResourceReturn,
-  type ResourceDescriptor,
-  type ResourceFn,
-  runResource,
-  TaskFlagsIsDirty,
-  TaskFlagsIsResource,
-  Task,
-  type ResourceReturnInternal,
-} from './use-task';
-import { Fragment, jsx } from '../render/jsx/jsx-runtime';
-import { isServerPlatform } from '../platform/platform';
-import { untrack, useBindInvokeContext } from './use-core';
-
-import type { ContainerState, GetObjID } from '../container/container';
+  createAsyncQrl,
+  type AsyncSignal,
+  type Signal,
+} from '../reactive-primitives/signal.public';
+import type { AsyncCtx } from '../reactive-primitives/types';
+import { StoreFlags } from '../reactive-primitives/types';
+import type { JSXOutput } from '../shared/jsx/types/jsx-node';
+import { createQRL } from '../shared/qrl/qrl-class';
+import { assertQrl } from '../shared/qrl/qrl-utils';
+import { type QRL } from '../shared/qrl/qrl.public';
+import { isPromise } from '../shared/utils/promises';
 import { useSequentialScope } from './use-sequential-scope';
-import { createProxy } from '../state/store';
-import { getProxyTarget } from '../state/common';
-import { isSignal, type Signal } from '../state/signal';
-import { isObject } from '../util/types';
-import { isPromise } from '../util/promises';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
+
+const DEBUG = false;
+// eslint-disable-next-line no-console
+const log = (...args: any[]) => console.log('RESOURCE', ...args.map(qwikDebugToString));
+
+/** @public */
+export interface ResourceCtx<T = unknown> extends AsyncCtx<T> {
+  /** @deprecated Does not do anything */
+  cache(policyOrMilliseconds: number | 'immutable'): void;
+}
+
+/** @public */
+export type ResourceFn<T> = (ctx: ResourceCtx) => ValueOrPromise<T>;
+
+/** @public */
+export type ResourceReturn<T> = {
+  readonly value: Promise<T>;
+  readonly loading: boolean;
+};
+
+/** @public */
+export type ResourcePending<T> = ResourceReturn<T>;
+
+/** @public */
+export type ResourceResolved<T> = ResourceReturn<T>;
+
+/** @public */
+export type ResourceRejected<T> = ResourceReturn<T>;
+
+export interface ResourceReturnInternal<T> {
+  __brand: 'resource';
+  value: Promise<T>;
+  loading: boolean;
+  signal: AsyncSignal<{ r: T }>;
+}
 
 /**
  * Options to pass to `useResource$()`
@@ -37,155 +65,70 @@ export interface ResourceOptions {
   timeout?: number;
 }
 
-// <docs markdown="../readme.md#useResource">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useResource instead)
 /**
- * This method works like an async memoized function that runs whenever some tracked value changes
- * and returns some data.
+ * The resource function wrapper
  *
- * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
- * state that indicates if the data is available or not.
- *
- * The status can be one of the following:
- *
- * - `pending` - the data is not yet available.
- * - `resolved` - the data is available.
- * - `rejected` - the data is not available due to an error or timeout.
- *
- * Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing
- * it, the resource status will never be `rejected`.
- *
- * ### Example
- *
- * Example showing how `useResource` to perform a fetch to request the weather, whenever the input
- * city name changes.
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const cityS = useSignal('');
- *
- *   const weatherResource = useResource$(async ({ track, cleanup }) => {
- *     const cityName = track(cityS);
- *     const abortController = new AbortController();
- *     cleanup(() => abortController.abort('cleanup'));
- *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
- *       signal: abortController.signal,
- *     });
- *     const data = await res.json();
- *     return data as { temp: number };
- *   });
- *
- *   return (
- *     <div>
- *       <input name="city" bind:value={cityS} />
- *       <Resource
- *         value={weatherResource}
- *         onResolved={(weather) => {
- *           return <div>Temperature: {weather.temp}</div>;
- *         }}
- *       />
- *     </div>
- *   );
- * });
- * ```
- *
- * @public
- * @see Resource
- * @see ResourceReturn
+ * @internal
  */
-// </docs>
+export const _rsc = async <T>(arg: ResourceCtx<T>) => {
+  const [fn, ref] = _captures as [QRLInternal<ResourceFn<T>>, { r: T; i: number }];
+  DEBUG && log('invoke resource function');
+  const result = await fn(arg);
+  DEBUG && log('resource function resolved', result);
+  if (result && typeof result === 'object') {
+    if (ref.r) {
+      Object.assign(ref.r, result);
+    } else {
+      // We need lazy creation because we don't know if it will be an array or an object, and we want to preserve the original reference for reactivity to work
+      ref.r = createStore(fn.$container$, result, StoreFlags.RECURSIVE);
+      DEBUG && log('store created', ref.r);
+    }
+  } else {
+    ref.r = result as any;
+  }
+  return { r: ref.r };
+};
+
+/** @internal */
 export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  const { val, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
-  if (val != null) {
-    return val;
-  }
   assertQrl(qrl);
 
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const resource = createResourceReturn<T>(containerState, opts);
-  const el = elCtx.$element$;
-  const task = new Task(
-    TaskFlagsIsDirty | TaskFlagsIsResource,
-    i,
-    el,
-    qrl,
-    resource
-  ) as ResourceDescriptor<any>;
-  const previousWait = Promise.all(iCtx.$waitOn$.slice());
-  runResource(task, containerState, iCtx.$renderCtx$, previousWait);
-  if (!elCtx.$tasks$) {
-    elCtx.$tasks$ = [];
+  const { val, set, iCtx } = useSequentialScope<ResourceReturnInternal<T>>();
+  if (val) {
+    return val as ResourceReturn<T>;
   }
-  elCtx.$tasks$.push(task);
+
+  const ref = {} as { r: T };
+  // Wrap the function so we can maintain a stable reference to the store
+  const wrapped = createQRL(null, '_rsc', _rsc, null, [qrl, ref]);
+  qrl.$container$ = iCtx.$container$;
+  const asyncSignal = createAsyncQrl<{ r: T }>(wrapped as any, {
+    timeout: opts?.timeout,
+    container: iCtx.$container$,
+    concurrency: 0,
+  });
+  // Resource is eager
+  asyncSignal.$computeIfNeeded$();
+
+  // Create a wrapper that presents the Promise-based ResourceReturn API
+  const resource: ResourceReturnInternal<T> = {
+    __brand: 'resource',
+    signal: asyncSignal,
+    get value(): Promise<T> {
+      return asyncSignal
+        .promise()
+        .then(() => (asyncSignal.error ? Promise.reject(asyncSignal.error) : asyncSignal.value.r));
+    },
+    get loading(): boolean {
+      return asyncSignal.loading;
+    },
+  };
+
   set(resource);
-
   return resource;
-};
-
-// <docs markdown="../readme.md#useResource">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useResource instead)
-/**
- * This method works like an async memoized function that runs whenever some tracked value changes
- * and returns some data.
- *
- * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
- * state that indicates if the data is available or not.
- *
- * The status can be one of the following:
- *
- * - 'pending' - the data is not yet available.
- * - 'resolved' - the data is available.
- * - 'rejected' - the data is not available due to an error or timeout.
- *
- * ### Example
- *
- * Example showing how `useResource` to perform a fetch to request the weather, whenever the input
- * city name changes.
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const cityS = useSignal('');
- *
- *   const weatherResource = useResource$(async ({ track, cleanup }) => {
- *     const cityName = track(cityS);
- *     const abortController = new AbortController();
- *     cleanup(() => abortController.abort('cleanup'));
- *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
- *       signal: abortController.signal,
- *     });
- *     const data = await res.json();
- *     return data as { temp: number };
- *   });
- *
- *   return (
- *     <div>
- *       <input name="city" bind:value={cityS} />
- *       <Resource
- *         value={weatherResource}
- *         onResolved={(weather) => {
- *           return <div>Temperature: {weather.temp}</div>;
- *         }}
- *       />
- *     </div>
- *   );
- * });
- * ```
- *
- * @public
- * @see Resource
- * @see ResourceReturn
- */
-// </docs>
-export const useResource$ = <T>(
-  generatorFn: ResourceFn<T>,
-  opts?: ResourceOptions
-): ResourceReturn<T> => {
-  return useResourceQrl<T>($(generatorFn), opts);
 };
 
 /** @public */
@@ -196,183 +139,64 @@ export interface ResourceProps<T> {
   onRejected?: (reason: Error) => JSXOutput | Promise<JSXOutput>;
 }
 
-// <docs markdown="../readme.md#useResource">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useResource instead)
 /**
- * This method works like an async memoized function that runs whenever some tracked value changes
- * and returns some data.
- *
- * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
- * state that indicates if the data is available or not.
- *
- * The status can be one of the following:
- *
- * - 'pending' - the data is not yet available.
- * - 'resolved' - the data is available.
- * - 'rejected' - the data is not available due to an error or timeout.
- *
- * ### Example
- *
- * Example showing how `useResource` to perform a fetch to request the weather, whenever the input
- * city name changes.
- *
  * ```tsx
  * const Cmp = component$(() => {
- *   const cityS = useSignal('');
+ *   const city = useSignal('');
  *
- *   const weatherResource = useResource$(async ({ track, cleanup }) => {
- *     const cityName = track(cityS);
- *     const abortController = new AbortController();
- *     cleanup(() => abortController.abort('cleanup'));
+ *   const weather = useAsync$(async ({ track, cleanup, abortSignal }) => {
+ *     const cityName = track(city);
  *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
- *       signal: abortController.signal,
+ *       signal: abortSignal,
  *     });
- *     const data = await res.json();
- *     return data as { temp: number };
+ *     const temp = (await res.json()) as { temp: number };
+ *     return temp;
  *   });
  *
  *   return (
  *     <div>
- *       <input name="city" bind:value={cityS} />
- *       <Resource
- *         value={weatherResource}
- *         onResolved={(weather) => {
- *           return <div>Temperature: {weather.temp}</div>;
- *         }}
- *       />
+ *       <input name="city" bind:value={city} />
+ *       <div>
+ *         Temperature:{' '}
+ *         {weather.loading
+ *           ? 'Loading...'
+ *           : weather.error
+ *             ? `Error: ${weather.error.message}`
+ *             : weather.value.temp}
+ *       </div>
  *     </div>
  *   );
  * });
  * ```
  *
+ * @deprecated Use `useAsync$` instead, which is more efficient, and has a more flexible API. Just
+ *   read the `loading` and `error` properties from the returned signal to determine the status.
  * @public
- * @see Resource
- * @see ResourceReturn
  */
-// </docs>
-export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
-  // Resource path
-  return jsx(Fragment, {
-    children: getResourceValueAsPromise(props),
-  });
-};
-function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
-  const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  if (isResourceReturn(resource)) {
-    const isBrowser = !isServerPlatform();
-    if (isBrowser) {
-      if (props.onRejected) {
-        resource.value.catch(() => {});
-        if (resource._state === 'rejected') {
-          return Promise.resolve(resource._error!).then(useBindInvokeContext(props.onRejected));
-        }
-      }
-      if (props.onPending) {
-        const state = resource._state;
-        if (state === 'resolved') {
-          return Promise.resolve(resource._resolved!).then(useBindInvokeContext(props.onResolved));
-        } else if (state === 'pending') {
-          return Promise.resolve().then(useBindInvokeContext(props.onPending));
-        } else if (state === 'rejected') {
-          throw resource._error;
-        }
-      }
-      if (untrack(() => resource._resolved) !== undefined) {
-        return Promise.resolve(resource._resolved!).then(useBindInvokeContext(props.onResolved));
-      }
-    }
-    const value = resource.value;
-    if (value) {
-      return value.then(
-        useBindInvokeContext(props.onResolved),
-        useBindInvokeContext(props.onRejected)
-      );
-    } else {
-      // this is temporary value until the `runResource` is executed and promise is assigned to the value
-      return Promise.resolve(undefined);
-    }
-  } else if (isPromise(resource)) {
-    return resource.then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
-  } else if (isSignal(resource)) {
-    return Promise.resolve(resource.value).then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
-  } else {
-    return Promise.resolve(resource as T).then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+export const Resource = <T>({
+  value,
+  onResolved,
+  onPending,
+  onRejected,
+}: ResourceProps<T>): JSXOutput => {
+  if (isPromise<T>(value)) {
+    DEBUG && log('value is a promise, awaiting it');
+    return value.then(onResolved, onRejected) as unknown as JSXOutput;
   }
-}
-
-export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
-  const resource: ResourceReturnInternal<T> = {
-    __brand: 'resource',
-    value: undefined as never,
-    loading: isServerPlatform() ? false : true,
-    _resolved: undefined as never,
-    _error: undefined as never,
-    _state: 'pending',
-    _timeout: opts?.timeout ?? -1,
-    _cache: 0,
-  };
-  return resource;
-};
-
-export const createResourceReturn = <T>(
-  containerState: ContainerState,
-  opts?: ResourceOptions,
-  initialPromise?: Promise<T>
-): ResourceReturnInternal<T> => {
-  const result = _createResourceReturn<T>(opts);
-  result.value = initialPromise as any;
-  const resource = createProxy(result, containerState, undefined);
-  return resource;
-};
-
-export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
-  return getProxyTarget(resource) as any;
-};
-
-export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
-  return isObject(obj) && (obj as any).__brand === 'resource';
-};
-
-export const serializeResource = (
-  resource: ResourceReturnInternal<unknown>,
-  getObjId: GetObjID
-) => {
-  const state = resource._state;
-  if (state === 'resolved') {
-    return `0 ${getObjId(resource._resolved)}`;
-  } else if (state === 'pending') {
-    return `1`;
-  } else {
-    return `2 ${getObjId(resource._error)}`;
+  const isRes = isResourceReturn<T>(value);
+  const signal = isRes ? value.signal : (value as any as AsyncSignal<number>);
+  if (onPending && (signal as AsyncSignal<T>).loading) {
+    return onPending() as unknown as JSXOutput;
   }
+  if (onRejected && (signal as AsyncSignal<T>).error) {
+    return onRejected((signal as AsyncSignal<T>).error!) as unknown as JSXOutput;
+  }
+  const val = isRes ? (signal as AsyncSignal<{ r: T }>).value?.r : (signal as AsyncSignal<T>).value;
+  return (isPromise<T>(val!)
+    ? val.then(onResolved, onRejected)
+    : onResolved(val!)) as unknown as JSXOutput;
 };
 
-export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
-  const [first, id] = data.split(' ');
-  const result = _createResourceReturn<T>(undefined);
-  result.value = Promise.resolve() as any;
-  if (first === '0') {
-    result._state = 'resolved';
-    result._resolved = id as any;
-    result.loading = false;
-  } else if (first === '1') {
-    result._state = 'pending';
-    result.value = new Promise(() => {});
-    result.loading = true;
-  } else if (first === '2') {
-    result._state = 'rejected';
-    result._error = id as any;
-    result.loading = false;
-  }
-  return result;
+const isResourceReturn = <T>(obj: any): obj is ResourceReturnInternal<T> => {
+  return obj && (obj as any).__brand === 'resource';
 };

@@ -1,0 +1,62 @@
+{
+  "id": "qwik-insights",
+  "package": "@qwik.dev/qwik/insights",
+  "members": [
+    {
+      "name": "Insights",
+      "id": "insights",
+      "hierarchy": [
+        {
+          "name": "Insights",
+          "id": "insights"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nInsights: import(\"@qwik.dev/core\").Component<unknown>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/insights/insights.ts",
+      "mdFile": "core.insights.md"
+    },
+    {
+      "name": "InsightsError",
+      "id": "insightserror",
+      "hierarchy": [
+        {
+          "name": "InsightsError",
+          "id": "insightserror"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface InsightsError \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[column](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[line](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[manifestHash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nManifest Hash of the container.\n\n\n</td></tr>\n<tr><td>\n\n[message](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[source](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[stack](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[timestamp](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[url](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/insights/insights.ts",
+      "mdFile": "core.insightserror.md"
+    },
+    {
+      "name": "InsightsPayload",
+      "id": "insightspayload",
+      "hierarchy": [
+        {
+          "name": "InsightsPayload",
+          "id": "insightspayload"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface InsightsPayload \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[manifestHash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nManifest Hash of the container.\n\n\n</td></tr>\n<tr><td>\n\n[previousSymbol?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n_(Optional)_ Previous symbol received on the client.\n\nClient periodically sends symbol log to the server. Being able to connect the order of symbols is useful for server clustering. Sending previous symbol name allows the server to stitch the symbol list together.\n\n\n</td></tr>\n<tr><td>\n\n[publicApiKey](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nAPI key of the application which we are trying to profile.\n\nThis key can be used for sharding the data.\n\n\n</td></tr>\n<tr><td>\n\n[qVersion](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nQwik version\n\n\n</td></tr>\n<tr><td>\n\n[symbols](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[InsightSymbol](#insightsymbol)<!-- -->\\[\\]\n\n\n</td><td>\n\nList of symbols which have been received since last update.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/insights/insights.ts",
+      "mdFile": "core.insightspayload.md"
+    },
+    {
+      "name": "InsightSymbol",
+      "id": "insightsymbol",
+      "hierarchy": [
+        {
+          "name": "InsightSymbol",
+          "id": "insightsymbol"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface InsightSymbol \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[delay](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nTime delta since last symbol. Can be used to stich symbol requests together\n\n\n</td></tr>\n<tr><td>\n\n[interaction](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWas this symbol as a result of user interaction. User interactions represent roots for clouters.\n\n\n</td></tr>\n<tr><td>\n\n[latency](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nNumber of ms between the time the symbol was requested and it was loaded.\n\n\n</td></tr>\n<tr><td>\n\n[route](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nCurrent route so we can have a better understanding of which symbols are needed for each route.\n\n\n</td></tr>\n<tr><td>\n\n[symbol](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nSymbol name\n\n\n</td></tr>\n<tr><td>\n\n[timeline](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nNumber of ms between the q:route attribute change and the qsymbol event\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/insights/insights.ts",
+      "mdFile": "core.insightsymbol.md"
+    }
+  ]
+}

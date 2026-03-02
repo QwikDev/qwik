@@ -45,6 +45,10 @@ export function convertManifestToBundleGraph(
   // All known chunks and symbols
   const graph = { ...manifest.bundles };
   for (const [symbol, bundleName] of Object.entries(manifest.mapping)) {
+    if (symbol.startsWith('_') && symbol.length < 10) {
+      // internal QRLs are not included in the bundle graph
+      continue;
+    }
     const hash = getSymbolHash(symbol);
     if (hash) {
       /**

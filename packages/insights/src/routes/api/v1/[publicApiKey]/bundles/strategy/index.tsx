@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@qwik.dev/router';
 import { getEdges } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { getDB } from '../../../../../../db';

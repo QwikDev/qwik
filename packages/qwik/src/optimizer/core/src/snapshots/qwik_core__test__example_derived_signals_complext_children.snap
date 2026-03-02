@@ -1,57 +1,54 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2852
+assertion_line: 2963
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore, mutable } from '@builder.io/qwik';
+import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
 
 export const App = component$(() => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    return (
-        <>
-            <ul id="issue-2800-result">
-                {Object.entries(store).map(([key, value]) => (
-                <li>
-                    {key} - {value}
-                </li>
-                ))}
-            </ul>
-        </>
-    );
+	const signal = useSignal(0);
+	const store = useStore({});
+	return (
+		<>
+			<ul id="issue-2800-result">
+				{Object.entries(store).map(([key, value]) => (
+				<li>
+					{key} - {value}
+				</li>
+				))}
+			</ul>
+		</>
+	);
 });
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { useStore } from '@builder.io/qwik';
+import { componentQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { useStore } from '@qwik.dev/core';
 const App_component_ckEPmXZlub0 = ()=>{
     useSignal(0);
     const store = useStore({});
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: /*#__PURE__*/ _jsxQ("ul", null, {
-            id: "issue-2800-result"
-        }, Object.entries(store).map(([key, value])=>/*#__PURE__*/ _jsxQ("li", null, null, [
-                key,
-                " - ",
-                value
-            ], 1, "u6_0")), 1, null)
-    }, 1, "u6_1");
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("ul", null, {
+        id: "issue-2800-result"
+    }, Object.entries(store).map(([key, value])=>/*#__PURE__*/ _jsxSorted("li", null, null, [
+            key,
+            " - ",
+            value
+        ], 1, "u6_0")), 1, null), 1, "u6_1");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC;IACX,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;kBACI,cAAA,MAAC;YAAG,IAAG;WACF,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,MAAC;gBACI;gBAAI;gBAAI;;;AAM7B;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,QAAQ,QAAiB,iBAAiB;kCAIjC;IACd,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,gDACC,WAAC;QAAG,IAAG;OACL,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,WAAC;YACC;YAAI;YAAI;;AAMd;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
 == DIAGNOSTICS ==
 
 []

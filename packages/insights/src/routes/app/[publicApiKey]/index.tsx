@@ -1,9 +1,9 @@
 import { getAppInfo, getEdgeCount } from '~/db/query';
-import { routeLoader$, useLocation } from '@builder.io/qwik-city';
+import { routeLoader$, useLocation } from '@qwik.dev/router';
 
 import AppCard from '~/components/app-card';
 import { DashboardIcon } from '~/components/icons/dashboard';
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { getDB } from '~/db';
 
 export const useAppData = routeLoader$(async ({ params }) => {

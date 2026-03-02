@@ -1,5 +1,17 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.26
+
+### Patch Changes
+
+- 🐞🩹 slotted text should not disappear when conditional content before `<Slot />` is toggled off (by [@Varixo](https://github.com/Varixo) in [#8396](https://github.com/QwikDev/qwik/pull/8396))
+
+- 🐞🩹 ignore event calls for already removed elements (by [@Varixo](https://github.com/Varixo) in [#8396](https://github.com/QwikDev/qwik/pull/8396))
+
+- 🐞🩹 crashing or hanging browser while handling projections changes (by [@Varixo](https://github.com/Varixo) in [#8396](https://github.com/QwikDev/qwik/pull/8396))
+
+- 🐞🩹 component should not rerender with constant null or undefined key (by [@Varixo](https://github.com/Varixo) in [#8396](https://github.com/QwikDev/qwik/pull/8396))
+
 ## 2.0.0-beta.25
 
 ### Minor Changes

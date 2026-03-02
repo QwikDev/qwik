@@ -3222,6 +3222,52 @@ describe.each([
     );
   });
 
+  it('should not rerender child component with null key when parent component is rerendered', async () => {
+    (globalThis as any).count = 0;
+    const Child = component$(() => {
+      (globalThis as any).count++;
+      return <div>Child</div>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(false);
+      // component subscription
+      toggle.value;
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}>Toggle</button>
+          <Child key={null} />
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment ssr-required>
+          <button>Toggle</button>
+          <Component ssr-required>
+            <div>Child</div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    expect((globalThis as any).count).toBe(1);
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment ssr-required>
+          <button>Toggle</button>
+          <Component ssr-required>
+            <div>Child</div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    expect((globalThis as any).count).toBe(1);
+
+    (globalThis as any).count = undefined;
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

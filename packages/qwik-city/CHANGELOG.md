@@ -1,5 +1,13 @@
 # @builder.io/qwik-city
 
+## 1.19.1
+
+### Patch Changes
+
+- 🐞🩹 support Deno as package manager for production builds. The Vite plugin now recognizes Deno as a Node-compatible runtime for manifest passing, and SSG delegates to the Node implementation instead of stubbing out. (by [@ianlet](https://github.com/ianlet) in [#8385](https://github.com/QwikDev/qwik/pull/8385))
+
+- 🐞🩹 Link hash change now properly updates location.url.hash (by [@maiieul](https://github.com/maiieul) in [#8305](https://github.com/QwikDev/qwik/pull/8305))
+
 ## 1.19.0
 
 ### Minor Changes

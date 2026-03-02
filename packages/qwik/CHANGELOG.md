@@ -1,5 +1,15 @@
 # @builder.io/qwik
 
+## 1.19.1
+
+### Patch Changes
+
+- 🐞🩹 support Deno as package manager for production builds. The Vite plugin now recognizes Deno as a Node-compatible runtime for manifest passing, and SSG delegates to the Node implementation instead of stubbing out. (by [@ianlet](https://github.com/ianlet) in [#8385](https://github.com/QwikDev/qwik/pull/8385))
+
+- 🐞🩹 the optimizer was not using the binary builds (by [@wmertens](https://github.com/wmertens) in [#8360](https://github.com/QwikDev/qwik/pull/8360))
+
+- 🐞🩹 resolve 404 error for virtual CSS modules during dev SSR (by [@jantimon](https://github.com/jantimon) in [#8351](https://github.com/QwikDev/qwik/pull/8351))
+
 ## 1.19.0
 
 ### Minor Changes

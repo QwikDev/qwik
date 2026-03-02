@@ -4,7 +4,7 @@ title: \@builder.io/qwik-city/middleware/request-handler API Reference
 
 # [API](/api) &rsaquo; @builder.io/qwik-city/middleware/request-handler
 
-## AbortMessage
+<h2 id="abortmessage">AbortMessage</h2>
 
 ```typescript
 export declare class AbortMessage
@@ -12,7 +12,7 @@ export declare class AbortMessage
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/redirect-handler.ts)
 
-## append
+<h2 id="cookie-append">append</h2>
 
 Appends a `Response` cookie header using the `Set-Cookie` header.
 
@@ -76,7 +76,7 @@ _(Optional)_
 
 void
 
-## CacheControl
+<h2 id="cachecontrol">CacheControl</h2>
 
 ```typescript
 export type CacheControl =
@@ -93,7 +93,7 @@ export type CacheControl =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## ClientConn
+<h2 id="clientconn">ClientConn</h2>
 
 ```typescript
 export interface ClientConn
@@ -150,7 +150,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## Cookie
+<h2 id="cookie">Cookie</h2>
 
 ```typescript
 export interface Cookie
@@ -234,7 +234,7 @@ Sets a `Response` cookie header using the `Set-Cookie` header.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## CookieOptions
+<h2 id="cookieoptions">CookieOptions</h2>
 
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 
@@ -368,7 +368,7 @@ _(Optional)_ Indicates that the cookie is sent to the server only when a request
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## CookieValue
+<h2 id="cookievalue">CookieValue</h2>
 
 ```typescript
 export interface CookieValue
@@ -434,13 +434,13 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## data
+<h2 id="servererror-data">data</h2>
 
 ```typescript
 data: T;
 ```
 
-## DeferReturn
+<h2 id="deferreturn">DeferReturn</h2>
 
 ```typescript
 export type DeferReturn<T> = () => Promise<T>;
@@ -448,7 +448,7 @@ export type DeferReturn<T> = () => Promise<T>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## delete
+<h2 id="cookie-delete">delete</h2>
 
 Deletes cookie value by name using the `Response` cookie header.
 
@@ -499,7 +499,7 @@ _(Optional)_
 
 void
 
-## EnvGetter
+<h2 id="envgetter">EnvGetter</h2>
 
 ```typescript
 export interface EnvGetter
@@ -525,7 +525,7 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## get
+<h2 id="cookie-get">get</h2>
 
 Gets a `Request` cookie header value by name.
 
@@ -563,7 +563,7 @@ string
 
 [CookieValue](#cookievalue) \| null
 
-## getAll
+<h2 id="cookie-getall">getAll</h2>
 
 Gets all `Request` cookie headers.
 
@@ -575,7 +575,7 @@ getAll(): Record<string, CookieValue>;
 
 Record&lt;string, [CookieValue](#cookievalue)&gt;
 
-## getErrorHtml
+<h2 id="geterrorhtml">getErrorHtml</h2>
 
 ```typescript
 export declare function getErrorHtml(status: number, e: any): string;
@@ -624,7 +624,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/error-handler.ts)
 
-## has
+<h2 id="cookie-has">has</h2>
 
 Checks if the `Request` cookie header name exists.
 
@@ -662,7 +662,7 @@ string
 
 boolean
 
-## headers
+<h2 id="cookie-headers">headers</h2>
 
 Returns an array of all the set `Response` `Set-Cookie` header values.
 
@@ -674,7 +674,7 @@ headers(): string[];
 
 string[]
 
-## mergeHeadersCookies
+<h2 id="mergeheaderscookies">mergeHeadersCookies</h2>
 
 ```typescript
 mergeHeadersCookies: (headers: Headers, cookies: CookieInterface) => Headers;
@@ -723,13 +723,13 @@ Headers
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/cookie.ts)
 
-## pathname
+<h2 id="rewritemessage-pathname">pathname</h2>
 
 ```typescript
 readonly pathname: string;
 ```
 
-## RedirectMessage
+<h2 id="redirectmessage">RedirectMessage</h2>
 
 ```typescript
 export declare class RedirectMessage extends AbortMessage
@@ -739,7 +739,7 @@ export declare class RedirectMessage extends AbortMessage
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/redirect-handler.ts)
 
-## RequestEvent
+<h2 id="requestevent">RequestEvent</h2>
 
 ```typescript
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM>
@@ -838,7 +838,7 @@ NOTE: Ensure that the call to `next()` is `await`ed.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## RequestEventAction
+<h2 id="requesteventaction">RequestEventAction</h2>
 
 ```typescript
 export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM>
@@ -880,7 +880,7 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## RequestEventBase
+<h2 id="requesteventbase">RequestEventBase</h2>
 
 ```typescript
 export interface RequestEventBase<PLATFORM = QwikCityPlatform>
@@ -1216,7 +1216,7 @@ HTTP request URL.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## RequestEventCommon
+<h2 id="requesteventcommon">RequestEventCommon</h2>
 
 ```typescript
 export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends RequestEventBase<PLATFORM>
@@ -1421,7 +1421,7 @@ Convenience method to send an text body response. The response will be automatic
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## RequestEventLoader
+<h2 id="requesteventloader">RequestEventLoader</h2>
 
 ```typescript
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM>
@@ -1476,7 +1476,7 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## requestHandler
+<h2 id="requesthandler-function">requestHandler</h2>
 
 ```typescript
 export type RequestHandler<PLATFORM = QwikCityPlatform> = (
@@ -1488,7 +1488,7 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/request-handler.ts)
 
-## RequestHandler
+<h2 id="requesthandler-type-alias">RequestHandler</h2>
 
 ```typescript
 export type RequestHandler<PLATFORM = QwikCityPlatform> = (
@@ -1500,7 +1500,7 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## ResolveSyncValue
+<h2 id="resolvesyncvalue">ResolveSyncValue</h2>
 
 ```typescript
 export interface ResolveSyncValue
@@ -1508,7 +1508,7 @@ export interface ResolveSyncValue
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## ResolveValue
+<h2 id="resolvevalue">ResolveValue</h2>
 
 ```typescript
 export interface ResolveValue
@@ -1516,7 +1516,7 @@ export interface ResolveValue
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## RewriteMessage
+<h2 id="rewritemessage">RewriteMessage</h2>
 
 ```typescript
 export declare class RewriteMessage extends AbortMessage
@@ -1586,7 +1586,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/rewrite-handler.ts)
 
-## ServerError
+<h2 id="servererror">ServerError</h2>
 
 ```typescript
 export declare class ServerError<T = any> extends Error
@@ -1667,7 +1667,7 @@ number
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/server-error.ts)
 
-## ServerRenderOptions
+<h2 id="serverrenderoptions">ServerRenderOptions</h2>
 
 ```typescript
 export interface ServerRenderOptions extends RenderOptions
@@ -1743,7 +1743,7 @@ Render
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## ServerRequestEvent
+<h2 id="serverrequestevent">ServerRequestEvent</h2>
 
 Request event created by the server.
 
@@ -1876,7 +1876,7 @@ URL
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## ServerRequestMode
+<h2 id="serverrequestmode">ServerRequestMode</h2>
 
 ```typescript
 export type ServerRequestMode = "dev" | "static" | "server";
@@ -1884,7 +1884,7 @@ export type ServerRequestMode = "dev" | "static" | "server";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## ServerResponseHandler
+<h2 id="serverresponsehandler">ServerResponseHandler</h2>
 
 ```typescript
 export type ServerResponseHandler<T = any> = (
@@ -1900,7 +1900,7 @@ export type ServerResponseHandler<T = any> = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
-## set
+<h2 id="cookie-set">set</h2>
 
 Sets a `Response` cookie header using the `Set-Cookie` header.
 
@@ -1962,7 +1962,7 @@ _(Optional)_
 
 void
 
-## status
+<h2 id="servererror-status">status</h2>
 
 ```typescript
 status: number;

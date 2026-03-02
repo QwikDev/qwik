@@ -62,6 +62,7 @@ export async function build(config: BuildConfig) {
       await tscQwik(config);
     }
 
+    let coreNameCache: object | undefined;
     if (config.qwik) {
       if (config.dev) {
         ensureDir(config.distQwikPkgDir);
@@ -69,7 +70,7 @@ export async function build(config: BuildConfig) {
         emptyDir(config.distQwikPkgDir);
       }
       await submodulePreloader(config);
-      await Promise.all([
+      [coreNameCache] = await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
         submoduleBackpatch(config),
@@ -84,7 +85,7 @@ export async function build(config: BuildConfig) {
     if (config.qwik) {
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader
-      await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
+      await Promise.all([submoduleServer(config, coreNameCache), submoduleOptimizer(config)]);
     }
 
     if (config.api || (!config.dev && config.qwik)) {

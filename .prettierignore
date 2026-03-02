@@ -25,6 +25,7 @@ packages/docs/public/repl/repl-sw.js*
 packages/*/lib
 packages/*/dist
 packages/*/server
+e2e/*/server
 
 # API output files
 packages/docs/src/routes/api

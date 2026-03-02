@@ -7,7 +7,7 @@
   "dependencies": {
     "@fastify/compress": "^6.2.1",
     "@fastify/static": "^6.10.1",
-    "fastify": "^4.17.0",
+    "fastify": "^5.7.3",
     "fastify-plugin": "^4.5.0"
   },
   "devDependencies": {

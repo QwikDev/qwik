@@ -16,7 +16,7 @@ jobs:
       - name: Check team membership via REST
         id: team
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
           ORG: QwikDev
           TEAM_SLUG: qwik-team
           AUTHOR: ${{ github.event.pull_request.user.login }}
@@ -36,7 +36,7 @@ jobs:
       - name: Assign PR to author
         if: steps.team.outputs.isCore == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           AUTHOR=${{ github.event.pull_request.user.login }}
@@ -47,26 +47,29 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/assignees
 
       - name: Add PR to Qwik Development project
+        id: add-project
         if: steps.team.outputs.isCore == 'true'
-        uses: actions/add-to-project@v0.6.1
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: https://github.com/orgs/QwikDev/projects/1
-          github-token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
+          github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
 
-      - name: Ensure project + set Status to "In progress" (draft)
+      - name: Set status to "In progress" (draft)
         if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == true
-        uses: actions/add-to-project@v0.6.1
+        uses: titoportas/update-project-fields@v0.1.0
         with:
           project-url: https://github.com/orgs/QwikDev/projects/1
-          github-token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-          fields: |
-            Status: In progress
+          github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
+          item-id: ${{ steps.add-project.outputs.itemId }}
+          field-keys: Status
+          field-values: In progress
 
-      - name: Ensure project + set Status to "Waiting For Review" (ready)
+      - name: Set status to "Waiting For Review" (ready)
         if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == false
-        uses: actions/add-to-project@v0.6.1
+        uses: titoportas/update-project-fields@v0.1.0
         with:
           project-url: https://github.com/orgs/QwikDev/projects/1
-          github-token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-          fields: |
-            Status: Waiting For Review
+          github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
+          item-id: ${{ steps.add-project.outputs.itemId }}
+          field-keys: Status
+          field-values: Waiting For Review

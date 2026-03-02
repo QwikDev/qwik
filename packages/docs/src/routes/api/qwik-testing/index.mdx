@@ -4,13 +4,13 @@ title: \@qwik.dev/qwik/testing API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik/testing
 
-## child
+<h2 id="elementfixture-child">child</h2>
 
 ```typescript
 child: HTMLElement;
 ```
 
-## createDocument
+<h2 id="createdocument">createDocument</h2>
 
 Create emulated `Document` for server environment. Does not implement the full browser `document` and `window` API. This api may be removed in the future.
 
@@ -52,7 +52,7 @@ Document
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/document.ts)
 
-## createDOM
+<h2 id="createdom">createDOM</h2>
 
 CreatePlatform and CreateDocument
 
@@ -105,13 +105,13 @@ Promise&lt;\{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@qwik.dev
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/library.ts)
 
-## document
+<h2 id="elementfixture-document">document</h2>
 
 ```typescript
 document: MockDocument;
 ```
 
-## domRender
+<h2 id="domrender">domRender</h2>
 
 ```typescript
 export declare function domRender(
@@ -172,7 +172,7 @@ Promise&lt;\{ document: Document; container: import("@qwik.dev/core").ClientCont
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 
-## ElementFixture
+<h2 id="elementfixture">ElementFixture</h2>
 
 Creates a simple DOM structure for testing components.
 
@@ -313,7 +313,7 @@ MockWindow
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/element-fixture.ts)
 
-## emulateExecutionOfQwikFuncs
+<h2 id="emulateexecutionofqwikfuncs">emulateExecutionOfQwikFuncs</h2>
 
 ```typescript
 export declare function emulateExecutionOfQwikFuncs(document: Document): void;
@@ -351,7 +351,7 @@ void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 
-## expectDOM
+<h2 id="expectdom">expectDOM</h2>
 
 ```typescript
 export declare function expectDOM(
@@ -403,7 +403,7 @@ Promise&lt;void&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/expect-dom.tsx)
 
-## getTestPlatform
+<h2 id="gettestplatform">getTestPlatform</h2>
 
 ```typescript
 export declare function getTestPlatform(): TestPlatform;
@@ -415,19 +415,19 @@ TestPlatform
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/platform.ts)
 
-## host
+<h2 id="elementfixture-host">host</h2>
 
 ```typescript
 host: HTMLElement;
 ```
 
-## parent
+<h2 id="elementfixture-parent">parent</h2>
 
 ```typescript
 parent: HTMLElement;
 ```
 
-## ssrRenderToDom
+<h2 id="ssrrendertodom">ssrRenderToDom</h2>
 
 ```typescript
 export declare function ssrRenderToDom(
@@ -491,13 +491,13 @@ Promise&lt;\{ container: \_DomContainer; document: Document; vNode: \_VNode \| n
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 
-## superParent
+<h2 id="elementfixture-superparent">superParent</h2>
 
 ```typescript
 superParent: HTMLElement;
 ```
 
-## trigger
+<h2 id="trigger">trigger</h2>
 
 Trigger an event in unit tests on an element. Needs to be kept in sync with the Qwik Loader event dispatching.
 
@@ -597,7 +597,7 @@ Promise&lt;void&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/element-fixture.ts)
 
-## vnode_fromJSX
+<h2 id="vnode_fromjsx">vnode_fromJSX</h2>
 
 ```typescript
 export declare function vnode_fromJSX(jsx: JSXOutput): {
@@ -640,7 +640,7 @@ JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
 
-## waitForDrain
+<h2 id="waitfordrain">waitForDrain</h2>
 
 Wait for the scheduler to drain.
 
@@ -684,7 +684,7 @@ Promise&lt;void&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/util.ts)
 
-## walkJSX
+<h2 id="walkjsx">walkJSX</h2>
 
 ```typescript
 export declare function walkJSX(
@@ -740,7 +740,7 @@ void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
 
-## window
+<h2 id="elementfixture-window">window</h2>
 
 ```typescript
 window: MockWindow;

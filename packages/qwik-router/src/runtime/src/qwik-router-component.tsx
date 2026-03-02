@@ -365,9 +365,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
       }
 
-      // TODO Future feature?: update routeLocation.url signal on hash changes for `<Link>` & `<a>` during SPA?
-      // - Hashes in Link are already broken in Qwik (<=v1.1.5), and <a> tags are untracked. (not a new bug)
-      // - Would need an early pop handler pushed on first # w/o full Nav SPA bootup. (post-SPA refactor)
+      // Update routeLocation.url on hash/search-only changes so components react to the new URL
+      if (dest.href !== routeLocation.url.href) {
+        const newUrl = new URL(dest.href);
+        routeInternal.value.dest = newUrl;
+        routeLocation.url = newUrl;
+      }
 
       return;
     }

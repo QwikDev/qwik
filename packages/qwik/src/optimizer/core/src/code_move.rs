@@ -30,6 +30,7 @@ pub struct NewModuleCtx<'a> {
 	pub leading_comments: SingleThreadedCommentsMap,
 	pub trailing_comments: SingleThreadedCommentsMap,
 	pub extra_top_items: &'a BTreeMap<Id, ast::ModuleItem>,
+	pub migrated_root_vars: &'a [ast::ModuleItem],
 }
 
 pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComments), Error> {
@@ -143,6 +144,9 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 	} else {
 		ctx.expr
 	};
+
+	// Add migrated root variables first (before extra_top_items)
+	module.body.extend(ctx.migrated_root_vars.iter().cloned());
 
 	module.body.extend(ctx.extra_top_items.values().cloned());
 

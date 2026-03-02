@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1095
+assertion_line: 1096
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -67,9 +66,8 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 const i_UVBJuFYfvDo = ()=>import("./test.tsx_Header_component_UVBJuFYfvDo");
 export const [a, { b, v1: [c], d = v2, ...e }, f = v3, ...g] = obj;
-const exp1 = 1;
 const internal = 2;
-export { exp1, internal as expr2 };
+export { internal as expr2 };
 export function foo() {}
 export class bar {
 }
@@ -78,7 +76,7 @@ export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_UVBJuFYfvDo
 export const Footer = /*#__PURE__*/ componentQrl();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,CAAC,EAAE,IAAI,CAAC,EAAE,EAAE,IAAE,EAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,OAAQ;AACxB,OAAO,MAAM;AAAK;AAElB,eAAe,SAAS,aAAa;AAErC,OAAO,MAAM,uBAAS,+EAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,CAAC,EAAE,IAAI,CAAC,EAAE,EAAE,IAAE,EAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAG7D,MAAM,WAAW;AACjB,SAAc,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,OAAQ;AACxB,OAAO,MAAM;AAAK;AAElB,eAAe,SAAS,aAAa;AAErC,OAAO,MAAM,uBAAS,+EAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
 ============================= project/test.tsx_Header_component_1_uWM1kg0IGO0.jsx (ENTRY POINT)==
 
 import { default as DefaultFn } from "./test";
@@ -89,17 +87,17 @@ import { bar } from "./test";
 import { c } from "./test";
 import { d } from "./test";
 import { e } from "./test";
-import { exp1 } from "./test";
 import { f } from "./test";
 import { foo } from "./test";
 import { expr2 as internal } from "./test";
+const exp1 = 1;
 export const Header_component_1_uWM1kg0IGO0 = ()=><Footer>
 			<div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
 			<div>{v1}{v2}{v3}{obj}</div>
 		</Footer>;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;8CAeU,KACP,OAAO;GACP,CAAC,KAAK,GAAG,GAAG,GAAG,GAAG,GAAG,GAAG,MAAM,UAAU,KAAK,KAAK,YAAY,IAAI;GAClE,CAAC,KAAK,IAAI,IAAI,IAAI,MAAM,IAAI;EAC7B,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;MAKM,OAAO;8CAUH,KACP,OAAO;GACP,CAAC,KAAK,GAAG,GAAG,GAAG,GAAG,GAAG,GAAG,MAAM,UAAU,KAAK,KAAK,YAAY,IAAI;GAClE,CAAC,KAAK,IAAI,IAAI,IAAI,MAAM,IAAI;EAC7B,EAAE\"}")
 /*
 {
   "origin": "project/test.tsx",

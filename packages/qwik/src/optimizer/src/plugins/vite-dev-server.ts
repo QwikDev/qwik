@@ -196,7 +196,7 @@ export async function configureDevServer(
                     location: 'head',
                     attributes: {
                       rel: 'stylesheet',
-                      href: `${base}${url.slice(1)}`,
+                      href: toDevServerHref(base, url),
                     },
                   });
                 }
@@ -261,7 +261,7 @@ export async function configureDevServer(
                   !hasCSSImporter &&
                   !cssImportedByCSS.has(v.url)
                 ) {
-                  res.write(`<link rel="stylesheet" href="${base}${v.url.slice(1)}">`);
+                  res.write(`<link rel="stylesheet" href="${toDevServerHref(base, v.url)}">`);
                   added.add(v.url);
                 }
               }
@@ -436,6 +436,16 @@ function relativeURL(url: string, base: string) {
     }
   }
   return url;
+}
+
+/** Converts a Vite module graph URL to a dev server href for `<link>` tags. */
+export function toDevServerHref(base: string, url: string): string {
+  if (url.startsWith('/')) {
+    return `${base}${url.slice(1)}`;
+  }
+  // Virtual modules need the /@id/ prefix; strip the \0 Rollup convention prefix
+  const cleanUrl = url.startsWith('\0') ? url.slice(1) : url;
+  return `${base}${VALID_ID_PREFIX.slice(1)}${cleanUrl}`;
 }
 
 const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {

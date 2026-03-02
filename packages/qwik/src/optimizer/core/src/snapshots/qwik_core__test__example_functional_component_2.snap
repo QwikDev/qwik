@@ -39,24 +39,24 @@ export const App = component$((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
 import { useStore } from '@qwik.dev/core';
+const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 export const useCounter = ()=>{
     return useStore({
         count: 0
     });
 };
 export const STEP = 1;
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAwB,QAAQ,QAAQ,iBAAiB;AACzD,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,4EAoBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,iBAAiB;;AACzD,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,6CAoBjB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
+import { useCounter } from "./test";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-import { useCounter } from "./test";
 import { useStore } from "@qwik.dev/core";
 const i_UB6Fs5a3bd8 = ()=>import("./test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8");
 const i_mi4E1piTWe8 = ()=>import("./test.tsx_App_component_div_q_e_click_mi4E1piTWe8");

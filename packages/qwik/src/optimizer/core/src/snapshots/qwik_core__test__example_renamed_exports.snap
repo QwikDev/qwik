@@ -20,11 +20,11 @@ export const App = Component((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_NuXFTHRjvXE = ()=>import("./test.tsx_App_Component_NuXFTHRjvXE");
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_NuXFTHRjvXE, "App_Component_NuXFTHRjvXE"));
+const _qrl_App_Component_NuXFTHRjvXE = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_NuXFTHRjvXE"), "App_Component_NuXFTHRjvXE");
+export const App = /*#__PURE__*/ componentQrl(_qrl_App_Component_NuXFTHRjvXE);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,6CAMhB\"}")
 ============================= test.tsx_App_Component_1_A08tXHb9pEk.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";

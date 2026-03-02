@@ -69,13 +69,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
-const i_L80pS8Hxf1Y = ()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y");
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"));
-export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_L80pS8Hxf1Y, "Bar_component_L80pS8Hxf1Y"));
+const _qrl_Bar_component_L80pS8Hxf1Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y");
+const _qrl_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+export const Foo = /*#__PURE__*/ componentQrl(_qrl_Foo_component_HTDRsvUbLiE);
+export const Bar = /*#__PURE__*/ componentQrl(_qrl_Bar_component_L80pS8Hxf1Y);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,4EAUjB;AAEF,OAAO,MAAM,oBAAM,4EAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,6CAUjB;AAEF,OAAO,MAAM,oBAAM,6CAQjB\"}")
 ============================= test.tsx_Bar_component_L80pS8Hxf1Y.jsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";

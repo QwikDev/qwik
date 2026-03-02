@@ -21,19 +21,19 @@ export const Foo = component$(() => {
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
-const i_VSoqbTjzr4w = ()=>import("./test.tsx_Foo_component_div_div_q_e_click_1_VSoqbTjzr4w");
-const i_n19LdlqL6To = ()=>import("./test.tsx_Foo_component_div_div_q_e_click_2_n19LdlqL6To");
-const i_vKrX4PmH2aM = ()=>import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM");
+const _qrl_s_VSoqbTjzr4w = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_1_VSoqbTjzr4w"), "s_VSoqbTjzr4w");
+const _qrl_s_n19LdlqL6To = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_2_n19LdlqL6To"), "s_n19LdlqL6To");
+const _qrl_s_vKrX4PmH2aM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM"), "s_vKrX4PmH2aM");
 export const s_HTDRsvUbLiE = ()=>{
     return <div>
-			<div q-e:click={/*#__PURE__*/ qrl(i_vKrX4PmH2aM, "s_vKrX4PmH2aM")}/>
-			<div q-e:click={/*#__PURE__*/ qrl(i_VSoqbTjzr4w, "s_VSoqbTjzr4w")}/>
-			<div q-e:click={/*#__PURE__*/ qrl(i_n19LdlqL6To, "s_n19LdlqL6To")}/>
+			<div q-e:click={_qrl_s_vKrX4PmH2aM}/>
+			<div q-e:click={_qrl_s_VSoqbTjzr4w}/>
+			<div q-e:click={_qrl_s_n19LdlqL6To}/>
 		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6BAG8B;IAC7B,QACE,IAAI;GACJ,CAAC,IAAI,+DAAuC;GAC5C,CAAC,IAAI,+DAAwC;GAC7C,CAAC,IAAI,+DAAuC;EAC7C,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6BAG8B;IAC7B,QACE,IAAI;GACJ,CAAC,IAAI,gCAAuC;GAC5C,CAAC,IAAI,gCAAwC;GAC7C,CAAC,IAAI,gCAAuC;EAC7C,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -136,11 +136,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "s_HTDRsvUbLiE"));
+const _qrl_s_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "s_HTDRsvUbLiE");
+export const Foo = /*#__PURE__*/ componentQrl(_qrl_s_HTDRsvUbLiE);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,gEAQhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,iCAQhB\"}")
 == DIAGNOSTICS ==
 
 []

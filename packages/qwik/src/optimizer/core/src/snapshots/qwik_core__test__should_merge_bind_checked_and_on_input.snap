@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4823
+assertion_line: 4833
 expression: output
 ---
 ==INPUT==
@@ -25,11 +25,11 @@ export const FieldInput = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_V4XAtJSTRKg = ()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg");
-export const FieldInput = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_V4XAtJSTRKg, "FieldInput_component_V4XAtJSTRKg"));
+const _qrl_FieldInput_component_V4XAtJSTRKg = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
+export const FieldInput = /*#__PURE__*/ componentQrl(_qrl_FieldInput_component_V4XAtJSTRKg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,mFAWvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,oDAWvB\"}")
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
 
 import { _chk } from "@qwik.dev/core";
@@ -37,13 +37,13 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
-const i_wqR1xEjZjf4 = ()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4");
+const _qrl_FieldInput_component_input_q_e_input_wqR1xEjZjf4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4"), "FieldInput_component_input_q_e_input_wqR1xEjZjf4");
 export const FieldInput_component_V4XAtJSTRKg = ()=>{
     const localValue = useSignal(false);
     return /*#__PURE__*/ _jsxSorted("input", null, {
         "checked": localValue,
         "q-e:input": [
-            /*#__PURE__*/ qrl(i_wqR1xEjZjf4, "FieldInput_component_input_q_e_input_wqR1xEjZjf4"),
+            _qrl_FieldInput_component_input_q_e_input_wqR1xEjZjf4,
             inlinedQrl(_chk, "_chk", [
                 localValue
             ])

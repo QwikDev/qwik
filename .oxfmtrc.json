@@ -1,0 +1,20 @@
+{
+  "$schema": "https://oxc.rs/schemas/oxfmt.json",
+  "jsdocPreferCodeFences": true,
+  "tsdoc": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "experimentalSortPackageJson": false,
+  "overrides": [
+    {
+      "files": ["packages/docs/**"],
+      "options": {
+        "printWidth": 80
+      }
+    }
+  ]
+}

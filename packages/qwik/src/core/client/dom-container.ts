@@ -92,13 +92,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public qManifestHash: string;
   public rootVNode: ElementVNode;
   public document: QDocument;
-  public $rawStateData$: unknown[];
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
   public $forwardRefs$: Array<number> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
+  private $rawStateData$: unknown[];
   private $stateData$: unknown[];
   private $styleIds$: Set<string> | null = null;
 

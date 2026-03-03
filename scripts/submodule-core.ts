@@ -182,15 +182,74 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object> {
 
   console.log('🐭 core.min.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.min.mjs')));
 
-  let esmCode = await readFile(join(config.distQwikPkgDir, 'core.mjs'), 'utf-8');
+  const prodCode = await prepareProdCode(config);
   await submoduleCoreProduction(
     config,
-    esmCode,
+    prodCode,
     join(config.distQwikPkgDir, 'core.prod.mjs'),
     nameCache
   );
 
   return nameCache;
+}
+
+/**
+ * Rollup pass on core.mjs that inlines only `isDev = false` from `@qwik.dev/core/build`, while
+ * keeping `isServer` and `isBrowser` as dynamic imports (the build is universal — it must work on
+ * both server and browser). `isServer`/`isBrowser` are re-exported from an internal alias that
+ * rollup renames back to `@qwik.dev/core/build` in `output.paths`.
+ */
+async function prepareProdCode(config: BuildConfig): Promise<string> {
+  const VIRTUAL_BUILD = '\0prod-build';
+
+  const inputProd: InputOptions = {
+    input: join(config.distQwikPkgDir, 'core.mjs'),
+    external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
+    onwarn: rollupOnWarn,
+    plugins: [
+      {
+        name: 'inlineProdIsDev',
+        resolveId(id, importer) {
+          if (id === '@qwik.dev/core/build') {
+            // When the virtual itself re-imports @qwik.dev/core/build, keep it external.
+            if (importer === VIRTUAL_BUILD) {
+              return { id, external: true };
+            }
+            return VIRTUAL_BUILD;
+          }
+        },
+        load(id) {
+          if (id === VIRTUAL_BUILD) {
+            return `
+              export { isServer, isBrowser } from '@qwik.dev/core/build';
+              export const isDev = false;
+            `;
+          }
+        },
+      },
+    ],
+  };
+
+  const prodBuild = await rollup(inputProd);
+  const chunks: string[] = [];
+  await prodBuild.generate({
+    format: 'es',
+    plugins: [
+      {
+        name: 'collect',
+        generateBundle(_, bundles) {
+          for (const f in bundles) {
+            const b = bundles[f];
+            if (b.type === 'chunk') {
+              chunks.push(b.code);
+            }
+          }
+        },
+      },
+    ],
+  });
+
+  return chunks.join('\n');
 }
 
 async function submoduleCoreProduction(

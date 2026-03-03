@@ -92,7 +92,9 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
 
   if (!config.dev && nameCache) {
     // Apply property-only mangling with the same nameCache used for core so that $...$
-    // property accesses in server.mjs resolve to the same mangled names as in core.prod.mjs.
+    // property accesses in server.prod.mjs resolve to the same mangled names as in core.prod.mjs.
+    // The plain server.mjs is left unmangled so it stays compatible with the unmangled core.mjs
+    // used in development (matching the development/production split on @qwik.dev/core/internal).
     const serverMjs = join(config.distQwikPkgDir, 'server.mjs');
     const code = await readFile(serverMjs, 'utf-8');
     const result = await minify(code, {
@@ -111,7 +113,13 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
         ecma: 2020,
       },
     });
-    await writeFile(serverMjs, result.code!);
+    await writeFile(join(config.distQwikPkgDir, 'server.prod.mjs'), result.code!);
+  } else if (config.dev) {
+    // In dev builds, server.prod.mjs is a proxy to the unmangled server.mjs
+    await writeFile(
+      join(config.distQwikPkgDir, 'server.prod.mjs'),
+      `export * from './server.mjs';\n`
+    );
   }
 
   console.log('🐰', submodule);

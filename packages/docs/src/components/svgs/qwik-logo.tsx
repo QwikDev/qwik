@@ -1,5 +1,5 @@
 import { component$, type PropsOf } from '@qwik.dev/core';
-import QwikUwu from '~/media/images/qwik-uwu.webp?url';
+// import QwikUwu from '~/media/images/qwik-uwu.webp?url';
 type QwikLogoProps = {
   width: number;
   height: number;
@@ -49,14 +49,14 @@ export const QwikLogo = component$((props: QwikLogoProps) => {
         />
       </svg>
       {/* loading=lazy to prevent download if hidden */}
-      <img
+      {/* <img
         loading="lazy"
         src={QwikUwu}
         alt="Qwik Logo"
         class="uwu-logo"
         width={props.width}
         height={props.height}
-      />
+      /> */}
     </>
   );
 });

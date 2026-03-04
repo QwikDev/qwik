@@ -6,6 +6,10 @@
   }
 }
 
+/**
+ * The color tokens are purposely not using the semantic naming approach, as there is differences between the landing page design and the design system tokens when it comes to semantic naming. Please update this file when there is consistency.
+ */
+
 /* ─── Font faces ─── */
 @font-face {
   font-family: 'Karmatic Arcade';

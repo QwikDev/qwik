@@ -1,5 +1,11 @@
 @import 'tailwindcss';
 
+@layer base {
+  body {
+    font-family: var(--font-body);
+  }
+}
+
 /* ─── Font faces ─── */
 @font-face {
   font-family: 'Karmatic Arcade';
@@ -85,6 +91,10 @@
   --text-label-xs: 14px;
   --text-label-xs--line-height: 142.857%;
   --text-label-xs--font-weight: 700;
+
+  /* Shadows */
+  --shadow-primary: 4px 4px 0 0 var(--color-violet-75);
+  --shadow-secondary: 4px 4px 0 0 var(--color-violet-55);
 
   /*
      * Spacing — uses Tailwind 4 defaults (4px base).

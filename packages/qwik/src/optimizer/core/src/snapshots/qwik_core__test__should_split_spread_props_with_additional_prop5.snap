@@ -21,9 +21,6 @@ expression: output
 		
 ============================= test.js ==
 
-import { _getVarProps } from "@qwik.dev/core";
-import { _getConstProps } from "@qwik.dev/core";
-import { _jsxSplit } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
@@ -32,7 +29,7 @@ const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAOE,6BAAe,8CAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAOE,6BAAe,8CAKZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { _getConstProps } from "@qwik.dev/core";

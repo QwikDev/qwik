@@ -240,7 +240,6 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
 const _qrl_ComponentA_component_100sEyGkGuA = /*#__PURE__*/ qrl(()=>import("./test.tsx_ComponentA_component_100sEyGkGuA"), "ComponentA_component_100sEyGkGuA");
-const _qrl_ComponentB_component_WfCOFVxlmq4 = qrl(()=>import("./test.tsx_ComponentB_component_WfCOFVxlmq4"), "ComponentB_component_WfCOFVxlmq4");
 const _qrl_MutualExample_component_LXt10RL0k44 = /*#__PURE__*/ qrl(()=>import("./test.tsx_MutualExample_component_LXt10RL0k44"), "MutualExample_component_LXt10RL0k44");
 const _qrl_Nested_component_8cqIQQSPqhE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Nested_component_8cqIQQSPqhE"), "Nested_component_8cqIQQSPqhE");
 const _qrl_RecursiveList_component_ignTe6QguYQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_RecursiveList_component_ignTe6QguYQ"), "RecursiveList_component_ignTe6QguYQ");
@@ -257,7 +256,7 @@ export const MutualExample = /*#__PURE__*/ componentQrl(_qrl_MutualExample_compo
 export { ComponentA as _auto_ComponentA };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,gFAAgF;AAChF,iFAAiF;AACjF,qCAAqC;;AACrC,OAAO,MAAM,uBAAS,gDAMnB;AAEH,gEAAgE;AAChE,OAAO,MAAM,8BAAgB,uDAQ1B;AAEH,gEAAgE;AAChE,MAAM,2BAAa;AAkBnB,OAAO,MAAM,8BAAgB,uDAE1B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGA,gFAAgF;AAChF,iFAAiF;AACjF,qCAAqC;;AACrC,OAAO,MAAM,uBAAS,gDAMnB;AAEH,gEAAgE;AAChE,OAAO,MAAM,8BAAgB,uDAQ1B;AAEH,gEAAgE;AAChE,MAAM,2BAAa;AAkBnB,OAAO,MAAM,8BAAgB,uDAE1B\"}")
 == DIAGNOSTICS ==
 
 []

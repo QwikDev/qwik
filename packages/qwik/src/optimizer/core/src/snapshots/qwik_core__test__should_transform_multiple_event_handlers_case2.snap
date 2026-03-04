@@ -22,19 +22,23 @@ const Foo = component$(function() {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+//
 /*#__PURE__*/ componentQrl(_qrl_Foo_component_HTDRsvUbLiE);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;cAEY\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;cAEY\"}")
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const _qrl_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk"), "Foo_component_div_div_p_q_e_click_PjMbeUzoAMk");
 const _qrl_Foo_component_div_div_q_e_click_vKrX4PmH2aM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM"), "Foo_component_div_div_q_e_click_vKrX4PmH2aM");
 const _qrl_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y"), "Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y");
+//
 export const Foo_component_HTDRsvUbLiE = function() {
     const data = useSignal([]);
     return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row, idx)=>/*#__PURE__*/ _jsxSorted("div", {
@@ -51,7 +55,7 @@ export const Foo_component_HTDRsvUbLiE = function() {
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAEuB;IACrB,MAAM,OAAO,UAAyB,EAAE;IACxC,qBAAO,WAAC,mBACR,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK,oBACpB,WAAC;YAAI,WAAQ;YAAwC,eAAY;;gBADlD;gBAAK;;+BAErB,WAAC;YAAE,WAAQ;mBAFK;iBAEyC,KAAK,KAAK,CAAC,EAAE;AAIxE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAEuB;IACrB,MAAM,OAAO,UAAyB,EAAE;IACxC,qBAAO,WAAC,mBACR,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK,oBACpB,WAAC;YAAI,WAAQ;YAAwC,eAAY;;gBADlD;gBAAK;;+BAErB,WAAC;YAAE,WAAQ;mBAFK;iBAEyC,KAAK,KAAK,CAAC,EAAE;AAIxE\"}")
 /*
 {
   "origin": "test.tsx",

@@ -23,13 +23,14 @@ expression: output
 ============================= test.tsx_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI.ts (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI = ()=>{
     const count = _captures[0];
     return count.value++;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";oEASwB;;WAAM,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;oEASwB;;WAAM,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -58,7 +59,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const i_Pq1pmfmJWUI = ()=>import("./test.tsx_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI");
+//
 export const Counter_component_zTmRHlL09Gg = ()=>{
     const count = useSignal(0);
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
@@ -75,7 +78,7 @@ export const Counter_component_zTmRHlL09Gg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6CAEoC;IACjC,MAAM,QAAQ,UAAU;IAExB,qBACC,WAAC;sBACA,WAAC;YAAE;sBAAQ;;sBACX,WAAC,+BACA,WAAC;YAAO,WAAQ;;;WAAuB;;AAI3C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;6CAEoC;IACjC,MAAM,QAAQ,UAAU;IAExB,qBACC,WAAC;sBACA,WAAC;YAAE;sBAAQ;;sBACX,WAAC,+BACA,WAAC;YAAO,WAAQ;;;WAAuB;;AAI3C\"}")
 /*
 {
   "origin": "test.tsx",
@@ -100,11 +103,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_Counter_component_zTmRHlL09Gg = /*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_zTmRHlL09Gg"), "Counter_component_zTmRHlL09Gg");
+//
 export const Counter = /*#__PURE__*/ componentQrl(_qrl_Counter_component_zTmRHlL09Gg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEE,OAAO,MAAM,wBAAU,iDAWpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEE,OAAO,MAAM,wBAAU,iDAWpB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -33,6 +33,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { _chk } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+//
 const s_n7HuG2hhU0Q = ()=>{
     const value = useSignal(0);
     const checked = useSignal(false);
@@ -60,7 +61,7 @@ const s_n7HuG2hhU0Q = ()=>{
 export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(s_n7HuG2hhU0Q, "s_n7HuG2hhU0Q"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;sBAGkC;IACjC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ;IACd,qBACC;sBACC,WAAC;qBAAkB;;gBAAA;;;sBACnB,WAAC;uBAAoB;;gBAAA;;;sBACrB,WAAC;YAAD,cAAmB;;sBACnB,WAAC,mBAAK;sBACN,WAAC,6BAAK;;AAIT;AAdA,OAAO,MAAM,wBAAU,uEAcpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;sBAGkC;IACjC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ;IACd,qBACC;sBACC,WAAC;qBAAkB;;gBAAA;;;sBACnB,WAAC;uBAAoB;;gBAAA;;;sBACrB,WAAC;YAAD,cAAmB;;sBACnB,WAAC,mBAAK;sBACN,WAAC,6BAAK;;AAIT;AAdA,OAAO,MAAM,wBAAU,uEAcpB\"}")
 == DIAGNOSTICS ==
 
 []

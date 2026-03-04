@@ -30,13 +30,14 @@ expression: output
 ============================= test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw.ts (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = ()=>{
     const count = _captures[0];
     return count.value++;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";oEAiBuB;;WAAM,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;oEAiBuB;;WAAM,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -66,6 +67,7 @@ import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const useFoo = (count)=>{
     const tag = (s)=>{
         const value = typeof s === "string" ? s : s[0];
@@ -73,7 +75,9 @@ const useFoo = (count)=>{
     };
     return tag;
 };
+//
 const i_7MTd2pAiliw = ()=>import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw");
+//
 export const test_component_LUXeXe0DQrg = ()=>{
     const count = useSignal(0);
     const foo = useFoo(count);
@@ -89,7 +93,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;MAEQ,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;;0CAE0B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,WAAQ;;;WAAuB;;AAG1C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;MAEQ,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;;;;0CAE0B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,WAAQ;;;WAAuB;;AAG1C\"}")
 /*
 {
   "origin": "test.tsx",
@@ -114,11 +118,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAUE,6BAAe,8CAUZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAUE,6BAAe,8CAUZ\"}")
 == DIAGNOSTICS ==
 
 []

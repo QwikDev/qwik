@@ -21,11 +21,13 @@ expression: output
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEE,6BAAe,8CAQZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEE,6BAAe,8CAQZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
@@ -33,6 +35,7 @@ import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _restProps } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const _hf0 = (p0)=>p0.test.value;
 const _hf0_str = "p0.test.value";
 export const test_component_LUXeXe0DQrg = (props)=>{
@@ -46,7 +49,7 @@ export const test_component_LUXeXe0DQrg = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBAOK,GAJM,KAID,KAAK;;0CALa,CAAC;4BACA;;;IACb,UAAU,IAAI,CAAC,aAAa;IACzC,qBACC;;;AAIF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;mBAOK,GAJM,KAID,KAAK;;0CALa,CAAC;4BACA;;;IACb,UAAU,IAAI,CAAC,aAAa;IACzC,qBACC;;;AAIF\"}")
 /*
 {
   "origin": "test.tsx",

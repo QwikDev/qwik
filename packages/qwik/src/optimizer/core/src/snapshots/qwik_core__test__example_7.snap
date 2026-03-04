@@ -24,14 +24,16 @@ const App = component$(() => {
 ============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_Header_component_div_onClick_i7ekvWH3674 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_div_onClick_i7ekvWH3674"), "Header_component_div_onClick_i7ekvWH3674");
+//
 export const Header_component_J4uyIhaBNR4 = ()=>{
     console.log("mount");
     return <div onClick={_qrl_Header_component_div_onClick_i7ekvWH3674}/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4CAGiC;IAChC,QAAQ,GAAG,CAAC;IACZ,QACE,IAAI;AAEN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAGiC;IAChC,QAAQ,GAAG,CAAC;IACZ,QACE,IAAI;AAEN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -56,22 +58,25 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 const _qrl_Header_component_J4uyIhaBNR4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4");
+//
 export const Header = /*#__PURE__*/ componentQrl(_qrl_Header_component_J4uyIhaBNR4);
 /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,uBAAS,gDAKlB;cAEQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,uBAAS,gDAKlB;cAEQ\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.tsx (ENTRY POINT)==
 
 import { Header } from "./test";
+//
 export const App_component_ckEPmXZlub0 = ()=>{
     return <Header/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAUuB;IACtB,QACE;AAEH\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAUuB;IACtB,QACE;AAEH\"}")
 /*
 {
   "origin": "test.tsx",

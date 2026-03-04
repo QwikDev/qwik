@@ -17,22 +17,25 @@ export const Greeter = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
+//
 export const Greeter = /*#__PURE__*/ componentQrl(_qrl_Greeter_component_n7HuG2hhU0Q);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,wBAAU,iDAEpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,wBAAU,iDAEpB\"}")
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
 
 import json from "./foo.json" with {
     type: "json"
 };
+//
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
     return json;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mCAEqC;IAAE,MAAM;AAAO;6CAElB;IACjC,OAAO;AACR\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mCAEqC;IAAE,MAAM;AAAO;;6CAElB;IACjC,OAAO;AACR\"}")
 /*
 {
   "origin": "test.tsx",

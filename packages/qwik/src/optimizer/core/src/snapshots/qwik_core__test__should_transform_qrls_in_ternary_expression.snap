@@ -32,13 +32,14 @@ export const FieldInput = component$(() => {
 ============================= test.tsx_FieldInput_component_input_q_e_focus_Sgf3MDWzexI.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const FieldInput_component_input_q_e_focus_Sgf3MDWzexI = ()=>{
     const enabled = _captures[0];
     enabled.value = true;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAiBY;;IACT,QAAQ,KAAK,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;gEAiBY;;IACT,QAAQ,KAAK,GAAG\"}")
 /*
 {
   "origin": "test.tsx",
@@ -66,18 +67,22 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_FieldInput_component_V4XAtJSTRKg = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
+//
 export const FieldInput = /*#__PURE__*/ componentQrl(_qrl_FieldInput_component_V4XAtJSTRKg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,oDAmBvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,2BAAa,oDAmBvB\"}")
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const i_Sgf3MDWzexI = ()=>import("./test.tsx_FieldInput_component_input_q_e_focus_Sgf3MDWzexI");
 const i_wqR1xEjZjf4 = ()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4");
+//
 export const FieldInput_component_V4XAtJSTRKg = ()=>{
     const enabled = useSignal(false);
     const input = useSignal("");
@@ -94,7 +99,7 @@ export const FieldInput_component_V4XAtJSTRKg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;gDAGqC;IACpC,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ,UAAU;IAEvB,qBACG,WAAC;qBAGJ,QAAQ,KAAK;;aAIV;;QANH,IAAG;QAQH,WAAQ;;;;AAKV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;gDAGqC;IACpC,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ,UAAU;IAEvB,qBACG,WAAC;qBAGJ,QAAQ,KAAK;;aAIV;;QANH,IAAG;QAQH,WAAQ;;;;AAKV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -118,13 +123,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const FieldInput_component_input_q_e_input_wqR1xEjZjf4 = (ev, el)=>{
     const input = _captures[0];
     input.value = el.value;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAYO,CAAC,IAAI;;IACR,MAAM,KAAK,GAAG,GAAG,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;gEAYO,CAAC,IAAI;;IACR,MAAM,KAAK,GAAG,GAAG,KAAK\"}")
 /*
 {
   "origin": "test.tsx",

@@ -32,11 +32,13 @@ export default component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,8CAkBZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CAkBZ\"}")
 ============================= test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o.js (ENTRY POINT)==
 
 export const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = (_, _1, cellKey)=>console.log(cellKey);
@@ -73,7 +75,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const _qrl_test_component_div_div_span_button_q_e_click_oBFNw2cK30o = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o"), "test_component_div_div_span_button_q_e_click_oBFNw2cK30o");
+//
 export const test_component_LUXeXe0DQrg = ()=>{
     const matrix = useSignal([
         [
@@ -95,7 +99,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG0B;IACxB,MAAM,SAAS,UAAU;QAAC;YAAC;YAAK;SAAI;QAAE;YAAC;YAAK;SAAI;KAAC;IACjD,qBACE,WAAC,mBACE,OAAO,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK,kBACtB,WAAC,mBACE,IAAI,GAAG,CAAC,CAAC,MAAM;YACd,MAAM,UAAU,OAAO,MAAM;YAC7B,qBACE,WAAC,kCACC,WAAC;gBAAO,WAAQ;uBAHd;qBAG6C,mBADtC;QAIf,OARQ;AAalB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAG0B;IACxB,MAAM,SAAS,UAAU;QAAC;YAAC;YAAK;SAAI;QAAE;YAAC;YAAK;SAAI;KAAC;IACjD,qBACE,WAAC,mBACE,OAAO,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK,kBACtB,WAAC,mBACE,IAAI,GAAG,CAAC,CAAC,MAAM;YACd,MAAM,UAAU,OAAO,MAAM;YAC7B,qBACE,WAAC,kCACC,WAAC;gBAAO,WAAQ;uBAHd;qBAG6C,mBADtC;QAIf,OARQ;AAalB\"}")
 /*
 {
   "origin": "test.tsx",

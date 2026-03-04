@@ -28,15 +28,18 @@ expression: output
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIE,6BAAe,8CAaZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIE,6BAAe,8CAaZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 export const test_component_LUXeXe0DQrg = ()=>{
     const toggle = useSignal(true);
     const t = (key)=>key;
@@ -48,7 +51,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAI4B;IAC1B,MAAM,SAAS,UAAU;IACzB,MAAM,IAAI,CAAC,MAAgB;IAC3B,qBACC,WAAC;QAEA,OACA,OAAO,KAAK,KAAK,KACd,EAAE,oDACF,EAAE;;QAJL,MAAK;;AAQP\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAI4B;IAC1B,MAAM,SAAS,UAAU;IACzB,MAAM,IAAI,CAAC,MAAgB;IAC3B,qBACC,WAAC;QAEA,OACA,OAAO,KAAK,KAAK,KACd,EAAE,oDACF,EAAE;;QAJL,MAAK;;AAQP\"}")
 /*
 {
   "origin": "test.tsx",

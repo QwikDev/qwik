@@ -46,6 +46,7 @@ export const STYLES = ".red { color: red; }";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { componentQrl, inlinedQrl, useStore, useLexicalScope } from '@qwik.dev/core';
+//
 const s_odz7eidI4GM = ()=>{
     const [store] = useLexicalScope();
     return store.count++;
@@ -72,7 +73,7 @@ const s_Fh88JClhbC0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(s_Fh88JClhbC0, "s_Fh88JClhbC0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,iBAAiB;sBAmBtE;IACpB,MAAM,CAAC,MAAM,GAAG;IAChB,OAAO,MAAM,KAAK;AACnB;AAUL,OAAO,MAAM,SAAS,uBAAuB;sBA9BY;IACxD,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IACA,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,WAAQ;;;iBAME;KAGZ;AAEH;AA5BA,OAAO,MAAM,MAAM,WAAW,GAAG,uEA4BA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,iBAAiB;;sBAmBtE;IACpB,MAAM,CAAC,MAAM,GAAG;IAChB,OAAO,MAAM,KAAK;AACnB;AAUL,OAAO,MAAM,SAAS,uBAAuB;sBA9BY;IACxD,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IACA,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,WAAQ;;;iBAME;KAGZ;AAEH;AA5BA,OAAO,MAAM,MAAM,WAAW,GAAG,uEA4BA\"}")
 == DIAGNOSTICS ==
 
 []

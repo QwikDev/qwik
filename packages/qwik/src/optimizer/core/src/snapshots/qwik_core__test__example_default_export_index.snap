@@ -20,6 +20,7 @@ export default component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+//
 const mongo_component_div_q_e_click_jncbxvZVtWY = ()=>console.log(mongodb);
 const mongo_component_ouWLj4jA2oI = ()=>{
     return <div q-e:click={/*#__PURE__*/ inlinedQrl(mongo_component_div_q_e_click_jncbxvZVtWY, "mongo_component_div_q_e_click_jncbxvZVtWY")}>
@@ -28,7 +29,7 @@ const mongo_component_ouWLj4jA2oI = ()=>{
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(mongo_component_ouWLj4jA2oI, "mongo_component_ouWLj4jA2oI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;kDAKiB,IAAM,QAAQ,GAAG,CAAC;oCAFT;IACzB,QACE,IAAI,6HAAsC;EAC3C,EAAE;AAEJ;AALA,6BAAe,mGAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;;kDAKiB,IAAM,QAAQ,GAAG,CAAC;oCAFT;IACzB,QACE,IAAI,6HAAsC;EAC3C,EAAE;AAEJ;AALA,6BAAe,mGAKZ\"}")
 == DIAGNOSTICS ==
 
 []

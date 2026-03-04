@@ -37,21 +37,24 @@ export default component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,8CAuBZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CAuBZ\"}")
 ============================= test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = (_, _1, cellIndex)=>{
     const rowIndex = _captures[0];
     return console.log(rowIndex, cellIndex);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wEAgBoC,QAJhB;;WAIsB,QAAQ,GAAG,CAAC,UAAU\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;wEAgBoC,QAJhB;;WAIsB,QAAQ,GAAG,CAAC,UAAU\"}")
 /*
 {
   "origin": "test.tsx",
@@ -83,13 +86,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const test_component_div_div_span_span_q_e_keydown_SBPovprktLQ = (_, _1, j, cellKey)=>{
     const i = _captures[0];
     return console.log(cellKey, i, j);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wEAiBoC,QANR,GAER;;WAIsB,QAAQ,GAAG,CAAC,SAAS,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;wEAiBoC,QANR,GAER;;WAIsB,QAAQ,GAAG,CAAC,SAAS,GAAG\"}")
 /*
 {
   "origin": "test.tsx",
@@ -124,8 +128,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const i_SBPovprktLQ = ()=>import("./test.tsx_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ");
 const i_oBFNw2cK30o = ()=>import("./test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o");
+//
 export const test_component_LUXeXe0DQrg = ()=>{
     const matrix = useSignal([
         [
@@ -166,7 +172,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG0B;IACxB,MAAM,SAAS,UAAU;QAAC;YAAC;YAAK;SAAI;QAAE;YAAC;YAAK;SAAI;KAAC;IACjD,qBACE,WAAC,mBACE,OAAO,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACtB,MAAM,WAAW,IAAI;;;;;;;QACrB,qBACE,WAAC,mBACE,IAAI,GAAG,CAAC,CAAC,MAAM;YACd,MAAM,YAAY,IAAI;YACtB,MAAM,UAAU,WAAW,MAAM;YACjC,qBACE,WAAC;8BACC,WAAC;oBAAO,WAAQ;2BAJd;yBAIyD;8BAC3D,WAAC;oBAAK,aAAU;;wBANN;wBAER;;yBAImD;kBAF5C;QAKf,OAVQ;IAad;AAGN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAG0B;IACxB,MAAM,SAAS,UAAU;QAAC;YAAC;YAAK;SAAI;QAAE;YAAC;YAAK;SAAI;KAAC;IACjD,qBACE,WAAC,mBACE,OAAO,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACtB,MAAM,WAAW,IAAI;;;;;;;QACrB,qBACE,WAAC,mBACE,IAAI,GAAG,CAAC,CAAC,MAAM;YACd,MAAM,YAAY,IAAI;YACtB,MAAM,UAAU,WAAW,MAAM;YACjC,qBACE,WAAC;8BACC,WAAC;oBAAO,WAAQ;2BAJd;yBAIyD;8BAC3D,WAAC;oBAAK,aAAU;;wBANN;wBAER;;yBAImD;kBAF5C;QAKf,OAVQ;IAad;AAGN\"}")
 /*
 {
   "origin": "test.tsx",

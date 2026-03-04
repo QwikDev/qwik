@@ -25,11 +25,13 @@ export default component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,8CAWZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CAWZ\"}")
 ============================= test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps.js (ENTRY POINT)==
 
 export const test_component_div_div_q_e_click_Mc600uqO6ps = (_, _1, index, value)=>console.log(value, index);
@@ -67,7 +69,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const _qrl_test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps"), "test_component_div_div_q_e_click_Mc600uqO6ps");
+//
 export const test_component_LUXeXe0DQrg = ()=>{
     const arr = useSignal([
         'a',
@@ -87,7 +91,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG0B;IACxB,MAAM,MAAM,UAAU;QAAC;QAAK;KAAI;IAChC,qBACE,WAAC,mBACE,IAAI,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACnB,MAAM,QAAQ,IAAE;QACtB,MAAM,QAAQ,IAAI,WAAW;QACvB,qBAAO,WAAC;YAAI,WAAQ;;gBAFd;gBACN;;iBACwD;IAC1D;AAGN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAG0B;IACxB,MAAM,MAAM,UAAU;QAAC;QAAK;KAAI;IAChC,qBACE,WAAC,mBACE,IAAI,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACnB,MAAM,QAAQ,IAAE;QACtB,MAAM,QAAQ,IAAI,WAAW;QACvB,qBAAO,WAAC;YAAI,WAAQ;;gBAFd;gBACN;;iBACwD;IAC1D;AAGN\"}")
 /*
 {
   "origin": "test.tsx",

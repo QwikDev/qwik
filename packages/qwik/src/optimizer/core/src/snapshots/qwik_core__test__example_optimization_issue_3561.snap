@@ -31,6 +31,7 @@ export const Issue3561 = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+//
 const Issue3561_component_hHTw654BZB8 = ()=>{
     const props = useStore({
         product: {
@@ -48,7 +49,7 @@ const Issue3561_component_hHTw654BZB8 = ()=>{
 export const Issue3561 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Issue3561_component_hHTw654BZB8, "Issue3561_component_hHTw654BZB8"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;wCAGoC;IACnC,MAAM,QAAQ,SAAS;QACtB,SAAS;YACT,gBAAgB;gBACf,cAAc;gBACd,eAAe;gBACf,aAAa;YACd;QACA;IACD;IACA,MAAM,EACL,gBAAgB,EAAE,YAAY,EAAE,aAAa,EAAE,WAAW,EAAE,GAAG,CAAC,CAAC,EACjE,GAAG,MAAM,OAAO;IAEjB,QAAQ,GAAG,CAAC,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACZ;AAjBD,OAAO,MAAM,0BAAY,2GAiBrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;wCAGoC;IACnC,MAAM,QAAQ,SAAS;QACtB,SAAS;YACT,gBAAgB;gBACf,cAAc;gBACd,eAAe;gBACf,aAAa;YACd;QACA;IACD;IACA,MAAM,EACL,gBAAgB,EAAE,YAAY,EAAE,aAAa,EAAE,WAAW,EAAE,GAAG,CAAC,CAAC,EACjE,GAAG,MAAM,OAAO;IAEjB,QAAQ,GAAG,CAAC,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACZ;AAjBD,OAAO,MAAM,0BAAY,2GAiBrB\"}")
 == DIAGNOSTICS ==
 
 []

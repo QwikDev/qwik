@@ -57,23 +57,26 @@ expression: output
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_Input_component_9metqqaxlN8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Input_component_9metqqaxlN8"), "Input_component_9metqqaxlN8");
 const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
 export const Input = /*#__PURE__*/ componentQrl(_qrl_Input_component_9metqqaxlN8);
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIE,OAAO,MAAM,sBAAQ,+CAanB;AAEF,6BAAe,8CA2BZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAIE,OAAO,MAAM,sBAAQ,+CAanB;AAEF,6BAAe,8CA2BZ\"}")
 ============================= test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const test_component_div_button_q_e_click_2TvarUvNGmU = ()=>{
     const store = _captures[0];
     store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DA8BuB;;IACjB,MAAM,MAAM,CAAC,IAAI,GAAG,MAAM,MAAM,CAAC,IAAI,GAAG,YAAY\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;+DA8BuB;;IACjB,MAAM,MAAM,CAAC,IAAI,GAAG,MAAM,MAAM,CAAC,IAAI,GAAG,YAAY\"}")
 /*
 {
   "origin": "test.tsx",
@@ -106,11 +109,14 @@ import { qrl } from "@qwik.dev/core";
 import { useForm } from "./some-file.ts";
 import { useForm2 } from "./some-file.ts";
 import { useStore } from "@qwik.dev/core";
+//
 const _hf0 = (p0)=>p0.errors.test;
 const _hf0_str = "p0.errors.test";
 const _hf1 = (p0)=>p0.store5.errors.test;
 const _hf1_str = "p0.store5.errors.test";
+//
 const i_2TvarUvNGmU = ()=>import("./test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU");
+//
 export const test_component_LUXeXe0DQrg = ()=>{
     const [store, math] = [
         useStore({
@@ -171,7 +177,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;mBAkCa,GAAM,MAAM,CAAC,IAAI;;mBAIhB,GAZJ,OAYW,MAAM,CAAC,IAAI;;;0CAnBJ;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,WAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK;;;YACL,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;;;AAQV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;mBAkCa,GAAM,MAAM,CAAC,IAAI;;mBAIhB,GAZJ,OAYW,MAAM,CAAC,IAAI;;;;;0CAnBJ;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,WAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK;;;YACL,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;;;AAQV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -195,6 +201,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Input_component_useTask_Sbgs9Wtfkt0.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const Input_component_useTask_Sbgs9Wtfkt0 = ({ track })=>{
     const props = _captures[0];
     track(()=>props.error);
@@ -203,7 +210,7 @@ export const Input_component_useTask_Sbgs9Wtfkt0 = ({ track })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mDAMa,CAAC,EAAE,KAAK,EAAE;;IAClB,MAAM,IAAM,MAAM,KAAK;IACvB,MAAM,IAAM,MAAM,MAAM;IACxB,MAAM,IAAM,MAAM,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAMa,CAAC,EAAE,KAAK,EAAE;;IAClB,MAAM,IAAM,MAAM,KAAK;IACvB,MAAM,IAAM,MAAM,MAAM;IACxB,MAAM,IAAM,MAAM,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -236,7 +243,9 @@ import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
+//
 const i_Sbgs9Wtfkt0 = ()=>import("./test.tsx_Input_component_useTask_Sbgs9Wtfkt0");
+//
 export const Input_component_9metqqaxlN8 = (props)=>{
     useTaskQrl(/*#__PURE__*/ qrl(i_Sbgs9Wtfkt0, "Input_component_useTask_Sbgs9Wtfkt0", [
         props
@@ -245,7 +254,7 @@ export const Input_component_9metqqaxlN8 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAKG,CAAC;IACA;;;IAMA,qBACC;AAGF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;2CAKG,CAAC;IACA;;;IAMA,qBACC;AAGF\"}")
 /*
 {
   "origin": "test.tsx",

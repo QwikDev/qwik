@@ -23,25 +23,28 @@ expression: output
 import { globalActionQrl } from "@qwik.dev/router";
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
+//
 const _qrl_SecretForm_component_1noi8FsTz7c = /*#__PURE__*/ qrl(()=>import("./test.tsx_SecretForm_component_1noi8FsTz7c"), "SecretForm_component_1noi8FsTz7c");
 const _qrl_useSecretAction_globalAction_Cbn41AEUQ0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_useSecretAction_globalAction_Cbn41AEUQ0Q"), "useSecretAction_globalAction_Cbn41AEUQ0Q");
+//
 export const useSecretAction = globalActionQrl(_qrl_useSecretAction_globalAction_Cbn41AEUQ0Q);
 export const SecretForm = /*#__PURE__*/ componentQrl(_qrl_SecretForm_component_1noi8FsTz7c);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIE,OAAO,MAAM,kBAAkB,+DAE7B;AAEF,OAAO,MAAM,2BAAa,oDAGvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAIE,OAAO,MAAM,kBAAkB,+DAE7B;AAEF,OAAO,MAAM,2BAAa,oDAGvB\"}")
 ============================= test.tsx_SecretForm_component_1noi8FsTz7c.js (ENTRY POINT)==
 
 import { useSecretAction } from "./test";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
+//
 export const SecretForm_component_1noi8FsTz7c = ()=>{
     const action = useSecretAction();
     return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(action), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;gDAQuC;IACpC,MAAM,SAAS;IACf,qBAAO,WAAC,6BAAK;AACd\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;gDAQuC;IACpC,MAAM,SAAS;IACf,qBAAO,WAAC,6BAAK;AACd\"}")
 /*
 {
   "origin": "test.tsx",

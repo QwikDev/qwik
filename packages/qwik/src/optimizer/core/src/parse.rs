@@ -42,7 +42,7 @@ use swc_ecmascript::parser::{EsSyntax, PResult, Parser, StringInput, Syntax, TsS
 use swc_ecmascript::transforms::{
 	fixer, hygiene::hygiene_with_config, optimization::simplify, react, resolver, typescript,
 };
-use swc_ecmascript::visit::{FoldWith, VisitMutWith};
+use swc_ecmascript::visit::{FoldWith, VisitMutWith, VisitWith};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -406,6 +406,22 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 										q.options.global_collect.remove_root_and_exports_for_id(id);
 									}
 									remove_migrated_exports(module, &migrated_ids);
+									remove_unused_qrl_declarations(module);
+
+									// Re-run DCE to remove imports that are no longer used
+									// after migrating variables to segments
+									if config.minify != MinifyMode::None {
+										program.mutate(&mut simplify::simplifier(
+											unresolved_mark,
+											simplify::Config {
+												dce: simplify::dce::Config {
+													preserve_imports_with_side_effects: false,
+													..Default::default()
+												},
+												..Default::default()
+											},
+										));
+									}
 								}
 							}
 						}
@@ -1424,6 +1440,174 @@ fn remove_migrated_exports(module: &mut ast::Module, migrated_ids: &std::collect
 			_ => true,
 		}
 	});
+}
+
+/// After variable migration, some `const _qrl_*` / `const i_*` declarations and
+/// their associated imports may become unused in the root module. SWC's DCE can't
+/// remove these because `may_have_side_effects` returns true for all Call expressions.
+/// This function does a targeted cleanup: it iteratively removes unreferenced
+/// `_qrl_*`/`i_*` const declarations and then unreferenced import declarations.
+fn remove_unused_qrl_declarations(module: &mut ast::Module) {
+	use std::collections::HashSet;
+	use swc_ecmascript::visit::Visit;
+
+	/// Collect all identifiers referenced in expressions (not declarations)
+	struct RefCollector {
+		refs: HashSet<Atom>,
+	}
+	impl Visit for RefCollector {
+		fn visit_ident(&mut self, ident: &ast::Ident) {
+			self.refs.insert(ident.sym.clone());
+		}
+	}
+
+	// Iterate until stable (removing a qrl const may make an import unused)
+	loop {
+		// 1. Collect all identifiers DEFINED by const _qrl_*/i_* declarations and imports
+		let mut qrl_defined: HashSet<Atom> = HashSet::new();
+		let mut import_defined: HashSet<Atom> = HashSet::new();
+		for item in &module.body {
+			match item {
+				ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var))) => {
+					for decl in &var.decls {
+						if let ast::Pat::Ident(ident) = &decl.name {
+							let name = &*ident.id.sym;
+							if name.starts_with("_qrl_") || name.starts_with("i_") {
+								qrl_defined.insert(ident.id.sym.clone());
+							}
+						}
+					}
+				}
+				ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(import_decl)) => {
+					for spec in &import_decl.specifiers {
+						let sym = match spec {
+							ast::ImportSpecifier::Named(n) => &n.local.sym,
+							ast::ImportSpecifier::Default(d) => &d.local.sym,
+							ast::ImportSpecifier::Namespace(ns) => &ns.local.sym,
+						};
+						import_defined.insert(sym.clone());
+					}
+				}
+				_ => {}
+			}
+		}
+		if qrl_defined.is_empty() && import_defined.is_empty() {
+			break;
+		}
+
+		// 2. Collect all identifiers referenced by NON-qrl-const, NON-import items
+		let mut used: HashSet<Atom> = HashSet::new();
+		for item in &module.body {
+			let is_removable = match item {
+				ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var))) => {
+					var.decls.iter().all(|decl| {
+						if let ast::Pat::Ident(ident) = &decl.name {
+							let name = &*ident.id.sym;
+							name.starts_with("_qrl_") || name.starts_with("i_")
+						} else {
+							false
+						}
+					})
+				}
+				ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(_)) => true,
+				_ => false,
+			};
+			if !is_removable {
+				let mut collector = RefCollector {
+					refs: HashSet::new(),
+				};
+				item.visit_with(&mut collector);
+				used.extend(collector.refs);
+			}
+		}
+
+		// Also collect refs from qrl/import items to each other
+		// (a qrl const may reference an import, and a used qrl should keep its imports)
+		let mut changed = true;
+		while changed {
+			changed = false;
+			for item in &module.body {
+				let defined_sym = match item {
+					ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var))) => {
+						var.decls.first().and_then(|decl| {
+							if let ast::Pat::Ident(ident) = &decl.name {
+								let name = &*ident.id.sym;
+								if name.starts_with("_qrl_") || name.starts_with("i_") {
+									Some(ident.id.sym.clone())
+								} else {
+									None
+								}
+							} else {
+								None
+							}
+						})
+					}
+					ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(import_decl)) => {
+						import_decl.specifiers.first().map(|spec| {
+							match spec {
+								ast::ImportSpecifier::Named(n) => n.local.sym.clone(),
+								ast::ImportSpecifier::Default(d) => d.local.sym.clone(),
+								ast::ImportSpecifier::Namespace(ns) => ns.local.sym.clone(),
+							}
+						})
+					}
+					_ => None,
+				};
+				if let Some(sym) = defined_sym {
+					if used.contains(&sym) {
+						// This item is used; mark its references as used too
+						let mut collector = RefCollector {
+							refs: HashSet::new(),
+						};
+						item.visit_with(&mut collector);
+						for r in collector.refs {
+							if used.insert(r) {
+								changed = true;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// 3. Remove unused qrl declarations and imports
+		let before_len = module.body.len();
+		module.body.retain(|item| {
+			match item {
+				ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var))) => {
+					// Remove _qrl_*/i_* const declarations that are unused
+					!var.decls.iter().all(|decl| {
+						if let ast::Pat::Ident(ident) = &decl.name {
+							let name = &*ident.id.sym;
+							(name.starts_with("_qrl_") || name.starts_with("i_"))
+								&& !used.contains(&ident.id.sym)
+						} else {
+							false
+						}
+					})
+				}
+				ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(import_decl)) => {
+					// Remove imports where all specifiers are unused
+					if import_decl.specifiers.is_empty() {
+						return true; // Keep side-effect imports
+					}
+					!import_decl.specifiers.iter().all(|spec| {
+						let sym = match spec {
+							ast::ImportSpecifier::Named(n) => &n.local.sym,
+							ast::ImportSpecifier::Default(d) => &d.local.sym,
+							ast::ImportSpecifier::Namespace(ns) => &ns.local.sym,
+						};
+						!used.contains(sym)
+					})
+				}
+				_ => true,
+			}
+		});
+
+		if module.body.len() == before_len {
+			break; // No more items removed, stable
+		}
+	}
 }
 
 #[cfg(test)]

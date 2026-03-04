@@ -1543,12 +1543,10 @@ fn remove_unused_qrl_declarations(module: &mut ast::Module) {
 						})
 					}
 					ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(import_decl)) => {
-						import_decl.specifiers.first().map(|spec| {
-							match spec {
-								ast::ImportSpecifier::Named(n) => n.local.sym.clone(),
-								ast::ImportSpecifier::Default(d) => d.local.sym.clone(),
-								ast::ImportSpecifier::Namespace(ns) => ns.local.sym.clone(),
-							}
+						import_decl.specifiers.first().map(|spec| match spec {
+							ast::ImportSpecifier::Named(n) => n.local.sym.clone(),
+							ast::ImportSpecifier::Default(d) => d.local.sym.clone(),
+							ast::ImportSpecifier::Namespace(ns) => ns.local.sym.clone(),
 						})
 					}
 					_ => None,

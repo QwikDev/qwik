@@ -18,6 +18,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   const ssgWorkers: StaticGeneratorWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapPromise: Promise<any> | null = null;
+  let sitemapStream: fs.WriteStream | null = null;
 
   opts = { ...opts };
 
@@ -160,7 +161,9 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
         }
         const siteMapUrls = sitemapBuffer.join('\n') + '\n';
         sitemapBuffer.length = 0;
-        sitemapPromise = fs.promises.appendFile(sitemapOutFile, siteMapUrls);
+        if (sitemapStream) {
+          sitemapStream.write(siteMapUrls);
+        }
       }
     }
 
@@ -170,13 +173,19 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   const close = async () => {
     const promises: Promise<any>[] = [];
 
-    if (sitemapOutFile) {
-      if (sitemapPromise) {
-        await sitemapPromise;
-      }
+    if (sitemapStream) {
       sitemapBuffer.push(`</urlset>`);
-      promises.push(fs.promises.appendFile(sitemapOutFile, sitemapBuffer.join('\n')));
+      sitemapStream.write(sitemapBuffer.join('\n'));
       sitemapBuffer.length = 0;
+
+      await new Promise<void>((resolve, reject) => {
+        sitemapStream!.end((err: Error | null | undefined) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      sitemapStream = null;
     }
 
     for (const ssgWorker of ssgWorkers) {
@@ -199,8 +208,12 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
 
   if (sitemapOutFile) {
     await ensureDir(sitemapOutFile);
-    await fs.promises.writeFile(
-      sitemapOutFile,
+
+    sitemapStream = fs.createWriteStream(sitemapOutFile, {
+      flags: 'w',
+    });
+
+    sitemapStream.write(
       `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
     );
   }

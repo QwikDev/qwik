@@ -3,12 +3,13 @@ import { build } from 'vite';
 import { fileSize, type BuildConfig } from './util.ts';
 import { minify } from 'terser';
 import type { Plugin } from 'vite';
+import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
 
 /**
  * Custom plugin to apply terser during the bundle generation. Vite doesn't minify library ES
  * modules.
  */
-function customTerserPlugin(): Plugin {
+function customTerserPlugin(nameCache?: object): Plugin {
   return {
     name: 'custom-terser',
     async renderChunk(code, chunk) {
@@ -19,6 +20,7 @@ function customTerserPlugin(): Plugin {
 
       // Keep the result readable for debugging
       const result = await minify(code, {
+        ...(nameCache ? { nameCache } : {}),
         compress: {
           defaults: false,
           module: true,
@@ -30,7 +32,7 @@ function customTerserPlugin(): Plugin {
           toplevel: false,
           properties: {
             // use short attribute names for internal properties
-            regex: '^\\$.+\\$$|^[A-Z][a-zA-Z]+$',
+            regex: MANGLE_PROPS_REGEX,
           },
         },
         format: {
@@ -48,7 +50,7 @@ function customTerserPlugin(): Plugin {
  * are provided in the package so CDNs could point to them. The @builder.io/optimizer submodule also
  * provides a utility function.
  */
-export async function submodulePreloader(config: BuildConfig) {
+export async function submodulePreloader(config: BuildConfig, nameCache?: object) {
   await build({
     build: {
       emptyOutDir: false,
@@ -64,7 +66,7 @@ export async function submodulePreloader(config: BuildConfig) {
       minify: false, // This is the default, just to be explicit
       outDir: config.distQwikPkgDir,
     },
-    plugins: [customTerserPlugin()],
+    plugins: [customTerserPlugin(nameCache)],
   });
 
   const preloaderSize = await fileSize(join(config.distQwikPkgDir, 'preloader.mjs'));

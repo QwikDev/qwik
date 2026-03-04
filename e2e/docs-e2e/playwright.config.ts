@@ -7,7 +7,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 /** See https://playwright.dev/docs/test-configuration. */
 
-const TestingURL = 'http://127.0.0.1:3000';
+//const TestingURL = 'http://127.0.0.1:3000';
+const TestingURL = process.env.CI ? 'http://127.0.0.1:4173' : 'http://127.0.0.1:3000';
 
 export default defineConfig({
   testDir: './tests',
@@ -78,7 +79,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm -C ../../ run docs.dev',
+    command: process.env.CI ? 'pnpm -C ../../ run docs.preview' : 'pnpm -C ../../ run docs.dev',
     url: TestingURL,
     reuseExistingServer: !process.env.CI,
   },

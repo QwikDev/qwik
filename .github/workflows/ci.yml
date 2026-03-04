@@ -787,6 +787,47 @@ jobs:
 
       - name: CLI E2E Tests
         run: pnpm run test.e2e.cli
+  
+  ############ E2E DOCS TEST ############
+  test-docs-e2e:
+    name: E2E Docs Tests
+    # ドキュメントに変更があった、または手動実行の場合
+    if: always() && needs.changes.outputs.build-docs == 'true'
+    needs:
+      - build-other-packages
+      - build-docs
+      - changes
+      - test-unit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Move Distribution Artifacts
+        run: |
+          mv artifact-qwik/* packages/qwik/
+          mkdir -p packages/qwik-city/lib/
+          mv artifact-qwikcity/* packages/qwik-city/lib/
+          # ドキュメントのビルド済みファイルを配置（Preview実行に必要）
+          mkdir -p packages/docs/dist
+          mv artifact-docs/* packages/docs/dist/
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: npx playwright install chromium --with-deps
+
+      - name: Docs E2E Tests
+        run: pnpm run test.e2e.docs
 
   ########### LINT PACKAGES ############
   lint-package:
@@ -956,6 +997,7 @@ jobs:
       - test-unit
       - test-e2e
       - test-cli-e2e
+      - test-docs-e2e
       - lint-package
       - build-docs
       - build-insights
@@ -967,6 +1009,7 @@ jobs:
             (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
             (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
             (needs.test-cli-e2e.result == 'success' || needs.test-cli-e2e.result == 'skipped') &&
+            (needs.test-docs-e2e.result == 'success' || needs.test-docs-e2e.result == 'skipped') &&
             (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
             (needs.build-docs.result == 'success' || needs.build-docs.result == 'skipped') &&
             (needs.build-insights.result == 'success' || needs.build-insights.result == 'skipped')

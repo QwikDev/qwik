@@ -18,10 +18,10 @@
   "devDependencies": {
     "@qwik.dev/core": "latest",
     "@qwik.dev/router": "latest",
-    "@eslint/js": "9.39.2",
+    "@eslint/js": "latest",
     "@types/node": "latest",
-    "typescript-eslint": "8.52.0",
-    "eslint": "9.39.2",
+    "typescript-eslint": "latest",
+    "eslint": "latest",
     "eslint-plugin-qwik": "latest",
     "globals": "latest",
     "prettier": "latest",

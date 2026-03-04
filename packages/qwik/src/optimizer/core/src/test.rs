@@ -871,7 +871,7 @@ export const Works = component$((props) => {
 	const text = 'hola';
 	return (
 		<>
-		<div onClick$={server$(() => console.log('in server', text))}></div>
+		<div onClick$={() => server$(() => console.log('in server', text))}></div>
 		<div onClick$={() => foo()}></div>
 		</>
 	);
@@ -1843,10 +1843,10 @@ export const Parent = component$(() => {
 	serverStuff$(async () => {
 		// should be removed too
 		const a = $(() => {
-			// from $(), should not be removed
+			dontRemoveThisDollar();
 		});
 		const b = client$(() => {
-			// from clien$(), should not be removed
+			dontRemoveThisClient();
 		});
 		return [a,b];
 	})
@@ -1854,7 +1854,7 @@ export const Parent = component$(() => {
 	serverLoader$(handler);
 
 	useTask$(() => {
-		// Code
+		runSomething();
 	});
 
 	return (
@@ -1950,6 +1950,7 @@ export const Parent = component$(() => {
 
 	useTask$(() => {
 		// Code
+		runSomething();
 	});
 
 	return (
@@ -2765,6 +2766,44 @@ export const App = component$(() => {
 "#
 		.to_string(),
 		is_server: Some(true),
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_post_dce_noop_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useTask$, useStore } from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
+
+export const App = component$(() => {
+	const state = useStore({ count: 0 });
+
+	// This task only runs on server; on client build it becomes empty after DCE
+	useTask$(() => {
+		if (isServer) {
+			state.count = 42;
+		}
+	});
+
+	// This task has both server and client code; should NOT become noop
+	useTask$(() => {
+		if (isServer) {
+			state.count = 99;
+		}
+		console.log('always runs');
+	});
+
+	return <div>{state.count}</div>;
+});
+"#
+		.to_string(),
+		is_server: Some(false),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Segment,
 		mode: EmitMode::Prod,
 		..TestInput::default()
 	});
@@ -6198,24 +6237,28 @@ export const Test = component$(() => {
 }
 
 #[test]
-fn should_work() {
+fn noop_empty_body() {
 	test_input!(TestInput {
 		code: r#"
-		import { component$ } from "@qwik.dev/core";
-		import { globalAction$ } from "@qwik.dev/router";
+		import { component$, isServer, $ } from "@qwik.dev/core";
 
-		export const useSecretAction = globalAction$(
-			async (payload) => console.log(payload) || 'hi'
-		);
-
-		export const SecretForm = component$(() => {
-			const action = useSecretAction();
-			return <div>{action.value}</div>
+		export const test1 = $(() => {
+			if (isServer) {
+				// no-op
+			}
 		});
+		export const test2 = $(() => {
+			// no-op
+		});
+		export const test3 = $(function() {
+		});
+		export const test4 = $(() => undefined);
+		export const test5 = $(() => void 0);
+		export const test5 = $(() => isServer ? 5 : undefined);
 		"#
 		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
+		is_server: Some(false),
+		mode: EmitMode::Dev,
 		..TestInput::default()
 	});
 }

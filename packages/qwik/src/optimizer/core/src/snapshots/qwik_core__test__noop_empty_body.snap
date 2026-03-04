@@ -1,0 +1,64 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 6241
+expression: output
+---
+==INPUT==
+
+
+		import { component$, isServer, $ } from "@qwik.dev/core";
+
+		export const test1 = $(() => {
+			if (isServer) {
+				// no-op
+			}
+		});
+		export const test2 = $(() => {
+			// no-op
+		});
+		export const test3 = $(function() {
+		});
+		export const test4 = $(() => undefined);
+		export const test5 = $(() => void 0);
+		export const test5 = $(() => isServer ? 5 : undefined);
+		
+============================= test.tsx ==
+
+import { _noopQrlDEV } from "@qwik.dev/core";
+//
+export const test1 = /*#__PURE__*/ _noopQrlDEV("test1_ZUBkW4dA8WM", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 88,
+    hi: 136,
+    displayName: "test.tsx_test1"
+});
+export const test2 = /*#__PURE__*/ _noopQrlDEV("test2_nGoxYIFmFHk", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 164,
+    hi: 187,
+    displayName: "test.tsx_test2"
+});
+export const test3 = /*#__PURE__*/ _noopQrlDEV("test3_0B4I8rVZdZw", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 215,
+    hi: 231,
+    displayName: "test.tsx_test3"
+});
+export const test4 = /*#__PURE__*/ _noopQrlDEV("test4_lka0Opdt3Nk", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 259,
+    hi: 274,
+    displayName: "test.tsx_test4"
+});
+export const test5 = /*#__PURE__*/ _noopQrlDEV("test5_opUEX0KqODU", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 302,
+    hi: 314,
+    displayName: "test.tsx_test5"
+});
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,OAAO,MAAM;;;;;GAIV;AACH,OAAO,MAAM;;;;;GAEV;AACH,OAAO,MAAM;;;;;GACV;AACH,OAAO,MAAM;;;;;GAA2B;AACxC,OAAO,MAAM;;;;;GAAwB\"}")
+== DIAGNOSTICS ==
+
+[]

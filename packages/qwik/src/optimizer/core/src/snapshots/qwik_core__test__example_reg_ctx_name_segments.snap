@@ -12,7 +12,7 @@ export const Works = component$((props) => {
 	const text = 'hola';
 	return (
 		<>
-		<div onClick$={server$(() => console.log('in server', text))}></div>
+		<div onClick$={() => server$(() => console.log('in server', text))}></div>
 		<div onClick$={() => foo()}></div>
 		</>
 	);
@@ -22,31 +22,28 @@ export const Works = component$((props) => {
 
 import "./foo";
 import { componentQrl } from "@qwik.dev/core";
-import { serverQrl } from "@qwik.dev/core";
-import { _regSymbol } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
-import { _jsxSorted } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 //
-const Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA = /*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "YY85RDCwwvA");
-//
 const _qrl_qrl_4294901762 = /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_q_e_click_0UiSo8yqgZw");
+const _qrl_qrl_4294901764 = /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_q_e_click_1_0umAYq0xJhQ");
 //
 const Works_component_t45qL4vNGv0 = (props)=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
-        /*#__PURE__*/ _jsxSorted("div", {
-            "q-e:click": serverQrl(/*#__PURE__*/ inlinedQrl(Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA, "Works_component_Fragment_div_q_e_click_server_YY85RDCwwvA"))
-        }, null, null, 2, null),
         /*#__PURE__*/ _jsxSorted("div", null, {
             "q-e:click": _qrl_qrl_4294901762
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, {
+            "q-e:click": _qrl_qrl_4294901764
         }, null, 3, null)
-    ], 1, "u6_0");
+    ], 3, "u6_0");
 };
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_t45qL4vNGv0, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;2FAOyB,IAAM,QAAQ,GAAG,CAAC,aAH7B;;;;oCADkB,CAAC;IAEhC,qBACC;sBACA,WAAC;YAAI,aAAU;;sBACf,WAAC;YAAI,WAAQ;;;AAGf;AARA,OAAO,MAAM,sBAAQ,mGAQlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;oCAGgC,CAAC;IAEhC,qBACC;sBACA,WAAC;YAAI,WAAQ;;sBACb,WAAC;YAAI,WAAQ;;;AAGf;AARA,OAAO,MAAM,sBAAQ,mGAQlB\"}")
 == DIAGNOSTICS ==
 
 []

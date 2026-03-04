@@ -1,0 +1,128 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 2776
+expression: output
+---
+==INPUT==
+
+
+import { component$, useTask$, useStore } from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
+
+export const App = component$(() => {
+	const state = useStore({ count: 0 });
+
+	// This task only runs on server; on client build it becomes empty after DCE
+	useTask$(() => {
+		if (isServer) {
+			state.count = 42;
+		}
+	});
+
+	// This task has both server and client code; should NOT become noop
+	useTask$(() => {
+		if (isServer) {
+			state.count = 99;
+		}
+		console.log('always runs');
+	});
+
+	return <div>{state.count}</div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const _qrl_s_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "s_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(_qrl_s_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,oBAAM,iCAmBhB\"}")
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+//
+const i_YeP1iz5iPN4 = ()=>import("./test.tsx_App_component_useTask_1_YeP1iz5iPN4");
+//
+export const s_ckEPmXZlub0 = ()=>{
+    const state = useStore({
+        count: 0
+    });
+    // This task only runs on server; on client build it becomes empty after DCE
+    useTaskQrl(/*#__PURE__*/ _noopQrl("s_0u2kaPEyYJA", [
+        state
+    ]));
+    // This task has both server and client code; should NOT become noop
+    useTaskQrl(/*#__PURE__*/ qrl(i_YeP1iz5iPN4, "s_YeP1iz5iPN4", [
+        state
+    ]));
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;6BAI8B;IAC7B,MAAM,QAAQ,SAAS;QAAE,OAAO;IAAE;IAElC,4EAA4E;IAC5E;;;IAMA,oEAAoE;IACpE;;;IAOA,qBAAO,WAAC,6BAAK;AACd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    147,
+    542
+  ]
+}
+*/
+============================= test.tsx_App_component_useTask_1_YeP1iz5iPN4.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const s_YeP1iz5iPN4 = ()=>{
+    _captures[0];
+    console.log('always runs');
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6BAeU;;IAIR,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_YeP1iz5iPN4",
+  "entry": null,
+  "displayName": "test.tsx_App_component_useTask_1",
+  "hash": "YeP1iz5iPN4",
+  "canonicalFilename": "test.tsx_App_component_useTask_1_YeP1iz5iPN4",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    420,
+    503
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

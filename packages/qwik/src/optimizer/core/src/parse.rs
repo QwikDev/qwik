@@ -22,7 +22,7 @@ use crate::transform::{
 	create_synthetic_named_export, QwikTransform, QwikTransformOptions, Segment, SegmentKind,
 };
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
-use crate::words::{_INLINED_QRL_DEV, _NOOP_QRL_DEV, _QRL_DEV};
+use crate::words::{_INLINED_QRL_DEV, _NOOP_QRL, _NOOP_QRL_DEV, _QRL, _QRL_DEV};
 use crate::EntryStrategy;
 use indexmap::IndexMap;
 use path_slash::PathExt;
@@ -432,10 +432,24 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					let mut modules: Vec<TransformModule> = Vec::with_capacity(segments.len() + 10);
 
 					let comments_maps = comments.clone().take_all();
-					// Now process each segment
-					// TODO handle noop segments, don't generate code for them
+					// Process segments in two phases:
+					// Phase 1: Build all segment modules, run DCE, detect empty ones
+					// Phase 2: Replace empty segment QRL refs with noopQrl, emit non-empty
+					let mut empty_segment_names = std::collections::HashSet::<Atom>::new();
 					if !segments.is_empty() {
 						let q = qt.as_ref().unwrap();
+						let is_dev = config.mode == EmitMode::Dev;
+
+						// Phase 1: Build and detect empty segments
+						struct BuiltSegment {
+							segment: Segment,
+							module: ast::Module,
+							comments: SingleThreadedComments,
+							is_entry: bool,
+							segment_path: String,
+						}
+						let mut built_segments: Vec<BuiltSegment> = Vec::new();
+
 						for h in segments.into_iter() {
 							let is_entry = h.entry.is_none();
 							let path_str = h.data.path.to_string();
@@ -450,45 +464,52 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							]
 							.concat();
 
-							// Create explicit imports for dev-mode QRL helpers
+							// Create explicit imports for QRL helpers
 							let mut explicit_imports = IndexMap::new();
-							if config.mode == EmitMode::Dev {
+							{
 								use swc_common::SyntaxContext;
-								let dev_import = Import {
-									source: q.options.core_module.clone(),
-									specifier: (*_QRL_DEV).clone(),
-									kind: ImportKind::Named,
-									synthetic: true,
-									asserts: None,
-								};
-								explicit_imports.insert(
-									((*_QRL_DEV).clone(), SyntaxContext::empty()),
-									dev_import.clone(),
-								);
 
-								let inlined_dev_import = Import {
+								// Always add _noopQrl import (DCE removes if unused)
+								let noop_specifier = if is_dev {
+									(*_NOOP_QRL_DEV).clone()
+								} else {
+									(*_NOOP_QRL).clone()
+								};
+								let noop_import = Import {
 									source: q.options.core_module.clone(),
-									specifier: (*_INLINED_QRL_DEV).clone(),
+									specifier: noop_specifier.clone(),
 									kind: ImportKind::Named,
 									synthetic: true,
 									asserts: None,
 								};
-								explicit_imports.insert(
-									((*_INLINED_QRL_DEV).clone(), SyntaxContext::empty()),
-									inlined_dev_import,
-								);
+								explicit_imports
+									.insert((noop_specifier, SyntaxContext::empty()), noop_import);
 
-								let noop_dev_import = Import {
-									source: q.options.core_module.clone(),
-									specifier: (*_NOOP_QRL_DEV).clone(),
-									kind: ImportKind::Named,
-									synthetic: true,
-									asserts: None,
-								};
-								explicit_imports.insert(
-									((*_NOOP_QRL_DEV).clone(), SyntaxContext::empty()),
-									noop_dev_import,
-								);
+								if is_dev {
+									let dev_import = Import {
+										source: q.options.core_module.clone(),
+										specifier: (*_QRL_DEV).clone(),
+										kind: ImportKind::Named,
+										synthetic: true,
+										asserts: None,
+									};
+									explicit_imports.insert(
+										((*_QRL_DEV).clone(), SyntaxContext::empty()),
+										dev_import,
+									);
+
+									let inlined_dev_import = Import {
+										source: q.options.core_module.clone(),
+										specifier: (*_INLINED_QRL_DEV).clone(),
+										kind: ImportKind::Named,
+										synthetic: true,
+										asserts: None,
+									};
+									explicit_imports.insert(
+										((*_INLINED_QRL_DEV).clone(), SyntaxContext::empty()),
+										inlined_dev_import,
+									);
+								}
 							}
 
 							let (mut segment_module, comments) = new_module(NewModuleCtx {
@@ -522,6 +543,70 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								));
 								segment_module = program.expect_module();
 							}
+
+							if is_empty_segment_body(&segment_module) {
+								empty_segment_names.insert(h.name.clone());
+							}
+
+							built_segments.push(BuiltSegment {
+								segment: Segment {
+									expr: Box::new(ast::Expr::Invalid(ast::Invalid {
+										span: DUMMY_SP,
+									})),
+									..h
+								},
+								module: segment_module,
+								comments,
+								is_entry,
+								segment_path,
+							});
+						}
+
+						// Phase 2: Replace empty segment refs and emit non-empty segments
+						for built in built_segments {
+							let BuiltSegment {
+								segment: h,
+								module: mut segment_module,
+								comments,
+								is_entry,
+								segment_path,
+							} = built;
+
+							if empty_segment_names.contains(&h.name) {
+								continue; // Don't emit empty segments
+							}
+
+							// Replace qrl() calls referencing empty child segments
+							if !empty_segment_names.is_empty() {
+								let did_replace = replace_noop_qrl_calls(
+									&mut segment_module,
+									&empty_segment_names,
+									is_dev,
+								);
+								remove_unused_qrl_declarations(&mut segment_module);
+								if config.minify != MinifyMode::None {
+									let mut prog = ast::Program::Module(segment_module);
+									prog.mutate(&mut simplify::simplifier(
+										unresolved_mark,
+										simplify::Config {
+											dce: simplify::dce::Config {
+												preserve_imports_with_side_effects: false,
+												..Default::default()
+											},
+											..Default::default()
+										},
+									));
+									segment_module = prog.expect_module();
+								}
+								if did_replace {
+									add_noop_qrl_import(
+										&mut segment_module,
+										is_dev,
+										&q.options.core_module,
+									);
+								}
+							}
+
 							segment_module
 								.visit_mut_with(&mut hygiene_with_config(Default::default()));
 							segment_module.visit_mut_with(&mut fixer(None));
@@ -570,6 +655,35 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 									},
 								}),
 							});
+						}
+					}
+
+					// Replace qrl() calls for empty segments in root module
+					if !empty_segment_names.is_empty() {
+						let is_dev = config.mode == EmitMode::Dev;
+						let core_module_name = qt.as_ref().unwrap().options.core_module.clone();
+						if let ast::Program::Module(ref mut modu) = &mut program {
+							let did_replace =
+								replace_noop_qrl_calls(modu, &empty_segment_names, is_dev);
+							remove_unused_qrl_declarations(modu);
+							// Re-run DCE for unused imports (qrl, i_* consts)
+							if config.minify != MinifyMode::None {
+								program.mutate(&mut simplify::simplifier(
+									unresolved_mark,
+									simplify::Config {
+										dce: simplify::dce::Config {
+											preserve_imports_with_side_effects: false,
+											..Default::default()
+										},
+										..Default::default()
+									},
+								));
+							}
+							if did_replace {
+								if let ast::Program::Module(ref mut modu) = &mut program {
+									add_noop_qrl_import(modu, is_dev, &core_module_name);
+								}
+							}
 						}
 					}
 
@@ -1559,8 +1673,7 @@ fn remove_unused_qrl_declarations(module: &mut ast::Module) {
 						};
 						item.visit_with(&mut collector);
 						for r in collector.refs {
-							if !used.contains(&r) {
-								used.insert(r);
+							if used.insert(r) {
 								changed = true;
 							}
 						}
@@ -1607,6 +1720,184 @@ fn remove_unused_qrl_declarations(module: &mut ast::Module) {
 			break; // No more items removed, stable
 		}
 	}
+}
+
+/// Check if a segment module's exported function body is empty (e.g., `export const s_xxx = () => {}`)
+fn is_empty_segment_body(module: &ast::Module) -> bool {
+	for item in &module.body {
+		if let ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(export)) = item {
+			if let ast::Decl::Var(var) = &export.decl {
+				if let Some(decl) = var.decls.first() {
+					if let Some(init) = &decl.init {
+						return is_empty_fn_expr(init);
+					}
+				}
+			}
+		}
+	}
+	false
+}
+
+fn is_empty_fn_expr(expr: &ast::Expr) -> bool {
+	match expr {
+		ast::Expr::Arrow(arrow) => match &*arrow.body {
+			ast::BlockStmtOrExpr::BlockStmt(block) => {
+				block.stmts.iter().all(is_captures_access_stmt)
+			}
+			// `() => undefined` or `() => void 0`
+			ast::BlockStmtOrExpr::Expr(expr) => is_noop_expr(expr),
+		},
+		ast::Expr::Fn(fn_expr) => match &fn_expr.function.body {
+			Some(body) => body.stmts.iter().all(is_captures_access_stmt),
+			None => false,
+		},
+		_ => false,
+	}
+}
+
+/// Check if an expression is a no-op value (undefined, void 0)
+fn is_noop_expr(expr: &ast::Expr) -> bool {
+	match expr {
+		ast::Expr::Ident(ident) => ident.sym.as_ref() == "undefined",
+		ast::Expr::Unary(unary) => {
+			unary.op == ast::UnaryOp::Void
+				&& matches!(&*unary.arg, ast::Expr::Lit(ast::Lit::Num(n)) if n.value == 0.0)
+		}
+		_ => false,
+	}
+}
+
+/// Check if a statement is just `_captures[N];` (a no-op capture access left by DCE)
+fn is_captures_access_stmt(stmt: &ast::Stmt) -> bool {
+	if let ast::Stmt::Expr(expr_stmt) = stmt {
+		if let ast::Expr::Member(member) = &*expr_stmt.expr {
+			if let ast::Expr::Ident(ident) = &*member.obj {
+				return ident.sym.as_ref() == "_captures";
+			}
+		}
+	}
+	false
+}
+
+/// Add `_noopQrl` (or `_noopQrlDEV`) import to a module if not already imported.
+/// DCE will remove it if unused.
+fn add_noop_qrl_import(module: &mut ast::Module, is_dev: bool, core_module: &Atom) {
+	let noop_sym = if is_dev {
+		(*_NOOP_QRL_DEV).clone()
+	} else {
+		(*_NOOP_QRL).clone()
+	};
+
+	// Check if _noopQrl is already imported
+	let has_import = module.body.iter().any(|item| {
+		if let ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(import_decl)) = item {
+			import_decl.specifiers.iter().any(|spec| {
+				if let ast::ImportSpecifier::Named(n) = spec {
+					n.local.sym == noop_sym
+				} else {
+					false
+				}
+			})
+		} else {
+			false
+		}
+	});
+
+	if has_import {
+		return;
+	}
+
+	module.body.insert(
+		0,
+		ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
+			span: DUMMY_SP,
+			specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
+				span: DUMMY_SP,
+				local: ast::Ident::new(noop_sym, DUMMY_SP, Default::default()),
+				imported: None,
+				is_type_only: false,
+			})],
+			src: Box::new(ast::Str {
+				span: DUMMY_SP,
+				value: core_module.clone(),
+				raw: None,
+			}),
+			type_only: false,
+			with: None,
+			phase: Default::default(),
+		})),
+	);
+}
+
+/// Replace `qrl()`/`qrlDEV()` calls referencing empty segments with `_noopQrl()`/`_noopQrlDEV()`.
+/// The first arg (import function) is dropped; the rest (symbol name, dev obj, captures) remain.
+/// Returns `true` if any replacements were made.
+fn replace_noop_qrl_calls(
+	module: &mut ast::Module,
+	empty_names: &std::collections::HashSet<Atom>,
+	is_dev: bool,
+) -> bool {
+	use swc_ecmascript::visit::VisitMutWith;
+
+	struct ReplaceNoopQrlVisitor<'a> {
+		empty_names: &'a std::collections::HashSet<Atom>,
+		is_dev: bool,
+		did_replace: bool,
+	}
+
+	impl swc_ecmascript::visit::VisitMut for ReplaceNoopQrlVisitor<'_> {
+		fn visit_mut_call_expr(&mut self, call: &mut ast::CallExpr) {
+			call.visit_mut_children_with(self);
+
+			let is_qrl = if let ast::Callee::Expr(callee) = &call.callee {
+				if let ast::Expr::Ident(ident) = &**callee {
+					ident.sym == *_QRL || ident.sym == *_QRL_DEV
+				} else {
+					false
+				}
+			} else {
+				false
+			};
+
+			if !is_qrl || call.args.len() < 2 {
+				return;
+			}
+
+			// Check if symbol name (arg[1]) is in empty set
+			let symbol_name = if let ast::Expr::Lit(ast::Lit::Str(s)) = &*call.args[1].expr {
+				s.value.clone()
+			} else {
+				return;
+			};
+
+			if !self.empty_names.contains(&symbol_name) {
+				return;
+			}
+
+			// Drop first arg (import function), change callee
+			call.args.remove(0);
+			let new_callee = if self.is_dev {
+				&*_NOOP_QRL_DEV
+			} else {
+				&*_NOOP_QRL
+			};
+			if let ast::Callee::Expr(callee) = &mut call.callee {
+				if let ast::Expr::Ident(ident) = &mut **callee {
+					ident.sym = new_callee.clone();
+					ident.ctxt = swc_common::SyntaxContext::empty();
+				}
+			}
+			self.did_replace = true;
+		}
+	}
+
+	let mut visitor = ReplaceNoopQrlVisitor {
+		empty_names,
+		is_dev,
+		did_replace: false,
+	};
+	module.visit_mut_with(&mut visitor);
+	visitor.did_replace
 }
 
 #[cfg(test)]

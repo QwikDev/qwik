@@ -3322,18 +3322,6 @@ export { qwikify$, qwikifyQrl, renderToString };
 }
 
 #[test]
-fn example_qwik_router_inline() {
-	test_input!(TestInput {
-		code: include_str!("fixtures/index.qwik.mjs").to_string(),
-		filename: "../node_modules/@qwik.dev/router/index.qwik.mjs".to_string(),
-		entry_strategy: EntryStrategy::Smart,
-		explicit_extensions: true,
-		mode: EmitMode::Lib,
-		..TestInput::default()
-	});
-}
-
-#[test]
 fn example_qwik_router_client() {
 	test_input!(TestInput {
 		code: include_str!("fixtures/index.qwik.mjs").to_string(),

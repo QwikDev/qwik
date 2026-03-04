@@ -99,48 +99,48 @@ import {
 import { isObjectEmpty } from '../shared/utils/objects';
 
 export interface DiffContext {
-  container: ClientContainer;
-  journal: VNodeJournal;
-  cursor: Cursor;
-  scopedStyleIdPrefix: string | null;
+  $container$: ClientContainer;
+  $journal$: VNodeJournal;
+  $cursor$: Cursor;
+  $scopedStyleIdPrefix$: string | null;
   /**
    * Stack is used to keep track of the state of the traversal.
    *
    * We push current state into the stack before descending into the child, and we pop the state
    * when we are done with the child.
    */
-  stack: any[];
-  asyncQueue: Array<VNode | ValueOrPromise<JSXChildren> | Promise<JSXChildren>>;
-  asyncAttributePromises: Promise<void>[];
+  $stack$: any[];
+  $asyncQueue$: Array<VNode | ValueOrPromise<JSXChildren> | Promise<JSXChildren>>;
+  $asyncAttributePromises$: Promise<void>[];
   ////////////////////////////////
   //// Traverse state variables
   ////////////////////////////////
-  vParent: ElementVNode | VirtualVNode;
+  $vParent$: ElementVNode | VirtualVNode;
   /// Current node we compare against. (Think of it as a cursor.)
   /// (Node can be null, if we are at the end of the list.)
-  vCurrent: VNode | null;
+  $vCurrent$: VNode | null;
   /// When we insert new node we start it here so that we can descend into it.
   /// NOTE: it can't be stored in `vCurrent` because `vNewNode` is in journal
   /// and is not connected to the tree.
-  vNewNode: VNode | null;
-  vSiblings: Map<string, VNode> | null;
+  $vNewNode$: VNode | null;
+  $vSiblings$: Map<string, VNode> | null;
   /// The array even indices will contains keys and odd indices the non keyed siblings.
-  vSiblingsArray: Array<string | VNode | null> | null;
+  $vSiblingsArray$: Array<string | VNode | null> | null;
   /// Side buffer to store nodes that are moved out of order during key scanning.
   /// This contains nodes that were found before the target key and need to be moved later.
-  vSideBuffer: Map<string, VNode> | null;
+  $vSideBuffer$: Map<string, VNode> | null;
   /// Current set of JSX children.
-  jsxChildren: JSXChildren[] | null;
+  $jsxChildren$: JSXChildren[] | null;
   // Current JSX child.
-  jsxValue: JSXChildren | null;
-  jsxIdx: number;
-  jsxCount: number;
+  $jsxValue$: JSXChildren | null;
+  $jsxIdx$: number;
+  $jsxCount$: number;
   // When we descend into children, we need to skip advance() because we just descended.
-  shouldAdvance: boolean;
-  isCreationMode: boolean;
-  subscriptionData: {
-    const: SubscriptionData;
-    var: SubscriptionData;
+  $shouldAdvance$: boolean;
+  $isCreationMode$: boolean;
+  $subscriptionData$: {
+    $const$: SubscriptionData;
+    $var$: SubscriptionData;
   };
 }
 
@@ -186,31 +186,31 @@ function createDiffContext(
   scopedStyleIdPrefix: string | null
 ): DiffContext {
   return {
-    container,
-    journal,
-    cursor,
-    scopedStyleIdPrefix,
-    stack: [],
-    asyncQueue: [],
-    asyncAttributePromises: [],
-    vParent: null!,
-    vCurrent: null,
-    vNewNode: null,
-    vSiblings: null,
-    vSiblingsArray: null,
-    vSideBuffer: null,
-    jsxChildren: null!,
-    jsxValue: null,
-    jsxIdx: 0,
-    jsxCount: 0,
-    shouldAdvance: true,
-    isCreationMode: false,
-    subscriptionData: {
-      const: new SubscriptionData({
+    $container$: container,
+    $journal$: journal,
+    $cursor$: cursor,
+    $scopedStyleIdPrefix$: scopedStyleIdPrefix,
+    $stack$: [],
+    $asyncQueue$: [],
+    $asyncAttributePromises$: [],
+    $vParent$: null!,
+    $vCurrent$: null,
+    $vNewNode$: null,
+    $vSiblings$: null,
+    $vSiblingsArray$: null,
+    $vSideBuffer$: null,
+    $jsxChildren$: null!,
+    $jsxValue$: null,
+    $jsxIdx$: 0,
+    $jsxCount$: 0,
+    $shouldAdvance$: true,
+    $isCreationMode$: false,
+    $subscriptionData$: {
+      $const$: new SubscriptionData({
         $scopedStyleIdPrefix$: scopedStyleIdPrefix,
         $isConst$: true,
       }),
-      var: new SubscriptionData({
+      $var$: new SubscriptionData({
         $scopedStyleIdPrefix$: scopedStyleIdPrefix,
         $isConst$: false,
       }),
@@ -249,59 +249,59 @@ export const vnode_diff = (
 function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode) {
   isDev && assertFalse(vnode_isVNode(jsxNode), 'JSXNode should not be a VNode');
   isDev && assertTrue(vnode_isVNode(vStartNode), 'vStartNode should be a VNode');
-  diffContext.vParent = vStartNode as ElementVNode | VirtualVNode;
-  diffContext.vNewNode = null;
-  diffContext.vCurrent = vnode_getFirstChild(vStartNode);
+  diffContext.$vParent$ = vStartNode as ElementVNode | VirtualVNode;
+  diffContext.$vNewNode$ = null;
+  diffContext.$vCurrent$ = vnode_getFirstChild(vStartNode);
   stackPush(diffContext, jsxNode, true);
 
-  if (diffContext.vParent.flags & VNodeFlags.Deleted) {
+  if (diffContext.$vParent$.flags & VNodeFlags.Deleted) {
     // Ignore diff if the parent is deleted.
     return;
   }
 
-  while (diffContext.stack.length) {
-    while (diffContext.jsxIdx < diffContext.jsxCount) {
+  while (diffContext.$stack$.length) {
+    while (diffContext.$jsxIdx$ < diffContext.$jsxCount$) {
       isDev &&
         assertFalse(
-          diffContext.vParent === diffContext.vCurrent,
+          diffContext.$vParent$ === diffContext.$vCurrent$,
           "Parent and current can't be the same"
         );
-      if (typeof diffContext.jsxValue === 'string') {
-        expectText(diffContext, diffContext.jsxValue);
-      } else if (typeof diffContext.jsxValue === 'number') {
-        expectText(diffContext, String(diffContext.jsxValue));
-      } else if (diffContext.jsxValue && typeof diffContext.jsxValue === 'object') {
-        if (isJSXNode(diffContext.jsxValue)) {
-          const type = diffContext.jsxValue.type;
+      if (typeof diffContext.$jsxValue$ === 'string') {
+        expectText(diffContext, diffContext.$jsxValue$);
+      } else if (typeof diffContext.$jsxValue$ === 'number') {
+        expectText(diffContext, String(diffContext.$jsxValue$));
+      } else if (diffContext.$jsxValue$ && typeof diffContext.$jsxValue$ === 'object') {
+        if (isJSXNode(diffContext.$jsxValue$)) {
+          const type = diffContext.$jsxValue$.type;
           if (typeof type === 'string') {
             expectNoTextNode(diffContext);
-            expectElement(diffContext, diffContext.jsxValue, type);
+            expectElement(diffContext, diffContext.$jsxValue$, type);
 
             const hasDangerousInnerHTML =
-              (diffContext.jsxValue.constProps &&
-                _hasOwnProperty.call(diffContext.jsxValue.constProps, dangerouslySetInnerHTML)) ||
-              _hasOwnProperty.call(diffContext.jsxValue.varProps, dangerouslySetInnerHTML);
+              (diffContext.$jsxValue$.constProps &&
+                _hasOwnProperty.call(diffContext.$jsxValue$.constProps, dangerouslySetInnerHTML)) ||
+              _hasOwnProperty.call(diffContext.$jsxValue$.varProps, dangerouslySetInnerHTML);
             if (hasDangerousInnerHTML) {
               expectNoChildren(diffContext, false);
             } else {
-              descend(diffContext, diffContext.jsxValue.children, true);
+              descend(diffContext, diffContext.$jsxValue$.children, true);
             }
           } else if (typeof type === 'function') {
             if (type === Fragment) {
               expectNoTextNode(diffContext);
-              expectVirtual(diffContext, VirtualType.Fragment, diffContext.jsxValue.key);
-              descend(diffContext, diffContext.jsxValue.children, true);
+              expectVirtual(diffContext, VirtualType.Fragment, diffContext.$jsxValue$.key);
+              descend(diffContext, diffContext.$jsxValue$.children, true);
             } else if (type === Slot) {
               expectNoTextNode(diffContext);
               if (!expectSlot(diffContext)) {
                 // nothing to project, so try to render the Slot default content.
-                descend(diffContext, diffContext.jsxValue.children, true);
+                descend(diffContext, diffContext.$jsxValue$.children, true);
               }
             } else if (type === Projection) {
               expectProjection(diffContext);
               descend(
                 diffContext,
-                diffContext.jsxValue.children,
+                diffContext.$jsxValue$.children,
                 true,
                 // special case for projection, we don't want to expect no children
                 // because the projection's children are not removed
@@ -317,15 +317,15 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
               expectComponent(diffContext, type);
             }
           }
-        } else if (Array.isArray(diffContext.jsxValue)) {
-          descend(diffContext, diffContext.jsxValue, false);
-        } else if (isSignal(diffContext.jsxValue)) {
+        } else if (Array.isArray(diffContext.$jsxValue$)) {
+          descend(diffContext, diffContext.$jsxValue$, false);
+        } else if (isSignal(diffContext.$jsxValue$)) {
           expectVirtual(diffContext, VirtualType.WrappedSignal, null);
           const unwrappedSignal =
-            diffContext.jsxValue instanceof WrappedSignalImpl
-              ? diffContext.jsxValue.$unwrapIfSignal$()
-              : diffContext.jsxValue;
-          const signals = diffContext.vCurrent?.[_EFFECT_BACK_REF]?.get(
+            diffContext.$jsxValue$ instanceof WrappedSignalImpl
+              ? diffContext.$jsxValue$.$unwrapIfSignal$()
+              : diffContext.$jsxValue$;
+          const signals = diffContext.$vCurrent$?.[_EFFECT_BACK_REF]?.get(
             EffectProperty.VNODE
           )?.backRef;
           let hasUnwrappedSignal = signals?.has(unwrappedSignal);
@@ -333,7 +333,7 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
             hasUnwrappedSignal = containsWrappedSignal(signals, unwrappedSignal);
           }
           if (!hasUnwrappedSignal) {
-            const vHost = (diffContext.vNewNode || diffContext.vCurrent)!;
+            const vHost = (diffContext.$vNewNode$ || diffContext.$vCurrent$)!;
             descend(
               diffContext,
               resolveSignalAndDescend(diffContext, () =>
@@ -341,20 +341,20 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
                   unwrappedSignal,
                   vHost,
                   EffectProperty.VNODE,
-                  diffContext.container
+                  diffContext.$container$
                 )
               ),
               true
             );
           }
-        } else if (isPromise(diffContext.jsxValue)) {
+        } else if (isPromise(diffContext.$jsxValue$)) {
           expectVirtual(diffContext, VirtualType.Awaited, null);
-          diffContext.asyncQueue.push(
-            diffContext.jsxValue,
-            diffContext.vNewNode || diffContext.vCurrent
+          diffContext.$asyncQueue$.push(
+            diffContext.$jsxValue$,
+            diffContext.$vNewNode$ || diffContext.$vCurrent$
           );
         }
-      } else if (diffContext.jsxValue === (SkipRender as JSXChildren)) {
+      } else if (diffContext.$jsxValue$ === (SkipRender as JSXChildren)) {
         // do nothing, we are skipping this node
       } else {
         expectText(diffContext, '');
@@ -378,7 +378,7 @@ function resolveSignalAndDescend(
     if (isPromise(e)) {
       // The thrown promise will resolve when the signal is ready, then retry fn() with retry logic
       const retryPromise = e.then(() => retryOnPromise(fn));
-      diffContext.asyncQueue.push(retryPromise, diffContext.vNewNode || diffContext.vCurrent);
+      diffContext.$asyncQueue$.push(retryPromise, diffContext.$vNewNode$ || diffContext.$vCurrent$);
       return null;
     }
     throw e;
@@ -386,28 +386,28 @@ function resolveSignalAndDescend(
 }
 
 function advance(diffContext: DiffContext) {
-  if (!diffContext.shouldAdvance) {
-    diffContext.shouldAdvance = true;
+  if (!diffContext.$shouldAdvance$) {
+    diffContext.$shouldAdvance$ = true;
     return;
   }
-  diffContext.jsxIdx++;
-  if (diffContext.jsxIdx < diffContext.jsxCount) {
-    diffContext.jsxValue = diffContext.jsxChildren![diffContext.jsxIdx];
+  diffContext.$jsxIdx$++;
+  if (diffContext.$jsxIdx$ < diffContext.$jsxCount$) {
+    diffContext.$jsxValue$ = diffContext.$jsxChildren$![diffContext.$jsxIdx$];
   } else if (
-    diffContext.stack.length > 0 &&
-    diffContext.stack[diffContext.stack.length - 1] === false
+    diffContext.$stack$.length > 0 &&
+    diffContext.$stack$[diffContext.$stack$.length - 1] === false
   ) {
     // this was special `descendVNode === false` so pop and try again
     return ascend(diffContext);
   }
-  if (diffContext.vNewNode !== null) {
+  if (diffContext.$vNewNode$ !== null) {
     // We have a new Node.
     // This means that the `vCurrent` was deemed not useful and we inserted in front of it.
     // This means that the next node we should look at is the `vCurrent` so just clear the
     // vNewNode  and try again.
-    diffContext.vNewNode = null;
+    diffContext.$vNewNode$ = null;
   } else {
-    diffContext.vCurrent = peekNextSibling(diffContext.vCurrent);
+    diffContext.$vCurrent$ = peekNextSibling(diffContext.$vCurrent$);
   }
 }
 
@@ -447,88 +447,88 @@ function descend(
   if (descendVNode) {
     isDev &&
       assertDefined(
-        diffContext.vCurrent || diffContext.vNewNode,
+        diffContext.$vCurrent$ || diffContext.$vNewNode$,
         'Expecting vCurrent to be defined.'
       );
     const creationMode =
-      diffContext.isCreationMode ||
-      !!diffContext.vNewNode ||
-      !vnode_getFirstChild(diffContext.vCurrent!);
+      diffContext.$isCreationMode$ ||
+      !!diffContext.$vNewNode$ ||
+      !vnode_getFirstChild(diffContext.$vCurrent$!);
 
-    diffContext.isCreationMode = creationMode;
-    diffContext.vSideBuffer = null;
-    diffContext.vSiblings = null;
-    diffContext.vSiblingsArray = null;
-    diffContext.vParent = (diffContext.vNewNode || diffContext.vCurrent!) as
+    diffContext.$isCreationMode$ = creationMode;
+    diffContext.$vSideBuffer$ = null;
+    diffContext.$vSiblings$ = null;
+    diffContext.$vSiblingsArray$ = null;
+    diffContext.$vParent$ = (diffContext.$vNewNode$ || diffContext.$vCurrent$!) as
       | ElementVNode
       | VirtualVNode;
-    diffContext.vCurrent = vnode_getFirstChild(diffContext.vParent!);
-    diffContext.vNewNode = null;
+    diffContext.$vCurrent$ = vnode_getFirstChild(diffContext.$vParent$!);
+    diffContext.$vNewNode$ = null;
   }
-  diffContext.shouldAdvance = false;
+  diffContext.$shouldAdvance$ = false;
 }
 
 function ascend(diffContext: DiffContext) {
-  const descendVNode = diffContext.stack.pop(); // boolean: descendVNode
+  const descendVNode = diffContext.$stack$.pop(); // boolean: descendVNode
   if (descendVNode) {
-    diffContext.isCreationMode = diffContext.stack.pop();
-    diffContext.vSideBuffer = diffContext.stack.pop();
-    diffContext.vSiblings = diffContext.stack.pop();
-    diffContext.vSiblingsArray = diffContext.stack.pop();
-    diffContext.vNewNode = diffContext.stack.pop();
-    diffContext.vCurrent = diffContext.stack.pop();
-    diffContext.vParent = diffContext.stack.pop();
+    diffContext.$isCreationMode$ = diffContext.$stack$.pop();
+    diffContext.$vSideBuffer$ = diffContext.$stack$.pop();
+    diffContext.$vSiblings$ = diffContext.$stack$.pop();
+    diffContext.$vSiblingsArray$ = diffContext.$stack$.pop();
+    diffContext.$vNewNode$ = diffContext.$stack$.pop();
+    diffContext.$vCurrent$ = diffContext.$stack$.pop();
+    diffContext.$vParent$ = diffContext.$stack$.pop();
   }
-  diffContext.jsxValue = diffContext.stack.pop();
-  diffContext.jsxCount = diffContext.stack.pop();
-  diffContext.jsxIdx = diffContext.stack.pop();
-  diffContext.jsxChildren = diffContext.stack.pop();
+  diffContext.$jsxValue$ = diffContext.$stack$.pop();
+  diffContext.$jsxCount$ = diffContext.$stack$.pop();
+  diffContext.$jsxIdx$ = diffContext.$stack$.pop();
+  diffContext.$jsxChildren$ = diffContext.$stack$.pop();
   advance(diffContext);
 }
 
 function stackPush(diffContext: DiffContext, children: JSXChildren, descendVNode: boolean) {
-  diffContext.stack.push(
-    diffContext.jsxChildren,
-    diffContext.jsxIdx,
-    diffContext.jsxCount,
-    diffContext.jsxValue
+  diffContext.$stack$.push(
+    diffContext.$jsxChildren$,
+    diffContext.$jsxIdx$,
+    diffContext.$jsxCount$,
+    diffContext.$jsxValue$
   );
   if (descendVNode) {
-    diffContext.stack.push(
-      diffContext.vParent,
-      diffContext.vCurrent,
-      diffContext.vNewNode,
-      diffContext.vSiblingsArray,
-      diffContext.vSiblings,
-      diffContext.vSideBuffer,
-      diffContext.isCreationMode
+    diffContext.$stack$.push(
+      diffContext.$vParent$,
+      diffContext.$vCurrent$,
+      diffContext.$vNewNode$,
+      diffContext.$vSiblingsArray$,
+      diffContext.$vSiblings$,
+      diffContext.$vSideBuffer$,
+      diffContext.$isCreationMode$
     );
   }
-  diffContext.stack.push(descendVNode);
+  diffContext.$stack$.push(descendVNode);
   if (Array.isArray(children)) {
-    diffContext.jsxIdx = 0;
-    diffContext.jsxCount = children.length;
-    diffContext.jsxChildren = children;
-    diffContext.jsxValue = diffContext.jsxCount > 0 ? children[0] : null;
+    diffContext.$jsxIdx$ = 0;
+    diffContext.$jsxCount$ = children.length;
+    diffContext.$jsxChildren$ = children;
+    diffContext.$jsxValue$ = diffContext.$jsxCount$ > 0 ? children[0] : null;
   } else if (children === undefined) {
     // no children
-    diffContext.jsxIdx = 0;
-    diffContext.jsxValue = null;
-    diffContext.jsxChildren = null!;
-    diffContext.jsxCount = 0;
+    diffContext.$jsxIdx$ = 0;
+    diffContext.$jsxValue$ = null;
+    diffContext.$jsxChildren$ = null!;
+    diffContext.$jsxCount$ = 0;
   } else {
-    diffContext.jsxIdx = 0;
-    diffContext.jsxValue = children;
-    diffContext.jsxChildren = null!;
-    diffContext.jsxCount = 1;
+    diffContext.$jsxIdx$ = 0;
+    diffContext.$jsxValue$ = children;
+    diffContext.$jsxChildren$ = null!;
+    diffContext.$jsxCount$ = 1;
   }
 }
 
 function getInsertBefore(diffContext: DiffContext) {
-  if (diffContext.vNewNode) {
-    return diffContext.vCurrent;
+  if (diffContext.$vNewNode$) {
+    return diffContext.$vCurrent$;
   } else {
-    return peekNextSibling(diffContext.vCurrent);
+    return peekNextSibling(diffContext.$vCurrent$);
   }
 }
 
@@ -591,37 +591,37 @@ function descendContentToProject(
 }
 
 function expectProjection(diffContext: DiffContext) {
-  const jsxNode = diffContext.jsxValue as JSXNodeInternal;
+  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   const slotName = jsxNode.key as string;
   // console.log('expectProjection', JSON.stringify(slotName));
   // The parent is the component and it should have our portal.
-  diffContext.vCurrent = vnode_getProp<VNode | null>(
-    diffContext.vParent as VirtualVNode,
+  diffContext.$vCurrent$ = vnode_getProp<VNode | null>(
+    diffContext.$vParent$ as VirtualVNode,
     slotName,
-    (id: string) => vnode_locate(diffContext.container.rootVNode, id)
+    (id: string) => vnode_locate(diffContext.$container$.rootVNode, id)
   );
   // if projection is marked as deleted then we need to create a new one
-  diffContext.vCurrent =
-    diffContext.vCurrent && diffContext.vCurrent.flags & VNodeFlags.Deleted
+  diffContext.$vCurrent$ =
+    diffContext.$vCurrent$ && diffContext.$vCurrent$.flags & VNodeFlags.Deleted
       ? null
-      : diffContext.vCurrent;
-  if (diffContext.vCurrent == null) {
-    diffContext.vNewNode = vnode_newVirtual();
+      : diffContext.$vCurrent$;
+  if (diffContext.$vCurrent$ == null) {
+    diffContext.$vNewNode$ = vnode_newVirtual();
     // you may be tempted to add the projection into the current parent, but
     // that is wrong. We don't yet know if the projection will be projected, so
     // we should leave it unattached.
     // vNewNode[VNodeProps.parent] = vParent;
     isDev &&
-      vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
-    isDev && vnode_setProp(diffContext.vNewNode as VirtualVNode, 'q:code', 'expectProjection');
-    vnode_setProp(diffContext.vNewNode as VirtualVNode, QSlot, slotName);
-    (diffContext.vNewNode as VirtualVNode).slotParent = diffContext.vParent;
-    vnode_setProp(diffContext.vParent as VirtualVNode, slotName, diffContext.vNewNode);
+      vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
+    isDev && vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, 'q:code', 'expectProjection');
+    vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotName);
+    (diffContext.$vNewNode$ as VirtualVNode).slotParent = diffContext.$vParent$;
+    vnode_setProp(diffContext.$vParent$ as VirtualVNode, slotName, diffContext.$vNewNode$);
   }
 }
 
 function expectSlot(diffContext: DiffContext) {
-  const vHost = vnode_getProjectionParentComponent(diffContext.vParent);
+  const vHost = vnode_getProjectionParentComponent(diffContext.$vParent$);
 
   const slotNameKey = getSlotNameKey(diffContext, vHost);
 
@@ -636,34 +636,37 @@ function expectSlot(diffContext: DiffContext) {
     : null;
 
   if (vProjectedNode == null) {
-    diffContext.vNewNode = vnode_newVirtual();
-    vnode_setProp(diffContext.vNewNode as VirtualVNode, QSlot, slotNameKey);
-    vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.vNewNode);
+    diffContext.$vNewNode$ = vnode_newVirtual();
+    vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
+    vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
-      vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection); // Nothing to project, so render content of the slot.
+      vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection); // Nothing to project, so render content of the slot.
     vnode_insertBefore(
-      diffContext.journal,
-      diffContext.vParent as ElementVNode | VirtualVNode,
-      diffContext.vNewNode,
-      diffContext.vCurrent && getInsertBefore(diffContext)
+      diffContext.$journal$,
+      diffContext.$vParent$ as ElementVNode | VirtualVNode,
+      diffContext.$vNewNode$,
+      diffContext.$vCurrent$ && getInsertBefore(diffContext)
     );
     return false;
-  } else if (vProjectedNode === diffContext.vCurrent) {
+  } else if (vProjectedNode === diffContext.$vCurrent$) {
     // All is good.
   } else {
     // move from q:template to the target node
     const oldParent = vProjectedNode.parent;
-    diffContext.vNewNode = vProjectedNode;
-    vnode_setProp(diffContext.vNewNode as VirtualVNode, QSlot, slotNameKey);
-    vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.vNewNode);
+    diffContext.$vNewNode$ = vProjectedNode;
+    vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
+    vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
-      vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
-    vnode_inflateProjectionTrailingText(diffContext.journal, diffContext.vNewNode as VirtualVNode);
+      vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
+    vnode_inflateProjectionTrailingText(
+      diffContext.$journal$,
+      diffContext.$vNewNode$ as VirtualVNode
+    );
     vnode_insertBefore(
-      diffContext.journal,
-      diffContext.vParent as ElementVNode | VirtualVNode,
-      diffContext.vNewNode,
-      diffContext.vCurrent && getInsertBefore(diffContext)
+      diffContext.$journal$,
+      diffContext.$vParent$ as ElementVNode | VirtualVNode,
+      diffContext.$vNewNode$,
+      diffContext.$vCurrent$ && getInsertBefore(diffContext)
     );
 
     // If we moved from a q:template and it's now empty, remove it
@@ -674,7 +677,7 @@ function expectSlot(diffContext: DiffContext) {
       vnode_getElementName(oldParent) === QTemplate
     ) {
       vnode_remove(
-        diffContext.journal,
+        diffContext.$journal$,
         oldParent.parent as ElementVNode | VirtualVNode,
         oldParent,
         true
@@ -685,7 +688,7 @@ function expectSlot(diffContext: DiffContext) {
 }
 
 function getSlotNameKey(diffContext: DiffContext, vHost: VNode | null) {
-  const jsxNode = diffContext.jsxValue as JSXNodeInternal;
+  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   const constProps = jsxNode.constProps;
   if (constProps && typeof constProps == 'object' && _hasOwnProperty.call(constProps, 'name')) {
     const constValue = constProps.name;
@@ -694,7 +697,7 @@ function getSlotNameKey(diffContext: DiffContext, vHost: VNode | null) {
         constValue,
         vHost,
         EffectProperty.COMPONENT,
-        diffContext.container
+        diffContext.$container$
       );
     }
   }
@@ -702,25 +705,25 @@ function getSlotNameKey(diffContext: DiffContext, vHost: VNode | null) {
 }
 
 function cleanupSideBuffer(diffContext: DiffContext) {
-  if (diffContext.vSideBuffer) {
+  if (diffContext.$vSideBuffer$) {
     // Remove all nodes in the side buffer as they are no longer needed
-    for (const vNode of diffContext.vSideBuffer.values()) {
+    for (const vNode of diffContext.$vSideBuffer$.values()) {
       if (vNode.flags & VNodeFlags.Deleted) {
         continue;
       }
-      cleanup(diffContext.container, diffContext.journal, vNode, diffContext.cursor);
-      vnode_remove(diffContext.journal, diffContext.vParent, vNode, true);
+      cleanup(diffContext.$container$, diffContext.$journal$, vNode, diffContext.$cursor$);
+      vnode_remove(diffContext.$journal$, diffContext.$vParent$, vNode, true);
     }
-    diffContext.vSideBuffer.clear();
-    diffContext.vSideBuffer = null;
+    diffContext.$vSideBuffer$.clear();
+    diffContext.$vSideBuffer$ = null;
   }
-  diffContext.vCurrent = null;
+  diffContext.$vCurrent$ = null;
 }
 
 function drainAsyncQueue(diffContext: DiffContext): ValueOrPromise<void> {
-  while (diffContext.asyncQueue.length) {
-    const jsxNode = diffContext.asyncQueue.shift() as ValueOrPromise<JSXChildren>;
-    const vHostNode = diffContext.asyncQueue.shift() as VNode;
+  while (diffContext.$asyncQueue$.length) {
+    const jsxNode = diffContext.$asyncQueue$.shift() as ValueOrPromise<JSXChildren>;
+    const vHostNode = diffContext.$asyncQueue$.shift() as VNode;
 
     if (isPromise(jsxNode)) {
       return jsxNode
@@ -729,7 +732,7 @@ function drainAsyncQueue(diffContext: DiffContext): ValueOrPromise<void> {
           return drainAsyncQueue(diffContext);
         })
         .catch((e) => {
-          diffContext.container.handleError(e, vHostNode);
+          diffContext.$container$.handleError(e, vHostNode);
           return drainAsyncQueue(diffContext);
         });
     } else {
@@ -737,8 +740,8 @@ function drainAsyncQueue(diffContext: DiffContext): ValueOrPromise<void> {
     }
   }
   // Wait for all async attribute promises to complete, then check for more work
-  if (diffContext.asyncAttributePromises.length) {
-    const promises = diffContext.asyncAttributePromises.splice(0);
+  if (diffContext.$asyncAttributePromises$.length) {
+    const promises = diffContext.$asyncAttributePromises$.splice(0);
     return Promise.all(promises).then(() => {
       // After attributes are set, check if there's more work in the queue
       return drainAsyncQueue(diffContext);
@@ -747,21 +750,21 @@ function drainAsyncQueue(diffContext: DiffContext): ValueOrPromise<void> {
 }
 
 function cleanupDiffContext(diffContext: DiffContext): void {
-  diffContext.journal = null!;
-  diffContext.cursor = null!;
+  diffContext.$journal$ = null!;
+  diffContext.$cursor$ = null!;
 }
 
 function expectNoChildren(diffContext: DiffContext, removeDOM = true) {
-  const vFirstChild = diffContext.vCurrent && vnode_getFirstChild(diffContext.vCurrent);
+  const vFirstChild = diffContext.$vCurrent$ && vnode_getFirstChild(diffContext.$vCurrent$);
   if (vFirstChild !== null) {
     let vChild: VNode | null = vFirstChild;
     while (vChild) {
-      cleanup(diffContext.container, diffContext.journal, vChild, diffContext.cursor);
+      cleanup(diffContext.$container$, diffContext.$journal$, vChild, diffContext.$cursor$);
       vChild = vChild.nextSibling as VNode | null;
     }
     vnode_truncate(
-      diffContext.journal,
-      diffContext.vCurrent as ElementVNode | VirtualVNode,
+      diffContext.$journal$,
+      diffContext.$vCurrent$ as ElementVNode | VirtualVNode,
       vFirstChild,
       removeDOM
     );
@@ -772,28 +775,28 @@ function expectNoChildren(diffContext: DiffContext, removeDOM = true) {
 function expectNoMore(diffContext: DiffContext) {
   isDev &&
     assertFalse(
-      diffContext.vParent === diffContext.vCurrent,
+      diffContext.$vParent$ === diffContext.$vCurrent$,
       "Parent and current can't be the same"
     );
-  if (diffContext.vCurrent !== null) {
-    while (diffContext.vCurrent) {
-      const toRemove = diffContext.vCurrent;
-      diffContext.vCurrent = peekNextSibling(diffContext.vCurrent);
-      if (diffContext.vParent === toRemove.parent) {
-        cleanup(diffContext.container, diffContext.journal, toRemove, diffContext.cursor);
+  if (diffContext.$vCurrent$ !== null) {
+    while (diffContext.$vCurrent$) {
+      const toRemove = diffContext.$vCurrent$;
+      diffContext.$vCurrent$ = peekNextSibling(diffContext.$vCurrent$);
+      if (diffContext.$vParent$ === toRemove.parent) {
+        cleanup(diffContext.$container$, diffContext.$journal$, toRemove, diffContext.$cursor$);
         // If we are diffing projection than the parent is not the parent of the node.
         // If that is the case we don't want to remove the node from the parent.
-        vnode_remove(diffContext.journal, diffContext.vParent, toRemove, true);
+        vnode_remove(diffContext.$journal$, diffContext.$vParent$, toRemove, true);
       }
     }
   }
 }
 
 function expectNoTextNode(diffContext: DiffContext) {
-  if (diffContext.vCurrent !== null && vnode_isTextVNode(diffContext.vCurrent)) {
-    const toRemove = diffContext.vCurrent;
-    diffContext.vCurrent = peekNextSibling(diffContext.vCurrent);
-    vnode_remove(diffContext.journal, diffContext.vParent, toRemove, true);
+  if (diffContext.$vCurrent$ !== null && vnode_isTextVNode(diffContext.$vCurrent$)) {
+    const toRemove = diffContext.$vCurrent$;
+    diffContext.$vCurrent$ = peekNextSibling(diffContext.$vCurrent$);
+    vnode_remove(diffContext.$journal$, diffContext.$vParent$, toRemove, true);
   }
 }
 
@@ -816,7 +819,7 @@ function createNewElement(
           key,
           value,
           element,
-          diffContext.vNewNode as ElementVNode,
+          diffContext.$vNewNode$ as ElementVNode,
           diffContext
         );
 
@@ -838,30 +841,30 @@ function createNewElement(
       }
 
       if (isSignal(value)) {
-        const vHost = diffContext.vNewNode as ElementVNode;
+        const vHost = diffContext.$vNewNode$ as ElementVNode;
         const signal = value as Signal<unknown>;
         value = retryOnPromise(() =>
           trackSignalAndAssignHost(
             signal,
             vHost,
             key,
-            diffContext.container,
-            diffContext.subscriptionData.const
+            diffContext.$container$,
+            diffContext.$subscriptionData$.$const$
           )
         );
       }
 
       if (isPromise(value)) {
-        const vHost = diffContext.vNewNode as ElementVNode;
+        const vHost = diffContext.$vNewNode$ as ElementVNode;
         const attributePromise = value.then((resolvedValue) =>
           directSetAttribute(
             element,
             key,
-            serializeAttribute(key, resolvedValue, diffContext.scopedStyleIdPrefix),
+            serializeAttribute(key, resolvedValue, diffContext.$scopedStyleIdPrefix$),
             (vHost.flags & VNodeFlags.NS_svg) !== 0
           )
         );
-        diffContext.asyncAttributePromises.push(attributePromise);
+        diffContext.$asyncAttributePromises$.push(attributePromise);
         continue;
       }
 
@@ -887,31 +890,31 @@ function createNewElement(
       directSetAttribute(
         element,
         key,
-        serializeAttribute(key, value, diffContext.scopedStyleIdPrefix),
-        ((diffContext.vNewNode as ElementVNode).flags & VNodeFlags.NS_svg) !== 0
+        serializeAttribute(key, value, diffContext.$scopedStyleIdPrefix$),
+        ((diffContext.$vNewNode$ as ElementVNode).flags & VNodeFlags.NS_svg) !== 0
       );
     }
   }
   const key = jsx.key;
   if (key) {
-    (diffContext.vNewNode as ElementVNode).key = key;
+    (diffContext.$vNewNode$ as ElementVNode).key = key;
   }
 
   // append class attribute if styleScopedId exists and there is no class attribute
-  if (diffContext.scopedStyleIdPrefix) {
+  if (diffContext.$scopedStyleIdPrefix$) {
     const classAttributeExists =
       _hasOwnProperty.call(jsx.varProps, 'class') ||
       (jsx.constProps && _hasOwnProperty.call(jsx.constProps, 'class'));
     if (!classAttributeExists) {
-      element.setAttribute('class', diffContext.scopedStyleIdPrefix);
+      element.setAttribute('class', diffContext.$scopedStyleIdPrefix$);
     }
   }
 
   vnode_insertElementBefore(
-    diffContext.journal,
-    diffContext.vParent as ElementVNode,
-    diffContext.vNewNode as ElementVNode,
-    diffContext.vCurrent
+    diffContext.$journal$,
+    diffContext.$vParent$ as ElementVNode,
+    diffContext.$vNewNode$ as ElementVNode,
+    diffContext.$vCurrent$
   );
 }
 
@@ -951,35 +954,36 @@ function registerEventHandlers(
   // window and document events need attrs so qwik loader can find them
   // TODO only do these when not already present
   if (key.charAt(2) !== 'e') {
-    vnode_setAttr(diffContext.journal, vnode, key, '');
+    vnode_setAttr(diffContext.$journal$, vnode, key, '');
   }
   registerQwikLoaderEvent(diffContext, scopedKebabName);
 }
 
 function createElementWithNamespace(diffContext: DiffContext, elementName: string): Element {
-  const domParentVNode = vnode_getDomParentVNode(diffContext.vParent, true);
+  const domParentVNode = vnode_getDomParentVNode(diffContext.$vParent$, true);
   const namespaceData = getNewElementNamespaceData(domParentVNode, elementName);
 
-  const currentDocument = import.meta.env.TEST ? diffContext.container.document : document;
+  const currentDocument = import.meta.env.TEST ? diffContext.$container$.document : document;
 
   const element =
     namespaceData.elementNamespaceFlag === VNodeFlags.NS_html
       ? currentDocument.createElement(elementName)
       : currentDocument.createElementNS(namespaceData.elementNamespace, elementName);
-  diffContext.vNewNode = vnode_newElement(element, elementName);
-  diffContext.vNewNode.flags |= namespaceData.elementNamespaceFlag;
+  diffContext.$vNewNode$ = vnode_newElement(element, elementName);
+  diffContext.$vNewNode$.flags |= namespaceData.elementNamespaceFlag;
   return element;
 }
 
 function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementName: string) {
-  if (diffContext.isCreationMode) {
+  if (diffContext.$isCreationMode$) {
     createNewElement(diffContext, jsx, elementName, null);
   } else {
-    const isElementVNode = diffContext.vCurrent && vnode_isElementVNode(diffContext.vCurrent);
+    const isElementVNode = diffContext.$vCurrent$ && vnode_isElementVNode(diffContext.$vCurrent$);
     const isSameElementName =
-      isElementVNode && elementName === vnode_getElementName(diffContext.vCurrent as ElementVNode);
+      isElementVNode &&
+      elementName === vnode_getElementName(diffContext.$vCurrent$ as ElementVNode);
     const jsxKey: string | null = jsx.key;
-    const currentKey = isElementVNode && (diffContext.vCurrent as ElementVNode).key;
+    const currentKey = isElementVNode && (diffContext.$vCurrent$ as ElementVNode).key;
     if (!isSameElementName || jsxKey !== currentKey) {
       const sideBufferKey = getSideBufferKey(elementName, jsxKey);
       if (
@@ -988,7 +992,7 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
           elementName,
           jsxKey,
           sideBufferKey,
-          diffContext.vParent as ElementVNode
+          diffContext.$vParent$ as ElementVNode
         )
       ) {
         createNewElement(diffContext, jsx, elementName, null);
@@ -1002,7 +1006,7 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
   // reconcile attributes
 
   const jsxProps = jsx.varProps;
-  const vNode = (diffContext.vNewNode || diffContext.vCurrent) as ElementVNode;
+  const vNode = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as ElementVNode;
 
   if (jsxProps) {
     diffProps(diffContext, vNode, jsxProps, (isDev && getFileLocationFromJsx(jsx.dev)) || null);
@@ -1015,9 +1019,9 @@ function diffProps(
   newAttrs: Record<string, any>,
   currentFile: string | null
 ) {
-  if (!diffContext.isCreationMode) {
+  if (!diffContext.$isCreationMode$) {
     // inflate only resumed vnodes
-    vnode_ensureElementInflated(diffContext.container, vnode);
+    vnode_ensureElementInflated(diffContext.$container$, vnode);
   }
   const oldAttrs = vnode.props;
 
@@ -1104,7 +1108,7 @@ const patchProperty = (
       return;
     }
     if (currentEffect) {
-      clearEffectSubscription(diffContext.container, currentEffect);
+      clearEffectSubscription(diffContext.$container$, currentEffect);
     }
 
     const vHost = vnode as ElementVNode;
@@ -1113,13 +1117,13 @@ const patchProperty = (
         unwrappedSignal,
         vHost,
         key,
-        diffContext.container,
-        diffContext.subscriptionData.var
+        diffContext.$container$,
+        diffContext.$subscriptionData$.$var$
       )
     );
   } else {
     if (currentEffect) {
-      clearEffectSubscription(diffContext.container, currentEffect);
+      clearEffectSubscription(diffContext.$container$, currentEffect);
     }
   }
 
@@ -1127,31 +1131,31 @@ const patchProperty = (
     const vHost = vnode as ElementVNode;
     const attributePromise = value.then((resolvedValue) => {
       setAttribute(
-        diffContext.journal,
+        diffContext.$journal$,
         vHost,
         key,
         resolvedValue,
-        diffContext.scopedStyleIdPrefix,
+        diffContext.$scopedStyleIdPrefix$,
         originalValue
       );
     });
-    diffContext.asyncAttributePromises.push(attributePromise);
+    diffContext.$asyncAttributePromises$.push(attributePromise);
     return;
   }
 
   setAttribute(
-    diffContext.journal,
+    diffContext.$journal$,
     vnode,
     key,
     value,
-    diffContext.scopedStyleIdPrefix,
+    diffContext.$scopedStyleIdPrefix$,
     originalValue
   );
 };
 
 function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
   const qWindow = import.meta.env.TEST
-    ? (diffContext.container.document.defaultView as qWindow | null)
+    ? (diffContext.$container$.document.defaultView as qWindow | null)
     : (window as unknown as qWindow);
   if (qWindow) {
     (qWindow._qwikEv ||= [] as any).push(eventName);
@@ -1164,55 +1168,55 @@ function retrieveChildWithKey(
   key: string | null
 ): ElementVNode | VirtualVNode | null {
   let vNodeWithKey: ElementVNode | VirtualVNode | null = null;
-  if (diffContext.vSiblings === null) {
+  if (diffContext.$vSiblings$ === null) {
     // check if the current node is the one we are looking for
-    const vCurrent = diffContext.vCurrent;
+    const vCurrent = diffContext.$vCurrent$;
     if (vCurrent) {
       const name = vnode_isElementVNode(vCurrent) ? vnode_getElementName(vCurrent) : null;
       const vKey =
         getKey(vCurrent as VirtualVNode | ElementVNode | TextVNode | null) ||
-        getComponentHash(vCurrent, diffContext.container.$getObjectById$);
+        getComponentHash(vCurrent, diffContext.$container$.$getObjectById$);
       if (vKey === key && name === nodeName) {
         return vCurrent as ElementVNode | VirtualVNode;
       }
     }
 
     // it is not materialized; so materialize it.
-    diffContext.vSiblings = new Map<string, VNode>();
-    diffContext.vSiblingsArray = [];
-    let vNode = diffContext.vCurrent;
+    diffContext.$vSiblings$ = new Map<string, VNode>();
+    diffContext.$vSiblingsArray$ = [];
+    let vNode = diffContext.$vCurrent$;
     while (vNode) {
       const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
       const vKey =
         getKey(vNode as VirtualVNode | ElementVNode | TextVNode | null) ||
-        getComponentHash(vNode, diffContext.container.$getObjectById$);
+        getComponentHash(vNode, diffContext.$container$.$getObjectById$);
       if (vNodeWithKey === null && vKey == key && name == nodeName) {
         vNodeWithKey = vNode as ElementVNode | VirtualVNode;
       } else {
         if (vKey === null) {
-          diffContext.vSiblingsArray.push(name, vNode);
+          diffContext.$vSiblingsArray$.push(name, vNode);
         } else {
           // we only add the elements which we did not find yet.
-          diffContext.vSiblings.set(getSideBufferKey(name, vKey), vNode);
+          diffContext.$vSiblings$.set(getSideBufferKey(name, vKey), vNode);
         }
       }
       vNode = vNode.nextSibling as VNode | null;
     }
   } else {
     if (key === null) {
-      for (let i = 0; i < diffContext.vSiblingsArray!.length; i += 2) {
-        if (diffContext.vSiblingsArray![i] === nodeName) {
-          vNodeWithKey = diffContext.vSiblingsArray![i + 1] as ElementVNode | VirtualVNode;
-          diffContext.vSiblingsArray!.splice(i, 2);
+      for (let i = 0; i < diffContext.$vSiblingsArray$!.length; i += 2) {
+        if (diffContext.$vSiblingsArray$![i] === nodeName) {
+          vNodeWithKey = diffContext.$vSiblingsArray$![i + 1] as ElementVNode | VirtualVNode;
+          diffContext.$vSiblingsArray$!.splice(i, 2);
           break;
         }
       }
     } else {
       const siblingsKey = getSideBufferKey(nodeName, key);
-      const sibling = diffContext.vSiblings.get(siblingsKey);
+      const sibling = diffContext.$vSiblings$.get(siblingsKey);
       if (sibling) {
         vNodeWithKey = sibling as ElementVNode | VirtualVNode;
-        diffContext.vSiblings.delete(siblingsKey);
+        diffContext.$vSiblings$.delete(siblingsKey);
       }
     }
   }
@@ -1224,18 +1228,18 @@ function retrieveChildWithKey(
 
 function collectSideBufferSiblings(diffContext: DiffContext, targetNode: VNode | null): void {
   if (!targetNode) {
-    if (diffContext.vCurrent) {
-      const name = vnode_isElementVNode(diffContext.vCurrent)
-        ? vnode_getElementName(diffContext.vCurrent)
+    if (diffContext.$vCurrent$) {
+      const name = vnode_isElementVNode(diffContext.$vCurrent$)
+        ? vnode_getElementName(diffContext.$vCurrent$)
         : null;
       const vKey =
-        getKey(diffContext.vCurrent as VirtualVNode | ElementVNode | TextVNode | null) ||
-        getComponentHash(diffContext.vCurrent, diffContext.container.$getObjectById$);
+        getKey(diffContext.$vCurrent$ as VirtualVNode | ElementVNode | TextVNode | null) ||
+        getComponentHash(diffContext.$vCurrent$, diffContext.$container$.$getObjectById$);
       if (vKey != null) {
         const sideBufferKey = getSideBufferKey(name, vKey);
-        diffContext.vSideBuffer ||= new Map();
-        diffContext.vSideBuffer.set(sideBufferKey, diffContext.vCurrent);
-        diffContext.vSiblings?.delete(sideBufferKey);
+        diffContext.$vSideBuffer$ ||= new Map();
+        diffContext.$vSideBuffer$.set(sideBufferKey, diffContext.$vCurrent$);
+        diffContext.$vSiblings$?.delete(sideBufferKey);
       }
     }
 
@@ -1243,18 +1247,18 @@ function collectSideBufferSiblings(diffContext: DiffContext, targetNode: VNode |
   }
 
   // Walk from vCurrent up to the target node and collect all keyed siblings
-  let vNode = diffContext.vCurrent;
+  let vNode = diffContext.$vCurrent$;
   while (vNode && vNode !== targetNode) {
     const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
     const vKey =
       getKey(vNode as VirtualVNode | ElementVNode | TextVNode | null) ||
-      getComponentHash(vNode, diffContext.container.$getObjectById$);
+      getComponentHash(vNode, diffContext.$container$.$getObjectById$);
 
     if (vKey != null) {
       const sideBufferKey = getSideBufferKey(name, vKey);
-      diffContext.vSideBuffer ||= new Map();
-      diffContext.vSideBuffer.set(sideBufferKey, vNode);
-      diffContext.vSiblings?.delete(sideBufferKey);
+      diffContext.$vSideBuffer$ ||= new Map();
+      diffContext.$vSideBuffer$.set(sideBufferKey, vNode);
+      diffContext.$vSiblings$?.delete(sideBufferKey);
     }
 
     vNode = vNode.nextSibling as VNode | null;
@@ -1276,8 +1280,8 @@ function deleteFromSideBuffer(
   key: string | null
 ): boolean {
   const sbKey = getSideBufferKey(nodeName, key);
-  if (sbKey && diffContext.vSideBuffer?.has(sbKey)) {
-    diffContext.vSideBuffer.delete(sbKey);
+  if (sbKey && diffContext.$vSideBuffer$?.has(sbKey)) {
+    diffContext.$vSideBuffer$.delete(sbKey);
     return true;
   }
   return false;
@@ -1303,53 +1307,53 @@ function moveOrCreateKeyedNode(
   addCurrentToSideBufferOnSideInsert?: boolean
 ): boolean {
   // 1) Try to find the node among upcoming siblings
-  diffContext.vNewNode = retrieveChildWithKey(diffContext, nodeName, lookupKey);
+  diffContext.$vNewNode$ = retrieveChildWithKey(diffContext, nodeName, lookupKey);
 
-  if (diffContext.vNewNode) {
+  if (diffContext.$vNewNode$) {
     if (!sideBufferKey) {
       vnode_insertBefore(
-        diffContext.journal,
+        diffContext.$journal$,
         parentForInsert as ElementVNode | VirtualVNode,
-        diffContext.vNewNode,
-        diffContext.vCurrent
+        diffContext.$vNewNode$,
+        diffContext.$vCurrent$
       );
     }
-    diffContext.vCurrent = diffContext.vNewNode;
-    diffContext.vNewNode = null;
+    diffContext.$vCurrent$ = diffContext.$vNewNode$;
+    diffContext.$vNewNode$ = null;
     return false;
   }
 
   // 2) Try side buffer
   if (sideBufferKey != null) {
-    const buffered = diffContext.vSideBuffer?.get(sideBufferKey) || null;
+    const buffered = diffContext.$vSideBuffer$?.get(sideBufferKey) || null;
     if (buffered) {
-      diffContext.vSideBuffer!.delete(sideBufferKey);
-      if (addCurrentToSideBufferOnSideInsert && diffContext.vCurrent) {
+      diffContext.$vSideBuffer$!.delete(sideBufferKey);
+      if (addCurrentToSideBufferOnSideInsert && diffContext.$vCurrent$) {
         const currentKey =
-          getKey(diffContext.vCurrent as VirtualVNode | ElementVNode | TextVNode | null) ||
-          getComponentHash(diffContext.vCurrent, diffContext.container.$getObjectById$);
+          getKey(diffContext.$vCurrent$ as VirtualVNode | ElementVNode | TextVNode | null) ||
+          getComponentHash(diffContext.$vCurrent$, diffContext.$container$.$getObjectById$);
         if (currentKey != null) {
-          const currentName = vnode_isElementVNode(diffContext.vCurrent)
-            ? vnode_getElementName(diffContext.vCurrent)
+          const currentName = vnode_isElementVNode(diffContext.$vCurrent$)
+            ? vnode_getElementName(diffContext.$vCurrent$)
             : null;
           const currentSideKey = getSideBufferKey(currentName, currentKey);
           if (currentSideKey != null) {
-            diffContext.vSideBuffer ||= new Map();
-            diffContext.vSideBuffer.set(currentSideKey, diffContext.vCurrent);
+            diffContext.$vSideBuffer$ ||= new Map();
+            diffContext.$vSideBuffer$.set(currentSideKey, diffContext.$vCurrent$);
           }
         }
       }
       // Only move if the node is not already in the correct position
-      if (buffered !== diffContext.vCurrent) {
+      if (buffered !== diffContext.$vCurrent$) {
         vnode_insertBefore(
-          diffContext.journal,
+          diffContext.$journal$,
           parentForInsert as ElementVNode | VirtualVNode,
           buffered,
-          diffContext.vCurrent
+          diffContext.$vCurrent$
         );
       }
-      diffContext.vCurrent = buffered;
-      diffContext.vNewNode = null;
+      diffContext.$vCurrent$ = buffered;
+      diffContext.$vNewNode$ = null;
       return false;
     }
   }
@@ -1360,8 +1364,10 @@ function moveOrCreateKeyedNode(
 
 function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: string | null) {
   const checkKey = type === VirtualType.Fragment;
-  const currentKey = getKey(diffContext.vCurrent as VirtualVNode | ElementVNode | TextVNode | null);
-  const currentIsVirtual = diffContext.vCurrent && vnode_isVirtualVNode(diffContext.vCurrent);
+  const currentKey = getKey(
+    diffContext.$vCurrent$ as VirtualVNode | ElementVNode | TextVNode | null
+  );
+  const currentIsVirtual = diffContext.$vCurrent$ && vnode_isVirtualVNode(diffContext.$vCurrent$);
   const isSameNode = currentIsVirtual && currentKey === jsxKey && (checkKey ? !!jsxKey : true);
 
   if (isSameNode) {
@@ -1371,15 +1377,15 @@ function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: stri
   }
 
   // For fragments without a key, always create a new virtual node (ensures rerender semantics)
-  if (jsxKey === null || diffContext.isCreationMode) {
+  if (jsxKey === null || diffContext.$isCreationMode$) {
     vnode_insertVirtualBefore(
-      diffContext.journal,
-      diffContext.vParent as VirtualVNode,
-      (diffContext.vNewNode = vnode_newVirtual()),
-      diffContext.vCurrent && getInsertBefore(diffContext)
+      diffContext.$journal$,
+      diffContext.$vParent$ as VirtualVNode,
+      (diffContext.$vNewNode$ = vnode_newVirtual()),
+      diffContext.$vCurrent$ && getInsertBefore(diffContext)
     );
-    (diffContext.vNewNode as VirtualVNode).key = jsxKey;
-    isDev && vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, type);
+    (diffContext.$vNewNode$ as VirtualVNode).key = jsxKey;
+    isDev && vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, type);
     return;
   }
   if (
@@ -1388,25 +1394,25 @@ function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: stri
       null,
       jsxKey,
       getSideBufferKey(null, jsxKey),
-      diffContext.vParent as VirtualVNode,
+      diffContext.$vParent$ as VirtualVNode,
       true
     )
   ) {
     vnode_insertVirtualBefore(
-      diffContext.journal,
-      diffContext.vParent as VirtualVNode,
-      (diffContext.vNewNode = vnode_newVirtual()),
-      diffContext.vCurrent && getInsertBefore(diffContext)
+      diffContext.$journal$,
+      diffContext.$vParent$ as VirtualVNode,
+      (diffContext.$vNewNode$ = vnode_newVirtual()),
+      diffContext.$vCurrent$ && getInsertBefore(diffContext)
     );
-    (diffContext.vNewNode as VirtualVNode).key = jsxKey;
-    isDev && vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, type);
+    (diffContext.$vNewNode$ as VirtualVNode).key = jsxKey;
+    isDev && vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, type);
   }
 }
 
 function expectComponent(diffContext: DiffContext, component: Function) {
   const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
-  let host = (diffContext.vNewNode || diffContext.vCurrent) as VirtualVNode | null;
-  const jsxNode = diffContext.jsxValue as JSXNodeInternal;
+  let host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode | null;
+  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   if (componentMeta) {
     const jsxProps = jsxNode.props as PropsProxy;
     // QComponent
@@ -1414,7 +1420,7 @@ function expectComponent(diffContext: DiffContext, component: Function) {
     const [componentQRL] = componentMeta;
 
     const componentHash = componentQRL.$hash$;
-    const vNodeComponentHash = getComponentHash(host, diffContext.container.$getObjectById$);
+    const vNodeComponentHash = getComponentHash(host, diffContext.$container$.$getObjectById$);
 
     const lookupKey = jsxNode.key || componentHash;
     const vNodeLookupKey = getKey(host) || vNodeComponentHash;
@@ -1427,29 +1433,29 @@ function expectComponent(diffContext: DiffContext, component: Function) {
         deleteFromSideBuffer(diffContext, null, lookupKey);
       } else {
         insertNewComponent(diffContext, host, componentQRL, jsxProps);
-        host = diffContext.vNewNode as VirtualVNode;
+        host = diffContext.$vNewNode$ as VirtualVNode;
         shouldRender = true;
       }
     } else {
-      if (moveOrCreateKeyedNode(diffContext, null, lookupKey, lookupKey, diffContext.vParent)) {
+      if (moveOrCreateKeyedNode(diffContext, null, lookupKey, lookupKey, diffContext.$vParent$)) {
         insertNewComponent(diffContext, host, componentQRL, jsxProps);
         shouldRender = true;
       }
-      host = (diffContext.vNewNode || diffContext.vCurrent) as VirtualVNode;
+      host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode;
     }
 
     if (host) {
       const vNodeProps = vnode_getProp<PropsProxy | null>(
         host as VirtualVNode,
         ELEMENT_PROPS,
-        diffContext.container.$getObjectById$
+        diffContext.$container$.$getObjectById$
       );
       if (!shouldRender) {
-        const propsChanged = handleProps(host, jsxProps, vNodeProps, diffContext.container);
+        const propsChanged = handleProps(host, jsxProps, vNodeProps, diffContext.$container$);
         // if props changed but key is null we need to insert a new component, because we need to execute hooks etc
         if (propsChanged && jsxNode.key == null) {
           insertNewComponent(diffContext, host, componentQRL, jsxProps);
-          host = diffContext.vNewNode as VirtualVNode;
+          host = diffContext.$vNewNode$ as VirtualVNode;
           shouldRender = true;
         }
         shouldRender ||= propsChanged;
@@ -1466,10 +1472,10 @@ function expectComponent(diffContext: DiffContext, component: Function) {
          */
         (host as VirtualVNode).flags &= ~VNodeFlags.Deleted;
         markVNodeDirty(
-          diffContext.container,
+          diffContext.$container$,
           host as VirtualVNode,
           ChoreBits.COMPONENT,
-          diffContext.cursor
+          diffContext.$cursor$
         );
       }
     }
@@ -1478,12 +1484,12 @@ function expectComponent(diffContext: DiffContext, component: Function) {
     const lookupKey = jsxNode.key;
     const vNodeLookupKey = getKey(host);
     const lookupKeysAreEqual = lookupKey === vNodeLookupKey;
-    const vNodeComponentHash = getComponentHash(host, diffContext.container.$getObjectById$);
+    const vNodeComponentHash = getComponentHash(host, diffContext.$container$.$getObjectById$);
     const isInlineComponent = vNodeComponentHash == null;
 
     if ((host && !isInlineComponent) || !host) {
       insertNewInlineComponent(diffContext);
-      host = diffContext.vNewNode as VirtualVNode;
+      host = diffContext.$vNewNode$ as VirtualVNode;
     } else if (!lookupKeysAreEqual) {
       if (
         moveOrCreateKeyedNode(
@@ -1491,13 +1497,13 @@ function expectComponent(diffContext: DiffContext, component: Function) {
           null,
           lookupKey,
           lookupKey,
-          diffContext.vParent as VirtualVNode
+          diffContext.$vParent$ as VirtualVNode
         )
       ) {
         // We did not find the inline component, create it.
         insertNewInlineComponent(diffContext);
       }
-      host = (diffContext.vNewNode || diffContext.vCurrent) as VirtualVNode;
+      host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode;
     } else {
       // delete the key from the side buffer if it is the same component
       deleteFromSideBuffer(diffContext, null, lookupKey);
@@ -1520,14 +1526,14 @@ function expectComponent(diffContext: DiffContext, component: Function) {
       }
 
       const jsxOutput = executeComponent(
-        diffContext.container,
+        diffContext.$container$,
         host,
-        (componentHost || diffContext.container.rootVNode) as HostElement,
+        (componentHost || diffContext.$container$.rootVNode) as HostElement,
         component as OnRenderFn<unknown>,
         jsxNode.props
       );
 
-      diffContext.asyncQueue.push(jsxOutput, host);
+      diffContext.$asyncQueue$.push(jsxOutput, host);
     }
   }
 }
@@ -1539,56 +1545,56 @@ function insertNewComponent(
   jsxProps: Props
 ) {
   if (host) {
-    clearAllEffects(diffContext.container, host);
+    clearAllEffects(diffContext.$container$, host);
   }
   vnode_insertVirtualBefore(
-    diffContext.journal,
-    diffContext.vParent as VirtualVNode,
-    (diffContext.vNewNode = vnode_newVirtual()),
-    diffContext.vCurrent && getInsertBefore(diffContext)
+    diffContext.$journal$,
+    diffContext.$vParent$ as VirtualVNode,
+    (diffContext.$vNewNode$ = vnode_newVirtual()),
+    diffContext.$vCurrent$ && getInsertBefore(diffContext)
   );
-  const jsxNode = diffContext.jsxValue as JSXNodeInternal;
-  isDev && vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Component);
-  vnode_setProp(diffContext.vNewNode as VirtualVNode, OnRenderProp, componentQRL);
-  vnode_setProp(diffContext.vNewNode as VirtualVNode, ELEMENT_PROPS, jsxProps);
-  (diffContext.vNewNode as VirtualVNode).key = jsxNode.key;
+  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
+  isDev && vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Component);
+  vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, OnRenderProp, componentQRL);
+  vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, ELEMENT_PROPS, jsxProps);
+  (diffContext.$vNewNode$ as VirtualVNode).key = jsxNode.key;
 }
 
 function insertNewInlineComponent(diffContext: DiffContext) {
   vnode_insertVirtualBefore(
-    diffContext.journal,
-    diffContext.vParent as VirtualVNode,
-    (diffContext.vNewNode = vnode_newVirtual()),
-    diffContext.vCurrent && getInsertBefore(diffContext)
+    diffContext.$journal$,
+    diffContext.$vParent$ as VirtualVNode,
+    (diffContext.$vNewNode$ = vnode_newVirtual()),
+    diffContext.$vCurrent$ && getInsertBefore(diffContext)
   );
-  const jsxNode = diffContext.jsxValue as JSXNodeInternal;
+  const jsxNode = diffContext.$jsxValue$ as JSXNodeInternal;
   isDev &&
-    vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.InlineComponent);
-  vnode_setProp(diffContext.vNewNode as VirtualVNode, ELEMENT_PROPS, jsxNode.props);
+    vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.InlineComponent);
+  vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, ELEMENT_PROPS, jsxNode.props);
   if (jsxNode.key) {
-    (diffContext.vNewNode as VirtualVNode).key = jsxNode.key;
+    (diffContext.$vNewNode$ as VirtualVNode).key = jsxNode.key;
   }
 }
 
 function expectText(diffContext: DiffContext, text: string) {
-  if (diffContext.vCurrent !== null) {
-    const type = vnode_getType(diffContext.vCurrent);
+  if (diffContext.$vCurrent$ !== null) {
+    const type = vnode_getType(diffContext.$vCurrent$);
     if (type === 3 /* Text */) {
-      if (text !== vnode_getText(diffContext.vCurrent as TextVNode)) {
-        vnode_setText(diffContext.journal, diffContext.vCurrent as TextVNode, text);
+      if (text !== vnode_getText(diffContext.$vCurrent$ as TextVNode)) {
+        vnode_setText(diffContext.$journal$, diffContext.$vCurrent$ as TextVNode, text);
         return;
       }
       return;
     }
   }
   vnode_insertElementBefore(
-    diffContext.journal,
-    diffContext.vParent,
-    (diffContext.vNewNode = vnode_newText(
-      (import.meta.env.TEST ? diffContext.container.document : document).createTextNode(text),
+    diffContext.$journal$,
+    diffContext.$vParent$,
+    (diffContext.$vNewNode$ = vnode_newText(
+      (import.meta.env.TEST ? diffContext.$container$.document : document).createTextNode(text),
       text
     )),
-    diffContext.vCurrent
+    diffContext.$vCurrent$
   );
 }
 

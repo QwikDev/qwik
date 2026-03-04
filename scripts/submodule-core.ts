@@ -13,19 +13,29 @@ import {
 } from './util.ts';
 
 /**
+ * Regex for property names that should be mangled consistently across all bundles (core + server).
+ * Properties matching $...$ are internal framework properties not part of the public API.
+ */
+export const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
+
+/**
  * Build the core package which is also the root package: @qwik.dev/core
  *
  * Uses esbuild during development (cuz it's super fast) and TSC + Rollup + Terser for production,
  * because it generates smaller code that minifies better.
+ *
+ * In production, returns a Terser nameCache so the server bundle can apply the same property
+ * mangling and keep $...$ names in sync across both bundles.
  */
-export function submoduleCore(config: BuildConfig) {
+export async function submoduleCore(config: BuildConfig): Promise<object | undefined> {
   if (config.dev) {
-    return submoduleCoreDev(config);
+    await submoduleCoreDev(config);
+    return undefined;
   }
   return submoduleCoreProd(config);
 }
 
-async function submoduleCoreProd(config: BuildConfig) {
+async function submoduleCoreProd(config: BuildConfig): Promise<object> {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
@@ -61,6 +71,10 @@ async function submoduleCoreProd(config: BuildConfig) {
   await Promise.all([build.write(esmOutput)]);
 
   console.log('🦊 core.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.mjs')));
+
+  // Shared nameCache so that $...$  property mangling is consistent across all Terser runs
+  // (core.min.mjs, core.prod.mjs) and can later be reused for the server bundle.
+  const nameCache: object = {};
 
   const inputCore = join(config.distQwikPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
@@ -102,6 +116,7 @@ async function submoduleCoreProd(config: BuildConfig) {
           const esmMinifyResult = await minify(code, {
             module: true,
             toplevel: true,
+            nameCache,
             compress: {
               defaults: true,
               hoist_funs: true,
@@ -135,7 +150,7 @@ async function submoduleCoreProd(config: BuildConfig) {
               toplevel: true,
               module: true,
               properties: {
-                regex: '^\\$.+\\$$',
+                regex: MANGLE_PROPS_REGEX,
               },
             },
             format: {
@@ -167,12 +182,84 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   console.log('🐭 core.min.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.min.mjs')));
 
-  let esmCode = await readFile(join(config.distQwikPkgDir, 'core.mjs'), 'utf-8');
-  await submoduleCoreProduction(config, esmCode, join(config.distQwikPkgDir, 'core.prod.mjs'));
+  const prodCode = await prepareProdCode(config);
+  await submoduleCoreProduction(
+    config,
+    prodCode,
+    join(config.distQwikPkgDir, 'core.prod.mjs'),
+    nameCache
+  );
+
+  return nameCache;
 }
 
-async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
+/**
+ * Rollup pass on core.mjs that inlines only `isDev = false` from `@qwik.dev/core/build`, while
+ * keeping `isServer` and `isBrowser` as dynamic imports (the build is universal — it must work on
+ * both server and browser). `isServer`/`isBrowser` are re-exported from an internal alias that
+ * rollup renames back to `@qwik.dev/core/build` in `output.paths`.
+ */
+async function prepareProdCode(config: BuildConfig): Promise<string> {
+  const VIRTUAL_BUILD = '\0prod-build';
+
+  const inputProd: InputOptions = {
+    input: join(config.distQwikPkgDir, 'core.mjs'),
+    external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
+    onwarn: rollupOnWarn,
+    plugins: [
+      {
+        name: 'inlineProdIsDev',
+        resolveId(id, importer) {
+          if (id === '@qwik.dev/core/build') {
+            // When the virtual itself re-imports @qwik.dev/core/build, keep it external.
+            if (importer === VIRTUAL_BUILD) {
+              return { id, external: true };
+            }
+            return VIRTUAL_BUILD;
+          }
+        },
+        load(id) {
+          if (id === VIRTUAL_BUILD) {
+            return `
+              export { isServer, isBrowser } from '@qwik.dev/core/build';
+              export const isDev = false;
+            `;
+          }
+        },
+      },
+    ],
+  };
+
+  const prodBuild = await rollup(inputProd);
+  const chunks: string[] = [];
+  await prodBuild.generate({
+    format: 'es',
+    plugins: [
+      {
+        name: 'collect',
+        generateBundle(_, bundles) {
+          for (const f in bundles) {
+            const b = bundles[f];
+            if (b.type === 'chunk') {
+              chunks.push(b.code);
+            }
+          }
+        },
+      },
+    ],
+  });
+
+  return chunks.join('\n');
+}
+
+async function submoduleCoreProduction(
+  config: BuildConfig,
+  code: string,
+  outPath: string,
+  nameCache: object
+) {
   const result = await minify(code, {
+    nameCache,
     compress: {
       defaults: false,
       booleans: true,
@@ -220,11 +307,19 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       ecma: 2020,
       preamble: getBanner('@qwik.dev/core', config.distVersion),
     },
-    mangle: false,
+    mangle: {
+      toplevel: true,
+      module: true,
+      properties: {
+        regex: MANGLE_PROPS_REGEX,
+      },
+    },
   });
   code = result.code!;
 
   await writeFile(outPath, code + '\n');
+
+  console.log('🦝 core.prod.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.prod.mjs')));
 }
 
 async function submoduleCoreDev(config: BuildConfig) {

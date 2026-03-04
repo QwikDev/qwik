@@ -2,6 +2,7 @@ import { component$ } from '@qwik.dev/core';
 import { type DocumentHead } from '@qwik.dev/router';
 import { Button } from '~/components/button/button';
 import { lucide } from '@qds.dev/ui';
+import { Spacer } from '~/components/spacer/spacer';
 // import { Header } from '../components/header/header';
 
 export default component$(() => {
@@ -10,6 +11,10 @@ export default component$(() => {
       {/* <Header /> */}
       <main>
         <Decor />
+
+        {/* Design spacer. TODO: adjust as needed for responsiveness */}
+        <Spacer class="h-63.5" />
+
         <section class="space-y-10 *:mx-auto">
           <h1 class="uppercase font-display text-h2 max-w-[15ch] text-center">
             Automatically <span class="text-violet-75">Instant</span> Web Apps

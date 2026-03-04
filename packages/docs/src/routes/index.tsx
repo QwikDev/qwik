@@ -1,6 +1,7 @@
 import { component$ } from '@qwik.dev/core';
 import { type DocumentHead } from '@qwik.dev/router';
 import { Button } from '~/components/button/button';
+import { lucide } from '@qds.dev/ui';
 // import { Header } from '../components/header/header';
 
 export default component$(() => {
@@ -17,8 +18,15 @@ export default component$(() => {
             every step of the way.
           </p>
           <div class="flex gap-6 justify-center">
-            <Button variant="primary">Qwik Start</Button>
-            <Button variant="secondary">npm create qwik@latest</Button>
+            <Button variant="primary">
+              <span>Qwik Start</span>
+              <lucide.arrowright />
+            </Button>
+
+            <Button variant="secondary">
+              <span>npm create qwik@latest</span>
+              <lucide.clipboard />
+            </Button>
           </div>
         </section>
       </main>

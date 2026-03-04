@@ -1,6 +1,91 @@
 @import 'tailwindcss';
 
+/* ─── Font faces ─── */
+@font-face {
+  font-family: 'Karmatic Arcade';
+  src: url('./media/fonts/karmatic-arcade/karmatic-arcade.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Tomorrow';
+  src: url('./media/fonts/tomorrow/tomorrow-latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ubuntu Sans';
+  src: url('./media/fonts/ubuntu-sans/ubuntu-sans-latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ubuntu Sans';
+  src: url('./media/fonts/ubuntu-sans/ubuntu-sans-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
+  /* Font families */
+  --font-display: 'Karmatic Arcade', cursive;
+  --font-heading: 'Tomorrow', sans-serif;
+  --font-body: 'Ubuntu Sans', sans-serif;
+
+  /* Text — Headings */
+  --text-h1: 96px;
+  --text-h1--line-height: 116.667%;
+  --text-h1--font-weight: 400;
+
+  --text-h2: 72px;
+  --text-h2--line-height: 125%;
+  --text-h2--font-weight: 400;
+
+  --text-h3: 56px;
+  --text-h3--line-height: 114.286%;
+  --text-h3--font-weight: 600;
+
+  --text-h4: 48px;
+  --text-h4--line-height: 116.667%;
+  --text-h4--font-weight: 600;
+
+  --text-h5: 32px;
+  --text-h5--line-height: 125%;
+  --text-h5--font-weight: 600;
+
+  --text-h6: 20px;
+  --text-h6--line-height: 140%;
+  --text-h6--font-weight: 600;
+
+  /* Text — Body */
+  --text-body-md: 20px;
+  --text-body-md--line-height: 140%;
+  --text-body-md--font-weight: 600;
+
+  --text-body-sm: 16px;
+  --text-body-sm--line-height: 137.5%;
+  --text-body-sm--font-weight: 600;
+
+  --text-body-xs: 14px;
+  --text-body-xs--line-height: 142.857%;
+  --text-body-xs--font-weight: 600;
+
+  /* Text — Labels */
+  --text-label-sm: 14px;
+  --text-label-sm--line-height: 142.857%;
+  --text-label-sm--font-weight: 600;
+
+  --text-label-xs: 14px;
+  --text-label-xs--line-height: 142.857%;
+  --text-label-xs--font-weight: 700;
+
   /* Slate */
   --color-slate-shallow: #fafcff;
   --color-slate-0: #eef6ff;

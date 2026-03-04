@@ -7,8 +7,8 @@ export default component$(() => {
     <>
       {/* <Header /> */}
       <main>
-        <h1 class="uppercase">Automatically Instant Web Apps</h1>
-        <p>
+        <h1 class="uppercase font-display">Automatically Instant Web Apps</h1>
+        <p class="font-body">
           A new kind of framework for you to ship quicker and provide better user experiences every
           step of the way.
         </p>

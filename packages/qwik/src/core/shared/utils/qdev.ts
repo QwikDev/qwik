@@ -1,15 +1,14 @@
 // same as isDev but separate so we can test
-export const qDev = globalThis.qDev !== false;
-export const qInspector = globalThis.qInspector === true;
-export const qSerialize = globalThis.qSerialize !== false;
-export const qDynamicPlatform = globalThis.qDynamicPlatform !== false;
-export const qTest = globalThis.qTest === true;
-export const qRuntimeQrl = globalThis.qRuntimeQrl === true;
+const g = globalThis as any;
+export const qDev = g.qDev !== false;
+export const qInspector = g.qInspector === true;
+export const qSerialize = g.qSerialize !== false;
+export const qDynamicPlatform = g.qDynamicPlatform !== false;
+export const qTest = g.qTest === true;
+export const qRuntimeQrl = g.qRuntimeQrl === true;
 
 export const seal = (obj: any) => {
   if (qDev) {
     Object.seal(obj);
   }
 };
-
-declare const globalThis: any;

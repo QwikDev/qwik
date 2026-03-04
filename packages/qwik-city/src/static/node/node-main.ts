@@ -17,7 +17,7 @@ import { normalizePath } from '../../utils/fs';
 export async function createNodeMainProcess(sys: System, opts: StaticGenerateOptions) {
   const ssgWorkers: StaticGeneratorWorker[] = [];
   const sitemapBuffer: string[] = [];
-  let sitemapPromise: Promise<any> | null = null;
+  let sitemapStream: fs.WriteStream | null = null;
 
   opts = { ...opts };
 
@@ -155,12 +155,11 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     if (sitemapOutFile && result.ok && result.resourceType === 'page') {
       sitemapBuffer.push(`<url><loc>${result.url}</loc></url>`);
       if (sitemapBuffer.length > 50) {
-        if (sitemapPromise) {
-          await sitemapPromise;
-        }
         const siteMapUrls = sitemapBuffer.join('\n') + '\n';
         sitemapBuffer.length = 0;
-        sitemapPromise = fs.promises.appendFile(sitemapOutFile, siteMapUrls);
+        if (sitemapStream) {
+          sitemapStream.write(siteMapUrls);
+        }
       }
     }
 
@@ -168,15 +167,28 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   };
 
   const close = async () => {
-    const promises: Promise<any>[] = [];
+    const promises: Promise<unknown>[] = [];
 
-    if (sitemapOutFile) {
-      if (sitemapPromise) {
-        await sitemapPromise;
-      }
+    if (sitemapStream) {
       sitemapBuffer.push(`</urlset>`);
-      promises.push(fs.promises.appendFile(sitemapOutFile, sitemapBuffer.join('\n')));
+      sitemapStream.write(sitemapBuffer.join('\n'));
       sitemapBuffer.length = 0;
+
+      await new Promise<void>((resolve, reject) => {
+        if (sitemapStream) {
+          sitemapStream.end((err?: Error | null) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        } else {
+          resolve();
+        }
+      });
+
+      sitemapStream = null;
     }
 
     for (const ssgWorker of ssgWorkers) {
@@ -199,8 +211,11 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
 
   if (sitemapOutFile) {
     await ensureDir(sitemapOutFile);
-    await fs.promises.writeFile(
-      sitemapOutFile,
+    sitemapStream = fs.createWriteStream(sitemapOutFile, {
+      flags: 'w',
+    });
+
+    sitemapStream.write(
       `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
     );
   }

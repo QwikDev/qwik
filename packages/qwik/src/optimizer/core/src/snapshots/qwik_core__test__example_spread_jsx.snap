@@ -42,13 +42,15 @@ export const RouterHead = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_RouterHead_component_DPA76mgIou0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_RouterHead_component_DPA76mgIou0"), "RouterHead_component_DPA76mgIou0");
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
- */ export const RouterHead = /*#__PURE__*/ componentQrl(_qrl_RouterHead_component_DPA76mgIou0);
+ */ //
+export const RouterHead = /*#__PURE__*/ componentQrl(_qrl_RouterHead_component_DPA76mgIou0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA;;CAEC,GACD,OAAO,MAAM,2BAAa,oDAyBvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIA;;CAEC;AACD,OAAO,MAAM,2BAAa,oDAyBvB\"}")
 ============================= test.tsx_RouterHead_component_DPA76mgIou0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
@@ -60,6 +62,7 @@ import { _jsxSplit } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { useDocumentHead } from "@qwik.dev/router";
 import { useLocation } from "@qwik.dev/router";
+//
 export const RouterHead_component_DPA76mgIou0 = ()=>{
     const head = useDocumentHead();
     const loc = useLocation();
@@ -94,7 +97,7 @@ export const RouterHead_component_DPA76mgIou0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;gDAOqC;IACpC,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACA;sBACC,WAAC,qBAAO,KAAK,KAAK;sBAElB,WAAC;YAAK,KAAI;YAAY,IAAI,YAAE;;sBAC5B,WAAC;YAAK,MAAK;YAAW,SAAQ;;sBAC9B,WAAC;YAAK,KAAI;YAAO,MAAK;YAAgB,MAAK;;QAE1C,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACf,UAAC;gCAAS;8BAAA;QAGV,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;gBAAM,GAAG,CAAC;gBAAE,KAAK,EAAE,GAAG;;QAGvB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBACjB,eAAC;gBAAO,GAAG,EAAE,KAAK;gBAAE,yBAAyB,EAAE,KAAK;gBAAE,KAAK,EAAE,GAAG;;;AAInE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;gDAOqC;IACpC,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACA;sBACC,WAAC,qBAAO,KAAK,KAAK;sBAElB,WAAC;YAAK,KAAI;YAAY,IAAI,YAAE;;sBAC5B,WAAC;YAAK,MAAK;YAAW,SAAQ;;sBAC9B,WAAC;YAAK,KAAI;YAAO,MAAK;YAAgB,MAAK;;QAE1C,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACf,UAAC;gCAAS;8BAAA;QAGV,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;gBAAM,GAAG,CAAC;gBAAE,KAAK,EAAE,GAAG;;QAGvB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBACjB,eAAC;gBAAO,GAAG,EAAE,KAAK;gBAAE,yBAAyB,EAAE,KAAK;gBAAE,KAAK,EAAE,GAAG;;;AAInE\"}")
 /*
 {
   "origin": "test.tsx",

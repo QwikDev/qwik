@@ -29,11 +29,13 @@ export const Cmp = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
 export const Cmp = /*#__PURE__*/ componentQrl(_qrl_Cmp_component_4ryKJTOKjWE);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,oBAAM,6CAchB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,oBAAM,6CAchB\"}")
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
 
 import { A } from "./componentA";
@@ -41,7 +43,9 @@ import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const i_veAZ2ow0cnM = ()=>import("./test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM");
+//
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const currentStep = useSignal('STEP_1');
     const currentType = useSignal('PREVIOUS');
@@ -61,7 +65,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAI8B;IAC7B,MAAM,cAAc,UAAU;IAC9B,MAAM,cAAc,UAA+B;IAEnD,MAAM,UAAU,CAAC,MAAc;QAC9B,OAAO,SAAS,WAAW,WAAW;IACvC;IAEA,qBACC;sBACC,WAAC;YAAO,WAAQ;;;WAAsC;sBACtD,WAAC;YAAE,MAAM,QAAQ,YAAY,KAAK,EAAE,YAAY,KAAK;;;AAGxD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAI8B;IAC7B,MAAM,cAAc,UAAU;IAC9B,MAAM,cAAc,UAA+B;IAEnD,MAAM,UAAU,CAAC,MAAc;QAC9B,OAAO,SAAS,WAAW,WAAW;IACvC;IAEA,qBACC;sBACC,WAAC;YAAO,WAAQ;;;WAAsC;sBACtD,WAAC;YAAE,MAAM,QAAQ,YAAY,KAAK,EAAE,YAAY,KAAK;;;AAGxD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -85,13 +89,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM = ()=>{
     const currentType = _captures[0];
     return currentType.value = 'NEXT';
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAcqB;;WAAO,YAAY,KAAK,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mEAcqB;;WAAO,YAAY,KAAK,GAAG\"}")
 /*
 {
   "origin": "test.tsx",

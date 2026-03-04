@@ -19,11 +19,14 @@ expression: output
 		
 ============================= test.js ==
 
+//
 import { _fnSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+//
 const _hf0 = (p0)=>p0.data.selectedOutputDetail === 'options';
 const _hf0_str = 'p0.data.selectedOutputDetail==="options"';
+//
 const i_pFqTss400MA = ()=>import("./test.tsx_test_div_q_e_click_pFqTss400MA");
 export default ((_rawProps)=>{
     return /*#__PURE__*/ _jsxSorted("div", {
@@ -37,17 +40,18 @@ export default ((_rawProps)=>{
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAI8B,GAHV,KAGe,oBAAoB,KAAK;;;AAH1D,eAAe,CAAA;IACP,qBACE,WAAC;QACC,gBAAc;;;QACd,WAAQ;;;;AAKpB,CAAA,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBAI8B,GAHV,KAGe,oBAAoB,KAAK;;;;AAH1D,eAAe,CAAA;IACP,qBACE,WAAC;QACC,gBAAc;;;QACd,WAAQ;;;;AAKpB,CAAA,EAAE\"}")
 ============================= test.tsx_test_div_q_e_click_pFqTss400MA.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const test_div_q_e_click_pFqTss400MA = ()=>{
     const _rawProps = _captures[0];
     _rawProps.data.selectedOutputDetail = 'options';
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8CAKwB;;IACR,UALI,KAKC,oBAAoB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;8CAKwB;;IACR,UALI,KAKC,oBAAoB,GAAG\"}")
 /*
 {
   "origin": "test.tsx",

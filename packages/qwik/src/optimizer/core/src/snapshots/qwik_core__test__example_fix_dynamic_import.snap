@@ -25,6 +25,7 @@ export const Header = component$(() => {
 ============================= project/folder/test.tsx_Header_component_RGgm7Ks9QWI.tsx ==
 
 import thing from "../state";
+//
 export const Header_component_RGgm7Ks9QWI = ()=>{
     return <div>
 			{import("../folder/state3")}
@@ -33,7 +34,7 @@ export const Header_component_RGgm7Ks9QWI = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC;IAChC,QACE,IAAI;GACJ,CAAC,MAAM,CAAC,oBAAoB;GAC5B,CAAC,MAAM;EACR,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;4CAQiC;IAChC,QACE,IAAI;GACJ,CAAC,MAAM,CAAC,oBAAoB;GAC5B,CAAC,MAAM;EACR,EAAE;AAEJ\"}")
 /*
 {
   "origin": "project/folder/test.tsx",
@@ -58,14 +59,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_Header_component_RGgm7Ks9QWI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_RGgm7Ks9QWI"), "Header_component_RGgm7Ks9QWI");
+//
 export function foo() {
     return import("../foo/state2");
 }
 export const Header = /*#__PURE__*/ componentQrl(_qrl_Header_component_RGgm7Ks9QWI);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,SAAS;IACf,OAAO,MAAM,CAAC;AACf;AAEA,OAAO,MAAM,uBAAS,gDAOnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,SAAS;IACf,OAAO,MAAM,CAAC;AACf;AAEA,OAAO,MAAM,uBAAS,gDAOnB\"}")
 == DIAGNOSTICS ==
 
 []

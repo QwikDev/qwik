@@ -25,6 +25,7 @@ export const FOO_MAPPING = {
 
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+//
 export const FOO_MAPPING = {
     A: 1,
     B: 2,
@@ -36,7 +37,7 @@ const test_component_LUXeXe0DQrg = ()=>{
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(test_component_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;mCAEwB;IAI1B,UAFc,WAAW,CADb,IACkB;AAG9B;AALA,6BAAe,iGAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;mCAEwB;IAI1B,UAFc,WAAW,CADb,IACkB;AAG9B;AALA,6BAAe,iGAKZ\"}")
 == DIAGNOSTICS ==
 
 []

@@ -32,7 +32,7 @@ use swc_common::{Span, DUMMY_SP};
 use anyhow::{Context, Error};
 
 use swc_atoms::Atom;
-use swc_common::comments::SingleThreadedComments;
+use swc_common::comments::{Comment, CommentKind, Comments, SingleThreadedComments};
 use swc_common::errors::{DiagnosticBuilder, DiagnosticId, Emitter, Handler};
 use swc_common::{sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast;
@@ -509,6 +509,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							segment_module
 								.visit_mut_with(&mut hygiene_with_config(Default::default()));
 							segment_module.visit_mut_with(&mut fixer(None));
+							add_section_separators(&mut segment_module, &comments);
 
 							let (code, map) = emit_source_code(
 								Lrc::clone(&source_map),
@@ -557,13 +558,16 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					}
 
 					let (code, map) = match program {
-						ast::Program::Module(ref modu) => emit_source_code(
-							Lrc::clone(&source_map),
-							Some(comments),
-							modu,
-							config.root_dir,
-							config.source_maps,
-						)?,
+						ast::Program::Module(ref mut modu) => {
+							add_section_separators(modu, &comments);
+							emit_source_code(
+								Lrc::clone(&source_map),
+								Some(comments),
+								modu,
+								config.root_dir,
+								config.source_maps,
+							)?
+						}
 						_ => (String::new(), None),
 					};
 
@@ -720,6 +724,85 @@ pub fn emit_source_code(
 		))
 	} else {
 		Ok((unsafe { str::from_utf8_unchecked(&buf).to_string() }, None))
+	}
+}
+
+/// Add `//` separator comments between import declarations, QRL const declarations,
+/// and other module-level statements for readability. Uses `Span::dummy_with_cmt()`
+/// so the extra lines don't affect source maps.
+fn add_section_separators(module: &mut ast::Module, comments: &SingleThreadedComments) {
+	#[derive(PartialEq)]
+	enum Section {
+		Import,
+		QrlDecl,
+		Other,
+	}
+
+	fn classify(item: &ast::ModuleItem) -> Section {
+		match item {
+			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(_)) => Section::Import,
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var))) => {
+				if let Some(decl) = var.decls.first() {
+					if let ast::Pat::Ident(ident) = &decl.name {
+						let name = &*ident.id.sym;
+						if name.starts_with("_qrl_") || name.starts_with("i_") {
+							return Section::QrlDecl;
+						}
+					}
+				}
+				Section::Other
+			}
+			_ => Section::Other,
+		}
+	}
+
+	/// Ensure the item's span.lo is non-dummy so comments can be emitted on it.
+	fn ensure_comment_pos(item: &mut ast::ModuleItem) -> swc_common::BytePos {
+		use swc_common::Spanned;
+		let lo = item.span().lo;
+		if !lo.is_dummy() {
+			return lo;
+		}
+		let cmt_lo = Span::dummy_with_cmt().lo;
+		match item {
+			ast::ModuleItem::ModuleDecl(decl) => match decl {
+				ast::ModuleDecl::Import(d) => d.span.lo = cmt_lo,
+				ast::ModuleDecl::ExportDecl(d) => d.span.lo = cmt_lo,
+				ast::ModuleDecl::ExportDefaultDecl(d) => d.span.lo = cmt_lo,
+				ast::ModuleDecl::ExportDefaultExpr(d) => d.span.lo = cmt_lo,
+				ast::ModuleDecl::ExportAll(d) => d.span.lo = cmt_lo,
+				ast::ModuleDecl::ExportNamed(d) => d.span.lo = cmt_lo,
+				_ => return lo, // can't handle TS-specific decls, skip
+			},
+			ast::ModuleItem::Stmt(stmt) => match stmt {
+				ast::Stmt::Decl(ast::Decl::Var(v)) => v.span.lo = cmt_lo,
+				ast::Stmt::Decl(ast::Decl::Fn(f)) => f.function.span.lo = cmt_lo,
+				ast::Stmt::Expr(e) => e.span.lo = cmt_lo,
+				_ => return lo,
+			},
+		}
+		cmt_lo
+	}
+
+	let mut prev_section: Option<Section> = None;
+	for item in &mut module.body {
+		let section = classify(item);
+		if let Some(ref prev) = prev_section {
+			if prev != &section && section != Section::Import {
+				let lo = ensure_comment_pos(item);
+				if !lo.is_dummy() {
+					comments.add_leading(
+						lo,
+						Comment {
+							kind: CommentKind::Line,
+							text: Atom::from(""),
+							span: DUMMY_SP,
+						},
+					);
+				}
+			}
+		}
+		prev_section = Some(section);
 	}
 }
 

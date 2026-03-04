@@ -79,6 +79,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 ============================= project/test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
+//
 /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WlR3xnI6u38"), "Header_WlR3xnI6u38");
 
 

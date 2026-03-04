@@ -23,6 +23,7 @@ export const Tree = component$((props) => {
 ============================= test.tsx_Tree_component_T0k10EAlawU.tsx (ENTRY POINT)==
 
 import { Tree } from "./test";
+//
 export const Tree_component_T0k10EAlawU = (props)=>{
     return <div>
 			{props.label}
@@ -31,7 +32,7 @@ export const Tree_component_T0k10EAlawU = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";0CAM+B,CAAC;IAC/B,QACE,IAAI;GACJ,CAAC,MAAM,KAAK,CAAC;GACb,CAAC,MAAM,QAAQ,IAAI,MAAM,QAAQ,CAAC,GAAG,CAAC,CAAC,SAAW,MAAM,GAAG,KAAK,KAAM;EACvE,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAM+B,CAAC;IAC/B,QACE,IAAI;GACJ,CAAC,MAAM,KAAK,CAAC;GACb,CAAC,MAAM,QAAQ,IAAI,MAAM,QAAQ,CAAC,GAAG,CAAC,CAAC,SAAW,MAAM,GAAG,KAAK,KAAM;EACvE,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -59,14 +60,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_Tree_component_T0k10EAlawU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Tree_component_T0k10EAlawU"), "Tree_component_T0k10EAlawU");
 // Root-level self-referential component
 // The QRL should NOT be hoisted before the component function is defined
 // or should use two-phase emission to avoid forward reference
+//
 export const Tree = /*#__PURE__*/ componentQrl(_qrl_Tree_component_T0k10EAlawU);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,wCAAwC;AACxC,yEAAyE;AACzE,8DAA8D;AAC9D,OAAO,MAAM,qBAAO,8CAOjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,wCAAwC;AACxC,yEAAyE;AACzE,8DAA8D;;AAC9D,OAAO,MAAM,qBAAO,8CAOjB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -21,16 +21,19 @@ export default component$((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,6BAAe,8CAQZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,6BAAe,8CAQZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+//
 const _hf0 = (p0)=>p0.myobj.id + "test";
 const _hf0_str = 'p0.myobj.id+"test"';
 export const test_component_LUXeXe0DQrg = (props)=>{
@@ -45,7 +48,7 @@ export const test_component_LUXeXe0DQrg = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAOyD,GAAM,KAAK,CAAC,EAAE,GAAG;;0CALhD,CAAC;IAC1B,yCAAyC;IACzC,MAAM,OAAO,MAAM,SAAS,CAAC,KAAK;IAClC,qBACC,gDACC,WAAC;QAAI,gBAAc,OAAO,OAAO,IAAI;QAAM,WAAS;;;;AAGvD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAOyD,GAAM,KAAK,CAAC,EAAE,GAAG;;0CALhD,CAAC;IAC1B,yCAAyC;IACzC,MAAM,OAAO,MAAM,SAAS,CAAC,KAAK;IAClC,qBACC,gDACC,WAAC;QAAI,gBAAc,OAAO,OAAO,IAAI;QAAM,WAAS;;;;AAGvD\"}")
 /*
 {
   "origin": "test.tsx",

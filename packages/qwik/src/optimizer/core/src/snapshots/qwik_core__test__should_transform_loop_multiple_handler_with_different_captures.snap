@@ -33,11 +33,13 @@ export default component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+//
 const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
 export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,8CAmBZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CAmBZ\"}")
 ============================= test.tsx_test_component_div_div_q_e_keydown_a6RR59yQlXM.js (ENTRY POINT)==
 
 export const test_component_div_div_q_e_keydown_a6RR59yQlXM = (_, _1, _2, plusTwo, double)=>console.log(plusTwo, double);
@@ -109,8 +111,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const _qrl_test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps"), "test_component_div_div_q_e_click_Mc600uqO6ps");
 const _qrl_test_component_div_div_q_e_keydown_a6RR59yQlXM = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_keydown_a6RR59yQlXM"), "test_component_div_div_q_e_keydown_a6RR59yQlXM");
+//
 export const test_component_LUXeXe0DQrg = ()=>{
     const arr = useSignal([
         'a',
@@ -133,7 +137,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG0B;IACxB,MAAM,MAAM,UAAU;QAAC;QAAK;KAAI;IAChC,qBACE,WAAC,mBACE,IAAI,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACnB,MAAM,UAAU,IAAI;QACpB,MAAM,UAAU,IAAI;QACpB,MAAM,SAAS,IAAI;QACnB,qBACE,WAAC;YACC,WAAQ;YACR,aAAU;;gBANR;gBACA;gBACA;;iBAMD;IAGP;AAGN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAG0B;IACxB,MAAM,MAAM,UAAU;QAAC;QAAK;KAAI;IAChC,qBACE,WAAC,mBACE,IAAI,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACnB,MAAM,UAAU,IAAI;QACpB,MAAM,UAAU,IAAI;QACpB,MAAM,SAAS,IAAI;QACnB,qBACE,WAAC;YACC,WAAQ;YACR,aAAU;;gBANR;gBACA;gBACA;;iBAMD;IAGP;AAGN\"}")
 /*
 {
   "origin": "test.tsx",

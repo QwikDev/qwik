@@ -26,6 +26,7 @@ export const AtomStatus = component$(({ctx,atom})=>{
 import { componentQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+//
 const AtomStatus_component_span_q_e_click_0yqKAycyBF0 = (ev)=>{
     const _rawProps = _captures[0];
     return atomStatusClick(_rawProps.ctx, ev, [
@@ -48,7 +49,7 @@ const AtomStatus_component_hdwpoUtydSA = (_rawProps)=>{
 export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AtomStatus_component_hdwpoUtydSA, "AtomStatus_component_hdwpoUtydSA"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;wDAWkC,CAAC;;WAAK,0BARD,KAQqB,IAAG;kBARpB;KAQ0B;;yCARhC;IACpC,IAAI,SAAS,UAD6B,KACxB,MAAM;IACxB,IAAG,CAAC,UAFsC,KAEjC,IAAI,EACZ,SAAO;SACD,IAAI,KAAK,SAAS,CAAC,UAJgB,KAIX,IAAI,KAAG,KAAK,SAAS,CAAC,UAJX,KAIgB,IAAI,GAC7D,SAAO;IAER,QACE,KAAK,OAAO,UAR4B,KAQvB,EAAE,EAAE;;QAAgD,OAAO;QAAC;QAAO;QAAO,UARvD,IAQ2D,KAAK,CAAC,UAR7D,KAQkE,EAAE,CAAC,GAAC,aAAW;KAAK,EAAE;EACjI,EAAE;AAEJ;AAXA,OAAO,MAAM,2BAAa,6GAWxB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;wDAWkC,CAAC;;WAAK,0BARD,KAQqB,IAAG;kBARpB;KAQ0B;;yCARhC;IACpC,IAAI,SAAS,UAD6B,KACxB,MAAM;IACxB,IAAG,CAAC,UAFsC,KAEjC,IAAI,EACZ,SAAO;SACD,IAAI,KAAK,SAAS,CAAC,UAJgB,KAIX,IAAI,KAAG,KAAK,SAAS,CAAC,UAJX,KAIgB,IAAI,GAC7D,SAAO;IAER,QACE,KAAK,OAAO,UAR4B,KAQvB,EAAE,EAAE;;QAAgD,OAAO;QAAC;QAAO;QAAO,UARvD,IAQ2D,KAAK,CAAC,UAR7D,KAQkE,EAAE,CAAC,GAAC,aAAW;KAAK,EAAE;EACjI,EAAE;AAEJ;AAXA,OAAO,MAAM,2BAAa,6GAWxB\"}")
 == DIAGNOSTICS ==
 
 []

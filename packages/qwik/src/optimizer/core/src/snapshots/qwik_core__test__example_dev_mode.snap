@@ -20,26 +20,30 @@ export const App = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
+//
 const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
     lo: 88,
     hi: 200,
     displayName: "test.tsx_App_component"
 });
+//
 export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,oBAAM,6CAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAGA,OAAO,MAAM,oBAAM,6CAMhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
+//
 const _qrl_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4"), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
     file: "/user/qwik/src/test.tsx",
     lo: 144,
     hi: 169,
     displayName: "test.tsx_App_component_Cmp_p_q_e_click"
 });
+//
 export const App_component_ckEPmXZlub0 = ()=>{
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
@@ -56,7 +60,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAG8B;IAC7B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ;OAA6B;;;;;;;;;AAGzD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;yCAG8B;IAC7B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ;OAA6B;;;;;;;;;AAGzD\"}")
 /*
 {
   "origin": "test.tsx",

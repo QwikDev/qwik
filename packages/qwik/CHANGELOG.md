@@ -1,5 +1,15 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.27
+
+### Minor Changes
+
+- ✨ The optimizer now hoists QRLs without captures to the module scope. This means that only one instance of the QRL will be created. (by [@wmertens](https://github.com/wmertens) in [#8388](https://github.com/QwikDev/qwik/pull/8388))
+
+- ✨ The optimizer will now extract captures from QRL event handlers and move them to their string tag. This allows moving the QRL to the module scope, giving better performance. (by [@wmertens](https://github.com/wmertens) in [#8388](https://github.com/QwikDev/qwik/pull/8388))
+
+- ✨ The optimizer can now handle self-references. This means that e.g. an `AsyncSignal` can write to itself. (by [@wmertens](https://github.com/wmertens) in [#8388](https://github.com/QwikDev/qwik/pull/8388))
+
 ## 2.0.0-beta.26
 
 ### Patch Changes

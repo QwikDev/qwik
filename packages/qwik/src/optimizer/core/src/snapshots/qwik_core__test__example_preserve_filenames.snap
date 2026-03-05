@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2681
+assertion_line: 2682
 expression: output
 ---
 ==INPUT==
@@ -21,15 +21,18 @@ export const App = component$((props) => {
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+//
+const App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = ()=>console.log('warn');
+const App_component_ckEPmXZlub0 = (props)=>{
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
-        "q-e:click": /*#__PURE__*/ inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4")
+        "q-e:click": /*#__PURE__*/ inlinedQrl(App_component_Cmp_p_q_e_click_Yl4ybrJWrt4, "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4")
     }, "Hello Qwik", 3, null), 3, "u6_0");
-}, "App_component_ckEPmXZlub0"));
+};
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,sCAAW,CAAC;IAC9B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;OAAS;AAGzD,iCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;kDAM8B,IAAM,QAAQ,GAAG,CAAC;kCAHlB,CAAC;IAC9B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ;OAA6B;AAGzD;AANA,OAAO,MAAM,oBAAM,+FAMhB\"}")
 == DIAGNOSTICS ==
 
 []

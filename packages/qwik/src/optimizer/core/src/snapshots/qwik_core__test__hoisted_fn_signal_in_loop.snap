@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4670
+assertion_line: 4707
 expression: output
 ---
 ==INPUT==
@@ -35,15 +35,18 @@ export const App = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+//
+const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAqBhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,6CAqBhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+//
 const _hf0 = (p0)=>p0.value.selected.value ? "danger" : "";
 const _hf0_str = 'p0.value.selected.value?"danger":""';
 const _hf1 = (p0)=>p0.value.id;
@@ -89,7 +92,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mBAgBmB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAExC,GAAI,KAAK,CAAC,EAAE;;yCAfC;IAC5B,MAAM,OAAO;QAAE,OAAO;YACpB;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAK;gBAAE;YAAE;YAC9C;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAM;gBAAE;YAAE;YAC/C;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAK;gBAAE;YAAE;SAC/C;IAAA;IAED,qBACE,WAAC,qBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC;QACf,qBACE,WAAC;YAEC,KAAK;;;+BAEL,WAAC;;mCAHI,IAAI,KAAK,CAAC,EAAE;IAMvB;AAGN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAgBmB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAExC,GAAI,KAAK,CAAC,EAAE;;yCAfC;IAC5B,MAAM,OAAO;QAAE,OAAO;YACpB;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAK;gBAAE;YAAE;YAC9C;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAM;gBAAE;YAAE;YAC/C;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAK;gBAAE;YAAE;SAC/C;IAAA;IAED,qBACE,WAAC,qBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC;QACf,qBACE,WAAC;YAEC,KAAK;;;+BAEL,WAAC;;mCAHI,IAAI,KAAK,CAAC,EAAE;IAMvB;AAGN\"}")
 /*
 {
   "origin": "test.tsx",

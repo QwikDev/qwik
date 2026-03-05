@@ -84,5 +84,5 @@ export const RenderOnce: FunctionComponent<{
   children?: unknown;
   key?: string | number | null | undefined;
 }> = (props: any, key) => {
-  return new JSXNodeImpl(Virtual, null, null, props.children, key);
+  return new JSXNodeImpl(Virtual, null, null, props.children, 0, key);
 };

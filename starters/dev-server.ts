@@ -33,8 +33,25 @@ const escapeChars = (filePath: string) => {
   return isWindows ? filePath.replace(/\\/g, "\\\\") : filePath;
 };
 
+// Parse command line arguments
+let buildTarget: string | undefined;
+let port = 3300;
+
+for (let i = 2; i < process.argv.length; i++) {
+  const arg = process.argv[i];
+  if (arg.startsWith("--build=")) {
+    buildTarget = arg.substring("--build=".length);
+  } else if (arg === "--build" && i + 1 < process.argv.length) {
+    buildTarget = process.argv[++i];
+  } else {
+    const portNum = parseInt(arg, 10);
+    if (!isNaN(portNum)) {
+      port = portNum;
+    }
+  }
+}
+
 const app = express();
-const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
 const address = `http://localhost:${port}/`;
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const startersDir = __dirname;
@@ -337,7 +354,61 @@ function favicon(_: Request, res: Response) {
   res.sendFile(path);
 }
 
+function printUsage() {
+  console.log(`
+Qwik Dev Server - Starter Apps Builder
+
+Usage: node dev-server.ts [OPTIONS] [PORT]
+
+OPTIONS:
+  --build=APPNAME       Build a specific app and exit (don't start server)
+  --build APPNAME       Same as --build=APPNAME
+  
+ARGUMENTS:
+  PORT                  Port number (default: 3300)
+
+Examples:
+  node dev-server.ts                          # Start server on port 3300
+  node dev-server.ts 3400                     # Start server on port 3400
+  node dev-server.ts --build=qwikrouter-test  # Build qwikrouter-test and exit
+  node dev-server.ts --build qwik-spa 3400    # Build qwik-spa and exit (port ignored)
+
+Available apps:
+${appNames.map((a) => `  - ${a}`).join("\n")}
+  `);
+}
+
 async function main() {
+  // Handle build-and-exit mode
+  if (buildTarget) {
+    if (!appNames.includes(buildTarget)) {
+      console.error(`\n❌ Unknown app: "${buildTarget}"\n`);
+      printUsage();
+      process.exit(1);
+    }
+
+    console.log(`\n🏗️  Building ${buildTarget}...\n`);
+    const appDir = join(startersAppsDir, buildTarget);
+    try {
+      // Read package.json to determine if qwik-router should be enabled
+      const pkgPath = join(appDir, "package.json");
+      const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, "utf-8"));
+      const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
+
+      await buildApp(appDir, buildTarget, enableRouterServer);
+      console.log(`\n✅ Successfully built ${buildTarget}\n`);
+      process.exit(0);
+    } catch (error: any) {
+      console.error(
+        `\n❌ Build failed for ${buildTarget}:\n`,
+        error.stack || error,
+      );
+      process.exit(1);
+    }
+  }
+
+  // Normal server mode
+  const app = express();
   const partytownPath = resolve(
     startersDir,
     "..",

@@ -25,17 +25,22 @@ export const App = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+//
+const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAKA,OAAO,MAAM,oBAAM,4EASjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAKA,OAAO,MAAM,oBAAM,6CASjB\"}")
 ============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
 
-export const App_component_useStyles_t35nSa5UV7U = style;
+import css1 from "./global.css";
+import css2 from "./style.css";
+//
+export const App_component_useStyles_t35nSa5UV7U = `${css1}${css2}`;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAOY\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mDAMe,GAAG,OAAO,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -51,8 +56,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    211,
-    216
+    181,
+    197
   ]
 }
 */
@@ -62,15 +67,17 @@ import css1 from "./global.css";
 import css2 from "./style.css";
 import { qrl } from "@qwik.dev/core";
 import { useStylesQrl } from "@qwik.dev/core";
-const i_t35nSa5UV7U = ()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U");
-const i_w0t0o3QMovU = ()=>import("./test.tsx_App_component_1_w0t0o3QMovU");
+//
+const _qrl_App_component_1_w0t0o3QMovU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+const _qrl_App_component_useStyles_t35nSa5UV7U = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U");
+//
 export const App_component_ckEPmXZlub0 = ()=>{
-    useStylesQrl(/*#__PURE__*/ qrl(i_t35nSa5UV7U, "App_component_useStyles_t35nSa5UV7U"));
-    return /*#__PURE__*/ qrl(i_w0t0o3QMovU, "App_component_1_w0t0o3QMovU");
+    useStylesQrl(_qrl_App_component_useStyles_t35nSa5UV7U);
+    return _qrl_App_component_1_w0t0o3QMovU;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAK8B;IAE7B;IAMA;AACD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAK8B;IAE7B;IAMA;AACD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -93,10 +100,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
 
-export const App_component_1_w0t0o3QMovU = render;
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const App_component_1_w0t0o3QMovU = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_0");
+};
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAaU\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAQgB;IACd,qBACC,WAAC;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -112,48 +123,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    287,
-    293
+    235,
+    275
   ]
 }
 */
 == DIAGNOSTICS ==
 
-[
-  {
-    "category": "error",
-    "code": "C03",
-    "file": "test.tsx",
-    "message": "Qrl($) scope is not a function, but it's capturing local identifiers: style",
-    "highlights": [
-      {
-        "lo": 211,
-        "hi": 216,
-        "startLine": 8,
-        "startCol": 16,
-        "endLine": 8,
-        "endCol": 20
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  },
-  {
-    "category": "error",
-    "code": "C03",
-    "file": "test.tsx",
-    "message": "Qrl($) scope is not a function, but it's capturing local identifiers: render",
-    "highlights": [
-      {
-        "lo": 287,
-        "hi": 293,
-        "startLine": 14,
-        "startCol": 14,
-        "endLine": 14,
-        "endCol": 19
-      }
-    ],
-    "suggestions": null,
-    "scope": "optimizer"
-  }
-]
+[]

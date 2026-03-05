@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2322
+assertion_line: 2323
 expression: output
 ---
 ==INPUT==
@@ -21,10 +21,12 @@ export const App = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrlDEV } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
+//
+const App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = ()=>console.log('warn');
+const App_component_ckEPmXZlub0 = ()=>{
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
-        "q-e:click": /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
+        "q-e:click": /*#__PURE__*/ inlinedQrlDEV(App_component_Cmp_p_q_e_click_Yl4ybrJWrt4, "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
             file: "/user/qwik/src/test.tsx",
             lo: 144,
             hi: 169,
@@ -39,7 +41,8 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
         lineNumber: 6,
         columnNumber: 3
     });
-}, "App_component_ckEPmXZlub0", {
+};
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
     lo: 88,
     hi: 200,
@@ -47,7 +50,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,yCAAW;IAC7B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;OAAS;;;;;;;;;AAGzD;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;kDAM8B,IAAM,QAAQ,GAAG,CAAC;kCAHlB;IAC7B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ;;;;;;OAA6B;;;;;;;;;AAGzD;AANA,OAAO,MAAM,oBAAM;;;;;IAMhB\"}")
 == DIAGNOSTICS ==
 
 []

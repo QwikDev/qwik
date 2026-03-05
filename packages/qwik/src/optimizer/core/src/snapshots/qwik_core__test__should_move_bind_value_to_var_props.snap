@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 5268
+assertion_line: 5356
 expression: output
 ---
 ==INPUT==
@@ -30,11 +30,13 @@ export const FieldInput = component$(
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_V4XAtJSTRKg = ()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg");
-export const FieldInput = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_V4XAtJSTRKg, "FieldInput_component_V4XAtJSTRKg"));
+//
+const _qrl_FieldInput_component_V4XAtJSTRKg = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
+//
+export const FieldInput = /*#__PURE__*/ componentQrl(_qrl_FieldInput_component_V4XAtJSTRKg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,2BAAa,mFAexB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,2BAAa,oDAexB\"}")
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
 
 import { _getConstProps } from "@qwik.dev/core";
@@ -42,7 +44,9 @@ import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { destructureBindings } from "./destructure-bindings";
 import { qrl } from "@qwik.dev/core";
-const i_fZgZHYZXt60 = ()=>import("./test.tsx_FieldInput_component_input_q_e_click_fZgZHYZXt60");
+//
+const _qrl_FieldInput_component_input_q_e_click_fZgZHYZXt60 = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_input_q_e_click_fZgZHYZXt60"), "FieldInput_component_input_q_e_click_fZgZHYZXt60");
+//
 export const FieldInput_component_V4XAtJSTRKg = (props)=>{
     const initialValues = {
         value: undefined
@@ -53,12 +57,12 @@ export const FieldInput_component_V4XAtJSTRKg = (props)=>{
         ..._getConstProps(rest),
         "bind:value": finalValue
     }, {
-        "q-e:click": /*#__PURE__*/ qrl(i_fZgZHYZXt60, "FieldInput_component_input_q_e_click_fZgZHYZXt60")
+        "q-e:click": _qrl_FieldInput_component_input_q_e_click_fZgZHYZXt60
     }, null, 0, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gDAKE,CAAC;IACC,MAAM,gBAAgB;QAAE,OAAO;IAAgC;IAC/D,MAAM,OAAO,oBAAoB,OAAO;IAExC,qBACE,UAAC;wBACK;0BAAA;QADN,cAEc;;QAClB,WAAQ;;AAKR\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAKE,CAAC;IACC,MAAM,gBAAgB;QAAE,OAAO;IAAgC;IAC/D,MAAM,OAAO,oBAAoB,OAAO;IAExC,qBACE,UAAC;wBACK;0BAAA;QADN,cAEc;;QAClB,WAAQ;;AAKR\"}")
 /*
 {
   "origin": "test.tsx",

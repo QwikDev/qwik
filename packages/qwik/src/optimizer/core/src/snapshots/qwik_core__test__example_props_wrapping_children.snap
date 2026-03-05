@@ -28,6 +28,8 @@ import { _wrapProp } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+import { useSignal } from '@qwik.dev/core';
+//
 const _hf0 = (p0, p1)=>p1 + p0.fromProps;
 const _hf0_str = "p1+p0.fromProps";
 const _hf1 = (p0)=>({
@@ -39,8 +41,7 @@ const _hf2 = (p0, p1)=>({
         local: p1
     });
 const _hf2_str = "{props:p0.fromProps,local:p1}";
-import { useSignal } from '@qwik.dev/core';
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((_rawProps)=>{
+const Works_component_t45qL4vNGv0 = (_rawProps)=>{
     let fromLocal = useSignal(0);
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         fromLocal,
@@ -60,10 +61,11 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((_rawPr
             fromLocal
         ], _hf2_str)
     ], 1, "u6_0");
-}, "Works_component_t45qL4vNGv0"));
+};
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_t45qL4vNGv0, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAQI,QAN8B;;mBAO9B,CAAA;QAAC,KAAK,KAPwB;IAOb,CAAA;;uBAEjB,CAAA;QAAC,KAAK,KATwB;QASX,KAAK;IAAW,CAAA;;AAVvC,SAAwB,SAAS,QAAQ,iBAAiB;AAC1D,OAAO,MAAM,sBAAQ,sCAAW;IAC/B,IAAI,YAAY,UAAU;IAC1B,qBACC,WAAC;QACC;;;;;;;;;QAIA;YAAC,OAAO;QAAS;;;;;;AAIrB,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAwB,SAAS,QAAQ,iBAAiB;;uBAOtD,QAN8B;;mBAO9B,CAAA;QAAC,KAAK,KAPwB;IAOb,CAAA;;uBAEjB,CAAA;QAAC,KAAK,KATwB;QASX,KAAK;IAAW,CAAA;;oCATP;IAC/B,IAAI,YAAY,UAAU;IAC1B,qBACC,WAAC;QACC;;;;;;;;;QAIA;YAAC,OAAO;QAAS;;;;;;AAIrB;AAZA,OAAO,MAAM,sBAAQ,mGAYlB\"}")
 == DIAGNOSTICS ==
 
 []

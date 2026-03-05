@@ -5,6 +5,7 @@ import { getPlatform } from '../platform/platform';
 import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
 import { isSyncQrl } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
+import { _noopQrl } from '../qrl/qrl';
 
 /** @internal */
 export function qrlToString(
@@ -25,22 +26,23 @@ export function qrlToString(
   let symbol = qrl.$symbol$;
   let chunk = qrl.$chunk$;
 
-  const platform = getPlatform();
-  if (platform) {
-    const result = isDev
-      ? platform.chunkForSymbol(symbol, chunk, qrl.dev?.file)
-      : platform.chunkForSymbol(symbol, chunk);
-    if (result) {
-      chunk = result[1];
-      symbol = result[0];
-    }
-  }
-
   const isSync = isSyncQrl(qrl);
   if (!isSync) {
     // If we have a symbol we need to resolve the chunk.
     if (!chunk) {
-      chunk = serializationContext.$symbolToChunkResolver$(qrl.$hash$);
+      const platform = getPlatform();
+      if (platform) {
+        const result = isDev
+          ? platform.chunkForSymbol(symbol, chunk, qrl.dev?.file)
+          : platform.chunkForSymbol(symbol, chunk);
+        if (result) {
+          chunk = result[1];
+          symbol = result[0];
+        }
+      }
+      if (!chunk) {
+        chunk = serializationContext.$symbolToChunkResolver$(qrl.$hash$);
+      }
     }
     // in Dev mode we need to keep track of the symbols
     if (isDev) {
@@ -95,6 +97,9 @@ export function createQRLWithBackChannel(
     if (fn) {
       qrlImporter = () => Promise.resolve({ [symbol]: fn });
     }
+  }
+  if (chunk === '_') {
+    return _noopQrl(symbol, captures as Readonly<unknown[]>);
   }
   return createQRL(chunk, symbol, null, qrlImporter, captures);
 }

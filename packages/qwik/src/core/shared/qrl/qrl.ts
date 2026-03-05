@@ -95,21 +95,25 @@ export const inlinedQrl = <T>(
   return createQRL<T>(null, symbolName, symbol, null, lexicalScopeCapture);
 };
 
+const noopFn = () => {};
+
 /** @internal */
-export const _noopQrl = <T>(
+export const _noopQrl = (
   symbolName: string,
-  lexicalScopeCapture?: Readonly<unknown[]>
-): QRL<T> => {
-  return createQRL<T>(null, symbolName, null, null, lexicalScopeCapture);
+  lexicalScopeCapture?: Readonly<unknown[]> | null,
+  isFn = false
+): QRLInternal<() => void> => {
+  return createQRL(isFn ? '_' : null, symbolName, isFn ? noopFn : null, null, lexicalScopeCapture);
 };
 
 /** @internal */
-export const _noopQrlDEV = <T>(
+export const _noopQrlDEV = (
   symbolName: string,
   opts: QRLDev,
-  lexicalScopeCapture?: Readonly<unknown[]>
-): QRL<T> => {
-  const newQrl = _noopQrl(symbolName, lexicalScopeCapture) as QRLInternal<T>;
+  lexicalScopeCapture?: Readonly<unknown[]> | null,
+  isFn = false
+): QRLInternal<() => void> => {
+  const newQrl = _noopQrl(symbolName, lexicalScopeCapture, isFn) as QRLInternal<() => void>;
   newQrl.dev = opts;
   return newQrl;
 };

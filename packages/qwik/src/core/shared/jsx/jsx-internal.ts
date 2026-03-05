@@ -41,7 +41,7 @@ export const _jsxSorted = <T>(
   key: string | number | null | undefined,
   dev?: DevJSX
 ): JSXNodeInternal<T> => {
-  return new JSXNodeImpl(type, varProps, constProps, children, key, false, dev);
+  return new JSXNodeImpl(type, varProps, constProps, children, flags, key, false, dev);
 };
 
 /**
@@ -259,7 +259,7 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
       }
     }
   }
-  return new JSXNodeImpl(type, varProps, constProps, children, key, toSort || true, dev);
+  return new JSXNodeImpl(type, varProps, constProps, children, flags, key, toSort || true, dev);
 };
 /** @internal @deprecated v1 compat */
 export const _jsxC = (type: any, mutable: any, _flags: any, key: any) => jsx(type, mutable, key);

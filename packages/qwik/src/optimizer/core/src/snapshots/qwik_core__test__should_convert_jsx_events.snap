@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4743
 expression: output
 ---
 ==INPUT==
@@ -46,13 +45,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _noopQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 //
-const _qrl_ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs");
-const _qrl_ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0 = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0");
-const _qrl_ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY");
-const _qrl_ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA");
-const _qrl_ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg");
-const _qrl_ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles");
-const _qrl_ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs");
+const _qrl_ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_d_focus_fR03UCeyKSs", true);
+const _qrl_ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0 = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_another_custom_ZC5Gt2v0qH0", true);
+const _qrl_ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_blur_LVmlrV6TsTY", true);
+const _qrl_ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_click_1_BOulU3QpiyA", true);
+const _qrl_ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_click_z0X12CPQocg", true);
+const _qrl_ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_e_dblclick_VZGqMEVFles", true);
+const _qrl_ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs = /*#__PURE__*/ _noopQrl("ManyEventsComponent_component_div_button_q_w_click_DjpgJ0bcgJs", true);
 //
 export const ManyEventsComponent_component_ndbrzxiyG3g = ()=>{
     return /*#__PURE__*/ _jsxSorted("div", null, null, [

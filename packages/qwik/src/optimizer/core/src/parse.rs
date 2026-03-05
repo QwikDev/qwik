@@ -1887,6 +1887,14 @@ fn replace_noop_qrl_calls(
 					ident.ctxt = swc_common::SyntaxContext::empty();
 				}
 			}
+			// Mark as empty-function replacement (as opposed to stripped segment)
+			call.args.push(ast::ExprOrSpread {
+				spread: None,
+				expr: Box::new(ast::Expr::Lit(ast::Lit::Bool(ast::Bool {
+					span: DUMMY_SP,
+					value: true,
+				}))),
+			});
 			self.did_replace = true;
 		}
 	}

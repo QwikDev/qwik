@@ -6240,7 +6240,7 @@ export const Test = component$(() => {
 fn noop_empty_body() {
 	test_input!(TestInput {
 		code: r#"
-		import { component$, isServer, $ } from "@qwik.dev/core";
+		import { component$, isServer, $, inlinedQrl } from "@qwik.dev/core";
 
 		export const test1 = $(() => {
 			if (isServer) {
@@ -6255,6 +6255,11 @@ fn noop_empty_body() {
 		export const test4 = $(() => undefined);
 		export const test5 = $(() => void 0);
 		export const test5 = $(() => isServer ? 5 : undefined);
+		export const test6 = inlinedQrl(() => {
+			if (isServer) {
+				// no-op
+			}
+		}, '_test6');
 		"#
 		.to_string(),
 		is_server: Some(false),

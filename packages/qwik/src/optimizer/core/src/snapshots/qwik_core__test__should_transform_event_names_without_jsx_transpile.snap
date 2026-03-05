@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4778
 expression: output
 ---
 ==INPUT==
@@ -40,9 +39,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _noopQrl } from "@qwik.dev/core";
 import mongo from "mongodb";
 //
-const _qrl_Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo = /*#__PURE__*/ _noopQrl("Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo");
-const _qrl_Greeter_component_div_div_q_e_click_2_B9tqzgApK9E = /*#__PURE__*/ _noopQrl("Greeter_component_div_div_q_e_click_2_B9tqzgApK9E");
-const _qrl_Greeter_component_div_div_q_e_click_wYSPnQEGCbA = /*#__PURE__*/ _noopQrl("Greeter_component_div_div_q_e_click_wYSPnQEGCbA");
+const _qrl_Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo = /*#__PURE__*/ _noopQrl("Greeter_component_div_div_q_e_click_1_s7p0zjWZpqo", true);
+const _qrl_Greeter_component_div_div_q_e_click_2_B9tqzgApK9E = /*#__PURE__*/ _noopQrl("Greeter_component_div_div_q_e_click_2_B9tqzgApK9E", true);
+const _qrl_Greeter_component_div_div_q_e_click_wYSPnQEGCbA = /*#__PURE__*/ _noopQrl("Greeter_component_div_div_q_e_click_wYSPnQEGCbA", true);
 //
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
     // Double count watch

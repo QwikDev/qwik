@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2776
 expression: output
 ---
 ==INPUT==
@@ -59,7 +58,7 @@ export const s_ckEPmXZlub0 = ()=>{
     // This task only runs on server; on client build it becomes empty after DCE
     useTaskQrl(/*#__PURE__*/ _noopQrl("s_0u2kaPEyYJA", [
         state
-    ]));
+    ], true));
     // This task has both server and client code; should NOT become noop
     useTaskQrl(/*#__PURE__*/ qrl(i_YeP1iz5iPN4, "s_YeP1iz5iPN4", [
         state

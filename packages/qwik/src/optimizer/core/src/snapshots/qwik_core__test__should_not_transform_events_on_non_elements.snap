@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4807
 expression: output
 ---
 ==INPUT==
@@ -39,8 +38,8 @@ import { _noopQrl } from "@qwik.dev/core";
 import { AnotherComponent } from "./another-component";
 import { CustomComponent } from "./custom-component";
 //
-const _qrl_Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA = /*#__PURE__*/ _noopQrl("Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA");
-const _qrl_Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w = /*#__PURE__*/ _noopQrl("Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w");
+const _qrl_Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA = /*#__PURE__*/ _noopQrl("Greeter_component_div_AnotherComponent_onClick_9BwXJW3s0yA", true);
+const _qrl_Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w = /*#__PURE__*/ _noopQrl("Greeter_component_div_CustomComponent_onClick_6xTF8kMcS9w", true);
 //
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
     return <div>

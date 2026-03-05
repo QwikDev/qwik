@@ -23,7 +23,7 @@ import type { _VNode } from '@qwik.dev/core/internal';
 export function createDocument(opts?: MockDocumentOptions): Document;
 
 // @public
-export const createDOM: ({ html }?: {
+export const createDOM: (input?: {
     html?: string;
 }) => Promise<{
     render: (jsxElement: JSXOutput) => Promise<RenderResult>;

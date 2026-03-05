@@ -27,12 +27,12 @@
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
     "vite": ">=5 <8",
-    "vite-imagetools": "9.0.0",
+    "vite-imagetools": "9.1.0",
     "yaml": "^2.8.2",
     "zod": "^3.25.48"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.55.2",
+    "@microsoft/api-extractor": "7.57.6",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
     "@types/node": "24.10.0",

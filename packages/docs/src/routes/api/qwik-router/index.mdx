@@ -740,10 +740,8 @@ export type FailReturn<T> = T & Failed;
 <h2 id="form">Form</h2>
 
 ```typescript
-Form: <O, I>(
-  { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
-  key: string | null,
-) => import("@qwik.dev/core").JSXOutput;
+Form: <O, I>(input: FormProps<O, I>, key: string | null) =>
+  import("@qwik.dev/core").JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -762,6 +760,17 @@ Description
 <tbody><tr><td>
 
 \{ action, spaReset, reloadDocument, onSubmit$, ...rest }
+
+</td><td>
+
+(not declared)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+input
 
 </td><td>
 

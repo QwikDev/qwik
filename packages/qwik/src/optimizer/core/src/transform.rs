@@ -1015,6 +1015,30 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
+	/// Pre-compute captures for an event handler expression without folding it.
+	/// Returns the set of captured identifiers (variables from enclosing scope).
+	fn compute_handler_captures(&self, handler: &ast::Expr) -> Vec<Id> {
+		let descendent_idents = {
+			let mut collector = IdentCollector::new();
+			handler.visit_with(&mut collector);
+			collector.get_words()
+		};
+
+		let (decl_collect, _): (Vec<_>, Vec<_>) = self
+			.decl_stack
+			.iter()
+			.flat_map(|v| v.iter())
+			.cloned()
+			.partition(|(_, t)| matches!(t, IdentType::Var(_)));
+
+		let (mut scoped, _) = compute_scoped_idents(&descendent_idents, &decl_collect);
+
+		let params = get_function_params(handler);
+		scoped.retain(|id| !params.contains(id));
+
+		scoped
+	}
+
 	/// Chooses which hoisting scope (0 = root component, 1 = first callback or nested component, …)
 	/// should receive a QRL's const declaration. Uses the segment just pushed in create_segment (segments.last()).
 	///
@@ -1798,7 +1822,7 @@ impl<'a> QwikTransform<'a> {
 				let should_runtime_sort = has_spread_props || has_component_bind_props;
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
-				let mut added_iter_var_prop = false; // Track if we've already added q:p or q:ps
+				let mut moved_captures = false; // Track if we've already added q:p or q:ps
 
 				// Collect parameters to lift via q:p/q:ps:
 				// Priority 1: iteration variables (loop context) - collected from iteration_var_stack
@@ -1840,8 +1864,8 @@ impl<'a> QwikTransform<'a> {
 							Vec::new()
 						}
 					} else {
-						// No loop context - collect extra params from inline event handlers (params beyond event, element)
-						let mut collected_params: Vec<ast::Ident> = Vec::new();
+						// No loop context - collect union of captures from all event handlers
+						let mut all_captures: Vec<Id> = Vec::new();
 						for prop in props.iter() {
 							if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) = prop
 							{
@@ -1850,42 +1874,23 @@ impl<'a> QwikTransform<'a> {
 									ast::PropName::Str(ref s) => Some(s.value.clone()),
 									_ => None,
 								};
-								if key.as_ref().and_then(convert_qrl_word).is_some() {
-									match &*node.value {
-										ast::Expr::Arrow(ref arrow) if arrow.params.len() > 2 => {
-											// Extract params beyond index 2 (event, element)
-											for param in &arrow.params[2..] {
-												if let ast::Pat::Ident(ref ident) = param {
-													if !collected_params.iter().any(|p| {
-														p.sym == ident.id.sym
-															&& p.ctxt == ident.id.ctxt
-													}) {
-														collected_params.push(ident.id.clone());
-													}
-												}
-											}
+								if key.as_ref().and_then(convert_qrl_word).is_some()
+									&& matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
+								{
+									let captures = self.compute_handler_captures(&node.value);
+									for cap in captures {
+										if !all_captures.contains(&cap) {
+											all_captures.push(cap);
 										}
-										ast::Expr::Fn(ref fn_expr)
-											if fn_expr.function.params.len() > 2 =>
-										{
-											// Extract params beyond index 2
-											for param in &fn_expr.function.params[2..] {
-												if let ast::Pat::Ident(ref ident) = param.pat {
-													if !collected_params.iter().any(|p| {
-														p.sym == ident.id.sym
-															&& p.ctxt == ident.id.ctxt
-													}) {
-														collected_params.push(ident.id.clone());
-													}
-												}
-											}
-										}
-										_ => {}
 									}
 								}
 							}
 						}
-						collected_params
+						all_captures.sort();
+						all_captures
+							.iter()
+							.map(|id| ast::Ident::new(id.0.clone(), DUMMY_SP, id.1))
+							.collect()
 					}
 				} else {
 					Vec::new()
@@ -2001,43 +2006,21 @@ impl<'a> QwikTransform<'a> {
 								{
 									if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 									{
-										// Determine which params to lift:
-										// 1. For loop context: use iteration variables (existing behavior)
-										// 2. For non-loop context: use explicit handler params (generalization)
+										// Use element_lifted_params for both loop iteration vars
+										// and non-loop captures (computed in pre-pass above)
 										let params_to_lift: Vec<ast::Ident> =
-											if !self.iteration_var_stack.is_empty()
-												&& !element_lifted_params.is_empty()
-											{
-												// Loop-based: use iteration vars as params
+											if !element_lifted_params.is_empty() && !is_fn {
 												element_lifted_params.clone()
-											} else if !is_fn {
-												// Non-loop inline handler on string component: extract explicit params
-												if let Some((handler_idents, _handler_names)) =
-													extract_inline_handler_params(&node.value)
-												{
-													get_liftable_inline_handler_params(
-														&handler_idents,
-														&_handler_names,
-													)
-												} else {
-													Vec::new()
-												}
 											} else {
 												Vec::new()
 											};
 
-										// Transform handler if we have params to lift
+										// Inject lifted params as extra function params
 										let transformed_value = if !params_to_lift.is_empty() {
-											if !self.iteration_var_stack.is_empty() {
-												// Loop context: inject iteration vars as params
-												transform_event_handler_with_iter_var(
-													*node.value.clone(),
-													&params_to_lift,
-												)
-											} else {
-												// Non-loop context: params already declared, just use as-is
-												*node.value.clone()
-											}
+											transform_event_handler_with_iter_var(
+												*node.value.clone(),
+												&params_to_lift,
+											)
 										} else {
 											*node.value.clone()
 										};
@@ -2078,9 +2061,7 @@ impl<'a> QwikTransform<'a> {
 
 										// Add q:p (single) or q:ps (multiple) prop for lifted params
 										// Apply to both loop-based iteration vars AND non-loop inline handler params
-										if !params_to_lift.is_empty()
-											&& !is_fn && !added_iter_var_prop
-										{
+										if !params_to_lift.is_empty() && !is_fn && !moved_captures {
 											let (prop_name, row_value): (&str, Box<ast::Expr>) =
 												if params_to_lift.len() == 1 {
 													// Single parameter: use q:p without array
@@ -2123,7 +2104,7 @@ impl<'a> QwikTransform<'a> {
 													value: row_value,
 												}),
 											)));
-											added_iter_var_prop = true;
+											moved_captures = true;
 										}
 									} else {
 										let const_prop = is_const_expr(
@@ -2267,6 +2248,9 @@ impl<'a> QwikTransform<'a> {
 				}
 				if static_subtree {
 					flags |= 1 << 1;
+				}
+				if moved_captures {
+					flags |= 1 << 2;
 				}
 				if !should_runtime_sort {
 					var_props.sort_by(|a: &ast::PropOrSpread, b: &ast::PropOrSpread| {
@@ -4332,55 +4316,6 @@ fn build_event_handler_param_pats(
 	new_params
 }
 
-/// Extract parameter identifiers from an inline handler expression (arrow or function)
-/// Returns: (handler_params, all_param_names)
-/// where handler_params are the actual Ident patterns, and all_param_names are their symbol names
-fn extract_inline_handler_params(expr: &ast::Expr) -> Option<(Vec<ast::Ident>, Vec<Atom>)> {
-	match expr {
-		ast::Expr::Arrow(arrow) => {
-			let mut idents = Vec::new();
-			let mut names = Vec::new();
-			for param in &arrow.params {
-				if let ast::Pat::Ident(binding) = param {
-					names.push(binding.id.sym.clone());
-					idents.push(binding.id.clone());
-				}
-			}
-			Some((idents, names))
-		}
-		ast::Expr::Fn(fn_expr) => {
-			let mut idents = Vec::new();
-			let mut names = Vec::new();
-			for param in &fn_expr.function.params {
-				if let ast::Pat::Ident(binding) = &param.pat {
-					names.push(binding.id.sym.clone());
-					idents.push(binding.id.clone());
-				}
-			}
-			Some((idents, names))
-		}
-		_ => None,
-	}
-}
-
-/// Determine which inline handler parameters should be lifted to q:p/q:ps.
-/// For inline handlers outside loops, we can lift parameters that have meaningful names
-/// (not just `event` or `el`/`element` which are reserved for event and element refs).
-/// Returns the identifiers that should be lifted (params at indices 2+, with meaningful names).
-fn get_liftable_inline_handler_params(
-	handler_idents: &[ast::Ident],
-	_handler_names: &[Atom],
-) -> Vec<ast::Ident> {
-	if handler_idents.len() <= 2 {
-		// Only event and element (or fewer), nothing to lift
-		return Vec::new();
-	}
-
-	// Slots 0-1 are reserved for event and element; skip those
-	// Slots 2+ are "extra" params that describe what the handler needs
-	handler_idents[2..].to_vec()
-}
-
 /// Transform event handler to add iteration variables as parameters.
 /// Takes the element's full list of iteration vars (in loop order) so param order matches q:ps.
 /// For each var: if the handler uses it, add that ident; otherwise add a placeholder (_2, _3, ...).
@@ -4678,178 +4613,5 @@ mod param_lifting_tests {
 			id: ast::Ident::new(Atom::from(name), DUMMY_SP, Default::default()),
 			type_ann: None,
 		})
-	}
-
-	/// Helper to create an empty arrow function body
-	fn make_empty_arrow_body() -> ast::BlockStmtOrExpr {
-		ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
-			span: DUMMY_SP,
-			value: 0.0,
-			raw: None,
-		}))))
-	}
-
-	#[test]
-	fn test_extract_inline_handler_params_arrow_zero_params() {
-		// Arrow with no parameters: () => value
-		let arrow = ast::Expr::Arrow(ast::ArrowExpr {
-			params: vec![],
-			body: Box::new(make_empty_arrow_body()),
-			is_async: false,
-			is_generator: false,
-			type_params: None,
-			return_type: None,
-			span: DUMMY_SP,
-			ctxt: Default::default(),
-		});
-
-		let result = extract_inline_handler_params(&arrow);
-		assert!(result.is_some());
-		let (idents, names) = result.unwrap();
-		assert_eq!(idents.len(), 0);
-		assert_eq!(names.len(), 0);
-	}
-
-	#[test]
-	fn test_extract_inline_handler_params_arrow_with_params() {
-		// Arrow with parameters: (e, el, item, index) => value
-		let arrow = ast::Expr::Arrow(ast::ArrowExpr {
-			params: vec![
-				make_param_ident("e"),
-				make_param_ident("el"),
-				make_param_ident("item"),
-				make_param_ident("index"),
-			],
-			body: Box::new(make_empty_arrow_body()),
-			is_async: false,
-			is_generator: false,
-			type_params: None,
-			return_type: None,
-			span: DUMMY_SP,
-			ctxt: Default::default(),
-		});
-
-		let result = extract_inline_handler_params(&arrow);
-		assert!(result.is_some());
-		let (idents, names) = result.unwrap();
-		assert_eq!(idents.len(), 4);
-		assert_eq!(names.len(), 4);
-		assert_eq!(names[0], atom!("e"));
-		assert_eq!(names[1], atom!("el"));
-		assert_eq!(names[2], atom!("item"));
-		assert_eq!(names[3], atom!("index"));
-	}
-
-	#[test]
-	fn test_get_liftable_inline_handler_params_none() {
-		// Only event and element (slots 0-1): nothing to lift
-		let idents = vec![
-			ast::Ident::new(atom!("e"), DUMMY_SP, Default::default()),
-			ast::Ident::new(atom!("el"), DUMMY_SP, Default::default()),
-		];
-		let names = vec![atom!("e"), atom!("el")];
-
-		let result = get_liftable_inline_handler_params(&idents, &names);
-		assert_eq!(result.len(), 0);
-	}
-
-	#[test]
-	fn test_get_liftable_inline_handler_params_single() {
-		// Event, element, and one extra param (item)
-		let idents = vec![
-			ast::Ident::new(atom!("e"), DUMMY_SP, Default::default()),
-			ast::Ident::new(atom!("el"), DUMMY_SP, Default::default()),
-			ast::Ident::new(atom!("item"), DUMMY_SP, Default::default()),
-		];
-		let names = vec![atom!("e"), atom!("el"), atom!("item")];
-
-		let result = get_liftable_inline_handler_params(&idents, &names);
-		assert_eq!(result.len(), 1);
-		assert_eq!(result[0].sym, atom!("item"));
-	}
-
-	#[test]
-	fn test_get_liftable_inline_handler_params_multiple() {
-		// Event, element, and multiple extra params (item, index, extra)
-		let idents = vec![
-			ast::Ident::new(atom!("e"), DUMMY_SP, Default::default()),
-			ast::Ident::new(atom!("el"), DUMMY_SP, Default::default()),
-			ast::Ident::new(atom!("item"), DUMMY_SP, Default::default()),
-			ast::Ident::new(atom!("index"), DUMMY_SP, Default::default()),
-			ast::Ident::new(atom!("extra"), DUMMY_SP, Default::default()),
-		];
-		let names = vec![
-			atom!("e"),
-			atom!("el"),
-			atom!("item"),
-			atom!("index"),
-			atom!("extra"),
-		];
-
-		let result = get_liftable_inline_handler_params(&idents, &names);
-		assert_eq!(result.len(), 3);
-		assert_eq!(result[0].sym, atom!("item"));
-		assert_eq!(result[1].sym, atom!("index"));
-		assert_eq!(result[2].sym, atom!("extra"));
-	}
-
-	#[test]
-	fn test_extract_inline_handler_params_function_expr() {
-		// Function expression: function(e, el, item) { ... }
-		let fn_expr = ast::Expr::Fn(ast::FnExpr {
-			ident: None,
-			function: Box::new(ast::Function {
-				params: vec![
-					ast::Param {
-						span: DUMMY_SP,
-						decorators: vec![],
-						pat: make_param_ident("e"),
-					},
-					ast::Param {
-						span: DUMMY_SP,
-						decorators: vec![],
-						pat: make_param_ident("el"),
-					},
-					ast::Param {
-						span: DUMMY_SP,
-						decorators: vec![],
-						pat: make_param_ident("item"),
-					},
-				],
-				decorators: vec![],
-				span: DUMMY_SP,
-				body: Some(ast::BlockStmt {
-					span: DUMMY_SP,
-					stmts: vec![],
-					ctxt: Default::default(),
-				}),
-				is_generator: false,
-				is_async: false,
-				type_params: None,
-				return_type: None,
-				ctxt: Default::default(),
-			}),
-		});
-
-		let result = extract_inline_handler_params(&fn_expr);
-		assert!(result.is_some());
-		let (idents, names) = result.unwrap();
-		assert_eq!(idents.len(), 3);
-		assert_eq!(names[0], atom!("e"));
-		assert_eq!(names[1], atom!("el"));
-		assert_eq!(names[2], atom!("item"));
-	}
-
-	#[test]
-	fn test_extract_inline_handler_params_non_function() {
-		// Non-function expression: should return None
-		let literal = ast::Expr::Lit(ast::Lit::Num(ast::Number {
-			span: DUMMY_SP,
-			value: 42.0,
-			raw: None,
-		}));
-
-		let result = extract_inline_handler_params(&literal);
-		assert!(result.is_none());
 	}
 }

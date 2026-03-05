@@ -120,11 +120,11 @@ export const test_component_LUXeXe0DQrg = ()=>{
             /*#__PURE__*/ _jsxSorted("button", {
                 "q-e:click": _qrl_test_component_div_div_button_q_e_click_hCFE1Zqizzw,
                 "q:p": index
-            }, null, val, 0, null),
+            }, null, val, 4, null),
             /*#__PURE__*/ _jsxSorted("span", {
                 "q-e:keydown": _qrl_test_component_div_div_span_q_e_keydown_JMCQrlWndWA,
                 "q:p": label
-            }, null, label, 0, null)
+            }, null, label, 4, null)
         ], 1, "u6_0");
     }), 1, "u6_1");
 };

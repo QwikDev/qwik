@@ -120,7 +120,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
             "q:p": index
         }, {
             "q-e:keydown": _qrl_test_component_div_div_q_e_keydown_a6RR59yQlXM
-        }, val, 0, "u6_0");
+        }, val, 4, "u6_0");
     }), 1, "u6_1");
 };
 

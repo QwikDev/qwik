@@ -78,7 +78,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
     for (const val of arr.value)items.push(/*#__PURE__*/ _jsxSorted("div", {
         "q-e:click": _qrl_test_component_div_q_e_click_omwK2O280Tk,
         "q:p": val
-    }, null, val, 2, "u6_0"));
+    }, null, val, 6, "u6_0"));
     return /*#__PURE__*/ _jsxSorted("div", null, null, items, 1, "u6_1");
 };
 

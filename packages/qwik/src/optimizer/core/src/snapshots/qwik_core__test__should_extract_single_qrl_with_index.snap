@@ -152,7 +152,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 ]
             }, null, _fnSignal(_hf2, [
                 row
-            ], _hf2_str), 0, null), 1, null),
+            ], _hf2_str), 4, null), 1, null),
             /*#__PURE__*/ _jsxSorted("td", null, {
                 class: "col-md-1"
             }, /*#__PURE__*/ _jsxSorted("a", {
@@ -160,7 +160,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 "q:p": row
             }, null, /*#__PURE__*/ _jsxSorted("span", null, {
                 "aria-hidden": "true"
-            }, "x", 3, null), 2, null), 1, null),
+            }, "x", 3, null), 6, null), 1, null),
             /*#__PURE__*/ _jsxSorted("td", null, {
                 class: "col-md-6"
             }, null, 3, null)

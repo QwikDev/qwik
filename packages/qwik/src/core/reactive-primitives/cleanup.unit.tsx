@@ -307,7 +307,7 @@ describe('cleanup', () => {
         const vnode = vnode_newVirtual();
         vnode_setProp(vnode, ELEMENT_SEQ, []);
 
-        const jsxNode = new JSXNodeImpl('div', { name: 'John', age: 30 }, null, null, 0, false);
+        const jsxNode = new JSXNodeImpl('div', { name: 'John', age: 30 }, null, null, 0, 0, false);
         const handler = new PropsProxyHandler(jsxNode);
         const props = new Proxy({}, handler);
         const effect = new EffectSubscription(vnode, EffectProperty.VNODE);
@@ -335,7 +335,7 @@ describe('cleanup', () => {
         const vnode = vnode_newVirtual();
         vnode_setProp(vnode, ELEMENT_SEQ, []);
 
-        const jsxNode = new JSXNodeImpl('div', { name: 'John' }, null, null, 0, false);
+        const jsxNode = new JSXNodeImpl('div', { name: 'John' }, null, null, 0, 0, false);
         const props = new Proxy({}, new PropsProxyHandler(jsxNode));
         const effect = new EffectSubscription(vnode, EffectProperty.VNODE);
 

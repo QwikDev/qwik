@@ -178,6 +178,18 @@ test('dynamic pathname', () => {
   assert.equal(p, '/docs/introduction/basics');
 });
 
+test('dynamic pathname with special characters', () => {
+  const p = getPathname({
+    originalPathname: '/docs/[category]/[slugId]',
+    basePathname: '/',
+    params: {
+      category: 'my category',
+      slugId: 'héllo wörld',
+    },
+  });
+  assert.equal(p, '/docs/my%20category/h%C3%A9llo%20w%C3%B6rld');
+});
+
 function getPathname(t: { originalPathname: string; basePathname: string; params?: PathParams }) {
   const p = parseRoutePathname(t.basePathname, t.originalPathname);
   const d = getPathnameForDynamicRoute(t.originalPathname, p.paramNames, t.params);

@@ -215,11 +215,14 @@ export async function normalizeRollupOutputOptionsObject(
     if (prevManualChunks && typeof prevManualChunks !== 'function') {
       throw new Error('manualChunks must be a function');
     }
+    // Casts bridge Rollup vs Rolldown ManualChunkMeta type differences
+    type ManualChunkFn = (id: string, meta: unknown) => string | void | null;
 
     // We need custom chunking for the client build
     outputOpts.manualChunks = prevManualChunks
-      ? (id, meta) => prevManualChunks(id, meta) || manualChunks(id, meta)
-      : manualChunks;
+      ? (id, meta) =>
+          (prevManualChunks as ManualChunkFn)(id, meta) || (manualChunks as ManualChunkFn)(id, meta)
+      : (manualChunks as Rollup.OutputOptions['manualChunks']);
   } else {
     // server production output, try to be similar to client
     if (!outputOpts.chunkFileNames) {
@@ -258,7 +261,9 @@ export async function normalizeRollupOutputOptionsObject(
         Number.isFinite(major) &&
         (major > 4 || (major === 4 && (minor > 52 || (minor === 52 && (patch || 0) >= 0))));
       if (isGte452) {
-        outputOpts.onlyExplicitManualChunks = true;
+        (
+          outputOpts as Rollup.OutputOptions & { onlyExplicitManualChunks?: boolean }
+        ).onlyExplicitManualChunks = true;
       } else {
         console.warn(
           `⚠️ We detected that you're using a Rollup version prior to 4.52.0 (${version}). For the latest and greatest, we recommend to let Vite install the latest version for you, or manually install the latest version of Rollup in your project if that doesn't work. It will enable the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`

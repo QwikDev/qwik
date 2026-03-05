@@ -47,15 +47,16 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { useStore, mutable } from '@qwik.dev/core';
+import { dep } from './file';
+//
 const _hf0 = (p0)=>12 + p0.value;
 const _hf0_str = "12+p0.value";
 const _hf1 = (p0)=>p0.address.city.name;
 const _hf1_str = "p0.address.city.name";
 const _hf2 = (p0)=>p0.address.city.name ? 'true' : 'false';
 const _hf2_str = 'p0.address.city.name?"true":"false"';
-import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
-import { useStore, mutable } from '@qwik.dev/core';
-import { dep } from './file';
 const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     const store = useStore({});
@@ -152,7 +153,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBAkBe,KAAK,GAAO,KAAK;;mBACjB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACvB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;;AAnBlD,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;kCAEG;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC;YAAI;YAAO,CAAC,IAAI,CAAC;;sBAClB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,CAAC,IAAI,EAAE,IAAI;;sBACvB,WAAC;YAAI;YAAO,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;;sBACnD,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;sBAAO;;sBACZ,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,IAAI,KAAK;;sBACrB,WAAC;YAAI;YAAO,IAAI,KAAK,GAAG;;sBACxB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,YAAY,KAAK;;sBAC7B,WAAC;YAAI;YAAO,YAAY,KAAK,GAAG;;sBAChC,WAAC;YAAI;YAAO,OAAO,KAAK;;sBACxB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;sBAC3B,WAAC;YAAI;YAAO,QAAQ;;sBACpB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;;AAG9B;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;;mBAeZ,KAAK,GAAO,KAAK;;mBACjB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACvB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;kCAfpB;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC;YAAI;YAAO,CAAC,IAAI,CAAC;;sBAClB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,CAAC,IAAI,EAAE,IAAI;;sBACvB,WAAC;YAAI;YAAO,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;;sBACnD,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;sBAAO;;sBACZ,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,IAAI,KAAK;;sBACrB,WAAC;YAAI;YAAO,IAAI,KAAK,GAAG;;sBACxB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,YAAY,KAAK;;sBAC7B,WAAC;YAAI;YAAO,YAAY,KAAK,GAAG;;sBAChC,WAAC;YAAI;YAAO,OAAO,KAAK;;sBACxB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;sBAC3B,WAAC;YAAI;YAAO,QAAQ;;sBACpB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;;AAG9B;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

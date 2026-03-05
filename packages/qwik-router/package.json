@@ -27,7 +27,7 @@
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
     "vite": ">=5 <8",
-    "vite-imagetools": "9.1.0",
+    "vite-imagetools": "10.0.0",
     "yaml": "^2.8.2",
     "zod": "^3.25.48"
   },

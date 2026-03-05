@@ -48,7 +48,7 @@ export const Foo_component_HTDRsvUbLiE = function() {
         }, null, /*#__PURE__*/ _jsxSorted("p", {
             "q-e:click": _qrl_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk,
             "q:p": row
-        }, null, item.value.id, 0, null), 0, "u6_0")), 1, "u6_1");
+        }, null, item.value.id, 4, null), 4, "u6_0")), 1, "u6_1");
 };
 
 

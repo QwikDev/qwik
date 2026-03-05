@@ -142,7 +142,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
                 item,
                 index
             ]
-        }, null, item, 0, "u6_0");
+        }, null, item, 4, "u6_0");
     }), 1, "u6_1");
 };
 

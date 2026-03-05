@@ -282,7 +282,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         return results.map((item)=>/*#__PURE__*/ _jsxSorted("span", {
                 "q-e:click": App_component_loopArrowFn_span_q_e_click_Wau7C836nf0,
                 "q:p": item
-            }, null, item, 0, "u6_0"));
+            }, null, item, 4, "u6_0"));
     }
     function loopForI(results) {
         const items = [];
@@ -292,7 +292,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         }, null, _fnSignal(_hf0, [
             i,
             results
-        ], _hf0_str), 0, "u6_1"));
+        ], _hf0_str), 4, "u6_1"));
         return items;
     }
     function loopForOf(results) {
@@ -300,7 +300,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         for (const item of results)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "q-e:click": App_component_loopForOf_span_q_e_click_zlNGHYu926I,
             "q:p": item
-        }, null, item, 2, "u6_2"));
+        }, null, item, 6, "u6_2"));
         return items;
     }
     function loopForIn(results) {
@@ -311,7 +311,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         }, null, _fnSignal(_hf0, [
             key,
             results
-        ], _hf0_str), 0, "u6_3"));
+        ], _hf0_str), 4, "u6_3"));
         return items;
     }
     function loopWhile(results) {
@@ -324,7 +324,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
             }, null, _fnSignal(_hf0, [
                 i,
                 results
-            ], _hf0_str), 0, "u6_4"));
+            ], _hf0_str), 4, "u6_4"));
             i++;
         }
         return items;
@@ -335,7 +335,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 "q:p": item
             }, {
                 id: "second"
-            }, item, 0, "u6_5")),
+            }, item, 4, "u6_5")),
         loopArrowFn(results.value),
         loopForI(results.value),
         loopForOf(results.value),

@@ -6220,6 +6220,26 @@ fn should_work() {
 	});
 }
 
+#[test]
+fn moves_captures_when_possible() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal, $ } from "@qwik.dev/core";
+
+		export const Test = component$(() => {
+			const sig = useSignal(0);
+			const foo = useSignal('foo');
+			const bar = useSignal('bar');
+			return <button onClick$={() => sig.value++} onDblClick$={() => foo.value+=sig.value} onHover$={() => sig.value+=bar.value}>{sig}</button>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 impl TestInput {
 	pub fn default() -> Self {
 		Self {

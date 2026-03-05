@@ -84,7 +84,7 @@ export const Foo_component_Inner_component_AuJ9mTBx5YA = (props)=>{
             "q:p": item
         }, null, _fnSignal(_hf0, [
             item
-        ], _hf0_str), 0, "u6_0")), 1, "u6_1");
+        ], _hf0_str), 4, "u6_0")), 1, "u6_1");
 };
 
 

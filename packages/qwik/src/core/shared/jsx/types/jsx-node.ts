@@ -30,6 +30,7 @@ export interface DevJSX {
 export const enum JSXNodeFlags {
   None = 0,
   StaticSubtree = 1 << 1,
+  HasCapturedProps = 1 << 2,
 }
 
 /**

@@ -29,15 +29,10 @@ expression: output
 		
 ============================= test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw.ts (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
-//
-export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = ()=>{
-    const count = _captures[0];
-    return count.value++;
-};
+export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = (_, _1, count)=>count.value++;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;oEAiBuB;;WAAM,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oEAiBuB,gBAAM,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -51,12 +46,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "parent": "test_component_LUXeXe0DQrg",
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": true,
+  "captures": false,
   "loc": [
     418,
     437
   ],
-  "captureNames": [
+  "paramNames": [
+    "_",
+    "_1",
     "count"
   ]
 }
@@ -76,7 +73,7 @@ const useFoo = (count)=>{
     return tag;
 };
 //
-const i_7MTd2pAiliw = ()=>import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw");
+const _qrl_test_component_Fragment_button_q_e_click_7MTd2pAiliw = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw"), "test_component_Fragment_button_q_e_click_7MTd2pAiliw");
 //
 export const test_component_LUXeXe0DQrg = ()=>{
     const count = useSignal(0);
@@ -84,16 +81,16 @@ export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("p", null, null, foo("test"), 1, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, foo`test`, 1, null),
-        /*#__PURE__*/ _jsxSorted("button", null, {
-            "q-e:click": /*#__PURE__*/ qrl(i_7MTd2pAiliw, "test_component_Fragment_button_q_e_click_7MTd2pAiliw", [
-                count
-            ])
-        }, "Count up", 3, null)
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q:p": count
+        }, {
+            "q-e:click": _qrl_test_component_Fragment_button_q_e_click_7MTd2pAiliw
+        }, "Count up", 7, null)
     ], 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;MAEQ,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;;;;0CAE0B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,WAAQ;;;WAAuB;;AAG1C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;MAEQ,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;;;;0CAE0B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;;;YAAO,WAAQ;WAAuB;;AAG1C\"}")
 /*
 {
   "origin": "test.tsx",

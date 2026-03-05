@@ -90,7 +90,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
                 index,
                 value
             ]
-        }, null, val, 0, "u6_0");
+        }, null, val, 4, "u6_0");
     }), 1, "u6_1");
 };
 

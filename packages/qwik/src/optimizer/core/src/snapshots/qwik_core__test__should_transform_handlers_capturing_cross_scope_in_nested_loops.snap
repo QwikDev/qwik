@@ -158,14 +158,14 @@ export const test_component_LUXeXe0DQrg = ()=>{
                 /*#__PURE__*/ _jsxSorted("button", {
                     "q-e:click": test_component_div_div_span_button_q_e_click_oBFNw2cK30o,
                     "q:p": cellIndex
-                }, null, cell, 0, null),
+                }, null, cell, 4, null),
                 /*#__PURE__*/ _jsxSorted("span", {
                     "q-e:keydown": test_component_div_div_span_span_q_e_keydown_SBPovprktLQ,
                     "q:ps": [
                         j,
                         cellKey
                     ]
-                }, null, cellKey, 0, null)
+                }, null, cellKey, 4, null)
             ], 1, j);
         }), 1, i);
     }), 1, "u6_0");

@@ -65,6 +65,10 @@ const Parent_component_div_Div_render_CkMybN6xzQk = ()=>{
 const Parent_component_useTask_ngmvcygWux8 = ()=>{
 // Code
 };
+//
+const _qrl_qrl_4294901762 = /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do");
+const _qrl_qrl_4294901764 = /*#__PURE__*/ _noopQrl("Parent_component_div_q_e_click_oqNnfO6ubjU");
+//
 const Parent_component_t6Wy3C0Q0XM = ()=>{
     const state = useStore({
         text: ''
@@ -74,13 +78,11 @@ const Parent_component_t6Wy3C0Q0XM = ()=>{
         state
     ]));
     useTaskQrl(/*#__PURE__*/ inlinedQrl(Parent_component_useTask_ngmvcygWux8, "Parent_component_useTask_ngmvcygWux8"));
-    return /*#__PURE__*/ _jsxSorted("div", null, {
-        shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do", [
-            state
-        ]),
-        "q-e:click": /*#__PURE__*/ _noopQrl("Parent_component_div_q_e_click_oqNnfO6ubjU", [
-            state
-        ])
+    return /*#__PURE__*/ _jsxSorted("div", {
+        "q:p": state
+    }, {
+        shouldRemove$: _qrl_qrl_4294901762,
+        "q-e:click": _qrl_qrl_4294901764
     }, [
         /*#__PURE__*/ _jsxSorted(Div, null, {
             onClick$: /*#__PURE__*/ inlinedQrl(Parent_component_div_Div_onClick_kgowuto5dR0, "Parent_component_div_Div_onClick_kgowuto5dR0"),
@@ -89,12 +91,12 @@ const Parent_component_t6Wy3C0Q0XM = ()=>{
             ])
         }, null, 3, "7R_0"),
         _wrapProp(state, "text")
-    ], 1, "7R_1");
+    ], 5, "7R_1");
 };
 export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Parent_component_t6Wy3C0Q0XM, "Parent_component_t6Wy3C0Q0XM"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,iBAAiB;;qDA6BnE,IAAM,QAAQ,GAAG,CAAC;oDACnB;;WAAM,MAAM,IAAI;;6CAXnB;AACR,OAAO;AACR;qCAbgC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA;IAIA,qBACC,WAAC;QACA,aAAa;;;QACb,WAAQ;;;;sBAER,WAAC;YACA,QAAQ;YACR,OAAO;;;;kBAEP;;AAGJ;AA3BA,OAAO,MAAM,uBAAS,qGA2BnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,iBAAiB;;qDA6BnE,IAAM,QAAQ,GAAG,CAAC;oDACnB;;WAAM,MAAM,IAAI;;6CAXnB;AACR,OAAO;AACR;;;;;qCAbgC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA;IAIA,qBACC,WAAC;;;QACA,aAAa;QACb,WAAQ;;sBAER,WAAC;YACA,QAAQ;YACR,OAAO;;;;kBAEP;;AAGJ;AA3BA,OAAO,MAAM,uBAAS,qGA2BnB\"}")
 == DIAGNOSTICS ==
 
 []

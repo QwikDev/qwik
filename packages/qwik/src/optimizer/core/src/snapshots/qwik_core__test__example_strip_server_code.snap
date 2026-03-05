@@ -53,6 +53,7 @@ export const Parent = component$(() => {
 import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
+//
 export const s_gDH1EtUWqBU = async ()=>{
     const state = _captures[0];
     state.text = await mongo.users();
@@ -60,7 +61,7 @@ export const s_gDH1EtUWqBU = async ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6BAaU;;IAER,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6BAaU;;IAER,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,11 +89,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_0TaiDayHrlo = ()=>import("./test.tsx_Parent_component_0TaiDayHrlo");
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_0TaiDayHrlo, "s_0TaiDayHrlo"));
+//
+const _qrl_s_0TaiDayHrlo = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo");
+//
+export const Parent = /*#__PURE__*/ componentQrl(_qrl_s_0TaiDayHrlo);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAOA,OAAO,MAAM,uBAAS,gEAkCnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAOA,OAAO,MAAM,uBAAS,iCAkCnB\"}")
 ============================= test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc.js (ENTRY POINT)==
 
 export const s_2ca3HLDC7yc = ()=>{
@@ -159,9 +162,13 @@ import { serverLoaderQrl } from "@qwik.dev/core";
 import { serverStuffQrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
-const i_P8oRQhHsurk = ()=>import("./test.tsx_Parent_component_useTask_1_P8oRQhHsurk");
+//
+const _qrl_qrl_4294901764 = /*#__PURE__*/ _noopQrl("s_r1qAHX7Opp0");
+const _qrl_qrl_4294901766 = /*#__PURE__*/ _noopQrl("s_k1L0DiPQV1I");
+const _qrl_s_P8oRQhHsurk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_1_P8oRQhHsurk"), "s_P8oRQhHsurk");
+const _qrl_s_zM9okM0TYrA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA"), "s_zM9okM0TYrA");
 const i_gDH1EtUWqBU = ()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU");
-const i_zM9okM0TYrA = ()=>import("./test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA");
+//
 export const s_0TaiDayHrlo = ()=>{
     const state = useStore({
         text: ''
@@ -170,16 +177,16 @@ export const s_0TaiDayHrlo = ()=>{
     useTaskQrl(/*#__PURE__*/ qrl(i_gDH1EtUWqBU, "s_gDH1EtUWqBU", [
         state
     ]));
-    serverStuffQrl(/*#__PURE__*/ _noopQrl("s_r1qAHX7Opp0"));
-    serverLoaderQrl(/*#__PURE__*/ _noopQrl("s_k1L0DiPQV1I"));
-    useTaskQrl(/*#__PURE__*/ qrl(i_P8oRQhHsurk, "s_P8oRQhHsurk"));
+    serverStuffQrl(_qrl_qrl_4294901764);
+    serverLoaderQrl(_qrl_qrl_4294901766);
+    useTaskQrl(_qrl_s_P8oRQhHsurk);
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        "q-e:click": /*#__PURE__*/ qrl(i_zM9okM0TYrA, "s_zM9okM0TYrA")
+        "q-e:click": _qrl_s_zM9okM0TYrA
     }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;6BAOiC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAMA;IAWA;IAEA;IAIA,qBACC,WAAC;QAAI,WAAQ;iBACX;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;;6BAOiC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAMA;IAWA;IAEA;IAIA,qBACC,WAAC;QAAI,WAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",

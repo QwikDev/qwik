@@ -33,7 +33,9 @@ export const Bar = component$(({bar}) => {
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.jsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
+//
 const i_DvU6FitWglY = ()=>import("./test.tsx_Foo_component_1_DvU6FitWglY");
+//
 export const Foo_component_HTDRsvUbLiE = (_rawProps)=>{
     return /*#__PURE__*/ qrl(i_DvU6FitWglY, "Foo_component_1_DvU6FitWglY", [
         _rawProps
@@ -41,7 +43,7 @@ export const Foo_component_HTDRsvUbLiE = (_rawProps)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAE7B;;;AAQD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B;IAE7B;;;AAQD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -69,17 +71,21 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
-const i_L80pS8Hxf1Y = ()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y");
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"));
-export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_L80pS8Hxf1Y, "Bar_component_L80pS8Hxf1Y"));
+//
+const _qrl_Bar_component_L80pS8Hxf1Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y");
+const _qrl_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+//
+export const Foo = /*#__PURE__*/ componentQrl(_qrl_Foo_component_HTDRsvUbLiE);
+export const Bar = /*#__PURE__*/ componentQrl(_qrl_Bar_component_L80pS8Hxf1Y);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,4EAUjB;AAEF,OAAO,MAAM,oBAAM,4EAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,oBAAM,6CAUjB;AAEF,OAAO,MAAM,oBAAM,6CAQjB\"}")
 ============================= test.tsx_Bar_component_L80pS8Hxf1Y.jsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
+//
 const i_0xSyNSnVu3k = ()=>import("./test.tsx_Bar_component_1_0xSyNSnVu3k");
+//
 export const Bar_component_L80pS8Hxf1Y = (_rawProps)=>{
     return /*#__PURE__*/ qrl(i_0xSyNSnVu3k, "Bar_component_1_0xSyNSnVu3k", [
         _rawProps
@@ -87,7 +93,7 @@ export const Bar_component_L80pS8Hxf1Y = (_rawProps)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAe8B;IAC7B;;;AAOD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAe8B;IAC7B;;;AAOD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -114,6 +120,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Foo_component_1_DvU6FitWglY.jsx (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const Foo_component_1_DvU6FitWglY = ()=>{
     const _rawProps = _captures[0];
     const fn = ({ aaa })=>aaa;
@@ -123,7 +130,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKU;;IACR,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACE,IAAI;IACJ,WAN4B,KAMtB,MALI,GAKO;GAClB,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKU;;IACR,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACE,IAAI;IACJ,WAN4B,KAMtB,MALI,GAKO;GAClB,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -150,6 +157,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Bar_component_1_0xSyNSnVu3k.jsx (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const Bar_component_1_0xSyNSnVu3k = ()=>{
     const _rawProps = _captures[0];
     return <div>
@@ -158,7 +166,7 @@ export const Bar_component_1_0xSyNSnVu3k = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBU;;IACR,QACE,IAAI;IACJ,WAJ4B,IAIvB;GACN,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAgBU;;IACR,QACE,IAAI;IACJ,WAJ4B,IAIvB;GACN,EAAE\"}")
 /*
 {
   "origin": "test.tsx",

@@ -543,7 +543,7 @@ function descendContentToProject(
 ) {
   const projectionChildren = Array.isArray(children) ? children : [children];
   const createProjectionJSXNode = (slotName: string) => {
-    return new JSXNodeImpl(Projection, null, null, [], slotName);
+    return new JSXNodeImpl(Projection, null, null, [], 0, slotName);
   };
 
   const projections: Array<string | JSXNodeInternal> = [];

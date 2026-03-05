@@ -58,7 +58,7 @@ impl<'a> Visit for ConstCollector<'a> {
 		if self.global.imports.contains_key(&id) {
 			return;
 		}
-		if self.global.exports.contains_key(&id) {
+		if self.global.has_export_id(&id) {
 			return;
 		}
 		if let Some(current_stack) = self.const_idents {

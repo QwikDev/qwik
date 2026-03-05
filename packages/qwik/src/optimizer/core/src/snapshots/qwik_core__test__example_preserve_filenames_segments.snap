@@ -23,28 +23,32 @@ export const foo = () => console.log('foo');
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0.js");
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+//
+const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0.js"), "App_component_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
 export const foo = ()=>console.log('foo');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAOhB;AAEH,OAAO,MAAM,MAAM,IAAM,QAAQ,GAAG,CAAC,OAAO\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,6CAOhB;AAEH,OAAO,MAAM,MAAM,IAAM,QAAQ,GAAG,CAAC,OAAO\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@qwik.dev/core";
 import { foo } from "./test.tsx";
+import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_Yl4ybrJWrt4 = ()=>import("./test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.js");
+//
+const _qrl_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.js"), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4");
+//
 export const App_component_ckEPmXZlub0 = (props)=>{
     foo();
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
-        "q-e:click": /*#__PURE__*/ qrl(i_Yl4ybrJWrt4, "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4")
+        "q-e:click": _qrl_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4
     }, "Hello Qwik", 3, null), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC;IAC9B;IACA,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ;OAA6B;AAGzD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAG8B,CAAC;IAC9B;IACA,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ;OAA6B;AAGzD\"}")
 /*
 {
   "origin": "test.tsx",

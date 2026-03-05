@@ -724,8 +724,12 @@ describe.each([
       await vi.advanceTimersToNextTimerAsync();
       const { document } = await renderPromise;
 
+      const isSsr = render === ssrRenderToDom;
       // Initial render
-      await expect(document.body.firstChild).toMatchDOM(<button>val1</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val1</button> : <button>val1</button>
+      );
 
       // FIRST CLICK
 
@@ -735,7 +739,10 @@ describe.each([
       // Advance timers but not enough to complete the delay
       await vi.advanceTimersByTimeAsync(99);
       // Should be still old value
-      await expect(document.body.firstChild).toMatchDOM(<button>val1</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val1</button> : <button>val1</button>
+      );
       // Advance timers to complete the delay
       await vi.advanceTimersByTimeAsync(1);
       // Wait for the trigger to complete
@@ -743,7 +750,10 @@ describe.each([
       await triggerPromise;
 
       // Should have the new value
-      await expect(document.body.firstChild).toMatchDOM(<button>val2</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val2</button> : <button>val2</button>
+      );
 
       // SECOND CLICK
 
@@ -753,7 +763,10 @@ describe.each([
       // Advance timers but not enough to complete the delay
       await vi.advanceTimersByTimeAsync(99);
       // Should be still old value
-      await expect(document.body.firstChild).toMatchDOM(<button>val2</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val2</button> : <button>val2</button>
+      );
       // Advance timers to complete the delay
       await vi.advanceTimersByTimeAsync(1);
       // Wait for the trigger to complete
@@ -761,7 +774,10 @@ describe.each([
       await triggerPromise;
 
       // Should have the new value
-      await expect(document.body.firstChild).toMatchDOM(<button>val3</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val3</button> : <button>val3</button>
+      );
 
       vi.useRealTimers();
     });
@@ -804,8 +820,12 @@ describe.each([
       await vi.advanceTimersToNextTimerAsync();
       const { document } = await renderPromise;
 
+      const isSsr = render === ssrRenderToDom;
       // Initial render
-      await expect(document.body.firstChild).toMatchDOM(<button>val1</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val1</button> : <button>val1</button>
+      );
 
       // FIRST CLICK
 
@@ -815,14 +835,20 @@ describe.each([
       // Advance timers but not enough to complete the delay
       await vi.advanceTimersByTimeAsync(99);
       // Should have the new value
-      await expect(document.body.firstChild).toMatchDOM(<button>val2</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val2</button> : <button>val2</button>
+      );
       // Advance timers to complete the delay
       await vi.advanceTimersByTimeAsync(1);
       // Wait for the trigger to complete
       await triggerPromise;
 
       // Should have the new value
-      await expect(document.body.firstChild).toMatchDOM(<button>val2</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val2</button> : <button>val2</button>
+      );
 
       // SECOND CLICK
 
@@ -832,14 +858,20 @@ describe.each([
       // Advance timers but not enough to complete the delay
       await vi.advanceTimersByTimeAsync(99);
       // Should have the new value
-      await expect(document.body.firstChild).toMatchDOM(<button>val3</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val3</button> : <button>val3</button>
+      );
       // Advance timers to complete the delay
       await vi.advanceTimersByTimeAsync(1);
       // Wait for the trigger to complete
       await triggerPromise;
 
       // Should have the new value
-      await expect(document.body.firstChild).toMatchDOM(<button>val3</button>);
+      await expect(document.body.firstChild).toMatchDOM(
+        // @ts-expect-error q:p is not typed
+        isSsr ? <button q:p="0">val3</button> : <button>val3</button>
+      );
 
       vi.useRealTimers();
     });

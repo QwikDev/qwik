@@ -77,7 +77,8 @@ export interface SSRContainer extends Container {
     varAttrs: Props,
     constAttrs: Props | null,
     styleScopedId: string | null,
-    currentFile: string | null
+    currentFile: string | null,
+    hasMovedCaptures?: boolean
   ): string | undefined;
   closeElement(): ValueOrPromise<void>;
 

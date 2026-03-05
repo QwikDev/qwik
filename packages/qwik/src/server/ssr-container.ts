@@ -408,7 +408,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     varAttrs: Props | null,
     constAttrs: Props | null = null,
     styleScopedId: string | null = null,
-    currentFile: string | null = null
+    currentFile: string | null = null,
+    hasMovedCaptures: boolean = true
   ): string | undefined {
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
@@ -446,7 +447,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // create here for writeAttrs method to use it
     const lastNode = this.getOrCreateLastNode();
     if (varAttrs) {
-      innerHTML = this.writeAttrs(elementName, varAttrs, false, styleScopedId, currentFile);
+      innerHTML = this.writeAttrs(
+        elementName,
+        varAttrs,
+        false,
+        styleScopedId,
+        currentFile,
+        hasMovedCaptures
+      );
     }
     this.write(' ' + Q_PROPS_SEPARATOR);
     if (key !== null) {
@@ -457,7 +465,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     if (constAttrs && !isObjectEmpty(constAttrs)) {
       innerHTML =
-        this.writeAttrs(elementName, constAttrs, true, styleScopedId, currentFile) || innerHTML;
+        this.writeAttrs(
+          elementName,
+          constAttrs,
+          true,
+          styleScopedId,
+          currentFile,
+          hasMovedCaptures
+        ) || innerHTML;
     }
     this.write(GT);
 
@@ -1185,10 +1200,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     attrs: Props,
     isConst: boolean,
     styleScopedId: string | null,
-    currentFile: string | null
+    currentFile: string | null,
+    hasMovedCaptures: boolean
   ): string | undefined {
     let innerHTML: string | undefined = undefined;
-    let isLoopElement = null;
     for (let key in attrs) {
       let value = attrs[key];
       if (isSSRUnsafeAttr(key)) {
@@ -1199,11 +1214,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
 
       if (isHtmlAttributeAnEventName(key)) {
-        if (isLoopElement === null) {
-          // check this only once for the entire element
-          isLoopElement = attributesContainsIterationProp(attrs);
-        }
-        value = _setEvent(this.serializationCtx, key, value, isLoopElement);
+        value = _setEvent(this.serializationCtx, key, value, hasMovedCaptures);
       } else if (key === 'ref') {
         const lastNode = this.getOrCreateLastNode();
         if (isSignal(value)) {
@@ -1300,13 +1311,6 @@ const isQwikStyleElement = (tag: string, attrs: Props | null) => {
     );
   }
   return false;
-};
-
-const attributesContainsIterationProp = (attrs: Props): boolean => {
-  return (
-    Object.prototype.hasOwnProperty.call(attrs, ITERATION_ITEM_SINGLE) ||
-    Object.prototype.hasOwnProperty.call(attrs, ITERATION_ITEM_MULTI)
-  );
 };
 
 function newTagError(text: string) {

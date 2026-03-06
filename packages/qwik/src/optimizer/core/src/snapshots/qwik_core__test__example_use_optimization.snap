@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 679
+assertion_line: 678
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -25,19 +26,17 @@ export const Works = component$((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
-//
-const Works_component_t45qL4vNGv0 = (props)=>{
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     const store = useStore({
         value: {
             count: 0
         }
     });
     return <div ciao={store.value.countNested.hello.bye.italian.ciao}>{foo}</div>;
-};
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_t45qL4vNGv0, "Works_component_t45qL4vNGv0"));
+}, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;oCAGgC,CAAC;IAChC,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAO/C,QACE,IAAI,MAJS,AADH,MAHsC,MAA3C,YAEA,MACW,GAAG,CACF,OAAO,CAAnB,OAIa,MAAM;AAE3B;AAXA,OAAO,MAAM,sBAAQ,mGAWlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAChC,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAO/C,QACE,IAAI,MAJS,AADH,MAHsC,MAA3C,YAEA,MACW,GAAG,CACF,OAAO,CAAnB,OAIa,MAAM;AAE3B,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

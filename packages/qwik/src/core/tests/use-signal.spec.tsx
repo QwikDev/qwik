@@ -2,7 +2,6 @@ import {
   Fragment as Awaited,
   Fragment as Component,
   Fragment,
-  jsx,
   Fragment as Projection,
   Fragment as Signal,
   useVisibleTask$,
@@ -158,10 +157,7 @@ describe.each([
         </button>
       </Component>
     );
-    const isSsr = render === ssrRenderToDom;
-    await expect(document.querySelector('button')).toMatchDOM(
-      jsx('button', { key: '0', children: 'const 0', ...(isSsr ? { 'q:p': 0 } : {}) })
-    );
+    await expect(document.querySelector('button')).toMatchDOM(<button key="0">const 0</button>);
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component>
@@ -173,9 +169,7 @@ describe.each([
         </button>
       </Component>
     );
-    await expect(document.querySelector('button')).toMatchDOM(
-      jsx('button', { key: '0', children: 'const 1', ...(isSsr ? { 'q:p': 0 } : {}) })
-    );
+    await expect(document.querySelector('button')).toMatchDOM(<button key="0">const 1</button>);
   });
   it('should handle all ClassList cases', async () => {
     const Cmp = component$(() => {

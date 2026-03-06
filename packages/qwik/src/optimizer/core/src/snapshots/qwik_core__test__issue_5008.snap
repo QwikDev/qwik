@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3564
+assertion_line: 3566
 expression: output
 ---
 ==INPUT==
@@ -27,19 +27,21 @@ expression: output
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-//
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
-//
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,6BAAe,8CAaZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,6EAaZ\"}")
 ============================= test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw.js (ENTRY POINT)==
 
-export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = (_, _1, store)=>store[0].value++;
+import { _captures } from "@qwik.dev/core";
+export const test_component_Fragment_button_q_e_click_7MTd2pAiliw = ()=>{
+    const store = _captures[0];
+    return store[0].value++;
+};
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oEAOqB,gBAAM,KAAK,CAAC,EAAE,CAAC,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";oEAOqB;;WAAM,KAAK,CAAC,EAAE,CAAC,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -53,14 +55,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "parent": "test_component_LUXeXe0DQrg",
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": false,
+  "captures": true,
   "loc": [
     176,
     198
   ],
-  "paramNames": [
-    "_",
-    "_1",
+  "captureNames": [
     "store"
   ]
 }
@@ -72,9 +72,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
-//
-const _qrl_test_component_Fragment_button_q_e_click_7MTd2pAiliw = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw"), "test_component_Fragment_button_q_e_click_7MTd2pAiliw");
-//
+const i_7MTd2pAiliw = ()=>import("./test.tsx_test_component_Fragment_button_q_e_click_7MTd2pAiliw");
 export const test_component_LUXeXe0DQrg = ()=>{
     const store = useStore([
         {
@@ -82,11 +80,11 @@ export const test_component_LUXeXe0DQrg = ()=>{
         }
     ]);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
-        /*#__PURE__*/ _jsxSorted("button", {
-            "q:p": store
-        }, {
-            "q-e:click": _qrl_test_component_Fragment_button_q_e_click_7MTd2pAiliw
-        }, "+1", 7, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": /*#__PURE__*/ qrl(i_7MTd2pAiliw, "test_component_Fragment_button_q_e_click_7MTd2pAiliw", [
+                store
+            ])
+        }, "+1", 3, null),
         store.map(function(v, idx) {
             return /*#__PURE__*/ _jsxSorted("div", null, null, [
                 "Function: ",
@@ -101,7 +99,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;0CAG4B;IAC1B,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACC;sBACA,WAAC;;;YAAO,WAAQ;WAA0B;QACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG;YAC1B,qBAAO,WAAC;gBAAsB;0BAAW;kBAAxB,QAAQ;QAC1B;QACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACd,WAAC;gBAAyB;0BAAQ;kBAAxB,WAAW;;AAIvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAG4B;IAC1B,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACC;sBACA,WAAC;YAAO,WAAQ;;;WAA0B;QACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG;YAC1B,qBAAO,WAAC;gBAAsB;0BAAW;kBAAxB,QAAQ;QAC1B;QACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACd,WAAC;gBAAyB;0BAAQ;kBAAxB,WAAW;;AAIvB\"}")
 /*
 {
   "origin": "test.tsx",

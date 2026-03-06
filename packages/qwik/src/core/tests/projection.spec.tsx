@@ -17,7 +17,6 @@ import {
   useVisibleTask$,
   type JSXNode,
   type Signal,
-  $,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
@@ -369,47 +368,6 @@ describe.each([
         </Fragment>
       </Fragment>
     );
-  });
-
-  it('should correctly inflate shared text nodes when inline component before Slot disappears', async () => {
-    const Child = component$<{ show: boolean }>((props) => {
-      const InlineIcon = () => <span>*</span>;
-      return (
-        <button>
-          {props.show && <InlineIcon />}
-          <Slot />
-          {''}
-        </button>
-      );
-    });
-    const Parent = component$(() => {
-      const show = useSignal(true);
-      return (
-        <>
-          <button id="toggle" onClick$={() => (show.value = false)} />
-          <Child show={show.value}>test</Child>
-        </>
-      );
-    });
-    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
-    expect(vNode).toMatchVDOM(
-      <Fragment ssr-required>
-        <Fragment ssr-required>
-          <button id="toggle" />
-          <Fragment ssr-required>
-            <button>
-              <InlineComponent ssr-required>
-                <span ssr-required>*</span>
-              </InlineComponent>
-              <Projection ssr-required>{'test'}</Projection>
-              {''}
-            </button>
-          </Fragment>
-        </Fragment>
-      </Fragment>
-    );
-    await trigger(document.body, '#toggle', 'click');
-    expect(document.querySelector('button:not(#toggle)')!.textContent).toBe('test');
   });
 
   it('should replace projection content with undefined', async () => {
@@ -1367,12 +1325,9 @@ describe.each([
 
     const Parent = component$(() => {
       const toggle = useSignal(true);
-      const handler = $(() => {
-        toggle.value = !toggle.value;
-      });
       return (
         <div>
-          <button onClick$={handler}>toggle</button>
+          <button onClick$={() => (toggle.value = !toggle.value)}>toggle</button>
           <Cmp2 toggle={toggle.value}>
             <Cmp1 />
           </Cmp2>
@@ -1462,12 +1417,14 @@ describe.each([
     const Child = component$<{ show: boolean }>((props) => {
       (globalThis as any).log.push('render:Child');
       const show = useSignal(props.show);
-      const handler = $(() => {
-        (globalThis as any).log.push('click:Child');
-        show.value = !show.value;
-      });
       return (
-        <span class="child" onClick$={handler}>
+        <span
+          class="child"
+          onClick$={() => {
+            (globalThis as any).log.push('click:Child');
+            show.value = !show.value;
+          }}
+        >
           {show.value && <Slot />}
         </span>
       );
@@ -1475,12 +1432,14 @@ describe.each([
     const Parent = component$<{ content: boolean; slot: boolean }>((props) => {
       (globalThis as any).log.push('render:Parent');
       const show = useSignal(props.content);
-      const handler = $(() => {
-        (globalThis as any).log.push('click:Parent');
-        show.value = !show.value;
-      });
       return (
-        <div class="parent" onClick$={handler}>
+        <div
+          class="parent"
+          onClick$={() => {
+            (globalThis as any).log.push('click:Parent');
+            show.value = !show.value;
+          }}
+        >
           <Child show={props.slot}>{show.value && 'child-content'}</Child>
         </div>
       );
@@ -2706,12 +2665,13 @@ describe.each([
       ));
       const Issue1630 = component$(() => {
         const store = useStore({ open: true });
-        const handler = $(() => {
-          store.open = !store.open;
-        });
         return (
           <div>
-            <button onClick$={handler}></button>
+            <button
+              onClick$={() => {
+                store.open = !store.open;
+              }}
+            ></button>
             <Slot name="static" />
             {store.open && <Slot />}
           </div>

@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1371
+assertion_line: 1370
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -20,7 +21,6 @@ export const App = component$((props) => {
 ============================= test.js ==
 
 import { _jsxSorted } from "@qwik.dev/core";
-//
 export const handler = $(()=>console.log('hola'));
 export const App = component$((props)=>{
     useStyles$('hola');
@@ -28,7 +28,7 @@ export const App = component$((props)=>{
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC;IAC9B,WAAW;IACX,OAAO,EAAE,kBACR,WAAC,mBAAK,MAAM,KAAK;AAEnB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAGA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC;IAC9B,WAAW;IACX,OAAO,EAAE,kBACR,WAAC,mBAAK,MAAM,KAAK;AAEnB,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

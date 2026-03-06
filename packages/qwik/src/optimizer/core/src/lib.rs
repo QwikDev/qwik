@@ -13,7 +13,6 @@ mod clean_side_effects;
 mod code_move;
 mod collector;
 mod const_replace;
-mod dependency_analysis;
 mod entry_strategy;
 mod errors;
 mod filter_exports;

@@ -10,7 +10,7 @@ import { access, getBanner, target, writeFile, type BuildConfig } from './util.t
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 
-  // Uncomment this to regenerate the platform binding map for the optimizer. This is only necessary when adding new platform bindings to qwik, and should be committed to source control.
+  // uncomment this when adding a platform binding
   // await generatePlatformBindingsData(config);
 
   const entryPoint = join(config.optimizerDir, 'index.ts');

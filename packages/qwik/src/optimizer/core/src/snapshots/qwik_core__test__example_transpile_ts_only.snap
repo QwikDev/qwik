@@ -20,17 +20,14 @@ export const App = component$((props: Stuff) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
-//
-const App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = ()=>console.log('warn');
-const App_component_ckEPmXZlub0 = (props)=>{
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     return <Cmp>
-			<p class="stuff" q-e:click={/*#__PURE__*/ inlinedQrl(App_component_Cmp_p_q_e_click_Yl4ybrJWrt4, "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4")}>Hello Qwik</p>
+			<p class="stuff" q-e:click={/*#__PURE__*/ inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4")}>Hello Qwik</p>
 		</Cmp>;
-};
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+}, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;kDAM8B,IAAM,QAAQ,GAAG,CAAC;kCAHlB,CAAC;IAC9B,QACE,IAAI;GACJ,CAAC,EAAE,MAAM,QAAQ,6HAAqC,UAAU,EAAE,EAAE;EACrE,EAAE;AAEJ;AANA,OAAO,MAAM,oBAAM,+FAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,sCAAW,CAAC;IAC9B,QACE,IAAI;GACJ,CAAC,EAAE,MAAM,QAAQ,oCAAU,IAAM,QAAQ,GAAG,CAAC,uDAAS,UAAU,EAAE,EAAE;EACrE,EAAE;AAEJ,iCAAG\"}")
 == DIAGNOSTICS ==
 
 []

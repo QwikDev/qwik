@@ -275,7 +275,7 @@ export const inflate = (
       ];
       let owner = d[0];
       if (owner === _UNINITIALIZED) {
-        owner = new JSXNodeImpl(Fragment, d[1], d[2], null, 0, null);
+        owner = new JSXNodeImpl(Fragment, d[1], d[2], null, null);
         owner._proxy = propsProxy;
       }
       propsProxy[_OWNER] = owner;

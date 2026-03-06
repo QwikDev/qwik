@@ -2,7 +2,7 @@ import { execa } from 'execa';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { format } from 'prettier';
-import { type BuildConfig, toSnakeCase } from './util.ts';
+import { type BuildConfig } from './util.ts';
 
 export async function generateQwikApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
@@ -198,12 +198,6 @@ async function createApiData(
 async function createApiMarkdown(a: ApiData) {
   let md: string[] = [];
 
-  const memberNameCounts = a.members.reduce((acc: Record<string, number>, m) => {
-    const normalizedName = m.name.toLowerCase();
-    acc[normalizedName] = (acc[normalizedName] || 0) + 1;
-    return acc;
-  }, {});
-
   md.push(`---`);
   md.push(`title: \\${a.package} API Reference`);
   md.push(`---`);
@@ -213,11 +207,7 @@ async function createApiMarkdown(a: ApiData) {
 
   for (const m of a.members) {
     // const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
-    const kind = toSnakeCase(m.kind);
-    const isDuplicateName = memberNameCounts[m.name.toLowerCase()] > 1;
-    const anchorId = isDuplicateName ? `${m.id}-${kind}` : m.id;
-
-    md.push(`<h2 id="${anchorId}">${m.name}</h2>`);
+    md.push(`## ${m.name}`);
     md.push(``);
 
     // sanitize / adjust output

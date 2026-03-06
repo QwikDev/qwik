@@ -1,7 +1,7 @@
 import { setPlatform } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest, SymbolMapperFn } from '@qwik.dev/core/optimizer';
-import { QError, qError, SYNC_QRL } from './qwik-copy';
+import { SYNC_QRL } from './qwik-copy';
 import type { CorePlatformServer, SymbolMapper } from './qwik-types';
 import type { SerializeDocumentOptions } from './types';
 
@@ -73,8 +73,16 @@ export function createPlatform(
       if (regSym) {
         return regSym;
       }
-      // we never lazy import QRLs on the server
-      throw qError(QError.dynamicImportFailed, [symbolName]);
+
+      let modulePath = String(url);
+      if (!modulePath.endsWith('.js')) {
+        modulePath += '.js';
+      }
+      const module = require(modulePath);
+      if (!(symbolName in module)) {
+        throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${modulePath}'.`);
+      }
+      return module[symbolName];
     },
     raf: () => {
       console.error('server can not rerender');

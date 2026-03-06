@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4795
+assertion_line: 4797
 expression: output
 ---
 ==INPUT==
@@ -25,13 +25,11 @@ export const FieldInput = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-//
-const _qrl_FieldInput_component_V4XAtJSTRKg = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
-//
-export const FieldInput = /*#__PURE__*/ componentQrl(_qrl_FieldInput_component_V4XAtJSTRKg);
+const i_V4XAtJSTRKg = ()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg");
+export const FieldInput = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_V4XAtJSTRKg, "FieldInput_component_V4XAtJSTRKg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,2BAAa,oDAWvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,mFAWvB\"}")
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -39,15 +37,13 @@ import { _val } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
-//
-const _qrl_FieldInput_component_input_q_e_input_wqR1xEjZjf4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4"), "FieldInput_component_input_q_e_input_wqR1xEjZjf4");
-//
+const i_wqR1xEjZjf4 = ()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4");
 export const FieldInput_component_V4XAtJSTRKg = ()=>{
     const localValue = useSignal("");
     return /*#__PURE__*/ _jsxSorted("input", null, {
         "value": localValue,
         "q-e:input": [
-            _qrl_FieldInput_component_input_q_e_input_wqR1xEjZjf4,
+            /*#__PURE__*/ qrl(i_wqR1xEjZjf4, "FieldInput_component_input_q_e_input_wqR1xEjZjf4"),
             inlinedQrl(_val, "_val", [
                 localValue
             ])
@@ -56,7 +52,7 @@ export const FieldInput_component_V4XAtJSTRKg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAGqC;IACnC,MAAM,aAAa,UAAU;IAE7B,qBACE,WAAC;iBAIa;;;;gBAAA;;;;AAGlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gDAGqC;IACnC,MAAM,aAAa,UAAU;IAE7B,qBACE,WAAC;iBAIa;;;;gBAAA;;;;AAGlB\"}")
 /*
 {
   "origin": "test.tsx",

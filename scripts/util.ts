@@ -380,10 +380,3 @@ export async function getQwikVersion(config: BuildConfig) {
   const qwikPkgJson = await readPackageJson(qwikDir);
   return qwikPkgJson.version;
 }
-
-// pascal to snake case
-export const toSnakeCase = (str: string) =>
-  str
-    .split(/\.?(?=[A-Z])/)
-    .join('-')
-    .toLowerCase();

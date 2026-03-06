@@ -8,7 +8,7 @@ import { isQwikComponent } from '../shared/component.public';
 import { Fragment } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
-import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import {
   SSRComment,
@@ -161,8 +161,7 @@ function processJSXNode(
           jsx.varProps,
           jsx.constProps,
           options.currentStyleScoped,
-          qwikInspectorAttrValue,
-          !!(jsx.flags & JSXNodeFlags.HasCapturedProps)
+          qwikInspectorAttrValue
         );
         if (innerHTML) {
           ssr.htmlNode(innerHTML);

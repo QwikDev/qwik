@@ -194,7 +194,7 @@ import { isCursor } from '../shared/cursor/cursor';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
-import { createFastGetter, fastGetter } from './prototype-utils';
+import { fastGetter } from './prototype-utils';
 import { decodeVNodeDataString } from '../shared/utils/character-escaping';
 import { parseQRL } from '../shared/serdes/index';
 
@@ -544,7 +544,7 @@ export function vnode_walkVNode(
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
-    callback?.(vNode, null);
+    // Text nodes don't have subscriptions or children;
     return;
   }
   let vParent: VNode | null = null;
@@ -701,7 +701,13 @@ const vnode_getDomSibling = (
   return null;
 };
 
-export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
+const vnode_ensureInflatedIfText = (journal: VNodeJournal, vNode: VNode): void => {
+  if (vnode_isTextVNode(vNode)) {
+    vnode_ensureTextInflated(journal, vNode);
+  }
+};
+
+const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode.flags;
   if ((flags & VNodeFlags.Inflated) === 0) {
@@ -1162,9 +1168,7 @@ const vnode_findInsertBefore = (
   } else {
     adjustedInsertBefore = insertBefore as ElementVNode | TextVNode;
   }
-  adjustedInsertBefore &&
-    vnode_isTextVNode(adjustedInsertBefore) &&
-    vnode_ensureTextInflated(journal, adjustedInsertBefore);
+  adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
   return adjustedInsertBefore;
 };
 
@@ -1237,49 +1241,6 @@ const vnode_unlinkFromOldParent = (
     (newChild.previousSibling || newChild.nextSibling || currentParent !== newParent)
   ) {
     vnode_remove(journal, currentParent, newChild, false);
-  }
-};
-
-/**
- * When a projection vnode is about to be repositioned (moved in the vnode tree), its trailing text
- * node must be inflated before the projection is unlinked from its current sibling chain.
- * `vnode_ensureTextInflated` relies on `vnode_getDomSibling` to locate adjacent text nodes and
- * decide which one is "last" (i.e. the one that gets to reuse the shared SSR DOM `Text` node). Once
- * the projection is unlinked, its `nextSibling` becomes `null`, so `getDomSibling` can no longer
- * cross the boundary to find a trailing sibling such as an empty-string text node — causing
- * `isLastNode` to be `true` prematurely and corrupting the shared DOM text node. Inflating the
- * trailing text node while the siblings are still connected gives it its own fresh DOM node and
- * avoids the corruption.
- *
- * Example:
- *
- * ```
- * <Component>
- *   <button>
- *     <InlineComponent>
- *       <span>
- *         "*"
- *       </span>
- *     </InlineComponent>
- *     <Projection> // <-- this projection when unlinked from the siblings will cause the "test" text node to be considered the last node without inflating it
- *       "test" // <-- this text node is sharing the same DOM node with the ""
- *     </Projection>
- *     "" <-- this text node is sharing the same DOM node with the "test"
- *   </button>
- * </Component>
- * ```
- */
-export const vnode_inflateProjectionTrailingText = (
-  journal: VNodeJournal,
-  projection: VirtualVNode
-): void => {
-  // Follow lastChild through any inner virtual wrappers to reach the actual trailing text node.
-  let last: VNode | null = projection;
-  while (last && vnode_isVirtualVNode(last)) {
-    last = (last as VirtualVNode).lastChild as VNode | null;
-  }
-  if (last && vnode_isTextVNode(last) && (last.flags & VNodeFlags.Inflated) === 0) {
-    vnode_ensureTextInflated(journal, last as TextVNode);
   }
 };
 
@@ -1534,7 +1495,13 @@ export const fastGetAttribute = (element: Element, key: string): string | null =
   return _fastGetAttribute.call(element, key);
 };
 
-const fastNodeType = createFastGetter<Node, number>('nodeType');
+let _fastNodeType: ((this: Node) => number) | null = null;
+const fastNodeType = (node: Node): number => {
+  if (!_fastNodeType) {
+    _fastNodeType = fastGetter<typeof _fastNodeType>(node, 'nodeType')!;
+  }
+  return _fastNodeType.call(node);
+};
 const fastIsTextOrElement = (node: Node): boolean => {
   const type = fastNodeType(node);
   return type === /* Node.TEXT_NODE */ 3 || type === /* Node.ELEMENT_NODE */ 1;
@@ -1603,7 +1570,13 @@ function getNodeAfterCommentNode(
   return null;
 }
 
-const fastParentNode = createFastGetter<Node, Node | null>('parentNode');
+let _fastParentNode: ((this: Node) => Node | null) | null = null;
+const fastParentNode = (node: Node): Node | null => {
+  if (!_fastParentNode) {
+    _fastParentNode = fastGetter<typeof _fastParentNode>(node, 'parentNode')!;
+  }
+  return _fastParentNode.call(node);
+};
 
 let _fastFirstChild: ((this: Node) => Node | null) | null = null;
 const fastFirstChild = (node: Node | null): Node | null => {
@@ -1617,11 +1590,40 @@ const fastFirstChild = (node: Node | null): Node | null => {
   return node;
 };
 
-export const fastNamespaceURI = createFastGetter<Element, string | null>('namespaceURI');
+let _fastNamespaceURI: ((this: Element) => string | null) | null = null;
+export const fastNamespaceURI = (element: Element): string | null => {
+  if (!_fastNamespaceURI) {
+    _fastNamespaceURI = fastGetter<typeof _fastNamespaceURI>(element, 'namespaceURI')!;
+  }
+  return _fastNamespaceURI.call(element);
+};
 
-export const fastNodeName = createFastGetter<Element, string | null>('nodeName');
+let _fastNodeName: ((this: Element) => string | null) | null = null;
+export const fastNodeName = (element: Element): string | null => {
+  if (!_fastNodeName) {
+    _fastNodeName = fastGetter<typeof _fastNodeName>(element, 'nodeName')!;
+  }
+  return _fastNodeName.call(element);
+};
 
-const fastOwnerDocument = createFastGetter<Node, Document>('ownerDocument');
+let _fastOwnerDocument: ((this: Node) => Document) | null = null;
+const fastOwnerDocument = (node: Node): Document => {
+  if (!_fastOwnerDocument) {
+    _fastOwnerDocument = fastGetter<typeof _fastOwnerDocument>(node, 'ownerDocument')!;
+  }
+  return _fastOwnerDocument.call(node)!;
+};
+
+const hasQStyleAttribute = (element: Element): boolean => {
+  return (
+    element.nodeName === 'STYLE' &&
+    (element.hasAttribute(QScopedStyle) || element.hasAttribute(QStyle))
+  );
+};
+
+const hasPropsSeparator = (element: Element): boolean => {
+  return element.hasAttribute(Q_PROPS_SEPARATOR);
+};
 
 const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vData?: string) => {
   let vFirstChild: VNode | null = null;
@@ -1768,6 +1770,15 @@ const processVNodeData = (
   while (peek() !== 0) {
     callback(peek, consumeValue, consume, getChar, nextToConsumeIdx);
   }
+};
+
+/** @internal */
+export const vnode_getNextSibling = (vnode: VNode): VNode | null => {
+  return vnode.nextSibling as VNode | null;
+};
+
+export const vnode_getPreviousSibling = (vnode: VNode): VNode | null => {
+  return vnode.previousSibling as VNode | null;
 };
 
 /** @internal */
@@ -1928,12 +1939,11 @@ const isLowercase = (ch: number) => /* `a` */ 97 <= ch && ch <= 122; /* `z` */
 function shouldSkipElement(element: Element) {
   return (
     // Skip over elements that don't have a props separator. They are not rendered by Qwik.
-    !element.hasAttribute(Q_PROPS_SEPARATOR) ||
+    !hasPropsSeparator(element) ||
     // We pretend that style element's don't exist as they can get moved out.
     // skip over style elements, as those need to be moved to the head
     // and are not included in the counts.
-    (element.nodeName === 'STYLE' &&
-      (element.hasAttribute(QScopedStyle) || element.hasAttribute(QStyle)))
+    hasQStyleAttribute(element)
   );
 }
 

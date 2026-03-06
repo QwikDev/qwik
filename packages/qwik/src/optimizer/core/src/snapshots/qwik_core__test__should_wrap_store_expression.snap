@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4298
+assertion_line: 4300
 expression: output
 ---
 ==INPUT==
@@ -32,10 +32,8 @@ expression: output
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-//
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
-//
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 export const PANELS = [
     'Examples',
     'Input',
@@ -44,14 +42,13 @@ export const PANELS = [
 ];
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,6BAAe,8CAiBZ;AACH,OAAO,MAAM,SAAwB;IAAC;IAAY;IAAS;IAAU;CAAU,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,6EAiBZ;AACH,OAAO,MAAM,SAAwB;IAAC;IAAY;IAAS;IAAU;CAAU,CAAC\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { PANELS } from "./test";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
-//
 const _hf0 = (p0)=>p0.active ? 'yes' : 'no';
 const _hf0_str = 'p0.active?"yes":"no"';
 export const test_component_LUXeXe0DQrg = ()=>{
@@ -74,7 +71,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBAWY,GAAW,MAAM,GAAG,QAAQ;;0CARZ;IACzB,MAAM,aAAa,SAAS,IAAM,CAAC;YAClC,QAAQ;YACR,MAAM;QACP,CAAC;IAED,qBACC,WAAC;QAEA,OAAO;YACN,oBAAoB;YACpB,wBAAwB,WAAW,MAAM,KAAK;YAC9C,yBAAyB,WAAW,MAAM,KAAK;YAC/C,0BAA0B,WAAW,MAAM,KAAK;QACjD;;QANA,KAAK;;;;AASR\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAWY,GAAW,MAAM,GAAG,QAAQ;;0CARZ;IACzB,MAAM,aAAa,SAAS,IAAM,CAAC;YAClC,QAAQ;YACR,MAAM;QACP,CAAC;IAED,qBACC,WAAC;QAEA,OAAO;YACN,oBAAoB;YACpB,wBAAwB,WAAW,MAAM,KAAK;YAC9C,yBAAyB,WAAW,MAAM,KAAK;YAC/C,0BAA0B,WAAW,MAAM,KAAK;QACjD;;QANA,KAAK;;;;AASR\"}")
 /*
 {
   "origin": "test.tsx",

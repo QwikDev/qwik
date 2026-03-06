@@ -26,9 +26,7 @@ import { inlinedQrl } from "@qwik.dev/core";
 import { serverQrl } from "@qwik.dev/core";
 import { _regSymbol } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
-//
 const Works_component_div_q_e_click_server_q39lOt7xGrI = /*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "q39lOt7xGrI");
-const STYLES = '.class {}';
 const Works_component_t45qL4vNGv0 = (props)=>{
     useStyleQrl(/*#__PURE__*/ inlinedQrl(STYLES, "Works_component_useStyle_i40UL9JyQpg"));
     return /*#__PURE__*/ _jsxSorted("div", {
@@ -36,10 +34,11 @@ const Works_component_t45qL4vNGv0 = (props)=>{
     }, null, null, 2, "u6_0");
 };
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_t45qL4vNGv0, "Works_component_t45qL4vNGv0"));
+const STYLES = '.class {}';
 export { STYLES as _auto_STYLES };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;kFAOyB,IAAM,QAAQ,GAAG,CAAC,aAF7B;AAMd,MAAM,SAAS;oCARiB,CAAC;IAChC,qCAAU;IAEV,qBACC,WAAC;QAAI,aAAU;;AAEjB;AANA,OAAO,MAAM,sBAAQ,mGAMlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;kFAOyB,IAAM,QAAQ,GAAG,CAAC,aAF7B;oCAFkB,CAAC;IAChC,qCAAU;IAEV,qBACC,WAAC;QAAI,aAAU;;AAEjB;AANA,OAAO,MAAM,sBAAQ,mGAMlB;AAEH,MAAM,SAAS\"}")
 == DIAGNOSTICS ==
 
 []

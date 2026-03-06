@@ -7,7 +7,7 @@ import { isObject } from '../utils/types';
 import { _chk, _val } from './bind-handlers';
 import { type Props } from './jsx-runtime';
 import { createPropsProxy, isPropsProxy } from './props-proxy';
-import type { DevJSX, FunctionComponent, JSXNodeFlags, JSXNodeInternal } from './types/jsx-node';
+import type { DevJSX, FunctionComponent, JSXNodeInternal } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -26,7 +26,6 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
     varProps: Props | null,
     constProps: Props | null,
     public children: JSXChildren,
-    public flags: JSXNodeFlags,
     key: string | number | null | undefined,
     toSort?: boolean,
     dev?: DevJSX

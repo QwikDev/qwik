@@ -293,6 +293,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
     // (undocumented)
+    $rawStateData$: unknown[];
+    // (undocumented)
     $setRawState$(id: number, vParent: _VNode): void;
     // (undocumented)
     $storeProxyMap$: ObjToProxyMap;
@@ -551,8 +553,6 @@ export interface JSXNodeInternal<T extends string | FunctionComponent | unknown 
     dev?: DevJSX & {
         stack: string | undefined;
     };
-    // Warning: (ae-forgotten-export) The symbol "JSXNodeFlags" needs to be exported by the entry point index.d.ts
-    flags: JSXNodeFlags;
     key: string | null;
     toSort: boolean;
     type: T;
@@ -983,7 +983,7 @@ export function _serialize<T>(data: T): Promise<string>;
 export const SerializerSymbol: unique symbol;
 
 // @internal (undocumented)
-export function _setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown, hasMovedCaptures: boolean): string | null;
+export function _setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown, isLoopElement: boolean): string | null;
 
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;

@@ -834,43 +834,39 @@ describe.each([
     const Cmp = component$(() => {
       const signal = useSignal<number>(0);
       return (
-        <button onClick$={() => (signal.value = 123)}>
-          <i>
-            <b>Test</b>
-            {signal.value + 1}xx<span>{signal.value}</span>XXX<a></a>
-          </i>
-        </button>
+        <p onClick$={() => (signal.value = 123)}>
+          <b>Test</b>
+          {signal.value + 1}xx<span>{signal.value}</span>XXX<a></a>
+        </p>
       );
     });
 
     const { vNode, document } = await render(<Cmp />, { debug });
-    await trigger(document.body, 'button', 'click');
+    await trigger(document.body, 'p', 'click');
     expect(vNode).toMatchVDOM(
       <Component>
-        <button>
-          <i>
-            <b>Test</b>
-            <Signal ssr-required>124</Signal>
-            {'xx'}
-            <span>
-              <Signal ssr-required>123</Signal>
-            </span>
-            {'XXX'}
-            <a></a>
-          </i>
-        </button>
+        <p>
+          <b>Test</b>
+          <Signal ssr-required>124</Signal>
+          {'xx'}
+          <span>
+            <Signal ssr-required>123</Signal>
+          </span>
+          {'XXX'}
+          <a></a>
+        </p>
       </Component>
     );
-    await expect(document.querySelector('i')).toMatchDOM(
-      <i>
+    await expect(document.querySelector('p')).toMatchDOM(
+      <p>
         <b>Test</b>
         {'124xx'}
         <span>123</span>
         {'XXX'}
         <a></a>
-      </i>
+      </p>
     );
-    expect(cleanupAttrs(document.querySelector('i')?.innerHTML)).toEqual(
+    expect(cleanupAttrs(document.querySelector('p')?.innerHTML)).toEqual(
       '<b>Test</b>124xx<span>123</span>XXX<a></a>'
     );
   });
@@ -945,14 +941,8 @@ describe.each([
       </Component>
     );
 
-    const isSSR = render === ssrRenderToDom;
     await expect(document.querySelector('button')).toMatchDOM(
-      isSSR ? (
-        // @ts-expect-error q:p is not typed
-        <button q:p="0">{`"<script></script>"&<'"0`}</button>
-      ) : (
-        <button>{`"<script></script>"&<'"0`}</button>
-      )
+      <button>{`"<script></script>"&<'"0`}</button>
     );
 
     await trigger(document.body, 'button', 'click');
@@ -967,12 +957,7 @@ describe.each([
     );
 
     await expect(document.querySelector('button')).toMatchDOM(
-      isSSR ? (
-        // @ts-expect-error q:p is not typed
-        <button q:p="0">{`"<script></script>"&<'"1`}</button>
-      ) : (
-        <button>{`"<script></script>"&<'"1`}</button>
-      )
+      <button>{`"<script></script>"&<'"1`}</button>
     );
   });
 
@@ -1612,7 +1597,7 @@ describe.each([
       </Component>
     );
 
-    await expect(document.querySelector('#container')).toMatchDOM(
+    expect(document.querySelector('#container')).toMatchDOM(
       <div id="container">
         <div>Item 1</div>
         <div>Item 2</div>
@@ -2509,10 +2494,10 @@ describe.each([
         </main>
       </Component>
     );
-    const isSsr = render === ssrRenderToDom;
-    await expect(document.querySelector('main')).toMatchDOM(
-      // @ts-expect-error q:p is not typed
-      <main>{isSsr ? <button q:p="0">Remove</button> : <button>Remove</button>}</main>
+    expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <button>Remove</button>
+      </main>
     );
   });
 
@@ -2520,46 +2505,41 @@ describe.each([
     const Cmp = component$(() => {
       const list = useSignal([1, 2, 3]);
       return (
-        <>
+        <main>
           <button onClick$={() => (list.value = [])}>Remove</button>
-          <main>
-            <div>
-              {list.value.map((item) => (
-                <div>{item}</div>
-              ))}
-            </div>
-          </main>
-        </>
+          <div>
+            {list.value.map((item) => (
+              <div>{item}</div>
+            ))}
+          </div>
+        </main>
       );
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     expect(vNode).toMatchVDOM(
       <Component>
-        <Fragment ssr-required>
+        <main>
           <button>Remove</button>
-          <main>
-            <div>
-              <div>1</div>
-              <div>2</div>
-              <div>3</div>
-            </div>
-          </main>
-        </Fragment>
+          <div>
+            <div>1</div>
+            <div>2</div>
+            <div>3</div>
+          </div>
+        </main>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component>
-        <Fragment ssr-required>
+        <main>
           <button>Remove</button>
-          <main>
-            <div></div>
-          </main>
-        </Fragment>
+          <div></div>
+        </main>
       </Component>
     );
-    await expect(document.querySelector('main')).toMatchDOM(
+    expect(document.querySelector('main')).toMatchDOM(
       <main>
+        <button>Remove</button>
         <div></div>
       </main>
     );
@@ -2580,17 +2560,10 @@ describe.each([
       );
     });
     const { vNode, document } = await render(<Cmp />, { debug });
-    const isSsr = render === ssrRenderToDom;
-    const btn = isSsr ? (
-      // @ts-expect-error q:p is not typed
-      <button q:p="0">Remove</button>
-    ) : (
-      <button>Remove</button>
-    );
     expect(vNode).toMatchVDOM(
       <Component>
         <main>
-          {btn}
+          <button>Remove</button>
           <Fragment ssr-required>
             <div>1</div>
             <div>2</div>
@@ -2608,7 +2581,11 @@ describe.each([
         </main>
       </Component>
     );
-    await expect(document.querySelector('main')).toMatchDOM(<main>{btn}</main>);
+    await expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <button>Remove</button>
+      </main>
+    );
   });
 
   it('should rerun props subscribers', async () => {
@@ -3245,52 +3222,6 @@ describe.each([
     );
   });
 
-  it('should not rerender child component with null key when parent component is rerendered', async () => {
-    (globalThis as any).count = 0;
-    const Child = component$(() => {
-      (globalThis as any).count++;
-      return <div>Child</div>;
-    });
-
-    const Cmp = component$(() => {
-      const toggle = useSignal(false);
-      // component subscription
-      toggle.value;
-      return (
-        <>
-          <button onClick$={() => (toggle.value = !toggle.value)}>Toggle</button>
-          <Child key={null} />
-        </>
-      );
-    });
-    const { vNode, document } = await render(<Cmp />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment ssr-required>
-          <button>Toggle</button>
-          <Component ssr-required>
-            <div>Child</div>
-          </Component>
-        </Fragment>
-      </Component>
-    );
-    expect((globalThis as any).count).toBe(1);
-    await trigger(document.body, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment ssr-required>
-          <button>Toggle</button>
-          <Component ssr-required>
-            <div>Child</div>
-          </Component>
-        </Fragment>
-      </Component>
-    );
-    expect((globalThis as any).count).toBe(1);
-
-    (globalThis as any).count = undefined;
-  });
-
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {
@@ -3313,16 +3244,9 @@ describe.each([
       });
       const { document, container } = await render(<Issue3643 />, { debug });
       const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
-      const isSsr = render === ssrRenderToDom;
-      const btn = isSsr ? (
-        // @ts-expect-error q:p is not typed
-        <button q:p="0">Toggle</button>
-      ) : (
-        <button>Toggle</button>
-      );
       await expect(document.querySelector('main')).toMatchDOM(
         <main>
-          {btn}
+          <button>Toggle</button>
           <div>
             <div {...qContainerAttr}>Hello</div>
           </div>
@@ -3335,7 +3259,7 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       await expect(document.querySelector('main')).toMatchDOM(
         <main>
-          {btn}
+          <button>Toggle</button>
           <div>
             {/* TODO: q:container is const and div is reused, is it ok? */}
             <div {...qContainerAttr}>World</div>
@@ -3349,7 +3273,7 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       await expect(document.querySelector('main')).toMatchDOM(
         <main>
-          {btn}
+          <button>Toggle</button>
           <div>
             <div {...qContainerAttr}>Hello</div>
           </div>
@@ -3362,7 +3286,7 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       await expect(document.querySelector('main')).toMatchDOM(
         <main>
-          {btn}
+          <button>Toggle</button>
           <div>
             <div {...qContainerAttr}>World</div>
           </div>
@@ -3375,7 +3299,7 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       await expect(document.querySelector('main')).toMatchDOM(
         <main>
-          {btn}
+          <button>Toggle</button>
           <div>
             <div {...qContainerAttr}>Hello</div>
           </div>

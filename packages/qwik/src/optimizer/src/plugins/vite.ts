@@ -1,5 +1,4 @@
-import type { ResolvedId } from 'rollup';
-import type { BuildOptions, UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
+import type { UserConfig, ViteDevServer, Plugin as VitePlugin, BuildOptions } from 'vite';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -9,7 +8,6 @@ import type {
   TransformModule,
 } from '../types';
 import { type BundleGraphAdder } from './bundle-graph';
-import { configurePreviewServer, getViteIndexTags } from './dev';
 import { getImageSizeServer } from './dev/image-size-server';
 import {
   QWIK_BUILD_ID,
@@ -28,7 +26,9 @@ import {
   type QwikPluginOptions,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
+import { configurePreviewServer, getViteIndexTags } from './dev';
 import { isVirtualId } from './vite-utils';
+import type { ResolvedId } from 'rollup';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -510,7 +510,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // ssr build
 
         const sys = qwikPlugin.getSys();
-        if (sys.env === 'node' || sys.env === 'bun' || sys.env === 'deno') {
+        if (sys.env === 'node' || sys.env === 'bun') {
           const outputs = Object.keys(rollupBundle);
 
           // In order to simplify executing the server script with a common script

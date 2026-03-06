@@ -1337,7 +1337,7 @@ describe('shared-serialization', () => {
     });
 
     it('props-proxy: all effects have props proxy in backRef after deserialize', async () => {
-      const owner = new JSXNodeImpl(Fragment, {}, null, null, 0, null);
+      const owner = new JSXNodeImpl(Fragment, {}, null, null, null);
       const propsProxy = createPropsProxy(owner);
       const handler = (propsProxy as any)[_PROPS_HANDLER];
       handler.$effects$ = new Map([['x', new Set([makeEffect()])]]);

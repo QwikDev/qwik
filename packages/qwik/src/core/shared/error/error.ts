@@ -12,7 +12,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Only primitive and object literals can be serialized. {{0}}', // 3
       'You can render over a existing q:container. Skipping render().', // 4
       'QRL is not a function', // 5
-      'Dynamic import {{0}} not found', // 6
+      'Dynamic import not found', // 6
       'Unknown type argument', // 7
       `Actual value for useContext({{0}}) can not be found, make sure some ancestor component has set a value using useContextProvider(). In the browser make sure that the context was used during SSR so its state was serialized.`, // 8
       "Invoking 'use*()' method outside of invocation context.", // 9

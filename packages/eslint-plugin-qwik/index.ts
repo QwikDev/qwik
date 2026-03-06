@@ -11,7 +11,6 @@ import { unusedServer } from './src/unusedServer';
 import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
 import { serializerSignalUsage } from './src/serializerSignalUsage';
-import { noAsyncPreventDefault } from './src/noAsyncPreventDefault';
 import pkg from './package.json';
 import { scopeUseTask } from './src/scope-use-task';
 import { asyncComputedTop } from './src/useAsyncTop';
@@ -33,7 +32,6 @@ const rules = {
   'serializer-signal-usage': serializerSignalUsage,
   'scope-use-task': scopeUseTask,
   'use-async-top': asyncComputedTop,
-  'no-async-prevent-default': noAsyncPreventDefault,
 } satisfies Rules;
 
 const recommendedRulesLevels = {
@@ -51,7 +49,6 @@ const recommendedRulesLevels = {
   'qwik/serializer-signal-usage': 'error',
   'qwik/scope-use-task': 'error',
   'qwik/use-async-top': 'warn',
-  'qwik/no-async-prevent-default': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 
 const strictRulesLevels = {
@@ -69,7 +66,6 @@ const strictRulesLevels = {
   'qwik/serializer-signal-usage': 'error',
   'qwik/scope-use-task': 'error',
   'qwik/use-async-top': 'warn',
-  'qwik/no-async-prevent-default': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 
 const configs = {

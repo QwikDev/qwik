@@ -1,11 +1,9 @@
-import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
+import { isBrowser, isServer } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
-import { assertTrue } from '../../shared/error/assert';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { Container } from '../../shared/types';
 import { isPromise, retryOnPromise } from '../../shared/utils/promises';
 import type { SSRContainer } from '../../ssr/ssr-types';
-import { tryGetInvokeContext } from '../../use/use-core';
 import { trackFn } from '../../use/utils/tracker';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
 import type { AsyncSignal } from '../signal.public';
@@ -20,13 +18,9 @@ import {
   type AsyncCtx,
   type AsyncSignalOptions,
 } from '../types';
-import {
-  addQrlToSerializationCtx,
-  ensureContainsBackRef,
-  ensureContainsSubscription,
-  scheduleEffects,
-} from '../utils';
+import { scheduleEffects } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
+import { setupSignalValueAccess } from './signal-impl';
 
 /**
  * Planned features:
@@ -62,10 +56,9 @@ class AsyncJob<T> implements AsyncCtx<T> {
 
   /** Backward compatible cache method for resource */
   cache(): void {
-    isDev &&
-      console.error(
-        'useResource cache() method does not do anything. Use `useAsync$` instead of `useResource$`, use the `interval` option for polling behavior.'
-      );
+    console.error(
+      'useResource cache() method does not do anything. Use `useAsync$` instead of `useResource$`, use the `interval` option for polling behavior.'
+    );
   }
 
   get previous(): T | undefined {
@@ -172,9 +165,7 @@ export class AsyncSignalImpl<T>
       this.$untrackedValue$ === NEEDS_COMPUTATION
     ) {
       throw new Error(
-        isDev
-          ? 'During SSR, cannot read .value from clientOnly async signal without an initial value. Use .loading or provide an initial value.'
-          : 'Cannot read .value from clientOnly'
+        'During SSR, cannot read .value from clientOnly async signal without an initial value. Use .loading or provide an initial value.'
       );
     }
     return this.$untrackedValue$;
@@ -191,22 +182,7 @@ export class AsyncSignalImpl<T>
    * `signal.loading ? <Loading /> : signal.value`.
    */
   get loading(): boolean {
-    const val = this.untrackedLoading;
-    const ctx = tryGetInvokeContext();
-    if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
-      isDev &&
-        assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
-          'Do not use signals across containers'
-        );
-      const effectSubscriber = ctx.$effectSubscriber$;
-      if (effectSubscriber) {
-        ensureContainsSubscription((this.$loadingEffects$ ||= new Set()), effectSubscriber);
-        ensureContainsBackRef(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
-      }
-    }
-    return val;
+    return setupSignalValueAccess(this, '$loadingEffects$', 'untrackedLoading');
   }
 
   set untrackedLoading(value: boolean) {
@@ -230,22 +206,7 @@ export class AsyncSignalImpl<T>
 
   /** The error that occurred when the signal was resolved. */
   get error(): Error | undefined {
-    const val = this.untrackedError;
-    const ctx = tryGetInvokeContext();
-    if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
-      isDev &&
-        assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
-          'Do not use signals across containers'
-        );
-      const effectSubscriber = ctx.$effectSubscriber$;
-      if (effectSubscriber) {
-        ensureContainsSubscription((this.$errorEffects$ ||= new Set()), effectSubscriber);
-        ensureContainsBackRef(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
-      }
-    }
-    return val;
+    return setupSignalValueAccess(this, '$errorEffects$', 'untrackedError');
   }
 
   set untrackedError(value: Error | undefined) {

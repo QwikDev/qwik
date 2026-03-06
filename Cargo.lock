@@ -1002,7 +1002,6 @@ dependencies = [
  "anyhow",
  "base64",
  "derivative",
- "indexmap",
  "insta",
  "lazy_static",
  "path-slash",

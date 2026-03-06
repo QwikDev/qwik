@@ -17,6 +17,9 @@ const testConfig = {
   },
   languageOptions: {
     parserOptions: {
+      projectService: {
+        allowDefaultProject: ['*.ts*'],
+      },
       sourceType: 'module',
       ecmaFeatures: {
         jsx: true,
@@ -29,8 +32,6 @@ const testConfig = {
 } as RuleTesterConfig;
 
 const ruleTester = new RuleTester(testConfig);
-type RuleTesterRule = Parameters<RuleTester['defineRule']>[1];
-
 interface TestCase {
   name: string;
   filename: string;
@@ -39,10 +40,6 @@ interface TestCase {
 interface InvalidTestCase extends TestCase {
   errors: { messageId: string }[];
 }
-
-const isRuleName = (ruleName: string): ruleName is keyof typeof rules =>
-  Object.prototype.hasOwnProperty.call(rules, ruleName);
-
 await (async function setupEsLintRuleTesters() {
   // list './test' directory content and set up one RuleTester per directory
   let testDir = join(dirname(fileURLToPath(import.meta.url)), './tests');
@@ -54,17 +51,17 @@ await (async function setupEsLintRuleTesters() {
 
   const ruleNames = (await readdir(testDir)) as (keyof typeof rules)[];
   for (const ruleName of ruleNames) {
+    const rule = rules[ruleName];
     if (ruleName.endsWith('.json')) {
       continue;
     }
-    if (!isRuleName(ruleName)) {
+    if (!rule) {
       throw new Error(
         `Test directory has rule '${ruleName}' but related eslint rule is missing. Valid rules are: ${Object.keys(
           rules
         ).join(', ')}`
       );
     }
-    const rule = rules[ruleName] as RuleTesterRule;
     const ruleDir = join(testDir, ruleName);
     const valid: TestCase[] = [];
     const invalid: InvalidTestCase[] = [];

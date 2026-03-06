@@ -352,18 +352,20 @@ As we see in the example above, `useAsync$()` returns an `AsyncSignal<T>` object
 #### Channel example
 
 In this example, we use `useAsync$()` to get updates from a server using Server-Sent Events (SSE). Note that it writes to its own value, updating its subscribers.
+To be able to refer to itself, the signal needs to be in an object.
 
 ```tsx
 import { component$, useAsync$ } from '@qwik.dev/core';
 
 export default component$(() => {
-  const state = useAsync$<string[]>(
+  const _ref = {} as { state: AsyncSignal<string> };
+  _ref.state = useAsync$<string[]>(
     ({ track, abortSignal }) => {
       const url = new URL('/api/state-channel');
       const eventSource = new EventSource(url);
 
       eventSource.onmessage = (event) => {
-        state.value = event.data;
+        _ref.state.value = event.data;
       };
 
       abortSignal.addEventListener('abort', () => {
@@ -375,6 +377,7 @@ export default component$(() => {
     // Close the channel as soon as there are no subscribers
     { eagerCleanup: true }
   );
+  const state = _ref.state;
 
   return <div>Current state is: {state.value}</div>;
 });

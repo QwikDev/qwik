@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3779
+assertion_line: 3781
 expression: output
 ---
 ==INPUT==
@@ -33,19 +33,21 @@ expression: output
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-//
-const _qrl_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
-//
-/*#__PURE__*/ componentQrl(_qrl_Cmp_component_4ryKJTOKjWE);
+const i_4ryKJTOKjWE = ()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE");
+/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_4ryKJTOKjWE, "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;cAEc\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;cAEc\"}")
 ============================= test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8.js (ENTRY POINT)==
 
-export const Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = (_, _1, htmlSignal)=>htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>";
+import { _captures } from "@qwik.dev/core";
+export const Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = ()=>{
+    const htmlSignal = _captures[0];
+    return htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>";
+};
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kEAeiB,qBACR,WAAW,KAAK,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAeiB;;WACR,WAAW,KAAK,GAAG\"}")
 /*
 {
   "origin": "test.tsx",
@@ -59,14 +61,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "parent": "Cmp_component_4ryKJTOKjWE",
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": false,
+  "captures": true,
   "loc": [
     510,
     596
   ],
-  "paramNames": [
-    "_",
-    "_1",
+  "captureNames": [
     "htmlSignal"
   ]
 }
@@ -76,9 +76,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-//
-const _qrl_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8"), "Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8");
-//
+const i_kOQ2BgBVVS8 = ()=>import("./test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8");
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
@@ -97,17 +95,17 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
                 dangerouslySetInnerHTML: _wrapProp(htmlSignal),
                 class: "after"
             }, null, 3, null),
-            /*#__PURE__*/ _jsxSorted("button", {
-                "q:p": htmlSignal
-            }, {
-                "q-e:click": _qrl_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8
-            }, null, 7, null)
-        ], 1, null)
-    ], 1, "u6_0");
+            /*#__PURE__*/ _jsxSorted("button", null, {
+                "q-e:click": /*#__PURE__*/ qrl(i_kOQ2BgBVVS8, "Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8", [
+                    htmlSignal
+                ])
+            }, null, 3, null)
+        ], 3, null)
+    ], 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAEyB;IACtB,MAAM,aAAa,UAAU;IAC7B,qBACC,WAAC;sBACA,WAAC,iCACA,WAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,WAAC,iCACA,WAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,WAAC;0BACA,WAAC;gBAAK,IAAG;gBAAQ,uBAAuB,YAAE;gBAAkB,OAAM;;0BAClE,WAAC;;;gBACA,WAAQ;;;;AAOb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAEyB;IACtB,MAAM,aAAa,UAAU;IAC7B,qBACC,WAAC;sBACA,WAAC,iCACA,WAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,WAAC,iCACA,WAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,WAAC;0BACA,WAAC;gBAAK,IAAG;gBAAQ,uBAAuB,YAAE;gBAAkB,OAAM;;0BAClE,WAAC;gBACA,WAAQ;;;;;;AAOb\"}")
 /*
 {
   "origin": "test.tsx",

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 5511
+assertion_line: 5490
 expression: output
 ---
 ==INPUT==
@@ -30,13 +30,11 @@ export default component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-//
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
-//
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CAgBZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,6EAgBZ\"}")
 ============================= test.tsx_test_component_div_div_button_q_e_click_hCFE1Zqizzw.js (ENTRY POINT)==
 
 export const test_component_div_div_button_q_e_click_hCFE1Zqizzw = (_, _1, index)=>console.log(index);
@@ -104,33 +102,33 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
-//
-const _qrl_test_component_div_div_button_q_e_click_hCFE1Zqizzw = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_button_q_e_click_hCFE1Zqizzw"), "test_component_div_div_button_q_e_click_hCFE1Zqizzw");
-const _qrl_test_component_div_div_span_q_e_keydown_JMCQrlWndWA = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_span_q_e_keydown_JMCQrlWndWA"), "test_component_div_div_span_q_e_keydown_JMCQrlWndWA");
-//
+const i_JMCQrlWndWA = ()=>import("./test.tsx_test_component_div_div_span_q_e_keydown_JMCQrlWndWA");
+const i_hCFE1Zqizzw = ()=>import("./test.tsx_test_component_div_div_button_q_e_click_hCFE1Zqizzw");
 export const test_component_LUXeXe0DQrg = ()=>{
     const arr = useSignal([
         'a',
         'b'
     ]);
+    const test_component_div_div_button_q_e_click_hCFE1Zqizzw = /*#__PURE__*/ qrl(i_hCFE1Zqizzw, "test_component_div_div_button_q_e_click_hCFE1Zqizzw");
+    const test_component_div_div_span_q_e_keydown_JMCQrlWndWA = /*#__PURE__*/ qrl(i_JMCQrlWndWA, "test_component_div_div_span_q_e_keydown_JMCQrlWndWA");
     return /*#__PURE__*/ _jsxSorted("div", null, null, arr.value.map((val, i)=>{
         const index = i + 1;
         const label = val.toUpperCase();
         return /*#__PURE__*/ _jsxSorted("div", null, null, [
             /*#__PURE__*/ _jsxSorted("button", {
-                "q-e:click": _qrl_test_component_div_div_button_q_e_click_hCFE1Zqizzw,
+                "q-e:click": test_component_div_div_button_q_e_click_hCFE1Zqizzw,
                 "q:p": index
-            }, null, val, 4, null),
+            }, null, val, 0, null),
             /*#__PURE__*/ _jsxSorted("span", {
-                "q-e:keydown": _qrl_test_component_div_div_span_q_e_keydown_JMCQrlWndWA,
+                "q-e:keydown": test_component_div_div_span_q_e_keydown_JMCQrlWndWA,
                 "q:p": label
-            }, null, label, 4, null)
+            }, null, label, 0, null)
         ], 1, "u6_0");
     }), 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAG0B;IACxB,MAAM,MAAM,UAAU;QAAC;QAAK;KAAI;IAChC,qBACE,WAAC,mBACE,IAAI,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACnB,MAAM,QAAQ,IAAI;QAClB,MAAM,QAAQ,IAAI,WAAW;QAC7B,qBACE,WAAC;0BACC,WAAC;gBAAO,WAAQ;uBAJd;qBAI2C;0BAC7C,WAAC;gBAAK,aAAU;uBAJd;qBAI2C;;IAGnD;AAGN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG0B;IACxB,MAAM,MAAM,UAAU;QAAC;QAAK;KAAI;;;IAChC,qBACE,WAAC,mBACE,IAAI,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK;QACnB,MAAM,QAAQ,IAAI;QAClB,MAAM,QAAQ,IAAI,WAAW;QAC7B,qBACE,WAAC;0BACC,WAAC;gBAAO,WAAQ;uBAJd;qBAI2C;0BAC7C,WAAC;gBAAK,aAAU;uBAJd;qBAI2C;;IAGnD;AAGN\"}")
 /*
 {
   "origin": "test.tsx",

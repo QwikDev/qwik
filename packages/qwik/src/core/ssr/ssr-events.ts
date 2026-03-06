@@ -11,7 +11,7 @@ export function setEvent(
   serializationCtx: SerializationContext,
   key: string,
   rawValue: unknown,
-  hasMovedCaptures: boolean
+  isLoopElement: boolean
 ): string | null {
   let value: string | null = null;
   const qrls = rawValue;
@@ -26,7 +26,7 @@ export function setEvent(
      *
      * For internal qrls (starting with `_`) we assume that they do the right thing.
      */
-    if (!qrl.$symbol$.startsWith('_') && (qrl.$captures$?.length || hasMovedCaptures)) {
+    if (!qrl.$symbol$.startsWith('_') && (qrl.$captures$?.length || isLoopElement)) {
       qrl = createQRL(null, '_run', _run, null, [qrl]);
     }
     return qrlToString(serializationCtx, qrl);
@@ -40,7 +40,7 @@ export function setEvent(
         addQwikEventToSerializationContext(serializationCtx, key, qrl);
       } else if (qrl != null) {
         // nested arrays etc.
-        const nestedValue = setEvent(serializationCtx, key, qrl, hasMovedCaptures);
+        const nestedValue = setEvent(serializationCtx, key, qrl, isLoopElement);
         if (nestedValue) {
           appendToValue(nestedValue);
         }

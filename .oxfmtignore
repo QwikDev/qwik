@@ -13,6 +13,7 @@ packages/docs/public/repl/repl-sw.js*
 packages/*/lib
 packages/*/dist
 packages/*/server
+e2e/*/server
 packages/docs/src/routes/api
 packages/insights/drizzle
 packages/insights/.netlify

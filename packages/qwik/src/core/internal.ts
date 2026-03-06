@@ -52,11 +52,12 @@ export {
   preprocessState as _preprocessState,
   _serialize,
 } from './shared/serdes/index';
+export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
 export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';
+export { retryOnPromise as _retryOnPromise } from './shared/utils/promises';
 export { _restProps } from './shared/utils/prop';
-export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
 export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {

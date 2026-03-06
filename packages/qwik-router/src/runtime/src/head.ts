@@ -1,22 +1,22 @@
 import { withLocale } from '@qwik.dev/core';
 import type {
+  ActionInternal,
+  ClientActionData,
   ContentModule,
-  RouteLocation,
-  EndpointResponse,
-  ResolvedDocumentHead,
+  ContentModuleHead,
   DocumentHeadProps,
   DocumentHeadValue,
-  ClientPageData,
-  LoaderInternal,
   Editable,
+  LoaderInternal,
+  ResolvedDocumentHead,
   ResolveSyncValue,
-  ActionInternal,
-  ContentModuleHead,
+  RouteLocation,
 } from './types';
 import { isPromise } from './utils';
 
-export const resolveHead = (
-  endpoint: EndpointResponse | ClientPageData,
+export const resolveHead = async (
+  loadersData: Record<string, unknown> | undefined,
+  action: ClientActionData | undefined,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
   locale: string,
@@ -27,18 +27,25 @@ export const resolveHead = (
     const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
       const id = loaderOrAction.__id;
       if (loaderOrAction.__brand === 'server_loader') {
-        if (!(id in endpoint.loaders)) {
+        if (!loadersData || !(id in loadersData)) {
           throw new Error(
-            'You can not get the returned data of a loader that has not been executed for this request.'
+            'You cannot get the data of a loader that has not been executed for this request.'
           );
         }
+        const data = loadersData[id];
+        if (isPromise(data)) {
+          throw new Error('Loaders returning a promise can not be resolved for the head function.');
+        }
+        return data;
+      } else if (
+        action &&
+        action.id === loaderOrAction.__id &&
+        loaderOrAction.__brand === 'server_action'
+      ) {
+        return action.data;
       }
-      const data = endpoint.loaders[id];
-      if (isPromise(data)) {
-        throw new Error('Loaders returning a promise can not be resolved for the head function.');
-      }
-      return data;
-    }) as any as ResolveSyncValue;
+      return undefined;
+    }) as ResolveSyncValue;
 
     const fns: Extract<ContentModuleHead, Function>[] = [];
     for (const contentModule of contentModules) {

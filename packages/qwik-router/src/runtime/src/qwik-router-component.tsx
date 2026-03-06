@@ -20,17 +20,16 @@ import {
   _getContextContainer,
   _getContextElement,
   _getQContainerElement,
-  _waitUntilRendered,
+  _hasStoreEffects,
   _UNINITIALIZED,
+  _waitUntilRendered,
+  forceStoreEffects,
   SerializerSymbol,
   type _ElementVNode,
-  type AsyncComputedReadonlySignal,
   type SerializationStrategy,
-  forceStoreEffects,
-  _hasStoreEffects,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
-import { CLIENT_DATA_CACHE, DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
+import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
 import {
   ContentContext,
   ContentInternalContext,
@@ -42,6 +41,7 @@ import {
   RouteStateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
+import transitionCss from './qwik-view-transition.css?inline';
 import { loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
@@ -50,7 +50,6 @@ import {
   restoreScroll,
   saveScrollHistory,
 } from './scroll-restoration';
-import spaInit from './spa-init';
 import type {
   ClientPageData,
   ContentModule,
@@ -60,6 +59,7 @@ import type {
   Editable,
   EndpointResponse,
   LoadedRoute,
+  LoaderSignal,
   MutableRouteLocation,
   PageModule,
   PreventNavigateCallback,
@@ -70,10 +70,9 @@ import type {
   ScrollState,
 } from './types';
 import { loadClientData } from './use-endpoint';
-import { useQwikRouterEnv } from './use-functions';
+import { useManifestHash, useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
-import transitionCss from './qwik-view-transition.css?inline';
 
 declare const window: ClientSPAWindow;
 
@@ -141,6 +140,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     throw new Error(`Missing Qwik URL Env Data`);
   }
   const serverHead = useServerData<DocumentHeadValue>('documentHead');
+  const manifestHash = useManifestHash();
 
   if (
     env.ev.originalUrl.pathname !== env.ev.url.pathname &&
@@ -176,7 +176,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   // This object contains the signals for the loaders
   // It is used for the loaders context RouteStateContext
-  const loaderState: Record<string, AsyncComputedReadonlySignal<unknown>> = {};
+  const loaderState: Record<string, LoaderSignal<unknown>> = {};
 
   for (const [key, value] of Object.entries(env.response.loaders)) {
     loadersObject[key] = value;
@@ -185,6 +185,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       key,
       url,
       getSerializationStrategy(key),
+      manifestHash!,
       container
     );
   }
@@ -216,9 +217,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   const contentInternal = useSignal<ContentStateInternal>();
 
-  const currentActionId = env.response.action;
-  const currentAction = currentActionId ? env.response.loaders[currentActionId] : undefined;
-  const actionState = useSignal<RouteActionValue>(
+  const currentActionId = env.response.action?.id;
+  const currentAction = currentActionId ? env.response.action?.data : undefined;
+  const actionState = useSignal<RouteActionValue | undefined>(
     currentAction
       ? {
           id: currentActionId!,
@@ -375,7 +376,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     };
 
     if (isBrowser) {
-      loadClientData(dest, _getContextElement());
+      if (manifestHash) {
+        loadClientData(dest, manifestHash);
+      }
       loadRoute(
         qwikRouterConfig.routes,
         qwikRouterConfig.menus,
@@ -438,10 +441,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           trackUrl.pathname
         );
         elm = _getContextElement();
-        const pageData = (clientPageData = await loadClientData(trackUrl, elm, {
-          action,
-          clearCache: true,
-        }));
+        const pageData =
+          manifestHash &&
+          (clientPageData = await loadClientData(trackUrl, manifestHash, {
+            action,
+            clearCache: true,
+          }));
         if (!pageData) {
           // Reset the path to the current path
           (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
@@ -509,10 +514,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
 
         // Needs to be done after routeLocation is updated
-        const resolvedHead = resolveHead(
-          clientPageData!,
+        const resolvedHead = await resolveHead(
+          clientPageData?.loaders,
+          clientPageData?.action,
+
           routeLocation,
+
           contentModules,
+
           locale,
           serverHead
         );
@@ -563,14 +572,20 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
                   key,
                   trackUrl,
                   DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
+                  manifestHash!,
                   container
                 );
               } else {
                 signal.invalidate();
               }
             }
+            // remove not existing loaders
+            for (const key of Object.keys(loaderState)) {
+              if (!(key in loadersObject)) {
+                delete loaderState[key];
+              }
+            }
           }
-          CLIENT_DATA_CACHE.clear();
 
           // See also spa-init.ts
           if (!window._qRouterSPA) {
@@ -729,9 +744,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
             removeEventListener('scroll', window._qRouterInitScroll!);
             window._qRouterInitScroll = undefined;
-
-            // Cache SPA recovery script.
-            spaInit.resolve();
           }
 
           if (navType !== 'popstate') {
@@ -859,7 +871,7 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
 
   const contentInternal = useSignal<ContentStateInternal>();
 
-  const actionState = useSignal<RouteActionValue>();
+  const actionState = useSignal<RouteActionValue | undefined>();
 
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);

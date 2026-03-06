@@ -46,6 +46,7 @@ export default event$((_: Event, el: Element) => {
 
     saveScrollState();
 
+    // Also used in qwik-router-component.tsx to unregister
     window._qRouterInitPopstate = () => {
       if (window._qRouterSPA) {
         return;

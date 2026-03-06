@@ -2,7 +2,6 @@ import type {
   NoSerialize,
   QRL,
   QwikIntrinsicElements,
-  ReadonlySignal,
   Signal,
   ValueOrPromise,
 } from '@qwik.dev/core';
@@ -18,6 +17,7 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
+import type { QData } from '../../middleware/request-handler/handlers/qdata-handler';
 import type { Q_ROUTE } from './constants';
 
 export type {
@@ -125,17 +125,15 @@ export type RouteNavigate = QRL<
   ) => Promise<void>
 >;
 
-export type RouteAction = Signal<RouteActionValue>;
+export type RouteAction = Signal<RouteActionValue | undefined>;
 
 export type RouteActionResolver = { status: number; result: unknown };
-export type RouteActionValue =
-  | {
-      id: string;
-      data: FormData | Record<string, unknown> | undefined;
-      output?: RouteActionResolver;
-      resolve?: NoSerialize<(data: RouteActionResolver) => void>;
-    }
-  | undefined;
+export type RouteActionValue = {
+  id: string;
+  data: FormData | Record<string, unknown> | undefined;
+  output?: RouteActionResolver;
+  resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+};
 
 export type MutableRouteLocation = Mutable<RouteLocation>;
 
@@ -337,14 +335,18 @@ export interface EndpointResponse {
   status: number;
   loaders: Record<string, unknown>;
   loadersSerializationStrategy: Map<string, SerializationStrategy>;
+  action?: ClientActionData;
   formData?: FormData;
-  action?: string;
 }
 
-export interface ClientPageData extends Omit<EndpointResponse, 'loadersSerializationStrategy'> {
-  href: string;
-  redirect?: string;
-  isRewrite?: boolean;
+export interface ClientActionData {
+  id: string;
+  data: unknown;
+}
+
+export interface ClientPageData extends QData {
+  loaders: Record<string, unknown>;
+  action?: ClientActionData;
 }
 
 export interface LoaderData {
@@ -807,10 +809,9 @@ type Failed = {
 export type FailReturn<T> = T & Failed;
 
 /** @public */
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
-  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
-  : ReadonlySignal<TYPE>) &
-  Pick<AsyncComputedReadonlySignal, 'promise' | 'loading' | 'error'>;
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR>
+  ? AsyncComputedReadonlySignal<ValueOrPromise<VALIDATOR>>
+  : AsyncComputedReadonlySignal<TYPE>;
 
 /** @public */
 export type Loader<RETURN> = {

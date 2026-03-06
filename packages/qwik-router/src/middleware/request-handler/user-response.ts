@@ -6,9 +6,13 @@ import type {
   RequestHandler,
 } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
-import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
+import {
+  createRequestEvent,
+  getRequestMode,
+  recognizeRequest,
+  type RequestEventInternal,
+} from './request-event';
 import { encoder } from './resolve-request-handlers';
-import type { ServerRequestEvent, StatusCodes } from './types';
 
 // Import separately to avoid duplicate imports in the vite dev server
 import {
@@ -18,6 +22,7 @@ import {
   ServerError,
   _asyncRequestStore,
 } from '@qwik.dev/router/middleware/request-handler';
+import type { ServerRequestEvent, StatusCodes } from './types';
 
 export interface QwikRouterRun<T> {
   /**
@@ -153,17 +158,25 @@ async function runNext(
  * be treated as a pathname without it.
  */
 export function getRouteMatchPathname(pathname: string) {
-  const isInternal = pathname.endsWith(QDATA_JSON);
-  if (isInternal) {
+  const frameworkSpecificFileLength = recognizeRequest(pathname)?.trimLength;
+  if (frameworkSpecificFileLength) {
     const trimEnd =
-      pathname.length - QDATA_JSON.length + (globalThis.__NO_TRAILING_SLASH__ ? 0 : 1);
+      pathname.length - frameworkSpecificFileLength + (globalThis.__NO_TRAILING_SLASH__ ? 0 : 1);
     pathname = pathname.slice(0, trimEnd);
     if (pathname === '') {
       pathname = '/';
     }
   }
-  return { pathname, isInternal };
+  return { pathname, isInternal: !!frameworkSpecificFileLength };
 }
 
 export const IsQData = '@isQData';
+export const IsQLoader = '@isQLoader';
+export const IsQAction = '@isQAction';
+export const QLoaderId = '@loaderId';
+export const QActionId = '@actionId';
+export const IsQLoaderData = '@isQLoaderData';
+export const QManifestHash = '@manifestHash';
 export const QDATA_JSON = '/q-data.json';
+export const Q_LOADER_DATA_REGEX = /\/(q-loader-data\.(.+)\.json)$/;
+export const LOADER_REGEX = /\/(q-loader-(.+)\.(.+)\.json)$/;

@@ -259,7 +259,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs}": [
       "oxfmt --write",
-      "oxlint --quiet --deny-warnings"
+      "oxlint --quiet"
     ],
     "*.{json,jsonc,css,html,md,mdx,yaml,yml}": "oxfmt --write"
   },

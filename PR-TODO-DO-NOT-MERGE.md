@@ -1,5 +1,6 @@
 # TODO
 
+- change Link to get the route for the path before preloading
 - fix failing e2e tests
 - dev mode support for q-loader-data and other things that read the manifest for qwik-router-config
 - remove every q-data.json load
@@ -9,3 +10,12 @@
   - use on client side to determine if the data is stale before fetching
   - during SSR, store page create time and loader expires deltas
 - cache q-loader-data responses in the browser
+
+## Arch
+
+needed data when navigating:
+
+- list of loaders for the path
+- the loader data
+
+- specific loader data for a route

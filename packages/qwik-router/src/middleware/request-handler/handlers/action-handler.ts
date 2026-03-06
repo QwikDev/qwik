@@ -13,7 +13,7 @@ import {
   type RequestEventInternal,
 } from '../request-event';
 import { measure, verifySerializable } from '../resolve-request-handlers';
-import { IsQAction, QActionId } from '../user-response';
+import { IsQAction, QActionId, QInternal } from '../user-response';
 import { runValidators } from './validator-utils';
 
 export function actionHandler(
@@ -23,7 +23,8 @@ export function actionHandler(
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
 
-    const isQAction = requestEv.sharedMap.has(IsQAction);
+    const isQAction = requestEv.sharedMap.get(QInternal) & IsQAction;
+    // TODO don't add if not action
     if (!isQAction) {
       return;
     }

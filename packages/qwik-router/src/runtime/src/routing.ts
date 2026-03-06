@@ -32,7 +32,7 @@ export const loadRoute = async (
     }
     const moduleLoaders = routeData[RouteDataProp.ModuleLoaders];
     const routeBundleNames = routeData[RouteDataProp.RouteBundleNames];
-    const modules: RouteModule[] = new Array(moduleLoaders.length);
+    const modules: RouteModule[] = Array.from({ length: moduleLoaders.length });
     const pendingLoads: Promise<any>[] = [];
 
     moduleLoaders.forEach((moduleLoader, i) => {

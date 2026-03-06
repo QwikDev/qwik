@@ -170,12 +170,13 @@ export function getRouteMatchPathname(pathname: string) {
   return { pathname, isInternal: !!frameworkSpecificFileLength };
 }
 
-export const IsQData = '@isQData';
-export const IsQLoader = '@isQLoader';
-export const IsQAction = '@isQAction';
+export const IsQAction = 1;
+export const IsQLoader = 2;
+export const IsQLoaderData = 4;
+export const IsQData = 8;
+export const QInternal = '@qInt';
 export const QLoaderId = '@loaderId';
 export const QActionId = '@actionId';
-export const IsQLoaderData = '@isQLoaderData';
 export const QManifestHash = '@manifestHash';
 export const QDATA_JSON = '/q-data.json';
 export const Q_LOADER_DATA_REGEX = /\/(q-loader-data\.(.+)\.json)$/;

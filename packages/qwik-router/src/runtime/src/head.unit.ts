@@ -11,7 +11,14 @@ const defaults = {
   link: [{ key: 'css', rel: 'stylesheet', href: 'default.css' }],
 };
 const mergeHeads = (...modules: any[]) =>
-  resolveHead(endpoint, routeLocation, modules.map((m) => ({ head: m })) as any, locale, defaults);
+  resolveHead(
+    endpoint,
+    routeLocation,
+    modules.map((m) => ({ head: m })) as any,
+    [],
+    locale,
+    defaults
+  );
 
 describe('resolveHead', () => {
   it('should merge contentModule properties correctly', () => {

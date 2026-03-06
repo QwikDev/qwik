@@ -10,7 +10,6 @@ import {
   getRequestMode,
 } from '../request-event';
 import { measure, verifySerializable } from '../resolve-request-handlers';
-import type { QwikSerializer } from '../types';
 import { IsQLoader, IsQLoaderData, QLoaderId } from '../user-response';
 import * as loaderHandlerModule from './loader-handler';
 import {
@@ -80,7 +79,6 @@ function createMockLoader(id: string, hash: string, result: unknown): Mocked<Loa
 describe('loaderHandler', () => {
   let mockRequestEvent: Mocked<RequestEventInternal>;
   let mockLoader: Mocked<LoaderInternal>;
-  let mockQwikSerializer: Mocked<QwikSerializer>;
   let mockLoaders: Record<string, any>;
   let mockSerializationStrategyMap: Map<string, any>;
 
@@ -93,13 +91,6 @@ describe('loaderHandler', () => {
 
     // Create mock loader
     mockLoader = createMockLoader(mockLoaderId, mockLoaderHash, { result: 'success' });
-
-    // Create mock serializer
-    mockQwikSerializer = {
-      _serialize: vi.fn(),
-      _deserialize: vi.fn(),
-      _verifySerializable: vi.fn(),
-    } as Mocked<QwikSerializer>;
 
     // Create mock loaders record
     mockLoaders = {};
@@ -229,7 +220,6 @@ describe('loaderHandler', () => {
         data: { test: 'data' },
       });
       vi.mocked(mockLoader.__qrl.call).mockResolvedValue({ result: 'success' });
-      vi.mocked(mockQwikSerializer._serialize).mockResolvedValue('serialized-data');
     });
 
     it('should execute loader and return serialized data', async () => {
@@ -370,8 +360,6 @@ describe('loaderHandler', () => {
       mockRequestEvent.sharedMap.set(IsQLoader, true);
       mockRequestEvent.sharedMap.set(QLoaderId, mockLoaderId);
       vi.mocked(mockLoader.__qrl.call).mockResolvedValue({ result: 'success' });
-      vi.mocked(mockQwikSerializer._serialize).mockResolvedValue('serialized-data');
-
       const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);

@@ -42,6 +42,8 @@ export const loadClientData = async (
 ): Promise<ClientPageData | undefined> => {
   const pagePathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
   if (opts?.preloadRouteBundles !== false) {
+    // TODO figure out the route from the pathname
+
     preloadRouteBundles(pagePathname);
   }
 

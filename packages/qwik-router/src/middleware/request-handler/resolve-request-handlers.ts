@@ -28,7 +28,7 @@ import {
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
 import type { RequestEvent, RequestEventBase, RequestHandler } from './types';
-import { IsQData } from './user-response';
+import { IsQAction, IsQData, IsQLoader, IsQLoaderData, QInternal } from './user-response';
 // Import separately to avoid duplicate imports in the vite dev server
 
 /**
@@ -103,12 +103,12 @@ export const resolveRequestHandlers = (
       // Note that we don't care about trailing slash on `server$()` calls
       requestHandlers.push(fixTrailingSlash);
       // TODO only add these for each type of request
-      if (ev.sharedMap.has(IsQLoaderData)) {
+      if (ev.sharedMap.get(QInternal) & IsQLoaderData) {
         requestHandlers.push(loaderDataHandler(routeLoaders));
-      } else if (ev.sharedMap.has(IsQLoader)) {
+      } else if (ev.sharedMap.get(QInternal) & IsQLoader) {
         requestHandlers.push(loaderHandler(routeLoaders, routeActions));
       }
-      if (ev.sharedMap.has(IsQAction)) {
+      if (ev.sharedMap.get(QInternal) & IsQAction) {
         requestHandlers.push(actionHandler(routeActions, routeLoaders));
       }
       if (ev.sharedMap.has(IsQData)) {

@@ -16,7 +16,6 @@ import { QRL } from '@qwik.dev/core';
 import { QRLEventHandlerMulti } from '@qwik.dev/core';
 import { QwikIntrinsicElements } from '@qwik.dev/core';
 import { QwikJSX } from '@qwik.dev/core';
-import type { ReadonlySignal } from '@qwik.dev/core';
 import { Render } from '@qwik.dev/core/server';
 import { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent } from '@qwik.dev/router/middleware/request-handler';
@@ -264,7 +263,11 @@ type Loader_2<RETURN> = {
 export { Loader_2 as Loader }
 
 // @public (undocumented)
+<<<<<<< HEAD
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>) & Pick<AsyncComputedReadonlySignal, 'promise' | 'loading' | 'error'>;
+=======
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? AsyncComputedReadonlySignal<ValueOrPromise<VALIDATOR>> : AsyncComputedReadonlySignal<TYPE>;
+>>>>>>> ea0224330 (wip)
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //

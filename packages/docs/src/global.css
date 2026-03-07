@@ -106,6 +106,7 @@
   /* Shadows */
   --shadow-primary: 4px 4px 0 0 var(--color-violet-75);
   --shadow-secondary: 4px 4px 0 0 var(--color-violet-55);
+  --shadow-heading: 4px 4px 0 0 var(--color-violet-85);
   --shadow-card: 6px 6px 0 0 var(--color-sky-45);
 
   /*

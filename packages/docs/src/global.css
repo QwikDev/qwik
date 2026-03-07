@@ -5,6 +5,12 @@
     font-family: var(--font-body);
     color: var(--color-slate-95);
   }
+
+  p {
+    font-size: var(--text-body-sm);
+    line-height: var(--text-body-sm--line-height);
+    font-weight: var(--text-body-sm--font-weight);
+  }
 }
 
 /**
@@ -100,6 +106,7 @@
   /* Shadows */
   --shadow-primary: 4px 4px 0 0 var(--color-violet-75);
   --shadow-secondary: 4px 4px 0 0 var(--color-violet-55);
+  --shadow-card: 6px 6px 0 0 var(--color-sky-45);
 
   /*
      * Spacing — uses Tailwind 4 defaults (4px base).

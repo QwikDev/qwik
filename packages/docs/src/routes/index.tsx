@@ -1,4 +1,4 @@
-import { component$, type PropsOf } from '@qwik.dev/core';
+import { component$, Slot, type PropsOf } from '@qwik.dev/core';
 import { type DocumentHead } from '@qwik.dev/router';
 import { Button } from '~/components/button/button';
 import { lucide } from '@qds.dev/ui';
@@ -58,8 +58,47 @@ export default component$(() => {
             </span>
           </div>
         </section>
+
+        <section
+          class="grid grid-cols-2 gap-20 max-w-[1440px] mx-auto"
+          style={{ gridTemplateAreas: "'cards content'" }}
+        >
+          <div class="flex flex-col gap-10" style={{ gridArea: 'content' }}>
+            <h2 class="font-heading text-h3 max-w-[17ch]">Introducing JavaScript Streaming</h2>
+
+            <div class="space-y-6">
+              <p>Qwik is like video streaming, but with JavaScript.</p>
+              <p class="max-w-[50ch]">
+                There's no waiting for the entire code to be downloaded. Clicks respond instantly.
+              </p>
+
+              <p>You build your features - Qwik optimizes your code automatically</p>
+            </div>
+          </div>
+
+          <Card style={{ gridArea: 'cards' }}>
+            <div class="p-10 flex flex-col gap-2 max-w-[48ch] text-center">
+              <h3 class="font-heading text-h5">Zero induced delays</h3>
+              <p>Your app stays quick, no matter how large it gets.</p>
+            </div>
+          </Card>
+        </section>
       </main>
     </>
+  );
+});
+
+export const Card = component$((props: PropsOf<'div'>) => {
+  const dots = Array.from({ length: 3 }).map(() => <div class="bg-white size-3 rounded-full" />);
+
+  return (
+    <div class="shadow-card w-fit rounded-2xl border-[1.6px] border-sky-55 h-fit" {...props}>
+      <div class="bg-sky-10 border-b-[1.6px] border-sky-55 h-11 rounded-t-2xl flex gap-2 px-3 items-center">
+        {dots}
+      </div>
+
+      <Slot />
+    </div>
   );
 });
 

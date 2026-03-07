@@ -3,6 +3,7 @@
 @layer base {
   body {
     font-family: var(--font-body);
+    color: var(--color-slate-95);
   }
 }
 

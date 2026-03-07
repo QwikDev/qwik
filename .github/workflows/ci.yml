@@ -560,9 +560,8 @@ jobs:
 
   ############ BUILD DOCS ############
   build-docs:
-    #if: always() && needs.changes.outputs.build-docs == 'true'
-    if: always() && (needs.changes.outputs.build-docs == 'true' || github.event_name == 'pull_request')
-    name: Build Docs
+    if: always() && needs.changes.outputs.build-docs == 'true'
+    name: Build Docs  
     needs:
       - changes
       - build-other-packages
@@ -743,7 +742,7 @@ jobs:
   ############ E2E CLI TEST ############
   test-cli-e2e:
     name: E2E CLI Tests
-    if: always() && (needs.changes.outputs.build-cli-e2e == 'true' || needs.changes.outputs.build-docs == 'true')
+    if: always() && needs.changes.outputs.build-cli-e2e == 'true'
 
     needs:
       - build-other-packages

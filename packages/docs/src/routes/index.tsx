@@ -34,7 +34,8 @@ export default component$(() => {
             every step of the way.
           </p>
 
-          <div class="flex gap-6 justify-center">
+          {/* margin collapse from space-y so that the 110.5px is accurate */}
+          <div class="flex gap-6 justify-center mb-[110.5px]">
             <Button variant="primary">
               <span>Qwik Start</span>
               <lucide.arrowright />
@@ -46,9 +47,7 @@ export default component$(() => {
             </Button>
           </div>
 
-          <Spacer class="h-[110.5px]" />
-
-          <div class="flex gap-6 items-center">
+          <div class="flex gap-6 items-center py-4">
             <span class="text-slate-75">Special Sponsor</span>
             <div class="flex">
               <BuilderLogo width={117.35} height={25.2} />

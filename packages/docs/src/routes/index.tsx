@@ -64,35 +64,57 @@ export default component$(() => {
           style={{ gridTemplateAreas: "'cards content'" }}
         >
           <div class="flex flex-col gap-10" style={{ gridArea: 'content' }}>
-            <h2 class="font-heading text-h3 max-w-[17ch]">Introducing JavaScript Streaming</h2>
+            <h2 class="font-heading text-h3 max-w-[17ch]">
+              <span class="bg-violet-10 mb-2 block w-fit shadow-heading">Introducing</span>
+              <span class="bg-violet-10 shadow-heading">JavaScript Streaming</span>
+            </h2>
 
             <div class="space-y-6">
-              <p>Qwik is like video streaming, but with JavaScript.</p>
+              x<p>Qwik is like video streaming, but with JavaScript.</p>
               <p class="max-w-[50ch]">
                 There's no waiting for the entire code to be downloaded. Clicks respond instantly.
               </p>
-
               <p>You build your features - Qwik optimizes your code automatically</p>
             </div>
           </div>
 
-          <Card style={{ gridArea: 'cards' }}>
-            <div class="p-10 flex flex-col gap-2 max-w-[48ch] text-center">
-              <h3 class="font-heading text-h5">Zero induced delays</h3>
-              <p>Your app stays quick, no matter how large it gets.</p>
-            </div>
-          </Card>
+          <div class="flex flex-col" style={{ gridArea: 'cards' }}>
+            <Card class="z-1">
+              <div class="p-10 flex flex-col gap-2 max-w-[48ch] text-center">
+                <h3 class="font-heading text-h5">Zero induced delays</h3>
+                <p>Your app stays quick, no matter how large it gets.</p>
+              </div>
+            </Card>
+
+            <Card class="self-end transform -translate-y-16 z-0">
+              <div class="p-10 flex flex-col gap-2 max-w-[48ch] text-center">
+                <h3 class="font-heading text-h5">
+                  <span class="text-sky-75">~20s</span> quicker or more on 3G 🤯
+                </h3>
+                <p>
+                  Time to Interactive measured on chrome 3G throttling on a few mid-size sample
+                  apps.
+                </p>
+              </div>
+            </Card>
+          </div>
         </section>
       </main>
     </>
   );
 });
 
-export const Card = component$((props: PropsOf<'div'>) => {
+export const Card = component$(({ class: className, ...rest }: PropsOf<'div'>) => {
   const dots = Array.from({ length: 3 }).map(() => <div class="bg-white size-3 rounded-full" />);
 
   return (
-    <div class="shadow-card w-fit rounded-2xl border-[1.6px] border-sky-55 h-fit" {...props}>
+    <div
+      class={[
+        'shadow-card w-fit rounded-2xl border-[1.6px] border-sky-55 h-fit bg-white',
+        className,
+      ]}
+      {...rest}
+    >
       <div class="bg-sky-10 border-b-[1.6px] border-sky-55 h-11 rounded-t-2xl flex gap-2 px-3 items-center">
         {dots}
       </div>

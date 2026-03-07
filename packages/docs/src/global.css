@@ -213,7 +213,7 @@
   --gradient-color-transparent: rgba(24, 180, 244, 0);
   --gradient-size: 60% 50%;
   --gradient-center: 50% 42%;
-  --gradient-fade: 73%;
+  --gradient-fade: 75%;
 
   background: radial-gradient(
     var(--gradient-size) at var(--gradient-center),

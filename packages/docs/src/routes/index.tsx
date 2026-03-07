@@ -48,12 +48,14 @@ export default component$(() => {
           </div>
 
           <div class="flex gap-6 items-center py-4">
-            <span class="text-slate-75">Special Sponsor</span>
+            <span class="text-slate-75 text-sm">Special Sponsor</span>
             <div class="flex">
               <BuilderLogo width={117.35} height={25.2} />
               <div class="w-px h-[25.2px] bg-slate-75 ml-7" />
             </div>
-            <span class="max-w-[20ch] text-slate-75">Ship twice as much, twice as fast</span>
+            <span class="max-w-[20ch] text-slate-75 text-sm">
+              Ship twice as much, twice as fast
+            </span>
           </div>
         </section>
       </main>

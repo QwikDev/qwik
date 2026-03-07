@@ -16,9 +16,8 @@ export default component$(() => {
     <>
       {/* <Header /> */}
       <main>
-        <section class="relative space-y-10 flex flex-col items-center overflow-clip">
+        <section class="relative space-y-10 flex flex-col items-center overflow-x-clip mx-auto">
           <Decor />
-
           {/* Design spacer. TODO: adjust as needed for responsiveness */}
           <Spacer class="h-63.5" />
 
@@ -57,13 +56,13 @@ export const Decor = component$(() => {
   return (
     <>
       {/* blue gradient */}
-      <div class="fixed top-[20%] h-screen w-screen bg-hero-gradient-blue mix-blend-color -z-1 lg:-left-1/2 lg:-top-[20%]" />
+      <div class="absolute left-1/2 top-1/2 -translate-x-full -translate-y-1/2 w-[1600px] h-[1200px] bg-hero-gradient-blue -z-2" />
 
       {/* purple gradient */}
-      <div class="fixed -top-[10%] -right-[40%] h-screen w-screen bg-hero-gradient-purple mix-blend-color -z-1 lg:-right-1/2" />
+      <div class="absolute left-1/2 bottom-0 translate-x-[5%] translate-y-1/2 w-[1600px] h-[1200px] bg-hero-gradient-purple -z-2" />
 
       {/* star background */}
-      <div aria-hidden="true" class="absolute inset-0 -z-2 bg-grid-stars" />
+      <div aria-hidden="true" class="absolute inset-0 -z-1 bg-grid-stars" />
     </>
   );
 });

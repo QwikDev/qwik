@@ -560,7 +560,8 @@ jobs:
 
   ############ BUILD DOCS ############
   build-docs:
-    if: always() && needs.changes.outputs.build-docs == 'true'
+    #if: always() && needs.changes.outputs.build-docs == 'true'
+    if: always() && (needs.changes.outputs.build-docs == 'true' || github.event_name == 'pull_request')
     name: Build Docs
     needs:
       - changes
@@ -742,10 +743,11 @@ jobs:
   ############ E2E CLI TEST ############
   test-cli-e2e:
     name: E2E CLI Tests
-    if: always() && needs.changes.outputs.build-cli-e2e == 'true'
+    if: always() && (needs.changes.outputs.build-cli-e2e == 'true' || needs.changes.outputs.build-docs == 'true')
 
     needs:
       - build-other-packages
+      - build-docs
       - changes
       - test-unit
 
@@ -774,6 +776,7 @@ jobs:
         uses: actions/download-artifact@v4
 
       - name: Move Distribution Artifacts
+        shell: bash
         run: |
           mv artifact-qwik/* packages/qwik/
           mkdir -p packages/qwik-city/lib/
@@ -782,51 +785,28 @@ jobs:
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mkdir -p packages/docs/dist
+          cp -R artifact-docs/. packages/docs/dist/
+          mkdir -p packages/qwik-labs/lib packages/qwik-labs/vite
+          cp -R artifact-qwiklabs/lib/. packages/qwik-labs/lib/
+          cp -R artifact-qwiklabs/vite/. packages/qwik-labs/vite/
+          cp artifact-qwiklabs/package.json packages/qwik-labs/package.json
+          mkdir -p packages/qwik-react/lib
+          cp -R artifact-qwikreact/lib/. packages/qwik-react/lib/
+          cp artifact-qwikreact/package.json packages/qwik-react/package.json
 
       - run: pnpm install --frozen-lockfile
 
       - name: CLI E2E Tests
+        if: needs.changes.outputs.build-cli-e2e == 'true'
         run: pnpm run test.e2e.cli
-  
-  ############ E2E DOCS TEST ############
-  test-docs-e2e:
-    name: E2E Docs Tests
-    # ドキュメントに変更があった、または手動実行の場合
-    if: always() && needs.changes.outputs.build-docs == 'true'
-    needs:
-      - build-other-packages
-      - build-docs
-      - changes
-      - test-unit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 24.x
-          cache: 'pnpm'
 
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Move Distribution Artifacts
-        run: |
-          mv artifact-qwik/* packages/qwik/
-          mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
-          # ドキュメントのビルド済みファイルを配置（Preview実行に必要）
-          mkdir -p packages/docs/dist
-          mv artifact-docs/* packages/docs/dist/
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright
+      - name: Install Playwright (Docs)
+        if: needs.changes.outputs.build-docs == 'true'
         run: npx playwright install chromium --with-deps
 
       - name: Docs E2E Tests
+        if: needs.changes.outputs.build-docs == 'true'
         run: pnpm run test.e2e.docs
 
   ########### LINT PACKAGES ############
@@ -997,7 +977,6 @@ jobs:
       - test-unit
       - test-e2e
       - test-cli-e2e
-      - test-docs-e2e
       - lint-package
       - build-docs
       - build-insights
@@ -1009,7 +988,6 @@ jobs:
             (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
             (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
             (needs.test-cli-e2e.result == 'success' || needs.test-cli-e2e.result == 'skipped') &&
-            (needs.test-docs-e2e.result == 'success' || needs.test-docs-e2e.result == 'skipped') &&
             (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
             (needs.build-docs.result == 'success' || needs.build-docs.result == 'skipped') &&
             (needs.build-insights.result == 'success' || needs.build-insights.result == 'skipped')

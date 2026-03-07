@@ -8,7 +8,6 @@ import { defineConfig, devices } from '@playwright/test';
 /** See https://playwright.dev/docs/test-configuration. */
 
 //const TestingURL = 'http://127.0.0.1:3000';
-const TestingURL = process.env.CI ? 'http://127.0.0.1:4173' : 'http://127.0.0.1:3000';
 
 export default defineConfig({
   testDir: './tests',
@@ -28,7 +27,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: TestingURL,
+    baseURL: 'http://localhost:3000',
     actionTimeout: 30_000,
     navigationTimeout: 60_000,
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
@@ -79,8 +78,12 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: process.env.CI ? 'pnpm -C ../../ run docs.preview' : 'pnpm -C ../../ run docs.dev',
-    url: TestingURL,
+    command: process.env.CI
+      ? 'npx vite preview ../../packages/docs/dist --port 3000'
+      : 'pnpm -C ../../ run docs.dev',
+    port: 3000,
+    stdout: 'pipe',
     reuseExistingServer: !process.env.CI,
+    timeout: process.env.CI ? 120000 : 30000,
   },
 });

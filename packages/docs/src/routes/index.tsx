@@ -16,22 +16,24 @@ export default component$(() => {
     <>
       {/* <Header /> */}
       <main>
-        <Decor />
+        <section class="relative space-y-10 flex flex-col items-center overflow-clip">
+          <Decor />
 
-        {/* Design spacer. TODO: adjust as needed for responsiveness */}
-        <Spacer class="h-63.5" />
+          {/* Design spacer. TODO: adjust as needed for responsiveness */}
+          <Spacer class="h-63.5" />
 
-        <section class="space-y-10 flex flex-col items-center">
           <div class="relative">
             <h1 class="uppercase font-display text-h2 max-w-[15ch] text-center">
               Automatically <span class="text-violet-75">Instant</span> Web Apps
             </h1>
             {clouds}
           </div>
+
           <p class="text-body-md max-w-[50ch] text-center">
             A new kind of framework for you to ship quicker and provide better user experiences
             every step of the way.
           </p>
+
           <div class="flex gap-6 justify-center">
             <Button variant="primary">
               <span>Qwik Start</span>
@@ -43,6 +45,8 @@ export default component$(() => {
               <lucide.clipboard />
             </Button>
           </div>
+
+          <Spacer class="h-[110.5px]" />
         </section>
       </main>
     </>

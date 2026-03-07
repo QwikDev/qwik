@@ -102,7 +102,12 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
 
       if (isBrowser) {
         cleanup(() => {
-          internalState.value?.root?.unmount();
+          const root = internalState.value?.root;
+          if (root) {
+            // Defer React unmount so Qwik's diff can finish processing VNode
+            // references before DOM elements are removed by React
+            queueMicrotask(() => root.unmount());
+          }
         });
       }
     });

@@ -224,3 +224,45 @@ test.describe('reactify$ [CSR]', () => {
     await expect(page.getByTestId('badge-global')).toHaveText('global=1');
   });
 });
+
+test.describe('reactify$ [navigation]', () => {
+  test('should not crash when navigating away from SSR reactify page', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (err) => {
+      errors.push(err.message);
+    });
+
+    // Load the reactify page via SSR
+    await page.goto('/reactify/', { waitUntil: 'networkidle' });
+    await expect(page.getByTestId('qwik-badge')).toHaveCount(2);
+
+    // Navigate away to the react page via SPA
+    await page.getByTestId('react-link').click();
+    await page.waitForURL('/react/');
+    await page.waitForTimeout(500);
+
+    // No errors should have occurred during navigation
+    expect(errors).toEqual([]);
+  });
+
+  test('should not crash when navigating away from CSR reactify page', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (err) => {
+      errors.push(err.message);
+    });
+
+    // Navigate to reactify via CSR (SPA navigation from home)
+    await page.goto('/');
+    await page.getByTestId('reactify-link').click();
+    await page.waitForURL('/reactify/', { waitUntil: 'networkidle' });
+    await expect(page.getByTestId('qwik-badge')).toHaveCount(2);
+
+    // Navigate away to the react page
+    await page.getByTestId('react-link').click();
+    await page.waitForURL('/react/');
+    await page.waitForTimeout(500);
+
+    // No errors should have occurred during navigation
+    expect(errors).toEqual([]);
+  });
+});

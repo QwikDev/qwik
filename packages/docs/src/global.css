@@ -210,6 +210,7 @@
 
 @utility bg-hero-gradient-blue {
   --gradient-color: rgba(24, 180, 244, 0.4);
+  --gradient-color-transparent: rgba(24, 180, 244, 0);
   --gradient-size: 60% 50%;
   --gradient-center: 50% 42%;
   --gradient-fade: 73%;
@@ -217,20 +218,21 @@
   background: radial-gradient(
     var(--gradient-size) at var(--gradient-center),
     var(--gradient-color),
-    transparent var(--gradient-fade)
+    var(--gradient-color-transparent) var(--gradient-fade)
   );
 }
 
 @utility bg-hero-gradient-purple {
   --gradient-color: rgba(172, 127, 244, 0.4);
+  --gradient-color-transparent: rgba(172, 127, 244, 0);
   --gradient-size: 58% 58%;
   --gradient-center: 49% 42%;
-  --gradient-fade: 63%;
+  --gradient-fade: 53%;
 
   background: radial-gradient(
     var(--gradient-size) at var(--gradient-center),
     var(--gradient-color),
-    transparent var(--gradient-fade)
+    var(--gradient-color-transparent) var(--gradient-fade)
   );
 }
 

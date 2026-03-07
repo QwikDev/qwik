@@ -3,6 +3,7 @@ import { type DocumentHead } from '@qwik.dev/router';
 import { Button } from '~/components/button/button';
 import { lucide } from '@qds.dev/ui';
 import { Spacer } from '~/components/spacer/spacer';
+import { BuilderLogo } from '~/components/svgs/builder-logo';
 // import { Header } from '../components/header/header';
 
 export default component$(() => {
@@ -46,6 +47,15 @@ export default component$(() => {
           </div>
 
           <Spacer class="h-[110.5px]" />
+
+          <div class="flex gap-6 items-center">
+            <span class="text-slate-75">Special Sponsor</span>
+            <div class="flex">
+              <BuilderLogo width={117.35} height={25.2} />
+              <div class="w-px h-[25.2px] bg-slate-75 ml-7" />
+            </div>
+            <span class="max-w-[20ch] text-slate-75">Ship twice as much, twice as fast</span>
+          </div>
         </section>
       </main>
     </>
@@ -55,11 +65,17 @@ export default component$(() => {
 export const Decor = component$(() => {
   return (
     <>
-      {/* blue gradient */}
-      <div class="absolute left-1/2 top-1/2 -translate-x-full -translate-y-1/2 w-[1600px] h-[1200px] bg-hero-gradient-blue -z-2" />
+      {/* blue gradient — centered on section, shifted left */}
+      <div
+        class="absolute -z-2 left-1/2 top-1/2 -translate-x-[110%] -translate-y-[55%]
+          w-[1600px] h-[1200px] bg-hero-gradient-blue"
+      />
 
-      {/* purple gradient */}
-      <div class="absolute left-1/2 bottom-0 translate-x-[5%] translate-y-1/2 w-[1600px] h-[1200px] bg-hero-gradient-purple -z-2" />
+      {/* purple gradient — centered on section bottom, shifted right */}
+      <div
+        class="absolute -z-2 left-1/2 bottom-0 translate-x-[5%] translate-y-1/2
+          w-[1600px] h-[1200px] bg-hero-gradient-purple"
+      />
 
       {/* star background */}
       <div aria-hidden="true" class="absolute inset-0 -z-1 bg-grid-stars" />

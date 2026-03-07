@@ -1572,7 +1572,14 @@ export const fastNextSibling = (node: Node | null): Node | null => {
         if (nodeValue?.startsWith(QIgnore)) {
           return getNodeAfterCommentNode(node, QContainerIsland, _fastNextSibling, _fastFirstChild);
         } else if (node.nodeValue?.startsWith(QContainerIslandEnd)) {
-          return getNodeAfterCommentNode(node, QIgnoreEnd, _fastNextSibling, _fastFirstChild);
+          // Search for either the next container-island or the end of the q:ignore block,
+          // whichever comes first. This handles multiple islands within a single q:ignore.
+          return getNodeAfterCommentNode(
+            node,
+            [QContainerIsland, QIgnoreEnd],
+            _fastNextSibling,
+            _fastFirstChild
+          );
         } else if (nodeValue?.startsWith(QContainerAttr)) {
           while (node && (node = _fastNextSibling.call(node))) {
             if (
@@ -1591,12 +1598,25 @@ export const fastNextSibling = (node: Node | null): Node | null => {
 
 function getNodeAfterCommentNode(
   node: Node | null,
-  commentValue: string,
+  commentValue: string | string[],
   nextSibling: NonNullable<typeof _fastNextSibling>,
   firstChild: NonNullable<typeof _fastFirstChild>
 ): Node | null {
+  const isSingleValue = typeof commentValue === 'string';
   while (node) {
-    if (node.nodeValue?.startsWith(commentValue)) {
+    const nodeValue = node.nodeValue;
+    let isMatch;
+    if (isSingleValue) {
+      isMatch = nodeValue?.startsWith(commentValue as string);
+    } else {
+      for (let i = 0; i < (commentValue as string[]).length; i++) {
+        if (nodeValue?.startsWith((commentValue as string[])[i])) {
+          isMatch = true;
+          break;
+        }
+      }
+    }
+    if (isMatch) {
       node = nextSibling.call(node) || null;
       return node;
     }
@@ -1605,11 +1625,14 @@ function getNodeAfterCommentNode(
     if (!nextNode) {
       nextNode = nextSibling.call(node);
     }
-    if (!nextNode) {
+    // Go up through parents until we find one with a next sibling
+    while (!nextNode) {
       nextNode = fastParentNode(node);
-      if (nextNode) {
-        nextNode = nextSibling.call(nextNode);
+      if (!nextNode) {
+        break;
       }
+      node = nextNode;
+      nextNode = nextSibling.call(nextNode);
     }
     node = nextNode;
   }
@@ -1624,6 +1647,18 @@ const fastFirstChild = (node: Node | null): Node | null => {
     _fastFirstChild = fastGetter<typeof _fastFirstChild>(node, 'firstChild')!;
   }
   node = node && _fastFirstChild.call(node);
+  // Handle q:ignore as first child (e.g. qwikify$ Host with reactify$ projections).
+  // Navigate depth-first to the first q:container-island and return its first element.
+  if (
+    node &&
+    fastNodeType(node) === /* Node.COMMENT_NODE */ 8 &&
+    node.nodeValue?.startsWith(QIgnore)
+  ) {
+    if (!_fastNextSibling) {
+      _fastNextSibling = fastGetter<typeof _fastNextSibling>(node, 'nextSibling')!;
+    }
+    return getNodeAfterCommentNode(node, QContainerIsland, _fastNextSibling, _fastFirstChild);
+  }
   while (node && !fastIsTextOrElement(node)) {
     node = fastNextSibling(node);
   }

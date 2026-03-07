@@ -5,6 +5,7 @@ export const GlobalCountCtx = createContextId<Signal<number>>('global-count');
 
 /** A Qwik component to be rendered inside React via reactify$ */
 export const QwikBadge = component$<{ label: string }>((props) => {
+  console.warn('rendering QwikBadge with label', props.label);
   const clicks = useSignal(0);
   const globalCount = useContext(GlobalCountCtx);
   return (

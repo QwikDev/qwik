@@ -73,7 +73,7 @@ export const Decor = component$(() => {
 
       {/* purple gradient — centered on section bottom, shifted right */}
       <div
-        class="absolute -z-2 left-1/2 bottom-0 translate-x-[5%] translate-y-1/2
+        class="absolute -z-2 left-1/2 bottom-1/4 translate-x-[15%] translate-y-1/2
           w-[1600px] h-[1200px] bg-hero-gradient-purple"
       />
 

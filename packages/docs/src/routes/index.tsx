@@ -60,22 +60,39 @@ export default component$(() => {
         </section>
 
         <section
-          class="grid grid-cols-2 gap-20 max-w-[1440px] mx-auto"
+          class="grid grid-cols-2 gap-20 max-w-[1440px] mx-auto pt-32 pb-20 px-20 box-content"
           style={{ gridTemplateAreas: "'cards content'" }}
         >
           <div class="flex flex-col gap-10" style={{ gridArea: 'content' }}>
-            <h2 class="font-heading text-h3 max-w-[17ch]">
+            <h2 class="font-heading text-h3">
               <span class="bg-violet-10 mb-2 block w-fit shadow-heading">Introducing</span>
               <span class="bg-violet-10 shadow-heading">JavaScript Streaming</span>
             </h2>
 
             <div class="space-y-6">
-              x<p>Qwik is like video streaming, but with JavaScript.</p>
-              <p class="max-w-[50ch]">
-                There's no waiting for the entire code to be downloaded. Clicks respond instantly.
+              <p class="w-fit">
+                <span class="shadow-body leading-[2.5]">
+                  Qwik is like video streaming, but with JavaScript.
+                </span>
               </p>
-              <p>You build your features - Qwik optimizes your code automatically</p>
+
+              <p class="max-w-[50ch]">
+                <span class="shadow-body leading-[2.5]">
+                  There's no waiting for the entire code to be downloaded. Clicks respond instantly.
+                </span>
+              </p>
+
+              <p class="w-fit">
+                <span class="shadow-body leading-[2.5]">
+                  You build your features - Qwik optimizes your code automatically
+                </span>
+              </p>
             </div>
+
+            <Button class="w-fit" variant="primary">
+              <span>Discover more</span>
+              <lucide.arrowright />
+            </Button>
           </div>
 
           <div class="flex flex-col" style={{ gridArea: 'cards' }}>

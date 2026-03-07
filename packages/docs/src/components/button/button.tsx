@@ -13,10 +13,12 @@ type ButtonProps = PropsOf<'button'> & {
   variant?: ButtonVariant;
 };
 
-export const Button = component$<ButtonProps>(({ variant = 'primary', ...props }) => {
-  return (
-    <button type="button" {...props} class={`${button.base} ${button[variant]}`}>
-      <Slot />
-    </button>
-  );
-});
+export const Button = component$<ButtonProps>(
+  ({ variant = 'primary', class: className, ...props }) => {
+    return (
+      <button type="button" {...props} class={`${button.base} ${button[variant]} ${className}`}>
+        <Slot />
+      </button>
+    );
+  }
+);

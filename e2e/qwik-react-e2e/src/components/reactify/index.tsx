@@ -9,7 +9,7 @@ const ReactBadge = reactify$(QwikBadge);
 // A React app that uses Qwik badges via reactify$
 function ReactAppWithQwik() {
   const [reactCount, setReactCount] = useState(0);
-  const [badgeCount, setBadgeCount] = useState(1);
+  const [badgeCount, setBadgeCount] = useState(2);
 
   return (
     <div data-testid="react-app">
@@ -37,4 +37,4 @@ function ReactAppWithQwik() {
   );
 }
 
-export const QReactApp = qwikify$(ReactAppWithQwik, { eagerness: 'load' });
+export const QReactApp = qwikify$(ReactAppWithQwik, { eagerness: 'idle' });

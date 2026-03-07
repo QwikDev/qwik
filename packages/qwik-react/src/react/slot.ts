@@ -1,4 +1,4 @@
-import { $, isServer, useOn, useOnDocument, useSignal } from '@qwik.dev/core';
+import { $, isServer, useOn, useOnDocument, useSignal, type QRL } from '@qwik.dev/core';
 import { Component, createContext, createElement, createRef, type ReactElement } from 'react';
 import type { QwikifyOptions, QwikifyProps } from './types';
 
@@ -152,3 +152,22 @@ export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = 
 };
 
 const HOST_PREFIX = 'host:';
+
+export interface SSRProjectionEntry {
+  qrl: QRL<any>;
+  props: Record<string, any>;
+}
+
+export interface SSRProjectionRegistry {
+  entries: Map<string, SSRProjectionEntry>;
+}
+
+let _ssrProjectionRegistry: SSRProjectionRegistry | null = null;
+
+export function setSSRProjectionRegistry(registry: SSRProjectionRegistry | null): void {
+  _ssrProjectionRegistry = registry;
+}
+
+export function getSSRProjectionRegistry(): SSRProjectionRegistry | null {
+  return _ssrProjectionRegistry;
+}

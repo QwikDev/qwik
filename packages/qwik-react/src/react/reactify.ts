@@ -5,9 +5,13 @@ import {
   _slotReady,
   _updateProjectionProps,
   _removeProjection,
-  _SERIALIZABLE_STATE,
 } from '@qwik.dev/core/internal';
-import { QwikProjectionCtx, getReactProps, type QwikProjectionState } from './slot';
+import {
+  QwikProjectionCtx,
+  getReactProps,
+  getSSRProjectionRegistry,
+  type QwikProjectionState,
+} from './slot';
 
 let slotCounter = 0;
 
@@ -19,7 +23,10 @@ let slotCounter = 0;
  * The returned React component must be rendered inside a `qwikify$()` React tree. It creates a div
  * that Qwik renders into, while React ignores its contents.
  *
- * CSR only. SSR support will be added in a follow-up.
+ * During SSR, a marker is emitted so that server-render.tsx can render the Qwik component inline
+ * inside `q:container-island` comments. On the client, Qwik resumes the SSR content naturally
+ * (events, signals, state are all serialized). For pure CSR, `_addProjection` renders from
+ * scratch.
  *
  * @param qwikCompQrl - A QRL wrapping a Qwik component (created with `component$`)
  * @returns A React component that renders the Qwik component
@@ -45,23 +52,23 @@ export function reactifyQrl(qwikCompQrl: QRL<any>): any {
         return;
       }
 
+      const div = this.divRef.current;
+      if (!div) {
+        return;
+      }
+
+      // If the div has SSR content (from q:container-island), Qwik has already
+      // processed and can resume it. Don't re-render — just like q-slotc does for slots.
+      // Check for an element child (not just the QWIK-PROJ comment marker from render()).
+      if (div.firstElementChild) {
+        return;
+      }
+
+      // Pure CSR: empty div, render the Qwik component from scratch via _addProjection.
       qwikCompQrl.resolve().then((QwikComp: any) => {
         if (!this.mounted) {
           return;
         }
-
-        const serializableState = QwikComp[_SERIALIZABLE_STATE];
-        if (!serializableState || !serializableState[0]) {
-          if (typeof console !== 'undefined') {
-            console.warn(
-              'reactify$: argument must be a Qwik component created with component$(). ' +
-                'Received: ' +
-                typeof QwikComp
-            );
-          }
-          return;
-        }
-        const componentQRL = serializableState[0];
 
         // Set display name now that we have the resolved component
         const name = QwikComp.displayName || QwikComp.name || 'QwikComponent';
@@ -70,17 +77,11 @@ export function reactifyQrl(qwikCompQrl: QRL<any>): any {
         const { parentVNode, container } = projectionState;
         // Use pendingProps if React updated props before the QRL resolved
         const reactProps = getReactProps(this.pendingProps || this.props);
-        this.vnode = _addProjection(
-          container,
-          parentVNode,
-          componentQRL,
-          reactProps,
-          this.slotName
-        );
-
-        if (this.divRef.current) {
-          _slotReady(this.vnode, this.divRef.current);
-        }
+        this.vnode = _addProjection(container, parentVNode, qwikCompQrl, reactProps, this.slotName);
+        // Clear the marker comment right before _slotReady so the div is empty
+        // when Qwik's cursor walker processes it on the next microtask.
+        div.replaceChildren();
+        _slotReady(this.vnode, div);
       });
     }
 
@@ -111,10 +112,27 @@ export function reactifyQrl(qwikCompQrl: QRL<any>): any {
     }
 
     render() {
+      // During SSR (inside React's renderToString), register the component in the
+      // projection registry and output a marker that server-render.tsx will replace
+      // with the actual Qwik component rendered inside q:container-island comments.
+      const registry = getSSRProjectionRegistry();
+      if (registry) {
+        const reactProps = getReactProps(this.props);
+        registry.entries.set(this.slotName, { qrl: qwikCompQrl, props: reactProps });
+        return createElement('div', {
+          'data-qwik-projection': this.slotName,
+          suppressHydrationWarning: true,
+          dangerouslySetInnerHTML: { __html: `<!--QWIK-PROJ:${this.slotName}-->` },
+        });
+      }
+      // CSR path: render a div that Qwik will render into.
+      // Use the same marker as SSR so suppressHydrationWarning preserves SSR content
+      // during hydration (like q-slotc does for slots). For pure CSR, the div starts
+      // empty and _addProjection renders the component in componentDidMount.
       return createElement('div', {
         ref: this.divRef,
         suppressHydrationWarning: true,
-        dangerouslySetInnerHTML: { __html: '' },
+        dangerouslySetInnerHTML: { __html: `<!--QWIK-PROJ:${this.slotName}-->` },
         'data-qwik-projection': this.slotName,
       });
     }
@@ -131,7 +149,8 @@ export function reactifyQrl(qwikCompQrl: QRL<any>): any {
  * The returned React component must be rendered inside a `qwikify$()` React tree. It creates a div
  * that Qwik renders into, while React ignores its contents.
  *
- * CSR only. SSR support will be added in a follow-up.
+ * During SSR, the Qwik component is rendered as HTML inside `q:container-island` comments. On the
+ * client, the component re-renders via the external projection API.
  *
  * @example
  *

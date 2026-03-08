@@ -1,9 +1,9 @@
 import type { JSXNode } from '@qwik.dev/core';
 import {
   _isJSXNode as isJSXNode,
-  _EMPTY_ARRAY,
   _EMPTY_OBJ,
   _EFFECT_BACK_REF,
+  _VirtualVNode as VirtualVNode,
 } from '@qwik.dev/core/internal';
 import { isDev } from '@qwik.dev/core/build';
 import {
@@ -17,8 +17,8 @@ import {
   QDefaultSlot,
   NON_SERIALIZABLE_MARKER_PREFIX,
   QBackRefs,
-  SsrNodeFlags,
   ChoreBits,
+  VNodeFlags,
 } from './qwik-copy';
 import type { ISsrNode, ISsrComponentFrame, JSXChildren, Props } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
@@ -28,48 +28,92 @@ import type { VNodeData } from './vnode-data';
  * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
  * purposes.
  *
- * Once deserialized the client, they will be turned to ElementVNodes.
+ * Once deserialized on the client, they will be turned to ElementVNodes.
+ *
+ * Extends VirtualVNode to share cursor infrastructure (dirty bits, dirtyChildren,
+ * parent/slotParent, sibling linked list).
  */
-export class SsrNode implements ISsrNode {
+export class SsrNode extends VirtualVNode implements ISsrNode {
   __brand__ = 'SsrNode' as const;
 
-  /**
-   * ID which the deserialize will use to retrieve the node.
-   *
-   * @param id - Unique id for the node.
-   */
+  /** ID which the deserialize will use to retrieve the node. */
   public id: string;
-  public flags: SsrNodeFlags;
-  public dirty = ChoreBits.NONE;
 
-  public children: ISsrNode[] | null = null;
+  /** VNode serialization data for this node's subtree. */
+  public vnodeData: VNodeData;
+
+  /** Source file location for dev mode diagnostics. */
+  public currentFile: string | null;
+
+  /** Component host node (for SSR component tracking). */
+  public parentComponent: ISsrNode | null;
+
+  /** Serializable attributes backed by vnodeData entries. */
   private attrs: Props;
 
-  /** Local props which don't serialize; */
+  /** Local props which don't serialize (prefixed with NON_SERIALIZABLE_MARKER_PREFIX). */
   private localProps: Props | null = null;
 
-  get [_EFFECT_BACK_REF]() {
-    return this.getProp(QBackRefs);
-  }
+  private attributesIndex: number;
+  private cleanupQueue: CleanupQueue;
+
+  /**
+   * Legacy children array for backward compatibility during migration. TODO: Remove once all
+   * consumers switch to VNode linked list traversal.
+   */
+  public children: ISsrNode[] | null = null;
 
   constructor(
-    public parentComponent: ISsrNode | null,
+    parentComponent: ISsrNode | null,
     id: string,
-    private attributesIndex: number,
-    private cleanupQueue: CleanupQueue,
-    public vnodeData: VNodeData,
-    public currentFile: string | null
+    attributesIndex: number,
+    cleanupQueue: CleanupQueue,
+    vnodeData: VNodeData,
+    currentFile: string | null
   ) {
+    super(
+      null, // key
+      VNodeFlags.Virtual,
+      null, // parent
+      null, // previousSibling
+      null, // nextSibling
+      null, // props (used for cursor data like NODE_DIFF_DATA_KEY)
+      null, // firstChild
+      null // lastChild
+    );
+
     this.id = id;
-    this.flags = SsrNodeFlags.Updatable;
+    this.parentComponent = parentComponent;
+    this.attributesIndex = attributesIndex;
+    this.cleanupQueue = cleanupQueue;
+    this.vnodeData = vnodeData;
+    this.currentFile = currentFile;
+    this.dirty = ChoreBits.NONE;
     this.attrs =
       this.attributesIndex >= 0 ? (this.vnodeData[this.attributesIndex] as Props) : _EMPTY_OBJ;
 
     this.parentComponent?.addChild(this);
 
+    // Override VNode's [_EFFECT_BACK_REF] field with getter/setter that delegates to
+    // serializable attrs (QBackRefs), so back refs are included in vnodeData serialization.
+    Object.defineProperty(this, _EFFECT_BACK_REF, {
+      get: () => this.getProp(QBackRefs),
+      set: (value: any) => {
+        if (value !== undefined) {
+          this.setProp(QBackRefs, value);
+        }
+      },
+      configurable: true,
+    });
+
     if (isDev && id.indexOf('undefined') != -1) {
       throw new Error(`Invalid SSR node id: ${id}`);
     }
+  }
+
+  /** Updatable = opening tag not yet streamed */
+  get updatable(): boolean {
+    return !(this.flags & VNodeFlags.OpenTagEmitted);
   }
 
   setProp(name: string, value: any): void {
@@ -128,8 +172,8 @@ export class SsrNode implements ISsrNode {
   }
 
   setTreeNonUpdatable(): void {
-    if (this.flags & SsrNodeFlags.Updatable) {
-      this.flags &= ~SsrNodeFlags.Updatable;
+    if (!(this.flags & VNodeFlags.OpenTagEmitted)) {
+      this.flags |= VNodeFlags.OpenTagEmitted;
       if (this.children) {
         for (const child of this.children) {
           (child as SsrNode).setTreeNonUpdatable();
@@ -138,13 +182,14 @@ export class SsrNode implements ISsrNode {
     }
   }
 
-  toString(): string {
+  override toString(): string {
     if (isDev) {
       let stringifiedAttrs = '';
       for (const key in this.attrs) {
         const value = this.attrs[key];
         stringifiedAttrs += `${key}=`;
-        stringifiedAttrs += `${typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*'}`;
+        stringifiedAttrs +=
+          typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*';
         stringifiedAttrs += ', ';
       }
       return `<SSRNode id="${this.id}" ${stringifiedAttrs} />`;

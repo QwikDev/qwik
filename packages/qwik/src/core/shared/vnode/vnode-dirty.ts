@@ -1,6 +1,6 @@
 import { isServer } from '@qwik.dev/core/build';
 import type { VNodeJournal } from '../../client/vnode-utils';
-import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
+import type { SSRContainer } from '../../ssr/ssr-types';
 import { addCursor, findCursor, isCursor } from '../cursor/cursor';
 import { getCursorData, type CursorData } from '../cursor/cursor-props';
 import { _executeSsrChores } from '../cursor/ssr-chore-execution';
@@ -93,11 +93,11 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
   return false;
 }
 
-function isSsrNodeGuard(_vNode: VNode | ISsrNode): _vNode is ISsrNode {
-  return import.meta.env.TEST ? isServerPlatform() : isServer;
-}
 /**
  * Marks a vNode as dirty and propagates dirty bits up the tree.
+ *
+ * SsrNode extends VNode, so this function handles both client and SSR nodes. On the server, SSR
+ * chores are executed immediately (until Phase 1 moves them to the cursor walker).
  *
  * @param container - The container
  * @param vNode - The vNode to mark dirty
@@ -107,14 +107,15 @@ function isSsrNodeGuard(_vNode: VNode | ISsrNode): _vNode is ISsrNode {
  */
 export function markVNodeDirty(
   container: Container,
-  vNode: VNode | ISsrNode,
+  vNode: VNode,
   bits: ChoreBits,
   cursorRoot: VNode | null = null
 ): void {
   const prevDirty = vNode.dirty;
   vNode.dirty |= bits;
-  if (isSsrNodeGuard(vNode)) {
-    const result = _executeSsrChores(container as SSRContainer, vNode as ISsrNode);
+  const isRunningOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
+  if (isRunningOnServer) {
+    const result = _executeSsrChores(container as SSRContainer, vNode as any);
     if (isPromise(result)) {
       container.$renderPromise$ = container.$renderPromise$
         ? container.$renderPromise$.then(() => result)

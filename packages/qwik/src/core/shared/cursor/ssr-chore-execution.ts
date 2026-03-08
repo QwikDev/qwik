@@ -1,6 +1,6 @@
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
-import { SsrNodeFlags, type Container } from '../types';
+import type { Container } from '../types';
 import { ELEMENT_SEQ } from '../utils/markers';
 import type { ValueOrPromise } from '../utils/types';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
@@ -17,7 +17,7 @@ export function _executeSsrChores(
   container: SSRContainer,
   ssrNode: ISsrNode
 ): ValueOrPromise<void> {
-  if (!(ssrNode.flags & SsrNodeFlags.Updatable)) {
+  if (!ssrNode.updatable) {
     if (ssrNode.dirty & ChoreBits.NODE_PROPS) {
       executeNodePropChore(container, ssrNode);
     }

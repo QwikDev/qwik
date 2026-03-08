@@ -32,8 +32,8 @@ export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
 export type { Container as _Container } from './shared/types';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
-export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
-export type { VNode as _VNode } from './shared/vnode/vnode';
+export { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
+export { VNode as _VNode } from './shared/vnode/vnode';
 
 export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
 export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';

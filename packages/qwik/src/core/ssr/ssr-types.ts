@@ -10,10 +10,10 @@ import type {
   ValueOrPromise,
 } from '../../server/qwik-types';
 import type { VNodeData } from '../../server/vnode-data';
+import type { VNodeFlags } from '../client/types';
 import type { Props } from '../shared/jsx/jsx-runtime';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
-import type { SsrNodeFlags } from '../shared/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
 
 /** @internal */
@@ -23,11 +23,12 @@ export interface StreamWriter {
 
 export interface ISsrNode {
   id: string;
-  flags: SsrNodeFlags;
+  flags: VNodeFlags;
   dirty: ChoreBits;
   parentComponent: ISsrNode | null;
   vnodeData: VNodeData;
   currentFile: string | null;
+  readonly updatable: boolean;
   setProp(name: string, value: any): void;
   getProp(name: string): any;
   removeProp(name: string): void;

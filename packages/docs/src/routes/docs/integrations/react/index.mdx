@@ -11,7 +11,7 @@ contributors:
   - abhi-works
   - Benny-Nottonson
   - mrhoodz
-updated_at: '2023-10-03T18:53:23Z'
+updated_at: '2026-03-07T00:00:00Z'
 created_at: '2023-04-06T21:28:28Z'
 ---
 
@@ -25,6 +25,8 @@ Qwik React allows you to use [React](https://react.dev/) within [Qwik](https://q
 ## Basic Usage
 
 The basic usage of Qwik React is to take existing React components and wrap them in a `qwikify$` function. This function will create a Qwik component that can be used within Qwik and which will turn the React component into an island allowing you the freedom to fine-tune when the React component should hydrate.
+
+Then, you can wrap Qwik components in React components using `reactify$` to allow React components to render Qwik components. This allows you to replace parts of your React application with Qwik components and take advantage of Qwik's performance benefits without having to rewrite your entire application.
 
 Basic usage
 ```tsx
@@ -529,6 +531,82 @@ export default component$(() => {
 </CodeSandbox>
 
 The React example is hydrated on hover and works as you would expect.
+
+## 7. Using Qwik components inside React
+
+So far we have seen how to use React components inside Qwik using `qwikify$()`. But what if you want to go the other direction — use a Qwik component inside a React tree?
+
+The `reactify$()` function does exactly that. It wraps a Qwik `component$` so it can be rendered as a regular React component. This is useful when you have a `qwikify$()` island and want to embed Qwik components inside the React tree rendered by that island.
+
+The Qwik component keeps its resumability benefits — it doesn't need hydration to become interactive.
+
+> **Note:** `reactify$()` components must be used inside a `qwikify$()` island. React trees only exist inside qwikify islands, so that's where reactified components live.
+
+<CodeSandbox src="/src/routes/demo/react/reactify/" tabs={["react.tsx","counter.tsx","index.tsx"]} style={{ height: '10em' }}>
+<div  q:slot="0">
+<CodeFile src="/src/routes/demo/react/reactify/react.tsx">
+```tsx /reactify$/ /qwikify$/
+/** @jsxImportSource react */
+import { qwikify$, reactify$ } from '@qwik.dev/react';
+import { QwikCounter } from './counter';
+
+const Counter = reactify$(QwikCounter);
+
+function Card() {
+  return (
+    <div style={{ border: '2px solid #333', borderRadius: '8px', padding: '12px' }}>
+      <h3>React Card</h3>
+      <p>This Qwik counter resumes instantly:</p>
+      <Counter label="Clicks" />
+    </div>
+  );
+}
+
+export const QCard = qwikify$(Card, { eagerness: 'idle' });
+```
+</CodeFile>
+</div>
+<div q:slot="1">
+<CodeFile src="/src/routes/demo/react/reactify/counter.tsx">
+```tsx /component$/ /useSignal/
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const QwikCounter = component$<{ label?: string }>((props) => {
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => count.value++}>
+      {props.label}: {count.value}
+    </button>
+  );
+});
+```
+</CodeFile>
+</div>
+<div q:slot="2">
+<CodeFile src="/src/routes/demo/react/reactify/index.tsx">
+```tsx /QCard/
+import { component$ } from '@qwik.dev/core';
+import { QCard } from './react';
+
+export default component$(() => {
+  return (
+    <main>
+      <QCard />
+    </main>
+  );
+});
+```
+</CodeFile>
+</div>
+</CodeSandbox>
+
+The key pieces are:
+
+1. **`counter.tsx`** — A standard Qwik `component$` with `useSignal` for local state. Nothing special here.
+2. **`react.tsx`** — `reactify$(QwikCounter)` creates a React component (`Counter`) that renders the Qwik counter. A React `Card` component wraps it with some layout. The whole thing is wrapped in `qwikify$()` so it can be used from Qwik.
+3. **`index.tsx`** — A normal Qwik route that renders `<QCard />`.
+
+The counter button is interactive immediately after the page loads — the Qwik component resumes from the serialized state without waiting for React hydration.
 
 # Rules
 

@@ -14,6 +14,7 @@ import {
 } from '@qwik.dev/router/middleware/request-handler';
 import { extname, join } from 'node:path';
 import { MIME_TYPES } from '../request-handler/mime-types';
+import { isDev } from '@qwik.dev/core/build';
 
 function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
   const url = new URL(request.url);
@@ -98,7 +99,7 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
       return null;
     } catch (e: any) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'bun-server' },
       });
@@ -123,7 +124,7 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
       });
     } catch (e) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'bun-server' },
       });
@@ -176,7 +177,7 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
       return null;
     } catch (e) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'bun-server' },
       });

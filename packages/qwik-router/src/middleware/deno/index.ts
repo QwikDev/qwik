@@ -13,6 +13,7 @@ import {
 import { MIME_TYPES } from '../request-handler/mime-types';
 // @ts-ignore
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
+import { isDev } from '@qwik.dev/core/build';
 
 // @qwik.dev/router/middleware/deno
 
@@ -99,7 +100,7 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
       return null;
     } catch (e: any) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'deno-server' },
       });
@@ -124,7 +125,7 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
       });
     } catch (e) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'deno-server' },
       });
@@ -169,7 +170,7 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
       return null;
     } catch (e) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'deno-server' },
       });

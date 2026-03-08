@@ -17,6 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const parentDir = path.resolve(rootDir, '..');
 const workTreesDir = path.resolve(parentDir, 'qwik.worktrees');
+const isWindows = process.platform === 'win32';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -24,7 +25,7 @@ async function main() {
 
   if (!branchName) {
     branchName = (await text({
-      message: 'Enter the branch name for the new worktree:',
+      message: 'Enter the branch name for the new worktree (has to exist locally or remotely):',
       validate: (value: string) => {
         if (!value.trim()) {
           return 'Branch name cannot be empty';
@@ -82,23 +83,46 @@ async function main() {
 
       if (existsSync(srcPath)) {
         try {
-          console.log(`  Copying ${dir}...`);
-          cpSync(srcPath, destPath, {
-            recursive: true,
-            force: true,
-            verbatimSymlinks: true,
-          });
+          if (isWindows) {
+            console.log(`  Copying ${dir}...`);
+            cpSync(srcPath, destPath, {
+              recursive: true,
+              force: true,
+              verbatimSymlinks: true,
+            });
+          } else {
+            console.log(`  Hardlinking ${dir}...`);
+            // Create parent directory if needed
+            const destParent = path.dirname(destPath);
+            if (!existsSync(destParent)) {
+              mkdirSync(destParent, { recursive: true });
+            }
+            // Use cp -al for recursive hardlink copy on Unix
+            // This saves disk space and is much faster than copying
+            execSync(`cp -al "${srcPath}" "${destPath}"`, {
+              cwd: rootDir,
+              stdio: 'pipe',
+            });
+          }
         } catch (err) {
-          console.warn(`  Warning: Failed to copy ${dir}: ${err}`);
+          console.warn(`  Warning: Failed to ${isWindows ? 'copy' : 'hardlink'} ${dir}: ${err}`);
         }
       }
     }
 
     console.log(`\nRunning pnpm i && pnpm build.core.dev in worktree...`);
-    execSync('pnpm i && pnpm build.core.dev', {
+    execSync('pnpm i', {
       cwd: workTreePath,
       stdio: 'inherit',
     });
+    try {
+      execSync('pnpm build.core.dev', {
+        cwd: workTreePath,
+        stdio: 'inherit',
+      });
+    } catch (err) {
+      console.warn(`  Warning: Build failed in worktree, ignoring: ${err}`);
+    }
 
     console.log(`\n✅ Worktree successfully created at: ${workTreePath}`);
     console.log(`\nTo clean up the worktree later, run:`);

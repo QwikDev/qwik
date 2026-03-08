@@ -1,5 +1,4 @@
 import { component$ } from '@builder.io/qwik';
-import { Link } from '@qwik.dev/router';
 import { ensureDefaultFiles, type TutorialStore } from './layout';
 import { Link } from '@builder.io/qwik-city';
 

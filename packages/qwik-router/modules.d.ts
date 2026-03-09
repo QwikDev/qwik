@@ -1,7 +1,6 @@
 declare module '@qwik-router-config' {
-  import type { MenuData, RouteData, RouteModule } from '@qwik.dev/router';
+  import type { RouteData, RouteModule } from '@qwik.dev/router';
   export const routes: RouteData;
-  export const menus: MenuData[];
   export const serverPlugins: RouteModule[];
   export const trailingSlash: boolean;
   export const basePathname: string;
@@ -9,7 +8,6 @@ declare module '@qwik-router-config' {
   export const fallthrough: boolean;
   const defaultExport: {
     routes: RouteData;
-    menus: MenuData[];
     serverPlugins: RouteModule[];
     trailingSlash: boolean;
     basePathname: string;

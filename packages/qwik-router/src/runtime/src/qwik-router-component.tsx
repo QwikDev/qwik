@@ -392,12 +392,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
     if (isBrowser) {
       loadClientData(dest);
-      loadRoute(
-        qwikRouterConfig.routes,
-        qwikRouterConfig.menus,
-        qwikRouterConfig.cacheModules,
-        dest.pathname
-      );
+      loadRoute(qwikRouterConfig.routes, qwikRouterConfig.cacheModules, dest.pathname);
     }
 
     actionState.value = undefined;
@@ -450,7 +445,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
         let loadRoutePromise = loadRoute(
           qwikRouterConfig.routes,
-          qwikRouterConfig.menus,
           qwikRouterConfig.cacheModules,
           trackUrl.pathname
         );
@@ -474,7 +468,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
           loadRoutePromise = loadRoute(
             qwikRouterConfig.routes,
-            qwikRouterConfig.menus,
             qwikRouterConfig.cacheModules,
             newURL.pathname // Load the actual required path.
           );

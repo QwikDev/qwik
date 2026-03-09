@@ -24,7 +24,6 @@ export type {
   JSONValue,
   Loader,
   LoaderSignal,
-  MenuData,
   NavigationType,
   PageModule,
   PathParams,

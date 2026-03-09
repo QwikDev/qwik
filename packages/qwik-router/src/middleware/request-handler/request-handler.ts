@@ -108,8 +108,8 @@ async function loadRequestHandlers(
   renderFn: Render,
   isInternal: boolean
 ) {
-  const { routes, serverPlugins, menus, cacheModules } = qwikRouterConfig;
-  const loadedRoute = await loadRoute(routes, menus, cacheModules, pathname, isInternal);
+  const { routes, serverPlugins, cacheModules } = qwikRouterConfig;
+  const loadedRoute = await loadRoute(routes, cacheModules, pathname, isInternal);
   const requestHandlers = resolveRequestHandlers(
     serverPlugins,
     loadedRoute,

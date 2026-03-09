@@ -207,7 +207,7 @@ export async function mainThread(sys: System) {
               .filter((l): l is () => Promise<any> => typeof l === 'function')
               .map((l) => l())
           );
-          const pageModule: PageModule = modules[modules.length - 1] as any;
+          const pageModule: PageModule = modules[modules.length - 1];
 
           if (paramNames.length > 0) {
             if (typeof pageModule.onStaticGenerate === 'function') {

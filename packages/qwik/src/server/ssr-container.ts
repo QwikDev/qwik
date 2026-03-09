@@ -320,11 +320,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   async render(jsx: JSXOutput) {
     this.openContainer();
-    await _walkJSX(this, jsx, {
+    await this.renderJSX(jsx, {
       currentStyleScoped: null,
       parentComponentFrame: this.getComponentFrame(),
     });
     await this.closeContainer();
+  }
+
+  async renderJSX(
+    jsx: JSXOutput,
+    options: {
+      currentStyleScoped: string | null;
+      parentComponentFrame: ISsrComponentFrame | null;
+    }
+  ) {
+    await _walkJSX(this, jsx, options);
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
@@ -632,7 +642,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
       componentFrame.componentNode.setProp(slotName, lastNode.id);
       // Use projectionComponentFrame so that Slots can find their projections from the correct parent
-      await _walkJSX(this, children, {
+      await this.renderJSX(children, {
         currentStyleScoped: scopedStyleId,
         parentComponentFrame: componentFrame.projectionComponentFrame,
       });

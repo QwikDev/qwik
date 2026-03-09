@@ -7,3 +7,7 @@
  * Make sure that these handlers are listed in manifest.ts
  */
 export { _chk, _rsc, _res, _run, _task, _val } from '@qwik.dev/core';
+export {
+  _Each_component_useTask_1IvuA9ZneGc as Each_component_useTask_1IvuA9ZneGc,
+  _Each_component_zi6m0DQBsr8 as Each_component_zi6m0DQBsr8,
+} from '@qwik.dev/core';

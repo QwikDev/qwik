@@ -2,7 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import type { SignalImpl } from 'packages/qwik/src/server/qwik-types';
 import { getDomContainer } from '../client/dom-container';
 import { vnode_locate } from '../client/vnode-utils';
-import { unwrapStore } from '../index';
+import { unwrapStore } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
 import { getSubscriber } from '../reactive-primitives/subscriber';

@@ -12,6 +12,7 @@ export {
   createContextId,
   createSignal,
   CSSProperties,
+  Each,
   // TODO remove this
   event$,
   EventHandler,

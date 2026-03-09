@@ -132,8 +132,8 @@ export const scheduleEffects = (
     };
 
     const effectsSnapshot = Array.from(effects);
-    for (const effect of effectsSnapshot) {
-      scheduleEffect(effect);
+    for (let i = 0; i < effectsSnapshot.length; i++) {
+      scheduleEffect(effectsSnapshot[i]);
     }
   }
 

@@ -115,6 +115,20 @@
       "mdFile": "router.contentmoduleetag.md"
     },
     {
+      "name": "ContentModuleHead",
+      "id": "contentmodulehead",
+      "hierarchy": [
+        {
+          "name": "ContentModuleHead",
+          "id": "contentmodulehead"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ContentModuleHead = DocumentHead | ResolvedDocumentHead;\n```\n**References:** [DocumentHead](#documenthead)<!-- -->, [ResolvedDocumentHead](#resolveddocumenthead)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.contentmodulehead.md"
+    },
+    {
       "name": "createRenderer",
       "id": "createrenderer",
       "hierarchy": [
@@ -530,7 +544,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PageModule = RouteModule & {\n    readonly default: () => JSXOutput;\n    readonly head?: ContentModuleHead;\n    readonly eTag?: ContentModuleETag;\n    readonly cacheKey?: CacheKeyFn;\n    readonly headings?: ContentHeading[];\n    readonly onStaticGenerate?: StaticGenerateHandler;\n};\n```\n**References:** [ContentModuleETag](#contentmoduleetag)<!-- -->, [CacheKeyFn](#cachekeyfn)<!-- -->, [ContentHeading](#contentheading)<!-- -->, [StaticGenerateHandler](#staticgeneratehandler)",
+      "content": "```typescript\nexport type PageModule = RouteModule & {\n    readonly default: () => JSXOutput;\n    readonly head?: ContentModuleHead;\n    readonly eTag?: ContentModuleETag;\n    readonly cacheKey?: CacheKeyFn;\n    readonly headings?: ContentHeading[];\n    readonly onStaticGenerate?: StaticGenerateHandler;\n};\n```\n**References:** [ContentModuleHead](#contentmodulehead)<!-- -->, [ContentModuleETag](#contentmoduleetag)<!-- -->, [CacheKeyFn](#cachekeyfn)<!-- -->, [ContentHeading](#contentheading)<!-- -->, [StaticGenerateHandler](#staticgeneratehandler)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.pagemodule.md"
     },

@@ -236,10 +236,14 @@ test('loadRoute — 404 fallback used when no route matches', async () => {
   };
   const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
-  assert.deepEqual(result[LoadedRouteProp.Mods], [sentinel]);
+  // When _4 exists, a wrapper module is created that delegates based on status
+  assert.equal(result[LoadedRouteProp.Mods].length, 1);
+  const wrapper = result[LoadedRouteProp.Mods][0] as any;
+  assert.isFunction(wrapper.default, 'wrapper has default component');
+  assert.isFunction(wrapper.cacheKey, 'wrapper has cacheKey');
 });
 
-test('loadRoute — _E takes precedence over _4', async () => {
+test('loadRoute — _4 used for 404, _E stored as ErrorLoader', async () => {
   const errorSentinel = { default: () => 'error-handler' };
   const notFoundSentinel = { default: () => '404-handler' };
   const errorLoader: ModuleLoader = () => errorSentinel as any;
@@ -251,7 +255,11 @@ test('loadRoute — _E takes precedence over _4', async () => {
   };
   const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
-  assert.deepEqual(result[LoadedRouteProp.Mods], [errorSentinel]);
+  // _4 is used for the wrapper's 404 rendering, _E is stored as ErrorLoader
+  assert.equal(result[LoadedRouteProp.Mods].length, 1);
+  const wrapper = result[LoadedRouteProp.Mods][0] as any;
+  assert.isFunction(wrapper.default, 'wrapper has default component');
+  assert.equal(result[LoadedRouteProp.ErrorLoader], errorLoader);
 });
 
 test('loadRoute — deeper _4 takes precedence over root _4', async () => {
@@ -273,7 +281,10 @@ test('loadRoute — deeper _4 takes precedence over root _4', async () => {
   // /blog/does-not-exist-deeply/extra: navigates into `blog`, `_W` matches, then fails → blog's _4
   const result = await loadRoute(routes, false, '/blog/does-not-exist-deeply/extra');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
-  assert.deepEqual(result[LoadedRouteProp.Mods], [blogSentinel]);
+  // Wrapper module is created from the deeper _4
+  assert.equal(result[LoadedRouteProp.Mods].length, 1);
+  const wrapper = result[LoadedRouteProp.Mods][0] as any;
+  assert.isFunction(wrapper.default, 'wrapper has default component');
 });
 
 test('loadRoute — 404 result has no layout modules', async () => {
@@ -284,9 +295,37 @@ test('loadRoute — 404 result has no layout modules', async () => {
   };
   const result = await loadRoute(routes, false, '/anything');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
-  // Only the error component, no layouts
+  // Only the wrapper component, no layouts
   assert.equal(result[LoadedRouteProp.Mods].length, 1);
-  assert.deepEqual(result[LoadedRouteProp.Mods], [sentinel]);
+});
+
+test('loadRoute — only _E (no _4) used directly for not-found', async () => {
+  const errorSentinel = { default: () => 'error-handler' };
+  const errorLoader: ModuleLoader = () => errorSentinel as any;
+  const routes: RouteData = {
+    _E: errorLoader,
+    blog: buildTree('/blog'),
+  };
+  const result = await loadRoute(routes, false, '/does-not-exist');
+  assert.isTrue(result[LoadedRouteProp.NotFound]);
+  // When only _E exists (no _4), the error module is used directly (no wrapper)
+  assert.deepEqual(result[LoadedRouteProp.Mods], [errorSentinel]);
+  assert.equal(result[LoadedRouteProp.ErrorLoader], errorLoader);
+});
+
+test('loadRoute — ErrorLoader passed through on matched routes', async () => {
+  const errorSentinel = { default: () => 'error-handler' };
+  const errorLoader: ModuleLoader = () => errorSentinel as any;
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _E: errorLoader,
+    blog: {
+      _I: pageLoader,
+    },
+  };
+  const result = await loadRoute(routes, false, '/blog');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.equal(result[LoadedRouteProp.ErrorLoader], errorLoader);
 });
 
 test('loadRoute — routeName is constructed from matched path parts', async () => {

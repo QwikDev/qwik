@@ -148,7 +148,7 @@ function tests() {
         400,
       );
       await assertPage(ctx, {
-        title: "400 Rewrite does not support absolute urls",
+        title: "Error - Qwik",
       });
       // Recover from error
       await setPage(ctx, "/qwikrouter-test/products/hat/");

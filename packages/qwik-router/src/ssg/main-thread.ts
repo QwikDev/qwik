@@ -196,7 +196,8 @@ export async function mainThread(sys: System) {
             : [...currentLoaders, index as () => Promise<any>];
 
           // Reconstruct the original pathname from path parts
-          const originalPathname = basePathname + pathParts.join('/') + '/';
+          const joinedParts = pathParts.join('/');
+          const originalPathname = basePathname + (joinedParts ? joinedParts + '/' : '');
           const paramNames = pathParts
             .filter((p) => p.startsWith('[') && p.endsWith(']'))
             .map((p) => (p.startsWith('[...') ? p.slice(4, -1) : p.slice(1, -1)));

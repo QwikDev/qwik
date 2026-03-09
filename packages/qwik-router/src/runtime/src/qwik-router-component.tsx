@@ -224,7 +224,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   const httpStatus = useStore({
     status: env.response.status,
-    message: env.loadedRoute[LoadedRouteProp.NotFound] ? 'Not Found' : '',
+    message: env.loadedRoute[LoadedRouteProp.NotFound]
+      ? 'Not Found'
+      : ((env.response.statusMessage as string) ?? ''),
   });
 
   const currentActionId = env.response.action;
@@ -492,7 +494,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           httpStatus.message = 'Not Found';
         } else {
           httpStatus.status = clientPageData?.status ?? 200;
-          httpStatus.message = '';
+          httpStatus.message = (clientPageData as EndpointResponse)?.statusMessage ?? '';
         }
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 

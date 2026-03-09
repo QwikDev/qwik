@@ -349,6 +349,16 @@ export type ContentModuleETag =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+<h2 id="contentmodulehead">ContentModuleHead</h2>
+
+```typescript
+export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
+```
+
+**References:** [DocumentHead](#documenthead), [ResolvedDocumentHead](#resolveddocumenthead)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 <h2 id="createrenderer">createRenderer</h2>
 
 Creates the `render()` function that is required by `createQwikRouter()`. It requires a function that returns the `jsx` and `options` for the renderer.
@@ -1298,7 +1308,7 @@ export type PageModule = RouteModule & {
 };
 ```
 
-**References:** [ContentModuleETag](#contentmoduleetag), [CacheKeyFn](#cachekeyfn), [ContentHeading](#contentheading), [StaticGenerateHandler](#staticgeneratehandler)
+**References:** [ContentModuleHead](#contentmodulehead), [ContentModuleETag](#contentmoduleetag), [CacheKeyFn](#cachekeyfn), [ContentHeading](#contentheading), [StaticGenerateHandler](#staticgeneratehandler)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 

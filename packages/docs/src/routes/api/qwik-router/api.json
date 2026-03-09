@@ -59,6 +59,20 @@
       "mdFile": "router.actionstore.md"
     },
     {
+      "name": "CacheKeyFn",
+      "id": "cachekeyfn",
+      "hierarchy": [
+        {
+          "name": "CacheKeyFn",
+          "id": "cachekeyfn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR caching.\n\n- `true`<!-- -->: use the default cache key `status|eTag|pathname` - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)\n\n\n```typescript\nexport type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.cachekeyfn.md"
+    },
+    {
       "name": "ContentHeading",
       "id": "contentheading",
       "hierarchy": [
@@ -85,6 +99,20 @@
       "content": "```typescript\nexport interface ContentMenu \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[href?](./router.contentmenu.href.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[items?](./router.contentmenu.items.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentMenu](#contentmenu)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[text](./router.contentmenu.text.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.contentmenu.md"
+    },
+    {
+      "name": "ContentModuleETag",
+      "id": "contentmoduleetag",
+      "hierarchy": [
+        {
+          "name": "ContentModuleETag",
+          "id": "contentmoduleetag"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "The eTag export type: a static string or a function receiving DocumentHeadProps.\n\n\n```typescript\nexport type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);\n```\n**References:** [DocumentHeadProps](#documentheadprops)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.contentmoduleetag.md"
     },
     {
       "name": "createRenderer",
@@ -502,7 +530,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PageModule = RouteModule & {\n    readonly default: () => JSXOutput;\n    readonly head?: ContentModuleHead;\n    readonly headings?: ContentHeading[];\n    readonly onStaticGenerate?: StaticGenerateHandler;\n};\n```\n**References:** [ContentHeading](#contentheading)<!-- -->, [StaticGenerateHandler](#staticgeneratehandler)",
+      "content": "```typescript\nexport type PageModule = RouteModule & {\n    readonly default: () => JSXOutput;\n    readonly head?: ContentModuleHead;\n    readonly eTag?: ContentModuleETag;\n    readonly cacheKey?: CacheKeyFn;\n    readonly headings?: ContentHeading[];\n    readonly onStaticGenerate?: StaticGenerateHandler;\n};\n```\n**References:** [ContentModuleETag](#contentmoduleetag)<!-- -->, [CacheKeyFn](#cachekeyfn)<!-- -->, [ContentHeading](#contentheading)<!-- -->, [StaticGenerateHandler](#staticgeneratehandler)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.pagemodule.md"
     },

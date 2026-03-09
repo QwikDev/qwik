@@ -77,6 +77,9 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
     readonly submitted: boolean;
 };
 
+// @public
+export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+
 // @public (undocumented)
 export interface ContentHeading {
     // (undocumented)
@@ -96,6 +99,9 @@ export interface ContentMenu {
     // (undocumented)
     readonly text: string;
 }
+
+// @public
+export type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);
 
 export { Cookie }
 
@@ -286,6 +292,8 @@ export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T
 export type PageModule = RouteModule & {
     readonly default: () => JSXOutput;
     readonly head?: ContentModuleHead;
+    readonly eTag?: ContentModuleETag;
+    readonly cacheKey?: CacheKeyFn;
     readonly headings?: ContentHeading[];
     readonly onStaticGenerate?: StaticGenerateHandler;
 };

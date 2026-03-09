@@ -48,6 +48,20 @@
       "mdFile": "router.cachecontrol.md"
     },
     {
+      "name": "clearSsrCache",
+      "id": "clearssrcache",
+      "hierarchy": [
+        {
+          "name": "clearSsrCache",
+          "id": "clearssrcache"
+        }
+      ],
+      "kind": "Function",
+      "content": "Clear the in-memory SSR cache. Call after deployments or data changes.\n\n\n```typescript\nexport declare function clearSsrCache(): void;\n```\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/etag.ts",
+      "mdFile": "router.clearssrcache.md"
+    },
+    {
       "name": "ClientConn",
       "id": "clientconn",
       "hierarchy": [

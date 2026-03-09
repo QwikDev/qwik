@@ -173,6 +173,20 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+<h2 id="cachekeyfn">CacheKeyFn</h2>
+
+The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR caching.
+
+- `true`: use the default cache key `status|eTag|pathname` - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
+
+```typescript
+export type CacheKeyFn =
+  | true
+  | ((status: number, eTag: string, pathname: string) => string | null);
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 <h2 id="contentheading">ContentHeading</h2>
 
 ```typescript
@@ -318,6 +332,20 @@ string
 
 </td></tr>
 </tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="contentmoduleetag">ContentModuleETag</h2>
+
+The eTag export type: a static string or a function receiving DocumentHeadProps.
+
+```typescript
+export type ContentModuleETag =
+  | string
+  | ((props: DocumentHeadProps) => string | null);
+```
+
+**References:** [DocumentHeadProps](#documentheadprops)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -1263,12 +1291,14 @@ Omit&lt;T, KEYS&gt;
 export type PageModule = RouteModule & {
   readonly default: () => JSXOutput;
   readonly head?: ContentModuleHead;
+  readonly eTag?: ContentModuleETag;
+  readonly cacheKey?: CacheKeyFn;
   readonly headings?: ContentHeading[];
   readonly onStaticGenerate?: StaticGenerateHandler;
 };
 ```
 
-**References:** [ContentHeading](#contentheading), [StaticGenerateHandler](#staticgeneratehandler)
+**References:** [ContentModuleETag](#contentmoduleetag), [CacheKeyFn](#cachekeyfn), [ContentHeading](#contentheading), [StaticGenerateHandler](#staticgeneratehandler)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 

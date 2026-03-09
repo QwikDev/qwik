@@ -1,4 +1,5 @@
 import type { CompileOptions } from '@mdx-js/mdx';
+import { createHash } from 'node:crypto';
 import { SourceMapGenerator } from 'source-map';
 import { getExtension } from '../../utils/fs';
 import type { RoutingContext } from '../types';
@@ -85,7 +86,15 @@ export default WrappedMdxContent;
       if (exportIndex === -1) {
         throw new Error('Could not find default export in mdx output');
       }
-      const wrappedOutput = addImport + output.slice(0, exportIndex) + newDefault;
+      // For plain .md files (not .mdx), auto-generate an eTag from the content hash.
+      // .mdx files can contain JS that may change behavior without changing the content hash,
+      // so they must export eTag manually if desired.
+      let eTagExport = '';
+      if (ext === '.md' || ext === '.markdown') {
+        const hash = createHash('sha256').update(code).digest('hex').slice(0, 16);
+        eTagExport = `export const eTag = ${JSON.stringify(hash)};\n`;
+      }
+      const wrappedOutput = addImport + output.slice(0, exportIndex) + eTagExport + newDefault;
       return {
         code: wrappedOutput,
         map: compiled.map,

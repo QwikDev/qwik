@@ -408,12 +408,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   async render(jsx: JSXOutput) {
-    // Direct streaming: HTML is emitted as _walkJSX processes JSX.
-    // Suspense deferred content is processed after the main walk via treeOnly mode.
+    // Phase 1: Open container element (writes opening tag directly to stream)
     this.openContainer();
 
+    // Phase 2: Enable tree-only mode — _walkJSX builds SsrNode tree, no HTML output
+    this.treeOnly = true;
+    const rootSsrNode = this.getOrCreateLastNode();
+    this.activeWalkCtx.currentElementFrame!.ssrNode = rootSsrNode;
+    this.rootSsrNode = rootSsrNode;
+
     // Create a cursor root VNode to drive SSR rendering through the cursor walker.
-    // The walk callback wraps _walkJSX so executeSsrNodeDiff can call it.
     const cursorRoot = new VirtualVNode(
       null, // key
       VNodeFlags.Virtual,
@@ -438,7 +442,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     getCursorData(cursor)!.walkCtx = this.activeWalkCtx;
 
     // Process cursor queue synchronously (no time-slicing on server).
-    // addCursor schedules a microtask, but we need to process immediately.
     processCursorQueue({ timeBudget: Infinity });
 
     // Wait for any async work (promises from component execution, etc.)
@@ -451,8 +454,68 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       throw this._ssrError;
     }
 
-    // closeContainer triggers container data emission via closeElement callback
-    await this.closeContainer();
+    // Phase 3: Emit HTML from the SsrNode tree using the streaming walker
+    this.treeOnly = false;
+    // Save the container data frame (body for html, container div for non-html)
+    // so we can restore it during container data emission (needed for tag nesting validation)
+    const savedContainerDataFrame = this.emitContainerDataFrame;
+    // Disable so closeElement during tree close-up won't re-trigger container data emission
+    this.emitContainerDataFrame = null;
+    const emitContainerDataFn = () => {
+      // Temporarily restore the container data frame so openElement nesting checks pass
+      // (scripts are allowed in body/div, but not directly in html)
+      const currentFrame = this.activeWalkCtx.currentElementFrame;
+      if (savedContainerDataFrame) {
+        this.activeWalkCtx.currentElementFrame = savedContainerDataFrame;
+      }
+      this.onRenderDone();
+      const snapshotTimer = createTimer();
+      const suspenseWork =
+        this.suspenseBoundaries.length > 0
+          ? maybeThen(this.processDeferredSuspenseContent(), () => this.emitOoOChunks())
+          : undefined;
+      return maybeThen(suspenseWork, () =>
+        maybeThen(this.emitContainerData(), () => {
+          this.timing.snapshot = snapshotTimer();
+          // Restore the original frame
+          this.activeWalkCtx.currentElementFrame = currentFrame;
+        })
+      );
+    };
+
+    // For html containers, inject container data before </body> via walker callback.
+    // For non-html containers, emit after walker content.
+    const bodyNode = this.isHtml ? this.findBodyNode(this.rootSsrNode!) : null;
+
+    const walker = new SsrStreamingWalker({
+      writer: this.writer,
+      containerDataNode: bodyNode ?? undefined,
+      onBeforeContainerClose: bodyNode ? emitContainerDataFn : undefined,
+      suspenseBoundaries: this.suspenseBoundaries.map((b) => ({
+        node: b.node,
+        placeholderId: b.placeholderId,
+      })),
+    });
+    const walkerResult = walker.emitChildren(this.rootSsrNode!);
+
+    // Phase 4: Container data + close
+    if (bodyNode) {
+      // html container: walker already emitted container data via callback before </body>
+      if (isPromise(walkerResult)) {
+        await walkerResult;
+      }
+    } else {
+      // non-html container: emit container data after walker content, before </container>
+      if (isPromise(walkerResult)) {
+        await walkerResult;
+      }
+      await emitContainerDataFn();
+    }
+
+    // Close container element (pop all remaining frames and write closing tags)
+    while (this.activeWalkCtx.currentElementFrame) {
+      this._closeElement();
+    }
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
@@ -887,17 +950,51 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
   textNode(text: string) {
-    this.write(escapeHTML(text));
+    if (this.treeOnly) {
+      const escaped = escapeHTML(text);
+      this.size += escaped.length;
+      const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
+      if (parentSsrNode) {
+        (parentSsrNode as SsrNode).addOrderedChild({
+          kind: SsrNodeKind.Text,
+          content: escaped,
+        });
+      }
+    } else {
+      this.write(escapeHTML(text));
+    }
     vNodeData_addTextSize(this.activeWalkCtx.currentElementFrame!.vNodeData, text.length);
     this.activeWalkCtx.lastNode = null;
   }
 
   htmlNode(rawHtml: string) {
-    this.write(rawHtml);
+    if (this.treeOnly) {
+      this.size += rawHtml.length;
+      const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
+      if (parentSsrNode) {
+        (parentSsrNode as SsrNode).addOrderedChild({
+          kind: SsrNodeKind.RawHtml,
+          content: rawHtml,
+        });
+      }
+    } else {
+      this.write(rawHtml);
+    }
   }
 
   commentNode(text: string) {
-    this.write('<!--' + text + '-->');
+    if (this.treeOnly) {
+      this.size += text.length + 7; // 7 = '<!--' + '-->'
+      const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
+      if (parentSsrNode) {
+        (parentSsrNode as SsrNode).addOrderedChild({
+          kind: SsrNodeKind.Comment,
+          content: text,
+        });
+      }
+    } else {
+      this.write('<!--' + text + '-->');
+    }
   }
 
   addRoot(obj: unknown) {

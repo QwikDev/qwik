@@ -51,6 +51,8 @@ export interface RouteModule<BODY = unknown> {
 export type PageModule = RouteModule & {
   readonly default: () => JSXOutput;
   readonly head?: ContentModuleHead;
+  readonly eTag?: ContentModuleETag;
+  readonly cacheKey?: CacheKeyFn;
   readonly headings?: ContentHeading[];
   readonly onStaticGenerate?: StaticGenerateHandler;
 };
@@ -345,6 +347,24 @@ export declare type PathParams = Record<string, string>;
 export type ContentModule = PageModule | LayoutModule;
 
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
+
+/**
+ * The eTag export type: a static string or a function receiving DocumentHeadProps.
+ *
+ * @public
+ */
+export type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);
+
+/**
+ * The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR
+ * caching.
+ *
+ * - `true`: use the default cache key `status|eTag|pathname`
+ * - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
+ *
+ * @public
+ */
+export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
 
 /** The route to render */
 export type LoadedRoute = [

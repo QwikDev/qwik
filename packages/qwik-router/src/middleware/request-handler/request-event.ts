@@ -50,6 +50,7 @@ export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
+export const RequestEvETagCacheKey = '@eTagCacheKey';
 /** @internal */
 export const RequestEvShareQData = 'qData';
 

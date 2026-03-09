@@ -6,16 +6,21 @@ import {
   LoadedRouteProp,
   type ActionInternal,
   type ClientPageData,
+  type ContentModule,
   type DataValidator,
+  type DocumentHeadProps,
   type JSONObject,
   type LoadedRoute,
   type LoaderInternal,
   type PageModule,
+  type ResolveSyncValue,
   type RouteModule,
   type ValidatorReturn,
 } from '../../runtime/src/types';
+import { resolveETag, resolveCacheKey, getCachedHtml, setCachedHtml } from './etag';
 import { HttpStatus } from './http-status-codes';
 import {
+  RequestEvETagCacheKey,
   RequestEvIsRewrite,
   RequestEvShareQData,
   RequestEvShareServerTiming,
@@ -113,6 +118,7 @@ export const resolveRequestHandlers = (
       });
       requestHandlers.push(actionsMiddleware(routeActions));
       requestHandlers.push(loadersMiddleware(routeLoaders));
+      requestHandlers.push(eTagMiddleware(route));
       requestHandlers.push(renderHandler);
     }
   }
@@ -258,6 +264,86 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
       );
       await Promise.all(resolvedLoadersPromises);
     }
+  };
+}
+
+function eTagMiddleware(route: LoadedRoute): RequestHandler {
+  return (requestEv: RequestEvent) => {
+    if (requestEv.headersSent) {
+      return;
+    }
+    // Only apply to GET requests, skip QData
+    if (requestEv.method !== 'GET' || requestEv.sharedMap.has(IsQData)) {
+      return;
+    }
+
+    const mods = route[LoadedRouteProp.Mods] as ContentModule[];
+    const leafModule = mods[mods.length - 1] as PageModule | undefined;
+    if (!leafModule?.eTag) {
+      return;
+    }
+
+    // Build DocumentHeadProps for eTag function resolution
+    const loaders = getRequestLoaders(requestEv);
+    const getData = ((loaderOrAction: any) => {
+      const id = loaderOrAction.__id;
+      if (loaderOrAction.__brand === 'server_loader' && !(id in loaders)) {
+        throw new Error('Loader not executed for this request.');
+      }
+      const data = loaders[id];
+      if (data instanceof Promise) {
+        throw new Error('Loaders returning a promise cannot be resolved for the eTag function.');
+      }
+      return data;
+    }) as ResolveSyncValue;
+
+    const headProps: DocumentHeadProps = {
+      head: { title: '', meta: [], links: [], styles: [], scripts: [], frontmatter: {} },
+      withLocale: (fn) => fn(),
+      resolveValue: getData,
+      params: requestEv.params,
+      url: requestEv.url,
+      isNavigating: false,
+      prevUrl: undefined,
+    };
+
+    const eTag = resolveETag(leafModule, headProps);
+    if (!eTag) {
+      return;
+    }
+
+    // Set the ETag response header
+    requestEv.headers.set('ETag', eTag);
+
+    // Check If-None-Match
+    const ifNoneMatch = requestEv.request.headers.get('If-None-Match');
+    if (
+      ifNoneMatch &&
+      (ifNoneMatch === eTag || ifNoneMatch === `W/${eTag}` || `W/${ifNoneMatch}` === eTag)
+    ) {
+      requestEv.status(304);
+      requestEv.send(304 as any, '' as any);
+      return;
+    }
+
+    // Resolve cacheKey for in-memory caching (opt-in)
+    const status = requestEv.status();
+    const cacheKey = resolveCacheKey(leafModule, status, eTag, requestEv.url.pathname);
+    if (!cacheKey) {
+      return; // No caching, just ETag header + 304 support
+    }
+
+    // Check in-memory cache
+    const cachedHtml = getCachedHtml(cacheKey);
+    if (cachedHtml) {
+      requestEv.headers.set('Content-Type', 'text/html; charset=utf-8');
+      requestEv.headers.set('X-SSR-Cache', 'HIT');
+      requestEv.send(status as any, cachedHtml);
+      return;
+    }
+
+    // Store cache key in sharedMap so renderQwikMiddleware can cache the result
+    requestEv.sharedMap.set(RequestEvETagCacheKey, cacheKey);
   };
 }
 
@@ -525,9 +611,26 @@ export function renderQwikMiddleware(render: Render) {
       responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
     }
 
+    const eTagCacheKey = requestEv.sharedMap.get(RequestEvETagCacheKey) as string | undefined;
+
     const { readable, writable } = new TextEncoderStream();
     const writableStream = requestEv.getWritableStream();
-    const pipe = readable.pipeTo(writableStream, { preventClose: true });
+
+    // When caching, capture encoded bytes via a TransformStream
+    let cacheChunks: Uint8Array[] | undefined;
+    let pipeSource: ReadableStream<Uint8Array> = readable;
+    if (eTagCacheKey) {
+      cacheChunks = [];
+      const capture = new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
+          cacheChunks!.push(chunk);
+          controller.enqueue(chunk);
+        },
+      });
+      pipeSource = readable.pipeThrough(capture);
+    }
+
+    const pipe = pipeSource.pipeTo(writableStream, { preventClose: true });
     const stream = writable.getWriter();
     const status = requestEv.status();
     try {
@@ -559,6 +662,19 @@ export function renderQwikMiddleware(render: Render) {
       await stream.close();
       await pipe;
     }
+
+    // Cache the rendered HTML if eTag caching is active
+    if (eTagCacheKey && cacheChunks && cacheChunks.length > 0) {
+      const totalLength = cacheChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+      const combined = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of cacheChunks) {
+        combined.set(chunk, offset);
+        offset += chunk.length;
+      }
+      setCachedHtml(eTagCacheKey, new TextDecoder().decode(combined));
+    }
+
     // On success, close the stream
     await writableStream.close();
   };

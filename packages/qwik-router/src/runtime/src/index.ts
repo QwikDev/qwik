@@ -47,6 +47,8 @@ export type {
   ValidatorErrorKeyDotNotation,
   ValidatorErrorType,
   ZodConstructor,
+  ContentModuleETag,
+  CacheKeyFn,
 } from './types';
 
 export { ErrorBoundary } from './error-boundary';

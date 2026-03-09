@@ -119,6 +119,11 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
   const container = cursorData.container;
   isDev && assertDefined(container, 'Cursor container not found');
 
+  // Swap SSR walk context if this cursor has one
+  if (isRunningOnServer && cursorData.walkCtx) {
+    (container as any).activeWalkCtx = cursorData.walkCtx;
+  }
+
   // Check if cursor is already complete
   if (!cursor.dirty) {
     finishWalk(container, cursor, cursorData, isRunningOnServer);

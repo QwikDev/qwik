@@ -450,6 +450,54 @@ test('loadRoute — _M group: child route found inside group', async () => {
   assert.equal(result[LoadedRouteProp.Mods].length, 2);
 });
 
+// ─── Rest wildcard fallback tests ────────────────────────────────────────────────
+
+test('loadRoute — _A fallback when _W matches but leads to dead end', async () => {
+  const catchallLoader = makeLoader();
+  const cityLoader = makeLoader();
+  const routes: RouteData = {
+    _M: [
+      {
+        _A: { _P: 'catchall', _I: catchallLoader },
+        _W: { _P: 'country', _W: { _P: 'city', _I: cityLoader } },
+      },
+    ],
+  };
+  // /catchall/ should match _A (rest wildcard), not _W (which needs 2 segments)
+  const result = await loadRoute(routes, false, '/catchall');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Params], { catchall: 'catchall' });
+});
+
+test('loadRoute — _W preferred over _A when full path matches', async () => {
+  const catchallLoader = makeLoader();
+  const cityLoader = makeLoader();
+  const routes: RouteData = {
+    _M: [
+      {
+        _A: { _P: 'catchall', _I: catchallLoader },
+        _W: { _P: 'country', _W: { _P: 'city', _I: cityLoader } },
+      },
+    ],
+  };
+  // /US/NYC should match _W chain (country/city), not _A
+  const result = await loadRoute(routes, false, '/US/NYC');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Params], { country: 'US', city: 'NYC' });
+});
+
+test('loadRoute — _A fallback with multi-segment rest value', async () => {
+  const catchallLoader = makeLoader();
+  const routes: RouteData = {
+    _A: { _P: 'rest', _I: catchallLoader },
+    blog: { _W: { _P: 'slug' } }, // no _I on slug — dead end
+  };
+  // /blog/post/extra — _W matches "post" but no _I, fallback to _A
+  const result = await loadRoute(routes, false, '/blog/post/extra');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Params], { rest: 'blog/post/extra' });
+});
+
 // ─── Menu (_N) trie tests ───────────────────────────────────────────────────────
 
 test('loadRoute — _N menu from ancestor is used for child route', async () => {

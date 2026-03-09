@@ -105,12 +105,9 @@ import {
   SsrNodeKind,
   SSR_ATTR_HTML,
   SSR_SUSPENSE_FALLBACK,
-  SSR_SUSPENSE_CHILDREN_JSX,
-  SSR_SUSPENSE_WALK_OPTIONS,
   SSR_SUSPENSE_PLACEHOLDER_ID,
   SSR_SUSPENSE_CONTENT,
   SSR_SUSPENSE_READY,
-  type SsrChild,
 } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
 import { SsrStreamingWalker } from './ssr-streaming-walker';
@@ -150,20 +147,14 @@ enum QwikLoaderInclude {
   Done,
 }
 
-/** Tracks a Suspense boundary with deferred children for OoO streaming. */
+/** Tracks a Suspense boundary for OoO streaming. */
 interface SuspenseBoundary {
   /** The Suspense boundary SsrNode. */
   node: ISsrNode;
   /** Unique placeholder ID for the fallback wrapper div. */
   placeholderId: string;
-  /** The deferred children JSX to render. */
-  childrenJsx: JSXOutput;
-  /** Walk options (style scope, parent component frame) for rendering children. */
-  walkOptions: { currentStyleScoped: string | null; parentComponentFrame: any };
-  /** The content SsrNode that will hold the rendered children. */
-  contentNode: SsrNode | null;
-  /** Whether the content has been rendered. */
-  resolved: boolean;
+  /** The content SsrNode holding the rendered children (built by sub-cursor). */
+  contentNode: SsrNode;
 }
 
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
@@ -732,29 +723,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   closeElement(): ValueOrPromise<void> {
     if (this.activeWalkCtx.currentElementFrame === this.emitContainerDataFrame) {
       if (this.treeOnly) {
-        // In treeOnly mode (deferred Suspense content), skip container data emission.
+        // In treeOnly mode (tree building), just close the element — container data
+        // emission is handled by render() via the streaming walker.
         this._closeElement();
         return;
       }
+      // Manual rendering path (non-cursor): emit container data before closing.
       this.emitContainerDataFrame = null;
-      // start snapshot timer
       this.onRenderDone();
       const snapshotTimer = createTimer();
 
-      // Process deferred Suspense content and emit OoO chunks before container data
-      const suspenseWork =
-        this.suspenseBoundaries.length > 0
-          ? maybeThen(this.processDeferredSuspenseContent(), () => this.emitOoOChunks())
-          : undefined;
-
-      return maybeThen(suspenseWork, () =>
-        maybeThen(
-          maybeThen(this.emitContainerData(), () => this._closeElement()),
-          () => {
-            // set snapshot time
-            this.timing.snapshot = snapshotTimer();
-          }
-        )
+      return maybeThen(
+        maybeThen(this.emitContainerData(), () => this._closeElement()),
+        () => {
+          this.timing.snapshot = snapshotTimer();
+        }
       );
     }
     this._closeElement();
@@ -892,29 +875,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   /**
-   * Stores deferred children JSX on the current Suspense boundary for processing after the main
-   * walk completes. Called from _walkJSX when encountering Suspense.
-   */
-  _storeSuspenseChildren(
-    childrenJsx: JSXOutput,
-    walkOptions: { currentStyleScoped: string | null; parentComponentFrame: any }
-  ) {
-    const boundary = this.currentSuspenseBoundary;
-    if (!boundary) {
-      return;
-    }
-    const placeholderId = boundary.getProp(SSR_SUSPENSE_PLACEHOLDER_ID);
-    this.suspenseBoundaries.push({
-      node: boundary,
-      placeholderId,
-      childrenJsx,
-      walkOptions: { ...walkOptions },
-      contentNode: null,
-      resolved: false,
-    });
-  }
-
-  /**
    * Creates a sub-cursor for Suspense children. The sub-cursor builds children SsrNodes under a
    * content node with its own WalkContext. When the sub-cursor completes, it marks the boundary as
    * ready so the streaming walker can emit children inline instead of using OoO.
@@ -990,10 +950,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.suspenseBoundaries.push({
       node: boundary,
       placeholderId,
-      childrenJsx,
-      walkOptions: { ...walkOptions },
       contentNode,
-      resolved: false,
     });
   }
 
@@ -1796,53 +1753,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   /**
-   * Process deferred Suspense children. Called from onBeforeContainerClose after the main tree has
-   * been streamed. Each boundary's children are rendered sequentially via _walkJSX into a content
-   * SsrNode subtree that is then used for OoO chunk emission.
-   */
-  private async processDeferredSuspenseContent() {
-    for (const boundary of this.suspenseBoundaries) {
-      // Create a content SsrNode to hold the rendered children
-      const contentNode = new SsrNode(
-        null, // parentComponent
-        `sus-${boundary.placeholderId}`,
-        -1, // no attributes index
-        this.cleanupQueue,
-        [VNodeDataFlag.NONE] as VNodeData,
-        null // currentFile
-      );
-      contentNode.nodeKind = SsrNodeKind.Virtual;
-      boundary.contentNode = contentNode;
-
-      // Set up frame context so _walkJSX adds children to the content node.
-      // We bypass createAndPushFrame's tag nesting validation since deferred content
-      // is emitted inside a <template>, not in the normal HTML context.
-      this.treeOnly = true;
-      const deferredFrame: ElementFrame = {
-        tagNesting: TagNesting.ANYTHING,
-        parent: this.activeWalkCtx.currentElementFrame,
-        elementName: 'template',
-        depthFirstElementIdx: -1,
-        vNodeData: [VNodeDataFlag.NONE] as VNodeData,
-        currentFile: null,
-        ssrNode: contentNode,
-      };
-      this.activeWalkCtx.currentElementFrame = deferredFrame;
-      this.vNodeDatas.push(deferredFrame.vNodeData);
-
-      try {
-        await _walkJSX(this, boundary.childrenJsx, boundary.walkOptions);
-        boundary.resolved = true;
-      } catch (err) {
-        this.handleError(err, boundary.node as any);
-      }
-
-      this.activeWalkCtx.currentElementFrame = deferredFrame.parent;
-      this.treeOnly = false;
-    }
-  }
-
-  /**
    * Emit OoO (out-of-order) chunks for all Suspense boundaries. Each chunk contains:
    *
    * 1. A `<template>` with the actual content HTML
@@ -1850,10 +1760,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    */
   private emitOoOChunks(boundaries: SuspenseBoundary[] = this.suspenseBoundaries) {
     for (const boundary of boundaries) {
-      if (!boundary.contentNode) {
-        continue;
-      }
-
       const placeholderId = boundary.placeholderId;
       const templateId = `qooo-${placeholderId}`;
 

@@ -41,10 +41,6 @@ export const SSR_COMPONENT_FRAME = ':componentFrame';
 export const SSR_ATTR_HTML = ':attrHtml';
 /** Suspense fallback SsrNode stored on the boundary node. */
 export const SSR_SUSPENSE_FALLBACK = ':suspenseFallback';
-/** Suspense deferred children JSX stored on the boundary node. */
-export const SSR_SUSPENSE_CHILDREN_JSX = ':suspenseChildrenJsx';
-/** Suspense walk options stored on the boundary node. */
-export const SSR_SUSPENSE_WALK_OPTIONS = ':suspenseWalkOptions';
 /** Suspense placeholder ID for OoO streaming. */
 export const SSR_SUSPENSE_PLACEHOLDER_ID = ':suspensePlaceholderId';
 /** Content SsrNode holding Suspense children built by sub-cursor. */

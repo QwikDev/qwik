@@ -161,6 +161,9 @@ function collectNodeMeta(
  * Try to find a child matching `partLower` in `node`, including inside group children (_M). Returns
  * the matched child node, the groups entered to reach it, and what to push to routeParts. Returns
  * undefined if no match.
+ *
+ * Priority: exact match → _M groups (recursively) → _W wildcard → _A rest wildcard. This ensures
+ * exact matches inside nested groups take precedence over wildcards at parent level.
  */
 function findChild(
   node: RouteData,
@@ -170,13 +173,15 @@ function findChild(
   partIndex: number,
   params: PathParams
 ): { next: RouteData; groups: RouteData[]; routePart: string; done: boolean } | undefined {
-  // Try matching in this node's direct children
-  const result = tryMatch(node, part, partLower, parts, partIndex, params);
-  if (result) {
-    return { ...result, groups: [] };
+  // 1. Try exact match on this node's direct children
+  const exact = node[partLower] as RouteData | undefined;
+  if (exact) {
+    return { next: exact, groups: [], routePart: part, done: false };
   }
 
-  // Try matching inside group children (_M array)
+  // 2. Try matching inside group children (_M array).
+  //    Groups can have their own exact matches and wildcards, so check them
+  //    before this node's wildcards.
   if (node._M) {
     for (const group of node._M) {
       const groupResult = findChild(group, part, partLower, parts, partIndex, params);
@@ -188,11 +193,17 @@ function findChild(
     }
   }
 
+  // 3. Try wildcard [param] on this node
+  const wildcard = tryWildcardMatch(node, part, partLower, parts, partIndex, params);
+  if (wildcard) {
+    return { ...wildcard, groups: [] };
+  }
+
   return undefined;
 }
 
-/** Try to match a segment against a node's non-group children (exact, _W, _A). */
-function tryMatch(
+/** Try to match a segment against a node's wildcard children (_W, _A). */
+function tryWildcardMatch(
   node: RouteData,
   part: string,
   partLower: string,
@@ -200,14 +211,8 @@ function tryMatch(
   partIndex: number,
   params: PathParams
 ): { next: RouteData; routePart: string; done: boolean } | undefined {
-  // Exact match
-  let next = node[partLower] as RouteData | undefined;
-  if (next) {
-    return { next, routePart: part, done: false };
-  }
-
   // Wildcard [param]
-  next = node._W as RouteData | undefined;
+  let next = node._W as RouteData | undefined;
   if (next) {
     const prefix = next._0;
     const suffix = next._9;
@@ -268,6 +273,26 @@ function findIndexNode(node: RouteData): { target: RouteData; groups: RouteData[
 }
 
 /**
+ * Find a rest wildcard (_A) at the current node or inside its _M groups. Returns the _A node and
+ * the groups entered to reach it. Used to save fallback checkpoints during matching.
+ */
+function findRestNode(node: RouteData): { next: RouteData; groups: RouteData[] } | undefined {
+  if (node._A) {
+    return { next: node._A as RouteData, groups: [] };
+  }
+  if (node._M) {
+    for (const group of node._M) {
+      const result = findRestNode(group);
+      if (result) {
+        result.groups.unshift(group);
+        return result;
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
  * Match a URL pathname against the route trie.
  *
  * Always returns a result. When no route matches, `notFound` is true and `loaders` contains only
@@ -314,11 +339,45 @@ function matchRouteTree(
     .split('/')
     .filter((p) => p.length > 0)
     .map(decodeURIComponent);
+
+  // Track the deepest rest wildcard (_A) encountered during traversal as a fallback.
+  // If _W matches a segment but the path ultimately leads to no route, we fall back to _A.
+  let restFallback:
+    | {
+        aNode: RouteData;
+        groups: RouteData[];
+        paramName: string;
+        restValue: string;
+        routeParts: string[];
+        params: PathParams;
+        layouts: ModuleLoader[];
+        errorLoader: ModuleLoader | undefined;
+        menuLoader: MenuModuleLoader | undefined;
+      }
+    | undefined;
+
   let i = 0;
   const len = parts.length;
   for (; !done && i < len; i++) {
     const part = parts[i];
     const partLower = part.toLowerCase();
+
+    // Before matching this segment, check if the current node has _A as a fallback.
+    // If the primary match (_W or exact) eventually leads to no route, we can fall back here.
+    const restInfo = findRestNode(node);
+    if (restInfo) {
+      restFallback = {
+        aNode: restInfo.next,
+        groups: restInfo.groups,
+        paramName: restInfo.next._P!,
+        restValue: parts.slice(i).join('/'),
+        routeParts: [...routeParts],
+        params: { ...params },
+        layouts: [...layouts],
+        errorLoader: errorLoaderRef.v,
+        menuLoader: menuLoaderRef.v,
+      };
+    }
 
     const found = findChild(node, part, partLower, parts, i, params);
     if (!found) {
@@ -333,24 +392,11 @@ function matchRouteTree(
   }
 
   // If we consumed all parts but the current node has no _I,
-  // check for rest wildcard (_A) or group children with _I
+  // check for group children with _I or rest wildcard (_A)
   if (matched && !done && i === len) {
-    // First check for _A (rest wildcard with empty value)
-    if (!node._I && node._A) {
-      const next = node._A as RouteData;
-      const paramName = next._P!;
-      params[paramName as string] = '';
-      routeParts.push(`[...${paramName}]`);
-      node = next;
-      if (node._L) {
-        layouts.push(node._L);
-      }
-      if (node._N) {
-        menuLoaderRef.v = node._N;
-      }
-    }
-
     // Check if _I is in a group child (e.g. (common)/index.tsx is the root "/" route)
+    // This must come before _A checks so that an index route takes priority over
+    // a rest wildcard with empty value.
     if (!node._I && !node._G) {
       const indexResult = findIndexNode(node);
       if (indexResult) {
@@ -364,10 +410,67 @@ function matchRouteTree(
         node = indexResult.target;
       }
     }
+
+    // Check for _A (rest wildcard with empty value) on the node itself
+    if (!node._I && !node._G && node._A) {
+      const next = node._A as RouteData;
+      const paramName = next._P!;
+      params[paramName as string] = '';
+      routeParts.push(`[...${paramName}]`);
+      node = next;
+      if (node._L) {
+        layouts.push(node._L);
+      }
+      if (node._N) {
+        menuLoaderRef.v = node._N;
+      }
+    }
+
+    // Also check _M groups for _A with empty value
+    if (!node._I && !node._G) {
+      const restInfo = findRestNode(node);
+      if (restInfo) {
+        const next = restInfo.next;
+        const paramName = next._P!;
+        params[paramName as string] = '';
+        routeParts.push(`[...${paramName}]`);
+        collectNodeMeta(next, restInfo.groups, layouts, errorLoaderRef, menuLoaderRef);
+        node = next;
+      }
+    }
   }
 
   // Resolve loaders from _I or _G
   const loaders = matched && (done || i >= len) ? resolveLoaders(root, node, layouts) : undefined;
+
+  // If the primary match failed but we have a rest wildcard fallback, try it.
+  // This handles cases where _W matched a segment but the path led to no route,
+  // while _A at the same level would have caught all remaining segments.
+  if (!loaders && restFallback) {
+    const fb = restFallback;
+    const fbParams = { ...fb.params, [fb.paramName]: fb.restValue };
+    const fbRouteParts = [...fb.routeParts, `[...${fb.paramName}]`];
+    const fbLayouts = [...fb.layouts];
+    const fbErrorRef: { v: ModuleLoader | undefined } = { v: fb.errorLoader };
+    const fbMenuRef: { v: MenuModuleLoader | undefined } = { v: fb.menuLoader };
+
+    collectNodeMeta(fb.aNode, fb.groups, fbLayouts, fbErrorRef, fbMenuRef);
+
+    const fbLoaders = resolveLoaders(root, fb.aNode, fbLayouts);
+    if (fbLoaders) {
+      return {
+        loaders: fbLoaders,
+        params: fbParams,
+        routeParts: fbRouteParts,
+        notFound: false,
+        routeBundleNames: fb.aNode._B as string[] | undefined,
+        menuLoader: fbMenuRef.v,
+      };
+    }
+    // Update error/menu loaders from fallback for the not-found response
+    errorLoaderRef.v = fbErrorRef.v;
+    menuLoaderRef.v = fbMenuRef.v;
+  }
 
   if (!loaders) {
     const loader = errorLoaderRef.v || httpErrorLoader;

@@ -220,6 +220,8 @@ function serializeBuildTrie(
   // Collect layout info for this node
   const nodeLayouts: LayoutInfo[] = [];
 
+  // First pass: collect layouts and menus (must run before routes so that
+  // resolveNamedLayoutChain can find named layouts at this node level)
   for (const file of node._files) {
     if (file.type === 'menu') {
       const menuId = menuIdMap.get(file.filePath);
@@ -229,8 +231,6 @@ function serializeBuildTrie(
     } else if (file.type === 'layout') {
       const layoutId = layoutIdMap.get(file.filePath);
       if (layoutId) {
-        layoutExpr = layoutId;
-
         // Determine layout name and type for ancestor tracking
         let extlessName = file.extlessName;
         let layoutType: 'top' | 'nested' = 'nested';
@@ -243,46 +243,58 @@ function serializeBuildTrie(
           : '';
 
         nodeLayouts.push({ id: layoutId, layoutName, layoutType });
-      }
-    } else if (file.type === 'route') {
-      const loaderExpr = routeIdMap.get(file.filePath);
-      if (!loaderExpr) {
-        continue;
-      }
 
-      // Check if this is error.tsx or 404.tsx
-      const isError = file.extlessName === 'error';
-      const is404 = file.extlessName === '404';
-
-      if (isError) {
-        errorExpr = loaderExpr;
-        errorFiles.set(node._dirPath, file.filePath);
-      } else if (is404) {
-        notFoundExpr = loaderExpr;
-        notFoundFiles.set(node._dirPath, file.filePath);
-      } else {
-        // Normal route or endpoint — check for layout stop / named layout
-        const { layoutName, layoutStop } = parseRouteIndexName(file.extlessName);
-
-        if (layoutStop) {
-          // Layout stop: emit _I as array with just the page loader (no layouts)
-          indexExpr = `[ ${loaderExpr} ]`;
-          indexIsOverride = true;
-        } else if (layoutName) {
-          // Named layout: walk up ancestors to build the override chain
-          const chain = resolveNamedLayoutChain(ancestorLayouts, nodeLayouts, layoutName);
-          const chainExprs = chain.map((l) => l.id);
-          chainExprs.push(loaderExpr);
-          indexExpr = `[ ${chainExprs.join(', ')} ]`;
-          indexIsOverride = true;
-        } else {
-          // Normal route: single loader, runtime prepends _L
-          indexExpr = loaderExpr;
+        // Only the default layout (no name) goes into _L.
+        // Named layouts (layout-api, etc.) are only referenced via override _I arrays.
+        if (layoutName === '') {
+          layoutExpr = layoutId;
         }
-
-        // Find the BuiltRoute for bundle names
-        bundleRoute = ctx.routes.find((r) => r.filePath === file.filePath);
       }
+    }
+  }
+
+  // Second pass: collect routes (after layouts so nodeLayouts is fully populated)
+  for (const file of node._files) {
+    if (file.type !== 'route') {
+      continue;
+    }
+    const loaderExpr = routeIdMap.get(file.filePath);
+    if (!loaderExpr) {
+      continue;
+    }
+
+    // Check if this is error.tsx or 404.tsx
+    const isError = file.extlessName === 'error';
+    const is404 = file.extlessName === '404';
+
+    if (isError) {
+      errorExpr = loaderExpr;
+      errorFiles.set(node._dirPath, file.filePath);
+    } else if (is404) {
+      notFoundExpr = loaderExpr;
+      notFoundFiles.set(node._dirPath, file.filePath);
+    } else {
+      // Normal route or endpoint — check for layout stop / named layout
+      const { layoutName, layoutStop } = parseRouteIndexName(file.extlessName);
+
+      if (layoutStop) {
+        // Layout stop: emit _I as array with just the page loader (no layouts)
+        indexExpr = `[ ${loaderExpr} ]`;
+        indexIsOverride = true;
+      } else if (layoutName) {
+        // Named layout: walk ancestors to build the override chain
+        const chain = resolveNamedLayoutChain(ancestorLayouts, nodeLayouts, layoutName);
+        const chainExprs = chain.map((l) => l.id);
+        chainExprs.push(loaderExpr);
+        indexExpr = `[ ${chainExprs.join(', ')} ]`;
+        indexIsOverride = true;
+      } else {
+        // Normal route: single loader, runtime prepends _L
+        indexExpr = loaderExpr;
+      }
+
+      // Find the BuiltRoute for bundle names
+      bundleRoute = ctx.routes.find((r) => r.filePath === file.filePath);
     }
   }
 

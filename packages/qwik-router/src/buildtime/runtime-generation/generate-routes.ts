@@ -137,15 +137,9 @@ export function createRoutes(
     ''
   );
 
-  // Emit warnings for directories that have both error.tsx and 404.tsx
-  for (const [dirKey, errorFile] of errorFiles) {
-    if (notFoundFiles.has(dirKey)) {
-      console.warn(
-        `Warning: Both error.tsx and 404.tsx found in "${dirKey || '/'}". ` +
-          `error.tsx (${errorFile}) takes precedence; 404.tsx will be ignored.`
-      );
-    }
-  }
+  // Note: both error.tsx and 404.tsx in the same directory is fine.
+  // error.tsx (_E) handles ServerErrors (403, 500, etc.) and 404.tsx (_4) handles not-found routes.
+  // They are tracked independently in the route trie.
 
   // Wrap the trie in the base pathname segments (e.g., '/qwikrouter-test/' → 'qwikrouter-test')
   // The runtime matcher receives the full URL pathname, so the trie must include the base prefix.

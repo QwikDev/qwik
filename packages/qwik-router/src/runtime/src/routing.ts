@@ -21,7 +21,16 @@ export const loadRoute = async (
 ): Promise<LoadedRoute> => {
   const result = matchRouteTree(routes, pathname);
 
-  const { loaders, params, routeParts, notFound, routeBundleNames, menuLoader } = result;
+  const {
+    loaders,
+    params,
+    routeParts,
+    notFound,
+    routeBundleNames,
+    menuLoader,
+    errorLoader,
+    notFoundLoader,
+  } = result;
 
   const routeName = '/' + routeParts.join('/');
 
@@ -47,11 +56,46 @@ export const loadRoute = async (
       cacheModules
     );
   }
+
+  // For not-found routes, create a wrapper module that renders 404.tsx for 404 status
+  // and the default error handler for other statuses, with cacheKey based on status.
+  if (notFound && notFoundLoader) {
+    // Also load the error module or fallback for non-404 errors
+    let notFoundMod: RouteModule | undefined;
+    let errorMod: RouteModule | undefined;
+    loadModule<RouteModule>(
+      notFoundLoader,
+      pendingLoads,
+      (mod) => (notFoundMod = mod),
+      cacheModules
+    );
+    loadModule<RouteModule>(
+      errorLoader || httpErrorLoader,
+      pendingLoads,
+      (mod) => (errorMod = mod),
+      cacheModules
+    );
+    if (pendingLoads.length > 0) {
+      await Promise.all(pendingLoads);
+    }
+    const { createNotFoundWrapper } = await import('./not-found-wrapper');
+    const wrapperModule = createNotFoundWrapper(notFoundMod!, errorMod!);
+    return [
+      routeName,
+      params,
+      [wrapperModule],
+      deepFreeze(menu),
+      routeBundleNames,
+      notFound,
+      errorLoader,
+    ];
+  }
+
   if (pendingLoads.length > 0) {
     await Promise.all(pendingLoads);
   }
 
-  return [routeName, params, modules, deepFreeze(menu), routeBundleNames, notFound];
+  return [routeName, params, modules, deepFreeze(menu), routeBundleNames, notFound, errorLoader];
 };
 
 /** Built-in fallback error component loader */
@@ -121,14 +165,20 @@ function resolveLoaders(
 }
 
 /**
- * Collect layouts and error loaders from a node and any group ancestors between the parent and this
- * node. `groups` is the chain of group nodes entered to reach `node`.
+ * Collect layouts, error loaders, and 404 loaders from a node and any group ancestors between the
+ * parent and this node. `groups` is the chain of group nodes entered to reach `node`.
+ *
+ * `_E` (error.tsx) and `_4` (404.tsx) are tracked separately so that:
+ *
+ * - `_4` is used for not-found (404) errors specifically
+ * - `_E` is used for all other ServerErrors (403, 500, etc.)
  */
 function collectNodeMeta(
   node: RouteData,
   groups: RouteData[],
   layouts: ModuleLoader[],
   errorLoaderRef: { v: ModuleLoader | undefined },
+  notFoundLoaderRef: { v: ModuleLoader | undefined },
   menuLoaderRef: { v: MenuModuleLoader | undefined }
 ) {
   for (const g of groups) {
@@ -137,8 +187,9 @@ function collectNodeMeta(
     }
     if (g._E) {
       errorLoaderRef.v = g._E;
-    } else if (g._4) {
-      errorLoaderRef.v = g._4;
+    }
+    if (g._4) {
+      notFoundLoaderRef.v = g._4;
     }
     if (g._N) {
       menuLoaderRef.v = g._N;
@@ -149,8 +200,9 @@ function collectNodeMeta(
   }
   if (node._E) {
     errorLoaderRef.v = node._E;
-  } else if (node._4) {
-    errorLoaderRef.v = node._4;
+  }
+  if (node._4) {
+    notFoundLoaderRef.v = node._4;
   }
   if (node._N) {
     menuLoaderRef.v = node._N;
@@ -312,22 +364,28 @@ function matchRouteTree(
   notFound: boolean;
   routeBundleNames: string[] | undefined;
   menuLoader: MenuModuleLoader | undefined;
+  /** The nearest _E (error.tsx) loader in the ancestor chain */
+  errorLoader: ModuleLoader | undefined;
+  /** The nearest _4 (404.tsx) loader in the ancestor chain */
+  notFoundLoader: ModuleLoader | undefined;
 } {
   let node: RouteData = root;
   const params: PathParams = {};
   const routeParts: string[] = [];
   const layouts: ModuleLoader[] = [];
   const errorLoaderRef: { v: ModuleLoader | undefined } = { v: undefined };
+  const notFoundLoaderRef: { v: ModuleLoader | undefined } = { v: undefined };
   const menuLoaderRef: { v: MenuModuleLoader | undefined } = { v: undefined };
 
-  // Collect root layout, error loader, and menu loader
+  // Collect root layout, error loader, 404 loader, and menu loader
   if (root._L) {
     layouts.push(root._L);
   }
   if (root._E) {
     errorLoaderRef.v = root._E;
-  } else if (root._4) {
-    errorLoaderRef.v = root._4;
+  }
+  if (root._4) {
+    notFoundLoaderRef.v = root._4;
   }
   if (root._N) {
     menuLoaderRef.v = root._N;
@@ -352,6 +410,7 @@ function matchRouteTree(
         params: PathParams;
         layouts: ModuleLoader[];
         errorLoader: ModuleLoader | undefined;
+        notFoundLoader: ModuleLoader | undefined;
         menuLoader: MenuModuleLoader | undefined;
       }
     | undefined;
@@ -375,6 +434,7 @@ function matchRouteTree(
         params: { ...params },
         layouts: [...layouts],
         errorLoader: errorLoaderRef.v,
+        notFoundLoader: notFoundLoaderRef.v,
         menuLoader: menuLoaderRef.v,
       };
     }
@@ -388,7 +448,7 @@ function matchRouteTree(
     routeParts.push(found.routePart);
     done = found.done;
     node = found.next;
-    collectNodeMeta(node, found.groups, layouts, errorLoaderRef, menuLoaderRef);
+    collectNodeMeta(node, found.groups, layouts, errorLoaderRef, notFoundLoaderRef, menuLoaderRef);
   }
 
   // If we consumed all parts but the current node has no _I,
@@ -405,6 +465,7 @@ function matchRouteTree(
           indexResult.groups,
           layouts,
           errorLoaderRef,
+          notFoundLoaderRef,
           menuLoaderRef
         );
         node = indexResult.target;
@@ -434,7 +495,14 @@ function matchRouteTree(
         const paramName = next._P!;
         params[paramName as string] = '';
         routeParts.push(`[...${paramName}]`);
-        collectNodeMeta(next, restInfo.groups, layouts, errorLoaderRef, menuLoaderRef);
+        collectNodeMeta(
+          next,
+          restInfo.groups,
+          layouts,
+          errorLoaderRef,
+          notFoundLoaderRef,
+          menuLoaderRef
+        );
         node = next;
       }
     }
@@ -452,9 +520,10 @@ function matchRouteTree(
     const fbRouteParts = [...fb.routeParts, `[...${fb.paramName}]`];
     const fbLayouts = [...fb.layouts];
     const fbErrorRef: { v: ModuleLoader | undefined } = { v: fb.errorLoader };
+    const fbNotFoundRef: { v: ModuleLoader | undefined } = { v: fb.notFoundLoader };
     const fbMenuRef: { v: MenuModuleLoader | undefined } = { v: fb.menuLoader };
 
-    collectNodeMeta(fb.aNode, fb.groups, fbLayouts, fbErrorRef, fbMenuRef);
+    collectNodeMeta(fb.aNode, fb.groups, fbLayouts, fbErrorRef, fbNotFoundRef, fbMenuRef);
 
     const fbLoaders = resolveLoaders(root, fb.aNode, fbLayouts);
     if (fbLoaders) {
@@ -465,15 +534,19 @@ function matchRouteTree(
         notFound: false,
         routeBundleNames: fb.aNode._B as string[] | undefined,
         menuLoader: fbMenuRef.v,
+        errorLoader: fbErrorRef.v,
+        notFoundLoader: fbNotFoundRef.v,
       };
     }
     // Update error/menu loaders from fallback for the not-found response
     errorLoaderRef.v = fbErrorRef.v;
+    notFoundLoaderRef.v = fbNotFoundRef.v;
     menuLoaderRef.v = fbMenuRef.v;
   }
 
   if (!loaders) {
-    const loader = errorLoaderRef.v || httpErrorLoader;
+    // For not-found routes, use the 404 module, then error module, then built-in fallback
+    const loader = notFoundLoaderRef.v || errorLoaderRef.v || httpErrorLoader;
     return {
       loaders: [loader],
       params,
@@ -481,6 +554,8 @@ function matchRouteTree(
       notFound: true,
       routeBundleNames: undefined,
       menuLoader: menuLoaderRef.v,
+      errorLoader: errorLoaderRef.v,
+      notFoundLoader: notFoundLoaderRef.v,
     };
   }
 
@@ -491,6 +566,8 @@ function matchRouteTree(
     notFound: false,
     routeBundleNames: node._B as string[] | undefined,
     menuLoader: menuLoaderRef.v,
+    errorLoader: errorLoaderRef.v,
+    notFoundLoader: notFoundLoaderRef.v,
   };
 }
 

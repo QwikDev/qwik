@@ -21,6 +21,7 @@ import { resolveETag, resolveCacheKey, getCachedHtml, setCachedHtml } from './et
 import { HttpStatus } from './http-status-codes';
 import {
   RequestEvETagCacheKey,
+  RequestEvHttpStatusMessage,
   RequestEvIsRewrite,
   RequestEvShareQData,
   RequestEvShareServerTiming,
@@ -63,6 +64,14 @@ export const resolveRequestHandlers = (
   if (isInternal) {
     requestHandlers.push(handleQDataRedirect);
   }
+
+  // For page routes, catch ServerErrors from any handler (plugins, route handlers, etc.)
+  // and render the error page instead of the default inline HTML error.
+  // Must be before all other handlers so its ev.next() wraps everything.
+  if (isPageRoute) {
+    requestHandlers.push(serverErrorMiddleware(route, renderHandler));
+  }
+
   if (serverPlugins) {
     // Serverplugins run even if no route is matched
     _resolveRequestHandlers(
@@ -344,6 +353,57 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
 
     // Store cache key in sharedMap so renderQwikMiddleware can cache the result
     requestEv.sharedMap.set(RequestEvETagCacheKey, cacheKey);
+  };
+}
+
+/**
+ * Catches ServerErrors from any handler (plugins, route handlers, actions, loaders) and renders the
+ * custom error page (error.tsx or built-in fallback) instead of the default inline HTML.
+ *
+ * Only handles HTML page requests. QData and non-HTML requests are re-thrown so user-response.ts
+ * handles them with its existing JSON serialization.
+ */
+function serverErrorMiddleware(route: LoadedRoute, renderHandler: RequestHandler): RequestHandler {
+  return async (requestEv: RequestEvent) => {
+    try {
+      await requestEv.next();
+    } catch (e) {
+      if (!(e instanceof ServerError) || requestEv.headersSent) {
+        throw e;
+      }
+
+      // Skip for QData (internal) requests — let user-response.ts handle them
+      if (requestEv.sharedMap.has(IsQData)) {
+        throw e;
+      }
+
+      // Skip for non-HTML requests (JSON APIs etc.) — let user-response.ts handle them
+      const accept = requestEv.request.headers.get('Accept');
+      if (accept && !accept.includes('text/html')) {
+        throw e;
+      }
+
+      const status = e.status as number;
+      requestEv.status(status);
+
+      // Load the custom error page (error.tsx) or the built-in fallback
+      const errorLoader = route[LoadedRouteProp.ErrorLoader];
+      const errorModule = errorLoader
+        ? await errorLoader()
+        : await import('../../runtime/src/http-error');
+
+      // Swap route modules to just the error component (no layouts)
+      route[LoadedRouteProp.Mods] = [errorModule as RouteModule];
+
+      // Store the error message so the component can display it via useHttpStatus()
+      requestEv.sharedMap.set(
+        RequestEvHttpStatusMessage,
+        typeof e.data === 'string' ? e.data : 'Server Error'
+      );
+
+      // Render the error page
+      await renderHandler(requestEv);
+    }
   };
 }
 

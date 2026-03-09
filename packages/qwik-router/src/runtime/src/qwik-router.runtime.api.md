@@ -103,6 +103,9 @@ export interface ContentMenu {
 // @public
 export type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);
 
+// @public (undocumented)
+export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
+
 export { Cookie }
 
 export { CookieOptions }
@@ -627,10 +630,6 @@ export type ZodConstructor = {
 //
 // @internal (undocumented)
 export const zodQrl: ZodConstructorQRL;
-
-// Warnings were encountered during analysis:
-//
-// /home/wmertens/Projects/qwik.worktrees/build-v2/dist-dev/dts-out/packages/qwik-router/src/runtime/src/types.d.ts:21:5 - (ae-forgotten-export) The symbol "ContentModuleHead" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

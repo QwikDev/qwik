@@ -51,6 +51,7 @@ export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
 export const RequestEvETagCacheKey = '@eTagCacheKey';
+export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 /** @internal */
 export const RequestEvShareQData = 'qData';
 

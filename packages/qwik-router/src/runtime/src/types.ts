@@ -346,6 +346,7 @@ export declare type PathParams = Record<string, string>;
 
 export type ContentModule = PageModule | LayoutModule;
 
+/** @public */
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 /**
@@ -380,6 +381,8 @@ export type LoadedRoute = [
   routeBundleNames: string[] | undefined,
   /** Whether this route is a not-found (404) route */
   notFound: boolean,
+  /** The error module loader (nearest _E ancestor), for rendering ServerErrors */
+  errorLoader?: ModuleLoader,
 ];
 
 export const enum LoadedRouteProp {
@@ -389,10 +392,12 @@ export const enum LoadedRouteProp {
   Menu,
   RouteBundleNames,
   NotFound,
+  ErrorLoader,
 }
 
 export interface EndpointResponse {
   status: number;
+  statusMessage?: string;
   loaders: Record<string, unknown>;
   loadersSerializationStrategy: Map<string, SerializationStrategy>;
   formData?: FormData;

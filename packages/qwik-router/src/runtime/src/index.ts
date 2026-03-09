@@ -5,8 +5,11 @@ export type {
   Action,
   ActionConstructor,
   ActionStore,
+  CacheKeyFn,
   ContentHeading,
   ContentMenu,
+  ContentModuleETag,
+  ContentModuleHead,
   Cookie,
   CookieOptions,
   CookieValue,
@@ -47,8 +50,6 @@ export type {
   ValidatorErrorKeyDotNotation,
   ValidatorErrorType,
   ZodConstructor,
-  ContentModuleETag,
-  CacheKeyFn,
 } from './types';
 
 export { ErrorBoundary } from './error-boundary';

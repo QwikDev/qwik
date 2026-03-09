@@ -15,6 +15,12 @@ import {
   executeNodeProps,
   executeTasks,
 } from './chore-execution';
+import {
+  executeSsrTasks,
+  executeSsrComponent,
+  executeSsrNodeDiff,
+  executeSsrNodeProps,
+} from './ssr-chore-execution';
 import { type Cursor } from './cursor';
 import { setCursorPosition, getCursorData, type CursorData } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
@@ -161,15 +167,25 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
     let result: ValueOrPromise<void> | undefined;
     try {
-      // Execute chores in order
+      // Execute chores in order, with SSR-specific dispatch on server
       if (currentVNode.dirty & ChoreBits.TASKS) {
-        result = executeTasks(currentVNode, container, cursorData);
+        result = isRunningOnServer
+          ? executeSsrTasks(currentVNode, container, cursorData)
+          : executeTasks(currentVNode, container, cursorData);
       } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
-        result = executeNodeDiff(currentVNode, container, journal, cursor);
+        result = isRunningOnServer
+          ? executeSsrNodeDiff(currentVNode, container, cursorData, cursor)
+          : executeNodeDiff(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
-        result = executeComponentChore(currentVNode, container, journal, cursor);
+        result = isRunningOnServer
+          ? executeSsrComponent(currentVNode, container, cursorData, cursor)
+          : executeComponentChore(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.NODE_PROPS) {
-        executeNodeProps(currentVNode, journal);
+        if (isRunningOnServer) {
+          executeSsrNodeProps(currentVNode, container);
+        } else {
+          executeNodeProps(currentVNode, journal);
+        }
       } else if (currentVNode.dirty & ChoreBits.COMPUTE) {
         result = executeCompute(currentVNode, container);
       } else if (currentVNode.dirty & ChoreBits.CHILDREN) {

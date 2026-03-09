@@ -29,6 +29,8 @@ export {
   vnode_toString as _vnode_toString,
 } from './client/vnode-utils';
 export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export { addCursor as _addCursor } from './shared/cursor/cursor';
+export { processCursorQueue as _processCursorQueue } from './shared/cursor/cursor-walker';
 export type { Container as _Container } from './shared/types';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';

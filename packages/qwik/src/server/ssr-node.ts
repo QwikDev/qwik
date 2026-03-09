@@ -25,6 +25,42 @@ import type { CleanupQueue } from './ssr-container';
 import type { VNodeData } from './vnode-data';
 
 /**
+ * Local prop keys for deferred data stored on SsrNodes during tree building. These use the
+ * NON_SERIALIZABLE_MARKER_PREFIX (':') so they won't be serialized.
+ */
+export const SSR_VAR_ATTRS = ':varAttrs';
+export const SSR_CONST_ATTRS = ':constAttrs';
+export const SSR_STYLE_SCOPED_ID = ':styleScopedId';
+export const SSR_INNER_HTML = ':innerHTML';
+export const SSR_HAS_MOVED_CAPTURES = ':hasMovedCaptures';
+export const SSR_TEXT = ':text';
+export const SSR_JSX = ':jsx';
+export const SSR_SCOPED_STYLE = ':scopedStyle';
+export const SSR_COMPONENT_FRAME = ':componentFrame';
+
+/**
+ * The type of SsrNode for emission purposes.
+ *
+ * @internal
+ */
+export const enum SsrNodeKind {
+  /** HTML element (div, span, etc.) — has tagName */
+  Element = 0,
+  /** Text node */
+  Text = 1,
+  /** Virtual boundary (Fragment, InlineComponent, WrappedSignal, Awaited) */
+  Virtual = 2,
+  /** Qwik component — needs component execution */
+  Component = 3,
+  /** Slot projection */
+  Projection = 4,
+  /** Raw HTML */
+  RawHtml = 5,
+  /** Comment */
+  Comment = 6,
+}
+
+/**
  * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
  * purposes.
  *
@@ -47,6 +83,12 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
 
   /** Component host node (for SSR component tracking). */
   public parentComponent: ISsrNode | null;
+
+  /** HTML tag name for element nodes, null for virtual nodes. */
+  public tagName: string | null = null;
+
+  /** Node kind for emission dispatch. */
+  public nodeKind: SsrNodeKind = SsrNodeKind.Virtual;
 
   /** Serializable attributes backed by vnodeData entries. */
   private attrs: Props;

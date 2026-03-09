@@ -9,6 +9,9 @@ import {
   _setEvent,
   _walkJSX,
   _createQRL as createQRL,
+  _addCursor as addCursor,
+  _processCursorQueue as processCursorQueue,
+  _VirtualVNode as VirtualVNode,
   isSignal,
   type Signal,
 } from '@qwik.dev/core/internal';
@@ -71,6 +74,8 @@ import {
   qError,
   retryOnPromise,
   serializeAttribute,
+  ChoreBits,
+  VNodeFlags,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -298,8 +303,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(err: any, _$host$: null): void {
-    throw err;
+  /** Stored error from cursor walker — re-thrown in render() */
+  private _ssrError: any = null;
+
+  handleError(err: any, _$host$: HostElement | null): void {
+    // Store the error so render() can re-throw it after cursor processing.
+    // The cursor walker catches errors from chore execution and calls this;
+    // if we throw here, async errors become unhandled rejections.
+    if (!this._ssrError) {
+      this._ssrError = err;
+    }
   }
 
   addBackpatchEntry(
@@ -320,10 +333,44 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   async render(jsx: JSXOutput) {
     this.openContainer();
-    await _walkJSX(this, jsx, {
-      currentStyleScoped: null,
-      parentComponentFrame: this.getComponentFrame(),
-    });
+
+    // Create a cursor root VNode to drive SSR rendering through the cursor walker.
+    // The walk callback wraps _walkJSX so executeSsrNodeDiff can call it.
+    const cursorRoot = new VirtualVNode(
+      null, // key
+      VNodeFlags.Virtual,
+      null, // parent
+      null, // previousSibling
+      null, // nextSibling
+      {
+        // Store the walk callback for executeSsrNodeDiff to invoke
+        ':ssrWalkFn': () =>
+          _walkJSX(this, jsx, {
+            currentStyleScoped: null,
+            parentComponentFrame: this.getComponentFrame(),
+          }),
+      },
+      null, // firstChild
+      null // lastChild
+    );
+    cursorRoot.dirty = ChoreBits.NODE_DIFF;
+
+    addCursor(this, cursorRoot, 0);
+
+    // Process cursor queue synchronously (no time-slicing on server).
+    // addCursor schedules a microtask, but we need to process immediately.
+    processCursorQueue({ timeBudget: Infinity });
+
+    // Wait for any async work (promises from component execution, etc.)
+    if (this.$renderPromise$) {
+      await this.$renderPromise$;
+    }
+
+    // Re-throw any error captured during cursor-driven rendering
+    if (this._ssrError) {
+      throw this._ssrError;
+    }
+
     await this.closeContainer();
   }
 
@@ -355,12 +402,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return ssrNode.parentComponent as ISsrNode | null;
   }
 
-  setHostProp<T>(host: ISsrNode, name: string, value: T): void {
+  setHostProp<T>(host: HostElement, name: string, value: T): void {
     const ssrNode: ISsrNode = host as any;
     return ssrNode.setProp(name, value);
   }
 
-  getHostProp<T>(host: ISsrNode, name: string): T | null {
+  getHostProp<T>(host: HostElement, name: string): T | null {
     const ssrNode: ISsrNode = host as any;
     return ssrNode.getProp(name);
   }
@@ -702,7 +749,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  $appendStyle$(content: string, styleId: string, host: ISsrNode, scoped: boolean): void {
+  $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void {
     if (scoped) {
       const componentFrame = this.getComponentFrame(0)!;
       componentFrame.scopedStyleIds.add(styleId);

@@ -22,6 +22,8 @@ export interface CursorData {
   promise: Promise<void> | null;
   /** Per-cursor SSR walk context (frame state). Only used on server. */
   walkCtx: unknown | null;
+  /** Callback invoked when the cursor completes (finishWalk). Used for sub-cursor tracking. */
+  onDone: (() => void) | null;
 }
 
 /**

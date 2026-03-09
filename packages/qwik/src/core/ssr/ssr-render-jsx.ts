@@ -86,7 +86,13 @@ export async function _walkJSX(
         if (value === Promise) {
           stack.push(await (stack.pop() as Promise<JSXOutput>));
         } else {
-          await (value as StackFn).apply(ssr);
+          const result = (value as StackFn).apply(ssr);
+          // Only await if the result is actually a Promise. Awaiting sync results
+          // (void/undefined) would yield to the microtask queue, allowing other cursors
+          // to swap activeWalkCtx and corrupt our frame state.
+          if (isPromise(result)) {
+            await result;
+          }
         }
         continue;
       }
@@ -285,10 +291,10 @@ function processJSXNode(
             enqueue(fallback);
           }
 
-          // Store children JSX for deferred processing (after main walk)
+          // Create sub-cursor for Suspense children (runs at higher priority)
           const children = jsx.children as JSXOutput;
           if (children != null) {
-            (ssr as any)._storeSuspenseChildren(children, {
+            (ssr as any).createSuspenseSubCursor(children, {
               currentStyleScoped: options.currentStyleScoped,
               parentComponentFrame: options.parentComponentFrame,
             });

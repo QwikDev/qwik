@@ -255,6 +255,9 @@ function finishWalk(
       executeFlushPhase(cursor, container);
     }
 
+    // Notify completion (used by Suspense sub-cursors)
+    cursorData.onDone?.();
+
     if (cursorData.extraPromises) {
       Promise.all(cursorData.extraPromises).then(() => {
         resolveCursor(container);

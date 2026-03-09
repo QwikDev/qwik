@@ -31,6 +31,7 @@ export function addCursor(container: Container, root: VNode, priority: number): 
     priority: priority,
     promise: null,
     walkCtx: null,
+    onDone: null,
   };
 
   setCursorData(root, cursorData);

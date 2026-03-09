@@ -47,6 +47,10 @@ export const SSR_SUSPENSE_CHILDREN_JSX = ':suspenseChildrenJsx';
 export const SSR_SUSPENSE_WALK_OPTIONS = ':suspenseWalkOptions';
 /** Suspense placeholder ID for OoO streaming. */
 export const SSR_SUSPENSE_PLACEHOLDER_ID = ':suspensePlaceholderId';
+/** Content SsrNode holding Suspense children built by sub-cursor. */
+export const SSR_SUSPENSE_CONTENT = ':suspenseContent';
+/** Whether Suspense children are ready (sub-cursor completed). */
+export const SSR_SUSPENSE_READY = ':suspenseReady';
 
 /**
  * Lightweight content node for text, raw HTML, and comments stored in an SsrNode's orderedChildren.

@@ -14,6 +14,7 @@ import {
   SsrNodeKind,
   SSR_ATTR_HTML,
   SSR_SUSPENSE_PLACEHOLDER_ID,
+  SSR_SUSPENSE_CONTENT,
   isSsrContentChild,
   type SsrChild,
   type SsrContentChild,
@@ -125,7 +126,8 @@ export class SsrStreamingWalker {
 
   /**
    * Emit a Suspense boundary. If the boundary has deferred children (is in the suspenseBoundaries
-   * list), emit the fallback wrapped in a placeholder div. Otherwise emit children inline.
+   * list), emit the fallback wrapped in a placeholder div. Otherwise emit the content node's
+   * children inline (sub-cursor completed synchronously).
    */
   private emitSuspenseBoundary(node: ISsrNode): ValueOrPromise<void> {
     const isDeferred = this.suspenseNodes?.has(node);
@@ -141,7 +143,13 @@ export class SsrStreamingWalker {
       });
     }
 
-    // Not deferred — emit children inline (fast path: Suspense resolved synchronously)
+    // Not deferred — emit content inline (sub-cursor completed synchronously).
+    // The content node holds children built by the sub-cursor.
+    const contentNode = node.getProp(SSR_SUSPENSE_CONTENT) as ISsrNode | null;
+    if (contentNode) {
+      return this.emitChildren(contentNode);
+    }
+    // No content node — fall back to emitting boundary's own children (fallback)
     return this.emitChildren(node);
   }
 

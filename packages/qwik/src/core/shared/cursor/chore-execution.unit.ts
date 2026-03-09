@@ -135,6 +135,7 @@ function createMockCursorData(container: Container): CursorData {
     priority: 0,
     promise: null,
     walkCtx: null,
+    onDone: null,
   };
 }
 

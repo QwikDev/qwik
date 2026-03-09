@@ -37,6 +37,25 @@ export const SSR_TEXT = ':text';
 export const SSR_JSX = ':jsx';
 export const SSR_SCOPED_STYLE = ':scopedStyle';
 export const SSR_COMPONENT_FRAME = ':componentFrame';
+/** Serialized attribute HTML stored on SsrNode for streaming walker emission. */
+export const SSR_ATTR_HTML = ':attrHtml';
+
+/**
+ * Lightweight content node for text, raw HTML, and comments stored in an SsrNode's orderedChildren.
+ * These don't need the full SsrNode infrastructure — just a kind tag and content string.
+ */
+export interface SsrContentChild {
+  kind: SsrNodeKind.Text | SsrNodeKind.RawHtml | SsrNodeKind.Comment;
+  content: string;
+}
+
+/** A child entry in orderedChildren — either a full SsrNode or a lightweight content node. */
+export type SsrChild = ISsrNode | SsrContentChild;
+
+/** Type guard for SsrContentChild (has 'kind' and 'content' but not 'id'). */
+export function isSsrContentChild(child: SsrChild): child is SsrContentChild {
+  return 'kind' in child && !('id' in child);
+}
 
 /**
  * The type of SsrNode for emission purposes.
@@ -104,6 +123,12 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
    * consumers switch to VNode linked list traversal.
    */
   public children: ISsrNode[] | null = null;
+
+  /**
+   * Ordered children for streaming walker emission. Contains ALL children (elements, text, virtual
+   * nodes, raw HTML, comments) in document order. Only populated in treeOnly mode.
+   */
+  public orderedChildren: SsrChild[] | null = null;
 
   constructor(
     parentComponent: ISsrNode | null,
@@ -211,6 +236,14 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
       this.children = [];
     }
     this.children.push(child);
+  }
+
+  /** Add an ordered child for streaming walker emission (treeOnly mode). */
+  addOrderedChild(child: SsrChild): void {
+    if (!this.orderedChildren) {
+      this.orderedChildren = [];
+    }
+    this.orderedChildren.push(child);
   }
 
   setTreeNonUpdatable(): void {

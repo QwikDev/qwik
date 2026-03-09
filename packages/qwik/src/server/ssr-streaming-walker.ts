@@ -5,11 +5,15 @@
  *   elements (open tag + attrs + children + close tag), text (pre-escaped), raw HTML, and comments.
  *   Virtual nodes (fragments, components, projections) produce no HTML — only their children are
  *   emitted.
+ *
+ *   Suspense boundaries are handled specially: the walker emits fallback content wrapped in a
+ *   placeholder div. The actual content is deferred for OoO (out-of-order) streaming.
  */
 
 import {
   SsrNodeKind,
   SSR_ATTR_HTML,
+  SSR_SUSPENSE_PLACEHOLDER_ID,
   isSsrContentChild,
   type SsrChild,
   type SsrContentChild,
@@ -19,7 +23,13 @@ import { isSelfClosingTag } from './tag-nesting';
 import { LT, GT, CLOSE_TAG } from './qwik-copy';
 import { maybeThen } from './qwik-copy';
 
-interface SsrStreamingWalkerOptions {
+/** Suspense boundary info passed from the container to the streaming walker. */
+export interface SuspenseBoundaryInfo {
+  node: ISsrNode;
+  placeholderId: string;
+}
+
+export interface SsrStreamingWalkerOptions {
   writer: StreamWriter;
   /**
    * Node before whose close tag a callback should be invoked. Used for emitting container data
@@ -28,17 +38,33 @@ interface SsrStreamingWalkerOptions {
   containerDataNode?: ISsrNode | null;
   /** Callback invoked before the containerDataNode's close tag. May be async. */
   onBeforeContainerClose?: () => ValueOrPromise<void>;
+  /** Suspense boundaries to handle during emission. */
+  suspenseBoundaries?: SuspenseBoundaryInfo[];
 }
 
 export class SsrStreamingWalker {
   private writer: StreamWriter;
   private containerDataNode: ISsrNode | null;
   private onBeforeContainerClose: (() => ValueOrPromise<void>) | null;
+  /** Set of Suspense boundary nodes for fast lookup. */
+  private suspenseNodes: Set<ISsrNode> | null;
+  /** Map from boundary node to placeholder ID. */
+  private suspensePlaceholderIds: Map<ISsrNode, string> | null;
 
   constructor(options: SsrStreamingWalkerOptions) {
     this.writer = options.writer;
     this.containerDataNode = options.containerDataNode ?? null;
     this.onBeforeContainerClose = options.onBeforeContainerClose ?? null;
+
+    if (options.suspenseBoundaries && options.suspenseBoundaries.length > 0) {
+      this.suspenseNodes = new Set(options.suspenseBoundaries.map((b) => b.node));
+      this.suspensePlaceholderIds = new Map(
+        options.suspenseBoundaries.map((b) => [b.node, b.placeholderId])
+      );
+    } else {
+      this.suspenseNodes = null;
+      this.suspensePlaceholderIds = null;
+    }
   }
 
   /** Emit all HTML for the given root node (the container element). */
@@ -60,6 +86,8 @@ export class SsrStreamingWalker {
     switch ((ssrNode as any).nodeKind) {
       case SsrNodeKind.Element:
         return this.emitElement(ssrNode);
+      case SsrNodeKind.Suspense:
+        return this.emitSuspenseBoundary(ssrNode);
       case SsrNodeKind.Virtual:
       case SsrNodeKind.Component:
       case SsrNodeKind.Projection:
@@ -95,6 +123,28 @@ export class SsrStreamingWalker {
     });
   }
 
+  /**
+   * Emit a Suspense boundary. If the boundary has deferred children (is in the suspenseBoundaries
+   * list), emit the fallback wrapped in a placeholder div. Otherwise emit children inline.
+   */
+  private emitSuspenseBoundary(node: ISsrNode): ValueOrPromise<void> {
+    const isDeferred = this.suspenseNodes?.has(node);
+
+    if (isDeferred) {
+      // Emit fallback wrapped in a placeholder div for OoO replacement
+      const placeholderId =
+        this.suspensePlaceholderIds?.get(node) || node.getProp(SSR_SUSPENSE_PLACEHOLDER_ID);
+      this.write(`<div id="${placeholderId}">`);
+      // Emit fallback content (the boundary's orderedChildren contain the fallback)
+      return maybeThen(this.emitChildren(node), () => {
+        this.write('</div>');
+      });
+    }
+
+    // Not deferred — emit children inline (fast path: Suspense resolved synchronously)
+    return this.emitChildren(node);
+  }
+
   private emitCloseTag(tagName: string): void {
     if (!isSelfClosingTag(tagName)) {
       this.write(CLOSE_TAG);
@@ -119,7 +169,7 @@ export class SsrStreamingWalker {
     }
   }
 
-  private emitChildren(node: ISsrNode): ValueOrPromise<void> {
+  emitChildren(node: ISsrNode): ValueOrPromise<void> {
     const children = (node as any).orderedChildren as SsrChild[] | null;
     if (!children || children.length === 0) {
       return;

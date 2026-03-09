@@ -15,6 +15,7 @@ import {
   SSRRaw,
   SSRStream,
   SSRStreamBlock,
+  Suspense,
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
 import { type SerializationContext } from '../shared/serdes/index';
@@ -265,6 +266,33 @@ function processJSXNode(
           ssr.streamHandler.streamBlockStart();
           enqueue(() => ssr.streamHandler.streamBlockEnd());
           enqueue(jsx.children as JSXOutput);
+        } else if (type === Suspense) {
+          // Create Suspense boundary node. Children are deferred for OoO streaming;
+          // fallback is processed inline and stored on the boundary.
+          const fallback = directGetPropsProxyProp(jsx, 'fallback') as JSXOutput;
+          const suspenseAttrs: Record<string, string | null> = {};
+          if (isDev) {
+            suspenseAttrs[DEBUG_TYPE] = VirtualType.InlineComponent;
+          }
+          ssr.openSuspenseBoundary(suspenseAttrs);
+
+          // Process fallback children inline into the boundary's fallback area
+          enqueue(() => {
+            // After fallback is processed, store deferred children and close boundary
+            ssr.closeSuspenseBoundary();
+          });
+          if (fallback != null) {
+            enqueue(fallback);
+          }
+
+          // Store children JSX for deferred processing (after main walk)
+          const children = jsx.children as JSXOutput;
+          if (children != null) {
+            (ssr as any)._storeSuspenseChildren(children, {
+              currentStyleScoped: options.currentStyleScoped,
+              parentComponentFrame: options.parentComponentFrame,
+            });
+          }
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an object for props, we always modify props for a component
           const componentAttrs: Record<string, string | null> = {};

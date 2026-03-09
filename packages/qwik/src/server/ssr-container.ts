@@ -103,6 +103,10 @@ import {
   SsrNode,
   SsrNodeKind,
   SSR_ATTR_HTML,
+  SSR_SUSPENSE_FALLBACK,
+  SSR_SUSPENSE_CHILDREN_JSX,
+  SSR_SUSPENSE_WALK_OPTIONS,
+  SSR_SUSPENSE_PLACEHOLDER_ID,
   type SsrChild,
 } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
@@ -141,6 +145,22 @@ enum QwikLoaderInclude {
   Module,
   Inline,
   Done,
+}
+
+/** Tracks a Suspense boundary with deferred children for OoO streaming. */
+interface SuspenseBoundary {
+  /** The Suspense boundary SsrNode. */
+  node: ISsrNode;
+  /** Unique placeholder ID for the fallback wrapper div. */
+  placeholderId: string;
+  /** The deferred children JSX to render. */
+  childrenJsx: JSXOutput;
+  /** Walk options (style scope, parent component frame) for rendering children. */
+  walkOptions: { currentStyleScoped: string | null; parentComponentFrame: any };
+  /** The content SsrNode that will hold the rendered children. */
+  contentNode: SsrNode | null;
+  /** Whether the content has been rendered. */
+  resolved: boolean;
 }
 
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
@@ -288,6 +308,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private qlInclude: QwikLoaderInclude;
   private promiseAttributes: Array<Promise<any>> | null = null;
 
+  /** Suspense boundaries with deferred children for OoO streaming. */
+  private suspenseBoundaries: SuspenseBoundary[] = [];
+  /** Counter for generating unique Suspense placeholder IDs. */
+  private suspensePlaceholderCounter = 0;
+  /** Current Suspense boundary node being built (for storing fallback content). */
+  private currentSuspenseBoundary: ISsrNode | null = null;
+
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
@@ -426,10 +453,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
       this.onRenderDone();
       const snapshotTimer = createTimer();
+      const hasSuspense = this.suspenseBoundaries.length > 0;
       const walker = new SsrStreamingWalker({
         writer: this.writer,
         containerDataNode,
-        onBeforeContainerClose: () => {
+        suspenseBoundaries: hasSuspense ? this.suspenseBoundaries : undefined,
+        onBeforeContainerClose: async () => {
+          // Process deferred Suspense children and emit OoO chunks
+          if (hasSuspense) {
+            await this.processDeferredSuspenseContent();
+            this.emitOoOChunks();
+          }
+
           // Push a temporary frame so emitContainerData can open <script> elements
           // with correct HTML nesting validation (scripts must be inside body, not html).
           if (containerDataNode) {
@@ -741,6 +776,61 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       componentFrame.projectionDepth--;
     }
     this.closeFragment();
+  }
+
+  /**
+   * Opens a Suspense boundary node. In treeOnly mode, creates a virtual SsrNode tagged as Suspense.
+   * Fallback content is processed inline by _walkJSX and stored on the boundary node.
+   */
+  openSuspenseBoundary(attrs: Props) {
+    this.openFragment(attrs);
+    const node = this.getOrCreateLastNode();
+    if (this.treeOnly) {
+      (node as SsrNode).nodeKind = SsrNodeKind.Suspense;
+      // Assign a placeholder ID for OoO streaming
+      const placeholderId = `qph-${this.suspensePlaceholderCounter++}`;
+      node.setProp(SSR_SUSPENSE_PLACEHOLDER_ID, placeholderId);
+    }
+    this.currentSuspenseBoundary = node;
+  }
+
+  /**
+   * Closes the Suspense boundary. At this point, fallback content has been processed and is in the
+   * boundary's orderedChildren. Deferred children JSX was stored via _storeSuspenseChildren.
+   */
+  closeSuspenseBoundary() {
+    const boundary = this.currentSuspenseBoundary;
+    if (boundary) {
+      // Store the fallback SsrNode reference for the streaming walker.
+      // The fallback content is already in the boundary's orderedChildren.
+      // We create a wrapper reference so the streaming walker knows what to emit.
+      boundary.setProp(SSR_SUSPENSE_FALLBACK, true);
+      this.currentSuspenseBoundary = null;
+    }
+    this.closeFragment();
+  }
+
+  /**
+   * Stores deferred children JSX on the current Suspense boundary for processing after the main
+   * walk completes. Called from _walkJSX when encountering Suspense.
+   */
+  _storeSuspenseChildren(
+    childrenJsx: JSXOutput,
+    walkOptions: { currentStyleScoped: string | null; parentComponentFrame: any }
+  ) {
+    const boundary = this.currentSuspenseBoundary;
+    if (!boundary) {
+      return;
+    }
+    const placeholderId = boundary.getProp(SSR_SUSPENSE_PLACEHOLDER_ID);
+    this.suspenseBoundaries.push({
+      node: boundary,
+      placeholderId,
+      childrenJsx,
+      walkOptions: { ...walkOptions },
+      contentNode: null,
+      resolved: false,
+    });
   }
 
   /** Writes opening data to vNodeData for component boundaries */
@@ -1501,6 +1591,95 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.promiseAttributes) {
       await Promise.all(this.promiseAttributes);
       this.promiseAttributes = null;
+    }
+  }
+
+  /**
+   * Process deferred Suspense children. Called from onBeforeContainerClose after the main tree has
+   * been streamed. Each boundary's children are rendered sequentially via _walkJSX into a content
+   * SsrNode subtree that is then used for OoO chunk emission.
+   */
+  private async processDeferredSuspenseContent() {
+    for (const boundary of this.suspenseBoundaries) {
+      // Create a content SsrNode to hold the rendered children
+      const contentNode = new SsrNode(
+        null, // parentComponent
+        `sus-${boundary.placeholderId}`,
+        -1, // no attributes index
+        this.cleanupQueue,
+        [VNodeDataFlag.NONE] as VNodeData,
+        null // currentFile
+      );
+      contentNode.nodeKind = SsrNodeKind.Virtual;
+      boundary.contentNode = contentNode;
+
+      // Set up frame context so _walkJSX adds children to the content node.
+      // We bypass createAndPushFrame's tag nesting validation since deferred content
+      // is emitted inside a <template>, not in the normal HTML context.
+      this.treeOnly = true;
+      const deferredFrame: ElementFrame = {
+        tagNesting: TagNesting.ANYTHING,
+        parent: this.currentElementFrame,
+        elementName: 'template',
+        depthFirstElementIdx: -1,
+        vNodeData: [VNodeDataFlag.NONE] as VNodeData,
+        currentFile: null,
+        ssrNode: contentNode,
+      };
+      this.currentElementFrame = deferredFrame;
+      this.vNodeDatas.push(deferredFrame.vNodeData);
+
+      try {
+        await _walkJSX(this, boundary.childrenJsx, boundary.walkOptions);
+        boundary.resolved = true;
+      } catch (err) {
+        this.handleError(err, boundary.node as any);
+      }
+
+      this.currentElementFrame = deferredFrame.parent;
+      this.treeOnly = false;
+    }
+  }
+
+  /**
+   * Emit OoO (out-of-order) chunks for all Suspense boundaries. Each chunk contains:
+   *
+   * 1. A `<template>` with the actual content HTML
+   * 2. A `<script>` that swaps the placeholder with the content
+   */
+  private emitOoOChunks() {
+    for (const boundary of this.suspenseBoundaries) {
+      if (!boundary.resolved || !boundary.contentNode) {
+        continue;
+      }
+
+      const placeholderId = boundary.placeholderId;
+      const templateId = `qooo-${placeholderId}`;
+
+      // Emit <template id="qooo-qph-N"> with actual content
+      this.writer.write(`<template id="${templateId}">`);
+      // Emit content HTML using a mini streaming walker
+      const contentWalker = new SsrStreamingWalker({
+        writer: this.writer,
+      });
+      // emitChildren walks orderedChildren — synchronous for already-built trees
+      const emitResult = contentWalker.emitTree(boundary.contentNode);
+      if (isPromise(emitResult)) {
+        // Shouldn't happen for already-built trees, but handle gracefully
+        throw new Error('Unexpected async in OoO content emission');
+      }
+      this.writer.write('</template>');
+
+      // Emit swap script
+      const nonce = this.renderOptions.serverData?.nonce;
+      const nonceAttr = nonce ? ` nonce="${nonce}"` : '';
+      this.writer.write(
+        `<script${nonceAttr}>(function(){` +
+          `var t=document.getElementById("${templateId}");` +
+          `var p=document.getElementById("${placeholderId}");` +
+          `if(t&&p){p.replaceWith(t.content);t.remove()}` +
+          `})()</script>`
+      );
     }
   }
 }

@@ -39,6 +39,14 @@ export const SSR_SCOPED_STYLE = ':scopedStyle';
 export const SSR_COMPONENT_FRAME = ':componentFrame';
 /** Serialized attribute HTML stored on SsrNode for streaming walker emission. */
 export const SSR_ATTR_HTML = ':attrHtml';
+/** Suspense fallback SsrNode stored on the boundary node. */
+export const SSR_SUSPENSE_FALLBACK = ':suspenseFallback';
+/** Suspense deferred children JSX stored on the boundary node. */
+export const SSR_SUSPENSE_CHILDREN_JSX = ':suspenseChildrenJsx';
+/** Suspense walk options stored on the boundary node. */
+export const SSR_SUSPENSE_WALK_OPTIONS = ':suspenseWalkOptions';
+/** Suspense placeholder ID for OoO streaming. */
+export const SSR_SUSPENSE_PLACEHOLDER_ID = ':suspensePlaceholderId';
 
 /**
  * Lightweight content node for text, raw HTML, and comments stored in an SsrNode's orderedChildren.
@@ -77,6 +85,8 @@ export const enum SsrNodeKind {
   RawHtml = 5,
   /** Comment */
   Comment = 6,
+  /** Suspense boundary */
+  Suspense = 7,
 }
 
 /**

@@ -107,6 +107,9 @@ export interface SSRContainer extends Container {
 
   emitQwikLoaderAtTopIfNeeded(): void;
 
+  openSuspenseBoundary(attrs: Props): void;
+  closeSuspenseBoundary(): void;
+
   emitPatchDataIfNeeded(): void;
 
   addBackpatchEntry(

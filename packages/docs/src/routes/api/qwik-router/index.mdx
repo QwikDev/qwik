@@ -1193,14 +1193,6 @@ export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-<h2 id="menudata">MenuData</h2>
-
-```typescript
-export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
-
 <h2 id="navigationtype_2">NavigationType_2</h2>
 
 ```typescript
@@ -1450,23 +1442,6 @@ boolean
 </td><td>
 
 _(Optional)_ When true, return null instead of rendering the 404 page, letting the adapter handle it
-
-</td></tr>
-<tr><td>
-
-[menus?](./router.qwikrouterconfig.menus.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-[MenuData](#menudata)[]
-
-</td><td>
-
-_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -2124,6 +2099,21 @@ _(Optional)_ This node's layout loader (single). Runtime accumulates these durin
 </td><td>
 
 _(Optional)_ Group (pathless layout) nodes merged into this level, sorted by group name
+
+</td></tr>
+<tr><td>
+
+[\_N?](./router.routedata._n.md)
+
+</td><td>
+
+</td><td>
+
+MenuModuleLoader
+
+</td><td>
+
+_(Optional)_ Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal.
 
 </td></tr>
 <tr><td>

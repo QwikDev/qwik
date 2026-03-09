@@ -273,11 +273,6 @@ export { Loader_2 as Loader }
 // @public (undocumented)
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
 
-// Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
-
 // @public (undocumented)
 type NavigationType_2 = 'initial' | 'form' | 'link' | 'popstate';
 export { NavigationType_2 as NavigationType }
@@ -329,8 +324,6 @@ export interface QwikRouterConfig {
     // (undocumented)
     readonly cacheModules?: boolean;
     readonly fallthrough?: boolean;
-    // (undocumented)
-    readonly menus?: MenuData[];
     // (undocumented)
     readonly routes: RouteData;
     // (undocumented)
@@ -430,7 +423,7 @@ export interface RouteData {
     _0?: string;
     _4?: ContentModuleLoader;
     _9?: string;
-    [part: string]: RouteData | RouteData[] | ModuleLoader[] | ContentModuleLoader | string[] | string | undefined;
+    [part: string]: RouteData | RouteData[] | ModuleLoader[] | ContentModuleLoader | MenuModuleLoader | string[] | string | undefined;
     _B?: string[];
     _E?: ContentModuleLoader;
     _G?: string;
@@ -439,6 +432,8 @@ export interface RouteData {
     // Warning: (ae-forgotten-export) The symbol "ContentModuleLoader" needs to be exported by the entry point index.d.ts
     _L?: ContentModuleLoader;
     _M?: RouteData[];
+    // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
+    _N?: MenuModuleLoader;
     _P?: string;
 }
 

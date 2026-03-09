@@ -1,5 +1,11 @@
 import type { QwikManifest, QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import { isModuleExt, isPageExt, removeExtension, parseRouteIndexName } from '../../utils/fs';
+import {
+  createFileId,
+  isModuleExt,
+  isPageExt,
+  removeExtension,
+  parseRouteIndexName,
+} from '../../utils/fs';
 import type { BuildTrieNode, BuiltRoute, RoutingContext, RouteSourceFile } from '../types';
 import { getImportPath } from './utils';
 
@@ -22,7 +28,8 @@ function isGroupKey(key: string) {
  *
  * - Layout imports and lazy loaders
  * - Route/page imports and lazy loaders
- * - The route trie object literal with _L, _I, _G, _B, _4, _E, _P, _0, _9, _M
+ * - Menu imports and lazy loaders
+ * - The route trie object literal with _L, _I, _G, _B, _4, _E, _N, _P, _0, _9, _M
  */
 export function createRoutes(
   ctx: RoutingContext,
@@ -34,9 +41,10 @@ export function createRoutes(
   const includeEndpoints = isSSR;
   const dynamicImports = ctx.dynamicImports;
 
-  // First pass: collect all layout and route file IDs, emit imports
+  // First pass: collect all layout, route, and menu file IDs, emit imports
   const layoutIdMap = new Map<string, string>(); // filePath → varName
   const routeIdMap = new Map<string, string>(); // filePath → loader expression
+  const menuIdMap = new Map<string, string>(); // filePath → varName
 
   // Track error/404 files per trie path for precedence warnings
   const errorFiles = new Map<string, string>();
@@ -44,6 +52,7 @@ export function createRoutes(
 
   let layoutCount = 0;
   let routeCount = 0;
+  let menuCount = 0;
 
   // Collect all files from the trie
   collectFiles(ctx.routeTrie, (file, _node) => {
@@ -58,6 +67,10 @@ export function createRoutes(
       if (route) {
         routeCount++;
       }
+    } else if (file.type === 'menu') {
+      const id = createFileId(ctx.opts.routesDir, file.filePath);
+      menuIdMap.set(file.filePath, id);
+      menuCount++;
     }
   });
 
@@ -65,6 +78,20 @@ export function createRoutes(
   if (layoutCount > 0) {
     c.push(`\n/** Qwik Router Layouts (${layoutCount}) */`);
     for (const [filePath, id] of layoutIdMap) {
+      const importPath = JSON.stringify(getImportPath(filePath));
+      if (dynamicImports) {
+        c.push(`const ${id} = ()=>import(${importPath});`);
+      } else {
+        esmImports.push(`import * as ${id}_ from ${importPath};`);
+        c.push(`const ${id} = ()=>${id}_;`);
+      }
+    }
+  }
+
+  // Emit menu imports
+  if (menuCount > 0) {
+    c.push(`\n/** Qwik Router Menus (${menuCount}) */`);
+    for (const [filePath, id] of menuIdMap) {
       const importPath = JSON.stringify(getImportPath(filePath));
       if (dynamicImports) {
         c.push(`const ${id} = ()=>import(${importPath});`);
@@ -102,6 +129,7 @@ export function createRoutes(
     ctx.routeTrie,
     layoutIdMap,
     routeIdMap,
+    menuIdMap,
     errorFiles,
     notFoundFiles,
     [],
@@ -154,6 +182,7 @@ function serializeBuildTrie(
   node: BuildTrieNode,
   layoutIdMap: Map<string, string>,
   routeIdMap: Map<string, string>,
+  menuIdMap: Map<string, string>,
   errorFiles: Map<string, string>,
   notFoundFiles: Map<string, string>,
   ancestorLayouts: LayoutInfo[],
@@ -185,13 +214,19 @@ function serializeBuildTrie(
   let indexIsOverride = false;
   let errorExpr: string | undefined;
   let notFoundExpr: string | undefined;
+  let menuExpr: string | undefined;
   let bundleRoute: BuiltRoute | undefined;
 
   // Collect layout info for this node
   const nodeLayouts: LayoutInfo[] = [];
 
   for (const file of node._files) {
-    if (file.type === 'layout') {
+    if (file.type === 'menu') {
+      const menuId = menuIdMap.get(file.filePath);
+      if (menuId) {
+        menuExpr = menuId;
+      }
+    } else if (file.type === 'layout') {
       const layoutId = layoutIdMap.get(file.filePath);
       if (layoutId) {
         layoutExpr = layoutId;
@@ -273,12 +308,15 @@ function serializeBuildTrie(
     }
   }
 
-  // Emit _E and _4
+  // Emit _E, _4, _N
   if (errorExpr) {
     lines.push(`${nextIndent}_E: ${errorExpr},`);
   }
   if (notFoundExpr) {
     lines.push(`${nextIndent}_4: ${notFoundExpr},`);
+  }
+  if (menuExpr) {
+    lines.push(`${nextIndent}_N: ${menuExpr},`);
   }
 
   // Build ancestor stack for children: include this node's layouts
@@ -306,6 +344,7 @@ function serializeBuildTrie(
         child,
         layoutIdMap,
         routeIdMap,
+        menuIdMap,
         errorFiles,
         notFoundFiles,
         childAncestors,
@@ -325,6 +364,7 @@ function serializeBuildTrie(
       child,
       layoutIdMap,
       routeIdMap,
+      menuIdMap,
       errorFiles,
       notFoundFiles,
       childAncestors,

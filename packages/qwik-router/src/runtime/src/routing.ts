@@ -4,9 +4,8 @@ import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
   type LoadedRoute,
-  type MenuData,
-  MenuDataProp,
   type MenuModule,
+  type MenuModuleLoader,
   type ModuleLoader,
   type PathParams,
   type RouteData,
@@ -16,14 +15,13 @@ import {
 /** LoadRoute() runs in both client and server. */
 export const loadRoute = async (
   routes: RouteData | undefined,
-  menus: MenuData[] | undefined,
   cacheModules: boolean | undefined,
   pathname: string,
   isInternal?: boolean
 ): Promise<LoadedRoute> => {
   const result = matchRouteTree(routes, pathname);
 
-  const { loaders, params, routeParts, notFound, routeBundleNames } = result;
+  const { loaders, params, routeParts, notFound, routeBundleNames, menuLoader } = result;
 
   const routeName = '/' + routeParts.join('/');
 
@@ -42,8 +40,6 @@ export const loadRoute = async (
   let menu: ContentMenu | undefined = undefined;
   // No need to load menu for internal QData requests
   if (!isInternal) {
-    const menuLoader = getMenuLoader(menus, pathname);
-
     loadModule<MenuModule>(
       menuLoader,
       pendingLoads,
@@ -132,7 +128,8 @@ function collectNodeMeta(
   node: RouteData,
   groups: RouteData[],
   layouts: ModuleLoader[],
-  errorLoaderRef: { v: ModuleLoader | undefined }
+  errorLoaderRef: { v: ModuleLoader | undefined },
+  menuLoaderRef: { v: MenuModuleLoader | undefined }
 ) {
   for (const g of groups) {
     if (g._L) {
@@ -143,6 +140,9 @@ function collectNodeMeta(
     } else if (g._4) {
       errorLoaderRef.v = g._4;
     }
+    if (g._N) {
+      menuLoaderRef.v = g._N;
+    }
   }
   if (node._L) {
     layouts.push(node._L);
@@ -151,6 +151,9 @@ function collectNodeMeta(
     errorLoaderRef.v = node._E;
   } else if (node._4) {
     errorLoaderRef.v = node._4;
+  }
+  if (node._N) {
+    menuLoaderRef.v = node._N;
   }
 }
 
@@ -283,14 +286,16 @@ function matchRouteTree(
   routeParts: string[];
   notFound: boolean;
   routeBundleNames: string[] | undefined;
+  menuLoader: MenuModuleLoader | undefined;
 } {
   let node: RouteData = root;
   const params: PathParams = {};
   const routeParts: string[] = [];
   const layouts: ModuleLoader[] = [];
   const errorLoaderRef: { v: ModuleLoader | undefined } = { v: undefined };
+  const menuLoaderRef: { v: MenuModuleLoader | undefined } = { v: undefined };
 
-  // Collect root layout and error loader (including from root's _M groups)
+  // Collect root layout, error loader, and menu loader
   if (root._L) {
     layouts.push(root._L);
   }
@@ -298,6 +303,9 @@ function matchRouteTree(
     errorLoaderRef.v = root._E;
   } else if (root._4) {
     errorLoaderRef.v = root._4;
+  }
+  if (root._N) {
+    menuLoaderRef.v = root._N;
   }
 
   let done = false;
@@ -321,7 +329,7 @@ function matchRouteTree(
     routeParts.push(found.routePart);
     done = found.done;
     node = found.next;
-    collectNodeMeta(node, found.groups, layouts, errorLoaderRef);
+    collectNodeMeta(node, found.groups, layouts, errorLoaderRef, menuLoaderRef);
   }
 
   // If we consumed all parts but the current node has no _I,
@@ -337,13 +345,22 @@ function matchRouteTree(
       if (node._L) {
         layouts.push(node._L);
       }
+      if (node._N) {
+        menuLoaderRef.v = node._N;
+      }
     }
 
     // Check if _I is in a group child (e.g. (common)/index.tsx is the root "/" route)
     if (!node._I && !node._G) {
       const indexResult = findIndexNode(node);
       if (indexResult) {
-        collectNodeMeta(indexResult.target, indexResult.groups, layouts, errorLoaderRef);
+        collectNodeMeta(
+          indexResult.target,
+          indexResult.groups,
+          layouts,
+          errorLoaderRef,
+          menuLoaderRef
+        );
         node = indexResult.target;
       }
     }
@@ -360,6 +377,7 @@ function matchRouteTree(
       routeParts,
       notFound: true,
       routeBundleNames: undefined,
+      menuLoader: menuLoaderRef.v,
     };
   }
 
@@ -369,6 +387,7 @@ function matchRouteTree(
     routeParts,
     notFound: false,
     routeBundleNames: node._B as string[] | undefined,
+    menuLoader: menuLoaderRef.v,
   };
 }
 
@@ -396,19 +415,6 @@ const loadModule = <T>(
       } else if (moduleOrPromise) {
         moduleSetter(moduleOrPromise);
       }
-    }
-  }
-};
-
-export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
-  if (menus) {
-    pathname = pathname.endsWith('/') ? pathname : pathname + '/';
-    // The menus are sorted longest to shortest so first match wins
-    const menu = menus.find(
-      (m) => m[MenuDataProp.Pathname] === pathname || pathname.startsWith(m[MenuDataProp.Pathname])
-    );
-    if (menu) {
-      return menu[MenuDataProp.MenuLoader];
     }
   }
 };

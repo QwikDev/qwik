@@ -308,23 +308,18 @@ export interface RouteData {
   _9?: string;
   /** Group (pathless layout) nodes merged into this level, sorted by group name */
   _M?: RouteData[];
+  /** Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal. */
+  _N?: MenuModuleLoader;
   /** Child route segments (any key not starting with `_`) */
   [part: string]:
     | RouteData
     | RouteData[]
     | ModuleLoader[]
     | ContentModuleLoader
+    | MenuModuleLoader
     | string[]
     | string
     | undefined;
-}
-
-/** @public */
-export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
-
-export const enum MenuDataProp {
-  Pathname,
-  MenuLoader,
 }
 
 /**
@@ -338,7 +333,6 @@ export interface QwikRouterConfig {
   readonly routes: RouteData;
   readonly serverPlugins?: RouteModule[];
   readonly basePathname?: string;
-  readonly menus?: MenuData[];
   readonly trailingSlash?: boolean;
   readonly cacheModules?: boolean;
   /** When true, return null instead of rendering the 404 page, letting the adapter handle it */

@@ -1,6 +1,6 @@
 import { assert, describe, test } from 'vitest';
-import { getMenuLoader, loadRoute } from './routing';
-import type { MenuData, ModuleLoader, RouteData } from './types';
+import { loadRoute } from './routing';
+import type { MenuModuleLoader, ModuleLoader, RouteData } from './types';
 import { LoadedRouteProp } from './types';
 
 // A minimal sync module loader for testing.
@@ -147,7 +147,7 @@ describe('loadRoute — pattern matching', () => {
   for (const t of routeTests) {
     test(`${t.pattern} matches ${t.pathname}`, async () => {
       const routes = buildTree(t.pattern);
-      const result = await loadRoute(routes, undefined, false, t.pathname);
+      const result = await loadRoute(routes, false, t.pathname);
       assert.isFalse(result[LoadedRouteProp.NotFound], `Expected a match for ${t.pathname}`);
       assert.deepEqual(result[LoadedRouteProp.Params], t.result);
     });
@@ -159,40 +159,40 @@ describe('loadRoute — pattern matching', () => {
 describe('loadRoute — infix params', () => {
   test('pre[slug]post matches preHELLOpost', async () => {
     const routes = buildTree('/a/pre[slug]post');
-    const result = await loadRoute(routes, undefined, false, '/a/preHELLOpost');
+    const result = await loadRoute(routes, false, '/a/preHELLOpost');
     assert.isFalse(result[LoadedRouteProp.NotFound]);
     assert.deepEqual(result[LoadedRouteProp.Params], { slug: 'HELLO' });
   });
 
   test('pre[slug]post does not match empty value', async () => {
     const routes = buildTree('/a/pre[slug]post');
-    const result = await loadRoute(routes, undefined, false, '/a/prepost');
+    const result = await loadRoute(routes, false, '/a/prepost');
     assert.isTrue(result[LoadedRouteProp.NotFound]);
   });
 
   test('[slug].json matches foo.json (suffix only)', async () => {
     const routes = buildTree('/api/[slug].json');
-    const result = await loadRoute(routes, undefined, false, '/api/foo.json');
+    const result = await loadRoute(routes, false, '/api/foo.json');
     assert.isFalse(result[LoadedRouteProp.NotFound]);
     assert.deepEqual(result[LoadedRouteProp.Params], { slug: 'foo' });
   });
 
   test('prefix-only: img_[id] matches img_123', async () => {
     const routes = buildTree('/files/img_[id]');
-    const result = await loadRoute(routes, undefined, false, '/files/img_123');
+    const result = await loadRoute(routes, false, '/files/img_123');
     assert.isFalse(result[LoadedRouteProp.NotFound]);
     assert.deepEqual(result[LoadedRouteProp.Params], { id: '123' });
   });
 
   test('infix routeName is reconstructed correctly', async () => {
     const routes = buildTree('/a/pre[slug]post');
-    const result = await loadRoute(routes, undefined, false, '/a/preVALUEpost');
+    const result = await loadRoute(routes, false, '/a/preVALUEpost');
     assert.equal(result[LoadedRouteProp.RouteName], '/a/pre[slug]post');
   });
 
   test('infix is case-insensitive for prefix/suffix', async () => {
     const routes = buildTree('/a/Pre[slug]Post');
-    const result = await loadRoute(routes, undefined, false, '/a/preVALUEpost');
+    const result = await loadRoute(routes, false, '/a/preVALUEpost');
     assert.isFalse(result[LoadedRouteProp.NotFound]);
     assert.deepEqual(result[LoadedRouteProp.Params], { slug: 'VALUE' });
   });
@@ -202,26 +202,26 @@ describe('loadRoute — infix params', () => {
 
 test('loadRoute — exact static match', async () => {
   const routes = buildTree('/blog/posts');
-  const result = await loadRoute(routes, undefined, false, '/blog/posts');
+  const result = await loadRoute(routes, false, '/blog/posts');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   assert.deepEqual(result[LoadedRouteProp.Params], {});
 });
 
 test('loadRoute — case-insensitive exact match', async () => {
   const routes = buildTree('/Blog/Posts');
-  const result = await loadRoute(routes, undefined, false, '/BLOG/POSTS');
+  const result = await loadRoute(routes, false, '/BLOG/POSTS');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
 });
 
 test('loadRoute — no match returns notFound=true', async () => {
   const routes = buildTree('/blog');
-  const result = await loadRoute(routes, undefined, false, '/news');
+  const result = await loadRoute(routes, false, '/news');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
 });
 
 test('loadRoute — root route matches /', async () => {
   const routes = buildTree('/');
-  const result = await loadRoute(routes, undefined, false, '/');
+  const result = await loadRoute(routes, false, '/');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   assert.deepEqual(result[LoadedRouteProp.Params], {});
 });
@@ -234,7 +234,7 @@ test('loadRoute — 404 fallback used when no route matches', async () => {
     _4: notFoundLoader,
     blog: buildTree('/blog'),
   };
-  const result = await loadRoute(routes, undefined, false, '/does-not-exist');
+  const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
   assert.deepEqual(result[LoadedRouteProp.Mods], [sentinel]);
 });
@@ -249,7 +249,7 @@ test('loadRoute — _E takes precedence over _4', async () => {
     _4: notFoundLoader,
     blog: buildTree('/blog'),
   };
-  const result = await loadRoute(routes, undefined, false, '/does-not-exist');
+  const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
   assert.deepEqual(result[LoadedRouteProp.Mods], [errorSentinel]);
 });
@@ -271,7 +271,7 @@ test('loadRoute — deeper _4 takes precedence over root _4', async () => {
     },
   };
   // /blog/does-not-exist-deeply/extra: navigates into `blog`, `_W` matches, then fails → blog's _4
-  const result = await loadRoute(routes, undefined, false, '/blog/does-not-exist-deeply/extra');
+  const result = await loadRoute(routes, false, '/blog/does-not-exist-deeply/extra');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
   assert.deepEqual(result[LoadedRouteProp.Mods], [blogSentinel]);
 });
@@ -282,7 +282,7 @@ test('loadRoute — 404 result has no layout modules', async () => {
   const routes: RouteData = {
     _4: notFoundLoader,
   };
-  const result = await loadRoute(routes, undefined, false, '/anything');
+  const result = await loadRoute(routes, false, '/anything');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
   // Only the error component, no layouts
   assert.equal(result[LoadedRouteProp.Mods].length, 1);
@@ -291,14 +291,14 @@ test('loadRoute — 404 result has no layout modules', async () => {
 
 test('loadRoute — routeName is constructed from matched path parts', async () => {
   const routes = buildTree('/blog/[slug]');
-  const result = await loadRoute(routes, undefined, false, '/blog/my-post');
+  const result = await loadRoute(routes, false, '/blog/my-post');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   assert.equal(result[LoadedRouteProp.RouteName], '/blog/[slug]');
 });
 
 test('loadRoute — rest param captures all remaining segments', async () => {
   const routes = buildTree('/docs/[...path]');
-  const result = await loadRoute(routes, undefined, false, '/docs/a/b/c/d');
+  const result = await loadRoute(routes, false, '/docs/a/b/c/d');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   assert.deepEqual(result[LoadedRouteProp.Params], { path: 'a/b/c/d' });
 });
@@ -319,7 +319,7 @@ test('loadRoute — _L accumulated from ancestors', async () => {
       },
     },
   };
-  const result = await loadRoute(routes, undefined, false, '/blog/my-post');
+  const result = await loadRoute(routes, false, '/blog/my-post');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   // Should have rootLayout, blogLayout, pageLoader
   assert.equal(result[LoadedRouteProp.Mods].length, 3);
@@ -336,7 +336,7 @@ test('loadRoute — _I array overrides gathered layouts', async () => {
       _I: [customLayout, pageLoader],
     },
   };
-  const result = await loadRoute(routes, undefined, false, '/blog');
+  const result = await loadRoute(routes, false, '/blog');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   // Only the 2 loaders from the array, NOT rootLayout
   assert.equal(result[LoadedRouteProp.Mods].length, 2);
@@ -358,7 +358,7 @@ test('loadRoute — _G static rewrite resolves target loaders', async () => {
       },
     },
   };
-  const result = await loadRoute(routes, undefined, false, '/es/acerca-de');
+  const result = await loadRoute(routes, false, '/es/acerca-de');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   // Should load rootLayout + pageLoader from the /about/ target
   assert.equal(result[LoadedRouteProp.Mods].length, 2);
@@ -382,7 +382,7 @@ test('loadRoute — _G with params preserves captured params', async () => {
       },
     },
   };
-  const result = await loadRoute(routes, undefined, false, '/es/blog/my-post');
+  const result = await loadRoute(routes, false, '/es/blog/my-post');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   assert.deepEqual(result[LoadedRouteProp.Params], { slug: 'my-post' });
 });
@@ -395,7 +395,7 @@ test('loadRoute — _G target not found returns 404', async () => {
       },
     },
   };
-  const result = await loadRoute(routes, undefined, false, '/es/about');
+  const result = await loadRoute(routes, false, '/es/about');
   assert.isTrue(result[LoadedRouteProp.NotFound]);
 });
 
@@ -410,7 +410,7 @@ test('loadRoute — _M group: index inside group matches root /', async () => {
       },
     ],
   };
-  const result = await loadRoute(routes, undefined, false, '/');
+  const result = await loadRoute(routes, false, '/');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
 });
 
@@ -425,7 +425,7 @@ test('loadRoute — _M group: layout in group is NOT duplicated', async () => {
       },
     ],
   };
-  const result = await loadRoute(routes, undefined, false, '/');
+  const result = await loadRoute(routes, false, '/');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   // Should have groupLayout + pageLoader = 2 modules, NOT 3 (no duplication)
   assert.equal(result[LoadedRouteProp.Mods].length, 2);
@@ -444,80 +444,102 @@ test('loadRoute — _M group: child route found inside group', async () => {
       },
     ],
   };
-  const result = await loadRoute(routes, undefined, false, '/blog');
+  const result = await loadRoute(routes, false, '/blog');
   assert.isFalse(result[LoadedRouteProp.NotFound]);
   // groupLayout + pageLoader
   assert.equal(result[LoadedRouteProp.Mods].length, 2);
 });
 
-// ─── getMenuLoader tests ───────────────────────────────────────────────────────
+// ─── Menu (_N) trie tests ───────────────────────────────────────────────────────
 
-test(`getMenuLoader, crawl up root, trailing slash`, async () => {
-  const menus: MenuData[] = [
-    ['/foo/bar/', async () => ({ default: { text: 'Bar' } })],
-    ['/foo/', async () => ({ default: { text: 'Foo' } })],
-    ['/', async () => ({ default: { text: 'Root' } })],
-  ];
-  const loader = getMenuLoader(menus, '/a/b/c/');
-  assert.deepEqual(await loader!(), { default: { text: 'Root' } });
+test('loadRoute — _N menu from ancestor is used for child route', async () => {
+  const menuLoader: MenuModuleLoader = async () => ({ default: { text: 'Docs Menu' } });
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    docs: {
+      _N: menuLoader,
+      intro: {
+        _I: pageLoader,
+      },
+    },
+  };
+  const result = await loadRoute(routes, false, '/docs/intro');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Menu], { text: 'Docs Menu' });
 });
 
-test(`getMenuLoader, crawl up root, no trailing slash`, async () => {
-  const menus: MenuData[] = [
-    ['/foo/bar/', async () => ({ default: { text: 'Bar' } })],
-    ['/foo/', async () => ({ default: { text: 'Foo' } })],
-    ['/', async () => ({ default: { text: 'Root' } })],
-  ];
-  const loader = getMenuLoader(menus, '/a/b/c');
-  assert.deepEqual(await loader!(), { default: { text: 'Root' } });
+test('loadRoute — deeper _N overrides ancestor _N', async () => {
+  const rootMenu: MenuModuleLoader = async () => ({ default: { text: 'Root' } });
+  const docsMenu: MenuModuleLoader = async () => ({ default: { text: 'Docs' } });
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _N: rootMenu,
+    docs: {
+      _N: docsMenu,
+      intro: {
+        _I: pageLoader,
+      },
+    },
+  };
+  const result = await loadRoute(routes, false, '/docs/intro');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Menu], { text: 'Docs' });
 });
 
-test(`getMenuLoader, crawl up one, trailing slash`, async () => {
-  const menus: MenuData[] = [
-    ['/foo/bar/', async () => ({ default: { text: 'Bar' } })],
-    ['/foo/', async () => ({ default: { text: 'Foo' } })],
-    ['/', async () => ({ default: { text: 'Root' } })],
-  ];
-  const loader = getMenuLoader(menus, '/foo/no-menu/');
-  assert.deepEqual(await loader!(), { default: { text: 'Foo' } });
+test('loadRoute — root _N used when no deeper menu exists', async () => {
+  const rootMenu: MenuModuleLoader = async () => ({ default: { text: 'Root' } });
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _N: rootMenu,
+    blog: {
+      _I: pageLoader,
+    },
+  };
+  const result = await loadRoute(routes, false, '/blog');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Menu], { text: 'Root' });
 });
 
-test(`getMenuLoader, crawl up one, no trailing slash`, async () => {
-  const menus: MenuData[] = [
-    ['/foo/bar/', async () => ({ default: { text: 'Bar' } })],
-    ['/foo/', async () => ({ default: { text: 'Foo' } })],
-    ['/', async () => ({ default: { text: 'Root' } })],
-  ];
-  const loader = getMenuLoader(menus, '/foo/no-menu');
-  assert.deepEqual(await loader!(), { default: { text: 'Foo' } });
+test('loadRoute — no _N means no menu', async () => {
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    blog: {
+      _I: pageLoader,
+    },
+  };
+  const result = await loadRoute(routes, false, '/blog');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.isUndefined(result[LoadedRouteProp.Menu]);
 });
 
-test(`getMenuLoader, exact path, trailing slash`, async () => {
-  const menus: MenuData[] = [
-    ['/foo/bar/', async () => ({ default: { text: 'Bar' } })],
-    ['/foo/', async () => ({ default: { text: 'Foo' } })],
-    ['/', async () => ({ default: { text: 'Root' } })],
-  ];
-  const loader = getMenuLoader(menus, '/foo/bar/');
-  assert.deepEqual(await loader!(), { default: { text: 'Bar' } });
+test('loadRoute — _N in _M group is picked up', async () => {
+  const menuLoader: MenuModuleLoader = async () => ({ default: { text: 'Group Menu' } });
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _M: [
+      {
+        _N: menuLoader,
+        blog: {
+          _I: pageLoader,
+        },
+      },
+    ],
+  };
+  const result = await loadRoute(routes, false, '/blog');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Menu], { text: 'Group Menu' });
 });
 
-test(`getMenuLoader, exact path, no trailing slash`, async () => {
-  const menus: MenuData[] = [
-    ['/foo/bar/', async () => ({ default: { text: 'Bar' } })],
-    ['/foo/', async () => ({ default: { text: 'Foo' } })],
-    ['/', async () => ({ default: { text: 'Root' } })],
-  ];
-  const loader = getMenuLoader(menus, '/foo/bar');
-  assert.deepEqual(await loader!(), { default: { text: 'Bar' } });
-});
-
-test(`getMenuLoader, root`, async () => {
-  const menus: MenuData[] = [
-    ['/foo/bar/', async () => ({ default: { text: 'Bar' } })],
-    ['/foo/', async () => ({ default: { text: 'Foo' } })],
-    ['/', async () => ({ default: { text: 'Root' } })],
-  ];
-  const loader = getMenuLoader(menus, '/');
-  assert.deepEqual(await loader!(), { default: { text: 'Root' } });
+test('loadRoute — _N not loaded for internal requests', async () => {
+  const menuLoader: MenuModuleLoader = async () => ({ default: { text: 'Docs' } });
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _N: menuLoader,
+    blog: {
+      _I: pageLoader,
+    },
+  };
+  const result = await loadRoute(routes, false, '/blog', true /* isInternal */);
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.isUndefined(result[LoadedRouteProp.Menu]);
 });

@@ -1,7 +1,7 @@
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
 import { SsrNodeFlags, type Container } from '../types';
-import { ELEMENT_SEQ } from '../utils/markers';
+import { ELEMENT_PROPS, ELEMENT_SEQ } from '../utils/markers';
 import type { ValueOrPromise } from '../utils/types';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { logWarn } from '../utils/log';
@@ -11,6 +11,13 @@ import type { NodeProp } from '../../reactive-primitives/subscription-data';
 import { isSignal, type Signal } from '../../reactive-primitives/signal.public';
 import { executeCompute } from './chore-execution';
 import { isPromise } from '../utils/promises';
+import { type Props } from '../jsx/jsx-runtime';
+import type { EachProps } from '../../control-flow/each';
+import { _getProps } from '../jsx/props-proxy';
+import type { QRLInternal } from '../qrl/qrl-class';
+import type { JSXNode } from '../jsx/types/jsx-node';
+import { _jsxSorted } from '../../internal';
+import { untrack } from '../../use/use-core';
 
 /** @internal */
 export function _executeSsrChores(
@@ -49,6 +56,11 @@ export function _executeSsrChores(
     if (isPromise(result)) {
       promise = result;
     }
+  }
+
+  if (ssrNode.dirty & ChoreBits.RECONCILE) {
+    const result = executeReconcileChore(container, ssrNode);
+    promise = promise ? promise.then(() => result) : result;
   }
 
   // In SSR, we don't handle the COMPONENT bit here.
@@ -106,4 +118,42 @@ export function executeNodePropChore(container: SSRContainer, ssrNode: ISsrNode)
     const serializedValue = serializeAttribute(property, value, nodeProp.scopedStyleIdPrefix);
     container.addBackpatchEntry(ssrNode.id, property, serializedValue);
   }
+}
+
+export async function executeReconcileChore(
+  container: SSRContainer,
+  ssrNode: ISsrNode
+): Promise<void> {
+  ssrNode.dirty &= ~ChoreBits.RECONCILE;
+  const host = ssrNode;
+  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+  if (!props) {
+    return;
+  }
+  let items = _getProps(props, 'items' satisfies keyof EachProps<any>) as any[];
+  if (isSignal(items)) {
+    items = untrack(items) as any[];
+  }
+  const keyOf = (await (
+    _getProps(props, 'key$' satisfies keyof EachProps<any>) as QRLInternal<
+      (item: any, index: number) => string
+    >
+  ).resolve()) as (item: any, index: number) => string;
+  const itemFn = (await (
+    _getProps(props, 'item$' satisfies keyof EachProps<any>) as QRLInternal<(item: any) => JSXNode>
+  ).resolve()) as (item: any) => JSXNode;
+  const children: JSXNode[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const jsx = itemFn(item)!;
+    const key = keyOf(item, i);
+    jsx.key = key;
+    // const child = _jsxSorted(Fragment, null, null, jsx, 0, key);
+    children.push(jsx);
+  }
+  // container.serializationCtx.$addRoot$(ssrNode);
+  await container.renderJSX(children, {
+    currentStyleScoped: null,
+    parentComponentFrame: container.getComponentFrame(0),
+  });
 }

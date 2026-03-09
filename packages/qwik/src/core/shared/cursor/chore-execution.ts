@@ -25,12 +25,15 @@ import {
   NODE_PROPS_DATA_KEY,
   type CursorData,
 } from './cursor-props';
-import { invoke, newInvokeContext } from '../../use/use-core';
+import { invoke, newInvokeContext, untrack } from '../../use/use-core';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SignalFlags } from '../../reactive-primitives/types';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import type { ISsrNode } from '../../ssr/ssr-types';
 import type { Cursor } from './cursor';
+import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
+import { _getProps } from '../jsx/props-proxy';
+import type { EachProps } from '../../control-flow/each';
 
 /**
  * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ
@@ -122,6 +125,8 @@ export function executeNodeDiff(
   if (!jsx) {
     return;
   }
+  // cleanup payload
+  setNodeDiffPayload(vNode, null);
   if (isSignal(jsx)) {
     jsx = jsx.value as any;
   }
@@ -346,5 +351,58 @@ export function executeCompute(
         return scheduleEffects(container, target, effects);
       }
     }
+  );
+}
+
+/**
+ * Executes a reconcile chore for a vNode if the RECONCILE dirty bit is set. This handles the
+ * reconciliation of a keyed loop.
+ *
+ * @param container - The container
+ * @param journal - The journal
+ * @param vNode - The vNode
+ * @returns Promise if reconcile is async, void otherwise
+ */
+export function executeReconcile(
+  vNode: VNode,
+  container: Container,
+  journal: VNodeJournal,
+  cursor: Cursor
+): ValueOrPromise<void> {
+  vNode.dirty &= ~ChoreBits.RECONCILE;
+  const host = vNode as ElementVNode;
+  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+  if (!props) {
+    return;
+  }
+  let items = _getProps(props, 'items' satisfies keyof EachProps<any>) as any[];
+  if (isSignal(items)) {
+    items = untrack(items) as any[];
+  }
+  const keyQrl = _getProps(props, 'key$' satisfies keyof EachProps<any>) as QRLInternal<
+    (item: any, index: number) => string
+  >;
+  const itemQrl = _getProps(props, 'item$' satisfies keyof EachProps<any>) as QRLInternal<
+    (item: any) => JSXOutput
+  >;
+  const keyOf = keyQrl.resolved;
+  const itemFn = itemQrl.resolved;
+
+  if (keyOf !== undefined && itemFn !== undefined) {
+    return reconcileKeyedLoopToParent(container, journal, host, cursor, items, keyOf, itemFn);
+  }
+
+  return maybeThen(keyQrl.resolve(), (resolvedKeyOf) =>
+    maybeThen(itemQrl.resolve(), (resolvedItemFn) =>
+      reconcileKeyedLoopToParent(
+        container,
+        journal,
+        host,
+        cursor,
+        items,
+        resolvedKeyOf,
+        resolvedItemFn
+      )
+    )
   );
 }

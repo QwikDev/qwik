@@ -29,4 +29,4 @@ export const RouteActionContext = /*#__PURE__*/ createContextId<RouteAction>('qr
 export const RoutePreventNavigateContext =
   /*#__PURE__*/ createContextId<RoutePreventNavigate>('qr-p');
 
-export const HttpStatusContext = /*#__PURE__*/ createContextId<HttpStatus>('qr-hs');
+export const HttpStatusContext = /*#__PURE__*/ createContextId<Signal<HttpStatus>>('qr-hs');

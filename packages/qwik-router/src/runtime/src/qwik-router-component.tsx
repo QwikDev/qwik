@@ -52,28 +52,28 @@ import {
   saveScrollHistory,
 } from './scroll-restoration';
 import spaInit from './spa-init';
-import {
-  type Action,
-  type ActionInternal,
-  type ClientPageData,
-  type ContentModule,
-  type ContentState,
-  type ContentStateInternal,
-  type DocumentHeadValue,
-  type Editable,
-  type EndpointResponse,
-  type LoadedRoute,
-  type Loader,
-  type LoaderInternal,
-  type MutableRouteLocation,
-  type PageModule,
-  type PreventNavigateCallback,
-  type ResolvedDocumentHead,
-  type RouteActionResolver,
-  type RouteActionValue,
-  type RouteNavigate,
-  type RouteStateInternal,
-  type ScrollState,
+import type {
+  Action,
+  ActionInternal,
+  ClientPageData,
+  ContentModule,
+  ContentState,
+  ContentStateInternal,
+  DocumentHeadValue,
+  Editable,
+  EndpointResponse,
+  LoadedRoute,
+  Loader,
+  LoaderInternal,
+  MutableRouteLocation,
+  PageModule,
+  PreventNavigateCallback,
+  ResolvedDocumentHead,
+  RouteActionResolver,
+  RouteActionValue,
+  RouteNavigate,
+  RouteStateInternal,
+  ScrollState,
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
@@ -221,7 +221,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   const contentInternal = useSignal<ContentStateInternal>();
 
-  const httpStatus = useStore({
+  const httpStatus = useSignal({
     status: env.response.status,
     message: env.loadedRoute.$notFound$
       ? 'Not Found'
@@ -489,11 +489,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
         // Update httpStatus for 404/error pages
         if ($notFound$) {
-          httpStatus.status = 404;
-          httpStatus.message = 'Not Found';
+          httpStatus.value = { status: 404, message: 'Not Found' };
         } else {
-          httpStatus.status = clientPageData?.status ?? 200;
-          httpStatus.message = (clientPageData as EndpointResponse)?.statusMessage ?? '';
+          httpStatus.value = {
+            status: clientPageData?.status ?? 200,
+            message: (clientPageData as EndpointResponse)?.statusMessage ?? '',
+          };
         }
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
@@ -951,7 +952,7 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
 
   const actionState = useSignal<RouteActionValue>();
 
-  const httpStatus = useStore({ status: 200, message: '' });
+  const httpStatus = useSignal({ status: 200, message: '' });
 
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);

@@ -24,6 +24,10 @@ import { validatePlugin } from './validate-plugin';
 import { getRouterIndexTags, makeRouterDevMiddleware } from './dev-middleware';
 
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
+/**
+ * This virtual module is used to generate dynamic entries for user route files, which are added as
+ * dynamic imports to the qwik-router-config as a way to create new entry points for the build.
+ */
 const QWIK_ROUTER_ENTRIES_ID = '@qwik-router-entries';
 const QWIK_ROUTER = '@qwik.dev/router';
 const QWIK_ROUTER_SW_REGISTER = '@qwik-router-sw-register';

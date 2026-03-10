@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
-import type { SsgOptions, System } from '../types';
+import type { SsgOptions, System } from './types';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
-import { createNodeMainProcess } from './node-main';
-import { createNodeWorkerProcess } from './node-worker';
-import { normalizePath } from '../../utils/fs';
+import { createNodeMainProcess } from './main-process';
+import { createNodeWorkerProcess } from './worker-process';
+import { normalizePath } from '../utils/fs';
 
 /** @public */
 export async function createSystem(opts: SsgOptions, threadId?: number): Promise<System> {

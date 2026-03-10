@@ -178,8 +178,8 @@ function collectNodeMeta(
   node: RouteData,
   groups: RouteData[],
   layouts: ModuleLoader[],
-  errorLoaderRef: { v: ModuleLoader | undefined },
-  notFoundLoaderRef: { v: ModuleLoader | undefined },
+  errorLoaderRef: { v: ContentModuleLoader | undefined },
+  notFoundLoaderRef: { v: ContentModuleLoader | undefined },
   menuLoaderRef: { v: MenuModuleLoader | undefined }
 ) {
   for (const g of groups) {
@@ -366,16 +366,16 @@ function matchRouteTree(
   routeBundleNames: string[] | undefined;
   menuLoader: MenuModuleLoader | undefined;
   /** The nearest _E (error.tsx) loader in the ancestor chain */
-  errorLoader: ModuleLoader | undefined;
+  errorLoader: ContentModuleLoader | undefined;
   /** The nearest _4 (404.tsx) loader in the ancestor chain */
-  notFoundLoader: ModuleLoader | undefined;
+  notFoundLoader: ContentModuleLoader | undefined;
 } {
   let node: RouteData = root;
   const params: PathParams = {};
   const routeParts: string[] = [];
   const layouts: ModuleLoader[] = [];
-  const errorLoaderRef: { v: ModuleLoader | undefined } = { v: undefined };
-  const notFoundLoaderRef: { v: ModuleLoader | undefined } = { v: undefined };
+  const errorLoaderRef: { v: ContentModuleLoader | undefined } = { v: undefined };
+  const notFoundLoaderRef: { v: ContentModuleLoader | undefined } = { v: undefined };
   const menuLoaderRef: { v: MenuModuleLoader | undefined } = { v: undefined };
 
   // Collect root layout, error loader, 404 loader, and menu loader
@@ -410,8 +410,8 @@ function matchRouteTree(
         routeParts: string[];
         params: PathParams;
         layouts: ModuleLoader[];
-        errorLoader: ModuleLoader | undefined;
-        notFoundLoader: ModuleLoader | undefined;
+        errorLoader: ContentModuleLoader | undefined;
+        notFoundLoader: ContentModuleLoader | undefined;
         menuLoader: MenuModuleLoader | undefined;
       }
     | undefined;
@@ -520,8 +520,8 @@ function matchRouteTree(
     const fbParams = { ...fb.params, [fb.paramName]: fb.restValue };
     const fbRouteParts = [...fb.routeParts, `[...${fb.paramName}]`];
     const fbLayouts = [...fb.layouts];
-    const fbErrorRef: { v: ModuleLoader | undefined } = { v: fb.errorLoader };
-    const fbNotFoundRef: { v: ModuleLoader | undefined } = { v: fb.notFoundLoader };
+    const fbErrorRef: { v: ContentModuleLoader | undefined } = { v: fb.errorLoader };
+    const fbNotFoundRef: { v: ContentModuleLoader | undefined } = { v: fb.notFoundLoader };
     const fbMenuRef: { v: MenuModuleLoader | undefined } = { v: fb.menuLoader };
 
     collectNodeMeta(fb.aNode, fb.groups, fbLayouts, fbErrorRef, fbNotFoundRef, fbMenuRef);

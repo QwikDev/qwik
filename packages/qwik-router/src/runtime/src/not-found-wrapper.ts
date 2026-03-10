@@ -15,10 +15,10 @@ export function createNotFoundWrapper(notFoundMod: RouteModule, errorMod: RouteM
   const Component = () => {
     const { status } = useHttpStatus();
     if (status === 404 && NotFound) {
-      return NotFound();
+      return NotFound({});
     }
     if (ErrorPage) {
-      return ErrorPage();
+      return ErrorPage({});
     }
     return null;
   };

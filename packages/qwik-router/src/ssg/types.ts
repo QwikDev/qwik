@@ -1,5 +1,6 @@
 import type { StreamWriter } from '@qwik.dev/core/internal';
-import type { RenderOptions } from '@qwik.dev/core/server';
+import type { Render, RenderOptions } from '@qwik.dev/core/server';
+import type { QwikRouterConfig } from '@qwik.dev/router';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
 
 export interface System {
@@ -100,19 +101,30 @@ export interface SsgRenderOptions extends RenderOptions {
 
 /** @public */
 export interface SsgOptions extends SsgRenderOptions {
-  /**
-   * Path to the SSR module exporting the default render function. In most cases it'll be
-   * `./src/entry.ssr.tsx`.
-   */
-  renderModulePath: string;
-  /** Path to the Qwik Router Config module exporting the default `@qwik-router-config`. */
-  qwikRouterConfigModulePath: string;
-  /** @deprecated Use `qwikRouterConfigModulePath` instead. Will be removed in V3 */
-  qwikCityPlanModulePath?: string;
+  /** The SSR render function (default export from entry.ssr). */
+  render: Render;
+  /** The Qwik Router Config object (default export from `@qwik-router-config`). */
+  qwikRouterConfig: QwikRouterConfig;
   /** Defaults to `/` */
   basePathname?: string;
 
   rootDir?: string;
+
+  /**
+   * Path or URL to the worker entry file. Workers are spawned using this file. When run-ssg.js
+   * serves as both main and worker entry, this should be `import.meta.url` of that file.
+   */
+  workerFilePath?: string | URL;
+
+  /**
+   * @deprecated Pass `render` directly instead. Path to the SSR module exporting the default render
+   *   function.
+   */
+  renderModulePath?: string;
+  /** @deprecated Pass `qwikRouterConfig` directly instead. Path to the Qwik Router Config module. */
+  qwikRouterConfigModulePath?: string;
+  /** @deprecated Use `qwikRouterConfigModulePath` instead. Will be removed in V3 */
+  qwikCityPlanModulePath?: string;
 }
 
 export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions {}

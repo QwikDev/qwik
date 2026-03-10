@@ -7,7 +7,6 @@ import {
 } from '@qwik.dev/router/middleware/request-handler';
 // Use the global WritableStream, not node:stream/web — in worker threads they can be
 // different classes, causing instanceof checks in pipeTo/TransformStream to fail.
-import { pathToFileURL } from 'node:url';
 import type { ClientPageData } from '../runtime/src/types';
 import type {
   SsgHandlerOptions,
@@ -27,11 +26,8 @@ export async function workerThread(sys: System) {
 
   const opts: SsgHandlerOptions = {
     ...ssgOpts,
-    // TODO export this from server
-    render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
-    // TODO this should be built-in
-    qwikRouterConfig: (await import(pathToFileURL(ssgOpts.qwikRouterConfigModulePath).href))
-      .default,
+    render: ssgOpts.render,
+    qwikRouterConfig: ssgOpts.qwikRouterConfig,
   };
 
   sys

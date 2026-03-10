@@ -919,7 +919,7 @@ export function _res(this: string | undefined, _: any, element: Element): void;
 export const _resolveContextWithoutSequentialScope: <STATE>(context: ContextId<STATE>) => STATE | undefined;
 
 // @public @deprecated
-export const Resource: <T>({ value, onResolved, onPending, onRejected, }: ResourceProps<T>) => JSXOutput;
+export const Resource: <T>(input: ResourceProps<T>) => JSXOutput;
 
 // @public (undocumented)
 export interface ResourceCtx<T = unknown> extends AsyncCtx<T> {

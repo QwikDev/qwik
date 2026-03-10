@@ -3,6 +3,7 @@ import { MODULE_CACHE } from './constants';
 import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
+  type ContentModuleLoader,
   type LoadedRoute,
   type MenuModule,
   type MenuModuleLoader,
@@ -99,7 +100,7 @@ export const loadRoute = async (
 };
 
 /** Built-in fallback error component loader */
-const httpErrorLoader: ModuleLoader = () => import('./http-error');
+const httpErrorLoader = (() => import('./http-error')) as ContentModuleLoader;
 
 /**
  * Walk trie keys from root, gathering `_L` layouts along the way. Returns the final node and

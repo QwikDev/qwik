@@ -1,3 +1,4 @@
+import { component$ } from '@qwik.dev/core';
 import type { CacheKeyFn } from './types';
 import { useHttpStatus } from './use-functions';
 
@@ -7,7 +8,7 @@ export const cacheKey: CacheKeyFn = (status) => String(status);
 const COLOR_400 = '#006ce9';
 const COLOR_500 = '#713fc2';
 
-const DisplayHttpStatus = () => {
+const DisplayHttpStatus = component$(() => {
   const { status, message } = useHttpStatus();
   const width = message ? '600px' : '300px';
   const color = status < 500 ? COLOR_400 : COLOR_500;
@@ -24,6 +25,6 @@ const DisplayHttpStatus = () => {
       <strong>{status || 500}</strong> <span>{message || ''}</span>
     </p>
   );
-};
+});
 
 export default DisplayHttpStatus;

@@ -1,5 +1,12 @@
-import { VNodeFlags } from '../../client/types';
-import { vnode_getProp, vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
+import { type ClientContainer, VNodeFlags } from '../../client/types';
+import {
+  vnode_applyJournal,
+  vnode_getProp,
+  vnode_newVirtual,
+  vnode_setProp,
+  type VNodeJournal,
+} from '../../client/vnode-utils';
+import { cleanup } from '../../client/vnode-diff';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
@@ -78,6 +85,11 @@ export function _removeProjection(
   // Remove from parent's projections
   vnode_setProp(parentVNode, slotName, null);
 
+  // Clean up effects, subscriptions, and child vnodes
+  const journal: VNodeJournal = [];
+  cleanup(container as ClientContainer, journal, vnode);
+  vnode_applyJournal(journal);
+
   // Clean up DOM
   if (vnode.flags & VNodeFlags.HasTargetElement) {
     const targetEl = vnode_getProp<Element>(vnode, QTargetElement, null);
@@ -87,8 +99,4 @@ export function _removeProjection(
     vnode_setProp(vnode, QTargetElement, null);
     vnode.flags &= ~VNodeFlags.HasTargetElement;
   }
-
-  // Mark as deleted
-  vnode.flags |= VNodeFlags.Deleted;
-  vnode.dirty = ChoreBits.NONE;
 }

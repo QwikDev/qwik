@@ -1,16 +1,16 @@
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
+import { ssrVNodeDiff } from '../../ssr/ssr-vnode-diff';
 import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
 import type { Container } from '../types';
-import { ELEMENT_SEQ } from '../utils/markers';
+import { ELEMENT_SEQ, QScopedStyle } from '../utils/markers';
+import { isPromise } from '../utils/promises';
+import { addComponentStylePrefix } from '../utils/scoped-styles';
 import type { ValueOrPromise } from '../utils/types';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
-import { logWarn } from '../utils/log';
 import { serializeAttribute } from '../utils/styles';
 import { NODE_PROPS_DATA_KEY, type CursorData } from './cursor-props';
 import type { NodeProp } from '../../reactive-primitives/subscription-data';
 import { isSignal, type Signal } from '../../reactive-primitives/signal.public';
-import { executeCompute } from './chore-execution';
-import { isPromise } from '../utils/promises';
 import type { VNode } from '../vnode/vnode';
 import type { Cursor } from './cursor';
 
@@ -66,17 +66,23 @@ export function executeSsrTasks(
 /**
  * Execute component rendering for an SSR node. Mirrors client `executeComponentChore`.
  *
- * Gets the component QRL, executes it, and processes the returned JSX into child SsrNodes. TODO:
- * Phase 1.2/1.3 will implement JSX-to-SsrNode processing.
+ * Currently, SSR components are executed inline by _walkJSX during the initial render. This
+ * function handles the case where a component gets re-dirtied (e.g., by a signal change during
+ * execution), which creates a new cursor. Since _walkJSX already handles the retry via
+ * executeComponent's built-in retry logic, we just clear the dirty bit here.
+ *
+ * When render() is rewritten to use ssrVNodeDiff directly (Phase 7 Step 6), this function will
+ * properly execute the component QRL and process the returned JSX via ssrVNodeDiff.
  */
 export function executeSsrComponent(
-  _vNode: VNode,
+  vNode: VNode,
   _container: Container,
   _cursorData: CursorData,
   _cursor: Cursor
 ): ValueOrPromise<void> {
-  _vNode.dirty &= ~ChoreBits.COMPONENT;
-  // TODO: Phase 1.2 — execute component and process JSX into child SsrNodes
+  vNode.dirty &= ~ChoreBits.COMPONENT;
+  // Component execution is currently handled inline by _walkJSX.
+  // Full implementation will come with Step 6 (chore-driven render).
 }
 
 /**
@@ -89,13 +95,13 @@ export const SSR_WALK_FN_KEY = ':ssrWalkFn';
  * Execute node diff for an SSR node. Mirrors client `executeNodeDiff`.
  *
  * For the initial render, this calls the stored walk callback (which calls _walkJSX). For
- * signal-driven changes, it will process JSX into child SsrNodes (Phase 2).
+ * signal-driven changes, it will process JSX into child SsrNodes via ssrVNodeDiff.
  */
 export function executeSsrNodeDiff(
   vNode: VNode,
-  _container: Container,
+  container: Container,
   _cursorData: CursorData,
-  _cursor: Cursor
+  cursor: Cursor
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.NODE_DIFF;
 
@@ -103,7 +109,22 @@ export function executeSsrNodeDiff(
   const walkFn = vNode.props?.[SSR_WALK_FN_KEY] as (() => Promise<void>) | undefined;
   if (walkFn) {
     delete vNode.props![SSR_WALK_FN_KEY];
+    // The callback wraps _walkJSX. We call it directly since the render() method
+    // already configured the WalkContext and options. ssrVNodeDiff will be used
+    // when render() is updated to use NODE_DIFF_DATA_KEY in Step 6.
     return walkFn();
+  }
+
+  // NODE_DIFF_DATA_KEY path (for signal-driven re-diffs)
+  const jsx = vNode.props?.[':nodeDiff'] as any;
+  if (jsx) {
+    delete vNode.props![':nodeDiff'];
+    const ssrNode = vNode as unknown as ISsrNode;
+    const styleScopedId = addComponentStylePrefix(ssrNode.getProp?.(QScopedStyle));
+    return ssrVNodeDiff(container as SSRContainer, jsx, vNode, cursor, {
+      currentStyleScoped: styleScopedId,
+      parentComponentFrame: null,
+    });
   }
 }
 
@@ -137,79 +158,5 @@ export function executeSsrNodeProps(vNode: VNode, container: Container): void {
   // and will be emitted when the node is streamed.
 }
 
-// ============================================================================
-// Legacy immediate-execution SSR chore handler
-// Called from markVNodeDirty when isRunningOnServer is true.
-// TODO: Phase 1.4 will remove this once cursor walker drives all SSR rendering.
-// ============================================================================
-
-/** @internal */
-export function _executeSsrChores(
-  container: SSRContainer,
-  ssrNode: ISsrNode
-): ValueOrPromise<void> {
-  if (!ssrNode.updatable) {
-    if (ssrNode.dirty & ChoreBits.NODE_PROPS) {
-      executeSsrNodeProps(ssrNode as unknown as VNode, container);
-    }
-    if (ssrNode.dirty & ChoreBits.COMPUTE) {
-      executeCompute(ssrNode, container);
-    }
-    if (ssrNode.dirty & ChoreBits.DIRTY_MASK) {
-      const warningMessage = `A chore was scheduled on a host element that has already been streamed to the client.
-        This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
-
-        Problematic chore:
-          - Host: ${ssrNode.toString()}
-          - Nearest element location: ${ssrNode.currentFile}
-
-        This is often caused by modifying a signal in an already rendered component during SSR.`;
-      logWarn(warningMessage);
-    }
-    ssrNode.dirty &= ~ChoreBits.DIRTY_MASK;
-    return;
-  }
-
-  let promise: ValueOrPromise<void> | null = null;
-  if (ssrNode.dirty & ChoreBits.TASKS) {
-    const result = executeTasksChore(container, ssrNode);
-    if (isPromise(result)) {
-      promise = result;
-    }
-  }
-
-  // In SSR, we don't handle the COMPONENT bit here.
-  // During initial render, if a task completes and marks the component dirty,
-  // we want to leave the COMPONENT bit set so that executeComponent can detect
-  // it after $waitOn$ completes and re-execute the component function.
-  // executeComponent will clear the bit after re-executing.
-
-  // Clear all dirty bits EXCEPT COMPONENT
-  ssrNode.dirty &= ~(ChoreBits.DIRTY_MASK & ~ChoreBits.COMPONENT);
-
-  if (promise) {
-    return promise;
-  }
-}
-
-function executeTasksChore(container: Container, ssrNode: ISsrNode): ValueOrPromise<void> | null {
-  ssrNode.dirty &= ~ChoreBits.TASKS;
-  const elementSeq = ssrNode.getProp(ELEMENT_SEQ);
-  if (!elementSeq || elementSeq.length === 0) {
-    return null;
-  }
-  let promise: ValueOrPromise<void> | null = null;
-  for (const item of elementSeq) {
-    if (item instanceof Task) {
-      const task = item as Task<TaskFn, TaskFn>;
-
-      if (!(task.$flags$ & TaskFlags.DIRTY)) {
-        continue;
-      }
-
-      const result = runTask(task, container, ssrNode);
-      promise = promise ? promise.then(() => result as Promise<void>) : (result as Promise<void>);
-    }
-  }
-  return promise;
-}
+// Legacy _executeSsrChores removed — markVNodeDirty now propagates dirty bits
+// on both client and server. The cursor walker drives all SSR chore execution.

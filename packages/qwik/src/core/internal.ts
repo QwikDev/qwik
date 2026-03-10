@@ -28,7 +28,6 @@ export {
   vnode_isVirtualVNode as _vnode_isVirtualVNode,
   vnode_toString as _vnode_toString,
 } from './client/vnode-utils';
-export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
 export { addCursor as _addCursor } from './shared/cursor/cursor';
 export { getCursorData as _getCursorData } from './shared/cursor/cursor-props';
 export { processCursorQueue as _processCursorQueue } from './shared/cursor/cursor-walker';
@@ -63,6 +62,7 @@ export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/u
 export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
 export { _restProps } from './shared/utils/prop';
 export { _walkJSX } from './ssr/ssr-render-jsx';
+export { ssrVNodeDiff as _ssrVNodeDiff } from './ssr/ssr-vnode-diff';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,

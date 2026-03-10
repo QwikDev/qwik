@@ -8,6 +8,7 @@ import {
   _res,
   _setEvent,
   _walkJSX,
+  _ssrVNodeDiff as ssrVNodeDiff,
   _createQRL as createQRL,
   _addCursor as addCursor,
   _getCursorData as getCursorData,
@@ -112,7 +113,7 @@ import {
   SSR_SUSPENSE_READY,
 } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
-import { SsrStreamingWalker } from './ssr-streaming-walker';
+import { SsrStreamingWalker, IncrementalEmitter, EmitResult } from './ssr-streaming-walker';
 import {
   TagNesting,
   allowedContent,
@@ -211,7 +212,7 @@ interface ElementFrame {
   depthFirstElementIdx: number;
   vNodeData: VNodeData;
   currentFile: string | null;
-  /** SsrNode associated with this element frame (set in treeOnly mode). */
+  /** SsrNode associated with this element frame (set in tree-building mode). */
   ssrNode: ISsrNode | null;
 }
 
@@ -224,9 +225,9 @@ export interface WalkContext {
   currentComponentNode: ISsrNode | null;
   lastNode: ISsrNode | null;
   /**
-   * Stack of saved ssrNode values for fragment nesting in treeOnly mode. When a fragment opens, the
-   * current frame's ssrNode is pushed here and replaced with the fragment's SsrNode. When the
-   * fragment closes, the previous value is restored.
+   * Stack of saved ssrNode values for fragment nesting in tree-building mode. When a fragment
+   * opens, the current frame's ssrNode is pushed here and replaced with the fragment's SsrNode.
+   * When the fragment closes, the previous value is restored.
    */
   ssrNodeStack: (ISsrNode | null)[];
 }
@@ -323,6 +324,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Current Suspense boundary node being built (for storing fallback content). */
   private currentSuspenseBoundary: ISsrNode | null = null;
 
+  /**
+   * Current parent VNode in the cursor tree. Set by ssrVNodeDiff before delegating to _walkJSX.
+   * When non-null, openComponent sets VNode parent on each component SsrNode for dirty
+   * propagation.
+   */
+  _currentParentVNode: any = null;
+  /** Current cursor root. Set by ssrVNodeDiff. Reserved for future deferred component execution. */
+  _currentCursorRoot: any = null;
+  /** Stack for saving/restoring _currentParentVNode across nested component boundaries. */
+  private _parentVNodeStack: any[] = [];
+
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
@@ -401,17 +413,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   async render(jsx: JSXOutput) {
-    // Phase 1: Open container element (writes opening tag directly to stream)
+    // Phase 1: Open container element (builds root SsrNode in tree-building mode)
     this.openContainer();
 
     // Prevent closeElement from triggering the manual rendering path during cursor-driven
-    // rendering. render() handles container data emission via the walker callback instead.
+    // rendering. render() handles container data emission via the emitter callback instead.
     this._cursorDrivenRender = true;
 
-    // Phase 2: Build SsrNode tree — _walkJSX builds tree, no HTML output.
-    // Sub-cursors for Suspense children are created during tree building and run
-    // at higher priority (-1). Sync sub-cursors complete during processCursorQueue;
-    // async ones may still be paused when the main cursor finishes.
+    // Phase 2: Set up cursor-driven rendering and incremental emission.
     const rootSsrNode = this.getOrCreateLastNode();
     this.activeWalkCtx.currentElementFrame!.ssrNode = rootSsrNode;
     this.rootSsrNode = rootSsrNode;
@@ -426,7 +435,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       {
         // Store the walk callback for executeSsrNodeDiff to invoke
         ':ssrWalkFn': () =>
-          _walkJSX(this, jsx, {
+          ssrVNodeDiff(this, jsx, cursorRoot, cursorRoot, {
             currentStyleScoped: null,
             parentComponentFrame: this.getComponentFrame(),
           }),
@@ -441,93 +450,122 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // Wire up the WalkContext so the cursor walker swaps it when processing this cursor
     mainCursorData.walkCtx = this.activeWalkCtx;
 
-    // Track main cursor completion separately from sub-cursors
+    // Track main cursor completion
+    let mainCursorDone = false;
     let mainCursorResolve!: () => void;
-    const mainCursorDone = new Promise<void>((r) => (mainCursorResolve = r));
-    mainCursorData.onDone = () => mainCursorResolve();
+    const mainCursorPromise = new Promise<void>((r) => (mainCursorResolve = r));
+    mainCursorData.onDone = () => {
+      mainCursorDone = true;
+      mainCursorResolve();
+    };
 
-    // Process cursor queue synchronously (no time-slicing on server).
-    // This runs the main cursor (builds tree, creates Suspense sub-cursors) and
-    // then processes sync sub-cursors. Async sub-cursors remain paused.
+    // Phase 3: Interleaving loop — cursor builds tree, emitter emits ready nodes.
+    // On each iteration: process all sync cursor work, then emit whatever is ready.
+    // If blocked on a dirty node, wait for async cursor completion and retry.
+    // Currently, with inline component execution, the tree is fully built in the
+    // first cursor pass. The infrastructure supports future deferred execution.
+
+    // First pass: build tree
     processCursorQueue({ timeBudget: Infinity });
 
-    // Wait for main cursor to complete (may be paused on async tasks outside Suspense)
-    await mainCursorDone;
+    if (!mainCursorDone) {
+      // Main cursor blocked on async work — wait for it
+      await mainCursorPromise;
+    }
 
     // Re-throw any error captured during cursor-driven rendering
     if (this._ssrError) {
       throw this._ssrError;
     }
 
-    // Phase 3: Emit HTML from the SsrNode tree using the streaming walker.
-    // At this point, sync Suspense sub-cursors have completed (boundary marked :suspenseReady).
-    // Async sub-cursors may still be pending — those boundaries get fallback + OoO.
-
-    // Save the container data frame (body for html, container root for non-html).
-    // This frame's vNodeData must be active during emitContainerData so that script elements
-    // created by emitStateData/emitVNodeData are counted (client expects matching counts).
+    // Save the container data frame AFTER tree building (body for html, container root
+    // for non-html). emitContainerDataFrame is set during tree building when openElement
+    // encounters <body>. This frame's vNodeData must be active during emitContainerData
+    // so that script elements are counted in the correct parent.
     const savedContainerDataFrame = this.emitContainerDataFrame;
     this.emitContainerDataFrame = null;
 
-    // Determine which Suspense boundaries are deferred (sub-cursor not yet complete).
-    // Ready boundaries will be emitted inline by the streaming walker.
+    // Determine where to inject container data and set up the incremental emitter:
+    // - For html containers: before </body>
+    // - For non-html containers: before </container>
+    const bodyNode = this.isHtml ? this.findBodyNode(rootSsrNode) : null;
+    const containerDataNode = bodyNode ?? rootSsrNode;
+
+    // Compute deferred Suspense boundaries (sub-cursor not yet complete).
     const deferredBoundaries = this.suspenseBoundaries.filter(
       (b) => !b.node.getProp(SSR_SUSPENSE_READY)
     );
+    const deferredBoundarySet = new Set(deferredBoundaries.map((b) => b.node));
+    const placeholderIdMap = new Map(
+      deferredBoundaries.map((b) => [b.node, b.placeholderId] as const)
+    );
 
-    const emitContainerDataFn = async () => {
-      // Restore the container data frame so openElement's vNodeData_incrementElementCount
-      // counts scripts in the correct parent (body/container). Without this, the client-side
-      // VNodeData parser would see more DOM elements than the VNodeData describes.
-      const currentFrame = this.activeWalkCtx.currentElementFrame;
-      if (savedContainerDataFrame) {
-        this.activeWalkCtx.currentElementFrame = savedContainerDataFrame;
-      }
-      this.onRenderDone();
-      const snapshotTimer = createTimer();
-
-      // Wait for any remaining async sub-cursors (Suspense children)
-      if (this.$renderPromise$) {
-        await this.$renderPromise$;
-      }
-
-      // Emit OoO chunks for deferred boundaries (now resolved after sub-cursors completed)
-      if (deferredBoundaries.length > 0) {
-        this.emitOoOChunks(deferredBoundaries);
-      }
-
-      this._directMode = true;
-      await this.emitContainerData();
-      this._directMode = false;
-      this.timing.snapshot = snapshotTimer();
-      // Restore the original frame
-      this.activeWalkCtx.currentElementFrame = currentFrame;
-    };
-
-    // Determine where to inject container data:
-    // - For html containers: before </body> (walker callback on body node)
-    // - For non-html containers: before </container> (walker callback on root node)
-    const bodyNode = this.isHtml ? this.findBodyNode(this.rootSsrNode!) : null;
-    const containerDataNode = bodyNode ?? this.rootSsrNode!;
-
-    const walker = new SsrStreamingWalker({
-      writer: this.writer,
+    // Initialize emitter and emit tree
+    const emitter = new IncrementalEmitter(
+      this.writer,
       containerDataNode,
-      onBeforeContainerClose: emitContainerDataFn,
-      suspenseBoundaries: deferredBoundaries.map((b) => ({
-        node: b.node,
-        placeholderId: b.placeholderId,
-      })),
-    });
-    // Emit the entire tree including the root element (container tag)
-    const walkerResult = walker.emitTree(this.rootSsrNode!);
+      deferredBoundarySet,
+      placeholderIdMap
+    );
+    emitter.init(rootSsrNode);
 
-    // Phase 4: Wait for walker to complete
-    if (isPromise(walkerResult)) {
-      await walkerResult;
+    // Emission loop: emit ready nodes, handle callbacks, retry if blocked
+    let emitDone = false;
+    while (!emitDone) {
+      const result = emitter.emitReady();
+
+      switch (result) {
+        case EmitResult.COMPLETE:
+          emitDone = true;
+          break;
+
+        case EmitResult.NEEDS_CALLBACK: {
+          // Container data point reached — emit container data before close tag
+          const currentFrame = this.activeWalkCtx.currentElementFrame;
+          if (savedContainerDataFrame) {
+            this.activeWalkCtx.currentElementFrame = savedContainerDataFrame;
+          }
+          this.onRenderDone();
+          const snapshotTimer = createTimer();
+
+          // Wait for any remaining async sub-cursors (Suspense children)
+          if (this.$renderPromise$) {
+            await this.$renderPromise$;
+          }
+
+          // Emit OoO chunks for deferred boundaries (now resolved)
+          if (deferredBoundaries.length > 0) {
+            this.emitOoOChunks(deferredBoundaries);
+          }
+
+          this._directMode = true;
+          await this.emitContainerData();
+          this._directMode = false;
+          this.timing.snapshot = snapshotTimer();
+          this.activeWalkCtx.currentElementFrame = currentFrame;
+          // Continue emission after callback
+          break;
+        }
+
+        case EmitResult.BLOCKED_DIRTY:
+          // Node not yet ready — run more cursor work
+          processCursorQueue({ timeBudget: Infinity });
+          if (this._ssrError) {
+            throw this._ssrError;
+          }
+          // If no progress possible (all cursors blocked on async), wait
+          if (this.$renderPromise$) {
+            await this.$renderPromise$;
+            this.$renderPromise$ = null;
+          }
+          break;
+      }
     }
 
-    // Pop remaining frames (no HTML output — _directMode is false, walker already wrote everything)
+    // Track emitted size for qwikLoader heuristic
+    this.size = emitter.size;
+
+    // Pop remaining frames (no HTML output — emitter already wrote everything)
     while (this.activeWalkCtx.currentElementFrame) {
       this._closeElement();
     }
@@ -853,8 +891,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /**
    * Opens a Suspense boundary node. Assigns a placeholder ID for OoO streaming. In direct streaming
-   * mode, emits the placeholder div immediately. In treeOnly mode (deferred content), tags the node
-   * for the streaming walker.
+   * mode, emits the placeholder div immediately. In tree-building mode (deferred content), tags the
+   * node for the streaming walker.
    */
   openSuspenseBoundary(attrs: Props) {
     this.openFragment(attrs);
@@ -959,6 +997,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openComponent(attrs: Props) {
     this.openFragment(attrs);
     this.activeWalkCtx.currentComponentNode = this.getOrCreateLastNode();
+
+    // Set VNode parent for cursor tree integration (when called via ssrVNodeDiff).
+    // This enables markVNodeDirty to propagate dirty bits up to the cursor root.
+    if (this._currentParentVNode) {
+      const node = this.activeWalkCtx.currentComponentNode as any;
+      node.parent = this._currentParentVNode;
+      this._parentVNodeStack.push(this._currentParentVNode);
+      this._currentParentVNode = node;
+    }
+
     this.activeWalkCtx.componentStack.push(
       new SsrComponentFrame(this.activeWalkCtx.currentComponentNode)
     );
@@ -989,6 +1037,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeFragment();
     this.activeWalkCtx.currentComponentNode =
       this.activeWalkCtx.currentComponentNode?.parentComponent || null;
+
+    // Restore parentVNode for cursor tree (when called via ssrVNodeDiff)
+    if (this._parentVNodeStack.length > 0) {
+      this._currentParentVNode = this._parentVNodeStack.pop()!;
+    }
   }
 
   private async emitUnclaimedProjectionForComponent(

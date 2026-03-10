@@ -11,6 +11,11 @@
  *
  *   Suspense boundaries are handled specially: the walker emits fallback content wrapped in a
  *   placeholder div. The actual content is deferred for OoO (out-of-order) streaming.
+ *
+ *   Two emission modes:
+ *
+ *   - SsrStreamingWalker: recursive, emits entire tree at once (for toHTML and OoO chunks)
+ *   - IncrementalEmitter: stack-based, can pause at dirty nodes and resume (for render() loop)
  */
 
 import {
@@ -20,6 +25,7 @@ import {
   SSR_STYLE_SCOPED_ID,
   SSR_SUSPENSE_PLACEHOLDER_ID,
   SSR_SUSPENSE_CONTENT,
+  SSR_SUSPENSE_READY,
   isSsrContentChild,
   type SsrChild,
   type SsrContentChild,
@@ -36,10 +42,11 @@ import {
   QUOTE,
   Q_PROPS_SEPARATOR,
   EMPTY_ATTR,
+  ChoreBits,
   serializeAttribute,
   escapeHTML,
+  maybeThen,
 } from './qwik-copy';
-import { maybeThen } from './qwik-copy';
 
 /** Suspense boundary info passed from the container to the streaming walker. */
 export interface SuspenseBoundaryInfo {
@@ -60,6 +67,10 @@ export interface SsrStreamingWalkerOptions {
   suspenseBoundaries?: SuspenseBoundaryInfo[];
 }
 
+/**
+ * Recursive streaming walker. Emits entire tree at once. Used by toHTML path and OoO chunk
+ * emission. Cannot pause at dirty nodes.
+ */
 export class SsrStreamingWalker {
   private writer: StreamWriter;
   private containerDataNode: ISsrNode | null;
@@ -133,7 +144,7 @@ export class SsrStreamingWalker {
     this.write(tagName);
 
     // Var attrs
-    this.emitAttrs(varAttrs, styleScopedId);
+    emitAttrs(this, varAttrs, styleScopedId);
 
     // q: separator + key
     this.write(' ' + Q_PROPS_SEPARATOR);
@@ -145,7 +156,7 @@ export class SsrStreamingWalker {
     }
 
     // Const attrs
-    this.emitAttrs(constAttrs, styleScopedId);
+    emitAttrs(this, constAttrs, styleScopedId);
 
     this.write(GT);
 
@@ -154,30 +165,11 @@ export class SsrStreamingWalker {
       // Before close tag callback (for container data emission)
       if (node === this.containerDataNode && this.onBeforeContainerClose) {
         return maybeThen(this.onBeforeContainerClose(), () => {
-          this.emitCloseTag(tagName);
+          emitCloseTag(this, tagName);
         });
       }
-      this.emitCloseTag(tagName);
+      emitCloseTag(this, tagName);
     });
-  }
-
-  /** Serialize and emit attrs from a processed attrs map. */
-  private emitAttrs(attrs: Record<string, any> | null, styleScopedId: string | null): void {
-    if (!attrs) {
-      return;
-    }
-    for (const key in attrs) {
-      const serializedValue = serializeAttribute(key, attrs[key], styleScopedId);
-      if (serializedValue != null && serializedValue !== false) {
-        this.write(SPACE);
-        this.write(key);
-        if (serializedValue !== true) {
-          this.write(ATTR_EQUALS_QUOTE);
-          this.write(escapeHTML(String(serializedValue)));
-          this.write(QUOTE);
-        }
-      }
-    }
   }
 
   /**
@@ -209,28 +201,8 @@ export class SsrStreamingWalker {
     return this.emitChildren(node);
   }
 
-  private emitCloseTag(tagName: string): void {
-    if (!isSelfClosingTag(tagName)) {
-      this.write(CLOSE_TAG);
-      this.write(tagName);
-      this.write(GT);
-    }
-  }
-
   private emitContentChild(child: SsrContentChild): void {
-    switch (child.kind) {
-      case SsrNodeKind.Text:
-        this.write(child.content);
-        break;
-      case SsrNodeKind.RawHtml:
-        this.write(child.content);
-        break;
-      case SsrNodeKind.Comment:
-        this.write('<!--');
-        this.write(child.content);
-        this.write('-->');
-        break;
-    }
+    emitContentChild(this, child);
   }
 
   emitChildren(node: ISsrNode): ValueOrPromise<void> {
@@ -248,5 +220,280 @@ export class SsrStreamingWalker {
       }
     }
     return result!;
+  }
+}
+
+// ─── Shared helpers used by both SsrStreamingWalker and IncrementalEmitter ───
+
+/** Serialize and emit attrs from a processed attrs map. */
+function emitAttrs(
+  target: { write(text: string): void },
+  attrs: Record<string, any> | null,
+  styleScopedId: string | null
+): void {
+  if (!attrs) {
+    return;
+  }
+  for (const key in attrs) {
+    const serializedValue = serializeAttribute(key, attrs[key], styleScopedId);
+    if (serializedValue != null && serializedValue !== false) {
+      target.write(SPACE);
+      target.write(key);
+      if (serializedValue !== true) {
+        target.write(ATTR_EQUALS_QUOTE);
+        target.write(escapeHTML(String(serializedValue)));
+        target.write(QUOTE);
+      }
+    }
+  }
+}
+
+function emitCloseTag(target: { write(text: string): void }, tagName: string): void {
+  if (!isSelfClosingTag(tagName)) {
+    target.write(CLOSE_TAG);
+    target.write(tagName);
+    target.write(GT);
+  }
+}
+
+function emitContentChild(target: { write(text: string): void }, child: SsrContentChild): void {
+  switch (child.kind) {
+    case SsrNodeKind.Text:
+      target.write(child.content);
+      break;
+    case SsrNodeKind.RawHtml:
+      target.write(child.content);
+      break;
+    case SsrNodeKind.Comment:
+      target.write('<!--');
+      target.write(child.content);
+      target.write('-->');
+      break;
+  }
+}
+
+// ─── Incremental Emitter ─────────────────────────────────────────────────────
+
+/** Result of an incremental emission step. */
+export const enum EmitResult {
+  /** All nodes emitted — streaming is complete. */
+  COMPLETE = 0,
+  /** Hit a dirty node — need more cursor processing before resuming. */
+  BLOCKED_DIRTY = 1,
+  /** Reached container data point — caller must run async callback before resuming. */
+  NEEDS_CALLBACK = 2,
+}
+
+/** Phase of emission for a stack frame. */
+const enum EmitPhase {
+  OPEN = 0,
+  CHILDREN = 1,
+  CLOSE = 2,
+}
+
+/** Stack frame for incremental tree emission. */
+interface EmitFrame {
+  node: ISsrNode;
+  /** Cached orderedChildren (populated on CHILDREN phase entry). */
+  children: SsrChild[] | null;
+  /** Index of next child to process. */
+  childIdx: number;
+  /** Current phase. */
+  phase: EmitPhase;
+  /** Cached tag name for element nodes. */
+  tagName: string | null;
+  /** Whether this is a deferred Suspense boundary (emit fallback in placeholder div). */
+  isDeferred: boolean;
+}
+
+/**
+ * Incremental tree emitter. Uses an explicit stack so it can pause at dirty nodes and resume later.
+ * Used by SSRContainer.render() in the interleaving loop.
+ */
+export class IncrementalEmitter {
+  private stack: EmitFrame[] = [];
+  /** Whether emission is complete. */
+  done = false;
+  /** Tracks emitted bytes for qwikLoader inline heuristic. */
+  size = 0;
+
+  constructor(
+    private writer: StreamWriter,
+    /** Node before whose close tag a callback should be invoked. */
+    private containerDataNode: ISsrNode | null,
+    /** Set of deferred Suspense boundary nodes. */
+    private deferredBoundaries: Set<ISsrNode>,
+    /** Map from deferred boundary node to placeholder ID. */
+    private placeholderIds: Map<ISsrNode, string>
+  ) {}
+
+  write(text: string): void {
+    this.size += text.length;
+    this.writer.write(text);
+  }
+
+  /** Start emission from the given root node. */
+  init(root: ISsrNode): void {
+    this.stack = [
+      {
+        node: root,
+        children: null,
+        childIdx: 0,
+        phase: EmitPhase.OPEN,
+        tagName: (root as any).tagName ?? null,
+        isDeferred: false,
+      },
+    ];
+    this.done = false;
+  }
+
+  /**
+   * A node is "ready" when its own chores are done. Only CHILDREN may still be dirty (meaning some
+   * descendants need processing). This lets us emit the open tag as soon as the node itself is
+   * ready, then descend into children.
+   */
+  private isReady(node: ISsrNode): boolean {
+    return ((node as any).dirty & ~ChoreBits.CHILDREN) === 0;
+  }
+
+  /**
+   * Emit as many ready nodes as possible. Returns:
+   *
+   * - COMPLETE: all nodes emitted
+   * - BLOCKED_DIRTY: paused at a dirty node (need more cursor processing)
+   * - NEEDS_CALLBACK: reached container data point (caller must invoke async callback)
+   */
+  emitReady(): EmitResult {
+    const stack = this.stack;
+
+    while (stack.length > 0) {
+      const frame = stack[stack.length - 1];
+      const node = frame.node;
+
+      switch (frame.phase) {
+        case EmitPhase.OPEN: {
+          // Check if node is ready to emit
+          if (!this.isReady(node)) {
+            return EmitResult.BLOCKED_DIRTY;
+          }
+          // Mark as emitted for backpatch correctness
+          node.flags |= VNodeFlags.OpenTagEmitted;
+
+          const kind = (node as any).nodeKind as SsrNodeKind;
+          if (kind === SsrNodeKind.Element) {
+            this.emitOpenTag(node, frame.tagName!);
+            frame.phase = EmitPhase.CHILDREN;
+          } else if (kind === SsrNodeKind.Suspense) {
+            this.handleSuspenseOpen(frame, node);
+            // Phase set by handleSuspenseOpen
+          } else {
+            // Virtual/Component/Projection — no HTML output, go straight to children
+            frame.phase = EmitPhase.CHILDREN;
+          }
+          break;
+        }
+
+        case EmitPhase.CHILDREN: {
+          if (!frame.children) {
+            frame.children = (node as any).orderedChildren as SsrChild[] | null;
+          }
+          const children = frame.children;
+          if (children && frame.childIdx < children.length) {
+            const child = children[frame.childIdx++];
+            if (isSsrContentChild(child)) {
+              emitContentChild(this, child);
+            } else {
+              const childNode = child as ISsrNode;
+              stack.push({
+                node: childNode,
+                children: null,
+                childIdx: 0,
+                phase: EmitPhase.OPEN,
+                tagName: (childNode as any).tagName ?? null,
+                isDeferred: false,
+              });
+            }
+          } else {
+            frame.phase = EmitPhase.CLOSE;
+          }
+          break;
+        }
+
+        case EmitPhase.CLOSE: {
+          // Check for container data callback before close tag
+          if (node === this.containerDataNode) {
+            // Signal caller to run the async container data emission
+            this.containerDataNode = null; // Only fire once
+            return EmitResult.NEEDS_CALLBACK;
+          }
+
+          // Emit close tag for elements
+          if (frame.tagName) {
+            emitCloseTag(this, frame.tagName);
+          }
+
+          // For deferred Suspense: close the placeholder div
+          if (frame.isDeferred) {
+            this.write('</div>');
+          }
+
+          stack.pop();
+          break;
+        }
+      }
+    }
+
+    this.done = true;
+    return EmitResult.COMPLETE;
+  }
+
+  private emitOpenTag(node: ISsrNode, tagName: string): void {
+    const varAttrs = node.getProp(SSR_VAR_ATTRS) as Record<string, any> | null;
+    const constAttrs = node.getProp(SSR_CONST_ATTRS) as Record<string, any> | null;
+    const styleScopedId = node.getProp(SSR_STYLE_SCOPED_ID) as string | null;
+
+    this.write(LT);
+    this.write(tagName);
+    emitAttrs(this, varAttrs, styleScopedId);
+
+    // q: separator + key
+    this.write(' ' + Q_PROPS_SEPARATOR);
+    const key = (node as any).key;
+    if (key !== null && key !== undefined) {
+      this.write(`="${key}"`);
+    } else if (import.meta.env.TEST) {
+      this.write(EMPTY_ATTR);
+    }
+
+    emitAttrs(this, constAttrs, styleScopedId);
+    this.write(GT);
+  }
+
+  /**
+   * Handle Suspense boundary open. Deferred boundaries emit fallback in placeholder div. Ready
+   * boundaries emit content node's children inline.
+   */
+  private handleSuspenseOpen(frame: EmitFrame, node: ISsrNode): void {
+    if (this.deferredBoundaries.has(node)) {
+      // Deferred: emit <div id="qph-N"> and walk fallback children, then close with </div>
+      const placeholderId =
+        this.placeholderIds.get(node) || node.getProp(SSR_SUSPENSE_PLACEHOLDER_ID);
+      this.write(`<div id="${placeholderId}">`);
+      frame.isDeferred = true;
+      frame.phase = EmitPhase.CHILDREN;
+      // orderedChildren contain the fallback
+    } else {
+      // Ready: walk content node's children
+      const contentNode = node.getProp(SSR_SUSPENSE_CONTENT) as ISsrNode | null;
+      if (contentNode) {
+        // Replace this frame's children source with the content node's children
+        frame.children = (contentNode as any).orderedChildren as SsrChild[] | null;
+        frame.childIdx = 0;
+        frame.phase = EmitPhase.CHILDREN;
+      } else {
+        // No content — emit boundary's own children (fallback)
+        frame.phase = EmitPhase.CHILDREN;
+      }
+    }
   }
 }

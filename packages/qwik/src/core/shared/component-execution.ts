@@ -18,6 +18,7 @@ import { EMPTY_OBJ } from './utils/flyweight';
 import { logWarn } from './utils/log';
 import {
   ELEMENT_PROPS,
+  ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
   USE_ON_LOCAL,
@@ -32,6 +33,7 @@ import { isServerPlatform } from './platform/platform';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { ChoreBits } from './vnode/enums/chore-bits.enum';
 import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { runTask, Task, TaskFlags } from '../use/use-task';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -111,7 +113,18 @@ export const executeComponent = (
           clearAllEffects(container, renderHost);
         }
 
-        return maybeThen(componentFn(props), (jsx) => maybeThen(iCtx.$waitOn$, () => jsx));
+        return maybeThen(componentFn(props), (jsx) =>
+          maybeThen(iCtx.$waitOn$, () => {
+            // On SSR, drain cascading task dependencies before returning JSX.
+            // Task subscriptions (e.g., task A tracks store.x, task B sets store.x) cause
+            // markVNodeDirty to set TASKS on the host. We must run those tasks now so the
+            // component's JSX sees the final values.
+            if (isSsr && !isInlineComponent && vnode_isVNode(renderHost)) {
+              return maybeThen(drainCascadingTasks(renderHost, container), () => jsx);
+            }
+            return jsx;
+          })
+        );
       },
       (jsx) => {
         // In SSR, check if the component was marked dirty (COMPONENT bit) during execution.
@@ -330,4 +343,41 @@ function injectPlaceholderElement(
 /** @returns An empty <script> element for adding qwik metadata attributes to */
 function createPlaceholderScriptNode(): JSXNodeInternal<string> {
   return new JSXNodeImpl('script', null, { hidden: '' }, null, 0, null);
+}
+
+/**
+ * Drain cascading task dependencies on an SSR host node.
+ *
+ * During SSR component execution, tasks run sequentially via `$waitOn$`. When a task sets a store
+ * property that another task tracks, `markVNodeDirty` sets ChoreBits.TASKS on the host. This
+ * function re-runs dirty tasks until no more cascading dependencies remain, ensuring the
+ * component's JSX sees final computed values.
+ */
+function drainCascadingTasks(host: HostElement, container: Container): ValueOrPromise<void> {
+  const vnode = host as any;
+  if (!(vnode.dirty & ChoreBits.TASKS)) {
+    return;
+  }
+  vnode.dirty &= ~ChoreBits.TASKS;
+
+  const ssrNode = host as unknown as ISsrNode;
+  const elementSeq = container.getHostProp(host, ELEMENT_SEQ);
+  if (!elementSeq || elementSeq.length === 0) {
+    return;
+  }
+
+  let taskPromise: ValueOrPromise<void>;
+  for (const item of elementSeq) {
+    if (item instanceof Task && item.$flags$ & TaskFlags.DIRTY) {
+      const result = runTask(item, container, host);
+      if (isPromise(result)) {
+        taskPromise = taskPromise!
+          ? maybeThen(taskPromise, () => result as Promise<void>)
+          : (result as Promise<void>);
+      }
+    }
+  }
+
+  // Recursively drain — tasks may trigger further cascading subscriptions
+  return maybeThen(taskPromise!, () => drainCascadingTasks(host, container));
 }

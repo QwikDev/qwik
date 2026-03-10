@@ -1,13 +1,8 @@
-import { isServer } from '@qwik.dev/core/build';
 import type { VNodeJournal } from '../../client/vnode-utils';
-import type { SSRContainer } from '../../ssr/ssr-types';
 import { addCursor, findCursor, isCursor } from '../cursor/cursor';
 import { getCursorData, type CursorData } from '../cursor/cursor-props';
-import { _executeSsrChores } from '../cursor/ssr-chore-execution';
-import { isServerPlatform } from '../platform/platform';
 import type { Container } from '../types';
 import { throwErrorAndStop } from '../utils/log';
-import { isPromise } from '../utils/promises';
 import { ChoreBits } from './enums/chore-bits.enum';
 import type { VNodeOperation } from './types/dom-vnode-operation';
 import type { VNode } from './vnode';
@@ -96,8 +91,8 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
 /**
  * Marks a vNode as dirty and propagates dirty bits up the tree.
  *
- * SsrNode extends VNode, so this function handles both client and SSR nodes. On the server, SSR
- * chores are executed immediately (until Phase 1 moves them to the cursor walker).
+ * SsrNode extends VNode, so this function handles both client and SSR nodes. Both use the same
+ * propagation logic: dirty bits are propagated up to a cursor root, or a new cursor is created.
  *
  * @param container - The container
  * @param vNode - The vNode to mark dirty
@@ -113,16 +108,6 @@ export function markVNodeDirty(
 ): void {
   const prevDirty = vNode.dirty;
   vNode.dirty |= bits;
-  const isRunningOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
-  if (isRunningOnServer) {
-    const result = _executeSsrChores(container as SSRContainer, vNode as any);
-    if (isPromise(result)) {
-      container.$renderPromise$ = container.$renderPromise$
-        ? container.$renderPromise$.then(() => result)
-        : result;
-    }
-    return;
-  }
   const isRealDirty = bits & ChoreBits.DIRTY_MASK;
   // If already dirty, no need to propagate again
   if ((isRealDirty ? prevDirty & ChoreBits.DIRTY_MASK : prevDirty) || vNode === cursorRoot) {

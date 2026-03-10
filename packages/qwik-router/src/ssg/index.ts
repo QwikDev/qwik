@@ -1,5 +1,5 @@
-import type { SsgOptions, SsgRenderOptions, SsgResult } from './types';
-import { mainThread } from './main-thread';
+import type { SsgGenerateOptions, SsgOptions, SsgRenderOptions, SsgResult } from './types';
+import { mainThread } from './orchestrator';
 
 // @qwik.dev/router/ssg
 
@@ -9,7 +9,7 @@ import { mainThread } from './main-thread';
  *
  * @public
  */
-export async function generate(opts: SsgOptions) {
+export async function generate(opts: SsgGenerateOptions) {
   const { createSystem } = await import('./system');
   const sys = await createSystem(opts);
   return mainThread(sys);
@@ -23,7 +23,7 @@ export async function generate(opts: SsgOptions) {
  *
  * @public
  */
-export async function runSsg(opts: SsgOptions): Promise<never> {
+export async function runSsg(opts: SsgGenerateOptions): Promise<never> {
   try {
     const result = await generate(opts);
 
@@ -52,10 +52,10 @@ export async function runSsg(opts: SsgOptions): Promise<never> {
  *   remaining serializable options come from `workerData`.
  * @public
  */
-export async function startWorker(opts: SsgOptions) {
+export async function startWorker(opts: Pick<SsgGenerateOptions, 'render' | 'qwikRouterConfig'>) {
   const { workerData } = await import('node:worker_threads');
   // Merge the serializable workerData with the directly-imported render/config
-  const mergedOpts: SsgOptions = {
+  const mergedOpts: SsgGenerateOptions = {
     ...workerData,
     render: opts.render,
     qwikRouterConfig: opts.qwikRouterConfig,
@@ -68,6 +68,8 @@ export async function startWorker(opts: SsgOptions) {
 
 export type {
   SsgOptions as StaticGenerateOptions,
+  SsgOptions,
+  SsgGenerateOptions as SsgInternalOptions,
   SsgRenderOptions,
   SsgResult as StaticGenerateResult,
 };

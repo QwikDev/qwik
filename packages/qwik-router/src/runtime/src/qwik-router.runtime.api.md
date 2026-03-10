@@ -293,7 +293,7 @@ export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T
 //
 // @public (undocumented)
 export type PageModule = RouteModule & {
-    readonly default: () => JSXOutput;
+    readonly default: (props: Record<string, never>) => JSXOutput;
     readonly head?: ContentModuleHead;
     readonly eTag?: ContentModuleETag;
     readonly cacheKey?: CacheKeyFn;

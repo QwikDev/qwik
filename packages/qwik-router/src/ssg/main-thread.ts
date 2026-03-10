@@ -1,9 +1,6 @@
-import type { PageModule, PathParams, QwikRouterConfig, RouteData } from '@qwik.dev/router';
+import type { PageModule, PathParams, RouteData } from '@qwik.dev/router';
 import { bold, dim, green, magenta, red } from 'kleur/colors';
 import { relative } from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { buildErrorMessage } from 'vite';
-import { formatError } from '../buildtime/vite/format-error';
 import { msToString } from '../utils/format';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
 import { createRouteTester } from './routes';
@@ -17,9 +14,7 @@ export async function mainThread(sys: System) {
   const log = await sys.createLogger();
   log.info('\n' + bold(green('Starting Qwik Router SSG...')));
 
-  const qwikRouterConfig: QwikRouterConfig = (
-    await import(pathToFileURL(opts.qwikRouterConfigModulePath).href)
-  ).default;
+  const qwikRouterConfig = opts.qwikRouterConfig;
 
   const queue: SsgRoute[] = [];
   const active = new Set<string>();
@@ -116,10 +111,9 @@ export async function mainThread(sys: System) {
             log.error(`\n${bold(red(`!!! ${result.pathname}: Error during SSG`))}`);
             log.error(red(err.message));
             log.error(`  Pathname: ${magenta(staticRoute.pathname)}`);
-            Object.assign(formatError(err), {
-              plugin: 'qwik-ssg',
-            });
-            log.error(buildErrorMessage(err));
+            if (err.stack) {
+              log.error(dim(err.stack));
+            }
 
             generatorResult.errors++;
           }
@@ -291,17 +285,11 @@ export async function mainThread(sys: System) {
 }
 
 function validateOptions(opts: SsgOptions) {
-  if (!opts.qwikRouterConfigModulePath) {
-    if (!opts.qwikCityPlanModulePath) {
-      throw new Error(`Missing "qwikRouterConfigModulePath" option`);
-    } else {
-      console.warn(
-        '`qwikCityPlanModulePath` is deprecated. Use `qwikRouterConfigModulePath` instead.'
-      );
-    }
+  if (!opts.render) {
+    throw new Error(`Missing "render" option`);
   }
-  if (!opts.renderModulePath) {
-    throw new Error(`Missing "renderModulePath" option`);
+  if (!opts.qwikRouterConfig) {
+    throw new Error(`Missing "qwikRouterConfig" option`);
   }
 
   let siteOrigin = opts.origin;

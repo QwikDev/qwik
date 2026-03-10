@@ -13,12 +13,14 @@ import { postBuild } from './post-build';
  *
  * @public
  */
+const QWIK_SSG_ENTRY_ID = '@qwik-ssg-entry';
+const QWIK_SSG_ENTRY_RESOLVED = '\0@qwik-ssg-entry';
+
+/** @public */
 export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let qwikRouterPlugin: QwikRouterPlugin | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
   let serverOutDir: string | null = null;
-  let renderModulePath: string | null = null;
-  let qwikRouterConfigModulePath: string | null = null;
   let viteCommand: string | undefined;
   const outputEntries: string[] = [];
 
@@ -57,22 +59,94 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       }
       serverOutDir = config.build.outDir;
     },
-    buildStart() {
-      if (this.environment.config.consumer === 'server' && opts.ssg !== null) {
-        const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
-        if (viteCommand === 'build' && serverOutDir && srcDir) {
-          // TODO don't rely on entry points for SSG, somehow
-          this.emitFile({
-            id: '@qwik-router-config',
-            type: 'chunk',
-            fileName: '@qwik-router-config.js',
-          });
-          this.emitFile({
-            id: `${srcDir}/entry.ssr`,
-            type: 'chunk',
-            fileName: 'entry.ssr.js',
-          });
+
+    resolveId(id) {
+      if (id === QWIK_SSG_ENTRY_ID) {
+        return QWIK_SSG_ENTRY_RESOLVED;
+      }
+    },
+
+    load(id) {
+      if (id !== QWIK_SSG_ENTRY_RESOLVED) {
+        return;
+      }
+
+      const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
+      const clientPublicOutDir = qwikVitePlugin!.api!.getClientPublicOutDir()!;
+      const basePathname = qwikRouterPlugin!.api!.getBasePathname();
+      const rootDir = qwikVitePlugin!.api!.getRootDir() ?? undefined;
+
+      let ssgOrigin = opts.ssg?.origin ?? opts.origin;
+      if (!ssgOrigin) {
+        ssgOrigin = `https://yoursite.qwik.dev`;
+      }
+      if (ssgOrigin.length > 0 && !/:\/\//.test(ssgOrigin)) {
+        ssgOrigin = `https://${ssgOrigin}`;
+      }
+      if (ssgOrigin.startsWith('//')) {
+        ssgOrigin = `https:${ssgOrigin}`;
+      }
+      try {
+        ssgOrigin = new URL(ssgOrigin).origin;
+      } catch {
+        this.warn(
+          `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.dev"`
+        );
+        ssgOrigin = `https://yoursite.qwik.dev`;
+      }
+
+      // Build the SSG options to bake into run-ssg.js
+      const ssgOpts: Omit<StaticGenerateOptions, 'render' | 'qwikRouterConfig'> = {
+        origin: ssgOrigin,
+        outDir: clientPublicOutDir,
+        basePathname,
+        rootDir,
+        ...opts.ssg,
+        maxWorkers: opts.maxWorkers,
+      };
+      for (const key of Object.keys(ssgOpts) as (keyof typeof ssgOpts)[]) {
+        if (ssgOpts[key] === undefined) {
+          delete ssgOpts[key];
         }
+      }
+
+      // Virtual module that serves as both main and worker entry.
+      // Vite bundles the entry.ssr and @qwik-router-config imports.
+      // @qwik.dev/router/ssg is kept external (dynamic import).
+      return [
+        `import { isMainThread } from 'node:worker_threads';`,
+        `import render from '${srcDir}/entry.ssr';`,
+        `import qwikRouterConfig from '@qwik-router-config';`,
+        ``,
+        `const ssgOpts = ${JSON.stringify(ssgOpts)};`,
+        ``,
+        `if (isMainThread) {`,
+        `  const { runSsg } = await import('@qwik.dev/router/ssg');`,
+        `  await runSsg({`,
+        `    render,`,
+        `    qwikRouterConfig,`,
+        `    workerFilePath: new URL(import.meta.url).href,`,
+        `    ...ssgOpts,`,
+        `  });`,
+        `} else {`,
+        `  const { startWorker } = await import('@qwik.dev/router/ssg');`,
+        `  await startWorker({ render, qwikRouterConfig });`,
+        `}`,
+      ].join('\n');
+    },
+
+    buildStart() {
+      if (
+        this.environment.config.consumer === 'server' &&
+        opts.ssg !== null &&
+        viteCommand === 'build' &&
+        serverOutDir
+      ) {
+        this.emitFile({
+          id: QWIK_SSG_ENTRY_ID,
+          type: 'chunk',
+          fileName: 'run-ssg.js',
+        });
       }
     },
     generateBundle(_, bundles) {
@@ -83,12 +157,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           const chunk = bundles[fileName];
           if (chunk.type === 'chunk' && chunk.isEntry) {
             outputEntries.push(fileName);
-
-            if (chunk.name === 'entry.ssr') {
-              renderModulePath = join(serverOutDir!, fileName);
-            } else if (chunk.name === '@qwik-router-config') {
-              qwikRouterConfigModulePath = join(serverOutDir!, fileName);
-            }
           }
         }
       }
@@ -110,48 +178,22 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           const clientPublicOutDir = qwikVitePlugin.api.getClientPublicOutDir()!;
           const assetsDir = qwikVitePlugin.api.getAssetsDir();
 
-          const rootDir = qwikVitePlugin.api.getRootDir() ?? undefined;
-          if (
-            opts.ssg !== null &&
-            renderModulePath &&
-            qwikRouterConfigModulePath &&
-            clientOutDir &&
-            clientPublicOutDir
-          ) {
-            let ssgOrigin = opts.ssg?.origin ?? opts.origin;
-            if (!ssgOrigin) {
-              ssgOrigin = `https://yoursite.qwik.dev`;
-            }
-            // allow for capacitor:// or http://
-            if (ssgOrigin.length > 0 && !/:\/\//.test(ssgOrigin)) {
-              ssgOrigin = `https://${ssgOrigin}`;
-            }
-            if (ssgOrigin.startsWith('//')) {
-              ssgOrigin = `https:${ssgOrigin}`;
-            }
-            try {
-              ssgOrigin = new URL(ssgOrigin).origin;
-            } catch {
-              this.warn(
-                `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.dev"`
-              );
-              ssgOrigin = `https://yoursite.qwik.dev`;
-            }
+          if (opts.ssg !== null && clientOutDir && clientPublicOutDir) {
+            // run-ssg.js was emitted and bundled by Vite — spawn it as a child process
+            // to isolate worker thread handles from the build process
+            const runSsgPath = join(serverOutDir, 'run-ssg.js');
+            const { spawn } = await import('node:child_process');
 
-            const staticGenerate = await import('../../../ssg');
-            const generateOpts: StaticGenerateOptions = {
-              maxWorkers: opts.maxWorkers,
-              basePathname,
-              outDir: clientPublicOutDir,
-              rootDir,
-              ...opts.ssg,
-              origin: ssgOrigin,
-              renderModulePath,
-              qwikRouterConfigModulePath,
-            };
+            const ssgExitCode = await new Promise<number | null>((resolve, reject) => {
+              const child = spawn(process.execPath, [runSsgPath], {
+                stdio: ['ignore', 'inherit', 'inherit'],
+                env: { ...process.env, NODE_ENV: process.env.NODE_ENV || 'production' },
+              });
+              child.on('close', resolve);
+              child.on('error', reject);
+            });
 
-            const staticGenerateResult = await staticGenerate.generate(generateOpts);
-            if (staticGenerateResult.errors > 0) {
+            if (ssgExitCode !== 0) {
               const err = new Error(
                 `Error while running SSG from "${opts.name}" adapter. At least one path failed to render.`
               );
@@ -159,7 +201,17 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               this.error(err);
             }
 
-            staticPaths.push(...staticGenerateResult.staticPaths);
+            // Read static paths written by run-ssg.js
+            const fs = await import('node:fs');
+            const staticPathsFile = join(clientPublicOutDir, '_static-paths.json');
+            try {
+              const content = await fs.promises.readFile(staticPathsFile, 'utf-8');
+              staticPaths.push(...JSON.parse(content));
+              // Clean up the temporary file
+              await fs.promises.unlink(staticPathsFile);
+            } catch {
+              // No static paths file — SSG may have produced no pages
+            }
           }
 
           await postBuild(
@@ -190,12 +242,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               `\nSee https://qwik.dev/docs/deployments/#cache-headers for more information.` +
               `\n==============================================`
           );
-          if (opts.ssg !== null) {
-            // Some things may hold handles that prevent Node from exiting.
-            // SSG is fully complete at this point,
-            // so force exit immediately.
-            process.exit(0);
-          }
         }
       },
     },

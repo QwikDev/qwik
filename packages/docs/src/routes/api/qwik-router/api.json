@@ -544,7 +544,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PageModule = RouteModule & {\n    readonly default: () => JSXOutput;\n    readonly head?: ContentModuleHead;\n    readonly eTag?: ContentModuleETag;\n    readonly cacheKey?: CacheKeyFn;\n    readonly headings?: ContentHeading[];\n    readonly onStaticGenerate?: StaticGenerateHandler;\n};\n```\n**References:** [ContentModuleHead](#contentmodulehead)<!-- -->, [ContentModuleETag](#contentmoduleetag)<!-- -->, [CacheKeyFn](#cachekeyfn)<!-- -->, [ContentHeading](#contentheading)<!-- -->, [StaticGenerateHandler](#staticgeneratehandler)",
+      "content": "```typescript\nexport type PageModule = RouteModule & {\n    readonly default: (props: Record<string, never>) => JSXOutput;\n    readonly head?: ContentModuleHead;\n    readonly eTag?: ContentModuleETag;\n    readonly cacheKey?: CacheKeyFn;\n    readonly headings?: ContentHeading[];\n    readonly onStaticGenerate?: StaticGenerateHandler;\n};\n```\n**References:** [ContentModuleHead](#contentmodulehead)<!-- -->, [ContentModuleETag](#contentmoduleetag)<!-- -->, [CacheKeyFn](#cachekeyfn)<!-- -->, [ContentHeading](#contentheading)<!-- -->, [StaticGenerateHandler](#staticgeneratehandler)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.pagemodule.md"
     },

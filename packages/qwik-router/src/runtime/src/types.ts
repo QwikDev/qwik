@@ -49,7 +49,7 @@ export interface RouteModule<BODY = unknown> {
 
 /** @public */
 export type PageModule = RouteModule & {
-  readonly default: () => JSXOutput;
+  readonly default: (props: Record<string, never>) => JSXOutput;
   readonly head?: ContentModuleHead;
   readonly eTag?: ContentModuleETag;
   readonly cacheKey?: CacheKeyFn;
@@ -58,7 +58,7 @@ export type PageModule = RouteModule & {
 };
 
 export interface LayoutModule extends RouteModule {
-  readonly default?: () => JSXOutput;
+  readonly default?: (props: Record<string, never>) => JSXOutput;
   readonly head?: ContentModuleHead;
 }
 
@@ -382,7 +382,7 @@ export type LoadedRoute = [
   /** Whether this route is a not-found (404) route */
   notFound: boolean,
   /** The error module loader (nearest _E ancestor), for rendering ServerErrors */
-  errorLoader?: ModuleLoader,
+  errorLoader?: ContentModuleLoader,
 ];
 
 export const enum LoadedRouteProp {

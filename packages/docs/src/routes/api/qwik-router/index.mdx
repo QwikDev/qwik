@@ -1299,7 +1299,7 @@ Omit&lt;T, KEYS&gt;
 
 ```typescript
 export type PageModule = RouteModule & {
-  readonly default: () => JSXOutput;
+  readonly default: (props: Record<string, never>) => JSXOutput;
   readonly head?: ContentModuleHead;
   readonly eTag?: ContentModuleETag;
   readonly cacheKey?: CacheKeyFn;

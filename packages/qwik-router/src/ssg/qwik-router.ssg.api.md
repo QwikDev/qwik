@@ -4,10 +4,15 @@
 
 ```ts
 
+import type { QwikRouterConfig } from '@qwik.dev/router';
+import type { Render } from '@qwik.dev/core/server';
 import type { RenderOptions } from '@qwik.dev/core/server';
 
 // @public
 export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
+
+// @public
+export function runSsg(opts: StaticGenerateOptions): Promise<never>;
 
 // @public (undocumented)
 export interface SsgRenderOptions extends RenderOptions {
@@ -24,15 +29,23 @@ export interface SsgRenderOptions extends RenderOptions {
     sitemapOutFile?: string | null;
 }
 
+// @public
+export function startWorker(opts: StaticGenerateOptions): Promise<void>;
+
 // @public (undocumented)
 export interface StaticGenerateOptions extends SsgRenderOptions {
     basePathname?: string;
     // @deprecated (undocumented)
     qwikCityPlanModulePath?: string;
-    qwikRouterConfigModulePath: string;
-    renderModulePath: string;
+    qwikRouterConfig: QwikRouterConfig;
+    // @deprecated (undocumented)
+    qwikRouterConfigModulePath?: string;
+    render: Render;
+    // @deprecated (undocumented)
+    renderModulePath?: string;
     // (undocumented)
     rootDir?: string;
+    workerFilePath?: string | URL;
 }
 
 // @public (undocumented)

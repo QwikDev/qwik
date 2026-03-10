@@ -6,13 +6,13 @@ import type {
   WorkerOutputMessage,
   WorkerInputMessage,
   System,
-} from '../types';
+} from './types';
 import fs from 'node:fs';
 import { cpus as nodeCpus } from 'node:os';
 import { Worker } from 'node:worker_threads';
-import { dirname, extname, isAbsolute, join, resolve } from 'node:path';
-import { ensureDir } from './node-system';
-import { normalizePath } from '../../utils/fs';
+import { isAbsolute, resolve } from 'node:path';
+import { ensureDir } from './system';
+import { normalizePath } from '../utils/fs';
 
 export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
   const ssgWorkers: SsgWorker[] = [];
@@ -50,33 +50,26 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
     }
   }
 
+  // workerFilePath must be provided - it points to the entry file that handles both
+  // main thread and worker thread modes (detected via isMainThread)
+  if (!opts.workerFilePath) {
+    throw new Error('Missing "workerFilePath" option for SSG worker creation');
+  }
+  // Node's Worker requires a URL object for file:// URLs, not a string
+  const workerFilePath =
+    typeof opts.workerFilePath === 'string' && opts.workerFilePath.startsWith('file://')
+      ? new URL(opts.workerFilePath)
+      : opts.workerFilePath;
+
+  // workerData only carries serializable options (no functions like render/qwikRouterConfig)
+  const { render: _r, qwikRouterConfig: _c, workerFilePath: _w, ...workerData } = opts;
+
   const createWorker = () => {
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
-
-    let workerFilePath: string | URL;
     let terminateTimeout: number | null = null;
 
-    // Launch the worker using the package's index module, which bootstraps the worker thread.
-    if (typeof __filename === 'string') {
-      // CommonJS path
-      const ext = extname(__filename) || '.js';
-      workerFilePath = join(dirname(__filename), `index${ext}`);
-    } else {
-      // ESM path (import.meta.url)
-      const thisUrl = new URL(import.meta.url);
-      const pathname = thisUrl.pathname || '';
-      let ext = '.js';
-      if (pathname.endsWith('.ts')) {
-        ext = '.ts';
-      } else if (pathname.endsWith('.mjs')) {
-        ext = '.mjs';
-      }
-
-      workerFilePath = new URL(`./index${ext}`, thisUrl);
-    }
-
-    const nodeWorker = new Worker(workerFilePath, { workerData: opts });
+    const nodeWorker = new Worker(workerFilePath, { workerData });
     nodeWorker.unref();
 
     const ssgWorker: SsgWorker = {

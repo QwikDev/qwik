@@ -5,7 +5,8 @@ import {
   RequestEvShareQData,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
-import { WritableStream } from 'node:stream/web';
+// Use the global WritableStream, not node:stream/web — in worker threads they can be
+// different classes, causing instanceof checks in pipeTo/TransformStream to fail.
 import { pathToFileURL } from 'node:url';
 import type { ClientPageData } from '../runtime/src/types';
 import type {
@@ -41,6 +42,19 @@ export async function workerThread(sys: System) {
           return new Promise<SsgWorkerRenderResult>((resolve) => {
             workerRender(sys, opts, msg, pendingPromises, resolve).catch((e) => {
               console.error('Error during render', msg.pathname, e);
+              resolve({
+                type: 'render',
+                pathname: msg.pathname,
+                url: '',
+                ok: false,
+                error: {
+                  message: e instanceof Error ? e.message : String(e),
+                  stack: e instanceof Error ? e.stack : undefined,
+                },
+                filePath: null,
+                contentType: null,
+                resourceType: null,
+              });
             });
           });
         }
@@ -110,7 +124,7 @@ async function workerRender(
 
         if (!result.ok) {
           // not ok, don't write anything
-          return noopWritableStream as any;
+          return createNoopWritableStream() as any;
         }
 
         result.contentType = (headers.get('Content-Type') || '').toLowerCase();
@@ -293,24 +307,5 @@ async function workerRender(
   }
 }
 
-const noopWriter: WritableStreamDefaultWriter<any> = {
-  closed: Promise.resolve(undefined),
-  ready: Promise.resolve(undefined),
-  desiredSize: 0,
-  async close() {},
-  async abort() {},
-  async write() {},
-  releaseLock() {},
-};
-
-const noopWritableStream = {
-  get locked() {
-    return false;
-  },
-  set locked(_: boolean) {},
-  async abort() {},
-  async close() {},
-  getWriter() {
-    return noopWriter;
-  },
-};
+/** Create a fresh no-op WritableStream (must be a real instance for pipeTo checks). */
+const createNoopWritableStream = () => new WritableStream();

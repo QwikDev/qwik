@@ -102,12 +102,24 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
         mainTasks.clear();
         const msg: WorkerInputMessage = { type: 'close' };
         await new Promise<void>((resolve) => {
-          terminateResolve = resolve;
+          terminateResolve = () => {
+            // Worker acknowledged close, it will exit naturally
+            resolve();
+          };
+          // Fallback: force-terminate if worker doesn't respond within 1s
+          terminateTimeout = setTimeout(async () => {
+            terminateTimeout = null;
+            terminateResolve = null;
+            await nodeWorker.terminate();
+            resolve();
+          }, 1000) as unknown as number;
           nodeWorker.postMessage(msg);
         });
-        terminateTimeout = setTimeout(async () => {
-          await nodeWorker.terminate();
-        }, 1000) as unknown as number;
+        // If worker responded gracefully, cancel the force-terminate
+        if (terminateTimeout) {
+          clearTimeout(terminateTimeout);
+          terminateTimeout = null;
+        }
       },
     };
 
@@ -140,6 +152,28 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
       if (terminateTimeout) {
         clearTimeout(terminateTimeout);
         terminateTimeout = null;
+      }
+      // Resolve any pending tasks so the main thread doesn't hang
+      if (mainTasks.size > 0) {
+        for (const [pathname, resolve] of mainTasks) {
+          ssgWorker.activeTasks--;
+          resolve({
+            type: 'render',
+            pathname,
+            url: '',
+            ok: false,
+            error: { message: `Worker exited with code ${code}`, stack: undefined },
+            filePath: null,
+            contentType: null,
+            resourceType: null,
+          });
+        }
+        mainTasks.clear();
+      }
+      // Resolve terminate if it was waiting
+      if (terminateResolve) {
+        terminateResolve();
+        terminateResolve = null;
       }
       if (code !== 0) {
         console.error(`worker exit ${code}`);

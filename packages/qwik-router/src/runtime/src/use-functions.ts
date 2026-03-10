@@ -25,7 +25,7 @@ import type {
 } from './types';
 
 /** @public */
-export const useHttpStatus = () => useContext(HttpStatusContext);
+export const useHttpStatus = () => useContext(HttpStatusContext).value;
 
 /** @public */
 export const useContent = () => useContext(ContentContext);

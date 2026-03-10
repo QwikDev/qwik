@@ -2,11 +2,7 @@ import { isServer } from '@qwik.dev/core/build';
 import type { Render } from '@qwik.dev/core/server';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 import { loadRoute } from '../../runtime/src/routing';
-import {
-  LoadedRouteProp,
-  type QwikRouterConfig,
-  type RebuildRouteInfoInternal,
-} from '../../runtime/src/types';
+import { type QwikRouterConfig, type RebuildRouteInfoInternal } from '../../runtime/src/types';
 import type { RequestEventInternal } from './request-event';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
@@ -74,7 +70,7 @@ export async function requestHandler<T = unknown>(
   );
 
   // When fallthrough is enabled and no route matched, let the adapter handle it
-  if (qwikRouterConfig.fallthrough && loadedRoute[LoadedRouteProp.NotFound]) {
+  if (qwikRouterConfig.fallthrough && loadedRoute.$notFound$) {
     return null;
   }
 

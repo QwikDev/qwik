@@ -7,7 +7,6 @@ import {
 } from '@qwik.dev/core/internal';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import {
-  LoadedRouteProp,
   type ActionInternal,
   type FailReturn,
   type JSONValue,
@@ -80,7 +79,7 @@ export function createRequestEvent(
   let writableStream: WritableStream<Uint8Array> | null = null;
   let requestData: Promise<JSONValue | undefined> | undefined = undefined;
   let locale = serverRequestEv.locale;
-  let status = loadedRoute?.[LoadedRouteProp.NotFound] ? 404 : 200;
+  let status = loadedRoute?.$notFound$ ? 404 : 200;
 
   const next = async () => {
     routeModuleIndex++;
@@ -101,7 +100,7 @@ export function createRequestEvent(
     _url = url
   ) => {
     loadedRoute = _loadedRoute;
-    status = loadedRoute?.[LoadedRouteProp.NotFound] ? 404 : 200;
+    status = loadedRoute?.$notFound$ ? 404 : 200;
     requestHandlers = _requestHandlers;
     url.pathname = _url.pathname;
     url.search = _url.search;
@@ -171,7 +170,7 @@ export function createRequestEvent(
     signal: request.signal,
     originalUrl: new URL(url),
     get params() {
-      return loadedRoute?.[LoadedRouteProp.Params] ?? {};
+      return loadedRoute?.$params$ ?? {};
     },
     get pathname() {
       return url.pathname;

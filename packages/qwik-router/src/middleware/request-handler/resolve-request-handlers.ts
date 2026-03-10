@@ -3,7 +3,6 @@ import { _serialize, _UNINITIALIZED, _verifySerializable, isDev } from '@qwik.de
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import {
-  LoadedRouteProp,
   type ActionInternal,
   type ClientPageData,
   type ContentModule,
@@ -58,7 +57,7 @@ export const resolveRequestHandlers = (
 
   const requestHandlers: RequestHandler[] = [];
 
-  const isPageRoute = !!(route && isLastModulePageRoute(route[LoadedRouteProp.Mods]));
+  const isPageRoute = !!(route && isLastModulePageRoute(route.$mods$));
 
   // Always handle QData redirects (server plugins might redirect)
   if (isInternal) {
@@ -85,7 +84,7 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
-    const routeModules = route[LoadedRouteProp.Mods];
+    const routeModules = route.$mods$;
     _resolveRequestHandlers(
       routeLoaders,
       routeActions,
@@ -94,7 +93,7 @@ export const resolveRequestHandlers = (
       isPageRoute,
       method
     );
-    const routeName = route[LoadedRouteProp.RouteName];
+    const routeName = route.$routeName$;
     if (
       checkOrigin &&
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
@@ -286,7 +285,7 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
       return;
     }
 
-    const mods = route[LoadedRouteProp.Mods] as ContentModule[];
+    const mods = route.$mods$ as ContentModule[];
     const leafModule = mods[mods.length - 1] as PageModule | undefined;
     if (!leafModule?.eTag) {
       return;
@@ -387,13 +386,13 @@ function serverErrorMiddleware(route: LoadedRoute, renderHandler: RequestHandler
       requestEv.status(status);
 
       // Load the custom error page (error.tsx) or the built-in fallback
-      const errorLoader = route[LoadedRouteProp.ErrorLoader];
+      const errorLoader = route.$errorLoader$;
       const errorModule = errorLoader
         ? await errorLoader()
         : await import('../../runtime/src/http-error');
 
       // Swap route modules to just the error component (no layouts)
-      route[LoadedRouteProp.Mods] = [errorModule as RouteModule];
+      route.$mods$ = [errorModule as RouteModule];
 
       // Store the error message so the component can display it via useHttpStatus()
       requestEv.sharedMap.set(

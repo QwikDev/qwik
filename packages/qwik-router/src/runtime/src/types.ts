@@ -368,31 +368,21 @@ export type ContentModuleETag = string | ((props: DocumentHeadProps) => string |
 export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
 
 /** The route to render */
-export type LoadedRoute = [
+export interface LoadedRoute {
   /** The canonical path of the route, e.g. `/products/[id]` */
-  routeName: string,
+  $routeName$: string;
   /** The route parameters, e.g. `{ id: '123' }` */
-  params: PathParams,
+  $params$: PathParams;
   /** The modules associated with this route (on 404, contains only the error component) */
-  mods: (RouteModule | ContentModule)[],
+  $mods$: (RouteModule | ContentModule)[];
   /** The menu associated with this route */
-  menu: ContentMenu | undefined,
+  $menu$?: ContentMenu | undefined;
   /** The bundle names for this route */
-  routeBundleNames: string[] | undefined,
+  $routeBundleNames$?: string[] | undefined;
   /** Whether this route is a not-found (404) route */
-  notFound: boolean,
+  $notFound$?: boolean;
   /** The error module loader (nearest _E ancestor), for rendering ServerErrors */
-  errorLoader?: ContentModuleLoader,
-];
-
-export const enum LoadedRouteProp {
-  RouteName,
-  Params,
-  Mods,
-  Menu,
-  RouteBundleNames,
-  NotFound,
-  ErrorLoader,
+  $errorLoader$?: ContentModuleLoader;
 }
 
 export interface EndpointResponse {

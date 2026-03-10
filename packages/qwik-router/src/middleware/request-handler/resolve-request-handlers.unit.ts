@@ -34,7 +34,7 @@ function createMockServerRequestEvent(url = 'http://localhost:3000/test'): Serve
 }
 
 const justHiModule = { default: () => 'hi' };
-const mockRoute: LoadedRoute = ['/', {}, [justHiModule], undefined, undefined, false];
+const mockRoute: LoadedRoute = { $routeName$: '/', $params$: {}, $mods$: [justHiModule] };
 function createMockRequestEvent(url = 'http://localhost:3000/test', trailingSlash = true) {
   globalThis.__NO_TRAILING_SLASH__ = !trailingSlash;
   const serverRequestEv = createMockServerRequestEvent(url);

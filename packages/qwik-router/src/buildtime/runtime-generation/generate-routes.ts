@@ -340,11 +340,12 @@ function serializeBuildTrie(
     }
   }
 
-  // Serialize group children as _M array (sorted by group name)
+  // Serialize group children as _M array (sorted by group name), skipping empty nodes
   if (groupChildren.length > 0) {
     groupChildren.sort((a, b) => a[0].localeCompare(b[0]));
-    const groupStrs = groupChildren.map(([_key, child]) => {
-      return serializeBuildTrie(
+    const groupStrs: string[] = [];
+    for (const [_key, child] of groupChildren) {
+      const childStr = serializeBuildTrie(
         ctx,
         qwikPlugin,
         child,
@@ -357,13 +358,17 @@ function serializeBuildTrie(
         isSSR,
         nextIndent
       );
-    });
-    lines.push(`${nextIndent}_M: [${groupStrs.join(', ')}],`);
+      if (childStr !== '{}') {
+        groupStrs.push(childStr);
+      }
+    }
+    if (groupStrs.length > 0) {
+      lines.push(`${nextIndent}_M: [${groupStrs.join(', ')}],`);
+    }
   }
 
-  // Serialize regular children
+  // Serialize regular children, skipping empty nodes
   for (const [key, child] of regularChildren) {
-    const keyStr = JSON.stringify(key);
     const childStr = serializeBuildTrie(
       ctx,
       qwikPlugin,
@@ -377,7 +382,10 @@ function serializeBuildTrie(
       isSSR,
       nextIndent
     );
-    lines.push(`${nextIndent}${keyStr}: ${childStr},`);
+    if (childStr !== '{}') {
+      const keyStr = JSON.stringify(key);
+      lines.push(`${nextIndent}${keyStr}: ${childStr},`);
+    }
   }
 
   if (lines.length === 0) {

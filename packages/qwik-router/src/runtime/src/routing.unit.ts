@@ -629,3 +629,39 @@ test('loadRoute — _N not loaded for internal requests', async () => {
   assert.isFalse(result.$notFound$);
   assert.isUndefined(result.$menu$);
 });
+
+// ─── Empty node tests ─────────────────────────────────────────────────────────
+
+test('loadRoute — empty object leaf node is a 404 (no false match)', async () => {
+  // Simulates a trie with a directory that has no route files — the serializer
+  // should prune these, but if one slips through, the runtime must not treat it
+  // as a valid match.
+  const routes: RouteData = {
+    blog: {}, // empty leaf — no _I, no _L, nothing
+  };
+  const result = await loadRoute(routes, false, '/blog');
+  assert.isTrue(result.$notFound$);
+});
+
+test('loadRoute — empty intermediate node still finds deeper routes', async () => {
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    docs: {
+      // no _I or _L here — just a passthrough directory
+      guide: {
+        _I: pageLoader,
+      },
+    },
+  };
+  const result = await loadRoute(routes, false, '/docs/guide');
+  assert.isFalse(result.$notFound$);
+  assert.equal(result.$mods$.length, 1);
+});
+
+test('loadRoute — empty _M group is ignored', async () => {
+  const routes: RouteData = {
+    _M: [{}], // empty group — no routes, no layouts
+  };
+  const result = await loadRoute(routes, false, '/anything');
+  assert.isTrue(result.$notFound$);
+});

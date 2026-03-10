@@ -1,4 +1,4 @@
-import { $, component$ } from '@qwik.dev/core';
+import { $, component$, useTask$ } from '@qwik.dev/core';
 import { domRender } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { _addProjection, _slotReady, _updateProjectionProps, _removeProjection } from '../internal';
@@ -121,5 +121,52 @@ describe('external-projection (CSR)', () => {
 
     // Target element should be cleared
     expect(targetEl.innerHTML).toBe('');
+  });
+
+  it('should clean up effects when projection is removed', async () => {
+    const log: string[] = [];
+
+    const childQrl = $((props: { title: string }) => {
+      useTask$(() => {
+        log.push('task');
+        return () => {
+          log.push('cleanup');
+        };
+      });
+      return <span>{props.title}</span>;
+    });
+
+    const Parent = component$(() => {
+      return <div id="parent">parent content</div>;
+    });
+
+    const { document, container, vNode } = await domRender(<Parent />, { debug: DEBUG });
+
+    const parentVNode = vNode;
+
+    const targetEl = document.createElement('div');
+    document.body.appendChild(targetEl);
+
+    const slotName = '_rq:cleanup-test';
+    const projectionVNode = _addProjection(
+      container,
+      parentVNode as any,
+      childQrl,
+      { title: 'with effects' },
+      slotName
+    );
+
+    _slotReady(projectionVNode, targetEl);
+    await waitForDrain(container);
+
+    expect(targetEl.innerHTML).toContain('with effects');
+    expect(log).toEqual(['task']);
+
+    // Remove the projection — should trigger task cleanup
+    _removeProjection(container, parentVNode as any, projectionVNode, slotName);
+    await waitForDrain(container);
+
+    expect(targetEl.innerHTML).toBe('');
+    expect(log).toEqual(['task', 'cleanup']);
   });
 });

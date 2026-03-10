@@ -1603,13 +1603,14 @@ function getNodeAfterCommentNode(
   firstChild: NonNullable<typeof _fastFirstChild>
 ): Node | null {
   const isSingleValue = typeof commentValue === 'string';
+  const length = commentValue.length;
   while (node) {
     const nodeValue = node.nodeValue;
     let isMatch;
     if (isSingleValue) {
       isMatch = nodeValue?.startsWith(commentValue as string);
     } else {
-      for (let i = 0; i < (commentValue as string[]).length; i++) {
+      for (let i = 0; i < length; i++) {
         if (nodeValue?.startsWith((commentValue as string[])[i])) {
           isMatch = true;
           break;

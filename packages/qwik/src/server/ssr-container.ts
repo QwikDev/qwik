@@ -103,7 +103,9 @@ import {
   SsrComponentFrame,
   SsrNode,
   SsrNodeKind,
-  SSR_ATTR_HTML,
+  SSR_VAR_ATTRS,
+  SSR_CONST_ATTRS,
+  SSR_STYLE_SCOPED_ID,
   SSR_SUSPENSE_FALLBACK,
   SSR_SUSPENSE_PLACEHOLDER_ID,
   SSR_SUSPENSE_CONTENT,
@@ -283,27 +285,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private backpatchMap = new Map<number, BackpatchEntry[]>();
 
   /**
-   * When true, write() is suppressed and tree building stores content on SsrNodes for the streaming
-   * walker to emit later.
+   * When true, container methods write directly to the stream instead of building tree. Only set
+   * during emitContainerData (script tags for state, vnodes, etc.).
    */
-  public treeOnly = false;
+  private _directMode = false;
 
   /**
-   * Temporary buffer for capturing attr HTML during openElement in treeOnly mode. When set, write()
-   * appends to this buffer instead of the stream.
+   * When true, closeElement's manual rendering path (emitContainerDataFrame check) is suppressed.
+   * Set during cursor-driven render() — container data is handled by the walker callback instead.
    */
-  private _attrBuffer: string[] | null = null;
+  private _cursorDrivenRender = false;
 
-  /**
-   * When true, write() calls are tag-structure writes (open/close tags) that should be suppressed
-   * in treeOnly mode. When false, writes are content that should be captured as raw HTML children.
-   */
-  private _inTagWrite = false;
-
-  /**
-   * Root SsrNode of the content tree (the container element). Set in treeOnly mode after
-   * openContainer, used by the streaming walker.
-   */
+  /** Root SsrNode of the content tree (the container element). Used by the streaming walker. */
   public rootSsrNode: ISsrNode | null = null;
 
   private renderTimer: ReturnType<typeof createTimer>;
@@ -411,11 +404,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // Phase 1: Open container element (writes opening tag directly to stream)
     this.openContainer();
 
-    // Phase 2: Enable tree-only mode — _walkJSX builds SsrNode tree, no HTML output.
+    // Prevent closeElement from triggering the manual rendering path during cursor-driven
+    // rendering. render() handles container data emission via the walker callback instead.
+    this._cursorDrivenRender = true;
+
+    // Phase 2: Build SsrNode tree — _walkJSX builds tree, no HTML output.
     // Sub-cursors for Suspense children are created during tree building and run
     // at higher priority (-1). Sync sub-cursors complete during processCursorQueue;
     // async ones may still be paused when the main cursor finishes.
-    this.treeOnly = true;
     const rootSsrNode = this.getOrCreateLastNode();
     this.activeWalkCtx.currentElementFrame!.ssrNode = rootSsrNode;
     this.rootSsrNode = rootSsrNode;
@@ -466,11 +462,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // Phase 3: Emit HTML from the SsrNode tree using the streaming walker.
     // At this point, sync Suspense sub-cursors have completed (boundary marked :suspenseReady).
     // Async sub-cursors may still be pending — those boundaries get fallback + OoO.
-    this.treeOnly = false;
-    // Save the container data frame (body for html, container div for non-html)
-    // so we can restore it during container data emission (needed for tag nesting validation)
+
+    // Save the container data frame (body for html, container root for non-html).
+    // This frame's vNodeData must be active during emitContainerData so that script elements
+    // created by emitStateData/emitVNodeData are counted (client expects matching counts).
     const savedContainerDataFrame = this.emitContainerDataFrame;
-    // Disable so closeElement during tree close-up won't re-trigger container data emission
     this.emitContainerDataFrame = null;
 
     // Determine which Suspense boundaries are deferred (sub-cursor not yet complete).
@@ -480,8 +476,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     );
 
     const emitContainerDataFn = async () => {
-      // Temporarily restore the container data frame so openElement nesting checks pass
-      // (scripts are allowed in body/div, but not directly in html)
+      // Restore the container data frame so openElement's vNodeData_incrementElementCount
+      // counts scripts in the correct parent (body/container). Without this, the client-side
+      // VNodeData parser would see more DOM elements than the VNodeData describes.
       const currentFrame = this.activeWalkCtx.currentElementFrame;
       if (savedContainerDataFrame) {
         this.activeWalkCtx.currentElementFrame = savedContainerDataFrame;
@@ -499,37 +496,38 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitOoOChunks(deferredBoundaries);
       }
 
+      this._directMode = true;
       await this.emitContainerData();
+      this._directMode = false;
       this.timing.snapshot = snapshotTimer();
       // Restore the original frame
       this.activeWalkCtx.currentElementFrame = currentFrame;
     };
 
-    // For html containers, inject container data before </body> via walker callback.
-    // For non-html containers, emit after walker content.
+    // Determine where to inject container data:
+    // - For html containers: before </body> (walker callback on body node)
+    // - For non-html containers: before </container> (walker callback on root node)
     const bodyNode = this.isHtml ? this.findBodyNode(this.rootSsrNode!) : null;
+    const containerDataNode = bodyNode ?? this.rootSsrNode!;
 
     const walker = new SsrStreamingWalker({
       writer: this.writer,
-      containerDataNode: bodyNode ?? undefined,
-      onBeforeContainerClose: bodyNode ? emitContainerDataFn : undefined,
+      containerDataNode,
+      onBeforeContainerClose: emitContainerDataFn,
       suspenseBoundaries: deferredBoundaries.map((b) => ({
         node: b.node,
         placeholderId: b.placeholderId,
       })),
     });
-    const walkerResult = walker.emitChildren(this.rootSsrNode!);
+    // Emit the entire tree including the root element (container tag)
+    const walkerResult = walker.emitTree(this.rootSsrNode!);
 
-    // Phase 4: Container data + close
+    // Phase 4: Wait for walker to complete
     if (isPromise(walkerResult)) {
       await walkerResult;
     }
-    if (!bodyNode) {
-      // non-html container: emit container data after walker content, before </container>
-      await emitContainerDataFn();
-    }
 
-    // Close container element (pop all remaining frames and write closing tags)
+    // Pop remaining frames (no HTML output — _directMode is false, walker already wrote everything)
     while (this.activeWalkCtx.currentElementFrame) {
       this._closeElement();
     }
@@ -579,7 +577,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    */
   openContainer() {
     if (this.tag == 'html') {
-      this.write('<!DOCTYPE html>');
+      // DOCTYPE is emitted directly — it's not part of the tree
+      this.writer.write('<!DOCTYPE html>');
     }
 
     const containerAttributes = this.renderOptions.containerAttributes || {};
@@ -650,54 +649,64 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.emitContainerDataFrame = this.activeWalkCtx.currentElementFrame;
     }
     vNodeData_openElement(this.activeWalkCtx.currentElementFrame!.vNodeData);
-    this._inTagWrite = true;
-    this.write(LT);
-    this.write(elementName);
-    this._inTagWrite = false;
 
-    // In treeOnly mode, start capturing attr HTML for the streaming walker
-    if (this.treeOnly) {
-      this._attrBuffer = [];
-    }
-
-    // create here for writeAttrs method to use it
+    // create here for processAttrs to use it
     const lastNode = this.getOrCreateLastNode();
-    if (varAttrs) {
-      innerHTML = this.writeAttrs(
-        elementName,
-        varAttrs,
-        false,
-        styleScopedId,
-        currentFile,
-        hasMovedCaptures
-      );
-    }
-    this.write(' ' + Q_PROPS_SEPARATOR);
-    if (key !== null) {
-      this.write(`="${key}"`);
-    } else if (import.meta.env.TEST) {
-      // Domino sometimes does not like empty attributes, so we need to add a empty value
-      this.write(EMPTY_ATTR);
-    }
-    if (constAttrs && !isObjectEmpty(constAttrs)) {
-      innerHTML =
-        this.writeAttrs(
+
+    if (this._directMode) {
+      // Direct mode: write HTML immediately to stream (used by emitContainerData for script tags)
+      this.writer.write(LT);
+      this.writer.write(elementName);
+      this.writeAttrsDirect(varAttrs);
+      // Write Q_PROPS_SEPARATOR — marks this as a Qwik-managed element for client materialization
+      this.writer.write(' ' + Q_PROPS_SEPARATOR);
+      if (import.meta.env.TEST) {
+        this.writer.write(EMPTY_ATTR);
+      }
+      this.writer.write(GT);
+    } else {
+      // Tree-building mode: process attrs (run side effects) and store on SsrNode.
+      // Walker will serialize attrs to HTML at emission time.
+      let varProcessed: Record<string, any> | null = null;
+      let constProcessed: Record<string, any> | null = null;
+      if (varAttrs) {
+        const result = this.processAttrs(
+          elementName,
+          varAttrs,
+          false,
+          styleScopedId,
+          currentFile,
+          hasMovedCaptures
+        );
+        varProcessed = result.processed;
+        innerHTML = result.innerHTML;
+      }
+      if (constAttrs && !isObjectEmpty(constAttrs)) {
+        const result = this.processAttrs(
           elementName,
           constAttrs,
           true,
           styleScopedId,
           currentFile,
           hasMovedCaptures
-        ) || innerHTML;
-    }
+        );
+        constProcessed = result.processed;
+        innerHTML = result.innerHTML || innerHTML;
+      }
 
-    if (this.treeOnly) {
-      // Store captured attr HTML and element info on SsrNode
       const ssrNode = lastNode as unknown as SsrNode;
-      ssrNode.setProp(SSR_ATTR_HTML, this._attrBuffer!.join(''));
+      if (varProcessed) {
+        ssrNode.setProp(SSR_VAR_ATTRS, varProcessed);
+      }
+      if (constProcessed) {
+        ssrNode.setProp(SSR_CONST_ATTRS, constProcessed);
+      }
+      if (styleScopedId) {
+        ssrNode.setProp(SSR_STYLE_SCOPED_ID, styleScopedId);
+      }
+      ssrNode.key = key;
       ssrNode.tagName = elementName;
       ssrNode.nodeKind = SsrNodeKind.Element;
-      this._attrBuffer = null;
 
       // Store SsrNode on frame for child tracking
       this.activeWalkCtx.currentElementFrame!.ssrNode = lastNode;
@@ -707,38 +716,50 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (parentSsrNode) {
         (parentSsrNode as SsrNode).addOrderedChild(lastNode);
       }
-    }
 
-    this._inTagWrite = true;
-    this.write(GT);
-    this._inTagWrite = false;
-
-    if (lastNode) {
+      // Mark as non-updatable: attrs are captured, any signal changes after this need backpatching
       lastNode.setTreeNonUpdatable();
     }
+
     return innerHTML;
   }
 
   /** Renders closing tag for DOM element */
   closeElement(): ValueOrPromise<void> {
-    if (this.activeWalkCtx.currentElementFrame === this.emitContainerDataFrame) {
-      if (this.treeOnly) {
-        // In treeOnly mode (tree building), just close the element — container data
-        // emission is handled by render() via the streaming walker.
-        this._closeElement();
-        return;
-      }
-      // Manual rendering path (non-cursor): emit container data before closing.
+    if (
+      !this._cursorDrivenRender &&
+      this.activeWalkCtx.currentElementFrame === this.emitContainerDataFrame
+    ) {
+      // Manual rendering path (container.spec.tsx toHTML): emit tree + container data.
       this.emitContainerDataFrame = null;
       this.onRenderDone();
       const snapshotTimer = createTimer();
 
-      return maybeThen(
-        maybeThen(this.emitContainerData(), () => this._closeElement()),
-        () => {
+      // Emit the entire tree (including open/close tags) via streaming walker.
+      // The walker's onBeforeContainerClose callback emits container data scripts.
+      const rootSsrNode = this.activeWalkCtx.currentElementFrame!.ssrNode;
+      if (rootSsrNode) {
+        this._directMode = true;
+        const walker = new SsrStreamingWalker({
+          writer: this.writer,
+          containerDataNode: rootSsrNode,
+          onBeforeContainerClose: () => this.emitContainerData(),
+        });
+        const result = walker.emitTree(rootSsrNode);
+        return maybeThen(result, () => {
+          this._directMode = false;
+          // Pop the frame (walker already wrote the close tag)
+          this.popFrame();
+          this.activeWalkCtx.lastNode = null;
           this.timing.snapshot = snapshotTimer();
-        }
-      );
+        });
+      }
+
+      // No tree built — just pop
+      this.popFrame();
+      this.activeWalkCtx.lastNode = null;
+      this.timing.snapshot = snapshotTimer();
+      return;
     }
     this._closeElement();
   }
@@ -767,16 +788,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private _closeElement() {
     const currentFrame = this.popFrame();
     const elementName = currentFrame.elementName!;
-    if (!isSelfClosingTag(elementName)) {
-      this._inTagWrite = true;
-      this.write(CLOSE_TAG);
-      this.write(elementName);
-      this.write(GT);
-      this._inTagWrite = false;
+    if (this._directMode && !isSelfClosingTag(elementName)) {
+      this.writer.write(CLOSE_TAG);
+      this.writer.write(elementName);
+      this.writer.write(GT);
     }
+    // In tree-building mode, walker handles close tags
     this.activeWalkCtx.lastNode = null;
     if (this.qlInclude === QwikLoaderInclude.Inline) {
-      // keep track of noscript and template
       if (elementName === 'noscript' || elementName === 'template') {
         this.$noScriptHere$--;
       }
@@ -789,18 +808,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     vNodeData_openFragment(this.activeWalkCtx.currentElementFrame!.vNodeData, attrs);
     // create SSRNode and add it as component child to serialize its vnode data
     const node = this.getOrCreateLastNode();
-    if (this.treeOnly) {
-      (node as SsrNode).nodeKind = SsrNodeKind.Virtual;
-      // Add as ordered child of current element
-      const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
-      if (parentSsrNode) {
-        (parentSsrNode as SsrNode).addOrderedChild(node);
-      }
-      // Push the current ssrNode and set the fragment as the new parent for children
-      this.activeWalkCtx.ssrNodeStack.push(this.activeWalkCtx.currentElementFrame?.ssrNode ?? null);
-      if (this.activeWalkCtx.currentElementFrame) {
-        this.activeWalkCtx.currentElementFrame.ssrNode = node;
-      }
+    (node as SsrNode).nodeKind = SsrNodeKind.Virtual;
+    // Add as ordered child of current element
+    const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
+    if (parentSsrNode) {
+      (parentSsrNode as SsrNode).addOrderedChild(node);
+    }
+    // Push the current ssrNode and set the fragment as the new parent for children
+    this.activeWalkCtx.ssrNodeStack.push(this.activeWalkCtx.currentElementFrame?.ssrNode ?? null);
+    if (this.activeWalkCtx.currentElementFrame) {
+      this.activeWalkCtx.currentElementFrame.ssrNode = node;
     }
   }
 
@@ -808,14 +825,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   closeFragment() {
     vNodeData_closeFragment(this.activeWalkCtx.currentElementFrame!.vNodeData);
 
-    if (this.treeOnly) {
-      // Restore the previous ssrNode parent
-      const prev = this.activeWalkCtx.ssrNodeStack.pop() ?? null;
-      if (this.activeWalkCtx.currentElementFrame) {
-        this.activeWalkCtx.currentElementFrame.ssrNode = prev;
-      }
-    } else if (this.activeWalkCtx.currentComponentNode) {
-      this.activeWalkCtx.currentComponentNode.setTreeNonUpdatable();
+    // Restore the previous ssrNode parent
+    const prev = this.activeWalkCtx.ssrNodeStack.pop() ?? null;
+    if (this.activeWalkCtx.currentElementFrame) {
+      this.activeWalkCtx.currentElementFrame.ssrNode = prev;
     }
     this.activeWalkCtx.lastNode = null;
   }
@@ -848,27 +861,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const node = this.getOrCreateLastNode();
     const placeholderId = `qph-${this.suspensePlaceholderCounter++}`;
     node.setProp(SSR_SUSPENSE_PLACEHOLDER_ID, placeholderId);
-    if (this.treeOnly) {
-      (node as SsrNode).nodeKind = SsrNodeKind.Suspense;
-    } else {
-      // Direct streaming: emit placeholder div for OoO replacement
-      this.writer.write(`<div id="${placeholderId}">`);
-    }
+    (node as SsrNode).nodeKind = SsrNodeKind.Suspense;
     this.currentSuspenseBoundary = node;
   }
 
-  /**
-   * Closes the Suspense boundary. In direct streaming mode, closes the placeholder div. In treeOnly
-   * mode, marks the boundary for the streaming walker.
-   */
+  /** Closes the Suspense boundary. Marks the boundary for the streaming walker. */
   closeSuspenseBoundary() {
     const boundary = this.currentSuspenseBoundary;
     if (boundary) {
       boundary.setProp(SSR_SUSPENSE_FALLBACK, true);
-      if (!this.treeOnly) {
-        // Close the placeholder div
-        this.writer.write('</div>');
-      }
       this.currentSuspenseBoundary = null;
     }
     this.closeFragment();
@@ -1027,7 +1028,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
   textNode(text: string) {
-    if (this.treeOnly) {
+    if (this._directMode) {
+      this.writer.write(escapeHTML(text));
+    } else {
       const escaped = escapeHTML(text);
       this.size += escaped.length;
       const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
@@ -1037,15 +1040,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           content: escaped,
         });
       }
-    } else {
-      this.write(escapeHTML(text));
     }
     vNodeData_addTextSize(this.activeWalkCtx.currentElementFrame!.vNodeData, text.length);
     this.activeWalkCtx.lastNode = null;
   }
 
   htmlNode(rawHtml: string) {
-    if (this.treeOnly) {
+    if (this._directMode) {
+      this.writer.write(rawHtml);
+    } else {
       this.size += rawHtml.length;
       const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
       if (parentSsrNode) {
@@ -1054,13 +1057,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           content: rawHtml,
         });
       }
-    } else {
-      this.write(rawHtml);
     }
   }
 
   commentNode(text: string) {
-    if (this.treeOnly) {
+    if (this._directMode) {
+      this.writer.write('<!--' + text + '-->');
+    } else {
       this.size += text.length + 7; // 7 = '<!--' + '-->'
       const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
       if (parentSsrNode) {
@@ -1069,8 +1072,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           content: text,
         });
       }
-    } else {
-      this.write('<!--' + text + '-->');
     }
   }
 
@@ -1547,7 +1548,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     currentFile?: string | null
   ) {
     let tagNesting: TagNesting = TagNesting.ANYTHING;
-    if (isDev) {
+    if (isDev && !this._directMode) {
       if (!this.activeWalkCtx.currentElementFrame) {
         tagNesting = initialTag(elementName);
       } else {
@@ -1614,15 +1615,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ////////////////////////////////////
   write(text: string) {
     this.size += text.length;
-    if (this._attrBuffer) {
-      this._attrBuffer.push(text);
-      return;
-    }
-    if (this.treeOnly) {
-      if (this._inTagWrite) {
-        return; // Suppress tag structure writes (open/close tags)
-      }
-      // Capture content writes as raw HTML children of the current element
+    if (this._directMode) {
+      this.writer.write(text);
+    } else {
+      // Tree-building mode: capture as raw HTML children of current element
       const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
       if (parentSsrNode) {
         (parentSsrNode as SsrNode).addOrderedChild({
@@ -1630,9 +1626,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           content: text,
         });
       }
-      return;
     }
-    this.writer.write(text);
   }
 
   writeArray(array: string[], separator: string) {
@@ -1645,14 +1639,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private writeAttrs(
+  /**
+   * Process attrs: run side effects (signal tracking, event serialization, ref handling, innerHTML
+   * detection) and return processed key/value pairs for walker serialization. Does NOT write any
+   * HTML — that's the walker's job.
+   */
+  private processAttrs(
     tag: string,
     attrs: Props,
     isConst: boolean,
     styleScopedId: string | null,
     currentFile: string | null,
     hasMovedCaptures: boolean
-  ): string | undefined {
+  ): { processed: Record<string, any>; innerHTML: string | undefined } {
+    const processed: Record<string, any> = {};
     let innerHTML: string | undefined = undefined;
     for (let key in attrs) {
       let value = attrs[key];
@@ -1725,19 +1725,36 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         value = QContainerValue.TEXT;
       }
 
-      const serializedValue = serializeAttribute(key, value, styleScopedId);
+      processed[key] = value;
+    }
+    return { processed, innerHTML };
+  }
+
+  /**
+   * Write attrs directly to the stream (used in _directMode for container data script tags). Simple
+   * attrs only — no signals, events, or complex processing.
+   */
+  private writeAttrsDirect(attrs: Props | null) {
+    if (!attrs) {
+      return;
+    }
+    for (const key in attrs) {
+      let value = attrs[key];
+      // Event attributes (q-e:, q-d:, on:) need special handling to serialize QRLs
+      if (isHtmlAttributeAnEventName(key)) {
+        value = _setEvent(this.serializationCtx, key, value, false);
+      }
+      const serializedValue = serializeAttribute(key, value, null);
       if (serializedValue != null && serializedValue !== false) {
-        this.write(SPACE);
-        this.write(key);
+        this.writer.write(SPACE);
+        this.writer.write(key);
         if (serializedValue !== true) {
-          this.write(ATTR_EQUALS_QUOTE);
-          const strValue = escapeHTML(String(serializedValue));
-          this.write(strValue);
-          this.write(QUOTE);
+          this.writer.write(ATTR_EQUALS_QUOTE);
+          this.writer.write(escapeHTML(String(serializedValue)));
+          this.writer.write(QUOTE);
         }
       }
     }
-    return innerHTML;
   }
 
   private addPromiseAttribute(promise: Promise<any>) {

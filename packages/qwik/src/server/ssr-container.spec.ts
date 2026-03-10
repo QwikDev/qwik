@@ -92,7 +92,10 @@ describe('SSR Container', () => {
       ],
     ];
 
+    // emitVNodeData is called during emitContainerData which runs in _directMode
+    (container as any)._directMode = true;
     (container as any).emitVNodeData();
+    (container as any)._directMode = false;
 
     const output = writer.toString();
 

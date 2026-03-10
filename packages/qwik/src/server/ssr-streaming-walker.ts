@@ -1,10 +1,13 @@
 /**
- * @file Streaming walker that emits HTML from the SsrNode tree built in treeOnly mode.
+ * @file Streaming walker that emits HTML from the SsrNode tree.
  *
  *   The walker traverses the orderedChildren of each SsrNode in document order, emitting HTML for
  *   elements (open tag + attrs + children + close tag), text (pre-escaped), raw HTML, and comments.
  *   Virtual nodes (fragments, components, projections) produce no HTML — only their children are
  *   emitted.
+ *
+ *   Element attributes are serialized from stored props (SSR_VAR_ATTRS / SSR_CONST_ATTRS) — no
+ *   pre-computed HTML strings. The walker calls serializeAttribute() for each attr pair.
  *
  *   Suspense boundaries are handled specially: the walker emits fallback content wrapped in a
  *   placeholder div. The actual content is deferred for OoO (out-of-order) streaming.
@@ -12,16 +15,30 @@
 
 import {
   SsrNodeKind,
-  SSR_ATTR_HTML,
+  SSR_VAR_ATTRS,
+  SSR_CONST_ATTRS,
+  SSR_STYLE_SCOPED_ID,
   SSR_SUSPENSE_PLACEHOLDER_ID,
   SSR_SUSPENSE_CONTENT,
   isSsrContentChild,
   type SsrChild,
   type SsrContentChild,
 } from './ssr-node';
-import type { ISsrNode, StreamWriter, ValueOrPromise } from './qwik-types';
+import type { ISsrNode, Props, StreamWriter, ValueOrPromise } from './qwik-types';
 import { isSelfClosingTag } from './tag-nesting';
-import { LT, GT, CLOSE_TAG } from './qwik-copy';
+import {
+  LT,
+  GT,
+  CLOSE_TAG,
+  VNodeFlags,
+  SPACE,
+  ATTR_EQUALS_QUOTE,
+  QUOTE,
+  Q_PROPS_SEPARATOR,
+  EMPTY_ATTR,
+  serializeAttribute,
+  escapeHTML,
+} from './qwik-copy';
 import { maybeThen } from './qwik-copy';
 
 /** Suspense boundary info passed from the container to the streaming walker. */
@@ -51,6 +68,8 @@ export class SsrStreamingWalker {
   private suspenseNodes: Set<ISsrNode> | null;
   /** Map from boundary node to placeholder ID. */
   private suspensePlaceholderIds: Map<ISsrNode, string> | null;
+  /** Tracks emitted bytes for qwikLoader inline heuristic. */
+  public size: number = 0;
 
   constructor(options: SsrStreamingWalkerOptions) {
     this.writer = options.writer;
@@ -74,6 +93,7 @@ export class SsrStreamingWalker {
   }
 
   private write(text: string): void {
+    this.size += text.length;
     this.writer.write(text);
   }
 
@@ -84,6 +104,8 @@ export class SsrStreamingWalker {
     }
 
     const ssrNode = node as ISsrNode;
+    // Mark node as emitted so backpatching knows this node's attrs have been streamed
+    ssrNode.flags |= VNodeFlags.OpenTagEmitted;
     switch ((ssrNode as any).nodeKind) {
       case SsrNodeKind.Element:
         return this.emitElement(ssrNode);
@@ -102,14 +124,29 @@ export class SsrStreamingWalker {
 
   private emitElement(node: ISsrNode): ValueOrPromise<void> {
     const tagName = (node as any).tagName as string;
-    const attrHtml = node.getProp(SSR_ATTR_HTML) as string | null;
+    const varAttrs = node.getProp(SSR_VAR_ATTRS) as Record<string, any> | null;
+    const constAttrs = node.getProp(SSR_CONST_ATTRS) as Record<string, any> | null;
+    const styleScopedId = node.getProp(SSR_STYLE_SCOPED_ID) as string | null;
 
     // Opening tag
     this.write(LT);
     this.write(tagName);
-    if (attrHtml) {
-      this.write(attrHtml);
+
+    // Var attrs
+    this.emitAttrs(varAttrs, styleScopedId);
+
+    // q: separator + key
+    this.write(' ' + Q_PROPS_SEPARATOR);
+    const key = (node as any).key;
+    if (key !== null && key !== undefined) {
+      this.write(`="${key}"`);
+    } else if (import.meta.env.TEST) {
+      this.write(EMPTY_ATTR);
     }
+
+    // Const attrs
+    this.emitAttrs(constAttrs, styleScopedId);
+
     this.write(GT);
 
     // Children
@@ -122,6 +159,25 @@ export class SsrStreamingWalker {
       }
       this.emitCloseTag(tagName);
     });
+  }
+
+  /** Serialize and emit attrs from a processed attrs map. */
+  private emitAttrs(attrs: Record<string, any> | null, styleScopedId: string | null): void {
+    if (!attrs) {
+      return;
+    }
+    for (const key in attrs) {
+      const serializedValue = serializeAttribute(key, attrs[key], styleScopedId);
+      if (serializedValue != null && serializedValue !== false) {
+        this.write(SPACE);
+        this.write(key);
+        if (serializedValue !== true) {
+          this.write(ATTR_EQUALS_QUOTE);
+          this.write(escapeHTML(String(serializedValue)));
+          this.write(QUOTE);
+        }
+      }
+    }
   }
 
   /**

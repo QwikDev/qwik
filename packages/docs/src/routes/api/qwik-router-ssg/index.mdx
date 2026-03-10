@@ -9,7 +9,7 @@ title: \@qwik.dev/qwik-router/ssg API Reference
 Use this function when SSG should be generated from another module, such as a Vite plugin. This function's should be passed the paths of the entry module and Qwik Router Plan.
 
 ```typescript
-export declare function generate(opts: SsgOptions): Promise<SsgResult>;
+export declare function generate(opts: SsgGenerateOptions): Promise<SsgResult>;
 ```
 
 <table><thead><tr><th>
@@ -31,7 +31,7 @@ opts
 
 </td><td>
 
-[SsgOptions](#staticgenerateoptions)
+[SsgGenerateOptions](#ssginternaloptions)
 
 </td><td>
 
@@ -51,7 +51,7 @@ Run SSG as a standalone process. Writes `_static-paths.json` to `outDir` and exi
 Intended to be called from a generated `run-ssg.js` wrapper that provides render/config.
 
 ```typescript
-export declare function runSsg(opts: SsgOptions): Promise<never>;
+export declare function runSsg(opts: SsgGenerateOptions): Promise<never>;
 ```
 
 <table><thead><tr><th>
@@ -73,7 +73,7 @@ opts
 
 </td><td>
 
-[SsgOptions](#staticgenerateoptions)
+[SsgGenerateOptions](#ssginternaloptions)
 
 </td><td>
 
@@ -85,6 +85,141 @@ opts
 Promise&lt;never&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/index.ts)
+
+<h2 id="ssginternaloptions">SsgInternalOptions</h2>
+
+Internal SSG options that include the render function and router config.
+
+```typescript
+export interface SsgGenerateOptions extends SsgOptions
+```
+
+**Extends:** [SsgOptions](#ssgoptions)
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[qwikRouterConfig](./router.ssginternaloptions.qwikrouterconfig.md)
+
+</td><td>
+
+</td><td>
+
+QwikRouterConfig
+
+</td><td>
+
+The Qwik Router Config object (default export from `@qwik-router-config`).
+
+</td></tr>
+<tr><td>
+
+[render](./router.ssginternaloptions.render.md)
+
+</td><td>
+
+</td><td>
+
+Render
+
+</td><td>
+
+The SSR render function (default export from entry.ssr).
+
+</td></tr>
+<tr><td>
+
+[workerFilePath?](./router.ssginternaloptions.workerfilepath.md)
+
+</td><td>
+
+</td><td>
+
+string \| URL
+
+</td><td>
+
+_(Optional)_ Path or URL to the worker entry file. Workers are spawned using this file. When run-ssg.js serves as both main and worker entry, this should be `import.meta.url` of that file.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/types.ts)
+
+<h2 id="ssgoptions">SsgOptions</h2>
+
+```typescript
+export interface SsgOptions extends SsgRenderOptions
+```
+
+**Extends:** [SsgRenderOptions](#ssgrenderoptions)
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[basePathname?](./router.ssgoptions.basepathname.md)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Defaults to `/`
+
+</td></tr>
+<tr><td>
+
+[rootDir?](./router.ssgoptions.rootdir.md)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/types.ts)
 
 <h2 id="ssgrenderoptions">SsgRenderOptions</h2>
 
@@ -289,7 +424,9 @@ _(Optional)_ File system path to write the `sitemap.xml` to. Defaults to `sitema
 Bootstrap a worker thread for SSG rendering. Called from the generated `run-ssg.js` when it detects it's running as a worker thread.
 
 ```typescript
-export declare function startWorker(opts: SsgOptions): Promise<void>;
+export declare function startWorker(
+  opts: Pick<SsgGenerateOptions, "render" | "qwikRouterConfig">,
+): Promise<void>;
 ```
 
 <table><thead><tr><th>
@@ -311,7 +448,7 @@ opts
 
 </td><td>
 
-[SsgOptions](#staticgenerateoptions)
+Pick&lt;[SsgGenerateOptions](#ssginternaloptions), 'render' \| 'qwikRouterConfig'&gt;
 
 </td><td>
 
@@ -325,155 +462,6 @@ Must include `render` and `qwikRouterConfig` (imported by the worker entry). The
 Promise&lt;void&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/index.ts)
-
-<h2 id="staticgenerateoptions">StaticGenerateOptions</h2>
-
-```typescript
-export interface SsgOptions extends SsgRenderOptions
-```
-
-**Extends:** [SsgRenderOptions](#ssgrenderoptions)
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[basePathname?](./router.staticgenerateoptions.basepathname.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_ Defaults to `/`
-
-</td></tr>
-<tr><td>
-
-[qwikCityPlanModulePath?](./router.staticgenerateoptions.qwikcityplanmodulepath.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[qwikRouterConfig](./router.staticgenerateoptions.qwikrouterconfig.md)
-
-</td><td>
-
-</td><td>
-
-QwikRouterConfig
-
-</td><td>
-
-The Qwik Router Config object (default export from `@qwik-router-config`).
-
-</td></tr>
-<tr><td>
-
-[qwikRouterConfigModulePath?](./router.staticgenerateoptions.qwikrouterconfigmodulepath.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[render](./router.staticgenerateoptions.render.md)
-
-</td><td>
-
-</td><td>
-
-Render
-
-</td><td>
-
-The SSR render function (default export from entry.ssr).
-
-</td></tr>
-<tr><td>
-
-[renderModulePath?](./router.staticgenerateoptions.rendermodulepath.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[rootDir?](./router.staticgenerateoptions.rootdir.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[workerFilePath?](./router.staticgenerateoptions.workerfilepath.md)
-
-</td><td>
-
-</td><td>
-
-string \| URL
-
-</td><td>
-
-_(Optional)_ Path or URL to the worker entry file. Workers are spawned using this file. When run-ssg.js serves as both main and worker entry, this should be `import.meta.url` of that file.
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/ssg/types.ts)
 
 <h2 id="staticgenerateresult">StaticGenerateResult</h2>
 

@@ -4,7 +4,7 @@ import { relative } from 'node:path';
 import { msToString } from '../utils/format';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
 import { createRouteTester } from './routes';
-import type { SsgOptions, SsgResult, SsgRoute, System } from './types';
+import type { SsgGenerateOptions, SsgResult, SsgRoute, System } from './types';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -284,7 +284,7 @@ export async function mainThread(sys: System) {
   });
 }
 
-function validateOptions(opts: SsgOptions) {
+function validateOptions(opts: SsgGenerateOptions) {
   if (!opts.render) {
     throw new Error(`Missing "render" option`);
   }

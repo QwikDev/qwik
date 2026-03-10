@@ -5,11 +5,8 @@ import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-ha
 
 export interface System {
   createMainProcess: (() => Promise<MainContext>) | null;
-  createWorkerProcess: (
-    onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
-  ) => void | Promise<void>;
   createLogger: () => Promise<Logger>;
-  getOptions: () => SsgOptions;
+  getOptions: () => SsgGenerateOptions;
   ensureDir: (filePath: string) => Promise<void>;
   access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
@@ -101,30 +98,28 @@ export interface SsgRenderOptions extends RenderOptions {
 
 /** @public */
 export interface SsgOptions extends SsgRenderOptions {
-  /** The SSR render function (default export from entry.ssr). */
-  render: Render;
-  /** The Qwik Router Config object (default export from `@qwik-router-config`). */
-  qwikRouterConfig: QwikRouterConfig;
   /** Defaults to `/` */
   basePathname?: string;
 
   rootDir?: string;
+}
+
+/**
+ * Internal SSG options that include the render function and router config.
+ *
+ * @public
+ */
+export interface SsgGenerateOptions extends SsgOptions {
+  /** The SSR render function (default export from entry.ssr). */
+  render: Render;
+  /** The Qwik Router Config object (default export from `@qwik-router-config`). */
+  qwikRouterConfig: QwikRouterConfig;
 
   /**
    * Path or URL to the worker entry file. Workers are spawned using this file. When run-ssg.js
    * serves as both main and worker entry, this should be `import.meta.url` of that file.
    */
   workerFilePath?: string | URL;
-
-  /**
-   * @deprecated Pass `render` directly instead. Path to the SSR module exporting the default render
-   *   function.
-   */
-  renderModulePath?: string;
-  /** @deprecated Pass `qwikRouterConfig` directly instead. Path to the Qwik Router Config module. */
-  qwikRouterConfigModulePath?: string;
-  /** @deprecated Use `qwikRouterConfigModulePath` instead. Will be removed in V3 */
-  qwikCityPlanModulePath?: string;
 }
 
 export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions {}

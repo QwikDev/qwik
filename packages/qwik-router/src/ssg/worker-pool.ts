@@ -1,6 +1,6 @@
 import type {
   MainContext,
-  SsgOptions,
+  SsgGenerateOptions,
   SsgRoute,
   SsgWorkerRenderResult,
   WorkerOutputMessage,
@@ -14,7 +14,7 @@ import { isAbsolute, resolve } from 'node:path';
 import { ensureDir } from './system';
 import { normalizePath } from '../utils/fs';
 
-export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
+export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
   const ssgWorkers: SsgWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapStream: fs.WriteStream | null = null;

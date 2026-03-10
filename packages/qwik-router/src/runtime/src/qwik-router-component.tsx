@@ -53,7 +53,6 @@ import {
 } from './scroll-restoration';
 import spaInit from './spa-init';
 import {
-  LoadedRouteProp,
   type Action,
   type ActionInternal,
   type ClientPageData,
@@ -224,7 +223,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   const httpStatus = useStore({
     status: env.response.status,
-    message: env.loadedRoute[LoadedRouteProp.NotFound]
+    message: env.loadedRoute.$notFound$
       ? 'Not Found'
       : ((env.response.statusMessage as string) ?? ''),
   });
@@ -485,11 +484,11 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
 
       if (loadedRoute) {
-        const [routeName, params, mods, menu, , isNotFound] = loadedRoute;
-        const contentModules = mods as ContentModule[];
+        const { $routeName$, $params$, $mods$, $menu$, $notFound$ } = loadedRoute;
+        const contentModules = $mods$ as ContentModule[];
 
         // Update httpStatus for 404/error pages
-        if (isNotFound) {
+        if ($notFound$) {
           httpStatus.status = 404;
           httpStatus.message = 'Not Found';
         } else {
@@ -520,11 +519,11 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           routeLocationTarget.url = trackUrl;
         }
 
-        if (routeLocationTarget.params !== params) {
+        if (routeLocationTarget.params !== $params$) {
           if (_hasStoreEffects(routeLocation, 'params')) {
             shouldForceParams = true;
           }
-          routeLocationTarget.params = params;
+          routeLocationTarget.params = $params$;
         }
 
         routeInternal.untrackedValue = { type: navType, dest: trackUrl };
@@ -540,7 +539,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
         // Update content
         content.headings = pageModule.headings;
-        content.menu = menu;
+        content.menu = $menu$;
         contentInternal.untrackedValue = noSerialize(contentModules);
 
         // Update document head
@@ -793,7 +792,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               throw err;
             })
             .finally(() => {
-              (container as ClientContainer).element.setAttribute?.(Q_ROUTE, routeName);
+              (container as ClientContainer).element.setAttribute?.(Q_ROUTE, $routeName$);
               const scrollState = currentScrollState(scroller);
               saveScrollHistory(scrollState);
               window._qRouterScrollEnabled = true;

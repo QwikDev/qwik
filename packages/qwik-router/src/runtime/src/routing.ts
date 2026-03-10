@@ -81,22 +81,30 @@ export const loadRoute = async (
     }
     const { createNotFoundWrapper } = await import('./not-found-wrapper');
     const wrapperModule = createNotFoundWrapper(notFoundMod!, errorMod!);
-    return [
-      routeName,
-      params,
-      [wrapperModule],
-      deepFreeze(menu),
-      routeBundleNames,
-      notFound,
-      errorLoader,
-    ];
+    return {
+      $routeName$: routeName,
+      $params$: params,
+      $mods$: [wrapperModule],
+      $menu$: deepFreeze(menu),
+      $routeBundleNames$: routeBundleNames,
+      $notFound$: notFound,
+      $errorLoader$: errorLoader,
+    };
   }
 
   if (pendingLoads.length > 0) {
     await Promise.all(pendingLoads);
   }
 
-  return [routeName, params, modules, deepFreeze(menu), routeBundleNames, notFound, errorLoader];
+  return {
+    $routeName$: routeName,
+    $params$: params,
+    $mods$: modules,
+    $menu$: deepFreeze(menu),
+    $routeBundleNames$: routeBundleNames,
+    $notFound$: notFound,
+    $errorLoader$: errorLoader,
+  };
 };
 
 /** Built-in fallback error component loader */

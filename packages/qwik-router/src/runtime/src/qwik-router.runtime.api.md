@@ -190,7 +190,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)
-export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => JSXOutput_2;
+export const Form: <O, I>(input: FormProps<O, I>, key: string | null) => JSXOutput_2;
 
 // @public (undocumented)
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
@@ -516,7 +516,7 @@ export interface StaticGenerate {
 }
 
 // @public (undocumented)
-export type StaticGenerateHandler = ({ env, }: {
+export type StaticGenerateHandler = (input: {
     env: EnvGetter;
 }) => Promise<StaticGenerate> | StaticGenerate;
 

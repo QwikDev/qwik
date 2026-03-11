@@ -28,8 +28,10 @@ import {
   isSsrContentChild,
   type SsrChild,
   type SsrContentChild,
+  type SsrNode,
 } from './ssr-node';
 import type { ISsrNode, StreamWriter, ValueOrPromise } from './qwik-types';
+import type { VNodeData } from './vnode-data';
 import { isSelfClosingTag } from './tag-nesting';
 import {
   LT,
@@ -308,6 +310,10 @@ interface EmitFrame {
 /**
  * Incremental tree emitter. Uses an explicit stack so it can pause at dirty nodes and resume later.
  * Used by SSRContainer.render() in the interleaving loop.
+ *
+ * When vNodeDatas is provided, the emitter pushes each element's tree-built vNodeData in document
+ * order during emission. This ensures correct indexing regardless of tree-building order. Element
+ * IDs are also assigned by the emitter based on depth-first traversal order.
  */
 export class IncrementalEmitter {
   private stack: EmitFrame[] = [];
@@ -316,6 +322,13 @@ export class IncrementalEmitter {
   /** Tracks emitted bytes for qwikLoader inline heuristic. */
   size = 0;
 
+  /**
+   * Depth-first element index counter. Starts at -1 to match container convention (element IDs are
+   * `String(depthFirstElementIdx + 1)`). Public so the container can continue counting for
+   * direct-mode elements after emission.
+   */
+  depthFirstElementCount = -1;
+
   constructor(
     private writer: StreamWriter,
     /** Node before whose close tag a callback should be invoked. */
@@ -323,7 +336,12 @@ export class IncrementalEmitter {
     /** Set of deferred Suspense boundary nodes. */
     private deferredBoundaries: Set<ISsrNode>,
     /** Map from deferred boundary node to placeholder ID. */
-    private placeholderIds: Map<ISsrNode, string>
+    private placeholderIds: Map<ISsrNode, string>,
+    /**
+     * VNodeData array to populate in document order. The emitter pushes each element's tree-built
+     * vNodeData as it closes, ensuring correct document-order indexing.
+     */
+    private vNodeDatas: VNodeData[] | null = null
   ) {}
 
   write(text: string): void {
@@ -380,13 +398,23 @@ export class IncrementalEmitter {
 
           const kind = (node as any).nodeKind as SsrNodeKind;
           if (kind === SsrNodeKind.Element) {
+            // Assign element ID and push tree-built vNodeData in document (open) order
+            if (this.vNodeDatas) {
+              const ssrNode = node as unknown as SsrNode;
+              // Match tree-building convention: post-increment counter, use +1 for ID
+              const depthFirstIdx = this.depthFirstElementCount++;
+              ssrNode.id = String(depthFirstIdx + 1);
+              if (ssrNode.vnodeData) {
+                this.vNodeDatas.push(ssrNode.vnodeData);
+              }
+            }
             this.emitOpenTag(node, frame.tagName!);
             frame.phase = EmitPhase.CHILDREN;
           } else if (kind === SsrNodeKind.Suspense) {
             this.handleSuspenseOpen(frame, node);
             // Phase set by handleSuspenseOpen
           } else {
-            // Virtual/Component/Projection — no HTML output, just emit children
+            // Virtual/Component/Projection — no HTML output
             frame.phase = EmitPhase.CHILDREN;
           }
           break;

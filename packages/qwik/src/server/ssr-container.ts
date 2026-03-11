@@ -501,12 +501,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       deferredBoundaries.map((b) => [b.node, b.placeholderId] as const)
     );
 
+    // Reset vNodeDatas and element counter — emitter will rebuild in document order
+    this.vNodeDatas = [];
+    this.depthFirstElementCount = -1;
+
     // Initialize emitter and emit tree
     const emitter = new IncrementalEmitter(
       this.writer,
       containerDataNode,
       deferredBoundarySet,
-      placeholderIdMap
+      placeholderIdMap,
+      this.vNodeDatas
     );
     emitter.init(rootSsrNode);
 
@@ -568,8 +573,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
     }
 
-    // Track emitted size for qwikLoader heuristic
+    // Sync counters from emitter
     this.size = emitter.size;
+    this.depthFirstElementCount = emitter.depthFirstElementCount;
 
     // Pop remaining frames (no HTML output — emitter already wrote everything)
     while (this.activeWalkCtx.currentElementFrame) {
@@ -1057,14 +1063,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
       this.openFragment(
         isDev
-          ? { [DEBUG_TYPE]: VirtualType.Projection, [QSlotParent]: componentFrame.componentNode.id }
-          : { [QSlotParent]: componentFrame.componentNode.id }
+          ? { [DEBUG_TYPE]: VirtualType.Projection, [QSlotParent]: componentFrame.componentNode }
+          : { [QSlotParent]: componentFrame.componentNode }
       );
       const lastNode = this.getOrCreateLastNode();
       if (lastNode.vnodeData) {
         lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
       }
-      componentFrame.componentNode.setProp(slotName, lastNode.id);
+      componentFrame.componentNode.setProp(slotName, lastNode);
       // Use projectionComponentFrame so that Slots can find their projections from the correct parent
       await ssrDiff(
         this,
@@ -1340,15 +1346,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private writeFragmentAttrs(fragmentAttrs: Props): void {
     for (const key in fragmentAttrs) {
-      let value = fragmentAttrs[key] as string;
+      const rawValue = fragmentAttrs[key];
+      let value: string;
       let encodeValue = false;
-      if (typeof value !== 'string') {
-        const rootId = this.addRoot(value);
+      if (rawValue instanceof SsrNode) {
+        // SsrNode reference — resolve to ID at serialization time
+        value = rawValue.id;
+      } else if (typeof rawValue !== 'string') {
+        const rootId = this.addRoot(rawValue);
         // We didn't add the vnode data, so we are only interested in the vnode position
         if (rootId === undefined) {
           continue;
         }
         value = String(rootId);
+      } else {
+        value = rawValue;
       }
       switch (key) {
         case QScopedStyle:
@@ -1659,7 +1671,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       ssrNode: null,
     };
     this.activeWalkCtx.currentElementFrame = frame;
-    this.vNodeDatas.push(frame.vNodeData);
+    // When the emitter is active (cursor-driven render), it pushes vNodeData in document order.
+    // Otherwise (direct API usage or direct mode), tree-building handles the push.
+    if (!this._cursorDrivenRender || this._directMode) {
+      this.vNodeDatas.push(frame.vNodeData);
+    }
   }
   private popFrame() {
     const closingFrame = this.activeWalkCtx.currentElementFrame!;

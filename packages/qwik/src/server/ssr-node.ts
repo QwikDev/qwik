@@ -345,8 +345,9 @@ export class SsrComponentFrame implements ISsrComponentFrame {
 
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
     const children = mapApp_remove(this.slots, slotName, 0);
-    this.componentNode.setProp(slotName, projectionNode.id);
-    projectionNode.setProp(QSlotParent, this.componentNode.id);
+    // Store SsrNode references (resolved to IDs at serialization time in writeFragmentAttrs)
+    this.componentNode.setProp(slotName, projectionNode);
+    projectionNode.setProp(QSlotParent, this.componentNode);
     return children;
   }
 }

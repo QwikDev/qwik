@@ -25,7 +25,6 @@ import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent, SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
-import { executeComponent } from '../shared/component-execution';
 import type { Cursor } from '../shared/cursor/cursor';
 import {
   type BaseDiffContext,
@@ -65,8 +64,10 @@ import { isPromise, maybeThen, retryOnPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VNode } from '../shared/vnode/vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import type { SerializationContext } from '../shared/serdes/index';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer } from './ssr-types';
@@ -446,16 +447,15 @@ function ssrComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, component: Func
   if (isDev) {
     componentAttrs[DEBUG_TYPE] = VirtualType.Component;
   }
-  ssr.openComponent(componentAttrs);
-  const host = ssr.getOrCreateLastNode();
-  const componentFrame = ssr.getParentComponentFrame()!;
 
-  // Distribute jsx.children into slot buckets
-  componentFrame.distributeChildrenIntoSlots(
-    jsx.children,
-    ctx.$currentStyleScoped$,
-    ctx.$parentComponentFrame$
-  );
+  // Create component SsrNode directly (without openComponent which would
+  // push WalkContext state that can't be popped if we defer).
+  ssr.openFragment(componentAttrs);
+  const host = ssr.getOrCreateLastNode();
+
+  // Capture children BEFORE deleting from props (the props proxy delegates
+  // children to jsx.children, so `delete srcProps.children` nullifies it).
+  const children = jsx.children;
 
   // Store QRL and props on the host node
   const srcProps = jsx.props;
@@ -468,66 +468,31 @@ function ssrComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, component: Func
     host.setProp(ELEMENT_KEY, jsx.key);
   }
 
-  // Set VNode parent for dirty propagation
+  // Create component frame and distribute slots (no walker context changes)
+  const componentFrame = ssr.createAndDistributeComponentFrame(
+    host,
+    children,
+    ctx.$currentStyleScoped$,
+    ctx.$parentComponentFrame$
+  );
+
+  // Store component frame on node for cursor walker to retrieve
+  host.setProp(':componentFrame', componentFrame);
+  // Store parent element frame info for enterComponentContext to use when creating
+  // a synthetic element frame (needed for HTML nesting validation and style routing).
+  const parentFrame = (ssr as any).activeWalkCtx.currentElementFrame;
+  host.setProp(':parentTagNesting', parentFrame?.tagNesting ?? 0);
+  host.setProp(':parentElementName', parentFrame?.elementName ?? null);
+
+  // Register in cursor tree so cursor walker can visit and execute the component
   const hostVNode = host as unknown as VNode;
   hostVNode.parent = ctx.$vParent$;
   ctx.$vNewNode$ = hostVNode;
 
-  // Execute component inline
-  const jsxOutput = executeComponent(ssr, host as any, host as any, componentQRL, srcProps || null);
+  // markVNodeDirty propagates CHILDREN up to the cursor root, so the walker finds this node
+  markVNodeDirty(ssr, hostVNode, ChoreBits.COMPONENT, ctx.$cursor$);
 
-  // Save parent context for restoration after children
-  const savedStyle = ctx.$currentStyleScoped$;
-  const savedFrame = ctx.$parentComponentFrame$;
-
-  // Create close callback for component boundary
-  const closeComponentFn = () => {
-    // Restore parent context
-    ctx.$currentStyleScoped$ = savedStyle;
-    ctx.$parentComponentFrame$ = savedFrame;
-
-    // Close component: pop frame, emit unclaimed projections, close fragment, restore state.
-    // closeComponent() may be async if there are unclaimed projections.
-    const result = ssr.closeComponent();
-    if (isPromise(result)) {
-      // Async close (unclaimed projections): break the diff loop
-      ctx.$asyncBreak$ = true;
-      ctx.$asyncQueue$.unshift(result as any, hostVNode);
-    }
-  };
-
-  if (isPromise(jsxOutput)) {
-    // Async component: break the diff loop, process lifecycle in asyncQueue
-    ctx.$asyncBreak$ = true;
-    const savedWalkCtx = (ssr as any).activeWalkCtx;
-    const asyncLifecycle = (jsxOutput as Promise<JSXOutput>).then(async (resolvedJsx) => {
-      // Restore walkCtx (may have been swapped during await)
-      (ssr as any).activeWalkCtx = savedWalkCtx;
-
-      const compStyleId = addComponentStylePrefix(
-        (host as ISsrNode).getProp(QScopedStyle) as string
-      );
-      // Process children via recursive ssrDiff (creates its own context)
-      await ssrDiff(ssr, resolvedJsx, hostVNode, ctx.$cursor$, compStyleId, componentFrame);
-
-      // Close component (may be async for unclaimed projections)
-      ctx.$currentStyleScoped$ = savedStyle;
-      ctx.$parentComponentFrame$ = savedFrame;
-      await ssr.closeComponent();
-    });
-    ctx.$asyncQueue$.unshift(asyncLifecycle as any, hostVNode);
-  } else {
-    // Sync component: descend into children, close on ascend
-    const compStyleId = addComponentStylePrefix((host as ISsrNode).getProp(QScopedStyle) as string);
-    ctx.$currentStyleScoped$ = compStyleId;
-    ctx.$parentComponentFrame$ = componentFrame;
-
-    if (jsxOutput != null) {
-      ssrDescend(ctx, jsxOutput as JSXChildren, true, closeComponentFn);
-    } else {
-      closeComponentFn();
-    }
-  }
+  ssr.closeFragment();
 }
 
 /**

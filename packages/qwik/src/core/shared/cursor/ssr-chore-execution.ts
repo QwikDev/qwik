@@ -94,6 +94,14 @@ export function executeSsrComponent(
     return;
   }
 
+  const ssrNode = vNode as unknown as ISsrNode;
+  const ssr = container as SSRContainer;
+
+  // Push component context BEFORE executing so hooks (useStylesScoped, useContext, etc.)
+  // can find the component frame via getComponentFrame(0).
+  const storedFrame = ssrNode.getProp?.(':componentFrame') as any;
+  ssr.enterComponentContext(ssrNode, storedFrame || undefined);
+
   const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
 
   const result = safeCall(
@@ -131,8 +139,22 @@ export function executeSsrNodeDiff(
   if (jsx) {
     delete vNode.props![':nodeDiff'];
     const ssrNode = vNode as unknown as ISsrNode;
+    const ssr = container as SSRContainer;
     const styleScopedId = addComponentStylePrefix(ssrNode.getProp?.(QScopedStyle));
-    return ssrDiff(container as SSRContainer, jsx, vNode, cursor, styleScopedId, null);
+
+    // For component nodes (have OnRenderProp), the component context was already
+    // pushed by executeSsrComponent. Use it and pop when done.
+    const isComponent = !!ssrNode.getProp?.(OnRenderProp);
+    if (isComponent) {
+      const componentFrame = ssr.getComponentFrame(0);
+      const result = ssrDiff(ssr, jsx, vNode, cursor, styleScopedId, componentFrame);
+      if (isPromise(result)) {
+        return (result as Promise<void>).then(() => ssr.leaveComponentContext());
+      }
+      return ssr.leaveComponentContext();
+    }
+
+    return ssrDiff(ssr, jsx, vNode, cursor, styleScopedId, null);
   }
 }
 

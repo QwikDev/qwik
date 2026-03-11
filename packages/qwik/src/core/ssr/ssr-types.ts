@@ -95,6 +95,19 @@ export interface SSRContainer extends Container {
   getComponentFrame(projectionDepth: number): ISsrComponentFrame | null;
   getParentComponentFrame(): ISsrComponentFrame | null;
   closeComponent(): Promise<void>;
+  enterComponentContext(componentNode: ISsrNode, existingFrame?: ISsrComponentFrame): void;
+  leaveComponentContext(): ValueOrPromise<void>;
+  /**
+   * Creates a component frame for host and distributes children into slots. Does NOT modify walker
+   * context (no stack pushes). Used by ssrComponent during tree-building to set up deferred
+   * component state without stack imbalance.
+   */
+  createAndDistributeComponentFrame(
+    host: ISsrNode,
+    children: JSXChildren,
+    parentScopedStyle: string | null,
+    parentComponentFrame: ISsrComponentFrame | null
+  ): ISsrComponentFrame;
 
   textNode(text: string): void;
   htmlNode(rawHtml: string): void;

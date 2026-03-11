@@ -191,12 +191,12 @@ export const Card = component$(({ class: className, ...rest }: PropsOf<'div'>) =
   return (
     <div
       class={[
-        'shadow-card w-fit rounded-2xl border-[1.6px] border-border-emphasis h-fit bg-background-base',
+        'shadow-card w-fit rounded-2xl border-[1.6px] border-emphasis h-fit bg-background-base',
         className,
       ]}
       {...rest}
     >
-      <div class="bg-background-accent border-b-[1.6px] border-border-emphasis h-11 rounded-t-2xl flex gap-2 px-3 items-center">
+      <div class="bg-background-accent border-b-[1.6px] border-emphasis h-11 rounded-t-2xl flex gap-2 px-3 items-center">
         {dots}
       </div>
 

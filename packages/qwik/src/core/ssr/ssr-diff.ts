@@ -6,16 +6,17 @@
  *   mechanics shared via BaseDiffContext.
  *
  *   Key differences from client:
- *   - Component$ is DEFERRED: creates SsrNode, stores QRL+props, marks COMPONENT dirty.
- *     The cursor walker executes component rendering via executeSsrComponent.
+ *
+ *   - Component$ is executed INLINE (like _walkJSX) — sync components use ssrDescend/ssrAscend, async
+ *       components break the diff loop and resume via drainAsyncQueue.
  *   - Inline components are executed immediately and their JSX pushed to asyncQueue.
  *   - SSR-specific JSX types (SSRComment, SSRRaw, SSRStream, SSRStreamBlock, Suspense).
  *   - On first render, always in creation mode (no existing children to reconcile).
  *   - On re-render (signal/task re-dirty), reconciles against existing SsrNode children.
  *
- *   Container open/close methods (openElement/closeElement, openFragment/closeFragment) manage
- *   the element frame stack and VNodeData. Close callbacks are stored on a `$closeStack$` that
- *   is synchronized with the DiffContext's descend/ascend operations.
+ *   Container open/close methods (openElement/closeElement, openFragment/closeFragment) manage the
+ *   element frame stack and VNodeData. Close callbacks are stored on a `$closeStack$` that is
+ *   synchronized with the DiffContext's descend/ascend operations.
  */
 
 import { isDev } from '@qwik.dev/core/build';
@@ -24,6 +25,7 @@ import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent, SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
+import { executeComponent } from '../shared/component-execution';
 import type { Cursor } from '../shared/cursor/cursor';
 import {
   type BaseDiffContext,
@@ -54,24 +56,21 @@ import {
   ELEMENT_PROPS,
   OnRenderProp,
   QDefaultSlot,
+  QScopedStyle,
   QSlot,
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isPromise, maybeThen, retryOnPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
+import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import type { VNode } from '../shared/vnode/vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
-import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
-import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import type { SerializationContext } from '../shared/serdes/index';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer } from './ssr-types';
 import { applyInlineComponent } from './ssr-render-component';
-
-/** Non-serializable prop key for storing the component frame on the host SsrNode. */
-const SSR_COMPONENT_FRAME = ':componentFrame';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 
 // ============================================================================
@@ -85,12 +84,18 @@ export interface SsrDiffContext extends BaseDiffContext {
   /** Current component frame for slot distribution */
   $parentComponentFrame$: ISsrComponentFrame | null;
   /**
-   * Close callback stack — synchronized with DiffContext stack.
-   * Each ssrDescend pushes a callback (or null), each ssrAscend pops and executes it.
-   * This ensures container open/close operations (element frames, fragment boundaries)
-   * are properly balanced with the DiffContext's descend/ascend.
+   * Close callback stack — synchronized with DiffContext stack. Each ssrDescend pushes a callback
+   * (or null), each ssrAscend pops and executes it. This ensures container open/close operations
+   * (element frames, fragment boundaries) are properly balanced with the DiffContext's
+   * descend/ascend.
    */
   $closeStack$: Array<(() => void) | null>;
+  /**
+   * When set, the diff loop exits early. Used for async operations (async components, async close
+   * callbacks) that need to break out of the synchronous loop. The asyncQueue draining handles
+   * resumption after the async operation completes.
+   */
+  $asyncBreak$: boolean;
 }
 
 function createSsrDiffContext(
@@ -120,6 +125,7 @@ function createSsrDiffContext(
     $currentStyleScoped$: scopedStyleIdPrefix,
     $parentComponentFrame$: parentComponentFrame,
     $closeStack$: [],
+    $asyncBreak$: false,
   };
 }
 
@@ -139,8 +145,11 @@ function ssrDescend(
   if (descendVNode) {
     const parent = (ctx.$vNewNode$ || ctx.$vCurrent$)!;
     const parentVirtual = parent as unknown as VirtualVNode;
-    ctx.$isCreationMode$ =
-      ctx.$isCreationMode$ || !!ctx.$vNewNode$ || !parentVirtual.firstChild;
+    // Set VNode parent for dirty propagation — ensures markVNodeDirty can walk up to cursor root
+    if (!parent.parent) {
+      parent.parent = ctx.$vParent$;
+    }
+    ctx.$isCreationMode$ = ctx.$isCreationMode$ || !!ctx.$vNewNode$ || !parentVirtual.firstChild;
     ctx.$vSideBuffer$ = null;
     ctx.$vSiblings$ = null;
     ctx.$vSiblingsArray$ = null;
@@ -158,10 +167,15 @@ function ssrAscend(ctx: SsrDiffContext) {
   if (cb) {
     cb();
   }
-  ssrAdvance(ctx);
+  if (!ctx.$asyncBreak$) {
+    ssrAdvance(ctx);
+  }
 }
 
 function ssrAdvance(ctx: SsrDiffContext) {
+  if (ctx.$asyncBreak$) {
+    return;
+  }
   baseAdvance(ctx, ssrAscend);
 }
 
@@ -187,9 +201,13 @@ export function ssrDiff(
   scopedStyleIdPrefix: string | null,
   parentComponentFrame: ISsrComponentFrame | null = null
 ): ValueOrPromise<void> {
+  // Capture the active walk context — during async yields, other cursors may swap
+  // activeWalkCtx. We restore it after each async resolution.
+  const savedWalkCtx = (container as any).activeWalkCtx;
+
   const ctx = createSsrDiffContext(container, cursor, scopedStyleIdPrefix, parentComponentFrame);
   diff(ctx, jsx as JSXChildren, parentVNode);
-  return drainAsyncQueue(ctx);
+  return drainAsyncQueue(ctx, savedWalkCtx);
 }
 
 // ============================================================================
@@ -197,7 +215,6 @@ export function ssrDiff(
 // ============================================================================
 
 function diff(ctx: SsrDiffContext, jsxNode: JSXChildren, vStartNode: VNode) {
-  const ssr = ctx.$container$;
   ctx.$vParent$ = vStartNode;
   ctx.$vNewNode$ = null;
   ctx.$vCurrent$ = ((vStartNode as unknown as VirtualVNode).firstChild as VNode | null) ?? null;
@@ -205,8 +222,18 @@ function diff(ctx: SsrDiffContext, jsxNode: JSXChildren, vStartNode: VNode) {
   ctx.$closeStack$.push(null);
   baseStackPush(ctx, jsxNode, true);
 
+  runDiffLoop(ctx);
+}
+
+/** The inner while loop of diff — extracted so it can be resumed after async breaks. */
+function runDiffLoop(ctx: SsrDiffContext) {
+  const ssr = ctx.$container$;
+
   while (ctx.$stack$.length) {
     while (ctx.$jsxIdx$ < ctx.$jsxCount$) {
+      if (ctx.$asyncBreak$) {
+        return;
+      }
       const value = ctx.$jsxValue$;
 
       if (typeof value === 'string') {
@@ -255,6 +282,9 @@ function diff(ctx: SsrDiffContext, jsxNode: JSXChildren, vStartNode: VNode) {
       }
       ssrAdvance(ctx);
     }
+    if (ctx.$asyncBreak$) {
+      return;
+    }
     ssrAscend(ctx);
   }
 }
@@ -263,15 +293,45 @@ function diff(ctx: SsrDiffContext, jsxNode: JSXChildren, vStartNode: VNode) {
 // Async queue draining
 // ============================================================================
 
-function drainAsyncQueue(ctx: SsrDiffContext): ValueOrPromise<void> {
+function drainAsyncQueue(ctx: SsrDiffContext, savedWalkCtx: any): ValueOrPromise<void> {
+  const ssr = ctx.$container$;
+
+  // Handle async break: process the async item, then resume the diff loop
+  if (ctx.$asyncBreak$) {
+    ctx.$asyncBreak$ = false;
+    if (ctx.$asyncQueue$.length > 0) {
+      const asyncItem = ctx.$asyncQueue$.shift()!;
+      ctx.$asyncQueue$.shift(); // skip vNode marker
+
+      if (isPromise(asyncItem)) {
+        return maybeThen(asyncItem as Promise<JSXOutput | void>, (resolved) => {
+          (ssr as any).activeWalkCtx = savedWalkCtx;
+          // Ensure advance actually moves forward (asyncBreak may have skipped ssrDescend)
+          ctx.$shouldAdvance$ = true;
+          ssrAdvance(ctx); // advance past the item that triggered the break
+          runDiffLoop(ctx);
+          return drainAsyncQueue(ctx, savedWalkCtx);
+        });
+      }
+      // Sync async-break item — resume immediately
+      ctx.$shouldAdvance$ = true;
+      ssrAdvance(ctx);
+      runDiffLoop(ctx);
+    }
+  }
+
+  // Normal async queue processing
   while (ctx.$asyncQueue$.length > 0) {
     const jsxOrPromise = ctx.$asyncQueue$.shift()!;
     const vNode = ctx.$asyncQueue$.shift() as VNode;
 
     if (isPromise(jsxOrPromise)) {
-      return maybeThen(jsxOrPromise as Promise<JSXOutput>, (resolvedJsx) => {
-        diff(ctx, resolvedJsx as JSXChildren, vNode);
-        return drainAsyncQueue(ctx);
+      return maybeThen(jsxOrPromise as Promise<JSXOutput | void>, (resolvedJsx) => {
+        (ssr as any).activeWalkCtx = savedWalkCtx;
+        if (resolvedJsx != null) {
+          diff(ctx, resolvedJsx as JSXChildren, vNode);
+        }
+        return drainAsyncQueue(ctx, savedWalkCtx);
       });
     } else {
       diff(ctx, jsxOrPromise as JSXChildren, vNode);
@@ -312,18 +372,19 @@ function ssrElement(ctx: SsrDiffContext, jsx: JSXNodeInternal, tagName: string) 
   }
 
   // Handle special elements
+  let extraChildren: JSXOutput | null = null;
   if (tagName === 'head') {
     ssr.emitQwikLoaderAtTopIfNeeded();
     ssr.emitPreloaderPre();
-    // Additional head nodes processed after children via async queue
+    // Additional head nodes are merged with children (must be inside <head> before close)
     const headNodes = ssr.additionalHeadNodes;
     if (headNodes.length > 0) {
-      ctx.$asyncQueue$.push(headNodes as unknown as JSXChildren, ctx.$vParent$);
+      extraChildren = headNodes as unknown as JSXOutput;
     }
   } else if (tagName === 'body') {
     const bodyNodes = ssr.additionalBodyNodes;
     if (bodyNodes.length > 0) {
-      ctx.$asyncQueue$.push(bodyNodes as unknown as JSXChildren, ctx.$vParent$);
+      extraChildren = bodyNodes as unknown as JSXOutput;
     }
   } else if (!ssr.isHtml && !(ssr as any)._didAddQwikLoader) {
     ssr.emitQwikLoaderAtTopIfNeeded();
@@ -335,8 +396,15 @@ function ssrElement(ctx: SsrDiffContext, jsx: JSXNodeInternal, tagName: string) 
   ctx.$vNewNode$ = node as unknown as VNode;
 
   const children = jsx.children as JSXOutput;
-  if (children != null && !innerHTML) {
-    ssrDescend(ctx, children as JSXChildren, true, () => ssr.closeElement());
+  // Combine children with extra nodes (head styles, body scripts)
+  const combinedChildren =
+    extraChildren != null
+      ? children != null
+        ? [children, extraChildren]
+        : extraChildren
+      : children;
+  if (combinedChildren != null && !innerHTML) {
+    ssrDescend(ctx, combinedChildren as JSXChildren, true, () => ssr.closeElement());
   } else {
     ssr.closeElement();
   }
@@ -362,8 +430,11 @@ function ssrFragment(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
 }
 
 /**
- * Component$ (DEFERRED): create boundary, store QRL+props, distribute slots,
- * mark COMPONENT dirty, close boundary. Does NOT execute or descend.
+ * Component$ (INLINE execution): open component, distribute slots, execute component QRL, process
+ * returned JSX as children, close component on ascend.
+ *
+ * For sync components, children are processed via ssrDescend/ssrAscend. For async components, the
+ * diff loop breaks and resumes via drainAsyncQueue.
  */
 function ssrComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, component: Function) {
   const ssr = ctx.$container$;
@@ -395,33 +466,72 @@ function ssrComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, component: Func
     host.setProp(ELEMENT_KEY, jsx.key);
   }
 
-  // Store component frame on host for later use by executeSsrComponent
-  host.setProp(SSR_COMPONENT_FRAME, componentFrame);
-
   // Set VNode parent for dirty propagation
   const hostVNode = host as unknown as VNode;
   hostVNode.parent = ctx.$vParent$;
+  ctx.$vNewNode$ = hostVNode;
 
-  // Mark COMPONENT dirty — cursor walker will execute the component
-  markVNodeDirty(ssr, hostVNode, ChoreBits.COMPONENT, ctx.$cursor$);
+  // Execute component inline
+  const jsxOutput = executeComponent(ssr, host as any, host as any, componentQRL, srcProps || null);
 
-  // Close boundary immediately (no children to descend into)
-  // Lightweight close: pop component frame and fragment, but skip unclaimed projections
-  // (those are handled by executeSsrComponent after execution)
-  const walkCtx = (ssr as any).activeWalkCtx;
-  walkCtx.componentStack.pop();
-  ssr.closeFragment();
-  walkCtx.currentComponentNode =
-    walkCtx.currentComponentNode?.parentComponent || null;
-  // Restore parentVNode for cursor tree
-  if ((ssr as any)._parentVNodeStack.length > 0) {
-    (ssr as any)._currentParentVNode = (ssr as any)._parentVNodeStack.pop()!;
+  // Save parent context for restoration after children
+  const savedStyle = ctx.$currentStyleScoped$;
+  const savedFrame = ctx.$parentComponentFrame$;
+
+  // Create close callback for component boundary
+  const closeComponentFn = () => {
+    // Restore parent context
+    ctx.$currentStyleScoped$ = savedStyle;
+    ctx.$parentComponentFrame$ = savedFrame;
+
+    // Close component: pop frame, emit unclaimed projections, close fragment, restore state.
+    // closeComponent() may be async if there are unclaimed projections.
+    const result = ssr.closeComponent();
+    if (isPromise(result)) {
+      // Async close (unclaimed projections): break the diff loop
+      ctx.$asyncBreak$ = true;
+      ctx.$asyncQueue$.unshift(result as any, hostVNode);
+    }
+  };
+
+  if (isPromise(jsxOutput)) {
+    // Async component: break the diff loop, process lifecycle in asyncQueue
+    ctx.$asyncBreak$ = true;
+    const savedWalkCtx = (ssr as any).activeWalkCtx;
+    const asyncLifecycle = (jsxOutput as Promise<JSXOutput>).then(async (resolvedJsx) => {
+      // Restore walkCtx (may have been swapped during await)
+      (ssr as any).activeWalkCtx = savedWalkCtx;
+
+      const compStyleId = addComponentStylePrefix(
+        (host as ISsrNode).getProp(QScopedStyle) as string
+      );
+      // Process children via recursive ssrDiff (creates its own context)
+      await ssrDiff(ssr, resolvedJsx, hostVNode, ctx.$cursor$, compStyleId, componentFrame);
+
+      // Close component (may be async for unclaimed projections)
+      ctx.$currentStyleScoped$ = savedStyle;
+      ctx.$parentComponentFrame$ = savedFrame;
+      await ssr.closeComponent();
+    });
+    ctx.$asyncQueue$.unshift(asyncLifecycle as any, hostVNode);
+  } else {
+    // Sync component: descend into children, close on ascend
+    const compStyleId = addComponentStylePrefix((host as ISsrNode).getProp(QScopedStyle) as string);
+    ctx.$currentStyleScoped$ = compStyleId;
+    ctx.$parentComponentFrame$ = componentFrame;
+
+    if (jsxOutput != null) {
+      ssrDescend(ctx, jsxOutput as JSXChildren, true, closeComponentFn);
+    } else {
+      closeComponentFn();
+    }
   }
 }
 
 /**
- * Inline component: open fragment, execute component function, push result to async queue.
- * Close fragment after async queue processes the result.
+ * Inline component: open fragment, execute component function, process output. For sync output,
+ * descend into children with close-fragment on ascend. For async output, push to asyncQueue and
+ * close fragment immediately.
  */
 function ssrInlineComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, inlineFn: Function) {
   const ssr = ctx.$container$;
@@ -432,6 +542,7 @@ function ssrInlineComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, inlineFn:
   }
   ssr.openFragment(inlineAttrs);
   const node = ssr.getOrCreateLastNode();
+  ctx.$vNewNode$ = node as unknown as VNode;
 
   const component = ssr.getParentComponentFrame();
   const jsxOutput = applyInlineComponent(
@@ -441,28 +552,35 @@ function ssrInlineComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, inlineFn:
     jsx
   );
 
-  // The inline component's output will be processed as children of this fragment.
-  // Push (output, fragmentNode) to asyncQueue. The drainAsyncQueue will call diff()
-  // which opens a new stack level under the fragment node.
   const fragmentVNode = node as unknown as VNode;
 
   if (isPromise(jsxOutput)) {
-    ctx.$asyncQueue$.push(jsxOutput as Promise<JSXOutput>, fragmentVNode);
+    // Async inline component: break the diff loop, keep parent elements open.
+    // We must NOT close the fragment yet — the resolved JSX needs to be rendered
+    // inside the current element frame context. Close fragment after resolution.
+    ctx.$asyncBreak$ = true;
+    const savedWalkCtx = (ssr as any).activeWalkCtx;
+    const asyncLifecycle = (jsxOutput as Promise<JSXOutput>).then(async (resolvedJsx) => {
+      (ssr as any).activeWalkCtx = savedWalkCtx;
+      if (resolvedJsx != null) {
+        await ssrDiff(
+          ssr,
+          resolvedJsx,
+          fragmentVNode,
+          ctx.$cursor$,
+          ctx.$currentStyleScoped$,
+          ctx.$parentComponentFrame$
+        );
+      }
+      ssr.closeFragment();
+    });
+    ctx.$asyncQueue$.unshift(asyncLifecycle as any, fragmentVNode);
+  } else if (jsxOutput != null) {
+    // Sync inline component: descend into children, close fragment on ascend
+    ssrDescend(ctx, jsxOutput as JSXChildren, true, () => ssr.closeFragment());
   } else {
-    ctx.$asyncQueue$.push(jsxOutput as unknown as JSXChildren, fragmentVNode);
+    ssr.closeFragment();
   }
-
-  // Close fragment will happen after asyncQueue processes the component output.
-  // We need to defer it. Push a special "close" entry to the async queue.
-  ctx.$asyncQueue$.push(
-    { then: (cb: any) => cb(undefined) } as any, // resolved micro-promise
-    { firstChild: null, parent: null } as any // dummy vNode — diff will be a no-op
-  );
-  // Actually, we can't reliably close the fragment via asyncQueue because
-  // other async items might interleave. Instead, close the fragment now —
-  // the container's ssrNodeStack and frame are restored, but the SsrNode
-  // remains in the tree with its children populated by the async diff.
-  ssr.closeFragment();
 }
 
 /** Signal: wrap in virtual node, track, descend into value. */
@@ -481,16 +599,54 @@ function ssrSignal(ctx: SsrDiffContext, signal: any) {
   const unwrappedSignal = signal instanceof WrappedSignalImpl ? signal.$unwrapIfSignal$() : signal;
 
   const trackFn = () =>
-    trackSignalAndAssignHost(unwrappedSignal, signalNode as unknown as VNode, EffectProperty.VNODE, ssr);
+    trackSignalAndAssignHost(
+      unwrappedSignal,
+      signalNode as unknown as VNode,
+      EffectProperty.VNODE,
+      ssr
+    );
 
-  // Signal tracking may throw a promise (async signals)
-  const trackedValue = retryOnPromise(trackFn);
-  if (isPromise(trackedValue)) {
-    // Push to async queue for later resolution
-    ctx.$asyncQueue$.push(trackedValue as Promise<JSXOutput>, signalNode as unknown as VNode);
-    ssr.closeFragment();
+  // Track the signal value. If tracking throws a Promise (async signal needing computation),
+  // use retryOnPromise to await and retry. The resolved value is rendered directly (no Awaited).
+  // If tracking returns a Promise (signal's literal value is a Promise), descend into it
+  // so the inner diff loop creates the Awaited wrapper via ssrPromise.
+  let trackedValue: any;
+  let threwPromise = false;
+  try {
+    trackedValue = trackFn();
+  } catch (e) {
+    if (isPromise(e)) {
+      threwPromise = true;
+      // Async signal computation — retryOnPromise awaits thrown promise, retries
+      trackedValue = retryOnPromise(trackFn);
+    } else {
+      throw e;
+    }
+  }
+
+  if (threwPromise && isPromise(trackedValue)) {
+    // Async signal (threw Promise during tracking): render resolved value directly
+    // inside signal fragment — no Awaited wrapper.
+    ctx.$asyncBreak$ = true;
+    const savedWalkCtx = (ssr as any).activeWalkCtx;
+    const asyncLifecycle = (trackedValue as Promise<any>).then(async (resolvedValue) => {
+      (ssr as any).activeWalkCtx = savedWalkCtx;
+      if (resolvedValue != null) {
+        await ssrDiff(
+          ssr,
+          resolvedValue as JSXOutput,
+          signalNode as unknown as VNode,
+          ctx.$cursor$,
+          ctx.$currentStyleScoped$,
+          ctx.$parentComponentFrame$
+        );
+      }
+      ssr.closeFragment();
+    });
+    ctx.$asyncQueue$.unshift(asyncLifecycle as any, signalNode as unknown as VNode);
   } else {
-    // Descend into the tracked signal value synchronously
+    // Tracked value is synchronous (possibly a literal Promise) — descend into it.
+    // If it's a Promise, the inner diff loop creates an Awaited wrapper via ssrPromise.
     ssrDescend(ctx, trackedValue as JSXChildren, true, () => ssr.closeFragment());
   }
 }
@@ -502,12 +658,28 @@ function ssrPromise(ctx: SsrDiffContext, promise: Promise<any>) {
   const attrs: Record<string, any> = isDev ? { [DEBUG_TYPE]: VirtualType.Awaited } : EMPTY_OBJ;
   ssr.openFragment(attrs);
   const node = ssr.getOrCreateLastNode();
+  ctx.$vNewNode$ = node as unknown as VNode;
 
   ssr.streamHandler.flush();
 
-  // Push promise to async queue — diff will process resolved value under this fragment
-  ctx.$asyncQueue$.push(promise as Promise<JSXOutput>, node as unknown as VNode);
-  ssr.closeFragment();
+  // Async break: keep fragment open, await promise, process resolved JSX inside, then close
+  ctx.$asyncBreak$ = true;
+  const savedWalkCtx = (ssr as any).activeWalkCtx;
+  const asyncLifecycle = promise.then(async (resolvedJsx: any) => {
+    (ssr as any).activeWalkCtx = savedWalkCtx;
+    if (resolvedJsx != null) {
+      await ssrDiff(
+        ssr,
+        resolvedJsx,
+        node as unknown as VNode,
+        ctx.$cursor$,
+        ctx.$currentStyleScoped$,
+        ctx.$parentComponentFrame$
+      );
+    }
+    ssr.closeFragment();
+  });
+  ctx.$asyncQueue$.unshift(asyncLifecycle as any, node as unknown as VNode);
 }
 
 /** Slot: consume projected content from component frame. */
@@ -525,6 +697,7 @@ function ssrSlot(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
 
     const host = componentFrame.componentNode;
     const node = ssr.getOrCreateLastNode();
+    ctx.$vNewNode$ = node as unknown as VNode;
     const slotName = getSlotName(host, jsx, ssr);
     projectionAttrs[QSlot] = slotName;
 
@@ -595,19 +768,18 @@ function ssrStream(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
   ssr.streamHandler.flush();
 
   const generator = jsx.children as SSRStreamChildren;
+  const savedWalkCtx = (ssr as any).activeWalkCtx;
+  const parentVNode = ctx.$vParent$;
+  const cursor = ctx.$cursor$;
+  const styleScoped = ctx.$currentStyleScoped$;
+  const parentFrame = ctx.$parentComponentFrame$;
   let value: AsyncGenerator | Promise<void>;
 
   if (isFunction(generator)) {
     value = generator({
       async write(chunk) {
-        await ssrDiff(
-          ssr,
-          chunk,
-          ctx.$vParent$,
-          ctx.$cursor$,
-          ctx.$currentStyleScoped$,
-          ctx.$parentComponentFrame$
-        );
+        (ssr as any).activeWalkCtx = savedWalkCtx;
+        await ssrDiff(ssr, chunk, parentVNode, cursor, styleScoped, parentFrame);
         ssr.streamHandler.flush();
       },
     });
@@ -615,8 +787,20 @@ function ssrStream(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
     value = generator;
   }
 
-  if (isPromise(value)) {
-    ctx.$asyncQueue$.push(value as unknown as JSXChildren, ctx.$vParent$);
+  if (isAsyncGenerator(value)) {
+    // Async generator: iterate and process each yielded chunk
+    const lifecycle = (async () => {
+      for await (const chunk of value as AsyncGenerator) {
+        (ssr as any).activeWalkCtx = savedWalkCtx;
+        await ssrDiff(ssr, chunk as JSXOutput, parentVNode, cursor, styleScoped, parentFrame);
+      }
+    })();
+    ctx.$asyncBreak$ = true;
+    ctx.$asyncQueue$.unshift(lifecycle as any, parentVNode);
+  } else if (isPromise(value)) {
+    // Async function with write callback: block until complete
+    ctx.$asyncBreak$ = true;
+    ctx.$asyncQueue$.unshift(value as any, parentVNode);
   }
 }
 
@@ -636,22 +820,22 @@ function ssrStreamBlock(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
 /** Async generator: process chunks as they arrive. */
 function ssrAsyncGenerator(ctx: SsrDiffContext, generator: AsyncGenerator) {
   const ssr = ctx.$container$;
+  const savedWalkCtx = (ssr as any).activeWalkCtx;
+  const parentVNode = ctx.$vParent$;
+  const cursor = ctx.$cursor$;
+  const styleScoped = ctx.$currentStyleScoped$;
+  const parentFrame = ctx.$parentComponentFrame$;
 
   const processGenerator = async () => {
     for await (const chunk of generator) {
-      await ssrDiff(
-        ssr,
-        chunk as JSXOutput,
-        ctx.$vParent$,
-        ctx.$cursor$,
-        ctx.$currentStyleScoped$,
-        ctx.$parentComponentFrame$
-      );
+      (ssr as any).activeWalkCtx = savedWalkCtx;
+      await ssrDiff(ssr, chunk as JSXOutput, parentVNode, cursor, styleScoped, parentFrame);
       ssr.streamHandler.flush();
     }
   };
 
-  ctx.$asyncQueue$.push(processGenerator() as unknown as JSXChildren, ctx.$vParent$);
+  ctx.$asyncBreak$ = true;
+  ctx.$asyncQueue$.unshift(processGenerator() as unknown as JSXChildren, parentVNode);
 }
 
 // ============================================================================
@@ -663,7 +847,12 @@ function getSlotName(host: ISsrNode, jsx: JSXNodeInternal, ssr: SSRContainer): s
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
     if (constValue instanceof WrappedSignalImpl) {
-      return trackSignalAndAssignHost(constValue, host as unknown as VNode, EffectProperty.COMPONENT, ssr);
+      return trackSignalAndAssignHost(
+        constValue,
+        host as unknown as VNode,
+        EffectProperty.COMPONENT,
+        ssr
+      );
     }
   }
   return directGetPropsProxyProp(jsx, 'name') || QDefaultSlot;

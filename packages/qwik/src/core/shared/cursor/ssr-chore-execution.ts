@@ -1,5 +1,5 @@
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
-import { ssrVNodeDiff } from '../../ssr/ssr-vnode-diff';
+import { ssrDiff } from '../../ssr/ssr-diff';
 import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
 import { executeComponent } from '../component-execution';
 import type { Container, HostElement } from '../types';
@@ -70,13 +70,10 @@ export function executeSsrTasks(
 /**
  * Execute component rendering for an SSR node. Mirrors client `executeComponentChore`.
  *
- * For initial render, components are executed inline by _walkJSX. This function handles
+ * For initial render, components are executed inline by ssrDiff. This function handles
  * cursor-walker-driven re-renders: when a component gets re-dirtied (e.g., by a signal change or
  * task subscription), the cursor walker calls this to re-execute the component QRL and process the
- * returned JSX via ssrVNodeDiff.
- *
- * TODO: When ssrDiff replaces _walkJSX as the primary JSX processor, this will switch to using
- * ssrDiff directly, with the component frame retrieved from the host SsrNode.
+ * returned JSX via ssrDiff.
  */
 export function executeSsrComponent(
   vNode: VNode,
@@ -103,10 +100,14 @@ export function executeSsrComponent(
     () => executeComponent(container, host, host, componentQRL, props),
     (jsx) => {
       const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
-      return ssrVNodeDiff(container as SSRContainer, jsx, vNode, cursor, {
-        currentStyleScoped: addComponentStylePrefix(styleScopedId),
-        parentComponentFrame: null,
-      });
+      return ssrDiff(
+        container as SSRContainer,
+        jsx,
+        vNode,
+        cursor,
+        addComponentStylePrefix(styleScopedId),
+        null
+      );
     },
     (err: any) => {
       container.handleError(err, host);
@@ -121,8 +122,8 @@ export function executeSsrComponent(
 /**
  * Execute node diff for an SSR node. Mirrors client `executeNodeDiff`.
  *
- * Processes stored JSX (from render() or signal-driven re-diffs) into child SsrNodes via
- * ssrDiff. The cursor walker drives traversal through the resulting tree.
+ * Processes stored JSX (from render() or signal-driven re-diffs) into child SsrNodes via ssrDiff.
+ * The cursor walker drives traversal through the resulting tree.
  */
 export function executeSsrNodeDiff(
   vNode: VNode,
@@ -137,10 +138,7 @@ export function executeSsrNodeDiff(
     delete vNode.props![':nodeDiff'];
     const ssrNode = vNode as unknown as ISsrNode;
     const styleScopedId = addComponentStylePrefix(ssrNode.getProp?.(QScopedStyle));
-    return ssrVNodeDiff(container as SSRContainer, jsx, vNode, cursor, {
-      currentStyleScoped: styleScopedId,
-      parentComponentFrame: null,
-    });
+    return ssrDiff(container as SSRContainer, jsx, vNode, cursor, styleScopedId, null);
   }
 }
 

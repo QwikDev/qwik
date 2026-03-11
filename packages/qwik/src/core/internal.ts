@@ -61,7 +61,7 @@ export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
 export { _restProps } from './shared/utils/prop';
-export { _walkJSX } from './ssr/ssr-render-jsx';
+export { ssrDiff as _ssrDiff } from './ssr/ssr-diff';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,

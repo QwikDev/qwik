@@ -204,6 +204,8 @@ export function ssrDiff(
   // Capture the active walk context — during async yields, other cursors may swap
   // activeWalkCtx. We restore it after each async resolution.
   const savedWalkCtx = (container as any).activeWalkCtx;
+  // Store active cursor for container methods that need to call ssrDiff (e.g., unclaimed projections)
+  (container as any)._activeCursor = cursor;
 
   const ctx = createSsrDiffContext(container, cursor, scopedStyleIdPrefix, parentComponentFrame);
   diff(ctx, jsx as JSXChildren, parentVNode);

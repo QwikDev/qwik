@@ -70,16 +70,16 @@ export function executeSsrTasks(
 /**
  * Execute component rendering for an SSR node. Mirrors client `executeComponentChore`.
  *
- * For initial render, components are executed inline by ssrDiff. This function handles
- * cursor-walker-driven re-renders: when a component gets re-dirtied (e.g., by a signal change or
- * task subscription), the cursor walker calls this to re-execute the component QRL and process the
- * returned JSX via ssrDiff.
+ * Executes the component QRL and stores the resulting JSX as `:nodeDiff` on the vNode, then marks
+ * NODE_DIFF dirty so the cursor walker processes it in the next chore cycle. This two-phase
+ * approach (COMPONENT → NODE_DIFF) matches the client-side pattern and enables the cursor walker to
+ * handle cascading task dependencies naturally via its TASKS → COMPONENT → NODE_DIFF ordering.
  */
 export function executeSsrComponent(
   vNode: VNode,
   container: Container,
   _cursorData: CursorData,
-  cursor: Cursor
+  _cursor: Cursor
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.COMPONENT;
 
@@ -99,15 +99,9 @@ export function executeSsrComponent(
   const result = safeCall(
     () => executeComponent(container, host, host, componentQRL, props),
     (jsx) => {
-      const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
-      return ssrDiff(
-        container as SSRContainer,
-        jsx,
-        vNode,
-        cursor,
-        addComponentStylePrefix(styleScopedId),
-        null
-      );
+      // Store JSX for NODE_DIFF processing
+      (vNode.props ||= {})[':nodeDiff'] = jsx;
+      vNode.dirty |= ChoreBits.NODE_DIFF;
     },
     (err: any) => {
       container.handleError(err, host);

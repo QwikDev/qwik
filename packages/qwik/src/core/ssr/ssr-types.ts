@@ -26,7 +26,7 @@ export interface ISsrNode {
   flags: VNodeFlags;
   dirty: ChoreBits;
   parentComponent: ISsrNode | null;
-  vnodeData: VNodeData;
+  vnodeData: VNodeData | null;
   currentFile: string | null;
   readonly updatable: boolean;
   setProp(name: string, value: any): void;

@@ -25,12 +25,11 @@ import {
   SSR_STYLE_SCOPED_ID,
   SSR_SUSPENSE_PLACEHOLDER_ID,
   SSR_SUSPENSE_CONTENT,
-  SSR_SUSPENSE_READY,
   isSsrContentChild,
   type SsrChild,
   type SsrContentChild,
 } from './ssr-node';
-import type { ISsrNode, Props, StreamWriter, ValueOrPromise } from './qwik-types';
+import type { ISsrNode, StreamWriter, ValueOrPromise } from './qwik-types';
 import { isSelfClosingTag } from './tag-nesting';
 import {
   LT,
@@ -103,7 +102,7 @@ export class SsrStreamingWalker {
     return this.emitNode(root);
   }
 
-  private write(text: string): void {
+  write(text: string): void {
     this.size += text.length;
     this.writer.write(text);
   }
@@ -210,7 +209,7 @@ export class SsrStreamingWalker {
     if (!children || children.length === 0) {
       return;
     }
-    let result: ValueOrPromise<void>;
+    let result: ValueOrPromise<void> = undefined;
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
       if (result) {
@@ -387,7 +386,7 @@ export class IncrementalEmitter {
             this.handleSuspenseOpen(frame, node);
             // Phase set by handleSuspenseOpen
           } else {
-            // Virtual/Component/Projection — no HTML output, go straight to children
+            // Virtual/Component/Projection — no HTML output, just emit children
             frame.phase = EmitPhase.CHILDREN;
           }
           break;
@@ -427,7 +426,6 @@ export class IncrementalEmitter {
             return EmitResult.NEEDS_CALLBACK;
           }
 
-          // Emit close tag for elements
           if (frame.tagName) {
             emitCloseTag(this, frame.tagName);
           }

@@ -1,7 +1,6 @@
 import type { JSXNode } from '@qwik.dev/core';
 import {
   _isJSXNode as isJSXNode,
-  _EMPTY_OBJ,
   _EFFECT_BACK_REF,
   _VirtualVNode as VirtualVNode,
 } from '@qwik.dev/core/internal';
@@ -55,6 +54,8 @@ export const SSR_SUSPENSE_READY = ':suspenseReady';
 export interface SsrContentChild {
   kind: SsrNodeKind.Text | SsrNodeKind.RawHtml | SsrNodeKind.Comment;
   content: string;
+  /** Original (unescaped) text length. Only set for Text kind. Used by vNodeData builder. */
+  textLength?: number;
 }
 
 /** A child entry in orderedChildren — either a full SsrNode or a lightweight content node. */
@@ -104,8 +105,11 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
   /** ID which the deserialize will use to retrieve the node. */
   public id: string;
 
-  /** VNode serialization data for this node's subtree. */
-  public vnodeData: VNodeData;
+  /**
+   * VNode serialization data for this node's subtree. Set externally by
+   * vNodeData_createSsrNodeReference (during tree building) or by the streamer (future).
+   */
+  public vnodeData: VNodeData | null = null;
 
   /** Source file location for dev mode diagnostics. */
   public currentFile: string | null;
@@ -119,13 +123,12 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
   /** Node kind for emission dispatch. */
   public nodeKind: SsrNodeKind = SsrNodeKind.Virtual;
 
-  /** Serializable attributes backed by vnodeData entries. */
+  /** Serializable attributes — standalone object, may be shared with vNodeData entry. */
   private attrs: Props;
 
   /** Local props which don't serialize (prefixed with NON_SERIALIZABLE_MARKER_PREFIX). */
   private localProps: Props | null = null;
 
-  private attributesIndex: number;
   private cleanupQueue: CleanupQueue;
 
   /**
@@ -143,9 +146,8 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
   constructor(
     parentComponent: ISsrNode | null,
     id: string,
-    attributesIndex: number,
+    attrs: Props,
     cleanupQueue: CleanupQueue,
-    vnodeData: VNodeData,
     currentFile: string | null
   ) {
     super(
@@ -161,13 +163,10 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
 
     this.id = id;
     this.parentComponent = parentComponent;
-    this.attributesIndex = attributesIndex;
     this.cleanupQueue = cleanupQueue;
-    this.vnodeData = vnodeData;
     this.currentFile = currentFile;
     this.dirty = ChoreBits.NONE;
-    this.attrs =
-      this.attributesIndex >= 0 ? (this.vnodeData[this.attributesIndex] as Props) : _EMPTY_OBJ;
+    this.attrs = attrs;
 
     this.parentComponent?.addChild(this);
 
@@ -194,9 +193,6 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
   }
 
   setProp(name: string, value: any): void {
-    if (this.attrs === _EMPTY_OBJ) {
-      this.setEmptyArrayAsVNodeDataAttributes();
-    }
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       (this.localProps ||= {})[name] = value;
     } else {
@@ -209,26 +205,17 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
     }
   }
 
-  private setEmptyArrayAsVNodeDataAttributes() {
-    if (this.attributesIndex >= 0) {
-      this.vnodeData[this.attributesIndex] = {};
-      this.attrs = this.vnodeData[this.attributesIndex] as Props;
-    } else {
-      // we need to insert a new empty array at index 1
-      // this can be inefficient, but it is only done once per node and probably not often
-      const newAttributesIndex = this.vnodeData.length > 1 ? 1 : 0;
-      this.vnodeData.splice(newAttributesIndex, 0, {});
-      this.attributesIndex = newAttributesIndex;
-      this.attrs = this.vnodeData[this.attributesIndex] as Props;
-    }
-  }
-
   getProp(name: string): any {
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       return this.localProps ? (this.localProps[name] ?? null) : null;
     } else {
       return this.attrs[name] ?? null;
     }
+  }
+
+  /** Returns the serializable attrs object. Used by the streamer to build vNodeData. */
+  getSerializableAttrs(): Props {
+    return this.attrs;
   }
 
   removeProp(name: string): void {

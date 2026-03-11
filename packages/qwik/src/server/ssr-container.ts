@@ -7,7 +7,7 @@ import {
   _jsxSplit,
   _res,
   _setEvent,
-  _walkJSX,
+  _ssrDiff as ssrDiff,
   _createQRL as createQRL,
   _addCursor as addCursor,
   _getCursorData as getCursorData,
@@ -330,6 +330,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   _currentParentVNode: any = null;
   /** Current cursor root. Reserved for future deferred component execution. */
   _currentCursorRoot: any = null;
+  /** Active cursor for ssrDiff calls from container methods (e.g., unclaimed projections). */
+  _activeCursor: any = null;
   /** Stack for saving/restoring _currentParentVNode across nested component boundaries. */
   private _parentVNodeStack: any[] = [];
 
@@ -922,7 +924,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * content node with its own WalkContext. When the sub-cursor completes, it marks the boundary as
    * ready so the streaming walker can emit children inline instead of using OoO.
    *
-   * Called from _walkJSX when encountering Suspense with children.
+   * Called from ssrDiff when encountering Suspense with children.
    */
   createSuspenseSubCursor(childrenJsx: JSXOutput) {
     const boundary = this.currentSuspenseBoundary;
@@ -935,11 +937,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const contentNode = new SsrNode(
       null, // parentComponent
       `sus-${placeholderId}`,
-      -1, // no attributes index
+      {}, // attrs
       this.cleanupQueue,
-      [VNodeDataFlag.NONE] as VNodeData,
       null // currentFile
     );
+    contentNode.vnodeData = [VNodeDataFlag.NONE] as VNodeData;
     contentNode.nodeKind = SsrNodeKind.Virtual;
     boundary.setProp(SSR_SUSPENSE_CONTENT, contentNode);
 
@@ -1064,10 +1066,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
       componentFrame.componentNode.setProp(slotName, lastNode.id);
       // Use projectionComponentFrame so that Slots can find their projections from the correct parent
-      await _walkJSX(this, children, {
-        currentStyleScoped: scopedStyleId,
-        parentComponentFrame: componentFrame.projectionComponentFrame,
-      });
+      await ssrDiff(
+        this,
+        children,
+        lastNode as any, // parentVNode
+        this._activeCursor,
+        scopedStyleId,
+        componentFrame.projectionComponentFrame
+      );
       this.closeFragment();
     }
 
@@ -1086,6 +1092,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         (parentSsrNode as SsrNode).addOrderedChild({
           kind: SsrNodeKind.Text,
           content: escaped,
+          textLength: text.length,
         });
       }
     }

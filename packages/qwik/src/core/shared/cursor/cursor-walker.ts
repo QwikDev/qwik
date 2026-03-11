@@ -177,14 +177,14 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
         result = isRunningOnServer
           ? executeSsrTasks(currentVNode, container, cursorData)
           : executeTasks(currentVNode, container, cursorData);
-      } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
-        result = isRunningOnServer
-          ? executeSsrNodeDiff(currentVNode, container, cursorData, cursor)
-          : executeNodeDiff(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
         result = isRunningOnServer
           ? executeSsrComponent(currentVNode, container, cursorData, cursor)
           : executeComponentChore(currentVNode, container, journal, cursor);
+      } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
+        result = isRunningOnServer
+          ? executeSsrNodeDiff(currentVNode, container, cursorData, cursor)
+          : executeNodeDiff(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.NODE_PROPS) {
         if (isRunningOnServer) {
           executeSsrNodeProps(currentVNode, container);

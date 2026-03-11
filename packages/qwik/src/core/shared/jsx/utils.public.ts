@@ -53,6 +53,6 @@ export type SuspenseProps = {
 /** @public */
 export const Suspense: FunctionComponent<SuspenseProps> = (props) => {
   // On the client, Suspense is a no-op — just render children.
-  // The SSR handling is in _walkJSX (ssr-render-jsx.ts).
+  // The SSR handling is in ssrDiff (ssr-diff.ts).
   return props.children;
 };

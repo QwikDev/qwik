@@ -7,8 +7,8 @@
  *
  *   Key differences from client:
  *
- *   - Component$ is executed INLINE (like _walkJSX) — sync components use ssrDescend/ssrAscend, async
- *       components break the diff loop and resume via drainAsyncQueue.
+ *   - Component$ is executed INLINE — sync components use ssrDescend/ssrAscend, async components break
+ *       the diff loop and resume via drainAsyncQueue.
  *   - Inline components are executed immediately and their JSX pushed to asyncQueue.
  *   - SSR-specific JSX types (SSRComment, SSRRaw, SSRStream, SSRStreamBlock, Suspense).
  *   - On first render, always in creation mode (no existing children to reconcile).

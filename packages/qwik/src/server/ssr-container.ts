@@ -324,12 +324,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private currentSuspenseBoundary: ISsrNode | null = null;
 
   /**
-   * Current parent VNode in the cursor tree. Set by ssrVNodeDiff before delegating to _walkJSX.
-   * When non-null, openComponent sets VNode parent on each component SsrNode for dirty
-   * propagation.
+   * Current parent VNode in the cursor tree. When non-null, openComponent sets VNode parent on each
+   * component SsrNode for dirty propagation.
    */
   _currentParentVNode: any = null;
-  /** Current cursor root. Set by ssrVNodeDiff. Reserved for future deferred component execution. */
+  /** Current cursor root. Reserved for future deferred component execution. */
   _currentCursorRoot: any = null;
   /** Stack for saving/restoring _currentParentVNode across nested component boundaries. */
   private _parentVNodeStack: any[] = [];
@@ -425,7 +424,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.rootSsrNode = rootSsrNode;
 
     // Create a cursor root VNode to drive SSR rendering through the cursor walker.
-    // Store the JSX in :nodeDiff so executeSsrNodeDiff processes it via ssrVNodeDiff.
+    // Store the JSX in :nodeDiff so executeSsrNodeDiff processes it via ssrDiff.
     const cursorRoot = new VirtualVNode(
       null, // key
       VNodeFlags.Virtual,
@@ -531,7 +530,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           // Wait for any remaining async sub-cursors (Suspense children)
           if (this.$renderPromise$) {
             await this.$renderPromise$;
-            // Sub-cursor _walkJSX may have changed activeWalkCtx during its execution
+            // Sub-cursor processing may have changed activeWalkCtx during its execution
             this.activeWalkCtx = mainWalkCtx;
           }
 
@@ -994,7 +993,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.openFragment(attrs);
     this.activeWalkCtx.currentComponentNode = this.getOrCreateLastNode();
 
-    // Set VNode parent for cursor tree integration (when called via ssrVNodeDiff).
+    // Set VNode parent for cursor tree integration (when called via ssrDiff).
     // This enables markVNodeDirty to propagate dirty bits up to the cursor root.
     if (this._currentParentVNode) {
       const node = this.activeWalkCtx.currentComponentNode as any;
@@ -1034,7 +1033,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.activeWalkCtx.currentComponentNode =
       this.activeWalkCtx.currentComponentNode?.parentComponent || null;
 
-    // Restore parentVNode for cursor tree (when called via ssrVNodeDiff)
+    // Restore parentVNode for cursor tree (when called via ssrDiff)
     if (this._parentVNodeStack.length > 0) {
       this._currentParentVNode = this._parentVNodeStack.pop()!;
     }

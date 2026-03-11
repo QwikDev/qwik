@@ -29,8 +29,15 @@ export function setCachedHtml(key: string, html: string): void {
 /**
  * Clear the in-memory SSR cache. Call after deployments or data changes.
  *
+ * When `cacheKey` is provided, only that single entry is removed; otherwise the entire cache is
+ * cleared.
+ *
  * @public
  */
-export function clearSsrCache(): void {
-  ssrCache.clear();
+export function clearSsrCache(cacheKey?: string): void {
+  if (cacheKey != null) {
+    ssrCache.delete(cacheKey);
+  } else {
+    ssrCache.clear();
+  }
 }

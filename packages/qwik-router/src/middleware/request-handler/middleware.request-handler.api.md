@@ -37,7 +37,7 @@ export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefin
 export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
 
 // @public
-export function clearSsrCache(): void;
+export function clearSsrCache(cacheKey?: string): void;
 
 // @public (undocumented)
 export interface ClientConn {

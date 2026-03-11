@@ -45,6 +45,12 @@ export interface QwikRouterVitePluginOptions extends Omit<PluginOptions, 'basePa
    * Default: true
    */
   devSsrServer?: boolean;
+  /**
+   * Maximum number of SSR-rendered pages to keep in the in-memory cache. Set to 0 to disable.
+   *
+   * Default: 50
+   */
+  ssrCacheSize?: number;
 }
 
 /** @public */

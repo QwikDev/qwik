@@ -15,7 +15,7 @@ import {
   type ValidatorReturn,
 } from '../../runtime/src/types';
 import { resolveHead } from '../../runtime/src/head';
-import { getCachedHtml, setCachedHtml } from './etag';
+import { getCachedHtml, MAX_CACHE_SIZE, setCachedHtml } from './etag';
 import { HttpStatus } from './http-status-codes';
 import {
   RequestEvETagCacheKey,
@@ -322,6 +322,9 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
     }
 
     // Resolve cacheKey for in-memory caching (opt-in)
+    if (MAX_CACHE_SIZE <= 0) {
+      return;
+    }
     const cacheKeyVal = head.cacheKey;
     if (!cacheKeyVal) {
       return; // No caching, just ETag header + 304 support

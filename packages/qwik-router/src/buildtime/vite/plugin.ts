@@ -87,6 +87,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             userOpts?.defaultLoadersSerializationStrategy || 'never'
           ),
           'globalThis.__NO_TRAILING_SLASH__': JSON.stringify(userOpts?.trailingSlash === false),
+          'globalThis.__SSR_CACHE_SIZE__': JSON.stringify(userOpts?.ssrCacheSize ?? 50),
         },
         appType: 'custom',
         resolve: {

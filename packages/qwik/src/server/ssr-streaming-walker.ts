@@ -31,7 +31,16 @@ import {
   type SsrNode,
 } from './ssr-node';
 import type { ISsrNode, StreamWriter, ValueOrPromise } from './qwik-types';
-import type { VNodeData } from './vnode-data';
+import {
+  type VNodeData,
+  vNodeData_incrementElementCount,
+  vNodeData_addTextSize,
+  vNodeData_openFragment,
+  vNodeData_closeFragment,
+  WRITE_ELEMENT_ATTRS,
+  encodeAsAlphanumeric,
+} from './vnode-data';
+import { VNodeDataFlag } from './types';
 import { isSelfClosingTag } from './tag-nesting';
 import {
   LT,
@@ -44,6 +53,8 @@ import {
   Q_PROPS_SEPARATOR,
   EMPTY_ATTR,
   ChoreBits,
+  QStyle,
+  QScopedStyle,
   serializeAttribute,
   escapeHTML,
   maybeThen,
@@ -308,12 +319,28 @@ interface EmitFrame {
 }
 
 /**
+ * VNodeData build state for an ancestor element. Pushed when entering an element, popped when
+ * leaving. Virtual nodes write to the top state (their nearest ancestor element's vNodeData).
+ */
+interface VNodeDataBuildState {
+  /** VNodeData being built for this element. */
+  vd: VNodeData;
+  /**
+   * Child path for virtual node ID computation. Each entry tracks the child index within a nesting
+   * level. Mirrors the stack in vNodeData_createSsrNodeReference.
+   */
+  path: number[];
+  /** Depth-first element index of this element (for ID computation). */
+  depthFirstIdx: number;
+}
+
+/**
  * Incremental tree emitter. Uses an explicit stack so it can pause at dirty nodes and resume later.
  * Used by SSRContainer.render() in the interleaving loop.
  *
- * When vNodeDatas is provided, the emitter pushes each element's tree-built vNodeData in document
- * order during emission. This ensures correct indexing regardless of tree-building order. Element
- * IDs are also assigned by the emitter based on depth-first traversal order.
+ * When vNodeDatas is provided, the emitter builds vNodeData from the SsrNode tree in document
+ * order, assigning IDs and vnodeData references to each SsrNode during emission. This decouples
+ * vNodeData from tree-building order, enabling deferred component execution.
  */
 export class IncrementalEmitter {
   private stack: EmitFrame[] = [];
@@ -329,6 +356,9 @@ export class IncrementalEmitter {
    */
   depthFirstElementCount = -1;
 
+  /** Stack of vNodeData being built for ancestor elements. */
+  private vdStack: VNodeDataBuildState[] = [];
+
   constructor(
     private writer: StreamWriter,
     /** Node before whose close tag a callback should be invoked. */
@@ -338,8 +368,8 @@ export class IncrementalEmitter {
     /** Map from deferred boundary node to placeholder ID. */
     private placeholderIds: Map<ISsrNode, string>,
     /**
-     * VNodeData array to populate in document order. The emitter pushes each element's tree-built
-     * vNodeData as it closes, ensuring correct document-order indexing.
+     * VNodeData array to populate in document order. The emitter pushes each element's vNodeData as
+     * it opens, ensuring correct document-order indexing regardless of tree-building order.
      */
     private vNodeDatas: VNodeData[] | null = null
   ) {}
@@ -373,6 +403,50 @@ export class IncrementalEmitter {
     return ((node as any).dirty & ~ChoreBits.CHILDREN) === 0;
   }
 
+  /** Track a virtual node open in the parent element's vNodeData. Assigns ID and vnodeData ref. */
+  private trackVirtualOpen(ssrNode: SsrNode): void {
+    if (this.vdStack.length > 0) {
+      const parent = this.vdStack[this.vdStack.length - 1];
+      vNodeData_openFragment(parent.vd, ssrNode.getSerializableAttrs());
+      // Mark parent as having references (for ID-based node lookup on client)
+      parent.vd[0] |= VNodeDataFlag.REFERENCE;
+      parent.path[parent.path.length - 1]++;
+      parent.path.push(-1);
+
+      // Compute virtual node ID from parent element's index + path
+      let refId = String(parent.depthFirstIdx + 1);
+      for (let j = 0; j < parent.path.length; j++) {
+        if (parent.path[j] >= 0) {
+          refId += encodeAsAlphanumeric(parent.path[j]);
+        }
+      }
+      ssrNode.id = refId;
+      ssrNode.vnodeData = parent.vd;
+    }
+  }
+
+  /** Track a virtual node close in the parent element's vNodeData. */
+  private trackVirtualClose(): void {
+    if (this.vdStack.length > 0) {
+      const parent = this.vdStack[this.vdStack.length - 1];
+      vNodeData_closeFragment(parent.vd);
+      parent.path.pop();
+    }
+  }
+
+  /** Check if an element SsrNode is a qwik style (invisible to vNodeData child counting). */
+  private isQwikStyleElement(ssrNode: SsrNode): boolean {
+    if ((ssrNode as any).tagName !== 'style') {
+      return false;
+    }
+    const varAttrs = ssrNode.getProp(SSR_VAR_ATTRS) as Record<string, any> | null;
+    const constAttrs = ssrNode.getProp(SSR_CONST_ATTRS) as Record<string, any> | null;
+    return (
+      (varAttrs != null && (QStyle in varAttrs || QScopedStyle in varAttrs)) ||
+      (constAttrs != null && (QStyle in constAttrs || QScopedStyle in constAttrs))
+    );
+  }
+
   /**
    * Emit as many ready nodes as possible. Returns:
    *
@@ -398,23 +472,61 @@ export class IncrementalEmitter {
 
           const kind = (node as any).nodeKind as SsrNodeKind;
           if (kind === SsrNodeKind.Element) {
-            // Assign element ID and push tree-built vNodeData in document (open) order
             if (this.vNodeDatas) {
               const ssrNode = node as unknown as SsrNode;
+
+              // Qwik style elements are invisible to vNodeData (not counted as children)
+              const isQwikStyle = this.isQwikStyleElement(ssrNode);
+
               // Match tree-building convention: post-increment counter, use +1 for ID
               const depthFirstIdx = this.depthFirstElementCount++;
-              ssrNode.id = String(depthFirstIdx + 1);
-              if (ssrNode.vnodeData) {
-                this.vNodeDatas.push(ssrNode.vnodeData);
+
+              // Reuse existing tree-built vNodeData (preserves object identity for virtual
+              // child references) or create new. Clear and rebuild from emitter state.
+              const existingVd = ssrNode.vnodeData;
+              let vd: VNodeData;
+              if (existingVd) {
+                // Clear and rebuild in-place — preserves object identity so virtual children's
+                // .vnodeData refs (set by vNodeData_createSsrNodeReference) stay valid.
+                // Preserve REFERENCE flag (element needs to be locatable by ID on client).
+                const preserveFlags = existingVd[0] & VNodeDataFlag.REFERENCE;
+                vd = existingVd;
+                vd.length = 1;
+                vd[0] = VNodeDataFlag.ELEMENT_NODE | preserveFlags;
+              } else {
+                vd = [VNodeDataFlag.ELEMENT_NODE];
+                ssrNode.vnodeData = vd;
               }
+              vd.push(ssrNode.getSerializableAttrs(), WRITE_ELEMENT_ATTRS);
+
+              // Increment parent element's element count in its vNodeData
+              // (but not for qwik style elements — they're invisible to client)
+              if (!isQwikStyle && this.vdStack.length > 0) {
+                const parent = this.vdStack[this.vdStack.length - 1];
+                vNodeData_incrementElementCount(parent.vd);
+                parent.path[parent.path.length - 1]++;
+              }
+
+              // Push to vNodeDatas in document (open) order
+              this.vNodeDatas.push(vd);
+              this.vdStack.push({ vd, path: [-1], depthFirstIdx });
+
+              // Assign element ID
+              ssrNode.id = String(depthFirstIdx + 1);
             }
             this.emitOpenTag(node, frame.tagName!);
             frame.phase = EmitPhase.CHILDREN;
           } else if (kind === SsrNodeKind.Suspense) {
+            if (this.vNodeDatas) {
+              this.trackVirtualOpen(node as unknown as SsrNode);
+            }
             this.handleSuspenseOpen(frame, node);
             // Phase set by handleSuspenseOpen
           } else {
-            // Virtual/Component/Projection — no HTML output
+            // Virtual/Component/Projection — no HTML output, track in parent vNodeData
+            if (this.vNodeDatas) {
+              this.trackVirtualOpen(node as unknown as SsrNode);
+            }
             frame.phase = EmitPhase.CHILDREN;
           }
           break;
@@ -429,6 +541,12 @@ export class IncrementalEmitter {
             const child = children[frame.childIdx++];
             if (isSsrContentChild(child)) {
               emitContentChild(this, child);
+              // Track text in parent element's vNodeData
+              if (this.vNodeDatas && child.kind === SsrNodeKind.Text && this.vdStack.length > 0) {
+                const parent = this.vdStack[this.vdStack.length - 1];
+                vNodeData_addTextSize(parent.vd, child.textLength ?? child.content.length);
+                parent.path[parent.path.length - 1]++;
+              }
             } else {
               const childNode = child as ISsrNode;
               stack.push({
@@ -455,7 +573,16 @@ export class IncrementalEmitter {
           }
 
           if (frame.tagName) {
+            // Element close: pop vNodeData build state
+            if (this.vNodeDatas) {
+              this.vdStack.pop();
+            }
             emitCloseTag(this, frame.tagName);
+          } else {
+            // Non-element close: close virtual fragment in parent vNodeData
+            if (this.vNodeDatas) {
+              this.trackVirtualClose();
+            }
           }
 
           // For deferred Suspense: close the placeholder div

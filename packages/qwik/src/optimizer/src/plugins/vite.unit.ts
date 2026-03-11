@@ -727,7 +727,7 @@ describe('configEnvironment', () => {
     assert.deepEqual(result.resolve.conditions, ['min']);
   });
 
-  test('should set empty conditions for client environments in development', async () => {
+  test('should return empty config for client environments in development', async () => {
     const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
     await plugin.config.call(
       configHookPluginContext,
@@ -741,6 +741,8 @@ describe('configEnvironment', () => {
       { consumer: 'client' },
       { command: 'serve', mode: 'development' }
     );
-    assert.deepEqual(result.resolve.conditions, []);
+    // In development, we don't set conditions to avoid overriding adapter-provided conditions
+    // (e.g. ['webworker', 'worker'] for edge adapters). Empty object is the correct result.
+    assert.deepEqual(result, {});
   });
 });

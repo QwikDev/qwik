@@ -4,7 +4,7 @@ import { Button } from '~/components/button/button';
 import { lucide } from '@qds.dev/ui';
 import { Spacer } from '~/components/spacer/spacer';
 import { BuilderLogo } from '~/components/svgs/builder-logo';
-// import { Header } from '../components/header/header';
+import { Header } from '../components/header/header';
 
 export default component$(() => {
   const clouds = [
@@ -15,7 +15,7 @@ export default component$(() => {
 
   return (
     <>
-      {/* <Header /> */}
+      <Header />
       <main>
         <section class="relative space-y-10 flex flex-col items-center overflow-x-clip mx-auto px-4">
           <Decor />

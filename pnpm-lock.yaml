@@ -315,7 +315,7 @@ importers:
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3)
       '@modular-forms/qwik':
         specifier: 0.29.1
-        version: 0.29.1(@builder.io/qwik-city@packages+qwik-router)(@builder.io/qwik@packages+qwik)(typescript@5.9.3)
+        version: 0.29.1(typescript@5.9.3)
       '@mui/material':
         specifier: 7.3.2
         version: 7.3.2(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -326,11 +326,11 @@ importers:
         specifier: 8.11.3
         version: 8.11.3(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@mui/material@7.3.2(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mui/system@7.3.2(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@qds.dev/tools':
-        specifier: ^0.13.0
-        version: 0.13.0
+        specifier: ^0.14.0
+        version: 0.14.0
       '@qds.dev/ui':
-        specifier: ^0.13.0
-        version: 0.13.0(@qwik.dev/core@packages+qwik)
+        specifier: ^0.14.0
+        version: 0.14.0(@qwik.dev/core@packages+qwik)
       '@qwik-ui/headless':
         specifier: 0.6.7
         version: 0.6.7
@@ -499,7 +499,7 @@ importers:
         version: 0.15.15
       '@modular-forms/qwik':
         specifier: ^0.29.1
-        version: 0.29.1(@builder.io/qwik-city@packages+qwik-router)(@builder.io/qwik@packages+qwik)(typescript@5.9.3)
+        version: 0.29.1(typescript@5.9.3)
       '@typescript/analyze-trace':
         specifier: ^0.10.1
         version: 0.10.1
@@ -2490,9 +2490,6 @@ packages:
 
   '@modular-forms/qwik@0.29.1':
     resolution: {integrity: sha512-xJb8wZXHEL0ioM5TlDpHUrXE4VKDf5OZbSoMtzmew9aHUGMDfsIGzSim408LaHHXa233YB76RhQZZAmO5Pgitg==}
-    peerDependencies:
-      '@builder.io/qwik': ^1.9.0 || ^2.0.0
-      '@builder.io/qwik-city': ^1.9.0 || ^2.0.0
 
   '@mui/core-downloads-tracker@7.3.2':
     resolution: {integrity: sha512-AOyfHjyDKVPGJJFtxOlept3EYEdLoar/RvssBTWVAvDJGIE676dLi2oT/Kx+FoVXFoA/JdV7DEMq/BVWV3KHRw==}
@@ -3533,13 +3530,13 @@ packages:
   '@popperjs/core@2.11.8':
     resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
 
-  '@qds.dev/tools@0.13.0':
-    resolution: {integrity: sha512-5JzdJ9WKupy9Qxr5+9cbQsEooHfZ3tPjkR50OqBRsiUwrm+oMcjpVHDuDTPi63ZAkiY+JDAyDtP2s2bLY3h1qg==}
+  '@qds.dev/tools@0.14.0':
+    resolution: {integrity: sha512-HJgu78egkLufBsUwPAnjalox8kG0k1VkRsJfbAo4c8pV1h9BtDiLIZoj7iicQZFhJEeYQWgKwWBXLGai9AtQJw==}
 
-  '@qds.dev/ui@0.13.0':
-    resolution: {integrity: sha512-MRwL9iI+1h0zY6wKjVHnwAfd4bKo6ae+ZKVhJBIxeH4WKnltE/x+Eiluwj5ENZtTKTbNJYUCCD6eJc1mpdwb0Q==}
+  '@qds.dev/ui@0.14.0':
+    resolution: {integrity: sha512-4IZYSb5zT1/up84rQTxrscfVWR/YgG3oldVnCJPBsx1FWVTY2nVO2aF7ZsB3GShpEJ6MWJGr6ZdiMXm8Fc8K5A==}
     peerDependencies:
-      '@qwik.dev/core': '>=2.0.0-beta.24'
+      '@qwik.dev/core': '>=2.0.0-beta.27'
 
   '@qwik-ui/headless@0.6.7':
     resolution: {integrity: sha512-rbBQslITfPFXpqcDlh5jKrb2hwGuTncyB9Z4Vu/8WKHO1iLiAxPcML16yKFxEBkMxq4hEjFRUc31ztg93sH3Rg==}
@@ -11565,7 +11562,7 @@ snapshots:
 
   '@microsoft/tsdoc@0.16.0': {}
 
-  '@modular-forms/qwik@0.29.1(@builder.io/qwik-city@packages+qwik-router)(@builder.io/qwik@packages+qwik)(typescript@5.9.3)':
+  '@modular-forms/qwik@0.29.1(typescript@5.9.3)':
     dependencies:
       '@builder.io/qwik': link:packages/qwik
       '@builder.io/qwik-city': link:packages/qwik-router
@@ -12602,7 +12599,7 @@ snapshots:
 
   '@popperjs/core@2.11.8': {}
 
-  '@qds.dev/tools@0.13.0':
+  '@qds.dev/tools@0.14.0':
     dependencies:
       '@iconify/json': 2.2.448
       '@iconify/utils': 3.1.0
@@ -12617,7 +12614,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@qds.dev/ui@0.13.0(@qwik.dev/core@packages+qwik)':
+  '@qds.dev/ui@0.14.0(@qwik.dev/core@packages+qwik)':
     dependencies:
       '@oddbird/css-anchor-positioning': 0.6.1
       '@qwik.dev/core': link:packages/qwik

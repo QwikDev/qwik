@@ -458,12 +458,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // Currently, with inline component execution, the tree is fully built in the
     // first cursor pass. The infrastructure supports future deferred execution.
 
+    // Save the main walkCtx — processCursorQueue may swap activeWalkCtx to a sub-cursor's
+    // context (e.g., Suspense children). We need to restore it for the emission phase.
+    const mainWalkCtx = this.activeWalkCtx;
+
     // First pass: build tree
     processCursorQueue({ timeBudget: Infinity });
+    // Restore main walkCtx — sub-cursor walk may have swapped it
+    this.activeWalkCtx = mainWalkCtx;
 
     if (!mainCursorDone) {
       // Main cursor blocked on async work — wait for it
       await mainCursorPromise;
+      this.activeWalkCtx = mainWalkCtx;
     }
 
     // Re-throw any error captured during cursor-driven rendering
@@ -524,6 +531,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           // Wait for any remaining async sub-cursors (Suspense children)
           if (this.$renderPromise$) {
             await this.$renderPromise$;
+            // Sub-cursor _walkJSX may have changed activeWalkCtx during its execution
+            this.activeWalkCtx = mainWalkCtx;
           }
 
           // Emit OoO chunks for deferred boundaries (now resolved)
@@ -543,6 +552,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         case EmitResult.BLOCKED_DIRTY:
           // Node not yet ready — run more cursor work
           processCursorQueue({ timeBudget: Infinity });
+          this.activeWalkCtx = mainWalkCtx;
           if (this._ssrError) {
             throw this._ssrError;
           }
@@ -550,6 +560,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           if (this.$renderPromise$) {
             await this.$renderPromise$;
             this.$renderPromise$ = null;
+            // Restore main walkCtx after sub-cursor completion
+            this.activeWalkCtx = mainWalkCtx;
           }
           break;
       }

@@ -73,6 +73,11 @@ export async function _walkJSX(
 ): Promise<void> {
   const stack: StackValue[] = [value];
   const enqueue = (value: StackValue) => stack.push(value);
+  // Capture the active walk context — during async yields (component QRL resolution etc.),
+  // other cursors or render() may swap activeWalkCtx. We restore it after each await to
+  // ensure this _walkJSX instance always operates on its own context.
+  const ssrAny = ssr as any;
+  const savedWalkCtx = ssrAny.activeWalkCtx;
   const drain = async (): Promise<void> => {
     while (stack.length) {
       const value = stack.pop();
@@ -80,11 +85,13 @@ export async function _walkJSX(
       if (value === MaybeAsyncSignal) {
         const trackFn = stack.pop() as () => StackValue;
         await retryOnPromise(() => stack.push(trackFn()));
+        ssrAny.activeWalkCtx = savedWalkCtx;
         continue;
       }
       if (typeof value === 'function') {
         if (value === Promise) {
           stack.push(await (stack.pop() as Promise<JSXOutput>));
+          ssrAny.activeWalkCtx = savedWalkCtx;
         } else {
           const result = (value as StackFn).apply(ssr);
           // Only await if the result is actually a Promise. Awaiting sync results
@@ -92,6 +99,7 @@ export async function _walkJSX(
           // to swap activeWalkCtx and corrupt our frame state.
           if (isPromise(result)) {
             await result;
+            ssrAny.activeWalkCtx = savedWalkCtx;
           }
         }
         continue;

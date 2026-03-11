@@ -35,7 +35,7 @@ export default component$(() => {
           </p>
 
           {/* margin collapse from space-y so that the 110.5px is accurate */}
-          <div class="flex gap-6 justify-center md:mb-[110.5px] mb-[40px]">
+          <div class="flex gap-6 justify-center md:mb-[110.5px] mb-[40px] flex-wrap">
             <Button variant="primary" class="md:text-base text-sm">
               <span>Qwik Start</span>
               <lucide.arrowright />

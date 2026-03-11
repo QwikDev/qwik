@@ -1,6 +1,6 @@
 import type { Render } from '@qwik.dev/core/server';
 import type { RendererOptions } from '@qwik.dev/router';
-import type { Connect, ModuleNode, ViteDevServer } from 'vite';
+import type { Connect, EnvironmentModuleNode, ViteDevServer } from 'vite';
 import { updateRoutingContext } from '../build';
 import type { RoutingContext } from '../types';
 import { formatError } from './format-error';
@@ -96,38 +96,37 @@ const isCssPath = (url: string) => CSS_EXTENSIONS.some((ext) => url.endsWith(ext
  * inject the CSS URLs.
  */
 const getCssUrls = (server: ViteDevServer) => {
-  const cssModules = new Set<ModuleNode>();
+  const graph = server.environments.client.moduleGraph;
+  const cssModules = new Set<EnvironmentModuleNode>();
   const cssImportedByCSS = new Set<string>();
 
-  Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach(([_name, modules]) => {
-    modules.forEach((mod) => {
-      const [pathId, query] = mod.url.split('?');
+  for (const mod of graph.idToModuleMap.values()) {
+    const [pathId, query] = mod.url.split('?');
 
-      if (!query && isCssPath(pathId)) {
-        const isEntryCSS = mod.importers.size === 0;
-        const hasCSSImporter = Array.from(mod.importers).some((importer) => {
-          const importerPath = (importer as typeof mod).url || (importer as typeof mod).file;
+    if (!query && isCssPath(pathId)) {
+      const isEntryCSS = mod.importers.size === 0;
+      const hasCSSImporter = Array.from(mod.importers).some((importer) => {
+        const importerPath = importer.url || importer.file;
 
-          const isCSS = importerPath && isCssPath(importerPath);
+        const isCSS = importerPath && isCssPath(importerPath);
 
-          if (isCSS && mod.url) {
-            cssImportedByCSS.add(mod.url);
-          }
-
-          return isCSS;
-        });
-
-        const hasJSImporter = Array.from(mod.importers).some((importer) => {
-          const importerPath = (importer as typeof mod).url || (importer as typeof mod).file;
-          return importerPath && JS_EXTENSIONS.test(importerPath);
-        });
-
-        if ((isEntryCSS || hasJSImporter) && !hasCSSImporter && !cssImportedByCSS.has(mod.url)) {
-          cssModules.add(mod);
+        if (isCSS && mod.url) {
+          cssImportedByCSS.add(mod.url);
         }
+
+        return isCSS;
+      });
+
+      const hasJSImporter = Array.from(mod.importers).some((importer) => {
+        const importerPath = importer.url || importer.file;
+        return importerPath && JS_EXTENSIONS.test(importerPath);
+      });
+
+      if ((isEntryCSS || hasJSImporter) && !hasCSSImporter && !cssImportedByCSS.has(mod.url)) {
+        cssModules.add(mod);
       }
-    });
-  });
+    }
+  }
   return [...cssModules].map(
     ({ url, lastHMRTimestamp }) => `${url}${lastHMRTimestamp ? `?t=${lastHMRTimestamp}` : ''}`
   );

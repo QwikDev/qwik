@@ -690,7 +690,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let innerHTML: string | undefined = undefined;
     this.activeWalkCtx.lastNode = null;
     if (!isQwikStyle && this.activeWalkCtx.currentElementFrame) {
-      vNodeData_incrementElementCount(this.activeWalkCtx.currentElementFrame.vNodeData);
+      if (!this._cursorDrivenRender || this._directMode) {
+        vNodeData_incrementElementCount(this.activeWalkCtx.currentElementFrame.vNodeData);
+      }
     }
 
     this.createAndPushFrame(elementName, this.depthFirstElementCount++, currentFile);
@@ -698,7 +700,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       // For full document rendering emit before closing </body>.
       this.emitContainerDataFrame = this.activeWalkCtx.currentElementFrame;
     }
-    vNodeData_openElement(this.activeWalkCtx.currentElementFrame!.vNodeData);
+    if (!this._cursorDrivenRender || this._directMode) {
+      vNodeData_openElement(this.activeWalkCtx.currentElementFrame!.vNodeData);
+    }
 
     // create here for processAttrs to use it
     const lastNode = this.getOrCreateLastNode();
@@ -855,9 +859,22 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Writes opening data to vNodeData for fragment boundaries */
   openFragment(attrs: Props) {
     this.activeWalkCtx.lastNode = null;
-    vNodeData_openFragment(this.activeWalkCtx.currentElementFrame!.vNodeData, attrs);
-    // create SSRNode and add it as component child to serialize its vnode data
-    const node = this.getOrCreateLastNode();
+    let node: ISsrNode;
+    if (this._cursorDrivenRender && !this._directMode) {
+      // Cursor-driven render: create SsrNode directly with attrs (no vNodeData needed —
+      // the emitter handles vNodeData building during emission).
+      node = new SsrNode(
+        this.activeWalkCtx.currentComponentNode,
+        '', // placeholder ID — emitter assigns real ID via trackVirtualOpen
+        attrs, // pass attrs directly (shared object reference)
+        this.cleanupQueue,
+        this.activeWalkCtx.currentElementFrame!.currentFile
+      );
+      this.activeWalkCtx.lastNode = node;
+    } else {
+      vNodeData_openFragment(this.activeWalkCtx.currentElementFrame!.vNodeData, attrs);
+      node = this.getOrCreateLastNode();
+    }
     (node as SsrNode).nodeKind = SsrNodeKind.Virtual;
     // Add as ordered child of current element
     const parentSsrNode = this.activeWalkCtx.currentElementFrame?.ssrNode;
@@ -873,7 +890,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Writes closing data to vNodeData for fragment boundaries */
   closeFragment() {
-    vNodeData_closeFragment(this.activeWalkCtx.currentElementFrame!.vNodeData);
+    if (!this._cursorDrivenRender || this._directMode) {
+      vNodeData_closeFragment(this.activeWalkCtx.currentElementFrame!.vNodeData);
+    }
 
     // Restore the previous ssrNode parent
     const prev = this.activeWalkCtx.ssrNodeStack.pop() ?? null;
@@ -1102,7 +1121,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         });
       }
     }
-    vNodeData_addTextSize(this.activeWalkCtx.currentElementFrame!.vNodeData, text.length);
+    if (!this._cursorDrivenRender || this._directMode) {
+      vNodeData_addTextSize(this.activeWalkCtx.currentElementFrame!.vNodeData, text.length);
+    }
     this.activeWalkCtx.lastNode = null;
   }
 
@@ -1145,14 +1166,29 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   getOrCreateLastNode(): ISsrNode {
     if (!this.activeWalkCtx.lastNode) {
-      this.activeWalkCtx.lastNode = vNodeData_createSsrNodeReference(
-        this.activeWalkCtx.currentComponentNode,
-        this.activeWalkCtx.currentElementFrame!.vNodeData,
-        // we start at -1, so we need to add +1
-        this.activeWalkCtx.currentElementFrame!.depthFirstElementIdx + 1,
-        this.cleanupQueue,
-        this.activeWalkCtx.currentElementFrame!.currentFile
-      );
+      if (this._cursorDrivenRender && !this._directMode) {
+        // Cursor-driven render: create SsrNode without vNodeData — the emitter handles
+        // vNodeData building and REFERENCE flag during emission.
+        // Still assign ID here because backpatching needs it during tree-building.
+        this.activeWalkCtx.lastNode = new SsrNode(
+          this.activeWalkCtx.currentComponentNode,
+          String(this.activeWalkCtx.currentElementFrame!.depthFirstElementIdx + 1),
+          {}, // standalone attrs
+          this.cleanupQueue,
+          this.activeWalkCtx.currentElementFrame!.currentFile
+        );
+      } else {
+        // Direct mode / manual rendering: use vNodeData_createSsrNodeReference for full
+        // vNodeData path computation and ID assignment.
+        this.activeWalkCtx.lastNode = vNodeData_createSsrNodeReference(
+          this.activeWalkCtx.currentComponentNode,
+          this.activeWalkCtx.currentElementFrame!.vNodeData,
+          // we start at -1, so we need to add +1
+          this.activeWalkCtx.currentElementFrame!.depthFirstElementIdx + 1,
+          this.cleanupQueue,
+          this.activeWalkCtx.currentElementFrame!.currentFile
+        );
+      }
     }
     return this.activeWalkCtx.lastNode!;
   }

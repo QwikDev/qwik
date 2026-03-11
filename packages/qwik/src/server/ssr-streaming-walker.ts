@@ -481,20 +481,17 @@ export class IncrementalEmitter {
               // Match tree-building convention: post-increment counter, use +1 for ID
               const depthFirstIdx = this.depthFirstElementCount++;
 
-              // Reuse existing tree-built vNodeData (preserves object identity for virtual
-              // child references) or create new. Clear and rebuild from emitter state.
+              // Reuse existing tree-built vNodeData array (preserves object identity for
+              // virtual children's .vnodeData refs) or create new. Clear and rebuild.
+              // Always set REFERENCE — all elements need to be locatable by ID on client.
               const existingVd = ssrNode.vnodeData;
               let vd: VNodeData;
               if (existingVd) {
-                // Clear and rebuild in-place — preserves object identity so virtual children's
-                // .vnodeData refs (set by vNodeData_createSsrNodeReference) stay valid.
-                // Preserve REFERENCE flag (element needs to be locatable by ID on client).
-                const preserveFlags = existingVd[0] & VNodeDataFlag.REFERENCE;
                 vd = existingVd;
                 vd.length = 1;
-                vd[0] = VNodeDataFlag.ELEMENT_NODE | preserveFlags;
+                vd[0] = VNodeDataFlag.ELEMENT_NODE | VNodeDataFlag.REFERENCE;
               } else {
-                vd = [VNodeDataFlag.ELEMENT_NODE];
+                vd = [VNodeDataFlag.ELEMENT_NODE | VNodeDataFlag.REFERENCE] as VNodeData;
                 ssrNode.vnodeData = vd;
               }
               vd.push(ssrNode.getSerializableAttrs(), WRITE_ELEMENT_ATTRS);

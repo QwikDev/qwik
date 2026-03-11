@@ -22,7 +22,7 @@ import type { QRL } from '../qrl/qrl.public';
  * VNode is stored as a projection on the parent, and a low-priority cursor is added so the cursor
  * walker will process it.
  *
- * Use `_slotReady` to set the DOM target element before the cursor fires.
+ * Use `_setProjectionTarget` to set the DOM target element before the cursor fires.
  *
  * @internal
  */
@@ -35,7 +35,7 @@ export function _addProjection(
 ): VirtualVNode {
   const vnode = vnode_newVirtual();
   vnode_setProp(vnode, QSlot, slotName);
-  vnode.slotParent = parentVNode;
+  vnode.parent = parentVNode;
   vnode_setProp(parentVNode, slotName, vnode);
   vnode_setProp(vnode, OnRenderProp, componentQRL);
   vnode_setProp(vnode, ELEMENT_PROPS, props);
@@ -52,7 +52,7 @@ export function _addProjection(
  *
  * @internal
  */
-export function _slotReady(vnode: VirtualVNode, targetElement: Element): void {
+export function _setProjectionTarget(vnode: VirtualVNode, targetElement: Element): void {
   vnode_setProp(vnode, QTargetElement, targetElement);
   vnode.flags |= VNodeFlags.HasTargetElement;
 }

@@ -136,8 +136,10 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       return updatedViteConfig;
     },
 
-    configEnvironment(_name: string, config: EnvironmentOptions, _env: ConfigEnv) {
-      if (config.consumer === 'server') {
+    configEnvironment(name: string, _config: EnvironmentOptions, _env: ConfigEnv) {
+      // Use environment name to distinguish server vs client — config.consumer is not yet set
+      // at the time this hook is called.
+      if (name === 'ssr') {
         return {
           resolve: {
             external: ['node:async_hooks'],

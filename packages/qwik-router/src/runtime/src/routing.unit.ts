@@ -1,117 +1,456 @@
 import { assert, describe, test } from 'vitest';
-import { parseRoutePathname } from '../../buildtime/routing/parse-pathname';
-import { getMenuLoader } from './routing';
-import type { MenuData } from './types';
-import { matchRoute } from './route-matcher';
+import { getMenuLoader, loadRoute } from './routing';
+import type { MenuData, ModuleLoader, RouteData } from './types';
+import { LoadedRouteProp } from './types';
 
-const routeTests = [
+// A minimal sync module loader for testing.
+// Using a factory ensures each test gets a fresh loader to avoid MODULE_CACHE collisions.
+const makeLoader = (): ModuleLoader => {
+  const mod = { default: {} };
+  return () => mod as any;
+};
+
+/**
+ * Build a RouteData trie from a URL pattern like `/stuff/[param]` or `/[...rest]`. Each `[name]`
+ * becomes a `_W` node and each `[...name]` becomes a `_A` node in the trie, with `_P` set to the
+ * param name. Supports infix params like `pre[name]post`.
+ */
+function buildTree(pattern: string, loader = makeLoader()): RouteData {
+  const parts = pattern
+    .replace(/^\/|\/$/g, '')
+    .split('/')
+    .filter((p) => p.length > 0);
+  const root: RouteData = {};
+
+  if (parts.length === 0) {
+    root._I = loader;
+    return root;
+  }
+
+  let node: RouteData = root;
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    const isLast = i === parts.length - 1;
+
+    let key: string;
+    let paramName: string | undefined;
+    let prefix: string | undefined;
+    let suffix: string | undefined;
+
+    const restMatch = /^\[\.\.\.(\w+)\]$/.exec(part);
+    const infixMatch = restMatch ? null : /^(.*?)\[(\w+)\](.*?)$/.exec(part);
+
+    if (restMatch) {
+      key = '_A';
+      paramName = restMatch[1];
+    } else if (infixMatch) {
+      key = '_W';
+      paramName = infixMatch[2];
+      prefix = infixMatch[1] || undefined;
+      suffix = infixMatch[3] || undefined;
+    } else {
+      key = part.toLowerCase();
+    }
+
+    if (!node[key]) {
+      (node[key] as RouteData) = {};
+    }
+    const child = node[key] as RouteData;
+    if (paramName) {
+      child._P = paramName;
+    }
+    if (prefix) {
+      child._0 = prefix;
+    }
+    if (suffix) {
+      child._9 = suffix;
+    }
+    if (isLast) {
+      child._I = loader;
+    }
+    node = child;
+  }
+
+  return root;
+}
+
+// ─── Route matching tests ─────────────────────────────────────────────────────
+
+const routeTests: Array<{
+  pattern: string;
+  pathname: string;
+  result: Record<string, string>;
+}> = [
   {
-    basenamePath: '/',
     pattern: '/stuff/[param]',
     pathname: '/stuff/thing',
-    result: {
-      param: 'thing',
-    },
+    result: { param: 'thing' },
   },
   {
-    basenamePath: '/',
     pattern: '/stuff/[param]',
     pathname: '/stuff/thing/',
-    result: {
-      param: 'thing',
-    },
+    result: { param: 'thing' },
   },
   {
-    basenamePath: '/',
     pattern: '/stuff/[...param]',
     pathname: '/stuff/a/b/c/',
-    result: {
-      param: 'a/b/c',
-    },
+    result: { param: 'a/b/c' },
   },
   {
-    basenamePath: '/',
     pattern: '/stuff/[...param]',
     pathname: '/stuff/a/b/c',
-    result: {
-      param: 'a/b/c',
-    },
+    result: { param: 'a/b/c' },
   },
   {
-    basenamePath: '/',
     pattern: '/stuff/[...param]',
     pathname: '/stuff/',
-    result: {
-      param: '',
-    },
+    result: { param: '' },
   },
   {
-    basenamePath: '/',
     pattern: '/stuff/[...param]',
     pathname: '/stuff',
-    result: {
-      param: '',
-    },
+    result: { param: '' },
   },
   {
-    basenamePath: '/',
     pattern: '/[...param]',
     pathname: '/thing/',
-    result: {
-      param: 'thing',
-    },
+    result: { param: 'thing' },
   },
   {
-    basenamePath: '/',
     pattern: '/[...param]',
     pathname: '/thing',
-    result: {
-      param: 'thing',
-    },
+    result: { param: 'thing' },
   },
   {
-    basenamePath: '/',
     pattern: '/xyz/[...param]',
     pathname: '/xyz/abc.dot',
-    result: {
-      param: 'abc.dot',
-    },
+    result: { param: 'abc.dot' },
   },
   {
-    basenamePath: '/',
     pattern: '/[...param]',
     pathname: '/abc.dot',
-    result: {
-      param: 'abc.dot',
-    },
+    result: { param: 'abc.dot' },
   },
   {
-    basenamePath: '/',
     pattern: '/[param]',
     pathname: '/abc.dot',
-    result: {
-      param: 'abc.dot',
-    },
+    result: { param: 'abc.dot' },
   },
   {
-    basenamePath: '/',
     pattern: '/xyz/[param]',
     pathname: '/xyz/abc.dot',
-    result: {
-      param: 'abc.dot',
-    },
+    result: { param: 'abc.dot' },
   },
 ];
 
-describe('routing', () => {
+describe('loadRoute — pattern matching', () => {
   for (const t of routeTests) {
-    test(`matches ${t.pathname} with ${t.pattern}`, () => {
-      const actual = parseRoutePathname(t.basenamePath, t.pattern);
-      const params = matchRoute(actual.routeName, t.pathname);
-      assert.deepEqual(params, t.result);
+    test(`${t.pattern} matches ${t.pathname}`, async () => {
+      const routes = buildTree(t.pattern);
+      const result = await loadRoute(routes, undefined, false, t.pathname);
+      assert.isFalse(result[LoadedRouteProp.NotFound], `Expected a match for ${t.pathname}`);
+      assert.deepEqual(result[LoadedRouteProp.Params], t.result);
     });
   }
 });
+
+// ─── Infix param tests ────────────────────────────────────────────────────────
+
+describe('loadRoute — infix params', () => {
+  test('pre[slug]post matches preHELLOpost', async () => {
+    const routes = buildTree('/a/pre[slug]post');
+    const result = await loadRoute(routes, undefined, false, '/a/preHELLOpost');
+    assert.isFalse(result[LoadedRouteProp.NotFound]);
+    assert.deepEqual(result[LoadedRouteProp.Params], { slug: 'HELLO' });
+  });
+
+  test('pre[slug]post does not match empty value', async () => {
+    const routes = buildTree('/a/pre[slug]post');
+    const result = await loadRoute(routes, undefined, false, '/a/prepost');
+    assert.isTrue(result[LoadedRouteProp.NotFound]);
+  });
+
+  test('[slug].json matches foo.json (suffix only)', async () => {
+    const routes = buildTree('/api/[slug].json');
+    const result = await loadRoute(routes, undefined, false, '/api/foo.json');
+    assert.isFalse(result[LoadedRouteProp.NotFound]);
+    assert.deepEqual(result[LoadedRouteProp.Params], { slug: 'foo' });
+  });
+
+  test('prefix-only: img_[id] matches img_123', async () => {
+    const routes = buildTree('/files/img_[id]');
+    const result = await loadRoute(routes, undefined, false, '/files/img_123');
+    assert.isFalse(result[LoadedRouteProp.NotFound]);
+    assert.deepEqual(result[LoadedRouteProp.Params], { id: '123' });
+  });
+
+  test('infix routeName is reconstructed correctly', async () => {
+    const routes = buildTree('/a/pre[slug]post');
+    const result = await loadRoute(routes, undefined, false, '/a/preVALUEpost');
+    assert.equal(result[LoadedRouteProp.RouteName], '/a/pre[slug]post');
+  });
+
+  test('infix is case-insensitive for prefix/suffix', async () => {
+    const routes = buildTree('/a/Pre[slug]Post');
+    const result = await loadRoute(routes, undefined, false, '/a/preVALUEpost');
+    assert.isFalse(result[LoadedRouteProp.NotFound]);
+    assert.deepEqual(result[LoadedRouteProp.Params], { slug: 'VALUE' });
+  });
+});
+
+// ─── Additional trie behaviour ─────────────────────────────────────────────────
+
+test('loadRoute — exact static match', async () => {
+  const routes = buildTree('/blog/posts');
+  const result = await loadRoute(routes, undefined, false, '/blog/posts');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Params], {});
+});
+
+test('loadRoute — case-insensitive exact match', async () => {
+  const routes = buildTree('/Blog/Posts');
+  const result = await loadRoute(routes, undefined, false, '/BLOG/POSTS');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+});
+
+test('loadRoute — no match returns notFound=true', async () => {
+  const routes = buildTree('/blog');
+  const result = await loadRoute(routes, undefined, false, '/news');
+  assert.isTrue(result[LoadedRouteProp.NotFound]);
+});
+
+test('loadRoute — root route matches /', async () => {
+  const routes = buildTree('/');
+  const result = await loadRoute(routes, undefined, false, '/');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Params], {});
+});
+
+test('loadRoute — 404 fallback used when no route matches', async () => {
+  const marker = () => 'not-found-sentinel';
+  const sentinel = { default: marker };
+  const notFoundLoader: ModuleLoader = () => sentinel as any;
+  const routes: RouteData = {
+    _4: notFoundLoader,
+    blog: buildTree('/blog'),
+  };
+  const result = await loadRoute(routes, undefined, false, '/does-not-exist');
+  assert.isTrue(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Mods], [sentinel]);
+});
+
+test('loadRoute — _E takes precedence over _4', async () => {
+  const errorSentinel = { default: () => 'error-handler' };
+  const notFoundSentinel = { default: () => '404-handler' };
+  const errorLoader: ModuleLoader = () => errorSentinel as any;
+  const notFoundLoader: ModuleLoader = () => notFoundSentinel as any;
+  const routes: RouteData = {
+    _E: errorLoader,
+    _4: notFoundLoader,
+    blog: buildTree('/blog'),
+  };
+  const result = await loadRoute(routes, undefined, false, '/does-not-exist');
+  assert.isTrue(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Mods], [errorSentinel]);
+});
+
+test('loadRoute — deeper _4 takes precedence over root _4', async () => {
+  const rootSentinel = { default: () => 'root-404' };
+  const blogSentinel = { default: () => 'blog-404' };
+  const rootNotFound: ModuleLoader = () => rootSentinel as any;
+  const blogNotFound: ModuleLoader = () => blogSentinel as any;
+  const blogPost = makeLoader();
+  const routes: RouteData = {
+    _4: rootNotFound,
+    blog: {
+      _4: blogNotFound,
+      _W: {
+        _P: 'slug',
+        _I: blogPost,
+      },
+    },
+  };
+  // /blog/does-not-exist-deeply/extra: navigates into `blog`, `_W` matches, then fails → blog's _4
+  const result = await loadRoute(routes, undefined, false, '/blog/does-not-exist-deeply/extra');
+  assert.isTrue(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Mods], [blogSentinel]);
+});
+
+test('loadRoute — 404 result has no layout modules', async () => {
+  const sentinel = { default: () => 'not-found' };
+  const notFoundLoader: ModuleLoader = () => sentinel as any;
+  const routes: RouteData = {
+    _4: notFoundLoader,
+  };
+  const result = await loadRoute(routes, undefined, false, '/anything');
+  assert.isTrue(result[LoadedRouteProp.NotFound]);
+  // Only the error component, no layouts
+  assert.equal(result[LoadedRouteProp.Mods].length, 1);
+  assert.deepEqual(result[LoadedRouteProp.Mods], [sentinel]);
+});
+
+test('loadRoute — routeName is constructed from matched path parts', async () => {
+  const routes = buildTree('/blog/[slug]');
+  const result = await loadRoute(routes, undefined, false, '/blog/my-post');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.equal(result[LoadedRouteProp.RouteName], '/blog/[slug]');
+});
+
+test('loadRoute — rest param captures all remaining segments', async () => {
+  const routes = buildTree('/docs/[...path]');
+  const result = await loadRoute(routes, undefined, false, '/docs/a/b/c/d');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Params], { path: 'a/b/c/d' });
+});
+
+// ─── Layout accumulation tests ──────────────────────────────────────────────────
+
+test('loadRoute — _L accumulated from ancestors', async () => {
+  const rootLayout = makeLoader();
+  const blogLayout = makeLoader();
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _L: rootLayout,
+    blog: {
+      _L: blogLayout,
+      _W: {
+        _P: 'slug',
+        _I: pageLoader,
+      },
+    },
+  };
+  const result = await loadRoute(routes, undefined, false, '/blog/my-post');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  // Should have rootLayout, blogLayout, pageLoader
+  assert.equal(result[LoadedRouteProp.Mods].length, 3);
+});
+
+test('loadRoute — _I array overrides gathered layouts', async () => {
+  const rootLayout = makeLoader();
+  const customLayout = makeLoader();
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _L: rootLayout,
+    blog: {
+      // _I as array = layout stop override, ignores gathered _L
+      _I: [customLayout, pageLoader],
+    },
+  };
+  const result = await loadRoute(routes, undefined, false, '/blog');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  // Only the 2 loaders from the array, NOT rootLayout
+  assert.equal(result[LoadedRouteProp.Mods].length, 2);
+});
+
+// ─── Rewrite (_G) tests ────────────────────────────────────────────────────────
+
+test('loadRoute — _G static rewrite resolves target loaders', async () => {
+  const rootLayout = makeLoader();
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _L: rootLayout,
+    about: {
+      _I: pageLoader,
+    },
+    es: {
+      'acerca-de': {
+        _G: '/about/',
+      },
+    },
+  };
+  const result = await loadRoute(routes, undefined, false, '/es/acerca-de');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  // Should load rootLayout + pageLoader from the /about/ target
+  assert.equal(result[LoadedRouteProp.Mods].length, 2);
+});
+
+test('loadRoute — _G with params preserves captured params', async () => {
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    blog: {
+      _W: {
+        _P: 'slug',
+        _I: pageLoader,
+      },
+    },
+    es: {
+      blog: {
+        _W: {
+          _P: 'slug',
+          _G: '/blog/_W/',
+        },
+      },
+    },
+  };
+  const result = await loadRoute(routes, undefined, false, '/es/blog/my-post');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  assert.deepEqual(result[LoadedRouteProp.Params], { slug: 'my-post' });
+});
+
+test('loadRoute — _G target not found returns 404', async () => {
+  const routes: RouteData = {
+    es: {
+      about: {
+        _G: '/nonexistent/',
+      },
+    },
+  };
+  const result = await loadRoute(routes, undefined, false, '/es/about');
+  assert.isTrue(result[LoadedRouteProp.NotFound]);
+});
+
+// ─── Group (_M) tests ───────────────────────────────────────────────────────────
+
+test('loadRoute — _M group: index inside group matches root /', async () => {
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _M: [
+      {
+        _I: pageLoader,
+      },
+    ],
+  };
+  const result = await loadRoute(routes, undefined, false, '/');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+});
+
+test('loadRoute — _M group: layout in group is NOT duplicated', async () => {
+  const groupLayout = makeLoader();
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _M: [
+      {
+        _L: groupLayout,
+        _I: pageLoader,
+      },
+    ],
+  };
+  const result = await loadRoute(routes, undefined, false, '/');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  // Should have groupLayout + pageLoader = 2 modules, NOT 3 (no duplication)
+  assert.equal(result[LoadedRouteProp.Mods].length, 2);
+});
+
+test('loadRoute — _M group: child route found inside group', async () => {
+  const groupLayout = makeLoader();
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _M: [
+      {
+        _L: groupLayout,
+        blog: {
+          _I: pageLoader,
+        },
+      },
+    ],
+  };
+  const result = await loadRoute(routes, undefined, false, '/blog');
+  assert.isFalse(result[LoadedRouteProp.NotFound]);
+  // groupLayout + pageLoader
+  assert.equal(result[LoadedRouteProp.Mods].length, 2);
+});
+
+// ─── getMenuLoader tests ───────────────────────────────────────────────────────
 
 test(`getMenuLoader, crawl up root, trailing slash`, async () => {
   const menus: MenuData[] = [

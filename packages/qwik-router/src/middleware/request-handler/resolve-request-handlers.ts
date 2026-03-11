@@ -41,7 +41,7 @@ import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/reques
  */
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
-  route: LoadedRoute | null,
+  route: LoadedRoute,
   method: string,
   checkOrigin: boolean | 'lax-proto',
   renderHandler: RequestHandler,

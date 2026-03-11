@@ -1,9 +1,22 @@
 import { addError, addWarning } from '../utils/format';
-import { resolveSourceFiles } from './routing/resolve-source-file';
+import { createFileId, getPathnameFromDirPath } from '../utils/fs';
+import { resolveMenu } from './markdown/menu';
+import { resolveLayout, resolveRoute } from './routing/resolve-source-file';
 import { routeSortCompare } from './routing/sort-routes';
 import { walkRoutes } from './routing/walk-routes-dir';
 import { walkServerPlugins } from './routing/walk-server-plugins';
-import type { RoutingContext, BuiltRoute, RewriteRouteOption } from './types';
+import { parseRoutePathname } from './routing/parse-pathname';
+import type {
+  BuildTrieNode,
+  BuiltEntry,
+  BuiltLayout,
+  BuiltMenu,
+  BuiltRoute,
+  NormalizedPluginOptions,
+  RewriteRouteOption,
+  RouteSourceFile,
+  RoutingContext,
+} from './types';
 
 export async function parseRoutesDir(ctx: RoutingContext) {
   try {
@@ -31,17 +44,125 @@ export function updateRoutingContext(ctx: RoutingContext) {
 
 async function _updateRoutingContext(ctx: RoutingContext) {
   const serverPlugins = await walkServerPlugins(ctx.opts);
-  const sourceFiles = await walkRoutes(ctx.opts.routesDir);
-  const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
-  resolved.routes = rewriteRoutes(ctx, resolved.routes);
+  const routeTrie = await walkRoutes(ctx.opts.routesDir);
+
+  ctx.routeTrie = routeTrie;
   ctx.serverPlugins = serverPlugins;
-  ctx.layouts = resolved.layouts;
-  ctx.routes = resolved.routes;
-  ctx.entries = resolved.entries;
-  ctx.serviceWorkers = resolved.serviceWorkers;
-  ctx.menus = resolved.menus;
+
+  // Derive flat arrays from the trie for backward compat
+  const derived = deriveFromTrie(ctx.opts, routeTrie);
+  ctx.layouts = derived.layouts;
+  ctx.routes = rewriteRoutes(ctx, derived.routes);
+  ctx.entries = derived.entries;
+  ctx.serviceWorkers = derived.serviceWorkers;
+  ctx.menus = derived.menus;
 }
 
+/**
+ * Walk the trie and extract flat arrays for layouts, routes, entries, menus, service workers. These
+ * are needed by generate-entries, generate-menus, generate-service-worker, vite plugin, etc.
+ */
+function deriveFromTrie(opts: NormalizedPluginOptions, root: BuildTrieNode) {
+  const layouts: BuiltLayout[] = [];
+  const routes: BuiltRoute[] = [];
+  const entries: BuiltEntry[] = [];
+  const serviceWorkers: BuiltEntry[] = [];
+  const menus: BuiltMenu[] = [];
+
+  // Collect all source files from the trie
+  const allFiles: RouteSourceFile[] = [];
+  function collectAllFiles(node: BuildTrieNode) {
+    allFiles.push(...node._files);
+    for (const child of node.children.values()) {
+      collectAllFiles(child);
+    }
+  }
+  collectAllFiles(root);
+
+  // Pass 1: resolve all layouts first (resolveRoute needs the full layouts array)
+  for (const file of allFiles) {
+    if (file.type === 'layout') {
+      layouts.push(resolveLayout(opts, file));
+    }
+  }
+
+  // Pass 2: resolve routes, entries, menus, service workers
+  for (const file of allFiles) {
+    switch (file.type) {
+      case 'route':
+        routes.push(resolveRoute(opts, layouts, file));
+        break;
+      case 'entry':
+        entries.push(resolveEntry(opts, file));
+        break;
+      case 'service-worker':
+        serviceWorkers.push(resolveServiceWorkerEntry(opts, file));
+        break;
+      case 'menu':
+        menus.push(resolveMenu(opts, file));
+        break;
+    }
+  }
+
+  // Ensure unique IDs
+  let inc = 0;
+  const ids = new Set<string>();
+  const uniqueIds = (items: { id: string }[]) => {
+    for (const item of items) {
+      let id = item.id;
+      while (ids.has(id)) {
+        id = `${item.id}_${inc++}`;
+      }
+      item.id = id;
+      ids.add(id);
+    }
+  };
+
+  uniqueIds(layouts);
+  uniqueIds(routes);
+  uniqueIds(entries);
+  uniqueIds(serviceWorkers);
+
+  layouts.sort((a, b) => (a.id < b.id ? -1 : 1));
+  entries.sort((a, b) => (a.chunkFileName < b.chunkFileName ? -1 : 1));
+  serviceWorkers.sort((a, b) => (a.chunkFileName < b.chunkFileName ? -1 : 1));
+  menus.sort((a, b) => (a.pathname < b.pathname ? -1 : 1));
+
+  return { layouts, routes, entries, serviceWorkers, menus };
+}
+
+function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile): BuiltEntry {
+  const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
+  const chunkFileName = pathname.slice(opts.basePathname.length);
+
+  return {
+    id: createFileId(opts.routesDir, sourceFile.filePath, 'Route'),
+    filePath: sourceFile.filePath,
+    chunkFileName,
+    ...parseRoutePathname(opts.basePathname, pathname),
+  };
+}
+
+function resolveServiceWorkerEntry(
+  opts: NormalizedPluginOptions,
+  sourceFile: RouteSourceFile
+): BuiltEntry {
+  const dirPathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
+  const pathname = dirPathname + sourceFile.extlessName + '.js';
+  const chunkFileName = pathname.slice(opts.basePathname.length);
+
+  return {
+    id: createFileId(opts.routesDir, sourceFile.filePath, 'ServiceWorker'),
+    filePath: sourceFile.filePath,
+    chunkFileName,
+    ...parseRoutePathname(opts.basePathname, pathname),
+  };
+}
+
+/**
+ * Create rewritten route copies for each rewrite config. For backward compat: produces BuiltRoute
+ * entries with translated pathnames. At runtime, codegen emits /G nodes in the trie instead.
+ */
 function rewriteRoutes(ctx: RoutingContext, routes: BuiltRoute[]) {
   if (!ctx.opts.rewriteRoutes) {
     return routes;
@@ -56,7 +177,6 @@ function rewriteRoutes(ctx: RoutingContext, routes: BuiltRoute[]) {
   segmentsToTranslate = Array.from(new Set(segmentsToTranslate));
 
   routes.forEach((route) => {
-    // always push the original route
     translatedRoutes.push(route);
 
     const currentRouteSegments = route.pathname.split('/');
@@ -66,9 +186,6 @@ function rewriteRoutes(ctx: RoutingContext, routes: BuiltRoute[]) {
 
     if (foundSegmentToTranslate || route.pathname === '/') {
       ctx.opts.rewriteRoutes.forEach((config, configIndex) => {
-        // In case it is the root route and there is a prefix
-        // we want to create a root with that prefix
-        // if it doesn't have a prefix, we'll skip it so we won't create a duplicate root route
         if (route.pathname === '/' && !config.prefix) {
           return;
         }
@@ -101,15 +218,12 @@ function translateRoute(
   const idSuffix = config.prefix?.toUpperCase().replace(/-/g, '');
   const patternInfix = config.prefix ? [config.prefix] : [];
 
-  // PATH NAME
   const splittedPathName = route.pathname.split('/');
   const translatedPathParts = splittedPathName.map(replacePath);
 
-  // ROUTE NAME
   const splittedRouteName = route.routeName.split('/');
   const translatedRouteParts = splittedRouteName.map(replacePath);
 
-  // REGEX
   const splittedPattern = route.pattern.toString().split('\\/');
   const [translatedPatternFirst, ...translatedPatternOthers] = splittedPattern.map(replacePath);
   const translatedPatternParts = [
@@ -140,7 +254,7 @@ function translateRoute(
   const translatedPath = translatedPathParts.join('/');
   const translatedRoute = translatedRouteParts.join('/');
 
-  const routeToPush = {
+  return {
     ...route,
     id: route.id + (idSuffix || configIndex),
     pathname: pathnamePrefix + translatedPath,
@@ -148,7 +262,6 @@ function translateRoute(
     pattern: new RegExp(translatedRegExp),
     segments: translatedSegments,
   };
-  return routeToPush;
 }
 
 function validateBuild(ctx: RoutingContext) {

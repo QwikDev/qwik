@@ -19,6 +19,7 @@ export type {
   DocumentScript,
   DocumentStyle,
   FailReturn,
+  HttpStatus as HttpErrorProps,
   JSONObject,
   JSONValue,
   Loader,
@@ -86,6 +87,7 @@ export { ServiceWorkerRegister } from './sw-component';
 export {
   useContent,
   useDocumentHead,
+  useHttpStatus,
   useLocation,
   useNavigate,
   usePreventNavigate$,

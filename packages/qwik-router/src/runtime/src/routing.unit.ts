@@ -239,7 +239,7 @@ test('loadRoute — 404 fallback used when no route matches', async () => {
   assert.equal(result.$mods$.length, 1);
   const wrapper = result.$mods$[0] as any;
   assert.isFunction(wrapper.default, 'wrapper has default component');
-  assert.isFunction(wrapper.cacheKey, 'wrapper has cacheKey');
+  assert.isFunction(wrapper.head, 'wrapper has head function with cacheKey');
 });
 
 test('loadRoute — _4 used for 404, _E stored as ErrorLoader', async () => {

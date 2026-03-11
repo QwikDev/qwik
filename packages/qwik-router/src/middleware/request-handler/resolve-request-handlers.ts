@@ -7,16 +7,15 @@ import {
   type ClientPageData,
   type ContentModule,
   type DataValidator,
-  type DocumentHeadProps,
   type JSONObject,
   type LoadedRoute,
   type LoaderInternal,
   type PageModule,
-  type ResolveSyncValue,
   type RouteModule,
   type ValidatorReturn,
 } from '../../runtime/src/types';
-import { resolveETag, resolveCacheKey, getCachedHtml, setCachedHtml } from './etag';
+import { resolveHead } from '../../runtime/src/head';
+import { getCachedHtml, setCachedHtml } from './etag';
 import { HttpStatus } from './http-status-codes';
 import {
   RequestEvETagCacheKey,
@@ -286,36 +285,24 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
     }
 
     const mods = route.$mods$ as ContentModule[];
-    const leafModule = mods[mods.length - 1] as PageModule | undefined;
-    if (!leafModule?.eTag) {
-      return;
-    }
-
-    // Build DocumentHeadProps for eTag function resolution
     const loaders = getRequestLoaders(requestEv);
-    const getData = ((loaderOrAction: any) => {
-      const id = loaderOrAction.__id;
-      if (loaderOrAction.__brand === 'server_loader' && !(id in loaders)) {
-        throw new Error('Loader not executed for this request.');
-      }
-      const data = loaders[id];
-      if (data instanceof Promise) {
-        throw new Error('Loaders returning a promise cannot be resolved for the eTag function.');
-      }
-      return data;
-    }) as ResolveSyncValue;
-
-    const headProps: DocumentHeadProps = {
-      head: { title: '', meta: [], links: [], styles: [], scripts: [], frontmatter: {} },
-      withLocale: (fn) => fn(),
-      resolveValue: getData,
+    const status = requestEv.status();
+    const routeLocation = {
       params: requestEv.params,
       url: requestEv.url,
       isNavigating: false,
       prevUrl: undefined,
     };
 
-    const eTag = resolveETag(leafModule, headProps);
+    const head = resolveHead(
+      { loaders, status } as any,
+      routeLocation,
+      mods,
+      requestEv.locale(),
+      {}
+    );
+
+    const eTag = head.eTag;
     if (!eTag) {
       return;
     }
@@ -335,10 +322,15 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
     }
 
     // Resolve cacheKey for in-memory caching (opt-in)
-    const status = requestEv.status();
-    const cacheKey = resolveCacheKey(leafModule, status, eTag, requestEv.url.pathname);
-    if (!cacheKey) {
+    const cacheKeyVal = head.cacheKey;
+    if (!cacheKeyVal) {
       return; // No caching, just ETag header + 304 support
+    }
+
+    const cacheKey =
+      cacheKeyVal === true ? `${status}|${eTag}|${requestEv.url.pathname}` : cacheKeyVal;
+    if (!cacheKey) {
+      return;
     }
 
     // Check in-memory cache

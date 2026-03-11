@@ -51,8 +51,6 @@ export interface RouteModule<BODY = unknown> {
 export type PageModule = RouteModule & {
   readonly default: (props: Record<string, never>) => JSXOutput;
   readonly head?: ContentModuleHead;
-  readonly eTag?: ContentModuleETag;
-  readonly cacheKey?: CacheKeyFn;
   readonly headings?: ContentHeading[];
   readonly onStaticGenerate?: StaticGenerateHandler;
 };
@@ -172,6 +170,22 @@ export interface DocumentHeadValue<
    * description, author, etc...), are stored in this property.
    */
   readonly frontmatter?: Readonly<FrontMatter>;
+  /**
+   * An ETag string for this page. When set, the middleware will send an `ETag` response header and
+   * handle `If-None-Match` 304 responses automatically.
+   *
+   * For `.md` files, this is auto-generated from the content hash. For `.mdx` and `.tsx` pages,
+   * return it from the `head` function to compute it dynamically from loader data.
+   */
+  readonly eTag?: string;
+  /**
+   * Controls in-memory SSR caching for this page. Requires `eTag` to be set.
+   *
+   * - `string`: an explicit cache key
+   * - `true`: use the default cache key `status|eTag|pathname`
+   * - `false` / omitted: no caching
+   */
+  readonly cacheKey?: string | boolean;
 }
 
 /** @public */
@@ -232,6 +246,8 @@ export type DocumentScript = (
 /** @public */
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
+  /** The HTTP status code for the current response (e.g. 200, 404, 500). */
+  readonly status: number;
   /** @deprecated This is not necessary, it works correctly without */
   readonly withLocale: <T>(fn: () => T) => T;
   readonly resolveValue: ResolveSyncValue;
@@ -348,24 +364,6 @@ export type ContentModule = PageModule | LayoutModule;
 
 /** @public */
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
-
-/**
- * The eTag export type: a static string or a function receiving DocumentHeadProps.
- *
- * @public
- */
-export type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);
-
-/**
- * The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR
- * caching.
- *
- * - `true`: use the default cache key `status|eTag|pathname`
- * - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
- *
- * @public
- */
-export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
 
 /** The route to render */
 export interface LoadedRoute {

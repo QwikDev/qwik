@@ -74,6 +74,9 @@ export function executeSsrTasks(
  * cursor-walker-driven re-renders: when a component gets re-dirtied (e.g., by a signal change or
  * task subscription), the cursor walker calls this to re-execute the component QRL and process the
  * returned JSX via ssrVNodeDiff.
+ *
+ * TODO: When ssrDiff replaces _walkJSX as the primary JSX processor, this will switch to using
+ * ssrDiff directly, with the component frame retrieved from the host SsrNode.
  */
 export function executeSsrComponent(
   vNode: VNode,
@@ -119,7 +122,7 @@ export function executeSsrComponent(
  * Execute node diff for an SSR node. Mirrors client `executeNodeDiff`.
  *
  * Processes stored JSX (from render() or signal-driven re-diffs) into child SsrNodes via
- * ssrVNodeDiff. The cursor walker drives traversal through the resulting tree.
+ * ssrDiff. The cursor walker drives traversal through the resulting tree.
  */
 export function executeSsrNodeDiff(
   vNode: VNode,

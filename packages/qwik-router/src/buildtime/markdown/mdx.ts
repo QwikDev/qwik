@@ -86,15 +86,27 @@ export default WrappedMdxContent;
       if (exportIndex === -1) {
         throw new Error('Could not find default export in mdx output');
       }
-      // For plain .md files (not .mdx), auto-generate an eTag from the content hash.
-      // .mdx files can contain JS that may change behavior without changing the content hash,
-      // so they must export eTag manually if desired.
-      let eTagExport = '';
+      // For plain .md files (not .mdx), auto-generate an eTag from the content hash
+      // and merge it into the head export. .mdx files can contain JS that may change
+      // behavior without changing the content hash, so they must set eTag in their
+      // head export manually if desired.
+      let prelude = output.slice(0, exportIndex);
       if (ext === '.md' || ext === '.markdown') {
         const hash = createHash('sha256').update(code).digest('hex').slice(0, 16);
-        eTagExport = `export const eTag = ${JSON.stringify(hash)};\n`;
+        const eTagProp = `"eTag": ${JSON.stringify(hash)}`;
+        // If rehype already generated `export const head = { ... }` from frontmatter,
+        // merge eTag into it by injecting after the opening brace.
+        // Otherwise create a new head export.
+        const headExportPrefix = 'export const head = {';
+        const headIdx = prelude.indexOf(headExportPrefix);
+        if (headIdx !== -1) {
+          const insertPos = headIdx + headExportPrefix.length;
+          prelude = prelude.slice(0, insertPos) + `\n  ${eTagProp},` + prelude.slice(insertPos);
+        } else {
+          prelude += `export const head = { ${eTagProp} };\n`;
+        }
       }
-      const wrappedOutput = addImport + output.slice(0, exportIndex) + eTagExport + newDefault;
+      const wrappedOutput = addImport + prelude + newDefault;
       return {
         code: wrappedOutput,
         map: compiled.map,

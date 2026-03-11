@@ -173,20 +173,6 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-<h2 id="cachekeyfn">CacheKeyFn</h2>
-
-The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR caching.
-
-- `true`: use the default cache key `status|eTag|pathname` - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
-
-```typescript
-export type CacheKeyFn =
-  | true
-  | ((status: number, eTag: string, pathname: string) => string | null);
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
-
 <h2 id="contentheading">ContentHeading</h2>
 
 ```typescript
@@ -332,20 +318,6 @@ string
 
 </td></tr>
 </tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
-
-<h2 id="contentmoduleetag">ContentModuleETag</h2>
-
-The eTag export type: a static string or a function receiving DocumentHeadProps.
-
-```typescript
-export type ContentModuleETag =
-  | string
-  | ((props: DocumentHeadProps) => string | null);
-```
-
-**References:** [DocumentHeadProps](#documentheadprops)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -505,6 +477,23 @@ ResolveSyncValue
 </td></tr>
 <tr><td>
 
+[status](./router.documentheadprops.status.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+number
+
+</td><td>
+
+The HTTP status code for the current response (e.g. 200, 404, 500).
+
+</td></tr>
+<tr><td>
+
 [withLocale](./router.documentheadprops.withlocale.md)
 
 </td><td>
@@ -573,6 +562,44 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[cacheKey?](./router.documentheadvalue.cachekey.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string \| boolean
+
+</td><td>
+
+_(Optional)_ Controls in-memory SSR caching for this page. Requires `eTag` to be set.
+
+- `string`: an explicit cache key - `true`: use the default cache key `status|eTag|pathname` - `false` / omitted: no caching
+
+</td></tr>
+<tr><td>
+
+[eTag?](./router.documentheadvalue.etag.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ An ETag string for this page. When set, the middleware will send an `ETag` response header and handle `If-None-Match` 304 responses automatically.
+
+For `.md` files, this is auto-generated from the content hash. For `.mdx` and `.tsx` pages, return it from the `head` function to compute it dynamically from loader data.
+
+</td></tr>
+<tr><td>
 
 [frontmatter?](./router.documentheadvalue.frontmatter.md)
 
@@ -1301,14 +1328,12 @@ Omit&lt;T, KEYS&gt;
 export type PageModule = RouteModule & {
   readonly default: (props: Record<string, never>) => JSXOutput;
   readonly head?: ContentModuleHead;
-  readonly eTag?: ContentModuleETag;
-  readonly cacheKey?: CacheKeyFn;
   readonly headings?: ContentHeading[];
   readonly onStaticGenerate?: StaticGenerateHandler;
 };
 ```
 
-**References:** [ContentModuleHead](#contentmodulehead), [ContentModuleETag](#contentmoduleetag), [CacheKeyFn](#cachekeyfn), [ContentHeading](#contentheading), [StaticGenerateHandler](#staticgeneratehandler)
+**References:** [ContentModuleHead](#contentmodulehead), [ContentHeading](#contentheading), [StaticGenerateHandler](#staticgeneratehandler)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 

@@ -205,6 +205,75 @@ export const head: DocumentHead = ({ head }) => {
 };
 ```
 
+### ETag and Caching
+
+The `head` export supports `eTag` and `cacheKey` properties for HTTP caching and server-side rendered HTML caching.
+
+#### ETag
+
+The `eTag` property sets an HTTP `ETag` header on the response. When a client sends a matching `If-None-Match` header, the server responds with `304 Not Modified` instead of re-rendering the page.
+
+For `.md` and `.markdown` files, an eTag is **automatically generated** from a hash of the file content. For `.mdx` and `.tsx` pages, you can set it manually:
+
+```tsx title="src/routes/about/index.tsx"
+import type { DocumentHead } from '@qwik.dev/router';
+
+// Static eTag
+export const head: DocumentHead = {
+  title: 'About page',
+  eTag: 'my-stable-etag-v1',
+};
+```
+
+You can also compute the eTag dynamically based on loader data:
+
+```tsx title="src/routes/product/[id]/index.tsx"
+import { routeLoader$ } from '@qwik.dev/router';
+import type { DocumentHead } from '@qwik.dev/router';
+
+export const useProduct = routeLoader$(async (requestEvent) => {
+  const product = await fetchProduct(requestEvent.params.id);
+  return product;
+});
+
+export const head: DocumentHead = ({ resolveValue }) => {
+  const product = resolveValue(useProduct);
+  return {
+    title: product.name,
+    eTag: product.updatedAt, // use the last-modified timestamp as eTag
+  };
+};
+```
+
+#### cacheKey (In-Memory SSR Cache)
+
+The `cacheKey` property controls an in-memory server-side cache of rendered HTML. When a page with the same cache key is requested again, the cached HTML is served directly without re-rendering.
+
+- `false` or omitted (default): no caching
+- `true`: uses a default cache key pattern based on the HTTP status, eTag, and pathname
+- `string`: uses the provided string as the cache key
+
+```tsx title="src/routes/static-page/index.tsx"
+import type { DocumentHead } from '@qwik.dev/router';
+
+// Cache using the default key pattern
+export const head: DocumentHead = {
+  eTag: 'v1',
+  cacheKey: true,
+};
+```
+
+For error pages or pages where the cache should vary by HTTP status code, use a dynamic `head()` function. The `status` property is available in the function props:
+
+```tsx title="src/routes/error/index.tsx"
+import type { DocumentHead } from '@qwik.dev/router';
+
+// All 404 errors share one cached rendering, all 500 errors share another
+export const head: DocumentHead = ({ status }) => ({
+  cacheKey: String(status),
+});
+```
+
 ### Google Structured Data
 
 This example integrates [Google Structured Data](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data)

@@ -520,6 +520,11 @@ function ssrInlineComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, inlineFn:
   );
 
   const fragmentVNode = node as unknown as VNode;
+  // Ensure VNode parent chain is connected for dirty propagation (async path doesn't call
+  // ssrDescend which normally sets this).
+  if (!fragmentVNode.parent) {
+    fragmentVNode.parent = ctx.$vParent$;
+  }
 
   if (isPromise(jsxOutput)) {
     // Async inline component: break the diff loop, keep parent elements open.

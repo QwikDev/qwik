@@ -19,7 +19,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let serverOutDir: string | null = null;
   let renderModulePath: string | null = null;
   let qwikRouterConfigModulePath: string | null = null;
-  let isSsrBuild = false;
   let viteCommand: string | undefined;
   const outputEntries: string[] = [];
 
@@ -40,41 +39,26 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     },
 
     configResolved(config) {
-      isSsrBuild = !!config.build.ssr;
       viteCommand = config.command;
 
-      if (isSsrBuild) {
-        qwikRouterPlugin = config.plugins.find(
-          (p) => p.name === 'vite-plugin-qwik-router'
-        ) as QwikRouterPlugin;
-        if (!qwikRouterPlugin) {
-          throw new Error('Missing vite-plugin-qwik-router');
-        }
-        // Use double type assertion to avoid TS "Excessive stack depth comparing types" error
-        // when comparing QwikVitePlugin with Plugin types
-        qwikVitePlugin = config.plugins.find(
-          (p) => p.name === 'vite-plugin-qwik'
-        ) as any as QwikVitePlugin;
-        if (!qwikVitePlugin) {
-          throw new Error('Missing vite-plugin-qwik');
-        }
-        serverOutDir = config.build.outDir;
-
-        if (config.build?.ssr !== true) {
-          throw new Error(
-            `"build.ssr" must be set to "true" in order to use the "${opts.name}" adapter.`
-          );
-        }
-
-        if (!config.build?.rollupOptions?.input) {
-          throw new Error(
-            `"build.rollupOptions.input" must be set in order to use the "${opts.name}" adapter.`
-          );
-        }
+      qwikRouterPlugin = config.plugins.find(
+        (p) => p.name === 'vite-plugin-qwik-router'
+      ) as QwikRouterPlugin;
+      if (!qwikRouterPlugin) {
+        throw new Error('Missing vite-plugin-qwik-router');
       }
+      // Use double type assertion to avoid TS "Excessive stack depth comparing types" error
+      // when comparing QwikVitePlugin with Plugin types
+      qwikVitePlugin = config.plugins.find(
+        (p) => p.name === 'vite-plugin-qwik'
+      ) as any as QwikVitePlugin;
+      if (!qwikVitePlugin) {
+        throw new Error('Missing vite-plugin-qwik');
+      }
+      serverOutDir = config.build.outDir;
     },
     buildStart() {
-      if (isSsrBuild && opts.ssg !== null) {
+      if (this.environment.config.consumer === 'server' && opts.ssg !== null) {
         const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
         if (viteCommand === 'build' && serverOutDir && srcDir) {
           // TODO don't rely on entry points for SSG, somehow
@@ -92,7 +76,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       }
     },
     generateBundle(_, bundles) {
-      if (isSsrBuild) {
+      if (this.environment.config.consumer === 'server') {
         outputEntries.length = 0;
 
         for (const fileName in bundles) {
@@ -113,7 +97,12 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     closeBundle: {
       sequential: true,
       async handler() {
-        if (isSsrBuild && serverOutDir && qwikRouterPlugin?.api && qwikVitePlugin?.api) {
+        if (
+          this.environment.config.consumer === 'server' &&
+          serverOutDir &&
+          qwikRouterPlugin?.api &&
+          qwikVitePlugin?.api
+        ) {
           const staticPaths: string[] = opts.staticPaths || [];
           const routes = qwikRouterPlugin.api.getRoutes();
           const basePathname = qwikRouterPlugin.api.getBasePathname();

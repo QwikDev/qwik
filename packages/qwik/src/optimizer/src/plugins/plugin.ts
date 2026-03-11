@@ -690,13 +690,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (devServer && !outputs.has(id)) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
-      const devEnv = ctx.environment as DevEnvironment;
       const parentId = parentIds.get(id);
       if (parentId) {
-        const parentModule = devEnv.moduleGraph.getModuleById(parentId);
+        const parentModule = devServer.moduleGraph.getModuleById(parentId);
         if (parentModule) {
+          // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
           debug(`load(${count})`, 'transforming QRL parent', parentId);
-          await devEnv.transformRequest(parentModule.url);
+          await devServer.transformRequest(parentModule.url);
           // The QRL segment should exist now
           if (!outputs.has(id)) {
             debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
@@ -776,7 +776,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
       if (devServer) {
-        devPath = (ctx.environment as DevEnvironment).moduleGraph.getModuleById(pathId)?.url;
+        devPath = devServer.moduleGraph.getModuleById(pathId)?.url;
       }
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath, devPath }],

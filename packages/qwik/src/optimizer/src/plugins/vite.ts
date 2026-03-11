@@ -353,8 +353,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       return updatedViteConfig;
     },
 
-    configEnvironment(name: string, config: EnvironmentOptions, _env: ConfigEnv) {
-      const isServer = config.consumer === 'server';
+    configEnvironment(name: string, _config: EnvironmentOptions, _env: ConfigEnv) {
+      // Use environment name to distinguish server vs client — config.consumer is not yet set
+      // at the time this hook is called.
+      const isServer = name === 'ssr';
       if (isServer) {
         return {
           resolve: {
@@ -362,12 +364,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           },
         } satisfies EnvironmentOptions;
       }
-      // Client environment
-      return {
-        resolve: {
-          conditions: buildMode === 'production' ? ['min'] : [],
-        },
-      } satisfies EnvironmentOptions;
+      // Client environment — only add 'min' conditions in production to avoid overriding
+      // adapter-provided conditions (e.g. ['webworker', 'worker'] for edge adapters).
+      if (buildMode === 'production') {
+        return {
+          resolve: {
+            conditions: ['min'],
+          },
+        } satisfies EnvironmentOptions;
+      }
+      return {};
     },
 
     async configResolved(config) {

@@ -45,7 +45,7 @@ const NavPill = (props: { href: string; label: string; icon?: JSXOutput }) => (
     href={props.href}
     class="flex gap-3 items-center px-4 pt-4 pb-3 relative rounded-[4px] bg-secondary-background-base hover:bg-secondary-background-accent transition-colors shadow-secondary-border-inset"
   >
-    <div class="size-9 bg-secondary-background-base border-[1.6px] border-border-emphasis rounded-lg shadow-icon flex items-center justify-center shrink-0">
+    <div class="size-9 bg-secondary-background-base border-[1.6px] border-emphasis rounded-lg shadow-icon flex items-center justify-center shrink-0">
       {props.icon}
     </div>
     <span class="font-bold text-base leading-[22px] text-secondary-foreground-base whitespace-nowrap">
@@ -55,12 +55,12 @@ const NavPill = (props: { href: string; label: string; icon?: JSXOutput }) => (
 );
 
 const contentBaseClass =
-  'w-full open:flex gap-4 shadow-card rounded-2xl p-4 border-[1.6px] border-border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0';
+  'w-full open:flex gap-4 shadow-card rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0';
 
 export const Header = component$(() => {
   return (
     <div class="flex justify-center">
-      <navbar.root class="flex items-center justify-between px-6 justify-self-center bg-background-base fixed top-6 w-full rounded-2xl border-[1.6px] border-border-base shadow-base z-99999 max-w-[840px]">
+      <navbar.root class="flex items-center justify-between px-6 justify-self-center bg-background-base fixed top-6 w-full rounded-2xl border-[1.6px] border-base shadow-base z-99999 max-w-[840px]">
         <a href="/" class="flex items-center gap-2">
           <QwikLogoOnly />
         </a>

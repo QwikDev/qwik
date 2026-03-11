@@ -317,6 +317,22 @@
   }
 }
 
+@utility border-base {
+  border-color: var(--color-border-base);
+}
+
+@utility border-accent {
+  border-color: var(--color-border-accent);
+}
+
+@utility border-emphasis {
+  border-color: var(--color-border-emphasis);
+}
+
+@utility border-disabled {
+  border-color: var(--color-border-disabled);
+}
+
 @utility bg-hero-gradient-blue {
   --gradient-color: color-mix(in srgb, var(--color-border-accent) 40%, transparent);
   --gradient-color-transparent: transparent;

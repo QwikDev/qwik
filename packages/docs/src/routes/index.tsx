@@ -24,7 +24,7 @@ export default component$(() => {
 
           <div class="relative">
             <h1 class="uppercase font-display md:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
-              Automatically <span class="text-violet-75">Instant</span> Web Apps
+              Automatically <span class="text-primary-standalone-emphasis">Instant</span> Web Apps
             </h1>
             {clouds}
           </div>
@@ -48,12 +48,12 @@ export default component$(() => {
           </div>
 
           <div class="flex gap-6 items-center py-4">
-            <span class="text-slate-75 text-sm">Special Sponsor</span>
+            <span class="text-foreground-soft text-sm">Special Sponsor</span>
             <div class="flex">
               <BuilderLogo width={117.35} height={25.2} />
-              <div class="w-px h-[25.2px] bg-slate-75 ml-7 md:block hidden" />
+              <div class="w-px h-[25.2px] bg-foreground-soft ml-7 md:block hidden" />
             </div>
-            <span class="max-w-[20ch] text-slate-75 text-sm md:block hidden">
+            <span class="max-w-[20ch] text-foreground-soft text-sm md:block hidden">
               Ship twice as much, twice as fast
             </span>
           </div>
@@ -73,7 +73,7 @@ export default component$(() => {
             <Card class="self-end transform -translate-y-16 z-0">
               <div class="md:p-10 p-6 flex flex-col gap-2 md:max-w-[48ch] max-w-[260px] text-center">
                 <h3 class="font-heading md:text-h5 text-sm">
-                  <span class="text-sky-75">~20s</span> quicker or more on 3G 🤯
+                  <span class="text-standalone-accent">~20s</span> quicker or more on 3G 🤯
                 </h3>
                 <p>
                   Time to Interactive measured on chrome 3G throttling on a few mid-size sample
@@ -85,8 +85,12 @@ export default component$(() => {
           <div class="flex flex-col md:gap-10 gap-8">
             <div class="relative">
               <h2 class="font-heading md:text-h3 text-[28px]">
-                <span class="bg-violet-10 mb-2 block w-fit shadow-heading">Introducing</span>
-                <span class="bg-violet-10 shadow-heading">JavaScript Streaming</span>
+                <span class="bg-secondary-background-base mb-2 block w-fit shadow-heading">
+                  Introducing
+                </span>
+                <span class="bg-secondary-background-base shadow-heading">
+                  JavaScript Streaming
+                </span>
               </h2>
               <VideoPlayerIcon class="absolute left-4/7 -top-2/5 transform" />
             </div>
@@ -132,43 +136,16 @@ export const VideoPlayerIcon = component$((props: PropsOf<'svg'>) => {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g filter="url(#filter0_d_365_1969)">
-        <path
-          d="M90.2888 35.4864L86.5797 34.5518L75.4068 78.8907L79.1159 79.8253L90.2888 35.4864Z"
-          fill="#45C6FF"
-        />
-        <path
-          d="M75.4067 78.8908L71.7219 77.9623L70.7934 81.6471L74.4782 82.5756L75.4067 78.8908Z"
-          fill="#45C6FF"
-        />
-        <path
-          d="M87.5082 30.8669L83.8234 29.9384L82.8948 33.6232L86.5796 34.5517L87.5082 30.8669Z"
-          fill="#45C6FF"
-        />
-        <path
-          d="M70.796 81.6478L11.6936 66.7547L10.759 70.4638L69.8614 85.3568L70.796 81.6478Z"
-          fill="#45C6FF"
-        />
-        <path
-          d="M60.6983 43.7568L57.0135 42.8283L57.942 39.1434L54.2305 38.2082L55.1652 34.4991L51.4803 33.5706L52.4089 29.8858L41.3302 27.0941L32.0205 64.0392L43.0992 66.8309L44.0338 63.1218L47.7186 64.0504L48.6471 60.3656L52.3586 61.3008L53.2933 57.5917L56.9781 58.5203L57.9066 54.8355L61.589 55.7634L63.4521 48.3695L59.7698 47.4416L60.6983 43.7568Z"
-          fill="#45C6FF"
-        />
-        <path
-          d="M84.7545 26.2542L25.6521 11.3611L24.7236 15.0459L83.826 29.939L84.7545 26.2542Z"
-          fill="#45C6FF"
-        />
-        <path
-          d="M12.6197 63.0692L8.91064 62.1346L7.98212 65.8194L11.6912 66.754L12.6197 63.0692Z"
-          fill="#45C6FF"
-        />
-        <path
-          d="M24.7211 15.0453L21.0121 14.1107L20.0836 17.7955L23.7926 18.7301L24.7211 15.0453Z"
-          fill="#45C6FF"
-        />
-        <path
-          d="M20.0835 17.7955L16.3987 16.867L5.22581 61.206L8.91062 62.1345L20.0835 17.7955Z"
-          fill="#45C6FF"
-        />
+      <g class="fill-border-base" filter="url(#filter0_d_365_1969)">
+        <path d="M90.2888 35.4864L86.5797 34.5518L75.4068 78.8907L79.1159 79.8253L90.2888 35.4864Z" />
+        <path d="M75.4067 78.8908L71.7219 77.9623L70.7934 81.6471L74.4782 82.5756L75.4067 78.8908Z" />
+        <path d="M87.5082 30.8669L83.8234 29.9384L82.8948 33.6232L86.5796 34.5517L87.5082 30.8669Z" />
+        <path d="M70.796 81.6478L11.6936 66.7547L10.759 70.4638L69.8614 85.3568L70.796 81.6478Z" />
+        <path d="M60.6983 43.7568L57.0135 42.8283L57.942 39.1434L54.2305 38.2082L55.1652 34.4991L51.4803 33.5706L52.4089 29.8858L41.3302 27.0941L32.0205 64.0392L43.0992 66.8309L44.0338 63.1218L47.7186 64.0504L48.6471 60.3656L52.3586 61.3008L53.2933 57.5917L56.9781 58.5203L57.9066 54.8355L61.589 55.7634L63.4521 48.3695L59.7698 47.4416L60.6983 43.7568Z" />
+        <path d="M84.7545 26.2542L25.6521 11.3611L24.7236 15.0459L83.826 29.939L84.7545 26.2542Z" />
+        <path d="M12.6197 63.0692L8.91064 62.1346L7.98212 65.8194L11.6912 66.754L12.6197 63.0692Z" />
+        <path d="M24.7211 15.0453L21.0121 14.1107L20.0836 17.7955L23.7926 18.7301L24.7211 15.0453Z" />
+        <path d="M20.0835 17.7955L16.3987 16.867L5.22581 61.206L8.91062 62.1345L20.0835 17.7955Z" />
       </g>
       <defs>
         <filter
@@ -207,17 +184,19 @@ export const VideoPlayerIcon = component$((props: PropsOf<'svg'>) => {
 });
 
 export const Card = component$(({ class: className, ...rest }: PropsOf<'div'>) => {
-  const dots = Array.from({ length: 3 }).map(() => <div class="bg-white size-3 rounded-full" />);
+  const dots = Array.from({ length: 3 }).map(() => (
+    <div class="bg-background-base size-3 rounded-full" />
+  ));
 
   return (
     <div
       class={[
-        'shadow-card w-fit rounded-2xl border-[1.6px] border-sky-55 h-fit bg-white',
+        'shadow-card w-fit rounded-2xl border-[1.6px] border-border-emphasis h-fit bg-background-base',
         className,
       ]}
       {...rest}
     >
-      <div class="bg-sky-10 border-b-[1.6px] border-sky-55 h-11 rounded-t-2xl flex gap-2 px-3 items-center">
+      <div class="bg-background-accent border-b-[1.6px] border-border-emphasis h-11 rounded-t-2xl flex gap-2 px-3 items-center">
         {dots}
       </div>
 
@@ -258,15 +237,33 @@ export const Cloud = component$((props: PropsOf<'div'>) => {
         xmlns="http://www.w3.org/2000/svg"
       >
         <g filter="url(#filter0_d_204_2319)">
-          <rect y="27.7452" width="40.8471" height="9.24841" fill="#45C6FF" />
-          <rect x="40.8471" y="27.7452" width="80.1529" height="9.24841" fill="white" />
-          <rect x="14.6433" y="18.4968" width="36.9936" height="9.24841" fill="#45C6FF" />
-          <rect x="51.637" y="18.4968" width="52.4076" height="9.24841" fill="white" />
-          <rect x="33.9108" y="9.24841" width="32.3694" height="9.24841" fill="#45C6FF" />
-          <rect x="66.2803" y="9.24841" width="28.5159" height="9.24841" fill="white" />
-          <rect x="47.0128" width="22.3503" height="9.24841" fill="#45C6FF" />
-          <rect x="60.1146" width="20.0382" height="9.24841" fill="white" />
-          <rect x="92.4841" y="27.7452" width="11.5605" height="9.24841" fill="#45C6FF" />
+          <rect y="27.7452" width="40.8471" height="9.24841" class="fill-border-base" />
+          <rect
+            x="40.8471"
+            y="27.7452"
+            width="80.1529"
+            height="9.24841"
+            class="fill-background-base"
+          />
+          <rect x="14.6433" y="18.4968" width="36.9936" height="9.24841" class="fill-border-base" />
+          <rect
+            x="51.637"
+            y="18.4968"
+            width="52.4076"
+            height="9.24841"
+            class="fill-background-base"
+          />
+          <rect x="33.9108" y="9.24841" width="32.3694" height="9.24841" class="fill-border-base" />
+          <rect
+            x="66.2803"
+            y="9.24841"
+            width="28.5159"
+            height="9.24841"
+            class="fill-background-base"
+          />
+          <rect x="47.0128" width="22.3503" height="9.24841" class="fill-border-base" />
+          <rect x="60.1146" width="20.0382" height="9.24841" class="fill-background-base" />
+          <rect x="92.4841" y="27.7452" width="11.5605" height="9.24841" class="fill-border-base" />
         </g>
         <defs>
           <filter

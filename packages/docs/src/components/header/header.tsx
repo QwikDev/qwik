@@ -29,13 +29,12 @@ const ImageCard = (props: {
       alt=""
       class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform"
     />
-    <div class="absolute bottom-0 left-0 right-0 h-[134px] bg-gradient-to-b from-transparent to-[var(--color-sky-80)]" />
-    <div
-      class="absolute inset-0 pointer-events-none rounded-[inherit]"
-      style="box-shadow: inset 2px 2px 0 var(--color-violet-55), inset -2px -2px 0 var(--color-violet-0)"
-    />
-    <span class="relative font-bold text-base leading-[22px] text-slate-5">{props.label}</span>
-    <span class="relative font-semibold text-sm leading-[20px] text-slate-5">
+    <div class="absolute bottom-0 left-0 right-0 h-[134px] bg-gradient-to-b from-transparent to-standalone-accent" />
+    <div class="absolute inset-0 pointer-events-none rounded-[inherit] shadow-secondary-border-inset" />
+    <span class="relative font-bold text-base leading-[22px] text-primary-foreground-base">
+      {props.label}
+    </span>
+    <span class="relative font-semibold text-sm leading-[20px] text-primary-foreground-accent">
       {props.description}
     </span>
   </a>
@@ -44,25 +43,24 @@ const ImageCard = (props: {
 const NavPill = (props: { href: string; label: string; icon?: JSXOutput }) => (
   <a
     href={props.href}
-    class="flex gap-3 items-center px-4 pt-4 pb-3 relative rounded-[4px] bg-violet-15 hover:bg-violet-20 transition-colors"
-    style="box-shadow: inset 2px 2px 0 var(--color-violet-55), inset -2px -2px 0 var(--color-violet-0)"
+    class="flex gap-3 items-center px-4 pt-4 pb-3 relative rounded-[4px] bg-secondary-background-base hover:bg-secondary-background-accent transition-colors shadow-secondary-border-inset"
   >
-    <div class="size-9 bg-violet-15 border-[1.6px] border-sky-55 rounded-lg shadow-[2px_2px_0_0_var(--color-sky-45)] flex items-center justify-center shrink-0">
+    <div class="size-9 bg-secondary-background-base border-[1.6px] border-border-emphasis rounded-lg shadow-icon flex items-center justify-center shrink-0">
       {props.icon}
     </div>
-    <span class="font-bold text-base leading-[22px] text-violet-80 whitespace-nowrap">
+    <span class="font-bold text-base leading-[22px] text-secondary-foreground-base whitespace-nowrap">
       {props.label}
     </span>
   </a>
 );
 
 const contentBaseClass =
-  'w-full open:flex gap-4 shadow-card rounded-2xl p-4 border-[1.6px] border-sky-55 bg-white transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0';
+  'w-full open:flex gap-4 shadow-card rounded-2xl p-4 border-[1.6px] border-border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0';
 
 export const Header = component$(() => {
   return (
     <div class="flex justify-center">
-      <navbar.root class="flex items-center justify-between px-6 justify-self-center bg-white fixed top-6 w-full rounded-2xl border-[1.6px] border-[#45C6FF] shadow-base z-99999 max-w-[840px]">
+      <navbar.root class="flex items-center justify-between px-6 justify-self-center bg-background-base fixed top-6 w-full rounded-2xl border-[1.6px] border-border-base shadow-base z-99999 max-w-[840px]">
         <a href="/" class="flex items-center gap-2">
           <QwikLogoOnly />
         </a>
@@ -70,7 +68,7 @@ export const Header = component$(() => {
         <div class="flex items-center gap-10">
           {/* ── Core ── */}
           <navbar.item class="relative">
-            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-sky-55 transition-colors duration-200 h-[76px]">
+            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px]">
               <span>Core</span>
             </navbar.itemtrigger>
             <navbar.itemcontent class={contentBaseClass}>
@@ -102,7 +100,7 @@ export const Header = component$(() => {
 
           {/* ── Ecosystem ── */}
           <navbar.item class="relative">
-            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-sky-55 transition-colors duration-200 h-[76px]">
+            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px]">
               <span>Ecosystem</span>
             </navbar.itemtrigger>
             <navbar.itemcontent class={contentBaseClass}>
@@ -125,7 +123,7 @@ export const Header = component$(() => {
 
           {/* ── Router ── */}
           <navbar.item class="relative">
-            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-sky-55 transition-colors duration-200 h-[76px]">
+            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px]">
               <span>Router</span>
             </navbar.itemtrigger>
             <navbar.itemcontent class={contentBaseClass}>
@@ -150,7 +148,7 @@ export const Header = component$(() => {
 
           {/* ── Resources ── */}
           <navbar.item class="relative">
-            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-sky-55 transition-colors duration-200 h-[76px]">
+            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px]">
               <span>Resources</span>
             </navbar.itemtrigger>
             <navbar.itemcontent class={contentBaseClass}>

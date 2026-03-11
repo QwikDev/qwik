@@ -294,10 +294,7 @@ function processJSXNode(
           // Create sub-cursor for Suspense children (runs at higher priority)
           const children = jsx.children as JSXOutput;
           if (children != null) {
-            (ssr as any).createSuspenseSubCursor(children, {
-              currentStyleScoped: options.currentStyleScoped,
-              parentComponentFrame: options.parentComponentFrame,
-            });
+            (ssr as any).createSuspenseSubCursor(children);
           }
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an object for props, we always modify props for a component

@@ -8,7 +8,6 @@ import {
   _res,
   _setEvent,
   _walkJSX,
-  _ssrVNodeDiff as ssrVNodeDiff,
   _createQRL as createQRL,
   _addCursor as addCursor,
   _getCursorData as getCursorData,
@@ -426,20 +425,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.rootSsrNode = rootSsrNode;
 
     // Create a cursor root VNode to drive SSR rendering through the cursor walker.
+    // Store the JSX in :nodeDiff so executeSsrNodeDiff processes it via ssrVNodeDiff.
     const cursorRoot = new VirtualVNode(
       null, // key
       VNodeFlags.Virtual,
       null, // parent
       null, // previousSibling
       null, // nextSibling
-      {
-        // Store the walk callback for executeSsrNodeDiff to invoke
-        ':ssrWalkFn': () =>
-          ssrVNodeDiff(this, jsx, cursorRoot, cursorRoot, {
-            currentStyleScoped: null,
-            parentComponentFrame: this.getComponentFrame(),
-          }),
-      },
+      { ':nodeDiff': jsx },
       null, // firstChild
       null // lastChild
     );
@@ -920,10 +913,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    *
    * Called from _walkJSX when encountering Suspense with children.
    */
-  createSuspenseSubCursor(
-    childrenJsx: JSXOutput,
-    walkOptions: { currentStyleScoped: string | null; parentComponentFrame: any }
-  ) {
+  createSuspenseSubCursor(childrenJsx: JSXOutput) {
     const boundary = this.currentSuspenseBoundary;
     if (!boundary) {
       return;
@@ -963,13 +953,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       null, // parent
       null, // previousSibling
       null, // nextSibling
-      {
-        ':ssrWalkFn': () =>
-          _walkJSX(this, childrenJsx, {
-            currentStyleScoped: walkOptions.currentStyleScoped,
-            parentComponentFrame: walkOptions.parentComponentFrame,
-          }),
-      },
+      { ':nodeDiff': childrenJsx },
       null, // firstChild
       null // lastChild
     );

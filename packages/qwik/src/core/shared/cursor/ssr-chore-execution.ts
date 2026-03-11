@@ -1,9 +1,13 @@
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { ssrVNodeDiff } from '../../ssr/ssr-vnode-diff';
 import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
-import type { Container } from '../types';
-import { ELEMENT_SEQ, QScopedStyle } from '../utils/markers';
-import { isPromise } from '../utils/promises';
+import { executeComponent } from '../component-execution';
+import type { Container, HostElement } from '../types';
+import type { OnRenderFn } from '../component.public';
+import type { Props } from '../jsx/jsx-runtime';
+import type { QRLInternal } from '../qrl/qrl-class';
+import { ELEMENT_PROPS, ELEMENT_SEQ, OnRenderProp, QScopedStyle } from '../utils/markers';
+import { isPromise, safeCall } from '../utils/promises';
 import { addComponentStylePrefix } from '../utils/scoped-styles';
 import type { ValueOrPromise } from '../utils/types';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
@@ -66,36 +70,56 @@ export function executeSsrTasks(
 /**
  * Execute component rendering for an SSR node. Mirrors client `executeComponentChore`.
  *
- * Currently, SSR components are executed inline by _walkJSX during the initial render. This
- * function handles the case where a component gets re-dirtied (e.g., by a signal change during
- * execution), which creates a new cursor. Since _walkJSX already handles the retry via
- * executeComponent's built-in retry logic, we just clear the dirty bit here.
- *
- * When render() is rewritten to use ssrVNodeDiff directly (Phase 7 Step 6), this function will
- * properly execute the component QRL and process the returned JSX via ssrVNodeDiff.
+ * For initial render, components are executed inline by _walkJSX. This function handles
+ * cursor-walker-driven re-renders: when a component gets re-dirtied (e.g., by a signal change or
+ * task subscription), the cursor walker calls this to re-execute the component QRL and process the
+ * returned JSX via ssrVNodeDiff.
  */
 export function executeSsrComponent(
   vNode: VNode,
-  _container: Container,
+  container: Container,
   _cursorData: CursorData,
-  _cursor: Cursor
+  cursor: Cursor
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.COMPONENT;
-  // Component execution is currently handled inline by _walkJSX.
-  // Full implementation will come with Step 6 (chore-driven render).
-}
 
-/**
- * Key for storing the SSR walk callback on a cursor root's props. The callback is a () =>
- * Promise<void> that calls _walkJSX with the stored JSX.
- */
-export const SSR_WALK_FN_KEY = ':ssrWalkFn';
+  const host = vNode as unknown as HostElement;
+  const componentQRL = container.getHostProp<QRLInternal<OnRenderFn<unknown>> | null>(
+    host,
+    OnRenderProp
+  );
+
+  if (!componentQRL) {
+    // No QRL means this was just dirtied during initial inline execution — nothing to do.
+    return;
+  }
+
+  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+
+  const result = safeCall(
+    () => executeComponent(container, host, host, componentQRL, props),
+    (jsx) => {
+      const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
+      return ssrVNodeDiff(container as SSRContainer, jsx, vNode, cursor, {
+        currentStyleScoped: addComponentStylePrefix(styleScopedId),
+        parentComponentFrame: null,
+      });
+    },
+    (err: any) => {
+      container.handleError(err, host);
+    }
+  );
+
+  if (isPromise(result)) {
+    return result as Promise<void>;
+  }
+}
 
 /**
  * Execute node diff for an SSR node. Mirrors client `executeNodeDiff`.
  *
- * For the initial render, this calls the stored walk callback (which calls _walkJSX). For
- * signal-driven changes, it will process JSX into child SsrNodes via ssrVNodeDiff.
+ * Processes stored JSX (from render() or signal-driven re-diffs) into child SsrNodes via
+ * ssrVNodeDiff. The cursor walker drives traversal through the resulting tree.
  */
 export function executeSsrNodeDiff(
   vNode: VNode,
@@ -105,17 +129,6 @@ export function executeSsrNodeDiff(
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.NODE_DIFF;
 
-  // Check for a stored walk callback (set by SSRContainer.render for initial render)
-  const walkFn = vNode.props?.[SSR_WALK_FN_KEY] as (() => Promise<void>) | undefined;
-  if (walkFn) {
-    delete vNode.props![SSR_WALK_FN_KEY];
-    // The callback wraps _walkJSX. We call it directly since the render() method
-    // already configured the WalkContext and options. ssrVNodeDiff will be used
-    // when render() is updated to use NODE_DIFF_DATA_KEY in Step 6.
-    return walkFn();
-  }
-
-  // NODE_DIFF_DATA_KEY path (for signal-driven re-diffs)
   const jsx = vNode.props?.[':nodeDiff'] as any;
   if (jsx) {
     delete vNode.props![':nodeDiff'];

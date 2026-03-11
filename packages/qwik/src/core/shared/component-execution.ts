@@ -113,24 +113,43 @@ export const executeComponent = (
           clearAllEffects(container, renderHost);
         }
 
-        return maybeThen(componentFn(props), (jsx) =>
-          maybeThen(iCtx.$waitOn$, () => {
-            // On SSR, drain cascading task dependencies before returning JSX.
-            // Task subscriptions (e.g., task A tracks store.x, task B sets store.x) cause
-            // markVNodeDirty to set TASKS on the host. We must run those tasks now so the
-            // component's JSX sees the final values.
-            if (isSsr && !isInlineComponent && vnode_isVNode(renderHost)) {
-              return maybeThen(drainCascadingTasks(renderHost, container), () => jsx);
-            }
-            return jsx;
-          })
-        );
+        return maybeThen(componentFn(props), (jsx) => maybeThen(iCtx.$waitOn$, () => jsx));
       },
       (jsx) => {
-        // In SSR, check if the component was marked dirty (COMPONENT bit) during execution.
-        // This happens when something completes and updates reactive primitives
-        // while we're waiting on $waitOn$. If so, we need to re-execute the component
-        // to get fresh JSX with updated values.
+        // In SSR, handle cascading task dependencies before returning JSX.
+        // When task A sets store.x and task B tracks store.x, the subscription fires
+        // synchronously during task execution, setting ChoreBits.TASKS on the host.
+        // Run those dirty tasks now so the component's JSX sees final values.
+        // This mirrors the cursor walker's TASKS → COMPONENT loop for inline execution.
+        if (isSsr && !isInlineComponent && vnode_isVNode(renderHost)) {
+          const runDirtyTasks = (): ValueOrPromise<void> => {
+            const vnode = renderHost as unknown as ISsrNode;
+            if (!(vnode.dirty & ChoreBits.TASKS)) {
+              return;
+            }
+            vnode.dirty &= ~ChoreBits.TASKS;
+            const elementSeq = container.getHostProp<any[]>(renderHost, ELEMENT_SEQ);
+            if (!elementSeq) {
+              return;
+            }
+            let p: ValueOrPromise<void> | undefined;
+            for (const item of elementSeq) {
+              if (item instanceof Task && item.$flags$ & TaskFlags.DIRTY) {
+                const r = runTask(item, container, renderHost);
+                if (isPromise(r)) {
+                  p = p ? maybeThen(p, () => r as Promise<void>) : (r as Promise<void>);
+                }
+              }
+            }
+            return maybeThen(p!, () => runDirtyTasks());
+          };
+          const result = runDirtyTasks();
+          if (isPromise(result)) {
+            return maybeThen(result, () => jsx);
+          }
+        }
+
+        // Also check COMPONENT re-dirty (signal changes during $waitOn$)
         if (isSsr && !isInlineComponent) {
           const ssrNode = renderHost as ISsrNode;
           if (ssrNode.dirty & ChoreBits.COMPONENT) {
@@ -343,41 +362,4 @@ function injectPlaceholderElement(
 /** @returns An empty <script> element for adding qwik metadata attributes to */
 function createPlaceholderScriptNode(): JSXNodeInternal<string> {
   return new JSXNodeImpl('script', null, { hidden: '' }, null, 0, null);
-}
-
-/**
- * Drain cascading task dependencies on an SSR host node.
- *
- * During SSR component execution, tasks run sequentially via `$waitOn$`. When a task sets a store
- * property that another task tracks, `markVNodeDirty` sets ChoreBits.TASKS on the host. This
- * function re-runs dirty tasks until no more cascading dependencies remain, ensuring the
- * component's JSX sees final computed values.
- */
-function drainCascadingTasks(host: HostElement, container: Container): ValueOrPromise<void> {
-  const vnode = host as any;
-  if (!(vnode.dirty & ChoreBits.TASKS)) {
-    return;
-  }
-  vnode.dirty &= ~ChoreBits.TASKS;
-
-  const ssrNode = host as unknown as ISsrNode;
-  const elementSeq = container.getHostProp(host, ELEMENT_SEQ);
-  if (!elementSeq || elementSeq.length === 0) {
-    return;
-  }
-
-  let taskPromise: ValueOrPromise<void>;
-  for (const item of elementSeq) {
-    if (item instanceof Task && item.$flags$ & TaskFlags.DIRTY) {
-      const result = runTask(item, container, host);
-      if (isPromise(result)) {
-        taskPromise = taskPromise!
-          ? maybeThen(taskPromise, () => result as Promise<void>)
-          : (result as Promise<void>);
-      }
-    }
-  }
-
-  // Recursively drain — tasks may trigger further cascading subscriptions
-  return maybeThen(taskPromise!, () => drainCascadingTasks(host, container));
 }

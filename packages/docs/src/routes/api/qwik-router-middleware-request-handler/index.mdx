@@ -97,9 +97,39 @@ export type CacheControl =
 
 Clear the in-memory SSR cache. Call after deployments or data changes.
 
+When `cacheKey` is provided, only that single entry is removed; otherwise the entire cache is cleared.
+
 ```typescript
-export declare function clearSsrCache(): void;
+export declare function clearSsrCache(cacheKey?: string): void;
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+cacheKey
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 
 **Returns:**
 

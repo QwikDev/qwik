@@ -6,8 +6,6 @@ import { buildErrorMessage } from 'vite';
 import { formatError } from '../buildtime/vite/format-error';
 import { msToString } from '../utils/format';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
-import { extractParamNames } from './extract-params';
-import { generateNotFoundPages } from './not-found';
 import { createRouteTester } from './routes';
 import type { SsgOptions, SsgResult, SsgRoute, System } from './types';
 
@@ -25,7 +23,7 @@ export async function mainThread(sys: System) {
 
   const queue: SsgRoute[] = [];
   const active = new Set<string>();
-  const routes = qwikRouterConfig.routes || [];
+  const routes = qwikRouterConfig.routes;
   const trailingSlash = !!qwikRouterConfig.trailingSlash;
   const includeRoute = createRouteTester(opts.basePathname || '/', opts.include, opts.exclude);
 
@@ -44,8 +42,6 @@ export async function mainThread(sys: System) {
 
       const completed = async () => {
         const closePromise = main.close();
-
-        await generateNotFoundPages(sys, opts, routes);
 
         generatorResult.duration = timer();
 
@@ -176,21 +172,45 @@ export async function mainThread(sys: System) {
         }
       };
 
-      const loadStaticRoute = async (route: RouteData) => {
-        const [routeName, loaders, originalPathname] = route;
-        const modules = await Promise.all(loaders.map((loader) => loader()));
-        const pageModule: PageModule = modules[modules.length - 1] as any;
-        const paramNames = extractParamNames(routeName);
+      /**
+       * Traverse the route tree and call the callback for each route that has module loaders.
+       * Reconstructs the original pathname and param names from the tree path. Accumulates _L
+       * layout loaders from ancestors during traversal.
+       */
+      const traverseRouteTree = async (
+        node: RouteData,
+        pathParts: string[],
+        basePathname: string,
+        ancestorLoaders: (() => Promise<any>)[]
+      ) => {
+        // Accumulate this node's layout loader
+        const currentLoaders = node._L
+          ? [...ancestorLoaders, node._L as () => Promise<any>]
+          : ancestorLoaders;
 
-        // if a module has a "default" export, it's a page module
-        // if a module has a "onGet" or "onRequest" export, it's an endpoint module for static generation
-        const isValidStaticModule =
-          pageModule && (pageModule.default || pageModule.onRequest || pageModule.onGet);
+        // Check if this node has an index (_I) — that means it's a page
+        const index = node._I;
+        if (index) {
+          const pageLoaders = Array.isArray(index)
+            ? (index as (() => Promise<any>)[])
+            : [...currentLoaders, index as () => Promise<any>];
 
-        if (isValidStaticModule) {
-          if (Array.isArray(paramNames) && paramNames.length > 0) {
-            if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
-              // dynamic route page module
+          // Reconstruct the original pathname from path parts
+          const originalPathname = basePathname + pathParts.join('/') + '/';
+          const paramNames = pathParts
+            .filter((p) => p.startsWith('[') && p.endsWith(']'))
+            .map((p) => (p.startsWith('[...') ? p.slice(4, -1) : p.slice(1, -1)));
+
+          // Load all modules (last one is the page module)
+          const modules = await Promise.all(
+            pageLoaders
+              .filter((l): l is () => Promise<any> => typeof l === 'function')
+              .map((l) => l())
+          );
+          const pageModule: PageModule = modules[modules.length - 1] as any;
+
+          if (paramNames.length > 0) {
+            if (typeof pageModule.onStaticGenerate === 'function') {
               const staticGenerate = await pageModule.onStaticGenerate({
                 env: {
                   get(key: string) {
@@ -200,24 +220,60 @@ export async function mainThread(sys: System) {
               });
               if (Array.isArray(staticGenerate.params)) {
                 for (const params of staticGenerate.params) {
-                  const pathname = getPathnameForDynamicRoute(
-                    originalPathname!,
-                    paramNames,
-                    params
-                  );
+                  const pathname = getPathnameForDynamicRoute(originalPathname, paramNames, params);
                   addToQueue(pathname, params);
                 }
               }
             }
           } else {
-            // static route page module
             addToQueue(originalPathname, undefined);
           }
+        }
+
+        // Recurse into group nodes (_M array)
+        if (node._M) {
+          for (const group of node._M as RouteData[]) {
+            await traverseRouteTree(group, pathParts, basePathname, currentLoaders);
+          }
+        }
+
+        // Recurse into _W (wildcard) and _A (rest) child nodes
+        if (node._W && typeof node._W === 'object') {
+          const childNode = node._W as RouteData;
+          const paramName = childNode._P as string | undefined;
+          const pathPart = paramName ? `[${paramName}]` : '[param]';
+          await traverseRouteTree(
+            childNode,
+            [...pathParts, pathPart],
+            basePathname,
+            currentLoaders
+          );
+        }
+        if (node._A && typeof node._A === 'object') {
+          const childNode = node._A as RouteData;
+          const paramName = childNode._P as string | undefined;
+          const pathPart = paramName ? `[...${paramName}]` : '[...rest]';
+          await traverseRouteTree(
+            childNode,
+            [...pathParts, pathPart],
+            basePathname,
+            currentLoaders
+          );
+        }
+
+        // Recurse into regular child nodes (skip metadata keys starting with '_')
+        for (const [key, child] of Object.entries(node)) {
+          if (key.charCodeAt(0) === 95 /* '_' */) {
+            continue;
+          }
+          const childNode = child as RouteData;
+          await traverseRouteTree(childNode, [...pathParts, key], basePathname, currentLoaders);
         }
       };
 
       const loadStaticRoutes = async () => {
-        await Promise.all(routes.map(loadStaticRoute));
+        const basePathname = opts.basePathname || '/';
+        await traverseRouteTree(routes, [], basePathname, []);
         isRoutesLoaded = true;
         flushQueue();
       };

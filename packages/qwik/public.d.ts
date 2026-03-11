@@ -1,5 +1,6 @@
 export {
   $,
+  AsyncSignal,
   ClassList,
   Component,
   component$,

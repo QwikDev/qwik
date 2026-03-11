@@ -1,15 +1,20 @@
 declare module '@qwik-router-config' {
-  export const routes: any[];
-  export const menus: any[];
+  import type { MenuData, RouteData, RouteModule } from '@qwik.dev/router';
+  export const routes: RouteData;
+  export const menus: MenuData[];
+  export const serverPlugins: RouteModule[];
   export const trailingSlash: boolean;
   export const basePathname: string;
   export const cacheModules: boolean;
+  export const fallthrough: boolean;
   const defaultExport: {
-    routes: any[];
-    menus: any[];
+    routes: RouteData;
+    menus: MenuData[];
+    serverPlugins: RouteModule[];
     trailingSlash: boolean;
     basePathname: string;
     cacheModules: boolean;
+    fallthrough: boolean;
   };
   export default defaultExport;
 }

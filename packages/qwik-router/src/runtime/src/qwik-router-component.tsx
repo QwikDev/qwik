@@ -34,6 +34,7 @@ import {
   ContentContext,
   ContentInternalContext,
   DocumentHeadContext,
+  HttpStatusContext,
   RouteActionContext,
   RouteLocationContext,
   RouteNavigateContext,
@@ -51,28 +52,29 @@ import {
   saveScrollHistory,
 } from './scroll-restoration';
 import spaInit from './spa-init';
-import type {
-  Action,
-  ActionInternal,
-  ClientPageData,
-  ContentModule,
-  ContentState,
-  ContentStateInternal,
-  DocumentHeadValue,
-  Editable,
-  EndpointResponse,
-  LoadedRoute,
-  Loader,
-  LoaderInternal,
-  MutableRouteLocation,
-  PageModule,
-  PreventNavigateCallback,
-  ResolvedDocumentHead,
-  RouteActionResolver,
-  RouteActionValue,
-  RouteNavigate,
-  RouteStateInternal,
-  ScrollState,
+import {
+  LoadedRouteProp,
+  type Action,
+  type ActionInternal,
+  type ClientPageData,
+  type ContentModule,
+  type ContentState,
+  type ContentStateInternal,
+  type DocumentHeadValue,
+  type Editable,
+  type EndpointResponse,
+  type LoadedRoute,
+  type Loader,
+  type LoaderInternal,
+  type MutableRouteLocation,
+  type PageModule,
+  type PreventNavigateCallback,
+  type ResolvedDocumentHead,
+  type RouteActionResolver,
+  type RouteActionValue,
+  type RouteNavigate,
+  type RouteStateInternal,
+  type ScrollState,
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
@@ -219,6 +221,11 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   });
 
   const contentInternal = useSignal<ContentStateInternal>();
+
+  const httpStatus = useStore({
+    status: env.response.status,
+    message: env.loadedRoute[LoadedRouteProp.NotFound] ? 'Not Found' : '',
+  });
 
   const currentActionId = env.response.action;
   const currentAction = currentActionId ? env.response.loaders[currentActionId] : undefined;
@@ -404,6 +411,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
+  useContextProvider(HttpStatusContext, httpStatus);
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
@@ -482,8 +490,17 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
 
       if (loadedRoute) {
-        const [routeName, params, mods, menu] = loadedRoute;
+        const [routeName, params, mods, menu, , isNotFound] = loadedRoute;
         const contentModules = mods as ContentModule[];
+
+        // Update httpStatus for 404/error pages
+        if (isNotFound) {
+          httpStatus.status = 404;
+          httpStatus.message = 'Not Found';
+        } else {
+          httpStatus.status = clientPageData?.status ?? 200;
+          httpStatus.message = '';
+        }
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Restore search params unless it's a redirect
@@ -940,9 +957,12 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
 
   const actionState = useSignal<RouteActionValue>();
 
+  const httpStatus = useStore({ status: 200, message: '' });
+
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
+  useContextProvider(HttpStatusContext, httpStatus);
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);

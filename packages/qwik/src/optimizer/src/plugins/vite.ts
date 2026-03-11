@@ -1,5 +1,12 @@
 import type { ResolvedId } from 'rollup';
-import type { BuildOptions, UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
+import type {
+  BuildOptions,
+  ConfigEnv,
+  EnvironmentOptions,
+  UserConfig,
+  ViteDevServer,
+  Plugin as VitePlugin,
+} from 'vite';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -68,6 +75,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let rootDir: string | null = null;
 
   let ssrOutDir: string | null = null;
+  let buildMode: QwikBuildMode = 'development';
   // Cache the user-specified clientOutDir to use across multiple normalizeOptions calls
   const userClientOutDir = qwikViteOpts.client?.outDir;
   // Cache the resolved plugin options from config() to reuse in configResolved()
@@ -118,7 +126,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       viteCommand = viteEnv.command;
 
-      let buildMode: QwikBuildMode;
       if (viteEnv.mode === 'production') {
         buildMode = 'production';
       } else if (viteEnv.mode === 'development') {
@@ -214,13 +221,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qSerialize = viteConfig?.define?.[qSerializeKey] ?? isDevelopment;
 
       const updatedViteConfig: UserConfig = {
+        // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
         ssr: {
           noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
           dedupe: [...DEDUPE],
-          conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
           alias: {
             '@builder.io/qwik': '@qwik.dev/core',
             '@builder.io/qwik/build': '@qwik.dev/core/build',
@@ -235,13 +242,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             '@builder.io/qwik/testing': '@qwik.dev/core/testing',
           },
         },
-        esbuild:
-          viteCommand === 'serve'
-            ? false
-            : {
-                logLevel: 'error',
-                jsx: 'automatic',
-              },
         optimizeDeps: {
           exclude: [
             // using optimized deps for qwik libraries will lead to duplicate imports
@@ -353,6 +353,23 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       return updatedViteConfig;
     },
 
+    configEnvironment(name: string, config: EnvironmentOptions, _env: ConfigEnv) {
+      const isServer = config.consumer === 'server';
+      if (isServer) {
+        return {
+          resolve: {
+            noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+          },
+        } satisfies EnvironmentOptions;
+      }
+      // Client environment
+      return {
+        resolve: {
+          conditions: buildMode === 'production' ? ['min'] : [],
+        },
+      } satisfies EnvironmentOptions;
+    },
+
     async configResolved(config) {
       basePathname = config.base;
       if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
@@ -449,10 +466,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     generateBundle: {
       order: 'post',
       async handler(_, rollupBundle) {
-        const opts = qwikPlugin.getOptions();
+        const isClient = this.environment.config.consumer === 'client';
 
-        if (opts.target === 'client') {
+        if (isClient) {
           // client build
+          const opts = qwikPlugin.getOptions();
 
           for (const [fileName, b] of Object.entries(rollupBundle)) {
             if (b.type === 'asset') {
@@ -506,7 +524,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async writeBundle(_, rollupBundle) {
       const opts = qwikPlugin.getOptions();
-      if (opts.target === 'ssr') {
+      const isSSR = this.environment.config.consumer === 'server';
+      if (isSSR) {
         // ssr build
 
         const sys = qwikPlugin.getSys();
@@ -696,7 +715,8 @@ async function checkExternals() {
     resolveId: {
       order: 'pre',
       async handler(source, importer, options) {
-        if (!options.ssr || /^([./]|node:|[^a-z@])/i.test(source) || seen.has(source)) {
+        const isSSR = this.environment.config.consumer === 'server';
+        if (!isSSR || /^([./]|node:|[^a-z@])/i.test(source) || seen.has(source)) {
           return;
         }
         const packageName = (

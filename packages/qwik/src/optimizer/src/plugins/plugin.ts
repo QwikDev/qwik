@@ -433,8 +433,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const getIsServer = (viteOpts?: { ssr?: boolean }) => {
-    return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
+  /** Determine if the current module is being processed for a server environment. */
+  const getIsServer = (ctx: Rollup.PluginContext, viteOpts?: { ssr?: boolean }) => {
+    return ctx.environment
+      ? ctx.environment.config.consumer === 'server'
+      : devServer
+        ? !!viteOpts?.ssr
+        : opts.target === 'ssr' || opts.target === 'test';
   };
 
   let resolveIdCount = 0;
@@ -487,7 +492,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     const count = resolveIdCount++;
-    const isServer = getIsServer(resolveOpts);
+    const isServer = getIsServer(ctx, resolveOpts);
     debug(`resolveId(${count})`, `begin ${id} | ${isServer ? 'server' : 'client'} | ${importerId}`);
 
     const parsedImporterId = importerId && parseId(importerId);
@@ -648,7 +653,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const count = loadCount++;
-    const isServer = getIsServer(loadOpts);
+    const isServer = getIsServer(ctx, loadOpts);
 
     // Virtual modules
     if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
@@ -726,7 +731,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const count = transformCount++;
-    const isServer = getIsServer(transformOpts);
+    const isServer = getIsServer(ctx, transformOpts);
     const currentOutputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
       // This is a QRL segment, and we don't need to process it any further

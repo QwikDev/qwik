@@ -1052,6 +1052,79 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.getComponentFrame(localProjectionDepth);
   }
 
+  enterComponentContext(componentNode: ISsrNode, existingFrame?: ISsrComponentFrame): void {
+    // Push fragment context: save current ssrNode and set component as new parent
+    this.activeWalkCtx.ssrNodeStack.push(this.activeWalkCtx.currentElementFrame?.ssrNode ?? null);
+
+    // Push a synthetic element frame for the component boundary.
+    // Use the tag nesting that was stored during tree-building (the parent element's nesting).
+    const storedTagNesting = componentNode.getProp(':parentTagNesting');
+    const parentFrame = this.activeWalkCtx.currentElementFrame;
+    const syntheticFrame: ElementFrame = {
+      tagNesting: storedTagNesting ?? (parentFrame ? parentFrame.tagNesting : TagNesting.ANYTHING),
+      parent: parentFrame,
+      elementName: ':component',
+      depthFirstElementIdx: this.depthFirstElementCount,
+      vNodeData: [VNodeDataFlag.NONE] as VNodeData,
+      currentFile: null,
+      ssrNode: componentNode,
+    };
+    this.activeWalkCtx.currentElementFrame = syntheticFrame;
+
+    // Set up component tracking
+    this.activeWalkCtx.currentComponentNode = componentNode;
+    this.activeWalkCtx.componentStack.push(existingFrame || new SsrComponentFrame(componentNode));
+  }
+
+  /**
+   * Restore WalkContext after executing within a component. Mirrors enterComponentContext. Pops
+   * fragment and component context, emits unclaimed projections.
+   */
+  leaveComponentContext(): ValueOrPromise<void> {
+    const componentFrame = this.activeWalkCtx.componentStack.pop()!;
+
+    const cleanup = () => {
+      // Pop synthetic element frame pushed by enterComponentContext
+      if (this.activeWalkCtx.currentElementFrame) {
+        this.activeWalkCtx.currentElementFrame = this.activeWalkCtx.currentElementFrame.parent;
+      }
+      // Restore fragment context
+      const prev = this.activeWalkCtx.ssrNodeStack.pop() ?? null;
+      if (this.activeWalkCtx.currentElementFrame) {
+        this.activeWalkCtx.currentElementFrame.ssrNode = prev;
+      }
+      this.activeWalkCtx.lastNode = null;
+      // Restore component parent
+      this.activeWalkCtx.currentComponentNode =
+        this.activeWalkCtx.currentComponentNode?.parentComponent || null;
+    };
+
+    const result = this.emitUnclaimedProjectionForComponent(componentFrame);
+    if (isPromise(result)) {
+      return (result as Promise<void>).then(cleanup);
+    }
+    cleanup();
+  }
+
+  /**
+   * Creates a component frame and distributes children into slots WITHOUT modifying walker context.
+   * Used by ssrComponent during tree-building to set up deferred component state.
+   */
+  createAndDistributeComponentFrame(
+    host: ISsrNode,
+    children: JSXChildren,
+    parentScopedStyle: string | null,
+    parentComponentFrame: ISsrComponentFrame | null
+  ): ISsrComponentFrame {
+    const frame = new SsrComponentFrame(host);
+    frame.distributeChildrenIntoSlots(
+      children,
+      parentScopedStyle,
+      parentComponentFrame as SsrComponentFrame | null
+    );
+    return frame;
+  }
+
   /** Writes closing data to vNodeData for component boundaries and emit unclaimed projections inline */
   async closeComponent() {
     const componentFrame = this.activeWalkCtx.componentStack.pop()!;
@@ -1066,13 +1139,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private async emitUnclaimedProjectionForComponent(
+  private emitUnclaimedProjectionForComponent(
     componentFrame: ISsrComponentFrame
-  ): Promise<void> {
+  ): ValueOrPromise<void> {
     if (componentFrame.slots.length === 0) {
       return;
     }
+    return this._emitUnclaimedProjectionAsync(componentFrame);
+  }
 
+  private async _emitUnclaimedProjectionAsync(componentFrame: ISsrComponentFrame): Promise<void> {
     this.openElement(QTemplate, null, QTemplateProps, null);
 
     const scopedStyleId = componentFrame.projectionScopedStyle;
@@ -1090,6 +1166,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
       }
       componentFrame.componentNode.setProp(slotName, lastNode);
+      // Connect VNode parent chain so markVNodeDirty can walk up to cursor root
+      // when deferred components are found inside unclaimed projections
+      const lastNodeVNode = lastNode as unknown as VirtualVNode;
+      if (!lastNodeVNode.parent) {
+        lastNodeVNode.parent = componentFrame.componentNode as unknown as VirtualVNode;
+      }
       // Use projectionComponentFrame so that Slots can find their projections from the correct parent
       await ssrDiff(
         this,
@@ -1241,7 +1323,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     if (!this.styleIds.has(styleId)) {
       this.styleIds.add(styleId);
-      if (this.activeWalkCtx.currentElementFrame?.elementName === 'html') {
+      if (this._isInsideHtmlElement()) {
         this.additionalHeadNodes.push(
           _jsxSorted(
             'style',
@@ -1256,6 +1338,23 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this._styleNode(styleId, content);
       }
     }
+  }
+
+  /**
+   * Check if the nearest real element frame is 'html'. Looks through synthetic ':component' frames
+   * pushed by enterComponentContext, using the stored parent element name from tree-building time.
+   */
+  private _isInsideHtmlElement(): boolean {
+    const frame = this.activeWalkCtx.currentElementFrame;
+    if (!frame) {
+      return false;
+    }
+    if (frame.elementName === ':component') {
+      // Use stored parent element name from tree-building time
+      const storedName = frame.ssrNode?.getProp(':parentElementName');
+      return storedName === 'html';
+    }
+    return frame.elementName === 'html';
   }
 
   private _styleNode(styleId: string, content: string) {

@@ -1,3 +1,5 @@
+@import '@qds.dev/ui/tailwind';
+
 @import 'tailwindcss';
 
 @layer base {
@@ -109,6 +111,7 @@
   --shadow-heading: 4px 4px 0 0 var(--color-violet-85);
   --shadow-body: 4px 4px 0 0 var(--color-sky-15);
   --shadow-card: 6px 6px 0 0 var(--color-sky-45);
+  --shadow-base: 6px 6px 0 0 var(--color-sky-15);
 
   /*
      * Spacing — uses Tailwind 4 defaults (4px base).
@@ -215,6 +218,35 @@
   --color-rose-95: #670015;
   --color-rose-100: #43000a;
   --color-rose-deep: #0f0202;
+
+  --animate-to-visible: to-visible 325ms ease-in-out forwards;
+  --animate-to-invisible: to-invisible 325ms ease-in-out forwards;
+  --animate-from-invisible: from-invisible 325ms ease-in-out forwards;
+  --animate-from-visible: from-visible 325ms ease-in-out forwards;
+
+  @keyframes from-visible {
+    from {
+      opacity: 1;
+    }
+  }
+
+  @keyframes to-visible {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes from-invisible {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes to-invisible {
+    to {
+      opacity: 0;
+    }
+  }
 }
 
 @utility bg-hero-gradient-blue {

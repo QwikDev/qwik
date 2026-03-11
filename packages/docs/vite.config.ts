@@ -195,6 +195,8 @@ export default defineConfig(() => {
         'qwik-image',
         '@modular-forms/qwik',
         '@qwik-ui/headless',
+        '@qds.dev/ui',
+        '@qds.dev/tools',
       ],
       resolve: {
         conditions: ['import', 'worker', 'default'],

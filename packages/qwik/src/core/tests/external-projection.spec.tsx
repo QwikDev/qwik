@@ -1,7 +1,12 @@
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { domRender } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { _addProjection, _slotReady, _updateProjectionProps, _removeProjection } from '../internal';
+import {
+  _addProjection,
+  _setProjectionTarget,
+  _updateProjectionProps,
+  _removeProjection,
+} from '../internal';
 import { waitForDrain } from '../../testing/util';
 
 const DEBUG = false;
@@ -41,7 +46,7 @@ describe('external-projection (CSR)', () => {
     expect(projectionVNode).toBeDefined();
 
     // Set the target element (simulating React's ref callback)
-    _slotReady(projectionVNode, targetEl);
+    _setProjectionTarget(projectionVNode, targetEl);
 
     // Wait for the cursor walker to process the new VNode
     await waitForDrain(container);
@@ -74,7 +79,7 @@ describe('external-projection (CSR)', () => {
       '_rq:update-test'
     );
 
-    _slotReady(projectionVNode, targetEl);
+    _setProjectionTarget(projectionVNode, targetEl);
     await waitForDrain(container);
 
     expect(targetEl.innerHTML).toContain('initial');
@@ -111,7 +116,7 @@ describe('external-projection (CSR)', () => {
       slotName
     );
 
-    _slotReady(projectionVNode, targetEl);
+    _setProjectionTarget(projectionVNode, targetEl);
     await waitForDrain(container);
 
     expect(targetEl.innerHTML).toContain('to be removed');
@@ -156,7 +161,7 @@ describe('external-projection (CSR)', () => {
       slotName
     );
 
-    _slotReady(projectionVNode, targetEl);
+    _setProjectionTarget(projectionVNode, targetEl);
     await waitForDrain(container);
 
     expect(targetEl.innerHTML).toContain('with effects');

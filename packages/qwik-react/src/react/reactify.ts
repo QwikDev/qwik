@@ -2,7 +2,7 @@ import { Component, createElement, createRef } from 'react';
 import { implicit$FirstArg, type QRL } from '@qwik.dev/core';
 import {
   _addProjection,
-  _slotReady,
+  _setProjectionTarget,
   _updateProjectionProps,
   _removeProjection,
 } from '@qwik.dev/core/internal';
@@ -78,10 +78,10 @@ export function reactifyQrl(qwikCompQrl: QRL<any>): any {
         // Use pendingProps if React updated props before the QRL resolved
         const reactProps = getReactProps(this.pendingProps || this.props);
         this.vnode = _addProjection(container, parentVNode, qwikCompQrl, reactProps, this.slotName);
-        // Clear the marker comment right before _slotReady so the div is empty
+        // Clear the marker comment right before _setProjectionTarget so the div is empty
         // when Qwik's cursor walker processes it on the next microtask.
         div.replaceChildren();
-        _slotReady(this.vnode, div);
+        _setProjectionTarget(this.vnode, div);
       });
     }
 

@@ -227,7 +227,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   getParentHost(host: VNode): VNode | null {
-    let vNode: VNode | null = host.parent || host.slotParent;
+    let vNode: VNode | null = host.parent;
     while (vNode) {
       if (vnode_isVirtualVNode(vNode)) {
         if (vnode_getProp(vNode, OnRenderProp, null) !== null) {

@@ -1,4 +1,4 @@
-import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
 import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
@@ -475,7 +475,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         // Find the actual file on disk by asking vite to resolve it
         const resolved = await ctx.resolve(origId, importerId);
         if (resolved) {
-          const file = devServer!.moduleGraph.getModuleById(resolved.id)?.file;
+          const devEnv = ctx.environment as DevEnvironment;
+          const file = devEnv.moduleGraph.getModuleById(resolved.id)?.file;
           if (file) {
             const path = `${file}${location}`;
             try {
@@ -689,14 +690,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (devServer && !outputs.has(id)) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
+      const devEnv = ctx.environment as DevEnvironment;
       const parentId = parentIds.get(id);
       if (parentId) {
-        const parentModule = devServer.moduleGraph.getModuleById(parentId);
+        const parentModule = devEnv.moduleGraph.getModuleById(parentId);
         if (parentModule) {
-          // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
           debug(`load(${count})`, 'transforming QRL parent', parentId);
-          // We need to encode it as an absolute path
-          await devServer.transformRequest(parentModule.url);
+          await devEnv.transformRequest(parentModule.url);
           // The QRL segment should exist now
           if (!outputs.has(id)) {
             debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
@@ -776,7 +776,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
       if (devServer) {
-        devPath = devServer.moduleGraph.getModuleById(pathId)?.url;
+        devPath = (ctx.environment as DevEnvironment).moduleGraph.getModuleById(pathId)?.url;
       }
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath, devPath }],
@@ -1014,24 +1014,27 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     opts.sourcemap = sourcemap;
   }
 
-  // Only used in Vite dev mode
-  function handleHotUpdate(ctx: HmrContext) {
-    debug('handleHotUpdate()', ctx.file);
+  // Only used in Vite dev mode, called per-environment
+  function hotUpdate(environment: DevEnvironment, ctx: HotUpdateOptions) {
+    debug('hotUpdate()', ctx.file, environment.config.consumer);
+
+    const outputs =
+      environment.config.consumer === 'server'
+        ? serverTransformedOutputs
+        : clientTransformedOutputs;
 
     for (const mod of ctx.modules) {
       const { id } = mod;
       if (id) {
-        debug('handleHotUpdate()', `invalidate ${id}`);
+        debug('hotUpdate()', `invalidate ${id}`);
         clientResults.delete(id);
-        for (const outputs of [clientTransformedOutputs, serverTransformedOutputs]) {
-          for (const [key, [_, parentId]] of outputs) {
-            if (parentId === id) {
-              debug('handleHotUpdate()', `invalidate ${id} segment ${key}`);
-              outputs.delete(key);
-              const mod = ctx.server.moduleGraph.getModuleById(key);
-              if (mod) {
-                ctx.server.moduleGraph.invalidateModule(mod);
-              }
+        for (const [key, [_, parentId]] of outputs) {
+          if (parentId === id) {
+            debug('hotUpdate()', `invalidate ${id} segment ${key}`);
+            outputs.delete(key);
+            const segMod = environment.moduleGraph.getModuleById(key);
+            if (segMod) {
+              environment.moduleGraph.invalidateModule(segMod);
             }
           }
         }
@@ -1154,7 +1157,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     validateSource,
     setSourceMapSupport,
     configureServer,
-    handleHotUpdate,
+    hotUpdate,
     manualChunks,
     generateManifest,
   };

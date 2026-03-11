@@ -599,13 +599,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
     },
 
-    handleHotUpdate(ctx) {
-      qwikPlugin.handleHotUpdate(ctx);
+    hotUpdate(ctx) {
+      qwikPlugin.hotUpdate(this.environment, ctx);
 
       // Tell the client to reload the page if any modules were used in ssr or client
       // this needs to be refined
       if (ctx.modules.length) {
-        ctx.server.hot.send({
+        this.environment.hot.send({
           type: 'full-reload',
         });
       }

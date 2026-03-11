@@ -631,6 +631,12 @@ function ssrPromise(ctx: SsrDiffContext, promise: Promise<any>) {
   ssr.openFragment(attrs);
   const node = ssr.getOrCreateLastNode();
   ctx.$vNewNode$ = node as unknown as VNode;
+  // Ensure VNode parent chain is connected for dirty propagation (async path doesn't call
+  // ssrDescend which normally sets this).
+  const nodeVNode = node as unknown as VNode;
+  if (!nodeVNode.parent) {
+    nodeVNode.parent = ctx.$vParent$;
+  }
 
   ssr.streamHandler.flush();
 

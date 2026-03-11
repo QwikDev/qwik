@@ -1078,32 +1078,26 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /**
    * Restore WalkContext after executing within a component. Mirrors enterComponentContext. Pops
-   * fragment and component context, emits unclaimed projections.
+   * fragment and component context. Unclaimed projections are NOT emitted here — they are deferred
+   * to executeSsrUnclaimedProjections (called by cursor walker after CHILDREN processing), because
+   * deferred child components may consume slots during their execution via Slot resolution.
    */
-  leaveComponentContext(): ValueOrPromise<void> {
-    const componentFrame = this.activeWalkCtx.componentStack.pop()!;
+  leaveComponentContext(): void {
+    this.activeWalkCtx.componentStack.pop();
 
-    const cleanup = () => {
-      // Pop synthetic element frame pushed by enterComponentContext
-      if (this.activeWalkCtx.currentElementFrame) {
-        this.activeWalkCtx.currentElementFrame = this.activeWalkCtx.currentElementFrame.parent;
-      }
-      // Restore fragment context
-      const prev = this.activeWalkCtx.ssrNodeStack.pop() ?? null;
-      if (this.activeWalkCtx.currentElementFrame) {
-        this.activeWalkCtx.currentElementFrame.ssrNode = prev;
-      }
-      this.activeWalkCtx.lastNode = null;
-      // Restore component parent
-      this.activeWalkCtx.currentComponentNode =
-        this.activeWalkCtx.currentComponentNode?.parentComponent || null;
-    };
-
-    const result = this.emitUnclaimedProjectionForComponent(componentFrame);
-    if (isPromise(result)) {
-      return (result as Promise<void>).then(cleanup);
+    // Pop synthetic element frame pushed by enterComponentContext
+    if (this.activeWalkCtx.currentElementFrame) {
+      this.activeWalkCtx.currentElementFrame = this.activeWalkCtx.currentElementFrame.parent;
     }
-    cleanup();
+    // Restore fragment context
+    const prev = this.activeWalkCtx.ssrNodeStack.pop() ?? null;
+    if (this.activeWalkCtx.currentElementFrame) {
+      this.activeWalkCtx.currentElementFrame.ssrNode = prev;
+    }
+    this.activeWalkCtx.lastNode = null;
+    // Restore component parent
+    this.activeWalkCtx.currentComponentNode =
+      this.activeWalkCtx.currentComponentNode?.parentComponent || null;
   }
 
   /**
@@ -1139,13 +1133,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private emitUnclaimedProjectionForComponent(
-    componentFrame: ISsrComponentFrame
-  ): ValueOrPromise<void> {
+  emitUnclaimedProjectionForComponent(componentFrame: ISsrComponentFrame): ValueOrPromise<void> {
     if (componentFrame.slots.length === 0) {
       return;
     }
-    return this._emitUnclaimedProjectionAsync(componentFrame);
+    const result = this._emitUnclaimedProjectionAsync(componentFrame);
+    // Clear slots to prevent double-emission (leaveComponentContext immediate + post-CHILDREN)
+    if (isPromise(result)) {
+      return (result as Promise<void>).then(() => {
+        componentFrame.slots.length = 0;
+      });
+    }
+    componentFrame.slots.length = 0;
+    return result;
   }
 
   private async _emitUnclaimedProjectionAsync(componentFrame: ISsrComponentFrame): Promise<void> {

@@ -1,4 +1,4 @@
-import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
+import type { ISsrComponentFrame, ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { ssrDiff } from '../../ssr/ssr-diff';
 import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
 import { executeComponent } from '../component-execution';
@@ -149,9 +149,12 @@ export function executeSsrNodeDiff(
       const componentFrame = ssr.getComponentFrame(0);
       const result = ssrDiff(ssr, jsx, vNode, cursor, styleScopedId, componentFrame);
       if (isPromise(result)) {
-        return (result as Promise<void>).then(() => ssr.leaveComponentContext());
+        return (result as Promise<void>).then(() => {
+          ssr.leaveComponentContext();
+        });
       }
-      return ssr.leaveComponentContext();
+      ssr.leaveComponentContext();
+      return;
     }
 
     return ssrDiff(ssr, jsx, vNode, cursor, styleScopedId, null);
@@ -188,5 +191,60 @@ export function executeSsrNodeProps(vNode: VNode, container: Container): void {
   // and will be emitted when the node is streamed.
 }
 
-// Legacy _executeSsrChores removed — markVNodeDirty now propagates dirty bits
-// on both client and server. The cursor walker drives all SSR chore execution.
+/**
+ * Emit unclaimed projections for a component VNode after all its children have been processed.
+ *
+ * Called by the cursor walker when a node is about to be left (no more dirty bits, or after
+ * CHILDREN processing). This must happen AFTER children processing because deferred child
+ * components may consume slots during their execution (via Slot resolution). If we emitted
+ * unclaimed projections immediately in leaveComponentContext, we'd create duplicate SsrNodes with
+ * wrong parentComponent.
+ *
+ * Sets up minimal WalkContext state: the component's ssrNode as the current element frame's ssrNode
+ * (matching the state during original closeComponent), currentComponentNode pointing to the
+ * component node for proper parentComponent assignment on new SsrNodes.
+ */
+export function executeSsrUnclaimedProjections(
+  vNode: VNode,
+  container: Container,
+  _cursorData: CursorData,
+  cursor: Cursor
+): ValueOrPromise<void> {
+  const ssrNode = vNode as unknown as ISsrNode;
+  const componentFrame = ssrNode.getProp?.(':componentFrame') as ISsrComponentFrame | null;
+  if (!componentFrame || componentFrame.slots.length === 0) {
+    return;
+  }
+  console.log(
+    'UNCLAIMED',
+    ssrNode.getProp?.('q:renderFn')?.$symbol$?.slice(0, 30),
+    'slots=',
+    componentFrame.slots.length,
+    'dirty=',
+    vNode.dirty
+  );
+  const ssr = container as SSRContainer;
+  // Set up WalkContext to match the state during original closeComponent:
+  // currentComponentNode = this component, ssrNode = this component's node
+  const walkCtx = (ssr as any).activeWalkCtx;
+  const savedComponentNode = walkCtx.currentComponentNode;
+  const savedSsrNode = walkCtx.currentElementFrame?.ssrNode ?? null;
+  walkCtx.currentComponentNode = ssrNode;
+  if (walkCtx.currentElementFrame) {
+    walkCtx.currentElementFrame.ssrNode = ssrNode;
+  }
+
+  const result = ssr.emitUnclaimedProjectionForComponent(componentFrame);
+
+  const cleanup = () => {
+    walkCtx.currentComponentNode = savedComponentNode;
+    if (walkCtx.currentElementFrame) {
+      walkCtx.currentElementFrame.ssrNode = savedSsrNode;
+    }
+  };
+
+  if (isPromise(result)) {
+    return (result as Promise<void>).then(cleanup);
+  }
+  cleanup();
+}

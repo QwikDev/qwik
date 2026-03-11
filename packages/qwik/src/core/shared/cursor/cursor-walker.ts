@@ -20,6 +20,7 @@ import {
   executeSsrComponent,
   executeSsrNodeDiff,
   executeSsrNodeProps,
+  executeSsrUnclaimedProjections,
 } from './ssr-chore-execution';
 import { type Cursor } from './cursor';
 import { setCursorPosition, getCursorData, type CursorData } from './cursor-props';
@@ -147,6 +148,35 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
+      // Before leaving a component node, emit unclaimed projections.
+      // This handles components with no deferred children (CHILDREN bit not set).
+      if (isRunningOnServer) {
+        const unclaimedResult = executeSsrUnclaimedProjections(
+          currentVNode,
+          container,
+          cursorData,
+          cursor
+        );
+        if (unclaimedResult && isPromise(unclaimedResult)) {
+          cursorData.promise = unclaimedResult;
+          pauseCursor(cursor, container);
+          const host = currentVNode;
+          unclaimedResult
+            .catch((error) => {
+              container.handleError(error, host);
+            })
+            .finally(() => {
+              cursorData.promise = null;
+              resumeCursor(cursor, container);
+              triggerCursors();
+            });
+          return;
+        }
+        // If unclaimed projections made us dirty again, re-process this node
+        if (currentVNode.dirty & ChoreBits.DIRTY_MASK) {
+          continue;
+        }
+      }
       // Move to next node
       setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor));
       continue;
@@ -198,6 +228,11 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
         if (next !== null) {
           currentVNode = next;
           continue;
+        }
+        // After all dirty children processed, emit unclaimed projections for component nodes.
+        // Must happen AFTER children because deferred child components may consume slots.
+        if (isRunningOnServer) {
+          result = executeSsrUnclaimedProjections(currentVNode, container, cursorData, cursor);
         }
       }
     } catch (error) {

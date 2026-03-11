@@ -148,14 +148,16 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
-      // Before leaving a component node, emit unclaimed projections.
-      // This handles components with no deferred children (CHILDREN bit not set).
+      // Before moving on, emit unclaimed projections for this node AND all ancestors
+      // that getNextVNode will skip over during its recursive parent walk.
+      // getNextVNode clears CHILDREN bits on ancestors without the walker ever visiting them,
+      // so we must process unclaimed projections for the entire ancestor chain here.
       if (isRunningOnServer) {
-        const unclaimedResult = executeSsrUnclaimedProjections(
+        const unclaimedResult = emitUnclaimedProjectionsForChain(
           currentVNode,
+          cursor,
           container,
-          cursorData,
-          cursor
+          cursorData
         );
         if (unclaimedResult && isPromise(unclaimedResult)) {
           cursorData.promise = unclaimedResult;
@@ -411,4 +413,69 @@ export function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   parent!.dirtyChildren = null;
   parent!.nextDirtyChildIndex = 0;
   return getNextVNode(parent!, cursor);
+}
+
+/**
+ * Walk up the ancestor chain from `vNode` to `cursor` root, emitting unclaimed projections for each
+ * ancestor that has no remaining dirty children. This is needed because `getNextVNode` recursively
+ * clears CHILDREN bits on ancestors without the walker ever visiting them — so we process unclaimed
+ * projections for each ancestor that getNextVNode would skip over.
+ *
+ * Only processes an ancestor if its dirtyChildren are all clean (matching the condition under which
+ * getNextVNode would clear its CHILDREN bit). Stops at ancestors that still have dirty children —
+ * those will be visited later by the walker.
+ *
+ * If any emission is async, returns the promise immediately. The cursor will re-enter the "not
+ * dirty" branch on resume and call this function again to process remaining ancestors.
+ */
+function emitUnclaimedProjectionsForChain(
+  vNode: VNode,
+  cursor: Cursor,
+  container: Container,
+  cursorData: CursorData
+): ValueOrPromise<void> {
+  let node: VNode | null = vNode;
+
+  while (node) {
+    const result = executeSsrUnclaimedProjections(node, container, cursorData, cursor);
+    if (result && isPromise(result)) {
+      // Return immediately — don't continue ancestor walk.
+      // The emission may create new dirty children that change the ancestor state.
+      // When the cursor resumes, the walker will re-enter the "not dirty" branch
+      // and call this function again, which will continue the ancestor walk.
+      return result;
+    }
+    // If unclaimed projections made the node dirty again, stop — walker will re-process
+    if (node.dirty & ChoreBits.DIRTY_MASK) {
+      return;
+    }
+
+    if (node === cursor) {
+      break;
+    }
+
+    // Move to parent. But only continue if the parent's dirtyChildren are all clean
+    // (i.e., getNextVNode would clear its CHILDREN bit). If the parent still has other
+    // dirty children, stop — those children need to run first, and the walker will visit
+    // the parent later.
+    const parent: VNode | null = node.slotParent || node.parent;
+    if (!parent) {
+      break;
+    }
+
+    // Check if parent still has other dirty children
+    if (parent.dirty & ChoreBits.CHILDREN) {
+      const dirtyChildren = parent.dirtyChildren;
+      if (dirtyChildren) {
+        for (let i = 0; i < dirtyChildren.length; i++) {
+          if (dirtyChildren[i] !== node && dirtyChildren[i].dirty & ChoreBits.DIRTY_MASK) {
+            // Parent still has other dirty children — stop. Walker will handle this parent later.
+            return;
+          }
+        }
+      }
+    }
+
+    node = parent;
+  }
 }

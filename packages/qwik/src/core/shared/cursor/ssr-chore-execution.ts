@@ -184,7 +184,9 @@ export function executeSsrNodeProps(vNode: VNode, container: Container): void {
         value = value.value as any;
       }
       const serializedValue = serializeAttribute(property, value, nodeProp.scopedStyleIdPrefix);
-      (container as SSRContainer).addBackpatchEntry(ssrNode.id, property, serializedValue);
+      // Pass SsrNode reference (not id) so index is resolved at emission time,
+      // when the emitter has assigned final element indices.
+      (container as SSRContainer).addBackpatchEntry(ssrNode, property, serializedValue);
     }
   }
   // If still updatable, attrs are already stored on the SsrNode via setProp
@@ -215,23 +217,22 @@ export function executeSsrUnclaimedProjections(
   if (!componentFrame || componentFrame.slots.length === 0) {
     return;
   }
-  console.log(
-    'UNCLAIMED',
-    ssrNode.getProp?.('q:renderFn')?.$symbol$?.slice(0, 30),
-    'slots=',
-    componentFrame.slots.length,
-    'dirty=',
-    vNode.dirty
-  );
   const ssr = container as SSRContainer;
   // Set up WalkContext to match the state during original closeComponent:
   // currentComponentNode = this component, ssrNode = this component's node
+  // tagNesting = the component's parent element nesting (so q:template is allowed)
   const walkCtx = (ssr as any).activeWalkCtx;
   const savedComponentNode = walkCtx.currentComponentNode;
   const savedSsrNode = walkCtx.currentElementFrame?.ssrNode ?? null;
+  const savedTagNesting = walkCtx.currentElementFrame?.tagNesting;
   walkCtx.currentComponentNode = ssrNode;
   if (walkCtx.currentElementFrame) {
     walkCtx.currentElementFrame.ssrNode = ssrNode;
+    // Use the stored parent tag nesting from tree-building time, or ANYTHING as fallback
+    const storedTagNesting = ssrNode.getProp(':parentTagNesting');
+    if (storedTagNesting != null) {
+      walkCtx.currentElementFrame.tagNesting = storedTagNesting;
+    }
   }
 
   const result = ssr.emitUnclaimedProjectionForComponent(componentFrame);
@@ -240,6 +241,9 @@ export function executeSsrUnclaimedProjections(
     walkCtx.currentComponentNode = savedComponentNode;
     if (walkCtx.currentElementFrame) {
       walkCtx.currentElementFrame.ssrNode = savedSsrNode;
+      if (savedTagNesting != null) {
+        walkCtx.currentElementFrame.tagNesting = savedTagNesting;
+      }
     }
   };
 

@@ -91,10 +91,8 @@ export interface SSRContainer extends Container {
   openProjection(attrs: Props): void;
   closeProjection(): void;
 
-  openComponent(attrs: Props): void;
   getComponentFrame(projectionDepth: number): ISsrComponentFrame | null;
   getParentComponentFrame(): ISsrComponentFrame | null;
-  closeComponent(): Promise<void>;
   enterComponentContext(componentNode: ISsrNode, existingFrame?: ISsrComponentFrame): void;
   leaveComponentContext(): void;
   /**
@@ -130,7 +128,7 @@ export interface SSRContainer extends Container {
   emitPatchDataIfNeeded(): void;
 
   addBackpatchEntry(
-    ssrNodeId: string,
+    ssrNodeOrId: string | ISsrNode,
     attrName: string,
     serializedValue: string | boolean | null
   ): void;

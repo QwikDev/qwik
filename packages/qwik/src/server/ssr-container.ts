@@ -283,6 +283,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
   private backpatchMap = new Map<number, BackpatchEntry[]>();
+  /** In cursor-driven mode, backpatch entries keyed by SsrNode (index resolved at emission). */
+  private backpatchNodeMap = new Map<ISsrNode, BackpatchEntry[]>();
 
   /**
    * When true, container methods write directly to the stream instead of building tree. Only set
@@ -323,17 +325,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Current Suspense boundary node being built (for storing fallback content). */
   private currentSuspenseBoundary: ISsrNode | null = null;
 
-  /**
-   * Current parent VNode in the cursor tree. When non-null, openComponent sets VNode parent on each
-   * component SsrNode for dirty propagation.
-   */
-  _currentParentVNode: any = null;
-  /** Current cursor root. Reserved for future deferred component execution. */
-  _currentCursorRoot: any = null;
   /** Active cursor for ssrDiff calls from container methods (e.g., unclaimed projections). */
   _activeCursor: any = null;
   /** Stack for saving/restoring _currentParentVNode across nested component boundaries. */
-  private _parentVNodeStack: any[] = [];
 
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
@@ -397,19 +391,26 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   addBackpatchEntry(
-    ssrNodeId: string,
+    ssrNodeOrId: string | ISsrNode,
     attrName: string,
     serializedValue: string | boolean | null
   ): void {
-    // we want to always parse as decimal here
-    const elementIndex = parseInt(ssrNodeId, 10);
     const entry: BackpatchEntry = {
       attrName,
       value: serializedValue,
     };
-    const entries = this.backpatchMap.get(elementIndex) || [];
-    entries.push(entry);
-    this.backpatchMap.set(elementIndex, entries);
+    if (typeof ssrNodeOrId === 'string') {
+      // Direct streaming mode: element index is already final
+      const elementIndex = parseInt(ssrNodeOrId, 10);
+      const entries = this.backpatchMap.get(elementIndex) || [];
+      entries.push(entry);
+      this.backpatchMap.set(elementIndex, entries);
+    } else {
+      // Cursor-driven mode: defer index resolution until emission
+      const entries = this.backpatchNodeMap.get(ssrNodeOrId) || [];
+      entries.push(entry);
+      this.backpatchNodeMap.set(ssrNodeOrId, entries);
+    }
   }
 
   async render(jsx: JSXOutput) {
@@ -492,10 +493,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const bodyNode = this.isHtml ? this.findBodyNode(rootSsrNode) : null;
     const containerDataNode = bodyNode ?? rootSsrNode;
 
-    // Compute deferred Suspense boundaries (sub-cursor not yet complete).
-    const deferredBoundaries = this.suspenseBoundaries.filter(
-      (b) => !b.node.getProp(SSR_SUSPENSE_READY)
-    );
+    // All Suspense boundaries with sub-cursors are deferred for OoO streaming.
+    // In cursor-driven mode, sub-cursors complete synchronously during tree-building,
+    // but we still want OoO streaming behavior (emit fallback first, then content).
+    const deferredBoundaries = [...this.suspenseBoundaries];
     const deferredBoundarySet = new Set(deferredBoundaries.map((b) => b.node));
     const placeholderIdMap = new Map(
       deferredBoundaries.map((b) => [b.node, b.placeholderId] as const)
@@ -1015,25 +1016,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     });
   }
 
-  /** Writes opening data to vNodeData for component boundaries */
-  openComponent(attrs: Props) {
-    this.openFragment(attrs);
-    this.activeWalkCtx.currentComponentNode = this.getOrCreateLastNode();
-
-    // Set VNode parent for cursor tree integration (when called via ssrDiff).
-    // This enables markVNodeDirty to propagate dirty bits up to the cursor root.
-    if (this._currentParentVNode) {
-      const node = this.activeWalkCtx.currentComponentNode as any;
-      node.parent = this._currentParentVNode;
-      this._parentVNodeStack.push(this._currentParentVNode);
-      this._currentParentVNode = node;
-    }
-
-    this.activeWalkCtx.componentStack.push(
-      new SsrComponentFrame(this.activeWalkCtx.currentComponentNode)
-    );
-  }
-
   /**
    * Returns the current component frame.
    *
@@ -1137,24 +1119,23 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (componentFrame.slots.length === 0) {
       return;
     }
-    const result = this._emitUnclaimedProjectionAsync(componentFrame);
-    // Clear slots to prevent double-emission (leaveComponentContext immediate + post-CHILDREN)
-    if (isPromise(result)) {
-      return (result as Promise<void>).then(() => {
-        componentFrame.slots.length = 0;
-      });
-    }
+    // Capture and clear slots eagerly to prevent re-emission if the cursor walker revisits
+    // this node before the async processing completes (slots is a mapArray: [key, value, ...]).
+    const slots = componentFrame.slots.slice();
     componentFrame.slots.length = 0;
-    return result;
+    return this._emitUnclaimedProjectionAsync(componentFrame, slots);
   }
 
-  private async _emitUnclaimedProjectionAsync(componentFrame: ISsrComponentFrame): Promise<void> {
+  private async _emitUnclaimedProjectionAsync(
+    componentFrame: ISsrComponentFrame,
+    slots: (string | JSXChildren)[]
+  ): Promise<void> {
     this.openElement(QTemplate, null, QTemplateProps, null);
 
     const scopedStyleId = componentFrame.projectionScopedStyle;
-    for (let i = 0; i < componentFrame.slots.length; i += 2) {
-      const slotName = componentFrame.slots[i] as string;
-      const children = componentFrame.slots[i + 1] as JSXOutput;
+    for (let i = 0; i < slots.length; i += 2) {
+      const slotName = slots[i] as string;
+      const children = slots[i + 1] as JSXOutput;
 
       this.openFragment(
         isDev
@@ -1605,8 +1586,30 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         );
       }
     }
+    // Resolve deferred backpatch entries (cursor-driven mode) using emission-time element indices.
+    // Must be sorted by element index because the backpatch executor's TreeWalker only moves forward.
+    if (this.backpatchNodeMap.size > 0) {
+      const deferredPatches: { elementIndex: number; entries: BackpatchEntry[] }[] = [];
+      for (const [ssrNode, backpatchEntries] of this.backpatchNodeMap) {
+        const elementIndex = parseInt(ssrNode.id, 10);
+        deferredPatches.push({ elementIndex, entries: backpatchEntries });
+      }
+      deferredPatches.sort((a, b) => a.elementIndex - b.elementIndex);
+      for (const { elementIndex, entries } of deferredPatches) {
+        for (const backpatchEntry of entries) {
+          patches.push(
+            elementIndex,
+            backpatchEntry.attrName,
+            isSignal(backpatchEntry.value)
+              ? (backpatchEntry.value as unknown as SignalImpl<string>).untrackedValue
+              : (backpatchEntry.value as string)
+          );
+        }
+      }
+    }
 
     this.backpatchMap.clear();
+    this.backpatchNodeMap.clear();
 
     if (patches.length > 0) {
       this.isBackpatchExecutorEmitted = true;

@@ -17,13 +17,13 @@ export default component$(() => {
     <>
       {/* <Header /> */}
       <main>
-        <section class="relative space-y-10 flex flex-col items-center overflow-x-clip mx-auto">
+        <section class="relative space-y-10 flex flex-col items-center overflow-x-clip mx-auto px-4">
           <Decor />
           {/* Design spacer. TODO: adjust as needed for responsiveness */}
-          <Spacer class="h-63.5" />
+          <Spacer class="md:h-63.5 h-[128px]" />
 
           <div class="relative">
-            <h1 class="uppercase font-display text-h2 max-w-[15ch] text-center">
+            <h1 class="uppercase font-display md:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
               Automatically <span class="text-violet-75">Instant</span> Web Apps
             </h1>
             {clouds}
@@ -35,13 +35,13 @@ export default component$(() => {
           </p>
 
           {/* margin collapse from space-y so that the 110.5px is accurate */}
-          <div class="flex gap-6 justify-center mb-[110.5px]">
-            <Button variant="primary">
+          <div class="flex gap-6 justify-center md:mb-[110.5px] mb-[40px]">
+            <Button variant="primary" class="md:text-base text-sm">
               <span>Qwik Start</span>
               <lucide.arrowright />
             </Button>
 
-            <Button variant="secondary">
+            <Button variant="secondary" class="md:text-base text-sm">
               <span>npm create qwik@latest</span>
               <lucide.clipboard />
             </Button>
@@ -51,21 +51,40 @@ export default component$(() => {
             <span class="text-slate-75 text-sm">Special Sponsor</span>
             <div class="flex">
               <BuilderLogo width={117.35} height={25.2} />
-              <div class="w-px h-[25.2px] bg-slate-75 ml-7" />
+              <div class="w-px h-[25.2px] bg-slate-75 ml-7 md:block hidden" />
             </div>
-            <span class="max-w-[20ch] text-slate-75 text-sm">
+            <span class="max-w-[20ch] text-slate-75 text-sm md:block hidden">
               Ship twice as much, twice as fast
             </span>
           </div>
         </section>
 
-        <section
-          class="grid grid-cols-2 gap-20 max-w-[1440px] mx-auto pt-32 pb-20 px-20 box-content"
-          style={{ gridTemplateAreas: "'cards content'" }}
-        >
-          <div class="flex flex-col gap-10" style={{ gridArea: 'content' }}>
+        <section class="grid md:grid-cols-2 grid-cols-1 md:gap-20 max-w-[1440px] mx-auto md:pt-32 pt-10 pb-20 md:px-20 px-4 box-content">
+          <div class="flex flex-col">
+            <Card class="z-1">
+              <div class="md:p-10 p-6 flex flex-col gap-2 md:max-w-[48ch] max-w-[260px] text-center">
+                <h3 class="font-heading md:text-h5 text-sm ">Zero induced delays</h3>
+                <p class="md:text-body text-sm">
+                  Your app stays quick, no matter how large it gets.
+                </p>
+              </div>
+            </Card>
+
+            <Card class="self-end transform -translate-y-16 z-0">
+              <div class="md:p-10 p-6 flex flex-col gap-2 md:max-w-[48ch] max-w-[260px] text-center">
+                <h3 class="font-heading md:text-h5 text-sm">
+                  <span class="text-sky-75">~20s</span> quicker or more on 3G 🤯
+                </h3>
+                <p>
+                  Time to Interactive measured on chrome 3G throttling on a few mid-size sample
+                  apps.
+                </p>
+              </div>
+            </Card>
+          </div>
+          <div class="flex flex-col md:gap-10 gap-8">
             <div class="relative">
-              <h2 class="font-heading text-h3">
+              <h2 class="font-heading md:text-h3 text-[28px]">
                 <span class="bg-violet-10 mb-2 block w-fit shadow-heading">Introducing</span>
                 <span class="bg-violet-10 shadow-heading">JavaScript Streaming</span>
               </h2>
@@ -92,31 +111,10 @@ export default component$(() => {
               </p>
             </div>
 
-            <Button class="w-fit" variant="primary">
+            <Button class="w-fit md:text-base text-sm" variant="primary">
               <span>Discover more</span>
               <lucide.arrowright />
             </Button>
-          </div>
-
-          <div class="flex flex-col" style={{ gridArea: 'cards' }}>
-            <Card class="z-1">
-              <div class="p-10 flex flex-col gap-2 max-w-[48ch] text-center">
-                <h3 class="font-heading text-h5">Zero induced delays</h3>
-                <p>Your app stays quick, no matter how large it gets.</p>
-              </div>
-            </Card>
-
-            <Card class="self-end transform -translate-y-16 z-0">
-              <div class="p-10 flex flex-col gap-2 max-w-[48ch] text-center">
-                <h3 class="font-heading text-h5">
-                  <span class="text-sky-75">~20s</span> quicker or more on 3G 🤯
-                </h3>
-                <p>
-                  Time to Interactive measured on chrome 3G throttling on a few mid-size sample
-                  apps.
-                </p>
-              </div>
-            </Card>
           </div>
         </section>
       </main>

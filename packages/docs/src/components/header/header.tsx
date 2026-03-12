@@ -1,7 +1,7 @@
 import { component$, type JSXOutput } from '@qwik.dev/core';
 import { Button } from '../button/button';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
-import { navbar, lucide } from '@qds.dev/ui';
+import { navbar, lucide, streamlinepixel as pixel } from '@qds.dev/ui';
 import navBlogImg from '../../media/navbar/nav-blog.png';
 import navConceptsImg from '../../media/navbar/nav-concepts.png';
 import navCookbooksImg from '../../media/navbar/nav-cookbooks.png';
@@ -61,6 +61,7 @@ const contentBaseClass = tw(
 
 const triggerAnchorReset = 'anchor-name: none;';
 const contentAnchorReset = 'position-anchor: none;';
+const navPillIconClass = 'size-5 text-border-emphasis';
 
 const contentWidths: Record<string, string> = {
   Core: 'w-[calc(100vw-48px)] max-w-[840px]',
@@ -94,11 +95,31 @@ export const Header = component$(() => {
             >
               {/* Pills column */}
               <div class="flex flex-col gap-4 w-64.5 shrink-0">
-                <NavPill href="/docs/state" label="State" />
-                <NavPill href="/docs/lifecycle" label="Lifecycle" />
-                <NavPill href="/docs/events" label="Events" />
-                <NavPill href="/docs/tasks" label="Tasks" />
-                <NavPill href="/docs/slots" label="Slots" />
+                <NavPill
+                  href="/docs/state"
+                  label="State"
+                  icon={<pixel.internetnetworkarrowsync class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/lifecycle"
+                  label="Lifecycle"
+                  icon={<pixel.changecleanenergy class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/events"
+                  label="Events"
+                  icon={<pixel.interfaceessentialcursorclickpoint class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/tasks"
+                  label="Tasks"
+                  icon={<pixel.interfaceessentiallist class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/slots"
+                  label="Slots"
+                  icon={<pixel.contentfilesarchivebooks1 class={navPillIconClass} />}
+                />
               </div>
               {/* Image cards */}
               <ImageCard
@@ -161,11 +182,31 @@ export const Header = component$(() => {
             >
               {/* Pills column */}
               <div class="flex flex-col gap-4 w-64.5 shrink-0">
-                <NavPill href="/docs/routing" label="Routing" />
-                <NavPill href="/docs/data-fetching" label="Data Fetching" />
-                <NavPill href="/docs/deployments" label="Deployments" />
-                <NavPill href="/docs/middleware" label="Middleware" />
-                <NavPill href="/docs/api-routes" label="API Routes" />
+                <NavPill
+                  href="/docs/routing"
+                  label="Routing"
+                  icon={<pixel.computersdeviceselectronicsboard class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/data-fetching"
+                  label="Data Fetching"
+                  icon={<pixel.internetnetworkdownload class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/deployments"
+                  label="Deployments"
+                  icon={<pixel.businessproductstartup1 class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/middleware"
+                  label="Middleware"
+                  icon={<pixel.interfaceessentialhierarchy1 class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/docs/api-routes"
+                  label="API Routes"
+                  icon={<pixel.interfaceessentialcogdouble class={navPillIconClass} />}
+                />
               </div>
               {/* Single wide image card */}
               <ImageCard
@@ -207,8 +248,16 @@ export const Header = component$(() => {
                   image={navConceptsImg}
                   class="h-[212px]"
                 />
-                <NavPill href="/sandbox" label="Sandbox" />
-                <NavPill href="/labs" label="Qwik Labs" />
+                <NavPill
+                  href="/sandbox"
+                  label="Sandbox"
+                  icon={<pixel.codingappswebsitesplugin class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/labs"
+                  label="Qwik Labs"
+                  icon={<pixel.healthlaboratory class={navPillIconClass} />}
+                />
               </div>
             </navbar.itemcontent>
           </navbar.item>

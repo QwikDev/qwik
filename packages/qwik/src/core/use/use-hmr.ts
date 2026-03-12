@@ -38,8 +38,8 @@ export const _hmr = (event: Event, element: Element) => {
     const now = Date.now();
     const bustUrl = chunk.includes('?') ? chunk + '&t=' + now : chunk + '?t=' + now;
     const freshQrl = createQrl(bustUrl, oldQrl.$symbol$) as QRLInternal<OnRenderFn<unknown>>;
-    freshQrl.$container$ = container;
-    freshQrl.dev = oldQrl.dev;
+    freshQrl.$lazy$.$container$ = container;
+    freshQrl.$lazy$.dev = oldQrl.dev;
     container.setHostProp(host, OnRenderProp, freshQrl);
   }
   markVNodeDirty(container, host as VNode, ChoreBits.COMPONENT);

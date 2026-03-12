@@ -2,6 +2,12 @@
 
 @import 'tailwindcss';
 
+@property --shimmer-x {
+  syntax: '<percentage>';
+  initial-value: -20%;
+  inherits: false;
+}
+
 @layer base {
   body {
     font-family: var(--font-body);
@@ -299,7 +305,7 @@
   --animate-to-invisible: to-invisible 325ms ease-in-out forwards;
   --animate-from-invisible: from-invisible 325ms ease-in-out forwards;
   --animate-from-visible: from-visible 325ms ease-in-out forwards;
-  --animate-shimmer: shimmer 8s infinite backwards reverse cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-shimmer: shimmer 9s infinite backwards cubic-bezier(0.5, 0, 0.75, 0);
 
   @keyframes from-visible {
     from {
@@ -327,15 +333,15 @@
 
   @keyframes shimmer {
     0% {
-      background-position: -100% 0;
+      --shimmer-x: -20%;
     }
 
-    37.5% {
-      background-position: 100% 0;
+    50% {
+      --shimmer-x: 120%;
     }
 
     100% {
-      background-position: 100% 0;
+      --shimmer-x: 120%;
     }
   }
 }
@@ -360,12 +366,11 @@
   background: linear-gradient(
     120deg,
     transparent 0%,
-    transparent 46%,
-    white 50%,
-    transparent 54%,
+    transparent calc(var(--shimmer-x) - 8%),
+    white var(--shimmer-x),
+    transparent calc(var(--shimmer-x) + 8%),
     transparent 100%
   );
-  background-size: 200% 100%;
   background-clip: text;
   color: transparent;
 }

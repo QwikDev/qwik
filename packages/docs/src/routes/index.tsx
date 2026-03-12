@@ -61,7 +61,7 @@ export default component$(() => {
 
         <section class="grid md:grid-cols-2 grid-cols-1 md:gap-20 max-w-[1440px] mx-auto md:pt-32 pt-10 pb-20 md:px-20 px-4 box-content">
           <div class="flex flex-col">
-            <Card class="z-1">
+            <Card class="z-1 shadow-emphasis">
               <div class="md:p-10 p-6 flex flex-col gap-2 md:max-w-[48ch] max-w-[260px] text-center">
                 <h3 class="font-heading md:text-h5 text-sm ">Zero induced delays</h3>
                 <p class="md:text-body text-sm">
@@ -70,7 +70,7 @@ export default component$(() => {
               </div>
             </Card>
 
-            <Card class="self-end transform -translate-y-16 z-0">
+            <Card class="self-end transform -translate-y-16 z-0 shadow-emphasis">
               <div class="md:p-10 p-6 flex flex-col gap-2 md:max-w-[48ch] max-w-[260px] text-center">
                 <h3 class="font-heading md:text-h5 text-sm">
                   <span class="text-standalone-accent">~20s</span> quicker or more on 3G 🤯
@@ -85,10 +85,10 @@ export default component$(() => {
           <div class="flex flex-col md:gap-10 gap-8">
             <div class="relative">
               <h2 class="font-heading md:text-h3 text-[28px]">
-                <span class="bg-secondary-background-base mb-2 block w-fit shadow-heading">
+                <span class="bg-secondary-background-base mb-2 block w-fit shadow-primary-accent">
                   Introducing
                 </span>
-                <span class="bg-secondary-background-base shadow-heading">
+                <span class="bg-secondary-background-base shadow-primary-accent">
                   JavaScript Streaming
                 </span>
               </h2>
@@ -97,19 +97,19 @@ export default component$(() => {
 
             <div class="space-y-6">
               <p class="w-fit">
-                <span class="shadow-body leading-[2.5]">
+                <span class="shadow-sm-base leading-[2.5]">
                   Qwik is like video streaming, but with JavaScript.
                 </span>
               </p>
 
               <p class="max-w-[50ch]">
-                <span class="shadow-body leading-[2.5]">
+                <span class="shadow-sm-base leading-[2.5]">
                   There's no waiting for the entire code to be downloaded. Clicks respond instantly.
                 </span>
               </p>
 
               <p class="w-fit">
-                <span class="shadow-body leading-[2.5]">
+                <span class="shadow-sm-base leading-[2.5]">
                   You build your features - Qwik optimizes your code automatically
                 </span>
               </p>
@@ -191,7 +191,7 @@ export const Card = component$(({ class: className, ...rest }: PropsOf<'div'>) =
   return (
     <div
       class={[
-        'shadow-card w-fit rounded-2xl border-[1.6px] border-emphasis h-fit bg-background-base',
+        'w-fit rounded-2xl border-[1.6px] border-emphasis h-fit bg-background-base',
         className,
       ]}
       {...rest}

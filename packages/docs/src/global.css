@@ -278,20 +278,22 @@
   --color-standalone-emphasis: var(--color-sky-85);
 
   /* Semantic effects */
-  --shadow-primary: 4px 4px 0 0 var(--color-primary-shadow-base);
-  --shadow-secondary: 4px 4px 0 0 var(--color-secondary-shadow-base);
-  --shadow-heading: 4px 4px 0 0 var(--color-secondary-foreground-accent);
-  --shadow-body: 4px 4px 0 0 var(--color-shadow-base);
-  --shadow-card: 6px 6px 0 0 var(--color-shadow-emphasis);
+  --shadow-xs-base: 2px 2px 0 0 var(--color-shadow-base);
+  --shadow-xs-accent: 2px 2px 0 0 var(--color-shadow-accent);
+  --shadow-xs-emphasis: 2px 2px 0 0 var(--color-shadow-emphasis);
+  --shadow-sm-base: 4px 4px 0 0 var(--color-shadow-base);
+  --shadow-sm-accent: 4px 4px 0 0 var(--color-shadow-accent);
+  --shadow-sm-emphasis: 4px 4px 0 0 var(--color-shadow-emphasis);
+  --shadow-primary-base: 4px 4px 0 0 var(--color-primary-shadow-base);
+  --shadow-primary-accent: 4px 4px 0 0 var(--color-primary-shadow-accent);
+  --shadow-secondary-base: 4px 4px 0 0 var(--color-secondary-shadow-base);
+  --shadow-secondary-accent: 4px 4px 0 0 var(--color-secondary-shadow-accent);
+  --shadow-alert-base: 4px 4px 0 0 var(--color-alert-shadow-base);
   --shadow-base: 6px 6px 0 0 var(--color-shadow-base);
-  --shadow-icon: 2px 2px 0 0 var(--color-shadow-emphasis);
-  --shadow-border-inset: inset 2px 2px 0 var(--color-sky-45), inset -2px -2px 0 var(--color-sky-0);
+  --shadow-accent: 6px 6px 0 0 var(--color-shadow-accent);
+  --shadow-emphasis: 6px 6px 0 0 var(--color-shadow-emphasis);
   --shadow-secondary-border-inset:
     inset 2px 2px 0 var(--color-violet-55), inset -2px -2px 0 var(--color-violet-0);
-  --shadow-border-inset-dark:
-    inset 2px 2px 0 var(--color-violet-85), inset -2px -2px 0 var(--color-violet-65);
-  --shadow-secondary-border-inset-dark:
-    inset 2px 2px 0 var(--color-sky-85), inset -2px -2px 0 var(--color-sky-65);
 
   --animate-to-visible: to-visible 325ms ease-in-out forwards;
   --animate-to-invisible: to-invisible 325ms ease-in-out forwards;

@@ -46,7 +46,7 @@ const NavPill = (props: { href: string; label: string; icon?: JSXOutput }) => (
     href={props.href}
     class="flex gap-3 items-center px-4 pt-4 pb-3 relative rounded-[4px] bg-secondary-background-base hover:bg-secondary-background-accent transition-colors shadow-secondary-border-inset"
   >
-    <div class="size-9 bg-secondary-background-base border-[1.6px] border-emphasis rounded-lg shadow-icon flex items-center justify-center shrink-0">
+    <div class="size-9 bg-secondary-background-base border-[1.6px] border-emphasis rounded-lg shadow-xs-emphasis flex items-center justify-center shrink-0">
       {props.icon}
     </div>
     <span class="font-bold text-base leading-[22px] text-secondary-foreground-base whitespace-nowrap">
@@ -56,7 +56,7 @@ const NavPill = (props: { href: string; label: string; icon?: JSXOutput }) => (
 );
 
 const contentBaseClass = tw(
-  'open:flex fixed top-[calc(76px+24px+16px)] left-1/2 -translate-x-1/2 m-0 gap-4 shadow-card rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0'
+  'open:flex fixed top-[calc(76px+24px+16px)] left-1/2 -translate-x-1/2 m-0 gap-4 shadow-emphasis rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0'
 );
 
 const triggerAnchorReset = 'anchor-name: none;';

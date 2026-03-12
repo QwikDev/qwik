@@ -66,8 +66,8 @@ export interface SSRContainer extends Container {
   readonly resolvedManifest: ResolvedManifest;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
-  /** Per-cursor SSR walk context (frame state), swapped by cursor walker. */
-  activeWalkCtx: unknown;
+  /** Per-cursor SSR build state (frame state), swapped by cursor walker. */
+  ssrBuildState: unknown;
 
   write(text: string): void;
 

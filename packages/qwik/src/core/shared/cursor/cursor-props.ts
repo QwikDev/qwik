@@ -20,8 +20,8 @@ export interface CursorData {
   position: VNode | null;
   priority: number;
   promise: Promise<void> | null;
-  /** Per-cursor SSR walk context (frame state). Only used on server. */
-  walkCtx: unknown | null;
+  /** Per-cursor SSR build state (frame state). Only used on server. */
+  ssrBuildState: unknown | null;
   /** Callback invoked when the cursor completes (finishWalk). Used for sub-cursor tracking. */
   onDone: (() => void) | null;
 }

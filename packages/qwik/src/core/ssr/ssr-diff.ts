@@ -202,15 +202,15 @@ export function ssrDiff(
   scopedStyleIdPrefix: string | null,
   parentComponentFrame: ISsrComponentFrame | null = null
 ): ValueOrPromise<void> {
-  // Capture the active walk context — during async yields, other cursors may swap
-  // activeWalkCtx. We restore it after each async resolution.
-  const savedWalkCtx = (container as any).activeWalkCtx;
+  // Capture the active build state — during async yields, other cursors may swap
+  // ssrBuildState. We restore it after each async resolution.
+  const savedBuildState = (container as any).ssrBuildState;
   // Store active cursor for container methods that need to call ssrDiff (e.g., unclaimed projections)
   (container as any)._activeCursor = cursor;
 
   const ctx = createSsrDiffContext(container, cursor, scopedStyleIdPrefix, parentComponentFrame);
   diff(ctx, jsx as JSXChildren, parentVNode);
-  return drainAsyncQueue(ctx, savedWalkCtx);
+  return drainAsyncQueue(ctx, savedBuildState);
 }
 
 // ============================================================================
@@ -296,7 +296,7 @@ function runDiffLoop(ctx: SsrDiffContext) {
 // Async queue draining
 // ============================================================================
 
-function drainAsyncQueue(ctx: SsrDiffContext, savedWalkCtx: any): ValueOrPromise<void> {
+function drainAsyncQueue(ctx: SsrDiffContext, savedBuildState: any): ValueOrPromise<void> {
   const ssr = ctx.$container$;
 
   // Handle async break: process the async item, then resume the diff loop
@@ -308,12 +308,12 @@ function drainAsyncQueue(ctx: SsrDiffContext, savedWalkCtx: any): ValueOrPromise
 
       if (isPromise(asyncItem)) {
         return maybeThen(asyncItem as Promise<JSXOutput | void>, (resolved) => {
-          (ssr as any).activeWalkCtx = savedWalkCtx;
+          (ssr as any).ssrBuildState = savedBuildState;
           // Ensure advance actually moves forward (asyncBreak may have skipped ssrDescend)
           ctx.$shouldAdvance$ = true;
           ssrAdvance(ctx); // advance past the item that triggered the break
           runDiffLoop(ctx);
-          return drainAsyncQueue(ctx, savedWalkCtx);
+          return drainAsyncQueue(ctx, savedBuildState);
         });
       }
       // Sync async-break item — resume immediately
@@ -330,11 +330,11 @@ function drainAsyncQueue(ctx: SsrDiffContext, savedWalkCtx: any): ValueOrPromise
 
     if (isPromise(jsxOrPromise)) {
       return maybeThen(jsxOrPromise as Promise<JSXOutput | void>, (resolvedJsx) => {
-        (ssr as any).activeWalkCtx = savedWalkCtx;
+        (ssr as any).ssrBuildState = savedBuildState;
         if (resolvedJsx != null) {
           diff(ctx, resolvedJsx as JSXChildren, vNode);
         }
-        return drainAsyncQueue(ctx, savedWalkCtx);
+        return drainAsyncQueue(ctx, savedBuildState);
       });
     } else {
       diff(ctx, jsxOrPromise as JSXChildren, vNode);
@@ -449,7 +449,7 @@ function ssrComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, component: Func
   }
 
   // Create component SsrNode directly (without openComponent which would
-  // push WalkContext state that can't be popped if we defer).
+  // push build state that can't be popped if we defer).
   ssr.openFragment(componentAttrs);
   const host = ssr.getOrCreateLastNode();
 
@@ -480,7 +480,7 @@ function ssrComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, component: Func
   host.setProp(':componentFrame', componentFrame);
   // Store parent element frame info for enterComponentContext to use when creating
   // a synthetic element frame (needed for HTML nesting validation and style routing).
-  const parentFrame = (ssr as any).activeWalkCtx.currentElementFrame;
+  const parentFrame = (ssr as any).ssrBuildState.currentElementFrame;
   host.setProp(':parentTagNesting', parentFrame?.tagNesting ?? 0);
   host.setProp(':parentElementName', parentFrame?.elementName ?? null);
 
@@ -531,9 +531,9 @@ function ssrInlineComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, inlineFn:
     // We must NOT close the fragment yet — the resolved JSX needs to be rendered
     // inside the current element frame context. Close fragment after resolution.
     ctx.$asyncBreak$ = true;
-    const savedWalkCtx = (ssr as any).activeWalkCtx;
+    const savedBuildState = (ssr as any).ssrBuildState;
     const asyncLifecycle = (jsxOutput as Promise<JSXOutput>).then(async (resolvedJsx) => {
-      (ssr as any).activeWalkCtx = savedWalkCtx;
+      (ssr as any).ssrBuildState = savedBuildState;
       if (resolvedJsx != null) {
         await ssrDiff(
           ssr,
@@ -600,9 +600,9 @@ function ssrSignal(ctx: SsrDiffContext, signal: any) {
     // Async signal (threw Promise during tracking): render resolved value directly
     // inside signal fragment — no Awaited wrapper.
     ctx.$asyncBreak$ = true;
-    const savedWalkCtx = (ssr as any).activeWalkCtx;
+    const savedBuildState = (ssr as any).ssrBuildState;
     const asyncLifecycle = (trackedValue as Promise<any>).then(async (resolvedValue) => {
-      (ssr as any).activeWalkCtx = savedWalkCtx;
+      (ssr as any).ssrBuildState = savedBuildState;
       if (resolvedValue != null) {
         await ssrDiff(
           ssr,
@@ -642,9 +642,9 @@ function ssrPromise(ctx: SsrDiffContext, promise: Promise<any>) {
 
   // Async break: keep fragment open, await promise, process resolved JSX inside, then close
   ctx.$asyncBreak$ = true;
-  const savedWalkCtx = (ssr as any).activeWalkCtx;
+  const savedBuildState = (ssr as any).ssrBuildState;
   const asyncLifecycle = promise.then(async (resolvedJsx: any) => {
-    (ssr as any).activeWalkCtx = savedWalkCtx;
+    (ssr as any).ssrBuildState = savedBuildState;
     if (resolvedJsx != null) {
       await ssrDiff(
         ssr,
@@ -746,7 +746,7 @@ function ssrStream(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
   ssr.streamHandler.flush();
 
   const generator = jsx.children as SSRStreamChildren;
-  const savedWalkCtx = (ssr as any).activeWalkCtx;
+  const savedBuildState = (ssr as any).ssrBuildState;
   const parentVNode = ctx.$vParent$;
   const cursor = ctx.$cursor$;
   const styleScoped = ctx.$currentStyleScoped$;
@@ -756,7 +756,7 @@ function ssrStream(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
   if (isFunction(generator)) {
     value = generator({
       async write(chunk) {
-        (ssr as any).activeWalkCtx = savedWalkCtx;
+        (ssr as any).ssrBuildState = savedBuildState;
         await ssrDiff(ssr, chunk, parentVNode, cursor, styleScoped, parentFrame);
         ssr.streamHandler.flush();
       },
@@ -769,7 +769,7 @@ function ssrStream(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
     // Async generator: iterate and process each yielded chunk
     const lifecycle = (async () => {
       for await (const chunk of value as AsyncGenerator) {
-        (ssr as any).activeWalkCtx = savedWalkCtx;
+        (ssr as any).ssrBuildState = savedBuildState;
         await ssrDiff(ssr, chunk as JSXOutput, parentVNode, cursor, styleScoped, parentFrame);
       }
     })();
@@ -798,7 +798,7 @@ function ssrStreamBlock(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
 /** Async generator: process chunks as they arrive. */
 function ssrAsyncGenerator(ctx: SsrDiffContext, generator: AsyncGenerator) {
   const ssr = ctx.$container$;
-  const savedWalkCtx = (ssr as any).activeWalkCtx;
+  const savedBuildState = (ssr as any).ssrBuildState;
   const parentVNode = ctx.$vParent$;
   const cursor = ctx.$cursor$;
   const styleScoped = ctx.$currentStyleScoped$;
@@ -806,7 +806,7 @@ function ssrAsyncGenerator(ctx: SsrDiffContext, generator: AsyncGenerator) {
 
   const processGenerator = async () => {
     for await (const chunk of generator) {
-      (ssr as any).activeWalkCtx = savedWalkCtx;
+      (ssr as any).ssrBuildState = savedBuildState;
       await ssrDiff(ssr, chunk as JSXOutput, parentVNode, cursor, styleScoped, parentFrame);
       ssr.streamHandler.flush();
     }

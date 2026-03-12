@@ -30,7 +30,7 @@ export function addCursor(container: Container, root: VNode, priority: number): 
     position: root,
     priority: priority,
     promise: null,
-    walkCtx: null,
+    ssrBuildState: null,
     onDone: null,
   };
 

@@ -202,7 +202,7 @@ export function executeSsrNodeProps(vNode: VNode, container: Container): void {
  * unclaimed projections immediately in leaveComponentContext, we'd create duplicate SsrNodes with
  * wrong parentComponent.
  *
- * Sets up minimal WalkContext state: the component's ssrNode as the current element frame's ssrNode
+ * Sets up minimal build state: the component's ssrNode as the current element frame's ssrNode
  * (matching the state during original closeComponent), currentComponentNode pointing to the
  * component node for proper parentComponent assignment on new SsrNodes.
  */
@@ -218,31 +218,31 @@ export function executeSsrUnclaimedProjections(
     return;
   }
   const ssr = container as SSRContainer;
-  // Set up WalkContext to match the state during original closeComponent:
+  // Set up build state to match the state during original closeComponent:
   // currentComponentNode = this component, ssrNode = this component's node
   // tagNesting = the component's parent element nesting (so q:template is allowed)
-  const walkCtx = (ssr as any).activeWalkCtx;
-  const savedComponentNode = walkCtx.currentComponentNode;
-  const savedSsrNode = walkCtx.currentElementFrame?.ssrNode ?? null;
-  const savedTagNesting = walkCtx.currentElementFrame?.tagNesting;
-  walkCtx.currentComponentNode = ssrNode;
-  if (walkCtx.currentElementFrame) {
-    walkCtx.currentElementFrame.ssrNode = ssrNode;
+  const buildState = (ssr as any).ssrBuildState;
+  const savedComponentNode = buildState.currentComponentNode;
+  const savedSsrNode = buildState.currentElementFrame?.ssrNode ?? null;
+  const savedTagNesting = buildState.currentElementFrame?.tagNesting;
+  buildState.currentComponentNode = ssrNode;
+  if (buildState.currentElementFrame) {
+    buildState.currentElementFrame.ssrNode = ssrNode;
     // Use the stored parent tag nesting from tree-building time, or ANYTHING as fallback
     const storedTagNesting = ssrNode.getProp(':parentTagNesting');
     if (storedTagNesting != null) {
-      walkCtx.currentElementFrame.tagNesting = storedTagNesting;
+      buildState.currentElementFrame.tagNesting = storedTagNesting;
     }
   }
 
   const result = ssr.emitUnclaimedProjectionForComponent(componentFrame);
 
   const cleanup = () => {
-    walkCtx.currentComponentNode = savedComponentNode;
-    if (walkCtx.currentElementFrame) {
-      walkCtx.currentElementFrame.ssrNode = savedSsrNode;
+    buildState.currentComponentNode = savedComponentNode;
+    if (buildState.currentElementFrame) {
+      buildState.currentElementFrame.ssrNode = savedSsrNode;
       if (savedTagNesting != null) {
-        walkCtx.currentElementFrame.tagNesting = savedTagNesting;
+        buildState.currentElementFrame.tagNesting = savedTagNesting;
       }
     }
   };

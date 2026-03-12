@@ -30,7 +30,7 @@ const ImageCard = (props: {
       alt=""
       class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform"
     />
-    <div class="absolute bottom-0 left-0 right-0 h-[134px] bg-gradient-to-b from-transparent to-standalone-accent" />
+    <div class="absolute bottom-0 left-0 right-0 h-[134px] bg-linear-to-b from-transparent to-standalone-accent" />
     <div class="absolute inset-0 pointer-events-none rounded-[inherit] shadow-secondary-border-inset" />
     <span class="relative font-bold text-base leading-[22px] text-primary-foreground-base">
       {props.label}
@@ -62,8 +62,14 @@ const contentBaseClass = tw(
 const triggerAnchorReset = 'anchor-name: none;';
 const contentAnchorReset = 'position-anchor: none;';
 
-const getContentWidthClass = (label: string) =>
-  label === 'Core' ? 'w-[calc(100vw-48px)] max-w-[840px]' : 'w-[calc(100vw-48px)] max-w-[564px]';
+const contentWidths: Record<string, string> = {
+  Core: 'w-[calc(100vw-48px)] max-w-[840px]',
+  Ecosystem: 'w-[calc(100vw-48px)] max-w-[680px]',
+  Router: 'w-[calc(100vw-48px)] max-w-[680px]',
+  Resources: 'w-[calc(100vw-48px)] max-w-[680px]',
+};
+
+const getContentWidthClass = (label: string) => contentWidths[label] ?? contentWidths.Core;
 
 export const Header = component$(() => {
   return (
@@ -129,14 +135,14 @@ export const Header = component$(() => {
                 label="Integrations"
                 description="Find tools you can use out-of-the-box with Qwik"
                 image={navIntegrationsImg}
-                class="flex-1 min-w-0 self-stretch"
+                class="h-[364px] flex-1 min-w-0"
               />
               <ImageCard
                 href="/cookbooks"
                 label="Cookbooks"
                 description="Guides, recipes and examples"
                 image={navCookbooksImg}
-                class="flex-1 min-w-0 self-stretch"
+                class="h-[364px] flex-1 min-w-0"
               />
             </navbar.itemcontent>
           </navbar.item>

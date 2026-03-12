@@ -61,14 +61,16 @@ export const QwikLogo = component$((props: QwikLogoProps) => {
   );
 });
 
-export const QwikLogoOnly = component$(() => {
+export const QwikLogoOnly = component$((props: PropsOf<'svg'>) => {
   return (
     <svg
-      width="104"
-      height="32"
+      {...props}
+      width={props.width ?? '104'}
+      height={props.height ?? '32'}
       viewBox="0 0 104 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      class={props.class}
     >
       <path
         d="M22.4581 32L17.5871 27.1565L17.5126 27.1671V27.114L7.15359 16.8853L9.70612 14.421L8.20651 5.81744L1.09132 14.6335C-0.12113 15.855 -0.344475 17.8412 0.52764 19.307L4.9733 26.6785C5.65397 27.815 6.8877 28.4948 8.21714 28.4842L10.4187 28.463L22.4581 32Z"
@@ -84,19 +86,19 @@ export const QwikLogoOnly = component$(() => {
       />
       <path
         d="M88.7261 27.1254V6.87067H92.9584V17.369L97.5205 12.7794H102.77L96.8335 18.7981L103.017 27.1254H97.7404L93.9753 21.6838L92.9584 22.7007V27.1254H88.7261Z"
-        fill="black"
+        fill="currentColor"
       />
       <path
         d="M80.6477 11.1855V7.55774H84.88V11.1855H80.6477ZM80.6477 27.1254V12.752H84.88V27.1254H80.6477Z"
-        fill="black"
+        fill="currentColor"
       />
       <path
         d="M57.8681 27.1254L53.5259 12.7794H58.2254L60.5889 23.5526H61.4134L63.7769 12.7794H68.339L70.73 23.5526H71.527L73.918 12.7794H78.5901L74.2753 27.1254H68.2291L66.058 19.4028L63.9143 27.1254H57.8681Z"
-        fill="black"
+        fill="currentColor"
       />
       <path
         d="M45.9631 27.1254H37.929L34.8784 24.0748V9.92124L37.929 6.87067H48.8121L51.8902 9.92124V24.0748L50.3374 25.765L51.8902 29.4866L45.9631 27.1254ZM40.265 23.6626H41.7491H45.0195H46.5036L47.6029 22.5633V11.4053L46.4761 10.3335H40.265L39.1657 11.4053V22.5633L40.265 23.6626Z"
-        fill="black"
+        fill="currentColor"
       />
     </svg>
   );

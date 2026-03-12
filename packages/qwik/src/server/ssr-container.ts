@@ -1101,20 +1101,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return frame;
   }
 
-  /** Writes closing data to vNodeData for component boundaries and emit unclaimed projections inline */
-  async closeComponent() {
-    const componentFrame = this.ssrBuildState.componentStack.pop()!;
-    await this.emitUnclaimedProjectionForComponent(componentFrame);
-    this.closeFragment();
-    this.ssrBuildState.currentComponentNode =
-      this.ssrBuildState.currentComponentNode?.parentComponent || null;
-
-    // Restore parentVNode for cursor tree (when called via ssrDiff)
-    if (this._parentVNodeStack.length > 0) {
-      this._currentParentVNode = this._parentVNodeStack.pop()!;
-    }
-  }
-
   emitUnclaimedProjectionForComponent(componentFrame: ISsrComponentFrame): ValueOrPromise<void> {
     if (componentFrame.slots.length === 0) {
       return;

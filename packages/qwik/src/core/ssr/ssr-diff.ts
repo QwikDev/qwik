@@ -511,10 +511,14 @@ function ssrInlineComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, inlineFn:
   const node = ssr.getOrCreateLastNode();
   ctx.$vNewNode$ = node as unknown as VNode;
 
-  const component = ssr.getParentComponentFrame();
+  // Use ctx.$parentComponentFrame$ (not ssr.getParentComponentFrame()) because in cursor-driven
+  // mode each cursor has its own componentStack that doesn't include all ancestors.
+  // Inside a projection, ssrSlot sets $parentComponentFrame$ to the projection's parent
+  // component frame, which correctly crosses the projection boundary for subscription tracking.
+  const parentFrame = ctx.$parentComponentFrame$;
   const jsxOutput = applyInlineComponent(
     ssr,
-    component && component.componentNode,
+    parentFrame && parentFrame.componentNode,
     inlineFn as OnRenderFn<any>,
     jsx
   );

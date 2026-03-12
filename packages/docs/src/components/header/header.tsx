@@ -9,6 +9,7 @@ import navIntegrationsImg from '../../media/navbar/nav-integrations.png';
 import navQwikCoreImg from '../../media/navbar/nav-qwik-core.png';
 import navRouterImg from '../../media/navbar/nav-router.png';
 import navTutorialImg from '../../media/navbar/nav-tutorial.png';
+import { tw } from '~/utils/utils';
 
 const ImageCard = (props: {
   href: string;
@@ -54,24 +55,37 @@ const NavPill = (props: { href: string; label: string; icon?: JSXOutput }) => (
   </a>
 );
 
-const contentBaseClass =
-  'w-full open:flex gap-4 shadow-card rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0';
+const contentBaseClass = tw(
+  'open:flex fixed top-[calc(76px+24px+16px)] left-1/2 -translate-x-1/2 m-0 gap-4 shadow-card rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0'
+);
+
+const triggerAnchorReset = 'anchor-name: none;';
+const contentAnchorReset = 'position-anchor: none;';
+
+const getContentWidthClass = (label: string) =>
+  label === 'Core' ? 'w-[calc(100vw-48px)] max-w-[840px]' : 'w-[calc(100vw-48px)] max-w-[564px]';
 
 export const Header = component$(() => {
   return (
-    <div class="flex justify-center">
-      <navbar.root class="flex items-center justify-between px-6 justify-self-center bg-background-base fixed top-6 w-full rounded-2xl border-[1.6px] border-base shadow-base z-99999 max-w-[840px]">
+    <div class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-['']">
+      <navbar.root class="fixed top-6 left-1/2 z-99999 flex w-full max-w-[840px] -translate-x-1/2 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-6 shadow-base">
         <a href="/" class="flex items-center gap-2 text-foreground-accent">
           <QwikLogoOnly />
         </a>
 
-        <div class="flex items-center gap-10">
+        <div class="flex items-center">
           {/* ── Core ── */}
           <navbar.item class="relative">
-            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px]">
+            <navbar.itemtrigger
+              class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px] px-5"
+              style={triggerAnchorReset}
+            >
               <span>Core</span>
             </navbar.itemtrigger>
-            <navbar.itemcontent class={contentBaseClass}>
+            <navbar.itemcontent
+              class={[contentBaseClass, getContentWidthClass('Core')]}
+              style={contentAnchorReset}
+            >
               {/* Pills column */}
               <div class="flex flex-col gap-4 w-64.5 shrink-0">
                 <NavPill href="/docs/state" label="State" />
@@ -100,10 +114,16 @@ export const Header = component$(() => {
 
           {/* ── Ecosystem ── */}
           <navbar.item class="relative">
-            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px]">
+            <navbar.itemtrigger
+              class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px] px-5"
+              style={triggerAnchorReset}
+            >
               <span>Ecosystem</span>
             </navbar.itemtrigger>
-            <navbar.itemcontent class={contentBaseClass}>
+            <navbar.itemcontent
+              class={[contentBaseClass, getContentWidthClass('Ecosystem')]}
+              style={contentAnchorReset}
+            >
               <ImageCard
                 href="/integrations"
                 label="Integrations"
@@ -123,10 +143,16 @@ export const Header = component$(() => {
 
           {/* ── Router ── */}
           <navbar.item class="relative">
-            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px]">
+            <navbar.itemtrigger
+              class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px] px-5"
+              style={triggerAnchorReset}
+            >
               <span>Router</span>
             </navbar.itemtrigger>
-            <navbar.itemcontent class={contentBaseClass}>
+            <navbar.itemcontent
+              class={[contentBaseClass, getContentWidthClass('Router')]}
+              style={contentAnchorReset}
+            >
               {/* Pills column */}
               <div class="flex flex-col gap-4 w-64.5 shrink-0">
                 <NavPill href="/docs/routing" label="Routing" />
@@ -148,10 +174,16 @@ export const Header = component$(() => {
 
           {/* ── Resources ── */}
           <navbar.item class="relative">
-            <navbar.itemtrigger class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px]">
+            <navbar.itemtrigger
+              class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px] px-5"
+              style={triggerAnchorReset}
+            >
               <span>Resources</span>
             </navbar.itemtrigger>
-            <navbar.itemcontent class={contentBaseClass}>
+            <navbar.itemcontent
+              class={[contentBaseClass, getContentWidthClass('Resources')]}
+              style={contentAnchorReset}
+            >
               {/* Wide image card */}
               <ImageCard
                 href="/blog"

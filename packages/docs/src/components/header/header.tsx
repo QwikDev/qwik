@@ -1,5 +1,5 @@
 import { component$, type JSXOutput } from '@qwik.dev/core';
-import { Button } from '../button/button';
+import { Button } from '../action/action';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
 import { navbar, lucide, streamlinepixel as pixel } from '@qds.dev/ui';
 import navBlogImg from '../../media/navbar/nav-blog.png';
@@ -84,7 +84,7 @@ export const Header = component$(() => {
           {/* ── Core ── */}
           <navbar.item class="relative">
             <navbar.itemtrigger
-              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5"
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
               style={triggerAnchorReset}
             >
               <span>Core</span>
@@ -142,7 +142,7 @@ export const Header = component$(() => {
           {/* ── Ecosystem ── */}
           <navbar.item class="relative">
             <navbar.itemtrigger
-              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5"
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
               style={triggerAnchorReset}
             >
               <span>Ecosystem</span>
@@ -171,7 +171,7 @@ export const Header = component$(() => {
           {/* ── Router ── */}
           <navbar.item class="relative">
             <navbar.itemtrigger
-              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5"
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
               style={triggerAnchorReset}
             >
               <span>Router</span>
@@ -222,7 +222,7 @@ export const Header = component$(() => {
           {/* ── Resources ── */}
           <navbar.item class="relative">
             <navbar.itemtrigger
-              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5"
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
               style={triggerAnchorReset}
             >
               <span>Resources</span>

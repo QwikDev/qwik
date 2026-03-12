@@ -22,8 +22,8 @@
   "makefile.configureOnOpen": false,
   "tailwindCSS.experimental.classRegex": [
     [
-      "tw\\(([^)]*)\\)",
-      "[\"'`]([^\"'`]*)[\"'`]"
+      "tw\\((\\s*['\"`][\\s\\S]*?['\"`]\\s*)\\)",
+      "['\"`]([^'\"`]*)['\"`]"
     ]
   ]
 }

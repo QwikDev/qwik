@@ -783,9 +783,8 @@ jobs:
 
       - name: Playwright E2E Qwik React Tests
         run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }}
-
       - name: CLI E2E Tests
-        run: pnpm run test.e2e.cli
+        run: pnpm run test.e2e.cli.${{ matrix.settings.browser }}
 
   ########### LINT PACKAGES ############
   lint-package:

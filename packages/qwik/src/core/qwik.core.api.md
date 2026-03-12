@@ -442,6 +442,9 @@ export { h }
 // @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
+// @internal
+export const _hmr: (event: Event, element: Element) => void;
+
 // Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
 //
@@ -1788,6 +1791,9 @@ export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: ST
 
 // @public (undocumented)
 export const useErrorBoundary: () => ErrorBoundaryStore;
+
+// @internal
+export function _useHmr(devPath: string): void;
 
 // @public (undocumented)
 export const useId: () => string;

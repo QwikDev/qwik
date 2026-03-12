@@ -151,7 +151,7 @@ export const executeComponent = (
 
         // Also check COMPONENT re-dirty (signal changes during $waitOn$)
         if (isSsr && !isInlineComponent) {
-          const ssrNode = renderHost as ISsrNode;
+          const ssrNode = renderHost as unknown as ISsrNode;
           if (ssrNode.dirty & ChoreBits.COMPONENT) {
             ssrNode.dirty &= ~ChoreBits.COMPONENT;
             if (retryCount < MAX_RETRY_ON_PROMISE_COUNT) {

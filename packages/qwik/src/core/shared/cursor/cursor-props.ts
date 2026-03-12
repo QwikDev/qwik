@@ -90,6 +90,7 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
  *
  * @param vNode - The vNode
  * @returns The cursor data, or null if none or not a cursor
+ * @internal
  */
 export function getCursorData(vNode: VNode): CursorData | null {
   return cursorDatas.get(vNode) ?? null;

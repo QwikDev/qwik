@@ -55,14 +55,12 @@ import {
   ELEMENT_PROPS,
   OnRenderProp,
   QDefaultSlot,
-  QScopedStyle,
   QSlot,
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isPromise, maybeThen, retryOnPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
-import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VNode } from '../shared/vnode/vnode';
@@ -193,6 +191,7 @@ function ssrAdvance(ctx: SsrDiffContext) {
  * @param cursor - The cursor driving this diff
  * @param scopedStyleIdPrefix - Current scoped style prefix
  * @param parentComponentFrame - Current component frame for slot distribution
+ * @internal
  */
 export function ssrDiff(
   container: SSRContainer,

@@ -71,6 +71,7 @@ export interface WalkOptions {
  * Processes the cursor queue, walking each cursor in turn.
  *
  * @param options - Walk options (time budget, etc.)
+ * @internal
  */
 export function processCursorQueue(
   options: WalkOptions = {

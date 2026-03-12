@@ -2,8 +2,6 @@ import { Suspense } from '@qwik.dev/core';
 import { ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
-import { delay } from '../shared/utils/promises';
-import { Fragment as Component } from '../shared/jsx/jsx-runtime';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

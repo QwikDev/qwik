@@ -118,7 +118,7 @@ export const scheduleEffects = (
           if (isBrowser) {
             setNodePropData(consumer as VNode, property, payload);
           } else {
-            const node = consumer as ISsrNode;
+            const node = consumer as unknown as ISsrNode;
             let data = node.getProp(NODE_PROPS_DATA_KEY) as Map<string, NodeProp> | null;
             if (!data) {
               data = new Map();

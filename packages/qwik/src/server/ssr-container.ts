@@ -609,7 +609,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   getParentHost(host: HostElement): HostElement | null {
     const ssrNode: ISsrNode = host as any;
-    return ssrNode.parentComponent as ISsrNode | null;
+    return ssrNode.parentComponent as unknown as HostElement | null;
   }
 
   setHostProp<T>(host: HostElement, name: string, value: T): void {
@@ -1883,7 +1883,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         });
         const signal = value as Signal<unknown>;
         value = retryOnPromise(() =>
-          this.trackSignalValue(signal, lastNode, key, signalData)
+          this.trackSignalValue(signal, lastNode as unknown as HostElement, key, signalData)
         ) as Promise<string>;
       }
       if (isPromise<string | boolean | null>(value)) {

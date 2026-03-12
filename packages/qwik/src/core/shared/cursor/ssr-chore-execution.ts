@@ -55,7 +55,7 @@ export function executeSsrTasks(
       }
 
       // On SSR, all tasks are render-blocking (no visible tasks on server)
-      const result = runTask(task, container, ssrNode);
+      const result = runTask(task, container, ssrNode as unknown as HostElement);
       if (isPromise(result)) {
         taskPromise = taskPromise
           ? taskPromise.then(() => result as Promise<void>)

@@ -12,6 +12,27 @@ export default component$(() => {
     <Cloud class="absolute -left-1/4 top-1/2" />,
     <Cloud class="absolute -right-1/8 -top-1/8" />,
   ];
+
+  const streamingCards = [
+    {
+      title: 'Zero induced delays',
+      body: 'Your app stays quick, no matter how large it gets.',
+    },
+    {
+      title: (
+        <>
+          <span class="text-standalone-accent">~20s</span> quicker or more on 3G 🤯
+        </>
+      ),
+      body: 'Time to Interactive measured on chrome 3G throttling on a few mid-size sample apps.',
+    },
+  ];
+  const streamingHighlights = [
+    'Qwik is like video streaming, but with JavaScript.',
+    "There's no waiting for the entire code to be downloaded. Clicks respond instantly.",
+    'You build your features - Qwik optimizes your code automatically',
+  ];
+
   const shimmerMarkup = (
     <span
       class="absolute inset-0 bg-gradient-text-shimmer animate-shimmer opacity-75 mix-blend-screen"
@@ -72,27 +93,23 @@ export default component$(() => {
 
         <section class="grid 3xl:grid-cols-2 grid-cols-1 3xl:gap-20 max-w-screen-3xl mx-auto 3xl:pt-32 pt-10 pb-20 3xl:px-20 px-4 box-content">
           <div class="flex flex-col">
-            <Card class="z-1 shadow-emphasis">
-              <div class="3xl:p-10 p-6 flex flex-col gap-2 3xl:max-w-[48ch] max-w-[260px] text-center">
-                <h3 class="font-heading 3xl:text-h5 text-sm ">Zero induced delays</h3>
-                <p class="3xl:text-body text-sm">
-                  Your app stays quick, no matter how large it gets.
-                </p>
-              </div>
-            </Card>
-
-            <Card class="self-end transform -translate-y-16 z-0 shadow-emphasis">
-              <div class="3xl:p-10 p-6 flex flex-col gap-2 3xl:max-w-[48ch] max-w-[260px] text-center">
-                <h3 class="font-heading 3xl:text-h5 text-sm">
-                  <span class="text-standalone-accent">~20s</span> quicker or more on 3G 🤯
-                </h3>
-                <p>
-                  Time to Interactive measured on chrome 3G throttling on a few mid-size sample
-                  apps.
-                </p>
-              </div>
-            </Card>
+            {streamingCards.map((card, index) => (
+              <Card
+                key={card.body}
+                class={
+                  index === 0
+                    ? 'z-1 shadow-emphasis'
+                    : 'self-end transform -translate-y-16 z-0 shadow-emphasis'
+                }
+              >
+                <div class="3xl:p-10 p-6 flex flex-col gap-2 3xl:max-w-[48ch] max-w-[260px] text-center">
+                  <h3 class="font-heading 3xl:text-h5 text-sm">{card.title}</h3>
+                  <p class="3xl:text-body text-sm">{card.body}</p>
+                </div>
+              </Card>
+            ))}
           </div>
+
           <div class="flex flex-col 3xl:gap-10 gap-8">
             <div class="relative">
               <h2 class="font-heading 3xl:text-h3 text-[28px]">
@@ -107,23 +124,11 @@ export default component$(() => {
             </div>
 
             <div class="space-y-6">
-              <p class="w-fit">
-                <span class="shadow-sm-base leading-[2.5]">
-                  Qwik is like video streaming, but with JavaScript.
-                </span>
-              </p>
-
-              <p class="max-w-[50ch]">
-                <span class="shadow-sm-base leading-[2.5]">
-                  There's no waiting for the entire code to be downloaded. Clicks respond instantly.
-                </span>
-              </p>
-
-              <p class="w-fit">
-                <span class="shadow-sm-base leading-[2.5]">
-                  You build your features - Qwik optimizes your code automatically
-                </span>
-              </p>
+              {streamingHighlights.map((highlight, index) => (
+                <p key={highlight} class={index === 1 ? 'max-w-[50ch]' : 'w-fit'}>
+                  <span class="shadow-sm-base leading-[2.5]">{highlight}</span>
+                </p>
+              ))}
             </div>
 
             <Button class="w-fit 3xl:text-base text-sm" variant="primary">

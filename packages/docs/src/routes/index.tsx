@@ -13,7 +13,10 @@ export default component$(() => {
     <Cloud class="absolute -right-1/8 -top-1/8" />,
   ];
   const shimmerMarkup = (
-    <span class="absolute inset-0 bg-gradient-text-shimmer animate-shimmer" aria-hidden="true">
+    <span
+      class="absolute inset-0 bg-gradient-text-shimmer animate-shimmer opacity-75 mix-blend-screen"
+      aria-hidden="true"
+    >
       Automatically Instant Web Apps
     </span>
   );

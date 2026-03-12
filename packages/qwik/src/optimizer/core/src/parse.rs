@@ -80,6 +80,7 @@ pub enum EmitMode {
 	Lib,
 	Dev,
 	Test,
+	Hmr,
 }
 
 pub struct TransformCodeOptions<'a> {
@@ -292,7 +293,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					// It will be processed during client build
 					// This way no internal API usage is published
 					if config.mode != EmitMode::Lib {
-						let is_dev = config.mode == EmitMode::Dev;
+						let is_dev = matches!(config.mode, EmitMode::Dev | EmitMode::Hmr);
 
 						// reconstruct destructured props for signal forwarding
 						transform_props_destructuring(
@@ -452,7 +453,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
 							// Create explicit imports for dev-mode QRL helpers
 							let mut explicit_imports = IndexMap::new();
-							if config.mode == EmitMode::Dev {
+							if matches!(config.mode, EmitMode::Dev | EmitMode::Hmr) {
 								use swc_common::SyntaxContext;
 								let dev_import = Import {
 									source: q.options.core_module.clone(),

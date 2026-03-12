@@ -181,7 +181,7 @@ const makeResolveFunction = <TYPE>(
     symbolRef = maybeThen(importP, (resolved) => {
       // We memoize the result on the symbolFn
       // Make sure not to memoize the wrapped function!
-      if (symbolFn) {
+      if (!isDev && symbolFn) {
         (symbolFn as any)[symbol] = resolved;
       }
       return (symbolRef = qrl.resolved = bindCaptures(qrl, resolved as TYPE));

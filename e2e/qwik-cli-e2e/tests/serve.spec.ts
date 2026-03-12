@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { chromium } from 'playwright';
 import { assert, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import {
   assertHostUnused,
@@ -37,8 +38,8 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
 
     if (type === 'playground') {
       test(
-        'Should serve the app in dev mode and update the content on hot reload',
-        { timeout: DEFAULT_TIMEOUT },
+        'Should work, and preserve client state across HMR updates',
+        { timeout: DEFAULT_TIMEOUT * 2 },
         async () => {
           const host = `http://localhost:${SERVE_PORT}/`;
           await assertHostUnused(host);
@@ -51,13 +52,97 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
           );
           assert.equal(existsSync(global.tmpDir), true);
 
-          await expectHtmlOnARootPage(host);
-
-          // Don't let process termination errors fail the test
+          const browser = await chromium.launch();
           try {
-            await promisifiedTreeKill(p.pid!, 'SIGKILL');
-          } catch (e) {
-            log(`Error terminating dev server: ${e.message}`);
+            const page = await browser.newPage();
+
+            // Collect console messages for debugging
+            const consoleLogs: string[] = [];
+            page.on('console', (msg) => {
+              consoleLogs.push(`[${msg.type()}] ${msg.text()}`);
+            });
+            page.on('pageerror', (err) => {
+              consoleLogs.push(`[pageerror] ${err.message}`);
+            });
+            page.on('response', (resp) => {
+              if (resp.status() >= 400) {
+                consoleLogs.push(`[${resp.status()}] ${resp.url()}`);
+              }
+            });
+
+            await page.goto(host);
+            log('Page loaded');
+
+            // The counter's + button (last button in the counter component)
+            // Counter uses CSS modules so we can't rely on class names.
+            // The buttons contain "-" and "+" text.
+            const plusBtn = page.locator('button', { hasText: '+' }).first();
+            await plusBtn.waitFor({ timeout: 10000 });
+            log('Found + button');
+
+            // Click the + button 3 times to change counter state (starts at 70)
+            await plusBtn.click();
+            await plusBtn.click();
+            await plusBtn.click();
+            log('Clicked + button 3 times');
+
+            // Verify counter changed to 73 (the gauge renders value in a <span>)
+            await page.waitForFunction(() => document.body.textContent?.includes('73'), {
+              timeout: 10000,
+            });
+            log('Counter is at 73');
+
+            // Modify the counter component (whose QRL segments are loaded on the client
+            // because we clicked the buttons). Add a visible marker to verify the update.
+            const counterComponentPath = join(
+              global.tmpDir,
+              'src/components/starter/counter/counter.tsx'
+            );
+            const counterContent = readFileSync(counterComponentPath, 'utf-8');
+            writeFileSync(
+              counterComponentPath,
+              counterContent.replace(
+                `<Gauge value={count.value} />`,
+                `<span data-testid="hmr-marker">HMR-OK</span><Gauge value={count.value} />`
+              )
+            );
+            log('Modified counter.tsx');
+
+            // Wait for HMR to apply the update (new marker should appear without full reload)
+            try {
+              await page.waitForFunction(
+                () => !!document.querySelector('[data-testid="hmr-marker"]'),
+                { timeout: 15000 }
+              );
+            } catch (e) {
+              // Dump debug info on failure
+              const hasMarker = await page.locator('[data-testid="hmr-marker"]').count();
+              const bodyText = await page.textContent('body');
+              log(
+                `HMR wait failed. marker count=${hasMarker}, body includes 73: ${bodyText?.includes('73')}`
+              );
+              log(`Console logs:\n${consoleLogs.join('\n')}`);
+              throw e;
+            }
+
+            // Verify the HMR marker appeared
+            const markerText = await page.locator('[data-testid="hmr-marker"]').textContent();
+            expect(markerText).toBe('HMR-OK');
+
+            // Verify counter state is preserved (not reset to initial value 70)
+            // If HMR works correctly, the counter should still show 73
+            // If a full-reload happened, it would reset to the initial value of 70
+            const bodyText = await page.textContent('body');
+            expect(bodyText).toContain('73');
+
+            log('HMR state preservation verified: content updated, counter state preserved');
+          } finally {
+            await browser.close();
+            try {
+              await promisifiedTreeKill(p.pid!, 'SIGKILL');
+            } catch (e) {
+              log(`Error terminating dev server: ${e.message}`);
+            }
           }
         }
       );

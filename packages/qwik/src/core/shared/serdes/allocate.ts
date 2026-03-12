@@ -60,12 +60,16 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
         const [chunkId, symbolId, captureIds] = value.split('#');
         const chunk = container.$getObjectById$(chunkId) as string;
         const symbol = container.$getObjectById$(symbolId) as string;
-        qrl = createQRLWithBackChannel(chunk, symbol, captureIds || null);
+        qrl = createQRLWithBackChannel(
+          chunk,
+          symbol,
+          captureIds || null,
+          container as DomContainer
+        );
       } else {
         // Sync qrl
-        qrl = createQRLWithBackChannel('', String(value), null);
+        qrl = createQRLWithBackChannel('', String(value), null, container as DomContainer);
       }
-      qrl.$container$ = container as DomContainer;
       return qrl;
     }
     case TypeIds.Task:

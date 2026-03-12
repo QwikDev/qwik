@@ -28,7 +28,7 @@ export class SignalImpl<T = any> implements Signal<T> {
   $container$: Container | null = null;
   $wrappedSignal$: WrappedSignalImpl<T> | null = null;
 
-  constructor(container: Container | null, value: T) {
+  constructor(container: Container | null | undefined, value: T) {
     this.$container$ = container || tryGetInvokeContext()?.$container$ || null;
     this.$untrackedValue$ = value;
     DEBUG && log('new', this);

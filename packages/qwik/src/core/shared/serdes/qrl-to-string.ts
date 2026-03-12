@@ -5,6 +5,7 @@ import { getPlatform } from '../platform/platform';
 import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
 import { isSyncQrl } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
+import type { Container } from '../types';
 
 /** @internal */
 export function qrlToString(
@@ -47,7 +48,7 @@ export function qrlToString(
       const backChannel: Map<string, unknown> = ((globalThis as any).__qrl_back_channel__ ||=
         new Map());
       // During tests the resolved value is always available
-      backChannel.set(qrl.$symbol$, qrl.$symbolRef$);
+      backChannel.set(qrl.$symbol$, qrl.$origSymbolRef$);
       if (!chunk) {
         chunk = QRL_RUNTIME_CHUNK;
       }
@@ -85,7 +86,8 @@ export function qrlToString(
 export function createQRLWithBackChannel(
   chunk: string,
   symbol: string,
-  captures: string | unknown[] | null
+  captures: string | unknown[] | null,
+  container?: Container
 ): QRLInternal<any> {
   let qrlImporter = null;
   if (isDev && chunk === QRL_RUNTIME_CHUNK) {
@@ -96,13 +98,13 @@ export function createQRLWithBackChannel(
       qrlImporter = () => Promise.resolve({ [symbol]: fn });
     }
   }
-  return createQRL(chunk, symbol, null, qrlImporter, captures);
+  return createQRL(chunk, symbol, null, qrlImporter, captures, container);
 }
 
 /** Parses "chunk#hash#...rootRef" */
-export function parseQRL(qrl: string): QRLInternal<any> {
+export function parseQRL(qrl: string, container?: Container): QRLInternal<any> {
   const [chunk, symbol, captures] = qrl.split('#');
-  return createQRLWithBackChannel(chunk, symbol, captures || null);
+  return createQRLWithBackChannel(chunk, symbol, captures || null, container);
 }
 
 export const QRL_RUNTIME_CHUNK = 'mock-chunk';

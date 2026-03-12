@@ -16,6 +16,12 @@
   }
 }
 
+/* We use this for accessibility / clear focus indicator regardless of design */
+:focus-visible:not(input):not(textarea):not(select) {
+  outline: 9px double black;
+  box-shadow: 0 0 0 6px white;
+}
+
 /**
  * The hue scales are the source of truth. Semantic aliases below are derived from those scales so
  * the app can prefer semantic names without duplicating raw color values.

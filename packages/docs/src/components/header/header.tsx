@@ -84,7 +84,7 @@ export const Header = component$(() => {
           {/* ── Core ── */}
           <navbar.item class="relative">
             <navbar.itemtrigger
-              class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px] px-5"
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5"
               style={triggerAnchorReset}
             >
               <span>Core</span>
@@ -142,7 +142,7 @@ export const Header = component$(() => {
           {/* ── Ecosystem ── */}
           <navbar.item class="relative">
             <navbar.itemtrigger
-              class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px] px-5"
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5"
               style={triggerAnchorReset}
             >
               <span>Ecosystem</span>
@@ -171,7 +171,7 @@ export const Header = component$(() => {
           {/* ── Router ── */}
           <navbar.item class="relative">
             <navbar.itemtrigger
-              class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px] px-5"
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5"
               style={triggerAnchorReset}
             >
               <span>Router</span>
@@ -222,7 +222,7 @@ export const Header = component$(() => {
           {/* ── Resources ── */}
           <navbar.item class="relative">
             <navbar.itemtrigger
-              class="w-fit flex items-center gap-2 group ui-open:text-border-emphasis transition-colors duration-200 h-[76px] px-5"
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5"
               style={triggerAnchorReset}
             >
               <span>Resources</span>

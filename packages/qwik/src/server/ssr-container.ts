@@ -222,7 +222,6 @@ export interface SsrBuildState {
   currentElementFrame: ElementFrame | null;
   componentStack: ISsrComponentFrame[];
   currentComponentNode: ISsrNode | null;
-  lastNode: ISsrNode | null;
   /**
    * Stack of saved ssrNode values for fragment nesting in tree-building mode. When a fragment
    * opens, the current frame's ssrNode is pushed here and replaced with the fragment's SsrNode.
@@ -237,7 +236,6 @@ export function createSsrBuildState(): SsrBuildState {
     currentElementFrame: null,
     componentStack: [],
     currentComponentNode: null,
-    lastNode: null,
     ssrNodeStack: [],
   };
 }
@@ -280,6 +278,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public additionalBodyNodes = new Array<JSXNodeInternal>();
 
   public ssrBuildState: SsrBuildState = createSsrBuildState();
+  /** Cached last-created SsrNode. Cleared before each new node creation. */
+  private lastNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
   private backpatchMap = new Map<number, BackpatchEntry[]>();
@@ -689,7 +689,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
 
     let innerHTML: string | undefined = undefined;
-    this.ssrBuildState.lastNode = null;
+    this.lastNode = null;
     if (!isQwikStyle && this.ssrBuildState.currentElementFrame) {
       if (!this._cursorDrivenRender || this._directMode) {
         vNodeData_incrementElementCount(this.ssrBuildState.currentElementFrame.vNodeData);
@@ -805,14 +805,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this._directMode = false;
           // Pop the frame (walker already wrote the close tag)
           this.popFrame();
-          this.ssrBuildState.lastNode = null;
+          this.lastNode = null;
           this.timing.snapshot = snapshotTimer();
         });
       }
 
       // No tree built — just pop
       this.popFrame();
-      this.ssrBuildState.lastNode = null;
+      this.lastNode = null;
       this.timing.snapshot = snapshotTimer();
       return;
     }
@@ -849,7 +849,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.writer.write(GT);
     }
     // In tree-building mode, walker handles close tags
-    this.ssrBuildState.lastNode = null;
+    this.lastNode = null;
     if (this.qlInclude === QwikLoaderInclude.Inline) {
       if (elementName === 'noscript' || elementName === 'template') {
         this.$noScriptHere$--;
@@ -859,7 +859,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Writes opening data to vNodeData for fragment boundaries */
   openFragment(attrs: Props) {
-    this.ssrBuildState.lastNode = null;
+    this.lastNode = null;
     let node: ISsrNode;
     if (this._cursorDrivenRender && !this._directMode) {
       // Cursor-driven render: create SsrNode directly with attrs (no vNodeData needed —
@@ -871,7 +871,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.cleanupQueue,
         this.ssrBuildState.currentElementFrame!.currentFile
       );
-      this.ssrBuildState.lastNode = node;
+      this.lastNode = node;
     } else {
       vNodeData_openFragment(this.ssrBuildState.currentElementFrame!.vNodeData, attrs);
       node = this.getOrCreateLastNode();
@@ -900,7 +900,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.ssrBuildState.currentElementFrame) {
       this.ssrBuildState.currentElementFrame.ssrNode = prev;
     }
-    this.ssrBuildState.lastNode = null;
+    this.lastNode = null;
   }
 
   openProjection(attrs: Props) {
@@ -1076,7 +1076,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.ssrBuildState.currentElementFrame) {
       this.ssrBuildState.currentElementFrame.ssrNode = prev;
     }
-    this.ssrBuildState.lastNode = null;
+    this.lastNode = null;
     // Restore component parent
     this.ssrBuildState.currentComponentNode =
       this.ssrBuildState.currentComponentNode?.parentComponent || null;
@@ -1187,7 +1187,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this._cursorDrivenRender || this._directMode) {
       vNodeData_addTextSize(this.ssrBuildState.currentElementFrame!.vNodeData, text.length);
     }
-    this.ssrBuildState.lastNode = null;
+    this.lastNode = null;
   }
 
   htmlNode(rawHtml: string) {
@@ -1228,12 +1228,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   getOrCreateLastNode(): ISsrNode {
-    if (!this.ssrBuildState.lastNode) {
+    if (!this.lastNode) {
       if (this._cursorDrivenRender && !this._directMode) {
         // Cursor-driven render: create SsrNode without vNodeData — the emitter handles
         // vNodeData building and REFERENCE flag during emission.
         // Still assign ID here because backpatching needs it during tree-building.
-        this.ssrBuildState.lastNode = new SsrNode(
+        this.lastNode = new SsrNode(
           this.ssrBuildState.currentComponentNode,
           String(this.ssrBuildState.currentElementFrame!.depthFirstElementIdx + 1),
           {}, // standalone attrs
@@ -1243,7 +1243,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       } else {
         // Direct mode / manual rendering: use vNodeData_createSsrNodeReference for full
         // vNodeData path computation and ID assignment.
-        this.ssrBuildState.lastNode = vNodeData_createSsrNodeReference(
+        this.lastNode = vNodeData_createSsrNodeReference(
           this.ssrBuildState.currentComponentNode,
           this.ssrBuildState.currentElementFrame!.vNodeData,
           // we start at -1, so we need to add +1
@@ -1253,7 +1253,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         );
       }
     }
-    return this.ssrBuildState.lastNode!;
+    return this.lastNode!;
   }
 
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void {

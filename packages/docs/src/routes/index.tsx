@@ -1,6 +1,6 @@
 import { component$, Slot, type PropsOf } from '@qwik.dev/core';
 import { type DocumentHead } from '@qwik.dev/router';
-import { Button } from '~/components/button/button';
+import { Button } from '~/components/action/action';
 import { lucide } from '@qds.dev/ui';
 import { Spacer } from '~/components/spacer/spacer';
 import { BuilderLogo } from '~/components/svgs/builder-logo';

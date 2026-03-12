@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { chromium } from 'playwright';
+import playwright from 'playwright';
 import { assert, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import {
   assertHostUnused,
@@ -14,6 +14,8 @@ import {
   scaffoldQwikProject,
   type QwikProjectType,
 } from '../utils';
+
+const browserType = process.env.PW_BROWSER || 'chromium';
 
 let SERVE_PORT = 3535;
 beforeEach(() => {
@@ -52,7 +54,7 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
           );
           assert.equal(existsSync(global.tmpDir), true);
 
-          const browser = await chromium.launch();
+          const browser = await playwright[browserType].launch();
           try {
             const page = await browser.newPage();
 

@@ -6266,3 +6266,45 @@ impl TestInput {
 		}
 	}
 }
+
+#[test]
+fn issue_4769() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+		export default component$(() => {
+			const count = useSignal(123);
+			return (
+				<>
+					Count: {Math.round(count.value + 1)}
+					<button onClick$={() => (count.value += 0.5)}>+1</button>
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn safe_global_methods() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+		export default component$(() => {
+			const count = useSignal(123);
+			return (
+				<>
+					<div title={window.document.title}></div>
+					<div title={window.document.getElementById(count.value).title}></div>
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}

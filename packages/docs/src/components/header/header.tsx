@@ -74,7 +74,7 @@ const getContentWidthClass = (label: string) => contentWidths[label] ?? contentW
 
 export const Header = component$(() => {
   return (
-    <div class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-['']">
+    <div class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] 3xl:block hidden">
       <navbar.root class="fixed top-6 left-1/2 z-99999 flex w-full max-w-[840px] -translate-x-1/2 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-6 shadow-base">
         <a href="/" class="flex items-center gap-2 text-foreground-accent">
           <QwikLogoOnly />

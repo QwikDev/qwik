@@ -92,14 +92,14 @@ export default component$(() => {
         </section>
 
         <section class="grid 3xl:grid-cols-2 grid-cols-1 3xl:gap-20 max-w-screen-3xl mx-auto 3xl:pt-32 pt-10 pb-20 3xl:px-20 px-4 box-content">
-          <div class="flex flex-col">
+          <div class="flex flex-col max-w-[343px] 3xl:max-w-none">
             {streamingCards.map((card, index) => (
               <Card
                 key={card.body}
                 class={
                   index === 0
-                    ? 'z-1 shadow-emphasis'
-                    : 'self-end transform -translate-y-16 z-0 shadow-emphasis'
+                    ? 'z-1 3xl:shadow-emphasis shadow-sm-emphasis'
+                    : 'self-end transform -translate-y-10 3xl:-translate-y-16 z-0 3xl:shadow-emphasis shadow-sm-emphasis'
                 }
               >
                 <div class="3xl:p-10 p-6 flex flex-col gap-2 3xl:max-w-[48ch] max-w-[260px] text-center">
@@ -110,7 +110,7 @@ export default component$(() => {
             ))}
           </div>
 
-          <div class="flex flex-col 3xl:gap-10 gap-8">
+          <div class="flex flex-col 3xl:gap-10 gap-8 max-w-fit">
             <div class="relative">
               <h2 class="font-heading 3xl:text-h3 text-[28px]">
                 <span class="bg-secondary-background-base mb-2 block w-fit shadow-primary-accent">
@@ -201,7 +201,7 @@ export const VideoPlayerIcon = component$((props: PropsOf<'svg'>) => {
 
 export const Card = component$(({ class: className, ...rest }: PropsOf<'div'>) => {
   const dots = Array.from({ length: 3 }).map(() => (
-    <div class="bg-background-base size-3 rounded-full" />
+    <div class="bg-background-base 3xl:size-3 size-2 rounded-full" />
   ));
 
   return (
@@ -212,7 +212,7 @@ export const Card = component$(({ class: className, ...rest }: PropsOf<'div'>) =
       ]}
       {...rest}
     >
-      <div class="bg-background-accent border-b-[1.6px] border-emphasis h-11 rounded-t-2xl flex gap-2 px-3 items-center">
+      <div class="bg-background-accent border-b-[1.6px] border-emphasis h-[27.241px] 3xl:h-11 rounded-t-2xl flex gap-2 px-3 items-center">
         {dots}
       </div>
 

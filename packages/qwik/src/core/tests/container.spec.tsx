@@ -429,7 +429,7 @@ describe('serializer v2', () => {
         const [srcQrl] = (obj as any)[SERIALIZABLE_STATE] as QRLInternal[];
         const [dstQrl] = container.$getObjectById$(0)[SERIALIZABLE_STATE] as QRLInternal[];
         expect(dstQrl.$hash$).toEqual(srcQrl.$hash$);
-        expect(dstQrl.$captures$).toEqual(srcQrl.$captures$ ? srcQrl.$captures$ : null);
+        expect(dstQrl.$captures$).toEqual(srcQrl.$captures$ ? srcQrl.$captures$ : undefined);
         await dstQrl.resolve();
         expect(dstQrl.resolved).toEqual((srcQrl as any).resolved);
       });

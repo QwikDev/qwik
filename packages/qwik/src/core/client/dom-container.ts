@@ -165,7 +165,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   parseQRL<T = unknown>(qrlStr: string): QRL<T> {
     const qrl = parseQRL(qrlStr) as QRLInternal<T>;
-    qrl.$setContainer$(this);
+    qrl.$lazy$.$container$ = this;
     return qrl;
   }
 

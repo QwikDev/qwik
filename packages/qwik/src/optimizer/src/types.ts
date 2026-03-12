@@ -157,7 +157,7 @@ export type EntryStrategy =
 export type MinifyMode = 'simplify' | 'none';
 
 /** @public */
-export type EmitMode = 'dev' | 'prod' | 'lib';
+export type EmitMode = 'dev' | 'prod' | 'lib' | 'hmr';
 
 /** @public */
 export interface InlineEntryStrategy {

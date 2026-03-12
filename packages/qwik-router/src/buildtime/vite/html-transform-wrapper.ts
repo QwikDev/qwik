@@ -154,12 +154,17 @@ class HtmlTransformPatcher {
   private async processHead() {
     try {
       // We can't pass the actual head to vite because it strips some scripts and then the DOM doesn't match the vdom positions
-      const fakeHtml = '<html><head>[FAKE_HEAD]</head><body>[FAKE_BODY]</body></html>';
+      const fakeHtml = `<html><head>[FAKE_HEAD]</head><body>[FAKE_BODY]</body></html>`;
       // Let Vite transform the HTML
       const transformedHtml = await this.server.transformIndexHtml(
         this.request.url || '/',
         fakeHtml
       );
+
+      // The HMR bridge which is served by qwikVite
+      const hmrBridge = this.server.hot
+        ? `<script type="module" src="/@id/@qwik-hmr-bridge"></script>`
+        : '';
 
       // Extract the pre and post head and body content. For now, ignore attributes added to the tags
       // If attributes are needed later, put them after the : attribute on qwik's tags
@@ -172,10 +177,8 @@ class HtmlTransformPatcher {
         .slice('<html><head>'.length, fakeHeadIndex)
         // remove new line after <script type="module" src="/@vite/client"></script>
         .trim();
-      const headPostContent = transformedHtml.slice(
-        fakeHeadIndex + '[FAKE_HEAD]'.length,
-        fakeHeadCloseIndex
-      );
+      const headPostContent =
+        transformedHtml.slice(fakeHeadIndex + '[FAKE_HEAD]'.length, fakeHeadCloseIndex) + hmrBridge;
       const fakeBodyStartIndex = transformedHtml.indexOf('<body>', fakeHeadCloseIndex);
       const fakeBodyIndex = transformedHtml.indexOf('[FAKE_BODY]', fakeBodyStartIndex);
       const fakeBodyEndIndex = transformedHtml.indexOf('</body>', fakeBodyIndex);

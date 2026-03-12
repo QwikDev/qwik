@@ -12,6 +12,11 @@ export default component$(() => {
     <Cloud class="absolute -left-1/4 top-1/2" />,
     <Cloud class="absolute -right-1/8 -top-1/8" />,
   ];
+  const shimmerMarkup = (
+    <span class="absolute inset-0 bg-gradient-text-shimmer animate-shimmer" aria-hidden="true">
+      Automatically Instant Web Apps
+    </span>
+  );
 
   return (
     <>
@@ -24,7 +29,10 @@ export default component$(() => {
 
           <div class="relative">
             <h1 class="uppercase font-display md:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
-              Automatically <span class="text-primary-standalone-emphasis">Instant</span> Web Apps
+              <span>
+                Automatically <span class="text-primary-standalone-emphasis">Instant</span> Web Apps
+              </span>
+              {shimmerMarkup}
             </h1>
             {clouds}
           </div>

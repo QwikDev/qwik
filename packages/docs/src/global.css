@@ -299,6 +299,7 @@
   --animate-to-invisible: to-invisible 325ms ease-in-out forwards;
   --animate-from-invisible: from-invisible 325ms ease-in-out forwards;
   --animate-from-visible: from-visible 325ms ease-in-out forwards;
+  --animate-shimmer: shimmer 8s infinite backwards reverse cubic-bezier(0.4, 0, 0.2, 1);
 
   @keyframes from-visible {
     from {
@@ -323,6 +324,20 @@
       opacity: 0;
     }
   }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -100% 0;
+    }
+
+    37.5% {
+      background-position: 100% 0;
+    }
+
+    100% {
+      background-position: 100% 0;
+    }
+  }
 }
 
 @utility border-base {
@@ -339,6 +354,20 @@
 
 @utility border-disabled {
   border-color: var(--color-border-disabled);
+}
+
+@utility bg-gradient-text-shimmer {
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 46%,
+    white 50%,
+    transparent 54%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  color: transparent;
 }
 
 @utility bg-hero-gradient-blue {

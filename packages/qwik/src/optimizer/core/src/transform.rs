@@ -367,7 +367,10 @@ impl<'a> QwikTransform<'a> {
 		let hash = hasher.finish();
 		let hash64 = base64(hash);
 
-		let symbol_name = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Test) {
+		let symbol_name = if matches!(
+			self.options.mode,
+			EmitMode::Dev | EmitMode::Test | EmitMode::Hmr
+		) {
 			format!("{}_{}", display_name, hash64)
 		} else {
 			format!("s_{}", hash64)
@@ -429,7 +432,10 @@ impl<'a> QwikTransform<'a> {
 			};
 			parse_symbol_name(
 				symbol_name,
-				matches!(self.options.mode, EmitMode::Dev | EmitMode::Test),
+				matches!(
+					self.options.mode,
+					EmitMode::Dev | EmitMode::Test | EmitMode::Hmr
+				),
 				&self.options.path_data.file_name,
 			)
 		};
@@ -940,7 +946,7 @@ impl<'a> QwikTransform<'a> {
 				vec![node_type, var_props, const_props, children, flags, key],
 			)
 		};
-		if self.options.mode == EmitMode::Dev {
+		if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
 			args.push(self.get_dev_location(node.span));
 		}
 
@@ -1521,7 +1527,7 @@ impl<'a> QwikTransform<'a> {
 				raw: None,
 			})),
 		];
-		let fn_callee = if self.options.mode == EmitMode::Dev {
+		let fn_callee = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
 			args.push(get_qrl_dev_obj(
 				Atom::from(
 					self.options
@@ -1626,7 +1632,7 @@ impl<'a> QwikTransform<'a> {
 			})),
 		];
 
-		let fn_callee = if self.options.mode == EmitMode::Dev {
+		let fn_callee = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
 			args.push(get_qrl_dev_obj(
 				Atom::from(
 					self.options
@@ -2593,7 +2599,7 @@ impl<'a> QwikTransform<'a> {
 		}))];
 
 		let mut fn_name: &Atom = &_NOOP_QRL;
-		if self.options.mode == EmitMode::Dev {
+		if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
 			args.push(get_qrl_dev_obj(
 				Atom::from(
 					self.options
@@ -3565,6 +3571,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			self.iteration_var_stack.push(iteration_vars);
 		}
 
+		let mut is_qcomponent = false;
 		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
 			// Check if this is a _fnSignal call (either by ID or by checking if it's imported as _fnSignal)
 			let is_fn_signal = id_eq!(ident, &self.fn_signal_fn) || {
@@ -3595,7 +3602,8 @@ impl<'a> Fold for QwikTransform<'a> {
 				ctx_name = specifier.clone();
 				name_token = true;
 
-				if id_eq!(ident, &self.qcomponent_fn) {
+				is_qcomponent = id_eq!(ident, &self.qcomponent_fn);
+				if is_qcomponent {
 					if let Some(comments) = self.options.comments {
 						comments.add_pure_comment(node.span.lo);
 					}
@@ -3649,8 +3657,40 @@ impl<'a> Fold for QwikTransform<'a> {
 			.enumerate()
 			.map(|(i, arg)| {
 				if convert_qrl && i == 0 {
+					let mut component_body = *arg.expr;
+
+					// In HMR mode, inject _useHmr(devPath) as the first statement of component$ bodies
+					if is_qcomponent && self.options.mode == EmitMode::Hmr {
+						let hmr_local = self.ensure_core_import(&_USE_HMR);
+						let dev_path = Atom::from(
+							self.options
+								.dev_path
+								.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
+						);
+						let hmr_call_stmt = ast::Stmt::Expr(ast::ExprStmt {
+							span: DUMMY_SP,
+							expr: Box::new(ast::Expr::Call(ast::CallExpr {
+								span: DUMMY_SP,
+								callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(
+									new_ident_from_id(&hmr_local),
+								))),
+								args: vec![ast::ExprOrSpread {
+									spread: None,
+									expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+										span: DUMMY_SP,
+										value: dev_path,
+										raw: None,
+									}))),
+								}],
+								..Default::default()
+							})),
+						});
+
+						component_body = prepend_stmt_to_fn(component_body, hmr_call_stmt);
+					}
+
 					let qrl = self.create_synthetic_qsegment(
-						*arg.expr,
+						component_body,
 						SegmentKind::Function,
 						ctx_name.clone(),
 						None,
@@ -4585,6 +4625,46 @@ fn is_text_only(node: &str) -> bool {
 		node,
 		"text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
 	)
+}
+
+/// Prepend a statement to a function/arrow expression body.
+/// For arrow expressions with expression bodies, converts to a block body with the prepended
+/// statement and a return statement.
+fn prepend_stmt_to_fn(expr: ast::Expr, stmt: ast::Stmt) -> ast::Expr {
+	match expr {
+		ast::Expr::Arrow(mut arrow) => {
+			match *arrow.body {
+				ast::BlockStmtOrExpr::BlockStmt(mut block) => {
+					block.stmts.insert(0, stmt);
+					arrow.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(block));
+				}
+				ast::BlockStmtOrExpr::Expr(expr) => {
+					let block = ast::BlockStmt {
+						span: DUMMY_SP,
+						stmts: vec![
+							stmt,
+							ast::Stmt::Return(ast::ReturnStmt {
+								span: DUMMY_SP,
+								arg: Some(expr),
+							}),
+						],
+						..Default::default()
+					};
+					arrow.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(block));
+				}
+			}
+			ast::Expr::Arrow(arrow)
+		}
+		ast::Expr::Fn(mut fn_expr) => {
+			if let Some(ref mut body) = fn_expr.function.body {
+				body.stmts.insert(0, stmt);
+			}
+			ast::Expr::Fn(fn_expr)
+		}
+		// For other expression types, wrap in an IIFE-like pattern
+		// This shouldn't normally happen for component$ arguments
+		other => other,
+	}
 }
 
 fn process_node_props(pat: &ast::Pat) -> Vec<IdPlusType> {

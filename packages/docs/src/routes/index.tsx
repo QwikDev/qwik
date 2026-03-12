@@ -28,10 +28,10 @@ export default component$(() => {
         <section class="relative space-y-10 flex flex-col items-center overflow-x-clip mx-auto px-4">
           <Decor />
           {/* Design spacer. TODO: adjust as needed for responsiveness */}
-          <Spacer class="md:h-63.5 h-[128px]" />
+          <Spacer class="3xl:h-63.5 h-[128px]" />
 
           <div class="relative">
-            <h1 class="uppercase font-display md:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
+            <h1 class="uppercase font-display 3xl:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
               <span>
                 Automatically <span class="text-primary-standalone-emphasis">Instant</span> Web Apps
               </span>
@@ -46,13 +46,13 @@ export default component$(() => {
           </p>
 
           {/* margin collapse from space-y so that the 110.5px is accurate */}
-          <div class="flex gap-6 justify-center md:mb-[110.5px] mb-[40px] flex-wrap">
-            <Button variant="primary" class="md:text-base text-sm">
+          <div class="flex gap-6 justify-center 3xl:mb-[110.5px] mb-[40px] flex-wrap">
+            <Button variant="primary" class="3xl:text-base text-sm">
               <span>Qwik Start</span>
               <lucide.arrowright />
             </Button>
 
-            <Button variant="secondary" class="md:text-base text-sm">
+            <Button variant="secondary" class="3xl:text-base text-sm">
               <span>npm create qwik@latest</span>
               <lucide.clipboard />
             </Button>
@@ -62,28 +62,28 @@ export default component$(() => {
             <span class="text-foreground-soft text-sm">Special Sponsor</span>
             <div class="flex text-foreground-accent">
               <BuilderLogo width={117.35} height={25.2} />
-              <div class="w-px h-[25.2px] bg-foreground-soft ml-7 md:block hidden" />
+              <div class="w-px h-[25.2px] bg-foreground-soft ml-7 3xl:block hidden" />
             </div>
-            <span class="max-w-[20ch] text-foreground-soft text-sm md:block hidden">
+            <span class="max-w-[20ch] text-foreground-soft text-sm 3xl:block hidden">
               Ship twice as much, twice as fast
             </span>
           </div>
         </section>
 
-        <section class="grid md:grid-cols-2 grid-cols-1 md:gap-20 max-w-[1440px] mx-auto md:pt-32 pt-10 pb-20 md:px-20 px-4 box-content">
+        <section class="grid 3xl:grid-cols-2 grid-cols-1 3xl:gap-20 max-w-screen-3xl mx-auto 3xl:pt-32 pt-10 pb-20 3xl:px-20 px-4 box-content">
           <div class="flex flex-col">
             <Card class="z-1 shadow-emphasis">
-              <div class="md:p-10 p-6 flex flex-col gap-2 md:max-w-[48ch] max-w-[260px] text-center">
-                <h3 class="font-heading md:text-h5 text-sm ">Zero induced delays</h3>
-                <p class="md:text-body text-sm">
+              <div class="3xl:p-10 p-6 flex flex-col gap-2 3xl:max-w-[48ch] max-w-[260px] text-center">
+                <h3 class="font-heading 3xl:text-h5 text-sm ">Zero induced delays</h3>
+                <p class="3xl:text-body text-sm">
                   Your app stays quick, no matter how large it gets.
                 </p>
               </div>
             </Card>
 
             <Card class="self-end transform -translate-y-16 z-0 shadow-emphasis">
-              <div class="md:p-10 p-6 flex flex-col gap-2 md:max-w-[48ch] max-w-[260px] text-center">
-                <h3 class="font-heading md:text-h5 text-sm">
+              <div class="3xl:p-10 p-6 flex flex-col gap-2 3xl:max-w-[48ch] max-w-[260px] text-center">
+                <h3 class="font-heading 3xl:text-h5 text-sm">
                   <span class="text-standalone-accent">~20s</span> quicker or more on 3G 🤯
                 </h3>
                 <p>
@@ -93,9 +93,9 @@ export default component$(() => {
               </div>
             </Card>
           </div>
-          <div class="flex flex-col md:gap-10 gap-8">
+          <div class="flex flex-col 3xl:gap-10 gap-8">
             <div class="relative">
-              <h2 class="font-heading md:text-h3 text-[28px]">
+              <h2 class="font-heading 3xl:text-h3 text-[28px]">
                 <span class="bg-secondary-background-base mb-2 block w-fit shadow-primary-accent">
                   Introducing
                 </span>
@@ -126,7 +126,7 @@ export default component$(() => {
               </p>
             </div>
 
-            <Button class="w-fit md:text-base text-sm" variant="primary">
+            <Button class="w-fit 3xl:text-base text-sm" variant="primary">
               <span>Discover more</span>
               <lucide.arrowright />
             </Button>

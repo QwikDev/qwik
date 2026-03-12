@@ -67,6 +67,8 @@
 }
 
 @theme {
+  --breakpoint-3xl: 1440px;
+
   /* Font families */
   --font-display: 'Karmatic Arcade', cursive;
   --font-heading: 'Tomorrow', sans-serif;

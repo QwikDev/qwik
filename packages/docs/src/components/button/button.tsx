@@ -3,8 +3,12 @@ import { tw } from '~/utils/utils';
 
 const button = {
   base: tw('border-[1.6px] py-2 px-3 flex gap-2 items-center'),
-  primary: tw('bg-violet-55 text-white border-violet-65 shadow-primary'),
-  secondary: tw('bg-violet-10 border-violet-45 text-violet-75 shadow-secondary'),
+  primary: tw(
+    'bg-primary-background-base text-primary-foreground-base border-primary-border-base shadow-primary'
+  ),
+  secondary: tw(
+    'bg-secondary-background-base border-secondary-border-base text-secondary-foreground-base shadow-secondary'
+  ),
 };
 
 type ButtonVariant = Exclude<keyof typeof button, 'base'>;

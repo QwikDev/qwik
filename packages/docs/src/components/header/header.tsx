@@ -61,7 +61,7 @@ export const Header = component$(() => {
   return (
     <div class="flex justify-center">
       <navbar.root class="flex items-center justify-between px-6 justify-self-center bg-background-base fixed top-6 w-full rounded-2xl border-[1.6px] border-base shadow-base z-99999 max-w-[840px]">
-        <a href="/" class="flex items-center gap-2">
+        <a href="/" class="flex items-center gap-2 text-foreground-accent">
           <QwikLogoOnly />
         </a>
 

@@ -49,7 +49,7 @@ export default component$(() => {
 
           <div class="flex gap-6 items-center py-4">
             <span class="text-foreground-soft text-sm">Special Sponsor</span>
-            <div class="flex">
+            <div class="flex text-foreground-accent">
               <BuilderLogo width={117.35} height={25.2} />
               <div class="w-px h-[25.2px] bg-foreground-soft ml-7 md:block hidden" />
             </div>

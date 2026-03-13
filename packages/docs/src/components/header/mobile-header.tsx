@@ -1,4 +1,5 @@
 import { component$ } from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/router';
 import { Button } from '../action/action';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
 import { modal, lucide } from '@qds.dev/ui';
@@ -7,9 +8,9 @@ const MobileNavLink = (props: { href: string; label: string; active?: boolean })
   <a
     href={props.href}
     class={[
-      'pt-1 font-semibold text-base leading-[22px] border-b-2 transition-colors',
+      'pt-1 font-semibold text-base border-b-2 transition-colors',
       props.active
-        ? 'text-standalone-accent border-standalone-emphasis'
+        ? 'text-standalone-emphasis border-emphasis'
         : 'text-foreground-base border-transparent hover:text-standalone-accent',
     ]}
   >
@@ -19,17 +20,27 @@ const MobileNavLink = (props: { href: string; label: string; active?: boolean })
 
 const MobileNavSection = (props: {
   title: string;
-  links: { href: string; label: string; active?: boolean }[];
+  pathname: string;
+  links: { href: string; label: string }[];
 }) => (
   <div class="flex flex-col gap-4 w-[130px]">
-    <span class="font-bold text-sm leading-[20px] text-foreground-soft">{props.title}</span>
+    <span class="font-bold text-sm leading-[143%] text-foreground-muted">{props.title}</span>
     {props.links.map((link) => (
-      <MobileNavLink key={link.href} {...link} />
+      <MobileNavLink key={link.href} {...link} active={isActive(props.pathname, link.href)} />
     ))}
   </div>
 );
 
+const isActive = (pathname: string | undefined, href: string) => {
+  if (!pathname) return false;
+  const clean = pathname.replace(/\/$/, '');
+  const target = href.replace(/\/$/, '');
+  return clean === target;
+};
+
 export const MobileHeader = component$(() => {
+  const { url } = useLocation();
+  const pathname = url.pathname;
   return (
     <div class="2xl:hidden">
       <modal.root>
@@ -71,9 +82,10 @@ export const MobileHeader = component$(() => {
               <div class="flex gap-16">
                 <MobileNavSection
                   title="Core"
+                  pathname={pathname}
                   links={[
                     { href: '/docs', label: 'Qwik Core' },
-                    { href: '/tutorial', label: 'Tutorial' },
+                    { href: '/tutorial/welcome/overview', label: 'Tutorial' },
                     { href: '/docs/core/tasks', label: 'Lifecycle' },
                     { href: '/docs/core/events', label: 'Events' },
                     { href: '/docs/core/tasks', label: 'Tasks' },
@@ -82,6 +94,7 @@ export const MobileHeader = component$(() => {
                 />
                 <MobileNavSection
                   title="Ecosystem"
+                  pathname={pathname}
                   links={[
                     { href: '/docs/integrations', label: 'Integrations' },
                     { href: '/docs/cookbook', label: 'Cookbooks' },
@@ -92,6 +105,7 @@ export const MobileHeader = component$(() => {
               <div class="flex gap-16">
                 <MobileNavSection
                   title="Router"
+                  pathname={pathname}
                   links={[
                     { href: '/docs/qwikrouter', label: 'Qwik Router' },
                     { href: '/docs/routing', label: 'Routing' },
@@ -103,6 +117,7 @@ export const MobileHeader = component$(() => {
                 />
                 <MobileNavSection
                   title="Resources"
+                  pathname={pathname}
                   links={[
                     { href: '/blog', label: 'Blog' },
                     { href: '/docs/concepts/think-qwik', label: 'Concepts' },

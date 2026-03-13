@@ -69,7 +69,7 @@ Server-side code:
 
 ### Compared to React
 
-Progamming is very similar to React, but there are some important differences:
+Programming is very similar to React, but there are some important differences:
 
 - There are no class components.
 - An external state management library is not needed.
@@ -97,12 +97,22 @@ You can directly return Promises in JSX, but the render function itself should n
 
 ### State Management
 
-- `useSignal()` - Reactive primitive values. This is the preferred way to store state.
-- `useStore()` - Reactive object store. Use this to store complex state with deep reactivity.
-- `useComputed$()` - Reactive computed values. This is the preferred way to derive values from state.
-- `useResource$()` - Async data fetching.
-- `useTask$()` - Side effects and lifecycle.
-- `useVisibleTask$()` - Side effects and lifecycle. Use this to run side effects that are not possible to run on the server, but be aware that it can slow down the initial load. Consider passing `{strategy: 'document-idle'}` to run it after the page is loaded.
+- `useSignal()` - Reactive primitive values (string, number, boolean, etc.). **This is the preferred way to store state.**
+  - Access and modify via `.value` property.
+  - Re-renders only the parts of the UI that read this signal.
+- `useStore()` - Reactive object store with **deep reactivity** for nested objects and arrays.
+  - Mutate properties directly (e.g., `state.count++`, `state.items.push(...)`).
+  - Do NOT replace the store object itself.
+  - Use when you need reactivity on nested object properties or array mutations.
+- `useComputed$()` - Reactive computed values. Automatically recomputes when dependencies change.
+- `useResource$()` - Async data fetching that integrates with SSR and streaming.
+- `useTask$()` - Side effects and lifecycle. **Prefer this over `useVisibleTask$`**.
+  - Runs on both server (during SSR) and client (on signal changes).
+  - Use for data fetching, syncing state, or other side effects.
+- `useVisibleTask$()` - **⚠️ Use sparingly!** Runs only on the client after component becomes visible.
+  - Forces eager JavaScript execution, defeating Qwik's lazy-loading benefits.
+  - Only use for direct DOM manipulation (canvas, third-party libraries, focus management) that cannot be done declaratively.
+  - Consider `{strategy: 'document-idle'}` to defer execution until after page load.
 
 Note that a Store wraps and mutates the given object deeply, and it Qwik keeps a reverse mapping of the original object to the Store. If you create two Stores with the same initial object, they will be the same store.
 
@@ -143,13 +153,81 @@ You can have async Tasks that change state during SSR, and the server will wait 
 - File-based routing in `src/routes/`
 - Layouts with `layout.tsx`. Make sure to render `<Slot />`.
 - `server$()` automatically calls the server to execute the given function and returns the result. Use this where normally you would use an internal REST API.
+  - **Important**: Always validate parameters, as they come from the client and can be tampered with.
 - Loaders with `routeLoader$()` for data fetching. This data starts to be fetched before SSR starts, based on where in the routes the loader is exported.
+  - Can use `zod$()` for input validation.
 - Actions with `routeAction$()` for form handling.
+  - Can use `zod$()` for automatic form validation.
+  - Example with validation:
+    ```ts
+    import { routeAction$, zod$, z } from "@builder.io/qwik-city";
+    export const useAddUser = routeAction$(
+      async (data) => {
+        // data is validated and typed
+        await db.users.create(data);
+        return { success: true };
+      },
+      zod$({
+        name: z.string().min(1),
+        email: z.string().email(),
+      }),
+    );
+    ```
 - Folder naming for routes, in order of precedence:
   - `(internalName)`: purely for code organization. The folder is read and becomes part of the current route
   - regular string: exact match for the given string
   - `[paramName]`: match any string up to the next `/`, and store it under `params[paramName]` of the request object (available in server functions) and `useLocation()`.
   - `[...restName]`: match any subpath
+
+## Styling
+
+Qwik supports multiple styling approaches:
+
+- **Global CSS**: Import CSS files in `root.tsx` or route files.
+- **Scoped Styles with `useStylesScoped$()`**: Automatically scopes styles to the component.
+  ```ts
+  import { component$, useStylesScoped$ } from '@builder.io/qwik';
+  export default component$(() => {
+    useStylesScoped$(`
+      .container { background: blue; }
+    `);
+    return <div class="container">Styled!</div>;
+  });
+  ```
+- **Module Styles with `useStyles$()`**: Loads styles once globally.
+  ```ts
+  import { component$, useStyles$ } from '@builder.io/qwik';
+  import styles from './styles.css?inline';
+  export default component$(() => {
+    useStyles$(styles);
+    return <div class="container">Styled!</div>;
+  });
+  ```
+- **CSS Modules**: Import `.module.css` files for scoped class names.
+  ```ts
+  import styles from './component.module.css';
+  export default component$(() => {
+    return <div class={styles.container}>Styled!</div>;
+  });
+  ```
+- **Tailwind CSS**: Fully supported. Configure in `tailwind.config.js` and import in `global.css`.
+- **Inline Styles**: Use the `style` attribute with objects or strings.
+  ```tsx
+  <div style={{ color: 'red' }}>Red text</div>
+  <div style="color: blue;">Blue text</div>
+  ```
+
+**Note**: Use `class` attribute, not `className`.
+
+## Environment Variables
+
+- **Client-side**: Access via `import.meta.env.PUBLIC_*`
+  - Only variables prefixed with `PUBLIC_` are exposed to the client.
+  - Example: `import.meta.env.PUBLIC_API_URL`
+- **Server-side**: Access via `import.meta.env.*` or `requestEvent.env`
+  - All environment variables are available on the server.
+  - In loaders/actions: `requestEvent.env.get('SECRET_KEY')`
+  - Note: `requestEvent.env` provides platform-specific access (Cloudflare, Vercel, etc.)
 
 ## Testing Strategy
 
@@ -172,7 +250,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
 ### Component Creation
 
 - `component$(renderFn: (props: Props) => JSXOutput): Component`
-
   - Wraps a function component for Qwik's reactivity and lazy-loading.
   - Example:
 
@@ -182,7 +259,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
     ```
 
 - `<Slot />` or `<Slot name="..." />`
-
   - Placeholder for the children passed to a component.
   - Example:
 
@@ -196,7 +272,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
     ```
 
 - `<Resource onResolve={...} onReject={...} onPending={...} />`
-
   - Renders a resource from `useResource$()`.
   - Example:
 
@@ -231,7 +306,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
 ### Reactivity & State
 
 - `useSignal<T>(initialValue: T): Signal<T>`
-
   - Example:
 
     ```ts
@@ -243,7 +317,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
     ```
 
 - `useStore<T extends object>(initialState: T, options?): T`
-
   - Example:
 
     ```ts
@@ -255,7 +328,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
     ```
 
 - `useComputed$<T>(compute: () => T): ReadonlySignal<T>`
-
   - Example:
 
     ```ts
@@ -276,7 +348,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
 ### Lifecycle & Effects
 
 - `useTask$(taskFn: TaskFn, options?): void`
-
   - Example:
 
     ```ts
@@ -292,7 +363,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
     ```
 
 - `useErrorBoundary(errorHandler: (error: any) => void): void`
-
   - Example:
 
     ```ts
@@ -313,7 +383,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
 - `createContextId<T>(name?): ContextId<T>`
 - `useContextProvider<T>(context: ContextId<T>, value: T): void`
 - `useContext<T>(context: ContextId<T>): T`
-
   - Example:
 
     ```ts
@@ -389,23 +458,19 @@ You can have async Tasks that change state during SSR, and the server will wait 
 ### Core Components
 
 - `QwikCityProvider(props: QwikCityProps): JSX.Element`
-
   - The root context provider for Qwik City apps. Should wrap your app's `<head>` and `<body>`. Handles routing, navigation, and state.
   - `props.viewTransition?: boolean` — Enable the ViewTransition API (default: `true`).
 
 - `QwikCityMockProvider(props: QwikCityMockProps): JSX.Element`
-
   - Used for testing and storybook. Mocks routing context.
   - `props.url?: string` — The current URL.
   - `props.params?: Record<string, string>` — Route params.
   - `props.goto?: RouteNavigate` — Custom navigation handler.
 
 - `RouterOutlet(): JSX.Element`
-
   - Renders the current route's component tree.
 
 - `Link(props: LinkProps): JSX.Element`
-
   - Navigation link component with SPA support and prefetching.
   - `props.href: string` — Destination URL.
   - `props.prefetch?: boolean | 'js'` — Prefetch route data or JS.
@@ -414,7 +479,6 @@ You can have async Tasks that change state during SSR, and the server will wait 
   - `props.scroll?: boolean` — Control scroll behavior.
 
 - `head(props: HeadProps): JSX.Element`
-
   - Declares the document head for the current route.
   - `title?: string` — The title of the page.
   - `meta?: Meta[]` — The meta tags for the page.
@@ -445,20 +509,17 @@ You can have async Tasks that change state during SSR, and the server will wait 
 ### Routing & Data
 
 - `routeLoader$(loaderFn, ...validators): Loader<T>`
-
   - Declares a data loader for a route. Runs on server and client navigation.
   - `loaderFn(event: RequestEventLoader): T | Promise<T>`
   - The data can be accessed in `head()` with the `resolveValue()` helper, and in the component by calling the returned `Loader`.
   - The resulting `Loader` _must_ be exported from the route that it should run in.
 
 - `routeAction$(actionFn, ...validators): Action<T>`
-
   - Declares a form action handler for a route, that also works when JavaScript is disabled.
   - `actionFn(event: RequestEventAction): T | Promise<T>`
   - Returns a function to access the action state.
 
 - `server$(fn, options?): ServerQRL<T>`
-
   - Declares a server-only function callable from the client.
   - `fn(event: RequestEventBase, ...args): any`
   - Returns a QRL-wrapped server function.
@@ -480,19 +541,15 @@ You can have async Tasks that change state during SSR, and the server will wait 
 ### Hooks
 
 - `useLocation(): RouteLocation`
-
   - Returns the current route location, params, and navigation state.
 
 - `useNavigate(): RouteNavigate`
-
   - Returns a function to programmatically navigate to a new route.
 
 - `useContent(): ContentState`
-
   - Returns the current route's content metadata (headings, menu).
 
 - `useDocumentHead<FrontMatter>(): ResolvedDocumentHead<FrontMatter>`
-
   - Returns the resolved document head for the current route.
 
 - `usePreventNavigate$(callback: PreventNavigateCallback): void`
@@ -503,23 +560,18 @@ You can have async Tasks that change state during SSR, and the server will wait 
 ### Types
 
 - `QwikCityProps`
-
   - Props for `QwikCityProvider`. `{ viewTransition?: boolean }`
 
 - `QwikCityMockProps`
-
   - Props for `QwikCityMockProvider`. `{ url?: string, params?: Record<string, string>, goto?: RouteNavigate }`
 
 - `RouteLocation`
-
   - `{ url: URL, params: Record<string, string>, isNavigating: boolean, prevUrl?: URL }`
 
 - `RouteNavigate`
-
   - QRL function for navigation: `(path?: string | number | URL, options?: { type?: string, forceReload?: boolean, replaceState?: boolean, scroll?: boolean } | boolean) => Promise<void>`
 
 - `ContentState`
-
   - `{ headings?: ContentHeading[], menu?: ContentMenu }`
 
 - `ResolvedDocumentHead<FrontMatter>`

@@ -6,9 +6,9 @@ import { BuilderLogo } from '~/components/svgs/builder-logo';
 
 export const Hero = component$(() => {
   const clouds = [
-    <Cloud class="absolute -top-3/4 left-0" />,
-    <Cloud class="absolute -left-1/4 top-1/2" />,
-    <Cloud class="absolute -right-1/8 -top-1/8" />,
+    <Cloud class="absolute sm:-top-3/4 -top-[60px] left-0" />,
+    <Cloud class="absolute -left-1/3 2xl:-left-1/4 top-1/2 hidden sm:block" />,
+    <Cloud class="absolute -right-1/3 2xl:-right-1/8 -top-1/8 hidden sm:block" />,
   ];
 
   const shimmerMarkup = (
@@ -37,7 +37,7 @@ export const Hero = component$(() => {
         {clouds}
       </div>
 
-      <p class="text-body-md max-w-[50ch] text-center">
+      <p class="text-body-sm 2xl:text-body-md max-w-[50ch] text-center">
         A new kind of framework for you to ship quicker and provide better user experiences every
         step of the way.
       </p>

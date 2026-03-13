@@ -42,7 +42,7 @@ export async function createSystem(opts: StaticGenerateOptions) {
   const basenameLen = basePathname.length;
 
   const getRouteFilePath = (pathname: string, isHtml: boolean) => {
-    pathname = pathname.slice(basenameLen);
+    pathname = decodeURIComponent(pathname.slice(basenameLen));
     if (isHtml) {
       if (!pathname.endsWith('.html')) {
         if (pathname.endsWith('/')) {
@@ -60,7 +60,7 @@ export async function createSystem(opts: StaticGenerateOptions) {
   };
 
   const getDataFilePath = (pathname: string) => {
-    pathname = pathname.slice(basenameLen);
+    pathname = decodeURIComponent(pathname.slice(basenameLen));
     if (pathname.endsWith('/')) {
       pathname += 'q-data.json';
     } else {

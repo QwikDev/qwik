@@ -16,7 +16,7 @@ export const Hero = component$(() => {
       class="absolute inset-0 bg-gradient-text-shimmer animate-shimmer opacity-75 mix-blend-screen"
       aria-hidden="true"
     >
-      Automatically Instant Web Apps
+      Auto&shy;matically Instant Web Apps
     </span>
   );
 
@@ -29,7 +29,8 @@ export const Hero = component$(() => {
       <div class="relative">
         <h1 class="uppercase font-display 2xl:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
           <span>
-            Automatically <span class="text-primary-standalone-emphasis">Instant</span> Web Apps
+            Auto&shy;matically <span class="text-primary-standalone-emphasis">Instant</span> Web
+            Apps
           </span>
           {shimmerMarkup}
         </h1>

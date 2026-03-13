@@ -24,10 +24,10 @@ export const Hero = component$(() => {
     <section class="relative space-y-10 flex flex-col items-center overflow-x-clip mx-auto px-4">
       <Decor />
       {/* Design spacer. TODO: adjust as needed for responsiveness */}
-      <Spacer class="3xl:h-63.5 h-[128px]" />
+      <Spacer class="2xl:h-63.5 h-[128px]" />
 
       <div class="relative">
-        <h1 class="uppercase font-display 3xl:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
+        <h1 class="uppercase font-display 2xl:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
           <span>
             Automatically <span class="text-primary-standalone-emphasis">Instant</span> Web Apps
           </span>
@@ -42,13 +42,13 @@ export const Hero = component$(() => {
       </p>
 
       {/* margin collapse from space-y so that the 110.5px is accurate */}
-      <div class="flex gap-6 justify-center 3xl:mb-[110.5px] mb-[40px] flex-wrap">
-        <Button variant="primary" class="3xl:text-base text-sm">
+      <div class="flex gap-6 justify-center 2xl:mb-[110.5px] mb-[40px] flex-wrap">
+        <Button variant="primary" class="2xl:text-base text-sm">
           <span>Qwik Start</span>
           <lucide.arrowright />
         </Button>
 
-        <Button variant="secondary" class="3xl:text-base text-sm">
+        <Button variant="secondary" class="2xl:text-base text-sm">
           <span>npm create qwik@latest</span>
           <lucide.clipboard />
         </Button>
@@ -58,9 +58,9 @@ export const Hero = component$(() => {
         <span class="text-foreground-soft text-sm">Special Sponsor</span>
         <div class="flex text-foreground-accent">
           <BuilderLogo width={117.35} height={25.2} />
-          <div class="w-px h-[25.2px] bg-foreground-soft ml-7 3xl:block hidden" />
+          <div class="w-px h-[25.2px] bg-foreground-soft ml-7 2xl:block hidden" />
         </div>
-        <span class="max-w-[20ch] text-foreground-soft text-sm 3xl:block hidden">
+        <span class="max-w-[20ch] text-foreground-soft text-sm 2xl:block hidden">
           Ship twice as much, twice as fast
         </span>
       </div>

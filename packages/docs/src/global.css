@@ -67,7 +67,7 @@
 }
 
 @theme {
-  --breakpoint-3xl: 1440px;
+  --breakpoint-2xl: 90rem;
 
   /* Font families */
   --font-display: 'Karmatic Arcade', cursive;

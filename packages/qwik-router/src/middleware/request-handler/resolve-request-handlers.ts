@@ -16,6 +16,7 @@ import {
   type RouteModule,
   type ValidatorReturn,
 } from '../../runtime/src/types';
+import { resolveRouteConfig } from '../../runtime/src/head';
 import { resolveETag, resolveCacheKey, getCachedHtml, MAX_CACHE_SIZE, setCachedHtml } from './etag';
 import { HttpStatus } from './http-status-codes';
 import {
@@ -286,12 +287,22 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
     }
 
     const mods = route.$mods$ as ContentModule[];
-    const leafModule = mods[mods.length - 1] as PageModule | undefined;
-    if (!leafModule?.eTag) {
+
+    // Quick check: does any module have an eTag (via routeConfig or standalone)?
+    const hasETag = mods.some((m) => {
+      if (!m) {
+        return false;
+      }
+      if (m.routeConfig) {
+        return typeof m.routeConfig === 'function' || m.routeConfig.eTag !== undefined;
+      }
+      return (m as PageModule).eTag !== undefined;
+    });
+    if (!hasETag) {
       return;
     }
 
-    // Build DocumentHeadProps for eTag function resolution
+    // Build resolveValue for routeConfig resolution
     const loaders = getRequestLoaders(requestEv);
     const getData = ((loaderOrAction: any) => {
       const id = loaderOrAction.__id;
@@ -305,17 +316,25 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
       return data;
     }) as ResolveSyncValue;
 
-    const headProps: DocumentHeadProps = {
-      head: { title: '', meta: [], links: [], styles: [], scripts: [], frontmatter: {} },
-      withLocale: (fn) => fn(),
-      resolveValue: getData,
+    const routeLocation = {
       params: requestEv.params,
       url: requestEv.url,
-      isNavigating: false,
+      isNavigating: false as const,
       prevUrl: undefined,
     };
 
-    const eTag = resolveETag(leafModule, headProps);
+    // Resolve full route config (head + eTag + cacheKey) across all modules
+    const config = resolveRouteConfig(getData, routeLocation, mods, '');
+
+    // Build headProps for resolving eTag value (if it's a function)
+    const headProps: DocumentHeadProps = {
+      head: config.head,
+      withLocale: (fn) => fn(),
+      resolveValue: getData,
+      ...routeLocation,
+    };
+
+    const eTag = resolveETag(config.eTag, headProps);
     if (!eTag) {
       return;
     }
@@ -339,7 +358,7 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
       return;
     }
     const status = requestEv.status();
-    const cacheKey = resolveCacheKey(leafModule, status, eTag, requestEv.url.pathname);
+    const cacheKey = resolveCacheKey(config.cacheKey, status, eTag, requestEv.url.pathname);
     if (!cacheKey) {
       return; // No caching, just ETag header + 304 support
     }

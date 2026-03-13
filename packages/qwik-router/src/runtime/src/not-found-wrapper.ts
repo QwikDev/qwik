@@ -23,9 +23,21 @@ export function createNotFoundWrapper(notFoundMod: RouteModule, errorMod: RouteM
     return null;
   };
 
+  // Read head from routeConfig if available, falling back to standalone head export
+  const notFoundHead =
+    (notFoundMod as PageModule).routeConfig &&
+    typeof (notFoundMod as PageModule).routeConfig !== 'function'
+      ? ((notFoundMod as PageModule).routeConfig as { head?: ContentModuleHead }).head
+      : (notFoundMod as PageModule).head;
+  const errorHead =
+    (errorMod as PageModule).routeConfig &&
+    typeof (errorMod as PageModule).routeConfig !== 'function'
+      ? ((errorMod as PageModule).routeConfig as { head?: ContentModuleHead }).head
+      : (errorMod as PageModule).head;
+
   return {
     default: Component,
-    head: ((notFoundMod as PageModule).head ?? (errorMod as PageModule).head) as ContentModuleHead,
+    head: (notFoundHead ?? errorHead) as ContentModuleHead,
     cacheKey: ((status: number) => String(status)) as CacheKeyFn,
   };
 }

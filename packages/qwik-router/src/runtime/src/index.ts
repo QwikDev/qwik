@@ -34,6 +34,8 @@ export type {
   QwikCityPlan,
   QwikRouterConfig,
   QwikRouterEnvData,
+  RouteConfig,
+  RouteConfigValue,
   RequestEvent,
   RequestEventAction,
   RequestEventBase,

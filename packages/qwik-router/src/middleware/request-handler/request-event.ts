@@ -419,6 +419,49 @@ const parseRequest = async (
 };
 
 const isDangerousKey = (k: string) => k === '__proto__' || k === 'constructor' || k === 'prototype';
+const isArrayIndexKey = (k: string) => /^(0|[1-9]\d*)$/.test(k);
+
+const getArrayPaths = (formData: FormData) => {
+  const arrayCandidates = new Map<string, boolean>();
+
+  for (const [name] of formData) {
+    const keys = name.split('.');
+    let hasDangerousKey = false;
+
+    for (const key of keys) {
+      if (isDangerousKey(key)) {
+        hasDangerousKey = true;
+        break;
+      }
+    }
+
+    if (hasDangerousKey) {
+      continue;
+    }
+
+    let path = '';
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (key.endsWith('[]')) {
+        break;
+      }
+
+      path = path ? `${path}.${key}` : key;
+      if (!arrayCandidates.has(path)) {
+        arrayCandidates.set(path, true);
+      }
+      if (!isArrayIndexKey(keys[i + 1])) {
+        arrayCandidates.set(path, false);
+      }
+    }
+  }
+
+  return new Set(
+    Array.from(arrayCandidates.entries())
+      .filter(([, isArrayPath]) => isArrayPath)
+      .map(([path]) => path)
+  );
+};
 
 export const formToObj = (formData: FormData): Record<string, any> => {
   /**
@@ -427,6 +470,7 @@ export const formToObj = (formData: FormData): Record<string, any> => {
    * multiselects Create values object by form data entries
    */
   const values = Object.create(null);
+  const arrayPaths = getArrayPaths(formData);
 
   for (const [name, value] of formData) {
     const keys = name.split('.');
@@ -444,6 +488,7 @@ export const formToObj = (formData: FormData): Record<string, any> => {
     }
 
     let object = values;
+    let path = '';
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
 
@@ -453,15 +498,29 @@ export const formToObj = (formData: FormData): Record<string, any> => {
         if (isDangerousKey(arrayKey)) {
           break;
         }
-        object[arrayKey] = object[arrayKey] || [];
+        const existingValue = object[arrayKey];
+        if (existingValue !== undefined && !Array.isArray(existingValue)) {
+          break;
+        }
+        object[arrayKey] = existingValue || [];
         object[arrayKey].push(value);
+        break;
+      }
+
+      if (Array.isArray(object) && !isArrayIndexKey(key)) {
         break;
       }
 
       // If it is not last index, return nested object or array
       if (i < keys.length - 1) {
-        object = object[key] =
-          object[key] || (Number.isNaN(+keys[i + 1]) ? Object.create(null) : []);
+        path = path ? `${path}.${key}` : key;
+        const nextValue = object[key];
+        if (nextValue !== undefined) {
+          object = nextValue;
+          continue;
+        }
+
+        object = object[key] = arrayPaths.has(path) ? [] : Object.create(null);
       } else {
         object[key] = value;
       }

@@ -1,20 +1,18 @@
-import { component$, useSignal } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { Link } from '@qwik.dev/router';
 import { ensureDefaultFiles, type TutorialStore } from './layout';
 
 export const TutorialContentFooter = component$(({ store }: TutorialContentFooterProps) => {
-  let solutionViewSig = useSignal(false);
-
   return (
     <div class="content-footer">
       <div>
-        {solutionViewSig.value ? (
+        {store.isShowingSolution ? (
           <button
             preventdefault:click
             class="show-me"
             onClick$={() => {
               store.files = ensureDefaultFiles(store.app.problemInputs);
-              solutionViewSig.value = false;
+              store.isShowingSolution = false;
             }}
             type="button"
           >
@@ -26,7 +24,7 @@ export const TutorialContentFooter = component$(({ store }: TutorialContentFoote
             class="show-me"
             onClick$={() => {
               store.files = ensureDefaultFiles(store.app.solutionInputs);
-              solutionViewSig.value = true;
+              store.isShowingSolution = true;
             }}
             type="button"
           >

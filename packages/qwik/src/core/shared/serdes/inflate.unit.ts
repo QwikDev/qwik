@@ -1,12 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { NEEDS_COMPUTATION, EffectProperty } from '../../reactive-primitives/types';
-import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { VNodeFlags } from '../../client/types';
-import { inflateWrappedSignalValue } from './inflate';
 import { vnode_setProp } from '../../client/vnode-utils';
+import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
+import { EffectProperty, NEEDS_COMPUTATION } from '../../reactive-primitives/types';
 import { ElementVNode } from '../vnode/element-vnode';
 import { TextVNode } from '../vnode/text-vnode';
 import { VirtualVNode } from '../vnode/virtual-vnode';
+import { TypeIds } from './constants';
+import { inflate, inflateWrappedSignalValue } from './inflate';
+
+const encodeObjectData = (entries: Array<[unknown, unknown]>): unknown[] => {
+  const out: unknown[] = [];
+  for (const [key, value] of entries) {
+    out.push(TypeIds.Plain, key, TypeIds.Plain, value);
+  }
+  return out;
+};
 
 describe('inflateWrappedSignalValue', () => {
   it('should read value from class attribute', () => {
@@ -264,5 +273,79 @@ describe('inflateWrappedSignalValue', () => {
 
     // Should prefer attribute
     expect(signal.$untrackedValue$).toBe('attr-value');
+  });
+});
+
+describe('inflate(TypeIds.Object) unsafe key handling', () => {
+  it('should skip "__proto__" to prevent prototype pollution', () => {
+    const container = {} as any;
+    const target: Record<string, unknown> = {};
+    const data = encodeObjectData([
+      ['__proto__', { polluted: true }],
+      ['ok', 1],
+    ]);
+
+    inflate(container, target, TypeIds.Object, data);
+
+    expect(target.ok).toBe(1);
+    expect((target as any).polluted).toBeUndefined();
+    expect(Object.getPrototypeOf(target)).toBe(Object.prototype);
+  });
+
+  it('should skip dangerous keys when value is a function', () => {
+    const container = {} as any;
+    const target: Record<string, unknown> = {};
+    const fn = () => 'x';
+    const data = encodeObjectData([
+      ['constructor', fn],
+      ['prototype', fn],
+      ['toString', fn],
+      ['valueOf', fn],
+      ['toJSON', fn],
+      ['then', fn],
+      ['safeFn', fn],
+    ]);
+
+    inflate(container, target, TypeIds.Object, data);
+
+    for (const key of ['constructor', 'prototype', 'toString', 'valueOf', 'toJSON', 'then']) {
+      expect(Object.prototype.hasOwnProperty.call(target, key)).toBe(false);
+    }
+    expect(target.safeFn).toBe(fn);
+  });
+
+  it('should allow dangerous-looking keys when value is not a function', () => {
+    const container = {} as any;
+    const target: Record<string, unknown> = {};
+    const data = encodeObjectData([
+      ['constructor', 123],
+      ['toString', 'ok'],
+      ['then', false],
+      ['regular', 'value'],
+    ]);
+
+    inflate(container, target, TypeIds.Object, data);
+
+    expect(target.constructor).toBe(123);
+    expect(target.toString).toBe('ok');
+    expect(target.then).toBe(false);
+    expect(target.regular).toBe('value');
+  });
+
+  it('should skip non-string keys', () => {
+    const container = {} as any;
+    const target: Record<string, unknown> = {};
+    const sym = Symbol('k');
+    const data = encodeObjectData([
+      [1, 'one'],
+      [sym, 'symbol'],
+      ['valid', 2],
+    ]);
+
+    inflate(container, target, TypeIds.Object, data);
+
+    expect(target.valid).toBe(2);
+    expect(Object.prototype.hasOwnProperty.call(target, '1')).toBe(false);
+    expect((target as any)[sym]).toBeUndefined();
   });
 });

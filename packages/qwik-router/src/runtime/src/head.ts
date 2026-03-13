@@ -56,7 +56,6 @@ export const resolveHead = (
     if (fns.length) {
       const headProps: DocumentHeadProps = {
         head,
-        status: endpoint.status,
         withLocale: (fn) => fn(),
         resolveValue: getData,
         ...routeLocation,
@@ -82,12 +81,6 @@ const resolveDocumentHead = (
   mergeArray(resolvedHead.styles as any, updatedHead.styles);
   mergeArray(resolvedHead.scripts as any, updatedHead.scripts);
   Object.assign(resolvedHead.frontmatter, updatedHead.frontmatter);
-  if (typeof updatedHead.eTag === 'string') {
-    resolvedHead.eTag = updatedHead.eTag;
-  }
-  if (updatedHead.cacheKey !== undefined) {
-    resolvedHead.cacheKey = updatedHead.cacheKey;
-  }
 };
 
 const mergeArray = (
@@ -116,6 +109,4 @@ export const createDocumentHead = (defaults?: DocumentHeadValue): ResolvedDocume
   styles: [...(defaults?.styles || [])],
   scripts: [...(defaults?.scripts || [])],
   frontmatter: { ...defaults?.frontmatter },
-  eTag: defaults?.eTag || '',
-  cacheKey: defaults?.cacheKey || false,
 });

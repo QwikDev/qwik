@@ -52,16 +52,13 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
   if (attrs != null && typeof attrs === 'object') {
     const attrNames = Object.keys(attrs);
     if (attrNames.length > 0) {
-      const head: Editable<Required<Omit<ResolvedDocumentHead, 'eTag' | 'cacheKey'>>> = {
+      const head: Editable<Required<ResolvedDocumentHead>> = {
         title: '',
         meta: [],
         styles: [],
         links: [],
         scripts: [],
         frontmatter: {},
-        // eTag and cacheKey are not frontmatter fields — they're set by mdx.ts
-        // for .md files (eTag from content hash) or by the user in .mdx files.
-        // Including them here would emit unnecessary defaults in the serialized output.
       };
 
       for (const attrName of attrNames) {

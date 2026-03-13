@@ -77,6 +77,9 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
     readonly submitted: boolean;
 };
 
+// @public
+export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+
 // @public (undocumented)
 export interface ContentHeading {
     // (undocumented)
@@ -96,6 +99,9 @@ export interface ContentMenu {
     // (undocumented)
     readonly text: string;
 }
+
+// @public
+export type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);
 
 // @public (undocumented)
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
@@ -128,7 +134,6 @@ export interface DocumentHeadProps extends RouteLocation {
     readonly head: ResolvedDocumentHead;
     // (undocumented)
     readonly resolveValue: ResolveSyncValue;
-    readonly status: number;
     // @deprecated (undocumented)
     readonly withLocale: <T>(fn: () => T) => T;
 }
@@ -138,8 +143,6 @@ export const DocumentHeadTags: Component<DocumentHeadValue<Record<string, unknow
 
 // @public (undocumented)
 export interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> {
-    readonly cacheKey?: string | boolean;
-    readonly eTag?: string;
     readonly frontmatter?: Readonly<FrontMatter>;
     readonly links?: readonly DocumentLink[];
     readonly meta?: readonly DocumentMeta[];
@@ -292,6 +295,8 @@ export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T
 export type PageModule = RouteModule & {
     readonly default: (props: Record<string, never>) => JSXOutput;
     readonly head?: ContentModuleHead;
+    readonly eTag?: ContentModuleETag;
+    readonly cacheKey?: CacheKeyFn;
     readonly headings?: ContentHeading[];
     readonly onStaticGenerate?: StaticGenerateHandler;
 };

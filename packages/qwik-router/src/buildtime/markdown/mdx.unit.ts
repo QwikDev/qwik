@@ -83,31 +83,6 @@ describe('mdx', async () => {
     `);
   });
 
-  test('plain .md generates head with eTag', async () => {
-    const md = `# Hello World\n`;
-    const result = await transformer(md, 'file.md');
-    expect(result?.code).toContain('export const head = { "eTag":');
-    // Should not have duplicate head exports (headings doesn't count)
-    const headExports = result?.code.match(/export const head =/g);
-    expect(headExports?.length).toBe(1);
-  });
-
-  test('plain .md with frontmatter merges eTag into head', async () => {
-    const md = `---
-title: My Page
-description: A test page
----
-# Hello World
-`;
-    const result = await transformer(md, 'page.md');
-    expect(result?.code).toContain('"eTag":');
-    // Only one `export const head =` (eTag merged into frontmatter-generated head)
-    const headExports = result?.code.match(/export const head =/g);
-    expect(headExports?.length).toBe(1);
-    // Should still have the title from frontmatter
-    expect(result?.code).toContain('"title": "My Page"');
-  });
-
   test('convert layout mdx', async () => {
     const mdx = `
 # Hello

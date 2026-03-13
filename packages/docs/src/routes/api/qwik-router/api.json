@@ -59,6 +59,20 @@
       "mdFile": "router.actionstore.md"
     },
     {
+      "name": "CacheKeyFn",
+      "id": "cachekeyfn",
+      "hierarchy": [
+        {
+          "name": "CacheKeyFn",
+          "id": "cachekeyfn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR caching.\n\n- `true`<!-- -->: use the default cache key `status|eTag|pathname` - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)\n\n\n```typescript\nexport type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.cachekeyfn.md"
+    },
+    {
       "name": "ContentHeading",
       "id": "contentheading",
       "hierarchy": [
@@ -85,6 +99,20 @@
       "content": "```typescript\nexport interface ContentMenu \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[href?](./router.contentmenu.href.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[items?](./router.contentmenu.items.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentMenu](#contentmenu)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[text](./router.contentmenu.text.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.contentmenu.md"
+    },
+    {
+      "name": "ContentModuleETag",
+      "id": "contentmoduleetag",
+      "hierarchy": [
+        {
+          "name": "ContentModuleETag",
+          "id": "contentmoduleetag"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "The eTag export type: a static string or a function receiving DocumentHeadProps.\n\n\n```typescript\nexport type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);\n```\n**References:** [DocumentHeadProps](#documentheadprops)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.contentmoduleetag.md"
     },
     {
       "name": "ContentModuleHead",
@@ -152,7 +180,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentHeadProps extends RouteLocation \n```\n**Extends:** [RouteLocation](#routelocation)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[head](./router.documentheadprops.head.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ResolvedDocumentHead](#resolveddocumenthead)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolveValue](./router.documentheadprops.resolvevalue.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nResolveSyncValue\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[status](./router.documentheadprops.status.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nThe HTTP status code for the current response (e.g. 200, 404, 500).\n\n\n</td></tr>\n<tr><td>\n\n[withLocale](./router.documentheadprops.withlocale.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T&gt;(fn: () =&gt; T) =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentHeadProps extends RouteLocation \n```\n**Extends:** [RouteLocation](#routelocation)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[head](./router.documentheadprops.head.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ResolvedDocumentHead](#resolveddocumenthead)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolveValue](./router.documentheadprops.resolvevalue.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nResolveSyncValue\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[withLocale](./router.documentheadprops.withlocale.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T&gt;(fn: () =&gt; T) =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.documentheadprops.md"
     },
@@ -180,7 +208,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cacheKey?](./router.documentheadvalue.cachekey.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring \\| boolean\n\n\n</td><td>\n\n_(Optional)_ Controls in-memory SSR caching for this page. Requires `eTag` to be set.\n\n- `string`<!-- -->: an explicit cache key - `true`<!-- -->: use the default cache key `status|eTag|pathname` - `false` / omitted: no caching\n\n\n</td></tr>\n<tr><td>\n\n[eTag?](./router.documentheadvalue.etag.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ An ETag string for this page. When set, the middleware will send an `ETag` response header and handle `If-None-Match` 304 responses automatically.\n\nFor `.md` files, this is auto-generated from the content hash. For `.mdx` and `.tsx` pages, return it from the `head` function to compute it dynamically from loader data.\n\n\n</td></tr>\n<tr><td>\n\n[frontmatter?](./router.documentheadvalue.frontmatter.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;FrontMatter&gt;\n\n\n</td><td>\n\n_(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.\n\n\n</td></tr>\n<tr><td>\n\n[links?](./router.documentheadvalue.links.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentLink](#documentlink)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<link>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[meta?](./router.documentheadvalue.meta.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentMeta](#documentmeta)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually set meta tags in the head.\n\n\n</td></tr>\n<tr><td>\n\n[scripts?](./router.documentheadvalue.scripts.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentScript](#documentscript)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<script>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[styles?](./router.documentheadvalue.styles.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentStyle](#documentstyle)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<style>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[title?](./router.documentheadvalue.title.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Sets `document.title`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[frontmatter?](./router.documentheadvalue.frontmatter.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;FrontMatter&gt;\n\n\n</td><td>\n\n_(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.\n\n\n</td></tr>\n<tr><td>\n\n[links?](./router.documentheadvalue.links.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentLink](#documentlink)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<link>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[meta?](./router.documentheadvalue.meta.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentMeta](#documentmeta)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually set meta tags in the head.\n\n\n</td></tr>\n<tr><td>\n\n[scripts?](./router.documentheadvalue.scripts.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentScript](#documentscript)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<script>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[styles?](./router.documentheadvalue.styles.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentStyle](#documentstyle)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<style>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[title?](./router.documentheadvalue.title.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Sets `document.title`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.documentheadvalue.md"
     },
@@ -516,7 +544,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PageModule = RouteModule & {\n    readonly default: (props: Record<string, never>) => JSXOutput;\n    readonly head?: ContentModuleHead;\n    readonly headings?: ContentHeading[];\n    readonly onStaticGenerate?: StaticGenerateHandler;\n};\n```\n**References:** [ContentModuleHead](#contentmodulehead)<!-- -->, [ContentHeading](#contentheading)<!-- -->, [StaticGenerateHandler](#staticgeneratehandler)",
+      "content": "```typescript\nexport type PageModule = RouteModule & {\n    readonly default: (props: Record<string, never>) => JSXOutput;\n    readonly head?: ContentModuleHead;\n    readonly eTag?: ContentModuleETag;\n    readonly cacheKey?: CacheKeyFn;\n    readonly headings?: ContentHeading[];\n    readonly onStaticGenerate?: StaticGenerateHandler;\n};\n```\n**References:** [ContentModuleHead](#contentmodulehead)<!-- -->, [ContentModuleETag](#contentmoduleetag)<!-- -->, [CacheKeyFn](#cachekeyfn)<!-- -->, [ContentHeading](#contentheading)<!-- -->, [StaticGenerateHandler](#staticgeneratehandler)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.pagemodule.md"
     },

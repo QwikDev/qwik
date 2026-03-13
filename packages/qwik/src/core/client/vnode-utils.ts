@@ -507,8 +507,7 @@ function registerQrlHandlers(attr: Attr, key: string, container: Container, elem
   const scopedKebabName = key.slice(2);
   const qrls = value.split('|');
   const handlers = qrls.map((qrl) => {
-    const handler = parseQRL(qrl);
-    handler.$container$ = container;
+    const handler = parseQRL(qrl, container);
     // These QRLs are mostly _run and _task and don't need wrapping with retryOnPromise
     return handler;
   });

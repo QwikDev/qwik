@@ -25,15 +25,15 @@ export const Streaming = component$(() => {
   ];
 
   return (
-    <section class="grid 3xl:grid-cols-2 grid-cols-1 3xl:gap-20 max-w-screen-3xl mx-auto 3xl:pt-32 pt-10 pb-20 3xl:px-20 px-4 box-content">
-      <div class="flex flex-col max-w-[343px] 3xl:max-w-none">
+    <section class="grid place-items-center gap-10 md:grid-cols-2 3xl:gap-20 max-w-screen-3xl mx-auto 3xl:pt-32 pt-10 pb-20 3xl:px-20 px-4 box-content">
+      <div class="flex flex-col">
         {streamingCards.map((card, index) => (
           <Card
             key={card.body}
             class={
               index === 0
                 ? 'z-1 3xl:shadow-emphasis shadow-sm-emphasis'
-                : 'self-end transform -translate-y-10 3xl:-translate-y-16 z-0 3xl:shadow-emphasis shadow-sm-emphasis'
+                : 'self-end transform -translate-y-10 translate-x-10 3xl:-translate-y-16 z-0 3xl:shadow-emphasis shadow-sm-emphasis'
             }
           >
             <div class="3xl:p-10 p-6 flex flex-col gap-2 3xl:max-w-[48ch] max-w-[260px] text-center">

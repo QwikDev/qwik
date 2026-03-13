@@ -1,23 +1,17 @@
-import type {
-  CacheKeyFn,
-  ContentModuleETag,
-  DocumentHeadProps,
-  PageModule,
-} from '@qwik.dev/router';
+import type { CacheKeyFn, ContentModuleETag, DocumentHeadProps } from '@qwik.dev/router';
 
 export const MAX_CACHE_SIZE: number =
   typeof globalThis.__SSR_CACHE_SIZE__ === 'number' ? globalThis.__SSR_CACHE_SIZE__ : 50;
 const ssrCache = new Map<string, string>();
 
 /**
- * Resolve the eTag from a leaf (page) module. Returns the eTag string or null if no eTag is defined
- * or the function returns null.
+ * Resolve an eTag value from a ContentModuleETag (string, function, or undefined). Returns the eTag
+ * string or null.
  */
 export function resolveETag(
-  leafModule: PageModule | undefined,
+  eTagExport: ContentModuleETag | undefined,
   headProps: DocumentHeadProps
 ): string | null {
-  const eTagExport = leafModule?.eTag as ContentModuleETag | undefined;
   if (eTagExport === undefined) {
     return null;
   }
@@ -28,16 +22,15 @@ export function resolveETag(
 }
 
 /**
- * Resolve the cache key from a leaf (page) module's cacheKey export. Returns null if no cacheKey is
- * exported or the function returns null.
+ * Resolve the cache key from a CacheKeyFn. Returns null if no cacheKey is defined or the function
+ * returns null.
  */
 export function resolveCacheKey(
-  leafModule: PageModule | undefined,
+  cacheKeyExport: CacheKeyFn | undefined,
   status: number,
   eTag: string,
   pathname: string
 ): string | null {
-  const cacheKeyExport = leafModule?.cacheKey as CacheKeyFn | undefined;
   if (cacheKeyExport === true) {
     return `${status}|${eTag}|${pathname}`;
   }

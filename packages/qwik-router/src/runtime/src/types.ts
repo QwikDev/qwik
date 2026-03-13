@@ -50,6 +50,7 @@ export interface RouteModule<BODY = unknown> {
 /** @public */
 export type PageModule = RouteModule & {
   readonly default: (props: Record<string, never>) => JSXOutput;
+  readonly routeConfig?: RouteConfig;
   readonly head?: ContentModuleHead;
   readonly eTag?: ContentModuleETag;
   readonly cacheKey?: CacheKeyFn;
@@ -59,6 +60,7 @@ export type PageModule = RouteModule & {
 
 export interface LayoutModule extends RouteModule {
   readonly default?: (props: Record<string, never>) => JSXOutput;
+  readonly routeConfig?: RouteConfig;
   readonly head?: ContentModuleHead;
 }
 
@@ -366,6 +368,28 @@ export type ContentModuleETag = string | ((props: DocumentHeadProps) => string |
  * @public
  */
 export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+
+/**
+ * The value shape returned by a routeConfig export (object form or function return).
+ *
+ * @public
+ */
+export interface RouteConfigValue {
+  readonly head?: DocumentHeadValue;
+  readonly eTag?: ContentModuleETag;
+  readonly cacheKey?: CacheKeyFn;
+}
+
+/**
+ * Unified route configuration export. Groups head, eTag, and cacheKey with the same resolution
+ * rules as DocumentHead: can be a static object or a function receiving DocumentHeadProps.
+ *
+ * When a module exports `routeConfig`, the separate `head`, `eTag`, and `cacheKey` exports are
+ * ignored for that module.
+ *
+ * @public
+ */
+export type RouteConfig = RouteConfigValue | ((props: DocumentHeadProps) => RouteConfigValue);
 
 /** The route to render */
 export interface LoadedRoute {

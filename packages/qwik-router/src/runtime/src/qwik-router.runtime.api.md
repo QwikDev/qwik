@@ -294,6 +294,7 @@ export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T
 // @public (undocumented)
 export type PageModule = RouteModule & {
     readonly default: (props: Record<string, never>) => JSXOutput;
+    readonly routeConfig?: RouteConfig;
     readonly head?: ContentModuleHead;
     readonly eTag?: ContentModuleETag;
     readonly cacheKey?: CacheKeyFn;
@@ -428,6 +429,19 @@ export const routeAction$: ActionConstructor;
 //
 // @internal (undocumented)
 export const routeActionQrl: ActionConstructorQRL;
+
+// @public
+export type RouteConfig = RouteConfigValue | ((props: DocumentHeadProps) => RouteConfigValue);
+
+// @public
+export interface RouteConfigValue {
+    // (undocumented)
+    readonly cacheKey?: CacheKeyFn;
+    // (undocumented)
+    readonly eTag?: ContentModuleETag;
+    // (undocumented)
+    readonly head?: DocumentHeadValue;
+}
 
 // @public
 export interface RouteData {

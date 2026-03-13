@@ -1300,6 +1300,7 @@ Omit&lt;T, KEYS&gt;
 ```typescript
 export type PageModule = RouteModule & {
   readonly default: (props: Record<string, never>) => JSXOutput;
+  readonly routeConfig?: RouteConfig;
   readonly head?: ContentModuleHead;
   readonly eTag?: ContentModuleETag;
   readonly cacheKey?: CacheKeyFn;
@@ -1308,7 +1309,7 @@ export type PageModule = RouteModule & {
 };
 ```
 
-**References:** [ContentModuleHead](#contentmodulehead), [ContentModuleETag](#contentmoduleetag), [CacheKeyFn](#cachekeyfn), [ContentHeading](#contentheading), [StaticGenerateHandler](#staticgeneratehandler)
+**References:** [RouteConfig](#routeconfig), [ContentModuleHead](#contentmodulehead), [ContentModuleETag](#contentmoduleetag), [CacheKeyFn](#cachekeyfn), [ContentHeading](#contentheading), [StaticGenerateHandler](#staticgeneratehandler)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -1974,6 +1975,102 @@ routeAction$: ActionConstructor;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
+<h2 id="routeconfig">RouteConfig</h2>
+
+Unified route configuration export. Groups head, eTag, and cacheKey with the same resolution rules as DocumentHead: can be a static object or a function receiving DocumentHeadProps.
+
+When a module exports `routeConfig`, the separate `head`, `eTag`, and `cacheKey` exports are ignored for that module.
+
+```typescript
+export type RouteConfig =
+  | RouteConfigValue
+  | ((props: DocumentHeadProps) => RouteConfigValue);
+```
+
+**References:** [RouteConfigValue](#routeconfigvalue), [DocumentHeadProps](#documentheadprops)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="routeconfigvalue">RouteConfigValue</h2>
+
+The value shape returned by a routeConfig export (object form or function return).
+
+```typescript
+export interface RouteConfigValue
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[cacheKey?](./router.routeconfigvalue.cachekey.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[CacheKeyFn](#cachekeyfn)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[eTag?](./router.routeconfigvalue.etag.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[ContentModuleETag](#contentmoduleetag)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[head?](./router.routeconfigvalue.head.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[DocumentHeadValue](#documentheadvalue)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 <h2 id="routedata">RouteData</h2>
 

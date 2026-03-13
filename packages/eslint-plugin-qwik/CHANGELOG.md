@@ -1,5 +1,7 @@
 # eslint-plugin-qwik
 
+## 1.19.2
+
 ## 1.19.1
 
 ### Patch Changes

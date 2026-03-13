@@ -1,5 +1,11 @@
 # @builder.io/qwik
 
+## 1.19.2
+
+### Patch Changes
+
+- 🐞🩹 type casts to bridge Rollup vs Rolldown type differences without changing runtime behavior (by [@gioboa](https://github.com/gioboa) in [#8405](https://github.com/QwikDev/qwik/pull/8405))
+
 ## 1.19.1
 
 ### Patch Changes

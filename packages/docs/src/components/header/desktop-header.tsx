@@ -130,7 +130,7 @@ export const DesktopHeader = component$(() => {
                 class="w-64.5 shrink-0 self-stretch"
               />
               <ImageCard
-                href="/tutorial"
+                href="/tutorial/welcome/overview"
                 label="Your first app"
                 description="A guided tutorial"
                 image={navTutorialImg}

@@ -33,7 +33,7 @@ export const Streaming = component$(() => {
             class={
               index === 0
                 ? 'z-1 3xl:shadow-emphasis shadow-sm-emphasis'
-                : 'self-end transform -translate-y-10 translate-x-10 3xl:-translate-y-16 z-0 3xl:shadow-emphasis shadow-sm-emphasis'
+                : 'self-end transform -translate-y-10 ml-20 3xl:-translate-y-16 3xl:ml-32 z-0 3xl:shadow-emphasis shadow-sm-emphasis'
             }
           >
             <div class="3xl:p-10 p-6 flex flex-col gap-2 3xl:max-w-[48ch] max-w-[260px] text-center">

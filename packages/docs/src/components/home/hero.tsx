@@ -74,18 +74,18 @@ export const Decor = component$(() => {
     <>
       {/* blue gradient — centered on section, shifted left */}
       <div
-        class="absolute -z-2 left-1/2 top-1/2 -translate-x-[110%] -translate-y-[55%]
-          w-[1600px] h-[1200px] bg-hero-gradient-blue"
+        class="absolute -z-2 left-1/2 top-1/2 -translate-x-[90%] -translate-y-[55%]
+          w-[250vw] h-[200vw] bg-hero-gradient-blue
+          2xl:w-[1600px] 2xl:h-[1200px] 2xl:-translate-x-[110%]"
       />
 
       {/* purple gradient — centered on section bottom, shifted right */}
       <div
-        class="absolute -z-2 left-1/2 bottom-1/4 translate-x-[15%] translate-y-1/2
-          w-[1600px] h-[1200px] bg-hero-gradient-purple"
+        class="absolute -z-2 right-0 bottom-0 translate-x-[60%] translate-y-[45%]
+          w-[min(150vw,1600px)] h-[min(120vw,1200px)] bg-hero-gradient-purple
+          2xl:left-1/2 2xl:right-auto 2xl:bottom-1/4 2xl:translate-x-[10%] 2xl:translate-y-1/2
+          2xl:w-[1600px] 2xl:h-[1200px]"
       />
-
-      {/* star background */}
-      <div aria-hidden="true" class="absolute inset-0 -z-1 bg-grid-stars" />
     </>
   );
 });

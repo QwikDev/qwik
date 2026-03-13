@@ -7,7 +7,7 @@ export default component$(() => {
   return (
     <>
       <Header />
-      <main>
+      <main class="bg-grid-stars">
         <Home.Hero />
         <Home.Streaming />
       </main>

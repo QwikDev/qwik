@@ -25,7 +25,7 @@ export const Streaming = component$(() => {
   ];
 
   return (
-    <section class="grid place-items-center gap-10 md:grid-cols-2 2xl:gap-20 max-w-screen-2xl mx-auto 2xl:pt-32 pt-10 pb-20 2xl:px-20 px-4 box-content">
+    <section class="relative grid place-items-center gap-10 md:grid-cols-2 2xl:gap-20 max-w-screen-2xl mx-auto 2xl:pt-32 pt-10 pb-20 2xl:px-20 px-4 box-content">
       <div class="flex flex-col">
         {streamingCards.map((card, index) => (
           <Card
@@ -46,7 +46,7 @@ export const Streaming = component$(() => {
 
       <div class="flex flex-col 2xl:gap-10 gap-8 max-w-fit">
         <div class="relative">
-          <h2 class="font-heading 2xl:text-h3 text-[28px] box-decoration-clone">
+          <h2 class="relative z-2 font-heading 2xl:text-h3 text-[28px] box-decoration-clone">
             <span class="bg-secondary-background-base mb-2 block w-fit shadow-primary-accent">
               Introducing
             </span>
@@ -54,7 +54,7 @@ export const Streaming = component$(() => {
               JavaScript Streaming
             </span>
           </h2>
-          <pixel.videomoviesplayer class="absolute -top-[55%] right-[40%] 2xl:-top-[20%] 2xl:right-[25%] -z-1 size-20 rotate-14 text-border-base drop-shadow-[6px_6px_0_var(--color-shadow-emphasis)]" />
+          <pixel.videomoviesplayer class="absolute -top-[55%] right-[40%] 2xl:-top-[20%] 2xl:right-[25%] z-1 size-20 rotate-14 text-border-base drop-shadow-[6px_6px_0_var(--color-shadow-emphasis)]" />
         </div>
 
         <div class="space-y-6">

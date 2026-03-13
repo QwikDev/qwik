@@ -121,4 +121,69 @@ describe('formToObj', () => {
       expect(obj.user.profile.name).toBe('alice');
     });
   });
+
+  describe('Array parsing', () => {
+    it('creates arrays only for canonical non-negative integer keys', () => {
+      const fd = new FormData();
+      fd.append('items.0', 'apple');
+      fd.append('items.1', 'banana');
+      fd.append('notArray.-1', 'neg');
+      fd.append('alsoNotArray.01', 'leading-zero');
+      fd.append('stillNotArray.1e2', 'scientific');
+
+      const obj = formToObj(fd);
+
+      expect(Array.isArray(obj.items)).toBe(true);
+      expect(obj.items).toEqual(['apple', 'banana']);
+
+      expect(Array.isArray(obj.notArray)).toBe(false);
+      expect(obj.notArray['-1']).toBe('neg');
+
+      expect(Array.isArray(obj.alsoNotArray)).toBe(false);
+      expect(obj.alsoNotArray['01']).toBe('leading-zero');
+
+      expect(Array.isArray(obj.stillNotArray)).toBe(false);
+      expect(obj.stillNotArray['1e2']).toBe('scientific');
+    });
+
+    it('keeps object syntax object-shaped when sibling keys are mixed', () => {
+      const fd = new FormData();
+      fd.append('items.0', 'apple');
+      fd.append('items.1', 'banana');
+      fd.append('items.hello', 'there');
+
+      const obj = formToObj(fd);
+
+      expect(Array.isArray(obj.items)).toBe(false);
+      expect(obj.items[0]).toBe('apple');
+      expect(obj.items[1]).toBe('banana');
+      expect(obj.items.hello).toBe('there');
+    });
+
+    it('ignores non-integer keys on arrays', () => {
+      const fd = new FormData();
+      fd.append('items.0', 'apple');
+      fd.append('items.1', 'banana');
+      fd.append('items.hello', 'there');
+
+      const obj = formToObj(fd);
+
+      expect(Array.isArray(obj.items)).toBe(false);
+      expect(obj.items[0]).toBe('apple');
+      expect(obj.items[1]).toBe('banana');
+      expect(obj.items.hello).toBe('there');
+    });
+
+    it('still supports explicit [] syntax for arrays', () => {
+      const fd = new FormData();
+      fd.append('items[]', 'apple');
+      fd.append('items[]', 'banana');
+
+      const obj = formToObj(fd);
+
+      expect(Array.isArray(obj.items)).toBe(true);
+      expect(obj.items).toEqual(['apple', 'banana']);
+      expect(obj.items.length).toBe(2);
+    });
+  });
 });

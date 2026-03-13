@@ -4,7 +4,7 @@ import { tw } from '~/utils/utils';
 const button = {
   wrapper: tw('relative inline-block'),
   face: tw(
-    'border-[1.6px] py-2 px-3 flex gap-2 items-center relative z-2 w-full cursor-pointer transform hover:-translate-[2px] transition-transform duration-300'
+    'border-[1.6px] py-2 px-3 flex gap-2 items-center relative z-2 w-full cursor-pointer transform hover:-translate-[2px] transition-transform duration-300 text-body-xs'
   ),
   shadow: tw('absolute inset-0 z-1 translate-x-1 translate-y-1 pointer-events-none'),
   primary: tw('bg-primary-background-base text-primary-foreground-base border-primary-border-base'),

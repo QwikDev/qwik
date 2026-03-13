@@ -50,7 +50,7 @@ export const Hero = component$(() => {
         </Button>
 
         <Button variant="secondary" class="2xl:text-base text-sm">
-          <span>npm create qwik@latest</span>
+          <span>npm create qwik@beta</span>
           <lucide.clipboard />
         </Button>
       </div>

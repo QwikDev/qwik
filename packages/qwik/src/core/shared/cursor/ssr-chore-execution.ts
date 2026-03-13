@@ -95,6 +95,15 @@ export function executeSsrComponent(
   }
 
   const ssrNode = vNode as unknown as ISsrNode;
+
+  // SSR components execute exactly once. If this component already ran (has stored component
+  // frame from first execution), skip re-execution. Re-dirtying can happen when async signals
+  // (e.g. useResource$) resolve and schedule COMPONENT effects on the host node.
+  if (ssrNode.getProp?.(':ssrRendered')) {
+    return;
+  }
+  ssrNode.setProp(':ssrRendered', true);
+
   const ssr = container as SSRContainer;
 
   // Push component context BEFORE executing so hooks (useStylesScoped, useContext, etc.)

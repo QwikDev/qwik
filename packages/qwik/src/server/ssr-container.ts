@@ -493,10 +493,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const bodyNode = this.isHtml ? this.findBodyNode(rootSsrNode) : null;
     const containerDataNode = bodyNode ?? rootSsrNode;
 
-    // All Suspense boundaries with sub-cursors are deferred for OoO streaming.
-    // In cursor-driven mode, sub-cursors complete synchronously during tree-building,
-    // but we still want OoO streaming behavior (emit fallback first, then content).
-    const deferredBoundaries = [...this.suspenseBoundaries];
+    // Suspense boundaries always use OoO streaming, regardless of whether their sub-cursor
+    // completed synchronously. Non-Suspense boundaries (if any) that are ready are inlined.
+    const deferredBoundaries = this.suspenseBoundaries;
     const deferredBoundarySet = new Set(deferredBoundaries.map((b) => b.node));
     const placeholderIdMap = new Map(
       deferredBoundaries.map((b) => [b.node, b.placeholderId] as const)
@@ -867,7 +866,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       node = new SsrNode(
         this.ssrBuildState.currentComponentNode,
         '', // placeholder ID — emitter assigns real ID via trackVirtualOpen
-        attrs, // pass attrs directly (shared object reference)
+        Object.isFrozen(attrs) ? { ...attrs } : attrs,
         this.cleanupQueue,
         this.ssrBuildState.currentElementFrame!.currentFile
       );

@@ -61,7 +61,7 @@ describe('serialization', () => {
     matchProps(parseQRL('./chunk#s1'), {
       $chunk$: './chunk',
       $symbol$: 's1',
-      $captures$: null,
+      $captures$: undefined,
     });
     matchProps(parseQRL('./chunk#s1#1 2'), {
       $chunk$: './chunk',
@@ -236,6 +236,77 @@ describe('inlinedQrl', () => {
     const otherQrl = inlinedQrl(null, 'mySymbol_123');
     await otherQrl.resolve();
     assert.equal(otherQrl.resolved, symbol);
+  });
+});
+
+describe('$withCaptures$', () => {
+  const capFn = () => useLexicalScope();
+
+  test('should share the same LazyRef', () => {
+    const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
+    const q2 = q1.$withCaptures$(['b']);
+    assert.strictEqual(q1.$lazy$, q2.$lazy$);
+  });
+
+  test('should create a new QRL with different captures', () => {
+    const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
+    const q2 = q1.$withCaptures$(['b', 'c']);
+    assert.deepEqual(q1.resolved!(), ['a']);
+    assert.deepEqual(q2.resolved!(), ['b', 'c']);
+  });
+
+  test('should not affect the original QRL', () => {
+    const q1 = createQRL('chunk', 'symbol', capFn, null, ['original']);
+    q1.$withCaptures$(['changed']);
+    assert.deepEqual(q1.resolved!(), ['original']);
+  });
+
+  test('should preserve chunk and symbol', () => {
+    const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
+    const q2 = q1.$withCaptures$(['b']);
+    assert.equal(q2.$chunk$, 'chunk');
+    assert.equal(q2.$symbol$, 'symbol');
+    assert.equal(q2.$hash$, q1.$hash$);
+  });
+
+  test('should resolve independently with its own captures', async () => {
+    const q1 = createQRL<Function>(
+      'chunk',
+      'symbol',
+      null,
+      () => Promise.resolve({ symbol: capFn }),
+      ['first']
+    );
+    const q2 = q1.$withCaptures$(['second']);
+
+    assert.equal(q1.resolved, undefined);
+    assert.equal(q2.resolved, undefined);
+
+    assert.deepEqual(await q1(), ['first']);
+    assert.deepEqual(await q2(), ['second']);
+  });
+
+  test('should work with no captures', () => {
+    const fn = () => 'hi';
+    const q1 = createQRL('chunk', 'symbol', fn, null, ['a']);
+    const q2 = q1.$withCaptures$(null);
+    assert.equal(q2.resolved, fn);
+  });
+
+  test('should be callable', async () => {
+    const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
+    const q2 = q1.$withCaptures$(['hello', 'world']);
+    assert.deepEqual(await q2(), ['hello', 'world']);
+  });
+
+  test('should resolve immediately when LazyRef already loaded', async () => {
+    const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
+    // q1 is resolved synchronously because capFn is provided directly
+    assert.isDefined(q1.resolved);
+    // LazyRef.$ref$ is populated, so $withCaptures$ should resolve sync too
+    const q2 = q1.$withCaptures$(['b']);
+    assert.isDefined(q2.resolved);
+    assert.deepEqual(q2.resolved!(), ['b']);
   });
 });
 

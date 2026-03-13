@@ -46,11 +46,11 @@ export const Streaming = component$(() => {
 
       <div class="flex flex-col 3xl:gap-10 gap-8 max-w-fit">
         <div class="relative">
-          <h2 class="font-heading 3xl:text-h3 text-[28px]">
+          <h2 class="font-heading 3xl:text-h3 text-[28px] box-decoration-clone">
             <span class="bg-secondary-background-base mb-2 block w-fit shadow-primary-accent">
               Introducing
             </span>
-            <span class="bg-secondary-background-base shadow-primary-accent">
+            <span class="bg-secondary-background-base shadow-primary-accent box-decoration-clone leading-[140%]">
               JavaScript Streaming
             </span>
           </h2>

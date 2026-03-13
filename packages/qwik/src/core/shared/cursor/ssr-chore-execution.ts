@@ -95,15 +95,6 @@ export function executeSsrComponent(
   }
 
   const ssrNode = vNode as unknown as ISsrNode;
-
-  // SSR components execute exactly once. If this component already ran (has stored component
-  // frame from first execution), skip re-execution. Re-dirtying can happen when async signals
-  // (e.g. useResource$) resolve and schedule COMPONENT effects on the host node.
-  if (ssrNode.getProp?.(':ssrRendered')) {
-    return;
-  }
-  ssrNode.setProp(':ssrRendered', true);
-
   const ssr = container as SSRContainer;
 
   // Push component context BEFORE executing so hooks (useStylesScoped, useContext, etc.)
@@ -116,6 +107,16 @@ export function executeSsrComponent(
   const result = safeCall(
     () => executeComponent(container, host, host, componentQRL, props),
     (jsx) => {
+      // Record hook-injected child count (e.g., style elements from useStylesScoped$)
+      // so executeSsrNodeDiff can preserve them when clearing content for re-diff.
+      // Only set once: on first render, orderedChildren only has hook-injected children.
+      // On re-render, orderedChildren also has content from previous ssrDiff, so we
+      // must not overwrite the original boundary.
+      if (ssrNode.getProp?.(':hookChildCount') == null) {
+        const orderedChildren = (ssrNode as any).orderedChildren;
+        ssrNode.setProp(':hookChildCount', orderedChildren?.length ?? 0);
+      }
+
       // Store JSX for NODE_DIFF processing
       (vNode.props ||= {})[':nodeDiff'] = jsx;
       vNode.dirty |= ChoreBits.NODE_DIFF;
@@ -150,6 +151,16 @@ export function executeSsrNodeDiff(
     const ssrNode = vNode as unknown as ISsrNode;
     const ssr = container as SSRContainer;
     const styleScopedId = addComponentStylePrefix(ssrNode.getProp?.(QScopedStyle));
+
+    // Clear content children from previous ssrDiff, preserving hook-injected children
+    // (e.g., style elements from useStylesScoped$). Hooks run during executeSsrComponent
+    // and add children before NODE_DIFF runs. They use sequential scope caching so won't
+    // re-register on re-render. The :hookChildCount boundary is set by executeSsrComponent.
+    const orderedChildren = (ssrNode as any).orderedChildren;
+    const hookChildCount = ssrNode.getProp?.(':hookChildCount') ?? 0;
+    if (orderedChildren && orderedChildren.length > hookChildCount) {
+      orderedChildren.length = hookChildCount;
+    }
 
     // For component nodes (have OnRenderProp), the component context was already
     // pushed by executeSsrComponent. Use it and pop when done.

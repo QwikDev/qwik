@@ -1,6 +1,6 @@
 import { component$, Slot, type PropsOf } from '@qwik.dev/core';
 import { Button } from '~/components/action/action';
-import { lucide } from '@qds.dev/ui';
+import { lucide, streamlinepixel as pixel } from '@qds.dev/ui';
 
 export const Streaming = component$(() => {
   const streamingCards = [
@@ -54,7 +54,7 @@ export const Streaming = component$(() => {
               JavaScript Streaming
             </span>
           </h2>
-          <VideoPlayerIcon class="absolute left-4/7 -top-2/5 transform" />
+          <pixel.videomoviesplayer class="absolute left-6/10 -top-1/3 size-20 rotate-14 text-border-base drop-shadow-[6px_6px_0_var(--color-shadow-emphasis)]" />
         </div>
 
         <div class="space-y-6">
@@ -71,63 +71,6 @@ export const Streaming = component$(() => {
         </Button>
       </div>
     </section>
-  );
-});
-
-export const VideoPlayerIcon = component$((props: PropsOf<'svg'>) => {
-  return (
-    <svg
-      width="98"
-      height="98"
-      viewBox="0 0 98 98"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <g class="fill-border-base" filter="url(#filter0_d_365_1969)">
-        <path d="M90.2888 35.4864L86.5797 34.5518L75.4068 78.8907L79.1159 79.8253L90.2888 35.4864Z" />
-        <path d="M75.4067 78.8908L71.7219 77.9623L70.7934 81.6471L74.4782 82.5756L75.4067 78.8908Z" />
-        <path d="M87.5082 30.8669L83.8234 29.9384L82.8948 33.6232L86.5796 34.5517L87.5082 30.8669Z" />
-        <path d="M70.796 81.6478L11.6936 66.7547L10.759 70.4638L69.8614 85.3568L70.796 81.6478Z" />
-        <path d="M60.6983 43.7568L57.0135 42.8283L57.942 39.1434L54.2305 38.2082L55.1652 34.4991L51.4803 33.5706L52.4089 29.8858L41.3302 27.0941L32.0205 64.0392L43.0992 66.8309L44.0338 63.1218L47.7186 64.0504L48.6471 60.3656L52.3586 61.3008L53.2933 57.5917L56.9781 58.5203L57.9066 54.8355L61.589 55.7634L63.4521 48.3695L59.7698 47.4416L60.6983 43.7568Z" />
-        <path d="M84.7545 26.2542L25.6521 11.3611L24.7236 15.0459L83.826 29.939L84.7545 26.2542Z" />
-        <path d="M12.6197 63.0692L8.91064 62.1346L7.98212 65.8194L11.6912 66.754L12.6197 63.0692Z" />
-        <path d="M24.7211 15.0453L21.0121 14.1107L20.0836 17.7955L23.7926 18.7301L24.7211 15.0453Z" />
-        <path d="M20.0835 17.7955L16.3987 16.867L5.22581 61.206L8.91062 62.1345L20.0835 17.7955Z" />
-      </g>
-      <defs>
-        <filter
-          id="filter0_d_365_1969"
-          x="5.22583"
-          y="11.3611"
-          width="91.063"
-          height="79.9958"
-          filterUnits="userSpaceOnUse"
-          color-interpolation-filters="auto"
-        >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
-          <feColorMatrix
-            in="SourceAlpha"
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-            result="hardAlpha"
-          />
-          <feOffset dx="6" dy="6" />
-          <feComposite in2="hardAlpha" operator="out" />
-          <feColorMatrix
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0.709804 0 0 0 0 0.945098 0 0 0 1 0"
-          />
-          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_365_1969" />
-          <feBlend
-            mode="normal"
-            in="SourceGraphic"
-            in2="effect1_dropShadow_365_1969"
-            result="shape"
-          />
-        </filter>
-      </defs>
-    </svg>
   );
 });
 

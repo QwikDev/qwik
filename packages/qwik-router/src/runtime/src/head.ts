@@ -34,6 +34,7 @@ export const resolveRouteConfig = (
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
   locale: string,
+  status: number,
   defaults?: DocumentHeadValue
 ): ResolvedRouteConfig =>
   withLocale(locale, () => {
@@ -108,6 +109,7 @@ export const resolveRouteConfig = (
     if (fns.length) {
       const headProps: DocumentHeadProps = {
         head,
+        status,
         withLocale: (fn) => fn(),
         resolveValue,
         ...routeLocation,
@@ -157,7 +159,14 @@ export const resolveHead = (
     return data;
   }) as any as ResolveSyncValue;
 
-  return resolveRouteConfig(getData, routeLocation, contentModules, locale, defaults).head;
+  return resolveRouteConfig(
+    getData,
+    routeLocation,
+    contentModules,
+    locale,
+    endpoint.status,
+    defaults
+  ).head;
 };
 
 const resolveDocumentHead = (

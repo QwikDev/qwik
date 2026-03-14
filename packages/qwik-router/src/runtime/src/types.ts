@@ -234,6 +234,8 @@ export type DocumentScript = (
 /** @public */
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
+  /** The HTTP status code of the response (e.g. 200, 404). */
+  readonly status: number;
   /** @deprecated This is not necessary, it works correctly without */
   readonly withLocale: <T>(fn: () => T) => T;
   readonly resolveValue: ResolveSyncValue;

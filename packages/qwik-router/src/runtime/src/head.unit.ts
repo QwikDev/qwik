@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { resolveHead, resolveRouteConfig } from './head';
 import type { ContentModuleHead, ContentModule } from './types';
 
-const endpoint = {} as any;
+const endpoint = { status: 200 } as any;
 const routeLocation = {} as any;
 const resolveValue = (() => {}) as any;
 const locale = 'en';
@@ -147,7 +147,8 @@ describe('resolveRouteConfig', () => {
           head: { title: 'Route Config Title' },
         },
       }),
-      locale
+      locale,
+      200
     );
     expect(config.head.title).toBe('Route Config Title');
   });
@@ -163,7 +164,8 @@ describe('resolveRouteConfig', () => {
           cacheKey: true,
         },
       }),
-      locale
+      locale,
+      200
     );
     expect(config.head.title).toBe('Test');
     expect(config.eTag).toBe('abc123');
@@ -182,7 +184,8 @@ describe('resolveRouteConfig', () => {
         head: { title: 'Standalone Head' },
         eTag: 'standalone-etag',
       } as any),
-      locale
+      locale,
+      200
     );
     expect(config.head.title).toBe('From RouteConfig');
     expect(config.eTag).toBe('config-etag');
@@ -197,7 +200,8 @@ describe('resolveRouteConfig', () => {
         eTag: 'standalone-etag',
         cacheKey: true,
       } as any),
-      locale
+      locale,
+      200
     );
     expect(config.head.title).toBe('Standalone');
     expect(config.eTag).toBe('standalone-etag');
@@ -214,7 +218,8 @@ describe('resolveRouteConfig', () => {
           eTag: 'dynamic-etag',
         }),
       }),
-      locale
+      locale,
+      200
     );
     expect(config.head.title).toBe('Dynamic Title');
     expect(config.eTag).toBe('dynamic-etag');
@@ -240,7 +245,8 @@ describe('resolveRouteConfig', () => {
           },
         }
       ),
-      locale
+      locale,
+      200
     );
     // Page title overrides layout
     expect(config.head.title).toBe('Page Title');
@@ -269,7 +275,8 @@ describe('resolveRouteConfig', () => {
           },
         }
       ),
-      locale
+      locale,
+      200
     );
     expect(config.eTag).toBe('page-etag');
     // cacheKey from layout persists since page didn't set it
@@ -291,7 +298,8 @@ describe('resolveRouteConfig', () => {
           },
         }
       ),
-      locale
+      locale,
+      200
     );
     expect(config.head.title).toBe('Page');
     expect(config.eTag).toBe('page-etag');
@@ -316,7 +324,8 @@ describe('resolveRouteConfig', () => {
           }),
         }
       ),
-      locale
+      locale,
+      200
     );
     // Page sets title, layout appends
     expect(config.head.title).toBe('Page Title | Site');

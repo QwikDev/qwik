@@ -1,4 +1,8 @@
-import { type DocumentHead, useHttpStatus } from "@qwik.dev/router";
+import {
+  type DocumentHead,
+  type RouteConfig,
+  useHttpStatus,
+} from "@qwik.dev/router";
 import { component$ } from "@qwik.dev/core";
 
 export default component$(() => {
@@ -13,8 +17,8 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = () => {
+export const routeConfig: RouteConfig = ({ status }) => {
   return {
-    title: "Error",
+    head: { title: `Error ${status}` },
   };
 };

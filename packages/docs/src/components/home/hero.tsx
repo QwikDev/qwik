@@ -1,8 +1,29 @@
-import { component$, type PropsOf } from '@qwik.dev/core';
+import { $, component$, type PropsOf, useSignal } from '@qwik.dev/core';
 import { Button } from '~/components/action/action';
 import { lucide } from '@qds.dev/ui';
 import { Spacer } from '~/components/spacer/spacer';
 import { BuilderLogo } from '~/components/svgs/builder-logo';
+
+const copyText = 'npm create qwik@beta';
+
+const CopyButton = component$(() => {
+  const copied = useSignal(false);
+
+  const handleCopy = $(() => {
+    navigator.clipboard.writeText(copyText);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  });
+
+  return (
+    <Button variant="secondary" class="2xl:text-base text-sm" onClick$={handleCopy}>
+      <span>{copyText}</span>
+      {copied.value ? <lucide.clipboardcheck /> : <lucide.clipboard />}
+    </Button>
+  );
+});
 
 export const Hero = component$(() => {
   const clouds = [
@@ -49,10 +70,7 @@ export const Hero = component$(() => {
           <lucide.arrowright />
         </Button>
 
-        <Button variant="secondary" class="2xl:text-base text-sm">
-          <span>npm create qwik@beta</span>
-          <lucide.clipboard />
-        </Button>
+        <CopyButton />
       </div>
 
       <div class="flex gap-6 items-center py-4">

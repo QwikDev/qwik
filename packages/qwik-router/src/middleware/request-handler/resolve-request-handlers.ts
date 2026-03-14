@@ -323,12 +323,15 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
       prevUrl: undefined,
     };
 
+    const status = requestEv.status();
+
     // Resolve full route config (head + eTag + cacheKey) across all modules
-    const config = resolveRouteConfig(getData, routeLocation, mods, '');
+    const config = resolveRouteConfig(getData, routeLocation, mods, '', status);
 
     // Build headProps for resolving eTag value (if it's a function)
     const headProps: DocumentHeadProps = {
       head: config.head,
+      status,
       withLocale: (fn) => fn(),
       resolveValue: getData,
       ...routeLocation,
@@ -357,7 +360,6 @@ function eTagMiddleware(route: LoadedRoute): RequestHandler {
     if (MAX_CACHE_SIZE <= 0) {
       return;
     }
-    const status = requestEv.status();
     const cacheKey = resolveCacheKey(config.cacheKey, status, eTag, requestEv.url.pathname);
     if (!cacheKey) {
       return; // No caching, just ETag header + 304 support

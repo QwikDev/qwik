@@ -148,7 +148,7 @@ function tests() {
         400,
       );
       await assertPage(ctx, {
-        title: "Error - Qwik",
+        title: "Error 400 - Qwik",
       });
       // Recover from error
       await setPage(ctx, "/qwikrouter-test/products/hat/");

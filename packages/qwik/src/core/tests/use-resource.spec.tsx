@@ -562,7 +562,7 @@ describe.each([
     });
 
     const { document } = await render(<TestCmp />, { debug });
-    const html = document.querySelector('body')?.innerHTML || document.innerHTML || '';
+    const html = document.querySelector('body')?.innerHTML || (document as any).innerHTML || '';
     const passCount = (html.match(/PASS:/g) || []).length;
     const errorCount = (html.match(/ERROR:/g) || []).length;
     expect(passCount).toBeLessThanOrEqual(1);
@@ -588,7 +588,7 @@ describe.each([
     });
 
     const { document } = await render(<Outer />, { debug });
-    const html = document.querySelector('body')?.innerHTML || document.innerHTML || '';
+    const html = document.querySelector('body')?.innerHTML || (document as any).innerHTML || '';
     const innerCount = (html.match(/INNER:/g) || []).length;
     expect(innerCount).toBeLessThanOrEqual(1);
   });
@@ -626,7 +626,7 @@ describe.each([
     });
 
     const { document } = await render(<ParentCmp />, { debug });
-    const html = document.querySelector('body')?.innerHTML || document.innerHTML || '';
+    const html = document.querySelector('body')?.innerHTML || (document as any).innerHTML || '';
     const passCount = (html.match(/PASS:/g) || []).length;
     const childCount = (html.match(/ChildValue/g) || []).length;
     expect(passCount).toBeLessThanOrEqual(1);

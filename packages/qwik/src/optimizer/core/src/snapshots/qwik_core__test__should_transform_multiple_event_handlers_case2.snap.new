@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 5144
 expression: output
 ---
 ==INPUT==
@@ -9,8 +10,8 @@ import { component$, useSignal, Signal } from '@qwik.dev/core';
 const Foo = component$(function() {
   const data = useSignal<Signal<any>[]>([]);
   return <div>
-	{data.value.map(row => (
-	  <div onClick$={() => console.log(row.value.id)} onMouseOver$={() => console.log('over' + row.value.id)}>
+	{data.value.map((row, idx) => (
+	  <div onClick$={() => console.log(row.value.id, idx)} onMouseOver$={() => console.log('over' + row.value.id)}>
 		<p onClick$={() => console.log('inner' + row.value.id)}>{item.value.id}</p>
 	  </div>
 	))}
@@ -40,10 +41,13 @@ const _qrl_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y = /*#__PURE__*/ qrl((
 //
 export const Foo_component_HTDRsvUbLiE = function() {
     const data = useSignal([]);
-    return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row)=>/*#__PURE__*/ _jsxSorted("div", {
+    return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row, idx)=>/*#__PURE__*/ _jsxSorted("div", {
             "q-e:click": _qrl_Foo_component_div_div_q_e_click_vKrX4PmH2aM,
             "q-e:mouseover": _qrl_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y,
-            "q:p": row
+            "q:ps": [
+                row,
+                idx
+            ]
         }, null, /*#__PURE__*/ _jsxSorted("p", {
             "q-e:click": _qrl_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk,
             "q:p": row
@@ -51,7 +55,7 @@ export const Foo_component_HTDRsvUbLiE = function() {
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAEuB;IACrB,MAAM,OAAO,UAAyB,EAAE;IACxC,qBAAO,WAAC,mBACR,KAAK,KAAK,CAAC,GAAG,CAAC,CAAA,oBACd,WAAC;YAAI,WAAQ;YAAmC,eAAY;mBAD9C;+BAEf,WAAC;YAAE,WAAQ;mBAFI;iBAE0C,KAAK,KAAK,CAAC,EAAE;AAIxE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAEuB;IACrB,MAAM,OAAO,UAAyB,EAAE;IACxC,qBAAO,WAAC,mBACR,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK,oBACpB,WAAC;YAAI,WAAQ;YAAwC,eAAY;;gBADlD;gBAAK;;+BAErB,WAAC;YAAE,WAAQ;mBAFK;iBAEyC,KAAK,KAAK,CAAC,EAAE;AAIxE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -68,16 +72,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     89,
-    400
+    412
   ]
 }
 */
 ============================= test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM.js (ENTRY POINT)==
 
-export const Foo_component_div_div_q_e_click_vKrX4PmH2aM = (_, _1, row)=>console.log(row.value.id);
+export const Foo_component_div_div_q_e_click_vKrX4PmH2aM = (_, _1, row, idx)=>console.log(row.value.id, idx);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2DAMkB,QADD,MACO,QAAQ,GAAG,CAAC,IAAI,KAAK,CAAC,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2DAMkB,QADA,KAAK,MACC,QAAQ,GAAG,CAAC,IAAI,KAAK,CAAC,EAAE,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -93,13 +97,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    206,
-    237
+    213,
+    249
   ],
   "paramNames": [
     "_",
     "_1",
-    "row"
+    "row",
+    "idx"
   ]
 }
 */
@@ -108,7 +113,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y = (_, _1, row)=>console.log('over' + row.value.id);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAMiE,QADhD,MACsD,QAAQ,GAAG,CAAC,SAAS,IAAI,KAAK,CAAC,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAMsE,QADpD,MAC0D,QAAQ,GAAG,CAAC,SAAS,IAAI,KAAK,CAAC,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -124,8 +129,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onMouseOver$",
   "captures": false,
   "loc": [
-    253,
-    293
+    265,
+    305
   ],
   "paramNames": [
     "_",
@@ -139,7 +144,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = (_, _1, row)=>console.log('inner' + row.value.id);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6DAOe,QAFE,MAEI,QAAQ,GAAG,CAAC,UAAU,IAAI,KAAK,CAAC,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6DAOe,QAFG,MAEG,QAAQ,GAAG,CAAC,UAAU,IAAI,KAAK,CAAC,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -155,8 +160,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    311,
-    352
+    323,
+    364
   ],
   "paramNames": [
     "_",

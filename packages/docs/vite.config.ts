@@ -3,6 +3,7 @@ import { qwikVite } from '@qwik.dev/core/optimizer';
 import { partytownVite } from '@qwik.dev/partytown/utils';
 import { qwikReact } from '@qwik.dev/react/vite';
 import { qwikRouter } from '@qwik.dev/router/vite';
+import { qds } from '@qds.dev/tools/vite';
 import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
 import shikiRehype from '@shikijs/rehype';
 import darkPlus from '@shikijs/themes/dark-plus';
@@ -194,6 +195,8 @@ export default defineConfig(() => {
         'qwik-image',
         '@modular-forms/qwik',
         '@qwik-ui/headless',
+        '@qds.dev/ui',
+        '@qds.dev/tools',
       ],
       resolve: {
         conditions: ['import', 'worker', 'default'],
@@ -201,6 +204,7 @@ export default defineConfig(() => {
     },
 
     plugins: [
+      qds({ icons: true }),
       // some imported react code has sourcemap issues
       muteWarningsPlugin([
         ['SOURCEMAP_ERROR', "Can't resolve original location of error"],

@@ -31,22 +31,22 @@ export const Footer = component$(() => {
   return (
     <footer class="mb-12 mt-10">
       <div class="flex justify-center my-12">
-        <div class="flex flex-grow justify-center flex-wrap max-w-screen-xl flex-col sm:flex-row gap-y-4">
-          <div class="flex-1 sm:flex-[2] flex sm:justify-center sm:block mb-4 sm:mb-0">
+        <div class="flex grow justify-center flex-wrap max-w-screen-2xl flex-col 2xl:flex-row gap-y-4">
+          <div class="flex-1 2xl:flex-[2] flex 2xl:justify-center 2xl:block mb-4 2xl:mb-0">
             <QwikLogo width={170} height={54} />
           </div>
-          <div class="flex flex-1 sm:flex-[3] max-w-screen-sm flex-wrap gap-y-8 gap-x-20 text-xs sm:px-4">
+          <div class="flex flex-1 2xl:flex-[3] max-w-screen-sm flex-wrap gap-y-8 gap-x-20 text-xs 2xl:px-4">
             <FooterLinks />
           </div>
         </div>
       </div>
       <div class="flex justify-center">
-        <div class="max-w-screen-xl w-full">
+        <div class="max-w-screen-2xl w-full">
           <div class="italic text-xs">
             <p>
               Made with <span class="not-italic">❤️</span> by
             </p>
-            <p class="text-xl sm:text-2xl">
+            <p class="text-xl 2xl:text-2xl">
               The <strong>Qwik</strong> Team
             </p>
           </div>

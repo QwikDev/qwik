@@ -1,5 +1,5 @@
 import { $, component$, type PropsOf, useSignal } from '@qwik.dev/core';
-import { Button } from '~/components/action/action';
+import { Button, Link } from '~/components/action/action';
 import { lucide } from '@qds.dev/ui';
 import { Spacer } from '~/components/spacer/spacer';
 import { BuilderLogo } from '~/components/svgs/builder-logo';
@@ -65,10 +65,10 @@ export const Hero = component$(() => {
 
       {/* margin collapse from space-y so that the 110.5px is accurate */}
       <div class="flex gap-6 justify-center 2xl:mb-[110.5px] mb-[40px] flex-wrap">
-        <Button variant="primary" class="2xl:text-base text-sm">
+        <Link href="/docs/getting-started" variant="primary" class="2xl:text-base text-sm">
           <span>Qwik Start</span>
           <lucide.arrowright />
-        </Button>
+        </Link>
 
         <CopyButton />
       </div>

@@ -1,5 +1,5 @@
 import { component$, type JSXOutput } from '@qwik.dev/core';
-import { Button } from '../action/action';
+import { Link } from '../action/action';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
 import { navbar, lucide, streamlinepixel as pixel } from '@qds.dev/ui';
 import navBlogImg from '../../media/navbar/nav-blog.png';
@@ -264,10 +264,10 @@ export const DesktopHeader = component$(() => {
         </div>
 
         <navbar.item>
-          <Button variant="primary">
+          <Link href="/docs/getting-started" variant="primary">
             <span>Get Started</span>
             <lucide.arrowright class="size-4" />
-          </Button>
+          </Link>
         </navbar.item>
       </navbar.root>
     </div>

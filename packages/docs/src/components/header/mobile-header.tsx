@@ -1,6 +1,6 @@
 import { component$ } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
-import { Button } from '../action/action';
+import { Link } from '../action/action';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
 import { modal, lucide } from '@qds.dev/ui';
 
@@ -129,10 +129,10 @@ export const MobileHeader = component$(() => {
             </div>
 
             <div class="mt-8">
-              <Button variant="primary" class="text-sm">
+              <Link href="/docs/getting-started" variant="primary" class="text-sm">
                 <span>Get started</span>
                 <lucide.arrowright class="size-4" />
-              </Button>
+              </Link>
             </div>
           </div>
         </modal.content>

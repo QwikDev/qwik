@@ -173,7 +173,7 @@ import { useLexicalScope } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 //
-const i_x04JC5xeP1U = ()=>import("./index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U.mjs");
+const q_qwikifyQrl_component_useWatch_x04JC5xeP1U = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U.mjs"), "qwikifyQrl_component_useWatch_x04JC5xeP1U");
 //
 export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
     const [reactCmpQrl] = useLexicalScope();
@@ -182,7 +182,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
     let run;
     if (props['client:visible']) run = 'visible';
     else if (props['client:load'] || props['client:only']) run = 'load';
-    useTaskQrl(/*#__PURE__*/ qrl(i_x04JC5xeP1U, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+    useTaskQrl(q_qwikifyQrl_component_useWatch_x04JC5xeP1U.w([
         hostElement,
         props,
         reactCmpQrl,
@@ -241,10 +241,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/react/inde
 import { qrl } from "@qwik.dev/core";
 import { componentQrl, implicit$FirstArg } from '@qwik.dev/core';
 //
-const i_zH94hIe0Ick = ()=>import("./index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick.mjs");
+const q_qwikifyQrl_component_zH94hIe0Ick = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick");
 //
 function qwikifyQrl(reactCmpQrl) {
-    return /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_zH94hIe0Ick, "qwikifyQrl_component_zH94hIe0Ick", [
+    return /*#__PURE__*/ componentQrl(q_qwikifyQrl_component_zH94hIe0Ick.w([
         reactCmpQrl
     ]), {
         tagName: 'qwik-wrap'

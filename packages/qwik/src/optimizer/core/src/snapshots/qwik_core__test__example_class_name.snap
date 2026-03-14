@@ -31,12 +31,12 @@ export const App2 = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_App2_component_3yveMqbQ3Fs = /*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs");
+const q_App2_component_3yveMqbQ3Fs = /*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs");
 //
-export const App2 = /*#__PURE__*/ componentQrl(_qrl_App2_component_3yveMqbQ3Fs);
+export const App2 = /*#__PURE__*/ componentQrl(q_App2_component_3yveMqbQ3Fs);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,qBAAO,8CAgBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,qBAAO,2CAgBjB\"}")
 ============================= test.tsx_App2_component_3yveMqbQ3Fs.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 6225
+assertion_line: 6229
 expression: output
 ---
 ==INPUT==
@@ -20,21 +20,21 @@ expression: output
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Test_component_qJXYteHpGTQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_qJXYteHpGTQ"), "Test_component_qJXYteHpGTQ");
+const q_Test_component_qJXYteHpGTQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_qJXYteHpGTQ"), "Test_component_qJXYteHpGTQ");
 //
-export const Test = /*#__PURE__*/ componentQrl(_qrl_Test_component_qJXYteHpGTQ);
+export const Test = /*#__PURE__*/ componentQrl(q_Test_component_qJXYteHpGTQ);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,OAAO,MAAM,qBAAO,8CAKjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,OAAO,MAAM,qBAAO,2CAKjB\"}")
 ============================= test.tsx_Test_component_qJXYteHpGTQ.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const _qrl_Test_component_button_q_e_click_SvzH9HBZLMQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_click_SvzH9HBZLMQ"), "Test_component_button_q_e_click_SvzH9HBZLMQ");
-const _qrl_Test_component_button_q_e_dblclick_dxOdkqiOleU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_dblclick_dxOdkqiOleU"), "Test_component_button_q_e_dblclick_dxOdkqiOleU");
-const _qrl_Test_component_button_q_e_hover_IVVGOMV4FJ4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_hover_IVVGOMV4FJ4"), "Test_component_button_q_e_hover_IVVGOMV4FJ4");
+const q_Test_component_button_q_e_click_SvzH9HBZLMQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_click_SvzH9HBZLMQ"), "Test_component_button_q_e_click_SvzH9HBZLMQ");
+const q_Test_component_button_q_e_dblclick_dxOdkqiOleU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_dblclick_dxOdkqiOleU"), "Test_component_button_q_e_dblclick_dxOdkqiOleU");
+const q_Test_component_button_q_e_hover_IVVGOMV4FJ4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_hover_IVVGOMV4FJ4"), "Test_component_button_q_e_hover_IVVGOMV4FJ4");
 //
 export const Test_component_qJXYteHpGTQ = ()=>{
     const sig = useSignal(0);
@@ -47,9 +47,9 @@ export const Test_component_qJXYteHpGTQ = ()=>{
             sig
         ]
     }, {
-        "q-e:click": _qrl_Test_component_button_q_e_click_SvzH9HBZLMQ,
-        "q-e:dblclick": _qrl_Test_component_button_q_e_dblclick_dxOdkqiOleU,
-        "q-e:hover": _qrl_Test_component_button_q_e_hover_IVVGOMV4FJ4
+        "q-e:click": q_Test_component_button_q_e_click_SvzH9HBZLMQ,
+        "q-e:dblclick": q_Test_component_button_q_e_dblclick_dxOdkqiOleU,
+        "q-e:hover": q_Test_component_button_q_e_hover_IVVGOMV4FJ4
     }, sig, 7, "u6_0");
 };
 

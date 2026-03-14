@@ -30,12 +30,12 @@ export const Cmp = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
 //
-export const Cmp = /*#__PURE__*/ componentQrl(_qrl_Cmp_component_4ryKJTOKjWE);
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,oBAAM,6CAchB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,oBAAM,0CAchB\"}")
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
 
 import { A } from "./componentA";
@@ -44,7 +44,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const _qrl_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM"), "Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM");
+const q_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM"), "Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM");
 //
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const currentStep = useSignal('STEP_1');
@@ -56,7 +56,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
         /*#__PURE__*/ _jsxSorted("button", {
             "q:p": currentType
         }, {
-            "q-e:click": _qrl_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM
+            "q-e:click": q_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM
         }, "CLICK", 7, null),
         /*#__PURE__*/ _jsxSorted(A, {
             href: getStep(currentStep.value, currentType.value)

@@ -44,22 +44,22 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { qrl as qrl1 } from '@qwik.dev/core/what';
 //
-const _qrl_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
-const _qrl_Root_component_royhjYaCbYE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE");
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+const q_Root_component_royhjYaCbYE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE");
 //
 export const hW = 12;
 export const handleWatch = 42;
 const componentQrl1 = ()=>console.log('not this', qrl1());
 componentQrl1();
-export const Foo = /*#__PURE__*/ componentQrl(_qrl_Foo_component_HTDRsvUbLiE, {
+export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE, {
     tagName: "my-foo"
 });
-export const Root = /*#__PURE__*/ componentQrl(_qrl_Root_component_royhjYaCbYE, {
+export const Root = /*#__PURE__*/ componentQrl(q_Root_component_royhjYaCbYE, {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,OAAA,IAAG,QAAQ,sBAAsB;;;;;AAE1C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,6CAQhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,MAAM,qBAAO,8CAOjB;IACF,SAAS;AACV,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,OAAA,IAAG,QAAQ,sBAAsB;;;;;AAE1C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,0CAQhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,MAAM,qBAAO,2CAOjB;IACF,SAAS;AACV,GAAG\"}")
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
 import { hW } from "./test";
@@ -67,14 +67,14 @@ import { handleWatch } from "./test";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Foo_component_div_q_e_click_YEa2A5ADUOg = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_q_e_click_YEa2A5ADUOg"), "Foo_component_div_q_e_click_YEa2A5ADUOg");
+const q_Foo_component_div_q_e_click_YEa2A5ADUOg = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_q_e_click_YEa2A5ADUOg"), "Foo_component_div_q_e_click_YEa2A5ADUOg");
 //
 export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
     const qwik = hW + handleWatch;
     console.log(qwik);
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        "q-e:click": _qrl_Foo_component_div_q_e_click_YEa2A5ADUOg
+        "q-e:click": q_Foo_component_div_q_e_click_YEa2A5ADUOg
     }, null, 3, "u6_0");
 };
 
@@ -131,12 +131,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qrl } from "@qwik.dev/core";
 import { useStyles } from "@qwik.dev/core";
 //
-const _qrl_Root_component_1_cBpQNYDUHI4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_1_cBpQNYDUHI4"), "Root_component_1_cBpQNYDUHI4");
-const _qrl_Root_component_useStyles_u5DkUxGrGnU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_useStyles_u5DkUxGrGnU"), "Root_component_useStyles_u5DkUxGrGnU");
+const q_Root_component_1_cBpQNYDUHI4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_1_cBpQNYDUHI4"), "Root_component_1_cBpQNYDUHI4");
+const q_Root_component_useStyles_u5DkUxGrGnU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_useStyles_u5DkUxGrGnU"), "Root_component_useStyles_u5DkUxGrGnU");
 //
 export const Root_component_royhjYaCbYE = ()=>{
-    useStyles(_qrl_Root_component_useStyles_u5DkUxGrGnU);
-    return _qrl_Root_component_1_cBpQNYDUHI4;
+    useStyles(q_Root_component_useStyles_u5DkUxGrGnU);
+    return q_Root_component_1_cBpQNYDUHI4;
 };
 
 

@@ -16,6 +16,10 @@ import { QStyleSelector } from '../shared/utils/markers';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+const STYLE_RED = `.container {background-color: red;}`;
+const STYLE_BLUE = `.container {background-color: blue;}`;
+const STYLE = `.container{color: blue;}`;
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -25,9 +29,6 @@ describe.each([
     (globalThis as any).rawStyleId1 = undefined;
     (globalThis as any).rawStyleId2 = undefined;
   });
-
-  const STYLE_RED = `.container {background-color: red;}`;
-  const STYLE_BLUE = `.container {background-color: blue;}`;
 
   it('should render style', async () => {
     (globalThis as any).rawStyleId = '';
@@ -194,7 +195,6 @@ describe.each([
       return <div>Hello world</div>;
     });
 
-    const STYLE = `.container{color: blue;}`;
     const Cmp = component$(() => {
       useStyles$(STYLE);
       const groupSig = useSignal('1');
@@ -222,7 +222,6 @@ describe.each([
 
 describe('html wrapper', () => {
   it('should append style to head', async () => {
-    const STYLE = `.container{color: blue;}`;
     const Wrapper = component$(() => {
       useStyles$(STYLE);
       return <Slot />;

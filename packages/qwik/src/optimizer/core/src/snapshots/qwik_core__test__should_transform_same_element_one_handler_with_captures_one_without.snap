@@ -32,12 +32,12 @@ export default component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CAiBZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAiBZ\"}")
 ============================= test.tsx_test_component_div_div_q_e_keydown_a6RR59yQlXM.js (ENTRY POINT)==
 
 export const test_component_div_div_q_e_keydown_a6RR59yQlXM = (_, _1)=>console.log('no capture');
@@ -105,8 +105,8 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const _qrl_test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps"), "test_component_div_div_q_e_click_Mc600uqO6ps");
-const _qrl_test_component_div_div_q_e_keydown_a6RR59yQlXM = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_keydown_a6RR59yQlXM"), "test_component_div_div_q_e_keydown_a6RR59yQlXM");
+const q_test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps"), "test_component_div_div_q_e_click_Mc600uqO6ps");
+const q_test_component_div_div_q_e_keydown_a6RR59yQlXM = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_keydown_a6RR59yQlXM"), "test_component_div_div_q_e_keydown_a6RR59yQlXM");
 //
 export const test_component_LUXeXe0DQrg = ()=>{
     const arr = useSignal([
@@ -116,10 +116,10 @@ export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxSorted("div", null, null, arr.value.map((val, i)=>{
         const index = i + 1;
         return /*#__PURE__*/ _jsxSorted("div", {
-            "q-e:click": _qrl_test_component_div_div_q_e_click_Mc600uqO6ps,
+            "q-e:click": q_test_component_div_div_q_e_click_Mc600uqO6ps,
             "q:p": index
         }, {
-            "q-e:keydown": _qrl_test_component_div_div_q_e_keydown_a6RR59yQlXM
+            "q-e:keydown": q_test_component_div_div_q_e_keydown_a6RR59yQlXM
         }, val, 4, "u6_0");
     }), 1, "u6_1");
 };

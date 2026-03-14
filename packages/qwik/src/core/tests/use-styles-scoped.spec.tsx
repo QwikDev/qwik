@@ -21,13 +21,13 @@ import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+const STYLE_RED = `.container {background-color: red;}`;
+const STYLE_BLUE = `.container {background-color: blue;}`;
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useStylesScoped', ({ render }) => {
-  const STYLE_RED = `.container {background-color: red;}`;
-  const STYLE_BLUE = `.container {background-color: blue;}`;
-
   afterEach(() => {
     (globalThis as any).rawStyleId = undefined;
     (globalThis as any).rawStyleId1 = undefined;
@@ -704,9 +704,9 @@ describe.each([
   });
 });
 
+const STYLE = `.container{color: blue;}`;
 describe('html wrapper', () => {
   it('should append scoped style to head', async () => {
-    const STYLE = `.container{color: blue;}`;
     (globalThis as any).rawStyleId = '';
     const Wrapper = component$(() => {
       const stylesScopedData = useStylesScoped$(STYLE);

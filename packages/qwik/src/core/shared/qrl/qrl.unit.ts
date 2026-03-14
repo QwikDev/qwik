@@ -1,10 +1,10 @@
 import { $ } from '@qwik.dev/core';
-import { createQRL } from './qrl-class';
-import { _regSymbol, inlinedQrl, qrl } from './qrl';
-import { describe, test, assert, assertType, expectTypeOf } from 'vitest';
-import { type QRL } from './qrl.public';
+import { assert, assertType, describe, expectTypeOf, test } from 'vitest';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
+import { _regSymbol, inlinedQrl, qrl } from './qrl';
+import { _captures, createQRL } from './qrl-class';
+import { type QRL } from './qrl.public';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
@@ -239,31 +239,31 @@ describe('inlinedQrl', () => {
   });
 });
 
-describe('$withCaptures$', () => {
-  const capFn = () => useLexicalScope();
+describe('w (with captures)', () => {
+  const capFn = () => _captures;
 
   test('should share the same LazyRef', () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
-    const q2 = q1.$withCaptures$(['b']);
+    const q2 = q1.w(['b']);
     assert.strictEqual(q1.$lazy$, q2.$lazy$);
   });
 
   test('should create a new QRL with different captures', () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
-    const q2 = q1.$withCaptures$(['b', 'c']);
+    const q2 = q1.w(['b', 'c']);
     assert.deepEqual(q1.resolved!(), ['a']);
     assert.deepEqual(q2.resolved!(), ['b', 'c']);
   });
 
   test('should not affect the original QRL', () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['original']);
-    q1.$withCaptures$(['changed']);
+    q1.w(['changed']);
     assert.deepEqual(q1.resolved!(), ['original']);
   });
 
   test('should preserve chunk and symbol', () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
-    const q2 = q1.$withCaptures$(['b']);
+    const q2 = q1.w(['b']);
     assert.equal(q2.$chunk$, 'chunk');
     assert.equal(q2.$symbol$, 'symbol');
     assert.equal(q2.$hash$, q1.$hash$);
@@ -277,7 +277,7 @@ describe('$withCaptures$', () => {
       () => Promise.resolve({ symbol: capFn }),
       ['first']
     );
-    const q2 = q1.$withCaptures$(['second']);
+    const q2 = q1.w(['second']);
 
     assert.equal(q1.resolved, undefined);
     assert.equal(q2.resolved, undefined);
@@ -289,13 +289,13 @@ describe('$withCaptures$', () => {
   test('should work with no captures', () => {
     const fn = () => 'hi';
     const q1 = createQRL('chunk', 'symbol', fn, null, ['a']);
-    const q2 = q1.$withCaptures$(null);
+    const q2 = q1.w(null);
     assert.equal(q2.resolved, fn);
   });
 
   test('should be callable', async () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
-    const q2 = q1.$withCaptures$(['hello', 'world']);
+    const q2 = q1.w(['hello', 'world']);
     assert.deepEqual(await q2(), ['hello', 'world']);
   });
 
@@ -303,8 +303,8 @@ describe('$withCaptures$', () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);
     // q1 is resolved synchronously because capFn is provided directly
     assert.isDefined(q1.resolved);
-    // LazyRef.$ref$ is populated, so $withCaptures$ should resolve sync too
-    const q2 = q1.$withCaptures$(['b']);
+    // LazyRef.$ref$ is populated, so w should resolve sync too
+    const q2 = q1.w(['b']);
     assert.isDefined(q2.resolved);
     assert.deepEqual(q2.resolved!(), ['b']);
   });

@@ -55,11 +55,18 @@ export type QRLInternalMethods<TYPE> = {
 
   $callFn$(withThis: unknown, ...args: QrlArgs<TYPE>): ValueOrPromise<QrlReturn<TYPE>>;
 
-  /** Get a new QRL for these captures, reusing the lazy ref */
-  $withCaptures$(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE>;
+  /**
+   * "with captures" - Get a new QRL for these captures, reusing the lazy ref. It's an internal
+   * method but we need to have a stable name because it gets called in user code by the optimizer,
+   * after the $name$ props are mangled
+   */
+  w(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE>;
 
-  /** Set the ref of the QRL */
-  $setRef$(ref: ValueOrPromise<TYPE>): void;
+  /**
+   * "set ref" - Set the ref of the QRL. It's an internal method but we need to have a stable name
+   * because it gets called in user code by the optimizer, after the $name$ props are mangled
+   */
+  s(ref: ValueOrPromise<TYPE>): void;
 
   /**
    * Needed for deserialization and importing. We don't always have the container while creating
@@ -219,7 +226,7 @@ class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE> {
     }
   }
 
-  $withCaptures$(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE> {
+  w(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE> {
     const newQrl = new QRLClass<TYPE>(
       this.$lazy$,
       captures!,
@@ -228,7 +235,7 @@ class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE> {
     return makeQrlFn(newQrl);
   }
 
-  $setRef$(ref: ValueOrPromise<TYPE>) {
+  s(ref: ValueOrPromise<TYPE>) {
     const qrl = getInstance(this);
     qrl.$lazy$.$setRef$(ref);
     qrl.resolved = bindCaptures(qrl, ref as TYPE);

@@ -50,7 +50,7 @@ const useData = ()=>{
     });
 };
 //
-const i_8dWUa0cJAr4 = ()=>import("./lib.mjs_App_component_div_p_button_onClick_8dWUa0cJAr4.js");
+const q_App_component_div_p_button_onClick_8dWUa0cJAr4 = /*#__PURE__*/ qrl(()=>import("./lib.mjs_App_component_div_p_button_onClick_8dWUa0cJAr4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4");
 //
 export const App_component_AkbU84a8zes = ()=>{
     const store = useData();
@@ -60,7 +60,7 @@ export const App_component_AkbU84a8zes = ()=>{
             _wrapProp(store, "count")
         ], 3, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", {
-            "q-e:click": /*#__PURE__*/ qrl(i_8dWUa0cJAr4, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+            "q-e:click": q_App_component_div_p_button_onClick_8dWUa0cJAr4.w([
                 store
             ])
         }, null, "Click", 2, null), 1, null)
@@ -94,10 +94,12 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./lib.mjs_App_component_AkbU84a8zes.js"), "App_component_AkbU84a8zes"));
+const q_App_component_AkbU84a8zes = /*#__PURE__*/ qrl(()=>import("./lib.mjs_App_component_AkbU84a8zes.js"), "App_component_AkbU84a8zes");
+//
+export const App = /*#__PURE__*/ componentQrl(q_App_component_AkbU84a8zes);
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,QAA+C,iBAAiB;;AAUrF,OAAO,MAAM,MAAM,WAAW,GAAG,mHAuBA\"}")
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,QAA+C,iBAAiB;;;;AAUrF,OAAO,MAAM,MAAM,WAAW,GAAG,0CAuBA\"}")
 ============================= components/main.tsx_Local_component_jJ0v28bs0p8.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -134,12 +136,12 @@ Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoo
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Local_component_jJ0v28bs0p8 = /*#__PURE__*/ qrl(()=>import("./main.tsx_Local_component_jJ0v28bs0p8.js"), "Local_component_jJ0v28bs0p8");
+const q_Local_component_jJ0v28bs0p8 = /*#__PURE__*/ qrl(()=>import("./main.tsx_Local_component_jJ0v28bs0p8.js"), "Local_component_jJ0v28bs0p8");
 //
-export const Local = /*#__PURE__*/ componentQrl(_qrl_Local_component_jJ0v28bs0p8);
+export const Local = /*#__PURE__*/ componentQrl(q_Local_component_jJ0v28bs0p8);
 
 
-Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,sBAAQ,+CAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,sBAAQ,4CAIlB\"}")
 == DIAGNOSTICS ==
 
 []

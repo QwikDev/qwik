@@ -90,12 +90,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_s_0TaiDayHrlo = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo");
+const q_s_0TaiDayHrlo = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo");
 //
-export const Parent = /*#__PURE__*/ componentQrl(_qrl_s_0TaiDayHrlo);
+export const Parent = /*#__PURE__*/ componentQrl(q_s_0TaiDayHrlo);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAOA,OAAO,MAAM,uBAAS,iCAkCnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAOA,OAAO,MAAM,uBAAS,8BAkCnB\"}")
 ============================= test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc.js (ENTRY POINT)==
 
 export const s_2ca3HLDC7yc = ()=>{
@@ -163,25 +163,25 @@ import { serverStuffQrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 //
-const _qrl_qrl_4294901764 = /*#__PURE__*/ _noopQrl("s_r1qAHX7Opp0");
-const _qrl_qrl_4294901766 = /*#__PURE__*/ _noopQrl("s_k1L0DiPQV1I");
-const _qrl_s_P8oRQhHsurk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_1_P8oRQhHsurk"), "s_P8oRQhHsurk");
-const _qrl_s_zM9okM0TYrA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA"), "s_zM9okM0TYrA");
-const i_gDH1EtUWqBU = ()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU");
+const q_qrl_4294901766 = /*#__PURE__*/ _noopQrl("s_r1qAHX7Opp0");
+const q_qrl_4294901768 = /*#__PURE__*/ _noopQrl("s_k1L0DiPQV1I");
+const q_s_P8oRQhHsurk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_1_P8oRQhHsurk"), "s_P8oRQhHsurk");
+const q_s_gDH1EtUWqBU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "s_gDH1EtUWqBU");
+const q_s_zM9okM0TYrA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA"), "s_zM9okM0TYrA");
 //
 export const s_0TaiDayHrlo = ()=>{
     const state = useStore({
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(i_gDH1EtUWqBU, "s_gDH1EtUWqBU", [
+    useTaskQrl(q_s_gDH1EtUWqBU.w([
         state
     ]));
-    serverStuffQrl(_qrl_qrl_4294901764);
-    serverLoaderQrl(_qrl_qrl_4294901766);
-    useTaskQrl(_qrl_s_P8oRQhHsurk);
+    serverStuffQrl(q_qrl_4294901766);
+    serverLoaderQrl(q_qrl_4294901768);
+    useTaskQrl(q_s_P8oRQhHsurk);
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        "q-e:click": _qrl_s_zM9okM0TYrA
+        "q-e:click": q_s_zM9okM0TYrA
     }, _wrapProp(state, "text"), 3, "u6_0");
 };
 

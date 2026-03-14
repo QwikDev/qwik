@@ -2,11 +2,10 @@ import {
   Fragment as Component,
   component$,
   Fragment,
-  inlinedQrl,
   Fragment as Signal,
   Slot,
   useSignal,
-  useStylesQrl,
+  useStyles$,
 } from '@qwik.dev/core';
 import { renderToString } from '@qwik.dev/core/server';
 import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -33,7 +32,7 @@ describe.each([
   it('should render style', async () => {
     (globalThis as any).rawStyleId = '';
     const StyledComponent = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+      const styleData = useStyles$(STYLE_RED);
       (globalThis as any).rawStyleId = styleData.styleId;
       return <div class="container">Hello world</div>;
     });
@@ -52,7 +51,7 @@ describe.each([
   it('should move style to <head> on rerender', async () => {
     (globalThis as any).rawStyleId = '';
     const StyledComponent = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+      const styleData = useStyles$(STYLE_RED);
       (globalThis as any).rawStyleId = styleData.styleId;
       const count = useSignal(0);
       return (
@@ -79,7 +78,7 @@ describe.each([
   it('should save styles when JSX deleted', async () => {
     (globalThis as any).rawStyleId = '';
     const StyledComponent = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+      const styleData = useStyles$(STYLE_RED);
       (globalThis as any).rawStyleId = styleData.styleId;
       return <div>Hello world</div>;
     });
@@ -107,7 +106,7 @@ describe.each([
 
   it('style node should contain q:style attribute', async () => {
     const StyledComponent = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+      useStyles$(STYLE_RED);
       return <div>Hello world</div>;
     });
     const { container } = await render(<StyledComponent />, { debug });
@@ -120,12 +119,12 @@ describe.each([
     (globalThis as any).rawStyleId1 = '';
     (globalThis as any).rawStyleId2 = '';
     const StyledComponent1 = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
+      const styleData = useStyles$(STYLE_RED);
       (globalThis as any).rawStyleId1 = styleData.styleId;
       return <div class="container">Hello world 1</div>;
     });
     const StyledComponent2 = component$(() => {
-      const styleData = useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
+      const styleData = useStyles$(STYLE_BLUE);
       (globalThis as any).rawStyleId2 = styleData.styleId;
       return <div class="container">Hello world 2</div>;
     });
@@ -159,11 +158,11 @@ describe.each([
 
   it('should save styles for all child components', async () => {
     const StyledComponent1 = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
+      useStyles$(STYLE_RED);
       return <div class="container">Hello world 1</div>;
     });
     const StyledComponent2 = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
+      useStyles$(STYLE_BLUE);
       return <div class="container">Hello world 2</div>;
     });
     const Parent = component$(() => {
@@ -197,7 +196,7 @@ describe.each([
 
     const STYLE = `.container{color: blue;}`;
     const Cmp = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE, 's_styles1'));
+      useStyles$(STYLE);
       const groupSig = useSignal('1');
       return (
         <>
@@ -225,7 +224,7 @@ describe('html wrapper', () => {
   it('should append style to head', async () => {
     const STYLE = `.container{color: blue;}`;
     const Wrapper = component$(() => {
-      useStylesQrl(inlinedQrl(STYLE, 's_styles1'));
+      useStyles$(STYLE);
       return <Slot />;
     });
     let document = createDocument();

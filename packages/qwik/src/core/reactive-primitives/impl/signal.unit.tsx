@@ -252,15 +252,9 @@ describe('signal', () => {
     it('trigger', async () => {
       await withContainer(async () => {
         const obj = { count: 0 };
-        const computed = await retryOnPromise(() => {
-          return createComputedQrl(
-            delayQrl(
-              $(() => {
-                obj.count++;
-                return obj;
-              })
-            )
-          );
+        const computed = createComputed$(() => {
+          obj.count++;
+          return obj;
         });
         expect(computed.value).toBe(obj);
         expect(obj.count).toBe(1);
@@ -269,7 +263,7 @@ describe('signal', () => {
         expect(log).toEqual([1]);
         expect(obj.count).toBe(1);
         // mark dirty but value remains shallow same after calc
-        computed.$flags$ |= SignalFlags.INVALID;
+        (computed as ComputedSignalImpl<typeof obj>).$flags$ |= SignalFlags.INVALID;
         computed.value.count;
         await flushSignals();
         expect(log).toEqual([1]);

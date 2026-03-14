@@ -48,7 +48,8 @@ export function qrlToString(
       const backChannel: Map<string, unknown> = ((globalThis as any).__qrl_back_channel__ ||=
         new Map());
       // During tests the resolved value is always available
-      backChannel.set(qrl.$symbol$, qrl.$lazy$.$ref$);
+      const lazy = qrl.$lazy$;
+      backChannel.set(lazy.$symbol$, lazy.$ref$);
       if (!chunk) {
         chunk = QRL_RUNTIME_CHUNK;
       }

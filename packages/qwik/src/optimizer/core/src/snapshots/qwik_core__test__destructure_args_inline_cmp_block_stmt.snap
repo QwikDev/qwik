@@ -27,13 +27,13 @@ import { _jsxSorted } from "@qwik.dev/core";
 const _hf0 = (p0)=>p0.data.selectedOutputDetail === 'options';
 const _hf0_str = 'p0.data.selectedOutputDetail==="options"';
 //
-const _qrl_test_div_q_e_click_pFqTss400MA = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_div_q_e_click_pFqTss400MA"), "test_div_q_e_click_pFqTss400MA");
+const q_test_div_q_e_click_pFqTss400MA = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_div_q_e_click_pFqTss400MA"), "test_div_q_e_click_pFqTss400MA");
 export default ((_rawProps)=>{
     return /*#__PURE__*/ _jsxSorted("div", {
         "data-is-active": _fnSignal(_hf0, [
             _rawProps
         ], _hf0_str),
-        "q-e:click": _qrl_test_div_q_e_click_pFqTss400MA,
+        "q-e:click": q_test_div_q_e_click_pFqTss400MA,
         "q:p": _rawProps
     }, null, null, 6, "u6_0");
 });

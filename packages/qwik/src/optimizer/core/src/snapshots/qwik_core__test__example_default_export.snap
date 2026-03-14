@@ -22,12 +22,12 @@ export default component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_slug_component_0AM8HPnkNs4 = /*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js"), "slug_component_0AM8HPnkNs4");
+const q_slug_component_0AM8HPnkNs4 = /*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js"), "slug_component_0AM8HPnkNs4");
 //
-export default /*#__PURE__*/ componentQrl(_qrl_slug_component_0AM8HPnkNs4);
+export default /*#__PURE__*/ componentQrl(q_slug_component_0AM8HPnkNs4);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,6BAAe,8CAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,6BAAe,2CAKZ\"}")
 ============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js (ENTRY POINT)==
 
 import { sibling } from "./sibling";
@@ -61,11 +61,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_slug_component_div_q_e_click_bCwVPYSTQ0w = /*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js"), "slug_component_div_q_e_click_bCwVPYSTQ0w");
+const q_slug_component_div_q_e_click_bCwVPYSTQ0w = /*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js"), "slug_component_div_q_e_click_bCwVPYSTQ0w");
 //
 export const slug_component_0AM8HPnkNs4 = ()=>{
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        "q-e:click": _qrl_slug_component_div_q_e_click_bCwVPYSTQ0w
+        "q-e:click": q_slug_component_div_q_e_click_bCwVPYSTQ0w
     }, null, 3, "W4_0");
 };
 

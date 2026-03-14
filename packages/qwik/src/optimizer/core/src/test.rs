@@ -6045,13 +6045,14 @@ export const App = component$(() => {
 		.collect();
 
 	assert!(
-		compact_code.contains("inlinedQrl(App_component_"),
-		"Expected inlinedQrl to reference a hoisted identifier (inlinedQrl(App_component_...)).\nGenerated code:\n{}",
+		compact_code.contains("_noopQrl(\"App_component_"),
+		"Expected _noopQrl with symbol name.\nGenerated code:\n{}",
 		combined_code
 	);
 	assert!(
-		!compact_code.contains("inlinedQrl(("),
-		"Expected inlinedQrl first arg to be an identifier reference, not an embedded function.\nGenerated code:\n{}",
+		compact_code.contains(".s(App_component_")
+			|| compact_code.contains(".s(TestComponent_component_"),
+		"Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
 		combined_code
 	);
 }
@@ -6117,9 +6118,14 @@ export const TestComponent = component$(() => {
 		.collect();
 
 	assert!(
-		compact_code.contains("inlinedQrl(TestComponent_component_")
-			|| compact_code.contains("inlinedQrlDEV(TestComponent_component_"),
-		"Expected inlinedQrl to reference the hoisted component identifier.\nGenerated code:\n{}",
+		compact_code.contains("_noopQrl(\"TestComponent_component_"),
+		"Expected _noopQrl with symbol name.\nGenerated code:\n{}",
+		combined_code
+	);
+	assert!(
+		compact_code.contains(".s(App_component_")
+			|| compact_code.contains(".s(TestComponent_component_"),
+		"Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
 		combined_code
 	);
 }
@@ -6238,6 +6244,79 @@ fn moves_captures_when_possible() {
 		transpile_jsx: true,
 		..TestInput::default()
 	});
+}
+
+#[test]
+fn fun_with_scopes() {
+	let res = test_input!(TestInput {
+		code: r#"
+		import { inlinedQrl,$,component$,jsx,useStylesScoped$ } from '@qwik.dev/core';
+			export default () => {
+				const serverFnHash = globalThis.foo();
+				const data = globalThis.bar();
+				const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
+				console.log(qrl);
+			}
+
+			function Lifecycle(props, key, flags) {
+				return component$(({ of: form, store, validate: validate2, validateOn, revalidateOn, transform, keepActive = false, keepState = true }) => {
+					return /* @__PURE__ */ jsx(Slot, {});
+				})(props, key, flags);
+			}
+			export const rawFn = (event, element) => {
+						handleFieldEvent(form, field, name, event, element, [
+							"touched",
+							"input"
+						], getElementInput(element, field, type));
+					}
+			export function Field({ children, name, type, ...props }) {
+				const { of: form } = props;
+				const field = getFieldStore(form, name);
+				return /* @__PURE__ */ jsx(Lifecycle, {
+					store: field,
+					...props,
+					children: children(field, {
+						name,
+						autoFocus: isServer && !!field.error,
+						ref: $((element) => {
+							field.internal.elements.push(element);
+						}),
+						onInput$: $(rawFn),
+					})
+				}, name);
+			}
+
+			const STYLE_RED = `.container {background-color: red;}`;
+			describe.each([])('$render.name: useStylesScoped', ({ render }) => {
+
+				it('should render object style', async () => {
+					const StyledComponent = component$(() => {
+						const stylesScopedData = useStylesScoped$(STYLE_RED);
+						const store = useStore({
+							count: 10,
+						});
+
+						return (
+							<button class={['container', `count-${store.count}`]} onClick$={() => store.count++}>
+								Hello world
+							</button>
+						);
+					});
+
+					const { vNode, getStyles, document } = await render(<StyledComponent />, { debug });
+				})
+			})
+
+			"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		is_server: Some(true),
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+	// segments are drained and inlined for Hoist strategy
+	assert!(res.is_ok());
 }
 
 impl TestInput {

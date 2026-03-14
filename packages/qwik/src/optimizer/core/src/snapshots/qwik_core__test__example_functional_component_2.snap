@@ -41,7 +41,7 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useStore } from '@qwik.dev/core';
 //
-const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
 export const useCounter = ()=>{
     return useStore({
@@ -49,10 +49,10 @@ export const useCounter = ()=>{
     });
 };
 export const STEP = 1;
-export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,iBAAiB;;;;AACzD,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,6CAoBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,iBAAiB;;;;AACzD,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,0CAoBjB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { useCounter } from "./test";
@@ -61,8 +61,8 @@ import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 //
-const _qrl_App_component_div_q_e_click_mi4E1piTWe8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_q_e_click_mi4E1piTWe8"), "App_component_div_q_e_click_mi4E1piTWe8");
-const i_UB6Fs5a3bd8 = ()=>import("./test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8");
+const q_App_component_div_button_q_e_click_UB6Fs5a3bd8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8"), "App_component_div_button_q_e_click_UB6Fs5a3bd8");
+const q_App_component_div_q_e_click_mi4E1piTWe8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_q_e_click_mi4E1piTWe8"), "App_component_div_q_e_click_mi4E1piTWe8");
 //
 export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useCounter();
@@ -70,13 +70,13 @@ export const App_component_ckEPmXZlub0 = (props)=>{
         thing: 0
     });
     const count2 = state.count * 2;
-    const App_component_div_button_q_e_click_UB6Fs5a3bd8 = /*#__PURE__*/ qrl(i_UB6Fs5a3bd8, "App_component_div_button_q_e_click_UB6Fs5a3bd8", [
+    const App_component_div_button_q_e_click_UB6Fs5a3bd8 = q_App_component_div_button_q_e_click_UB6Fs5a3bd8.w([
         props,
         state,
         thing
     ]);
     return /*#__PURE__*/ _jsxSorted("div", {
-        "q-e:click": _qrl_App_component_div_q_e_click_mi4E1piTWe8,
+        "q-e:click": q_App_component_div_q_e_click_mi4E1piTWe8,
         "q:ps": [
             count2,
             state

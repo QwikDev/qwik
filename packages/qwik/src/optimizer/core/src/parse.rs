@@ -752,6 +752,7 @@ fn add_section_separators(module: &mut ast::Module, comments: &SingleThreadedCom
 	enum Section {
 		Import,
 		QrlDecl,
+		RefAssignment,
 		Other,
 	}
 
@@ -762,8 +763,23 @@ fn add_section_separators(module: &mut ast::Module, comments: &SingleThreadedCom
 				if let Some(decl) = var.decls.first() {
 					if let ast::Pat::Ident(ident) = &decl.name {
 						let name = &*ident.id.sym;
-						if name.starts_with("_qrl_") || name.starts_with("i_") {
+						if name.starts_with("q_") || name.starts_with("i_") {
 							return Section::QrlDecl;
+						}
+					}
+				}
+				Section::Other
+			}
+			// Detect $ref$ assignments: q_name.$lazy$.$ref$ = ...
+			ast::ModuleItem::Stmt(ast::Stmt::Expr(expr_stmt)) => {
+				if let ast::Expr::Assign(assign) = &*expr_stmt.expr {
+					if let ast::AssignTarget::Simple(ast::SimpleAssignTarget::Member(member)) =
+						&assign.left
+					{
+						if let ast::MemberProp::Ident(prop) = &member.prop {
+							if &*prop.sym == "$ref$" {
+								return Section::RefAssignment;
+							}
 						}
 					}
 				}

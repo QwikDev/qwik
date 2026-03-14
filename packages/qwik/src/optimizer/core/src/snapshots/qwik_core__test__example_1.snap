@@ -52,19 +52,22 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qrl } from "@qwik.dev/core";
 import { component } from '@qwik.dev/core';
 //
-export const renderHeader1 = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_jMxQsjbyDss"), "renderHeader1_jMxQsjbyDss");
-component(/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader2_component_Ay6ibkfFYsw"), "renderHeader2_component_Ay6ibkfFYsw"));
+const q_renderHeader1_jMxQsjbyDss = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_jMxQsjbyDss"), "renderHeader1_jMxQsjbyDss");
+const q_renderHeader2_component_Ay6ibkfFYsw = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader2_component_Ay6ibkfFYsw"), "renderHeader2_component_Ay6ibkfFYsw");
+//
+export const renderHeader1 = q_renderHeader1_jMxQsjbyDss;
+component(q_renderHeader2_component_Ay6ibkfFYsw);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,iBAAiB;;AAExD,OAAO,MAAM,mHAIV;AACmB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,iBAAiB;;;;;AAExD,OAAO,MAAM,4CAIV;AACmB\"}")
 ============================= test.tsx_renderHeader1_jMxQsjbyDss.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_renderHeader1_div_onClick_USi8k1jUb40 = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_div_onClick_USi8k1jUb40"), "renderHeader1_div_onClick_USi8k1jUb40");
+const q_renderHeader1_div_onClick_USi8k1jUb40 = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_div_onClick_USi8k1jUb40"), "renderHeader1_div_onClick_USi8k1jUb40");
 //
 export const renderHeader1_jMxQsjbyDss = ()=>{
-    return <div onClick={_qrl_renderHeader1_div_onClick_USi8k1jUb40}/>;
+    return <div onClick={q_renderHeader1_div_onClick_USi8k1jUb40}/>;
 };
 
 

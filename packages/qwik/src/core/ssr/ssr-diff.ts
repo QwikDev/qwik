@@ -71,6 +71,19 @@ import type { SerializationContext } from '../shared/serdes/index';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer } from './ssr-types';
 import { applyInlineComponent } from './ssr-render-component';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
+import type { SsrChild, SsrContentChild } from '../../server/ssr-node';
+import { VNodeFlags } from '../client/types';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
+import type { Container } from '../shared/types';
+import { escapeHTML } from '../shared/utils/character-escaping';
+
+// Inline equivalents to avoid circular dependency with ssr-node.ts (SsrNode extends VirtualVNode)
+const enum SsrNodeKindLocal {
+  Text = 1,
+}
+function isSsrContentChild(child: SsrChild): child is SsrContentChild {
+  return 'kind' in child && !('id' in child);
+}
 
 // ============================================================================
 // SsrDiffContext
@@ -95,6 +108,14 @@ export interface SsrDiffContext extends BaseDiffContext {
    * resumption after the async operation completes.
    */
   $asyncBreak$: boolean;
+
+  // Reconciliation state (SSR re-render)
+  /** Previous orderedChildren for reconciliation (null = creation mode) */
+  $oldChildren$: SsrChild[] | null;
+  /** Current index into $oldChildren$ */
+  $oldChildIdx$: number;
+  /** New orderedChildren being built during reconciliation */
+  $newChildren$: SsrChild[] | null;
 }
 
 function createSsrDiffContext(
@@ -125,6 +146,9 @@ function createSsrDiffContext(
     $parentComponentFrame$: parentComponentFrame,
     $closeStack$: [],
     $asyncBreak$: false,
+    $oldChildren$: null,
+    $oldChildIdx$: 0,
+    $newChildren$: null,
   };
 }
 
@@ -140,21 +164,53 @@ function ssrDescend(
   closeCallback: (() => void) | null = null
 ) {
   ctx.$closeStack$.push(closeCallback);
+  // Save reconciliation state on stack before baseStackPush saves JSX/VNode state
+  if (descendVNode) {
+    ctx.$stack$.push(ctx.$oldChildren$, ctx.$oldChildIdx$, ctx.$newChildren$);
+  }
   baseStackPush(ctx, children, descendVNode);
   if (descendVNode) {
+    const isReusing = ctx.$vCurrent$ !== null && ctx.$vNewNode$ === null;
     const parent = (ctx.$vNewNode$ || ctx.$vCurrent$)!;
     const parentVirtual = parent as unknown as VirtualVNode;
     // Set VNode parent for dirty propagation — ensures markVNodeDirty can walk up to cursor root
     if (!parent.parent) {
       parent.parent = ctx.$vParent$;
     }
-    ctx.$isCreationMode$ = ctx.$isCreationMode$ || !!ctx.$vNewNode$ || !parentVirtual.firstChild;
     ctx.$vSideBuffer$ = null;
     ctx.$vSiblings$ = null;
     ctx.$vSiblingsArray$ = null;
     ctx.$vParent$ = parent;
     ctx.$vCurrent$ = (parentVirtual.firstChild as VNode | null) ?? null;
     ctx.$vNewNode$ = null;
+
+    // Set up reconciliation state for children
+    if (isReusing) {
+      // Descending into a REUSED node — reconcile its children
+      const existingChildren = (parent as unknown as ISsrNode as any).orderedChildren as
+        | SsrChild[]
+        | null;
+      if (existingChildren && existingChildren.length > 0) {
+        ctx.$isCreationMode$ = false;
+        ctx.$oldChildren$ = existingChildren;
+        ctx.$oldChildIdx$ = 0;
+        // Swap out orderedChildren so container methods add to the new array
+        const newChildren: SsrChild[] = [];
+        (parent as unknown as ISsrNode as any).orderedChildren = newChildren;
+        ctx.$newChildren$ = newChildren;
+      } else {
+        ctx.$isCreationMode$ = true;
+        ctx.$oldChildren$ = null;
+        ctx.$oldChildIdx$ = 0;
+        ctx.$newChildren$ = null;
+      }
+    } else {
+      // Descending into a NEW node — pure creation mode
+      ctx.$isCreationMode$ = true;
+      ctx.$oldChildren$ = null;
+      ctx.$oldChildIdx$ = 0;
+      ctx.$newChildren$ = null;
+    }
   }
   ctx.$shouldAdvance$ = false;
 }
@@ -162,7 +218,13 @@ function ssrDescend(
 /** Ascend from children, executing the close callback pushed during ssrDescend. */
 function ssrAscend(ctx: SsrDiffContext) {
   const cb = ctx.$closeStack$.pop();
-  stackPopBase(ctx);
+  const descendVNode = stackPopBase(ctx);
+  if (descendVNode) {
+    // Restore reconciliation state from stack
+    ctx.$newChildren$ = ctx.$stack$.pop();
+    ctx.$oldChildIdx$ = ctx.$stack$.pop();
+    ctx.$oldChildren$ = ctx.$stack$.pop();
+  }
   if (cb) {
     cb();
   }
@@ -175,7 +237,100 @@ function ssrAdvance(ctx: SsrDiffContext) {
   if (ctx.$asyncBreak$) {
     return;
   }
-  baseAdvance(ctx, ssrAscend);
+  if (ctx.$oldChildren$) {
+    // Reconciliation mode: use array-based navigation instead of VNode linked list.
+    // This mirrors baseAdvance but increments $oldChildIdx$ instead of peekNextSibling.
+    if (!ctx.$shouldAdvance$) {
+      ctx.$shouldAdvance$ = true;
+      return;
+    }
+    ctx.$jsxIdx$++;
+    if (ctx.$jsxIdx$ < ctx.$jsxCount$) {
+      ctx.$jsxValue$ = ctx.$jsxChildren$![ctx.$jsxIdx$];
+    } else if (ctx.$stack$.length > 0 && ctx.$stack$[ctx.$stack$.length - 1] === false) {
+      // Non-VNode descend frame — auto-ascend
+      return ssrAscend(ctx);
+    }
+    if (ctx.$vNewNode$ !== null) {
+      // New node was inserted — clear it, keep old child cursor in place
+      ctx.$vNewNode$ = null;
+    } else {
+      // Move to next old child
+      ctx.$oldChildIdx$++;
+    }
+  } else {
+    baseAdvance(ctx, ssrAscend);
+  }
+}
+
+// ============================================================================
+// Reconciliation helpers
+// ============================================================================
+
+/** Get current old child at cursor position */
+function getOldChild(ctx: SsrDiffContext): SsrChild | null {
+  return ctx.$oldChildren$ && ctx.$oldChildIdx$ < ctx.$oldChildren$.length
+    ? ctx.$oldChildren$[ctx.$oldChildIdx$]
+    : null;
+}
+
+/** Check if an SsrChild is a text content child */
+function matchesText(child: SsrChild): boolean {
+  return isSsrContentChild(child) && (child as any).kind === SsrNodeKindLocal.Text;
+}
+
+/** Throw if an SsrNode has already been emitted to the HTML stream */
+function assertNotEmitted(node: ISsrNode, action: string): void {
+  if ((node as any).flags & VNodeFlags.OpenTagEmitted) {
+    throw new Error(`Cannot ${action} already-emitted SsrNode during SSR re-render: ${node.id}`);
+  }
+}
+
+/**
+ * Clean up remaining unmatched old children after JSX is exhausted. Mirrors client's
+ * expectNoMore().
+ */
+function ssrExpectNoMore(ctx: SsrDiffContext) {
+  if (!ctx.$oldChildren$) {
+    return;
+  }
+  const container = ctx.$container$ as unknown as Container;
+  for (let i = ctx.$oldChildIdx$; i < ctx.$oldChildren$.length; i++) {
+    const child = ctx.$oldChildren$[i];
+    if (!isSsrContentChild(child)) {
+      const node = child as ISsrNode;
+      assertNotEmitted(node, 'remove');
+      clearAllEffects(container, node as unknown as VNode);
+      cleanupSsrTree(container, node);
+    }
+  }
+}
+
+/**
+ * Recursively clean up signal subscriptions on an SsrNode tree. Walks orderedChildren depth-first,
+ * calling clearAllEffects on each SsrNode.
+ */
+function cleanupSsrTree(container: Container, node: ISsrNode): void {
+  const children = (node as any).orderedChildren as SsrChild[] | null;
+  if (children) {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (!isSsrContentChild(child)) {
+        clearAllEffects(container, child as unknown as VNode);
+        cleanupSsrTree(container, child as ISsrNode);
+      }
+    }
+  }
+}
+
+/**
+ * Record a child (reused or new) in the reconciliation's newChildren list. In creation mode, also
+ * adds to orderedChildren via the container.
+ */
+function recordChild(ctx: SsrDiffContext, child: SsrChild): void {
+  if (ctx.$newChildren$) {
+    ctx.$newChildren$.push(child);
+  }
 }
 
 // ============================================================================
@@ -220,11 +375,36 @@ function diff(ctx: SsrDiffContext, jsxNode: JSXChildren, vStartNode: VNode) {
   ctx.$vParent$ = vStartNode;
   ctx.$vNewNode$ = null;
   ctx.$vCurrent$ = ((vStartNode as unknown as VirtualVNode).firstChild as VNode | null) ?? null;
+
+  // Check for existing children → reconciliation mode.
+  // Only enter reconciliation for component re-renders (hookChildCount explicitly set),
+  // NOT for additive streaming writes where children accumulate from multiple ssrDiff calls.
+  const ssrParent = vStartNode as unknown as ISsrNode;
+  const existing = (ssrParent as any).orderedChildren as SsrChild[] | null;
+  const hookCountProp = ssrParent.getProp?.(':hookChildCount');
+  if (hookCountProp != null && existing && existing.length > (hookCountProp as number)) {
+    const hookCount = hookCountProp as number;
+    ctx.$isCreationMode$ = false;
+    // Save old children in a separate array for iteration
+    ctx.$oldChildren$ = existing;
+    ctx.$oldChildIdx$ = hookCount;
+    // Replace parent's orderedChildren with a new array (keeping hook children).
+    // Container methods (openElement, textNode, etc.) will add new nodes to this array.
+    // Reused nodes are added via recordChild.
+    const newChildren = existing.slice(0, hookCount);
+    (ssrParent as any).orderedChildren = newChildren;
+    ctx.$newChildren$ = newChildren;
+  }
+
   // Root-level push: no close callback needed
   ctx.$closeStack$.push(null);
   baseStackPush(ctx, jsxNode, true);
 
   runDiffLoop(ctx);
+
+  // Clean up reconciliation state (orderedChildren already replaced above)
+  ctx.$newChildren$ = null;
+  ctx.$oldChildren$ = null;
 }
 
 /** The inner while loop of diff — extracted so it can be resumed after async breaks. */
@@ -239,11 +419,11 @@ function runDiffLoop(ctx: SsrDiffContext) {
       const value = ctx.$jsxValue$;
 
       if (typeof value === 'string') {
-        ssr.textNode(value);
+        ssrText(ctx, ssr, value);
       } else if (typeof value === 'number') {
-        ssr.textNode(String(value));
+        ssrText(ctx, ssr, String(value));
       } else if (value == null || typeof value === 'boolean') {
-        ssr.textNode('');
+        ssrText(ctx, ssr, '');
       } else if (typeof value === 'object') {
         if (isJSXNode(value)) {
           const jsx = value as JSXNodeInternal;
@@ -286,6 +466,13 @@ function runDiffLoop(ctx: SsrDiffContext) {
     }
     if (ctx.$asyncBreak$) {
       return;
+    }
+    // Clean up remaining unmatched old children before ascending
+    ssrExpectNoMore(ctx);
+    // Finalize orderedChildren for the node we're leaving
+    if (ctx.$newChildren$ && ctx.$vParent$) {
+      const parentNode = ctx.$vParent$ as unknown as ISsrNode;
+      (parentNode as any).orderedChildren = ctx.$newChildren$;
     }
     ssrAscend(ctx);
   }
@@ -344,6 +531,29 @@ function drainAsyncQueue(ctx: SsrDiffContext, savedBuildState: any): ValueOrProm
 // ============================================================================
 // JSX type handlers
 // ============================================================================
+
+/** Text node: reconcile against existing text or create new. */
+function ssrText(ctx: SsrDiffContext, ssr: SSRContainer, text: string) {
+  if (ctx.$oldChildren$) {
+    const old = getOldChild(ctx);
+    if (old && matchesText(old)) {
+      // Reuse existing text — update content
+      const escaped = escapeHTML(text);
+      (old as SsrContentChild).content = escaped;
+      (old as SsrContentChild).textLength = text.length;
+      recordChild(ctx, old);
+      // Don't set $vNewNode$ — text isn't a VNode. Advance will increment oldChildIdx.
+      return;
+    }
+    // No text match — create new via container method (adds to new orderedChildren).
+    // Set $vNewNode$ sentinel to prevent advance from incrementing oldChildIdx
+    // (the old child at current position wasn't consumed).
+    ssr.textNode(text);
+    ctx.$vNewNode$ = ctx.$vParent$; // sentinel: any non-null VNode
+    return;
+  }
+  ssr.textNode(text);
+}
 
 /** HTML element: open, descend into children, close on ascend. */
 function ssrElement(ctx: SsrDiffContext, jsx: JSXNodeInternal, tagName: string) {

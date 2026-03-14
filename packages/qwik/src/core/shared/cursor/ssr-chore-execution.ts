@@ -152,15 +152,10 @@ export function executeSsrNodeDiff(
     const ssr = container as SSRContainer;
     const styleScopedId = addComponentStylePrefix(ssrNode.getProp?.(QScopedStyle));
 
-    // Clear content children from previous ssrDiff, preserving hook-injected children
-    // (e.g., style elements from useStylesScoped$). Hooks run during executeSsrComponent
-    // and add children before NODE_DIFF runs. They use sequential scope caching so won't
-    // re-register on re-render. The :hookChildCount boundary is set by executeSsrComponent.
-    const orderedChildren = (ssrNode as any).orderedChildren;
-    const hookChildCount = ssrNode.getProp?.(':hookChildCount') ?? 0;
-    if (orderedChildren && orderedChildren.length > hookChildCount) {
-      orderedChildren.length = hookChildCount;
-    }
+    // Reconciliation of existing children is handled inside ssrDiff's diff() function.
+    // It detects existing children when :hookChildCount is set (by executeSsrComponent)
+    // and reconciles them: reusing matching nodes, creating new ones, and cleaning up
+    // unmatched orphans via clearAllEffects.
 
     // For component nodes (have OnRenderProp), the component context was already
     // pushed by executeSsrComponent. Use it and pop when done.

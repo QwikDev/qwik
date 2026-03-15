@@ -6319,6 +6319,190 @@ fn fun_with_scopes() {
 	assert!(res.is_ok());
 }
 
+#[test]
+fn hmr() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, component$, $ } from "@qwik.dev/core";
+
+		export const TestGetsHmr = component$(() => {
+			return <div>Test</div>;
+		});
+		export const TestNoHmr = componentQrl($(() => {
+			return <div>Test</div>;
+		}));
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Hmr,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_lib_mode() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, server$, useStyle$, useTask$ } from '@qwik.dev/core';
+
+export const Works = component$((props) => {
+	useStyle$(STYLES);
+	const text = 'hola';
+	useTask$(() => {
+		console.log(text);
+	});
+	return (
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+	);
+});
+
+const STYLES = '.class {}';
+"#
+		.to_string(),
+		mode: EmitMode::Lib,
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn lib_mode_inline_expressions() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	return <div>Hello</div>;
+});
+"#
+		.to_string(),
+		mode: EmitMode::Lib,
+		entry_strategy: EntryStrategy::Hoist,
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+	let compact_code: String = combined_code
+		.chars()
+		.filter(|c| !c.is_whitespace())
+		.collect();
+
+	// In lib mode, inlinedQrl should have inline expressions, not extracted identifiers
+	assert!(
+		compact_code.contains("inlinedQrl(("),
+		"Expected inlinedQrl first arg to be an inline function expression in lib mode.\nGenerated code:\n{}",
+		combined_code
+	);
+	// No _captures should be used
+	assert!(
+		!compact_code.contains("_captures"),
+		"Expected no _captures in lib mode output.\nGenerated code:\n{}",
+		combined_code
+	);
+}
+
+#[test]
+fn inlined_qrl_preserves_captures() {
+	// Simulates lib-preprocessed code being processed by the app optimizer.
+	// The inner inlinedQrl has 5 captures, including variables defined via
+	// the outer function's _captures destructuring.
+	let res = test_input!(TestInput {
+		code: r#"
+import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _captures } from '@qwik.dev/core';
+
+export function qwikifyQrl(reactCmp$, opts) {
+	return componentQrl(inlinedQrl((props) => {
+		const opts2 = _captures[0], reactCmp$2 = _captures[1];
+		const hostRef = useSignal();
+		const signal = useSignal();
+		const text = 'hello';
+		useTaskQrl(inlinedQrl(async ({ track }) => {
+			const hostRef2 = _captures[0], reactCmp$3 = _captures[1], opts3 = _captures[2], signal2 = _captures[3], text2 = _captures[4];
+			track(signal2);
+			console.log(hostRef2, reactCmp$3, opts3, text2);
+		}, "s_inner123", [hostRef, reactCmp$2, opts2, signal, text]));
+	}, "s_outer456", [opts, reactCmp$]));
+}
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::Simplify,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Prod,
+		is_server: Some(true),
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// The inner inlinedQrl must preserve all 5 captures
+	// Find the inner QRL call with captures (format: q_s_inner123.w([captures])
+	// or inlinedQrl(ref, "s_inner123", [captures]))
+	let search = combined_code
+		.find("q_s_inner123.w(")
+		.or_else(|| combined_code.find("\"s_inner123\""))
+		.expect(&format!(
+			"Should find s_inner123 call in output.\nGenerated code:\n{}",
+			combined_code
+		));
+
+	// Find the captures array (the [...] argument)
+	let after_hash = &combined_code[search..];
+	let bracket_start = after_hash.find('[').expect(&format!(
+		"Should find captures array for s_inner123.\nGenerated code:\n{}",
+		combined_code
+	));
+	let bracket_end = after_hash[bracket_start..]
+		.find(']')
+		.expect("Should find end of captures array");
+	let captures_str = &after_hash[bracket_start + 1..bracket_start + bracket_end];
+
+	// Count commas to get number of captures (N commas = N+1 elements)
+	let capture_count = if captures_str.trim().is_empty() {
+		0
+	} else {
+		captures_str.split(',').count()
+	};
+
+	assert_eq!(
+		capture_count, 5,
+		"Inner inlinedQrl should have exactly 5 captures, but found {}.\nCaptures: '{}'\nFull code:\n{}",
+		capture_count, captures_str, combined_code
+	);
+
+	// Verify specific capture names are present
+	for name in &["hostRef", "reactCmp$2", "opts2", "signal", "text"] {
+		assert!(
+			captures_str.contains(name),
+			"Capture '{}' should be present in inner captures array.\nCaptures: '{}'\nFull code:\n{}",
+			name, captures_str, combined_code
+		);
+	}
+}
+
 impl TestInput {
 	pub fn default() -> Self {
 		Self {

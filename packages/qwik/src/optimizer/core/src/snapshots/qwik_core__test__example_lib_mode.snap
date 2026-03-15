@@ -1,0 +1,60 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 6345
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, server$, useStyle$, useTask$ } from '@qwik.dev/core';
+
+export const Works = component$((props) => {
+	useStyle$(STYLES);
+	const text = 'hola';
+	useTask$(() => {
+		console.log(text);
+	});
+	return (
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+	);
+});
+
+const STYLES = '.class {}';
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { useStyleQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { serverQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { jsx as _jsx } from "@qwik.dev/core/jsx-runtime";
+import { component$, server$, useStyle$, useTask$ } from '@qwik.dev/core';
+//
+const STYLES = '.class {}';
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+    useStyleQrl(/*#__PURE__*/ inlinedQrl(STYLES, "Works_component_useStyle_i40UL9JyQpg"));
+    const text = 'hola';
+    useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
+        const text = _captures[0];
+        console.log(text);
+    }, "Works_component_useTask_pjo5U5Ikll0", [
+        text
+    ]));
+    return /*#__PURE__*/ _jsxSorted("div", {
+        "q-e:click": serverQrl(/*#__PURE__*/ inlinedQrl(()=>{
+            const text = _captures[0];
+            return console.log('in server', text);
+        }, "Works_component_div_q_e_click_server_q39lOt7xGrI", [
+            text
+        ]))
+    }, null, null, 2, "u6_0");
+}, "Works_component_t45qL4vNGv0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AACA,SAAY,UAAU,EAAE,OAAO,EAAE,SAAS,EAAE,QAAQ,QAAQ,iBAAiB;;AAa7E,MAAM,SAAS;AAXf,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAChC,qCAAU;IACV,MAAM,OAAO;IACb,oCAAS;;QACR,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,aAAU,mCAAQ;;mBAAM,QAAQ,GAAG,CAAC,aAAa;;;;;AAExD,mCAAG\"}")
+== DIAGNOSTICS ==
+
+[]

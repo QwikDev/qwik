@@ -380,7 +380,7 @@ impl<'a> QwikTransform<'a> {
 
 		let symbol_name = if matches!(
 			self.options.mode,
-			EmitMode::Dev | EmitMode::Test | EmitMode::Hmr
+			EmitMode::Dev | EmitMode::Test | EmitMode::Hmr | EmitMode::Lib
 		) {
 			format!("{}_{}", display_name, hash64)
 		} else {
@@ -397,6 +397,19 @@ impl<'a> QwikTransform<'a> {
 
 	/** Parse inlinedQrl() (from library code) */
 	fn handle_inlined_qsegment(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
+		// Library mode: pass through existing inlinedQrl calls unchanged
+		if matches!(self.options.mode, EmitMode::Lib) {
+			return node;
+		}
+		// If the first argument of the call is `null`, we skip processing
+		if let Some(ast::ExprOrSpread {
+			expr: first_arg, ..
+		}) = node.args.first()
+		{
+			if let ast::Expr::Lit(ast::Lit::Null(_)) = **first_arg {
+				return node;
+			}
+		}
 		node.args.reverse();
 
 		let last_stack = self
@@ -512,19 +525,14 @@ impl<'a> QwikTransform<'a> {
 			hash,
 			migrated_root_vars: Vec::new(),
 		};
-		let should_emit = self.should_emit_segment(&segment_data);
-		if should_emit {
-			for id in &segment_data.local_idents {
-				// Check if root-defined; if so, ensure it's exported so segments can import it.
-				// Imported symbols don't need re-exporting — segments import them from the original source.
-				if let Some(root_id) = self.options.global_collect.root_id_for_symbol(&id.0) {
-					self.ensure_export(&root_id);
-				}
+		// Preprocessed inlinedQrl from libs are always emitted — stripping is meant for user code without the user having to write guards; libs can put guards themselves.
+		// App-level $() calls go through _create_synthetic_qsegment which has its own strip check.
+		for id in &segment_data.local_idents {
+			if let Some(root_id) = self.options.global_collect.root_id_for_symbol(&id.0) {
+				self.ensure_export(&root_id);
 			}
 		}
-		if !should_emit {
-			self.create_noop_qrl(&symbol_name, segment_data)
-		} else if self.is_inline() {
+		if self.is_inline() {
 			let folded = if self.should_reg_segment(&segment_data.ctx_name) {
 				ast::Expr::Call(self.create_internal_call(
 					&_REG_SYMBOL,
@@ -735,6 +743,82 @@ impl<'a> QwikTransform<'a> {
 		} else {
 			first_arg
 		};
+
+		// Library mode: inline wrapping with scope capture but no segment extraction.
+		if matches!(self.options.mode, EmitMode::Lib) {
+			let can_capture = can_capture_scope(&first_arg);
+			let first_arg_span = first_arg.span();
+
+			let (symbol_name, display_name, hash, _segment_hash) =
+				self.register_context_name(custom_symbol);
+
+			// Collect descendent idents for scope analysis
+			let descendent_idents = {
+				let mut collector = IdentCollector::new();
+				first_arg.visit_with(&mut collector);
+				collector.get_words()
+			};
+
+			let decl_collect: Vec<_> = self
+				.decl_stack
+				.iter()
+				.flat_map(|v| v.iter())
+				.filter(|(_, t)| matches!(t, IdentType::Var(_)))
+				.cloned()
+				.collect();
+
+			let span = first_arg.span();
+			self.segment_stack.push(symbol_name.clone());
+			let folded = first_arg.fold_with(self);
+			self.segment_stack.pop();
+
+			let param_idents = get_function_params(&folded);
+			let (mut scoped_idents, _is_const) =
+				compute_scoped_idents(&descendent_idents, &decl_collect);
+			scoped_idents.retain(|id| !param_idents.contains(id));
+
+			if !can_capture && !scoped_idents.is_empty() {
+				HANDLER.with(|handler| {
+					let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
+					handler
+						.struct_span_err_with_code(
+							first_arg_span,
+							&format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
+							errors::get_diagnostic_id(errors::Error::CanNotCapture),
+						)
+						.emit();
+				});
+				scoped_idents = vec![];
+			}
+
+			// Inject _captures destructuring if there are captured variables
+			let folded = if !scoped_idents.is_empty() {
+				let new_local = self.ensure_core_import(&_CAPTURES);
+				transform_function_expr(folded, &new_local, &scoped_idents)
+			} else {
+				folded
+			};
+
+			let segment_data = SegmentData {
+				extension: self.options.extension.clone(),
+				local_idents: vec![],
+				scoped_idents,
+				parent_segment: self.segment_stack.last().cloned(),
+				ctx_kind,
+				ctx_name,
+				origin: self.options.path_data.rel_path.to_slash_lossy().into(),
+				path: self.options.path_data.rel_dir.to_slash_lossy().into(),
+				display_name,
+				need_transform: false,
+				hash,
+				migrated_root_vars: Vec::new(),
+			};
+
+			return (
+				self.create_inline_qrl(segment_data, folded, symbol_name, span),
+				false,
+			);
+		}
 
 		let can_capture = can_capture_scope(&first_arg);
 		let first_arg_span = first_arg.span();
@@ -1240,6 +1324,10 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	fn hoist_qrl_to_module_scope(&mut self, call_expr: ast::CallExpr) -> ast::Expr {
+		// Library mode: don't hoist QRLs to module scope
+		if matches!(self.options.mode, EmitMode::Lib) {
+			return ast::Expr::Call(call_expr);
+		}
 		let mut call_expr = call_expr;
 		let is_inlined = self.is_inlined_qrl_callee(&call_expr);
 
@@ -1745,6 +1833,7 @@ impl<'a> QwikTransform<'a> {
 		span: Span,
 	) -> ast::CallExpr {
 		let should_inline = matches!(self.options.entry_strategy, EntryStrategy::Inline)
+			|| matches!(self.options.mode, EmitMode::Lib)
 			|| matches!(expr, ast::Expr::Ident(_));
 		let param_names = Self::extract_param_names(&expr);
 		let inlined_expr = if should_inline {

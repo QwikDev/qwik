@@ -1,10 +1,12 @@
-import type { QRL, Signal } from '@builder.io/qwik';
+import type { QRL, Signal } from '@qwik.dev/core';
 import type { FunctionComponent as ReactFC } from 'react';
 import type { Root } from 'react-dom/client';
+import type { QwikProjectionState } from './slot';
 
 export interface Internal<PROPS> {
   root: Root | undefined;
   cmp: ReactFC<PROPS>;
+  projectionState: QwikProjectionState | null;
 }
 
 export interface QwikifyBase {

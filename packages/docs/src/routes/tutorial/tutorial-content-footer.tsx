@@ -1,6 +1,6 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 import { ensureDefaultFiles, type TutorialStore } from './layout';
-import { Link } from '@builder.io/qwik-city';
 
 export const TutorialContentFooter = component$(({ store }: TutorialContentFooterProps) => {
   return (

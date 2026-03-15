@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use swc_atoms::{js_word, JsWord};
+use indexmap::IndexMap;
+
+use swc_atoms::{atom, Atom};
 use swc_common::{Span, SyntaxContext, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
@@ -12,7 +14,7 @@ macro_rules! id {
 	};
 }
 
-pub type Id = (JsWord, SyntaxContext);
+pub type Id = (Atom, SyntaxContext);
 
 pub fn new_ident_from_id(id: &Id) -> ast::Ident {
 	ast::Ident::new(id.0.clone(), DUMMY_SP, id.1)
@@ -27,31 +29,39 @@ pub enum ImportKind {
 
 #[derive(Clone)]
 pub struct Import {
-	pub source: JsWord,
-	pub specifier: JsWord,
+	pub source: Atom,
+	pub specifier: Atom,
 	pub kind: ImportKind,
 	pub synthetic: bool,
 	pub asserts: Option<Box<ast::ObjectLit>>,
 }
 
+#[derive(Clone)]
+pub struct ExportInfo {
+	pub local_id: Id,
+	pub exported_names: Vec<Option<Atom>>,
+}
+
 pub struct GlobalCollect {
 	pub synthetic: Vec<(Id, Import)>,
-	pub imports: HashMap<Id, Import>,
-	pub exports: HashMap<Id, Option<JsWord>>,
-	pub root: HashMap<Id, Span>,
+	pub imports: IndexMap<Id, Import>,
+	pub exports: IndexMap<Atom, ExportInfo>,
+	pub root: IndexMap<Id, Span>,
 
-	rev_imports: HashMap<(JsWord, JsWord), Id>,
+	rev_imports: HashMap<(Atom, Atom), Id>,
+	canonical_ids: HashMap<Atom, Id>,
 	in_export_decl: bool,
 }
 
 pub fn global_collect(program: &ast::Program) -> GlobalCollect {
 	let mut collect = GlobalCollect {
 		synthetic: vec![],
-		imports: HashMap::with_capacity(16),
-		exports: HashMap::with_capacity(16),
+		imports: IndexMap::with_capacity(16),
+		exports: IndexMap::with_capacity(16),
 
-		root: HashMap::with_capacity(16),
+		root: IndexMap::with_capacity(16),
 		rev_imports: HashMap::with_capacity(16),
+		canonical_ids: HashMap::with_capacity(16),
 
 		in_export_decl: false,
 	};
@@ -60,7 +70,72 @@ pub fn global_collect(program: &ast::Program) -> GlobalCollect {
 }
 
 impl GlobalCollect {
-	pub fn get_imported_local(&self, specifier: &JsWord, source: &JsWord) -> Option<Id> {
+	fn register_canonical_id(&mut self, id: &Id) {
+		self.canonical_ids
+			.entry(id.0.clone())
+			.or_insert_with(|| id.clone());
+	}
+
+	pub fn add_root(&mut self, id: Id, span: Span) {
+		self.register_canonical_id(&id);
+		self.root.insert(id, span);
+	}
+
+	pub fn canonical_id_for(&self, id: &Id) -> Id {
+		self.canonical_ids
+			.get(&id.0)
+			.cloned()
+			.unwrap_or_else(|| id.clone())
+	}
+
+	pub fn root_id_for_symbol(&self, symbol: &Atom) -> Option<Id> {
+		self.root
+			.keys()
+			.find(|candidate| &candidate.0 == symbol)
+			.cloned()
+	}
+
+	pub fn has_export_symbol(&self, symbol: &Atom) -> bool {
+		self.exports.contains_key(symbol)
+	}
+
+	pub fn has_export_id(&self, id: &Id) -> bool {
+		self.has_export_symbol(&id.0)
+	}
+
+	pub fn resolve_export_name_for_id(&self, id: &Id) -> Option<Option<Atom>> {
+		let export = self.exports.get(&id.0)?;
+		let auto_name: Atom = format!("_auto_{}", id.0).into();
+		if export
+			.exported_names
+			.iter()
+			.any(|name| name.as_ref() == Some(&auto_name))
+		{
+			return Some(Some(auto_name));
+		}
+
+		export.exported_names.first().cloned()
+	}
+
+	pub fn export_local_ids(&self) -> Vec<Id> {
+		self.exports
+			.values()
+			.map(|info| info.local_id.clone())
+			.collect()
+	}
+
+	pub fn remove_root_and_exports_for_id(&mut self, id: &Id) {
+		self.root.shift_remove(id);
+		if self
+			.exports
+			.get(&id.0)
+			.is_some_and(|info| info.local_id == *id)
+		{
+			self.exports.shift_remove(&id.0);
+		}
+	}
+
+	pub fn get_imported_local(&self, specifier: &Atom, source: &Atom) -> Option<Id> {
 		self.imports
 			.iter()
 			.find(|(_, import)| &import.specifier == specifier && &import.source == source)
@@ -71,7 +146,7 @@ impl GlobalCollect {
 		if self.imports.contains_key(local) {
 			return true;
 		}
-		if self.exports.contains_key(local) {
+		if self.has_export_id(local) {
 			return true;
 		}
 		if self.root.contains_key(local) {
@@ -80,7 +155,7 @@ impl GlobalCollect {
 		false
 	}
 
-	pub fn import(&mut self, specifier: &JsWord, source: &JsWord) -> Id {
+	pub fn import(&mut self, specifier: &Atom, source: &Atom) -> Id {
 		self.rev_imports
 			.get(&(specifier.clone(), source.clone()))
 			.cloned()
@@ -104,6 +179,7 @@ impl GlobalCollect {
 	}
 
 	pub fn add_import(&mut self, local: Id, import: Import) {
+		self.register_canonical_id(&local);
 		if import.synthetic {
 			self.synthetic.push((local.clone(), import.clone()));
 		}
@@ -114,13 +190,27 @@ impl GlobalCollect {
 		self.imports.insert(local, import);
 	}
 
-	pub fn add_export(&mut self, local: Id, exported: Option<JsWord>) -> bool {
-		if let std::collections::hash_map::Entry::Vacant(e) = self.exports.entry(local) {
-			e.insert(exported);
-			true
-		} else {
-			false
+	pub fn add_export(&mut self, local: Id, exported: Option<Atom>) -> bool {
+		self.register_canonical_id(&local);
+		let canonical_local = self.canonical_id_for(&local);
+		if let indexmap::map::Entry::Vacant(e) = self.exports.entry(local.0.clone()) {
+			e.insert(ExportInfo {
+				local_id: canonical_local,
+				exported_names: vec![exported],
+			});
+			return true;
 		}
+
+		let export_info = self.exports.get_mut(&local.0).expect("entry exists");
+		if export_info.local_id != canonical_local {
+			export_info.local_id = canonical_local;
+		}
+
+		if export_info.exported_names.contains(&exported) {
+			return false;
+		}
+		export_info.exported_names.push(exported);
+		true
 	}
 }
 
@@ -131,20 +221,22 @@ impl Visit for GlobalCollect {
 		if let ast::ModuleItem::Stmt(ast::Stmt::Decl(decl)) = node {
 			match decl {
 				ast::Decl::Fn(function) => {
-					self.root.insert(id!(function.ident), function.ident.span);
+					self.add_root(id!(function.ident), function.ident.span);
 				}
 				ast::Decl::Class(class) => {
-					self.root.insert(id!(class.ident), class.ident.span);
+					self.add_root(id!(class.ident), class.ident.span);
 				}
 				ast::Decl::Var(var) => {
 					for decl in &var.decls {
 						let mut identifiers: Vec<(Id, Span)> = vec![];
 						collect_from_pat(&decl.name, &mut identifiers);
-						self.root.extend(identifiers.into_iter());
+						for (id, span) in identifiers {
+							self.add_root(id, span);
+						}
 					}
 				}
 				ast::Decl::TsEnum(enu) => {
-					self.root.insert(id!(enu.id), enu.id.span);
+					self.add_root(id!(enu.id), enu.id.span);
 				}
 				_ => {}
 			}
@@ -177,7 +269,7 @@ impl Visit for GlobalCollect {
 						id!(default.local),
 						Import {
 							source: node.src.value.clone(),
-							specifier: js_word!("default"),
+							specifier: atom!("default"),
 							kind: ImportKind::Default,
 							synthetic: false,
 							asserts: node.with.clone(),
@@ -221,15 +313,11 @@ impl Visit for GlobalCollect {
 					}
 				}
 				ast::ExportSpecifier::Default(default) => {
-					self.exports
-						.entry(id!(default.exported))
-						.or_insert(Some(js_word!("default")));
+					self.add_export(id!(default.exported), Some(atom!("default")));
 				}
 				ast::ExportSpecifier::Namespace(namespace) => {
 					if let ast::ModuleExportName::Ident(ident) = &namespace.name {
-						self.exports
-							.entry(id!(ident))
-							.or_insert_with(|| Some("*".into()));
+						self.add_export(id!(ident), Some("*".into()));
 					}
 				}
 			}
@@ -264,12 +352,12 @@ impl Visit for GlobalCollect {
 		match &node.decl {
 			ast::DefaultDecl::Class(class) => {
 				if let Some(ident) = &class.ident {
-					self.add_export(id!(ident), Some(js_word!("default")));
+					self.add_export(id!(ident), Some(atom!("default")));
 				}
 			}
 			ast::DefaultDecl::Fn(func) => {
 				if let Some(ident) = &func.ident {
-					self.add_export(id!(ident), Some(js_word!("default")));
+					self.add_export(id!(ident), Some(atom!("default")));
 				}
 			}
 			_ => {
@@ -297,6 +385,7 @@ enum ExprOrSkip {
 	Skip,
 }
 
+/// Collects all identifiers while visiting the AST.
 #[derive(Debug)]
 pub struct IdentCollector {
 	pub local_idents: HashSet<Id>,
@@ -369,6 +458,10 @@ impl Visit for IdentCollector {
 	fn visit_ident(&mut self, node: &ast::Ident) {
 		if matches!(self.expr_ctxt.last(), Some(ExprOrSkip::Expr))
 			&& node.ctxt != SyntaxContext::empty()
+			&& (node.sym != *"undefined"
+				&& node.sym != *"NaN"
+				&& node.sym != *"Infinity"
+				&& node.sym != *"null")
 		{
 			self.local_idents.insert(id!(node));
 		}
@@ -377,6 +470,13 @@ impl Visit for IdentCollector {
 	fn visit_key_value_prop(&mut self, node: &ast::KeyValueProp) {
 		self.expr_ctxt.push(ExprOrSkip::Skip);
 		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	// props.foo
+	fn visit_member_expr(&mut self, member: &ast::MemberExpr) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		member.visit_children_with(self);
 		self.expr_ctxt.pop();
 	}
 }

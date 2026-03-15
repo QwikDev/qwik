@@ -52,8 +52,8 @@ bun run qwik add drizzle
 We will use `routeLoader$` to query all users in the DB, using `db.query.users.findMany()`, and returning the result.
 
 ```tsx {7} /Drizzle/ title="src/routes/users/index.tsx"
-import { component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { component$ } from "@qwik.dev/core";
+import { routeLoader$ } from "@qwik.dev/router";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { schema } from "../../../drizzle/schema";
@@ -90,8 +90,8 @@ export default component$(() => {
 We will use `routeLoader$` to query specific users based on the `userId` URL param, using `db.query.users.findFirst({ where: (users, { eq }) => eq(users.id, userId), })`, and returning the result.
 
 ```tsx {8} /Drizzle/ title="src/routes/users/[userId]/index.tsx"
-import { component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { component$ } from "@qwik.dev/core";
+import { routeLoader$ } from "@qwik.dev/router";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { schema } from "../../../../drizzle/schema";
@@ -134,8 +134,8 @@ export default component$(() => {
 We will use `routeAction$` and `Form` to create a progressive form to add a new user to the DB. We will use `db.insert(schema.users).values(data)` to create the user.
 
 ```tsx {7-9} /Drizzle/ title="src/routes/create/index.tsx"
-import { component$ } from "@builder.io/qwik";
-import { routeAction$, zod$, z, Form } from "@builder.io/qwik-city";
+import { component$ } from "@qwik.dev/core";
+import { routeAction$, zod$, z, Form } from "@qwik.dev/router";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { schema } from "../../../drizzle/schema";

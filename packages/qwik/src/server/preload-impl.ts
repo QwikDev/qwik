@@ -1,9 +1,7 @@
-import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
-import type { ResolvedManifest } from '../optimizer/src/types';
-import { expandBundles } from './preload-strategy';
-import type { PreloaderOptions, RenderToStreamOptions, SnapshotResult } from './types';
-import { initPreloader } from '../core/preloader/bundle-graph';
-import { getPreloadPaths } from './preload-strategy';
+import { expandBundles, getPreloadPaths } from './preload-strategy';
+import { initPreloader } from './qwik-copy';
+import type { QRLInternal, SSRContainer } from './qwik-types';
+import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
 
 const simplifyPath = (base: string, path: string | null | undefined) => {
   if (path == null) {
@@ -21,18 +19,29 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
   return simplified.join('/');
 };
 
+const getBase = (container: SSRContainer) => {
+  let base = container.$buildBase$!;
+  if (import.meta.env.DEV && !import.meta.env.TEST) {
+    // Vite dev server active
+    // in dev, all bundles are absolute paths from the base url, not /build
+    base = import.meta.env.BASE_URL;
+  }
+  return base;
+};
+
 export const preloaderPre = (
-  base: string,
-  resolvedManifest: ResolvedManifest | undefined,
-  options: PreloaderOptions | false | undefined,
-  beforeContent: JSXNode<string>[],
+  container: SSRContainer,
+  options: RenderToStreamOptions['preloader'],
   nonce?: string
 ) => {
-  const preloaderPath = simplifyPath(base, resolvedManifest?.manifest?.preloader);
-  const bundleGraphPath =
-    (import.meta.env.BASE_URL || '/') + resolvedManifest?.manifest.bundleGraphAsset;
-  if (preloaderPath && bundleGraphPath && options !== false) {
-    // Initialize the SSR preloader
+  const { resolvedManifest } = container;
+  const base = getBase(container);
+  const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest?.preloader);
+  let bundleGraphPath = resolvedManifest?.manifest.bundleGraphAsset;
+  if (bundleGraphPath) {
+    bundleGraphPath = (import.meta.env.BASE_URL || '/') + bundleGraphPath;
+  }
+  if (preloaderBundle && bundleGraphPath && options !== false) {
     const preloaderOpts: Parameters<typeof initPreloader>[1] =
       typeof options === 'object'
         ? {
@@ -40,62 +49,82 @@ export const preloaderPre = (
             preloadProbability: options.ssrPreloadProbability,
           }
         : undefined;
-    initPreloader(resolvedManifest?.manifest.bundleGraph, preloaderOpts);
+    const bundleGraph = container.resolvedManifest?.manifest.bundleGraph;
+    initPreloader(bundleGraph, preloaderOpts);
 
     // Add the preloader script to the head
     const opts: string[] = [];
-    if (options?.debug) {
-      opts.push('d:1');
-    }
-    if (options?.maxIdlePreloads) {
-      opts.push(`P:${options.maxIdlePreloads}`);
-    }
-    if (options?.preloadProbability) {
-      opts.push(`Q:${options.preloadProbability}`);
+    if (options) {
+      if (options.debug) {
+        opts.push('d:1');
+      }
+      if (options.maxIdlePreloads) {
+        opts.push(`P:${options.maxIdlePreloads}`);
+      }
+      if (options.preloadProbability) {
+        opts.push(`Q:${options.preloadProbability}`);
+      }
     }
     const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
 
+    /**
+     * We add modulepreloads even when the script is at the top because they already fire during
+     * html download
+     */
+    const preloaderLinkAttrs: Record<string, string> = {
+      rel: 'modulepreload',
+      href: preloaderBundle,
+    };
+    if (nonce) {
+      preloaderLinkAttrs['nonce'] = nonce;
+    }
+    container.openElement('link', null, preloaderLinkAttrs, null, null, null);
+    container.closeElement();
+    container.openElement(
+      'link',
+      null,
+      { rel: 'preload', href: bundleGraphPath, as: 'fetch', crossorigin: 'anonymous' },
+      null,
+      null,
+      null
+    );
+    container.closeElement();
+
     const script =
       `let b=fetch("${bundleGraphPath}");` +
-      `import("${preloaderPath}").then(({l})=>` +
+      `import("${preloaderBundle}").then(({l})=>` +
       `l(${JSON.stringify(base)},b${optsStr})` +
       `);`;
-
-    beforeContent.push(
-      /**
-       * We add modulepreloads even when the script is at the top because they already fire during
-       * html download
-       */
-      jsx('link', { rel: 'modulepreload', href: preloaderPath, nonce, crossorigin: 'anonymous' }),
-      jsx('link', {
-        rel: 'preload',
-        href: bundleGraphPath,
-        as: 'fetch',
-        crossorigin: 'anonymous',
-        nonce,
-      }),
-      jsx('script', {
-        type: 'module',
-        async: true,
-        dangerouslySetInnerHTML: script,
-        nonce,
-      })
-    );
+    const scriptAttrs: Record<string, string | boolean> = {
+      type: 'module',
+      async: true,
+      crossorigin: 'anonymous',
+    };
+    if (nonce) {
+      scriptAttrs['nonce'] = nonce;
+    }
+    container.openElement('script', null, scriptAttrs, null, null, null);
+    container.write(script);
+    container.closeElement();
   }
 
   const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
   if (corePath) {
-    beforeContent.push(jsx('link', { rel: 'modulepreload', href: corePath, nonce }));
+    const linkAttrs: Record<string, string> = { rel: 'modulepreload', href: corePath };
+    if (nonce) {
+      linkAttrs['nonce'] = nonce;
+    }
+    container.openElement('link', null, linkAttrs, null, null, null);
+    container.closeElement();
   }
 };
 
 export const includePreloader = (
-  base: string,
-  resolvedManifest: ResolvedManifest | undefined,
+  container: SSRContainer,
   options: PreloaderOptions | boolean | undefined,
   referencedBundles: string[],
   nonce?: string
-): JSXNode | null => {
+) => {
   if (referencedBundles.length === 0 || options === false) {
     return null;
   }
@@ -104,20 +133,11 @@ export const includePreloader = (
   );
   let allowed = ssrPreloads;
 
-  const nodes: JSXNode[] = [];
-
-  if (import.meta.env.DEV) {
-    // Vite dev server active
-    // in dev, all bundles are absolute paths from the base url, not /build
-    base = import.meta.env.BASE_URL;
-    if (base.endsWith('/')) {
-      base = base.slice(0, -1);
-    }
-  }
+  const base = getBase(container);
 
   const links = [];
 
-  const manifestHash = resolvedManifest?.manifest.manifestHash;
+  const { resolvedManifest } = container;
   if (allowed) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
     const coreBundle = resolvedManifest?.manifest.core;
@@ -144,7 +164,7 @@ export const includePreloader = (
     }
   }
 
-  const preloaderPath = simplifyPath(base, manifestHash && resolvedManifest?.manifest.preloader);
+  const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest.preloader);
   const insertLinks = links.length
     ? /**
        * We only use modulepreload links because they behave best. Older browsers can rely on the
@@ -160,71 +180,43 @@ export const includePreloader = (
     : '';
   // We are super careful not to interfere with the page loading.
   let script = insertLinks;
-  if (preloaderPath) {
+  if (preloaderBundle) {
     // First we wait for the onload event
     script +=
       `window.addEventListener('load',f=>{` +
-      `f=_=>import("${preloaderPath}").then(({p})=>p(${JSON.stringify(referencedBundles)}));` +
+      `f=_=>import("${preloaderBundle}").then(({p})=>p(${JSON.stringify(referencedBundles)}));` +
       // then we ask for idle callback
       `try{requestIdleCallback(f,{timeout:2000})}` +
       // some browsers don't support requestIdleCallback
       `catch(e){setTimeout(f,200)}` +
       `})`;
   }
-  /**
-   * Uses the preloader chunk to add the `<link>` elements at runtime. This allows core to simply
-   * import the preloader as well and have all the state there, plus it makes it easy to write a
-   * complex implementation.
-   *
-   * Note that we don't preload the preloader or bundlegraph, they are requested after the SSR
-   * preloads because they are not as important. Also the preloader includes the vitePreload
-   * function and will in fact already be in that list.
-   */
   if (script) {
-    nodes.push(
-      jsx('script', {
-        type: 'module',
-        'q:type': 'preload',
-        /**
-         * This async allows the preloader to be executed before the DOM is fully parsed even though
-         * it's at the bottom of the body
-         */
-        async: true,
-        dangerouslySetInnerHTML: script,
-        nonce,
-      })
-    );
-  }
-
-  if (nodes.length > 0) {
-    return jsx(Fragment, { children: nodes });
+    /**
+     * Uses the preloader chunk to add the `<link>` elements at runtime. This allows core to simply
+     * import the preloader as well and have all the state there, plus it makes it easy to write a
+     * complex implementation.
+     */
+    const attrs: Record<string, string> = { type: 'module', async: 'true', 'q:type': 'preload' };
+    if (nonce) {
+      attrs['nonce'] = nonce;
+    }
+    container.openElement('script', null, attrs, null, null, null);
+    container.write(script);
+    container.closeElement();
   }
 
   return null;
 };
 
-export const preloaderPost = (
-  base: string,
-  snapshotResult: SnapshotResult,
-  opts: RenderToStreamOptions,
-  resolvedManifest: ResolvedManifest | undefined,
-  output: (JSXNode | null)[]
-) => {
+export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, nonce?: string) => {
   if (opts.preloader !== false) {
+    const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
     // skip prefetch implementation if prefetchStrategy === null
-    const preloadBundles = getPreloadPaths(snapshotResult, opts, resolvedManifest);
+    const preloadBundles = getPreloadPaths(qrls, opts, ssrContainer.resolvedManifest);
     // If no preloadBundles, there is no reactivity, so no need to include the preloader
     if (preloadBundles.length > 0) {
-      const result = includePreloader(
-        base,
-        resolvedManifest,
-        opts.preloader,
-        preloadBundles,
-        opts.serverData?.nonce
-      );
-      if (result) {
-        output.push(result);
-      }
+      includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce);
     }
   }
 };
@@ -232,10 +224,10 @@ export const preloaderPost = (
 function normalizePreLoaderOptions(
   input: PreloaderOptions | undefined
 ): Required<PreloaderOptions> {
-  return { ...PreLoaderOptionsDefault, ...input };
+  return { ...preLoaderOptionsDefault, ...input };
 }
 
-const PreLoaderOptionsDefault: Required<PreloaderOptions> = {
+const preLoaderOptionsDefault: Required<PreloaderOptions> = {
   ssrPreloads: 7,
   ssrPreloadProbability: 0.5,
   debug: false,

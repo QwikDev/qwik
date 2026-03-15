@@ -1,0 +1,90 @@
+{
+  "id": "qwik-router-middleware-node",
+  "package": "@qwik.dev/qwik-router/middleware/node",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `createQwikRouter` instead. Will be removed in V3\n> \n\n\n```typescript\ncreateQwikCity: typeof createQwikRouter\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts",
+      "mdFile": "router.createqwikcity.md"
+    },
+    {
+      "name": "createQwikRouter",
+      "id": "createqwikrouter",
+      "hierarchy": [
+        {
+          "name": "createQwikRouter",
+          "id": "createqwikrouter"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions): {\n    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;\n    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;\n    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;\n};\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikRouterNodeRequestOptions](#qwikrouternoderequestoptions) \\| [QwikCityNodeRequestOptions](#qwikcitynoderequestoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n{ router: (req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)<!-- -->) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; }",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts",
+      "mdFile": "router.createqwikrouter.md"
+    },
+    {
+      "name": "NodeRequestNextFunction",
+      "id": "noderequestnextfunction",
+      "hierarchy": [
+        {
+          "name": "NodeRequestNextFunction",
+          "id": "noderequestnextfunction"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface NodeRequestNextFunction \n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts",
+      "mdFile": "router.noderequestnextfunction.md"
+    },
+    {
+      "name": "PlatformNode",
+      "id": "platformnode",
+      "hierarchy": [
+        {
+          "name": "PlatformNode",
+          "id": "platformnode"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformNode \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[incomingMessage?](./router.platformnode.incomingmessage.md)\n\n\n</td><td>\n\n\n</td><td>\n\nIncomingMessage \\| Http2ServerRequest\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[node?](./router.platformnode.node.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[ssr?](./router.platformnode.ssr.md)\n\n\n</td><td>\n\n\n</td><td>\n\ntrue\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts",
+      "mdFile": "router.platformnode.md"
+    },
+    {
+      "name": "QwikCityNodeRequestOptions",
+      "id": "qwikcitynoderequestoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityNodeRequestOptions",
+          "id": "qwikcitynoderequestoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterNodeRequestOptions` instead. Will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityNodeRequestOptions = QwikRouterNodeRequestOptions;\n```\n**References:** [QwikRouterNodeRequestOptions](#qwikrouternoderequestoptions)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts",
+      "mdFile": "router.qwikcitynoderequestoptions.md"
+    },
+    {
+      "name": "QwikRouterNodeRequestOptions",
+      "id": "qwikrouternoderequestoptions",
+      "hierarchy": [
+        {
+          "name": "QwikRouterNodeRequestOptions",
+          "id": "qwikrouternoderequestoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[getClientConn?](./router.qwikrouternoderequestoptions.getclientconn.md)\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest) =&gt; ClientConn\n\n\n</td><td>\n\n_(Optional)_ Provide a function that returns a `ClientConn` for the given request.\n\n\n</td></tr>\n<tr><td>\n\n[getOrigin?](./router.qwikrouternoderequestoptions.getorigin.md)\n\n\n</td><td>\n\n\n</td><td>\n\n(req: IncomingMessage \\| Http2ServerRequest) =&gt; string \\| null\n\n\n</td><td>\n\n_(Optional)_ Provide a function that computes the origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.\n\nWhen not specified, it defaults to the `ORIGIN` environment variable (if set).\n\nIf `ORIGIN` is not set, it's derived from the incoming request, which is not recommended for production use. You can specify the `PROTOCOL_HEADER`<!-- -->, `HOST_HEADER` to `X-Forwarded-Proto` and `X-Forwarded-Host` respectively to override the default behavior.\n\n\n</td></tr>\n<tr><td>\n\n[origin?](./router.qwikrouternoderequestoptions.origin.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[static?](./router.qwikrouternoderequestoptions.static.md)\n\n\n</td><td>\n\n\n</td><td>\n\n{ root?: string; cacheControl?: string; }\n\n\n</td><td>\n\n_(Optional)_ Options for serving static files\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts",
+      "mdFile": "router.qwikrouternoderequestoptions.md"
+    }
+  ]
+}

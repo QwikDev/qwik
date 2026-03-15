@@ -1,5 +1,5 @@
-import { component$, useStore, type ReadonlySignal, type JSXOutput } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$, useStore, type JSXOutput } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
 import { BundleCmp } from '~/components/bundle';
 import { BundleIcon } from '~/components/icons/bundle';
 import { SymbolTile } from '~/components/symbol-tile';
@@ -10,9 +10,9 @@ import {
   computeBundles,
   computeSymbolGraph,
   computeSymbolVectors,
-  type SymbolVectors,
-  type Symbol,
   type Bundle,
+  type Symbol,
+  type SymbolVectors,
 } from '~/stats/edges';
 import { vectorSum } from '~/stats/vector';
 
@@ -39,7 +39,7 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
 });
 
 export default component$(() => {
-  const data: ReadonlySignal<BundleInfo> = useData();
+  const data = useData();
   return (
     <div>
       <h1 class="h3">

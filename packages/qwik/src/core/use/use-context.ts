@@ -1,24 +1,16 @@
-import { fromCamelToKebabCase } from '../util/case';
-import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import { qDev, qSerialize } from '../util/qdev';
-import { isObject } from '../util/types';
+import { assertTrue } from '../shared/error/assert';
+import { QError, qError } from '../shared/error/error';
+import { verifySerializable } from '../shared/serdes/verify';
+import { qDev, qSerialize } from '../shared/utils/qdev';
+import { isObject } from '../shared/utils/types';
+import { getInvokeContext, invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
-import { assertTrue } from '../error/assert';
-import { verifySerializable } from '../state/common';
-import { getContext, type QContext } from '../state/context';
-import type { ContainerState } from '../container/container';
-import { invoke } from './use-core';
-import {
-  type QwikElement,
-  type VirtualElement,
-  getVirtualElement,
-} from '../render/dom/virtual-element';
-import { isComment } from '../util/element';
-import { Q_CTX, VIRTUAL_SYMBOL } from '../state/constants';
+import { fromCamelToKebabCase } from '../shared/utils/event-names';
+import { isDev } from '@qwik.dev/core/build';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#ContextId instead)
+// (edit ../readme.md#ContextId instead and run `pnpm docs.sync`)
 /**
  * ContextId is a typesafe ID for your context.
  *
@@ -78,7 +70,7 @@ export interface ContextId<STATE> {
 
 // <docs markdown="../readme.md#createContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#createContextId instead)
+// (edit ../readme.md#createContextId instead and run `pnpm docs.sync`)
 /**
  * Create a context ID to be used in your application. The name should be written with no spaces.
  *
@@ -131,7 +123,8 @@ export interface ContextId<STATE> {
  */
 // </docs>
 export const createContextId = <STATE = unknown>(name: string): ContextId<STATE> => {
-  assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
+  isDev &&
+    assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9,_,.,-', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
@@ -139,7 +132,7 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
 
 // <docs markdown="../readme.md#useContextProvider">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useContextProvider instead)
+// (edit ../readme.md#useContextProvider instead and run `pnpm docs.sync`)
 /**
  * Assign a value to a Context.
  *
@@ -193,19 +186,18 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
  */
 // </docs>
 export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: STATE) => {
-  const { val, set, elCtx } = useSequentialScope<boolean>();
+  const { val, set, iCtx } = useSequentialScope<1>();
   if (val !== undefined) {
     return;
   }
   if (qDev) {
     validateContext(context);
   }
-  const contexts = (elCtx.$contexts$ ||= new Map());
   if (qDev && qSerialize) {
     verifySerializable(newValue);
   }
-  contexts.set(context.id, newValue);
-  set(true);
+  iCtx.$container$.setContext(iCtx.$hostElement$, context, newValue);
+  set(1);
 };
 
 export interface UseContext {
@@ -216,7 +208,7 @@ export interface UseContext {
 
 // <docs markdown="../readme.md#useContext">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useContext instead)
+// (edit ../readme.md#useContext instead and run `pnpm docs.sync`)
 /**
  * Retrieve Context value.
  *
@@ -268,7 +260,7 @@ export const useContext: UseContext = <STATE>(
   context: ContextId<STATE>,
   defaultValue?: STATE | ((current: STATE | undefined) => STATE)
 ) => {
-  const { val, set, iCtx, elCtx } = useSequentialScope<STATE>();
+  const { val, set, iCtx } = useSequentialScope<STATE>();
   if (val !== undefined) {
     return val;
   }
@@ -276,7 +268,7 @@ export const useContext: UseContext = <STATE>(
     validateContext(context);
   }
 
-  const value = resolveContext(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
+  const value: STATE | undefined = iCtx.$container$.resolveContext(iCtx.$hostElement$, context);
   if (typeof defaultValue === 'function') {
     return set(invoke(undefined, defaultValue as any, value));
   }
@@ -286,85 +278,21 @@ export const useContext: UseContext = <STATE>(
   if (defaultValue !== undefined) {
     return set(defaultValue);
   }
-  throw qError(QError_notFoundContext, context.id);
-};
-
-/** Find a wrapping Virtual component in the DOM */
-const findParentCtx = (el: QwikElement | null, containerState: ContainerState) => {
-  let node = el;
-  let stack = 1;
-  while (node && !node.hasAttribute?.('q:container')) {
-    // Walk the siblings backwards, each comment might be the Virtual wrapper component
-    while ((node = node.previousSibling as QwikElement | null)) {
-      if (isComment(node)) {
-        const virtual = (node as any)[VIRTUAL_SYMBOL] as VirtualElement;
-        if (virtual) {
-          const qtx = (virtual as any)[Q_CTX] as QContext | undefined;
-          if (node === virtual.open) {
-            // We started inside this node so this is our parent
-            return qtx ?? getContext(virtual, containerState);
-          }
-          // This is a sibling, check if it knows our parent
-          if (qtx?.$parentCtx$) {
-            return qtx.$parentCtx$;
-          }
-          // Skip over this entire virtual sibling
-          node = virtual;
-          continue;
-        }
-        if (node.data === '/qv') {
-          stack++;
-        } else if (node.data.startsWith('qv ')) {
-          stack--;
-          if (stack === 0) {
-            return getContext(getVirtualElement(node)!, containerState);
-          }
-        }
-      }
-    }
-    // No more siblings, walk up the DOM tree. The parent will never be a Virtual component.
-    node = el!.parentElement;
-    el = node;
-  }
-  return null;
-};
-
-const getParentProvider = (ctx: QContext, containerState: ContainerState): QContext | null => {
-  // `null` means there's no parent, `undefined` means we don't know yet.
-  if (ctx.$parentCtx$ === undefined) {
-    // Not fully resumed container, find context from DOM
-    // We cannot recover $realParentCtx$ from this but that's fine because we don't need to pause on the client
-    ctx.$parentCtx$ = findParentCtx(ctx.$element$, containerState);
-  }
-  /**
-   * Note, the parentCtx is used during pause to to get the immediate parent, so we can't shortcut
-   * the search for $contexts$ here. If that turns out to be needed, it needs to be cached in a
-   * separate property.
-   */
-  return ctx.$parentCtx$;
-};
-
-export const resolveContext = <STATE>(
-  context: ContextId<STATE>,
-  hostCtx: QContext,
-  containerState: ContainerState
-): STATE | undefined => {
-  const contextID = context.id;
-  if (!hostCtx) {
-    return;
-  }
-  let ctx = hostCtx;
-  while (ctx) {
-    const found = ctx.$contexts$?.get(contextID);
-    if (found) {
-      return found;
-    }
-    ctx = getParentProvider(ctx, containerState)!;
-  }
+  throw qError(QError.notFoundContext, [context.id]);
 };
 
 export const validateContext = (context: ContextId<any>) => {
   if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {
-    throw qError(QError_invalidContext, context);
+    throw qError(QError.invalidContext, [context]);
   }
+};
+
+/** @internal */
+export const _resolveContextWithoutSequentialScope = <STATE>(context: ContextId<STATE>) => {
+  const iCtx = getInvokeContext();
+  const hostElement = iCtx.$hostElement$;
+  if (!hostElement) {
+    return undefined;
+  }
+  return iCtx.$container$?.resolveContext(hostElement, context);
 };

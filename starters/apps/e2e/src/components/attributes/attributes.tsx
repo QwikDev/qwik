@@ -1,4 +1,10 @@
-import { component$, useSignal, useStore } from "@builder.io/qwik";
+import {
+  component$,
+  useComputed$,
+  useSignal,
+  useStore,
+  type PropsOf,
+} from "@qwik.dev/core";
 
 export const Attributes = component$(() => {
   const render = useSignal(0);
@@ -12,7 +18,9 @@ export const Attributes = component$(() => {
       >
         Rerender
       </button>
+      <span id="render-count">{render.value}</span>
       <AttributesChild v={render.value} key={render.value} />
+      <ProgressParent />
     </>
   );
 });
@@ -158,15 +166,15 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
       </div>
       <div id="input-value">{input.value}</div>
       <input id="input-copy" value={input.value} />
-      <Issue3622 />
-      <Issue4718Null />
-      <Issue4718Undefined />
+      <SelectValueAfterNavigationIssue3622 />
+      <NullAttributeNotRemovedIssue4718Null />
+      <UndefinedAttributeNotRemovedIssue4718Undefined />
       <div id="renderCount">Render {v}</div>
     </>
   );
 });
 
-export const Issue3622 = component$(() => {
+export const SelectValueAfterNavigationIssue3622 = component$(() => {
   return (
     <div>
       <select id="issue-3622-result" value="option1">
@@ -177,7 +185,7 @@ export const Issue3622 = component$(() => {
   );
 });
 
-export const Issue4718Undefined = component$(() => {
+export const UndefinedAttributeNotRemovedIssue4718Undefined = component$(() => {
   const signal = useSignal<string | undefined>("some value");
 
   return (
@@ -196,7 +204,7 @@ export const Issue4718Undefined = component$(() => {
   );
 });
 
-export const Issue4718Null = component$(() => {
+export const NullAttributeNotRemovedIssue4718Null = component$(() => {
   const signal = useSignal<string | null>("some value");
 
   return (
@@ -212,5 +220,92 @@ export const Issue4718Null = component$(() => {
     >
       Click Me
     </button>
+  );
+});
+
+const ProgressRoot = component$<{ min?: number } & PropsOf<"div">>((props) => {
+  const { ...rest } = props;
+
+  const minSig = useComputed$(() => props.min ?? 0);
+
+  const valueLabelSig = useComputed$(() => {
+    const value = minSig.value;
+    return `${value * 100}%`;
+  });
+
+  return (
+    <>
+      <div id="progress-1" aria-valuetext={valueLabelSig.value} {...rest}>
+        {valueLabelSig.value}
+      </div>
+    </>
+  );
+});
+
+const ProgressRootShowHide = component$<{ min: number } & PropsOf<"div">>(
+  ({ min, ...rest }) => {
+    const show = useSignal(true);
+
+    return (
+      <>
+        {show.value && (
+          <div id="progress-2" aria-valuetext={min.toString()} {...rest}>
+            {min}
+          </div>
+        )}
+
+        <button id="progress-hide" onClick$={() => (show.value = !show.value)}>
+          show/hide progress
+        </button>
+      </>
+    );
+  },
+);
+
+const ProgressRootPromise = component$<{ min?: number } & PropsOf<"div">>(
+  (props) => {
+    const { ...rest } = props;
+
+    const minSig = useComputed$(() => props.min ?? 0);
+
+    const valueLabelSig = useComputed$(() => {
+      const value = minSig.value;
+      return `${value * 100}%`;
+    });
+
+    return (
+      <>
+        {Promise.resolve(
+          <div id="progress-3" aria-valuetext={valueLabelSig.value} {...rest}>
+            {valueLabelSig.value}
+          </div>,
+        )}
+      </>
+    );
+  },
+);
+
+const ProgressParent = component$(() => {
+  const minGoal = useSignal(2000);
+  const computedGoal = useComputed$(() => minGoal.value + 100);
+
+  return (
+    <div>
+      <div>
+        <span id="progress-value">${minGoal.value}</span>
+        <button
+          id="progress-btn"
+          onClick$={() => {
+            minGoal.value += 500;
+          }}
+        >
+          +
+        </button>
+      </div>
+
+      <ProgressRoot min={minGoal.value} />
+      <ProgressRootShowHide min={computedGoal.value} />
+      <ProgressRootPromise min={minGoal.value} />
+    </div>
   );
 });

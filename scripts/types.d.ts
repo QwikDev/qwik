@@ -25,10 +25,10 @@ export interface BuildConfig {
   rootDir: string;
   srcDir: string;
   srcQwikDir: string;
-  srcQwikCityDir: string;
+  srcQwikRouterDir: string;
   packagesDir: string;
   distQwikPkgDir: string;
-  distQwikCityPkgDir: string;
+  distQwikRouterPkgDir: string;
   dtsDir: string;
   [key: string]: any;
 }

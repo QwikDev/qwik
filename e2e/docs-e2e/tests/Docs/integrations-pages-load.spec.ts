@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Integrations Overview page loads', async ({ page }) => {
   await page.goto('/docs/integrations/');
-  await expect(page).toHaveTitle('Qwik City Integrations | Guides 📚 Qwik Documentation');
+  await expect(page).toHaveTitle('Qwik Router Integrations | Guides 📚 Qwik Documentation');
 });
 
 test('Integrations Astro page loads', async ({ page }) => {
@@ -72,7 +72,7 @@ test('Integrations OG Image / Open Graph Image page loads', async ({ page }) => 
 
 test('Integrations Orama page loads', async ({ page }) => {
   await page.goto('/docs/integrations/orama/');
-  await expect(page).toHaveTitle('Qwik City and Orama 📚 Qwik Documentation');
+  await expect(page).toHaveTitle('Qwik Router and Orama 📚 Qwik Documentation');
 });
 
 test('Integrations Panda CSS page loads', async ({ page }) => {

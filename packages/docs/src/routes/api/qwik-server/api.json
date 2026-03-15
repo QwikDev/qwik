@@ -1,7 +1,21 @@
 {
   "id": "qwik-server",
-  "package": "@builder.io/qwik/server",
+  "package": "@qwik.dev/qwik/server",
   "members": [
+    {
+      "name": "getQwikBackpatchExecutorScript",
+      "id": "getqwikbackpatchexecutorscript",
+      "hierarchy": [
+        {
+          "name": "getQwikBackpatchExecutorScript",
+          "id": "getqwikbackpatchexecutorscript"
+        }
+      ],
+      "kind": "Function",
+      "content": "Provides the `backpatch-executor.js` executor script as a string.\n\n\n```typescript\nexport declare function getQwikBackpatchExecutorScript(opts?: {\n    debug?: boolean;\n}): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ debug?: boolean; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts",
+      "mdFile": "core.getqwikbackpatchexecutorscript.md"
+    },
     {
       "name": "getQwikLoaderScript",
       "id": "getqwikloaderscript",
@@ -14,7 +28,7 @@
       "kind": "Function",
       "content": "Provides the `qwikloader.js` file as a string. Useful for tooling to inline the qwikloader script into HTML.\n\n\n```typescript\nexport declare function getQwikLoaderScript(opts?: {\n    debug?: boolean;\n}): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ debug?: boolean; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts",
-      "mdFile": "qwik.getqwikloaderscript.md"
+      "mdFile": "core.getqwikloaderscript.md"
     },
     {
       "name": "getQwikPrefetchWorkerScript",
@@ -28,7 +42,7 @@
       "kind": "Function",
       "content": "Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the qwik-prefetch-service-worker script into HTML.\n\n\n```typescript\nexport declare function getQwikPrefetchWorkerScript(opts?: {\n    debug?: boolean;\n}): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ debug?: boolean; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts",
-      "mdFile": "qwik.getqwikprefetchworkerscript.md"
+      "mdFile": "core.getqwikprefetchworkerscript.md"
     },
     {
       "name": "InOrderAuto",
@@ -40,9 +54,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface InOrderAuto \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[maximunChunk?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[maximunInitialChunk?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[strategy](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'auto'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface InOrderAuto \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[maximumChunk?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[maximumInitialChunk?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[strategy](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'auto'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.inorderauto.md"
+      "mdFile": "core.inorderauto.md"
     },
     {
       "name": "InOrderDisabled",
@@ -56,7 +70,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface InOrderDisabled \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[strategy](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'disabled'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.inorderdisabled.md"
+      "mdFile": "core.inorderdisabled.md"
     },
     {
       "name": "InOrderStreaming",
@@ -70,7 +84,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;\n```\n**References:** [InOrderAuto](#inorderauto)<!-- -->, [InOrderDisabled](#inorderdisabled)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.inorderstreaming.md"
+      "mdFile": "core.inorderstreaming.md"
     },
     {
       "name": "PrefetchImplementation",
@@ -84,7 +98,7 @@
       "kind": "Interface",
       "content": "> Warning: This API is now obsolete.\n> \n> Use `preloader` instead\n> \n\n\n```typescript\nexport interface PrefetchImplementation \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[linkFetchPriority?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'auto' \\| 'low' \\| 'high' \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[linkInsert?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'js-append' \\| 'html-append' \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[linkRel?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'prefetch' \\| 'preload' \\| 'modulepreload' \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[prefetchEvent?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'always' \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[workerFetchInsert?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'always' \\| 'no-link-support' \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.prefetchimplementation.md"
+      "mdFile": "core.prefetchimplementation.md"
     },
     {
       "name": "PrefetchResource",
@@ -98,7 +112,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface PrefetchResource \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[imports](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[PrefetchResource](#prefetchresource)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[url](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.prefetchresource.md"
+      "mdFile": "core.prefetchresource.md"
     },
     {
       "name": "PrefetchStrategy",
@@ -112,7 +126,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface PrefetchStrategy \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[implementation?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[PrefetchImplementation](#prefetchimplementation)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[symbolsToPrefetch?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[SymbolsToPrefetch](#symbolstoprefetch)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.prefetchstrategy.md"
+      "mdFile": "core.prefetchstrategy.md"
     },
     {
       "name": "PreloaderOptions",
@@ -126,7 +140,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface PreloaderOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[debug?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Log preloader debug information to the console.\n\nDefaults to `false`\n\n\n</td></tr>\n<tr><td>\n\n[maxIdlePreloads?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of simultaneous preload links that the preloader will maintain. If you set this higher, the browser will have all JS files in memory sooner, but it will contend with other resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait longer to be preloaded.\n\nBundles that reach 100% probability (static imports of other bundles) will always be preloaded immediately, no limit.\n\nDefaults to `25`\n\n\n</td></tr>\n<tr><td>\n\n[preloadProbability?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[ssrPreloadProbability?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ The minimum probability for a bundle to be added as a preload link during SSR.\n\nDefaults to `0.7` (70% probability)\n\nThis makes sure that the most likely bundles are preloaded ahead of time.\n\n\n</td></tr>\n<tr><td>\n\n[ssrPreloads?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of preload links to add during SSR. These instruct the browser to preload likely bundles before the preloader script is active. This most likely includes the core and the preloader script itself. Setting this to 0 will disable all preload links.\n\nPreload links can delay LCP, which is a Core Web Vital, but it can increase TTI, which is not a Core Web Vital but more noticeable to the user.\n\nDefaults to `5`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.preloaderoptions.md"
+      "mdFile": "core.preloaderoptions.md"
     },
     {
       "name": "QwikLoaderOptions",
@@ -140,7 +154,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type QwikLoaderOptions = 'module' | 'inline' | 'never' | {\n    include?: 'always' | 'never' | 'auto';\n    position?: 'top' | 'bottom';\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.qwikloaderoptions.md"
+      "mdFile": "core.qwikloaderoptions.md"
     },
     {
       "name": "Render",
@@ -154,7 +168,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type Render = RenderToString | RenderToStream;\n```\n**References:** [RenderToString](#rendertostring)<!-- -->, [RenderToStream](#rendertostream)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.render.md"
+      "mdFile": "core.render.md"
     },
     {
       "name": "RenderOptions",
@@ -166,9 +180,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderOptions extends SerializeDocumentOptions \n```\n**Extends:** [SerializeDocumentOptions](#serializedocumentoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[base?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| ((options: [RenderOptions](#renderoptions)<!-- -->) =&gt; string)\n\n\n</td><td>\n\n_(Optional)_ Specifies the root of the JS files of the client build. Setting a base, will cause the render of the `q:base` attribute in the `q:container` element.\n\n\n</td></tr>\n<tr><td>\n\n[containerAttributes?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[containerTagName?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to `html`\n\n\n</td></tr>\n<tr><td>\n\n[locale?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| ((options: [RenderOptions](#renderoptions)<!-- -->) =&gt; string)\n\n\n</td><td>\n\n_(Optional)_ Language to use when rendering the document.\n\n\n</td></tr>\n<tr><td>\n\n[prefetchStrategy?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[PrefetchStrategy](#prefetchstrategy) \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[preloader?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[PreloaderOptions](#preloaderoptions) \\| false\n\n\n</td><td>\n\n_(Optional)_ Specifies how preloading is handled. This ensures that code is instantly available when needed.\n\n\n</td></tr>\n<tr><td>\n\n[qwikLoader?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikLoaderOptions](#qwikloaderoptions)\n\n\n</td><td>\n\n_(Optional)_ Specifies how the Qwik Loader is included in the document. This enables interactivity and lazy loading.\n\n`module`<!-- -->: Use a `<script>` tag to load the Qwik Loader. Subsequent page loads will have the script cached and instantly running.\n\n`inline`<!-- -->: This embeds the Qwik Loader script directly in the document. This adds about 3kB before compression, which typically is reduced to about 1.6kB with gzip.\n\n`never`<!-- -->: Do not include the Qwik Loader script. This is mostly useful when embedding multiple containers on the same page.\n\nDefaults to `module`<!-- -->.\n\nNote that the Qwik Loader is absolutely required for Qwik to work. There must be an instance of it loaded for any interactivity to happen.\n\n\n</td></tr>\n<tr><td>\n\n[qwikPrefetchServiceWorker?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nQwikPrefetchServiceWorkerOptions\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[serverData?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[snapshot?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Defaults to `true`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RenderOptions extends SerializeDocumentOptions \n```\n**Extends:** [SerializeDocumentOptions](#serializedocumentoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[base?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| ((options: [RenderOptions](#renderoptions)<!-- -->) =&gt; string)\n\n\n</td><td>\n\n_(Optional)_ Specifies the root of the JS files of the client build. Setting a base, will cause the render of the `q:base` attribute in the `q:container` element.\n\n\n</td></tr>\n<tr><td>\n\n[containerAttributes?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[containerTagName?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to `html`\n\n\n</td></tr>\n<tr><td>\n\n[locale?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| ((options: [RenderOptions](#renderoptions)<!-- -->) =&gt; string)\n\n\n</td><td>\n\n_(Optional)_ Language to use when rendering the document.\n\n\n</td></tr>\n<tr><td>\n\n[prefetchStrategy?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[PrefetchStrategy](#prefetchstrategy) \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[preloader?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[PreloaderOptions](#preloaderoptions) \\| false\n\n\n</td><td>\n\n_(Optional)_ Specifies how preloading is handled. This ensures that code is instantly available when needed.\n\n\n</td></tr>\n<tr><td>\n\n[qwikLoader?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikLoaderOptions](#qwikloaderoptions)\n\n\n</td><td>\n\n_(Optional)_ Specifies how the Qwik Loader is included in the document. This enables interactivity and lazy loading.\n\n`module`<!-- -->: Use a `<script>` tag to load the Qwik Loader. Subsequent page loads will have the script cached and instantly running.\n\n`inline`<!-- -->: This embeds the Qwik Loader script directly in the document. This adds about 3kB before compression, which typically is reduced to about 1.6kB with gzip.\n\n`never`<!-- -->: Do not include the Qwik Loader script. This is mostly useful when embedding multiple containers on the same page.\n\nDefaults to `module`<!-- -->.\n\nNote that the Qwik Loader is absolutely required for Qwik to work. There must be an instance of it loaded for any interactivity to happen.\n\n\n</td></tr>\n<tr><td>\n\n[serverData?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_ Metadata that can be retrieved during SSR with `useServerData()`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[snapshot?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Defaults to `true`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.renderoptions.md"
+      "mdFile": "core.renderoptions.md"
     },
     {
       "name": "RenderResult",
@@ -180,9 +194,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderResult \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[isStatic](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[manifest?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nServerQwikManifest\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[prefetchResources](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[PrefetchResource](#prefetchresource)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[snapshotResult](#)\n\n\n</td><td>\n\n\n</td><td>\n\nSnapshotResult \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RenderResult \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[isStatic](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[manifest?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nServerQwikManifest\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[snapshotResult?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nSnapshotResult \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.renderresult.md"
+      "mdFile": "core.renderresult.md"
     },
     {
       "name": "renderToStream",
@@ -195,8 +209,8 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;\n```\n**References:** [RenderToStreamOptions](#rendertostreamoptions)<!-- -->, [RenderToStreamResult](#rendertostreamresult)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts",
-      "mdFile": "qwik.rendertostream.md"
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts",
+      "mdFile": "core.rendertostream.md"
     },
     {
       "name": "RenderToStream",
@@ -210,7 +224,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;\n```\n**References:** [RenderToStreamOptions](#rendertostreamoptions)<!-- -->, [RenderToStreamResult](#rendertostreamresult)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.rendertostream.md"
+      "mdFile": "core.rendertostream.md"
     },
     {
       "name": "RenderToStreamOptions",
@@ -224,7 +238,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface RenderToStreamOptions extends RenderOptions \n```\n**Extends:** [RenderOptions](#renderoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[stream](#)\n\n\n</td><td>\n\n\n</td><td>\n\nStreamWriter\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[streaming?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[StreamingOptions](#streamingoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.rendertostreamoptions.md"
+      "mdFile": "core.rendertostreamoptions.md"
     },
     {
       "name": "RenderToStreamResult",
@@ -238,7 +252,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface RenderToStreamResult extends RenderResult \n```\n**Extends:** [RenderResult](#renderresult)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[flushes](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[size](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[timing](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ firstFlush: number; render: number; snapshot: number; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.rendertostreamresult.md"
+      "mdFile": "core.rendertostreamresult.md"
     },
     {
       "name": "renderToString",
@@ -251,8 +265,8 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;\n```\n**References:** [RenderToStringOptions](#rendertostringoptions)<!-- -->, [RenderToStringResult](#rendertostringresult)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts",
-      "mdFile": "qwik.rendertostring.md"
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts",
+      "mdFile": "core.rendertostring.md"
     },
     {
       "name": "RenderToString",
@@ -266,7 +280,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;\n```\n**References:** [RenderToStringOptions](#rendertostringoptions)<!-- -->, [RenderToStringResult](#rendertostringresult)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.rendertostring.md"
+      "mdFile": "core.rendertostring.md"
     },
     {
       "name": "RenderToStringOptions",
@@ -280,7 +294,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface RenderToStringOptions extends RenderOptions \n```\n**Extends:** [RenderOptions](#renderoptions)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.rendertostringoptions.md"
+      "mdFile": "core.rendertostringoptions.md"
     },
     {
       "name": "RenderToStringResult",
@@ -292,9 +306,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderToStringResult extends RenderResult \n```\n**Extends:** [RenderResult](#renderresult)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[html](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[timing](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ render: number; snapshot: number; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RenderToStringResult extends RenderResult \n```\n**Extends:** [RenderResult](#renderresult)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[html](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[timing](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ firstFlush: number; render: number; snapshot: number; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.rendertostringresult.md"
+      "mdFile": "core.rendertostringresult.md"
     },
     {
       "name": "resolveManifest",
@@ -307,8 +321,8 @@
       ],
       "kind": "Function",
       "content": "Merges a given manifest with the built manifest and provides mappings for symbols.\n\n\n```typescript\nexport declare function resolveManifest(manifest?: Partial<QwikManifest | ResolvedManifest> | undefined): ResolvedManifest | undefined;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nmanifest\n\n\n</td><td>\n\nPartial&lt;QwikManifest \\| ResolvedManifest&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nResolvedManifest \\| undefined",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts",
-      "mdFile": "qwik.resolvemanifest.md"
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts",
+      "mdFile": "core.resolvemanifest.md"
     },
     {
       "name": "SerializeDocumentOptions",
@@ -322,7 +336,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface SerializeDocumentOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[debug?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[manifest?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nPartial&lt;QwikManifest \\| ResolvedManifest&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[symbolMapper?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nSymbolMapperFn\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.serializedocumentoptions.md"
+      "mdFile": "core.serializedocumentoptions.md"
     },
     {
       "name": "setServerPlatform",
@@ -336,7 +350,7 @@
       "kind": "Function",
       "content": "```typescript\nexport declare function setServerPlatform(manifest?: Partial<QwikManifest | ResolvedManifest>): Promise<void>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nmanifest\n\n\n</td><td>\n\nPartial&lt;QwikManifest \\| ResolvedManifest&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;void&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/index.ts",
-      "mdFile": "qwik.setserverplatform.md"
+      "mdFile": "core.setserverplatform.md"
     },
     {
       "name": "StreamingOptions",
@@ -350,7 +364,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface StreamingOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[inOrder?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[InOrderStreaming](#inorderstreaming)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.streamingoptions.md"
+      "mdFile": "core.streamingoptions.md"
     },
     {
       "name": "SymbolsToPrefetch",
@@ -364,7 +378,7 @@
       "kind": "TypeAlias",
       "content": "Auto: Prefetch all possible QRLs used by the document. Default\n\n\n```typescript\nexport type SymbolsToPrefetch = 'auto' | ((opts: {\n    manifest: ServerQwikManifest;\n}) => PrefetchResource[]);\n```\n**References:** [PrefetchResource](#prefetchresource)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "qwik.symbolstoprefetch.md"
+      "mdFile": "core.symbolstoprefetch.md"
     },
     {
       "name": "versions",
@@ -378,7 +392,7 @@
       "kind": "Variable",
       "content": "```typescript\nversions: {\n    readonly qwik: string;\n    readonly qwikDom: string;\n}\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/utils.ts",
-      "mdFile": "qwik.versions.md"
+      "mdFile": "core.versions.md"
     }
   ]
 }

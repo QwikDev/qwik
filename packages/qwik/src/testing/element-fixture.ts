@@ -1,12 +1,14 @@
-import { assertDefined } from '../core/error/assert';
-import type { QRLInternal } from '../core/qrl/qrl-class';
-import { tryGetContext, type QContext } from '../core/state/context';
-import { normalizeOnProp } from '../core/state/listeners';
-import { getWrappingContainer, type PossibleEvents } from '../core/use/use-core';
-import { fromCamelToKebabCase } from '../core/util/case';
+import { getDomContainer } from '@qwik.dev/core';
+import type { ClientContainer, EventHandler } from '@qwik.dev/core/internal';
+import { vi } from 'vitest';
+import { assertDefined } from '../core/shared/error/assert';
+import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/types';
+import { fromCamelToKebabCase } from '../core/shared/utils/event-names';
+import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 import { createWindow } from './document';
-import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
+import { waitForDrain } from './util';
+import type { QRLInternal } from '../server/qwik-types';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -44,9 +46,10 @@ export class ElementFixture {
         const code = script.textContent;
         if (code?.match(Q_FUNCS_PREFIX)) {
           const equal = code.indexOf('=');
-          const qFuncs = eval(code.substring(equal + 1));
-          const container = this.host.closest(QContainerSelector);
-          (container as any as { qFuncs?: Function[] }).qFuncs = qFuncs;
+          const qFuncs = (0, eval)(code.substring(equal + 1));
+          const container = this.host.closest(QContainerSelector)!;
+          const hash = container.getAttribute(QInstanceAttr);
+          (document as any)[QFuncsPrefix + hash] = qFuncs;
         }
       });
       this.child = null!;
@@ -66,35 +69,67 @@ export interface ElementFixtureOptions {
 }
 
 /**
- * Trigger an event in unit tests on an element.
+ * Trigger an event in unit tests on an element. Needs to be kept in sync with the Qwik Loader event
+ * dispatching.
+ *
+ * Events can be either case sensitive element-scoped events or scoped kebab-case.
  *
  * Future deprecation candidate.
  *
- * @param element
- * @param selector
- * @param event
- * @returns
  * @public
  */
 export async function trigger(
   root: Element,
   queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
-  eventNameCamel: string,
-  eventPayload: any = {}
+  eventName: string,
+  eventPayload: any = {},
+  options?: { waitForIdle?: boolean }
 ): Promise<void> {
+  const waitForIdle = options?.waitForIdle ?? true;
+  let scope: QwikLoaderEventScope;
+  let kebabName: string;
+  let scopedKebabName: string;
+  if (eventName.charAt(1) === ':') {
+    scopedKebabName = eventName;
+    scope = eventName.charAt(0) as QwikLoaderEventScope;
+    kebabName = eventName.substring(2);
+    if (kebabName === 'DOMContentLoaded') {
+      kebabName = '-d-o-m-content-loaded';
+      scopedKebabName = scope + ':' + kebabName;
+    }
+  } else {
+    scope = 'e';
+    kebabName = fromCamelToKebabCase(eventName);
+    scopedKebabName = 'e:' + kebabName;
+  }
+  if (scope !== 'e') {
+    queryOrElement = `[q-${scope}\\:${kebabName}]`;
+  }
+
   const elements =
     typeof queryOrElement === 'string'
       ? Array.from(root.querySelectorAll(queryOrElement))
       : [queryOrElement];
+  let container: ClientContainer | null = null;
   for (const element of elements) {
-    const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const event = root.ownerDocument.createEvent('Event');
-    event.initEvent(kebabEventName, true, true);
-    Object.assign(event, eventPayload);
-    const attrName = 'on:' + kebabEventName;
-    await dispatch(element, attrName, event);
+    if (!element) {
+      continue;
+    }
+    if (!container) {
+      container = getDomContainer(element as HTMLElement);
+    }
+
+    const { bubbles = true, cancelable = true, ...rest } = eventPayload ?? {};
+    const event = new Event(eventName, {
+      bubbles,
+      cancelable,
+    });
+    Object.assign(event, rest);
+    await dispatch(element, event, scopedKebabName, kebabName);
   }
-  await getTestPlatform().flush();
+  if (waitForIdle && container) {
+    await waitForDrain(container);
+  }
 }
 
 const PREVENT_DEFAULT = 'preventdefault:';
@@ -102,67 +137,81 @@ const STOP_PROPAGATION = 'stoppropagation:';
 const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
 
-/**
- * Dispatch
- *
- * @param element
- * @param attrName
- * @param event
- */
-export const dispatch = async (element: Element | null, attrName: string, event: any) => {
-  const preventAttributeName = PREVENT_DEFAULT + event.type;
-  const stopPropagationName = STOP_PROPAGATION + event.type;
-  const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
+/** Dispatch in the same way that Qwik Loader does, for testing purposes. */
+export const dispatch = async (
+  element: Element | null,
+  event: Event,
+  scopedKebabName: string,
+  kebabName: string
+) => {
+  const preventAttributeName = PREVENT_DEFAULT + kebabName;
+  const stopPropagationName = STOP_PROPAGATION + kebabName;
   while (element) {
-    const preventDefault = element.hasAttribute(preventAttributeName);
-    const stopPropagation = element.hasAttribute(stopPropagationName);
-    if (preventDefault) {
-      event.preventDefault();
+    if (kebabName) {
+      const preventDefault = element.hasAttribute(preventAttributeName);
+      const stopPropagation = element.hasAttribute(stopPropagationName);
+      if (preventDefault) {
+        event.preventDefault();
+      }
+      if (stopPropagation) {
+        event.stopPropagation();
+      }
     }
-    if (stopPropagation) {
-      event.stopPropagation();
-    }
-    const ctx = tryGetContext(element);
-    if (ctx) {
-      for (const li of ctx.li) {
-        if (li[0] === attrName) {
-          // Ensure this is correct event type
-          const qrl = li[1];
-          if (isSyncQrl(qrl)) {
-            qrl(event, element);
-          } else {
-            collectListeners.push({ element, qrl: qrl });
+    if ('_qDispatch' in (element as QElement)) {
+      const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
+      if (handlers) {
+        if (handlers.length) {
+          for (const handler of handlers) {
+            if (handler) {
+              await (handler as EventHandler)(event, element);
+            }
           }
         }
       }
+    } else if (element.hasAttribute('q-' + scopedKebabName)) {
+      const qrls = element.getAttribute('q-' + scopedKebabName)!;
+      try {
+        for (const qrl of qrls.split('|')) {
+          const [chunk, symbol, captures] = qrl.split('#');
+          let fn: Function;
+          if (chunk) {
+            // This is added by qrl-to-string.ts during serialization
+            fn = (globalThis as any).__qrl_back_channel__?.get(symbol);
+            if (typeof fn !== 'function') {
+              throw new Error(`QRL function not found in back channel for ${qrl}`);
+            }
+          } else {
+            const container = getDomContainer(element as HTMLElement);
+            // Sync QRL
+            const sync = container.parseQRL(qrl) as QRLInternal<Function>;
+            // This synchronously resolves the sync function
+            // even though it returns a promise
+            sync.resolve();
+            fn = sync.resolved as Function;
+          }
+          await fn.apply(captures, [event, element]);
+        }
+      } catch (error) {
+        console.error('!!! qrl error', qrls, error);
+        throw error;
+      }
+      return;
     }
-    element = element.parentElement;
-  }
-  for (let i = 0; i < collectListeners.length; i++) {
-    const { element, qrl } = collectListeners[i];
-    await (qrl.getFn([element, event], () => element.isConnected) as Function)(event, element);
+    element = event.bubbles && !event.cancelBubble ? element.parentElement : null;
   }
 };
-export function getEvent(elCtx: QContext, prop: string): any {
-  return qPropReadQRL(elCtx, normalizeOnProp(prop));
+
+export async function advanceToNextTimerAndFlush(container: Container) {
+  vi.advanceTimersToNextTimer();
+  if (container) {
+    await container.$renderPromise$;
+  }
 }
 
-export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => void) | null {
-  const allListeners = elCtx.li;
-  const containerEl = getWrappingContainer(elCtx.$element$);
-  assertDefined(containerEl, 'container element must be defined');
-
-  return (event) => {
-    return Promise.all(
-      allListeners
-        .filter((li) => li[0] === prop)
-        .map(([_, qrl]) => {
-          qrl.$setContainer$(containerEl);
-          return qrl(event);
-        })
-    );
-  };
-}
-function isSyncQrl(qrl: QRLInternal<(event: PossibleEvents, elem?: Element | undefined) => any>) {
-  return qrl.$chunk$ == '';
+export function cleanupAttrs(innerHTML: string | undefined): any {
+  return innerHTML
+    ?.replaceAll(/ q:key="[^"]+"/g, '')
+    .replaceAll(/ :=""/g, '')
+    .replaceAll(/ :="[^"]+"/g, '')
+    .replaceAll(/ q-.:\w+="[^"]+"/g, '');
 }

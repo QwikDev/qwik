@@ -6,18 +6,18 @@ import {
   useVisibleTask$,
   type QRL,
   type Signal,
-} from '@builder.io/qwik';
-
+} from '@qwik.dev/core';
+import parserEstree from 'prettier/plugins/estree';
+import parserHtml from 'prettier/plugins/html';
+import parserTs from 'prettier/plugins/typescript';
+import { format } from 'prettier/standalone';
 import { CopyCode } from '../copy-code/copy-code-block';
 import styles from './code-block.css?inline';
 import { highlight } from './prismjs';
-import { format } from 'prettier/standalone';
-import parserHtml from 'prettier/plugins/html';
-import parserTs from 'prettier/plugins/typescript';
-import parserEstree from 'prettier/plugins/estree';
+
 interface CodeBlockProps {
   path?: string;
-  language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx';
+  language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx' | 'clike';
   code: string;
   format?: boolean;
   pathInView$?: QRL<(name: string) => void>;

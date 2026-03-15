@@ -56,3 +56,6 @@ sandbox
 
 # We need to ignore this because "changesets" will try to replace it
 /CHANGELOG.md
+
+# Vitest coverage
+packages/coverage/*

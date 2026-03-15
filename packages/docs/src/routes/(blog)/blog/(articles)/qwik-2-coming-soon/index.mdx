@@ -72,7 +72,7 @@ The output HTML looks like this:
         <!--qv q:key=H1_0-->
           Count: 
           <!--t=8-->123<!---->! 
-          <button on:click="..." q:id="9">
+          <button q-e:click="..." q:id="9">
             +1
           </button>
         <!--/qv-->
@@ -120,7 +120,7 @@ We are excited to share that we are progressing excellently on this front! Letâ€
      q:base="/build/" q:locale q:manifest-hash="dev">
   <main>
    Count: 123!
-   <button on:click="...">+1</button>
+   <button q-e:click="...">+1</button>
   </main>
   <script type="qwik/state">[...]</script>
   <script type="qwik/vnode">!{{HDB1}}</script>
@@ -153,7 +153,7 @@ Letâ€™s unpack it. The content we need to recover is this:
       {'Count: '}
       {signal.value}
       {'!'}
-      <button on:click="...">+1</button>
+      <button q-e:click="...">+1</button>
     </>
   </Counter>
 </main>

@@ -1,117 +1,123 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 91
+assertion_line: 92
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { $, component, onRender } from '@builder.io/qwik';
+import { $, component, onRender } from '@qwik.dev/core';
 
-export const renderHeader = $(() => {
-    return (
-        <div onClick={$((ctx) => console.log(ctx))}/>
-    );
+export const renderHeader1 = $(() => {
+	return (
+		<div onClick={$((ctx) => console.log(ctx))}/>
+	);
 });
-const renderHeader = component($(() => {
-  console.log("mount");
-  return render;
+const renderHeader2 = component($(() => {
+	console.log("mount");
+	return render;
 }));
 
-============================= test.tsx_renderHeader_zBbHWn4e8Cg.tsx (ENTRY POINT)==
+============================= test.tsx_renderHeader1_div_onClick_USi8k1jUb40.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
-export const renderHeader_zBbHWn4e8Cg = ()=>{
-    return <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_div_onClick_fV2uzAL99u4"), "renderHeader_div_onClick_fV2uzAL99u4")}/>;
-};
-export { _hW } from "@builder.io/qwik";
+export const renderHeader1_div_onClick_USi8k1jUb40 = (ctx)=>console.log(ctx);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B;IAC1B,QACK,IAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAKkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "renderHeader_zBbHWn4e8Cg",
+  "name": "renderHeader1_div_onClick_USi8k1jUb40",
   "entry": null,
-  "displayName": "test.tsx_renderHeader",
-  "hash": "zBbHWn4e8Cg",
-  "canonicalFilename": "test.tsx_renderHeader_zBbHWn4e8Cg",
+  "displayName": "test.tsx_renderHeader1_div_onClick",
+  "hash": "USi8k1jUb40",
+  "canonicalFilename": "test.tsx_renderHeader1_div_onClick_USi8k1jUb40",
   "path": "",
   "extension": "tsx",
-  "parent": null,
+  "parent": "renderHeader1_jMxQsjbyDss",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false,
   "loc": [
-    92,
-    175
-  ]
-}
-*/
-============================= test.tsx_renderHeader_component_U6Kkv07sbpQ.tsx (ENTRY POINT)==
-
-export const renderHeader_component_U6Kkv07sbpQ = ()=>{
-    console.log("mount");
-    return render;
-};
-export { _hW } from "@builder.io/qwik";
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC;IAC/B,QAAQ,GAAG,CAAC;IACZ,OAAO;AACT\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "renderHeader_component_U6Kkv07sbpQ",
-  "entry": null,
-  "displayName": "test.tsx_renderHeader_component",
-  "hash": "U6Kkv07sbpQ",
-  "canonicalFilename": "test.tsx_renderHeader_component_U6Kkv07sbpQ",
-  "path": "",
-  "extension": "tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    211,
-    261
+    127,
+    152
+  ],
+  "paramNames": [
+    "ctx"
   ]
 }
 */
 ============================= test.tsx ==
 
-import { qrl } from "@builder.io/qwik";
-import { component } from '@builder.io/qwik';
-export const renderHeader = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_zBbHWn4e8Cg"), "renderHeader_zBbHWn4e8Cg");
-const renderHeader = component(/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_component_U6Kkv07sbpQ"), "renderHeader_component_U6Kkv07sbpQ"));
+import { qrl } from "@qwik.dev/core";
+import { component } from '@qwik.dev/core';
+//
+const q_renderHeader1_jMxQsjbyDss = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_jMxQsjbyDss"), "renderHeader1_jMxQsjbyDss");
+const q_renderHeader2_component_Ay6ibkfFYsw = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader2_component_Ay6ibkfFYsw"), "renderHeader2_component_Ay6ibkfFYsw");
+//
+export const renderHeader1 = q_renderHeader1_jMxQsjbyDss;
+component(q_renderHeader2_component_Ay6ibkfFYsw);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,mBAAmB;AAE1D,OAAO,MAAM,gHAIV;AACH,MAAM,eAAe\"}")
-============================= test.tsx_renderHeader_div_onClick_fV2uzAL99u4.tsx (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,iBAAiB;;;;;AAExD,OAAO,MAAM,4CAIV;AACmB\"}")
+============================= test.tsx_renderHeader1_jMxQsjbyDss.tsx (ENTRY POINT)==
 
-export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);
-export { _hW } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+//
+const q_renderHeader1_div_onClick_USi8k1jUb40 = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_div_onClick_USi8k1jUb40"), "renderHeader1_div_onClick_USi8k1jUb40");
+//
+export const renderHeader1_jMxQsjbyDss = ()=>{
+    return <div onClick={q_renderHeader1_div_onClick_USi8k1jUb40}/>;
+};
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAKwB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG+B;IAC9B,QACE,IAAI;AAEP\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "renderHeader_div_onClick_fV2uzAL99u4",
+  "name": "renderHeader1_jMxQsjbyDss",
   "entry": null,
-  "displayName": "test.tsx_renderHeader_div_onClick",
-  "hash": "fV2uzAL99u4",
-  "canonicalFilename": "test.tsx_renderHeader_div_onClick_fV2uzAL99u4",
+  "displayName": "test.tsx_renderHeader1",
+  "hash": "jMxQsjbyDss",
+  "canonicalFilename": "test.tsx_renderHeader1_jMxQsjbyDss",
   "path": "",
   "extension": "tsx",
-  "parent": "renderHeader_zBbHWn4e8Cg",
+  "parent": null,
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false,
   "loc": [
-    137,
+    91,
     162
+  ]
+}
+*/
+============================= test.tsx_renderHeader2_component_Ay6ibkfFYsw.tsx (ENTRY POINT)==
+
+export const renderHeader2_component_Ay6ibkfFYsw = ()=>{
+    console.log("mount");
+    return render;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAQkC;IACjC,QAAQ,GAAG,CAAC;IACZ,OAAO;AACR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderHeader2_component_Ay6ibkfFYsw",
+  "entry": null,
+  "displayName": "test.tsx_renderHeader2_component",
+  "hash": "Ay6ibkfFYsw",
+  "canonicalFilename": "test.tsx_renderHeader2_component_Ay6ibkfFYsw",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    199,
+    247
   ]
 }
 */

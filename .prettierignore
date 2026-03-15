@@ -1,4 +1,4 @@
-**/**.api.md
+**/*.api.md
 **/*.log
 **/.DS_Store
 *.
@@ -25,6 +25,7 @@ packages/docs/public/repl/repl-sw.js*
 packages/*/lib
 packages/*/dist
 packages/*/server
+e2e/*/server
 
 # API output files
 packages/docs/src/routes/api
@@ -36,8 +37,6 @@ packages/insights/drizzle
 packages/insights/.netlify
 packages/insights/scripts
 packages/insights/**/*.gen.d.ts
-packages/qwik-labs/lib-types
-packages/qwik-labs/vite
 
 # insights cache files
 **/q-insights.json

@@ -10,8 +10,11 @@ import { preferClasslist } from './src/preferClasslist';
 import { unusedServer } from './src/unusedServer';
 import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
+import { serializerSignalUsage } from './src/serializerSignalUsage';
 import { noAsyncPreventDefault } from './src/noAsyncPreventDefault';
 import pkg from './package.json';
+import { scopeUseTask } from './src/scope-use-task';
+import { asyncComputedTop } from './src/useAsyncTop';
 
 type Rules = NonNullable<TSESLint.FlatConfig.Plugin['rules']>;
 
@@ -27,6 +30,9 @@ const rules = {
   'jsx-img': jsxImg,
   'jsx-a': jsxAtag,
   'no-use-visible-task': noUseVisibleTask,
+  'serializer-signal-usage': serializerSignalUsage,
+  'scope-use-task': scopeUseTask,
+  'use-async-top': asyncComputedTop,
   'no-async-prevent-default': noAsyncPreventDefault,
 } satisfies Rules;
 
@@ -42,6 +48,9 @@ const recommendedRulesLevels = {
   'qwik/jsx-img': 'warn',
   'qwik/jsx-a': 'warn',
   'qwik/no-use-visible-task': 'warn',
+  'qwik/serializer-signal-usage': 'error',
+  'qwik/scope-use-task': 'error',
+  'qwik/use-async-top': 'warn',
   'qwik/no-async-prevent-default': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 
@@ -57,6 +66,9 @@ const strictRulesLevels = {
   'qwik/jsx-img': 'error',
   'qwik/jsx-a': 'error',
   'qwik/no-use-visible-task': 'warn',
+  'qwik/serializer-signal-usage': 'error',
+  'qwik/scope-use-task': 'error',
+  'qwik/use-async-top': 'warn',
   'qwik/no-async-prevent-default': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 

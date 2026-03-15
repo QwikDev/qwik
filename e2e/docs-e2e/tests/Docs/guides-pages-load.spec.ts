@@ -39,5 +39,5 @@ test('Guides Bundle Optimization page loads', async ({ page }) => {
 
 test('Guides Environment Variables page loads', async ({ page }) => {
   await page.goto('/docs/guides/env-variables/');
-  await expect(page).toHaveTitle('Environment variables | Qwik City 📚 Qwik Documentation');
+  await expect(page).toHaveTitle('Environment variables | Qwik Router 📚 Qwik Documentation');
 });

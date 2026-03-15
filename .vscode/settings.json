@@ -7,8 +7,10 @@
     "**/cypress/**",
     "**/.{idea,git,cache,output,temp}/**"
   ],
+  "cSpell.words": ["bucketize", "Stringifiable"],
   "javascript.preferences.autoImportFileExcludePatterns": ["node:test"],
   "typescript.preferences.preferTypeOnlyAutoImports": true,
   "typescript.tsdk": "./node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "makefile.configureOnOpen": false
 }

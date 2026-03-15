@@ -1,8 +1,52 @@
 ---
-title: \@builder.io/qwik/server API Reference
+title: \@qwik.dev/qwik/server API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik/server
+# [API](/api) &rsaquo; @qwik.dev/qwik/server
+
+<h2 id="getqwikbackpatchexecutorscript">getQwikBackpatchExecutorScript</h2>
+
+Provides the `backpatch-executor.js` executor script as a string.
+
+```typescript
+export declare function getQwikBackpatchExecutorScript(opts?: {
+  debug?: boolean;
+}): string;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+\{ debug?: boolean; }
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+string
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts)
 
 <h2 id="getqwikloaderscript">getQwikLoaderScript</h2>
 
@@ -115,7 +159,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[maximunChunk?](#)
+[maximumChunk?](#)
 
 </td><td>
 
@@ -130,7 +174,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[maximunInitialChunk?](#)
+[maximumInitialChunk?](#)
 
 </td><td>
 
@@ -709,21 +753,6 @@ Note that the Qwik Loader is absolutely required for Qwik to work. There must be
 </td></tr>
 <tr><td>
 
-[qwikPrefetchServiceWorker?](#)
-
-</td><td>
-
-</td><td>
-
-QwikPrefetchServiceWorkerOptions
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
 [serverData?](#)
 
 </td><td>
@@ -734,7 +763,7 @@ Record&lt;string, any&gt;
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Metadata that can be retrieved during SSR with `useServerData()`.
 
 </td></tr>
 <tr><td>
@@ -809,20 +838,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[prefetchResources](#)
-
-</td><td>
-
-</td><td>
-
-[PrefetchResource](#prefetchresource)[]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[snapshotResult](#)
+[snapshotResult?](#)
 
 </td><td>
 
@@ -831,6 +847,8 @@ _(Optional)_
 SnapshotResult \| undefined
 
 </td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>
@@ -847,7 +865,7 @@ export type RenderToStream = (
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 <h2 id="rendertostream-type-alias">RenderToStream</h2>
 
@@ -996,7 +1014,7 @@ export type RenderToString = (
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 <h2 id="rendertostring-type-alias">RenderToString</h2>
 
@@ -1066,7 +1084,7 @@ string
 
 </td><td>
 
-\{ render: number; snapshot: number; }
+\{ firstFlush: number; render: number; snapshot: number; }
 
 </td><td>
 
@@ -1117,7 +1135,7 @@ _(Optional)_
 
 ResolvedManifest \| undefined
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 <h2 id="serializedocumentoptions">SerializeDocumentOptions</h2>
 

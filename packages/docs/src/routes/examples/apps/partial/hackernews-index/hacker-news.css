@@ -13,6 +13,12 @@ a {
   color: #34495e;
   text-decoration: none;
 }
+.loading {
+  text-align: center;
+  padding: 2em;
+  font-size: 1.2em;
+  color: #626262;
+}
 .header {
   background-color: #335d92;
   position: fixed;

@@ -1,4 +1,4 @@
-import type { RequestHandler } from '@builder.io/qwik-city';
+import type { RequestHandler } from '@qwik.dev/router';
 
 export const onGet: RequestHandler = async ({ query, json }) => {
   const a = Number.parseFloat(query.get('a') || '0');

@@ -1,8 +1,10 @@
-import { QObjectRecursive } from '../state/constants';
-import { getOrCreateProxy } from '../state/store';
-import { isFunction } from '../util/types';
+import { isFunction } from '../shared/utils/types';
+import { getOrCreateStore } from '../reactive-primitives/impl/store';
+import { StoreFlags } from '../reactive-primitives/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
+
+export { unwrapStore, forceStoreEffects } from '../reactive-primitives/impl/store';
 
 /** @public */
 export interface UseStoreOptions {
@@ -15,12 +17,17 @@ export interface UseStoreOptions {
 
 // <docs markdown="../readme.md#useStore">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useStore instead)
+// (edit ../readme.md#useStore instead and run `pnpm docs.sync`)
 /**
- * Creates an object that Qwik can track across serializations.
+ * Creates a reactive object that Qwik can track across serialization.
  *
- * Use `useStore` to create a state for your application. The returned object is a proxy that has a
- * unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+ * Use it to create state for your application. The returned object is a Proxy that tracks reads and
+ * writes. When any of the properties change, the functions that read those properties will re-run.
+ *
+ * `Store`s are deep by default, meaning that any objects assigned to properties will also become
+ * `Store`s. This includes arrays.
+ *
+ * Prefer `useSignal` over `useStore` when possible, as it is more efficient.
  *
  * ### Example
  *
@@ -89,10 +96,10 @@ export const useStore = <STATE extends object>(
     set(value);
     return value;
   } else {
-    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+    const containerState = iCtx.$container$;
     const recursive = opts?.deep ?? true;
-    const flags = recursive ? QObjectRecursive : 0;
-    const newStore = getOrCreateProxy(value, containerState, flags);
+    const flags = recursive ? StoreFlags.RECURSIVE : StoreFlags.NONE;
+    const newStore = getOrCreateStore(value, flags, containerState);
     set(newStore);
     return newStore;
   }

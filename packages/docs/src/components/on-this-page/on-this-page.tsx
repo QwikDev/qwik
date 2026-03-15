@@ -1,12 +1,7 @@
-import { $, component$, useContext, useOnDocument, useSignal, useStyles$ } from '@builder.io/qwik';
-import { Link, useContent, useLocation } from '@builder.io/qwik-city';
-import { GlobalStore } from '../../context';
-import { AlertIcon } from '../svgs/alert-icon';
-import { ChatIcon } from '../svgs/chat-icon';
-import { EditIcon } from '../svgs/edit-icon';
-import { GithubLogo } from '../svgs/github-logo';
-import { TwitterLogo } from '../svgs/twitter-logo';
+import { $, component$, useOnDocument, useSignal, useStyles$ } from '@qwik.dev/core';
+import { Link, useContent, useLocation } from '@qwik.dev/router';
 import styles from './on-this-page.css?inline';
+import { OnThisPageMore } from './on-this-page-more';
 
 const QWIK_GROUP = [
   'components',
@@ -30,7 +25,7 @@ const QWIK_ADVANCED_GROUP = [
   'vite',
 ];
 
-const QWIKCITY_GROUP = [
+const QWIKROUTER_GROUP = [
   'action',
   'api',
   'caching',
@@ -42,7 +37,7 @@ const QWIKCITY_GROUP = [
   'middleware',
   'pages',
   'project-structure',
-  'qwikcity',
+  'qwikrouter',
   're-exporting-loaders',
   'route-loader',
   'routing',
@@ -50,7 +45,7 @@ const QWIKCITY_GROUP = [
   'validator',
 ];
 
-const QWIKCITY_ADVANCED_GROUP = [
+const QWIKROUTER_ADVANCED_GROUP = [
   'complex-forms',
   'content-security-policy',
   'menu',
@@ -77,13 +72,13 @@ const makeEditPageUrl = (url: string): string => {
   if (segments[1] == 'advanced') {
     if (QWIK_ADVANCED_GROUP.includes(segments[2])) {
       group = '(qwik)';
-    } else if (QWIKCITY_ADVANCED_GROUP.includes(segments[2])) {
-      group = '(qwikcity)';
+    } else if (QWIKROUTER_ADVANCED_GROUP.includes(segments[2])) {
+      group = '(qwikrouter)';
     }
   } else if (QWIK_GROUP.includes(segments[1])) {
     group = '(qwik)';
-  } else if (QWIKCITY_GROUP.includes(segments[1])) {
-    group = '(qwikcity)';
+  } else if (QWIKROUTER_GROUP.includes(segments[1])) {
+    group = '(qwikrouter)';
   }
 
   if (group) {
@@ -113,43 +108,12 @@ const makeEditPageUrl = (url: string): string => {
 
 export const OnThisPage = component$(() => {
   useStyles$(styles);
-  const theme = useContext(GlobalStore);
   const { headings } = useContent();
   const contentHeadings = headings?.filter((h) => h.level <= 3) || [];
 
   const { url } = useLocation();
-
   const githubEditRoute = makeEditPageUrl(url.pathname);
-
   const editUrl = `https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
-
-  const OnThisPageMore = [
-    {
-      href: editUrl,
-      text: 'Edit this Page',
-      icon: EditIcon,
-    },
-    {
-      href: 'https://github.com/QwikDev/qwik/issues/new/choose',
-      text: 'Create an issue',
-      icon: AlertIcon,
-    },
-    {
-      href: 'https://qwik.dev/chat',
-      text: 'Join our community',
-      icon: ChatIcon,
-    },
-    {
-      href: 'https://github.com/QwikDev/qwik',
-      text: 'GitHub',
-      icon: GithubLogo,
-    },
-    {
-      href: 'https://twitter.com/QwikDev',
-      text: '@QwikDev',
-      icon: TwitterLogo,
-    },
-  ];
 
   const useActiveItem = (itemIds: string[]) => {
     const activeId = useSignal<string | null>(null);
@@ -200,11 +164,7 @@ export const OnThisPage = component$(() => {
               <li
                 key={h.id}
                 style={{ paddingLeft: `${(h.level - 2) * 16}px` }}
-                class={`${
-                  theme.theme === 'light'
-                    ? 'hover:bg-[var(--qwik-light-blue)]'
-                    : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
-                }`}
+                class="hover:bg-(--on-this-page-hover-bg-color)"
               >
                 {activeId.value === h.id ? (
                   <span class="on-this-page-item">{h.text}</span>
@@ -216,29 +176,9 @@ export const OnThisPage = component$(() => {
               </li>
             ))}
           </ul>
+          <OnThisPageMore editUrl={editUrl} />
         </>
       ) : null}
-
-      <h6>More</h6>
-      <ul class="px-2 font-medium text-[var(--interactive-text-color)]">
-        {OnThisPageMore.map((el, index) => {
-          return (
-            <li
-              class={`${
-                theme.theme === 'light'
-                  ? 'hover:bg-[var(--qwik-light-blue)]'
-                  : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
-              } rounded-lg`}
-              key={`more-items-on-this-page-${index}`}
-            >
-              <a class="more-item" href={el.href} rel="noopener" target="_blank">
-                <el.icon width={20} height={20} />
-                <span>{el.text}</span>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
     </aside>
   );
 });

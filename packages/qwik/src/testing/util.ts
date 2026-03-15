@@ -1,5 +1,6 @@
 import { normalize } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import type { Container } from '../core/shared/types';
 
 /** @public */
 export function toFileUrl(filePath: string) {
@@ -92,3 +93,26 @@ export const platformGlobal: { document: Document | undefined } = (__globalThis 
   __global ||
   __window ||
   __self) as any;
+
+/**
+ * Wait for the scheduler to drain.
+ *
+ * This is useful when testing async code.
+ *
+ * @param container - The application container.
+ * @public
+ */
+export async function waitForDrain(container: Container) {
+  const start = Date.now();
+  const waitForRenderPromise = async (timeout: number) => {
+    if (container.$renderPromise$) {
+      return;
+    }
+    if (Date.now() - start > timeout) {
+      return;
+    }
+    setTimeout(() => waitForRenderPromise(timeout), 10);
+  };
+  await waitForRenderPromise(500);
+  await container.$renderPromise$;
+}

@@ -38,7 +38,7 @@ Below you can find simple HTML with Qwikloader and a button with associated beha
 ```html
 <html>
   <body q:base="/build/">
-    <button on:click="./myHandler.js#clickHandler">push me</button>
+    <button q-e:click="./myHandler.js#clickHandler">push me</button>
     <script>
       /* Qwikloader */
     </script>
@@ -48,8 +48,8 @@ Below you can find simple HTML with Qwikloader and a button with associated beha
 
 1. The browser downloads the HTML and executes the inlined Qwikloader script. The Qwikloader sets up global listeners for all browser events.
 2. The user clicks on the `<button>`. The browser generates a `click` event that bubbles up the DOM until the Qwikloader's global listener intercepts it.
-3. The Qwikloader retraces the event path and searches for `on:click` attribute on the elements.
-4. The Qwikloader uses the `on:click` and `q:base` attributes along with the `document.baseURI` to build a full URL for fetching the lazy-loaded handler. Assuming the original page was served up from `http://localhost/` the fetch URL becomes `http://localhost/build/myHandler.js`.
+3. The Qwikloader retraces the event path and searches for `q-e:click` attribute on the elements.
+4. The Qwikloader uses the `q-e:click` and `q:base` attributes along with the `document.baseURI` to build a full URL for fetching the lazy-loaded handler. Assuming the original page was served up from `http://localhost/` the fetch URL becomes `http://localhost/build/myHandler.js`.
 5. Qwikloader retrieves the `clickHandler` symbol, exported from `http://localhost/build/myHandler.js` and invokes it.
 
 ## Events and the Qwikloader
@@ -65,8 +65,8 @@ Qwik serializes the event listeners into the DOM in the form of [QRLs](../qrl/in
 
 ```html
 <div>
-  <button on:click="./chunk-a.js#Counter_button_onClick[0]">0</button>
+  <button q-e:click="./chunk-a.js#Counter_button_onClick[0]">0</button>
 </div>
 ```
 
-The critical thing to notice is that Qwik generated an `on:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `on:click` attribute solves the listener location problem, and the attribute value solves the listener code problem. By serializing the listeners into the HTML Qwik applications do not need to perform hydration on startup.
+The critical thing to notice is that Qwik generated an `q-e:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `q-e:click` attribute solves the listener location problem, and the attribute value solves the listener code problem. By serializing the listeners into the HTML Qwik applications do not need to perform hydration on startup.

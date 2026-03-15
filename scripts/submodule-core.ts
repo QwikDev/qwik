@@ -1,28 +1,45 @@
-import { type BuildConfig, rollupOnWarn } from './util.ts';
 import { build, type BuildOptions } from 'esbuild';
-import { getBanner, fileSize, readFile, target, writeFile } from './util.ts';
-import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { join } from 'node:path';
+import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { minify } from 'terser';
+import {
+  type BuildConfig,
+  fileSize,
+  getBanner,
+  readFile,
+  rollupOnWarn,
+  target,
+  writeFile,
+} from './util.ts';
 
 /**
- * Build the core package which is also the root package: @builder.io/qwik
+ * Regex for property names that should be mangled consistently across all bundles (core + server).
+ * Properties matching $...$ are internal framework properties not part of the public API.
+ */
+export const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
+
+/**
+ * Build the core package which is also the root package: @qwik.dev/core
  *
  * Uses esbuild during development (cuz it's super fast) and TSC + Rollup + Terser for production,
  * because it generates smaller code that minifies better.
+ *
+ * In production, returns a Terser nameCache so the server bundle can apply the same property
+ * mangling and keep $...$ names in sync across both bundles.
  */
-export function submoduleCore(config: BuildConfig) {
+export async function submoduleCore(config: BuildConfig): Promise<object | undefined> {
   if (config.dev) {
-    return submoduleCoreDev(config);
+    await submoduleCoreDev(config);
+    return undefined;
   }
   return submoduleCoreProd(config);
 }
 
-async function submoduleCoreProd(config: BuildConfig) {
+async function submoduleCoreProd(config: BuildConfig): Promise<object> {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@builder.io/qwik/build', '@builder.io/qwik/preloader'],
+    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
     plugins: [
       {
         name: 'setVersion',
@@ -46,32 +63,22 @@ async function submoduleCoreProd(config: BuildConfig) {
     format: 'es',
     entryFileNames: 'core.mjs',
     sourcemap: true,
-    banner: getBanner('@builder.io/qwik', config.distVersion),
-  };
-
-  const cjsOutput: OutputOptions = {
-    dir: join(config.distQwikPkgDir),
-    format: 'umd',
-    name: 'qwikCore',
-    entryFileNames: 'core.cjs',
-    sourcemap: true,
-    globals: {
-      '@builder.io/qwik/build': 'qwikBuild',
-      // not actually used
-      '@builder.io/qwik/preloader': 'qwikPreloader',
-    },
-    banner: getBanner('@builder.io/qwik', config.distVersion),
+    banner: getBanner('@qwik.dev/core', config.distVersion),
   };
 
   const build = await rollup(input);
 
-  await Promise.all([build.write(esmOutput), build.write(cjsOutput)]);
+  await Promise.all([build.write(esmOutput)]);
 
   console.log('🦊 core.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.mjs')));
 
+  // Shared nameCache so that $...$  property mangling is consistent across all Terser runs
+  // (core.min.mjs, core.prod.mjs) and can later be reused for the server bundle.
+  const nameCache: object = {};
+
   const inputCore = join(config.distQwikPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
-    external: ['@builder.io/qwik/preloader'],
+    external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
     input: inputCore,
     onwarn: rollupOnWarn,
     plugins: [
@@ -81,12 +88,12 @@ async function submoduleCoreProd(config: BuildConfig) {
           if (id === '@index.min') {
             return id;
           }
-          if (id === '@builder.io/qwik/build') {
+          if (id === '@qwik.dev/core/build') {
             return id;
           }
         },
         load(id) {
-          if (id === '@builder.io/qwik/build') {
+          if (id === '@qwik.dev/core/build') {
             return `
               export const isServer = false;
               export const isBrowser = true;
@@ -109,9 +116,23 @@ async function submoduleCoreProd(config: BuildConfig) {
           const esmMinifyResult = await minify(code, {
             module: true,
             toplevel: true,
+            nameCache,
             compress: {
-              module: true,
+              defaults: true,
+              hoist_funs: true,
+              keep_fargs: false,
+              pure_getters: true,
+              pure_new: true,
               toplevel: true,
+              unsafe_arrows: true,
+              unsafe_math: true,
+              unsafe_symbols: true,
+              unsafe: true,
+
+              passes: 3,
+              ecma: 2020,
+              module: true,
+
               global_defs: {
                 // special global that when set to false will remove all dev code entirely
                 // developer production builds could use core.min.js directly, or setup
@@ -124,17 +145,12 @@ async function submoduleCoreProd(config: BuildConfig) {
                 'globalThis.qRuntimeQrl': false,
                 'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
               },
-              ecma: 2020,
-              passes: 3,
-              pure_getters: true,
-              unsafe_symbols: true,
-              keep_fargs: false,
             },
             mangle: {
               toplevel: true,
               module: true,
               properties: {
-                regex: '^\\$.+\\$$',
+                regex: MANGLE_PROPS_REGEX,
               },
             },
             format: {
@@ -166,23 +182,112 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   console.log('🐭 core.min.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.min.mjs')));
 
-  let esmCode = await readFile(join(config.distQwikPkgDir, 'core.mjs'), 'utf-8');
-  let cjsCode = await readFile(join(config.distQwikPkgDir, 'core.cjs'), 'utf-8');
-  // fixup the Vite base url
-  cjsCode = cjsCode.replaceAll('undefined.BASE_URL', 'globalThis.BASE_URL||"/"');
-  await writeFile(join(config.distQwikPkgDir, 'core.cjs'), cjsCode);
+  const prodCode = await prepareProdCode(config);
+  await submoduleCoreProduction(
+    config,
+    prodCode,
+    join(config.distQwikPkgDir, 'core.prod.mjs'),
+    nameCache
+  );
 
-  await submoduleCoreProduction(config, esmCode, join(config.distQwikPkgDir, 'core.prod.mjs'));
-  await submoduleCoreProduction(config, cjsCode, join(config.distQwikPkgDir, 'core.prod.cjs'));
+  return nameCache;
 }
 
-async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
+/**
+ * Rollup pass on core.mjs that inlines only `isDev = false` from `@qwik.dev/core/build`, while
+ * keeping `isServer` and `isBrowser` as dynamic imports (the build is universal — it must work on
+ * both server and browser). `isServer`/`isBrowser` are re-exported from an internal alias that
+ * rollup renames back to `@qwik.dev/core/build` in `output.paths`.
+ */
+async function prepareProdCode(config: BuildConfig): Promise<string> {
+  const VIRTUAL_BUILD = '\0prod-build';
+
+  const inputProd: InputOptions = {
+    input: join(config.distQwikPkgDir, 'core.mjs'),
+    external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
+    onwarn: rollupOnWarn,
+    plugins: [
+      {
+        name: 'inlineProdIsDev',
+        resolveId(id, importer) {
+          if (id === '@qwik.dev/core/build') {
+            // When the virtual itself re-imports @qwik.dev/core/build, keep it external.
+            if (importer === VIRTUAL_BUILD) {
+              return { id, external: true };
+            }
+            return VIRTUAL_BUILD;
+          }
+        },
+        load(id) {
+          if (id === VIRTUAL_BUILD) {
+            return `
+              export { isServer, isBrowser } from '@qwik.dev/core/build';
+              export const isDev = false;
+            `;
+          }
+        },
+      },
+    ],
+  };
+
+  const prodBuild = await rollup(inputProd);
+  const chunks: string[] = [];
+  await prodBuild.generate({
+    format: 'es',
+    plugins: [
+      {
+        name: 'collect',
+        generateBundle(_, bundles) {
+          for (const f in bundles) {
+            const b = bundles[f];
+            if (b.type === 'chunk') {
+              chunks.push(b.code);
+            }
+          }
+        },
+      },
+    ],
+  });
+
+  return chunks.join('\n');
+}
+
+async function submoduleCoreProduction(
+  config: BuildConfig,
+  code: string,
+  outPath: string,
+  nameCache: object
+) {
   const result = await minify(code, {
+    nameCache,
     compress: {
-      pure_getters: true,
-      unsafe_symbols: true,
+      defaults: false,
+      booleans: true,
+      conditionals: true,
+      dead_code: true,
+      evaluate: true,
+      hoist_props: true,
+      keep_classnames: true,
       keep_fargs: false,
-      join_vars: false,
+      keep_fnames: true,
+      keep_infinity: true,
+      loops: true,
+      properties: true,
+      pure_getters: true,
+      pure_new: true,
+      reduce_funcs: true,
+      reduce_vars: true,
+      side_effects: true,
+      toplevel: true,
+      unsafe_arrows: true,
+      unsafe_math: true,
+      unsafe_symbols: true,
+      unsafe: true,
+      unused: true,
+
+      passes: 3,
+      ecma: 2020,
+      module: true,
 
       global_defs: {
         'globalThis.qDev': false,
@@ -200,13 +305,21 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       comments: /__PURE__/,
       preserve_annotations: true,
       ecma: 2020,
-      preamble: getBanner('@builder.io/qwik', config.distVersion),
+      preamble: getBanner('@qwik.dev/core', config.distVersion),
     },
-    mangle: false,
+    mangle: {
+      toplevel: true,
+      module: true,
+      properties: {
+        regex: MANGLE_PROPS_REGEX,
+      },
+    },
   });
   code = result.code!;
 
   await writeFile(outPath, code + '\n');
+
+  console.log('🦝 core.prod.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.prod.mjs')));
 }
 
 async function submoduleCoreDev(config: BuildConfig) {
@@ -226,46 +339,16 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   const esm = await build({
     ...opts,
-    external: ['@builder.io/qwik/build', '@builder.io/qwik/preloader'],
+    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });
 
-  // We do a CJS build, only for the repl service worker
-  const cjs = build({
-    ...opts,
-    // we don't externalize qwik build because then the repl service worker sees require()
-    define: {
-      ...opts.define,
-      // We need to get rid of the import.meta.env values
-      // Vite's base url
-      'import.meta.env.BASE_URL': '"globalThis.BASE_URL||\'/\'"',
-      // Vite's devserver mode
-      'import.meta.env.DEV': 'false',
-    },
-    format: 'cjs',
-    outExtension: { '.js': '.cjs' },
-    banner: {
-      js: `globalThis.qwikCore = (function (module) {`,
-    },
-    footer: {
-      js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
-    },
-  });
-
-  await Promise.all([esm, cjs]);
+  await Promise.all([esm]);
 
   // Point the minified and prod versions to the dev versions
   await writeFile(join(config.distQwikPkgDir, 'core.prod.mjs'), `export * from './core.mjs';\n`);
-  await writeFile(
-    join(config.distQwikPkgDir, 'core.prod.cjs'),
-    `module.exports = require('./core.cjs');\n`
-  );
   await writeFile(join(config.distQwikPkgDir, 'core.min.mjs'), `export * from './core.mjs';\n`);
-  await writeFile(
-    join(config.distQwikPkgDir, 'core.min.cjs'),
-    `module.exports = require('./core.cjs');\n`
-  );
 
   console.log('🐬', submodule, '(dev)');
 }

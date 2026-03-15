@@ -148,6 +148,7 @@ export const componentQrl = <PROPS extends Record<any, any>>(
   return QwikComponent as any;
 };
 
+/** @internal */
 export const SERIALIZABLE_STATE = Symbol('serializable-data');
 
 export const isQwikComponent = <T extends Component<any>>(component: unknown): component is T => {

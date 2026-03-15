@@ -75,3 +75,9 @@ export { _rsc } from './use/use-resource';
 export type { AsyncSignalOptions } from './reactive-primitives/types';
 export { setEvent as _setEvent } from './ssr/ssr-events';
 export { _useHmr, _hmr } from './use/use-hmr';
+export {
+  _addProjection,
+  _setProjectionTarget,
+  _updateProjectionProps,
+  _removeProjection,
+} from './shared/projection/external-projection';

@@ -235,13 +235,20 @@ export function processVNodeData(document: Document) {
         } while (getFastNodeType(islandNode) !== NodeType.COMMENT_ISLAND_START);
         nextNode = null;
       } else if (nodeType === NodeType.COMMENT_ISLAND_END) {
+        // Walk forward to find either the next container-island or the end of the q:ignore block.
+        // This handles multiple islands within a single q:ignore block.
         nextNode = node;
+        let nextNodeType: NodeType;
         do {
           nextNode = walker.nextNode();
           if (!nextNode) {
             throw new Error(`Ignore block not closed!`);
           }
-        } while (getFastNodeType(nextNode) !== NodeType.COMMENT_IGNORE_END);
+          nextNodeType = getFastNodeType(nextNode);
+        } while (
+          nextNodeType !== NodeType.COMMENT_IGNORE_END &&
+          nextNodeType !== NodeType.COMMENT_ISLAND_START
+        );
         nextNode = null;
       } else if (nodeType === NodeType.COMMENT_SKIP_START) {
         // If we are in a container, we need to skip the children.

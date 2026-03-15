@@ -468,13 +468,24 @@ function emitUnclaimedProjectionsForChain(
     if (parent.dirty & ChoreBits.CHILDREN) {
       const dirtyChildren = parent.dirtyChildren;
       if (dirtyChildren) {
+        let hasOtherDirty = false;
         for (let i = 0; i < dirtyChildren.length; i++) {
           if (dirtyChildren[i] !== node && dirtyChildren[i].dirty & ChoreBits.DIRTY_MASK) {
             // Parent still has other dirty children — stop. Walker will handle this parent later.
-            return;
+            hasOtherDirty = true;
+            break;
           }
         }
+        if (hasOtherDirty) {
+          return;
+        }
       }
+      // All dirty children are clean — clear the CHILDREN bit so we don't
+      // stop at this node in the dirty check above. This mirrors what
+      // getNextVNode does when it finds no more dirty children.
+      parent.dirty &= ~ChoreBits.CHILDREN;
+      parent.dirtyChildren = null;
+      parent.nextDirtyChildIndex = 0;
     }
 
     node = parent;

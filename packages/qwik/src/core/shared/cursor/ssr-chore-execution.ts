@@ -229,7 +229,10 @@ export function executeSsrUnclaimedProjections(
 ): ValueOrPromise<void> {
   const ssrNode = vNode as unknown as ISsrNode;
   const componentFrame = ssrNode.getProp?.(':componentFrame') as ISsrComponentFrame | null;
-  if (!componentFrame || componentFrame.slots.length === 0) {
+  if (!componentFrame) {
+    return;
+  }
+  if (componentFrame.slots.length === 0) {
     return;
   }
   const ssr = container as SSRContainer;

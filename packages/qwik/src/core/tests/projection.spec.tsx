@@ -1975,6 +1975,75 @@ describe.each([
       );
     });
 
+    it('issue1945 - should render named conditional slot from q:template with useStore and scoped styles', async () => {
+      const ComponentB = component$(() => {
+        return (
+          <div>
+            <Slot />
+          </div>
+        );
+      });
+
+      const ComponentA = component$(() => {
+        const store = useStore({ show: false });
+        return (
+          <div>
+            <Slot name="one" />
+            <Slot name="two" />
+            <Slot name="three" />
+            <button id="toggle" onClick$={() => (store.show = !store.show)}>
+              toggle
+            </button>
+            {store.show ? <Slot name="four" /> : null}
+          </div>
+        );
+      });
+
+      const { document } = await render(
+        <ComponentA>
+          <h1 q:slot="one" id="s1">
+            Outside B
+          </h1>
+          <ComponentB q:slot="two">
+            <h1 id="s3">Inside B</h1>
+          </ComponentB>
+          <div q:slot="three">
+            <h1 id="s4">Inside slot 3</h1>
+          </div>
+          <div q:slot="four">
+            <h1 id="s5">Inside slot 4</h1>
+          </div>
+        </ComponentA>,
+        { debug: DEBUG }
+      );
+
+      // Initially slot "four" is hidden
+      const s1 = document.querySelector('#s1');
+      const s3 = document.querySelector('#s3');
+      const s4 = document.querySelector('#s4');
+      expect(s1).toBeTruthy();
+      expect(s3).toBeTruthy();
+      expect(s4).toBeTruthy();
+
+      // Debug before click
+      if (render === ssrRenderToDom) {
+        console.log('BEFORE CLICK:', document.body.innerHTML);
+        console.log('q:template:', document.querySelector('q\\:template')?.outerHTML || 'NONE');
+      }
+
+      // Click to show slot "four"
+      await trigger(document.body, '#toggle', 'click');
+
+      // Debug after click
+      if (render === ssrRenderToDom) {
+        console.log('AFTER CLICK:', document.body.innerHTML);
+      }
+
+      const s5 = document.querySelector('#s5');
+      expect(s5).toBeTruthy();
+      expect(s5!.textContent).toContain('Inside slot 4');
+    });
+
     it('should correctly inflate text nodes from q:template', async () => {
       const Cmp = component$((props: { show: boolean }) => {
         return <span>{props.show && <Slot />}</span>;

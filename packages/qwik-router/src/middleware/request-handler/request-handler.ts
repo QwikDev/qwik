@@ -2,7 +2,7 @@ import { isServer } from '@qwik.dev/core/build';
 import type { Render } from '@qwik.dev/core/server';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 import { loadRoute } from '../../runtime/src/routing';
-import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
+import { type QwikRouterConfig, type RebuildRouteInfoInternal } from '../../runtime/src/types';
 import type { RequestEventInternal } from './request-event';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
@@ -46,7 +46,7 @@ export async function requestHandler<T = unknown>(
   let { qwikRouterConfig } = opts;
   if (!qwikRouterConfig) {
     if (!qwikRouterConfigActual) {
-      qwikRouterConfigActual = await import('@qwik-router-config');
+      qwikRouterConfigActual = (await import('@qwik-router-config')) as any as QwikRouterConfig;
     }
     qwikRouterConfig = qwikRouterConfigActual;
   }
@@ -59,9 +59,8 @@ export async function requestHandler<T = unknown>(
   if (pathname === '/.well-known' || pathname.startsWith('/.well-known/')) {
     return null;
   }
-  // TODO also match 404 routes with extra notFound boolean result
   // TODO cache pages
-  const routeAndHandlers = await loadRequestHandlers(
+  const { loadedRoute, requestHandlers } = await loadRequestHandlers(
     qwikRouterConfig,
     pathname,
     serverRequestEv.request.method,
@@ -70,38 +69,31 @@ export async function requestHandler<T = unknown>(
     isInternal
   );
 
-  if (routeAndHandlers) {
-    const [route, requestHandlers] = routeAndHandlers;
-
-    const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
-      // once internal, always internal, don't override
-      const { pathname } = getRouteMatchPathname(url.pathname);
-      const routeAndHandlers = await loadRequestHandlers(
-        qwikRouterConfig,
-        pathname,
-        serverRequestEv.request.method,
-        checkOrigin ?? true,
-        render,
-        isInternal
-      );
-
-      if (routeAndHandlers) {
-        const [loadedRoute, requestHandlers] = routeAndHandlers;
-        return { loadedRoute, requestHandlers };
-      } else {
-        return { loadedRoute: null, requestHandlers: [] };
-      }
-    };
-
-    return runQwikRouter(
-      serverRequestEv,
-      route,
-      requestHandlers,
-      rebuildRouteInfo,
-      qwikRouterConfig.basePathname
-    );
+  // When fallthrough is enabled and no route matched, let the adapter handle it
+  if (qwikRouterConfig.fallthrough && loadedRoute.$notFound$) {
+    return null;
   }
-  return null;
+
+  const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
+    // once internal, always internal, don't override
+    const { pathname } = getRouteMatchPathname(url.pathname);
+    return loadRequestHandlers(
+      qwikRouterConfig,
+      pathname,
+      serverRequestEv.request.method,
+      checkOrigin ?? true,
+      render,
+      isInternal
+    );
+  };
+
+  return runQwikRouter(
+    serverRequestEv,
+    loadedRoute,
+    requestHandlers,
+    rebuildRouteInfo,
+    qwikRouterConfig.basePathname
+  );
 }
 
 async function loadRequestHandlers(
@@ -112,18 +104,15 @@ async function loadRequestHandlers(
   renderFn: Render,
   isInternal: boolean
 ) {
-  const { routes, serverPlugins, menus, cacheModules } = qwikRouterConfig;
-  const route = await loadRoute(routes, menus, cacheModules, pathname, isInternal);
+  const { routes, serverPlugins, cacheModules } = qwikRouterConfig;
+  const loadedRoute = await loadRoute(routes, cacheModules, pathname, isInternal);
   const requestHandlers = resolveRequestHandlers(
     serverPlugins,
-    route,
+    loadedRoute,
     method,
     checkOrigin,
     renderQwikMiddleware(renderFn),
     isInternal
   );
-  if (requestHandlers.length > 0) {
-    return [route, requestHandlers] as const;
-  }
-  return null;
+  return { loadedRoute, requestHandlers };
 }

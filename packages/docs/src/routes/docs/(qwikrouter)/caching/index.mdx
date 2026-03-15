@@ -147,3 +147,84 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
 ### Caching bundles and assets
 
 See [Cache Headers](/docs/deployments/#cache-headers) for more information.
+
+## SSR Caching
+
+Qwik Router includes a built-in in-memory SSR cache that can serve pre-rendered HTML without re-executing components. This is controlled through the `eTag` and `cacheKey` exports (or via `routeConfig`).
+
+### `eTag`
+
+The `eTag` export defines an [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) for the page. When a browser sends an `If-None-Match` header matching the ETag, the server responds with `304 Not Modified` instead of re-rendering.
+
+It can be a static string or a function that receives `DocumentHeadProps`:
+
+```tsx title="src/routes/product/[id]/index.tsx"
+import type { RouteConfig } from '@qwik.dev/router';
+
+// Static eTag (e.g., for content that changes only on deployment)
+export const routeConfig: RouteConfig = {
+  eTag: 'v1.2.3',
+};
+
+// Dynamic eTag based on data
+export const routeConfig: RouteConfig = ({ resolveValue }) => {
+  const product = resolveValue(useProduct);
+  return {
+    eTag: `product-${product.id}-${product.updatedAt}`,
+  };
+};
+```
+
+> **Note**: Markdown (`.md`) files automatically get an eTag based on a content hash. MDX files (`.mdx`) do not, since they can contain dynamic JavaScript.
+
+### `cacheKey`
+
+The `cacheKey` export enables in-memory SSR caching. When set, rendered HTML is cached and served on subsequent requests with the same cache key, completely bypassing SSR.
+
+- `true`: uses the default cache key format `status|eTag|pathname`
+- Function: receives `(status, eTag, pathname)` and returns a custom cache key string, or `null` to skip caching
+
+```tsx title="src/routes/product/[id]/index.tsx"
+import type { RouteConfig } from '@qwik.dev/router';
+
+export const routeConfig: RouteConfig = {
+  eTag: 'v1',
+  cacheKey: true, // cache using default key format
+};
+```
+
+The cache uses LRU eviction with a default capacity of 50 entries. You can configure this in your server entry:
+
+```tsx title="src/entry.server.tsx"
+// Set before any request handling
+globalThis.__SSR_CACHE_SIZE__ = 100; // or 0 to disable
+```
+
+### Clearing the cache
+
+Use `clearSsrCache()` to invalidate cached pages after deployments or data changes:
+
+```tsx
+import { clearSsrCache } from '@qwik.dev/router/middleware/request-handler';
+
+// Clear a specific entry
+clearSsrCache('200|v1|/products/123');
+
+// Clear the entire cache
+clearSsrCache();
+```
+
+### Layout-level caching
+
+Layouts can define `eTag` and `cacheKey` via `routeConfig` to apply caching to an entire subtree. Pages can override these values in their own `routeConfig`:
+
+```tsx title="src/routes/blog/layout.tsx"
+import type { RouteConfig } from '@qwik.dev/router';
+
+// All blog pages use SSR caching by default
+export const routeConfig: RouteConfig = {
+  cacheKey: true,
+};
+```
+
+See the [routeConfig documentation](/docs/(qwikrouter)/pages/index.mdx#routeconfig-export) for the full resolution rules.

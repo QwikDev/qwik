@@ -1,4 +1,6 @@
 import swRegister from '@qwik-router-sw-register';
+// Make the api documenter output clean
+import type { JSXOutput } from '@qwik.dev/core';
 /**
  * Loads the service workers that are defined in the routes. Any file named `service-worker.*` (all
  * JS extensions are allowed) will be picked up, bundled into a separate file, and registered as a
@@ -12,6 +14,6 @@ import swRegister from '@qwik-router-sw-register';
  *
  * @public
  */
-export const ServiceWorkerRegister = (props: { nonce?: string }) => (
+export const ServiceWorkerRegister = (props: { nonce?: string }): JSXOutput => (
   <script type="module" dangerouslySetInnerHTML={swRegister} nonce={props.nonce} />
 );

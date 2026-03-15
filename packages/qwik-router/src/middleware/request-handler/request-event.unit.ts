@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { RedirectMessage } from './redirect-handler';
 import { createRequestEvent } from './request-event';
 import type { ServerRequestEvent } from './types';
+import type { LoadedRoute } from '../../runtime/src/types';
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -30,9 +31,16 @@ function createMockServerRequestEvent(url = 'http://localhost:3000/test'): Serve
   };
 }
 
+const justHiModule = { default: () => 'hi' };
+const mockRoute: LoadedRoute = {
+  $routeName$: '/',
+  $params$: {},
+  $mods$: [justHiModule],
+};
+
 function createMockRequestEvent(url = 'http://localhost:3000/test') {
   const serverRequestEv = createMockServerRequestEvent(url);
-  return createRequestEvent(serverRequestEv, null, [], '/', vi.fn());
+  return createRequestEvent(serverRequestEv, mockRoute, [], '/', vi.fn());
 }
 
 describe('request-event redirect', () => {

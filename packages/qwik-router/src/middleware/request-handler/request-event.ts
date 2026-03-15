@@ -7,7 +7,6 @@ import {
 } from '@qwik.dev/core/internal';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import {
-  LoadedRouteProp,
   type ActionInternal,
   type FailReturn,
   type JSONValue,
@@ -50,12 +49,14 @@ export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
+export const RequestEvETagCacheKey = '@eTagCacheKey';
+export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 /** @internal */
 export const RequestEvShareQData = 'qData';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
-  loadedRoute: LoadedRoute | null,
+  loadedRoute: LoadedRoute,
   requestHandlers: RequestHandler<any>[],
   basePathname: string,
   resolved: (response: any) => void
@@ -78,7 +79,7 @@ export function createRequestEvent(
   let writableStream: WritableStream<Uint8Array> | null = null;
   let requestData: Promise<JSONValue | undefined> | undefined = undefined;
   let locale = serverRequestEv.locale;
-  let status = 200;
+  let status = loadedRoute?.$notFound$ ? 404 : 200;
 
   const next = async () => {
     routeModuleIndex++;
@@ -94,11 +95,12 @@ export function createRequestEvent(
   };
 
   const resetRoute = (
-    _loadedRoute: LoadedRoute | null,
+    _loadedRoute: LoadedRoute,
     _requestHandlers: RequestHandler<any>[],
     _url = url
   ) => {
     loadedRoute = _loadedRoute;
+    status = loadedRoute?.$notFound$ ? 404 : 200;
     requestHandlers = _requestHandlers;
     url.pathname = _url.pathname;
     url.search = _url.search;
@@ -168,7 +170,7 @@ export function createRequestEvent(
     signal: request.signal,
     originalUrl: new URL(url),
     get params() {
-      return loadedRoute?.[LoadedRouteProp.Params] ?? {};
+      return loadedRoute?.$params$ ?? {};
     },
     get pathname() {
       return url.pathname;
@@ -349,7 +351,7 @@ export interface RequestEventInternal extends Readonly<RequestEvent>, Readonly<R
   readonly [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
   readonly [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   readonly [RequestEvMode]: ServerRequestMode;
-  readonly [RequestEvRoute]: LoadedRoute | null;
+  readonly [RequestEvRoute]: LoadedRoute;
 
   /**
    * Check if this request is already written to.

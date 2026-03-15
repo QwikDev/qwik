@@ -380,7 +380,7 @@ impl<'a> QwikTransform<'a> {
 
 		let symbol_name = if matches!(
 			self.options.mode,
-			EmitMode::Dev | EmitMode::Test | EmitMode::Hmr
+			EmitMode::Dev | EmitMode::Test | EmitMode::Hmr | EmitMode::Lib
 		) {
 			format!("{}_{}", display_name, hash64)
 		} else {

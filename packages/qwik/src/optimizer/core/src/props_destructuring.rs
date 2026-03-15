@@ -81,6 +81,24 @@ impl<'a> PropsDestructuring<'a> {
 		}
 	}
 	fn transform_component_body(&mut self, body: &mut ast::BlockStmt) {
+		// Skip already-preprocessed QRL function bodies (from lib builds).
+		// These have _captures destructuring at the top that must not be inlined,
+		// because inner QRL capture arrays reference the named variables.
+		if body.stmts.first().is_some_and(|stmt| {
+			if let ast::Stmt::Decl(ast::Decl::Var(var)) = stmt {
+				var.decls.iter().any(|decl| {
+					matches!(
+						&decl.init,
+						Some(box ast::Expr::Member(m))
+							if matches!(&m.obj, box ast::Expr::Ident(id) if id.sym == *_CAPTURES)
+					)
+				})
+			} else {
+				false
+			}
+		}) {
+			return;
+		}
 		let mut inserts = vec![];
 		for (index, stmt) in body.stmts.iter_mut().enumerate() {
 			if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {

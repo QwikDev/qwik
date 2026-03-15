@@ -131,7 +131,9 @@ const GuidesTreeNode = component$(
       return null;
     }
 
-    const hasActiveChild = section.items.some((item) => pathname === item.href);
+    const hasActiveChild = section.items.some(
+      (item) => pathname === item.href || item.items?.some((sub) => pathname === sub.href)
+    );
     const isOpen = useSignal(sectionIndex === 0 || hasActiveChild);
 
     return (
@@ -148,6 +150,9 @@ const GuidesTreeNode = component$(
         </tree.itemtrigger>
         <tree.itemcontent>
           {section.items?.map((item, j) => {
+            if (item.items && item.items.length > 0) {
+              return <SubTreeNode key={j} item={item} pathname={pathname} />;
+            }
             const isActive = pathname === item.href;
             return (
               <tree.item key={j}>
@@ -174,12 +179,69 @@ const GuidesTreeNode = component$(
   }
 );
 
+const SubTreeNode = component$((props: { item: ContentMenu; pathname: string }) => {
+  const { item, pathname } = props;
+  const hasActiveChild = item.items?.some((child) => pathname === child.href);
+  const isOpen = useSignal(hasActiveChild || false);
+
+  return (
+    <tree.item bind:open={isOpen}>
+      <tree.itemtrigger class="w-full cursor-pointer flex items-center pl-6 pr-2 py-2 rounded-lg hover:text-standalone-accent text-foreground-muted justify-between">
+        <span class="flex items-center gap-2 text-[16px] leading-[22px] font-semibold">
+          <SubTreeIcon name={item.text} />
+          <span>{item.text}</span>
+        </span>
+        <span
+          class={['transition-transform duration-200 size-4 shrink-0', isOpen.value && 'rotate-90']}
+        >
+          <lucide.chevronright class="size-4" />
+        </span>
+      </tree.itemtrigger>
+      <tree.itemcontent>
+        {item.items?.map((child, k) => {
+          const isActive = pathname === child.href;
+          return (
+            <tree.item key={k}>
+              <tree.itemlabel class="w-full">
+                <Link
+                  href={child.href}
+                  tabIndex={-1}
+                  class={[
+                    'flex items-center gap-2 pl-10 pr-2 py-2 rounded-lg text-[16px] leading-[22px] font-semibold',
+                    isActive
+                      ? 'bg-background-accent text-standalone-emphasis border-[1.6px] border-transparent'
+                      : 'text-foreground-muted hover:border-background-accent border-[1.6px] border-transparent',
+                  ]}
+                >
+                  <span class="truncate">{child.text}</span>
+                </Link>
+              </tree.itemlabel>
+            </tree.item>
+          );
+        })}
+      </tree.itemcontent>
+    </tree.item>
+  );
+});
+
+const SubTreeIcon = component$<{ name: string }>((props) => {
+  const cls = 'size-5 flex-shrink-0';
+  switch (props.name) {
+    case 'Concepts':
+      return <lucide.lightbulb class={cls} />;
+    case 'Advanced':
+      return <lucide.settings class={cls} />;
+    default:
+      return null;
+  }
+});
+
 const GuideSectionIcon = component$<{ name: string }>((props) => {
   const cls = 'size-5 flex-shrink-0';
   switch (props.name) {
-    case 'Components':
-      return <lucide.layers class={cls} />;
-    case 'Qwik Router':
+    case 'Foundation':
+      return <lucide.box class={cls} />;
+    case 'Router':
       return <lucide.route class={cls} />;
     case 'Cookbook':
       return <lucide.chefhat class={cls} />;
@@ -189,16 +251,10 @@ const GuideSectionIcon = component$<{ name: string }>((props) => {
       return <lucide.rocket class={cls} />;
     case 'Guides':
       return <lucide.compass class={cls} />;
-    case 'Concepts':
-      return <lucide.lightbulb class={cls} />;
-    case 'Advanced':
-      return <lucide.settings class={cls} />;
     case 'Reference':
       return <lucide.filetext class={cls} />;
     case 'Experimental 🧪':
       return <lucide.testtubediagonal class={cls} />;
-    case 'Community':
-      return <lucide.users class={cls} />;
     default:
       return null;
   }

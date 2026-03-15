@@ -30,12 +30,12 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode-utils';
-import { vnode_diff } from './vnode-diff';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
+import { vnode_diff } from './vnode-diff';
 
 describe('vNode-diff', () => {
   it('should find no difference', () => {

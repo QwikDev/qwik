@@ -529,7 +529,7 @@ function registerQrlHandlers(attr: Attr, key: string, container: Container, elem
     // These QRLs are mostly _run and _task and don't need wrapping with retryOnPromise
     handlers.push(runEventHandlerQRL.bind(null, handler));
   }
-  (element._qDispatch ||= {})[scopedKebabName] = handlers;
+  (element._qDispatch ||= {})[scopedKebabName] = handlers.length === 1 ? handlers[0] : handlers;
 }
 
 /** Walks the direct children of a parent node and calls the callback for each child. */

@@ -1047,12 +1047,13 @@ function registerEventHandlers(
       }
     }
     if (handlers.length > 0) {
-      (element._qDispatch ||= {})[scopedKebabName] = handlers;
+      (element._qDispatch ||= {})[scopedKebabName] = handlers.length === 1 ? handlers[0] : handlers;
     }
   } else if (value) {
-    (element._qDispatch ||= {})[scopedKebabName] = [
-      runEventHandlerQRL.bind(null, value as QRLInternal<(...args: any[]) => void>),
-    ];
+    (element._qDispatch ||= {})[scopedKebabName] = runEventHandlerQRL.bind(
+      null,
+      value as QRLInternal<(...args: any[]) => void>
+    );
   }
 
   // window and document events need attrs so qwik loader can find them

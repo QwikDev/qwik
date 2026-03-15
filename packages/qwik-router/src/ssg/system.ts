@@ -1,13 +1,12 @@
 /* eslint-disable no-console */
-import type { SsgOptions, System } from '../types';
+import type { SsgGenerateOptions, System } from './types';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
-import { createNodeMainProcess } from './node-main';
-import { createNodeWorkerProcess } from './node-worker';
-import { normalizePath } from '../../utils/fs';
+import { createWorkerPool } from './worker-pool';
+import { normalizePath } from '../utils/fs';
 
 /** @public */
-export async function createSystem(opts: SsgOptions, threadId?: number): Promise<System> {
+export async function createSystem(opts: SsgGenerateOptions, threadId?: number): Promise<System> {
   const createWriteStream = (filePath: string) => {
     return fs.createWriteStream(filePath, {
       flags: 'w',
@@ -75,7 +74,6 @@ export async function createSystem(opts: SsgOptions, threadId?: number): Promise
 
   const sys: System = {
     createMainProcess: null,
-    createWorkerProcess: createNodeWorkerProcess,
     createLogger,
     getOptions: () => opts,
     ensureDir,
@@ -90,7 +88,7 @@ export async function createSystem(opts: SsgOptions, threadId?: number): Promise
       node: process.versions.node,
     },
   };
-  sys.createMainProcess = () => createNodeMainProcess(sys, opts);
+  sys.createMainProcess = () => createWorkerPool(sys, opts);
 
   return sys;
 }

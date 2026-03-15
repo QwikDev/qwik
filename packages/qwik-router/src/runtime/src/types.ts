@@ -1,11 +1,13 @@
 import type {
+  AsyncSignal,
+  JSXOutput,
   NoSerialize,
   QRL,
   QwikIntrinsicElements,
   Signal,
   ValueOrPromise,
 } from '@qwik.dev/core';
-import type { AsyncSignal, SerializationStrategy } from '@qwik.dev/core/internal';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
   EnvGetter,
   RequestEvent,
@@ -46,21 +48,33 @@ export interface RouteModule<BODY = unknown> {
 }
 
 /** @public */
-export interface PageModule extends RouteModule {
-  readonly default: unknown;
+export type PageModule = RouteModule & {
+  readonly default: (props: Record<string, never>) => JSXOutput;
+  readonly routeConfig?: RouteConfig;
   readonly head?: ContentModuleHead;
+  readonly eTag?: ContentModuleETag;
+  readonly cacheKey?: CacheKeyFn;
   readonly headings?: ContentHeading[];
   readonly onStaticGenerate?: StaticGenerateHandler;
-}
+};
 
 export interface LayoutModule extends RouteModule {
-  readonly default: unknown;
+  readonly default?: (props: Record<string, never>) => JSXOutput;
+  readonly routeConfig?: RouteConfig;
   readonly head?: ContentModuleHead;
 }
 
 export interface MenuModule {
   readonly default: ContentMenu;
 }
+
+/** @public */
+export type HttpStatus = {
+  /** The HTTP status code, e.g. 404 */
+  status: number;
+  /** The error message, e.g. "Not Found" */
+  message: string;
+};
 
 /** @public */
 export interface RouteLocation {
@@ -84,7 +98,7 @@ export type RouteStateInternal = {
 
 export type RebuildRouteInfoInternal = (
   url: URL
-) => Promise<{ loadedRoute: LoadedRoute | null; requestHandlers: RequestHandler<any>[] }>;
+) => Promise<{ loadedRoute: LoadedRoute; requestHandlers: RequestHandler<any>[] }>;
 
 /**
  * @param url - The URL that the user is trying to navigate to, or a number to indicate the user is
@@ -220,6 +234,8 @@ export type DocumentScript = (
 /** @public */
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
+  /** The HTTP status code of the response (e.g. 200, 404). */
+  readonly status: number;
   /** @deprecated This is not necessary, it works correctly without */
   readonly withLocale: <T>(fn: () => T) => T;
   readonly resolveValue: ResolveSyncValue;
@@ -250,46 +266,66 @@ export interface ContentHeading {
   readonly level: number;
 }
 
-export type ContentModuleLoader = () => Promise<ContentModule>;
-export type EndpointModuleLoader = () => Promise<RouteModule>;
-// export type RouteLoaderLoader = () => Promise<LoaderInternal>;
+export type ContentModuleLoader = () => ValueOrPromise<ContentModule>;
+export type EndpointModuleLoader = () => ValueOrPromise<RouteModule>;
+// export type RouteLoaderLoader = () => ValueOrPromise<LoaderInternal>;
 export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader; //| RouteLoaderLoader;
 export type MenuModuleLoader = () => Promise<MenuModule>;
 
 export type RouteLoaderInfo = [qrl: string, expires: number, live?: true];
-/** @public */
-export type RouteData =
-  // SSR side
-  | [
-      routeName: string,
-      moduleLoaders: ModuleLoader[],
-      // , routeLoaderModules: ModuleLoader[]
-    ]
-  // Client side
-  | [
-      routeName: string,
-      moduleLoaders: ModuleLoader[],
-      // routeLoaderModules: ModuleLoader[],
-      /** The actual src/routes pathname, not rewritten */
-      originalPathname: string,
-      /** The bundles that contain the loaders */
-      routeBundleNames: string[],
-    ];
 
-export const enum RouteDataProp {
-  RouteName,
-  ModuleLoaders,
-  // RouteLoaderModules,
-  OriginalPathname,
-  RouteBundleNames,
-}
-
-/** @public */
-export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
-
-export const enum MenuDataProp {
-  Pathname,
-  MenuLoader,
+/**
+ * A nested route trie structure. The root represents `/` and each level represents a URL segment.
+ *
+ * Keys starting with `_` are metadata; all other keys are child route segments.
+ *
+ * - Use `_W` as the key for a single dynamic segment (param); `_P` on that node names the param.
+ * - Use `_A` as the key for a rest/catch-all segment; `_P` on that node names the param.
+ * - For infix params like `pre[slug]post`, use `_W` with `_0` (prefix) and `_9` (suffix).
+ * - Use `_M` for an array of group (pathless layout) nodes, sorted by group name.
+ *
+ * When matching, exact segments are tried first (case-insensitive), then `_W` (with optional
+ * prefix/suffix), then `_A`. When no route matches, the closest `_E` (error.tsx) or `_4` (404.tsx)
+ * loader in the ancestor chain is used to render the error page.
+ *
+ * @public
+ */
+export interface RouteData {
+  /** This node's layout loader (single). Runtime accumulates these during trie traversal. */
+  _L?: ContentModuleLoader;
+  /**
+   * This node's index/page loader. Single = normal (runtime prepends gathered _L). Array = override
+   * (layout stop / named layout — IS the complete chain).
+   */
+  _I?: ContentModuleLoader | ModuleLoader[];
+  /** Rewrite/goto target path. Matcher re-walks trie from root using this path's keys. */
+  _G?: string;
+  /** The JS bundle names for this route (SSR only) */
+  _B?: string[];
+  /** The not-found (404) module loader for this subtree */
+  _4?: ContentModuleLoader;
+  /** The error page module loader for this subtree (error.tsx, takes precedence over _4) */
+  _E?: ContentModuleLoader;
+  /** The parameter name when this node is reached via `_W` or `_A` from the parent */
+  _P?: string;
+  /** Prefix for infix params (e.g. "pre" for `pre[slug]post`) — only on `_W` nodes */
+  _0?: string;
+  /** Suffix for infix params (e.g. "post" for `pre[slug]post`) — only on `_W` nodes */
+  _9?: string;
+  /** Group (pathless layout) nodes merged into this level, sorted by group name */
+  _M?: RouteData[];
+  /** Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal. */
+  _N?: MenuModuleLoader;
+  /** Child route segments (any key not starting with `_`) */
+  [part: string]:
+    | RouteData
+    | RouteData[]
+    | ModuleLoader[]
+    | ContentModuleLoader
+    | MenuModuleLoader
+    | string[]
+    | string
+    | undefined;
 }
 
 /**
@@ -300,12 +336,13 @@ export type QwikCityPlan = QwikRouterConfig;
 
 /** @public */
 export interface QwikRouterConfig {
-  readonly routes: RouteData[];
+  readonly routes: RouteData;
   readonly serverPlugins?: RouteModule[];
   readonly basePathname?: string;
-  readonly menus?: MenuData[];
   readonly trailingSlash?: boolean;
   readonly cacheModules?: boolean;
+  /** When true, return null instead of rendering the 404 page, letting the adapter handle it */
+  readonly fallthrough?: boolean;
 }
 
 /** @public */
@@ -313,26 +350,70 @@ export declare type PathParams = Record<string, string>;
 
 export type ContentModule = PageModule | LayoutModule;
 
+/** @public */
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
-export type LoadedRoute = [
-  routeName: string,
-  params: PathParams,
-  mods: (RouteModule | ContentModule)[],
-  menu: ContentMenu | undefined,
-  routeBundleNames: string[] | undefined,
-];
+/**
+ * The eTag export type: a static string or a function receiving DocumentHeadProps.
+ *
+ * @public
+ */
+export type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);
 
-export const enum LoadedRouteProp {
-  RouteName,
-  Params,
-  Mods,
-  Menu,
-  RouteBundleNames,
+/**
+ * The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR
+ * caching.
+ *
+ * - `true`: use the default cache key `status|eTag|pathname`
+ * - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
+ *
+ * @public
+ */
+export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+
+/**
+ * The value shape returned by a routeConfig export (object form or function return).
+ *
+ * @public
+ */
+export interface RouteConfigValue {
+  readonly head?: DocumentHeadValue;
+  readonly eTag?: ContentModuleETag;
+  readonly cacheKey?: CacheKeyFn;
+}
+
+/**
+ * Unified route configuration export. Groups head, eTag, and cacheKey with the same resolution
+ * rules as DocumentHead: can be a static object or a function receiving DocumentHeadProps.
+ *
+ * When a module exports `routeConfig`, the separate `head`, `eTag`, and `cacheKey` exports are
+ * ignored for that module.
+ *
+ * @public
+ */
+export type RouteConfig = RouteConfigValue | ((props: DocumentHeadProps) => RouteConfigValue);
+
+/** The route to render */
+export interface LoadedRoute {
+  /** The canonical path of the route, e.g. `/products/[id]` */
+  $routeName$: string;
+  /** The route parameters, e.g. `{ id: '123' }` */
+  $params$: PathParams;
+  /** The modules associated with this route (on 404, contains only the error component) */
+  $mods$: (RouteModule | ContentModule)[];
+  /** The menu associated with this route */
+  $menu$?: ContentMenu | undefined;
+  /** The bundle names for this route */
+  $routeBundleNames$?: string[] | undefined;
+  /** Whether this route is a not-found (404) route */
+  $notFound$?: boolean;
+  /** The error module loader (nearest _E ancestor), for rendering ServerErrors */
+  $errorLoader$?: ContentModuleLoader;
 }
 
 export interface EndpointResponse {
   status: number;
+  statusMessage?: string;
   loaders: Record<string, unknown>;
   loadersSerializationStrategy: Map<string, SerializationStrategy>;
   formData?: FormData;
@@ -369,7 +450,7 @@ export interface QwikRouterEnvData {
   ev: RequestEvent;
   params: PathParams;
   response: EndpointResponse;
-  loadedRoute: LoadedRoute | null;
+  loadedRoute: LoadedRoute;
 }
 
 /** @public The server data that is provided by Qwik Router during SSR rendering. It can be retrieved with `useServerData(key)` in the server, but it is not available in the client. */

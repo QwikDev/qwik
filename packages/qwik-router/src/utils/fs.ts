@@ -192,19 +192,9 @@ export function isEntryName(extlessName: string) {
 }
 
 export function isErrorName(extlessName: string) {
-  return /^[45][0-9]{2}$/.test(extlessName);
+  return extlessName === 'error' || extlessName === '404';
 }
 
 export function isGroupedLayoutName(dirName: string, warn = true) {
-  if (dirName.startsWith('__')) {
-    if (warn) {
-      console.warn(
-        `Grouped (pathless) layout "${dirName}" should use the "(${dirName.slice(
-          2
-        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future versions.`
-      );
-    }
-    return true;
-  }
   return dirName.startsWith('(') && dirName.endsWith(')');
 }

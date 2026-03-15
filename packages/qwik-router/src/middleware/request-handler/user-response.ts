@@ -39,7 +39,7 @@ export interface QwikRouterRun<T> {
 
 export function runQwikRouter<T>(
   serverRequestEv: ServerRequestEvent<T>,
-  loadedRoute: LoadedRoute | null,
+  loadedRoute: LoadedRoute,
   requestHandlers: RequestHandler<any>[],
   rebuildRouteInfo: RebuildRouteInfoInternal,
   basePathname = '/'

@@ -11,6 +11,7 @@ export { AbortMessage, RedirectMessage } from './redirect-handler';
 export { RewriteMessage } from './rewrite-handler';
 
 export { RequestEvShareQData } from './request-event';
+export { clearSsrCache } from './etag';
 export { _TextEncoderStream_polyfill } from './polyfill';
 
 export type {

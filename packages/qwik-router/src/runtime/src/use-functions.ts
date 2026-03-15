@@ -9,6 +9,7 @@ import {
 import {
   ContentContext,
   DocumentHeadContext,
+  HttpStatusContext,
   RouteActionContext,
   RouteLocationContext,
   RouteNavigateContext,
@@ -22,6 +23,9 @@ import type {
   RouteLocation,
   RouteNavigate,
 } from './types';
+
+/** @public */
+export const useHttpStatus = () => useContext(HttpStatusContext).value;
 
 /** @public */
 export const useContent = () => useContext(ContentContext);

@@ -4,14 +4,14 @@
 
 ```ts
 
-import type { AsyncSignal } from '@qwik.dev/core/internal';
+import type { AsyncSignal } from '@qwik.dev/core';
 import { Component } from '@qwik.dev/core';
 import { Cookie } from '@qwik.dev/router/middleware/request-handler';
 import { CookieOptions } from '@qwik.dev/router/middleware/request-handler';
 import { CookieValue } from '@qwik.dev/router/middleware/request-handler';
 import { DeferReturn } from '@qwik.dev/router/middleware/request-handler';
 import type { EnvGetter } from '@qwik.dev/router/middleware/request-handler';
-import { JSXOutput as JSXOutput_2 } from '@qwik.dev/core';
+import { JSXOutput } from '@qwik.dev/core';
 import { QRL } from '@qwik.dev/core';
 import { QRLEventHandlerMulti } from '@qwik.dev/core';
 import { QwikIntrinsicElements } from '@qwik.dev/core';
@@ -77,6 +77,9 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
     readonly submitted: boolean;
 };
 
+// @public
+export type CacheKeyFn = true | ((status: number, eTag: string, pathname: string) => string | null);
+
 // @public (undocumented)
 export interface ContentHeading {
     // (undocumented)
@@ -97,6 +100,12 @@ export interface ContentMenu {
     readonly text: string;
 }
 
+// @public
+export type ContentModuleETag = string | ((props: DocumentHeadProps) => string | null);
+
+// @public (undocumented)
+export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
+
 export { Cookie }
 
 export { CookieOptions }
@@ -105,7 +114,7 @@ export { CookieValue }
 
 // @public
 export const createRenderer: (getOptions: (options: RendererOptions) => {
-    jsx: JSXOutput_2;
+    jsx: JSXOutput;
     options: RendererOutputOptions;
 }) => Render;
 
@@ -125,6 +134,7 @@ export interface DocumentHeadProps extends RouteLocation {
     readonly head: ResolvedDocumentHead;
     // (undocumented)
     readonly resolveValue: ResolveSyncValue;
+    readonly status: number;
     // @deprecated (undocumented)
     readonly withLocale: <T>(fn: () => T) => T;
 }
@@ -190,7 +200,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)
-export const Form: <O, I>(input: FormProps<O, I>, key: string | null) => JSXOutput_2;
+export const Form: <O, I>(input: FormProps<O, I>, key: string | null) => JSXOutput;
 
 // @public (undocumented)
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
@@ -233,6 +243,12 @@ export const globalAction$: ActionConstructor;
 export const globalActionQrl: ActionConstructorQRL;
 
 // @public (undocumented)
+export type HttpErrorProps = {
+    status: number;
+    message: string;
+};
+
+// @public (undocumented)
 export type JSONObject = {
     [x: string]: JSONValue;
 };
@@ -267,11 +283,6 @@ export { Loader_2 as Loader }
 // @public (undocumented)
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
 
-// Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
-
 // @public (undocumented)
 type NavigationType_2 = 'initial' | 'form' | 'link' | 'popstate';
 export { NavigationType_2 as NavigationType }
@@ -282,18 +293,15 @@ export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T
 // Warning: (ae-forgotten-export) The symbol "RouteModule" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface PageModule extends RouteModule {
-    // (undocumented)
-    readonly default: unknown;
-    // Warning: (ae-forgotten-export) The symbol "ContentModuleHead" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
+export type PageModule = RouteModule & {
+    readonly default: (props: Record<string, never>) => JSXOutput;
+    readonly routeConfig?: RouteConfig;
     readonly head?: ContentModuleHead;
-    // (undocumented)
+    readonly eTag?: ContentModuleETag;
+    readonly cacheKey?: CacheKeyFn;
     readonly headings?: ContentHeading[];
-    // (undocumented)
     readonly onStaticGenerate?: StaticGenerateHandler;
-}
+};
 
 // @public (undocumented)
 export type PathParams = Record<string, string>;
@@ -328,10 +336,9 @@ export interface QwikRouterConfig {
     readonly basePathname?: string;
     // (undocumented)
     readonly cacheModules?: boolean;
+    readonly fallthrough?: boolean;
     // (undocumented)
-    readonly menus?: MenuData[];
-    // (undocumented)
-    readonly routes: RouteData[];
+    readonly routes: RouteData;
     // (undocumented)
     readonly serverPlugins?: RouteModule[];
     // (undocumented)
@@ -345,7 +352,7 @@ export interface QwikRouterEnvData {
     // Warning: (ae-forgotten-export) The symbol "LoadedRoute" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    loadedRoute: LoadedRoute | null;
+    loadedRoute: LoadedRoute;
     // (undocumented)
     params: PathParams;
     // Warning: (ae-forgotten-export) The symbol "EndpointResponse" needs to be exported by the entry point index.d.ts
@@ -424,18 +431,37 @@ export const routeAction$: ActionConstructor;
 // @internal (undocumented)
 export const routeActionQrl: ActionConstructorQRL;
 
-// Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type RouteData = [
-routeName: string,
-moduleLoaders: ModuleLoader[]
-] | [
-routeName: string,
-moduleLoaders: ModuleLoader[],
-originalPathname: string,
-routeBundleNames: string[]
-];
+// @public
+export type RouteConfig = RouteConfigValue | ((props: DocumentHeadProps) => RouteConfigValue);
+
+// @public
+export interface RouteConfigValue {
+    // (undocumented)
+    readonly cacheKey?: CacheKeyFn;
+    // (undocumented)
+    readonly eTag?: ContentModuleETag;
+    // (undocumented)
+    readonly head?: DocumentHeadValue;
+}
+
+// @public
+export interface RouteData {
+    _0?: string;
+    _4?: ContentModuleLoader;
+    _9?: string;
+    [part: string]: RouteData | RouteData[] | ModuleLoader[] | ContentModuleLoader | MenuModuleLoader | string[] | string | undefined;
+    _B?: string[];
+    _E?: ContentModuleLoader;
+    _G?: string;
+    // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
+    _I?: ContentModuleLoader | ModuleLoader[];
+    // Warning: (ae-forgotten-export) The symbol "ContentModuleLoader" needs to be exported by the entry point index.d.ts
+    _L?: ContentModuleLoader;
+    _M?: RouteData[];
+    // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
+    _N?: MenuModuleLoader;
+    _P?: string;
+}
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructor" needs to be exported by the entry point index.d.ts
 //
@@ -502,8 +528,6 @@ export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...a
 // @internal (undocumented)
 export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>, options?: ServerConfig) => ServerQRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "JSXOutput" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const ServiceWorkerRegister: (props: {
     nonce?: string;
@@ -539,6 +563,9 @@ export const useContent: () => ContentState;
 
 // @public
 export const useDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<ResolvedDocumentHead<FrontMatter>>;
+
+// @public (undocumented)
+export const useHttpStatus: () => HttpErrorProps;
 
 // @public (undocumented)
 export const useLocation: () => RouteLocation;

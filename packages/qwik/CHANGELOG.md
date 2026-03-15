@@ -1,5 +1,7 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.29
+
 ## 2.0.0-beta.28
 
 ### Minor Changes

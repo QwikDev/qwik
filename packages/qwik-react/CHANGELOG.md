@@ -1,5 +1,16 @@
 # @qwik.dev/react
 
+## 2.0.0-beta.29
+
+### Minor Changes
+
+- ✨ `reactify$(QwikComponent)` creates React components that can be used inside a `qwikify$(ReactComponent)` app. This allows Qwik-wrapped React apps to embed Qwik components, with full context sharing, interactivity and resumability. (by [@wmertens](https://github.com/wmertens) in [#8413](https://github.com/QwikDev/qwik/pull/8413))
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @qwik.dev/core@2.0.0-beta.29
+
 ## 2.0.0-beta.28
 
 ### Patch Changes

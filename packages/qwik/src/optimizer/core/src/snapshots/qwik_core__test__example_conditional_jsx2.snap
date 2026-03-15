@@ -1,0 +1,200 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 272
+expression: output
+---
+==INPUT==
+
+
+import {
+	$,
+	component$,
+	useSignal,
+} from "@qwik.dev/core";
+import { Child } from "./child";
+
+export const TestButton = component$(() => {
+	const counter = useSignal(0);
+
+	const handleClick$ = $(() => {
+		counter.value++;
+	});
+
+	return (
+		<>
+		<button
+			onClick$={$(async () => await handleClick$())}
+		>
+			click me
+		</button>
+		<br />
+		{counter.value > 1 && counter.value < 50 ? <div>condition true</div> : <div>condition false</div>}
+		<Child handleClick$={$(async () => await handleClick$())} />
+		</>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_uFrpfTnm3bA = ()=>import("./test.tsx_TestButton_component_uFrpfTnm3bA");
+export const TestButton = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_uFrpfTnm3bA, "TestButton_component_uFrpfTnm3bA"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAQA,OAAO,MAAM,2BAAa,mFAmBvB\"}")
+============================= test.tsx_TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4 = async ()=>{
+    const handleClick$ = _captures[0];
+    return await handleClick$();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";0EAkBe;;WAAY,MAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component_Fragment_button_q_e_click",
+  "hash": "hOLZleZIsX4",
+  "canonicalFilename": "test.tsx_TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4",
+  "path": "",
+  "extension": "js",
+  "parent": "TestButton_component_uFrpfTnm3bA",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    273,
+    305
+  ],
+  "captureNames": [
+    "handleClick$"
+  ]
+}
+*/
+============================= test.tsx_TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo = async ()=>{
+    const handleClick$ = _captures[0];
+    return await handleClick$();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2EAwByB;;WAAY,MAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component_Fragment_Child_handleClick",
+  "hash": "j4GCqunfTqo",
+  "canonicalFilename": "test.tsx_TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo",
+  "path": "",
+  "extension": "js",
+  "parent": "TestButton_component_uFrpfTnm3bA",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    471,
+    503
+  ],
+  "captureNames": [
+    "handleClick$"
+  ]
+}
+*/
+============================= test.tsx_TestButton_component_uFrpfTnm3bA.js (ENTRY POINT)==
+
+import { Child } from "./child";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const i_NHqweDZcSLc = ()=>import("./test.tsx_TestButton_component_handleClick_NHqweDZcSLc");
+const i_hOLZleZIsX4 = ()=>import("./test.tsx_TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4");
+const i_j4GCqunfTqo = ()=>import("./test.tsx_TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo");
+export const TestButton_component_uFrpfTnm3bA = ()=>{
+    const counter = useSignal(0);
+    const handleClick$ = /*#__PURE__*/ qrl(i_NHqweDZcSLc, "TestButton_component_handleClick_NHqweDZcSLc", [
+        counter
+    ]);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": /*#__PURE__*/ qrl(i_hOLZleZIsX4, "TestButton_component_Fragment_button_q_e_click_hOLZleZIsX4", [
+                handleClick$
+            ])
+        }, null, "click me", 2, null),
+        /*#__PURE__*/ _jsxSorted("br", null, null, null, 3, null),
+        counter.value > 1 && counter.value < 50 ? /*#__PURE__*/ _jsxSorted("div", null, null, "condition true", 3, "u6_0") : /*#__PURE__*/ _jsxSorted("div", null, null, "condition false", 3, "u6_1"),
+        /*#__PURE__*/ _jsxSorted(Child, {
+            handleClick$: /*#__PURE__*/ qrl(i_j4GCqunfTqo, "TestButton_component_Fragment_Child_handleClick_j4GCqunfTqo", [
+                handleClick$
+            ])
+        }, null, null, 2, "u6_2")
+    ], 1, "u6_3");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAQqC;IACpC,MAAM,UAAU,UAAU;IAE1B,MAAM;;;IAIN,qBACC;sBACA,WAAC;YACA,WAAQ;;;iBACR;sBAGD,WAAC;QACA,QAAQ,KAAK,GAAG,KAAK,QAAQ,KAAK,GAAG,mBAAK,WAAC,mBAAI,6CAAuB,WAAC,mBAAI;sBAC5E,WAAC;YAAM,YAAY;;;;;AAGrB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_uFrpfTnm3bA",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component",
+  "hash": "uFrpfTnm3bA",
+  "canonicalFilename": "test.tsx_TestButton_component_uFrpfTnm3bA",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    136,
+    520
+  ]
+}
+*/
+============================= test.tsx_TestButton_component_handleClick_NHqweDZcSLc.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const TestButton_component_handleClick_NHqweDZcSLc = ()=>{
+    const counter = _captures[0];
+    counter.value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4DAWwB;;IACtB,QAAQ,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestButton_component_handleClick_NHqweDZcSLc",
+  "entry": null,
+  "displayName": "test.tsx_TestButton_component_handleClick",
+  "hash": "NHqweDZcSLc",
+  "canonicalFilename": "test.tsx_TestButton_component_handleClick_NHqweDZcSLc",
+  "path": "",
+  "extension": "js",
+  "parent": "TestButton_component_uFrpfTnm3bA",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    200,
+    229
+  ],
+  "captureNames": [
+    "counter"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

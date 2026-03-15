@@ -1,0 +1,22 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 91
+expression: output
+---
+==INPUT==
+
+
+export { TestButton } from './test';
+export { topLevelHelper } from './test';
+
+============================= index_CCrpfTnm3CC.js ==
+
+
+export { TestButton } from './test_TestButton_AArpfTnm3AA';
+export { topLevelHelper } from './test_utils_BBrpfTnm3BB';
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/index.ts\"],\"names\":[],\"mappings\":\"AACA,SAAS,UAAU,QAAQ,SAAS;AACpC,SAAS,cAAc,QAAQ,SAAS\"}")
+== DIAGNOSTICS ==
+
+[]

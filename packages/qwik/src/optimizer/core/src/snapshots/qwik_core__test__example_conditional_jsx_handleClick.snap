@@ -1,0 +1,111 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 311
+expression: output
+---
+==INPUT==
+
+
+import {
+	$,
+	component$,
+	QRL,
+	useSignal,
+} from "@qwik.dev/core";
+
+export const Child = component$(({ handleClick$ }: { handleClick$: QRL<() => void> }) => {
+	return (
+		<>
+		<button
+			onClick$={$(async () => await handleClick$())}
+		>
+			child button
+		</button>
+		</>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_9GyF01GDKqw = ()=>import("./test.tsx_Child_component_9GyF01GDKqw");
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9GyF01GDKqw, "Child_component_9GyF01GDKqw"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAQA,OAAO,MAAM,sBAAQ,8EAUlB\"}")
+============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_0eneWRN6fcQ = ()=>import("./test.tsx_Child_component_Fragment_button_q_e_click_0eneWRN6fcQ");
+export const Child_component_9GyF01GDKqw = (_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": /*#__PURE__*/ qrl(i_0eneWRN6fcQ, "Child_component_Fragment_button_q_e_click_0eneWRN6fcQ", [
+            _rawProps
+        ])
+    }, null, "child button", 2, null), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAQgC;IAC/B,qBACC,gDACA,WAAC;QACA,WAAQ;;;aACR;AAKH\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_9GyF01GDKqw",
+  "entry": null,
+  "displayName": "test.tsx_Child_component",
+  "hash": "9GyF01GDKqw",
+  "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    104,
+    281
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Child_component_Fragment_button_q_e_click_0eneWRN6fcQ.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+export const Child_component_Fragment_button_q_e_click_0eneWRN6fcQ = async ()=>{
+    const _rawProps = _captures[0];
+    return await _rawProps.handleClick$();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qEAYe;;WAAY,MAAM,UAJE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_Fragment_button_q_e_click_0eneWRN6fcQ",
+  "entry": null,
+  "displayName": "test.tsx_Child_component_Fragment_button_q_e_click",
+  "hash": "0eneWRN6fcQ",
+  "canonicalFilename": "test.tsx_Child_component_Fragment_button_q_e_click_0eneWRN6fcQ",
+  "path": "",
+  "extension": "js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    203,
+    235
+  ],
+  "captureNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

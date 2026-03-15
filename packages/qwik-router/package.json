@@ -181,7 +181,7 @@
     "directory": "packages/qwik-router"
   },
   "scripts": {
-    "build": "vite build"
+    "build": "vite build --mode lib"
   },
   "sideEffects": false,
   "type": "module",

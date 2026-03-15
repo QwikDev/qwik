@@ -135,10 +135,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       await qwikPlugin.init();
 
       let target: QwikBuildTarget;
-      if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
-        target = 'ssr';
-      } else if (viteEnv.mode === 'lib') {
+      if (viteEnv.mode === 'lib') {
         target = 'lib';
+      } else if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
+        target = 'ssr';
       } else if (viteEnv.mode === 'test') {
         target = 'test';
       } else {

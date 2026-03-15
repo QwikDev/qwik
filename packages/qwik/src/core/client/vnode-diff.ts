@@ -904,6 +904,78 @@ function expectNoTextNode(diffContext: DiffContext) {
   }
 }
 
+function applyRef(
+  value: unknown,
+  element: QElement,
+  currentFile: string | null | undefined
+): boolean {
+  if (isSignal(value)) {
+    value.value = element;
+    return true;
+  }
+  if (typeof value === 'function') {
+    value(element);
+    return true;
+  }
+  if (value == null) {
+    return true;
+  }
+  throw qError(QError.invalidRefValue, [currentFile]);
+}
+
+function resolveSignalValue(
+  container: ClientContainer,
+  vHost: ElementVNode,
+  key: string,
+  signal: Signal<unknown>,
+  subscriptionData: SubscriptionData
+): unknown {
+  return retryOnPromise(() =>
+    trackSignalAndAssignHost(signal, vHost, key, container, subscriptionData)
+  );
+}
+
+function queueConstAttributePromise(
+  diffContext: DiffContext,
+  element: QElement,
+  key: string,
+  value: Promise<unknown>,
+  isSvg: boolean
+) {
+  const scopedStyleIdPrefix = diffContext.$scopedStyleIdPrefix$;
+  const attributePromise = value.then((resolvedValue) =>
+    directSetAttribute(
+      element,
+      key,
+      serializeAttribute(key, resolvedValue, scopedStyleIdPrefix),
+      isSvg
+    )
+  );
+  diffContext.$asyncAttributePromises$.push(attributePromise);
+}
+
+function applyConstInnerHtml(element: QElement, value: unknown) {
+  if (value) {
+    element.innerHTML = String(value);
+    element.setAttribute(QContainerAttr, QContainerValue.HTML);
+  }
+}
+
+function applyConstTextareaValue(
+  element: QElement,
+  value: unknown,
+  currentFile: string | null | undefined
+): boolean {
+  if (value && typeof value !== 'string') {
+    if (isDev) {
+      throw qError(QError.wrongTextareaValue, [currentFile, value]);
+    }
+    return true;
+  }
+  (element as HTMLTextAreaElement).value = escapeHTML((value as string) || '');
+  return true;
+}
+
 function createNewElement(
   diffContext: DiffContext,
   jsx: JSXNodeInternal,
@@ -911,6 +983,8 @@ function createNewElement(
   currentFile?: string | null
 ) {
   const element = createElementWithNamespace(diffContext, elementName) as QElement;
+  const vHost = diffContext.$vNewNode$ as ElementVNode;
+  const isSvg = (vHost.flags & VNodeFlags.NS_svg) !== 0;
   const { constProps } = jsx;
   if (constProps) {
     // Const props are, well, constant, they will never change!
@@ -919,75 +993,40 @@ function createNewElement(
     for (const key in constProps) {
       let value = constProps[key];
       if (isHtmlAttributeAnEventName(key)) {
-        registerEventHandlers(
-          key,
-          value,
-          element,
-          diffContext.$vNewNode$ as ElementVNode,
-          diffContext
-        );
+        registerEventHandlers(key, value, element, vHost, diffContext);
 
         continue;
       }
 
-      if (key === 'ref') {
-        if (isSignal(value)) {
-          value.value = element;
-          continue;
-        } else if (typeof value === 'function') {
-          value(element);
-          continue;
-        } else if (value == null) {
-          continue;
-        } else {
-          throw qError(QError.invalidRefValue, [currentFile]);
-        }
+      if (key === 'ref' && applyRef(value, element, currentFile)) {
+        continue;
       }
 
       if (isSignal(value)) {
-        const vHost = diffContext.$vNewNode$ as ElementVNode;
-        const signal = value as Signal<unknown>;
-        value = retryOnPromise(() =>
-          trackSignalAndAssignHost(
-            signal,
-            vHost,
-            key,
-            diffContext.$container$,
-            diffContext.$subscriptionData$.$const$
-          )
+        value = resolveSignalValue(
+          diffContext.$container$,
+          diffContext.$vNewNode$ as ElementVNode,
+          key,
+          value as Signal<unknown>,
+          diffContext.$subscriptionData$.$const$
         );
       }
 
       if (isPromise(value)) {
-        const vHost = diffContext.$vNewNode$ as ElementVNode;
-        const attributePromise = value.then((resolvedValue) =>
-          directSetAttribute(
-            element,
-            key,
-            serializeAttribute(key, resolvedValue, diffContext.$scopedStyleIdPrefix$),
-            (vHost.flags & VNodeFlags.NS_svg) !== 0
-          )
-        );
-        diffContext.$asyncAttributePromises$.push(attributePromise);
+        queueConstAttributePromise(diffContext, element, key, value, isSvg);
         continue;
       }
 
       if (key === dangerouslySetInnerHTML) {
-        if (value) {
-          element.innerHTML = String(value);
-          element.setAttribute(QContainerAttr, QContainerValue.HTML);
-        }
+        applyConstInnerHtml(element, value);
         continue;
       }
 
-      if (elementName === 'textarea' && key === 'value') {
-        if (value && typeof value !== 'string') {
-          if (isDev) {
-            throw qError(QError.wrongTextareaValue, [currentFile, value]);
-          }
-          continue;
-        }
-        (element as HTMLTextAreaElement).value = escapeHTML((value as string) || '');
+      if (
+        elementName === 'textarea' &&
+        key === 'value' &&
+        applyConstTextareaValue(element, value, currentFile)
+      ) {
         continue;
       }
 
@@ -995,7 +1034,7 @@ function createNewElement(
         element,
         key,
         serializeAttribute(key, value, diffContext.$scopedStyleIdPrefix$),
-        ((diffContext.$vNewNode$ as ElementVNode).flags & VNodeFlags.NS_svg) !== 0
+        isSvg
       );
     }
   }
@@ -1195,14 +1234,8 @@ const patchProperty = (
 
   if (key === 'ref') {
     const element = vnode.node;
-    if (isSignal(value)) {
-      value.value = element;
+    if (applyRef(value, element as QElement, currentFile)) {
       return;
-    } else if (typeof value === 'function') {
-      value(element);
-      return;
-    } else {
-      throw qError(QError.invalidRefValue, [currentFile]);
     }
   }
 
@@ -1217,14 +1250,12 @@ const patchProperty = (
     }
 
     const vHost = vnode as ElementVNode;
-    value = retryOnPromise(() =>
-      trackSignalAndAssignHost(
-        unwrappedSignal,
-        vHost,
-        key,
-        diffContext.$container$,
-        diffContext.$subscriptionData$.$var$
-      )
+    value = resolveSignalValue(
+      diffContext.$container$,
+      vHost,
+      key,
+      unwrappedSignal,
+      diffContext.$subscriptionData$.$var$
     );
   } else {
     if (currentEffect) {

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 6266
+assertion_line: 6345
 expression: output
 ---
 ==INPUT==
@@ -35,26 +35,26 @@ import { component$, server$, useStyle$, useTask$ } from '@qwik.dev/core';
 //
 const STYLES = '.class {}';
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
-    useStyleQrl(/*#__PURE__*/ inlinedQrl(STYLES, "s_i40UL9JyQpg"));
+    useStyleQrl(/*#__PURE__*/ inlinedQrl(STYLES, "Works_component_useStyle_i40UL9JyQpg"));
     const text = 'hola';
     useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
         const text = _captures[0];
         console.log(text);
-    }, "s_pjo5U5Ikll0", [
+    }, "Works_component_useTask_pjo5U5Ikll0", [
         text
     ]));
     return /*#__PURE__*/ _jsxSorted("div", {
         "q-e:click": serverQrl(/*#__PURE__*/ inlinedQrl(()=>{
             const text = _captures[0];
             return console.log('in server', text);
-        }, "s_q39lOt7xGrI", [
+        }, "Works_component_div_q_e_click_server_q39lOt7xGrI", [
             text
         ]))
     }, null, null, 2, "u6_0");
-}, "s_t45qL4vNGv0"));
+}, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AACA,SAAY,UAAU,EAAE,OAAO,EAAE,SAAS,EAAE,QAAQ,QAAQ,iBAAiB;;AAa7E,MAAM,SAAS;AAXf,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAChC,qCAAU;IACV,MAAM,OAAO;IACb,oCAAS;;QACR,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,aAAU,mCAAQ;;mBAAM,QAAQ,GAAG,CAAC,aAAa;;;;;AAExD,qBAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AACA,SAAY,UAAU,EAAE,OAAO,EAAE,SAAS,EAAE,QAAQ,QAAQ,iBAAiB;;AAa7E,MAAM,SAAS;AAXf,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAChC,qCAAU;IACV,MAAM,OAAO;IACb,oCAAS;;QACR,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,aAAU,mCAAQ;;mBAAM,QAAQ,GAAG,CAAC,aAAa;;;;;AAExD,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

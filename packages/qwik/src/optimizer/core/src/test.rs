@@ -6503,6 +6503,61 @@ export function qwikifyQrl(reactCmp$, opts) {
 	}
 }
 
+#[test]
+fn lib_full_names_shortened_in_prod() {
+	// Lib builds emit full symbol names (e.g. "Works_component_useTask_hash").
+	// When a prod build consumes this lib, names should be shortened to "s_hash".
+	let res = test_input!(TestInput {
+		code: r#"
+import { componentQrl, inlinedQrl, useTaskQrl, _captures } from '@qwik.dev/core';
+
+export const Works = componentQrl(inlinedQrl((props) => {
+	const text = 'hola';
+	useTaskQrl(inlinedQrl(() => {
+		const text = _captures[0];
+		console.log(text);
+	}, "Works_component_useTask_pjo5U5Ikll0", [text]));
+}, "Works_component_t45qL4vNGv0"));
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::Simplify,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// Prod should shorten to s_hash format
+	assert!(
+		combined_code.contains("s_pjo5U5Ikll0"),
+		"Prod build should shorten inner QRL name to s_hash.\nGenerated code:\n{}",
+		combined_code
+	);
+	assert!(
+		combined_code.contains("s_t45qL4vNGv0"),
+		"Prod build should shorten outer QRL name to s_hash.\nGenerated code:\n{}",
+		combined_code
+	);
+	// Full names should NOT appear in prod output
+	assert!(
+		!combined_code.contains("Works_component"),
+		"Prod build should not contain full symbol names.\nGenerated code:\n{}",
+		combined_code
+	);
+}
+
 impl TestInput {
 	pub fn default() -> Self {
 		Self {

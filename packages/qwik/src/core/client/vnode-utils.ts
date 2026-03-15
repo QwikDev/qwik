@@ -151,6 +151,7 @@ import {
   QScopedStyle,
   QSlot,
   QStyle,
+  QTargetElement,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
@@ -1063,8 +1064,16 @@ export const vnode_insertVirtualBefore = (
   vnode_unlinkFromOldParent(journal, newChildCurrentParent, parent, newChild);
 
   const parentIsDeleted = parent.flags & VNodeFlags.Deleted;
-  const domParentVNode = parentIsElement ? parent : vnode_getDomParentVNode(parent, false);
-  const parentNode = domParentVNode?.node;
+  const targetEl =
+    !parentIsElement && parent.flags & VNodeFlags.HasTargetElement
+      ? (parent.props?.[QTargetElement] as Element)
+      : null;
+  const domParentVNode = targetEl
+    ? null
+    : parentIsElement
+      ? parent
+      : vnode_getDomParentVNode(parent, false);
+  const parentNode = targetEl || domParentVNode?.node;
   const adjustedInsertBefore = vnode_findInsertBefore(journal, parent, insertBefore);
   const adjustedInsertBeforeNode = adjustedInsertBefore?.node ?? null;
   const isProjection = vnode_isProjection(newChild);
@@ -1296,8 +1305,13 @@ export const vnode_insertBefore = (
 };
 
 export const vnode_getDomParent = (vnode: VNode, includeProjection: boolean): Element | null => {
-  vnode = vnode_getDomParentVNode(vnode, includeProjection) as VNode;
-  return (vnode && (vnode as ElementVNode).node) as Element | null;
+  while (vnode && !vnode_isElementVNode(vnode)) {
+    if (vnode.flags & VNodeFlags.HasTargetElement) {
+      return vnode.props?.[QTargetElement] as Element;
+    }
+    vnode = (vnode.parent || (includeProjection ? vnode.slotParent : null))!;
+  }
+  return vnode ? (vnode as ElementVNode).node : null;
 };
 
 export const vnode_getDomParentVNode = (

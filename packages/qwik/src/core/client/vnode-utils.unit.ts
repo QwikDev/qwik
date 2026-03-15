@@ -49,7 +49,8 @@ describe('vnode_ensureElementInflated', () => {
 
     vnode_ensureElementInflated(container, vNode as ElementVNode);
 
-    const inflatedHandler = (element as QElement)._qDispatch?.['e:click']?.[0];
+    const qDispatch = (element as QElement)._qDispatch?.['e:click'];
+    const inflatedHandler = Array.isArray(qDispatch) ? qDispatch[0] : qDispatch;
     expect(inflatedHandler).toBeDefined();
     expect(inflatedHandler).not.toBe(eventQrl);
 

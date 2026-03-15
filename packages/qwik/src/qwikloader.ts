@@ -121,7 +121,12 @@ const dispatch = async (
   // The DOM renderer attaches qDispatchEvent to elements, call that if it exists. This bypasses QRL lookups.
   const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
   if (handlers) {
-    if (handlers.length) {
+    if (typeof handlers === 'function') {
+      const result = handlers(ev, element);
+      if (isPromise(result)) {
+        await result;
+      }
+    } else if (handlers.length) {
       for (let i = 0; i < handlers.length; i++) {
         const handler = handlers[i];
         const result = handler?.(ev, element);

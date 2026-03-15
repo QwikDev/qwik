@@ -27,25 +27,25 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
-export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,6CAYjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAYjB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 //
-const i_w0t0o3QMovU = ()=>import("./test.tsx_App_component_1_w0t0o3QMovU");
+const q_App_component_1_w0t0o3QMovU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
 //
 export const App_component_ckEPmXZlub0 = ({ count, rest: [I2, { I3, v1: [I4], I5 = v2, ...I6 }, I7 = v3, ...I8] })=>{
     const state = useStore({
         count: 0
     });
     const { rest: [C2, { C3, v1: [C4], C5 = v2, ...C6 }, C7 = v3, ...C8] } = foo();
-    return /*#__PURE__*/ qrl(i_w0t0o3QMovU, "App_component_1_w0t0o3QMovU", [
+    return q_App_component_1_w0t0o3QMovU.w([
         C2,
         C3,
         C4,
@@ -128,12 +128,12 @@ import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_App_component_div_q_e_click_mi4E1piTWe8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_q_e_click_mi4E1piTWe8"), "App_component_div_q_e_click_mi4E1piTWe8");
+const q_App_component_div_q_e_click_mi4E1piTWe8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_q_e_click_mi4E1piTWe8"), "App_component_div_q_e_click_mi4E1piTWe8");
 //
 export const App_component_1_w0t0o3QMovU = ()=>{
     const C2 = _captures[0], C3 = _captures[1], C4 = _captures[2], C5 = _captures[3], C6 = _captures[4], C7 = _captures[5], C8 = _captures[6], I2 = _captures[7], I3 = _captures[8], I4 = _captures[9], I5 = _captures[10], I6 = _captures[11], I7 = _captures[12], I8 = _captures[13], count = _captures[14], state = _captures[15];
     return /*#__PURE__*/ _jsxSorted("div", {
-        "q-e:click": _qrl_App_component_div_q_e_click_mi4E1piTWe8,
+        "q-e:click": q_App_component_div_q_e_click_mi4E1piTWe8,
         "q:ps": [
             count,
             state

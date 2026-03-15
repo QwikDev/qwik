@@ -1,4 +1,4 @@
-import { inlinedQrl, qrl as createQrl } from '../shared/qrl/qrl';
+import { inlinedQrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { OnRenderFn } from '../shared/component.public';
 import { newInvokeContextFromDOM, tryGetInvokeContext } from './use-core';
@@ -31,18 +31,26 @@ export const _hmr = (event: Event, element: Element) => {
     host = parent;
   }
   // Replace the component QRL with a fresh one to bypass caching
-  // TODO use a qrl registry to invalidate all QRLs from a parent
-  const oldQrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
-  if (oldQrl) {
-    const chunk = oldQrl.$chunk$!;
-    const now = Date.now();
-    const bustUrl = chunk.includes('?') ? chunk + '&t=' + now : chunk + '?t=' + now;
-    const freshQrl = createQrl(bustUrl, oldQrl.$symbol$) as QRLInternal<OnRenderFn<unknown>>;
-    freshQrl.$lazy$.$container$ = container;
-    freshQrl.$lazy$.dev = oldQrl.dev;
-    container.setHostProp(host, OnRenderProp, freshQrl);
+  // Maybe we should use a qrl registry to invalidate all QRLs from a parent?
+  const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
+  if (qrl) {
+    // This code is highly coupled to the internal implementation of QRL
+    const instance = (qrl as any).__proto__ as typeof qrl;
+    const lazy = instance.$lazy$;
+    const chunk = lazy.$chunk$!;
+    if (chunk) {
+      /**
+       * Bust the cache by appending a timestamp to the chunk URL. There's some chance that we
+       * import the same chunk multiple times, but that's not really a problem for segments.
+       */
+      const bustUrl = chunk.split('?')[0] + '?t=' + Date.now();
+      (lazy as any).$chunk$ = bustUrl;
+      lazy.$ref$ = undefined;
+      instance.resolved = undefined;
+      // Force rerender
+      markVNodeDirty(container, host as VNode, ChoreBits.COMPONENT);
+    }
   }
-  markVNodeDirty(container, host as VNode, ChoreBits.COMPONENT);
 };
 
 /** Sanitize path to a valid CSS-safe event name (no colons, dots, slashes). */

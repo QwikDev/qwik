@@ -24,12 +24,12 @@ export default component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CASZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CASZ\"}")
 ============================= test.tsx_test_component_div_div_q_e_hover_2iHUE4xtgo8.js (ENTRY POINT)==
 
 export const test_component_div_div_q_e_hover_2iHUE4xtgo8 = (_, _1, _2, index)=>console.log(index);
@@ -98,8 +98,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps"), "test_component_div_div_q_e_click_Mc600uqO6ps");
-const _qrl_test_component_div_div_q_e_hover_2iHUE4xtgo8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_hover_2iHUE4xtgo8"), "test_component_div_div_q_e_hover_2iHUE4xtgo8");
+const q_test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps"), "test_component_div_div_q_e_click_Mc600uqO6ps");
+const q_test_component_div_div_q_e_hover_2iHUE4xtgo8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_hover_2iHUE4xtgo8"), "test_component_div_div_q_e_hover_2iHUE4xtgo8");
 //
 export const test_component_LUXeXe0DQrg = ()=>{
     const loop = [
@@ -108,8 +108,8 @@ export const test_component_LUXeXe0DQrg = ()=>{
     ];
     return /*#__PURE__*/ _jsxSorted("div", null, null, loop.map((item, index)=>{
         return /*#__PURE__*/ _jsxSorted("div", {
-            "q-e:click": _qrl_test_component_div_div_q_e_click_Mc600uqO6ps,
-            "q-e:hover": _qrl_test_component_div_div_q_e_hover_2iHUE4xtgo8,
+            "q-e:click": q_test_component_div_div_q_e_click_Mc600uqO6ps,
+            "q-e:hover": q_test_component_div_div_q_e_hover_2iHUE4xtgo8,
             "q:ps": [
                 item,
                 index

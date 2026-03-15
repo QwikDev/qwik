@@ -24,20 +24,22 @@ export const FOO_MAPPING = {
 ============================= test.jsx ==
 
 import { componentQrl } from "@qwik.dev/core";
-import { inlinedQrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ _noopQrl("test_component_LUXeXe0DQrg");
 //
 export const FOO_MAPPING = {
     A: 1,
     B: 2,
     C: 3
 };
-const test_component_LUXeXe0DQrg = ()=>{
+q_test_component_LUXeXe0DQrg.s(()=>{
     return <>{FOO_MAPPING['A']}</>;
-};
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(test_component_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+});
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;mCAEwB;IAI1B,UAFc,WAAW,CADb,IACkB;AAG9B;AALA,6BAAe,iGAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;+BAEwB;IAI1B,UAFc,WAAW,CADb,IACkB;AAG9B;AALA,6BAAe,2CAKZ\"}")
 == DIAGNOSTICS ==
 
 []

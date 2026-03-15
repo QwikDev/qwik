@@ -34,9 +34,9 @@ expression: output
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
 //
-/*#__PURE__*/ componentQrl(_qrl_Cmp_component_4ryKJTOKjWE);
+/*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;cAEc\"}")
@@ -77,7 +77,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8"), "Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8");
+const q_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8"), "Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8");
 //
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
@@ -100,7 +100,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
             /*#__PURE__*/ _jsxSorted("button", {
                 "q:p": htmlSignal
             }, {
-                "q-e:click": _qrl_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8
+                "q-e:click": q_Cmp_component_div_div_button_q_e_click_kOQ2BgBVVS8
             }, null, 7, null)
         ], 1, null)
     ], 1, "u6_0");

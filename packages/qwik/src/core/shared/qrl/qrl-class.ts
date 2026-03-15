@@ -9,7 +9,7 @@ import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
-import { qDev, qSerialize, qTest } from '../utils/qdev';
+import { qDev, qTest } from '../utils/qdev';
 import { isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';
@@ -55,13 +55,24 @@ export type QRLInternalMethods<TYPE> = {
 
   $callFn$(withThis: unknown, ...args: QrlArgs<TYPE>): ValueOrPromise<QrlReturn<TYPE>>;
 
-  $withCaptures$(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE>;
+  /**
+   * "with captures" - Get a new QRL for these captures, reusing the lazy ref. It's an internal
+   * method but we need to have a stable name because it gets called in user code by the optimizer,
+   * after the $name$ props are mangled
+   */
+  w(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE>;
+
+  /**
+   * "set ref" - Set the ref of the QRL. It's an internal method but we need to have a stable name
+   * because it gets called in user code by the optimizer, after the $name$ props are mangled
+   */
+  s(ref: ValueOrPromise<TYPE>): void;
 
   /**
    * Needed for deserialization and importing. We don't always have the container while creating
    * qrls in async sections of code
    */
-  readonly $container$: Container | null | undefined;
+  readonly $container$?: Container | null;
 
   /** The shared lazy-loading reference */
   readonly $lazy$: LazyRef<TYPE>;
@@ -72,6 +83,7 @@ export type QRLInternalMethods<TYPE> = {
  * same chunk+symbol can share a single LazyRef, differing only in their captured scope.
  */
 export class LazyRef<TYPE = unknown> {
+  $container$: Container | undefined;
   // Don't allocate dev property immediately so that in prod we don't have this property
   dev?: QRLDev | null | undefined;
 
@@ -80,10 +92,15 @@ export class LazyRef<TYPE = unknown> {
     readonly $symbol$: string,
     readonly $symbolFn$: undefined | null | (() => Promise<Record<string, TYPE>>),
     public $ref$?: null | ValueOrPromise<TYPE>,
-    public $container$?: Container | null
+    container?: Container | null
   ) {
     if ($ref$) {
       this.$setRef$($ref$);
+    }
+    if (container && !$ref$ && typeof $chunk$ === 'string' && !$symbolFn$) {
+      // We only store the container if we're going to import the chunk
+      // Note that this container is not necessarily the same one as from the captures
+      this.$container$ = container;
     }
     if (qDev) {
       // this will be filled in later
@@ -178,15 +195,21 @@ class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE> {
   resolved: undefined | TYPE = undefined;
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: Readonly<unknown[]> | string | null;
+  $container$?: Container | null;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,
-    $captures$?: Readonly<unknown[]> | string | null
+    $captures$?: Readonly<unknown[]> | string | null,
+    container?: Container | null
   ) {
     super();
     if ($captures$) {
       this.$captures$ = $captures$;
-      if (qDev && qSerialize) {
+      if (typeof $captures$ === 'string') {
+        // We cannot rely on the container of the lazy ref, it may be missing or different
+        this.$container$ = container;
+      }
+      if (qDev) {
         if ($captures$ && typeof $captures$ === 'object') {
           for (const item of $captures$) {
             verifySerializable(item, 'Captured variable in the closure can not be serialized');
@@ -195,16 +218,27 @@ class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE> {
       }
     }
 
-    // If it is a plain value with deserialized or missing captures, resolve it immediately
-    if ($lazy$.$ref$ != null && typeof this.$captures$ !== 'string') {
+    // If it is plain value with deserialized or missing captures, resolve it immediately
+    // Otherwise we keep using the async path so we can wait for qrls to load
+    if ($lazy$.$ref$ != null && typeof this.$captures$ !== 'string' && !isPromise($lazy$.$ref$)) {
       // we can pass this instead of using getInstance because we know we are not the qrlFn
-      $resolve$(this);
+      this.resolved = bindCaptures(this, $lazy$.$ref$ as TYPE);
     }
   }
 
-  $withCaptures$(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE> {
-    const newQrl = new QRLClass<TYPE>(this.$lazy$, captures!);
+  w(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE> {
+    const newQrl = new QRLClass<TYPE>(
+      this.$lazy$,
+      captures!,
+      this.$captures$ ? this.$container$ : undefined
+    );
     return makeQrlFn(newQrl);
+  }
+
+  s(ref: ValueOrPromise<TYPE>) {
+    const qrl = getInstance(this);
+    qrl.$lazy$.$setRef$(ref);
+    qrl.resolved = bindCaptures(qrl, ref as TYPE);
   }
 
   // --- Getter proxies for backward compat ---
@@ -216,9 +250,6 @@ class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE> {
   }
   get $hash$(): string {
     return this.$lazy$.$hash$;
-  }
-  get $container$(): Container | null | undefined {
-    return this.$lazy$.$container$;
   }
   get dev(): QRLDev | null | undefined {
     return this.$lazy$.dev;
@@ -324,13 +355,13 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
 };
 
 // Wrap functions to provide their lexical scope
-const bindCaptures = <TYPE>(qrl: QRLClass<unknown>, fn: TYPE): TYPE => {
-  if (typeof fn !== 'function' || !qrl.$captures$) {
-    return fn;
+const bindCaptures = <TYPE>(qrl: QRLClass<unknown>, ref: TYPE): TYPE => {
+  if (typeof ref !== 'function' || !qrl.$captures$) {
+    return ref;
   }
   return function boundCaptures(this: unknown, ...args: QrlArgs<TYPE>) {
     ensureQrlCaptures(qrl);
-    return fn.apply(this, args);
+    return ref.apply(this, args);
   } as TYPE;
 };
 
@@ -340,10 +371,13 @@ const $resolve$ = <TYPE>(
 ): ValueOrPromise<void> => {
   const lazy = qrl.$lazy$;
 
-  if (container) {
-    lazy.$container$ = container;
-  } else if (!lazy.$container$) {
-    lazy.$container$ = tryGetInvokeContext()?.$container$ as Container;
+  const shouldDeserialize = typeof qrl.$captures$ === 'string';
+  if (shouldDeserialize && !qrl.$container$) {
+    if (container) {
+      qrl.$container$ = container;
+    } else {
+      qrl.$container$ = tryGetInvokeContext()?.$container$ as Container;
+    }
   }
 
   if (qrl.resolved) {
@@ -371,7 +405,7 @@ const $resolve$ = <TYPE>(
     );
   }
 
-  const capturedPromise = lazy.$container$ && ensureQrlCaptures(qrl);
+  const capturedPromise = shouldDeserialize && qrl.$container$ && ensureQrlCaptures(qrl);
 
   if (capturedPromise) {
     return capturedPromise.then(() => maybePromise);
@@ -401,7 +435,7 @@ export const createQRL = <TYPE>(
   container?: Container
 ): QRLInternal<TYPE> => {
   const lazy = new LazyRef<TYPE>(chunk, symbol, symbolFn, symbolRef, container);
-  const qrl = new QRLClass<TYPE>(lazy, captures!);
+  const qrl = new QRLClass<TYPE>(lazy, captures!, container);
 
   return makeQrlFn(qrl);
 };

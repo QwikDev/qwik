@@ -1,5 +1,5 @@
 import { $, isServer, useOn, useOnDocument, useSignal } from '@qwik.dev/core';
-import { Component, createContext, createElement, createRef } from 'react';
+import { Component, createContext, createElement, createRef, type ReactElement } from 'react';
 import type { QwikifyOptions, QwikifyProps } from './types';
 
 interface SlotState {
@@ -9,18 +9,31 @@ interface SlotState {
 }
 const SlotCtx = createContext<SlotState>({ scopeId: '' });
 
-export function main(slotEl: Element | undefined, scopeId: string, RootCmp: any, props: any) {
+export interface QwikProjectionState {
+  parentVNode: any; // VirtualVNode
+  container: any; // Container
+}
+export const QwikProjectionCtx = createContext<QwikProjectionState | null>(null);
+
+export function main(
+  slotEl: Element | undefined,
+  scopeId: string,
+  RootCmp: any,
+  props: any,
+  projectionState?: QwikProjectionState | null
+) {
   const newProps = getReactProps(props);
-  return mainExactProps(slotEl, scopeId, RootCmp, newProps);
+  return mainExactProps(slotEl, scopeId, RootCmp, newProps, projectionState);
 }
 
 export function mainExactProps(
   slotEl: Element | undefined,
   scopeId: string,
   RootCmp: any,
-  props: any
+  props: any,
+  projectionState?: QwikProjectionState | null
 ) {
-  return createElement(SlotCtx.Provider, {
+  let tree: ReactElement = createElement(SlotCtx.Provider, {
     value: {
       el: slotEl,
       scopeId,
@@ -31,6 +44,13 @@ export function mainExactProps(
       children: createElement(SlotElement, null),
     }),
   });
+  if (projectionState) {
+    tree = createElement(QwikProjectionCtx.Provider, {
+      value: projectionState,
+      children: tree,
+    });
+  }
+  return tree;
 }
 
 export class SlotElement extends Component {

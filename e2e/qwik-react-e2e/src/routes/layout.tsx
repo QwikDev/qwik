@@ -10,6 +10,9 @@ export default component$(() => {
       <Link data-testid="react-link" href="/react">
         react
       </Link>
+      <Link data-testid="reactify-link" href="/reactify">
+        reactify
+      </Link>
       <br />
       <main>
         <Slot />

@@ -17,12 +17,12 @@ expression: output
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,6BAAe,8CAEZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,6BAAe,2CAEZ\"}")
 ============================= test.tsx_test_component_button_q_e_click_qwSL5gM03T4.js (ENTRY POINT)==
 
 export const test_component_button_q_e_click_qwSL5gM03T4 = (_, _1, props)=>props.onClick$();
@@ -61,12 +61,12 @@ import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4");
+const q_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4");
 //
 export const test_component_LUXeXe0DQrg = (props)=>{
     return /*#__PURE__*/ _jsxSplit("button", {
         ..._getVarProps(props),
-        "q-e:click": _qrl_test_component_button_q_e_click_qwSL5gM03T4,
+        "q-e:click": q_test_component_button_q_e_click_qwSL5gM03T4,
         "q:p": props
     }, _getConstProps(props), null, 4, "u6_0");
 };

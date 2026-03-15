@@ -38,12 +38,12 @@ export default component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CAuBZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAuBZ\"}")
 ============================= test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -129,8 +129,8 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const i_SBPovprktLQ = ()=>import("./test.tsx_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ");
-const i_oBFNw2cK30o = ()=>import("./test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o");
+const q_test_component_div_div_span_button_q_e_click_oBFNw2cK30o = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_span_button_q_e_click_oBFNw2cK30o"), "test_component_div_div_span_button_q_e_click_oBFNw2cK30o");
+const q_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ"), "test_component_div_div_span_span_q_e_keydown_SBPovprktLQ");
 //
 export const test_component_LUXeXe0DQrg = ()=>{
     const matrix = useSignal([
@@ -145,10 +145,10 @@ export const test_component_LUXeXe0DQrg = ()=>{
     ]);
     return /*#__PURE__*/ _jsxSorted("div", null, null, matrix.value.map((row, i)=>{
         const rowIndex = i + 1;
-        const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = /*#__PURE__*/ qrl(i_oBFNw2cK30o, "test_component_div_div_span_button_q_e_click_oBFNw2cK30o", [
+        const test_component_div_div_span_button_q_e_click_oBFNw2cK30o = q_test_component_div_div_span_button_q_e_click_oBFNw2cK30o.w([
             rowIndex
         ]);
-        const test_component_div_div_span_span_q_e_keydown_SBPovprktLQ = /*#__PURE__*/ qrl(i_SBPovprktLQ, "test_component_div_div_span_span_q_e_keydown_SBPovprktLQ", [
+        const test_component_div_div_span_span_q_e_keydown_SBPovprktLQ = q_test_component_div_div_span_span_q_e_keydown_SBPovprktLQ.w([
             i
         ]);
         return /*#__PURE__*/ _jsxSorted("div", null, null, row.map((cell, j)=>{

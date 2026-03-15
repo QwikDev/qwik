@@ -21,12 +21,12 @@ export const App = component$((props) => {
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.ts"), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4");
+const q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.ts"), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4");
 //
 export const App_component_ckEPmXZlub0 = (props)=>{
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
-        "q-e:click": _qrl_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4
+        "q-e:click": q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4
     }, "Hello Qwik", 3, null), 3, "u6_0");
 };
 
@@ -86,12 +86,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0.ts"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0.ts"), "App_component_ckEPmXZlub0");
 //
-export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,6CAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAMhB\"}")
 == DIAGNOSTICS ==
 
 []

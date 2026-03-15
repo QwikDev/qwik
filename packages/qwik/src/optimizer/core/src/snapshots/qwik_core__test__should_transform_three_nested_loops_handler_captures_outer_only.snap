@@ -40,12 +40,12 @@ export default component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CAyBZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAyBZ\"}")
 ============================= test.tsx_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -86,7 +86,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const i_7fyCCEiYKFo = ()=>import("./test.tsx_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo");
+const q_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo"), "test_component_div_div_div_button_q_e_click_7fyCCEiYKFo");
 //
 export const test_component_LUXeXe0DQrg = ()=>{
     const data = useSignal([
@@ -113,7 +113,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
     ]);
     return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((plane, pi)=>{
         const planeId = 'p' + pi;
-        const test_component_div_div_div_button_q_e_click_7fyCCEiYKFo = /*#__PURE__*/ qrl(i_7fyCCEiYKFo, "test_component_div_div_div_button_q_e_click_7fyCCEiYKFo", [
+        const test_component_div_div_div_button_q_e_click_7fyCCEiYKFo = q_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo.w([
             planeId
         ]);
         return /*#__PURE__*/ _jsxSorted("div", null, null, plane.map((row, ri)=>/*#__PURE__*/ _jsxSorted("div", null, null, row.map((cell, ci)=>/*#__PURE__*/ _jsxSorted("button", {

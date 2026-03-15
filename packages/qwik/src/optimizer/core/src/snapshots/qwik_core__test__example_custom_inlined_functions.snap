@@ -36,20 +36,20 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { wrap, useEffect } from '@qwik.dev/core';
 //
-const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
-const _qrl_Lightweight_useMemo_UIcxVTQF1a8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Lightweight_useMemo_UIcxVTQF1a8"), "Lightweight_useMemo_UIcxVTQF1a8");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_Lightweight_useMemo_UIcxVTQF1a8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Lightweight_useMemo_UIcxVTQF1a8"), "Lightweight_useMemo_UIcxVTQF1a8");
 //
 export const useMemoQrl = (qrt)=>{
     useEffect(qrt);
 };
 export const useMemo$ = wrap(useMemoQrl);
-export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 export const Lightweight = (props)=>{
-    useMemoQrl(_qrl_Lightweight_useMemo_UIcxVTQF1a8);
+    useMemoQrl(q_Lightweight_useMemo_UIcxVTQF1a8);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,iBAAiB;;;;;AAE1E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,6CAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,iBAAiB;;;;;AAE1E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,0CAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAE\"}")
 ============================= test.tsx_App_component_useMemo_6Sc9KVki3Y0.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -118,17 +118,17 @@ import { useMemoQrl } from "./test";
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 //
-const i_6Sc9KVki3Y0 = ()=>import("./test.tsx_App_component_useMemo_6Sc9KVki3Y0");
-const i_w0t0o3QMovU = ()=>import("./test.tsx_App_component_1_w0t0o3QMovU");
+const q_App_component_1_w0t0o3QMovU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+const q_App_component_useMemo_6Sc9KVki3Y0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useMemo_6Sc9KVki3Y0"), "App_component_useMemo_6Sc9KVki3Y0");
 //
 export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
     });
-    useMemoQrl(/*#__PURE__*/ qrl(i_6Sc9KVki3Y0, "App_component_useMemo_6Sc9KVki3Y0", [
+    useMemoQrl(q_App_component_useMemo_6Sc9KVki3Y0.w([
         state
     ]));
-    return /*#__PURE__*/ qrl(i_w0t0o3QMovU, "App_component_1_w0t0o3QMovU", [
+    return q_App_component_1_w0t0o3QMovU.w([
         state
     ]);
 };

@@ -18,11 +18,11 @@ export const Header = component$(() => {
 
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Header_component_div_onClick_i7ekvWH3674 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_div_onClick_i7ekvWH3674"), "Header_component_div_onClick_i7ekvWH3674");
+const q_Header_component_div_onClick_i7ekvWH3674 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_div_onClick_i7ekvWH3674"), "Header_component_div_onClick_i7ekvWH3674");
 //
 export const Header_component_J4uyIhaBNR4 = ()=>{
     console.log("mount");
-    return <div onClick={_qrl_Header_component_div_onClick_i7ekvWH3674}/>;
+    return <div onClick={q_Header_component_div_onClick_i7ekvWH3674}/>;
 };
 
 
@@ -52,12 +52,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Header_component_J4uyIhaBNR4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4");
+const q_Header_component_J4uyIhaBNR4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4");
 //
-export const Header = /*#__PURE__*/ componentQrl(_qrl_Header_component_J4uyIhaBNR4);
+export const Header = /*#__PURE__*/ componentQrl(q_Header_component_J4uyIhaBNR4);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,uBAAS,gDAKnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,uBAAS,6CAKnB\"}")
 ============================= test.tsx_Header_component_div_onClick_i7ekvWH3674.tsx (ENTRY POINT)==
 
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx);

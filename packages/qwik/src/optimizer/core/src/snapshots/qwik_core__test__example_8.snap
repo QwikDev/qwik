@@ -23,10 +23,10 @@ export const Header = component$(() => {
 
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Header_component_1_2B8d0oH9ZWc = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_1_2B8d0oH9ZWc"), "Header_component_1_2B8d0oH9ZWc");
+const q_Header_component_1_2B8d0oH9ZWc = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_1_2B8d0oH9ZWc"), "Header_component_1_2B8d0oH9ZWc");
 //
 export const Header_component_J4uyIhaBNR4 = ()=>{
-    return _qrl_Header_component_1_2B8d0oH9ZWc;
+    return q_Header_component_1_2B8d0oH9ZWc;
 };
 
 
@@ -91,12 +91,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Header_component_J4uyIhaBNR4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4");
+const q_Header_component_J4uyIhaBNR4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4");
 //
-export const Header = /*#__PURE__*/ componentQrl(_qrl_Header_component_J4uyIhaBNR4);
+export const Header = /*#__PURE__*/ componentQrl(q_Header_component_J4uyIhaBNR4);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,uBAAS,gDASnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,uBAAS,6CASnB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -38,12 +38,12 @@ export const Child = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Child_component_9GyF01GDKqw = /*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
+const q_Child_component_9GyF01GDKqw = /*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
 //
-export const Child = /*#__PURE__*/ componentQrl(_qrl_Child_component_9GyF01GDKqw);
+export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,sBAAQ,+CAsBnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,sBAAQ,4CAsBnB\"}")
 ============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
 
 import { TestComponent } from "./testComponent";

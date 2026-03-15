@@ -52,12 +52,12 @@ import { qrl } from "@qwik.dev/core";
 //
 /*#__PURE__*/ qrl(()=>import("./test.tsx_auth_GU0aY5QCETY"), "auth_GU0aY5QCETY");
 //
-const _qrl_serverAuth_qVqpX2a0p9Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_serverAuth_qVqpX2a0p9Y"), "serverAuth_qVqpX2a0p9Y");
+const q_serverAuth_qVqpX2a0p9Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_serverAuth_qVqpX2a0p9Y"), "serverAuth_qVqpX2a0p9Y");
 //
-export const { onRequest, logout, getSession, signup } = serverAuthQrl(_qrl_serverAuth_qVqpX2a0p9Y);
+export const { onRequest, logout, getSession, signup } = serverAuthQrl(q_serverAuth_qVqpX2a0p9Y);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAMA,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,2CAetD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAMA,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,wCAetD\"}")
 ============================= test.tsx_auth_GU0aY5QCETY.js (ENTRY POINT)==
 
 import Facebook from "next-auth/providers/facebook";

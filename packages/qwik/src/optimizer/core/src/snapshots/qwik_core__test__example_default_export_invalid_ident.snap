@@ -47,25 +47,25 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl__404_component_zRvoWc98eqo = /*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_zRvoWc98eqo"), "_404_component_zRvoWc98eqo");
+const q__404_component_zRvoWc98eqo = /*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_zRvoWc98eqo"), "_404_component_zRvoWc98eqo");
 //
-export default /*#__PURE__*/ componentQrl(_qrl__404_component_zRvoWc98eqo);
+export default /*#__PURE__*/ componentQrl(q__404_component_zRvoWc98eqo);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,8CAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAKZ\"}")
 ============================= src/components/mongo/404.tsx__404_component_zRvoWc98eqo.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl__404_component_div_q_e_click_aMLnLWtkRhc = /*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_q_e_click_aMLnLWtkRhc"), "_404_component_div_q_e_click_aMLnLWtkRhc");
+const q__404_component_div_q_e_click_aMLnLWtkRhc = /*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_q_e_click_aMLnLWtkRhc"), "_404_component_div_q_e_click_aMLnLWtkRhc");
 //
 export const _404_component_zRvoWc98eqo = ()=>{
-    return <div q-e:click={_qrl__404_component_div_q_e_click_aMLnLWtkRhc}>
+    return <div q-e:click={q__404_component_div_q_e_click_aMLnLWtkRhc}>
 		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG0B;IACzB,QACE,IAAI,0DAAsC;EAC3C,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG0B;IACzB,QACE,IAAI,uDAAsC;EAC3C,EAAE;AAEJ\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",

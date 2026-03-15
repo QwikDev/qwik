@@ -88,18 +88,20 @@ export const enum VNodeFlags {
   HasIterationItems /* ******** */ = 0b00_001000000,
   InflatedIterationItems /* *** */ = 0b00_010000000,
   /// Marks if the vnode is a cursor (has priority set).
-  Cursor /* ******************* */ = 0b00_100000000,
+  Cursor /* ******************* */ = 0b000_100000000,
   /// Flags for Namespace
-  NAMESPACE_MASK /* *********** */ = 0b11_000000000,
-  NEGATED_NAMESPACE_MASK /* ** */ = ~0b11_000000000,
-  NS_html /* ****************** */ = 0b00_000000000, // http://www.w3.org/1999/xhtml
-  NS_svg /* ******************* */ = 0b01_000000000, // http://www.w3.org/2000/svg
-  NS_math /* ****************** */ = 0b10_000000000, // http://www.w3.org/1998/Math/MathML
+  NAMESPACE_MASK /* *********** */ = 0b011_000000000,
+  NEGATED_NAMESPACE_MASK /* ** */ = ~0b011_000000000,
+  NS_html /* ****************** */ = 0b000_000000000, // http://www.w3.org/1999/xhtml
+  NS_svg /* ******************* */ = 0b001_000000000, // http://www.w3.org/2000/svg
+  NS_math /* ****************** */ = 0b010_000000000, // http://www.w3.org/1998/Math/MathML
+  /// SSR: marks if the opening tag has been streamed (node is no longer updatable).
+  OpenTagEmitted /* *********** */ = 0b100_000000000,
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************** */ = 0b11_111111111,
-  shift /* ************* */ = 11,
+  mask /* ************** */ = 0b111_111111111,
+  shift /* ************* */ = 12,
 }
 
 export const enum VNodeProps {

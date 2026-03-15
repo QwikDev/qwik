@@ -327,7 +327,10 @@ export function executeCompute(
   container: Container
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.COMPUTE;
-  const target = container.getHostProp<WrappedSignalImpl<unknown> | null>(vNode, HOST_SIGNAL);
+  const target = container.getHostProp<WrappedSignalImpl<unknown> | null>(
+    vNode as VNode,
+    HOST_SIGNAL
+  );
   if (!target) {
     return;
   }

@@ -533,4 +533,187 @@ describe.each([
       </Component>
     );
   });
+
+  it('should handle client-side click after async resource SSR (resource-serialization pattern)', async () => {
+    const TestCmp = component$(() => {
+      const state = useStore({ count0: 0, count1: 0 });
+      const resourceSuccess = useResource$(async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        return 'Success';
+      });
+      const resourceFailure = useResource$(async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        throw new Error('failed');
+      });
+      const resourceTimeout = useResource$(
+        async () => {
+          await new Promise((r) => setTimeout(r, 100));
+          return 'Success';
+        },
+        { timeout: 10 }
+      );
+
+      return (
+        <>
+          <Resource
+            value={resourceSuccess}
+            onResolved={(data) => (
+              <button class="success r1" onClick$={() => state.count0++}>
+                PASS: {data} {state.count0}
+              </button>
+            )}
+            onRejected={(reason) => (
+              <button class="failure r1" onClick$={() => state.count1++}>
+                ERROR: {String(reason)} {state.count1}
+              </button>
+            )}
+          />
+          <Resource
+            value={resourceFailure}
+            onResolved={(data) => (
+              <button class="success r2" onClick$={() => state.count0++}>
+                PASS: {data} {state.count0}
+              </button>
+            )}
+            onRejected={(reason) => (
+              <button class="failure r2" onClick$={() => state.count1++}>
+                ERROR: {String(reason)} {state.count1}
+              </button>
+            )}
+          />
+          <Resource
+            value={resourceTimeout}
+            onResolved={(data) => (
+              <button class="success r3" onClick$={() => state.count0++}>
+                PASS: {data} {state.count0}
+              </button>
+            )}
+            onRejected={(reason) => (
+              <button class="failure r3" onClick$={() => state.count1++}>
+                ERROR: {String(reason)} {state.count1}
+              </button>
+            )}
+          />
+        </>
+      );
+    });
+
+    const { container } = await render(<TestCmp />, { debug });
+    // Log full HTML for debugging
+    // console.log('SSR HTML:', (container.element as any).innerHTML || container.element.outerHTML);
+    const r1 = container.element.querySelector('.r1') as HTMLElement;
+    const r2 = container.element.querySelector('.r2') as HTMLElement;
+    const r3 = container.element.querySelector('.r3') as HTMLElement;
+
+    expect(r1).toBeTruthy();
+    expect(r2).toBeTruthy();
+    expect(r3).toBeTruthy();
+    expect(r1.textContent).toContain('PASS: Success 0');
+    expect(r2.textContent).toContain('ERROR:');
+    expect(r3.textContent).toContain('ERROR:');
+
+    // Click button1 to trigger client-side re-render
+    await trigger(container.element, '.r1', 'click');
+    await waitForDrain(container);
+    expect(r1.textContent).toContain('PASS: Success 1');
+  });
+
+  it('should not duplicate content with async resource (simple)', async () => {
+    const TestCmp = component$(() => {
+      const resourceSuccess = useResource$(async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        return 'Success';
+      });
+      const resourceFailure = useResource$(async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        throw new Error('failed');
+      });
+
+      return (
+        <>
+          <Resource
+            value={resourceSuccess}
+            onResolved={(data) => <button class="success r1">PASS: {data}</button>}
+            onRejected={(reason) => <button class="failure r1">ERROR: {String(reason)}</button>}
+          />
+          <Resource
+            value={resourceFailure}
+            onResolved={(data) => <button class="success r2">PASS: {data}</button>}
+            onRejected={(reason) => <button class="failure r2">ERROR: {String(reason)}</button>}
+          />
+        </>
+      );
+    });
+
+    const { document } = await render(<TestCmp />, { debug });
+    const html = document.querySelector('body')?.innerHTML || (document as any).innerHTML || '';
+    const passCount = (html.match(/PASS:/g) || []).length;
+    const errorCount = (html.match(/ERROR:/g) || []).length;
+    expect(passCount).toBeLessThanOrEqual(1);
+    expect(errorCount).toBeLessThanOrEqual(1);
+  });
+
+  it('should not duplicate content with async resource (wrapped in parent component)', async () => {
+    const Inner = component$(() => {
+      const resource = useResource$(async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        return 'InnerValue';
+      });
+      return (
+        <Resource
+          value={resource}
+          onResolved={(data) => <span class="inner">INNER: {data}</span>}
+        />
+      );
+    });
+
+    const Outer = component$(() => {
+      return <Inner />;
+    });
+
+    const { document } = await render(<Outer />, { debug });
+    const html = document.querySelector('body')?.innerHTML || (document as any).innerHTML || '';
+    const innerCount = (html.match(/INNER:/g) || []).length;
+    expect(innerCount).toBeLessThanOrEqual(1);
+  });
+
+  it('should not duplicate content with async resource (nested components)', async () => {
+    const ChildWithResource = component$(() => {
+      const resource = useResource$(async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        return 'ChildValue';
+      });
+      return (
+        <Resource
+          value={resource}
+          onResolved={(data) => <span class="child-resolved">{data}</span>}
+        />
+      );
+    });
+
+    const ParentCmp = component$(() => {
+      const parentResource = useResource$(async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        return 'ParentSuccess';
+      });
+
+      return (
+        <>
+          <ChildWithResource />
+          <Resource
+            value={parentResource}
+            onResolved={(data) => <button class="parent-resolved">PASS: {data}</button>}
+            onRejected={(reason) => <button class="parent-error">ERROR: {String(reason)}</button>}
+          />
+        </>
+      );
+    });
+
+    const { document } = await render(<ParentCmp />, { debug });
+    const html = document.querySelector('body')?.innerHTML || (document as any).innerHTML || '';
+    const passCount = (html.match(/PASS:/g) || []).length;
+    const childCount = (html.match(/ChildValue/g) || []).length;
+    expect(passCount).toBeLessThanOrEqual(1);
+    expect(childCount).toBeLessThanOrEqual(1);
+  });
 });

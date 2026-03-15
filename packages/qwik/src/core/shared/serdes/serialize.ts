@@ -386,7 +386,7 @@ export class Serializer {
         this.output(TypeIds.Object, out.length ? out : 0);
       }
     } else if (this.$serializationContext$.$isDomRef$(value)) {
-      value.$ssrNode$.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+      value.$ssrNode$.vnodeData![0] |= VNodeDataFlag.SERIALIZE;
       this.output(TypeIds.RefVNode, value.$ssrNode$.id);
     } else if (value instanceof SignalImpl) {
       if (value instanceof SerializerSignalImpl) {

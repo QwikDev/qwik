@@ -1,4 +1,4 @@
-import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { ContextId } from '../use/use-context';
 import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
 import type { SerializationContext } from './serdes/index';
@@ -57,7 +57,8 @@ export interface Container {
   ): SerializationContext;
 }
 
-export type HostElement = VNode | ISsrNode;
+// SsrNode extends VirtualVNode extends VNode, so HostElement is just VNode.
+export type HostElement = VNode;
 
 export interface QElement extends Element {
   _qDispatch?: Record<string, EventHandler[]>;
@@ -148,7 +149,3 @@ export type SerializationStrategy =
   // TODO: implement this in the future
   // 'auto' |
   'never' | 'always';
-
-export const enum SsrNodeFlags {
-  Updatable = 1,
-}

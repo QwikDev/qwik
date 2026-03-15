@@ -92,6 +92,12 @@ export const scheduleEffects = (
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription.consumer;
+      if (!consumer || (consumer as any).nodeType !== undefined) {
+        // Orphaned subscription — consumer was an SsrNode that was never emitted during SSR.
+        // Deserialized as Document (VNode with empty ID). Skip — the subscription is stale.
+        // VNodes don't have nodeType; DOM nodes (Document) do.
+        return;
+      }
       const property = effectSubscription.property;
       isDev && assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
@@ -118,7 +124,7 @@ export const scheduleEffects = (
           if (isBrowser) {
             setNodePropData(consumer as VNode, property, payload);
           } else {
-            const node = consumer as ISsrNode;
+            const node = consumer as unknown as ISsrNode;
             let data = node.getProp(NODE_PROPS_DATA_KEY) as Map<string, NodeProp> | null;
             if (!data) {
               data = new Map();

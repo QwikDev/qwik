@@ -1,9 +1,8 @@
 import type { JSXNode } from '@qwik.dev/core';
 import {
   _isJSXNode as isJSXNode,
-  _EMPTY_ARRAY,
-  _EMPTY_OBJ,
   _EFFECT_BACK_REF,
+  _VirtualVNode as VirtualVNode,
 } from '@qwik.dev/core/internal';
 import { isDev } from '@qwik.dev/core/build';
 import {
@@ -17,65 +16,183 @@ import {
   QDefaultSlot,
   NON_SERIALIZABLE_MARKER_PREFIX,
   QBackRefs,
-  SsrNodeFlags,
   ChoreBits,
+  VNodeFlags,
 } from './qwik-copy';
 import type { ISsrNode, ISsrComponentFrame, JSXChildren, Props } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
 import type { VNodeData } from './vnode-data';
 
 /**
+ * Local prop keys for deferred data stored on SsrNodes during tree building. These use the
+ * NON_SERIALIZABLE_MARKER_PREFIX (':') so they won't be serialized.
+ */
+export const SSR_VAR_ATTRS = ':varAttrs';
+export const SSR_CONST_ATTRS = ':constAttrs';
+export const SSR_STYLE_SCOPED_ID = ':styleScopedId';
+export const SSR_INNER_HTML = ':innerHTML';
+export const SSR_HAS_MOVED_CAPTURES = ':hasMovedCaptures';
+export const SSR_TEXT = ':text';
+export const SSR_JSX = ':jsx';
+export const SSR_SCOPED_STYLE = ':scopedStyle';
+export const SSR_COMPONENT_FRAME = ':componentFrame';
+/** Serialized attribute HTML stored on SsrNode for streaming walker emission. */
+export const SSR_ATTR_HTML = ':attrHtml';
+/** Suspense fallback SsrNode stored on the boundary node. */
+export const SSR_SUSPENSE_FALLBACK = ':suspenseFallback';
+/** Suspense placeholder ID for OoO streaming. */
+export const SSR_SUSPENSE_PLACEHOLDER_ID = ':suspensePlaceholderId';
+/** Content SsrNode holding Suspense children built by sub-cursor. */
+export const SSR_SUSPENSE_CONTENT = ':suspenseContent';
+/** Whether Suspense children are ready (sub-cursor completed). */
+export const SSR_SUSPENSE_READY = ':suspenseReady';
+
+/**
+ * Lightweight content node for text, raw HTML, and comments stored in an SsrNode's orderedChildren.
+ * These don't need the full SsrNode infrastructure — just a kind tag and content string.
+ */
+export interface SsrContentChild {
+  kind: SsrNodeKind.Text | SsrNodeKind.RawHtml | SsrNodeKind.Comment;
+  content: string;
+  /** Original (unescaped) text length. Only set for Text kind. Used by vNodeData builder. */
+  textLength?: number;
+}
+
+/** A child entry in orderedChildren — either a full SsrNode or a lightweight content node. */
+export type SsrChild = ISsrNode | SsrContentChild;
+
+/** Type guard for SsrContentChild (has 'kind' and 'content' but not 'id'). */
+export function isSsrContentChild(child: SsrChild): child is SsrContentChild {
+  return 'kind' in child && !('id' in child);
+}
+
+/**
+ * The type of SsrNode for emission purposes.
+ *
+ * @internal
+ */
+export const enum SsrNodeKind {
+  /** HTML element (div, span, etc.) — has tagName */
+  Element = 0,
+  /** Text node */
+  Text = 1,
+  /** Virtual boundary (Fragment, InlineComponent, WrappedSignal, Awaited) */
+  Virtual = 2,
+  /** Qwik component — needs component execution */
+  Component = 3,
+  /** Slot projection */
+  Projection = 4,
+  /** Raw HTML */
+  RawHtml = 5,
+  /** Comment */
+  Comment = 6,
+  /** Suspense boundary */
+  Suspense = 7,
+}
+
+/**
  * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
  * purposes.
  *
- * Once deserialized the client, they will be turned to ElementVNodes.
+ * Once deserialized on the client, they will be turned to ElementVNodes.
+ *
+ * Extends VirtualVNode to share cursor infrastructure (dirty bits, dirtyChildren,
+ * parent/slotParent, sibling linked list).
  */
-export class SsrNode implements ISsrNode {
+export class SsrNode extends VirtualVNode implements ISsrNode {
   __brand__ = 'SsrNode' as const;
 
-  /**
-   * ID which the deserialize will use to retrieve the node.
-   *
-   * @param id - Unique id for the node.
-   */
+  /** ID which the deserialize will use to retrieve the node. */
   public id: string;
-  public flags: SsrNodeFlags;
-  public dirty = ChoreBits.NONE;
 
-  public children: ISsrNode[] | null = null;
+  /**
+   * VNode serialization data for this node's subtree. Set externally by
+   * vNodeData_createSsrNodeReference (during tree building) or by the streamer (future).
+   */
+  public vnodeData: VNodeData | null = null;
+
+  /** Source file location for dev mode diagnostics. */
+  public currentFile: string | null;
+
+  /** Component host node (for SSR component tracking). */
+  public parentComponent: ISsrNode | null;
+
+  /** HTML tag name for element nodes, null for virtual nodes. */
+  public tagName: string | null = null;
+
+  /** Node kind for emission dispatch. */
+  public nodeKind: SsrNodeKind = SsrNodeKind.Virtual;
+
+  /** Serializable attributes — standalone object, may be shared with vNodeData entry. */
   private attrs: Props;
 
-  /** Local props which don't serialize; */
+  /** Local props which don't serialize (prefixed with NON_SERIALIZABLE_MARKER_PREFIX). */
   private localProps: Props | null = null;
 
-  get [_EFFECT_BACK_REF]() {
-    return this.getProp(QBackRefs);
-  }
+  private cleanupQueue: CleanupQueue;
+
+  /**
+   * Legacy children array for backward compatibility during migration. TODO: Remove once all
+   * consumers switch to VNode linked list traversal.
+   */
+  public children: ISsrNode[] | null = null;
+
+  /**
+   * Ordered children for streaming walker emission. Contains ALL children (elements, text, virtual
+   * nodes, raw HTML, comments) in document order. Only populated in treeOnly mode.
+   */
+  public orderedChildren: SsrChild[] | null = null;
 
   constructor(
-    public parentComponent: ISsrNode | null,
+    parentComponent: ISsrNode | null,
     id: string,
-    private attributesIndex: number,
-    private cleanupQueue: CleanupQueue,
-    public vnodeData: VNodeData,
-    public currentFile: string | null
+    attrs: Props,
+    cleanupQueue: CleanupQueue,
+    currentFile: string | null
   ) {
+    super(
+      null, // key
+      VNodeFlags.Virtual,
+      null, // parent
+      null, // previousSibling
+      null, // nextSibling
+      null, // props (used for cursor data like NODE_DIFF_DATA_KEY)
+      null, // firstChild
+      null // lastChild
+    );
+
     this.id = id;
-    this.flags = SsrNodeFlags.Updatable;
-    this.attrs =
-      this.attributesIndex >= 0 ? (this.vnodeData[this.attributesIndex] as Props) : _EMPTY_OBJ;
+    this.parentComponent = parentComponent;
+    this.cleanupQueue = cleanupQueue;
+    this.currentFile = currentFile;
+    this.dirty = ChoreBits.NONE;
+    this.attrs = attrs;
 
     this.parentComponent?.addChild(this);
+
+    // Override VNode's [_EFFECT_BACK_REF] field with getter/setter that delegates to
+    // serializable attrs (QBackRefs), so back refs are included in vnodeData serialization.
+    Object.defineProperty(this, _EFFECT_BACK_REF, {
+      get: () => this.getProp(QBackRefs),
+      set: (value: any) => {
+        if (value !== undefined) {
+          this.setProp(QBackRefs, value);
+        }
+      },
+      configurable: true,
+    });
 
     if (isDev && id.indexOf('undefined') != -1) {
       throw new Error(`Invalid SSR node id: ${id}`);
     }
   }
 
+  /** Updatable = opening tag not yet streamed */
+  get updatable(): boolean {
+    return !(this.flags & VNodeFlags.OpenTagEmitted);
+  }
+
   setProp(name: string, value: any): void {
-    if (this.attrs === _EMPTY_OBJ) {
-      this.setEmptyArrayAsVNodeDataAttributes();
-    }
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       (this.localProps ||= {})[name] = value;
     } else {
@@ -88,26 +205,17 @@ export class SsrNode implements ISsrNode {
     }
   }
 
-  private setEmptyArrayAsVNodeDataAttributes() {
-    if (this.attributesIndex >= 0) {
-      this.vnodeData[this.attributesIndex] = {};
-      this.attrs = this.vnodeData[this.attributesIndex] as Props;
-    } else {
-      // we need to insert a new empty array at index 1
-      // this can be inefficient, but it is only done once per node and probably not often
-      const newAttributesIndex = this.vnodeData.length > 1 ? 1 : 0;
-      this.vnodeData.splice(newAttributesIndex, 0, {});
-      this.attributesIndex = newAttributesIndex;
-      this.attrs = this.vnodeData[this.attributesIndex] as Props;
-    }
-  }
-
   getProp(name: string): any {
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       return this.localProps ? (this.localProps[name] ?? null) : null;
     } else {
       return this.attrs[name] ?? null;
     }
+  }
+
+  /** Returns the serializable attrs object. Used by the streamer to build vNodeData. */
+  getSerializableAttrs(): Props {
+    return this.attrs;
   }
 
   removeProp(name: string): void {
@@ -127,9 +235,17 @@ export class SsrNode implements ISsrNode {
     this.children.push(child);
   }
 
+  /** Add an ordered child for streaming walker emission (treeOnly mode). */
+  addOrderedChild(child: SsrChild): void {
+    if (!this.orderedChildren) {
+      this.orderedChildren = [];
+    }
+    this.orderedChildren.push(child);
+  }
+
   setTreeNonUpdatable(): void {
-    if (this.flags & SsrNodeFlags.Updatable) {
-      this.flags &= ~SsrNodeFlags.Updatable;
+    if (!(this.flags & VNodeFlags.OpenTagEmitted)) {
+      this.flags |= VNodeFlags.OpenTagEmitted;
       if (this.children) {
         for (const child of this.children) {
           (child as SsrNode).setTreeNonUpdatable();
@@ -138,13 +254,14 @@ export class SsrNode implements ISsrNode {
     }
   }
 
-  toString(): string {
+  override toString(): string {
     if (isDev) {
       let stringifiedAttrs = '';
       for (const key in this.attrs) {
         const value = this.attrs[key];
         stringifiedAttrs += `${key}=`;
-        stringifiedAttrs += `${typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*'}`;
+        stringifiedAttrs +=
+          typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*';
         stringifiedAttrs += ', ';
       }
       return `<SSRNode id="${this.id}" ${stringifiedAttrs} />`;
@@ -228,8 +345,9 @@ export class SsrComponentFrame implements ISsrComponentFrame {
 
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
     const children = mapApp_remove(this.slots, slotName, 0);
-    this.componentNode.setProp(slotName, projectionNode.id);
-    projectionNode.setProp(QSlotParent, this.componentNode.id);
+    // Store SsrNode references (resolved to IDs at serialization time in writeFragmentAttrs)
+    this.componentNode.setProp(slotName, projectionNode);
+    projectionNode.setProp(QSlotParent, this.componentNode);
     return children;
   }
 }

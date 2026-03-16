@@ -164,7 +164,7 @@ import { useStore } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 //
 const q_qrl_4294901766 = /*#__PURE__*/ _noopQrl("s_r1qAHX7Opp0");
-const q_qrl_4294901768 = /*#__PURE__*/ _noopQrl("s_k1L0DiPQV1I");
+const q_qrl_4294901768 = /*#__PURE__*/ _noopQrl("s_ddV1irobfWI");
 const q_s_P8oRQhHsurk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_1_P8oRQhHsurk"), "s_P8oRQhHsurk");
 const q_s_gDH1EtUWqBU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "s_gDH1EtUWqBU");
 const q_s_zM9okM0TYrA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA"), "s_zM9okM0TYrA");

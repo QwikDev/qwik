@@ -11,6 +11,7 @@ import child2 from "./child2.css?inline";
 import empty from "./empty.css?inline";
 import parent from "./parent.css?inline";
 import parent2 from "./parent2.css?inline";
+import { UseStylesParent } from "./use-styles-parent";
 
 export const Styles = component$(() => {
   const reload = useSignal(0);
@@ -48,6 +49,7 @@ export const StylesChildren = component$<{ v: number }>(({ v }) => {
       </div>
       <ConditionalSlotScopedStyleIssue1945 />
       <IssueScopedAndFineGrained />
+      <UseStylesParent />
     </div>
   );
 });

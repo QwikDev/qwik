@@ -1,0 +1,7 @@
+:root {
+  --use-styles-dedupe-marker: dedupe-ok;
+}
+
+.use-styles-dedupe-text {
+  color: rgb(12, 34, 56);
+}

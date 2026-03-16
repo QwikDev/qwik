@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+const USE_STYLES_DEDUPE_MARKER = "--use-styles-dedupe-marker: dedupe-ok";
+
 test.describe("styles", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/e2e/styles");
@@ -10,6 +12,27 @@ test.describe("styles", () => {
         expect(msg.text()).toEqual(undefined);
       }
     });
+  });
+
+  test("should dedupe identical inline styles imported across components", async ({
+    page,
+  }) => {
+    await expect(page.locator("#use-styles-dedupe")).toContainText(
+      "Inline styles fixture parent",
+    );
+    await expect(page.locator("#use-styles-dedupe")).toContainText(
+      "Inline styles fixture child",
+    );
+
+    const matchingStyles = await page
+      .locator("style")
+      .evaluateAll((elements, marker) => {
+        return elements
+          .filter((element) => element.textContent?.includes(marker))
+          .map((element) => element.getAttribute("q:style"));
+      }, USE_STYLES_DEDUPE_MARKER);
+
+    expect(matchingStyles).toHaveLength(1);
   });
 
   runTests();
@@ -42,7 +65,7 @@ test.describe("styles", () => {
       await expect(inline2).toHaveCSS("font-size", "40px");
 
       const el = await page.$$("[q\\:style]");
-      expect(el.length).toBe(9);
+      expect(el.length).toBe(10);
       await addChild.click();
       await expect(parent).toHaveClass(/count-11/);
 
@@ -57,7 +80,7 @@ test.describe("styles", () => {
       await expect(inline10).toHaveCSS("font-size", "40px");
 
       const el2 = await page.$$("[q\\:style]");
-      expect(el2.length).toBe(9);
+      expect(el2.length).toBe(10);
     });
 
     test("issue 1945 - conditional slot scoped style", async ({ page }) => {

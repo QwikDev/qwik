@@ -61,12 +61,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qrl } from "@qwik.dev/core";
 import { useStylesQrl } from "@qwik.dev/core";
 //
-const q_App_component_useStyles_1_xBK4W0ZKWe8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_1_xBK4W0ZKWe8"), "App_component_useStyles_1_xBK4W0ZKWe8");
 const q_App_component_useStyles_t35nSa5UV7U = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U");
+const q_style_css_TRu1FaIoUM0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_style_css_TRu1FaIoUM0"), "style_css_TRu1FaIoUM0");
 //
 export const App_component_ckEPmXZlub0 = ()=>{
     useStylesQrl(q_App_component_useStyles_t35nSa5UV7U);
-    useStylesQrl(q_App_component_useStyles_1_xBK4W0ZKWe8);
+    useStylesQrl(q_style_css_TRu1FaIoUM0);
 };
 
 
@@ -91,22 +91,22 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_App_component_useStyles_1_xBK4W0ZKWe8.js (ENTRY POINT)==
+============================= test.tsx_style_css_TRu1FaIoUM0.js (ENTRY POINT)==
 
 import css3 from "./style.css";
 //
-export const App_component_useStyles_1_xBK4W0ZKWe8 = css3;
+export const style_css_TRu1FaIoUM0 = css3;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;qDAQY\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;qCAQY\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_useStyles_1_xBK4W0ZKWe8",
+  "name": "style_css_TRu1FaIoUM0",
   "entry": null,
-  "displayName": "test.tsx_App_component_useStyles_1",
-  "hash": "xBK4W0ZKWe8",
-  "canonicalFilename": "test.tsx_App_component_useStyles_1_xBK4W0ZKWe8",
+  "displayName": "test.tsx_style_css",
+  "hash": "TRu1FaIoUM0",
+  "canonicalFilename": "test.tsx_style_css_TRu1FaIoUM0",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",

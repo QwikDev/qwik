@@ -74,9 +74,9 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
 
   // Shared nameCache so that $...$  property mangling is consistent across all Terser runs
   // (core.min.mjs, core.prod.mjs) and can later be reused for the server bundle.
-  // When noMangle or mangle=false (e.g. --no-mangle from pnpm), skip mangling.
+  // When mangle=false (--mangle=false), skip mangling.
   const nameCache: object = {};
-  const noMangle = config.noMangle || config.mangle === false;
+  const noMangle = config.mangle === false;
   const mangle = noMangle
     ? false
     : { toplevel: true, module: true, properties: { regex: MANGLE_PROPS_REGEX } };
@@ -256,7 +256,7 @@ async function submoduleCoreProduction(
   outPath: string,
   nameCache: object | undefined
 ) {
-  const noMangle = config.noMangle || config.mangle === false;
+  const noMangle = config.mangle === false;
   const mangle = noMangle
     ? false
     : { toplevel: true, module: true, properties: { regex: MANGLE_PROPS_REGEX } };

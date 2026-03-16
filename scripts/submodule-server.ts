@@ -93,7 +93,7 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
   if (!config.dev) {
     const serverMjs = join(config.distQwikPkgDir, 'server.mjs');
     const code = await readFile(serverMjs, 'utf-8');
-    const noMangle = config.noMangle || config.mangle === false;
+    const noMangle = config.mangle === false;
     if (nameCache && !noMangle) {
       // Apply property-only mangling with the same nameCache used for core so that $...$
       // property accesses in server.prod.mjs resolve to the same mangled names as in core.prod.mjs.

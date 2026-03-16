@@ -5742,6 +5742,42 @@ fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }
 
+fn get_segment_hash_by_ctx_name(output: &TransformOutput, ctx_name: &str) -> String {
+	let hashes: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.filter(|segment| segment.ctx_name.as_ref() == ctx_name)
+		.map(|segment| get_hash(segment.name.as_ref()))
+		.collect();
+	assert_eq!(
+		hashes.len(),
+		1,
+		"Expected exactly one segment for {}, got {:?}",
+		ctx_name,
+		hashes
+	);
+	hashes[0].clone()
+}
+
+fn get_segment_name_by_ctx_name(output: &TransformOutput, ctx_name: &str) -> String {
+	let names: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.filter(|segment| segment.ctx_name.as_ref() == ctx_name)
+		.map(|segment| segment.name.to_string())
+		.collect();
+	assert_eq!(
+		names.len(),
+		1,
+		"Expected exactly one segment for {}, got {:?}",
+		ctx_name,
+		names
+	);
+	names[0].clone()
+}
+
 struct TestInput {
 	pub code: String,
 	pub filename: String,
@@ -6010,6 +6046,231 @@ export const Test = component$(() => {
 			module.path
 		);
 	}
+}
+
+#[test]
+fn import_backed_qrl_hash_matches_across_relative_import_paths() {
+	let code = r#"
+import { $ } from '@qwik.dev/core';
+import { name } from './utils/value';
+
+export const value = $(name);
+"#;
+
+	let first = test_input!(TestInput {
+		code: code.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let second = test_input!(TestInput {
+		code: code.replace("./utils/value", "../shared/../utils/value"),
+		filename: "src/routes/nested/b.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_eq!(
+		get_segment_hash_by_ctx_name(&first, "$"),
+		get_segment_hash_by_ctx_name(&second, "$")
+	);
+}
+
+#[test]
+fn import_backed_qrl_hash_matches_namespace_member() {
+	let named = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from './utils/value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let namespace = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+export const value = $(ns.name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_eq!(
+		get_segment_hash_by_ctx_name(&named, "$"),
+		get_segment_hash_by_ctx_name(&namespace, "$")
+	);
+}
+
+#[test]
+fn import_backed_qrl_hash_normalizes_backslashes_and_non_relative_paths() {
+	let relative = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '.\\utils\\value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let relative_normalized = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from './utils/value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let package_import = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '@pkg/utils/value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_eq!(
+		get_segment_hash_by_ctx_name(&relative, "$"),
+		get_segment_hash_by_ctx_name(&relative_normalized, "$")
+	);
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&relative_normalized, "$"),
+		get_segment_hash_by_ctx_name(&package_import, "$")
+	);
+}
+
+#[test]
+fn import_backed_qrl_default_import_uses_import_based_prefix() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import css from './style.css';
+
+export const value = $(css);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let name = get_segment_name_by_ctx_name(&output, "$");
+	assert!(
+		name.starts_with("style_css_"),
+		"Expected import-based prefix, got {}",
+		name
+	);
+}
+
+#[test]
+fn import_backed_qrl_hash_falls_back_for_unsupported_paths() {
+	let base = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+export const value = $(ns.name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let nested_member = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+export const value = $(ns.name.deep);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let computed_member = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+const key = 'name';
+export const value = $(ns[key]);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let too_many_dotdots = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '../../../value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let too_many_dotdots_other_file = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '../../../value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/b.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&base, "$"),
+		get_segment_hash_by_ctx_name(&nested_member, "$")
+	);
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&base, "$"),
+		get_segment_hash_by_ctx_name(&computed_member, "$")
+	);
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&too_many_dotdots, "$"),
+		get_segment_hash_by_ctx_name(&too_many_dotdots_other_file, "$")
+	);
 }
 
 #[test]

@@ -97,6 +97,11 @@ struct PropAddContext {
 	spread_props_count: usize,
 }
 
+struct ImportQrlName {
+	display_name: String,
+	hash_seed: String,
+}
+
 #[allow(clippy::module_name_repetitions)]
 pub struct QwikTransform<'a> {
 	pub segments: Vec<Segment>,
@@ -338,7 +343,12 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
-	fn register_context_name(&mut self, custom_symbol: Option<Atom>) -> (Atom, Atom, Atom, u64) {
+	fn register_context_name(
+		&mut self,
+		custom_symbol: Option<Atom>,
+		display_name_override: Option<&str>,
+		hash_override: Option<&str>,
+	) -> (Atom, Atom, Atom, u64) {
 		if let Some(custom_symbol) = custom_symbol {
 			return (
 				custom_symbol.clone(),
@@ -347,10 +357,15 @@ impl<'a> QwikTransform<'a> {
 				0,
 			);
 		}
-		let mut display_name = self.stack_ctxt.join("_");
-		if self.stack_ctxt.is_empty() {
-			display_name += "s_";
-		}
+		let mut display_name = display_name_override
+			.map(ToOwned::to_owned)
+			.unwrap_or_else(|| {
+				let mut display_name = self.stack_ctxt.join("_");
+				if self.stack_ctxt.is_empty() {
+					display_name += "s_";
+				}
+				display_name
+			});
 		display_name = escape_sym(&display_name);
 		let first_char = display_name.chars().next();
 		if first_char.is_some_and(|c| c.is_ascii_digit()) {
@@ -369,12 +384,16 @@ impl<'a> QwikTransform<'a> {
 			write!(display_name, "_{}", index).unwrap();
 		}
 		let mut hasher = DefaultHasher::new();
-		let local_file_name = self.options.path_data.rel_path.to_slash_lossy();
-		if let Some(scope) = self.options.scope {
-			hasher.write(scope.as_bytes());
+		if let Some(hash_override) = hash_override {
+			hasher.write(hash_override.as_bytes());
+		} else {
+			let local_file_name = self.options.path_data.rel_path.to_slash_lossy();
+			if let Some(scope) = self.options.scope {
+				hasher.write(scope.as_bytes());
+			}
+			hasher.write(local_file_name.as_bytes());
+			hasher.write(display_name.as_bytes());
 		}
-		hasher.write(local_file_name.as_bytes());
-		hasher.write(display_name.as_bytes());
 		let hash = hasher.finish();
 		let hash64 = base64(hash);
 
@@ -393,6 +412,79 @@ impl<'a> QwikTransform<'a> {
 			Atom::from(hash64),
 			hash,
 		)
+	}
+
+	fn get_import_qrl_name(&self, expr: &ast::Expr) -> Option<ImportQrlName> {
+		let (source, import_name, display_name) = match expr {
+			ast::Expr::Ident(ident) => {
+				let import = self.options.global_collect.imports.get(&id!(ident))?;
+				let source = self.resolve_import_hash_path(import.source.as_ref())?;
+				(
+					source.clone(),
+					import.specifier.to_string(),
+					self.create_import_display_name(&source, import.specifier.as_ref()),
+				)
+			}
+			ast::Expr::Member(member) => {
+				let ast::Expr::Ident(root_ident) = member.obj.as_ref() else {
+					return None;
+				};
+				let import = self.options.global_collect.imports.get(&id!(root_ident))?;
+				if import.kind != ImportKind::All {
+					return None;
+				}
+				let ast::MemberProp::Ident(import_name) = &member.prop else {
+					return None;
+				};
+				let source = self.resolve_import_hash_path(import.source.as_ref())?;
+				(
+					source.clone(),
+					import_name.sym.to_string(),
+					self.create_import_display_name(&source, import_name.sym.as_ref()),
+				)
+			}
+			_ => return None,
+		};
+
+		Some(ImportQrlName {
+			display_name,
+			hash_seed: format!("{}#{}", source, import_name),
+		})
+	}
+
+	fn resolve_import_hash_path(&self, import_path: &str) -> Option<String> {
+		let normalized = import_path.replace('\\', "/");
+		if !normalized.starts_with('.') {
+			return Some(normalized);
+		}
+
+		let base_dir = self.options.path_data.rel_dir.to_slash_lossy();
+		let mut segments: Vec<&str> = base_dir
+			.split('/')
+			.filter(|segment| !segment.is_empty())
+			.collect();
+
+		for segment in normalized.split('/') {
+			match segment {
+				"" | "." => {}
+				".." => {
+					segments.pop()?;
+				}
+				segment => segments.push(segment),
+			}
+		}
+
+		Some(segments.join("/"))
+	}
+
+	fn create_import_display_name(&self, source: &str, import_name: &str) -> String {
+		let path_tail = source.rsplit('/').next().unwrap_or(source);
+		let base_name = escape_sym(path_tail);
+		if import_name == "default" {
+			base_name
+		} else {
+			format!("{}_{}", base_name, escape_sym(import_name))
+		}
 	}
 
 	/** Parse inlinedQrl() (from library code) */
@@ -743,14 +835,20 @@ impl<'a> QwikTransform<'a> {
 		} else {
 			first_arg
 		};
+		let import_qrl_name = self.get_import_qrl_name(&first_arg);
 
 		// Library mode: inline wrapping with scope capture but no segment extraction.
 		if matches!(self.options.mode, EmitMode::Lib) {
 			let can_capture = can_capture_scope(&first_arg);
 			let first_arg_span = first_arg.span();
 
-			let (symbol_name, display_name, hash, _segment_hash) =
-				self.register_context_name(custom_symbol);
+			let (symbol_name, display_name, hash, _segment_hash) = self.register_context_name(
+				custom_symbol,
+				import_qrl_name
+					.as_ref()
+					.map(|info| info.display_name.as_ref()),
+				import_qrl_name.as_ref().map(|info| info.hash_seed.as_ref()),
+			);
 
 			// Collect descendent idents for scope analysis
 			let descendent_idents = {
@@ -823,8 +921,13 @@ impl<'a> QwikTransform<'a> {
 		let can_capture = can_capture_scope(&first_arg);
 		let first_arg_span = first_arg.span();
 
-		let (symbol_name, display_name, hash, segment_hash) =
-			self.register_context_name(custom_symbol);
+		let (symbol_name, display_name, hash, segment_hash) = self.register_context_name(
+			custom_symbol,
+			import_qrl_name
+				.as_ref()
+				.map(|info| info.display_name.as_ref()),
+			import_qrl_name.as_ref().map(|info| info.hash_seed.as_ref()),
+		);
 
 		// Collect descendent idents
 		let descendent_idents = {

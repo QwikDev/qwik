@@ -2,7 +2,6 @@
 const g = globalThis as any;
 export const qDev = g.qDev !== false;
 export const qInspector = g.qInspector === true;
-export const qSerialize = g.qSerialize !== false;
 export const qDynamicPlatform = g.qDynamicPlatform !== false;
 export const qTest = g.qTest === true;
 export const qRuntimeQrl = g.qRuntimeQrl === true;

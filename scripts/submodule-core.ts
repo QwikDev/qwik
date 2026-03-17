@@ -139,7 +139,6 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object> {
                 // their own build tools to define the global `qwikDev` to false
                 'globalThis.qDev': false,
                 'globalThis.qInspector': false,
-                'globalThis.qSerialize': false,
                 'globalThis.qDynamicPlatform': false,
                 'globalThis.qTest': false,
                 'globalThis.qRuntimeQrl': false,
@@ -292,7 +291,6 @@ async function submoduleCoreProduction(
       global_defs: {
         'globalThis.qDev': false,
         'globalThis.qInspector': false,
-        'globalThis.qSerialize': true,
         'globalThis.qDynamicPlatform': true,
         'globalThis.qTest': false,
         'globalThis.qRuntimeQrl': false,

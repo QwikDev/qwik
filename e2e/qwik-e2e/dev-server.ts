@@ -197,7 +197,6 @@ export {
         minify: false,
       },
       define: {
-        'globalThis.qSerialize': true,
         'globalThis.qDev': !isProd,
         'globalThis.qInspector': false,
         'globalThis.PORT': port,

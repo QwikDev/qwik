@@ -1,4 +1,13 @@
-import { component$, type JSXOutput } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  useComputed$,
+  useConstant,
+  useOnDocument,
+  useSignal,
+  type JSXOutput,
+} from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/router';
 import { Link } from '../action/action';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
 import { navbar, lucide, streamlinepixel as pixel } from '@qds.dev/ui';
@@ -73,9 +82,47 @@ const contentWidths: Record<string, string> = {
 const getContentWidthClass = (label: string) => contentWidths[label] ?? contentWidths.Core;
 
 export const DesktopHeader = component$(() => {
+  const initialized = useSignal(false);
+  const hidden = useSignal(false);
+  const focused = useSignal(false);
+  const lastScrollY = useSignal(0);
+
+  useOnDocument(
+    'scroll',
+    $(() => {
+      const y = window.scrollY;
+
+      if (!initialized.value) {
+        initialized.value = true;
+        lastScrollY.value = y;
+        return;
+      }
+
+      focused.value = false;
+      if (y > lastScrollY.value && y > 100) {
+        hidden.value = true;
+      } else {
+        hidden.value = false;
+      }
+      lastScrollY.value = y;
+    })
+  );
+
+  const loc = useLocation();
+  const isHomepage = useComputed$(() => loc.url.pathname === '/');
+  const isHidden = useComputed$(() => hidden.value && !focused.value && !isHomepage.value);
+
   return (
     <div class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] 2xl:block hidden">
-      <navbar.root class="fixed top-6 left-1/2 z-99999 flex w-full max-w-[840px] -translate-x-1/2 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-6 shadow-base">
+      <navbar.root
+        class="fixed top-6 left-1/2 z-99999 flex w-full max-w-[840px] items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-6 shadow-base transition-[translate,opacity] duration-300 ease"
+        style={{
+          translate: isHidden.value ? '-50% calc(-100% - 24px)' : '-50% 0',
+          opacity: isHidden.value ? 0 : 1,
+        }}
+        onFocusIn$={() => (focused.value = true)}
+        onFocusOut$={() => (focused.value = false)}
+      >
         <a href="/" class="flex items-center gap-2 text-foreground-accent">
           <QwikLogoOnly />
         </a>

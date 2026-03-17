@@ -1,4 +1,3 @@
-import { Tabs } from '@qwik-ui/headless';
 import {
   $,
   Slot,
@@ -8,6 +7,7 @@ import {
   useSignal,
   type PropsOf,
 } from '@qwik.dev/core';
+import { tabs } from '@qds.dev/ui';
 import { GlobalStore } from '../../context';
 
 const pkgManagers = ['pnpm', 'npm', 'yarn', 'bun'] as const;
@@ -32,73 +32,45 @@ export const getPkgManagerPreference = () => {
 export default component$(() => {
   const globalStore = useContext(GlobalStore);
 
-  const activeClass = `font-bold bg-(--color-tab-active-bg) text-(--color-tab-active-text)`;
-
   return (
-    <Tabs.Root
-      selectedTabId={globalStore.pkgManager}
-      onSelectedTabIdChange$={(pkgManager) => {
-        const value = pkgManager as PkgManagers;
-        globalStore.pkgManager = value;
-        setPreference(value);
+    <tabs.root
+      value={globalStore.pkgManager}
+      onChange$={(value) => {
+        const pkg = value as PkgManagers;
+        globalStore.pkgManager = pkg;
+        setPreference(pkg);
       }}
+      class="flex flex-col items-start"
     >
-      <Tabs.List>
-        <Tabs.Tab
-          tabId="pnpm"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'pnpm' ? activeClass : ''}`}
-        >
-          <span class="inline-flex items-center gap-x-2">
-            <PnpmIcon />
-            <span>pnpm</span>
-          </span>
-        </Tabs.Tab>
-        <Tabs.Tab
-          tabId="npm"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'npm' ? activeClass : ''}`}
-        >
-          <span class="inline-flex items-center gap-x-2">
-            <NpmIcon />
-            <span>npm</span>
-          </span>
-        </Tabs.Tab>
-        <Tabs.Tab
-          tabId="yarn"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'yarn' ? activeClass : ''}`}
-        >
-          <span class="inline-flex items-center gap-x-2">
-            <YarnIcon />
-            <span>yarn</span>
-          </span>
-        </Tabs.Tab>
-        <Tabs.Tab
-          tabId="bun"
-          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'bun' ? activeClass : ''}`}
-        >
-          <span class="inline-flex items-center gap-x-2">
-            <BunIcon />
-            <span>bun</span>
-          </span>
-        </Tabs.Tab>
-      </Tabs.List>
+      <tabs.list class="flex items-end relative z-1 -mb-3">
+        {pkgManagers.map((pkg, i) => (
+          <tabs.trigger
+            key={pkg}
+            value={pkg}
+            class={[
+              'flex items-center gap-2 px-4 pt-2 pb-5 rounded-t-lg border-[1.6px] border-base -mr-2 cursor-pointer',
+              'text-body-sm font-semibold',
+              'bg-background-base text-standalone-base',
+              'ui-selected:bg-background-emphasis ui-selected:border-border-emphasis ui-selected:text-standalone-emphasis ui-selected:font-bold',
+            ]}
+            style={{ zIndex: pkgManagers.length - i }}
+          >
+            {pkg === 'pnpm' && <PnpmIcon class="size-6" />}
+            {pkg === 'npm' && <NpmIcon class="size-6" />}
+            {pkg === 'yarn' && <YarnIcon class="size-6" />}
+            {pkg === 'bun' && <BunIcon class="size-6" />}
+            <span>{pkg}</span>
+          </tabs.trigger>
+        ))}
+      </tabs.list>
 
-      <Tabs.Panel class="relative">
-        <Slot name="pnpm" />
-        <CopyButton />
-      </Tabs.Panel>
-      <Tabs.Panel class="relative">
-        <Slot name="npm" />
-        <CopyButton />
-      </Tabs.Panel>
-      <Tabs.Panel class="relative">
-        <Slot name="yarn" />
-        <CopyButton />
-      </Tabs.Panel>
-      <Tabs.Panel class="relative">
-        <Slot name="bun" />
-        <CopyButton />
-      </Tabs.Panel>
-    </Tabs.Root>
+      {pkgManagers.map((pkg) => (
+        <tabs.content key={pkg} value={pkg} class="relative w-full z-2">
+          <Slot name={pkg} />
+          <CopyButton />
+        </tabs.content>
+      ))}
+    </tabs.root>
   );
 });
 

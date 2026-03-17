@@ -12,18 +12,6 @@ temp
 **/*.log
 *.node
 
-# Application
-qwik-app/
-/server/
-/starters/**/server/
-/packages/*/server/
-!/packages/qwik/server/
-/packages/*/src/styled-system/
-todo-express/
-target
-!/packages/docs/src/routes/demo/events/target
-src/napi/package-*
-
 # Node
 node_modules
 
@@ -34,7 +22,7 @@ dist-dev
 external
 lib
 tsdoc-metadata.json
-packages/qwik/bindings
+target
 
 # IDE and local environment
 .idea

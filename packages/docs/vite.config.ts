@@ -6,7 +6,7 @@ import { qwikRouter } from '@qwik.dev/router/vite';
 import { qds } from '@qds.dev/tools/vite';
 import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
 import shikiRehype from '@shikijs/rehype';
-import darkPlus from '@shikijs/themes/dark-plus';
+import githubLight from '@shikijs/themes/github-light';
 import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
 import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
@@ -223,7 +223,7 @@ export default defineConfig(() => {
             [
               shikiRehype,
               {
-                theme: darkPlus,
+                theme: githubLight,
                 transformers: [
                   transformerMetaHighlight(),
                   transformerMetaWordHighlight(),

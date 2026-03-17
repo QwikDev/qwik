@@ -41,7 +41,7 @@ type MDX = {
   updated_at: string;
 };
 
-export const SideBar = component$(() => {
+export const Sidebar = component$(() => {
   const { menu } = useContent();
   const { url } = useLocation();
 
@@ -49,7 +49,7 @@ export const SideBar = component$(() => {
   const guidesSections = menu?.items?.slice(1);
 
   return (
-    <aside class="hidden 2xl:sticky 2xl:top-(--header-height) 2xl:block 2xl:max-h-[calc(100vh-var(--header-height))]">
+    <aside class="sticky top-0 h-screen">
       <nav class="flex flex-col h-full overflow-y-auto w-[287px] bg-background-base border-r-[1.6px] border-base px-4 py-6 gap-4">
         {/* Logo + collapse */}
         <div class="flex items-center justify-between">

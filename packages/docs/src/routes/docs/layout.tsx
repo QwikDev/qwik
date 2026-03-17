@@ -20,17 +20,19 @@ export default component$(() => {
       <Header />
       <div class="docs-grid bg-violet-shallow">
         <Sidebar />
-        <main>
-          <div class="docs-content">
-            <article>
-              <Slot />
-              <Contributors />
-            </article>
-            <ContentNav />
-            <Footer />
-          </div>
-        </main>
-        {hasOnThisPage.value && <OnThisPage />}
+        <div class="docs-content-area pb-10">
+          <main>
+            <div class="docs-content">
+              <article>
+                <Slot />
+                <Contributors />
+              </article>
+              <ContentNav />
+            </div>
+          </main>
+          {hasOnThisPage.value && <OnThisPage />}
+        </div>
+        <Footer />
       </div>
     </div>
   );

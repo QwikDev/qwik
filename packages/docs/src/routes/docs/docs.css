@@ -151,7 +151,7 @@ h6 a:hover .icon {
 
 .docs article ul,
 .docs article ol {
-  @apply pl-6 text-body-sm text-foreground-base flex flex-col gap-2;
+  @apply pl-6 text-body-sm text-foreground-base leading-[1.8] flex flex-col gap-2;
   list-style: disc;
 }
 
@@ -211,7 +211,7 @@ h6 a:hover .icon {
 /* ─── Inline code ─── */
 
 .docs article code {
-  @apply bg-secondary-background-accent px-1 py-0.5 rounded text-[0.9em] select-all;
+  @apply bg-secondary-background-accent px-1 py-0.5 rounded text-[0.9em] select-all box-decoration-clone;
 }
 
 /* ─── Responsive ─── */

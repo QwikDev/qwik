@@ -18,6 +18,8 @@ updated_at: '2024-03-27T18:37:26Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
+import { Note } from '~/components/note/note';
+
 # Pages
 
 Pages are created by adding a new `index.tsx` file in the `src/routes` directory. Pages export a `default` Qwik component, which will be rendered as the content of the page.
@@ -31,7 +33,7 @@ export default component$(() => {
 });
 ```
 
-> The only difference between a page and an endpoint is that an endpoint only exports an `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, or `onHead` function, which will be used to handle the incoming request.
+<Note>The only difference between a page and an endpoint is that an endpoint only exports an `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, or `onHead` function, which will be used to handle the incoming request.</Note>
 
 
 ## `head` export
@@ -91,7 +93,7 @@ export const head: DocumentHead = {
 
 The example above sets the title, as well as some [Open Graph](https://ogp.me/) meta and the [canonical link](https://developers.google.com/search/docs/crawling-indexing/canonicalization).
 
-> HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly because it would break the HTML streaming.
+<Note>HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly because it would break the HTML streaming.</Note>
 
 Look into `useDocumentHead()` to read and consume the `DocumentHead` object from within your component; you can also use `<DocumentHeadTags />` to render the tags directly and correctly.
 
@@ -236,7 +238,7 @@ export const head: DocumentHead = {
 ```
 The example above sets some [Structured Data Markup](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=en).
 
-> **Note**: You need to change `router-head` component to render `head.scripts`.
+<Note>You need to change `router-head` component to render `head.scripts`.</Note>
 
 ```tsx {8} /head/ title="src\components\router-head\router-head.tsx"
 import { component$ } from "@qwik.dev/core";

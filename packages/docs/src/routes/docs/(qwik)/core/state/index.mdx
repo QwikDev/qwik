@@ -58,7 +58,7 @@ Use `useSignal()` to create a reactive signal (a form of state). The `useSignal(
 
 The reactive signal returned by `useSignal()` consists of an object with a single property `.value`. If you change the `value` property of the signal, any component that depends on it will be updated automatically.
 
-<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx">
 ```tsx {4} /count/
 import { component$, useSignal } from '@qwik.dev/core';
 
@@ -103,7 +103,7 @@ Works very similarly to `useSignal()`, but it takes an object as its initial val
 
 Use `useStore(initialStateObject)` hook to create a reactive object. It takes an initial object (or a factory function) and returns a reactive object.
 
-<CodeSandbox src="/src/routes/demo/state/counter-store/index.tsx" style={{ height: '6em' }} >
+<CodeSandbox src="/src/routes/demo/state/counter-store/index.tsx" >
 ```tsx {4} /state/ /count/#a
 import { component$, useStore } from '@qwik.dev/core';
 
@@ -467,7 +467,7 @@ There are two ways to pass state to other components:
 
 The simplest way to pass the state to other components is to pass it through props.
 
-<CodeSandbox src="/src/routes/demo/state/passing-props/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/passing-props/index.tsx">
 ```tsx {9} /userData=/
 import { component$, useStore } from '@qwik.dev/core';
 
@@ -496,7 +496,7 @@ The context API is a way to pass state to components without having to pass it t
 
 Check the [context API](../context/index.mdx) for more information.
 
-<CodeSandbox src="/src/routes/demo/state/passing-context/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/passing-context/index.tsx">
 ```tsx /userData/ /export const CTX = createContextId<{ count: number }>('stuff');/ /useContextProvider(CTX, userData);/ /const userData = useContext(CTX);/
 import {
   component$,

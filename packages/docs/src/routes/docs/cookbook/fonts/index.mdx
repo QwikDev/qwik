@@ -6,6 +6,8 @@ updated_at: '2023-12-28T16:33:00Z'
 created_at: '2023-12-28T16:33:00Z'
 ---
 
+import { Note } from '~/components/note/note';
+
 # Fonts
 
 A memorable typeface can be a great way to make your site stand out. However, it's important to be mindful of the performance implications of using custom fonts.
@@ -27,7 +29,7 @@ Both methods have drawbacks. FOIT withholds text from the user, while FOUT can c
 
 Luckily, we can make use of the [font-display](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display) property to control how the browser handles font loading. This allows us to strike a balance between the two strategies.
 
-> We suggest playing around with the different loading strategies, as well as how the font display timeline works. 
+<Note>We suggest playing around with the different loading strategies, as well as how the font display timeline works.</Note>
 
 The two most common values for the `font-display` property are `swap` and `fallback`.
 
@@ -96,7 +98,7 @@ Unfortunately, this does not include variable fonts. To get around this, you can
 
 If we are not using certain glyphs, we can reduce the font size by using the `unicode-range` property. [Glyphhanger](https://www.npmjs.com/package/glyphhanger) is a tool that allows us to grab a specific subset of a font.
 
-> A common scenario, would be using only the latin subset of a font. This can reduce our font file size.
+<Note>A common scenario, would be using only the latin subset of a font. This can reduce our font file size.</Note>
 
 ## Fallback fonts
 

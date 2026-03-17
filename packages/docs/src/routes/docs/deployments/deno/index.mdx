@@ -9,6 +9,7 @@ created_at: '2023-04-28T16:43:21Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Deno Middleware
 
@@ -108,4 +109,4 @@ Since you are choosing Deno, here you are in your own, after running the `build`
 - The `dist` folder will be created including all the static files.
 - The `server` folder will be created including all node server files.
 
-> By default, `SSG` mode is activated. If you want to change this behavior, you can edit the `vite.config.ts` file inside the `adapters/deno` folder. In this file you can configure the behavior of the `SSG` or remove the SSG part to switch to a complete `SSR`.
+<Note>By default, `SSG` mode is activated. If you want to change this behavior, you can edit the `vite.config.ts` file inside the `adapters/deno` folder. In this file you can configure the behavior of the `SSG` or remove the SSG part to switch to a complete `SSR`.</Note>

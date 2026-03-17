@@ -18,6 +18,7 @@ created_at: '2023-04-24T10:35:21Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note, LongNote } from '~/components/note/note';
 
 # Auth.js
 
@@ -66,17 +67,17 @@ This command will add a new package:
 
 and create a new file named `plugin@auth.ts` with an example configuration.
 
-> **Note on Manual Deployments with Node**
+<LongNote title="Manual Deployments with Node">
+When deploying applications manually using Node.js, particularly with frameworks like Express, the server or Node process does not inherently know if it's being served under HTTP or HTTPS.
+Unlike hosting services like Vercel, Netlify, or Cloudflare, where the ORIGIN configuration is automatically managed, manual setups require explicit specification. To ensure that your Node.js application recognizes the correct protocol and host it is being served under, set the following **environment variables**:
 
-> When deploying applications manually using Node.js, particularly with frameworks like Express, the server or Node process does not inherently know if it's being served under HTTP or HTTPS. 
-> Unlike hosting services like Vercel, Netlify, or Cloudflare, where the ORIGIN configuration is automatically managed, manual setups require explicit specification. To ensure that your Node.js application recognizes the correct protocol and host it is being served under, set the following **environment variables**:
-
->	-	ORIGIN: Set this to the URL of your application. For example:
->	ORIGIN=https://your-app-name.example.com
->	- PROTOCOL_HEADER: This is used to indicate the original protocol requested by the client. Commonly, this is specified in proxy configurations. Set this variable to:
->	PROTOCOL_HEADER=X-Forwarded-Proto
->	- HOST_HEADER: This header helps identify the original host requested by the client. It is particularly necessary when your Node environment is behind a proxy or load balancer. Set this variable to:
->	HOST_HEADER=X-Forwarded-Host
+-	ORIGIN: Set this to the URL of your application. For example:
+	ORIGIN=https://your-app-name.example.com
+- PROTOCOL_HEADER: This is used to indicate the original protocol requested by the client. Commonly, this is specified in proxy configurations. Set this variable to:
+	PROTOCOL_HEADER=X-Forwarded-Proto
+- HOST_HEADER: This header helps identify the original host requested by the client. It is particularly necessary when your Node environment is behind a proxy or load balancer. Set this variable to:
+	HOST_HEADER=X-Forwarded-Host
+</LongNote>
 
 ### Migrating from `@builder.io/qwik-auth`
 
@@ -146,7 +147,7 @@ A [routeAction$](/docs/action/) used to initiate a signin flow or send the user 
   * `redirectTo`: An optional string specifying to which URL the user will be redirected after signing in. Defaults to the page URL the sign-in is initiated from.
 * `authorizationParams`: An optional object of additional parameters sent to the /authorize endpoint. See the Authorization Request OIDC spec for some ideas.
 
-> **NOTE:** You can also set the `authorizationParams` through the provider.authorizationParams configuration
+<Note>You can also set the `authorizationParams` through the provider.authorizationParams configuration</Note>
 
 Example using `useSignIn` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `providerId` and `options.redirectTo`:
 
@@ -285,7 +286,7 @@ export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(
 );
 ```
 
-> *IMPORTANT*: Make sure to keep the `onRequest` export as it is used to handle the OAuth flow redirects. Once the user finished OAuth flow, GitHub (or any other provider) will redirect the user back to the application to `/auth/callback/github` (or `/auth/callback/[otherProvider]`). The `onRequest` middleware function will handle requests to this endpoint and finish the OAuth flow.
+<Note title="IMPORTANT">Make sure to keep the `onRequest` export as it is used to handle the OAuth flow redirects. Once the user finished OAuth flow, GitHub (or any other provider) will redirect the user back to the application to `/auth/callback/github` (or `/auth/callback/[otherProvider]`). The `onRequest` middleware function will handle requests to this endpoint and finish the OAuth flow.</Note>
 
 3. Create or edit the `.env.local` file at the root of your project to store secrets
 
@@ -295,18 +296,20 @@ AUTH_GITHUB_SECRET=
 AUTH_SECRET=
 ```
 
-> *IMPORTANT*: Please read the Qwik documentation about [Environment Variables](/docs/guides/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.
+<Note title="IMPORTANT">Please read the Qwik documentation about [Environment Variables](/docs/guides/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.</Note>
 
 4. The application is now ready to implement authentication using Auth.js.
 5. Enjoy!
 
 ### Credentials
 
-> Warning: This functionality is discourage by Auth.js.
->
-> https://next-auth.js.org/providers/credentials
->
-> - The functionality provided for credentials based authentication is intentionally limited to discourage use of passwords due to the inherent security risks associated with them and the additional complexity associated with supporting usernames and passwords.
+<LongNote title="Warning: Credentials Authentication">
+This functionality is discouraged by Auth.js.
+
+https://next-auth.js.org/providers/credentials
+
+- The functionality provided for credentials based authentication is intentionally limited to discourage use of passwords due to the inherent security risks associated with them and the additional complexity associated with supporting usernames and passwords.
+</LongNote>
 
 1. Since the default `plugin@auth.ts` uses GitHub as an example, we need to replace it with Credentials.
 
@@ -340,7 +343,7 @@ export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(
 AUTH_SECRET=
 ```
 
-> *IMPORTANT*: Please read the Qwik documentation about [Environment Variables](/docs/guides/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.
+<Note title="IMPORTANT">Please read the Qwik documentation about [Environment Variables](/docs/guides/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.</Note>
 
 3. The application is now ready to implement authentication using Auth.js.
 4. Enjoy!
@@ -358,4 +361,4 @@ export const onRequest: RequestHandler = (event) => {
 };
 ```
 
-> Note: If placed in a layout.tsx ensure that the redirect destination does not share the same layout.tsx or a redirection loop could occur.
+<Note>If placed in a layout.tsx ensure that the redirect destination does not share the same layout.tsx or a redirection loop could occur.</Note>

@@ -233,8 +233,8 @@ const SubTreeNode = component$((props: { item: ContentMenu; pathname: string }) 
                   class={[
                     'flex items-center gap-2 pl-10 pr-2 py-2 rounded-lg text-[16px] leading-[22px] font-semibold',
                     isActive
-                      ? 'bg-background-accent text-standalone-emphasis border-[1.6px] border-transparent'
-                      : 'text-foreground-muted hover:border-background-accent border-[1.6px] border-transparent',
+                      ? 'bg-background-emphasis text-standalone-emphasis border-[1.6px] border-transparent'
+                      : 'text-foreground-muted hover:bg-background-accent hover:text-standalone-accent border-[1.6px] border-transparent',
                   ]}
                 >
                   <span class="truncate">{child.text}</span>

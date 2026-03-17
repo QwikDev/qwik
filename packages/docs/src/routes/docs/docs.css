@@ -82,7 +82,11 @@
 
 .docs article h1 {
   @apply mb-6 relative font-heading text-h4;
-  scroll-margin-top: var(--scroll-margin-top);
+  scroll-margin-top: 80px;
+
+  @variant xl {
+    scroll-margin-top: 160px;
+  }
 }
 
 .docs article h2,
@@ -91,7 +95,11 @@
 .docs article h5,
 .docs article h6 {
   @apply relative font-heading;
-  scroll-margin-top: var(--scroll-margin-top);
+  scroll-margin-top: 80px;
+
+  @variant xl {
+    scroll-margin-top: 160px;
+  }
   margin-bottom: max(0.7em, 16px);
 }
 

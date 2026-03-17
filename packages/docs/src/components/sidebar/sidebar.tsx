@@ -44,19 +44,43 @@ type MDX = {
 export const Sidebar = component$(() => {
   const { menu } = useContent();
   const { url } = useLocation();
+  const collapsed = useSignal(false);
 
   const introSection = menu?.items?.[0];
   const guidesSections = menu?.items?.slice(1);
 
   return (
     <aside class="sticky top-0 h-screen">
-      <nav class="flex flex-col h-full overflow-y-auto [scrollbar-gutter:stable] w-[287px] bg-background-base border-r-[1.6px] border-base px-4 py-6 gap-4">
+      {/* Open button — always in place, sidebar covers it when open */}
+      <button
+        type="button"
+        onClick$={() => (collapsed.value = false)}
+        aria-label="Open sidebar"
+        aria-hidden={!collapsed.value}
+        tabIndex={collapsed.value ? 0 : -1}
+        class="absolute top-6 left-4 flex items-center justify-center rounded-lg p-2 hover:text-standalone-accent hover:bg-background-accent"
+      >
+        <lucide.panelleftopen class="size-6 text-foreground-base" />
+      </button>
+
+      <nav
+        class={[
+          'flex flex-col h-full overflow-y-auto [scrollbar-gutter:stable] w-[287px] bg-background-base border-r-[1.6px] border-base px-4 py-6 gap-4 transition-transform duration-300 ease',
+          collapsed.value ? '-translate-x-full' : 'translate-x-0',
+        ]}
+        aria-hidden={collapsed.value}
+      >
         {/* Logo + collapse */}
         <div class="flex items-center justify-between">
           <Link href="/" aria-label="Qwik Home">
             <QwikLogomark />
           </Link>
-          <button type="button" class="flex items-center justify-center rounded-lg p-2">
+          <button
+            type="button"
+            onClick$={() => (collapsed.value = true)}
+            aria-label="Close sidebar"
+            class="flex items-center justify-center rounded-lg p-2 -m-2 hover:text-standalone-accent hover:bg-background-accent"
+          >
             <lucide.panelleftclose class="size-6 text-foreground-base" />
           </button>
         </div>
@@ -104,15 +128,15 @@ const IntroTreeItem = component$((props: { item: ContentMenu; pathname: string }
 
   return (
     <tree.item>
-      <tree.itemlabel class="w-full">
+      <tree.itemlabel class="w-full my-0.5">
         <Link
           href={props.item.href}
           tabIndex={-1}
           class={[
             'flex items-center gap-2 p-2 rounded-lg text-[16px] leading-[22px] font-semibold',
             isActive
-              ? 'bg-background-accent text-standalone-emphasis border-[1.6px] border-transparent'
-              : 'text-foreground-muted hover:border-background-accent border-[1.6px] border-transparent',
+              ? 'bg-background-emphasis text-standalone-emphasis border-[1.6px] border-transparent'
+              : 'text-foreground-muted hover:bg-background-accent hover:text-standalone-accent border-[1.6px] border-transparent',
           ]}
         >
           <IntroItemIcon text={props.item.text} />
@@ -148,7 +172,7 @@ const GuidesTreeNode = component$(
             class="ui-open:rotate-90 transition-transform duration-200 size-4 shrink-0"
           />
         </tree.itemtrigger>
-        <tree.itemcontent>
+        <tree.itemcontent class="flex flex-col gap-0.5">
           {section.items?.map((item, j) => {
             if (item.items && item.items.length > 0) {
               return <SubTreeNode key={j} item={item} pathname={pathname} />;
@@ -156,15 +180,15 @@ const GuidesTreeNode = component$(
             const isActive = pathname === item.href;
             return (
               <tree.item key={j}>
-                <tree.itemlabel class="w-full">
+                <tree.itemlabel class="w-full my-0.5">
                   <Link
                     href={item.href}
                     tabIndex={-1}
                     class={[
                       'flex items-center gap-2 pl-6 pr-2 py-2 rounded-lg text-[16px] leading-[22px] font-semibold',
                       isActive
-                        ? 'bg-background-accent text-standalone-emphasis border-[1.6px] border-transparent'
-                        : 'text-foreground-muted hover:border-background-accent border-[1.6px] border-transparent',
+                        ? 'bg-background-emphasis text-standalone-emphasis border-[1.6px] border-transparent'
+                        : 'text-foreground-muted hover:bg-background-accent hover:text-standalone-accent border-[1.6px] border-transparent',
                     ]}
                   >
                     <span class="truncate">{item.text}</span>
@@ -197,12 +221,12 @@ const SubTreeNode = component$((props: { item: ContentMenu; pathname: string }) 
           <lucide.chevronright class="size-4" />
         </span>
       </tree.itemtrigger>
-      <tree.itemcontent>
+      <tree.itemcontent class="flex flex-col gap-0.5">
         {item.items?.map((child, k) => {
           const isActive = pathname === child.href;
           return (
             <tree.item key={k}>
-              <tree.itemlabel class="w-full">
+              <tree.itemlabel class="w-full my-0.5">
                 <Link
                   href={child.href}
                   tabIndex={-1}

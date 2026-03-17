@@ -38,6 +38,7 @@
     "packages/supabase-auth-helpers-qwik",
     "packages/qwik-react/src",
     "starters/apps/*",
+    "e2e/qwik-e2e/apps/*",
     "packages/qwik-react/vite",
     "@types/deno.d.ts",
     "@types/bun.d.ts",
@@ -51,7 +52,10 @@
     "starters/apps/*/lib",
     "starters/apps/*/dist",
     "starters/apps/*/server",
+    "e2e/qwik-e2e/apps/*/lib",
+    "e2e/qwik-e2e/apps/*/dist",
+    "e2e/qwik-e2e/apps/*/server",
     "scripts",
-    "starters/dev-server.ts"
+    "e2e/qwik-e2e/dev-server.ts"
   ]
 }

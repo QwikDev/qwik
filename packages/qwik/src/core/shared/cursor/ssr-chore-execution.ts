@@ -148,10 +148,8 @@ export async function executeReconcileChore(
     const jsx = itemFn(item)!;
     const key = keyOf(item, i);
     jsx.key = key;
-    // const child = _jsxSorted(Fragment, null, null, jsx, 0, key);
     children.push(jsx);
   }
-  // container.serializationCtx.$addRoot$(ssrNode);
   await container.renderJSX(children, {
     currentStyleScoped: null,
     parentComponentFrame: container.getComponentFrame(0),

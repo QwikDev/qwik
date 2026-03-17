@@ -7,12 +7,25 @@
   grid-template-columns: auto 1fr;
 
   @variant xl {
-    grid-template-columns: auto 1fr 300px;
+    grid-template-columns: auto 1fr;
   }
 }
 
 .docs main {
   @apply min-w-0;
+}
+
+.docs-content-area {
+  @apply grid;
+  grid-template-columns: 1fr;
+
+  @variant xl {
+    grid-template-columns: 1fr 300px;
+  }
+}
+
+.docs-grid > footer {
+  grid-column: 2 / -1;
 }
 
 .docs .docs-content {

@@ -11,25 +11,22 @@
 }
 
 .on-this-page ul {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col;
 }
 
 .on-this-page li {
-  @apply pt-1;
+  @apply rounded-lg;
 }
 
 .on-this-page-item {
-  @apply block font-semibold text-base leading-[22px];
+  @apply block font-semibold text-base leading-[1.8] py-2.5 px-3 no-underline;
   color: var(--color-foreground-base);
-  border-bottom: 2px solid transparent;
-  width: fit-content;
 }
 
 .on-this-page-item-active {
-  @apply block font-semibold text-base leading-[22px];
+  @apply block font-semibold text-base leading-[1.8] py-2.5 px-3 underline underline-offset-8;
   color: var(--color-standalone-emphasis);
-  border-bottom: 2px solid var(--color-border-base);
-  width: fit-content;
+  text-decoration-color: var(--color-border-base);
 }
 
 .more-section {

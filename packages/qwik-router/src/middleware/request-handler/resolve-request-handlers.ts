@@ -1,21 +1,27 @@
 import { inlinedQrl, type QRL } from '@qwik.dev/core';
-import { _serialize, _UNINITIALIZED, _verifySerializable } from '@qwik.dev/core/internal';
+import { _serialize, _UNINITIALIZED, _verifySerializable, isDev } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import {
-  LoadedRouteProp,
   type ActionInternal,
   type ClientPageData,
+  type ContentModule,
   type DataValidator,
+  type DocumentHeadProps,
   type JSONObject,
   type LoadedRoute,
   type LoaderInternal,
   type PageModule,
+  type ResolveSyncValue,
   type RouteModule,
   type ValidatorReturn,
 } from '../../runtime/src/types';
+import { resolveRouteConfig } from '../../runtime/src/head';
+import { resolveETag, resolveCacheKey, getCachedHtml, MAX_CACHE_SIZE, setCachedHtml } from './etag';
 import { HttpStatus } from './http-status-codes';
 import {
+  RequestEvETagCacheKey,
+  RequestEvHttpStatusMessage,
   RequestEvIsRewrite,
   RequestEvShareQData,
   RequestEvShareServerTiming,
@@ -41,7 +47,7 @@ import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/reques
  */
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
-  route: LoadedRoute | null,
+  route: LoadedRoute,
   method: string,
   checkOrigin: boolean | 'lax-proto',
   renderHandler: RequestHandler,
@@ -52,12 +58,20 @@ export const resolveRequestHandlers = (
 
   const requestHandlers: RequestHandler[] = [];
 
-  const isPageRoute = !!(route && isLastModulePageRoute(route[LoadedRouteProp.Mods]));
+  const isPageRoute = !!(route && isLastModulePageRoute(route.$mods$));
 
   // Always handle QData redirects (server plugins might redirect)
   if (isInternal) {
     requestHandlers.push(handleQDataRedirect);
   }
+
+  // For page routes, catch ServerErrors from any handler (plugins, route handlers, etc.)
+  // and render the error page instead of the default inline HTML error.
+  // Must be before all other handlers so its ev.next() wraps everything.
+  if (isPageRoute) {
+    requestHandlers.push(serverErrorMiddleware(route, renderHandler));
+  }
+
   if (serverPlugins) {
     // Serverplugins run even if no route is matched
     _resolveRequestHandlers(
@@ -71,7 +85,7 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
-    const routeModules = route[LoadedRouteProp.Mods];
+    const routeModules = route.$mods$;
     _resolveRequestHandlers(
       routeLoaders,
       routeActions,
@@ -80,7 +94,7 @@ export const resolveRequestHandlers = (
       isPageRoute,
       method
     );
-    const routeName = route[LoadedRouteProp.RouteName];
+    const routeName = route.$routeName$;
     if (
       checkOrigin &&
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
@@ -113,6 +127,7 @@ export const resolveRequestHandlers = (
       });
       requestHandlers.push(actionsMiddleware(routeActions));
       requestHandlers.push(loadersMiddleware(routeLoaders));
+      requestHandlers.push(eTagMiddleware(route));
       requestHandlers.push(renderHandler);
     }
   }
@@ -200,7 +215,6 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
     }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
-    const isDev = getRequestMode(requestEv) === 'dev';
     if (isDev && method === 'GET') {
       if (requestEv.query.has(QACTION_KEY)) {
         console.warn(
@@ -225,7 +239,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
               `Expected request data for the action id ${selectedActionId} to be an object`
             );
           }
-          const result = await runValidators(requestEv, action.__validators, data, isDev);
+          const result = await runValidators(requestEv, action.__validators, data);
           if (!result.success) {
             loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
           } else {
@@ -253,12 +267,165 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
       return;
     }
     const loaders = getRequestLoaders(requestEv);
-    const isDev = getRequestMode(requestEv) === 'dev';
     if (routeLoaders.length > 0) {
       const resolvedLoadersPromises = routeLoaders.map((loader) =>
-        getRouteLoaderPromise(loader, loaders, requestEv, isDev)
+        getRouteLoaderPromise(loader, loaders, requestEv)
       );
       await Promise.all(resolvedLoadersPromises);
+    }
+  };
+}
+
+function eTagMiddleware(route: LoadedRoute): RequestHandler {
+  return (requestEv: RequestEvent) => {
+    if (requestEv.headersSent) {
+      return;
+    }
+    // Only apply to GET requests, skip QData
+    if (requestEv.method !== 'GET' || requestEv.sharedMap.has(IsQData)) {
+      return;
+    }
+
+    const mods = route.$mods$ as ContentModule[];
+
+    // Quick check: does any module have an eTag (via routeConfig or standalone)?
+    const hasETag = mods.some((m) => {
+      if (!m) {
+        return false;
+      }
+      if (m.routeConfig) {
+        return typeof m.routeConfig === 'function' || m.routeConfig.eTag !== undefined;
+      }
+      return (m as PageModule).eTag !== undefined;
+    });
+    if (!hasETag) {
+      return;
+    }
+
+    // Build resolveValue for routeConfig resolution
+    const loaders = getRequestLoaders(requestEv);
+    const getData = ((loaderOrAction: any) => {
+      const id = loaderOrAction.__id;
+      if (loaderOrAction.__brand === 'server_loader' && !(id in loaders)) {
+        throw new Error('Loader not executed for this request.');
+      }
+      const data = loaders[id];
+      if (data instanceof Promise) {
+        throw new Error('Loaders returning a promise cannot be resolved for the eTag function.');
+      }
+      return data;
+    }) as ResolveSyncValue;
+
+    const routeLocation = {
+      params: requestEv.params,
+      url: requestEv.url,
+      isNavigating: false as const,
+      prevUrl: undefined,
+    };
+
+    const status = requestEv.status();
+
+    // Resolve full route config (head + eTag + cacheKey) across all modules
+    const config = resolveRouteConfig(getData, routeLocation, mods, '', status);
+
+    // Build headProps for resolving eTag value (if it's a function)
+    const headProps: DocumentHeadProps = {
+      head: config.head,
+      status,
+      withLocale: (fn) => fn(),
+      resolveValue: getData,
+      ...routeLocation,
+    };
+
+    const eTag = resolveETag(config.eTag, headProps);
+    if (!eTag) {
+      return;
+    }
+
+    // Set the ETag response header
+    requestEv.headers.set('ETag', eTag);
+
+    // Check If-None-Match
+    const ifNoneMatch = requestEv.request.headers.get('If-None-Match');
+    if (
+      ifNoneMatch &&
+      (ifNoneMatch === eTag || ifNoneMatch === `W/${eTag}` || `W/${ifNoneMatch}` === eTag)
+    ) {
+      requestEv.status(304);
+      requestEv.send(304 as any, '' as any);
+      return;
+    }
+
+    // Resolve cacheKey for in-memory caching (opt-in)
+    if (MAX_CACHE_SIZE <= 0) {
+      return;
+    }
+    const cacheKey = resolveCacheKey(config.cacheKey, status, eTag, requestEv.url.pathname);
+    if (!cacheKey) {
+      return; // No caching, just ETag header + 304 support
+    }
+
+    // Check in-memory cache
+    const cachedHtml = getCachedHtml(cacheKey);
+    if (cachedHtml) {
+      requestEv.headers.set('Content-Type', 'text/html; charset=utf-8');
+      requestEv.headers.set('X-SSR-Cache', 'HIT');
+      requestEv.send(status as any, cachedHtml);
+      return;
+    }
+
+    // Store cache key in sharedMap so renderQwikMiddleware can cache the result
+    requestEv.sharedMap.set(RequestEvETagCacheKey, cacheKey);
+  };
+}
+
+/**
+ * Catches ServerErrors from any handler (plugins, route handlers, actions, loaders) and renders the
+ * custom error page (error.tsx or built-in fallback) instead of the default inline HTML.
+ *
+ * Only handles HTML page requests. QData and non-HTML requests are re-thrown so user-response.ts
+ * handles them with its existing JSON serialization.
+ */
+function serverErrorMiddleware(route: LoadedRoute, renderHandler: RequestHandler): RequestHandler {
+  return async (requestEv: RequestEvent) => {
+    try {
+      await requestEv.next();
+    } catch (e) {
+      if (!(e instanceof ServerError) || requestEv.headersSent) {
+        throw e;
+      }
+
+      // Skip for QData (internal) requests — let user-response.ts handle them
+      if (requestEv.sharedMap.has(IsQData)) {
+        throw e;
+      }
+
+      // Skip for non-HTML requests (JSON APIs etc.) — let user-response.ts handle them
+      const accept = requestEv.request.headers.get('Accept');
+      if (accept && !accept.includes('text/html')) {
+        throw e;
+      }
+
+      const status = e.status as number;
+      requestEv.status(status);
+
+      // Load the custom error page (error.tsx) or the built-in fallback
+      const errorLoader = route.$errorLoader$;
+      const errorModule = errorLoader
+        ? await errorLoader()
+        : await import('../../runtime/src/http-error');
+
+      // Swap route modules to just the error component (no layouts)
+      route.$mods$ = [errorModule as RouteModule];
+
+      // Store the error message so the component can display it via useHttpStatus()
+      requestEv.sharedMap.set(
+        RequestEvHttpStatusMessage,
+        typeof e.data === 'string' ? e.data : 'Server Error'
+      );
+
+      // Render the error page
+      await renderHandler(requestEv);
     }
   };
 }
@@ -266,15 +433,13 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
 export async function getRouteLoaderPromise(
   loader: LoaderInternal,
   loaders: Record<string, unknown>,
-  requestEv: RequestEventInternal,
-  isDev: boolean
+  requestEv: RequestEventInternal
 ) {
   const loaderId = loader.__id;
   loaders[loaderId] = runValidators(
     requestEv,
     loader.__validators,
-    undefined, // data
-    isDev
+    undefined // data
   )
     .then((res) => {
       if (res.success) {
@@ -308,8 +473,7 @@ export async function getRouteLoaderPromise(
 async function runValidators(
   requestEv: RequestEvent,
   validators: DataValidator[] | undefined,
-  data: unknown,
-  isDev: boolean
+  data: unknown
 ) {
   let lastResult: ValidatorReturn = {
     success: true,
@@ -346,7 +510,6 @@ async function runServerFunction(ev: RequestEvent) {
     ev.request.headers.get('Content-Type') === 'application/qwik-json'
   ) {
     ev.exit();
-    const isDev = getRequestMode(ev) === 'dev';
     const data = (await ev.parseBody()) as
       | [args?: unknown[] | undefined, ...captured: unknown[]]
       | undefined;
@@ -531,9 +694,26 @@ export function renderQwikMiddleware(render: Render) {
       responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
     }
 
+    const eTagCacheKey = requestEv.sharedMap.get(RequestEvETagCacheKey) as string | undefined;
+
     const { readable, writable } = new TextEncoderStream();
     const writableStream = requestEv.getWritableStream();
-    const pipe = readable.pipeTo(writableStream, { preventClose: true });
+
+    // When caching, capture encoded bytes via a TransformStream
+    let cacheChunks: Uint8Array[] | undefined;
+    let pipeSource: ReadableStream<Uint8Array> = readable;
+    if (eTagCacheKey) {
+      cacheChunks = [];
+      const capture = new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
+          cacheChunks!.push(chunk);
+          controller.enqueue(chunk);
+        },
+      });
+      pipeSource = readable.pipeThrough(capture);
+    }
+
+    const pipe = pipeSource.pipeTo(writableStream, { preventClose: true });
     const stream = writable.getWriter();
     const status = requestEv.status();
     try {
@@ -565,6 +745,19 @@ export function renderQwikMiddleware(render: Render) {
       await stream.close();
       await pipe;
     }
+
+    // Cache the rendered HTML if eTag caching is active
+    if (eTagCacheKey && cacheChunks && cacheChunks.length > 0) {
+      const totalLength = cacheChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+      const combined = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of cacheChunks) {
+        combined.set(chunk, offset);
+        offset += chunk.length;
+      }
+      setCachedHtml(eTagCacheKey, new TextDecoder().decode(combined));
+    }
+
     // On success, close the stream
     await writableStream.close();
   };

@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2043
+assertion_line: 2044
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -18,22 +17,25 @@ export const Greeter = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_n7HuG2hhU0Q = ()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q");
-export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_n7HuG2hhU0Q, "Greeter_component_n7HuG2hhU0Q"));
+//
+const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
+//
+export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,wBAAU,gFAEpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,wBAAU,8CAEpB\"}")
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
 
 import json from "./foo.json" with {
     type: "json"
 };
+//
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
     return json;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mCAEqC;IAAE,MAAM;AAAO;6CAElB;IACjC,OAAO;AACR\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mCAEqC;IAAE,MAAM;AAAO;;6CAElB;IACjC,OAAO;AACR\"}")
 /*
 {
   "origin": "test.tsx",

@@ -5,8 +5,9 @@ import {
   RequestEvShareQData,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
-import { WritableStream } from 'node:stream/web';
-import { pathToFileURL } from 'node:url';
+import { parentPort } from 'node:worker_threads';
+// Use the global WritableStream, not node:stream/web — in worker threads they can be
+// different classes, causing instanceof checks in pipeTo/TransformStream to fail.
 import type { ClientPageData } from '../runtime/src/types';
 import type {
   SsgHandlerOptions,
@@ -14,51 +15,89 @@ import type {
   SsgWorkerRenderResult,
   StaticStreamWriter,
   System,
+  WorkerInputMessage,
+  WorkerOutputMessage,
 } from './types';
 
 export async function workerThread(sys: System) {
   // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
   // TODO: remove this once we have vite environment API and no longer need the serializer separately
   delete (globalThis as any).__qwik;
-  const ssgOpts = sys.getOptions();
+  const opts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
   const log = await sys.createLogger();
 
-  const opts: SsgHandlerOptions = {
-    ...ssgOpts,
-    // TODO export this from server
-    render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
-    // TODO this should be built-in
-    qwikRouterConfig: (await import(pathToFileURL(ssgOpts.qwikRouterConfigModulePath).href))
-      .default,
-  };
+  // Prevent unhandled errors/rejections from crashing the worker thread.
+  // SSR rendering can throw asynchronously (e.g., qwik's logErrorAndStop)
+  // in microtasks not connected to any promise chain.
+  process.on('uncaughtException', (e) => {
+    console.error('Worker uncaught exception (suppressed):', e.message);
+  });
+  process.on('unhandledRejection', (e) => {
+    console.error('Worker unhandled rejection (suppressed):', e instanceof Error ? e.message : e);
+  });
 
-  sys
-    .createWorkerProcess(async (msg) => {
-      switch (msg.type) {
-        case 'render': {
-          log.debug(`Worker thread rendering: ${msg.pathname}`);
-          return new Promise<SsgWorkerRenderResult>((resolve) => {
-            workerRender(sys, opts, msg, pendingPromises, resolve).catch((e) => {
-              console.error('Error during render', msg.pathname, e);
+  const onMessage = async (msg: WorkerInputMessage): Promise<WorkerOutputMessage> => {
+    switch (msg.type) {
+      case 'render': {
+        log.debug(`Worker thread rendering: ${msg.pathname}`);
+        return new Promise<SsgWorkerRenderResult>((resolve) => {
+          workerRender(sys, opts, msg, pendingPromises, resolve).catch((e) => {
+            console.error('Error during render', msg.pathname, e);
+            resolve({
+              type: 'render',
+              pathname: msg.pathname,
+              url: '',
+              ok: false,
+              error: {
+                message: e instanceof Error ? e.message : String(e),
+                stack: e instanceof Error ? e.stack : undefined,
+              },
+              filePath: null,
+              contentType: null,
+              resourceType: null,
             });
           });
-        }
-        case 'close': {
-          if (pendingPromises.size) {
-            log.debug(`Worker thread closing, waiting for ${pendingPromises.size} pending renders`);
-            const promises = Array.from(pendingPromises);
-            pendingPromises.clear();
-            await Promise.all(promises);
-          }
-          log.debug(`Worker thread closed`);
-          return { type: 'close' };
-        }
+        });
       }
-    })
-    ?.catch((e) => {
-      console.error('Worker process creation failed', e);
-    });
+      case 'close': {
+        if (pendingPromises.size) {
+          log.debug(`Worker thread closing, waiting for ${pendingPromises.size} pending renders`);
+          const promises = Array.from(pendingPromises);
+          pendingPromises.clear();
+          await Promise.all(promises);
+        }
+        log.debug(`Worker thread closed`);
+        return { type: 'close' };
+      }
+    }
+  };
+
+  parentPort?.on('message', async (msg: WorkerInputMessage) => {
+    try {
+      parentPort?.postMessage(await onMessage(msg));
+    } catch (e) {
+      // Send error result back instead of crashing the worker
+      if (msg.type === 'render') {
+        const error = e instanceof Error ? e : new Error(String(e));
+        parentPort?.postMessage({
+          type: 'render',
+          pathname: msg.pathname,
+          url: '',
+          ok: false,
+          error: { message: error.message, stack: error.stack },
+          filePath: null,
+          contentType: null,
+          resourceType: null,
+        } satisfies WorkerOutputMessage);
+      } else {
+        console.error('Worker message handler error', e);
+      }
+    }
+    if (msg.type === 'close') {
+      parentPort?.close();
+    }
+  });
 }
 
 async function workerRender(
@@ -110,7 +149,7 @@ async function workerRender(
 
         if (!result.ok) {
           // not ok, don't write anything
-          return noopWritableStream as any;
+          return createNoopWritableStream() as any;
         }
 
         result.contentType = (headers.get('Content-Type') || '').toLowerCase();
@@ -293,24 +332,5 @@ async function workerRender(
   }
 }
 
-const noopWriter: WritableStreamDefaultWriter<any> = {
-  closed: Promise.resolve(undefined),
-  ready: Promise.resolve(undefined),
-  desiredSize: 0,
-  async close() {},
-  async abort() {},
-  async write() {},
-  releaseLock() {},
-};
-
-const noopWritableStream = {
-  get locked() {
-    return false;
-  },
-  set locked(_: boolean) {},
-  async abort() {},
-  async close() {},
-  getWriter() {
-    return noopWriter;
-  },
-};
+/** Create a fresh no-op WritableStream (must be a real instance for pipeTo checks). */
+const createNoopWritableStream = () => new WritableStream();

@@ -1,5 +1,70 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.29
+
+### Major Changes
+
+- BREAKING: The route configuration object has changed. The routes are now a more efficient trie structure and the config no longer includes `menus`. This should not impact you. (by [@wmertens](https://github.com/wmertens) in [#8414](https://github.com/QwikDev/qwik/pull/8414))
+
+### Minor Changes
+
+- ✨ SSG now runs in a separate process using Workers, and it can be re-run by running `server/run-ssg.js` (by [@wmertens](https://github.com/wmertens) in [#8414](https://github.com/QwikDev/qwik/pull/8414))
+
+- ✨ eTag and in-memory cache for SSR pages. You can define an `eTag` property on your page modules, which will be used to generate an ETag header for the response, and which is checked before rendering the page, returning 304 if possible. (by [@wmertens](https://github.com/wmertens) in [#8414](https://github.com/QwikDev/qwik/pull/8414))
+  If you define a `cacheKey` function on your page module, it will be used to generate a cache key for the page, which is used to store the rendered HTML in an in-memory cache. This allows for faster responses for pages that are expensive to render and do not change often. The cache can be cleared using the `clearSsrCache` function from the request handler middleware.
+
+- ✨ Add `routeConfig` export as a unified alternative to separate `head`, `eTag`, and `cacheKey` exports (by [@wmertens](https://github.com/wmertens) in [#8414](https://github.com/QwikDev/qwik/pull/8414))
+
+  The new `routeConfig` export groups all page-level configuration into a single export with the same resolution rules as `head` (static object or function). When a module exports `routeConfig`, separate `head`, `eTag`, and `cacheKey` exports on that module are ignored.
+
+- ✨ Custom `404.tsx` error pages are now shown in dev mode, and you can now also create `error.tsx` pages for other HTTP status codes. (by [@wmertens](https://github.com/wmertens) in [#8414](https://github.com/QwikDev/qwik/pull/8414))
+  Read the HTTP status with `useHttpStatus()`.
+
+### Patch Changes
+
+- fix(router): make sure css gets found on the correct module graph (by [@saboooor](https://github.com/saboooor) in [#8423](https://github.com/QwikDev/qwik/pull/8423))
+
+- Updated dependencies []:
+  - @qwik.dev/core@2.0.0-beta.29
+
+## 2.0.0-beta.28
+
+### Minor Changes
+
+- ✨ the Vite environment API is now better supported. This means that you can build multiple environments simultaneously without Qwik having a problem, with `vite build --app`. (by [@wmertens](https://github.com/wmertens) in [#6903](https://github.com/QwikDev/qwik/pull/6903))
+
+  However, Qwik Router adapters still require running `build.server` separately for now because they use a different vite configuration file.
+
+  The minimum supported version of Vite is now 6.0.0.
+
+- ✨ Hot Module Replacement (HMR) support. You now get instant updates in the browser when you change your source code, without losing state. This happens without forcing a resume at load, so everything is fast. (by [@wmertens](https://github.com/wmertens) in [#8421](https://github.com/QwikDev/qwik/pull/8421))
+  The slight disadvantage is that all components now send their state during development (because now they can always rerender on the client). You can disable HMR and fall back to full page reloads by setting `{devTools: {hmr: false}}` in the `qwikVite()` plugin configuration.
+
+### Patch Changes
+
+- Updated dependencies [[`640e8d3`](https://github.com/QwikDev/qwik/commit/640e8d31dab44540adc0c15ea19c829e836a7c94), [`d304830`](https://github.com/QwikDev/qwik/commit/d30483000452f7df0df4ce34070039c80c4718f2)]:
+  - @qwik.dev/core@2.0.0-beta.28
+
+## 2.0.0-beta.27
+
+### Patch Changes
+
+- Updated dependencies [[`e8158b9`](https://github.com/QwikDev/qwik/commit/e8158b96be68e2423fcb3da4362e46920d6af03e), [`e8158b9`](https://github.com/QwikDev/qwik/commit/e8158b96be68e2423fcb3da4362e46920d6af03e), [`e8158b9`](https://github.com/QwikDev/qwik/commit/e8158b96be68e2423fcb3da4362e46920d6af03e)]:
+  - @qwik.dev/core@2.0.0-beta.27
+
+## 2.0.0-beta.26
+
+### Minor Changes
+
+- ✨ rewrite absolute url error will throw 400 instead of 500 (by [@Varixo](https://github.com/Varixo) in [#8389](https://github.com/QwikDev/qwik/pull/8389))
+
+### Patch Changes
+
+- 🐞🩹 Server-Timing header should be available in dev mode (by [@Varixo](https://github.com/Varixo) in [#8389](https://github.com/QwikDev/qwik/pull/8389))
+
+- Updated dependencies [[`82edabf`](https://github.com/QwikDev/qwik/commit/82edabfedb59ef817ae2c37ae8e4e67dbee26a3f), [`827f389`](https://github.com/QwikDev/qwik/commit/827f38924a17bd6a5bc808fb61f791cb8ed1f6a0), [`a22a98d`](https://github.com/QwikDev/qwik/commit/a22a98d363fecec6da736cf1655ea9b5f27c19f4), [`f64f15f`](https://github.com/QwikDev/qwik/commit/f64f15f60ca7009dcf4101604ad9c58edd777e06)]:
+  - @qwik.dev/core@2.0.0-beta.26
+
 ## 2.0.0-beta.25
 
 ### Patch Changes

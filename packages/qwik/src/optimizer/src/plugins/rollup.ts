@@ -223,7 +223,6 @@ export async function normalizeOutputOptionsObject(
         'manualChunks must be a function for Qwik to group qrl segments back together'
       );
     }
-
     // We need custom chunking for the client build
     outputOpts.manualChunks = userManualChunks
       ? (id, meta) => userManualChunks(id, meta) || internalManualChunks(id, meta)
@@ -280,7 +279,9 @@ export async function normalizeOutputOptionsObject(
         Number.isFinite(major) &&
         (major > 4 || (major === 4 && (minor > 52 || (minor === 52 && (patch || 0) >= 0))));
       if (isGte452) {
-        outputOpts.onlyExplicitManualChunks = true;
+        (
+          outputOpts as Rollup.OutputOptions & { onlyExplicitManualChunks?: boolean }
+        ).onlyExplicitManualChunks = true;
       } else {
         console.warn(
           `⚠️ We detected that you're using a Rollup version prior to 4.52.0 (${version}). For the latest and greatest, we recommend to let Vite install the latest version for you, or manually install the latest version of Rollup in your project if that doesn't work. It will enable the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`

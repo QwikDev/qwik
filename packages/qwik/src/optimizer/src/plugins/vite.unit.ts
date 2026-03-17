@@ -22,11 +22,11 @@ const chunkInfoMocks = [
   },
 ] as Rollup.PreRenderedChunk[];
 
-function mockOptimizerOptions(): OptimizerOptions {
+function mockOptimizerOptions(env: 'node' | 'deno' = 'node'): OptimizerOptions {
   return {
     sys: {
       cwd: () => process.cwd(),
-      env: 'node',
+      env,
       os: process.platform,
       dynamicImport: async (path) => import(path),
       strictDynamicImport: async (path) => import(path),
@@ -172,7 +172,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
 
-    expectTransformEngine(c, bundlerOptionsKey, 'serve');
+    assert.deepEqual(c.esbuild, false);
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -211,7 +211,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, undefined);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    expectTransformEngine(c, bundlerOptionsKey, 'serve');
+    assert.deepEqual(c.esbuild, false);
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -268,9 +268,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
     expectTransformEngine(c, bundlerOptionsKey, 'build');
-    assert.deepEqual(c.ssr, {
-      noExternal,
-    });
+    assert.deepEqual(c.ssr?.noExternal, noExternal);
   });
 
   test('command: build, mode: production', async () => {
@@ -310,7 +308,10 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, undefined);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    expectTransformEngine(c, bundlerOptionsKey, 'build');
+    assert.deepEqual(c.esbuild, {
+      logLevel: 'error',
+      jsx: 'automatic',
+    });
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -383,34 +384,11 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, true);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    expectTransformEngine(c, bundlerOptionsKey, 'build');
+    assert.deepEqual(c.esbuild, {
+      logLevel: 'error',
+      jsx: 'automatic',
+    });
     assert.deepEqual(c.publicDir, false);
-  });
-
-  test('buildStart resolves relative ssr input', async () => {
-    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions(), srcDir: cwd });
-    await plugin.config.call(
-      configHookPluginContext,
-      { build: { ssr: 'src/entry.preview.tsx' } },
-      { command: 'build', mode: '' }
-    );
-
-    const calls: string[] = [];
-    const expectedResolvedId = normalizePath(resolve(cwd, 'src', 'entry.preview.tsx'));
-    const buildStartHook = plugin.buildStart as (this: any, options?: any) => Promise<void>;
-    await buildStartHook.call({
-      resolve: async (id: string) => {
-        calls.push(id);
-        return id === expectedResolvedId ? ({ id } as any) : null;
-      },
-      error: (msg: any) => {
-        throw new Error(`Unexpected error: ${msg}`);
-      },
-      warn: () => {},
-    } as any);
-
-    assert.deepEqual(calls[0], expectedResolvedId);
-    assert.deepEqual(calls.includes('src/entry.preview.tsx'), false);
   });
 
   test('command: serve, --mode ssr', async () => {
@@ -759,6 +737,114 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
 
       // Should NOT be duplicated like: frameworks/keyed/qwik2/dist/frameworks/keyed/qwik2
       assert.notMatch(clientPublicOutDir!, /frameworks.*frameworks/);
+    });
+  });
+
+  describe('configEnvironment', () => {
+    test('should set noExternal for server environments', async () => {
+      const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+      // Initialize the plugin first
+      await plugin.config.call(
+        configHookPluginContext,
+        {},
+        { command: 'serve', mode: 'development' }
+      );
+
+      const hook = (plugin as any).configEnvironment;
+      assert.isFunction(hook);
+
+      const result = hook('ssr', { consumer: 'server' }, { command: 'serve', mode: 'development' });
+      assert.deepEqual(result.resolve.noExternal, noExternal);
+    });
+
+    test('should set resolve conditions for client environments in production', async () => {
+      const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+      await plugin.config.call(
+        configHookPluginContext,
+        {},
+        { command: 'build', mode: 'production' }
+      );
+
+      const hook = (plugin as any).configEnvironment;
+      const result = hook(
+        'client',
+        { consumer: 'client' },
+        { command: 'build', mode: 'production' }
+      );
+      assert.deepEqual(result.resolve.conditions, ['min']);
+    });
+
+    test('should return empty config for client environments in development', async () => {
+      const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+      await plugin.config.call(
+        configHookPluginContext,
+        {},
+        { command: 'serve', mode: 'development' }
+      );
+
+      const hook = (plugin as any).configEnvironment;
+      const result = hook(
+        'client',
+        { consumer: 'client' },
+        { command: 'serve', mode: 'development' }
+      );
+      // In development, we don't set conditions to avoid overriding adapter-provided conditions
+      // (e.g. ['webworker', 'worker'] for edge adapters). Empty object is the correct result.
+      assert.deepEqual(result, {});
+    });
+  });
+
+  describe('configEnvironment', () => {
+    test('should set noExternal for server environments', async () => {
+      const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+      // Initialize the plugin first
+      await plugin.config.call(
+        configHookPluginContext,
+        {},
+        { command: 'serve', mode: 'development' }
+      );
+
+      const hook = (plugin as any).configEnvironment;
+      assert.isFunction(hook);
+
+      const result = hook('ssr', { consumer: 'server' }, { command: 'serve', mode: 'development' });
+      assert.deepEqual(result.resolve.noExternal, noExternal);
+    });
+
+    test('should set resolve conditions for client environments in production', async () => {
+      const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+      await plugin.config.call(
+        configHookPluginContext,
+        {},
+        { command: 'build', mode: 'production' }
+      );
+
+      const hook = (plugin as any).configEnvironment;
+      const result = hook(
+        'client',
+        { consumer: 'client' },
+        { command: 'build', mode: 'production' }
+      );
+      assert.deepEqual(result.resolve.conditions, ['min']);
+    });
+
+    test('should return empty config for client environments in development', async () => {
+      const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+      await plugin.config.call(
+        configHookPluginContext,
+        {},
+        { command: 'serve', mode: 'development' }
+      );
+
+      const hook = (plugin as any).configEnvironment;
+      const result = hook(
+        'client',
+        { consumer: 'client' },
+        { command: 'serve', mode: 'development' }
+      );
+      // In development, we don't set conditions to avoid overriding adapter-provided conditions
+      // (e.g. ['webworker', 'worker'] for edge adapters). Empty object is the correct result.
+      assert.deepEqual(result, {});
     });
   });
 });

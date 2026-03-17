@@ -98,6 +98,21 @@ describe.each([
     );
   });
 
+  it('should render inline component with null key', async () => {
+    const { vNode } = await render(<MyComp key={null} />, { debug });
+    expect(vNode).toMatchVDOM(
+      <InlineComponent>
+        <Fragment>
+          <h1>Test</h1>
+          <p>Lorem</p>
+          <h2>ipsum</h2>
+          <p>foo</p>
+          <h2>bar</h2>
+        </Fragment>
+      </InlineComponent>
+    );
+  });
+
   it('should toggle component$ and inline wrapper', async () => {
     const Test = component$(() => {
       return <div>Test</div>;

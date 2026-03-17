@@ -14,12 +14,14 @@ import {
   type NoSerialize,
   type QRL,
 } from '@qwik.dev/core';
+import { _getContextContainer, _getContextHostElement } from '@qwik.dev/core/internal';
 
 import type { FunctionComponent as ReactFC } from 'react';
 import type { Root } from 'react-dom/client';
 import * as client from './client';
 import { renderFromServer } from './server-render';
 import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
+import type { QwikProjectionState } from './slot';
 import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 
 export function qwikifyQrl<PROPS extends Record<any, any>>(
@@ -46,11 +48,25 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
         return;
       }
 
+      // Capture projection state for reactify$ components in the React tree
+      let projectionState: QwikProjectionState | null = null;
+      const container = _getContextContainer();
+      const hostVNode = _getContextHostElement();
+      if (container && hostVNode) {
+        projectionState = { parentVNode: hostVNode, container };
+      }
+
       // Update
       if (internalState.value) {
         if (internalState.value.root) {
           internalState.value.root.render(
-            main(slotRef.value, scopeId, internalState.value.cmp, trackedProps)
+            main(
+              slotRef.value,
+              scopeId,
+              internalState.value.cmp,
+              trackedProps,
+              internalState.value.projectionState
+            )
           );
         }
       } else {
@@ -65,17 +81,18 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
             root = client.flushSync(() => {
               return client.hydrateRoot(
                 hostElement,
-                mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys)
+                mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys, projectionState)
               );
             });
           }
           if (isClientOnly || signal.value === false) {
-            root.render(main(slotRef.value, scopeId, Cmp, trackedProps));
+            root.render(main(slotRef.value, scopeId, Cmp, trackedProps, projectionState));
           }
         }
         internalState.value = noSerialize({
           cmp: Cmp,
           root,
+          projectionState,
         });
       }
     });
@@ -85,7 +102,12 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
 
       if (isBrowser) {
         cleanup(() => {
-          internalState.value?.root?.unmount();
+          const root = internalState.value?.root;
+          if (root) {
+            // Defer React unmount so Qwik's diff can finish processing VNode
+            // references before DOM elements are removed by React
+            queueMicrotask(() => root.unmount());
+          }
         });
       }
     });
@@ -113,7 +135,15 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
                 const internalData = internalState.value;
                 if (internalData && !internalData.root) {
                   const root = (internalData.root = client.createRoot(el));
-                  root.render(main(slotRef.value, scopeId, internalData.cmp, props));
+                  root.render(
+                    main(
+                      slotRef.value,
+                      scopeId,
+                      internalData.cmp,
+                      props,
+                      internalData.projectionState
+                    )
+                  );
                 }
               });
             } else {

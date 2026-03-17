@@ -16,6 +16,8 @@ export const createPlatform = (): CorePlatform => {
         if (regSym) {
           return regSym;
         }
+        // we never lazy import on the server
+        throw qError(QError.dynamicImportFailed, [symbolName]);
       }
       if (!url) {
         throw qError(QError.qrlMissingChunk, [symbolName]);

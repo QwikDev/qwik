@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-beta.25",
+  "version": "2.0.0-beta.29",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@azure/functions": "3.5.1",
@@ -21,18 +21,18 @@
     "remark-gfm": "^4.0.1",
     "set-cookie-parser": "^2.7.2",
     "source-map": "^0.7.6",
-    "svgo": "^3.3.2",
+    "svgo": "^3.3.3",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
-    "vite": ">=5 <9",
-    "vite-imagetools": "9.0.0",
+    "vite": ">=6 <9",
+    "vite-imagetools": "10.0.0",
     "yaml": "^2.8.2",
     "zod": "^3.25.48"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.55.2",
+    "@microsoft/api-extractor": "7.57.6",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
     "@types/node": "24.10.0",
@@ -169,7 +169,7 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "@qwik.dev/core": "workspace:^",
-    "vite": ">=5 <9"
+    "vite": ">=6 <9"
   },
   "publishConfig": {
     "access": "public"
@@ -181,7 +181,7 @@
     "directory": "packages/qwik-router"
   },
   "scripts": {
-    "build": "vite build"
+    "build": "vite build --mode lib"
   },
   "sideEffects": false,
   "type": "module",

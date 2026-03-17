@@ -96,7 +96,7 @@ describe.each([
         </Component>
       );
 
-      await expect(container.document.querySelector('button')).toMatchDOM(<button></button>);
+      expect(container.document.querySelector('button')?.innerHTML).toEqual('');
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
@@ -123,7 +123,7 @@ describe.each([
         </Component>
       );
 
-      await expect(container.document.body.querySelector('button')).toMatchDOM(<button></button>);
+      expect(container.document.body.querySelector('button')?.innerHTML).toEqual('');
     });
 
     it('should rerender svg nested children', async () => {

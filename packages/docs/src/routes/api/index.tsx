@@ -139,32 +139,45 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
 });
 
 
-export const ApiMemberList = component$(({ id, data, filters }: any) => (
-  <ul class="grid sm:grid-cols-2 lg:grid-cols-3 pb-5">
-    {data.members.map((member: any) => {
-      const kind = toSnakeCase(member.kind);
+export const ApiMemberList = component$(({ id, data, filters }: any) => {
+  const nameCounts = data.members.reduce((acc: Record<string, number>, m: any) => {
+    if (m.name) {
+      const normalizedName = m.name.toLowerCase();
+      acc[normalizedName] = (acc[normalizedName] || 0) + 1;
+    }
+    return acc;
+  }, {});
+  return (
+    <ul class="grid sm:grid-cols-2 lg:grid-cols-3 pb-5">
+      {data.members.map((member: any) => {
+        const kind = toSnakeCase(member.kind);
 
-      if (!member.name) {
-        return;
-      }
+        if (!member.name) {
+          return;
+        }
+      
+        const name = member.name.toLowerCase()
+            .replace(/[$]/g, '_')
+            .replace(/[^a-zA-Z0-9_]/g, '')
+            .replace(/ /g, '-');
 
-      const name = member.name.toLowerCase()
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .replace(/ /g, '-');
+        const anchorId = nameCounts[member.name.toLowerCase()] > 1 
+            ? `${name}-${kind}`
+            : name;
 
-
-      return (
-        <li
-          key={`${id}-member-${member.id}-${kind}`}
-          data-kind={kind}
-          data-kind-label={kind.substring(0, 1).toUpperCase()}
-          class={`api-item list-none text-xs ${
-            (kind in filters && !filters[kind] && 'hidden') || ''
-          }`}
-        >
-          <Link href={`${data.id}#${name}`}>{member.name}</Link>
-        </li>
-      );
-    })}
-  </ul>
-));
+        return (
+          <li
+            key={`${id}-member-${member.id}-${kind}`}
+            data-kind={kind}
+            data-kind-label={kind.substring(0, 1).toUpperCase()}
+            class={`api-item list-none text-xs ${
+              (kind in filters && !filters[kind] && 'hidden') || ''
+            }`}
+          >
+            <Link href={`${data.id}#${anchorId}`}>{member.name}</Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+});

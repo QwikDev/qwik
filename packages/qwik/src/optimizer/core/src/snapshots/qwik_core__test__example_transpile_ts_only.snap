@@ -19,15 +19,21 @@ export const App = component$((props: Stuff) => {
 ============================= test.jsx ==
 
 import { componentQrl } from "@qwik.dev/core";
-import { inlinedQrl } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+import { _noopQrl } from "@qwik.dev/core";
+//
+const q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /*#__PURE__*/ _noopQrl("App_component_Cmp_p_q_e_click_Yl4ybrJWrt4");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ _noopQrl("App_component_ckEPmXZlub0");
+//
+q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.s(()=>console.log('warn'));
+q_App_component_ckEPmXZlub0.s((props)=>{
     return <Cmp>
-			<p class="stuff" q-e:click={/*#__PURE__*/ inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_q_e_click_Yl4ybrJWrt4")}>Hello Qwik</p>
+			<p class="stuff" q-e:click={q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4}>Hello Qwik</p>
 		</Cmp>;
-}, "App_component_ckEPmXZlub0"));
+});
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,sCAAW,CAAC;IAC9B,QACE,IAAI;GACJ,CAAC,EAAE,MAAM,QAAQ,oCAAU,IAAM,QAAQ,GAAG,CAAC,uDAAS,UAAU,EAAE,EAAE;EACrE,EAAE;AAEJ,iCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;8CAM8B,IAAM,QAAQ,GAAG,CAAC;8BAHlB,CAAC;IAC9B,QACE,IAAI;GACJ,CAAC,EAAE,MAAM,QAAQ,wDAAqC,UAAU,EAAE,EAAE;EACrE,EAAE;AAEJ;AANA,OAAO,MAAM,oBAAM,0CAMhB\"}")
 == DIAGNOSTICS ==
 
 []

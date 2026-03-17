@@ -24,7 +24,6 @@ const serverPluginsDir = normalizePath(join(tmpdir(), 'src', 'routes'));
 test('isGroupedLayoutName', () => {
   const t = [
     { ext: '(abc)', expect: true },
-    { ext: '__abc', expect: true }, // deprecated
     { ext: '(abc)xyz', expect: false },
     { ext: 'xyz(abc)', expect: false },
     { ext: '(abc', expect: false },

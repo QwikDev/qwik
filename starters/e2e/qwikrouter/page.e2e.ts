@@ -145,10 +145,10 @@ function tests() {
       await linkNavigate(
         ctx,
         '[data-test-link="products-shirt-rewrite-absolute-url"]',
-        500,
+        400,
       );
       await assertPage(ctx, {
-        title: "500 Internal Server Error",
+        title: "Error 400 - Qwik",
       });
       // Recover from error
       await setPage(ctx, "/qwikrouter-test/products/hat/");

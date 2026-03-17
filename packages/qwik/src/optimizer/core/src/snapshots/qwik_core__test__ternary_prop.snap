@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3878
+assertion_line: 3876
 expression: output
 ---
 ==INPUT==
@@ -24,13 +24,14 @@ expression: output
 ============================= test.tsx_Cmp_component_handleClick_WawHV3HwS1A.ts (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
+//
 export const Cmp_component_handleClick_WawHV3HwS1A = ()=>{
     const toggleSig = _captures[0];
     toggleSig.value = !toggleSig.value;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAK0B;;IACtB,UAAU,KAAK,GAAG,CAAC,UAAU,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;qDAK0B;;IACtB,UAAU,KAAK,GAAG,CAAC,UAAU,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -60,12 +61,15 @@ import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const _hf0 = (p0)=>p0.value ? true : undefined;
 const _hf0_str = "p0.value?true:undefined";
-const i_WawHV3HwS1A = ()=>import("./test.tsx_Cmp_component_handleClick_WawHV3HwS1A");
+//
+const q_Cmp_component_handleClick_WawHV3HwS1A = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_handleClick_WawHV3HwS1A"), "Cmp_component_handleClick_WawHV3HwS1A");
+//
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const toggleSig = useSignal(false);
-    const handleClick$ = /*#__PURE__*/ qrl(i_WawHV3HwS1A, "Cmp_component_handleClick_WawHV3HwS1A", [
+    const handleClick$ = q_Cmp_component_handleClick_WawHV3HwS1A.w([
         toggleSig
     ]);
     return /*#__PURE__*/ _jsxSorted("button", null, {
@@ -77,7 +81,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAU+C,GAAU,KAAK,GAAG,OAAO;;;yCARxC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAAO,aAAU;QAAc,WAAS;;;OAAsC;AAIjF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBAU+C,GAAU,KAAK,GAAG,OAAO;;;;;yCARxC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAAO,aAAU;QAAc,WAAS;;;OAAsC;AAIjF\"}")
 /*
 {
   "origin": "test.tsx",
@@ -102,11 +106,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_4ryKJTOKjWE = ()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE");
-export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_4ryKJTOKjWE, "Cmp_component_4ryKJTOKjWE"));
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEE,OAAO,MAAM,oBAAM,4EAYhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEE,OAAO,MAAM,oBAAM,0CAYhB\"}")
 == DIAGNOSTICS ==
 
 []

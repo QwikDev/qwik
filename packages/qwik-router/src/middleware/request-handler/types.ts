@@ -33,7 +33,7 @@ export interface ServerRequestEvent<T = unknown> {
 }
 
 /** @public */
-export type ServerRequestMode = 'dev' | 'static' | 'server';
+export type ServerRequestMode = 'static' | 'server';
 
 /** @public */
 export type ServerResponseHandler<T = any> = (

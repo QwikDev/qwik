@@ -31,7 +31,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
-import { isDev, isServer } from '@qwik.dev/core/build';
+import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -204,7 +204,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     }
 
     // Check time budget (only for DOM, not SSR)
-    if (!isRunningOnServer && !import.meta.env.TEST) {
+    if (isBrowser) {
       const elapsed = performance.now() - startTime;
       if (elapsed >= timeBudget) {
         // Schedule continuation as macrotask to actually yield to browser
@@ -254,7 +254,7 @@ export function resolveCursor(container: Container): void {
  * If the vNode has dirty children, partitions them, sets cursor to first dirty child, and returns
  * that child. Otherwise clears CHILDREN bit and returns null.
  */
-function tryDescendDirtyChildren(
+export function tryDescendDirtyChildren(
   container: Container,
   cursorData: CursorData,
   currentVNode: VNode,
@@ -266,17 +266,34 @@ function tryDescendDirtyChildren(
     return null;
   }
   partitionDirtyChildren(dirtyChildren, currentVNode);
+  // Scan dirtyChildren directly instead of going through getNextVNode.
+  // getNextVNode follows the child's parent/slotParent pointer, which for Projection nodes
+  // points to the DOM insertion location rather than currentVNode — that would scan the
+  // wrong dirtyChildren array and potentially cause infinite loops.
+  // const len = dirtyChildren.length;
+  // for (let i = 0; i < len; i++) {
+  //   const child = dirtyChildren[i];
+  //   if (child.dirty & ChoreBits.DIRTY_MASK) {
+  //     currentVNode.nextDirtyChildIndex = (i + 1) % len;
+  //     setCursorPosition(container, cursorData, child);
+  //     return child;
+  //   }
+  // }
+  // // No dirty child found — clean up
+  // currentVNode.dirty &= ~ChoreBits.CHILDREN;
+  // currentVNode.dirtyChildren = null;
   currentVNode.nextDirtyChildIndex = 0;
   const next = getNextVNode(dirtyChildren[0], cursor)!;
   setCursorPosition(container, cursorData, next);
   return next;
+  // return null;
 }
 
 /**
  * Partitions dirtyChildren array so non-projections come first, projections last. Uses in-place
  * swapping to avoid allocations.
  */
-function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): void {
+export function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): void {
   let writeIndex = 0;
   for (let readIndex = 0; readIndex < dirtyChildren.length; readIndex++) {
     const child = dirtyChildren[readIndex];
@@ -300,12 +317,12 @@ export function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
     }
     return null;
   }
-  // Prefer parent if it's dirty, otherwise try slotParent
+  // Prefer slotParent (logical owner) for Projections, fall back to parent
   let parent: VNode | null = null;
-  if (vNode.parent && vNode.parent.dirty & ChoreBits.CHILDREN) {
-    parent = vNode.parent;
-  } else if (vNode.slotParent && vNode.slotParent.dirty & ChoreBits.CHILDREN) {
+  if (vNode.slotParent && vNode.slotParent.dirty & ChoreBits.CHILDREN) {
     parent = vNode.slotParent;
+  } else if (vNode.parent && vNode.parent.dirty & ChoreBits.CHILDREN) {
+    parent = vNode.parent;
   }
 
   if (!parent) {

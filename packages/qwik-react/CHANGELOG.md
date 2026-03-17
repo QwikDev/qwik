@@ -1,5 +1,37 @@
 # @qwik.dev/react
 
+## 2.0.0-beta.29
+
+### Minor Changes
+
+- ✨ `reactify$(QwikComponent)` creates React components that can be used inside a `qwikify$(ReactComponent)` app. This allows Qwik-wrapped React apps to embed Qwik components, with full context sharing, interactivity and resumability. (by [@wmertens](https://github.com/wmertens) in [#8413](https://github.com/QwikDev/qwik/pull/8413))
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @qwik.dev/core@2.0.0-beta.29
+
+## 2.0.0-beta.28
+
+### Patch Changes
+
+- Updated dependencies [[`640e8d3`](https://github.com/QwikDev/qwik/commit/640e8d31dab44540adc0c15ea19c829e836a7c94), [`d304830`](https://github.com/QwikDev/qwik/commit/d30483000452f7df0df4ce34070039c80c4718f2)]:
+  - @qwik.dev/core@2.0.0-beta.28
+
+## 2.0.0-beta.27
+
+### Patch Changes
+
+- Updated dependencies [[`e8158b9`](https://github.com/QwikDev/qwik/commit/e8158b96be68e2423fcb3da4362e46920d6af03e), [`e8158b9`](https://github.com/QwikDev/qwik/commit/e8158b96be68e2423fcb3da4362e46920d6af03e), [`e8158b9`](https://github.com/QwikDev/qwik/commit/e8158b96be68e2423fcb3da4362e46920d6af03e)]:
+  - @qwik.dev/core@2.0.0-beta.27
+
+## 2.0.0-beta.26
+
+### Patch Changes
+
+- Updated dependencies [[`82edabf`](https://github.com/QwikDev/qwik/commit/82edabfedb59ef817ae2c37ae8e4e67dbee26a3f), [`827f389`](https://github.com/QwikDev/qwik/commit/827f38924a17bd6a5bc808fb61f791cb8ed1f6a0), [`a22a98d`](https://github.com/QwikDev/qwik/commit/a22a98d363fecec6da736cf1655ea9b5f27c19f4), [`f64f15f`](https://github.com/QwikDev/qwik/commit/f64f15f60ca7009dcf4101604ad9c58edd777e06)]:
+  - @qwik.dev/core@2.0.0-beta.26
+
 ## 2.0.0-beta.25
 
 ### Patch Changes

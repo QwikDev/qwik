@@ -1,23 +1,23 @@
 import type {
   MainContext,
-  SsgOptions,
+  SsgGenerateOptions,
   SsgRoute,
   SsgWorkerRenderResult,
   WorkerOutputMessage,
   WorkerInputMessage,
   System,
-} from '../types';
+} from './types';
 import fs from 'node:fs';
 import { cpus as nodeCpus } from 'node:os';
 import { Worker } from 'node:worker_threads';
-import { dirname, extname, isAbsolute, join, resolve } from 'node:path';
-import { ensureDir } from './node-system';
-import { normalizePath } from '../../utils/fs';
+import { isAbsolute, resolve } from 'node:path';
+import { ensureDir } from './system';
+import { normalizePath } from '../utils/fs';
 
-export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
+export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
   const ssgWorkers: SsgWorker[] = [];
   const sitemapBuffer: string[] = [];
-  let sitemapPromise: Promise<any> | null = null;
+  let sitemapStream: fs.WriteStream | null = null;
 
   opts = { ...opts };
 
@@ -50,33 +50,26 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
     }
   }
 
+  // workerFilePath must be provided - it points to the entry file that handles both
+  // main thread and worker thread modes (detected via isMainThread)
+  if (!opts.workerFilePath) {
+    throw new Error('Missing "workerFilePath" option for SSG worker creation');
+  }
+  // Node's Worker requires a URL object for file:// URLs, not a string
+  const workerFilePath =
+    typeof opts.workerFilePath === 'string' && opts.workerFilePath.startsWith('file://')
+      ? new URL(opts.workerFilePath)
+      : opts.workerFilePath;
+
+  // workerData only carries serializable options (no functions like render/qwikRouterConfig)
+  const { render: _r, qwikRouterConfig: _c, workerFilePath: _w, ...workerData } = opts;
+
   const createWorker = () => {
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
-
-    let workerFilePath: string | URL;
     let terminateTimeout: number | null = null;
 
-    // Launch the worker using the package's index module, which bootstraps the worker thread.
-    if (typeof __filename === 'string') {
-      // CommonJS path
-      const ext = extname(__filename) || '.js';
-      workerFilePath = join(dirname(__filename), `index${ext}`);
-    } else {
-      // ESM path (import.meta.url)
-      const thisUrl = new URL(import.meta.url);
-      const pathname = thisUrl.pathname || '';
-      let ext = '.js';
-      if (pathname.endsWith('.ts')) {
-        ext = '.ts';
-      } else if (pathname.endsWith('.mjs')) {
-        ext = '.mjs';
-      }
-
-      workerFilePath = new URL(`./index${ext}`, thisUrl);
-    }
-
-    const nodeWorker = new Worker(workerFilePath, { workerData: opts });
+    const nodeWorker = new Worker(workerFilePath, { workerData });
     nodeWorker.unref();
 
     const ssgWorker: SsgWorker = {
@@ -102,12 +95,24 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
         mainTasks.clear();
         const msg: WorkerInputMessage = { type: 'close' };
         await new Promise<void>((resolve) => {
-          terminateResolve = resolve;
+          terminateResolve = () => {
+            // Worker acknowledged close, it will exit naturally
+            resolve();
+          };
+          // Fallback: force-terminate if worker doesn't respond within 1s
+          terminateTimeout = setTimeout(async () => {
+            terminateTimeout = null;
+            terminateResolve = null;
+            await nodeWorker.terminate();
+            resolve();
+          }, 1000) as unknown as number;
           nodeWorker.postMessage(msg);
         });
-        terminateTimeout = setTimeout(async () => {
-          await nodeWorker.terminate();
-        }, 1000) as unknown as number;
+        // If worker responded gracefully, cancel the force-terminate
+        if (terminateTimeout) {
+          clearTimeout(terminateTimeout);
+          terminateTimeout = null;
+        }
       },
     };
 
@@ -141,6 +146,28 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
         clearTimeout(terminateTimeout);
         terminateTimeout = null;
       }
+      // Resolve any pending tasks so the main thread doesn't hang
+      if (mainTasks.size > 0) {
+        for (const [pathname, resolve] of mainTasks) {
+          ssgWorker.activeTasks--;
+          resolve({
+            type: 'render',
+            pathname,
+            url: '',
+            ok: false,
+            error: { message: `Worker exited with code ${code}`, stack: undefined },
+            filePath: null,
+            contentType: null,
+            resourceType: null,
+          });
+        }
+        mainTasks.clear();
+      }
+      // Resolve terminate if it was waiting
+      if (terminateResolve) {
+        terminateResolve();
+        terminateResolve = null;
+      }
       if (code !== 0) {
         console.error(`worker exit ${code}`);
       }
@@ -164,12 +191,11 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
     if (sitemapOutFile && result.ok && result.resourceType === 'page') {
       sitemapBuffer.push(`<url><loc>${result.url}</loc></url>`);
       if (sitemapBuffer.length > 50) {
-        if (sitemapPromise) {
-          await sitemapPromise;
-        }
         const siteMapUrls = sitemapBuffer.join('\n') + '\n';
         sitemapBuffer.length = 0;
-        sitemapPromise = fs.promises.appendFile(sitemapOutFile, siteMapUrls);
+        if (sitemapStream) {
+          sitemapStream.write(siteMapUrls);
+        }
       }
     }
 
@@ -177,15 +203,28 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
   };
 
   const close = async () => {
-    const promises: Promise<any>[] = [];
+    const promises: Promise<unknown>[] = [];
 
-    if (sitemapOutFile) {
-      if (sitemapPromise) {
-        await sitemapPromise;
-      }
+    if (sitemapStream) {
       sitemapBuffer.push(`</urlset>`);
-      promises.push(fs.promises.appendFile(sitemapOutFile, sitemapBuffer.join('\n')));
+      sitemapStream.write(sitemapBuffer.join('\n'));
       sitemapBuffer.length = 0;
+
+      await new Promise<void>((resolve, reject) => {
+        if (sitemapStream) {
+          sitemapStream.end((err?: Error | null) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        } else {
+          resolve();
+        }
+      });
+
+      sitemapStream = null;
     }
 
     for (const ssgWorker of ssgWorkers) {
@@ -208,8 +247,11 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
 
   if (sitemapOutFile) {
     await ensureDir(sitemapOutFile);
-    await fs.promises.writeFile(
-      sitemapOutFile,
+    sitemapStream = fs.createWriteStream(sitemapOutFile, {
+      flags: 'w',
+    });
+
+    sitemapStream.write(
       `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
     );
   }

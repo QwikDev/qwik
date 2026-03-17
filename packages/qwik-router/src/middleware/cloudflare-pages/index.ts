@@ -10,6 +10,7 @@ import {
   mergeHeadersCookies,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
+import { isDev } from '@qwik.dev/core/build';
 
 // @qwik.dev/router/middleware/cloudflare-pages
 
@@ -126,7 +127,7 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
       });
     } catch (e: any) {
       console.error(e);
-      return new Response(String(e || 'Error'), {
+      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'cloudflare-pages' },
       });

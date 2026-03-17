@@ -48,6 +48,20 @@
       "mdFile": "router.cachecontrol.md"
     },
     {
+      "name": "clearSsrCache",
+      "id": "clearssrcache",
+      "hierarchy": [
+        {
+          "name": "clearSsrCache",
+          "id": "clearssrcache"
+        }
+      ],
+      "kind": "Function",
+      "content": "Clear the in-memory SSR cache. Call after deployments or data changes.\n\nWhen `cacheKey` is provided, only that single entry is removed; otherwise the entire cache is cleared.\n\n\n```typescript\nexport declare function clearSsrCache(cacheKey?: string): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncacheKey\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/etag.ts",
+      "mdFile": "router.clearssrcache.md"
+    },
+    {
       "name": "ClientConn",
       "id": "clientconn",
       "hierarchy": [
@@ -484,7 +498,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ServerRequestMode = 'dev' | 'static' | 'server';\n```",
+      "content": "```typescript\nexport type ServerRequestMode = 'static' | 'server';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
       "mdFile": "router.serverrequestmode.md"
     },

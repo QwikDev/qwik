@@ -1,3 +1,4 @@
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import pkg from './package.json' with { type: 'json' };
@@ -63,8 +64,7 @@ export default defineConfig((): UserConfig => {
         ],
       },
     },
-    // @ts-expect-error - incompatible types between vite 7 and vite 8-beta
-    plugins: [compiledStringPlugin()],
+    plugins: [qwikVite(), compiledStringPlugin()],
     clearScreen: false,
     optimizeDeps: {
       force: true,

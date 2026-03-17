@@ -44,6 +44,22 @@ import { needsInflation } from './deser-proxy';
 
 export let loading = Promise.resolve();
 
+const dangerousObjectKeys = new Set([
+  'constructor',
+  'prototype',
+  'toString',
+  'valueOf',
+  'toJSON',
+  'then',
+]);
+const isSafeObjectKV = (key: unknown, value: unknown) => {
+  return (
+    typeof key === 'string' &&
+    key !== '__proto__' &&
+    (typeof value !== 'function' || !dangerousObjectKeys.has(key))
+  );
+};
+
 export const inflate = (
   container: DeserializeContainer,
   target: unknown,
@@ -71,6 +87,9 @@ export const inflate = (
       for (let i = 0; i < (data as any[]).length; i += 2) {
         const key = (data as string[])[i];
         const value = (data as unknown[])[i + 1];
+        if (!isSafeObjectKV(key, value)) {
+          continue;
+        }
         (target as Record<string, unknown>)[key] = value;
       }
       break;
@@ -275,7 +294,7 @@ export const inflate = (
       ];
       let owner = d[0];
       if (owner === _UNINITIALIZED) {
-        owner = new JSXNodeImpl(Fragment, d[1], d[2], null, null);
+        owner = new JSXNodeImpl(Fragment, d[1], d[2], null, 0, null);
         owner._proxy = propsProxy;
       }
       propsProxy[_OWNER] = owner;

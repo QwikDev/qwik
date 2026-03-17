@@ -34,6 +34,7 @@ import {
   ContentContext,
   ContentInternalContext,
   DocumentHeadContext,
+  HttpStatusContext,
   RouteActionContext,
   RouteLocationContext,
   RouteNavigateContext,
@@ -220,6 +221,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   const contentInternal = useSignal<ContentStateInternal>();
 
+  const httpStatus = useSignal({
+    status: env.response.status,
+    message: env.loadedRoute.$notFound$
+      ? 'Not Found'
+      : ((env.response.statusMessage as string) ?? ''),
+  });
+
   const currentActionId = env.response.action;
   const currentAction = currentActionId ? env.response.loaders[currentActionId] : undefined;
   const actionState = useSignal<RouteActionValue>(
@@ -365,9 +373,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
       }
 
-      // TODO Future feature?: update routeLocation.url signal on hash changes for `<Link>` & `<a>` during SPA?
-      // - Hashes in Link are already broken in Qwik (<=v1.1.5), and <a> tags are untracked. (not a new bug)
-      // - Would need an early pop handler pushed on first # w/o full Nav SPA bootup. (post-SPA refactor)
+      // Update routeLocation.url on hash/search-only changes so components react to the new URL
+      if (dest.href !== routeLocation.url.href) {
+        const newUrl = new URL(dest.href);
+        routeInternal.value.dest = newUrl;
+        routeLocation.url = newUrl;
+      }
 
       return;
     }
@@ -382,12 +393,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
     if (isBrowser) {
       loadClientData(dest);
-      loadRoute(
-        qwikRouterConfig.routes,
-        qwikRouterConfig.menus,
-        qwikRouterConfig.cacheModules,
-        dest.pathname
-      );
+      loadRoute(qwikRouterConfig.routes, qwikRouterConfig.cacheModules, dest.pathname);
     }
 
     actionState.value = undefined;
@@ -401,6 +407,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
+  useContextProvider(HttpStatusContext, httpStatus);
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
@@ -439,7 +446,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
         let loadRoutePromise = loadRoute(
           qwikRouterConfig.routes,
-          qwikRouterConfig.menus,
           qwikRouterConfig.cacheModules,
           trackUrl.pathname
         );
@@ -463,7 +469,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
           loadRoutePromise = loadRoute(
             qwikRouterConfig.routes,
-            qwikRouterConfig.menus,
             qwikRouterConfig.cacheModules,
             newURL.pathname // Load the actual required path.
           );
@@ -479,8 +484,18 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
 
       if (loadedRoute) {
-        const [routeName, params, mods, menu] = loadedRoute;
-        const contentModules = mods as ContentModule[];
+        const { $routeName$, $params$, $mods$, $menu$, $notFound$ } = loadedRoute;
+        const contentModules = $mods$ as ContentModule[];
+
+        // Update httpStatus for 404/error pages
+        if ($notFound$) {
+          httpStatus.value = { status: 404, message: 'Not Found' };
+        } else {
+          httpStatus.value = {
+            status: clientPageData?.status ?? 200,
+            message: (clientPageData as EndpointResponse)?.statusMessage ?? '',
+          };
+        }
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Restore search params unless it's a redirect
@@ -505,11 +520,11 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           routeLocationTarget.url = trackUrl;
         }
 
-        if (routeLocationTarget.params !== params) {
+        if (routeLocationTarget.params !== $params$) {
           if (_hasStoreEffects(routeLocation, 'params')) {
             shouldForceParams = true;
           }
-          routeLocationTarget.params = params;
+          routeLocationTarget.params = $params$;
         }
 
         routeInternal.untrackedValue = { type: navType, dest: trackUrl };
@@ -525,7 +540,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
         // Update content
         content.headings = pageModule.headings;
-        content.menu = menu;
+        content.menu = $menu$;
         contentInternal.untrackedValue = noSerialize(contentModules);
 
         // Update document head
@@ -778,7 +793,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               throw err;
             })
             .finally(() => {
-              (container as ClientContainer).element.setAttribute?.(Q_ROUTE, routeName);
+              (container as ClientContainer).element.setAttribute?.(Q_ROUTE, $routeName$);
               const scrollState = currentScrollState(scroller);
               saveScrollHistory(scrollState);
               window._qRouterScrollEnabled = true;
@@ -937,9 +952,12 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
 
   const actionState = useSignal<RouteActionValue>();
 
+  const httpStatus = useSignal({ status: 200, message: '' });
+
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
+  useContextProvider(HttpStatusContext, httpStatus);
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);

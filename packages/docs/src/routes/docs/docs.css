@@ -151,7 +151,7 @@ h6 a:hover .icon {
 
 .docs article ul,
 .docs article ol {
-  @apply pl-6 text-body-sm text-foreground-base leading-[1.8] flex flex-col gap-2;
+  @apply pl-6 text-body-sm text-foreground-base leading-[1.8] flex flex-col gap-4;
   list-style: disc;
 }
 
@@ -161,6 +161,10 @@ h6 a:hover .icon {
 
 .docs article li {
   @apply pl-2;
+}
+
+.docs article li > * + * {
+  @apply mt-4;
 }
 
 .docs article li::marker,
@@ -179,7 +183,22 @@ h6 a:hover .icon {
 }
 
 .highlighted {
-  @apply !bg-violet-5 rounded;
+  @apply !bg-violet-5 px-2 -mx-2;
+}
+
+/* First highlighted line in a group */
+.highlighted:not(.highlighted + .highlighted) {
+  @apply pt-2 rounded-t;
+}
+
+/* Last highlighted line in a group */
+.highlighted:not(:has(+ .highlighted)) {
+  @apply pb-2 rounded-b;
+}
+
+/* Single highlighted line */
+.highlighted:not(.highlighted + .highlighted):not(:has(+ .highlighted)) {
+  @apply rounded;
 }
 
 .shiki-title {

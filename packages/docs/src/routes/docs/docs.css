@@ -195,7 +195,7 @@ h6 a:hover .icon {
 }
 
 .docs article .shiki-title + pre {
-  @apply rounded-t-none border-t-0;
+  @apply rounded-t-none mt-0;
 }
 
 :root {

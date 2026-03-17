@@ -2,7 +2,7 @@ import { component$, Slot, useSignal } from '@qwik.dev/core';
 import { collapsible, lucide } from '@qds.dev/ui';
 
 const noteContent =
-  'note-content p-4 text-body-sm text-foreground-base leading-[1.6] [&>p]:mt-2 [&>p]:mb-2 [&>p:first-child]:mt-0 [&>p:last-child]:mb-0 [&>pre]:my-4 [&>pre]:border-0 [&>pre]:shadow-none [&>pre]:rounded-lg [&>pre]:p-3 [&>pre]:bg-background-accent';
+  'note-content block p-4 text-body-sm text-foreground-base leading-[1.6] [&>p]:mt-2 [&>p]:mb-2 [&>p:first-child]:mt-0 [&>p:last-child]:mb-0 [&>pre]:my-4 [&>pre]:border-0 [&>pre]:shadow-none [&>pre]:rounded-lg [&>pre]:p-3 [&>pre]:bg-background-accent';
 
 /**
  * Short note — renders as a simple card with no collapse.
@@ -11,14 +11,14 @@ const noteContent =
  */
 export const Note = component$<{ title?: string }>((props) => {
   return (
-    <div class="border-[1.6px] border-accent rounded-2xl overflow-clip">
-      <div class="bg-background-accent px-4 py-3">
-        <p class="font-bold text-body-sm text-foreground-accent">{props.title ?? 'NOTE'}</p>
-      </div>
-      <div class={noteContent}>
+    <span class="block border-[1.6px] border-accent rounded-2xl overflow-clip">
+      <span class="block bg-background-accent px-4 py-3 -mt-px">
+        <span class="font-bold text-body-sm text-foreground-accent">{props.title ?? 'NOTE'}</span>
+      </span>
+      <span class={noteContent}>
         <Slot />
-      </div>
-    </div>
+      </span>
+    </span>
   );
 });
 
@@ -52,9 +52,9 @@ export const LongNote = component$<{ title: string }>((props) => {
         </span>
       </collapsible.trigger>
       <collapsible.content>
-        <div class={'border-t-[1.6px] border-accent ' + noteContent}>
+        <span class={'border-t-[1.6px] border-accent ' + noteContent}>
           <Slot />
-        </div>
+        </span>
       </collapsible.content>
     </collapsible.root>
   );

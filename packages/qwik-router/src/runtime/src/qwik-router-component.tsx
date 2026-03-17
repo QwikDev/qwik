@@ -1,4 +1,4 @@
-import * as qwikRouterConfig from '@qwik-router-config';
+import qwikRouterConfig from '@qwik-router-config';
 import {
   $,
   component$,
@@ -68,6 +68,7 @@ import type {
   MutableRouteLocation,
   PageModule,
   PreventNavigateCallback,
+  RouteData,
   ResolvedDocumentHead,
   RouteActionResolver,
   RouteActionValue,
@@ -79,6 +80,8 @@ import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
+
+const routerRoutes = qwikRouterConfig.routes as unknown as RouteData;
 
 declare const window: ClientSPAWindow;
 
@@ -393,7 +396,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
     if (isBrowser) {
       loadClientData(dest);
-      loadRoute(qwikRouterConfig.routes, qwikRouterConfig.cacheModules, dest.pathname);
+      loadRoute(routerRoutes, qwikRouterConfig.cacheModules, dest.pathname);
     }
 
     actionState.value = undefined;
@@ -445,7 +448,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           trackUrl.pathname += '/';
         }
         let loadRoutePromise = loadRoute(
-          qwikRouterConfig.routes,
+          routerRoutes,
           qwikRouterConfig.cacheModules,
           trackUrl.pathname
         );
@@ -468,7 +471,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           }
 
           loadRoutePromise = loadRoute(
-            qwikRouterConfig.routes,
+            routerRoutes,
             qwikRouterConfig.cacheModules,
             newURL.pathname // Load the actual required path.
           );

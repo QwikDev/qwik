@@ -70,13 +70,28 @@ When the user interacts with the application, it resumes on the client-side, con
 - `Render` - runs after `TASK` and before `VisibleTask`
 - `VisibleTask` - runs after `Render` and when the component becomes visible
 
-```bash /useTask$/#d /RENDER/#b /useVisibleTask$/#c
-      useTask$ -------> RENDER ---> useVisibleTask$
-                            |
-| --- SERVER or BROWSER --- | ----- BROWSER ----- |
-                            |
-                       pause|resume
-```
+<div style="background:white;border:1.6px solid #45c6ff;border-radius:16px;box-shadow:6px 6px 0 0 #b2e4ff;padding:24px;overflow:clip">
+<svg viewBox="0 0 720 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:0 auto" role="img" aria-label="Task lifecycle diagram: useTask$ runs on server or browser, then renders, then useVisibleTask$ runs on browser">
+  <rect x="40" y="20" width="130" height="40" rx="8" fill="#E4D7FF" stroke="#AE76FE" stroke-width="1.6"/>
+  <text x="105" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="14" font-weight="600" fill="#451D73">useTask$</text>
+  <rect x="270" y="20" width="110" height="40" rx="8" fill="#C4EAFF" stroke="#45C6FF" stroke-width="1.6"/>
+  <text x="325" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="14" font-weight="700" fill="#003950">RENDER</text>
+  <rect x="490" y="20" width="180" height="40" rx="8" fill="#D7F1FF" stroke="#00ABE4" stroke-width="1.6"/>
+  <text x="580" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="14" font-weight="600" fill="#004863">useVisibleTask$</text>
+  <line x1="170" y1="40" x2="270" y2="40" stroke="#293749" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="380" y1="40" x2="490" y2="40" stroke="#293749" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="325" y1="60" x2="325" y2="100" stroke="#293749" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="325" y="120" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="12" font-weight="600" fill="#5A6A7D">pause | resume</text>
+  <line x1="20" y1="90" x2="700" y2="90" stroke="#B3C5DB" stroke-width="1"/>
+  <text x="165" y="150" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="11" font-weight="600" fill="#708094">SERVER or BROWSER</text>
+  <text x="530" y="150" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="11" font-weight="600" fill="#708094">BROWSER</text>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#293749"/>
+    </marker>
+  </defs>
+</svg>
+</div>
 
 **SERVER**: Usually **the life of a component starts on the server** (during SSR or SSG), in that case, the `useTask$` and `RENDER` will run in the server, and then the `VisibleTask` will run in the browser, after the component is visible.
 
@@ -84,11 +99,25 @@ When the user interacts with the application, it resumes on the client-side, con
 
 **BROWSER**: When a component is first mounted or rendered in the browser, for example when a user navigates to a new page in a Single Page Application (SPA) or when a "modal" component initially appears on the page, the lifecycle will proceed as follows:
 
-```bash
-  useTask$ --> RENDER --> useVisibleTask$
-
-| -------------- BROWSER --------------- |
-```
+<div style="background:white;border:1.6px solid #45c6ff;border-radius:16px;box-shadow:6px 6px 0 0 #b2e4ff;padding:24px;overflow:clip">
+<svg viewBox="0 0 720 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:0 auto" role="img" aria-label="Browser-only lifecycle: useTask$, then render, then useVisibleTask$ all run in browser">
+  <rect x="100" y="20" width="130" height="40" rx="8" fill="#E4D7FF" stroke="#AE76FE" stroke-width="1.6"/>
+  <text x="165" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="14" font-weight="600" fill="#451D73">useTask$</text>
+  <rect x="310" y="20" width="110" height="40" rx="8" fill="#C4EAFF" stroke="#45C6FF" stroke-width="1.6"/>
+  <text x="365" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="14" font-weight="700" fill="#003950">RENDER</text>
+  <rect x="500" y="20" width="160" height="40" rx="8" fill="#D7F1FF" stroke="#00ABE4" stroke-width="1.6"/>
+  <text x="580" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="14" font-weight="600" fill="#004863">useVisibleTask$</text>
+  <line x1="230" y1="40" x2="310" y2="40" stroke="#293749" stroke-width="1.6" marker-end="url(#arrow3)"/>
+  <line x1="420" y1="40" x2="500" y2="40" stroke="#293749" stroke-width="1.6" marker-end="url(#arrow3)"/>
+  <line x1="60" y1="80" x2="700" y2="80" stroke="#B3C5DB" stroke-width="1"/>
+  <text x="380" y="105" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="11" font-weight="600" fill="#708094">BROWSER</text>
+  <defs>
+    <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#293749"/>
+    </marker>
+  </defs>
+</svg>
+</div>
 
 <Note>The lifecycle is exactly the same, but this time all the hooks run in the browser, and not in the server.</Note>
 
@@ -126,16 +155,36 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 **Notice that any subsequent re-execution of the task will always happen in the browser**, because reactivity is a browser-only thing.
 
-```bash
-                      (state change) -> (re-execute)
-                                  ^            |
-                                  |            v
- useTask$(track) -> RENDER ->  CLICK  -> useTask$(track)
-                        |
-  | ----- SERVER ------ | ----------- BROWSER ----------- |
-                        |
-                   pause|resume
-```
+<div style="background:white;border:1.6px solid #45c6ff;border-radius:16px;box-shadow:6px 6px 0 0 #b2e4ff;padding:24px;overflow:clip">
+<svg viewBox="0 0 720 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:0 auto" role="img" aria-label="Task re-execution lifecycle: useTask$ with track runs on server, renders, then on browser click triggers re-execution">
+  <rect x="20" y="20" width="160" height="40" rx="8" fill="#E4D7FF" stroke="#AE76FE" stroke-width="1.6"/>
+  <text x="100" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="13" font-weight="600" fill="#451D73">useTask$(track)</text>
+  <rect x="240" y="20" width="110" height="40" rx="8" fill="#C4EAFF" stroke="#45C6FF" stroke-width="1.6"/>
+  <text x="295" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="14" font-weight="700" fill="#003950">RENDER</text>
+  <rect x="420" y="20" width="100" height="40" rx="8" fill="#FFE7E6" stroke="#FF7077" stroke-width="1.6"/>
+  <text x="470" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="14" font-weight="600" fill="#670015">CLICK</text>
+  <rect x="540" y="20" width="160" height="40" rx="8" fill="#E4D7FF" stroke="#AE76FE" stroke-width="1.6"/>
+  <text x="620" y="45" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="13" font-weight="600" fill="#451D73">useTask$(track)</text>
+  <line x1="180" y1="40" x2="240" y2="40" stroke="#293749" stroke-width="1.6" marker-end="url(#arrow2)"/>
+  <line x1="350" y1="40" x2="420" y2="40" stroke="#293749" stroke-width="1.6" marker-end="url(#arrow2)"/>
+  <line x1="520" y1="40" x2="540" y2="40" stroke="#293749" stroke-width="1.6" marker-end="url(#arrow2)"/>
+  <path d="M 620 60 L 620 85 C 620 95 610 95 600 95 L 480 95 C 470 95 470 85 470 75 L 470 60" stroke="#AE76FE" stroke-width="1.6" fill="none" marker-end="url(#arrow2purple)" stroke-dasharray="6 4"/>
+  <text x="545" y="108" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="11" font-weight="600" fill="#6A25B3">state change → re-execute</text>
+  <line x1="295" y1="60" x2="295" y2="140" stroke="#293749" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="295" y="158" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="12" font-weight="600" fill="#5A6A7D">pause | resume</text>
+  <line x1="10" y1="130" x2="710" y2="130" stroke="#B3C5DB" stroke-width="1"/>
+  <text x="150" y="190" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="11" font-weight="600" fill="#708094">SERVER</text>
+  <text x="500" y="190" text-anchor="middle" font-family="Ubuntu Sans,sans-serif" font-size="11" font-weight="600" fill="#708094">BROWSER</text>
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#293749"/>
+    </marker>
+    <marker id="arrow2purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#AE76FE"/>
+    </marker>
+  </defs>
+</svg>
+</div>
 
 <Note>If `useTask$()` does not track any state, it will run **exactly once**, either in the server **or** in the browser (**not both**), depending where the component is initially rendered. Effectively behaving like an "on-mount" hook.</Note>
 

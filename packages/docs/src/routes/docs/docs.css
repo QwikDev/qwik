@@ -175,7 +175,7 @@ h6 a:hover .icon {
 /* ─── Code blocks (card style) ─── */
 
 .highlighted-word {
-  @apply bg-violet-15 rounded px-1 py-0.5 -mx-1 -my-0.5;
+  @apply bg-violet-15 rounded px-[1px] py-[1px] -mx-[1px] -my-[1px];
 }
 
 .highlighted {

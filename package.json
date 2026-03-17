@@ -256,7 +256,7 @@
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "update.qwik.builds": "node --require ./scripts/runBefore.ts scripts/update-qwik-builds.ts packages/docs && node scripts/update-qwik-builds.ts packages/insights; pnpm install",
     "vitest": "vitest",
-    "worktree.create": "node --require ./scripts/runBefore.ts scripts/worktree-create.ts"
+    "worktree": "node --require ./scripts/runBefore.ts scripts/worktrees.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm pretty-quick --staged"

@@ -1,7 +1,7 @@
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { verifySerializable } from '../shared/serdes/verify';
-import { qDev, qSerialize } from '../shared/utils/qdev';
+import { qDev } from '../shared/utils/qdev';
 import { isObject } from '../shared/utils/types';
 import { getInvokeContext, invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
@@ -193,7 +193,7 @@ export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: S
   if (qDev) {
     validateContext(context);
   }
-  if (qDev && qSerialize) {
+  if (qDev) {
     verifySerializable(newValue);
   }
   iCtx.$container$.setContext(iCtx.$hostElement$, context, newValue);

@@ -1,5 +1,9 @@
 @reference "../../global.css";
 
+/*
+ In a css file because article styles would override / would need important on all.
+*/
+
 .wrapper {
   @apply my-16 bg-background-base border-[1.6px] border-base rounded-2xl p-6 shadow-[var(--shadow-base)] flex flex-col gap-6;
 }

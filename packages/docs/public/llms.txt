@@ -1,0 +1,90 @@
+# Qwik
+
+> Qwik is a resumable web framework. It serializes application state into HTML during SSR and resumes on the client without hydration — the app is instantly interactive regardless of size. The developer experience is very similar to React. This site holds documentation, guides, an interactive playground, and more.
+
+## Quick start
+
+Qwik uses JSX and components like React, with two key differences: components are wrapped in `component$()`, and any function passed to the framework that might run later uses a `$` suffix. The `$` marks a lazy-loading boundary — the Rust-based optimizer extracts these into separate chunks so only the code that's actually needed gets downloaded.
+
+```tsx
+import { component$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const count = useSignal(0);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+});
+```
+
+- [Getting Started](/docs/getting-started/)
+- [React Cheat Sheet](/docs/guides/react-cheat-sheet/)
+- [Playground](/playground/)
+
+## Core concepts
+
+**Resumability:** Unlike hydration-based frameworks, Qwik serializes all state and event bindings into HTML. The client resumes from that snapshot — component code only loads when triggered by user interaction.
+
+**The `$` sign:** Functions ending with `$` (like `component$`, `useTask$`, `$()`) create QRL boundaries. The optimizer extracts each into its own lazy-loaded chunk. Variables captured inside a `$` closure must be serializable.
+
+**Fine-grained signals:** Reactive state (`useSignal`, `useStore`) updates only the specific DOM nodes that read it — no virtual DOM diffing, no re-rendering entire component trees.
+
+- [Think Qwik](/docs/concepts/think-qwik/)
+- [Resumability](/docs/concepts/resumable/)
+- [Reactivity](/docs/concepts/reactivity/)
+- [The $ sign](/docs/advanced/dollar/)
+- [QRL](/docs/advanced/qrl/)
+
+## Components and state (React equivalents)
+
+- `component$(() => JSX)` — define a component (like a React function component)
+- `useSignal(initial)` — reactive primitive value (like `useState`)
+- `useStore(obj)` — reactive object/array (like `useState` with objects, but deeply reactive)
+- `useComputed$(() => value)` — derived value (like `useMemo`)
+- `useAsync$(() => promise)` — async derived value, can stream results
+- `useTask$(({track}) => {})` — runs on mount and when tracked values change, on both server and client (like `useEffect` but also runs during SSR)
+- `useVisibleTask$(() => {})` — runs only in the browser when the component becomes visible (like `useEffect`)
+- `useResource$(({track}) => promise)` — resource with loading/error states
+- `useContext(ctx)` / `useContextProvider(ctx, value)` — context (like React context)
+- `Slot` — projected content (like React `children`)
+- `$(() => {})` — create a standalone QRL (lazy-loadable function reference)
+
+- [Components](/docs/core/overview/)
+- [State](/docs/core/state/)
+- [Tasks & Lifecycle](/docs/core/tasks/)
+- [Context](/docs/core/context/)
+- [Slots](/docs/core/slots/)
+
+## Events and DOM
+
+Event handlers use the `on` prefix with `$` suffix: `onClick$={() => {}}`. Handlers are lazy-loaded — they only download when the user actually interacts.
+
+- `useOn('event', $(() => {}))` — programmatic event listener on host element
+- `useOnDocument('event', $(() => {}))` — listener on `document`
+- `useOnWindow('event', $(() => {}))` — listener on `window`
+- `useStyles$(css)` / `useStylesScoped$(css)` — inject styles (scoped version uses attribute selectors)
+- `useErrorBoundary()` — catch rendering errors
+
+- [Events](/docs/core/events/)
+- [Styling](/docs/core/styles/)
+- [Rendering](/docs/core/rendering/)
+
+## Router (meta-framework)
+
+Qwik Router (`@qwik.dev/router`) provides file-based routing, server-side data loading, and actions — similar to Next.js or Remix.
+
+- `routeLoader$(() => data)` — load data on the server before rendering (co-located with the route)
+- `routeAction$(() => result)` — handle form submissions / mutations on the server
+- `server$(() => result)` — RPC-style server function callable from client code
+- `Form` component — progressively enhanced form (works without JS)
+- `useLocation()` — current URL and route params
+- `useNavigate()` — programmatic navigation
+
+- [Routing](/docs/routing/)
+- [Route Loaders](/docs/route-loader/)
+- [Actions](/docs/action/)
+- [server$](/docs/server$/)
+- [Project Structure](/docs/project-structure/)
+
+## API reference
+
+- [Core API (@qwik.dev/core)](/api/qwik/)
+- [Full Documentation](/docs/)

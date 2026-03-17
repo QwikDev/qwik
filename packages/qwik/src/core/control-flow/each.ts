@@ -18,7 +18,7 @@ export interface EachProps<T> {
 }
 
 /** @internal */
-export const _Each_component_useTask_1IvuA9ZneGc = async ({ track }: TaskCtx) => {
+export const eachCmpTask = async ({ track }: TaskCtx) => {
   const props = _captures![0] as EachProps<any>;
   track(() => props.items);
   const context = tryGetInvokeContext()!;
@@ -32,18 +32,12 @@ export const _Each_component_useTask_1IvuA9ZneGc = async ({ track }: TaskCtx) =>
 };
 
 /** @internal */
-export const _Each_component_zi6m0DQBsr8 = (props: EachProps<any>) => {
-  useTaskQrl(
-    /*#__PURE__*/ inlinedQrl(
-      _Each_component_useTask_1IvuA9ZneGc,
-      'Each_component_useTask_1IvuA9ZneGc',
-      [props]
-    )
-  );
+export const eachCmp = (props: EachProps<any>) => {
+  useTaskQrl(/*#__PURE__*/ inlinedQrl(eachCmpTask, '_eaT', [props]));
   return SkipRender;
 };
 
 /** @public */
 export const Each = /*#__PURE__*/ componentQrl<EachProps<any>>(
-  /*#__PURE__*/ inlinedQrl(_Each_component_zi6m0DQBsr8, 'Each_component_zi6m0DQBsr8')
+  /*#__PURE__*/ inlinedQrl(eachCmp, '_eaC')
 );

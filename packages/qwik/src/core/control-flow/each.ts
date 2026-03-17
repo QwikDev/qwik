@@ -1,5 +1,6 @@
-import type { QRLInternal } from '../../server/qwik-types';
-import type { JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { PublicProps } from '../shared/component.public';
+import type { DevJSX, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { QRL } from '../shared/qrl/qrl.public';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import { tryGetInvokeContext } from '../use/use-core';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -11,11 +12,18 @@ import { isServer } from '@qwik.dev/core/build';
 import { SkipRender } from '../shared/jsx/utils.public';
 import { _captures } from '../shared/qrl/qrl-class';
 
-export interface EachProps<T> {
-  items: T[];
-  item$: QRLInternal<(item: T) => JSXOutput>;
-  key$: QRLInternal<(item: T, index: number) => string>;
+export interface EachProps<T, ITEM extends JSXOutput = JSXOutput> {
+  items: readonly T[];
+  item$: QRL<(item: T, index: number) => ITEM>;
+  key$: QRL<(item: T, index: number) => string>;
 }
+
+export type EachComponent = <T, ITEM extends JSXOutput = JSXOutput>(
+  props: PublicProps<EachProps<T, ITEM>>,
+  key: string | null,
+  flags: number,
+  dev?: DevJSX
+) => JSXOutput;
 
 /** @internal */
 export const eachCmpTask = async ({ track }: TaskCtx) => {
@@ -40,4 +48,4 @@ export const eachCmp = (props: EachProps<any>) => {
 /** @public */
 export const Each = /*#__PURE__*/ componentQrl<EachProps<any>>(
   /*#__PURE__*/ inlinedQrl(eachCmp, '_eaC')
-);
+) as EachComponent;

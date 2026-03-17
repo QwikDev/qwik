@@ -383,7 +383,7 @@ export function executeReconcile(
     (item: any, index: number) => string
   >;
   const itemQrl = _getProps(props, 'item$' satisfies keyof EachProps<any>) as QRLInternal<
-    (item: any) => JSXOutput
+    (item: any, index: number) => JSXOutput
   >;
   const keyOf = keyQrl.resolved;
   const itemFn = itemQrl.resolved;

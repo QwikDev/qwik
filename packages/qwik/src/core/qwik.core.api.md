@@ -344,8 +344,10 @@ export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, li
 // @internal (undocumented)
 export const _eaC: (props: EachProps<any>) => JSXNode<unknown>;
 
+// Warning: (ae-forgotten-export) The symbol "EachComponent" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export const Each: Component<EachProps<any>>;
+export const Each: EachComponent;
 
 // @internal (undocumented)
 export const _eaT: (input: TaskCtx) => Promise<void>;

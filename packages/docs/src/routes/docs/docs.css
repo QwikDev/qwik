@@ -32,7 +32,7 @@
 /* ─── Blockquotes ─── */
 
 .docs article blockquote {
-  @apply bg-background-accent my-8 py-6 pr-4 pl-2;
+  @apply bg-background-accent py-6 pr-4 pl-2;
   border-left: 8px solid var(--color-secondary-foreground-base);
 }
 
@@ -47,7 +47,7 @@
 /* ─── Cards ─── */
 
 .docs article .card-grid {
-  @apply flex flex-wrap gap-6 my-8;
+  @apply flex flex-wrap gap-6;
 }
 
 .docs article .card {
@@ -81,7 +81,7 @@
 /* ─── Headings ─── */
 
 .docs article h1 {
-  @apply mb-8 relative font-heading text-h4;
+  @apply mb-6 relative font-heading text-h4;
   scroll-margin-top: var(--scroll-margin-top);
 }
 
@@ -96,7 +96,7 @@
 }
 
 .docs article h2 {
-  @apply text-h5 mt-12;
+  @apply text-h5 mt-16;
 }
 
 .docs article h3 {
@@ -135,17 +135,23 @@ h6 a:hover .icon {
   @apply inline;
 }
 
+/* ─── Vertical rhythm ─── */
+
+.docs article > * + * {
+  @apply mt-6;
+}
+
 /* ─── Body text ─── */
 
 .docs article p {
-  @apply mt-6 mb-4 text-body-sm text-foreground-base leading-[1.8];
+  @apply text-body-sm text-foreground-base leading-[1.8];
 }
 
 /* ─── Lists ─── */
 
 .docs article ul,
 .docs article ol {
-  @apply my-4 pl-6 text-body-sm text-foreground-base flex flex-col gap-2;
+  @apply pl-6 text-body-sm text-foreground-base flex flex-col gap-2;
   list-style: disc;
 }
 
@@ -169,11 +175,11 @@ h6 a:hover .icon {
 /* ─── Code blocks (card style) ─── */
 
 .highlighted-word {
-  @apply bg-secondary-background-accent !text-secondary-foreground-base;
+  @apply bg-violet-15 rounded px-1 py-0.5 -mx-1 -my-0.5;
 }
 
 .highlighted {
-  @apply !bg-violet-5;
+  @apply !bg-violet-5 rounded;
 }
 
 .shiki-title {
@@ -225,10 +231,6 @@ h6 a:hover .icon {
 }
 
 /* ─── Tables ─── */
-
-.docs article table {
-  @apply my-4;
-}
 
 .docs article th,
 .docs article td {

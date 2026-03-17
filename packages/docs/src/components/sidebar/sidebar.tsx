@@ -50,7 +50,7 @@ export const Sidebar = component$(() => {
 
   return (
     <aside class="sticky top-0 h-screen">
-      <nav class="flex flex-col h-full overflow-y-auto w-[287px] bg-background-base border-r-[1.6px] border-base px-4 py-6 gap-4">
+      <nav class="flex flex-col h-full overflow-y-auto [scrollbar-gutter:stable] w-[287px] bg-background-base border-r-[1.6px] border-base px-4 py-6 gap-4">
         {/* Logo + collapse */}
         <div class="flex items-center justify-between">
           <Link href="/" aria-label="Qwik Home">

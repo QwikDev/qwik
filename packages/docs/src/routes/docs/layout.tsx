@@ -1,5 +1,5 @@
 import { useLocation } from '@qwik.dev/router';
-import { component$, Slot, useStyles$ } from '@qwik.dev/core';
+import { component$, Slot, useComputed$, useStyles$ } from '@qwik.dev/core';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import Contributors from '../../components/contributors';
 import { Footer } from '../../components/footer/footer';
@@ -13,15 +13,15 @@ export { useMarkdownItems } from '../../components/sidebar/sidebar';
 export default component$(() => {
   useStyles$(styles);
   const loc = useLocation();
-  const hasOnThisPage = loc.url.pathname !== '/docs/';
+  const hasOnThisPage = useComputed$(() => loc.url.pathname !== '/docs/');
 
   return (
     <div class="docs fixed-header">
       <Header />
-      <div class="flex items-stretch mx-auto bg-violet-shallow">
+      <div class="docs-grid bg-violet-shallow">
         <Sidebar />
-        <main class="mx-auto">
-          <div class="px-6 2xl:px-10 pt-8 2xl:pt-5 2xl:max-w-[850px]">
+        <main>
+          <div class="docs-content">
             <article>
               <Slot />
               <Contributors />
@@ -29,8 +29,8 @@ export default component$(() => {
             <ContentNav />
             <Footer />
           </div>
-          {hasOnThisPage && <OnThisPage />}
         </main>
+        {hasOnThisPage.value && <OnThisPage />}
       </div>
     </div>
   );

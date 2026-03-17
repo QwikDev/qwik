@@ -1,101 +1,87 @@
-@reference "tailwindcss";
+@reference "../../global.css";
 
-.docs .content-container {
-  @apply px-8 lg:pl-0 xl:pr-0;
-  @apply mx-auto min-h-[100vh];
-  max-width: min(var(--container-max-width), 100vw);
+/* ─── Grid layout: sidebar | content | toc ─── */
+
+.docs-grid {
+  @apply grid min-h-screen;
+  grid-template-columns: auto 1fr;
+
+  @variant xl {
+    grid-template-columns: auto 1fr 300px;
+  }
 }
 
-.docs .docs-container {
-  @apply pt-8 lg:pt-5;
-  @apply min-w-48;
-
-  /* @screen lg { */
-  /* approx 85ch, but since the contents use font-sizes in absolute values,
-       we need to use an absolute value here too */
-  /* max-width: 850px; */
-  /* }  */
-  @apply lg:max-w-[850px];
+.docs main {
+  @apply min-w-0;
 }
+
+.docs .docs-content {
+  @apply max-w-[75ch] mx-auto px-6 pt-20 pb-8 xl:pt-40;
+}
+
+/* ─── Links ─── */
 
 .docs article a {
-  color: var(--interactive-text-color);
-  text-decoration: underline;
-}
-
-.docs article blockquote {
-  background: var(--blockquote-bg-color);
-  padding: 20px 13px 20px 10px;
-  border-left: 10px solid #ac7ef4;
-  margin: 30px 0;
-}
-
-.docs article blockquote p:first-child {
-  margin-top: 0;
-}
-
-.docs article blockquote p:last-child {
-  margin-bottom: 0;
+  @apply text-secondary-foreground-base underline;
 }
 
 .docs article a:hover {
-  text-decoration: none;
+  @apply no-underline;
 }
 
+/* ─── Blockquotes ─── */
+
+.docs article blockquote {
+  @apply bg-background-accent my-8 py-6 pr-4 pl-2;
+  border-left: 8px solid var(--color-secondary-foreground-base);
+}
+
+.docs article blockquote p:first-child {
+  @apply mt-0;
+}
+
+.docs article blockquote p:last-child {
+  @apply mb-0;
+}
+
+/* ─── Cards ─── */
+
 .docs article .card-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 25px;
-  margin: 30px 0;
+  @apply flex flex-wrap gap-6 my-8;
 }
 
 .docs article .card {
-  background: var(--bg-secondary-color);
-  border-radius: 10px;
-  min-width: 230px;
-  padding: 25px;
-  flex: 1;
-  color: inherit;
-  text-decoration: none;
+  @apply bg-background-accent rounded-[10px] min-w-[230px] p-6 flex-1 text-inherit no-underline;
 }
 
 .docs article a.card:hover {
-  outline: 2px solid var(--interactive-text-color);
+  @apply outline-2 outline-secondary-foreground-base;
 }
 
 .docs article .card-center {
-  text-align: center;
+  @apply text-center;
 }
 
 .docs article .card h3 {
-  margin-top: 10px;
-  margin-bottom: 0;
-  font-weight: 500;
-  font-size: 22px;
+  @apply mt-2 mb-0 font-medium text-h6;
 }
 
 .docs article .card p {
-  font-size: 14px;
+  @apply text-body-xs;
 }
 
 .docs article .card .icon {
-  font-size: 70px;
-  margin: 0;
-  line-height: 1;
+  @apply text-[70px] m-0 leading-none;
 }
 
 .docs article .card .intro-icon {
-  position: relative;
-  margin: auto;
+  @apply relative mx-auto;
 }
 
-.docs article h1 {
-  @apply mb-7;
-  @apply relative;
+/* ─── Headings ─── */
 
-  line-height: 1.2;
-  font-size: 55px;
-  font-weight: 800;
+.docs article h1 {
+  @apply mb-8 relative font-heading text-h4;
   scroll-margin-top: var(--scroll-margin-top);
 }
 
@@ -104,24 +90,23 @@
 .docs article h4,
 .docs article h5,
 .docs article h6 {
-  @apply text-xl font-semibold;
-  @apply relative;
-  margin-top: 1.2em;
+  @apply relative font-heading;
   scroll-margin-top: var(--scroll-margin-top);
-
-  margin-bottom: max(0.7em, 18px);
+  margin-bottom: max(0.7em, 16px);
 }
 
 .docs article h2 {
-  line-height: 1.2;
-  font-size: 42px;
-  font-weight: 800;
-  scroll-margin-top: var(--scroll-margin-top);
-  margin-top: 45px;
+  @apply text-h5 mt-12;
 }
 
 .docs article h3 {
-  font-size: 1.8rem;
+  @apply text-h6 mt-6;
+}
+
+.docs article h4,
+.docs article h5,
+.docs article h6 {
+  @apply text-body-md mt-6;
 }
 
 .docs h2 a,
@@ -129,17 +114,15 @@
 .docs h4 a,
 .docs h5 a,
 .docs h6 a {
-  position: absolute;
-  width: 100%;
-  height: 1em;
+  @apply absolute w-full h-[1em];
 }
 
 .icon-link {
-  display: none;
+  @apply hidden;
 }
 
 .icon-link::after {
-  position: absolute;
+  @apply absolute;
   content: '#';
   left: -1em;
 }
@@ -149,28 +132,21 @@ h3 a:hover .icon,
 h4 a:hover .icon,
 h5 a:hover .icon,
 h6 a:hover .icon {
-  display: inline;
+  @apply inline;
 }
 
+/* ─── Body text ─── */
+
 .docs article p {
-  margin-top: 1.6rem;
-  margin-bottom: 0.9rem;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.7;
-  color: var(--secondary-text-color);
+  @apply mt-6 mb-4 text-body-sm text-foreground-base leading-[1.8];
 }
+
+/* ─── Lists ─── */
 
 .docs article ul,
 .docs article ol {
-  @apply my-4;
-  @apply ml-10;
-  line-height: 1.7;
+  @apply my-4 pl-6 text-body-sm text-foreground-base flex flex-col gap-2;
   list-style: disc;
-
-  font-size: 16px;
-  font-weight: 400;
-  color: var(--secondary-text-color);
 }
 
 .docs article ol {
@@ -178,40 +154,42 @@ h6 a:hover .icon {
 }
 
 .docs article li {
-  @apply my-1;
   @apply pl-2;
 }
 
 .docs article li::marker,
 .docs article li::-webkit-details-marker {
-  color: var(--interactive-text-color);
-  font-weight: 800;
+  @apply text-secondary-foreground-base font-extrabold;
 }
 
+.docs article ol li::marker {
+  @apply font-heading font-bold text-label-sm;
+}
+
+/* ─── Code blocks (card style) ─── */
+
 .highlighted-word {
-  background: #4199d3;
-  color: #111 !important;
+  @apply bg-secondary-background-accent !text-secondary-foreground-base;
 }
 
 .highlighted {
-  background-color: #7b8d9f33 !important;
+  @apply !bg-violet-5;
 }
 
 .shiki-title {
-  background: #4199d3;
-  color: #111;
-  display: block;
-  padding: 0.5rem;
-  border-radius: 8px 8px 0px 0px;
-}
-
-pre {
-  border-radius: 8px;
+  @apply bg-background-accent text-standalone-accent text-body-xs block px-6 py-2;
+  @apply border-[1.6px] border-base border-b-0 rounded-t-2xl;
+  box-shadow: 6px 0 0 0 var(--color-shadow-base);
 }
 
 .docs article pre {
-  padding: 18px 15px;
-  overflow: auto;
+  @apply bg-background-base border-[1.6px] border-base rounded-2xl shadow-base overflow-clip py-4 px-6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.docs article .shiki-title + pre {
+  @apply rounded-t-none border-t-0;
 }
 
 :root {
@@ -219,67 +197,66 @@ pre {
 }
 
 .docs article pre code {
-  display: grid;
+  @apply grid bg-transparent border-none select-auto;
   counter-reset: line;
-  background-color: transparent;
-  border: none;
-  user-select: auto;
   line-height: 1.28;
 }
 
+/* ─── Inline code ─── */
+
 .docs article code {
-  background-color: var(--code-bg-color);
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-size: 0.9em;
-  border-bottom: 2px solid var(--code-border-color);
-  user-select: all;
+  @apply bg-secondary-background-accent px-1 py-0.5 rounded text-[0.9em] select-all;
 }
+
+/* ─── Responsive ─── */
 
 @media (max-width: 640px) {
   .docs article code {
-    word-break: break-all;
+    @apply break-all;
   }
+
   .docs article h1 {
-    font-size: 40px;
+    @apply text-h5;
   }
+
   .docs article h2 {
-    font-size: 30px;
+    @apply text-h6;
   }
 }
 
+/* ─── Tables ─── */
+
 .docs article table {
-  @apply my-5;
+  @apply my-4;
 }
 
 .docs article th,
 .docs article td {
-  padding: 6px;
-  vertical-align: top;
+  @apply p-2 align-top;
 }
 
 .docs article th:first-child,
 .docs article td:first-child {
-  padding-left: 0;
+  @apply pl-0;
 }
 
 .docs article th:last-child,
 .docs article td:last-child {
-  padding-right: 0;
+  @apply pr-0;
 }
 
 .docs article img {
-  border-radius: 5px;
-  overflow: hidden;
+  @apply rounded overflow-hidden;
 }
 
 .docs-long-list {
-  display: flex;
-  flex-wrap: wrap;
+  @apply flex flex-wrap;
+
   & ul {
-    display: contents;
+    @apply contents;
+
     & li {
-      list-style-type: none;
+      @apply list-none;
     }
   }
 }

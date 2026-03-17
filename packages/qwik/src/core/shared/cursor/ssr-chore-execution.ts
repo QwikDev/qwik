@@ -140,12 +140,14 @@ export async function executeReconcileChore(
     >
   ).resolve()) as (item: any, index: number) => string;
   const itemFn = (await (
-    _getProps(props, 'item$' satisfies keyof EachProps<any>) as QRLInternal<(item: any) => JSXNode>
-  ).resolve()) as (item: any) => JSXNode;
+    _getProps(props, 'item$' satisfies keyof EachProps<any>) as QRLInternal<
+      (item: any, index: number) => JSXNode
+    >
+  ).resolve()) as (item: any, index: number) => JSXNode;
   const children: JSXNode[] = [];
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    const jsx = itemFn(item)!;
+    const jsx = itemFn(item, i)!;
     const key = keyOf(item, i);
     jsx.key = key;
     children.push(jsx);

@@ -1,5 +1,4 @@
 import { component$, Slot, useSignal, useStylesScoped$ } from '@qwik.dev/core';
-import { EditIcon } from '../svgs/edit-icon';
 import CSS from './index.css?inline';
 import { lucide } from '@qds.dev/ui';
 
@@ -29,7 +28,7 @@ export default component$<{
           ))}
         </div>
       )}
-      <div class="overflow-auto slot-container mb-4">
+      <div class="overflow-auto slot-container mb-4 shadow-base">
         <Slot name={tabs ? String(activeTab.value) : ''} />
       </div>
       <div class="bg-background-base border-[1.6px] border-base rounded-2xl shadow-base overflow-clip">

@@ -32,6 +32,10 @@
   @apply max-w-[75ch] mx-auto px-6 pt-20 pb-8 xl:pt-40;
 }
 
+.docs .docs-content-wide {
+  @apply max-w-[960px];
+}
+
 /* ─── Links ─── */
 
 .docs article a {
@@ -71,6 +75,11 @@
   @apply outline-2 outline-secondary-foreground-base;
 }
 
+.docs article a.card-intro:hover,
+.docs article a.card-explore:hover {
+  @apply outline-none;
+}
+
 .docs article .card-center {
   @apply text-center;
 }
@@ -89,6 +98,131 @@
 
 .docs article .card .intro-icon {
   @apply relative mx-auto;
+}
+
+/* ─── Intro cards (two-tone: white icon area + colored text area) ─── */
+
+.docs article .card-intro {
+  @apply p-0 overflow-hidden flex flex-col transition-all;
+  border: 1.6px solid var(--color-border-base);
+  box-shadow: var(--shadow-sm-base);
+}
+
+.docs article .card-intro.card-violet {
+  border-color: var(--color-secondary-border-base);
+  box-shadow: var(--shadow-secondary-base);
+}
+
+.docs article a.card-intro:hover {
+  @apply -translate-y-1;
+  box-shadow: var(--shadow-sm-accent);
+}
+
+.docs article a.card-intro.card-violet:hover {
+  box-shadow: var(--shadow-secondary-accent);
+}
+
+.docs article .card-intro .card-icon {
+  @apply flex items-center justify-center bg-white py-8;
+}
+
+.docs article .card-intro .card-icon .intro-icon {
+  @apply relative mx-auto;
+  width: 56px;
+  height: 56px;
+  color: var(--color-primary-standalone-base);
+}
+
+.docs article .card-intro .card-body {
+  @apply p-5 bg-background-accent;
+}
+
+.docs article .card-intro.card-violet .card-body {
+  @apply bg-secondary-background-base;
+}
+
+.docs article .card-intro .card-body h3 {
+  @apply mt-0 mb-1 font-heading font-semibold text-h6;
+}
+
+.docs article .card-intro .card-body p {
+  @apply text-body-xs mt-0;
+  color: var(--color-sky-80);
+}
+
+.docs article .card-intro.card-violet .card-body p {
+  color: var(--color-violet-80);
+}
+
+/* ─── Explore cards (horizontal layout) ─── */
+
+.docs article .card-explore {
+  @apply flex flex-row items-stretch gap-0 p-0 overflow-hidden transition-all;
+  border: 1.6px solid var(--color-border-base);
+  box-shadow: var(--shadow-sm-base);
+}
+
+.docs article .card-explore.card-violet {
+  @apply bg-secondary-background-base;
+  border-color: var(--color-secondary-border-base);
+  box-shadow: var(--shadow-secondary-base);
+}
+
+.docs article a.card-explore:hover {
+  @apply -translate-y-1;
+  box-shadow: var(--shadow-sm-accent);
+}
+
+.docs article a.card-explore.card-violet:hover {
+  box-shadow: var(--shadow-secondary-accent);
+}
+
+.docs article .card-explore .card-icon {
+  @apply flex items-center justify-center bg-white flex-shrink-0 rounded-l-[10px] p-4;
+}
+
+.docs article .card-explore .card-icon .intro-icon {
+  @apply relative;
+  width: 40px;
+  height: 40px;
+  color: var(--color-primary-standalone-base);
+}
+
+.docs article .card-explore .card-body {
+  @apply flex flex-col justify-center p-5 bg-background-accent;
+}
+
+.docs article .card-explore.card-violet .card-body {
+  @apply bg-secondary-background-base;
+}
+
+.docs article .card-explore h3 {
+  @apply mt-0 mb-0 font-heading font-semibold text-body-sm;
+}
+
+.docs article .card-explore p {
+  @apply text-body-xs mt-0;
+  color: var(--color-sky-80);
+}
+
+.docs article .card-explore.card-violet p {
+  color: var(--color-violet-80);
+}
+
+/* ─── Feature cards (text only) ─── */
+
+.docs article .card-feature {
+  @apply bg-background-base;
+  border: 1.6px solid var(--color-border-base);
+  box-shadow: var(--shadow-sm-base);
+}
+
+.docs article .card-feature h3 {
+  @apply mt-0 mb-1 font-heading font-semibold text-h6;
+}
+
+.docs article .card-feature p {
+  @apply text-body-xs text-foreground-soft mt-0;
 }
 
 /* ─── Headings ─── */

@@ -13,7 +13,8 @@ export { useMarkdownItems } from '../../components/sidebar/sidebar';
 export default component$(() => {
   useStyles$(styles);
   const loc = useLocation();
-  const hasOnThisPage = useComputed$(() => loc.url.pathname !== '/docs/');
+  const isOverview = useComputed$(() => loc.url.pathname === '/docs/');
+  const hasOnThisPage = useComputed$(() => !isOverview.value);
 
   return (
     <div class="docs fixed-header">
@@ -22,7 +23,7 @@ export default component$(() => {
         <Sidebar />
         <div class="docs-content-area pb-10">
           <main>
-            <div class="docs-content">
+            <div class={`docs-content ${isOverview.value ? 'docs-content-wide' : ''}`}>
               <article>
                 <Slot />
                 <Contributors />

@@ -155,27 +155,25 @@ export const OnThisPage = component$(() => {
   const activeId = useActiveItem(contentHeadings.map((h) => h.id));
 
   return (
-    <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
+    <aside class="on-this-page flex-col gap-10 overflow-y-auto hidden xl:flex">
       {contentHeadings.length > 0 ? (
         <>
-          <h6>On This Page</h6>
-          <ul class="px-2 font-medium text-[var(--interactive-text-color)]">
-            {contentHeadings.map((h) => (
-              <li
-                key={h.id}
-                style={{ paddingLeft: `${(h.level - 2) * 16}px` }}
-                class="hover:bg-(--on-this-page-hover-bg-color)"
-              >
-                {activeId.value === h.id ? (
-                  <span class="on-this-page-item">{h.text}</span>
-                ) : (
-                  <Link href={`#${h.id}`} class={`on-this-page-item`}>
-                    {h.text}
-                  </Link>
-                )}
-              </li>
-            ))}
-          </ul>
+          <div class="flex flex-col gap-4">
+            <h6>On this page</h6>
+            <ul>
+              {contentHeadings.map((h) => (
+                <li key={h.id} style={{ paddingLeft: h.level > 2 ? '16px' : undefined }}>
+                  {activeId.value === h.id ? (
+                    <span class="on-this-page-item-active">{h.text}</span>
+                  ) : (
+                    <Link href={`#${h.id}`} class="on-this-page-item">
+                      {h.text}
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
           <OnThisPageMore editUrl={editUrl} />
         </>
       ) : null}

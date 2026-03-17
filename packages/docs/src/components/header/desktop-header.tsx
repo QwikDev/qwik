@@ -87,6 +87,8 @@ export const DesktopHeader = component$(() => {
   const focused = useSignal(false);
   const lastScrollY = useSignal(0);
 
+  const navRef = useSignal<HTMLElement>();
+
   useOnDocument(
     'scroll',
     $(() => {
@@ -94,6 +96,12 @@ export const DesktopHeader = component$(() => {
 
       if (!initialized.value) {
         initialized.value = true;
+        lastScrollY.value = y;
+        return;
+      }
+
+      // Don't hide while a dropdown menu is open
+      if (navRef.value?.querySelector('[ui-open]')) {
         lastScrollY.value = y;
         return;
       }
@@ -113,7 +121,10 @@ export const DesktopHeader = component$(() => {
   const isHidden = useComputed$(() => hidden.value && !focused.value && !isHomepage.value);
 
   return (
-    <div class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] 2xl:block hidden">
+    <div
+      ref={navRef}
+      class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] 2xl:block hidden"
+    >
       <navbar.root
         class="fixed top-6 left-1/2 z-99999 flex w-full max-w-[840px] items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-6 shadow-base transition-[translate,opacity] duration-300 ease"
         style={{
@@ -310,12 +321,10 @@ export const DesktopHeader = component$(() => {
           </navbar.item>
         </div>
 
-        <navbar.item>
-          <Link href="/docs/getting-started" variant="primary">
-            <span>Get Started</span>
-            <lucide.arrowright class="size-4" />
-          </Link>
-        </navbar.item>
+        <Link href="/docs/getting-started" variant="primary">
+          <span>Get Started</span>
+          <lucide.arrowright class="size-4" />
+        </Link>
       </navbar.root>
     </div>
   );

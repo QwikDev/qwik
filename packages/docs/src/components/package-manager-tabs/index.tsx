@@ -74,7 +74,6 @@ export default component$(() => {
   );
 });
 
-// TODO: refactor qwik ui tabs to pass in refs and allow content inside of the tabs root (for example, absolute positioning)
 const CopyButton = component$(() => {
   const isClickedSig = useSignal(false);
 

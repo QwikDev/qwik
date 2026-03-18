@@ -371,14 +371,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       return updatedViteConfig;
     },
 
-    configEnvironment(name: string, _config: EnvironmentOptions, _env: ConfigEnv) {
-      // Use environment name to distinguish server vs client — config.consumer is not yet set
-      // at the time this hook is called.
-      const isServer = name === 'ssr';
+    configEnvironment(name: string, config: EnvironmentOptions, _env: ConfigEnv) {
+      // Check consumer property (user-defined) or fall back to name-based detection
+      const isServer = config.consumer === 'server' || name === 'ssr';
       if (isServer) {
+        const serverConditions =
+          buildMode === 'development'
+            ? ['server-development', 'server', 'development']
+            : ['server', 'production'];
         return {
           resolve: {
             noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+            conditions: serverConditions,
           },
         } satisfies EnvironmentOptions;
       }

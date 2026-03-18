@@ -1,4 +1,15 @@
 {
   "name": "e2e-library",
-  "type": "module"
+  "type": "module",
+  "main": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "server-development": "./lib/index.server-dev.js",
+      "server": "./lib/index.server-prod.js",
+      "import": "./lib/index.qwik.mjs"
+    }
+  }
 }

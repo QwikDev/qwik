@@ -211,7 +211,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.target ||= 'client';
     }
 
-    if (opts.target === 'lib') {
+    if (opts.target === 'lib' && updatedOpts.buildMode !== 'production') {
       opts.buildMode = 'development';
     } else if (updatedOpts.buildMode === 'production' || updatedOpts.buildMode === 'development') {
       opts.buildMode = updatedOpts.buildMode;
@@ -668,7 +668,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       debug(`load(${count})`, QWIK_BUILD_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
-        code: getQwikBuildModule(isServer, opts.target),
+        code: getQwikBuildModule(isServer, opts.target, ctx),
       };
     }
     if (id === QWIK_CLIENT_MANIFEST_ID) {
@@ -985,8 +985,17 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   /** Convert windows backslashes to forward slashes if possible */
   const normalizePath = (id: string) => lazyNormalizePath(id);
 
-  function getQwikBuildModule(isServer: boolean, _target: QwikBuildTarget) {
-    const isDev = opts.buildMode === 'development';
+  function getQwikBuildModule(
+    isServer: boolean,
+    _target: QwikBuildTarget,
+    ctx?: Rollup.PluginContext
+  ) {
+    // Check environment-specific define overrides for isDev (e.g. lib-server-prod env)
+    let isDev = opts.buildMode === 'development';
+    const envDef = (ctx as any)?.environment?.config?.define?.['globalThis.qDev'];
+    if (envDef !== undefined) {
+      isDev = !!envDef;
+    }
     return `// @qwik.dev/core/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};

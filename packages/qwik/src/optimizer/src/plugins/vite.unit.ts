@@ -702,7 +702,7 @@ describe('clientPublicOutDir', () => {
 });
 
 describe('configEnvironment', () => {
-  test('should set noExternal for server environments', async () => {
+  test('should set noExternal and server conditions for ssr environment in development', async () => {
     const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
     // Initialize the plugin first
     await plugin.config.call(
@@ -716,6 +716,36 @@ describe('configEnvironment', () => {
 
     const result = hook('ssr', { consumer: 'server' }, { command: 'serve', mode: 'development' });
     assert.deepEqual(result.resolve.noExternal, noExternal);
+    assert.deepEqual(result.resolve.conditions, ['server-development', 'server', 'development']);
+  });
+
+  test('should set noExternal and server conditions for ssr environment in production', async () => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+    await plugin.config.call(configHookPluginContext, {}, { command: 'build', mode: 'production' });
+
+    const hook = (plugin as any).configEnvironment;
+    const result = hook('ssr', { consumer: 'server' }, { command: 'build', mode: 'production' });
+    assert.deepEqual(result.resolve.noExternal, noExternal);
+    assert.deepEqual(result.resolve.conditions, ['server', 'production']);
+  });
+
+  test('should detect server environment via consumer property', async () => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+    await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    );
+
+    const hook = (plugin as any).configEnvironment;
+    // Custom environment name with consumer: 'server' should be treated as server
+    const result = hook(
+      'lib-server-dev',
+      { consumer: 'server' },
+      { command: 'serve', mode: 'development' }
+    );
+    assert.deepEqual(result.resolve.noExternal, noExternal);
+    assert.deepEqual(result.resolve.conditions, ['server-development', 'server', 'development']);
   });
 
   test('should set resolve conditions for client environments in production', async () => {

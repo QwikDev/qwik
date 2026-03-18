@@ -48,14 +48,14 @@ This will create a new folder called `my-library` with the following structure:
 ├── README.md
 ├── package.json
 ├── src
-│   ├── components
-│   │   ├── counter
-│   │   │   └── counter.tsx
-│   │   └── logo
-│   │       └── logo.tsx
-│   ├── entry.ssr.tsx
-│   ├── index.ts
-│   └── root.tsx
+│   ├── components
+│   │   ├── counter
+│   │   │   └── counter.tsx
+│   │   └── logo
+│   │       └── logo.tsx
+│   ├── entry.ssr.tsx
+│   ├── index.ts
+│   └── root.tsx
 ├── tsconfig.json
 └── vite.config.ts
 ```
@@ -71,19 +71,19 @@ The most important files of a library are a properly configured `package.json` a
   "description": "Create a reusable Qwik component library",
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
-  "types": "./lib-types/index.d.ts",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs",
-      "types": "./lib-types/index.d.ts"
+      "types": "./lib/index.d.ts",
+      "server-development": "./lib/index.server-dev.js",
+      "server": "./lib/index.server-prod.js",
+      "import": "./lib/index.qwik.mjs"
     }
   },
   "files": [
-    "lib",
-    "lib-types"
+    "lib"
   ],
-  "type": "module",
+  "type": "module"
 }
 ```
 
@@ -91,20 +91,84 @@ Notice the `qwik` field, this is the entry point for the Qwik Optimizer, it will
 
 <Note>The file must be called with the `.qwik.mjs` extension, otherwise the Qwik Optimizer will not recognize it.</Note>
 
+### Server exports
+
+Qwik libraries include separate builds for server-side rendering. When your library is consumed on the server, it may not go through the Qwik optimizer, so pre-built server variants are needed:
+
+- **`server-development`**: Server build with `isDev=true` — development guards are preserved, `isServer=true` and `isBrowser=false` are baked in.
+- **`server`**: Production server build with `isDev=false` — fully optimized and tree-shaken for production SSR.
+
+The Qwik Vite plugin automatically resolves these conditions when building for SSR environments.
+
 ## vite.config.ts
 
-```ts {8-12}
+```ts
 import { defineConfig } from 'vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 
+const external = [/^node:.*/, /* ...your dependencies */];
+
 export default defineConfig(() => {
   return {
+    builder: {},
     build: {
       target: 'es2020',
       lib: {
         entry: './src/index.ts',
-        formats: ['es', 'cjs'],
-        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
+        formats: ['es'],
+        fileName: (_format, entryName) => `${entryName}.qwik.mjs`,
+      },
+      rollupOptions: {
+        output: {
+          preserveModules: true,
+          preserveModulesRoot: 'src',
+        },
+        external,
+      },
+    },
+    environments: {
+      'lib-server-dev': {
+        consumer: 'server',
+        define: {
+          'globalThis.qDev': true,
+          'globalThis.qInspector': true,
+          'globalThis.qSerialize': true,
+          'globalThis.qTest': false,
+        },
+        build: {
+          outDir: 'lib',
+          ssr: './src/index',
+          rollupOptions: {
+            output: {
+              preserveModules: true,
+              preserveModulesRoot: 'src',
+              entryFileNames: '[name].server-dev.js',
+            },
+            external,
+          },
+        },
+      },
+      'lib-server-prod': {
+        consumer: 'server',
+        define: {
+          'globalThis.qDev': false,
+          'globalThis.qInspector': false,
+          'globalThis.qSerialize': false,
+          'globalThis.qTest': false,
+        },
+        build: {
+          outDir: 'lib',
+          ssr: './src/index',
+          minify: true,
+          rollupOptions: {
+            output: {
+              preserveModules: true,
+              preserveModulesRoot: 'src',
+              entryFileNames: '[name].server-prod.js',
+            },
+            external,
+          },
+        },
       },
     },
     plugins: [qwikVite()],
@@ -112,7 +176,11 @@ export default defineConfig(() => {
 });
 ```
 
-Compared to a normal Vite configuration, libraries will use [the `lib` mode of Vite](https://vitejs.dev/guide/build.html#library-mode), which requires you to properly configure `build.lib`.
+The `builder: {}` option enables Vite's multi-environment build, so a single `vite build --mode lib` produces all three outputs:
+
+- `lib/index.qwik.mjs` — Client library (development mode, needs optimizer processing)
+- `lib/index.server-dev.js` — Server development build (`isServer=true`, `isDev=true`)
+- `lib/index.server-prod.js` — Server production build (`isServer=true`, `isDev=false`, minified)
 
 ## `src/index.ts`
 
@@ -158,7 +226,7 @@ bun run build
 </PackageManagerTabs>
 
 
-This will create a `lib` folder with the following structure. Then you can publish it to npm.
+This will create a `lib` folder with the library outputs. Then you can publish it to npm.
 
 ```shell
 npm publish

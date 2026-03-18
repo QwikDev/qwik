@@ -32,7 +32,6 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
         "default": "./dist/core.prod.mjs"
       }
     },
@@ -45,7 +44,6 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
         "default": "./dist/core.prod.mjs"
       }
     },
@@ -54,7 +52,6 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
         "default": "./dist/core.prod.mjs"
       }
     },
@@ -63,7 +60,6 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
         "default": "./dist/core.mjs"
       }
     },

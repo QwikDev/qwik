@@ -4,6 +4,7 @@ import { createRequestEvent } from './request-event';
 import { RedirectMessage } from './redirect-handler';
 import type { ServerRequestEvent } from './types';
 import { checkCSRF } from './resolve-request-handlers';
+import type { LoadedRoute } from '../../runtime/src/types';
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -32,10 +33,12 @@ function createMockServerRequestEvent(url = 'http://localhost:3000/test'): Serve
   };
 }
 
+const justHiModule = { default: () => 'hi' };
+const mockRoute: LoadedRoute = { $routeName$: '/', $params$: {}, $mods$: [justHiModule] };
 function createMockRequestEvent(url = 'http://localhost:3000/test', trailingSlash = true) {
   globalThis.__NO_TRAILING_SLASH__ = !trailingSlash;
   const serverRequestEv = createMockServerRequestEvent(url);
-  return createRequestEvent(serverRequestEv, null, [], '/', vi.fn());
+  return createRequestEvent(serverRequestEv, mockRoute, [], '/', vi.fn());
 }
 
 describe('resolve-request-handler', () => {

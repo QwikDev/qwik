@@ -21,9 +21,9 @@ const Foo = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
 //
-/*#__PURE__*/ componentQrl(_qrl_Foo_component_HTDRsvUbLiE);
+/*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;cAEY\"}")
@@ -34,11 +34,11 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const _qrl_Foo_component_Inner_component_AuJ9mTBx5YA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_Inner_component_AuJ9mTBx5YA"), "Foo_component_Inner_component_AuJ9mTBx5YA");
+const q_Foo_component_Inner_component_AuJ9mTBx5YA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_Inner_component_AuJ9mTBx5YA"), "Foo_component_Inner_component_AuJ9mTBx5YA");
 //
 export const Foo_component_HTDRsvUbLiE = ()=>{
     const data = useSignal([]);
-    const Inner = /*#__PURE__*/ componentQrl(_qrl_Foo_component_Inner_component_AuJ9mTBx5YA);
+    const Inner = /*#__PURE__*/ componentQrl(q_Foo_component_Inner_component_AuJ9mTBx5YA);
     return /*#__PURE__*/ _jsxSorted(Inner, null, {
         data: data
     }, null, 3, "u6_2");
@@ -75,12 +75,12 @@ import { qrl } from "@qwik.dev/core";
 const _hf0 = (p0)=>p0.value.id;
 const _hf0_str = "p0.value.id";
 //
-const _qrl_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY"), "Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY");
+const q_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY"), "Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY");
 //
 export const Foo_component_Inner_component_AuJ9mTBx5YA = (props)=>{
     const data = props.data;
     return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((item)=>/*#__PURE__*/ _jsxSorted("p", {
-            "q-e:click": _qrl_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY,
+            "q-e:click": q_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY,
             "q:p": item
         }, null, _fnSignal(_hf0, [
             item

@@ -117,9 +117,11 @@ If the site also starts with a pathname other than `/`, please use the `base` op
 
 The `outDir` is a file system output directory where the static files should be written. In the example above, it's using Node's [fileURLToPath](https://nodejs.org/api/url.html#urlfileurltopathurl) to create an absolute file system path to write the static HTML files to.
 
-### Javascript Runtimes
+#### Re-running SSG
 
-For a Javascript project, it's quite common for the build's runtime to be built on top of [Node.js](https://nodejs.org/en/docs/). However, the core of Qwik Router static site generation isn't tied to using only Node.js, which is why the `qwikRouterGenerate()` function is imported from `@qwik.dev/router/ssg/node`. By scoping the generate function to a specific runtime, such as Node.js, this gives Qwik Router the flexibility to also generate SSG from other runtimes in the future, such as [Deno](https://deno.land/) or [Bun](https://bun.sh/).
+SSG is designed to be run at build time, but it can also be re-run at any time after the initial build. This can be useful when you want to update the static HTML files without having to rebuild the entire application.
+
+To re-run SSG, you can run the `server/run-ssg.js` script. This script will re-run the SSG process and update the static HTML files in the `dist` folder. (or whatever `outDir` you have configured in your SSG config).
 
 ## Dynamic SSG Routes
 

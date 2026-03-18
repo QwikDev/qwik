@@ -33,35 +33,40 @@ export const Child = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { useStylesQrl } from "@qwik.dev/core";
-import { inlinedQrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
 import { useBrowserVisibleTaskQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { useStore } from '@qwik.dev/core';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 //
-const Child_component_div_q_e_click_cROa4sult1s = ()=>console.log(mongodb);
-const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = ()=>{
+const q_Child_component_9GyF01GDKqw = /*#__PURE__*/ _noopQrl("Child_component_9GyF01GDKqw");
+const q_Child_component_div_q_e_click_cROa4sult1s = /*#__PURE__*/ _noopQrl("Child_component_div_q_e_click_cROa4sult1s");
+const q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA = /*#__PURE__*/ _noopQrl("Child_component_useBrowserVisibleTask_0IGFPOyJmQA");
+const q_Child_component_useStyles_qBZTuFM0160 = /*#__PURE__*/ _noopQrl("Child_component_useStyles_qBZTuFM0160");
+//
+q_Child_component_useStyles_qBZTuFM0160.s('somestring');
+q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.s(()=>{
     const state = _captures[0];
     state.count = thing.doStuff() + import("./sibling");
-};
-const Child_component_useStyles_qBZTuFM0160 = 'somestring';
-const Child_component_9GyF01GDKqw = ()=>{
-    useStylesQrl(/*#__PURE__*/ inlinedQrl(Child_component_useStyles_qBZTuFM0160, "Child_component_useStyles_qBZTuFM0160"));
+});
+q_Child_component_div_q_e_click_cROa4sult1s.s(()=>console.log(mongodb));
+q_Child_component_9GyF01GDKqw.s(()=>{
+    useStylesQrl(q_Child_component_useStyles_qBZTuFM0160);
     const state = useStore({
         count: 0
     });
     // Double count watch
-    useBrowserVisibleTaskQrl(/*#__PURE__*/ inlinedQrl(Child_component_useBrowserVisibleTask_0IGFPOyJmQA, "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
+    useBrowserVisibleTaskQrl(q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.w([
         state
     ]));
-    return <div q-e:click={/*#__PURE__*/ inlinedQrl(Child_component_div_q_e_click_cROa4sult1s, "Child_component_div_q_e_click_cROa4sult1s")}>
+    return <div q-e:click={q_Child_component_div_q_e_click_cROa4sult1s}>
 		</div>;
-};
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Child_component_9GyF01GDKqw, "Child_component_9GyF01GDKqw"));
+});
+export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAA6C,QAAQ,QAAoB,iBAAiB;AAC1F,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;;kDAeb,IAAM,QAAQ,GAAG,CAAC;0DALX;;IACtB,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;8CAP7B;oCAFoB;IAE/B;IACA,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBAAqB;IACrB;;;IAIA,QACE,IAAI,6HAAsC;EAC3C,EAAE;AAEJ;AAhBA,OAAO,MAAM,sBAAQ,mGAgBlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAA6C,QAAQ,QAAoB,iBAAiB;AAC1F,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;;;;;;;0CAIlB;sDAMY;;IACtB,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;8CAIxB,IAAM,QAAQ,GAAG,CAAC;gCAbH;IAE/B;IACA,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBAAqB;IACrB;;;IAIA,QACE,IAAI,wDAAsC;EAC3C,EAAE;AAEJ;AAhBA,OAAO,MAAM,sBAAQ,4CAgBlB\"}")
 == DIAGNOSTICS ==
 
 []

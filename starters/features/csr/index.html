@@ -18,6 +18,10 @@
 
       /** This renders your application */
       render(document.querySelector("#root"), jsx(Root));
+
+      if (isDev) {
+        import("/@id/@qwik-hmr-bridge");
+      }
     </script>
   </body>
 </html>

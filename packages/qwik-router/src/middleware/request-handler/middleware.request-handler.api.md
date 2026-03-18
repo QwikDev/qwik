@@ -8,6 +8,7 @@ import type { Action } from '@qwik.dev/router';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 import type { EnvGetter as EnvGetter_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { FailReturn } from '@qwik.dev/router';
+import type { JSXOutput } from '@qwik.dev/core';
 import type { Loader as Loader_2 } from '@qwik.dev/router';
 import type { QwikCityPlan } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
@@ -34,6 +35,9 @@ export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefin
 //
 // @public (undocumented)
 export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
+
+// @public
+export function clearSsrCache(cacheKey?: string): void;
 
 // @public (undocumented)
 export interface ClientConn {

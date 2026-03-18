@@ -5742,6 +5742,42 @@ fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }
 
+fn get_segment_hash_by_ctx_name(output: &TransformOutput, ctx_name: &str) -> String {
+	let hashes: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.filter(|segment| segment.ctx_name.as_ref() == ctx_name)
+		.map(|segment| get_hash(segment.name.as_ref()))
+		.collect();
+	assert_eq!(
+		hashes.len(),
+		1,
+		"Expected exactly one segment for {}, got {:?}",
+		ctx_name,
+		hashes
+	);
+	hashes[0].clone()
+}
+
+fn get_segment_name_by_ctx_name(output: &TransformOutput, ctx_name: &str) -> String {
+	let names: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.filter(|segment| segment.ctx_name.as_ref() == ctx_name)
+		.map(|segment| segment.name.to_string())
+		.collect();
+	assert_eq!(
+		names.len(),
+		1,
+		"Expected exactly one segment for {}, got {:?}",
+		ctx_name,
+		names
+	);
+	names[0].clone()
+}
+
 struct TestInput {
 	pub code: String,
 	pub filename: String,
@@ -6013,6 +6049,231 @@ export const Test = component$(() => {
 }
 
 #[test]
+fn import_backed_qrl_hash_matches_across_relative_import_paths() {
+	let code = r#"
+import { $ } from '@qwik.dev/core';
+import { name } from './utils/value';
+
+export const value = $(name);
+"#;
+
+	let first = test_input!(TestInput {
+		code: code.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let second = test_input!(TestInput {
+		code: code.replace("./utils/value", "../shared/../utils/value"),
+		filename: "src/routes/nested/b.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_eq!(
+		get_segment_hash_by_ctx_name(&first, "$"),
+		get_segment_hash_by_ctx_name(&second, "$")
+	);
+}
+
+#[test]
+fn import_backed_qrl_hash_matches_namespace_member() {
+	let named = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from './utils/value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let namespace = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+export const value = $(ns.name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_eq!(
+		get_segment_hash_by_ctx_name(&named, "$"),
+		get_segment_hash_by_ctx_name(&namespace, "$")
+	);
+}
+
+#[test]
+fn import_backed_qrl_hash_normalizes_backslashes_and_non_relative_paths() {
+	let relative = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '.\\utils\\value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let relative_normalized = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from './utils/value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let package_import = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '@pkg/utils/value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_eq!(
+		get_segment_hash_by_ctx_name(&relative, "$"),
+		get_segment_hash_by_ctx_name(&relative_normalized, "$")
+	);
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&relative_normalized, "$"),
+		get_segment_hash_by_ctx_name(&package_import, "$")
+	);
+}
+
+#[test]
+fn import_backed_qrl_default_import_uses_import_based_prefix() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import css from './style.css';
+
+export const value = $(css);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let name = get_segment_name_by_ctx_name(&output, "$");
+	assert!(
+		name.starts_with("style_css_"),
+		"Expected import-based prefix, got {}",
+		name
+	);
+}
+
+#[test]
+fn import_backed_qrl_hash_falls_back_for_unsupported_paths() {
+	let base = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+export const value = $(ns.name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let nested_member = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+export const value = $(ns.name.deep);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let computed_member = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+const key = 'name';
+export const value = $(ns[key]);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let too_many_dotdots = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '../../../value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let too_many_dotdots_other_file = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '../../../value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/b.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&base, "$"),
+		get_segment_hash_by_ctx_name(&nested_member, "$")
+	);
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&base, "$"),
+		get_segment_hash_by_ctx_name(&computed_member, "$")
+	);
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&too_many_dotdots, "$"),
+		get_segment_hash_by_ctx_name(&too_many_dotdots_other_file, "$")
+	);
+}
+
+#[test]
 fn inlined_qrl_uses_identifier_reference_when_hoisted() {
 	let res = test_input!(TestInput {
 		code: r#"
@@ -6045,13 +6306,14 @@ export const App = component$(() => {
 		.collect();
 
 	assert!(
-		compact_code.contains("inlinedQrl(App_component_"),
-		"Expected inlinedQrl to reference a hoisted identifier (inlinedQrl(App_component_...)).\nGenerated code:\n{}",
+		compact_code.contains("_noopQrl(\"App_component_"),
+		"Expected _noopQrl with symbol name.\nGenerated code:\n{}",
 		combined_code
 	);
 	assert!(
-		!compact_code.contains("inlinedQrl(("),
-		"Expected inlinedQrl first arg to be an identifier reference, not an embedded function.\nGenerated code:\n{}",
+		compact_code.contains(".s(App_component_")
+			|| compact_code.contains(".s(TestComponent_component_"),
+		"Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
 		combined_code
 	);
 }
@@ -6117,9 +6379,14 @@ export const TestComponent = component$(() => {
 		.collect();
 
 	assert!(
-		compact_code.contains("inlinedQrl(TestComponent_component_")
-			|| compact_code.contains("inlinedQrlDEV(TestComponent_component_"),
-		"Expected inlinedQrl to reference the hoisted component identifier.\nGenerated code:\n{}",
+		compact_code.contains("_noopQrl(\"TestComponent_component_"),
+		"Expected _noopQrl with symbol name.\nGenerated code:\n{}",
+		combined_code
+	);
+	assert!(
+		compact_code.contains(".s(App_component_")
+			|| compact_code.contains(".s(TestComponent_component_"),
+		"Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
 		combined_code
 	);
 }
@@ -6238,6 +6505,318 @@ fn moves_captures_when_possible() {
 		transpile_jsx: true,
 		..TestInput::default()
 	});
+}
+
+#[test]
+fn fun_with_scopes() {
+	let res = test_input!(TestInput {
+		code: r#"
+		import { inlinedQrl,$,component$,jsx,useStylesScoped$ } from '@qwik.dev/core';
+			export default () => {
+				const serverFnHash = globalThis.foo();
+				const data = globalThis.bar();
+				const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
+				console.log(qrl);
+			}
+
+			function Lifecycle(props, key, flags) {
+				return component$(({ of: form, store, validate: validate2, validateOn, revalidateOn, transform, keepActive = false, keepState = true }) => {
+					return /* @__PURE__ */ jsx(Slot, {});
+				})(props, key, flags);
+			}
+			export const rawFn = (event, element) => {
+						handleFieldEvent(form, field, name, event, element, [
+							"touched",
+							"input"
+						], getElementInput(element, field, type));
+					}
+			export function Field({ children, name, type, ...props }) {
+				const { of: form } = props;
+				const field = getFieldStore(form, name);
+				return /* @__PURE__ */ jsx(Lifecycle, {
+					store: field,
+					...props,
+					children: children(field, {
+						name,
+						autoFocus: isServer && !!field.error,
+						ref: $((element) => {
+							field.internal.elements.push(element);
+						}),
+						onInput$: $(rawFn),
+					})
+				}, name);
+			}
+
+			const STYLE_RED = `.container {background-color: red;}`;
+			describe.each([])('$render.name: useStylesScoped', ({ render }) => {
+
+				it('should render object style', async () => {
+					const StyledComponent = component$(() => {
+						const stylesScopedData = useStylesScoped$(STYLE_RED);
+						const store = useStore({
+							count: 10,
+						});
+
+						return (
+							<button class={['container', `count-${store.count}`]} onClick$={() => store.count++}>
+								Hello world
+							</button>
+						);
+					});
+
+					const { vNode, getStyles, document } = await render(<StyledComponent />, { debug });
+				})
+			})
+
+			"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		is_server: Some(true),
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+	// segments are drained and inlined for Hoist strategy
+	assert!(res.is_ok());
+}
+
+#[test]
+fn hmr() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, component$, $ } from "@qwik.dev/core";
+
+		export const TestGetsHmr = component$(() => {
+			return <div>Test</div>;
+		});
+		export const TestNoHmr = componentQrl($(() => {
+			return <div>Test</div>;
+		}));
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Hmr,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_lib_mode() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, server$, useStyle$, useTask$ } from '@qwik.dev/core';
+
+export const Works = component$((props) => {
+	useStyle$(STYLES);
+	const text = 'hola';
+	useTask$(() => {
+		console.log(text);
+	});
+	return (
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+	);
+});
+
+const STYLES = '.class {}';
+"#
+		.to_string(),
+		mode: EmitMode::Lib,
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn lib_mode_inline_expressions() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	return <div>Hello</div>;
+});
+"#
+		.to_string(),
+		mode: EmitMode::Lib,
+		entry_strategy: EntryStrategy::Hoist,
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+	let compact_code: String = combined_code
+		.chars()
+		.filter(|c| !c.is_whitespace())
+		.collect();
+
+	// In lib mode, inlinedQrl should have inline expressions, not extracted identifiers
+	assert!(
+		compact_code.contains("inlinedQrl(("),
+		"Expected inlinedQrl first arg to be an inline function expression in lib mode.\nGenerated code:\n{}",
+		combined_code
+	);
+	// No _captures should be used
+	assert!(
+		!compact_code.contains("_captures"),
+		"Expected no _captures in lib mode output.\nGenerated code:\n{}",
+		combined_code
+	);
+}
+
+#[test]
+fn inlined_qrl_preserves_captures() {
+	// Simulates lib-preprocessed code being processed by the app optimizer.
+	// The inner inlinedQrl has 5 captures, including variables defined via
+	// the outer function's _captures destructuring.
+	let res = test_input!(TestInput {
+		code: r#"
+import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _captures } from '@qwik.dev/core';
+
+export function qwikifyQrl(reactCmp$, opts) {
+	return componentQrl(inlinedQrl((props) => {
+		const opts2 = _captures[0], reactCmp$2 = _captures[1];
+		const hostRef = useSignal();
+		const signal = useSignal();
+		const text = 'hello';
+		useTaskQrl(inlinedQrl(async ({ track }) => {
+			const hostRef2 = _captures[0], reactCmp$3 = _captures[1], opts3 = _captures[2], signal2 = _captures[3], text2 = _captures[4];
+			track(signal2);
+			console.log(hostRef2, reactCmp$3, opts3, text2);
+		}, "s_inner123", [hostRef, reactCmp$2, opts2, signal, text]));
+	}, "s_outer456", [opts, reactCmp$]));
+}
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::Simplify,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Prod,
+		is_server: Some(true),
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// The inner inlinedQrl must preserve all 5 captures
+	// Find the inner QRL call with captures (format: q_s_inner123.w([captures])
+	// or inlinedQrl(ref, "s_inner123", [captures]))
+	let search = combined_code
+		.find("q_s_inner123.w(")
+		.or_else(|| combined_code.find("\"s_inner123\""))
+		.expect(&format!(
+			"Should find s_inner123 call in output.\nGenerated code:\n{}",
+			combined_code
+		));
+
+	// Find the captures array (the [...] argument)
+	let after_hash = &combined_code[search..];
+	let bracket_start = after_hash.find('[').expect(&format!(
+		"Should find captures array for s_inner123.\nGenerated code:\n{}",
+		combined_code
+	));
+	let bracket_end = after_hash[bracket_start..]
+		.find(']')
+		.expect("Should find end of captures array");
+	let captures_str = &after_hash[bracket_start + 1..bracket_start + bracket_end];
+
+	// Count commas to get number of captures (N commas = N+1 elements)
+	let capture_count = if captures_str.trim().is_empty() {
+		0
+	} else {
+		captures_str.split(',').count()
+	};
+
+	assert_eq!(
+		capture_count, 5,
+		"Inner inlinedQrl should have exactly 5 captures, but found {}.\nCaptures: '{}'\nFull code:\n{}",
+		capture_count, captures_str, combined_code
+	);
+
+	// Verify specific capture names are present
+	for name in &["hostRef", "reactCmp$2", "opts2", "signal", "text"] {
+		assert!(
+			captures_str.contains(name),
+			"Capture '{}' should be present in inner captures array.\nCaptures: '{}'\nFull code:\n{}",
+			name, captures_str, combined_code
+		);
+	}
+}
+
+#[test]
+fn lib_full_names_shortened_in_prod() {
+	// Lib builds emit full symbol names (e.g. "Works_component_useTask_hash").
+	// When a prod build consumes this lib, names should be shortened to "s_hash".
+	let res = test_input!(TestInput {
+		code: r#"
+import { componentQrl, inlinedQrl, useTaskQrl, _captures } from '@qwik.dev/core';
+
+export const Works = componentQrl(inlinedQrl((props) => {
+	const text = 'hola';
+	useTaskQrl(inlinedQrl(() => {
+		const text = _captures[0];
+		console.log(text);
+	}, "Works_component_useTask_pjo5U5Ikll0", [text]));
+}, "Works_component_t45qL4vNGv0"));
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::Simplify,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// Prod should shorten to s_hash format
+	assert!(
+		combined_code.contains("s_pjo5U5Ikll0"),
+		"Prod build should shorten inner QRL name to s_hash.\nGenerated code:\n{}",
+		combined_code
+	);
+	assert!(
+		combined_code.contains("s_t45qL4vNGv0"),
+		"Prod build should shorten outer QRL name to s_hash.\nGenerated code:\n{}",
+		combined_code
+	);
+	// Full names should NOT appear in prod output
+	assert!(
+		!combined_code.contains("Works_component"),
+		"Prod build should not contain full symbol names.\nGenerated code:\n{}",
+		combined_code
+	);
 }
 
 impl TestInput {

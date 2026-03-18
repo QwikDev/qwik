@@ -46,12 +46,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
 //
-export const Cmp = /*#__PURE__*/ componentQrl(_qrl_Cmp_component_4ryKJTOKjWE);
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEE,OAAO,MAAM,oBAAM,6CAC4C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEE,OAAO,MAAM,oBAAM,0CAC4C\"}")
 == DIAGNOSTICS ==
 
 []

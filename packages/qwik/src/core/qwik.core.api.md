@@ -12,6 +12,9 @@ import { isServer } from '@qwik.dev/core/build';
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
+// @internal
+export function _addProjection(container: _Container, parentVNode: _VirtualVNode, componentQRL: QRL<any>, props: Record<string, unknown>, slotName: string): _VirtualVNode;
+
 // Warning: (ae-forgotten-export) The symbol "AsyncCtx" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -226,7 +229,7 @@ export const createComputedQrl: <T>(qrl: QRL<() => T>, options?: ComputedOptions
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
 // @internal
-export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null) => _QRLInternal<TYPE>;
+export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?: null | ValueOrPromise<TYPE>, symbolFn?: null | (() => Promise<Record<string, TYPE>>), captures?: Readonly<unknown[]> | string | null, container?: _Container) => _QRLInternal<TYPE>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializerArg" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SerializerSignal" needs to be exported by the entry point index.d.ts
@@ -441,6 +444,9 @@ export { h }
 
 // @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
+
+// @internal
+export const _hmr: (event: Event, element: Element) => void;
 
 // Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
@@ -873,6 +879,9 @@ export interface ReadonlySignal<T = unknown> {
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
 
+// @internal
+export function _removeProjection(container: _Container, parentVNode: _VirtualVNode, vnode: _VirtualVNode, slotName: string): void;
+
 // @public
 export const render: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
@@ -987,6 +996,9 @@ export function _setEvent(serializationCtx: SerializationContext, key: string, r
 
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
+
+// @internal
+export function _setProjectionTarget(vnode: _VirtualVNode, targetElement: Element): void;
 
 // @internal (undocumented)
 export abstract class _SharedContainer implements _Container {
@@ -1759,6 +1771,9 @@ export const untrack: <T, A extends any[]>(expr: ((...args: A) => T) | Signal<T>
 // @public
 export const unwrapStore: <T>(value: T) => T;
 
+// @internal
+export function _updateProjectionProps(container: _Container, vnode: _VirtualVNode, newProps: Record<string, unknown>): void;
+
 // @public
 export const useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>;
 
@@ -1788,6 +1803,9 @@ export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: ST
 
 // @public (undocumented)
 export const useErrorBoundary: () => ErrorBoundaryStore;
+
+// @internal
+export function _useHmr(devPath: string): void;
 
 // @public (undocumented)
 export const useId: () => string;
@@ -1986,6 +2004,8 @@ export const enum _VNodeFlags {
     // (undocumented)
     HasIterationItems = 64,
     // (undocumented)
+    HasTargetElement = 2048,
+    // (undocumented)
     Inflated = 8,
     // (undocumented)
     INFLATED_TYPE_MASK = 15,
@@ -2002,11 +2022,11 @@ export const enum _VNodeFlags {
     // (undocumented)
     NS_svg = 512,
     // (undocumented)
-    Resolved = 16,
+    Resolved = 16,// http://www.w3.org/1999/xhtml
     // (undocumented)
-    Text = 4,// http://www.w3.org/1999/xhtml
+    Text = 4,// http://www.w3.org/2000/svg
     // (undocumented)
-    TYPE_MASK = 7,// http://www.w3.org/2000/svg
+    TYPE_MASK = 7,// http://www.w3.org/1998/Math/MathML
     // (undocumented)
     Virtual = 2
 }

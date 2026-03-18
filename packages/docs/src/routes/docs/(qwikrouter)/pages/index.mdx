@@ -260,3 +260,85 @@ export const RouterHead = component$(() => {
 
 ```
 
+## `routeConfig` export
+
+The `routeConfig` export is a unified alternative to the separate `head`, `eTag`, and `cacheKey` exports. It groups all page-level configuration into a single export and follows the same resolution rules as `head` -- it can be a static object or a function.
+
+```tsx title="src/routes/product/[id]/index.tsx"
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+import type { RouteConfig } from '@qwik.dev/router';
+
+export const useProduct = routeLoader$(async (requestEvent) => {
+  const id = requestEvent.params.id;
+  const product = await fetchProduct(id);
+  return product;
+});
+
+export default component$(() => {
+  const product = useProduct();
+  return <h1>{product.value.name}</h1>;
+});
+
+// Static routeConfig
+export const routeConfig: RouteConfig = {
+  head: {
+    title: 'Product Page',
+    meta: [{ name: 'description', content: 'View our product' }],
+  },
+  eTag: 'v1',
+  cacheKey: true,
+};
+```
+
+### Dynamic `routeConfig`
+
+Like `head`, you can export a function that receives `DocumentHeadProps` and returns a `RouteConfigValue`:
+
+```tsx title="src/routes/product/[id]/index.tsx"
+import type { RouteConfig } from '@qwik.dev/router';
+
+export const routeConfig: RouteConfig = ({ resolveValue }) => {
+  const product = resolveValue(useProduct);
+  return {
+    head: {
+      title: product.name,
+      meta: [{ name: 'description', content: product.description }],
+    },
+    eTag: `product-${product.id}-${product.updatedAt}`,
+    cacheKey: true,
+  };
+};
+```
+
+### Layout-level `routeConfig`
+
+Layouts can also export `routeConfig`. This is useful for defining eTag or cacheKey behavior for an entire subtree of routes:
+
+```tsx title="src/routes/blog/layout.tsx"
+import type { RouteConfig } from '@qwik.dev/router';
+
+export const routeConfig: RouteConfig = {
+  head: {
+    meta: [{ key: 'og:site', property: 'og:site_name', content: 'My Blog' }],
+  },
+  // All blog pages will use SSR caching by default
+  cacheKey: true,
+};
+```
+
+Pages under this layout inherit the `cacheKey` unless they override it in their own `routeConfig`.
+
+### Resolution rules
+
+`routeConfig` follows the same resolution rules as `head`:
+
+- **Static objects** are merged outward-in (page values override layout values)
+- **Functions** are executed inner-before-outer (page first, then layouts), receiving the accumulated state in `props.head`
+- For `head`: arrays (`meta`, `links`, etc.) are merged by `key`; `title` is overwritten
+- For `eTag` and `cacheKey`: the last defined value wins (page overrides layout)
+
+When a module exports `routeConfig`, the separate `head`, `eTag`, and `cacheKey` exports on that module are ignored. Modules can be mixed -- a layout can use a standalone `head` export while a page uses `routeConfig`.
+
+For details on `eTag` and `cacheKey`, see [SSR Caching](/docs/(qwikrouter)/caching/index.mdx#ssr-caching).
+

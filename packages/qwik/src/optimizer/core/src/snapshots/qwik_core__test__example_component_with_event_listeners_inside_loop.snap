@@ -109,12 +109,12 @@ export const App = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
-export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,oBAAM,6CA+FZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,oBAAM,0CA+FZ\"}")
 ============================= test.tsx_App_component_loopForIn_span_q_e_click_adzBGickx1U.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
@@ -245,37 +245,37 @@ import { useStore } from "@qwik.dev/core";
 const _hf0 = (p0, p1)=>p1[p0];
 const _hf0_str = "p1[p0]";
 //
-const i_05kCMrZVn5E = ()=>import("./test.tsx_App_component_loopWhile_span_q_e_click_05kCMrZVn5E");
-const i_PbCYbPM6etI = ()=>import("./test.tsx_App_component_loopForI_span_q_e_click_PbCYbPM6etI");
-const i_UB6Fs5a3bd8 = ()=>import("./test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8");
-const i_Wau7C836nf0 = ()=>import("./test.tsx_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0");
-const i_adzBGickx1U = ()=>import("./test.tsx_App_component_loopForIn_span_q_e_click_adzBGickx1U");
-const i_zlNGHYu926I = ()=>import("./test.tsx_App_component_loopForOf_span_q_e_click_zlNGHYu926I");
+const q_App_component_div_button_q_e_click_UB6Fs5a3bd8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_button_q_e_click_UB6Fs5a3bd8"), "App_component_div_button_q_e_click_UB6Fs5a3bd8");
+const q_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0"), "App_component_loopArrowFn_span_q_e_click_Wau7C836nf0");
+const q_App_component_loopForI_span_q_e_click_PbCYbPM6etI = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopForI_span_q_e_click_PbCYbPM6etI"), "App_component_loopForI_span_q_e_click_PbCYbPM6etI");
+const q_App_component_loopForIn_span_q_e_click_adzBGickx1U = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopForIn_span_q_e_click_adzBGickx1U"), "App_component_loopForIn_span_q_e_click_adzBGickx1U");
+const q_App_component_loopForOf_span_q_e_click_zlNGHYu926I = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopForOf_span_q_e_click_zlNGHYu926I"), "App_component_loopForOf_span_q_e_click_zlNGHYu926I");
+const q_App_component_loopWhile_span_q_e_click_05kCMrZVn5E = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopWhile_span_q_e_click_05kCMrZVn5E"), "App_component_loopWhile_span_q_e_click_05kCMrZVn5E");
 //
 export const App_component_ckEPmXZlub0 = ()=>{
     const cart = useStore([]);
     const results = useSignal([
         'foo'
     ]);
-    const App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = /*#__PURE__*/ qrl(i_Wau7C836nf0, "App_component_loopArrowFn_span_q_e_click_Wau7C836nf0", [
+    const App_component_loopArrowFn_span_q_e_click_Wau7C836nf0 = q_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0.w([
         cart
     ]);
-    const App_component_loopForI_span_q_e_click_PbCYbPM6etI = /*#__PURE__*/ qrl(i_PbCYbPM6etI, "App_component_loopForI_span_q_e_click_PbCYbPM6etI", [
+    const App_component_loopForI_span_q_e_click_PbCYbPM6etI = q_App_component_loopForI_span_q_e_click_PbCYbPM6etI.w([
         cart,
         results
     ]);
-    const App_component_loopForOf_span_q_e_click_zlNGHYu926I = /*#__PURE__*/ qrl(i_zlNGHYu926I, "App_component_loopForOf_span_q_e_click_zlNGHYu926I", [
+    const App_component_loopForOf_span_q_e_click_zlNGHYu926I = q_App_component_loopForOf_span_q_e_click_zlNGHYu926I.w([
         cart
     ]);
-    const App_component_loopForIn_span_q_e_click_adzBGickx1U = /*#__PURE__*/ qrl(i_adzBGickx1U, "App_component_loopForIn_span_q_e_click_adzBGickx1U", [
+    const App_component_loopForIn_span_q_e_click_adzBGickx1U = q_App_component_loopForIn_span_q_e_click_adzBGickx1U.w([
         cart,
         results
     ]);
-    const App_component_loopWhile_span_q_e_click_05kCMrZVn5E = /*#__PURE__*/ qrl(i_05kCMrZVn5E, "App_component_loopWhile_span_q_e_click_05kCMrZVn5E", [
+    const App_component_loopWhile_span_q_e_click_05kCMrZVn5E = q_App_component_loopWhile_span_q_e_click_05kCMrZVn5E.w([
         cart,
         results
     ]);
-    const App_component_div_button_q_e_click_UB6Fs5a3bd8 = /*#__PURE__*/ qrl(i_UB6Fs5a3bd8, "App_component_div_button_q_e_click_UB6Fs5a3bd8", [
+    const App_component_div_button_q_e_click_UB6Fs5a3bd8 = q_App_component_div_button_q_e_click_UB6Fs5a3bd8.w([
         cart
     ]);
     function loopArrowFn(results) {

@@ -125,6 +125,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     devTools: {
       imageDevTools: true,
       clickToSource: ['Alt'],
+      hmr: true,
     },
     inlineStylesUpToBytes: 20000,
     lint: false,
@@ -189,6 +190,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
 
+    if (updatedOpts.devTools) {
+      opts.devTools = {
+        ...opts.devTools,
+        ...updatedOpts.devTools,
+      };
+    }
     if (updatedOpts.assetsDir) {
       opts.assetsDir = updatedOpts.assetsDir;
     }
@@ -712,7 +719,26 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (transformedModule) {
       debug(`load(${count})`, 'Found', id);
-      const { code, map, segment } = transformedModule[0];
+      let { code } = transformedModule[0];
+      const { map, segment } = transformedModule[0];
+      const parentId = transformedModule[1];
+
+      // In HMR mode, append self-accept code to QRL segments
+      // When the parent file changes, Vite invalidates and re-serves the segment.
+      // The custom event will ensure the re-rendering of mounted components, when non-segment files are changed.
+      if (devServer?.hot && parentId && opts.devTools.hmr) {
+        const parentUrl = parentId.startsWith(opts.rootDir!)
+          ? parentId.slice(opts.rootDir!.length)
+          : parentId;
+        const eventName = 'qHmr' + parentUrl.replace(/[^a-zA-Z0-9_]/g, '_');
+        code +=
+          `\nif (import.meta.hot) {` +
+          `\n  import.meta.hot.accept(() => {
+            document.dispatchEvent(new CustomEvent(${JSON.stringify(eventName)}));
+          });` +
+          `\n}`;
+      }
+
       return { code, map, meta: { segment } };
     }
 
@@ -755,7 +781,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       );
 
       const mode =
-        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
+        opts.target === 'lib'
+          ? 'lib'
+          : opts.buildMode === 'development'
+            ? devServer?.hot && opts.devTools.hmr
+              ? 'hmr'
+              : 'dev'
+            : 'prod';
 
       if (mode !== 'lib') {
         // this messes a bit with the source map, but it's ok for if statements
@@ -1016,12 +1048,10 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
 
   // Only used in Vite dev mode, called per-environment
   function hotUpdate(environment: DevEnvironment, ctx: HotUpdateOptions) {
-    debug('hotUpdate()', ctx.file, environment.config.consumer);
+    const isServer = environment.name === 'ssr';
+    debug('hotUpdate()', ctx.file, environment.name);
 
-    const outputs =
-      environment.config.consumer === 'server'
-        ? serverTransformedOutputs
-        : clientTransformedOutputs;
+    const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
 
     for (const mod of ctx.modules) {
       const { id } = mod;
@@ -1231,9 +1261,33 @@ const LIB_OUT_DIR = 'lib';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
 
+/** @public */
 export interface QwikPluginDevTools {
+  /**
+   * Validates image sizes for CLS issues during development. In case of issues, provides you with a
+   * correct image size resolutions. If set to `false`, image dev tool will be disabled.
+   *
+   * Default `true`
+   */
   imageDevTools?: boolean | true;
+  /**
+   * Press-hold the defined keys to enable qwik dev inspector. By default the behavior is activated
+   * by pressing the left or right `Alt` key. If set to `false`, qwik dev inspector will be
+   * disabled.
+   *
+   * Valid values are `KeyboardEvent.code` values. Please note that the 'Left' and 'Right' suffixes
+   * are ignored.
+   */
   clickToSource?: string[] | false;
+  /**
+   * Enable HMR for Qwik components. When enabled, editing a component file re-renders only that
+   * component without a full page reload, preserving client state.
+   *
+   * Set this to `false` for full page reloads on component edits.
+   *
+   * Default `true`
+   */
+  hmr?: boolean;
 }
 
 export interface QwikPluginOptions {

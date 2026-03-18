@@ -1,3 +1,4 @@
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import pkg from './package.json' with { type: 'json' };
@@ -62,7 +63,7 @@ export default defineConfig(() => {
         ],
       },
     },
-    plugins: [compiledStringPlugin()],
+    plugins: [qwikVite(), compiledStringPlugin()],
     clearScreen: false,
     optimizeDeps: {
       force: true,

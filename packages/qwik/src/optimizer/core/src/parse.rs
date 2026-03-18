@@ -80,6 +80,7 @@ pub enum EmitMode {
 	Lib,
 	Dev,
 	Test,
+	Hmr,
 }
 
 pub struct TransformCodeOptions<'a> {
@@ -288,27 +289,27 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					let mut qt: Option<QwikTransform<'_>> = None;
 					let mut segments: Vec<Segment> = Vec::new();
 
-					// Don't further process library code
-					// It will be processed during client build
-					// This way no internal API usage is published
-					if config.mode != EmitMode::Lib {
-						let is_dev = config.mode == EmitMode::Dev;
+					{
+						let is_dev = matches!(config.mode, EmitMode::Dev | EmitMode::Hmr);
 
-						// reconstruct destructured props for signal forwarding
-						transform_props_destructuring(
-							&mut program,
-							&mut collect,
-							&config.core_module,
-						);
+						// Don't further process library code beyond QRL wrapping
+						if config.mode != EmitMode::Lib {
+							// reconstruct destructured props for signal forwarding
+							transform_props_destructuring(
+								&mut program,
+								&mut collect,
+								&config.core_module,
+							);
 
-						// replace const values
-						if config.mode != EmitMode::Test {
-							let mut const_replacer =
-								ConstReplacerVisitor::new(config.is_server, is_dev, &collect);
-							program.visit_mut_with(&mut const_replacer);
+							// replace const values
+							if config.mode != EmitMode::Test {
+								let mut const_replacer =
+									ConstReplacerVisitor::new(config.is_server, is_dev, &collect);
+								program.visit_mut_with(&mut const_replacer);
+							}
 						}
 
-						// split into segments
+						// split into segments (also handles lib mode mechanical QRL wrapping)
 						let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
 							path_data: &path_data,
 							dev_path: config.dev_path,
@@ -343,38 +344,16 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						// );
 						program = program.fold_with(&mut qwik_transform);
 
-						let mut treeshaker = Treeshaker::new();
-						if config.minify != MinifyMode::None {
-							// remove all side effects from client, step 1
-							if !config.is_server {
-								program.visit_mut_with(&mut treeshaker.marker);
-							}
+						// Skip post-processing for library mode
+						if config.mode != EmitMode::Lib {
+							let mut treeshaker = Treeshaker::new();
+							if config.minify != MinifyMode::None {
+								// remove all side effects from client, step 1
+								if !config.is_server {
+									program.visit_mut_with(&mut treeshaker.marker);
+								}
 
-							// simplify & strip unused code
-							program.mutate(&mut simplify::simplifier(
-								unresolved_mark,
-								simplify::Config {
-									dce: simplify::dce::Config {
-										preserve_imports_with_side_effects: false,
-										..Default::default()
-									},
-									..Default::default()
-								},
-							));
-						}
-						if matches!(
-							config.entry_strategy,
-							EntryStrategy::Inline | EntryStrategy::Hoist
-						) {
-							program.visit_mut_with(&mut SideEffectVisitor::new(
-								&qwik_transform.options.global_collect,
-								&path_data,
-								config.src_dir,
-							));
-						} else if config.minify != MinifyMode::None && !config.is_server {
-							// remove all side effects from client, step 2
-							program.visit_mut_with(&mut treeshaker.cleaner);
-							if treeshaker.cleaner.did_drop {
+								// simplify & strip unused code
 								program.mutate(&mut simplify::simplifier(
 									unresolved_mark,
 									simplify::Config {
@@ -386,41 +365,68 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 									},
 								));
 							}
-						}
-						segments = qwik_transform.segments.clone();
-						qt = Some(qwik_transform);
-
-						// Apply variable migration: move segment-exclusive root variables to their segments
-						if !segments.is_empty() {
-							let q = qt.as_mut().unwrap();
-							if let ast::Program::Module(ref mut module) = &mut program {
-								let migrated_ids = apply_variable_migration(
-									&mut segments,
-									module,
-									&mut q.options.global_collect,
-								);
-
-								// Remove migrated variables from root module exports
-								if !migrated_ids.is_empty() {
-									for id in &migrated_ids {
-										q.options.global_collect.remove_root_and_exports_for_id(id);
-									}
-									remove_migrated_exports(module, &migrated_ids);
-									remove_unused_qrl_declarations(module);
-
-									// Re-run DCE to remove imports that are no longer used
-									// after migrating variables to segments
-									if config.minify != MinifyMode::None {
-										program.mutate(&mut simplify::simplifier(
-											unresolved_mark,
-											simplify::Config {
-												dce: simplify::dce::Config {
-													preserve_imports_with_side_effects: false,
-													..Default::default()
-												},
+							if matches!(
+								config.entry_strategy,
+								EntryStrategy::Inline | EntryStrategy::Hoist
+							) {
+								program.visit_mut_with(&mut SideEffectVisitor::new(
+									&qwik_transform.options.global_collect,
+									&path_data,
+									config.src_dir,
+								));
+							} else if config.minify != MinifyMode::None && !config.is_server {
+								// remove all side effects from client, step 2
+								program.visit_mut_with(&mut treeshaker.cleaner);
+								if treeshaker.cleaner.did_drop {
+									program.mutate(&mut simplify::simplifier(
+										unresolved_mark,
+										simplify::Config {
+											dce: simplify::dce::Config {
+												preserve_imports_with_side_effects: false,
 												..Default::default()
 											},
-										));
+											..Default::default()
+										},
+									));
+								}
+							}
+							segments = qwik_transform.segments.clone();
+							qt = Some(qwik_transform);
+
+							// Apply variable migration: move segment-exclusive root variables to their segments
+							if !segments.is_empty() {
+								let q = qt.as_mut().unwrap();
+								if let ast::Program::Module(ref mut module) = &mut program {
+									let migrated_ids = apply_variable_migration(
+										&mut segments,
+										module,
+										&mut q.options.global_collect,
+									);
+
+									// Remove migrated variables from root module exports
+									if !migrated_ids.is_empty() {
+										for id in &migrated_ids {
+											q.options
+												.global_collect
+												.remove_root_and_exports_for_id(id);
+										}
+										remove_migrated_exports(module, &migrated_ids);
+										remove_unused_qrl_declarations(module);
+
+										// Re-run DCE to remove imports that are no longer used
+										// after migrating variables to segments
+										if config.minify != MinifyMode::None {
+											program.mutate(&mut simplify::simplifier(
+												unresolved_mark,
+												simplify::Config {
+													dce: simplify::dce::Config {
+														preserve_imports_with_side_effects: false,
+														..Default::default()
+													},
+													..Default::default()
+												},
+											));
+										}
 									}
 								}
 							}
@@ -452,7 +458,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
 							// Create explicit imports for dev-mode QRL helpers
 							let mut explicit_imports = IndexMap::new();
-							if config.mode == EmitMode::Dev {
+							if matches!(config.mode, EmitMode::Dev | EmitMode::Hmr) {
 								use swc_common::SyntaxContext;
 								let dev_import = Import {
 									source: q.options.core_module.clone(),
@@ -751,6 +757,7 @@ fn add_section_separators(module: &mut ast::Module, comments: &SingleThreadedCom
 	enum Section {
 		Import,
 		QrlDecl,
+		RefAssignment,
 		Other,
 	}
 
@@ -761,8 +768,23 @@ fn add_section_separators(module: &mut ast::Module, comments: &SingleThreadedCom
 				if let Some(decl) = var.decls.first() {
 					if let ast::Pat::Ident(ident) = &decl.name {
 						let name = &*ident.id.sym;
-						if name.starts_with("_qrl_") || name.starts_with("i_") {
+						if name.starts_with("q_") || name.starts_with("i_") {
 							return Section::QrlDecl;
+						}
+					}
+				}
+				Section::Other
+			}
+			// Detect $ref$ assignments: q_name.$lazy$.$ref$ = ...
+			ast::ModuleItem::Stmt(ast::Stmt::Expr(expr_stmt)) => {
+				if let ast::Expr::Assign(assign) = &*expr_stmt.expr {
+					if let ast::AssignTarget::Simple(ast::SimpleAssignTarget::Member(member)) =
+						&assign.left
+					{
+						if let ast::MemberProp::Ident(prop) = &member.prop {
+							if &*prop.sym == "$ref$" {
+								return Section::RefAssignment;
+							}
 						}
 					}
 				}

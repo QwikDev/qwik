@@ -21,12 +21,12 @@ export const App = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 //
-export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,6CAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAMhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";

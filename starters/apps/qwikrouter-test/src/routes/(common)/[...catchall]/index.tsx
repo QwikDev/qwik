@@ -28,11 +28,7 @@ export const head: DocumentHead = () => {
   };
 };
 
-export const onGet: RequestHandler = ({
-  error,
-  url,
-  exit: exitMiddlewares,
-}) => {
+export const onGet: RequestHandler = ({ error, url }) => {
   if (url.pathname === "/qwikrouter-test/catchall-error/") {
     throw error(500, "ERROR: Demonstration of an error response.");
   }
@@ -42,5 +38,5 @@ export const onGet: RequestHandler = ({
     return;
   }
 
-  exitMiddlewares();
+  throw error(404, "Resource Not Found");
 };

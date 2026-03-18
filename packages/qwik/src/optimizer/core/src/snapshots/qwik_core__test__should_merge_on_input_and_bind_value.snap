@@ -26,12 +26,12 @@ export const FieldInput = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_FieldInput_component_V4XAtJSTRKg = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
+const q_FieldInput_component_V4XAtJSTRKg = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
 //
-export const FieldInput = /*#__PURE__*/ componentQrl(_qrl_FieldInput_component_V4XAtJSTRKg);
+export const FieldInput = /*#__PURE__*/ componentQrl(q_FieldInput_component_V4XAtJSTRKg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,2BAAa,oDAWvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,2BAAa,iDAWvB\"}")
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -40,7 +40,7 @@ import { inlinedQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const _qrl_FieldInput_component_input_q_e_input_wqR1xEjZjf4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4"), "FieldInput_component_input_q_e_input_wqR1xEjZjf4");
+const q_FieldInput_component_input_q_e_input_wqR1xEjZjf4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4"), "FieldInput_component_input_q_e_input_wqR1xEjZjf4");
 //
 export const FieldInput_component_V4XAtJSTRKg = ()=>{
     const localValue = useSignal("");
@@ -50,7 +50,7 @@ export const FieldInput_component_V4XAtJSTRKg = ()=>{
             inlinedQrl(_val, "_val", [
                 localValue
             ]),
-            _qrl_FieldInput_component_input_q_e_input_wqR1xEjZjf4
+            q_FieldInput_component_input_q_e_input_wqR1xEjZjf4
         ]
     }, null, 3, "u6_0");
 };

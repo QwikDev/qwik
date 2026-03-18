@@ -35,17 +35,17 @@ export const App = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
 //
-const _qrl_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0", {
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0", {
     file: "/hello/from/dev/test.tsx",
     lo: 105,
     hi: 452,
     displayName: "test.tsx_App_component"
 });
 //
-export const App = /*#__PURE__*/ componentQrl(_qrl_App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAGA,OAAO,MAAM,oBAAM,6CAoBhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAGA,OAAO,MAAM,oBAAM,0CAoBhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -53,19 +53,25 @@ import { _noopQrlDEV } from "@qwik.dev/core";
 import { serverStuffQrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 //
-const _qrl_qrl_4294901761 = /*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_1_PQCqO0ANabY", {
+const q_qrl_4294901760 = /*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_ebyHaP15ytQ", {
+    file: "/hello/from/dev/test.tsx",
+    lo: 0,
+    hi: 0,
+    displayName: "test.tsx_App_component_serverStuff"
+});
+const q_qrl_4294901762 = /*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_1_PQCqO0ANabY", {
     file: "/hello/from/dev/test.tsx",
     lo: 0,
     hi: 0,
     displayName: "test.tsx_App_component_serverStuff_1"
 });
-const _qrl_qrl_4294901763 = /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_shouldRemove_uU0MG0jvQD4", {
+const q_qrl_4294901764 = /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_shouldRemove_uU0MG0jvQD4", {
     file: "/hello/from/dev/test.tsx",
     lo: 0,
     hi: 0,
     displayName: "test.tsx_App_component_Cmp_p_shouldRemove"
 });
-const _qrl_qrl_4294901765 = /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
+const q_qrl_4294901766 = /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_q_e_click_Yl4ybrJWrt4", {
     file: "/hello/from/dev/test.tsx",
     lo: 0,
     hi: 0,
@@ -74,21 +80,16 @@ const _qrl_qrl_4294901765 = /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_q_e_c
 //
 export const App_component_ckEPmXZlub0 = ()=>{
     const stuff = useStore();
-    serverStuffQrl(/*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_ebyHaP15ytQ", {
-        file: "/hello/from/dev/test.tsx",
-        lo: 0,
-        hi: 0,
-        displayName: "test.tsx_App_component_serverStuff"
-    }, [
+    serverStuffQrl(q_qrl_4294901760.w([
         stuff
     ]));
-    serverStuffQrl(_qrl_qrl_4294901761);
+    serverStuffQrl(q_qrl_4294901762);
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", {
         "q:p": stuff
     }, {
         class: "stuff",
-        shouldRemove$: _qrl_qrl_4294901763,
-        "q-e:click": _qrl_qrl_4294901765
+        shouldRemove$: q_qrl_4294901764,
+        "q-e:click": q_qrl_4294901766
     }, "Hello Qwik", 7, null, {
         fileName: "/hello/from/dev/test.tsx",
         lineNumber: 16,
@@ -101,7 +102,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;;;;;;;;;;;yCAG8B;IAC7B,MAAM,QAAQ;IACd;;;;;;;;IAIA;IAIA,qBACC,WAAC,+BACA,WAAC;;;QAAE,OAAM;QACR,aAAa;QACb,WAAQ;OACR;;;;;;;;;AAKJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;yCAG8B;IAC7B,MAAM,QAAQ;IACd;;;IAIA;IAIA,qBACC,WAAC,+BACA,WAAC;;;QAAE,OAAM;QACR,aAAa;QACb,WAAQ;OACR;;;;;;;;;AAKJ\"}")
 /*
 {
   "origin": "test.tsx",

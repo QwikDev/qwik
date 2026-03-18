@@ -1,5 +1,20 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.29
+
+## 2.0.0-beta.28
+
+### Minor Changes
+
+- ✨ the Vite environment API is now better supported. This means that you can build multiple environments simultaneously without Qwik having a problem, with `vite build --app`. (by [@wmertens](https://github.com/wmertens) in [#6903](https://github.com/QwikDev/qwik/pull/6903))
+
+  However, Qwik Router adapters still require running `build.server` separately for now because they use a different vite configuration file.
+
+  The minimum supported version of Vite is now 6.0.0.
+
+- ✨ Hot Module Replacement (HMR) support. You now get instant updates in the browser when you change your source code, without losing state. This happens without forcing a resume at load, so everything is fast. (by [@wmertens](https://github.com/wmertens) in [#8421](https://github.com/QwikDev/qwik/pull/8421))
+  The slight disadvantage is that all components now send their state during development (because now they can always rerender on the client). You can disable HMR and fall back to full page reloads by setting `{devTools: {hmr: false}}` in the `qwikVite()` plugin configuration.
+
 ## 2.0.0-beta.27
 
 ### Minor Changes

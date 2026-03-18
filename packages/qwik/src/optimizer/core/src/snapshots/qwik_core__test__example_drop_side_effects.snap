@@ -43,13 +43,13 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
 import { sideEffect } from './secret';
 //
-const _qrl_qrl_4294901760 = /*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0", {
+const q_qrl_4294901760 = /*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0", {
     file: "/user/qwik/src/test.tsx",
     lo: 0,
     hi: 0,
     displayName: "test.tsx_api_server"
 });
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
     file: "/user/qwik/src/test.tsx",
     lo: 503,
     hi: 575,
@@ -63,11 +63,11 @@ const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrlDEV(()=>import("./test.
     console.log('run');
 })();
 sideEffect();
-export const api = serverQrl(_qrl_qrl_4294901760);
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+export const api = serverQrl(q_qrl_4294901760);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;;;;;;;;;;;;;;;AAKtC,CAAC;IACA,QAAQ,GAAG,CAAC;AACZ,CAAC;AACD,CAAC;IACD,QAAQ,GAAG,CAAC;AACZ,CAAC;AAEF;AAEA,OAAO,MAAM,MAAM,+BAEhB;AAEH,6BAAe,8CAIX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;;;;;;;;;;;;;;;AAKtC,CAAC;IACA,QAAQ,GAAG,CAAC;AACZ,CAAC;AACD,CAAC;IACD,QAAQ,GAAG,CAAC;AACZ,CAAC;AAEF;AAEA,OAAO,MAAM,MAAM,4BAEhB;AAEH,6BAAe,2CAIX\"}")
 ============================= test.tsx_test_component_button_q_e_click_qwSL5gM03T4.js (ENTRY POINT)==
 
 import { api } from "./test";
@@ -101,7 +101,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
 //
-const _qrl_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4", {
+const q_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4", {
     file: "/user/qwik/src/test.tsx",
     lo: 541,
     hi: 558,
@@ -110,7 +110,7 @@ const _qrl_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrlDEV(()
 //
 export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxSorted("button", null, {
-        "q-e:click": _qrl_test_component_button_q_e_click_qwSL5gM03T4
+        "q-e:click": q_test_component_button_q_e_click_qwSL5gM03T4
     }, null, 3, "u6_0", {
         fileName: "test.tsx",
         lineNumber: 27,

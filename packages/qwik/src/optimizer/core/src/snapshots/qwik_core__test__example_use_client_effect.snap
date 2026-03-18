@@ -75,12 +75,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Child_component_9GyF01GDKqw = /*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
+const q_Child_component_9GyF01GDKqw = /*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
 //
-export const Child = /*#__PURE__*/ componentQrl(_qrl_Child_component_9GyF01GDKqw);
+export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,sBAAQ,+CAoBlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,sBAAQ,4CAoBlB\"}")
 ============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -89,14 +89,14 @@ import { qrl } from "@qwik.dev/core";
 import { useBrowserVisibleTaskQrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 //
-const i_0IGFPOyJmQA = ()=>import("./test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA");
+const q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA");
 //
 export const Child_component_9GyF01GDKqw = ()=>{
     const state = useStore({
         count: 0
     });
     // Double count watch
-    useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(i_0IGFPOyJmQA, "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
+    useBrowserVisibleTaskQrl(q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.w([
         state
     ]));
     return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");

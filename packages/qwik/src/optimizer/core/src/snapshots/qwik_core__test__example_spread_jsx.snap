@@ -43,14 +43,14 @@ export const RouterHead = component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_RouterHead_component_DPA76mgIou0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_RouterHead_component_DPA76mgIou0"), "RouterHead_component_DPA76mgIou0");
+const q_RouterHead_component_DPA76mgIou0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_RouterHead_component_DPA76mgIou0"), "RouterHead_component_DPA76mgIou0");
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
  */ //
-export const RouterHead = /*#__PURE__*/ componentQrl(_qrl_RouterHead_component_DPA76mgIou0);
+export const RouterHead = /*#__PURE__*/ componentQrl(q_RouterHead_component_DPA76mgIou0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIA;;CAEC;AACD,OAAO,MAAM,2BAAa,oDAyBvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIA;;CAEC;AACD,OAAO,MAAM,2BAAa,iDAyBvB\"}")
 ============================= test.tsx_RouterHead_component_DPA76mgIou0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";

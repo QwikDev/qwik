@@ -47,14 +47,14 @@ export const ModelImg = component$<ModelProps>((props) => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Image_component_CS20HgBlRYI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Image_component_CS20HgBlRYI"), "Image_component_CS20HgBlRYI");
-const _qrl_ModelImg_component_iJe6ICWVnyA = /*#__PURE__*/ qrl(()=>import("./test.tsx_ModelImg_component_iJe6ICWVnyA"), "ModelImg_component_iJe6ICWVnyA");
+const q_Image_component_CS20HgBlRYI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Image_component_CS20HgBlRYI"), "Image_component_CS20HgBlRYI");
+const q_ModelImg_component_iJe6ICWVnyA = /*#__PURE__*/ qrl(()=>import("./test.tsx_ModelImg_component_iJe6ICWVnyA"), "ModelImg_component_iJe6ICWVnyA");
 //
-export const Image = /*#__PURE__*/ componentQrl(_qrl_Image_component_CS20HgBlRYI);
-export const ModelImg = /*#__PURE__*/ componentQrl(_qrl_ModelImg_component_iJe6ICWVnyA);
+export const Image = /*#__PURE__*/ componentQrl(q_Image_component_CS20HgBlRYI);
+export const ModelImg = /*#__PURE__*/ componentQrl(q_ModelImg_component_iJe6ICWVnyA);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAKA,OAAO,MAAM,sBAAQ,+CAMlB;AAEH,OAAO,MAAM,yBAAW,kDAsBrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAKA,OAAO,MAAM,sBAAQ,4CAMlB;AAEH,OAAO,MAAM,yBAAW,+CAsBrB\"}")
 ============================= test.tsx_ModelImg_component_iJe6ICWVnyA.js (ENTRY POINT)==
 
 import { Image } from "./test";
@@ -64,10 +64,10 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useResourceQrl } from "@qwik.dev/core";
 //
-const i_Ogi9hEJvtmI = ()=>import("./test.tsx_ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI");
+const q_ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI = /*#__PURE__*/ qrl(()=>import("./test.tsx_ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI"), "ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI");
 //
 export const ModelImg_component_iJe6ICWVnyA = (props)=>{
-    const imgLoc = useResourceQrl(/*#__PURE__*/ qrl(i_Ogi9hEJvtmI, "ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI", [
+    const imgLoc = useResourceQrl(q_ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI.w([
         props
     ]));
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted(Resource, null, {

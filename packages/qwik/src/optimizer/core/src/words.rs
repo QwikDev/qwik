@@ -50,4 +50,5 @@ lazy_static! {
 	pub static ref ON_INPUT: Atom = Atom::from("q-e:input");
 	pub static ref CHECKED: Atom = Atom::from("checked");
 	pub static ref VALUE: Atom = Atom::from("value");
+	pub static ref _USE_HMR: Atom = Atom::from("_useHmr");
 }

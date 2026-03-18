@@ -22,9 +22,9 @@ const Foo = component$(function() {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
 //
-/*#__PURE__*/ componentQrl(_qrl_Foo_component_HTDRsvUbLiE);
+/*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;cAEY\"}")
@@ -34,21 +34,21 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const _qrl_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk"), "Foo_component_div_div_p_q_e_click_PjMbeUzoAMk");
-const _qrl_Foo_component_div_div_q_e_click_vKrX4PmH2aM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM"), "Foo_component_div_div_q_e_click_vKrX4PmH2aM");
-const _qrl_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y"), "Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y");
+const q_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk"), "Foo_component_div_div_p_q_e_click_PjMbeUzoAMk");
+const q_Foo_component_div_div_q_e_click_vKrX4PmH2aM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM"), "Foo_component_div_div_q_e_click_vKrX4PmH2aM");
+const q_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y"), "Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y");
 //
 export const Foo_component_HTDRsvUbLiE = function() {
     const data = useSignal([]);
     return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row, idx)=>/*#__PURE__*/ _jsxSorted("div", {
-            "q-e:click": _qrl_Foo_component_div_div_q_e_click_vKrX4PmH2aM,
-            "q-e:mouseover": _qrl_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y,
+            "q-e:click": q_Foo_component_div_div_q_e_click_vKrX4PmH2aM,
+            "q-e:mouseover": q_Foo_component_div_div_q_e_mouseover_P9F6Osn3X6Y,
             "q:ps": [
                 row,
                 idx
             ]
         }, null, /*#__PURE__*/ _jsxSorted("p", {
-            "q-e:click": _qrl_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk,
+            "q-e:click": q_Foo_component_div_div_p_q_e_click_PjMbeUzoAMk,
             "q:p": row
         }, null, item.value.id, 6, null), 4, "u6_0")), 1, "u6_1");
 };

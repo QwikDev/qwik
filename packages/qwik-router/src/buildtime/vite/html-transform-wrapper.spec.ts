@@ -81,8 +81,8 @@ describe('wrapResponseForHtmlTransform', () => {
     await new Promise((resolve) => res.on('finish', resolve));
 
     expect(server.transformIndexHtml).toHaveBeenCalledOnce();
-    expect(res.output).toBe(
-      '<html><head><!-- head pre content --><!-- head post content --></head><body><!-- body pre content --><h1>Hello</h1><!-- body post content --></body></html>'
+    expect(res.output).toMatchInlineSnapshot(
+      `"<html><head><!-- head pre content --><!-- head post content --></head><body><!-- body pre content --><h1>Hello</h1><!-- body post content --></body></html>"`
     );
   });
 
@@ -112,8 +112,8 @@ describe('wrapResponseForHtmlTransform', () => {
     await new Promise((resolve) => res.on('finish', resolve));
 
     expect(server.transformIndexHtml).toHaveBeenCalledOnce();
-    expect(res.output).toBe(
-      '<html><head><!-- head pre content --><!-- head post content --></head><body><!-- body pre content --><h1>Hello</h1><!-- body post content --></body></html>'
+    expect(res.output).toMatchInlineSnapshot(
+      `"<html><head><!-- head pre content --><!-- head post content --></head><body><!-- body pre content --><h1>Hello</h1><!-- body post content --></body></html>"`
     );
   });
 
@@ -159,8 +159,8 @@ describe('wrapResponseForHtmlTransform', () => {
     await new Promise((resolve) => res.on('finish', resolve));
 
     expect(server.transformIndexHtml).toHaveBeenCalledOnce();
-    expect(res.output).toBe(
-      '<html><head><!-- head pre content --><!-- head post content --></head><body><!-- body pre content --><h1>Hello</h1><!-- body post content --></body></html>'
+    expect(res.output).toMatchInlineSnapshot(
+      `"<html><head><!-- head pre content --><!-- head post content --></head><body><!-- body pre content --><h1>Hello</h1><!-- body post content --></body></html>"`
     );
   });
 

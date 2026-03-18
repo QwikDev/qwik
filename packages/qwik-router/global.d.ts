@@ -22,5 +22,8 @@ declare var __DEFAULT_LOADERS_SERIALIZATION_STRATEGY__: SerializationStrategy;
 /** Should routes not have a trailing slash? */
 declare var __NO_TRAILING_SLASH__: boolean;
 
+/** Maximum number of SSR-rendered pages to keep in the in-memory cache. */
+declare var __SSR_CACHE_SIZE__: number;
+
 declare var __QWIK_BUILD_DIR__: string;
 declare var __QWIK_ASSETS_DIR__: string;

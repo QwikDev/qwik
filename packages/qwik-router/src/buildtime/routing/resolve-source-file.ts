@@ -112,14 +112,15 @@ export function resolveRoute(
   opts: NormalizedPluginOptions,
   appLayouts: BuiltLayout[],
   sourceFile: RouteSourceFile
-) {
+): BuiltRoute {
   const filePath = sourceFile.filePath;
   const layouts: BuiltLayout[] = [];
   const routesDir = opts.routesDir;
   const { layoutName, layoutStop } = parseRouteIndexName(sourceFile.extlessName);
   let pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
 
-  if (sourceFile.extlessName === '404') {
+  if (sourceFile.extlessName === '404' || sourceFile.extlessName === 'error') {
+    // TODO is this needed, probably was only for 404.html SSG output
     pathname += sourceFile.extlessName + '.html';
   }
 
@@ -155,7 +156,7 @@ export function resolveRoute(
     }
   }
 
-  const buildRoute: BuiltRoute = {
+  return {
     id: createFileId(opts.routesDir, filePath, 'Route'),
     filePath,
     pathname,
@@ -163,45 +164,44 @@ export function resolveRoute(
     ext: sourceFile.ext,
     ...parseRoutePathname(opts.basePathname, pathname),
   };
-
-  return buildRoute;
 }
 
-export function resolveServerPlugin(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
+export function resolveServerPlugin(
+  opts: NormalizedPluginOptions,
+  sourceFile: RouteSourceFile
+): BuiltServerPlugin {
   const filePath = sourceFile.filePath;
-  const buildRoute: BuiltServerPlugin = {
+  return {
     id: createFileId(opts.serverPluginsDir, filePath, 'Plugin'),
     filePath,
     ext: sourceFile.ext,
   };
-  return buildRoute;
 }
 
-function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
+function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile): BuiltEntry {
   const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
   const chunkFileName = pathname.slice(opts.basePathname.length);
 
-  const buildEntry: BuiltEntry = {
+  return {
     id: createFileId(opts.routesDir, sourceFile.filePath, 'Route'),
     filePath: sourceFile.filePath,
     chunkFileName,
     ...parseRoutePathname(opts.basePathname, pathname),
   };
-
-  return buildEntry;
 }
 
-function resolveServiceWorkerEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
+function resolveServiceWorkerEntry(
+  opts: NormalizedPluginOptions,
+  sourceFile: RouteSourceFile
+): BuiltEntry {
   const dirPathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
   const pathname = dirPathname + sourceFile.extlessName + '.js';
   const chunkFileName = pathname.slice(opts.basePathname.length);
 
-  const buildEntry: BuiltEntry = {
+  return {
     id: createFileId(opts.routesDir, sourceFile.filePath, 'ServiceWorker'),
     filePath: sourceFile.filePath,
     chunkFileName,
     ...parseRoutePathname(opts.basePathname, pathname),
   };
-
-  return buildEntry;
 }

@@ -24,12 +24,12 @@ export default component$((props) => {
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
-export default /*#__PURE__*/ componentQrl(_qrl_test_component_LUXeXe0DQrg);
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,6BAAe,8CAUZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,6BAAe,2CAUZ\"}")
 ============================= test.tsx_test_component_p_q_e_hi_ttOKZbY46GA.js (ENTRY POINT)==
 
 export const test_component_p_q_e_hi_ttOKZbY46GA = ()=>'hi';
@@ -87,18 +87,18 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { _jsxSplit } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const _qrl_test_component_p_q_e_const_e6TYnIxnPLY = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_p_q_e_const_e6TYnIxnPLY"), "test_component_p_q_e_const_e6TYnIxnPLY");
-const _qrl_test_component_p_q_e_hi_ttOKZbY46GA = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_p_q_e_hi_ttOKZbY46GA"), "test_component_p_q_e_hi_ttOKZbY46GA");
+const q_test_component_p_q_e_const_e6TYnIxnPLY = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_p_q_e_const_e6TYnIxnPLY"), "test_component_p_q_e_const_e6TYnIxnPLY");
+const q_test_component_p_q_e_hi_ttOKZbY46GA = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_p_q_e_hi_ttOKZbY46GA"), "test_component_p_q_e_hi_ttOKZbY46GA");
 //
 export const test_component_LUXeXe0DQrg = (props)=>{
     return /*#__PURE__*/ _jsxSplit("p", {
-        "q-e:hi": _qrl_test_component_p_q_e_hi_ttOKZbY46GA,
+        "q-e:hi": q_test_component_p_q_e_hi_ttOKZbY46GA,
         ...props.foo,
         "q-e:hello": props.helloHandler$,
         ...props.rest,
         "q-e:var": props.onVarHandler$
     }, {
-        "q-e:const": _qrl_test_component_p_q_e_const_e6TYnIxnPLY,
+        "q-e:const": q_test_component_p_q_e_const_e6TYnIxnPLY,
         asd: "1"
     }, null, 0, "u6_0");
 };

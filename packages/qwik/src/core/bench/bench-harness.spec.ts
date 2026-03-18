@@ -23,6 +23,7 @@ const measureMs = async (fn: () => void | Promise<void>): Promise<number> => {
 type ScenarioSummary = {
   id: string;
   factor: number;
+  size: number;
 };
 
 const runScenarioSummary = async (
@@ -44,8 +45,19 @@ const runScenarioSummary = async (
     );
   }
 
+  let size = 0;
   for (let i = 0; i < SAMPLE_RUNS; i++) {
-    currentSamples.push(await measureMs(() => scenario.run()));
+    currentSamples.push(
+      await measureMs(async () => {
+        const newSize = await scenario.run();
+        if (size !== 0 && newSize !== size) {
+          throw new Error(
+            `Scenario ${scenario.id} returned inconsistent sizes: ${size} vs ${newSize}`
+          );
+        }
+        size = newSize;
+      })
+    );
   }
 
   const baselineMedian = Math.max(median(baselineSamples), 0.0001);
@@ -55,6 +67,7 @@ const runScenarioSummary = async (
   return {
     id: scenario.id,
     factor: factor,
+    size,
   };
 };
 
@@ -75,15 +88,16 @@ describe.runIf(shouldRun)('bench harness', () => {
     const text = summaries
       .map((summary) => {
         const ratio = formatRatio(summary.factor);
-        return `${summary.id}: current/baseline=${ratio}`;
+        const sizePart = summary.size > 0 ? `, size=${summary.size}` : '';
+        return `${summary.id}: current/baseline=${ratio}${sizePart}`;
       })
       .join('\n');
 
     expect(text).toMatchInlineSnapshot(`
-      "ssr-table-10: current/baseline=0-5x
-      ssr-table-1k: current/baseline=75-100x
-      ssr-table-10k: current/baseline=750-1000x
-      serialize-state-1k: current/baseline=0-5x"
+      "ssr-table-10: current/baseline=0-5x, size=2049
+      ssr-table-1k: current/baseline=75-100x, size=172325
+      ssr-table-10k: current/baseline=750-1000x, size=1798685
+      serialize-state-1k: current/baseline=0-5x, size=96844"
     `);
   }, 120_000);
 });

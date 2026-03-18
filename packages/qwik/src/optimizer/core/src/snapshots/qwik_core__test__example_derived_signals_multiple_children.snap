@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2918
 expression: output
 ---
 ==INPUT==
@@ -123,15 +122,15 @@ const App_component_ckEPmXZlub0 = ()=>{
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             globalThing
-        ], 1, null),
+        ], 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
-            globalThing.thing
-        ], 1, null),
+            _wrapProp(globalThing, "thing")
+        ], 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             globalThing.thing + 'stuff'
-        ], 1, null),
+        ], 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             signal.value()
@@ -139,7 +138,7 @@ const App_component_ckEPmXZlub0 = ()=>{
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             signal.value + unknown()
-        ], 1, null),
+        ], 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             mutable(signal)
@@ -153,7 +152,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;;mBAeZ,KAAK,GAAO,KAAK;;mBACjB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACvB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;kCAfpB;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC;YAAI;YAAO,CAAC,IAAI,CAAC;;sBAClB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,CAAC,IAAI,EAAE,IAAI;;sBACvB,WAAC;YAAI;YAAO,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;;sBACnD,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;sBAAO;;sBACZ,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,IAAI,KAAK;;sBACrB,WAAC;YAAI;YAAO,IAAI,KAAK,GAAG;;sBACxB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,YAAY,KAAK;;sBAC7B,WAAC;YAAI;YAAO,YAAY,KAAK,GAAG;;sBAChC,WAAC;YAAI;YAAO,OAAO,KAAK;;sBACxB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;sBAC3B,WAAC;YAAI;YAAO,QAAQ;;sBACpB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;;AAG9B;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;;mBAeZ,KAAK,GAAO,KAAK;;mBACjB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACvB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;kCAfpB;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC;YAAI;YAAO,CAAC,IAAI,CAAC;;sBAClB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,CAAC,IAAI,EAAE,IAAI;;sBACvB,WAAC;YAAI;YAAO,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;;sBACnD,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;sBAAO;;sBACZ,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;;;;;sBACL,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,IAAI,KAAK;;sBACrB,WAAC;YAAI;YAAO,IAAI,KAAK,GAAG;;sBACxB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;sBAAO;;sBACZ,WAAC;YAAI;YAAO,YAAY,KAAK,GAAG;;sBAChC,WAAC;YAAI;YAAO,OAAO,KAAK;;sBACxB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;sBAC3B,WAAC;YAAI;YAAO,QAAQ;;sBACpB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;;AAG9B;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

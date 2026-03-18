@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2839
 expression: output
 ---
 ==INPUT==
@@ -21,24 +20,33 @@ export const App = component$(() => {
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { useSignal } from '@qwik.dev/core';
 //
+const _hf0 = (p0)=>p0.value ? $localize`singular` : 'plural';
+const _hf0_str = 'p0.value?$localize`singular`:"plural"';
+const _hf1 = (p0)=>p0.value ? $localize`singular` : $localize`plural`;
+const _hf1_str = "p0.value?$localize`singular`:$localize`plural`";
 const App_component_ckEPmXZlub0 = ()=>{
     const toggle = useSignal(false);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
-        /*#__PURE__*/ _jsxSorted("div", {
-            "data-nu": toggle.value ? $localize`singular` : 'plural'
-        }, null, null, 3, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, toggle.value ? $localize`singular` : $localize`plural`, 1, null)
-    ], 1, "u6_0");
+        /*#__PURE__*/ _jsxSorted("div", null, {
+            "data-nu": _fnSignal(_hf0, [
+                toggle
+            ], _hf0_str)
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf1, [
+            toggle
+        ], _hf1_str), 3, null)
+    ], 3, "u6_0");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;;kCAEzB;IAC7B,MAAM,SAAS,UAAU;IACzB,qBACC;sBACC,WAAC;YAAI,WAAS,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG;;sBACnD,WAAC,mBAAK,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG,SAAS,CAAC,MAAM,CAAC;;AAG/D;AARA,OAAO,MAAM,oBAAM,+FAQhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;;mBAMtC,GAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG;;mBAC7C,GAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG,SAAS,CAAC,MAAM,CAAC;;kCALjC;IAC7B,MAAM,SAAS,UAAU;IACzB,qBACC;sBACC,WAAC;YAAI,SAAO;;;;sBACZ,WAAC;;;;AAGJ;AARA,OAAO,MAAM,oBAAM,+FAQhB\"}")
 == DIAGNOSTICS ==
 
 []

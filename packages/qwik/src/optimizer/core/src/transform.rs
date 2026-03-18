@@ -605,8 +605,8 @@ impl<'a> QwikTransform<'a> {
 			} else if decl_collect.iter().any(|entry| entry.0 == *ident) {
 				continue;
 			} else {
-				// anything else, we can't inline
-				return (None, false);
+				// if it's an unbound global, we can inline it
+				continue;
 			}
 		}
 
@@ -622,7 +622,17 @@ impl<'a> QwikTransform<'a> {
 		}
 
 		if !is_const && (matches!(folded, ast::Expr::Call(_) | ast::Expr::Tpl(_))) {
-			return (None, false);
+			if let ast::Expr::Call(call) = &folded {
+				if !crate::inlined_fn::is_safe_global_call(
+					call,
+					Some(&scoped_idents),
+					Some(&self.options.global_collect),
+				) {
+					return (None, false);
+				}
+			} else {
+				return (None, false);
+			}
 		}
 
 		// Handle `obj.prop` case
@@ -2526,17 +2536,29 @@ impl<'a> QwikTransform<'a> {
 		const_idents: &Vec<IdPlusType>,
 	) -> Option<ast::Expr> {
 		if let ast::Expr::Call(call_expr) = expr {
-			match &call_expr.callee {
-				ast::Callee::Expr(box ast::Expr::Ident(ident)) => {
-					if !self.jsx_functions.contains(&id!(ident)) {
+			let mut local_ids = Vec::new();
+			for level in &self.decl_stack {
+				for (id, _) in level {
+					local_ids.push(id.clone());
+				}
+			}
+			if !crate::inlined_fn::is_safe_global_call(
+				call_expr,
+				Some(&local_ids),
+				Some(&self.options.global_collect),
+			) {
+				match &call_expr.callee {
+					ast::Callee::Expr(box ast::Expr::Ident(ident)) => {
+						if !self.jsx_functions.contains(&id!(ident)) {
+							self.jsx_mutable = true;
+						}
+					}
+					_ => {
 						self.jsx_mutable = true;
 					}
-				}
-				_ => {
-					self.jsx_mutable = true;
-				}
-			};
-			return None;
+				};
+				return None;
+			}
 		}
 		if is_const_expr(expr, &self.options.global_collect, Some(const_idents)) {
 			return None;

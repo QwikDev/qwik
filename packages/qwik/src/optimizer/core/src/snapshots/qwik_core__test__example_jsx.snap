@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1144
 expression: output
 ---
 ==INPUT==
@@ -147,7 +146,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         ], 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, {
             class: "class"
-        }, children, 1, null)
+        }, children, 3, null)
     ], 1, "u6_4");
 };
 

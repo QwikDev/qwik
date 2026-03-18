@@ -1,7 +1,7 @@
 use crate::collector::GlobalCollect;
 use crate::transform::{IdPlusType, IdentType};
 use swc_ecmascript::ast;
-use swc_ecmascript::visit::{noop_visit_type, Visit};
+use swc_ecmascript::visit::{noop_visit_type, Visit, VisitWith};
 
 macro_rules! id {
 	($ident: expr) => {
@@ -43,8 +43,15 @@ impl<'a> ConstCollector<'a> {
 impl<'a> Visit for ConstCollector<'a> {
 	noop_visit_type!();
 
-	fn visit_call_expr(&mut self, _: &ast::CallExpr) {
-		self.is_const = false;
+	fn visit_call_expr(&mut self, node: &ast::CallExpr) {
+		let scoped_idents = self
+			.const_idents
+			.map(|v| v.iter().map(|id| id.0.clone()).collect::<Vec<_>>());
+		if crate::inlined_fn::is_safe_global_call(node, scoped_idents.as_ref(), Some(self.global)) {
+			node.visit_children_with(self);
+		} else {
+			self.is_const = false;
+		}
 	}
 
 	fn visit_member_expr(&mut self, _: &ast::MemberExpr) {

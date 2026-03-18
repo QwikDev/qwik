@@ -114,6 +114,63 @@ pub fn convert_inlined_fn(
 	)
 }
 
+pub fn is_safe_global_call(
+	node: &ast::CallExpr,
+	scoped_idents_opt: Option<&Vec<Id>>,
+	global_collect_opt: Option<&crate::collector::GlobalCollect>,
+) -> bool {
+	let mut root_ident: Option<&ast::Ident> = None;
+
+	match &node.callee {
+		ast::Callee::Expr(expr) => {
+			let mut current_expr = &**expr;
+			loop {
+				match current_expr {
+					ast::Expr::Ident(ident) => {
+						root_ident = Some(ident);
+						break;
+					}
+					ast::Expr::Member(member) => {
+						current_expr = &*member.obj;
+					}
+					ast::Expr::Call(call) => {
+						if let ast::Callee::Expr(callee_expr) = &call.callee {
+							current_expr = &**callee_expr;
+						} else {
+							break;
+						}
+					}
+					_ => {
+						break;
+					}
+				}
+			}
+		}
+		_ => return false,
+	}
+
+	if let Some(ident) = root_ident {
+		// If the identifier is tracked as a locally captured variable, it's not a safe global
+		if let Some(scoped_idents) = scoped_idents_opt {
+			if scoped_idents.iter().any(|id| id.0 == ident.sym) {
+				return false;
+			}
+		}
+
+		// If the identifier is tracked as a module import or top-level declaration, it's not a safe global
+		if let Some(global_collect) = global_collect_opt {
+			if global_collect.is_global(&id!(ident)) {
+				return false;
+			}
+		}
+
+		// If it's neither locally captured nor a module-level global, it's an unbound global!
+		return true;
+	}
+
+	false
+}
+
 struct ReplaceIdentifiers {
 	pub identifiers: HashMap<Id, ast::Expr>,
 	pub accept_call_expr: bool,
@@ -136,6 +193,17 @@ impl VisitMut for ReplaceIdentifiers {
 			ast::Expr::Ident(ident) => {
 				if let Some(expr) = self.identifiers.get(&id!(ident)) {
 					*node = expr.clone();
+				}
+			}
+			ast::Expr::Call(call) => {
+				if is_safe_global_call(
+					call,
+					Some(&self.identifiers.keys().cloned().collect()),
+					None,
+				) {
+					call.visit_mut_children_with(self);
+				} else {
+					self.abort = true;
 				}
 			}
 			_ => {
@@ -261,7 +329,11 @@ impl<'a> ObjectUsageChecker<'a> {
 }
 
 impl<'a> Visit for ObjectUsageChecker<'a> {
-	fn visit_call_expr(&mut self, _: &ast::CallExpr) {
+	fn visit_call_expr(&mut self, node: &ast::CallExpr) {
+		if is_safe_global_call(node, Some(self.identifiers), None) {
+			node.visit_children_with(self);
+			return;
+		}
 		// If we're in a call expression, we can't wrap it in a signal
 		// because it's a function call, and later we need to serialize it
 		self.used_as_call = true;

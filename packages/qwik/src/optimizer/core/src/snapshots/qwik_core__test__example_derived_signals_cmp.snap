@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2996
 expression: output
 ---
 ==INPUT==
@@ -64,15 +63,13 @@ const _hf1 = (p0)=>p0.address.city.name;
 const _hf1_str = "p0.address.city.name";
 const _hf2 = (p0)=>p0.address.city.name ? 'true' : 'false';
 const _hf2_str = 'p0.address.city.name?"true":"false"';
+const _hf3 = (p0)=>p0.value + unknown();
+const _hf3_str = "p0.value+unknown()";
 const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     const store = useStore({});
     return /*#__PURE__*/ _jsxSorted(Cmp, {
-        global: globalThing,
-        globalAccess: globalThing.thing,
-        globalComputed: globalThing.thing + 'stuff',
         noInline: signal.value(),
-        noInline2: signal.value + unknown(),
         noInline3: mutable(signal),
         noInline4: signal.value + dep
     }, {
@@ -95,13 +92,19 @@ const App_component_ckEPmXZlub0 = ()=>{
         ], _hf2_str),
         dep: dep,
         depAccess: dep.thing,
-        depComputed: dep.thing + 'stuff'
+        depComputed: dep.thing + 'stuff',
+        global: globalThing,
+        globalAccess: _wrapProp(globalThing, "thing"),
+        globalComputed: globalThing.thing + 'stuff',
+        noInline2: _fnSignal(_hf3, [
+            signal
+        ], _hf3_str)
     }, null, 3, "u6_0");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;;mBAgBF,KAAK,GAAO,KAAK;;mBAE/B,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACf,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;kCAjBvB;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,WAAC;QAmBA,QAAQ;QACR,cAAc,YAAY,KAAK;QAC/B,gBAAgB,YAAY,KAAK,GAAG;QAGpC,UAAU,OAAO,KAAK;QACtB,WAAW,OAAO,KAAK,GAAG;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;QA1B1B,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe;QACf,YAAY,CAAC,IAAI,EAAE,IAAI;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;QAEpD,QAAQ;QACR,WAAW,YAAE;QACb,mBAAmB;;;QAEnB,KAAK;;;QACL,aAAa;;;QAEb,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;;AAa5B;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;;mBAgBF,KAAK,GAAO,KAAK;;mBAE/B,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACf,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;mBAYvC,GAAO,KAAK,GAAG;;kCA7BC;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,WAAC;QAwBA,UAAU,OAAO,KAAK;QAEtB,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;QA1B1B,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe;QACf,YAAY,CAAC,IAAI,EAAE,IAAI;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;QAEpD,QAAQ;QACR,WAAW,YAAE;QACb,mBAAmB;;;QAEnB,KAAK;;;QACL,aAAa;;;QAEb,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;QAEzB,QAAQ;QACR,YAAY,YAAE;QACd,gBAAgB,YAAY,KAAK,GAAG;QAIpC,SAAS;;;;AAKZ;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
 == DIAGNOSTICS ==
 
 []

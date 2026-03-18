@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2138
 expression: output
 ---
 ==INPUT==
@@ -163,6 +162,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
 import importedValue from "v";
 import { qrl } from "@qwik.dev/core";
 import styles from "./styles.module.css";
@@ -193,10 +193,10 @@ export const App_component_ckEPmXZlub0 = (props)=>{
             class: "stuff"
         }, "Hello Qwik", 2, null),
         /*#__PURE__*/ _jsxSorted(Div, {
-            document: window.document,
             onClick$: props.onClick$
         }, {
             class: styles.foo,
+            document: _wrapProp(window, "document"),
             onEvent$: _qrl_App_component_Fragment_Div_onEvent_zrFduYbT3xM,
             transparent$: _qrl_App_component_Fragment_Div_transparent_eeDEK6EM1oo,
             immutable1: "stuff",
@@ -238,7 +238,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;mBAuCe,CAAA;QACT,KAAK;QACL,KAAK,GAAM,KAAK,GAAG,OAAO;IAC3B,CAAA;;;;;;;;yCArCyB,CAAC;IAE9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,WAAC;YAAgB,aAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,WAAC;YAEA,UAAU,OAAO,QAAQ;YACzB,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YAGjB,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,OAAO;YAC7B;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe;gBAAM,CAAC;aAAE;yBAE3C,WAAC,iBAAE;QACE;sBAEL,WA9Ba,MAAT;YAqCH,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;;YANzC,OAAO;YACP,SAAS;YACT,QAAQ;;;YAKR,UAAU;gBAAC;gBAAG;gBAAG;gBAAO;gBAAM,CAAC;aAAE;;QAChC;;AAIN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;mBAuCe,CAAA;QACT,KAAK;QACL,KAAK,GAAM,KAAK,GAAG,OAAO;IAC3B,CAAA;;;;;;;;yCArCyB,CAAC;IAE9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,WAAC;YAAgB,aAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,WAAC;YAGA,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YACjB,QAAQ,YAAE;YAEV,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,OAAO;YAC7B;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe;gBAAM,CAAC;aAAE;yBAE3C,WAAC,iBAAE;QACE;sBAEL,WA9Ba,MAAT;YAqCH,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;;YANzC,OAAO;YACP,SAAS;YACT,QAAQ;;;YAKR,UAAU;gBAAC;gBAAG;gBAAG;gBAAO;gBAAM,CAAC;aAAE;;QAChC;;AAIN\"}")
 /*
 {
   "origin": "test.tsx",

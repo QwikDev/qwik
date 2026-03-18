@@ -139,7 +139,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         target = 'lib';
       } else if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
         target = 'ssr';
-      } else if (viteEnv.mode === 'test') {
+      } else if (viteEnv.mode === 'test' || viteEnv.mode === 'benchmark') {
         target = 'test';
       } else {
         target = 'client';

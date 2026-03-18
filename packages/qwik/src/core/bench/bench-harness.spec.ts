@@ -97,6 +97,11 @@ describe.runIf(shouldRun)('bench harness', () => {
       "ssr-table-10: current/baseline=0-5x, size=2049
       ssr-table-1k: current/baseline=75-100x, size=172325
       ssr-table-10k: current/baseline=750-1000x, size=1798685
+      dom-table-10: current/baseline=0-5x
+      dom-table-1k: current/baseline=75-100x
+      dom-table-10k: current/baseline=750-1000x
+      dom-update-table-1k: current/baseline=0-5x
+      dom-update-table-10k: current/baseline=0-5x
       serialize-state-1k: current/baseline=0-5x, size=96844"
     `);
   }, 120_000);

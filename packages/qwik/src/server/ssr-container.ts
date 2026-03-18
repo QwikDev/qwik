@@ -243,7 +243,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private componentStack: ISsrComponentFrame[] = [];
   private cleanupQueue: CleanupQueue = [];
   private emitContainerDataFrame: ElementFrame | null = null;
-  public $instanceHash$ = hash();
+  public $instanceHash$ = randomStr();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
   private qlInclude: QwikLoaderInclude;
@@ -1342,8 +1342,8 @@ function isSSRUnsafeAttr(name: string): boolean {
   return false;
 }
 
-function hash() {
-  return Math.random().toString(36).slice(2);
+function randomStr() {
+  return (Math.random().toString(36) + '000000').slice(2, 8);
 }
 
 function addPreventDefaultEventToSerializationContext(

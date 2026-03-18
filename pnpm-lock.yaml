@@ -265,6 +265,8 @@ importers:
         specifier: ^1.57.0
         version: 1.57.0
 
+  e2e/qwik-e2e: {}
+
   e2e/qwik-react-e2e:
     devDependencies:
       '@qwik.dev/react':

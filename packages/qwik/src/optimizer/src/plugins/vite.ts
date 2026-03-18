@@ -236,10 +236,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qDevKey = 'globalThis.qDev';
       const qTestKey = 'globalThis.qTest';
       const qInspectorKey = 'globalThis.qInspector';
-      const qSerializeKey = 'globalThis.qSerialize';
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
-      const qSerialize = viteConfig?.define?.[qSerializeKey] ?? isDevelopment;
 
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
@@ -306,7 +304,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         define: {
           [qDevKey]: qDev,
           [qInspectorKey]: qInspector,
-          [qSerializeKey]: qSerialize,
           [qTestKey]: JSON.stringify(process.env.NODE_ENV === 'test'),
         },
       };

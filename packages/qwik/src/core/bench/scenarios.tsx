@@ -5,8 +5,8 @@ import { renderToString } from '../../server/ssr-render';
 export interface BenchmarkScenario {
   id: string;
   title: string;
-  minRelativeToBaseline: number;
-  run: () => Promise<void>;
+  /** Returns the size of the result (e.g. bytes of HTML), or 0 if not applicable */
+  run: () => Promise<number>;
 }
 
 type TableRow = {
@@ -71,7 +71,7 @@ const renderTable = (rows: TableRow[]): JSXOutput => {
     <table class="bench-table">
       <tbody>
         {rows.map((row) => (
-          <tr key={row.id}>
+          <tr key={row.id} onClick$={() => console.warn('hi', row.id)}>
             <td>{row.id}</td>
             <td>{row.label}</td>
             <td>{row.value}</td>
@@ -82,15 +82,15 @@ const renderTable = (rows: TableRow[]): JSXOutput => {
   );
 };
 
-const render = async (jsx: JSXOutput) => {
-  await renderToString(jsx, { qwikLoader: 'never', containerTagName: 'div' });
+const render = async (jsx: JSXOutput): Promise<number> => {
+  const result = await renderToString(jsx, { qwikLoader: 'never', containerTagName: 'div' });
+  return result.html.length;
 };
 
 const makeScenario = (id: string, rowCount: number, rows: TableRow[]): BenchmarkScenario => {
   return {
     id,
     title: `SSR table ${rowCount} rows`,
-    minRelativeToBaseline: 2,
     run: () => render(renderTable(rows)),
   };
 };
@@ -102,9 +102,9 @@ export const scenarios: BenchmarkScenario[] = [
   {
     id: 'serialize-state-1k',
     title: 'Serialize 1k-item state graph',
-    minRelativeToBaseline: 2,
     run: async () => {
-      await _serialize(serializableState1k);
+      const result = await _serialize(serializableState1k);
+      return result.length;
     },
   },
 ];

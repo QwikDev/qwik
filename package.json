@@ -248,6 +248,7 @@
     "test.rust": "make test",
     "test.rust.bench": "make benchmark",
     "test.rust.update": "make test-update",
+    "test.bench": "RUN_BENCHMARK=true vitest --maxWorkers=1 --no-file-parallelism packages/qwik/src/core/bench",
     "test.unit": "vitest packages",
     "test.unit.debug": "vitest --inspect-brk packages",
     "test.vite": "playwright test e2e/qwik-e2e/tests/qwikrouter --browser=chromium --config e2e/qwik-e2e/playwright.config.ts",

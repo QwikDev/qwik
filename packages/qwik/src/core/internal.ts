@@ -37,6 +37,7 @@ export type { VNode as _VNode } from './shared/vnode/vnode';
 
 export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
 export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';
+export { isSignal } from './reactive-primitives/utils';
 export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
 export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
 export {

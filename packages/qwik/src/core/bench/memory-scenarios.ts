@@ -70,9 +70,10 @@ memoryScenarios.push({
   count: INSTANCE_COUNT,
   allocate: () => {
     const baseQrl = createQRL('chunk123', 'qrl_copy_base', null, null, null);
+    const captures: unknown[] = [];
     const copies = new Array<unknown>(INSTANCE_COUNT);
     for (let i = 0; i < INSTANCE_COUNT; i++) {
-      copies[i] = baseQrl.w([]);
+      copies[i] = baseQrl.w(captures);
     }
     return copies;
   },

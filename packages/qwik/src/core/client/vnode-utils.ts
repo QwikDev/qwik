@@ -394,12 +394,17 @@ export const vnode_getNodeTypeName = (vNode: VNode): string => {
   return '<unknown>';
 };
 
+/** @internal */
 export const vnode_getProp = <T = unknown>(
   vNode: VNode,
   key: string,
   getObject: ((id: string) => unknown) | null
 ): T | null => {
   if (vnode_isElementVNode(vNode) || vnode_isVirtualVNode(vNode)) {
+    // SsrNode stores non-serializable (':' prefixed) props in a separate localProps object
+    if (key.charCodeAt(0) === 58 /* ':' */ && 'localProps' in vNode) {
+      return (((vNode as any).localProps as Record<string, any> | null)?.[key] ?? null) as T | null;
+    }
     const value = vNode.props?.[key] ?? null;
     if (typeof value === 'string' && getObject) {
       const result = getObject(value) as T | null;
@@ -411,12 +416,37 @@ export const vnode_getProp = <T = unknown>(
   return null;
 };
 
+/** @internal */
 export const vnode_setProp = (vNode: VNode, key: string, value: unknown) => {
-  if (value == null && vNode.props) {
+  // SsrNode stores non-serializable (':' prefixed) props in a separate localProps object
+  if (key.charCodeAt(0) === 58 /* ':' */ && 'localProps' in vNode) {
+    ((vNode as any).localProps ||= {})[key] = value;
+    return;
+  }
+  if ('localProps' in vNode) {
+    // SsrNode: always store (never implicit delete — use vnode_removeProp for that)
+    (vNode.props ||= {})[key] = value;
+  } else if (value == null && vNode.props) {
     delete vNode.props[key];
   } else {
     vNode.props ||= {};
     vNode.props[key] = value;
+  }
+  // SsrNode: ELEMENT_SEQ values contain Tasks with cleanup functions
+  if (key === ELEMENT_SEQ && value && 'cleanupQueue' in vNode) {
+    (vNode as any).cleanupQueue.push(value);
+  }
+};
+
+/** @internal */
+export const vnode_removeProp = (vNode: VNode, key: string) => {
+  if (key.charCodeAt(0) === 58 /* ':' */ && 'localProps' in vNode) {
+    const localProps = (vNode as any).localProps as Record<string, any> | null;
+    if (localProps) {
+      delete localProps[key];
+    }
+  } else if (vNode.props) {
+    delete vNode.props[key];
   }
 };
 

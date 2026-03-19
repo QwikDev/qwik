@@ -6,7 +6,7 @@ import type { Container, SerializationStrategy } from '../shared/types';
 import { OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
-import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
+import type { SSRContainer } from '../ssr/ssr-types';
 import { TaskFlags, isTask } from '../use/use-task';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
@@ -25,6 +25,7 @@ import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
 import type { VNode } from '../shared/vnode/vnode';
+import { vnode_getProp, vnode_setProp } from '../client/vnode-utils';
 import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
 import { isDev, isServer } from '@qwik.dev/core/build';
 
@@ -92,6 +93,12 @@ export const scheduleEffects = (
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription.consumer;
+      if (!consumer || (consumer as any).nodeType !== undefined) {
+        // Orphaned subscription — consumer was an SsrNode that was never emitted during SSR.
+        // Deserialized as Document (VNode with empty ID). Skip — the subscription is stale.
+        // VNodes don't have nodeType; DOM nodes (Document) do.
+        return;
+      }
       const property = effectSubscription.property;
       isDev && assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
@@ -118,11 +125,13 @@ export const scheduleEffects = (
           if (isBrowser) {
             setNodePropData(consumer as VNode, property, payload);
           } else {
-            const node = consumer as ISsrNode;
-            let data = node.getProp(NODE_PROPS_DATA_KEY) as Map<string, NodeProp> | null;
+            let data = vnode_getProp(consumer, NODE_PROPS_DATA_KEY, null) as Map<
+              string,
+              NodeProp
+            > | null;
             if (!data) {
               data = new Map();
-              node.setProp(NODE_PROPS_DATA_KEY, data);
+              vnode_setProp(consumer, NODE_PROPS_DATA_KEY, data);
             }
             data.set(property, payload);
           }

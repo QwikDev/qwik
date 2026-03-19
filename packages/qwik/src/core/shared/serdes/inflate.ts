@@ -1,4 +1,3 @@
-import { isServer } from '@qwik.dev/core/build';
 import {
   vnode_getFirstChild,
   vnode_getProp,
@@ -32,7 +31,6 @@ import { qError, QError } from '../error/error';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { Fragment, Props } from '../jsx/jsx-runtime';
 import { PropsProxy } from '../jsx/props-proxy';
-import { isServerPlatform } from '../platform/platform';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
@@ -384,10 +382,11 @@ export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
 }
 
 function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {
-  const isServerSide = import.meta.env.TEST ? isServerPlatform() : isServer;
   const consumerBackRef = effect.consumer as BackRef;
-  if (isServerSide && !consumerBackRef) {
-    // on browser, we don't serialize for example VNodes, so then on server side we don't have consumer
+  if (!consumerBackRef || (consumerBackRef as any).nodeType !== undefined) {
+    // Consumer may be null/Document if the SsrNode was orphaned (never emitted) during SSR
+    // re-renders. Deserialized as Document (VNode with empty ID). Skip — the subscription is stale.
+    // Also handles browser case where VNodes aren't serialized.
     return;
   }
   consumerBackRef[_EFFECT_BACK_REF] ||= new Map();

@@ -37,7 +37,7 @@ const config: PlaywrightTestConfig = {
   // retries: 1,
   expect: { timeout: inGithubCI ? 120000 : 3000 },
   webServer: {
-    command: 'pnpm node --require ./scripts/runBefore.ts e2e/qwik-e2e/dev-server.ts 3301',
+    command: 'pnpm node --require ./scripts/runBefore.ts ./e2e/qwik-e2e/dev-server.ts 3301',
     port: 3301,
     reuseExistingServer: !process.env.CI,
     cwd: '../..',

@@ -147,15 +147,21 @@ export async function copyStartersDir(
       const distDir = join(distStartersDir, typeDir);
 
       await rm(distDir, { force: true, recursive: true });
+      await mkdir(distDir);
 
-      await copyDir(config, srcDir, distDir);
+      const srcSubdirs = (await readdir(srcDir)).filter(
+        (a) => a !== '.DS_Store' && existsSync(join(srcDir, a, 'package.json'))
+      );
+      await Promise.all(
+        srcSubdirs.map((subdir) => copyDir(config, join(srcDir, subdir), join(distDir, subdir)))
+      );
 
       const distStartersDirs = await readdir(distDir);
       await Promise.all(
         distStartersDirs
           .filter((a) => a !== '.DS_Store')
-          .map(async (distStartersDir) => {
-            const pkgJsonPath = join(distDir, distStartersDir, 'package.json');
+          .map(async (distStarterDir) => {
+            const pkgJsonPath = join(distDir, distStarterDir, 'package.json');
             if (!existsSync(pkgJsonPath)) {
               throw new Error(`CLI starter missing package.json: ${pkgJsonPath}`);
             }

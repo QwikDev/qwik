@@ -50,7 +50,7 @@ npm start # or `yarn start`
 
 ## Preview
 
-The preview command will create a production build of the client modules, a production build of `src/entry.preview.tsx`, and run a local server. The preview server is only for convenience to preview a production build locally and should not be used as a production server.
+The preview command will create a production build of the client modules, a production build of `./src/entry.preview.tsx`, and run a local server. The preview server is only for convenience to preview a production build locally and should not be used as a production server.
 
 ```shell
 npm run preview # or `yarn preview`

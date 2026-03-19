@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ['src/entry.cloudflare-pages.tsx'],
+        input: ['./src/entry.cloudflare-pages.tsx'],
       },
       minify: false,
     },

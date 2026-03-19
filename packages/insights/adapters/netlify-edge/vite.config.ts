@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ['src/entry.netlify-edge.tsx'],
+        input: ['./src/entry.netlify-edge.tsx'],
       },
       outDir: '.netlify/edge-functions/entry.netlify-edge',
     },

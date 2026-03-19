@@ -253,8 +253,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
       const idx = symbol.lastIndexOf('_');
-      const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];
-      return chunk ? chunk[1] : '';
+      const key = idx === -1 ? symbol : symbol.substring(idx + 1);
+      const chunk = this.resolvedManifest.mapper[key];
+      if (chunk?.[1]) {
+        return chunk[1];
+      }
+      // Fallback when manifest lacks this symbol (e.g. Rolldown/Vite 8 chunking or stale client manifest).
+      // Use core chunk so SSG can complete; client may lazy-load the correct chunk from the same bundle.
+      const fallback = this.resolvedManifest.manifest?.core;
+      if (fallback) {
+        return fallback;
+      }
+      return '';
     };
     this.serializationCtx = this.serializationCtxFactory(
       SsrNode,

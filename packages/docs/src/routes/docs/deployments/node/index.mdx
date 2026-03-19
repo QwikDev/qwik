@@ -158,7 +158,7 @@ By default, all Qwik Router applications are protected against [CSRF attacks](ht
 
 This protection is enabled by default and it's the reason why you need to set the `ORIGIN` environment variable when deploying your application for production.
 
-If you want to disable CSRF protection, you can set `checkOrigin: false` in the `createQwikRouter()` options in `src/entry.preview.tsx` or `src/entry.[server].tsx`:
+If you want to disable CSRF protection, you can set `checkOrigin: false` in the `createQwikRouter()` options in `./src/entry.preview.tsx` or `src/entry.[server].tsx`:
 
 ```tsx {6} /checkOrigin/ title="entry.preview.tsx"
 // ...

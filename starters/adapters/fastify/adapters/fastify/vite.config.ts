@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ["src/entry.fastify.tsx"],
+        input: ["./src/entry.fastify.tsx"],
       },
     },
     plugins: [nodeServerAdapter({ name: "fastify" })],

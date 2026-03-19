@@ -11,7 +11,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ["src/entry.bun.ts"],
+        input: ["./src/entry.bun.ts"],
       },
       minify: false,
     },

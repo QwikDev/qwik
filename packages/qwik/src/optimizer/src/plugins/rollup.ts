@@ -17,7 +17,6 @@ import {
   type QwikPlugin,
   type QwikPluginOptions,
 } from './plugin';
-import { findDepPkgJsonPath } from './utils';
 import { isVirtualId } from './vite-utils';
 
 type QwikRollupPluginApi = {
@@ -243,36 +242,6 @@ export async function normalizeRollupOutputOptionsObject(
    * incorrect; leading to over-preloading.
    */
   outputOpts.hoistTransitiveImports = false;
-
-  // V2 official release TODO: remove below checks and just keep `outputOpts.onlyExplicitManualChunks = true;`
-  const userPkgJsonPath = await findDepPkgJsonPath(optimizer.sys, 'rollup', optimizer.sys.cwd());
-  if (userPkgJsonPath) {
-    try {
-      const fs: typeof import('fs') = await optimizer.sys.dynamicImport('node:fs');
-      const pkgJsonStr = await fs.promises.readFile(userPkgJsonPath, 'utf-8');
-      const pkgJson = JSON.parse(pkgJsonStr);
-      const version = String(pkgJson?.version || '');
-      const [major, minor, patch] = version.split('.').map((n: string) => parseInt(n, 10)) as [
-        number,
-        number,
-        number,
-      ];
-      const isGte452 =
-        Number.isFinite(major) &&
-        (major > 4 || (major === 4 && (minor > 52 || (minor === 52 && (patch || 0) >= 0))));
-      if (isGte452) {
-        (
-          outputOpts as Rollup.OutputOptions & { onlyExplicitManualChunks?: boolean }
-        ).onlyExplicitManualChunks = true;
-      } else {
-        console.warn(
-          `⚠️ We detected that you're using a Rollup version prior to 4.52.0 (${version}). For the latest and greatest, we recommend to let Vite install the latest version for you, or manually install the latest version of Rollup in your project if that doesn't work. It will enable the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`
-        );
-      }
-    } catch {
-      // If we cannot determine the installed Rollup version, avoid warning
-    }
-  }
 
   return outputOpts;
 }

@@ -11,7 +11,8 @@ import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
 import { qwikDevtools } from '@qwik.dev/devtools';
-import { defineConfig, loadEnv, type Plugin, type Rollup, type UserConfig } from 'vite';
+import type { ManualChunksOption, OutputOptions } from 'rollup';
+import { defineConfig, loadEnv, type Plugin, type UserConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
@@ -103,9 +104,9 @@ function overrideManualChunksForRepl(): Plugin {
     enforce: 'post',
     config(userConfig) {
       const prevOutput = userConfig.build?.rollupOptions?.output;
-      const prevManualChunks: Rollup.ManualChunksOption | undefined =
+      const prevManualChunks: ManualChunksOption | undefined =
         prevOutput && !Array.isArray(prevOutput)
-          ? (prevOutput as Rollup.OutputOptions).manualChunks
+          ? (prevOutput as OutputOptions).manualChunks
           : undefined;
 
       return {
@@ -122,7 +123,7 @@ function overrideManualChunksForRepl(): Plugin {
                 }
 
                 if (typeof prevManualChunks === 'function') {
-                  return prevManualChunks(id, meta);
+                  return prevManualChunks(id, meta as any);
                 }
               },
             },
@@ -179,7 +180,15 @@ export default defineConfig(() => {
       // Make sure to get the browser version of @rolldown/browser
       conditions: ['browser', 'worker', 'import', 'default'],
     },
+
     ssr: {
+      external: [
+        'prismjs',
+        'prismjs/components/prism-clike',
+        'prismjs/components/prism-jsx',
+        'prismjs/components/prism-markup',
+        'prismjs/components/prism-tsx',
+      ],
       noExternal: [
         '@mui/material',
         '@mui/system',

@@ -1,3 +1,4 @@
+import type { OutputOptions } from 'rollup';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
 import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/shared/utils/hash_code';
@@ -1072,7 +1073,12 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     }
   }
 
-  const manualChunks: Rollup.ManualChunksOption = (id: string, { getModuleInfo }) => {
+  type ManualChunksFn = Exclude<
+    NonNullable<OutputOptions['manualChunks']>,
+    Record<string, string[]>
+  >;
+
+  const manualChunks: ManualChunksFn = (id: string, { getModuleInfo }) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build

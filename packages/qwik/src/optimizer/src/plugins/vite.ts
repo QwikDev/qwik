@@ -1,4 +1,3 @@
-import type { ResolvedId } from 'rollup';
 import type {
   BuildOptions,
   ConfigEnv,
@@ -6,6 +5,7 @@ import type {
   UserConfig,
   ViteDevServer,
   Plugin as VitePlugin,
+  Rollup,
 } from 'vite';
 import type {
   EntryStrategy,
@@ -290,13 +290,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           },
           rollupOptions: {
             external: ['node:async_hooks'],
-            /**
-             * This is a workaround to have predictable chunk hashes between builds. It doesn't seem
-             * to impact the build time.
-             * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
-             */
-            maxParallelFileOps: 1,
-            // This will amend the existing input
             input,
             // temporary fix for rolldown-vite types
           } as BuildOptions['rollupOptions'],
@@ -769,7 +762,7 @@ async function checkExternals() {
         // technically we should check for each importer, but this is ok
         seen.add(source);
         seen.add(packageName);
-        let result: ResolvedId | null;
+        let result: Rollup.ResolvedId | null;
         try {
           result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
         } catch {

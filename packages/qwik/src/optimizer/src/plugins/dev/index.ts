@@ -29,7 +29,7 @@ export async function configurePreviewServer(
   if (!entryPreviewModulePath) {
     return invalidPreviewMessage(
       middlewares,
-      `Unable to find output "${ssrOutDir}/entry.preview" module.\n\nPlease ensure "src/entry.preview.tsx" has been built before the "preview" command.`
+      `Unable to find output "${ssrOutDir}/entry.preview" module.\n\nPlease ensure "./src/entry.preview.tsx" has been built before the "preview" command.`
     );
   }
 

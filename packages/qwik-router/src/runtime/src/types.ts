@@ -94,6 +94,7 @@ export type RouteStateInternal = {
   forceReload?: boolean;
   replaceState?: boolean;
   scroll?: boolean;
+  historyUpdated?: boolean;
 };
 
 export type RebuildRouteInfoInternal = (

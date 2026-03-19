@@ -404,21 +404,32 @@ h6 a:hover .icon {
   }
 }
 
+/* ─── Horizontal Rules ─── */
+
+.docs article hr {
+  border: none;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  height: 1.6px;
+  background-color: var(--color-border-base);
+  box-shadow: 4px 4px 0px 0px var(--color-secondary-border-base);
+}
+
 /* ─── Tables ─── */
 
-.docs article th,
+.docs article table {
+  @apply w-full border-collapse;
+  box-shadow: 6px 6px 0px 0px var(--color-shadow-base, #b2e4ff);
+}
+
+.docs article th {
+  @apply bg-background-accent border-[1.6px] border-base px-4 py-2.5 text-left;
+  @apply text-label-sm font-bold text-standalone-accent uppercase;
+}
+
 .docs article td {
-  @apply p-2 align-top;
-}
-
-.docs article th:first-child,
-.docs article td:first-child {
-  @apply pl-0;
-}
-
-.docs article th:last-child,
-.docs article td:last-child {
-  @apply pr-0;
+  @apply bg-background-base border-[1.6px] border-base px-4 py-2.5 align-top;
+  @apply text-body-sm font-semibold text-foreground-base;
 }
 
 .docs article img {

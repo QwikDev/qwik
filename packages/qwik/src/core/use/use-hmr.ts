@@ -34,9 +34,7 @@ export const _hmr = (event: Event, element: Element) => {
   // Maybe we should use a qrl registry to invalidate all QRLs from a parent?
   const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
   if (qrl) {
-    // This code is highly coupled to the internal implementation of QRL
-    const instance = (qrl as any).__proto__ as typeof qrl;
-    const lazy = instance.$lazy$;
+    const lazy = qrl.$lazy$;
     const chunk = lazy.$chunk$!;
     if (chunk) {
       /**
@@ -46,7 +44,7 @@ export const _hmr = (event: Event, element: Element) => {
       const bustUrl = chunk.split('?')[0] + '?t=' + Date.now();
       (lazy as any).$chunk$ = bustUrl;
       lazy.$ref$ = undefined;
-      instance.resolved = undefined;
+      qrl.resolved = undefined;
       // Force rerender
       markVNodeDirty(container, host as VNode, ChoreBits.COMPONENT);
     }

@@ -638,7 +638,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (hmrEnabled) {
           // Source files live in the SSR module graph. When they change, notify the
           // client's loaded QRL segments via the client environment's HMR channel.
-          const files = ctx.modules.map((m) => m.type === 'js' && m.url).filter(Boolean);
+          const files = ctx.modules
+            .map((m) => (m.type === 'js' ? m.url.split('?')[0] : null))
+            .filter(Boolean);
           if (files.length > 0 && viteServer) {
             viteServer.environments.client.hot.send({
               type: 'custom',

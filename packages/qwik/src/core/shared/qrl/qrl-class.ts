@@ -167,31 +167,26 @@ export class LazyRef<TYPE = unknown> {
   }
 }
 
-/**
- * When a method is called on the qrlFn wrapper function, `this` is the function, not the QRLClass
- * instance that holds the data. This helper returns the actual instance by checking whether `this`
- * owns `resolved` (always set on the instance).
- */
-const getInstance = <TYPE>(instance: any): QRLClass<TYPE> => {
-  return Object.prototype.hasOwnProperty.call(instance, 'resolved')
-    ? instance
-    : (Object.getPrototypeOf(instance) as QRLClass<TYPE>);
+const QRL_STATE = Symbol('qrl-state');
+
+type QRLCallable<TYPE = unknown> = QRLInternal<TYPE> & {
+  [QRL_STATE]: QRLClass<TYPE>;
 };
 
 /**
- * We use a class here to avoid copying all the methods for every QRL instance. The QRL itself is a
- * function that calls the internal $callFn$ method, and we set the prototype to the class instance
- * so it has access to all the properties and methods. That's why we need to extend Function, so
- * that `.apply()` etc work.
- *
- * So a QRL is a function that has a prototype of a QRLClass instance. This is unconventional, but
- * it allows us to have a callable QRL that is also a class.
- *
- * Note the use of getInstance everywhere when writing to `this`. If you write to `this` directly,
- * it will be stored on the function itself, and we don't want that because the QRLClass instance
- * doesn't have access to it, and it uses more memory.
+ * QRL methods may run with `this` set either to the callable wrapper or directly to the backing
+ * state object. This helper normalizes both cases to the shared backing state.
  */
-export class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE> {
+const getInstance = <TYPE>(instance: any): QRLClass<TYPE> => {
+  return (instance?.[QRL_STATE] as QRLClass<TYPE> | undefined) ?? instance;
+};
+
+/**
+ * QRL state lives in a plain object. The callable wrapper stores that state under a symbol and uses
+ * a shared prototype derived from Function.prototype for methods/getters. This keeps QRLs callable
+ * without using a unique state object as each function's prototype.
+ */
+export class QRLClass<TYPE> {
   resolved: undefined | TYPE = undefined;
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: Readonly<unknown[]> | string | null;
@@ -202,7 +197,6 @@ export class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE>
     $captures$?: Readonly<unknown[]> | string | null,
     container?: Container | null
   ) {
-    super();
     if ($captures$) {
       this.$captures$ = $captures$;
       if (typeof $captures$ === 'string') {
@@ -221,100 +215,176 @@ export class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE>
     // If it is plain value with deserialized or missing captures, resolve it immediately
     // Otherwise we keep using the async path so we can wait for qrls to load
     if ($lazy$.$ref$ != null && typeof this.$captures$ !== 'string' && !isPromise($lazy$.$ref$)) {
-      // we can pass this instead of using getInstance because we know we are not the qrlFn
       this.resolved = bindCaptures(this, $lazy$.$ref$ as TYPE);
     }
   }
-
-  w(captures: Readonly<unknown[]> | string | null): QRLInternal<TYPE> {
-    const newQrl = new QRLClass<TYPE>(
-      this.$lazy$,
-      captures!,
-      this.$captures$ ? this.$container$ : undefined
-    );
-    return makeQrlFn(newQrl);
-  }
-
-  s(ref: ValueOrPromise<TYPE>) {
-    const qrl = getInstance(this);
-    qrl.$lazy$.$setRef$(ref);
-    qrl.resolved = bindCaptures(qrl, ref as TYPE);
-  }
-
-  // --- Getter proxies for backward compat ---
-  get $chunk$(): string | null {
-    return this.$lazy$.$chunk$;
-  }
-  get $symbol$(): string {
-    return this.$lazy$.$symbol$;
-  }
-  get $hash$(): string {
-    return this.$lazy$.$hash$;
-  }
-  get dev(): QRLDev | null | undefined {
-    return this.$lazy$.dev;
-  }
-
-  $callFn$(withThis: unknown, ...args: QrlArgs<TYPE>): ValueOrPromise<QrlReturn<TYPE>> {
-    if (this.resolved) {
-      return (this.resolved as any).apply(withThis, args);
-    }
-
-    // Not resolved yet: we'll return a promise
-
-    // grab the context while we are sync
-    const ctx = tryGetInvokeContext();
-
-    return this.resolve(ctx?.$container$).then(() =>
-      invokeApply.call(withThis, ctx, this.resolved as any, args)
-    );
-  }
-
-  async resolve(container?: Container): Promise<TYPE> {
-    // We need to write to the QRLClass instance, not the function
-    const qrl = getInstance<TYPE>(this);
-    return maybeThen($resolve$(qrl, container), () => qrl.resolved!);
-  }
-
-  getSymbol(): string {
-    return this.$symbol$;
-  }
-
-  getHash(): string {
-    return this.$hash$;
-  }
-
-  getCaptured(): unknown[] | null {
-    const qrl = getInstance(this);
-    ensureQrlCaptures(qrl);
-    return qrl.$captures$ as unknown[] | null;
-  }
-
-  getFn(
-    currentCtx?: InvokeContext,
-    beforeFn?: () => void | false
-  ): TYPE extends (...args: any) => any
-    ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE> | undefined>
-    : // unknown instead of never so we allow assigning function QRLs to any
-      unknown {
-    const qrl = getInstance(this);
-    const bound = (...args: QrlArgs<TYPE>): unknown => {
-      if (!qrl.resolved) {
-        return qrl.resolve().then((fn) => {
-          if (qDev && !isFunction(fn)) {
-            throw qError(QError.qrlIsNotFunction);
-          }
-          return bound(...args);
-        });
-      }
-      if (beforeFn && beforeFn() === false) {
-        return undefined;
-      }
-      return invokeApply(currentCtx, qrl.resolved as any, args);
-    };
-    return bound as any;
-  }
 }
+
+const qrlCallFn = function <TYPE>(
+  this: QRLClass<TYPE> | QRLCallable<TYPE>,
+  withThis: unknown,
+  ...args: QrlArgs<TYPE>
+): ValueOrPromise<QrlReturn<TYPE>> {
+  const qrl = getInstance<TYPE>(this);
+  if (qrl.resolved) {
+    return (qrl.resolved as any).apply(withThis, args);
+  }
+
+  // Not resolved yet: we'll return a promise
+
+  // grab the context while we are sync
+  const ctx = tryGetInvokeContext();
+
+  return qrlResolve
+    .call(qrl, ctx?.$container$)
+    .then(() => invokeApply.call(withThis, ctx, qrl.resolved as any, args));
+};
+
+const qrlWithCaptures = function <TYPE>(
+  this: QRLClass<TYPE> | QRLCallable<TYPE>,
+  captures: Readonly<unknown[]> | string | null
+): QRLInternal<TYPE> {
+  const qrl = getInstance<TYPE>(this);
+  const newQrl = new QRLClass<TYPE>(
+    qrl.$lazy$,
+    captures!,
+    qrl.$captures$ ? qrl.$container$ : undefined
+  );
+  return makeQrlFn(newQrl);
+};
+
+const qrlSetRef = function <TYPE>(
+  this: QRLClass<TYPE> | QRLCallable<TYPE>,
+  ref: ValueOrPromise<TYPE>
+) {
+  const qrl = getInstance<TYPE>(this);
+  qrl.$lazy$.$setRef$(ref);
+  qrl.resolved = bindCaptures(qrl, ref as TYPE);
+};
+
+const qrlResolve = async function <TYPE>(
+  this: QRLClass<TYPE> | QRLCallable<TYPE>,
+  container?: Container
+): Promise<TYPE> {
+  const qrl = getInstance<TYPE>(this);
+  return maybeThen($resolve$(qrl, container), () => qrl.resolved!);
+};
+
+const qrlGetSymbol = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): string {
+  return getInstance<TYPE>(this).$lazy$.$symbol$;
+};
+
+const qrlGetHash = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): string {
+  return getInstance<TYPE>(this).$lazy$.$hash$;
+};
+
+const qrlGetCaptured = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): unknown[] | null {
+  const qrl = getInstance<TYPE>(this);
+  ensureQrlCaptures(qrl);
+  return qrl.$captures$ as unknown[] | null;
+};
+
+const qrlGetFn = function <TYPE>(
+  this: QRLClass<TYPE> | QRLCallable<TYPE>,
+  currentCtx?: InvokeContext,
+  beforeFn?: () => void | false
+): TYPE extends (...args: any) => any
+  ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE> | undefined>
+  : // unknown instead of never so we allow assigning function QRLs to any
+    unknown {
+  const qrl = getInstance<TYPE>(this);
+  const bound = (...args: QrlArgs<TYPE>): unknown => {
+    if (!qrl.resolved) {
+      return qrlResolve.call(qrl).then((fn) => {
+        if (qDev && !isFunction(fn)) {
+          throw qError(QError.qrlIsNotFunction);
+        }
+        return bound(...args);
+      });
+    }
+    if (beforeFn && beforeFn() === false) {
+      return undefined;
+    }
+    return invokeApply(currentCtx, qrl.resolved as any, args);
+  };
+  return bound as any;
+};
+
+const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.prototype, {
+  resolved: {
+    get(this: QRLCallable<any>) {
+      return this[QRL_STATE].resolved;
+    },
+    set(this: QRLCallable<any>, value: unknown) {
+      this[QRL_STATE].resolved = value;
+    },
+  },
+  $captures$: {
+    get(this: QRLCallable<any>) {
+      return this[QRL_STATE].$captures$;
+    },
+    set(this: QRLCallable<any>, value: Readonly<unknown[]> | string | null | undefined) {
+      this[QRL_STATE].$captures$ = value;
+    },
+  },
+  $container$: {
+    get(this: QRLCallable<any>) {
+      return this[QRL_STATE].$container$;
+    },
+    set(this: QRLCallable<any>, value: Container | null | undefined) {
+      this[QRL_STATE].$container$ = value;
+    },
+  },
+  $lazy$: {
+    get(this: QRLCallable<any>) {
+      return this[QRL_STATE].$lazy$;
+    },
+  },
+  $chunk$: {
+    get(this: QRLCallable<any>) {
+      return this[QRL_STATE].$lazy$.$chunk$;
+    },
+  },
+  $symbol$: {
+    get(this: QRLCallable<any>) {
+      return this[QRL_STATE].$lazy$.$symbol$;
+    },
+  },
+  $hash$: {
+    get(this: QRLCallable<any>) {
+      return this[QRL_STATE].$lazy$.$hash$;
+    },
+  },
+  dev: {
+    get(this: QRLCallable<any>) {
+      return this[QRL_STATE].$lazy$.dev;
+    },
+  },
+  $callFn$: {
+    value: qrlCallFn,
+  },
+  w: {
+    value: qrlWithCaptures,
+  },
+  s: {
+    value: qrlSetRef,
+  },
+  resolve: {
+    value: qrlResolve,
+  },
+  getSymbol: {
+    value: qrlGetSymbol,
+  },
+  getHash: {
+    value: qrlGetHash,
+  },
+  getCaptured: {
+    value: qrlGetCaptured,
+  },
+  getFn: {
+    value: qrlGetFn,
+  },
+});
 
 /**
  * The current captured scope during QRL invocation. This is used to provide the lexical scope for
@@ -441,12 +511,12 @@ export const createQRL = <TYPE>(
 };
 
 const makeQrlFn = <TYPE>(qrl: QRLClass<TYPE>): QRLInternal<TYPE> => {
-  // The QRL has to be callable, so we create a function that calls the internal $callFn$
-  const qrlFn: QRLInternal<TYPE> = async function (this: unknown, ...args: QrlArgs<TYPE>) {
-    return qrl.$callFn$(this, ...args);
-  } as QRLInternal<TYPE>;
-  // ...and set the prototype to the QRL instance so it has all the properties and methods without copying them
-  Object.setPrototypeOf(qrlFn, qrl);
+  // The QRL has to be callable, so we create a function and attach the per-instance state to it.
+  const qrlFn = async function (this: unknown, ...args: QrlArgs<TYPE>) {
+    return qrlCallFn.call(qrlFn as QRLCallable<TYPE>, this, ...args);
+  } as QRLCallable<TYPE>;
+  qrlFn[QRL_STATE] = qrl;
+  Object.setPrototypeOf(qrlFn, QRL_FUNCTION_PROTO);
   return qrlFn;
 };
 

@@ -6,6 +6,7 @@
 - [Getting Started](</docs/(qwik)/getting-started/index.mdx>)
 - [Project structure](</docs/(qwikrouter)/project-structure/index.mdx>)
 - [FAQ](</docs/(qwik)/faq/index.mdx>)
+- [Upgrade](/docs/upgrade/index.mdx)
 
 ## Foundation
 

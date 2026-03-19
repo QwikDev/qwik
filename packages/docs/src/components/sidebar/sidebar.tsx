@@ -295,6 +295,8 @@ const IntroItemIcon = component$<{ text: string }>((props) => {
       return <lucide.foldertree class={cls} />;
     case 'FAQ':
       return <lucide.circlequestionmark class={cls} />;
+    case 'Upgrade':
+      return <lucide.sparkles class={cls} />;
     default:
       return null;
   }

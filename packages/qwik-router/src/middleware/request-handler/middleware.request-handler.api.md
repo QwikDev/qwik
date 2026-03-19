@@ -13,7 +13,6 @@ import type { Loader as Loader_2 } from '@qwik.dev/router';
 import type { QwikCityPlan } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
 import type { QwikRouterConfig } from '@qwik.dev/router';
-import { RedirectMessage as RedirectMessage_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { Render } from '@qwik.dev/core/server';
 import type { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent as RequestEvent_2 } from '@qwik.dev/router/middleware/request-handler';
@@ -251,7 +250,7 @@ export interface ServerRequestEvent<T = unknown> {
 export type ServerRequestMode = 'static' | 'server';
 
 // @public (undocumented)
-export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;
+export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEvent) => WritableStream<Uint8Array>;
 
 // @internal (undocumented)
 export class _TextEncoderStream_polyfill {

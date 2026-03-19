@@ -1,5 +1,4 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
-import { MODULE_CACHE } from './constants';
 import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
@@ -14,6 +13,8 @@ import {
 } from './types';
 
 /** LoadRoute() runs in both client and server. */
+const MODULE_CACHE = /*#__PURE__*/ new WeakMap<any, any>();
+
 export const loadRoute = async (
   routes: RouteData | undefined,
   cacheModules: boolean | undefined,

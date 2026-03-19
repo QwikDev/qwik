@@ -3,7 +3,6 @@ import type { Render, RenderOptions } from '@qwik.dev/core/server';
 import type { Action, FailReturn, Loader, QwikCityPlan, QwikRouterConfig } from '@qwik.dev/router';
 import type { ServerError } from './server-error';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
-import type { RequestEventInternal } from './request-event';
 import type { RewriteMessage } from './rewrite-handler';
 
 /** @public */
@@ -41,7 +40,7 @@ export type ServerResponseHandler<T = any> = (
   headers: Headers,
   cookies: Cookie,
   resolve: (response: T) => void,
-  requestEv: RequestEventInternal
+  requestEv: RequestEvent
 ) => WritableStream<Uint8Array>;
 
 /** @public */

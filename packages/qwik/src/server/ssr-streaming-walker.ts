@@ -25,6 +25,7 @@ import {
   SSR_STYLE_SCOPED_ID,
   SSR_SUSPENSE_PLACEHOLDER_ID,
   SSR_SUSPENSE_CONTENT,
+  SSR_SUSPENSE_READY,
   isSsrContentChild,
   ssrNode_getSerializableAttrs,
   type SsrChild,
@@ -66,6 +67,8 @@ import {
 export interface SuspenseBoundaryInfo {
   node: ISsrNode;
   placeholderId: string;
+  createdAt: number;
+  fallbackEmitted: boolean;
 }
 
 export interface SsrStreamingWalkerOptions {
@@ -79,6 +82,12 @@ export interface SsrStreamingWalkerOptions {
   onBeforeContainerClose?: () => ValueOrPromise<void>;
   /** Suspense boundaries to handle during emission. */
   suspenseBoundaries?: SuspenseBoundaryInfo[];
+  /** Grace period before falling back to Suspense fallback content. */
+  suspenseFallbackDelay?: number;
+  /** Called when a Suspense fallback is actually emitted. */
+  onSuspenseFallback?: (node: ISsrNode) => void;
+  /** Waits for suspense progress or deadline expiry before retrying. */
+  waitForSuspense?: (deadline: number) => ValueOrPromise<void>;
 }
 
 /**
@@ -90,9 +99,11 @@ export class SsrStreamingWalker {
   private containerDataNode: ISsrNode | null;
   private onBeforeContainerClose: (() => ValueOrPromise<void>) | null;
   /** Set of Suspense boundary nodes for fast lookup. */
-  private suspenseNodes: Set<ISsrNode> | null;
-  /** Map from boundary node to placeholder ID. */
-  private suspensePlaceholderIds: Map<ISsrNode, string> | null;
+  private suspenseBoundaries: Map<ISsrNode, SuspenseBoundaryInfo> | null;
+  private suspenseBoundariesByPlaceholderId: Map<string, SuspenseBoundaryInfo> | null;
+  private suspenseFallbackDelay: number;
+  private onSuspenseFallback: ((node: ISsrNode) => void) | null;
+  private waitForSuspense: ((deadline: number) => ValueOrPromise<void>) | null;
   /** Tracks emitted bytes for qwikLoader inline heuristic. */
   public size: number = 0;
 
@@ -101,14 +112,17 @@ export class SsrStreamingWalker {
     this.containerDataNode = options.containerDataNode ?? null;
     this.onBeforeContainerClose = options.onBeforeContainerClose ?? null;
 
+    this.suspenseFallbackDelay = Math.max(0, options.suspenseFallbackDelay ?? 0);
+    this.onSuspenseFallback = options.onSuspenseFallback ?? null;
+    this.waitForSuspense = options.waitForSuspense ?? null;
     if (options.suspenseBoundaries && options.suspenseBoundaries.length > 0) {
-      this.suspenseNodes = new Set(options.suspenseBoundaries.map((b) => b.node));
-      this.suspensePlaceholderIds = new Map(
-        options.suspenseBoundaries.map((b) => [b.node, b.placeholderId])
+      this.suspenseBoundaries = new Map(options.suspenseBoundaries.map((b) => [b.node, b]));
+      this.suspenseBoundariesByPlaceholderId = new Map(
+        options.suspenseBoundaries.map((b) => [b.placeholderId, b])
       );
     } else {
-      this.suspenseNodes = null;
-      this.suspensePlaceholderIds = null;
+      this.suspenseBoundaries = null;
+      this.suspenseBoundariesByPlaceholderId = null;
     }
   }
 
@@ -192,28 +206,51 @@ export class SsrStreamingWalker {
    * children inline (sub-cursor completed synchronously).
    */
   private emitSuspenseBoundary(node: ISsrNode): ValueOrPromise<void> {
-    const isDeferred = this.suspenseNodes?.has(node);
+    const contentNode = vnode_getProp(node, SSR_SUSPENSE_CONTENT, null) as ISsrNode | null;
+    const boundary = this.getSuspenseBoundary(node);
+    if (!boundary || vnode_getProp(node, SSR_SUSPENSE_READY, null) === true) {
+      if (contentNode) {
+        return this.emitChildren(contentNode);
+      }
+      return this.emitChildren(node);
+    }
 
-    if (isDeferred) {
+    if (boundary.createdAt === 0) {
+      boundary.createdAt = performance.now();
+    }
+    const deadline = boundary.createdAt + this.suspenseFallbackDelay;
+    if (this.suspenseFallbackDelay > 0 && performance.now() < deadline && this.waitForSuspense) {
+      return maybeThen(this.waitForSuspense(deadline), () => this.emitSuspenseBoundary(node));
+    }
+
+    if (!boundary.fallbackEmitted) {
+      boundary.fallbackEmitted = true;
+      this.onSuspenseFallback?.(node);
+    }
+
+    if (boundary.fallbackEmitted) {
       // Emit fallback wrapped in a placeholder div for OoO replacement
       const placeholderId =
-        this.suspensePlaceholderIds?.get(node) ||
-        vnode_getProp(node, SSR_SUSPENSE_PLACEHOLDER_ID, null);
+        boundary.placeholderId || vnode_getProp(node, SSR_SUSPENSE_PLACEHOLDER_ID, null);
       this.write(`<div id="${placeholderId}">`);
       // Emit fallback content (the boundary's orderedChildren contain the fallback)
       return maybeThen(this.emitChildren(node), () => {
         this.write('</div>');
       });
     }
-
-    // Not deferred — emit content inline (sub-cursor completed synchronously).
-    // The content node holds children built by the sub-cursor.
-    const contentNode = vnode_getProp(node, SSR_SUSPENSE_CONTENT, null) as ISsrNode | null;
-    if (contentNode) {
-      return this.emitChildren(contentNode);
-    }
-    // No content node — fall back to emitting boundary's own children (fallback)
     return this.emitChildren(node);
+  }
+
+  private getSuspenseBoundary(node: ISsrNode): SuspenseBoundaryInfo | null {
+    const direct = this.suspenseBoundaries?.get(node) ?? null;
+    if (direct) {
+      return direct;
+    }
+    const placeholderId = vnode_getProp(node, SSR_SUSPENSE_PLACEHOLDER_ID, null) as string | null;
+    if (!placeholderId) {
+      return null;
+    }
+    return this.suspenseBoundariesByPlaceholderId?.get(placeholderId) ?? null;
   }
 
   private emitContentChild(child: SsrContentChild): void {
@@ -297,6 +334,8 @@ export const enum EmitResult {
   BLOCKED_DIRTY = 1,
   /** Reached container data point — caller must run async callback before resuming. */
   NEEDS_CALLBACK = 2,
+  /** Paused at a Suspense boundary waiting for readiness or fallback deadline. */
+  BLOCKED_SUSPENSE = 3,
 }
 
 /** Phase of emission for a stack frame. */
@@ -388,21 +427,29 @@ export class IncrementalEmitter {
 
   /** Stack of vNodeData being built for ancestor elements. */
   private vdStack: VNodeDataBuildState[] = [];
+  /** Deadline for the next suspense fallback decision, if emission is waiting on one. */
+  nextSuspenseDeadline: number | null = null;
+  private suspenseBoundariesByPlaceholderId: Map<string, SuspenseBoundaryInfo>;
 
   constructor(
     private writer: StreamWriter,
     /** Node before whose close tag a callback should be invoked. */
     private containerDataNode: ISsrNode | null,
-    /** Set of deferred Suspense boundary nodes. */
-    private deferredBoundaries: Set<ISsrNode>,
-    /** Map from deferred boundary node to placeholder ID. */
-    private placeholderIds: Map<ISsrNode, string>,
+    /** Suspense boundary state keyed by boundary node. */
+    private suspenseBoundaries: Map<ISsrNode, SuspenseBoundaryInfo>,
+    /** Grace period before falling back to Suspense fallback content. */
+    private suspenseFallbackDelay: number,
+    /** Called when a Suspense fallback is actually emitted. */
+    private onSuspenseFallback: (node: ISsrNode) => void,
     /**
      * VNodeData array to populate in document order. The emitter pushes each element's vNodeData as
      * it opens, ensuring correct document-order indexing regardless of tree-building order.
      */
     private vNodeDatas: VNodeData[] | null = null
-  ) {}
+  ) {
+    this.suspenseBoundariesByPlaceholderId = new Map();
+    this.syncSuspenseBoundaries(suspenseBoundaries.values());
+  }
 
   write(text: string): void {
     this.size += text.length;
@@ -422,6 +469,15 @@ export class IncrementalEmitter {
       },
     ];
     this.done = false;
+  }
+
+  syncSuspenseBoundaries(boundaries: Iterable<SuspenseBoundaryInfo>): void {
+    this.suspenseBoundaries.clear();
+    this.suspenseBoundariesByPlaceholderId.clear();
+    for (const boundary of boundaries) {
+      this.suspenseBoundaries.set(boundary.node, boundary);
+      this.suspenseBoundariesByPlaceholderId.set(boundary.placeholderId, boundary);
+    }
   }
 
   /**
@@ -486,6 +542,7 @@ export class IncrementalEmitter {
    */
   emitReady(): EmitResult {
     const stack = this.stack;
+    this.nextSuspenseDeadline = null;
 
     while (stack.length > 0) {
       const frame = stack[stack.length - 1];
@@ -547,7 +604,10 @@ export class IncrementalEmitter {
             if (this.vNodeDatas) {
               this.trackVirtualOpen(node as unknown as SsrNode);
             }
-            this.handleSuspenseOpen(frame, node);
+            const suspenseResult = this.handleSuspenseOpen(frame, node);
+            if (suspenseResult !== undefined) {
+              return suspenseResult;
+            }
             // Phase set by handleSuspenseOpen
           } else {
             // Virtual/Component/Projection — no HTML output, track in parent vNodeData
@@ -564,12 +624,17 @@ export class IncrementalEmitter {
             frame.children = (node as any).orderedChildren as SsrChild[] | null;
           }
           const children = frame.children;
-          if (children && frame.childIdx < children.length) {
-            const blockedChild =
-              ((node as any).dirty & ChoreBits.CHILDREN) !== 0 ? getFirstBlockedChild(node) : null;
+          const blockedChild =
+            ((node as any).dirty & ChoreBits.CHILDREN) !== 0 ? getFirstBlockedChild(node) : null;
+          if (blockedChild) {
+            if (!children || frame.childIdx >= children.length) {
+              return EmitResult.BLOCKED_DIRTY;
+            }
             if (blockedChild && children[frame.childIdx] === blockedChild) {
               return EmitResult.BLOCKED_DIRTY;
             }
+          }
+          if (children && frame.childIdx < children.length) {
             const child = children[frame.childIdx++];
             if (isSsrContentChild(child)) {
               emitContentChild(this, child);
@@ -590,6 +655,8 @@ export class IncrementalEmitter {
                 isDeferred: false,
               });
             }
+          } else if (((node as any).dirty & ChoreBits.CHILDREN) !== 0) {
+            return EmitResult.BLOCKED_DIRTY;
           } else {
             frame.phase = EmitPhase.CLOSE;
           }
@@ -658,27 +725,54 @@ export class IncrementalEmitter {
    * Handle Suspense boundary open. Deferred boundaries emit fallback in placeholder div. Ready
    * boundaries emit content node's children inline.
    */
-  private handleSuspenseOpen(frame: EmitFrame, node: ISsrNode): void {
-    if (this.deferredBoundaries.has(node)) {
+  private handleSuspenseOpen(frame: EmitFrame, node: ISsrNode): EmitResult | void {
+    const boundary = this.getSuspenseBoundary(node);
+    const contentNode = vnode_getProp(node, SSR_SUSPENSE_CONTENT, null) as ISsrNode | null;
+    if (!boundary || vnode_getProp(node, SSR_SUSPENSE_READY, null) === true) {
+      if (contentNode) {
+        frame.children = (contentNode as any).orderedChildren as SsrChild[] | null;
+        frame.childIdx = 0;
+      }
+      frame.phase = EmitPhase.CHILDREN;
+      return;
+    }
+
+    if (boundary.createdAt === 0) {
+      boundary.createdAt = performance.now();
+    }
+    const deadline = boundary.createdAt + this.suspenseFallbackDelay;
+    if (this.suspenseFallbackDelay > 0 && performance.now() < deadline) {
+      this.nextSuspenseDeadline = deadline;
+      return EmitResult.BLOCKED_SUSPENSE;
+    }
+
+    if (!boundary.fallbackEmitted) {
+      boundary.fallbackEmitted = true;
+      this.onSuspenseFallback(node);
+    }
+
+    if (boundary.fallbackEmitted) {
       // Deferred: emit <div id="qph-N"> and walk fallback children, then close with </div>
       const placeholderId =
-        this.placeholderIds.get(node) || vnode_getProp(node, SSR_SUSPENSE_PLACEHOLDER_ID, null);
+        boundary.placeholderId || vnode_getProp(node, SSR_SUSPENSE_PLACEHOLDER_ID, null);
       this.write(`<div id="${placeholderId}">`);
       frame.isDeferred = true;
       frame.phase = EmitPhase.CHILDREN;
       // orderedChildren contain the fallback
-    } else {
-      // Ready: walk content node's children
-      const contentNode = vnode_getProp(node, SSR_SUSPENSE_CONTENT, null) as ISsrNode | null;
-      if (contentNode) {
-        // Replace this frame's children source with the content node's children
-        frame.children = (contentNode as any).orderedChildren as SsrChild[] | null;
-        frame.childIdx = 0;
-        frame.phase = EmitPhase.CHILDREN;
-      } else {
-        // No content — emit boundary's own children (fallback)
-        frame.phase = EmitPhase.CHILDREN;
-      }
+      return;
     }
+    frame.phase = EmitPhase.CHILDREN;
+  }
+
+  private getSuspenseBoundary(node: ISsrNode): SuspenseBoundaryInfo | null {
+    const direct = this.suspenseBoundaries.get(node) ?? null;
+    if (direct) {
+      return direct;
+    }
+    const placeholderId = vnode_getProp(node, SSR_SUSPENSE_PLACEHOLDER_ID, null) as string | null;
+    if (!placeholderId) {
+      return null;
+    }
+    return this.suspenseBoundariesByPlaceholderId.get(placeholderId) ?? null;
   }
 }

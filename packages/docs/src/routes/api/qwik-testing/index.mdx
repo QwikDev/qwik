@@ -449,6 +449,7 @@ export declare function ssrRenderToDom(
     debug?: boolean;
     raw?: boolean;
     qwikLoader?: boolean;
+    streaming?: StreamingOptions;
     onBeforeResume?: (document: Document) => void;
   },
 ): Promise<{
@@ -489,7 +490,7 @@ opts
 
 </td><td>
 
-\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; onBeforeResume?: (document: Document) =&gt; void; }
+\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; streaming?: StreamingOptions; onBeforeResume?: (document: Document) =&gt; void; }
 
 </td><td>
 

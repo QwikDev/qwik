@@ -1,4 +1,4 @@
-import { Suspense } from '@qwik.dev/core';
+import { Suspense, type JSXOutput } from '@qwik.dev/core';
 import { ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
@@ -7,6 +7,16 @@ const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe('SSR Suspense', () => {
+  const createDelayedChild = (text: string, delayMs: number) =>
+    component$(() => {
+      const content = new Promise<JSXOutput>((resolve) => {
+        setTimeout(() => {
+          resolve(<p>{text}</p>);
+        }, delayMs);
+      });
+      return <>{content}</>;
+    });
+
   describe('basic Suspense', () => {
     it('should render sync children inline (no fallback needed)', async () => {
       const { document } = await ssrRenderToDom(
@@ -21,31 +31,32 @@ describe('SSR Suspense', () => {
       const html = document.body.innerHTML;
       // Sync content should be in the output
       expect(html).toContain('Sync content');
+      expect(html).not.toContain('qph-');
     });
 
-    it('should render async children via OoO streaming', async () => {
-      const AsyncChild = component$(() => {
+    it('should render component children inline when ready by emission time', async () => {
+      const ReadyChild = component$(() => {
         return <p>Async content</p>;
       });
 
       const { document } = await ssrRenderToDom(
         <div>
           <Suspense fallback={<span>Loading...</span>}>
-            <AsyncChild />
+            <ReadyChild />
           </Suspense>
         </div>,
         { debug }
       );
 
       const html = document.body.innerHTML;
-      // The async content should appear somewhere in the output
       expect(html).toContain('Async content');
+      expect(html).not.toContain('Loading...');
+      expect(html).not.toContain('qph-');
+      expect(html).not.toContain('qooo-');
     });
 
     it('should emit fallback with placeholder div for deferred content', async () => {
-      const SlowChild = component$(() => {
-        return <p>Slow content</p>;
-      });
+      const SlowChild = createDelayedChild('Slow content', 20);
 
       const { document } = await ssrRenderToDom(
         <div>
@@ -68,8 +79,8 @@ describe('SSR Suspense', () => {
     });
 
     it('should handle multiple Suspense boundaries', async () => {
-      const Child1 = component$(() => <p>Content 1</p>);
-      const Child2 = component$(() => <p>Content 2</p>);
+      const Child1 = createDelayedChild('Content 1', 20);
+      const Child2 = createDelayedChild('Content 2', 30);
 
       const { document } = await ssrRenderToDom(
         <div>
@@ -80,23 +91,25 @@ describe('SSR Suspense', () => {
             <Child2 />
           </Suspense>
         </div>,
-        { debug }
+        {
+          debug,
+          streaming: {
+            suspenseFallbackDelay: 10,
+          },
+        }
       );
 
       const html = document.body.innerHTML;
-      // Both placeholders
+      expect(html).toContain('Content 1');
       expect(html).toContain('id="qph-0"');
       expect(html).toContain('id="qph-1"');
-      // Both OoO templates
       expect(html).toContain('id="qooo-qph-0"');
       expect(html).toContain('id="qooo-qph-1"');
-      // Both actual contents
-      expect(html).toContain('Content 1');
       expect(html).toContain('Content 2');
     });
 
     it('should render non-Suspense content before fallback', async () => {
-      const SlowChild = component$(() => <p>Slow</p>);
+      const SlowChild = createDelayedChild('Slow', 20);
 
       const { document } = await ssrRenderToDom(
         <div>
@@ -114,12 +127,13 @@ describe('SSR Suspense', () => {
       const headerPos = html.indexOf('Header');
       const footerPos = html.indexOf('Footer');
       const templatePos = html.indexOf('qooo-');
+      expect(templatePos).toBeGreaterThan(-1);
       expect(headerPos).toBeLessThan(templatePos);
       expect(footerPos).toBeLessThan(templatePos);
     });
 
     it('should handle Suspense with no fallback', async () => {
-      const Child = component$(() => <p>Content</p>);
+      const Child = createDelayedChild('Content', 20);
 
       const { document } = await ssrRenderToDom(
         <div>

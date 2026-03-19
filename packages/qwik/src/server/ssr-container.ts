@@ -163,6 +163,10 @@ interface SuspenseBoundary {
   placeholderId: string;
   /** The content SsrNode holding the rendered children (built by sub-cursor). */
   contentNode: SsrNode;
+  /** When the boundary's deferred subtree work started. */
+  createdAt: number;
+  /** Whether the fallback placeholder was actually emitted. */
+  fallbackEmitted: boolean;
 }
 
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
@@ -330,6 +334,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private suspensePlaceholderCounter = 0;
   /** Current Suspense boundary node being built (for storing fallback content). */
   private currentSuspenseBoundary: ISsrNode | null = null;
+  /** Grace period before emitting a Suspense fallback. */
+  private readonly suspenseFallbackDelay: number;
 
   /** Active cursor for ssrDiff calls from container methods (e.g., unclaimed projections). */
   _activeCursor: any = null;
@@ -353,6 +359,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.isHtml = opts.tagName === 'html';
     this.writer = opts.writer;
     this.streamHandler = opts.streamHandler;
+    this.suspenseFallbackDelay = Math.max(
+      0,
+      opts.renderOptions.streaming?.suspenseFallbackDelay ?? 0
+    );
     this.timing = opts.timing;
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
@@ -475,12 +485,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const containerDataNode = bodyNode ?? rootSsrNode;
 
     // Suspense boundaries always use OoO streaming, regardless of whether their sub-cursor
-    // completed synchronously. Non-Suspense boundaries (if any) that are ready are inlined.
+    // completed synchronously. Boundaries that are ready by emission time are inlined instead.
     const deferredBoundaries = this.suspenseBoundaries;
-    const deferredBoundarySet = new Set(deferredBoundaries.map((b) => b.node));
-    const placeholderIdMap = new Map(
-      deferredBoundaries.map((b) => [b.node, b.placeholderId] as const)
-    );
+    const deferredBoundaryMap = new Map(deferredBoundaries.map((b) => [b.node, b] as const));
 
     // Reset vNodeDatas and element counter — emitter will rebuild in document order
     this.vNodeDatas = [];
@@ -490,8 +497,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const emitter = new IncrementalEmitter(
       this.writer,
       containerDataNode,
-      deferredBoundarySet,
-      placeholderIdMap,
+      deferredBoundaryMap,
+      this.suspenseFallbackDelay,
+      (node) => this.markSuspenseFallbackEmitted(node),
       this.vNodeDatas
     );
     emitter.init(rootSsrNode);
@@ -500,6 +508,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let emitDone = false;
     while (!emitDone) {
       processCursorQueue({ timeBudget: Infinity });
+      emitter.syncSuspenseBoundaries(this.suspenseBoundaries);
       // Restore main build state — sub-cursor walk may have swapped it
       this.ssrBuildState = mainBuildState;
       if (this._ssrError) {
@@ -530,8 +539,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           }
 
           // Emit OoO chunks for deferred boundaries (now resolved)
-          if (deferredBoundaries.length > 0) {
-            this.emitOoOChunks(deferredBoundaries);
+          const emittedFallbackBoundaries = deferredBoundaries.filter((b) => b.fallbackEmitted);
+          if (emittedFallbackBoundaries.length > 0) {
+            this.emitOoOChunks(emittedFallbackBoundaries);
           }
 
           this._directMode = true;
@@ -553,6 +563,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             break;
           }
           throw new Error('SSR emitter blocked on a dirty node with no pending cursor work');
+
+        case EmitResult.BLOCKED_SUSPENSE:
+          await this.waitForSuspenseProgressOrDeadline(emitter.nextSuspenseDeadline);
+          this.ssrBuildState = mainBuildState;
+          if (this._ssrError) {
+            throw this._ssrError;
+          }
+          break;
       }
     }
 
@@ -779,6 +797,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           writer: this.writer,
           containerDataNode: rootSsrNode,
           onBeforeContainerClose: () => this.emitContainerData(),
+          suspenseBoundaries: this.suspenseBoundaries,
+          suspenseFallbackDelay: this.suspenseFallbackDelay,
+          onSuspenseFallback: (node) => this.markSuspenseFallbackEmitted(node),
+          waitForSuspense: (deadline) => this.waitForSuspenseProgressOrDeadline(deadline),
         });
         const result = walker.emitTree(rootSsrNode);
         return maybeThen(result, () => {
@@ -993,6 +1015,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       node: boundary,
       placeholderId,
       contentNode,
+      createdAt: 0,
+      fallbackEmitted: false,
     });
   }
 
@@ -1981,6 +2005,35 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           `if(t&&p){p.replaceWith(t.content);t.remove()}` +
           `})()</script>`
       );
+    }
+  }
+
+  private markSuspenseFallbackEmitted(node: ISsrNode) {
+    const boundary = this.suspenseBoundaries.find((candidate) => candidate.node === node);
+    if (boundary) {
+      boundary.fallbackEmitted = true;
+    }
+  }
+
+  private async waitForSuspenseProgressOrDeadline(deadline: number | null) {
+    const waitMs = deadline == null ? 0 : Math.max(0, deadline - performance.now());
+    if (this.$renderPromise$) {
+      if (waitMs > 0) {
+        await Promise.race([
+          this.$renderPromise$,
+          new Promise<void>((resolve) => {
+            setTimeout(resolve, waitMs);
+          }),
+        ]);
+      } else {
+        await this.$renderPromise$;
+      }
+      return;
+    }
+    if (waitMs > 0) {
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, waitMs);
+      });
     }
   }
 }

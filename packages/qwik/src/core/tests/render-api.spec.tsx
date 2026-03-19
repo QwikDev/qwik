@@ -2,6 +2,7 @@ import {
   Fragment as Component,
   Fragment as Signal,
   Resource,
+  Suspense,
   component$,
   componentQrl,
   getDomContainer,
@@ -879,6 +880,99 @@ describe('render api', () => {
         });
         // This can change when the size of the output changes
         expect(stream.write).toHaveBeenCalledTimes(4);
+      });
+      it('should inline Suspense content that resolves within the fallback delay', async () => {
+        const FastChild = component$(() => {
+          const content = new Promise<JSXOutput>((resolve) => {
+            setTimeout(() => {
+              resolve(<span>Fast suspense content</span>);
+            }, 5);
+          });
+          return <>{content}</>;
+        });
+        const chunks: string[] = [];
+        const stream: StreamWriter = {
+          write(chunk) {
+            chunks.push(chunk);
+          },
+        };
+        const streaming: StreamingOptions = {
+          inOrder: {
+            strategy: 'direct',
+          },
+          suspenseFallbackDelay: 10,
+        };
+
+        await renderToStreamAndSetPlatform(
+          <Suspense fallback={<span>Loading...</span>}>
+            <FastChild />
+          </Suspense>,
+          {
+            containerTagName: 'div',
+            stream,
+            streaming,
+          }
+        );
+
+        const html = chunks.join('');
+        expect(html).toContain('Fast suspense content');
+        expect(html).not.toContain('Loading...');
+        expect(html).not.toContain('qph-');
+        expect(html).not.toContain('qooo-');
+      });
+      it('should inline only the Suspense boundaries that resolve within the fallback delay', async () => {
+        const FastChild = component$(() => {
+          const content = new Promise<JSXOutput>((resolve) => {
+            setTimeout(() => {
+              resolve(<span>Fast suspense content</span>);
+            }, 1);
+          });
+          return <>{content}</>;
+        });
+        const SlowChild = component$(() => {
+          const content = new Promise<JSXOutput>((resolve) => {
+            setTimeout(() => {
+              resolve(<span>Slow suspense content</span>);
+            }, 100);
+          });
+          return <>{content}</>;
+        });
+        const chunks: string[] = [];
+        const stream: StreamWriter = {
+          write(chunk) {
+            chunks.push(chunk);
+          },
+        };
+
+        await renderToStreamAndSetPlatform(
+          <>
+            <Suspense fallback={<span>Loading fast...</span>}>
+              <FastChild />
+            </Suspense>
+            <Suspense fallback={<span>Loading slow...</span>}>
+              <SlowChild />
+            </Suspense>
+          </>,
+          {
+            containerTagName: 'div',
+            stream,
+            streaming: {
+              inOrder: {
+                strategy: 'direct',
+              },
+              suspenseFallbackDelay: 20,
+            },
+          }
+        );
+
+        const html = chunks.join('');
+        expect(html).toContain('Fast suspense content');
+        expect(html).not.toContain('Loading fast...');
+        expect(html).not.toContain('qph-0');
+        expect(html).toContain('Loading slow...');
+        expect(html).toContain('qph-1');
+        expect(html).toContain('qooo-qph-1');
+        expect(html).toContain('Slow suspense content');
       });
       it('should interleave cursor walking with direct streaming', async () => {
         let resolveGate!: () => void;

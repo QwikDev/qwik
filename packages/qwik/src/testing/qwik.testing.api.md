@@ -79,6 +79,7 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     debug?: boolean;
     raw?: boolean;
     qwikLoader?: boolean;
+    streaming?: StreamingOptions;
     onBeforeResume?: (document: Document) => void;
 }): Promise<{
     container: _DomContainer;
@@ -111,6 +112,10 @@ export function walkJSX(jsx: JSXOutput, apply: {
     leave: (jsx: JSXNodeInternal) => void;
     text: (text: _Stringifiable) => void;
 }): void;
+
+// Warnings were encountered during analysis:
+//
+// /home/wmertens/Projects/qwik.worktrees/ssr-cursors/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:23:5 - (ae-forgotten-export) The symbol "StreamingOptions" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

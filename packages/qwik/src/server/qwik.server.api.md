@@ -109,6 +109,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
     qwikLoader?: QwikLoaderOptions;
     serverData?: Record<string, any>;
     snapshot?: boolean;
+    streaming?: StreamingOptions;
 }
 
 // @public (undocumented)
@@ -195,6 +196,8 @@ export function setServerPlatform(manifest?: Partial<QwikManifest | ResolvedMani
 export interface StreamingOptions {
     // (undocumented)
     inOrder?: InOrderStreaming;
+    // (undocumented)
+    suspenseFallbackDelay?: number;
 }
 
 // @public

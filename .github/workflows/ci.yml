@@ -646,6 +646,7 @@ jobs:
         run: pnpm run test.unit
         
       - name: Benchmark Tests
+        if: matrix.settings.host == 'ubuntu-latest'
         run: pnpm run test.bench
 
   save-unit-tests-cache:

@@ -191,7 +191,7 @@ const getInstance = <TYPE>(instance: any): QRLClass<TYPE> => {
  * it will be stored on the function itself, and we don't want that because the QRLClass instance
  * doesn't have access to it, and it uses more memory.
  */
-class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE> {
+export class QRLClass<TYPE> extends Function implements QRLInternalMethods<TYPE> {
   resolved: undefined | TYPE = undefined;
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: Readonly<unknown[]> | string | null;

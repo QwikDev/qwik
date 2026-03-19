@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "generatedAt": "2026-03-19T11:38:55.743Z",
+  "sampleCount": 3,
+  "countPerScenario": 10000,
+  "scenarios": {
+    "function": {
+      "totalBytes": 1125176,
+      "bytesPerInstance": 112.5176
+    },
+    "qrl": {
+      "totalBytes": 9863616,
+      "bytesPerInstance": 986.3616
+    },
+    "qrl-copy": {
+      "totalBytes": 9214888,
+      "bytesPerInstance": 921.4888
+    },
+    "lazy-ref": {
+      "totalBytes": 1051984,
+      "bytesPerInstance": 105.1984
+    },
+    "qrl-class": {
+      "totalBytes": 1295240,
+      "bytesPerInstance": 129.524
+    },
+    "signal": {
+      "totalBytes": 659304,
+      "bytesPerInstance": 65.9304
+    },
+    "ComputedSignal": {
+      "totalBytes": 901016,
+      "bytesPerInstance": 90.1016
+    },
+    "wrapped-signal": {
+      "totalBytes": 1460232,
+      "bytesPerInstance": 146.0232
+    },
+    "virtual-vnode": {
+      "totalBytes": 1375528,
+      "bytesPerInstance": 137.5528
+    },
+    "element-vnode": {
+      "totalBytes": 7289472,
+      "bytesPerInstance": 728.9472
+    },
+    "text-vnode": {
+      "totalBytes": 2542272,
+      "bytesPerInstance": 254.2272
+    },
+    "jsx-node": {
+      "totalBytes": 2814768,
+      "bytesPerInstance": 281.4768
+    },
+    "context-id": {
+      "totalBytes": 736696,
+      "bytesPerInstance": 73.6696
+    },
+    "subscription-data": {
+      "totalBytes": 929240,
+      "bytesPerInstance": 92.924
+    },
+    "effect-subscription": {
+      "totalBytes": 4826776,
+      "bytesPerInstance": 482.6776
+    },
+    "delete-operation": {
+      "totalBytes": 1671288,
+      "bytesPerInstance": 167.1288
+    },
+    "set-text-operation": {
+      "totalBytes": 1743576,
+      "bytesPerInstance": 174.3576
+    },
+    "insert-or-move-operation": {
+      "totalBytes": 6323104,
+      "bytesPerInstance": 632.3104
+    },
+    "set-attribute-operation": {
+      "totalBytes": 6722376,
+      "bytesPerInstance": 672.2376
+    },
+    "remove-all-children-operation": {
+      "totalBytes": 6158744,
+      "bytesPerInstance": 615.8744
+    }
+  }
+}

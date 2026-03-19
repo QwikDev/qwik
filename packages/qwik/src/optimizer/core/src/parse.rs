@@ -292,15 +292,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					{
 						let is_dev = matches!(config.mode, EmitMode::Dev | EmitMode::Hmr);
 
+						// Reconstruct destructured props for signal forwarding.
+						// Runs for all modes including Lib, so library .qwik.mjs output
+						// already has the transformation applied. For pre-compiled library
+						// code (inlinedQrl calls), the transform skips their function bodies.
+						transform_props_destructuring(
+							&mut program,
+							&mut collect,
+							&config.core_module,
+						);
+
 						// Don't further process library code beyond QRL wrapping
 						if config.mode != EmitMode::Lib {
-							// reconstruct destructured props for signal forwarding
-							transform_props_destructuring(
-								&mut program,
-								&mut collect,
-								&config.core_module,
-							);
-
 							// replace const values
 							if config.mode != EmitMode::Test {
 								let mut const_replacer =

@@ -42,3 +42,17 @@ export type SSRHintProps = {
 };
 
 export const InternalSSRStream: FunctionComponent<SSRStreamProps> = () => null;
+
+/** @public */
+export type SuspenseProps = {
+  /** Fallback content shown while children are loading. */
+  fallback?: JSXOutput;
+  children?: JSXOutput;
+};
+
+/** @public */
+export const Suspense: FunctionComponent<SuspenseProps> = (props) => {
+  // On the client, Suspense is a no-op — just render children.
+  // The SSR handling is in ssrDiff (ssr-diff.ts).
+  return props.children;
+};

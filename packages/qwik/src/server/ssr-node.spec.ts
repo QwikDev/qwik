@@ -1,24 +1,25 @@
-import { _EMPTY_ARRAY, _EMPTY_OBJ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { SsrNode } from './ssr-node';
-import { OPEN_FRAGMENT, type VNodeData } from './vnode-data';
-import { VNodeDataFlag } from './types';
+import {
+  _vnode_getProp as vnode_getProp,
+  _vnode_setProp as vnode_setProp,
+} from '@qwik.dev/core/internal';
 
 describe('ssr-node', () => {
-  it('should create empty array as attrs if attributesIndex is -1', () => {
-    const vNodeData: VNodeData = [VNodeDataFlag.VIRTUAL_NODE];
-    vNodeData.push(OPEN_FRAGMENT);
-    const ssrNode = new SsrNode(null, '1', -1, [], vNodeData, null);
-    ssrNode.setProp('a', 1);
-    expect(vNodeData[(ssrNode as any).attributesIndex]).toEqual({ a: 1 });
+  it('should store attrs in standalone object (via props)', () => {
+    const attrs = {};
+    const ssrNode = new SsrNode(null, '1', attrs, [], null);
+    vnode_setProp(ssrNode, 'a', 1);
+    expect(attrs).toEqual({ a: 1 });
+    expect(ssrNode.props).toBe(attrs);
   });
 
-  it('should create new empty array as attrs if attrs are equal to EMPTY_ARRAY', () => {
-    const vNodeData: VNodeData = [VNodeDataFlag.VIRTUAL_NODE];
-    const attrs = _EMPTY_OBJ;
-    vNodeData.push(attrs, OPEN_FRAGMENT);
-    const ssrNode = new SsrNode(null, '1', 1, [], vNodeData, null);
-    ssrNode.setProp('a', 1);
-    expect(vNodeData[(ssrNode as any).attributesIndex]).toEqual({ a: 1 });
+  it('should store local props separately from attrs', () => {
+    const attrs = {};
+    const ssrNode = new SsrNode(null, '1', attrs, [], null);
+    vnode_setProp(ssrNode, ':localProp', 'value');
+    vnode_setProp(ssrNode, 'serializable', 'data');
+    expect(attrs).toEqual({ serializable: 'data' });
+    expect(vnode_getProp(ssrNode, ':localProp', null)).toBe('value');
   });
 });

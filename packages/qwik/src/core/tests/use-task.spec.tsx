@@ -391,11 +391,9 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      if (render === ssrRenderToDom) {
-        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'quadruple', 'Counter']);
-      } else {
-        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
-      }
+      // With cursor-driven SSR, task execution order matches client: component renders
+      // before dependent task re-fires (cursor batching vs immediate execution).
+      expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>

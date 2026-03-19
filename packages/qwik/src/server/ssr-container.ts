@@ -7,8 +7,14 @@ import {
   _jsxSplit,
   _res,
   _setEvent,
-  _walkJSX,
+  _ssrDiff as ssrDiff,
   _createQRL as createQRL,
+  _addCursor as addCursor,
+  _getCursorData as getCursorData,
+  _processCursorQueue as processCursorQueue,
+  _VirtualVNode as VirtualVNode,
+  _vnode_getProp as vnode_getProp,
+  _vnode_setProp as vnode_setProp,
   isSignal,
   type Signal,
 } from '@qwik.dev/core/internal';
@@ -71,6 +77,8 @@ import {
   qError,
   retryOnPromise,
   serializeAttribute,
+  ChoreBits,
+  VNodeFlags,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -92,8 +100,23 @@ import {
 
 import { preloaderPost, preloaderPre } from './preload-impl';
 import { getQwikBackpatchExecutorScript, getQwikLoaderScript } from './scripts';
-import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
+import {
+  DomRef,
+  SsrComponentFrame,
+  SsrNode,
+  SsrNodeKind,
+  SSR_VAR_ATTRS,
+  SSR_CONST_ATTRS,
+  SSR_STYLE_SCOPED_ID,
+  SSR_SUSPENSE_FALLBACK,
+  SSR_SUSPENSE_PLACEHOLDER_ID,
+  SSR_SUSPENSE_CONTENT,
+  SSR_SUSPENSE_READY,
+  ssrNode_addOrderedChild,
+  ssrNode_setTreeNonUpdatable,
+} from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
+import { SsrStreamingWalker, IncrementalEmitter, EmitResult } from './ssr-streaming-walker';
 import {
   TagNesting,
   allowedContent,
@@ -124,10 +147,22 @@ import {
   type VNodeData,
 } from './vnode-data';
 
+const NODE_DIFF_DATA_KEY = ':nodeDiff';
+
 enum QwikLoaderInclude {
   Module,
   Inline,
   Done,
+}
+
+/** Tracks a Suspense boundary for OoO streaming. */
+interface SuspenseBoundary {
+  /** The Suspense boundary SsrNode. */
+  node: ISsrNode;
+  /** Unique placeholder ID for the fallback wrapper div. */
+  placeholderId: string;
+  /** The content SsrNode holding the rendered children (built by sub-cursor). */
+  contentNode: SsrNode;
 }
 
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
@@ -182,9 +217,34 @@ interface ElementFrame {
   depthFirstElementIdx: number;
   vNodeData: VNodeData;
   currentFile: string | null;
+  /** SsrNode associated with this element frame (set in tree-building mode). */
+  ssrNode: ISsrNode | null;
 }
 
 const EMPTY_OBJ = {};
+
+/** Per-cursor frame state for SSR tree building. */
+export interface SsrBuildState {
+  currentElementFrame: ElementFrame | null;
+  componentStack: ISsrComponentFrame[];
+  currentComponentNode: ISsrNode | null;
+  /**
+   * Stack of saved ssrNode values for fragment nesting in tree-building mode. When a fragment
+   * opens, the current frame's ssrNode is pushed here and replaced with the fragment's SsrNode.
+   * When the fragment closes, the previous value is restored.
+   */
+  ssrNodeStack: (ISsrNode | null)[];
+}
+
+/** Creates a fresh SsrBuildState. */
+export function createSsrBuildState(): SsrBuildState {
+  return {
+    currentElementFrame: null,
+    componentStack: [],
+    currentComponentNode: null,
+    ssrNodeStack: [],
+  };
+}
 
 /**
  * Stores sequential sequence arrays, which in turn store Tasks which have cleanup functions which
@@ -223,13 +283,29 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    */
   public additionalBodyNodes = new Array<JSXNodeInternal>();
 
+  public ssrBuildState: SsrBuildState = createSsrBuildState();
+  /** Cached last-created SsrNode. Cleared before each new node creation. */
   private lastNode: ISsrNode | null = null;
-  private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
   private backpatchMap = new Map<number, BackpatchEntry[]>();
+  /** In cursor-driven mode, backpatch entries keyed by SsrNode (index resolved at emission). */
+  private backpatchNodeMap = new Map<ISsrNode, BackpatchEntry[]>();
 
-  private currentElementFrame: ElementFrame | null = null;
+  /**
+   * When true, container methods write directly to the stream instead of building tree. Only set
+   * during emitContainerData (script tags for state, vnodes, etc.).
+   */
+  private _directMode = false;
+
+  /**
+   * When true, closeElement's manual rendering path (emitContainerDataFrame check) is suppressed.
+   * Set during cursor-driven render() — container data is handled by the walker callback instead.
+   */
+  private _cursorDrivenRender = false;
+
+  /** Root SsrNode of the content tree (the container element). Used by the streaming walker. */
+  public rootSsrNode: ISsrNode | null = null;
 
   private renderTimer: ReturnType<typeof createTimer>;
   /**
@@ -240,7 +316,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    */
   private depthFirstElementCount: number = -1;
   private vNodeDatas: VNodeData[] = [];
-  private componentStack: ISsrComponentFrame[] = [];
   private cleanupQueue: CleanupQueue = [];
   private emitContainerDataFrame: ElementFrame | null = null;
   public $instanceHash$ = randomStr();
@@ -248,6 +323,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private $noMoreRoots$ = false;
   private qlInclude: QwikLoaderInclude;
   private promiseAttributes: Array<Promise<any>> | null = null;
+
+  /** Suspense boundaries with deferred children for OoO streaming. */
+  private suspenseBoundaries: SuspenseBoundary[] = [];
+  /** Counter for generating unique Suspense placeholder IDs. */
+  private suspensePlaceholderCounter = 0;
+  /** Current Suspense boundary node being built (for storing fallback content). */
+  private currentSuspenseBoundary: ISsrNode | null = null;
+
+  /** Active cursor for ssrDiff calls from container methods (e.g., unclaimed projections). */
+  _activeCursor: any = null;
+  /** Stack for saving/restoring _currentParentVNode across nested component boundaries. */
 
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
@@ -298,50 +384,203 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(err: any, _$host$: null): void {
-    throw err;
+  /** Stored error from cursor walker — re-thrown in render() */
+  private _ssrError: any = null;
+
+  handleError(err: any, _$host$: HostElement | null): void {
+    // Store the error so render() can re-throw it after cursor processing.
+    // The cursor walker catches errors from chore execution and calls this;
+    // if we throw here, async errors become unhandled rejections.
+    if (!this._ssrError) {
+      this._ssrError = err;
+    }
   }
 
   addBackpatchEntry(
-    ssrNodeId: string,
+    ssrNodeOrId: string | ISsrNode,
     attrName: string,
     serializedValue: string | boolean | null
   ): void {
-    // we want to always parse as decimal here
-    const elementIndex = parseInt(ssrNodeId, 10);
     const entry: BackpatchEntry = {
       attrName,
       value: serializedValue,
     };
-    const entries = this.backpatchMap.get(elementIndex) || [];
-    entries.push(entry);
-    this.backpatchMap.set(elementIndex, entries);
+    if (typeof ssrNodeOrId === 'string') {
+      // Direct streaming mode: element index is already final
+      const elementIndex = parseInt(ssrNodeOrId, 10);
+      const entries = this.backpatchMap.get(elementIndex) || [];
+      entries.push(entry);
+      this.backpatchMap.set(elementIndex, entries);
+    } else {
+      // Cursor-driven mode: defer index resolution until emission
+      const entries = this.backpatchNodeMap.get(ssrNodeOrId) || [];
+      entries.push(entry);
+      this.backpatchNodeMap.set(ssrNodeOrId, entries);
+    }
   }
 
   async render(jsx: JSXOutput) {
+    // Phase 1: Open container element (builds root SsrNode in tree-building mode)
     this.openContainer();
-    await _walkJSX(this, jsx, {
-      currentStyleScoped: null,
-      parentComponentFrame: this.getComponentFrame(),
-    });
-    await this.closeContainer();
+
+    // Prevent closeElement from triggering the manual rendering path during cursor-driven
+    // rendering. render() handles container data emission via the emitter callback instead.
+    this._cursorDrivenRender = true;
+
+    // Phase 2: Set up cursor-driven rendering and incremental emission.
+    const rootSsrNode = this.getOrCreateLastNode();
+    this.ssrBuildState.currentElementFrame!.ssrNode = rootSsrNode;
+    this.rootSsrNode = rootSsrNode;
+
+    // Create a cursor root VNode to drive SSR rendering through the cursor walker.
+    // Store the JSX in :nodeDiff so executeSsrNodeDiff processes it via ssrDiff.
+    const cursorRoot = new VirtualVNode(
+      null, // key
+      VNodeFlags.Virtual,
+      null, // parent
+      null, // previousSibling
+      null, // nextSibling
+      { [NODE_DIFF_DATA_KEY]: jsx },
+      null, // firstChild
+      null // lastChild
+    );
+    cursorRoot.dirty = ChoreBits.NODE_DIFF;
+
+    const cursor = addCursor(this, cursorRoot, 0);
+    const mainCursorData = getCursorData(cursor)!;
+    // Wire up the SsrBuildState so the cursor walker swaps it when processing this cursor
+    mainCursorData.ssrBuildState = this.ssrBuildState;
+
+    // Phase 3: Interleaving loop — cursor builds tree, emitter emits ready nodes.
+    // On each iteration: process all sync cursor work, then emit whatever is ready.
+    // If blocked on a dirty node, wait for async cursor completion and retry.
+    // Currently, with inline component execution, the tree is fully built in the
+    // first cursor pass. The infrastructure supports future deferred execution.
+
+    // Save the main build state — processCursorQueue may swap ssrBuildState to a sub-cursor's
+    // context (e.g., Suspense children). We need to restore it for the emission phase.
+    const mainBuildState = this.ssrBuildState;
+
+    // Save the container data frame AFTER tree building (body for html, container root
+    // for non-html). emitContainerDataFrame is set during tree building when openElement
+    // encounters <body>. This frame's vNodeData must be active during emitContainerData
+    // so that script elements are counted in the correct parent.
+    const savedContainerDataFrame = this.emitContainerDataFrame;
+    this.emitContainerDataFrame = null;
+
+    // Determine where to inject container data and set up the incremental emitter:
+    // - For html containers: before </body>
+    // - For non-html containers: before </container>
+    const bodyNode = this.isHtml ? this.findBodyNode(rootSsrNode) : null;
+    const containerDataNode = bodyNode ?? rootSsrNode;
+
+    // Suspense boundaries always use OoO streaming, regardless of whether their sub-cursor
+    // completed synchronously. Non-Suspense boundaries (if any) that are ready are inlined.
+    const deferredBoundaries = this.suspenseBoundaries;
+    const deferredBoundarySet = new Set(deferredBoundaries.map((b) => b.node));
+    const placeholderIdMap = new Map(
+      deferredBoundaries.map((b) => [b.node, b.placeholderId] as const)
+    );
+
+    // Reset vNodeDatas and element counter — emitter will rebuild in document order
+    this.vNodeDatas = [];
+    this.depthFirstElementCount = -1;
+
+    // Initialize emitter and emit tree
+    const emitter = new IncrementalEmitter(
+      this.writer,
+      containerDataNode,
+      deferredBoundarySet,
+      placeholderIdMap,
+      this.vNodeDatas
+    );
+    emitter.init(rootSsrNode);
+
+    // Emission loop: emit ready nodes, handle callbacks, retry if blocked
+    let emitDone = false;
+    while (!emitDone) {
+      processCursorQueue({ timeBudget: Infinity });
+      // Restore main build state — sub-cursor walk may have swapped it
+      this.ssrBuildState = mainBuildState;
+      if (this._ssrError) {
+        throw this._ssrError;
+      }
+
+      const result = emitter.emitReady();
+
+      switch (result) {
+        case EmitResult.COMPLETE:
+          emitDone = true;
+          break;
+
+        case EmitResult.NEEDS_CALLBACK: {
+          // Container data point reached — emit container data before close tag
+          const currentFrame = this.ssrBuildState.currentElementFrame;
+          if (savedContainerDataFrame) {
+            this.ssrBuildState.currentElementFrame = savedContainerDataFrame;
+          }
+          this.onRenderDone();
+          const snapshotTimer = createTimer();
+
+          // Wait for any remaining async sub-cursors (Suspense children)
+          if (this.$renderPromise$) {
+            await this.$renderPromise$;
+            // Sub-cursor processing may have changed ssrBuildState during its execution
+            this.ssrBuildState = mainBuildState;
+          }
+
+          // Emit OoO chunks for deferred boundaries (now resolved)
+          if (deferredBoundaries.length > 0) {
+            this.emitOoOChunks(deferredBoundaries);
+          }
+
+          this._directMode = true;
+          await this.emitContainerData();
+          this._directMode = false;
+          this.timing.snapshot = snapshotTimer();
+          this.ssrBuildState.currentElementFrame = currentFrame;
+          // Continue emission after callback
+          break;
+        }
+
+        case EmitResult.BLOCKED_DIRTY:
+          // If no progress possible (all cursors blocked on async), wait
+          if (this.$renderPromise$) {
+            await this.$renderPromise$;
+            this.$renderPromise$ = null;
+            // Restore main build state after sub-cursor completion
+            this.ssrBuildState = mainBuildState;
+            break;
+          }
+          throw new Error('SSR emitter blocked on a dirty node with no pending cursor work');
+      }
+    }
+
+    // Sync counters from emitter
+    this.size = emitter.size;
+    this.depthFirstElementCount = emitter.depthFirstElementCount;
+
+    // Pop remaining frames (no HTML output — emitter already wrote everything)
+    while (this.ssrBuildState.currentElementFrame) {
+      this._closeElement();
+    }
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
-    const ssrNode: ISsrNode = host as any;
-    let ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
+    let ctx = vnode_getProp<Array<string | unknown>>(host, QCtxAttr, null);
     if (ctx == null) {
-      ssrNode.setProp(QCtxAttr, (ctx = []));
+      ctx = [];
+      vnode_setProp(host, QCtxAttr, ctx);
     }
     mapArray_set(ctx, context.id, value, 0, true);
     // Store the node which will store the context
-    this.addRoot(ssrNode);
+    this.addRoot(host);
   }
 
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
-    let ssrNode: ISsrNode | null = host as any;
+    let ssrNode: ISsrNode | null = host as unknown as ISsrNode;
     while (ssrNode) {
-      const ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
+      const ctx = vnode_getProp<Array<string | unknown>>(ssrNode, QCtxAttr, null);
       if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
         return mapArray_get(ctx, contextId.id, 0) as T;
       }
@@ -352,17 +591,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   getParentHost(host: HostElement): HostElement | null {
     const ssrNode: ISsrNode = host as any;
-    return ssrNode.parentComponent as ISsrNode | null;
+    return ssrNode.parentComponent as unknown as HostElement | null;
   }
 
-  setHostProp<T>(host: ISsrNode, name: string, value: T): void {
-    const ssrNode: ISsrNode = host as any;
-    return ssrNode.setProp(name, value);
+  setHostProp<T>(host: HostElement, name: string, value: T): void {
+    vnode_setProp(host, name, value);
   }
 
-  getHostProp<T>(host: ISsrNode, name: string): T | null {
-    const ssrNode: ISsrNode = host as any;
-    return ssrNode.getProp(name);
+  getHostProp<T>(host: HostElement, name: string): T | null {
+    return vnode_getProp<T>(host, name, null);
   }
 
   /**
@@ -371,7 +608,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    */
   openContainer() {
     if (this.tag == 'html') {
-      this.write('<!DOCTYPE html>');
+      // DOCTYPE is emitted directly — it's not part of the tree
+      this.writer.write('<!DOCTYPE html>');
     }
 
     const containerAttributes = this.renderOptions.containerAttributes || {};
@@ -390,7 +628,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.openElement(this.tag, null, containerAttributes);
     if (!this.isHtml) {
       // For micro-frontends emit before closing the root custom container element.
-      this.emitContainerDataFrame = this.currentElementFrame;
+      this.emitContainerDataFrame = this.ssrBuildState.currentElementFrame;
     }
   }
 
@@ -432,70 +670,131 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     let innerHTML: string | undefined = undefined;
     this.lastNode = null;
-    if (!isQwikStyle && this.currentElementFrame) {
-      vNodeData_incrementElementCount(this.currentElementFrame.vNodeData);
+    if (!isQwikStyle && this.ssrBuildState.currentElementFrame) {
+      if (!this._cursorDrivenRender || this._directMode) {
+        vNodeData_incrementElementCount(this.ssrBuildState.currentElementFrame.vNodeData);
+      }
     }
 
     this.createAndPushFrame(elementName, this.depthFirstElementCount++, currentFile);
     if (this.isHtml && elementName === 'body' && this.emitContainerDataFrame === null) {
       // For full document rendering emit before closing </body>.
-      this.emitContainerDataFrame = this.currentElementFrame;
+      this.emitContainerDataFrame = this.ssrBuildState.currentElementFrame;
     }
-    vNodeData_openElement(this.currentElementFrame!.vNodeData);
-    this.write(LT);
-    this.write(elementName);
-    // create here for writeAttrs method to use it
+    if (!this._cursorDrivenRender || this._directMode) {
+      vNodeData_openElement(this.ssrBuildState.currentElementFrame!.vNodeData);
+    }
+
+    // create here for processAttrs to use it
     const lastNode = this.getOrCreateLastNode();
-    if (varAttrs) {
-      innerHTML = this.writeAttrs(
-        elementName,
-        varAttrs,
-        false,
-        styleScopedId,
-        currentFile,
-        hasMovedCaptures
-      );
-    }
-    this.write(' ' + Q_PROPS_SEPARATOR);
-    if (key !== null) {
-      this.write(`="${key}"`);
-    } else if (import.meta.env.TEST) {
-      // Domino sometimes does not like empty attributes, so we need to add a empty value
-      this.write(EMPTY_ATTR);
-    }
-    if (constAttrs && !isObjectEmpty(constAttrs)) {
-      innerHTML =
-        this.writeAttrs(
+
+    if (this._directMode) {
+      // Direct mode: write HTML immediately to stream (used by emitContainerData for script tags)
+      this.writer.write(LT);
+      this.writer.write(elementName);
+      this.writeAttrsDirect(varAttrs);
+      // Write Q_PROPS_SEPARATOR — marks this as a Qwik-managed element for client materialization
+      this.writer.write(' ' + Q_PROPS_SEPARATOR);
+      if (import.meta.env.TEST) {
+        this.writer.write(EMPTY_ATTR);
+      }
+      this.writer.write(GT);
+    } else {
+      // Tree-building mode: process attrs (run side effects) and store on SsrNode.
+      // Walker will serialize attrs to HTML at emission time.
+      let varProcessed: Record<string, any> | null = null;
+      let constProcessed: Record<string, any> | null = null;
+      if (varAttrs) {
+        const result = this.processAttrs(
+          elementName,
+          varAttrs,
+          false,
+          styleScopedId,
+          currentFile,
+          hasMovedCaptures
+        );
+        varProcessed = result.processed;
+        innerHTML = result.innerHTML;
+      }
+      if (constAttrs && !isObjectEmpty(constAttrs)) {
+        const result = this.processAttrs(
           elementName,
           constAttrs,
           true,
           styleScopedId,
           currentFile,
           hasMovedCaptures
-        ) || innerHTML;
-    }
-    this.write(GT);
+        );
+        constProcessed = result.processed;
+        innerHTML = result.innerHTML || innerHTML;
+      }
 
-    if (lastNode) {
-      lastNode.setTreeNonUpdatable();
+      const ssrNode = lastNode as unknown as SsrNode;
+      if (varProcessed) {
+        vnode_setProp(ssrNode, SSR_VAR_ATTRS, varProcessed);
+      }
+      if (constProcessed) {
+        vnode_setProp(ssrNode, SSR_CONST_ATTRS, constProcessed);
+      }
+      if (styleScopedId) {
+        vnode_setProp(ssrNode, SSR_STYLE_SCOPED_ID, styleScopedId);
+      }
+      ssrNode.key = key;
+      ssrNode.tagName = elementName;
+      ssrNode.nodeKind = SsrNodeKind.Element;
+
+      // Store SsrNode on frame for child tracking
+      this.ssrBuildState.currentElementFrame!.ssrNode = lastNode;
+
+      // Add as ordered child of parent element
+      const parentSsrNode = this.ssrBuildState.currentElementFrame!.parent?.ssrNode;
+      if (parentSsrNode) {
+        ssrNode_addOrderedChild(parentSsrNode as SsrNode, lastNode);
+      }
+
+      // Mark as non-updatable: attrs are captured, any signal changes after this need backpatching
+      ssrNode_setTreeNonUpdatable(lastNode);
     }
+
     return innerHTML;
   }
 
   /** Renders closing tag for DOM element */
   closeElement(): ValueOrPromise<void> {
-    if (this.currentElementFrame === this.emitContainerDataFrame) {
+    if (
+      !this._cursorDrivenRender &&
+      this.ssrBuildState.currentElementFrame === this.emitContainerDataFrame
+    ) {
+      // Manual rendering path (container.spec.tsx toHTML): emit tree + container data.
       this.emitContainerDataFrame = null;
-      // start snapshot timer
       this.onRenderDone();
       const snapshotTimer = createTimer();
-      return maybeThen(
-        maybeThen(this.emitContainerData(), () => this._closeElement()),
-        () => {
-          // set snapshot time
+
+      // Emit the entire tree (including open/close tags) via streaming walker.
+      // The walker's onBeforeContainerClose callback emits container data scripts.
+      const rootSsrNode = this.ssrBuildState.currentElementFrame!.ssrNode;
+      if (rootSsrNode) {
+        this._directMode = true;
+        const walker = new SsrStreamingWalker({
+          writer: this.writer,
+          containerDataNode: rootSsrNode,
+          onBeforeContainerClose: () => this.emitContainerData(),
+        });
+        const result = walker.emitTree(rootSsrNode);
+        return maybeThen(result, () => {
+          this._directMode = false;
+          // Pop the frame (walker already wrote the close tag)
+          this.popFrame();
+          this.lastNode = null;
           this.timing.snapshot = snapshotTimer();
-        }
-      );
+        });
+      }
+
+      // No tree built — just pop
+      this.popFrame();
+      this.lastNode = null;
+      this.timing.snapshot = snapshotTimer();
+      return;
     }
     this._closeElement();
   }
@@ -524,14 +823,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private _closeElement() {
     const currentFrame = this.popFrame();
     const elementName = currentFrame.elementName!;
-    if (!isSelfClosingTag(elementName)) {
-      this.write(CLOSE_TAG);
-      this.write(elementName);
-      this.write(GT);
+    if (this._directMode && !isSelfClosingTag(elementName)) {
+      this.writer.write(CLOSE_TAG);
+      this.writer.write(elementName);
+      this.writer.write(GT);
     }
+    // In tree-building mode, walker handles close tags
     this.lastNode = null;
     if (this.qlInclude === QwikLoaderInclude.Inline) {
-      // keep track of noscript and template
       if (elementName === 'noscript' || elementName === 'template') {
         this.$noScriptHere$--;
       }
@@ -541,17 +840,45 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Writes opening data to vNodeData for fragment boundaries */
   openFragment(attrs: Props) {
     this.lastNode = null;
-    vNodeData_openFragment(this.currentElementFrame!.vNodeData, attrs);
-    // create SSRNode and add it as component child to serialize its vnode data
-    this.getOrCreateLastNode();
+    let node: ISsrNode;
+    if (this._cursorDrivenRender && !this._directMode) {
+      // Cursor-driven render: create SsrNode directly with attrs (no vNodeData needed —
+      // the emitter handles vNodeData building during emission).
+      node = new SsrNode(
+        this.ssrBuildState.currentComponentNode,
+        '', // placeholder ID — emitter assigns real ID via trackVirtualOpen
+        Object.isFrozen(attrs) ? { ...attrs } : attrs,
+        this.cleanupQueue,
+        this.ssrBuildState.currentElementFrame!.currentFile
+      );
+      this.lastNode = node;
+    } else {
+      vNodeData_openFragment(this.ssrBuildState.currentElementFrame!.vNodeData, attrs);
+      node = this.getOrCreateLastNode();
+    }
+    (node as SsrNode).nodeKind = SsrNodeKind.Virtual;
+    // Add as ordered child of current element
+    const parentSsrNode = this.ssrBuildState.currentElementFrame?.ssrNode;
+    if (parentSsrNode) {
+      ssrNode_addOrderedChild(parentSsrNode as SsrNode, node);
+    }
+    // Push the current ssrNode and set the fragment as the new parent for children
+    this.ssrBuildState.ssrNodeStack.push(this.ssrBuildState.currentElementFrame?.ssrNode ?? null);
+    if (this.ssrBuildState.currentElementFrame) {
+      this.ssrBuildState.currentElementFrame.ssrNode = node;
+    }
   }
 
   /** Writes closing data to vNodeData for fragment boundaries */
   closeFragment() {
-    vNodeData_closeFragment(this.currentElementFrame!.vNodeData);
+    if (!this._cursorDrivenRender || this._directMode) {
+      vNodeData_closeFragment(this.ssrBuildState.currentElementFrame!.vNodeData);
+    }
 
-    if (this.currentComponentNode) {
-      this.currentComponentNode.setTreeNonUpdatable();
+    // Restore the previous ssrNode parent
+    const prev = this.ssrBuildState.ssrNodeStack.pop() ?? null;
+    if (this.ssrBuildState.currentElementFrame) {
+      this.ssrBuildState.currentElementFrame.ssrNode = prev;
     }
     this.lastNode = null;
   }
@@ -574,11 +901,99 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeFragment();
   }
 
-  /** Writes opening data to vNodeData for component boundaries */
-  openComponent(attrs: Props) {
+  /**
+   * Opens a Suspense boundary node. Assigns a placeholder ID for OoO streaming. In direct streaming
+   * mode, emits the placeholder div immediately. In tree-building mode (deferred content), tags the
+   * node for the streaming walker.
+   */
+  openSuspenseBoundary(attrs: Props) {
     this.openFragment(attrs);
-    this.currentComponentNode = this.getOrCreateLastNode();
-    this.componentStack.push(new SsrComponentFrame(this.currentComponentNode));
+    const node = this.getOrCreateLastNode();
+    const placeholderId = `qph-${this.suspensePlaceholderCounter++}`;
+    vnode_setProp(node, SSR_SUSPENSE_PLACEHOLDER_ID, placeholderId);
+    (node as SsrNode).nodeKind = SsrNodeKind.Suspense;
+    this.currentSuspenseBoundary = node;
+  }
+
+  /** Closes the Suspense boundary. Marks the boundary for the streaming walker. */
+  closeSuspenseBoundary() {
+    const boundary = this.currentSuspenseBoundary;
+    if (boundary) {
+      vnode_setProp(boundary, SSR_SUSPENSE_FALLBACK, true);
+      this.currentSuspenseBoundary = null;
+    }
+    this.closeFragment();
+  }
+
+  /**
+   * Creates a sub-cursor for Suspense children. The sub-cursor builds children SsrNodes under a
+   * content node with its own SsrBuildState. When the sub-cursor completes, it marks the boundary
+   * as ready so the streaming walker can emit children inline instead of using OoO.
+   *
+   * Called from ssrDiff when encountering Suspense with children.
+   */
+  createSuspenseSubCursor(childrenJsx: JSXOutput) {
+    const boundary = this.currentSuspenseBoundary;
+    if (!boundary) {
+      return;
+    }
+    const placeholderId = vnode_getProp<string>(boundary, SSR_SUSPENSE_PLACEHOLDER_ID, null)!;
+
+    // Create a content SsrNode to hold children built by the sub-cursor
+    const contentNode = new SsrNode(
+      null, // parentComponent
+      `sus-${placeholderId}`,
+      {}, // attrs
+      this.cleanupQueue,
+      null // currentFile
+    );
+    contentNode.vnodeData = [VNodeDataFlag.NONE] as VNodeData;
+    contentNode.nodeKind = SsrNodeKind.Virtual;
+    vnode_setProp(boundary, SSR_SUSPENSE_CONTENT, contentNode);
+
+    // Create a separate SsrBuildState for the sub-cursor
+    const childBuildState = createSsrBuildState();
+    const deferredFrame: ElementFrame = {
+      tagNesting: TagNesting.ANYTHING,
+      parent: null,
+      elementName: 'template',
+      depthFirstElementIdx: -1,
+      vNodeData: [VNodeDataFlag.NONE] as VNodeData,
+      currentFile: null,
+      ssrNode: contentNode,
+    };
+    childBuildState.currentElementFrame = deferredFrame;
+    this.vNodeDatas.push(deferredFrame.vNodeData);
+
+    // Create VirtualVNode for sub-cursor root
+    const cursorRoot = new VirtualVNode(
+      null, // key
+      VNodeFlags.Virtual,
+      null, // parent
+      null, // previousSibling
+      null, // nextSibling
+      { ':nodeDiff': childrenJsx },
+      null, // firstChild
+      null // lastChild
+    );
+    cursorRoot.dirty = ChoreBits.NODE_DIFF;
+
+    // Create sub-cursor with higher priority (-1) so it runs before the streaming phase
+    const cursor = addCursor(this, cursorRoot, -1);
+    const cursorData = getCursorData(cursor)!;
+    cursorData.ssrBuildState = childBuildState;
+
+    // When sub-cursor completes, mark boundary as ready
+    cursorData.onDone = () => {
+      vnode_setProp(boundary, SSR_SUSPENSE_READY, true);
+    };
+
+    // Track this boundary for potential OoO streaming (if sub-cursor doesn't complete in time)
+    this.suspenseBoundaries.push({
+      node: boundary,
+      placeholderId,
+      contentNode,
+    });
   }
 
   /**
@@ -589,9 +1004,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * @returns
    */
   getComponentFrame(projectionDepth: number = 0): ISsrComponentFrame | null {
-    const length = this.componentStack.length;
+    const length = this.ssrBuildState.componentStack.length;
     const idx = length - projectionDepth - 1;
-    return idx >= 0 ? this.componentStack[idx] : null;
+    return idx >= 0 ? this.ssrBuildState.componentStack[idx] : null;
   }
 
   getParentComponentFrame(): ISsrComponentFrame | null {
@@ -599,43 +1014,120 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.getComponentFrame(localProjectionDepth);
   }
 
-  /** Writes closing data to vNodeData for component boundaries and emit unclaimed projections inline */
-  async closeComponent() {
-    const componentFrame = this.componentStack.pop()!;
-    await this.emitUnclaimedProjectionForComponent(componentFrame);
-    this.closeFragment();
-    this.currentComponentNode = this.currentComponentNode?.parentComponent || null;
+  enterComponentContext(componentNode: ISsrNode, existingFrame?: ISsrComponentFrame): void {
+    // Push fragment context: save current ssrNode and set component as new parent
+    this.ssrBuildState.ssrNodeStack.push(this.ssrBuildState.currentElementFrame?.ssrNode ?? null);
+
+    // Push a synthetic element frame for the component boundary.
+    // Use the tag nesting that was stored during tree-building (the parent element's nesting).
+    const storedTagNesting = vnode_getProp<TagNesting>(componentNode, ':parentTagNesting', null);
+    const parentFrame = this.ssrBuildState.currentElementFrame;
+    const syntheticFrame: ElementFrame = {
+      tagNesting: storedTagNesting ?? (parentFrame ? parentFrame.tagNesting : TagNesting.ANYTHING),
+      parent: parentFrame,
+      elementName: ':component',
+      depthFirstElementIdx: this.depthFirstElementCount,
+      vNodeData: [VNodeDataFlag.NONE] as VNodeData,
+      currentFile: null,
+      ssrNode: componentNode,
+    };
+    this.ssrBuildState.currentElementFrame = syntheticFrame;
+
+    // Set up component tracking
+    this.ssrBuildState.currentComponentNode = componentNode;
+    this.ssrBuildState.componentStack.push(existingFrame || new SsrComponentFrame(componentNode));
   }
 
-  private async emitUnclaimedProjectionForComponent(
-    componentFrame: ISsrComponentFrame
-  ): Promise<void> {
+  /**
+   * Restore SsrBuildState after executing within a component. Mirrors enterComponentContext. Pops
+   * fragment and component context. Unclaimed projections are NOT emitted here — they are deferred
+   * to executeSsrUnclaimedProjections (called by cursor walker after CHILDREN processing), because
+   * deferred child components may consume slots during their execution via Slot resolution.
+   */
+  leaveComponentContext(): void {
+    this.ssrBuildState.componentStack.pop();
+
+    // Pop synthetic element frame pushed by enterComponentContext
+    if (this.ssrBuildState.currentElementFrame) {
+      this.ssrBuildState.currentElementFrame = this.ssrBuildState.currentElementFrame.parent;
+    }
+    // Restore fragment context
+    const prev = this.ssrBuildState.ssrNodeStack.pop() ?? null;
+    if (this.ssrBuildState.currentElementFrame) {
+      this.ssrBuildState.currentElementFrame.ssrNode = prev;
+    }
+    this.lastNode = null;
+    // Restore component parent
+    this.ssrBuildState.currentComponentNode =
+      this.ssrBuildState.currentComponentNode?.parentComponent || null;
+  }
+
+  /**
+   * Creates a component frame and distributes children into slots WITHOUT modifying walker context.
+   * Used by ssrComponent during tree-building to set up deferred component state.
+   */
+  createAndDistributeComponentFrame(
+    host: ISsrNode,
+    children: JSXChildren,
+    parentScopedStyle: string | null,
+    parentComponentFrame: ISsrComponentFrame | null
+  ): ISsrComponentFrame {
+    const frame = new SsrComponentFrame(host);
+    frame.distributeChildrenIntoSlots(
+      children,
+      parentScopedStyle,
+      parentComponentFrame as SsrComponentFrame | null
+    );
+    return frame;
+  }
+
+  emitUnclaimedProjectionForComponent(componentFrame: ISsrComponentFrame): ValueOrPromise<void> {
     if (componentFrame.slots.length === 0) {
       return;
     }
+    // Capture and clear slots eagerly to prevent re-emission if the cursor walker revisits
+    // this node before the async processing completes (slots is a mapArray: [key, value, ...]).
+    const slots = componentFrame.slots.slice();
+    componentFrame.slots.length = 0;
+    return this._emitUnclaimedProjectionAsync(componentFrame, slots);
+  }
 
+  private async _emitUnclaimedProjectionAsync(
+    componentFrame: ISsrComponentFrame,
+    slots: (string | JSXChildren)[]
+  ): Promise<void> {
     this.openElement(QTemplate, null, QTemplateProps, null);
 
     const scopedStyleId = componentFrame.projectionScopedStyle;
-    for (let i = 0; i < componentFrame.slots.length; i += 2) {
-      const slotName = componentFrame.slots[i] as string;
-      const children = componentFrame.slots[i + 1] as JSXOutput;
+    for (let i = 0; i < slots.length; i += 2) {
+      const slotName = slots[i] as string;
+      const children = slots[i + 1] as JSXOutput;
 
       this.openFragment(
         isDev
-          ? { [DEBUG_TYPE]: VirtualType.Projection, [QSlotParent]: componentFrame.componentNode.id }
-          : { [QSlotParent]: componentFrame.componentNode.id }
+          ? { [DEBUG_TYPE]: VirtualType.Projection, [QSlotParent]: componentFrame.componentNode }
+          : { [QSlotParent]: componentFrame.componentNode }
       );
       const lastNode = this.getOrCreateLastNode();
       if (lastNode.vnodeData) {
         lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
       }
-      componentFrame.componentNode.setProp(slotName, lastNode.id);
+      vnode_setProp(componentFrame.componentNode, slotName, lastNode);
+      // Connect VNode parent chain so markVNodeDirty can walk up to cursor root
+      // when deferred components are found inside unclaimed projections
+      const lastNodeVNode = lastNode as unknown as VirtualVNode;
+      if (!lastNodeVNode.parent) {
+        lastNodeVNode.parent = componentFrame.componentNode as unknown as VirtualVNode;
+      }
       // Use projectionComponentFrame so that Slots can find their projections from the correct parent
-      await _walkJSX(this, children, {
-        currentStyleScoped: scopedStyleId,
-        parentComponentFrame: componentFrame.projectionComponentFrame,
-      });
+      await ssrDiff(
+        this,
+        children,
+        lastNode as any, // parentVNode
+        this._activeCursor,
+        scopedStyleId,
+        componentFrame.projectionComponentFrame
+      );
       this.closeFragment();
     }
 
@@ -644,17 +1136,54 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
   textNode(text: string) {
-    this.write(escapeHTML(text));
-    vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
+    if (this._directMode) {
+      this.writer.write(escapeHTML(text));
+    } else {
+      const escaped = escapeHTML(text);
+      this.size += escaped.length;
+      const parentSsrNode = this.ssrBuildState.currentElementFrame?.ssrNode;
+      if (parentSsrNode) {
+        ssrNode_addOrderedChild(parentSsrNode as SsrNode, {
+          kind: SsrNodeKind.Text,
+          content: escaped,
+          textLength: text.length,
+        });
+      }
+    }
+    if (!this._cursorDrivenRender || this._directMode) {
+      vNodeData_addTextSize(this.ssrBuildState.currentElementFrame!.vNodeData, text.length);
+    }
     this.lastNode = null;
   }
 
   htmlNode(rawHtml: string) {
-    this.write(rawHtml);
+    if (this._directMode) {
+      this.writer.write(rawHtml);
+    } else {
+      this.size += rawHtml.length;
+      const parentSsrNode = this.ssrBuildState.currentElementFrame?.ssrNode;
+      if (parentSsrNode) {
+        ssrNode_addOrderedChild(parentSsrNode as SsrNode, {
+          kind: SsrNodeKind.RawHtml,
+          content: rawHtml,
+        });
+      }
+    }
   }
 
   commentNode(text: string) {
-    this.write('<!--' + text + '-->');
+    if (this._directMode) {
+      this.writer.write('<!--' + text + '-->');
+    } else {
+      this.size += text.length + 7; // 7 = '<!--' + '-->'
+      const parentSsrNode = this.ssrBuildState.currentElementFrame?.ssrNode;
+      if (parentSsrNode) {
+        ssrNode_addOrderedChild(parentSsrNode as SsrNode, {
+          kind: SsrNodeKind.Comment,
+          content: text,
+        });
+      }
+    }
   }
 
   addRoot(obj: unknown) {
@@ -666,14 +1195,29 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   getOrCreateLastNode(): ISsrNode {
     if (!this.lastNode) {
-      this.lastNode = vNodeData_createSsrNodeReference(
-        this.currentComponentNode,
-        this.currentElementFrame!.vNodeData,
-        // we start at -1, so we need to add +1
-        this.currentElementFrame!.depthFirstElementIdx + 1,
-        this.cleanupQueue,
-        this.currentElementFrame!.currentFile
-      );
+      if (this._cursorDrivenRender && !this._directMode) {
+        // Cursor-driven render: create SsrNode without vNodeData — the emitter handles
+        // vNodeData building and REFERENCE flag during emission.
+        // Still assign ID here because backpatching needs it during tree-building.
+        this.lastNode = new SsrNode(
+          this.ssrBuildState.currentComponentNode,
+          String(this.ssrBuildState.currentElementFrame!.depthFirstElementIdx + 1),
+          {}, // standalone attrs
+          this.cleanupQueue,
+          this.ssrBuildState.currentElementFrame!.currentFile
+        );
+      } else {
+        // Direct mode / manual rendering: use vNodeData_createSsrNodeReference for full
+        // vNodeData path computation and ID assignment.
+        this.lastNode = vNodeData_createSsrNodeReference(
+          this.ssrBuildState.currentComponentNode,
+          this.ssrBuildState.currentElementFrame!.vNodeData,
+          // we start at -1, so we need to add +1
+          this.ssrBuildState.currentElementFrame!.depthFirstElementIdx + 1,
+          this.cleanupQueue,
+          this.ssrBuildState.currentElementFrame!.currentFile
+        );
+      }
     }
     return this.lastNode!;
   }
@@ -682,6 +1226,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // With inline emission, just add the children back to the frame's slots
     // They will be emitted when the component closes
     frame.slots.push(name, children);
+  }
+
+  /** Find the <body> SsrNode in the tree (first-level child of root with tagName 'body'). */
+  private findBodyNode(root: ISsrNode): ISsrNode | null {
+    const children = (root as SsrNode).orderedChildren;
+    if (!children) {
+      return null;
+    }
+    for (const child of children) {
+      if ('id' in child && (child as any).tagName === 'body') {
+        return child as ISsrNode;
+      }
+    }
+    return null;
   }
 
   private $processInjectionsFromManifest$(): void {
@@ -702,7 +1260,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  $appendStyle$(content: string, styleId: string, host: ISsrNode, scoped: boolean): void {
+  $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void {
     if (scoped) {
       const componentFrame = this.getComponentFrame(0)!;
       componentFrame.scopedStyleIds.add(styleId);
@@ -712,7 +1270,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     if (!this.styleIds.has(styleId)) {
       this.styleIds.add(styleId);
-      if (this.currentElementFrame?.elementName === 'html') {
+      if (this._isInsideHtmlElement()) {
         this.additionalHeadNodes.push(
           _jsxSorted(
             'style',
@@ -727,6 +1285,25 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this._styleNode(styleId, content);
       }
     }
+  }
+
+  /**
+   * Check if the nearest real element frame is 'html'. Looks through synthetic ':component' frames
+   * pushed by enterComponentContext, using the stored parent element name from tree-building time.
+   */
+  private _isInsideHtmlElement(): boolean {
+    const frame = this.ssrBuildState.currentElementFrame;
+    if (!frame) {
+      return false;
+    }
+    if (frame.elementName === ':component') {
+      // Use stored parent element name from tree-building time
+      const storedName = frame.ssrNode
+        ? vnode_getProp(frame.ssrNode, ':parentElementName', null)
+        : null;
+      return storedName === 'html';
+    }
+    return frame.elementName === 'html';
   }
 
   private _styleNode(styleId: string, content: string) {
@@ -853,15 +1430,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private writeFragmentAttrs(fragmentAttrs: Props): void {
     for (const key in fragmentAttrs) {
-      let value = fragmentAttrs[key] as string;
+      const rawValue = fragmentAttrs[key];
+      let value: string;
       let encodeValue = false;
-      if (typeof value !== 'string') {
-        const rootId = this.addRoot(value);
+      if (rawValue instanceof SsrNode) {
+        // SsrNode reference — resolve to ID at serialization time
+        value = rawValue.id;
+      } else if (typeof rawValue !== 'string') {
+        const rootId = this.addRoot(rawValue);
         // We didn't add the vnode data, so we are only interested in the vnode position
         if (rootId === undefined) {
           continue;
         }
         value = String(rootId);
+      } else {
+        value = rawValue;
       }
       switch (key) {
         case QScopedStyle:
@@ -971,8 +1554,30 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         );
       }
     }
+    // Resolve deferred backpatch entries (cursor-driven mode) using emission-time element indices.
+    // Must be sorted by element index because the backpatch executor's TreeWalker only moves forward.
+    if (this.backpatchNodeMap.size > 0) {
+      const deferredPatches: { elementIndex: number; entries: BackpatchEntry[] }[] = [];
+      for (const [ssrNode, backpatchEntries] of this.backpatchNodeMap) {
+        const elementIndex = parseInt(ssrNode.id, 10);
+        deferredPatches.push({ elementIndex, entries: backpatchEntries });
+      }
+      deferredPatches.sort((a, b) => a.elementIndex - b.elementIndex);
+      for (const { elementIndex, entries } of deferredPatches) {
+        for (const backpatchEntry of entries) {
+          patches.push(
+            elementIndex,
+            backpatchEntry.attrName,
+            isSignal(backpatchEntry.value)
+              ? (backpatchEntry.value as unknown as SignalImpl<string>).untrackedValue
+              : (backpatchEntry.value as string)
+          );
+        }
+      }
+    }
 
     this.backpatchMap.clear();
+    this.backpatchNodeMap.clear();
 
     if (patches.length > 0) {
       this.isBackpatchExecutorEmitted = true;
@@ -1116,11 +1721,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     currentFile?: string | null
   ) {
     let tagNesting: TagNesting = TagNesting.ANYTHING;
-    if (isDev) {
-      if (!this.currentElementFrame) {
+    if (isDev && !this._directMode) {
+      if (!this.ssrBuildState.currentElementFrame) {
         tagNesting = initialTag(elementName);
       } else {
-        let frame: ElementFrame | null = this.currentElementFrame;
+        let frame: ElementFrame | null = this.ssrBuildState.currentElementFrame;
         const previousTagNesting = frame!.tagNesting;
         tagNesting = isTagAllowed(previousTagNesting, elementName);
         if (tagNesting === TagNesting.NOT_ALLOWED) {
@@ -1164,25 +1769,41 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     const frame: ElementFrame = {
       tagNesting,
-      parent: this.currentElementFrame,
+      parent: this.ssrBuildState.currentElementFrame,
       elementName,
       depthFirstElementIdx,
       vNodeData: [VNodeDataFlag.NONE],
       currentFile: isDev ? currentFile || null : null,
+      ssrNode: null,
     };
-    this.currentElementFrame = frame;
-    this.vNodeDatas.push(frame.vNodeData);
+    this.ssrBuildState.currentElementFrame = frame;
+    // When the emitter is active (cursor-driven render), it pushes vNodeData in document order.
+    // Otherwise (direct API usage or direct mode), tree-building handles the push.
+    if (!this._cursorDrivenRender || this._directMode) {
+      this.vNodeDatas.push(frame.vNodeData);
+    }
   }
   private popFrame() {
-    const closingFrame = this.currentElementFrame!;
-    this.currentElementFrame = closingFrame.parent;
+    const closingFrame = this.ssrBuildState.currentElementFrame!;
+    this.ssrBuildState.currentElementFrame = closingFrame.parent;
     return closingFrame;
   }
 
   ////////////////////////////////////
   write(text: string) {
     this.size += text.length;
-    this.writer.write(text);
+    if (this._directMode) {
+      this.writer.write(text);
+    } else {
+      // Tree-building mode: capture as raw HTML children of current element
+      const parentSsrNode = this.ssrBuildState.currentElementFrame?.ssrNode;
+      if (parentSsrNode) {
+        ssrNode_addOrderedChild(parentSsrNode as SsrNode, {
+          kind: SsrNodeKind.RawHtml,
+          content: text,
+        });
+      }
+    }
   }
 
   writeArray(array: string[], separator: string) {
@@ -1195,14 +1816,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private writeAttrs(
+  /**
+   * Process attrs: run side effects (signal tracking, event serialization, ref handling, innerHTML
+   * detection) and return processed key/value pairs for walker serialization. Does NOT write any
+   * HTML — that's the walker's job.
+   */
+  private processAttrs(
     tag: string,
     attrs: Props,
     isConst: boolean,
     styleScopedId: string | null,
     currentFile: string | null,
     hasMovedCaptures: boolean
-  ): string | undefined {
+  ): { processed: Record<string, any>; innerHTML: string | undefined } {
+    const processed: Record<string, any> = {};
     let innerHTML: string | undefined = undefined;
     for (let key in attrs) {
       let value = attrs[key];
@@ -1238,7 +1865,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         });
         const signal = value as Signal<unknown>;
         value = retryOnPromise(() =>
-          this.trackSignalValue(signal, lastNode, key, signalData)
+          this.trackSignalValue(signal, lastNode as unknown as HostElement, key, signalData)
         ) as Promise<string>;
       }
       if (isPromise<string | boolean | null>(value)) {
@@ -1275,19 +1902,36 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         value = QContainerValue.TEXT;
       }
 
-      const serializedValue = serializeAttribute(key, value, styleScopedId);
+      processed[key] = value;
+    }
+    return { processed, innerHTML };
+  }
+
+  /**
+   * Write attrs directly to the stream (used in _directMode for container data script tags). Simple
+   * attrs only — no signals, events, or complex processing.
+   */
+  private writeAttrsDirect(attrs: Props | null) {
+    if (!attrs) {
+      return;
+    }
+    for (const key in attrs) {
+      let value = attrs[key];
+      // Event attributes (q-e:, q-d:, on:) need special handling to serialize QRLs
+      if (isHtmlAttributeAnEventName(key)) {
+        value = _setEvent(this.serializationCtx, key, value, false);
+      }
+      const serializedValue = serializeAttribute(key, value, null);
       if (serializedValue != null && serializedValue !== false) {
-        this.write(SPACE);
-        this.write(key);
+        this.writer.write(SPACE);
+        this.writer.write(key);
         if (serializedValue !== true) {
-          this.write(ATTR_EQUALS_QUOTE);
-          const strValue = escapeHTML(String(serializedValue));
-          this.write(strValue);
-          this.write(QUOTE);
+          this.writer.write(ATTR_EQUALS_QUOTE);
+          this.writer.write(escapeHTML(String(serializedValue)));
+          this.writer.write(QUOTE);
         }
       }
     }
-    return innerHTML;
   }
 
   private addPromiseAttribute(promise: Promise<any>) {
@@ -1299,6 +1943,44 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.promiseAttributes) {
       await Promise.all(this.promiseAttributes);
       this.promiseAttributes = null;
+    }
+  }
+
+  /**
+   * Emit OoO (out-of-order) chunks for all Suspense boundaries. Each chunk contains:
+   *
+   * 1. A `<template>` with the actual content HTML
+   * 2. A `<script>` that swaps the placeholder with the content
+   */
+  private emitOoOChunks(boundaries: SuspenseBoundary[] = this.suspenseBoundaries) {
+    for (const boundary of boundaries) {
+      const placeholderId = boundary.placeholderId;
+      const templateId = `qooo-${placeholderId}`;
+
+      // Emit <template id="qooo-qph-N"> with actual content
+      this.writer.write(`<template id="${templateId}">`);
+      // Emit content HTML using a mini streaming walker
+      const contentWalker = new SsrStreamingWalker({
+        writer: this.writer,
+      });
+      // emitChildren walks orderedChildren — synchronous for already-built trees
+      const emitResult = contentWalker.emitTree(boundary.contentNode);
+      if (isPromise(emitResult)) {
+        // Shouldn't happen for already-built trees, but handle gracefully
+        throw new Error('Unexpected async in OoO content emission');
+      }
+      this.writer.write('</template>');
+
+      // Emit swap script
+      const nonce = this.renderOptions.serverData?.nonce;
+      const nonceAttr = nonce ? ` nonce="${nonce}"` : '';
+      this.writer.write(
+        `<script${nonceAttr}>(function(){` +
+          `var t=document.getElementById("${templateId}");` +
+          `var p=document.getElementById("${placeholderId}");` +
+          `if(t&&p){p.replaceWith(t.content);t.remove()}` +
+          `})()</script>`
+      );
     }
   }
 }

@@ -63,6 +63,7 @@ export {
   SSRRaw,
   SSRStream,
   SSRComment,
+  Suspense,
   SkipRender,
 } from './shared/jsx/utils.public';
 export type {
@@ -70,6 +71,7 @@ export type {
   SSRHintProps,
   SSRStreamChildren,
   SSRStreamWriter,
+  SuspenseProps,
 } from './shared/jsx/utils.public';
 export { Slot } from './shared/jsx/slot.public';
 export {

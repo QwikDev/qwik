@@ -1,6 +1,7 @@
 import {
   Fragment as Component,
   Fragment as Signal,
+  Resource,
   component$,
   componentQrl,
   getDomContainer,
@@ -10,6 +11,7 @@ import {
   setPlatform,
   useLexicalScope,
   useOn,
+  useResource$,
   useServerData,
   useSignal,
   useTask$,
@@ -878,6 +880,119 @@ describe('render api', () => {
         // This can change when the size of the output changes
         expect(stream.write).toHaveBeenCalledTimes(4);
       });
+      it('should interleave cursor walking with direct streaming', async () => {
+        let resolveGate!: () => void;
+        const gate = new Promise<void>((resolve) => {
+          resolveGate = resolve;
+        });
+        const writes: string[] = [];
+        const stream: StreamWriter = {
+          write(chunk) {
+            writes.push(chunk);
+          },
+        };
+        const streaming: StreamingOptions = {
+          inOrder: {
+            strategy: 'direct',
+          },
+        };
+
+        const BlockedChild = component$(() => {
+          const resource = useResource$(async () => {
+            await gate;
+            return 'blocked child';
+          });
+          return <Resource value={resource} onResolved={(value) => <span>{value}</span>} />;
+        });
+
+        let renderSettled = false;
+        const renderPromise = renderToStreamAndSetPlatform(
+          <>
+            <span>before</span>
+            <BlockedChild />
+            <span>after</span>
+          </>,
+          {
+            containerTagName: 'div',
+            stream,
+            streaming,
+          }
+        );
+        renderPromise.then(() => {
+          renderSettled = true;
+        });
+
+        await Promise.resolve();
+        await Promise.resolve();
+
+        const partialHtml = writes.join('');
+        expect(renderSettled).toBe(false);
+        expect(writes.length).toBeGreaterThan(0);
+        expect(partialHtml).toContain('<div');
+        expect(partialHtml).toContain('before');
+
+        resolveGate();
+
+        await renderPromise;
+
+        const html = writes.join('');
+        expect(renderSettled).toBe(true);
+        expect(html.length).toBeGreaterThan(partialHtml.length);
+        expect(html).toContain('before');
+        expect(html).toContain('after');
+        expect(html.indexOf('before')).toBeLessThan(html.indexOf('after'));
+      });
+    });
+  });
+
+  describe('async resource duplication', () => {
+    it('should not duplicate content with async resource in HTML container', async () => {
+      const Inner = component$(() => {
+        const resourceSuccess = useResource$(async () => {
+          await new Promise((r) => setTimeout(r, 10));
+          return 'Success';
+        });
+        const resourceFailure = useResource$(async () => {
+          await new Promise((r) => setTimeout(r, 10));
+          throw new Error('failed');
+        });
+        return (
+          <>
+            <Resource
+              value={resourceSuccess}
+              onResolved={(data) => <button class="success r1">PASS: {data}</button>}
+              onRejected={(reason) => <button class="failure r1">ERROR: {String(reason)}</button>}
+            />
+            <Resource
+              value={resourceFailure}
+              onResolved={(data) => <button class="success r2">PASS: {data}</button>}
+              onRejected={(reason) => <button class="failure r2">ERROR: {String(reason)}</button>}
+            />
+          </>
+        );
+      });
+
+      const Root = component$(() => {
+        return <Inner />;
+      });
+
+      const result = await renderToStringAndSetPlatform(
+        <>
+          <head>
+            <title>Test</title>
+          </head>
+          <body>
+            <Root />
+          </body>
+        </>,
+        {}
+      );
+
+      const html = result.html;
+      const passCount = (html.match(/PASS:/g) || []).length;
+      const errorCount = (html.match(/ERROR:/g) || []).length;
+      expect(passCount).toBeLessThanOrEqual(1);
+      expect(errorCount).toBeLessThanOrEqual(1);
     });
   });
 });

@@ -806,7 +806,7 @@
             "_noopQrlDEV",
             "_regSymbol",
             "_verifySerializable",
-            "_walkJSX",
+            "_ssrDiff",
             "_wrapSignal",
             "_wrapStore",
             "component$",

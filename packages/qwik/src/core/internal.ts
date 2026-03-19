@@ -23,17 +23,22 @@ export {
   vnode_ensureElementInflated as _vnode_ensureElementInflated,
   vnode_getAttrKeys as _vnode_getAttrKeys,
   vnode_getFirstChild as _vnode_getFirstChild,
+  vnode_getProp as _vnode_getProp,
   vnode_isMaterialized as _vnode_isMaterialized,
   vnode_isTextVNode as _vnode_isTextVNode,
   vnode_isVirtualVNode as _vnode_isVirtualVNode,
+  vnode_removeProp as _vnode_removeProp,
+  vnode_setProp as _vnode_setProp,
   vnode_toString as _vnode_toString,
 } from './client/vnode-utils';
-export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
+export { addCursor as _addCursor } from './shared/cursor/cursor';
+export { getCursorData as _getCursorData } from './shared/cursor/cursor-props';
+export { processCursorQueue as _processCursorQueue } from './shared/cursor/cursor-walker';
 export type { Container as _Container } from './shared/types';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
-export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
-export type { VNode as _VNode } from './shared/vnode/vnode';
+export { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
+export { VNode as _VNode } from './shared/vnode/vnode';
 
 export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
 export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';
@@ -60,7 +65,7 @@ export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
 export { _restProps } from './shared/utils/prop';
-export { _walkJSX } from './ssr/ssr-render-jsx';
+export { ssrDiff as _ssrDiff } from './ssr/ssr-diff';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,

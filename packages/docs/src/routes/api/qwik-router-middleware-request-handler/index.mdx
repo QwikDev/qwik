@@ -1953,11 +1953,11 @@ export type ServerResponseHandler<T = any> = (
   headers: Headers,
   cookies: Cookie,
   resolve: (response: T) => void,
-  requestEv: RequestEventInternal,
+  requestEv: RequestEvent,
 ) => WritableStream<Uint8Array>;
 ```
 
-**References:** [Cookie](#cookie)
+**References:** [Cookie](#cookie), [RequestEvent](#requestevent)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 

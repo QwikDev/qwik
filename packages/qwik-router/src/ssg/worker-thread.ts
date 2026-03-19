@@ -1,14 +1,8 @@
-import { _serialize } from '@qwik.dev/core/internal';
-import type { ServerRequestEvent } from '@qwik.dev/router/middleware/request-handler';
-import {
-  RedirectMessage,
-  RequestEvShareQData,
-  requestHandler,
-} from '@qwik.dev/router/middleware/request-handler';
 import { parentPort } from 'node:worker_threads';
 // Use the global WritableStream, not node:stream/web — in worker threads they can be
 // different classes, causing instanceof checks in pipeTo/TransformStream to fail.
 import type { ClientPageData } from '../runtime/src/types';
+import type { ServerRequestEvent } from '../middleware/request-handler/types';
 import type {
   SsgHandlerOptions,
   SsgRoute,
@@ -18,6 +12,33 @@ import type {
   WorkerInputMessage,
   WorkerOutputMessage,
 } from './types';
+import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers-ssg';
+import { runQwikRouter } from './user-response-ssg';
+import { loadRoute } from './worker-imports/runtime';
+import { RequestEvShareQData } from '@qwik-router-ssg-worker/middleware/request-handler/request-event-core';
+import { getRouteMatchPathname } from '@qwik-router-ssg-worker/middleware/request-handler/request-path';
+
+interface StaticWorkerThreadDeps {
+  RequestEvShareQData: string;
+  loadRoute: typeof loadRoute;
+  renderQwikMiddleware: typeof renderQwikMiddleware;
+  resolveRequestHandlers: typeof resolveRequestHandlers;
+  getRouteMatchPathname: typeof getRouteMatchPathname;
+  runQwikRouter: typeof runQwikRouter;
+}
+
+interface WorkerThreadDeps extends StaticWorkerThreadDeps {
+  serialize: typeof import('@qwik.dev/core/internal')._serialize;
+}
+
+const staticWorkerThreadDeps: StaticWorkerThreadDeps = {
+  RequestEvShareQData,
+  loadRoute,
+  renderQwikMiddleware,
+  resolveRequestHandlers,
+  getRouteMatchPathname,
+  runQwikRouter,
+};
 
 export async function workerThread(sys: System) {
   // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
@@ -25,7 +46,10 @@ export async function workerThread(sys: System) {
   delete (globalThis as any).__qwik;
   const opts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
-  const log = await sys.createLogger();
+  const deps: WorkerThreadDeps = {
+    ...staticWorkerThreadDeps,
+    serialize: await loadSerialize(),
+  };
 
   // Prevent unhandled errors/rejections from crashing the worker thread.
   // SSR rendering can throw asynchronously (e.g., qwik's logErrorAndStop)
@@ -40,9 +64,8 @@ export async function workerThread(sys: System) {
   const onMessage = async (msg: WorkerInputMessage): Promise<WorkerOutputMessage> => {
     switch (msg.type) {
       case 'render': {
-        log.debug(`Worker thread rendering: ${msg.pathname}`);
         return new Promise<SsgWorkerRenderResult>((resolve) => {
-          workerRender(sys, opts, msg, pendingPromises, resolve).catch((e) => {
+          workerRender(sys, opts, msg, pendingPromises, resolve, deps).catch((e) => {
             console.error('Error during render', msg.pathname, e);
             resolve({
               type: 'render',
@@ -62,12 +85,10 @@ export async function workerThread(sys: System) {
       }
       case 'close': {
         if (pendingPromises.size) {
-          log.debug(`Worker thread closing, waiting for ${pendingPromises.size} pending renders`);
           const promises = Array.from(pendingPromises);
           pendingPromises.clear();
           await Promise.all(promises);
         }
-        log.debug(`Worker thread closed`);
         return { type: 'close' };
       }
     }
@@ -105,7 +126,8 @@ async function workerRender(
   opts: SsgHandlerOptions,
   staticRoute: SsgRoute,
   pendingPromises: Set<Promise<any>>,
-  callback: (result: SsgWorkerRenderResult) => void
+  callback: (result: SsgWorkerRenderResult) => void,
+  deps: WorkerThreadDeps
 ) {
   // pathname and origin already normalized at this point
   const url = new URL(staticRoute.pathname, opts.origin);
@@ -216,7 +238,7 @@ async function workerRender(
 
             try {
               if (writeQDataEnabled) {
-                const qData: ClientPageData = requestEv.sharedMap.get(RequestEvShareQData);
+                const qData: ClientPageData = requestEv.sharedMap.get(deps.RequestEvShareQData);
                 if (qData && !is404ErrorPage) {
                   // write q-data.json file when enabled and qData is set
                   const qDataFilePath = sys.getDataFilePath(url.pathname);
@@ -229,7 +251,7 @@ async function workerRender(
                     };
                   });
 
-                  const serialized = await _serialize(qData);
+                  const serialized = await deps.serialize(qData);
                   dataWriter.write(serialized);
 
                   writePromises.push(
@@ -270,7 +292,7 @@ async function workerRender(
       },
     };
 
-    const promise = requestHandler(requestCtx, opts)
+    const promise = requestHandlerForSsg(requestCtx, opts, deps)
       .then((rsp) => {
         if (rsp != null) {
           return rsp.completion.then((r) => {
@@ -283,7 +305,7 @@ async function workerRender(
       })
       .then((e: any) => {
         if (e !== undefined) {
-          if (e instanceof RedirectMessage) {
+          if (isRedirectMessage(e)) {
             // TODO We should render a html page for redirects too
             // that would require refactoring redirects
             return;
@@ -334,3 +356,74 @@ async function workerRender(
 
 /** Create a fresh no-op WritableStream (must be a real instance for pipeTo checks). */
 const createNoopWritableStream = () => new WritableStream();
+
+async function loadSerialize(): Promise<typeof import('@qwik.dev/core/internal')._serialize> {
+  // Import qwik after resetting the global singleton so the worker gets a fresh serializer instance.
+  const { _serialize: serialize } = await import('@qwik.dev/core/internal');
+  return serialize;
+}
+
+function isRedirectMessage(value: unknown) {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as { constructor?: { name?: string } }).constructor?.name === 'RedirectMessage'
+  );
+}
+
+async function requestHandlerForSsg<T>(
+  serverRequestEv: ServerRequestEvent<T>,
+  opts: SsgHandlerOptions,
+  deps: WorkerThreadDeps
+) {
+  const { render, checkOrigin, qwikRouterConfig } = opts;
+
+  if (!qwikRouterConfig) {
+    throw new Error('qwikRouterConfig is required.');
+  }
+
+  const { pathname, isInternal } = deps.getRouteMatchPathname(serverRequestEv.url.pathname);
+  if (pathname === '/.well-known' || pathname.startsWith('/.well-known/')) {
+    return null;
+  }
+
+  const { routes, serverPlugins, cacheModules } = qwikRouterConfig;
+  const loadedRoute = await deps.loadRoute(routes, cacheModules, pathname, isInternal);
+  const requestHandlers = deps.resolveRequestHandlers(
+    serverPlugins,
+    loadedRoute,
+    serverRequestEv.request.method,
+    checkOrigin ?? true,
+    deps.renderQwikMiddleware(render),
+    isInternal
+  );
+
+  if (qwikRouterConfig.fallthrough && loadedRoute.$notFound$) {
+    return null;
+  }
+
+  const rebuildRouteInfo = async (url: URL) => {
+    const { pathname } = deps.getRouteMatchPathname(url.pathname);
+    const loadedRoute = await deps.loadRoute(routes, cacheModules, pathname, isInternal);
+    const requestHandlers = deps.resolveRequestHandlers(
+      serverPlugins,
+      loadedRoute,
+      serverRequestEv.request.method,
+      checkOrigin ?? true,
+      deps.renderQwikMiddleware(render),
+      isInternal
+    );
+    return {
+      loadedRoute,
+      requestHandlers,
+    };
+  };
+
+  return deps.runQwikRouter(
+    serverRequestEv,
+    loadedRoute,
+    requestHandlers,
+    rebuildRouteInfo,
+    qwikRouterConfig.basePathname
+  );
+}

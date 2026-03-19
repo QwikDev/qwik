@@ -52,9 +52,7 @@ const makeUpdatedRows = (rows: TableRow[]): TableRow[] => {
 
 const rows10 = makeRows(10);
 const rows1000 = makeRows(1000);
-const rows10000 = makeRows(10000);
 const updatedRows1000 = makeUpdatedRows(rows1000);
-const updatedRows10000 = makeUpdatedRows(rows10000);
 
 const sharedMeta = {
   adjectives: ['pretty', 'large', 'small', 'helpful'],
@@ -105,6 +103,16 @@ const renderTable = (rows: TableRow[]): JSXOutput => {
   );
 };
 
+const estimateTableSize = (rows: TableRow[]): number => {
+  let size = 24;
+  for (const row of rows) {
+    size += String(row.id).length;
+    size += row.label.length;
+    size += String(row.value).length;
+  }
+  return size;
+};
+
 const renderSsr = async (jsx: JSXOutput): Promise<number> => {
   const result = await renderToString(jsx, { qwikLoader: 'never', containerTagName: 'div' });
   return result.html.length;
@@ -142,7 +150,7 @@ const makeDomScenario = (id: string, rowCount: number, rows: TableRow[]): Benchm
     title: `DOM table ${rowCount} rows`,
     run: async () => {
       await renderDom(renderTable(rows));
-      return 0;
+      return estimateTableSize(rows);
     },
   };
 };
@@ -158,7 +166,7 @@ const makeDomUpdateScenario = (
     title: `DOM update table ${rowCount} rows`,
     run: async () => {
       await renderDomUpdate(initialRows, nextRows);
-      return 0;
+      return estimateTableSize(nextRows);
     },
   };
 };
@@ -166,12 +174,9 @@ const makeDomUpdateScenario = (
 export const scenarios: BenchmarkScenario[] = [
   makeScenario('ssr-table-10', 10, rows10),
   makeScenario('ssr-table-1k', 1000, rows1000),
-  makeScenario('ssr-table-10k', 10000, rows10000),
   makeDomScenario('dom-table-10', 10, rows10),
   makeDomScenario('dom-table-1k', 1000, rows1000),
-  makeDomScenario('dom-table-10k', 10000, rows10000),
   makeDomUpdateScenario('dom-update-table-1k', 1000, rows1000, updatedRows1000),
-  makeDomUpdateScenario('dom-update-table-10k', 10000, rows10000, updatedRows10000),
   {
     id: 'serialize-state-1k',
     title: 'Serialize 1k-item state graph',

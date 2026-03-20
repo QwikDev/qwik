@@ -25,7 +25,7 @@ export const MetaGlobExample = component$<{ name: string }>(({ name }) => {
   const componentPath = `/src/routes/demo/cookbook/glob-import/examples/${name}.tsx`;
 
   useTask$(async () => {
-    await metaGlobComponents[componentPath]();
+    MetaGlobComponent.value = await metaGlobComponents[componentPath]();
   });
 
   return <>{MetaGlobComponent.value && <MetaGlobComponent.value />}</>;

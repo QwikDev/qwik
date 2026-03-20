@@ -68,10 +68,10 @@ export function executeSsrComponent(
   _cursorData: CursorData,
   _cursor: Cursor
 ): ValueOrPromise<void> {
-  vNode.dirty &= ~ChoreBits.COMPONENT;
   const component = getComponentChoreData(vNode, container);
   if (!component) {
     // No QRL means this was just dirtied during initial inline execution — nothing to do.
+    vNode.dirty &= ~ChoreBits.COMPONENT;
     return;
   }
 
@@ -82,6 +82,7 @@ export function executeSsrComponent(
   // can find the component frame via getComponentFrame(0).
   const storedFrame = vnode_getProp(vNode, ':componentFrame', null) as any;
   ssr.enterComponentContext(ssrNode, storedFrame || undefined);
+  vNode.dirty &= ~ChoreBits.COMPONENT;
   const result = runComponentChore(container, component, (jsx) => {
     // Record hook-injected child count (e.g., style elements from useStylesScoped$)
     // so executeSsrNodeDiff can preserve them when clearing content for re-diff.
@@ -98,6 +99,8 @@ export function executeSsrComponent(
   });
 
   if (isPromise(result)) {
+    // The walker will set ChoreBits.PROMISE on this node when it pauses, blocking the emitter.
+    // No need to set NODE_DIFF preemptively — PROMISE handles the dirty=0 gap.
     return (result as Promise<void>).catch((error) => {
       ssr.leaveComponentContext();
       throw error;
@@ -124,11 +127,6 @@ export function executeSsrNodeDiff(
     const ssr = container as SSRContainer;
     const styleScopedId = getScopedStylePrefix(vnode_getProp(vNode, QScopedStyle, null));
 
-    // Reconciliation of existing children is handled inside ssrDiff's diff() function.
-    // It detects existing children when :hookChildCount is set (by executeSsrComponent)
-    // and reconciles them: reusing matching nodes, creating new ones, and cleaning up
-    // unmatched orphans via clearAllEffects.
-
     // For component nodes (have OnRenderProp), the component context was already
     // pushed by executeSsrComponent. Use it and pop when done.
     const isComponent = !!vnode_getProp(vNode, OnRenderProp, null);
@@ -136,6 +134,7 @@ export function executeSsrNodeDiff(
       const componentFrame = ssr.getComponentFrame(0);
       const result = ssrDiff(ssr, jsx as string, vNode, cursor, styleScopedId, componentFrame);
       if (isPromise(result)) {
+        // The walker will set ChoreBits.PROMISE, blocking the emitter.
         return (result as Promise<void>).then(() => {
           ssr.leaveComponentContext();
         });

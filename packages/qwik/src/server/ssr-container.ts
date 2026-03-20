@@ -554,10 +554,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         case EmitResult.BLOCKED_DIRTY:
-          // If no progress possible (all cursors blocked on async), wait
-          if (this.$renderPromise$) {
-            await this.$renderPromise$;
-            this.$renderPromise$ = null;
+          // Wait for cursor work to complete. Cursor async chains may create
+          // multiple rounds of work (pause → resume → pause → resume), each
+          // potentially creating a new $renderPromise$. Keep waiting until
+          // all pending cursor work is done.
+          if (this.$renderPromise$ || this.$pendingCount$ > 0) {
+            if (this.$renderPromise$) {
+              await this.$renderPromise$;
+            } else {
+              // pendingCount > 0 but no promise yet — yield to let microtasks run
+              await Promise.resolve();
+            }
             // Restore main build state after sub-cursor completion
             this.ssrBuildState = mainBuildState;
             break;
@@ -1252,15 +1259,28 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     frame.slots.push(name, children);
   }
 
-  /** Find the <body> SsrNode in the tree (first-level child of root with tagName 'body'). */
+  /**
+   * Find the <body> SsrNode in the tree. Searches through virtual children (components,
+   * projections) since `<body>` may be nested inside a provider component.
+   */
   private findBodyNode(root: ISsrNode): ISsrNode | null {
     const children = (root as SsrNode).orderedChildren;
     if (!children) {
       return null;
     }
     for (const child of children) {
-      if ('id' in child && (child as any).tagName === 'body') {
+      if (!('id' in child)) {
+        continue;
+      }
+      if ((child as any).tagName === 'body') {
         return child as ISsrNode;
+      }
+      // Recurse through virtual nodes (components, projections, fragments)
+      if (!(child as any).tagName) {
+        const found = this.findBodyNode(child as ISsrNode);
+        if (found) {
+          return found;
+        }
       }
     }
     return null;

@@ -173,6 +173,10 @@ export function readComponentScopedStylePrefix(
   return getScopedStylePrefix(container.getHostProp<string>(component.host, QScopedStyle));
 }
 
+export function readHostScopedStylePrefix(container: Container, host: HostElement): string | null {
+  return getScopedStylePrefix(container.getHostProp<string>(host, QScopedStyle));
+}
+
 export function runComponentChore(
   container: Container,
   component: ComponentChoreData,

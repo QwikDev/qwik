@@ -8,7 +8,7 @@ import type { ISsrNode } from '../../ssr/ssr-types';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
-import type { Container } from '../types';
+import type { Container, HostElement } from '../types';
 import { ELEMENT_SEQ } from '../utils/markers';
 import { maybeThen, retryOnPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
@@ -16,6 +16,7 @@ import type { ElementVNode } from '../vnode/element-vnode';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
 import type { VNode } from '../vnode/vnode';
+import { markVNodeDirty } from '../vnode/vnode-dirty';
 import {
   clearNodePropData,
   executeTaskSequence,
@@ -23,7 +24,7 @@ import {
   getComponentChoreData,
   getElementSequenceFromContainer,
   getNodeDiffPayload,
-  readComponentScopedStylePrefix,
+  readHostScopedStylePrefix,
   runComponentChore,
   setNodeDiffPayload,
   setNodePropData,
@@ -77,15 +78,29 @@ export function executeNodeDiff(
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.NODE_DIFF;
 
-  const domVNode = vNode as ElementVNode;
   let jsx = getNodeDiffPayload(vNode);
-  if (!jsx) {
+  if (jsx == null) {
     return;
   }
   if (isSignal(jsx)) {
     jsx = jsx.value as any;
   }
-  return vnode_diff(container as ClientContainer, journal, jsx, domVNode, cursor, null);
+
+  // For component hosts, ensure projections are resolved before diffing.
+  // This was previously handled implicitly when vnode_diff ran inline
+  // inside executeComponentChore → executeComponent.
+  container.ensureProjectionResolved?.(vNode as HostElement);
+
+  return retryOnPromise(() =>
+    vnode_diff(
+      container as ClientContainer,
+      journal,
+      jsx,
+      vNode,
+      cursor,
+      readHostScopedStylePrefix(container, vNode as HostElement)
+    )
+  );
 }
 
 /**
@@ -99,7 +114,7 @@ export function executeNodeDiff(
 export function executeComponentChore(
   vNode: VNode,
   container: Container,
-  journal: VNodeJournal,
+  _journal: VNodeJournal,
   cursor: Cursor
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.COMPONENT;
@@ -107,18 +122,10 @@ export function executeComponentChore(
   if (!component) {
     return;
   }
-  return runComponentChore(container, component, (jsx) =>
-    retryOnPromise(() =>
-      vnode_diff(
-        container as ClientContainer,
-        journal,
-        jsx,
-        component.host as VNode,
-        cursor,
-        readComponentScopedStylePrefix(container, component)
-      )
-    )
-  );
+  return runComponentChore(container, component, (jsx) => {
+    setNodeDiffPayload(component.host as VNode, jsx);
+    markVNodeDirty(container, component.host as VNode, ChoreBits.NODE_DIFF, cursor);
+  });
 }
 
 function setNodeProp(

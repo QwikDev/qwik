@@ -854,9 +854,14 @@ function ssrPromise(ctx: SsrDiffContext, promise: Promise<any>) {
 
   ssr.streamHandler.flush();
 
-  // Async break: keep fragment open, await promise, process resolved JSX inside, then close
+  // Async break: keep fragment open, await promise, process resolved JSX inside, then close.
+  // Mark the SsrNode as having pending content so the emitter blocks at this node level.
+  // The walker also sets ChoreBits.PROMISE on the cursor host, but that may be a different
+  // node (e.g., the cursorRoot VirtualVNode) — _pendingContent ensures the actual SsrNode
+  // in the emission tree is blocked.
   ctx.$asyncBreak$ = true;
   const savedBuildState = (ssr as any).ssrBuildState;
+  (node as any)._pendingContent = ((node as any)._pendingContent || 0) + 1;
   const asyncLifecycle = promise.then(async (resolvedJsx: any) => {
     (ssr as any).ssrBuildState = savedBuildState;
     if (resolvedJsx != null) {
@@ -869,6 +874,7 @@ function ssrPromise(ctx: SsrDiffContext, promise: Promise<any>) {
         ctx.$parentComponentFrame$
       );
     }
+    (node as any)._pendingContent--;
     ssr.closeFragment();
   });
   ctx.$asyncQueue$.unshift(asyncLifecycle as any, node as unknown as VNode);
@@ -980,19 +986,26 @@ function ssrStream(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
   }
 
   if (isAsyncGenerator(value)) {
-    // Async generator: iterate and process each yielded chunk
+    // Async generator: iterate and process each yielded chunk.
+    // Mark parent as having pending content so the emitter blocks at this SsrNode.
+    (parentVNode as any)._pendingContent = ((parentVNode as any)._pendingContent || 0) + 1;
     const lifecycle = (async () => {
       for await (const chunk of value as AsyncGenerator) {
         (ssr as any).ssrBuildState = savedBuildState;
         await ssrDiff(ssr, chunk as JSXOutput, parentVNode, cursor, styleScoped, parentFrame);
       }
+      (parentVNode as any)._pendingContent--;
     })();
     ctx.$asyncBreak$ = true;
     ctx.$asyncQueue$.unshift(lifecycle as any, parentVNode);
   } else if (isPromise(value)) {
     // Async function with write callback: block until complete
+    (parentVNode as any)._pendingContent = ((parentVNode as any)._pendingContent || 0) + 1;
+    const wrappedValue = (value as Promise<void>).then(() => {
+      (parentVNode as any)._pendingContent--;
+    });
     ctx.$asyncBreak$ = true;
-    ctx.$asyncQueue$.unshift(value as any, parentVNode);
+    ctx.$asyncQueue$.unshift(wrappedValue as any, parentVNode);
   }
 }
 
@@ -1018,12 +1031,15 @@ function ssrAsyncGenerator(ctx: SsrDiffContext, generator: AsyncGenerator) {
   const styleScoped = ctx.$currentStyleScoped$;
   const parentFrame = ctx.$parentComponentFrame$;
 
+  // Mark parent as having pending content so the emitter blocks at this SsrNode.
+  (parentVNode as any)._pendingContent = ((parentVNode as any)._pendingContent || 0) + 1;
   const processGenerator = async () => {
     for await (const chunk of generator) {
       (ssr as any).ssrBuildState = savedBuildState;
       await ssrDiff(ssr, chunk as JSXOutput, parentVNode, cursor, styleScoped, parentFrame);
       ssr.streamHandler.flush();
     }
+    (parentVNode as any)._pendingContent--;
   };
 
   ctx.$asyncBreak$ = true;

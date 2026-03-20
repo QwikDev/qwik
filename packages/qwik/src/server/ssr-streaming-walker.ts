@@ -655,7 +655,11 @@ export class IncrementalEmitter {
                 isDeferred: false,
               });
             }
-          } else if (((node as any).dirty & ChoreBits.CHILDREN) !== 0) {
+          } else if (
+            (node as any)._pendingContent > 0 ||
+            (((node as any).dirty & ChoreBits.CHILDREN) !== 0 &&
+              getFirstBlockedChild(node) !== null)
+          ) {
             return EmitResult.BLOCKED_DIRTY;
           } else {
             frame.phase = EmitPhase.CLOSE;

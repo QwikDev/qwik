@@ -1,3 +1,6 @@
+import { isServer } from '@qwik.dev/core/build';
+import { QBackRefs } from '../shared/utils/markers';
+import type { ISsrNode } from '../ssr/ssr-types';
 import { Consumer, EffectProperty, EffectSubscription } from './types';
 import { _EFFECT_BACK_REF, type BackRef } from './backref';
 import type { SubscriptionData } from './subscription-data';
@@ -8,8 +11,6 @@ export function getSubscriber(
   data?: SubscriptionData
 ): EffectSubscription {
   if (!(effect as BackRef)[_EFFECT_BACK_REF]) {
-    // For SsrNode, _EFFECT_BACK_REF is a defineProperty getter/setter
-    // that delegates to serializable attrs (QBackRefs), so this works for both.
     (effect as BackRef)[_EFFECT_BACK_REF] = new Map();
   }
   const subMap = (effect as any)[_EFFECT_BACK_REF];
@@ -27,6 +28,3 @@ export function getSubscriber(
 export function isSsrNode(value: any): value is ISsrNode {
   return '__brand__' in value && value.__brand__ === 'SsrNode';
 }
-
-// Re-export ISsrNode for callers that still need the type
-import type { ISsrNode } from '../ssr/ssr-types';

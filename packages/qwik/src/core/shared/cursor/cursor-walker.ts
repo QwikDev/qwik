@@ -92,7 +92,16 @@ export function processCursorQueue(
  */
 export function walkCursor(cursor: Cursor, options: WalkOptions): void {
   const { timeBudget } = options;
-  const isRunningOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
+  // If the cursor has SSR build state, force server mode regardless of the current platform.
+  // This prevents platform mismatches when cursor async callbacks (from promise chains) run
+  // as microtasks after the render loop resolves — the platform may have been restored to
+  // client mode by the test harness, but SSR cursors must always use the SSR chore runtime.
+  const cursorSsrBuildState = getCursorData(cursor)?.ssrBuildState;
+  const isRunningOnServer = cursorSsrBuildState
+    ? true
+    : import.meta.env.TEST
+      ? isServerPlatform()
+      : isServer;
   const startTime = performance.now();
   const choreRuntime = getCursorChoreRuntime(isRunningOnServer);
 
@@ -218,7 +227,9 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     // Handle blocking promise
     if (result && isPromise(result)) {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
-      // Store promise on cursor and pause
+      // Mark node as having a pending promise so the emitter blocks on it.
+      // PROMISE is not in DIRTY_MASK, so the walker won't dispatch it as a chore.
+      currentVNode.dirty |= ChoreBits.PROMISE;
       cursorData.promise = result;
       pauseCursor(cursor, container);
 
@@ -228,6 +239,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
           container.handleError(error, host);
         })
         .finally(() => {
+          host.dirty &= ~ChoreBits.PROMISE;
           cursorData.promise = null;
           resumeCursor(cursor, container);
           triggerCursors();

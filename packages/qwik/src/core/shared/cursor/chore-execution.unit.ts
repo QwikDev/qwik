@@ -29,6 +29,7 @@ import { invoke, newInvokeContext } from '../../use/use-core';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
 import type { Signal } from '../../reactive-primitives/signal.public';
+import { markVNodeDirty } from '../vnode/vnode-dirty';
 
 vi.mock('../../use/use-task', async () => {
   const actual = await vi.importActual<typeof import('../../use/use-task')>('../../use/use-task');
@@ -68,6 +69,10 @@ vi.mock('../vnode/types/dom-vnode-operation', async () => {
 vi.mock('../../reactive-primitives/utils', () => ({
   isSignal: vi.fn((value: any) => value && typeof value === 'object' && 'value' in value),
   scheduleEffects: vi.fn(),
+}));
+
+vi.mock('../vnode/vnode-dirty', () => ({
+  markVNodeDirty: vi.fn(),
 }));
 
 vi.mock('../../use/use-core', () => ({
@@ -122,6 +127,7 @@ function createMockContainer(): Container {
     handleError: vi.fn((err: any, host: any) => {
       console.error(err);
     }),
+    $checkPendingCount$: vi.fn(),
   } as any;
 }
 
@@ -287,6 +293,16 @@ describe('executeNodeDiff', () => {
     expect(vnode_diff).toHaveBeenCalledWith(container, journal, jsx, vNode, cursor, null);
   });
 
+  it('should apply scoped style prefix from the host', () => {
+    const jsx = { type: 'div', props: {}, children: [] };
+    container.setHostProp(vNode, QScopedStyle, 'scope-123');
+    setNodeDiffPayload(vNode, jsx as any);
+
+    executeNodeDiff(vNode, container, journal, cursor);
+
+    expect(vnode_diff).toHaveBeenCalledWith(container, journal, jsx, vNode, cursor, '⚡️scope-123');
+  });
+
   it('should unwrap signal payload', () => {
     const jsx = { type: 'div', props: {}, children: [] };
     const signal = { value: jsx };
@@ -335,7 +351,7 @@ describe('executeComponentChore', () => {
     expect(executeComponent).not.toHaveBeenCalled();
   });
 
-  it('should execute component and diff result', () => {
+  it('should execute component and schedule node diff result', () => {
     const componentQRL = { getSymbol: () => 'component' } as any;
     const props = { id: 'test' } as Props;
     const jsx = { type: 'div', props: {}, children: [] };
@@ -344,30 +360,13 @@ describe('executeComponentChore', () => {
     container.setHostProp(vNode, ELEMENT_PROPS, props);
 
     vi.mocked(executeComponent).mockReturnValue(jsx as any);
-    vi.mocked(vnode_diff).mockReturnValue(undefined);
 
     executeComponentChore(vNode, container, journal, cursor);
 
     expect(executeComponent).toHaveBeenCalledWith(container, vNode, vNode, componentQRL, props);
-    expect(vnode_diff).toHaveBeenCalledWith(container, journal, jsx, vNode, cursor, null);
-  });
-
-  it('should apply scoped style prefix if present', () => {
-    const componentQRL = { getSymbol: () => 'component' } as any;
-    const jsx = { type: 'div', props: {}, children: [] };
-    const scopedStyleId = 'scope-123';
-
-    container.setHostProp(vNode, OnRenderProp, componentQRL);
-    container.setHostProp(vNode, QScopedStyle, scopedStyleId);
-
-    vi.mocked(executeComponent).mockReturnValue(jsx as any);
-    vi.mocked(vnode_diff).mockReturnValue(undefined);
-
-    executeComponentChore(vNode, container, journal, cursor);
-
-    expect(vnode_diff).toHaveBeenCalled();
-    const call = vi.mocked(vnode_diff).mock.calls[0];
-    expect(call[5]).toBe('⚡️scope-123');
+    expect(vnode_diff).not.toHaveBeenCalled();
+    expect((vNode.props as any)[':nodeDiff']).toBe(jsx);
+    expect(markVNodeDirty).toHaveBeenCalledWith(container, vNode, ChoreBits.NODE_DIFF, cursor);
   });
 
   it('should handle component execution error', () => {
@@ -396,12 +395,33 @@ describe('executeComponentChore', () => {
     container.setHostProp(vNode, OnRenderProp, componentQRL);
 
     vi.mocked(executeComponent).mockReturnValue(Promise.resolve(jsx as any));
-    vi.mocked(vnode_diff).mockReturnValue(undefined);
 
     const result = executeComponentChore(vNode, container, journal, cursor);
 
     expect(result).toBeInstanceOf(Promise);
     await result;
+    expect(vnode_diff).not.toHaveBeenCalled();
+    expect((vNode.props as any)[':nodeDiff']).toBe(jsx);
+    expect(markVNodeDirty).toHaveBeenCalledWith(container, vNode, ChoreBits.NODE_DIFF, cursor);
+  });
+
+  it('should keep only the latest node diff payload before diffing', () => {
+    const componentQRL = { getSymbol: () => 'component' } as any;
+    const jsx1 = { type: 'div', props: { id: 'one' }, children: [] };
+    const jsx2 = { type: 'div', props: { id: 'two' }, children: [] };
+
+    container.setHostProp(vNode, OnRenderProp, componentQRL);
+    vi.mocked(executeComponent)
+      .mockReturnValueOnce(jsx1 as any)
+      .mockReturnValueOnce(jsx2 as any);
+
+    executeComponentChore(vNode, container, journal, cursor);
+    vNode.dirty |= ChoreBits.COMPONENT;
+    executeComponentChore(vNode, container, journal, cursor);
+    executeNodeDiff(vNode, container, journal, cursor);
+
+    expect(vnode_diff).toHaveBeenCalledTimes(1);
+    expect(vnode_diff).toHaveBeenCalledWith(container, journal, jsx2, vNode, cursor, null);
   });
 });
 

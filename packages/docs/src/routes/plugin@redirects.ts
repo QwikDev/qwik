@@ -24,17 +24,17 @@ export const onGet = ({ url, redirect }: RequestEvent) => {
 };
 
 const tempRedirects: Record<string, string> = {
-  '/chat': ' https://discord.gg/TsNCMd6uGW',
-  '/chat/': ' https://discord.gg/TsNCMd6uGW',
+  '/chat': 'https://discord.gg/TsNCMd6uGW',
+  '/chat/': 'https://discord.gg/TsNCMd6uGW',
 
-  '/examples ': '/examples/introduction/hello-world/',
-  '/examples/ ': '/examples/introduction/hello-world/',
-  '/guide ': '/docs/',
-  '/guide/ ': '/docs/',
-  '/tutorial ': '/tutorial/welcome/overview/',
-  '/tutorial/ ': '/tutorial/welcome/overview/',
-  '/tutorials ': '/tutorial/welcome/overview/',
-  '/tutorials/ ': '/tutorial/welcome/overview/',
+  '/examples': '/examples/introduction/hello-world/',
+  '/examples/': '/examples/introduction/hello-world/',
+  '/guide': '/docs/',
+  '/guide/': '/docs/',
+  '/tutorial': '/tutorial/welcome/overview/',
+  '/tutorial/': '/tutorial/welcome/overview/',
+  '/tutorials': '/tutorial/welcome/overview/',
+  '/tutorials/': '/tutorial/welcome/overview/',
 };
 
 const redirects: Record<string, string> = {

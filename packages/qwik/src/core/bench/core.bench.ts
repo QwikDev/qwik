@@ -3,6 +3,7 @@ import { sharedBaselineWorkload } from './baseline';
 import { scenarios } from './scenarios';
 
 const SIZE_LOG_PREFIX = 'QWIK_BENCH_SIZE';
+const CI_BENCH = !!process.env.CI_BENCH;
 
 describe('qwik core relative benchmarks', () => {
   bench(
@@ -10,7 +11,7 @@ describe('qwik core relative benchmarks', () => {
     async () => {
       sharedBaselineWorkload();
     },
-    { warmupTime: 500, time: 4000 }
+    CI_BENCH ? { warmupTime: 500, time: 4000 } : undefined
   );
 
   for (const scenario of scenarios) {
@@ -28,7 +29,7 @@ describe('qwik core relative benchmarks', () => {
           );
         }
       },
-      { warmupTime: 500, time: 6000 }
+      CI_BENCH ? { warmupTime: 500, time: 6000 } : undefined
     );
   }
 });

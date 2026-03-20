@@ -86,6 +86,10 @@ async function runBenchmarks(): Promise<{
     ],
     {
       cwd: process.cwd(),
+      env: {
+        ...process.env,
+        CI_BENCH: '1',
+      },
       maxBuffer: 1024 * 1024 * 16,
     }
   );

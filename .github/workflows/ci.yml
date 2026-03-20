@@ -43,9 +43,7 @@ env:
   CARGO_INCREMENTAL: 0
 
 permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   changes:
@@ -826,6 +824,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
 
     needs:
       - changes

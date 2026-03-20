@@ -1,4 +1,4 @@
-import { component$, createSignal, type JSXOutput } from '@qwik.dev/core';
+import { component$, createSignal, getPlatform, setPlatform, type JSXOutput } from '@qwik.dev/core';
 import { getDomContainer } from '../client/dom-container';
 import { render } from '../client/dom-render';
 import { _serialize } from '../shared/serdes/serdes.public';
@@ -103,19 +103,14 @@ const renderTable = (rows: TableRow[]): JSXOutput => {
   );
 };
 
-const estimateTableSize = (rows: TableRow[]): number => {
-  let size = 24;
-  for (const row of rows) {
-    size += String(row.id).length;
-    size += row.label.length;
-    size += String(row.value).length;
-  }
-  return size;
-};
-
 const renderSsr = async (jsx: JSXOutput): Promise<number> => {
-  const result = await renderToString(jsx, { qwikLoader: 'never', containerTagName: 'div' });
-  return result.html.length;
+  const platform = getPlatform();
+  try {
+    const result = await renderToString(jsx, { qwikLoader: 'never', containerTagName: 'div' });
+    return result.html.length;
+  } finally {
+    setPlatform(platform);
+  }
 };
 
 const renderDom = async (jsx: JSXOutput): Promise<number> => {
@@ -150,7 +145,7 @@ const makeDomScenario = (id: string, rowCount: number, rows: TableRow[]): Benchm
     title: `DOM table ${rowCount} rows`,
     run: async () => {
       await renderDom(renderTable(rows));
-      return estimateTableSize(rows);
+      return 0;
     },
   };
 };
@@ -166,7 +161,7 @@ const makeDomUpdateScenario = (
     title: `DOM update table ${rowCount} rows`,
     run: async () => {
       await renderDomUpdate(initialRows, nextRows);
-      return estimateTableSize(nextRows);
+      return 0;
     },
   };
 };

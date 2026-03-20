@@ -556,10 +556,17 @@ impl<'a> QwikTransform<'a> {
 		// where the entry point would otherwise reference an undefined identifier.
 		// For Inline/Hoist strategies, skip: the .s() call will use the ident directly
 		// (at module scope for globals, or inline via comma expr for non-globals).
+		// Skip inlining for exported identifiers: the chunk can import them from the parent
+		// module, so inlining their initializer is unnecessary and may cause referenced
+		// module-level variables to be incorrectly moved into the chunk.
 		let folded = if !self.is_inline() {
 			if let ast::Expr::Ident(ref ident) = folded {
-				if let Some(init) = self.const_initializers.get(&id!(ident)) {
-					*init.clone()
+				if !self.options.global_collect.has_export_symbol(&ident.sym) {
+					if let Some(init) = self.const_initializers.get(&id!(ident)) {
+						*init.clone()
+					} else {
+						folded
+					}
 				} else {
 					folded
 				}
@@ -822,10 +829,17 @@ impl<'a> QwikTransform<'a> {
 		// For Inline/Hoist strategies, skip inlining: the ident will either be accessible
 		// at module scope (global), or the .s() call will be emitted inline at the use
 		// site via a comma expression (non-global).
+		// Skip inlining for exported identifiers: the chunk can import them from the parent
+		// module, so inlining their initializer is unnecessary and may cause referenced
+		// module-level variables to be incorrectly moved into the chunk.
 		let first_arg = if !self.is_inline() {
 			if let ast::Expr::Ident(ref ident) = first_arg {
-				if let Some(init) = self.const_initializers.get(&id!(ident)) {
-					*init.clone()
+				if !self.options.global_collect.has_export_symbol(&ident.sym) {
+					if let Some(init) = self.const_initializers.get(&id!(ident)) {
+						*init.clone()
+					} else {
+						first_arg
+					}
 				} else {
 					first_arg
 				}
@@ -4444,6 +4458,42 @@ fn collect_block_declarations(block: &ast::BlockStmt, out: &mut HashSet<Id>) {
 					}
 				}
 				if let ast::Stmt::Block(block) = &*for_of.body {
+					collect_block_declarations(block, out);
+				}
+			}
+			ast::Stmt::Try(try_stmt) => {
+				collect_block_declarations(&try_stmt.block, out);
+				if let Some(catch) = &try_stmt.handler {
+					// Collect the catch parameter binding (e.g. `catch (err)`)
+					if let Some(param) = &catch.param {
+						let mut identifiers: Vec<(Id, Span)> = Vec::new();
+						collect_from_pat(param, &mut identifiers);
+						out.extend(identifiers.into_iter().map(|(id, _)| id));
+					}
+					collect_block_declarations(&catch.body, out);
+				}
+				if let Some(finalizer) = &try_stmt.finalizer {
+					collect_block_declarations(finalizer, out);
+				}
+			}
+			ast::Stmt::DoWhile(do_while) => {
+				if let ast::Stmt::Block(block) = &*do_while.body {
+					collect_block_declarations(block, out);
+				}
+			}
+			ast::Stmt::Switch(switch_stmt) => {
+				for case in &switch_stmt.cases {
+					for stmt in &case.cons {
+						if let ast::Stmt::Block(block) = stmt {
+							collect_block_declarations(block, out);
+						} else if let ast::Stmt::Decl(decl) = stmt {
+							collect_declared_idents_from_decl(decl, out);
+						}
+					}
+				}
+			}
+			ast::Stmt::Labeled(labeled) => {
+				if let ast::Stmt::Block(block) = &*labeled.body {
 					collect_block_declarations(block, out);
 				}
 			}

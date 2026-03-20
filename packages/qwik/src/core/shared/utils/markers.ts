@@ -3,6 +3,9 @@ import { QContainerValue } from '../types';
 /** State factory of the component. */
 export const OnRenderProp = 'q:renderFn';
 
+/** Target DOM element for external projection rendering. */
+export const QTargetElement = 'q:targetEl';
+
 /** Component style content prefix */
 export const ComponentStylesPrefixContent = '⚡️';
 

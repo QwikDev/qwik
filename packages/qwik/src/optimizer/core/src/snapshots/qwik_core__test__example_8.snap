@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 224
+assertion_line: 225
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -23,13 +22,15 @@ export const Header = component$(() => {
 ============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
-const i_2B8d0oH9ZWc = ()=>import("./test.tsx_Header_component_1_2B8d0oH9ZWc");
+//
+const q_Header_component_1_2B8d0oH9ZWc = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_1_2B8d0oH9ZWc"), "Header_component_1_2B8d0oH9ZWc");
+//
 export const Header_component_J4uyIhaBNR4 = ()=>{
-    return /*#__PURE__*/ qrl(i_2B8d0oH9ZWc, "Header_component_1_2B8d0oH9ZWc");
+    return q_Header_component_1_2B8d0oH9ZWc;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4CAGiC;IAChC;AAQD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAGiC;IAChC;AAQD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -53,6 +54,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Header_component_1_2B8d0oH9ZWc.tsx (ENTRY POINT)==
 
 import { Header } from "./test";
+//
 export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
     const hola = this;
     hola.nothere.stuff[global];
@@ -60,7 +62,7 @@ export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8CAIU,CAAC;IACT,MAAM,OAAO,IAAI;IAEH,KAAK,OAAO,CAAC,KAAK,CAAC,OAAO;IACxC,QACE;AAEH\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;8CAIU,CAAC;IACT,MAAM,OAAO,IAAI;IAEH,KAAK,OAAO,CAAC,KAAK,CAAC,OAAO;IACxC,QACE;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,11 +90,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_J4uyIhaBNR4 = ()=>import("./test.tsx_Header_component_J4uyIhaBNR4");
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_J4uyIhaBNR4, "Header_component_J4uyIhaBNR4"));
+//
+const q_Header_component_J4uyIhaBNR4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4");
+//
+export const Header = /*#__PURE__*/ componentQrl(q_Header_component_J4uyIhaBNR4);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,uBAAS,+EASnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,uBAAS,6CASnB\"}")
 == DIAGNOSTICS ==
 
 []

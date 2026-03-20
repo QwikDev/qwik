@@ -30,16 +30,19 @@ export const App2 = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_3yveMqbQ3Fs = ()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js");
-export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_3yveMqbQ3Fs, "App2_component_3yveMqbQ3Fs"));
+//
+const q_App2_component_3yveMqbQ3Fs = /*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs");
+//
+export const App2 = /*#__PURE__*/ componentQrl(q_App2_component_3yveMqbQ3Fs);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,qBAAO,6EAgBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,qBAAO,2CAgBjB\"}")
 ============================= test.tsx_App2_component_3yveMqbQ3Fs.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
+//
 export const App2_component_3yveMqbQ3Fs = ()=>{
     const signal = useSignal();
     const computed = signal.value + 'foo';
@@ -72,7 +75,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B;IAC9B,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,WAAC;YAAI,SAAU;;sBACf,WAAC;YAAI,OAAS,YAAE;;sBAChB,WAAC;YAAI,SAAW;;sBAChB,WAAC;YAAI,SAAW;;sBAEhB,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;;AAGnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG+B;IAC9B,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,WAAC;YAAI,SAAU;;sBACf,WAAC;YAAI,OAAS,YAAE;;sBAChB,WAAC;YAAI,SAAW;;sBAChB,WAAC;YAAI,SAAW;;sBAEhB,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;;AAGnB\"}")
 /*
 {
   "origin": "test.tsx",

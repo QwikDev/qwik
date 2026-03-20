@@ -12,6 +12,8 @@ use swc_ecmascript::visit::{VisitMut, VisitMutWith};
 
 struct PropsDestructuring<'a> {
 	component_ident: Option<Id>,
+	inlined_qrl_ident: Option<Id>,
+	inlined_qrl_dev_ident: Option<Id>,
 	pub identifiers: HashMap<Id, ast::Expr>,
 	pub global_collect: &'a mut GlobalCollect,
 	pub core_module: &'a Atom,
@@ -22,8 +24,12 @@ pub fn transform_props_destructuring(
 	global_collect: &mut GlobalCollect,
 	core_module: &Atom,
 ) {
+	let inlined_qrl_ident = global_collect.get_imported_local(&_INLINED_QRL, core_module);
+	let inlined_qrl_dev_ident = global_collect.get_imported_local(&_INLINED_QRL_DEV, core_module);
 	program.visit_mut_with(&mut PropsDestructuring {
 		component_ident: global_collect.get_imported_local(&COMPONENT, core_module),
+		inlined_qrl_ident,
+		inlined_qrl_dev_ident,
 		identifiers: HashMap::new(),
 		global_collect,
 		core_module,
@@ -81,6 +87,24 @@ impl<'a> PropsDestructuring<'a> {
 		}
 	}
 	fn transform_component_body(&mut self, body: &mut ast::BlockStmt) {
+		// Skip already-preprocessed QRL function bodies (from lib builds).
+		// These have _captures destructuring at the top that must not be inlined,
+		// because inner QRL capture arrays reference the named variables.
+		if body.stmts.first().is_some_and(|stmt| {
+			if let ast::Stmt::Decl(ast::Decl::Var(var)) = stmt {
+				var.decls.iter().any(|decl| {
+					matches!(
+						&decl.init,
+						Some(box ast::Expr::Member(m))
+							if matches!(&m.obj, box ast::Expr::Ident(id) if id.sym == *_CAPTURES)
+					)
+				})
+			} else {
+				false
+			}
+		}) {
+			return;
+		}
 		let mut inserts = vec![];
 		for (index, stmt) in body.stmts.iter_mut().enumerate() {
 			if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
@@ -244,6 +268,19 @@ impl<'a> PropsDestructuring<'a> {
 		for (index, stmt) in inserts {
 			body.stmts.insert(index, stmt);
 		}
+
+		// Remove declarations that were replaced with _unused and have no init
+		// (e.g., `const _unused;` from inlined literals). These are invalid JS.
+		body.stmts.retain(|stmt| {
+			if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
+				!var_decl.decls.iter().all(|decl| {
+					decl.init.is_none()
+						&& matches!(&decl.name, ast::Pat::Ident(ident) if ident.id.sym.starts_with("_unused"))
+				})
+			} else {
+				true
+			}
+		});
 	}
 }
 
@@ -277,6 +314,17 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
 						self.transform_component_props(arrow);
 					}
 				}
+			}
+
+			// Skip first arg of inlinedQrl calls — pre-compiled library code.
+			// The function body already has _captures destructuring and explicit
+			// capture arrays that reference the original variable names.
+			if id_eq!(ident, &self.inlined_qrl_ident) || id_eq!(ident, &self.inlined_qrl_dev_ident)
+			{
+				for arg in node.args.iter_mut().skip(1) {
+					arg.visit_mut_with(self);
+				}
+				return;
 			}
 		}
 

@@ -19,14 +19,20 @@ export default component$(() => {
 ============================= src/components/mongo/index.tsx ==
 
 import { componentQrl } from "@qwik.dev/core";
-import { inlinedQrl } from "@qwik.dev/core";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
-    return <div q-e:click={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "mongo_component_div_q_e_click_jncbxvZVtWY")}>
+import { _noopQrl } from "@qwik.dev/core";
+//
+const q_mongo_component_div_q_e_click_jncbxvZVtWY = /*#__PURE__*/ _noopQrl("mongo_component_div_q_e_click_jncbxvZVtWY");
+const q_mongo_component_ouWLj4jA2oI = /*#__PURE__*/ _noopQrl("mongo_component_ouWLj4jA2oI");
+//
+q_mongo_component_div_q_e_click_jncbxvZVtWY.s(()=>console.log(mongodb));
+q_mongo_component_ouWLj4jA2oI.s(()=>{
+    return <div q-e:click={q_mongo_component_div_q_e_click_jncbxvZVtWY}>
 		</div>;
-}, "mongo_component_ouWLj4jA2oI"));
+});
+export default /*#__PURE__*/ componentQrl(q_mongo_component_ouWLj4jA2oI);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,sCAAW;IACzB,QACE,IAAI,oCAAU,IAAM,QAAQ,GAAG,CAAC,wDAAU;EAC3C,EAAE;AAEJ,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;;;;;8CAKiB,IAAM,QAAQ,GAAG,CAAC;gCAFT;IACzB,QACE,IAAI,wDAAsC;EAC3C,EAAE;AAEJ;AALA,6BAAe,4CAKZ\"}")
 == DIAGNOSTICS ==
 
 []

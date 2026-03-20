@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 5204
+assertion_line: 5348
 expression: output
 ---
 ==INPUT==
@@ -37,17 +37,20 @@ export const Child = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_9GyF01GDKqw = ()=>import("./test.tsx_Child_component_9GyF01GDKqw");
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9GyF01GDKqw, "Child_component_9GyF01GDKqw"));
+//
+const q_Child_component_9GyF01GDKqw = /*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
+//
+export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,sBAAQ,8EAsBnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,sBAAQ,4CAsBnB\"}")
 ============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
 
 import { TestComponent } from "./testComponent";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+//
 const _hf0 = (p0)=>p0.attributeInArray.counter;
 const _hf0_str = "p0.attributeInArray.counter";
 export const Child_component_9GyF01GDKqw = ()=>{
@@ -79,7 +82,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAkBuB,GAAK,gBAAgB,CAAC,OAAO;;2CAdpB;IAC9B,MAAM,wBAAwB,UAAU;QACxC,OAAO;YACH,MAAM;gBACJ;oBAAE,kBAAkB;wBAAE,SAAS,WAAW,YAAY;oBAAG;gBAAE;gBAC3D;oBAAE,kBAAkB;wBAAE,SAAS,WAAW,YAAY;oBAAC;gBAAE;aAC1D;QACH;IACF;IACA,qBACE,WAAC,mBACI,sBAAsB,KAAK,CAAC,IAAI,CAAC,GAAG,CAAC,CAAC,MAAM;QAC3C,qBACE,WAAC;YACC,OAAO;;;;YACP,WAAU;oBACL;IAGX;AAGR\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBAkBuB,GAAK,gBAAgB,CAAC,OAAO;;2CAdpB;IAC9B,MAAM,wBAAwB,UAAU;QACxC,OAAO;YACH,MAAM;gBACJ;oBAAE,kBAAkB;wBAAE,SAAS,WAAW,YAAY;oBAAG;gBAAE;gBAC3D;oBAAE,kBAAkB;wBAAE,SAAS,WAAW,YAAY;oBAAC;gBAAE;aAC1D;QACH;IACF;IACA,qBACE,WAAC,mBACI,sBAAsB,KAAK,CAAC,IAAI,CAAC,GAAG,CAAC,CAAC,MAAM;QAC3C,qBACE,WAAC;YACC,OAAO;;;;YACP,WAAU;oBACL;IAGX;AAGR\"}")
 /*
 {
   "origin": "test.tsx",

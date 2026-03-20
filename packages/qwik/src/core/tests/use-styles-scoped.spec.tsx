@@ -2,14 +2,12 @@ import {
   Fragment as Component,
   component$,
   Fragment,
-  inlinedQrl,
   Fragment as Projection,
   Fragment as Signal,
   Slot,
   useAsync$,
   useSignal,
   useStylesScoped$,
-  useStylesScopedQrl,
 } from '@qwik.dev/core';
 import { renderToString } from '@qwik.dev/core/server';
 import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -23,13 +21,13 @@ import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+const STYLE_RED = `.container {background-color: red;}`;
+const STYLE_BLUE = `.container {background-color: blue;}`;
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useStylesScoped', ({ render }) => {
-  const STYLE_RED = `.container {background-color: red;}`;
-  const STYLE_BLUE = `.container {background-color: blue;}`;
-
   afterEach(() => {
     (globalThis as any).rawStyleId = undefined;
     (globalThis as any).rawStyleId1 = undefined;
@@ -42,7 +40,7 @@ describe.each([
     (globalThis as any).rawStyleId = '';
 
     const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId = stylesScopedData.scopeId;
       return <div class="container">Hello world</div>;
     });
@@ -64,7 +62,7 @@ describe.each([
     (globalThis as any).rawStyleId = '';
 
     const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId = stylesScopedData.scopeId;
 
       const store = useStore({
@@ -101,7 +99,7 @@ describe.each([
     (globalThis as any).rawStyleId = '';
 
     const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       const count = useSignal(0);
       (globalThis as any).rawStyleId = stylesScopedData.scopeId;
       return (
@@ -132,7 +130,7 @@ describe.each([
     (globalThis as any).rawStyleId = '';
 
     const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId = stylesScopedData.scopeId;
       return <div>Hello world</div>;
     });
@@ -163,7 +161,7 @@ describe.each([
 
   it('style node should contain q:style attribute', async () => {
     const StyledComponent = component$(() => {
-      useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+      useStylesScoped$(STYLE_RED);
       return <div>Hello world</div>;
     });
     const { container } = await render(<StyledComponent />, { debug });
@@ -176,12 +174,12 @@ describe.each([
     (globalThis as any).rawStyleId1 = '';
     (globalThis as any).rawStyleId2 = '';
     const StyledComponent1 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
       return <div class="container">Hello world 1</div>;
     });
     const StyledComponent2 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
       (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
       return <div class="container">Hello world 2</div>;
     });
@@ -220,12 +218,12 @@ describe.each([
     (globalThis as any).rawStyleId1 = '';
     (globalThis as any).rawStyleId2 = '';
     const StyledComponent1 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
       return <div class="container">Hello world 1</div>;
     });
     const StyledComponent2 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
       (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
       return <div class="container">Hello world 2</div>;
     });
@@ -268,12 +266,12 @@ describe.each([
     (globalThis as any).rawStyleId1 = '';
     (globalThis as any).rawStyleId2 = '';
     const StyledComponent1 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
       return <div>Hello world 1</div>;
     });
     const StyledComponent2 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped2'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
       return <div>Hello world 2</div>;
     });
@@ -295,9 +293,9 @@ describe.each([
     (globalThis as any).rawStyleId1 = '';
     (globalThis as any).rawStyleId2 = '';
     const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
-      const stylesScopedData2 = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+      const stylesScopedData2 = useStylesScoped$(STYLE_BLUE);
       (globalThis as any).rawStyleId2 = stylesScopedData2.scopeId;
       return <div class="container">Hello world</div>;
     });
@@ -323,7 +321,7 @@ describe.each([
 
   it('should generate only one style for the same components', async () => {
     const StyledComponent1 = component$(() => {
-      useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_styles', []));
+      useStylesScoped$(STYLE_RED);
       return <div>Hello world 1</div>;
     });
     const Parent = component$(() => {
@@ -344,13 +342,13 @@ describe.each([
     (globalThis as any).rawStyleId2 = '';
 
     const Child = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
       (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
       return <div class="container">Hello world 2</div>;
     });
 
     const Parent = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
       return (
         <div class="container">
@@ -392,7 +390,7 @@ describe.each([
     (globalThis as any).rawStyleId3 = '';
 
     const ComponentA = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
 
       (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
       return (
@@ -404,7 +402,7 @@ describe.each([
     });
 
     const ComponentB = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped3'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
 
       (globalThis as any).rawStyleId3 = stylesScopedData.scopeId;
       return (
@@ -416,7 +414,7 @@ describe.each([
     });
 
     const RootStyles = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
       return (
         <ComponentB>
@@ -483,7 +481,7 @@ describe.each([
     (globalThis as any).rawStyleId4 = '';
 
     const StyledComponent2 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
       (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
       return (
         <div class="container">
@@ -493,7 +491,7 @@ describe.each([
       );
     });
     const StyledComponent3 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped3'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId3 = stylesScopedData.scopeId;
       return (
         <div class="container">
@@ -503,13 +501,13 @@ describe.each([
       );
     });
     const StyledComponent4 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped4'));
+      const stylesScopedData = useStylesScoped$(STYLE_BLUE);
       (globalThis as any).rawStyleId4 = stylesScopedData.scopeId;
       return <div class="container">Hello world 4</div>;
     });
 
     const StyledComponent1 = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
       return (
         <div class="container">
@@ -581,7 +579,7 @@ describe.each([
     (globalThis as any).rawStyleId = '';
 
     const StyledComponent = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+      const stylesScopedData = useStylesScoped$(STYLE_RED);
       (globalThis as any).rawStyleId = stylesScopedData.scopeId;
       return <div>Hello world</div>;
     });
@@ -625,7 +623,7 @@ describe.each([
       (globalThis as any).rawStyleId2 = '';
 
       const Child = component$(() => {
-        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+        const stylesScopedData = useStylesScoped$(STYLE_BLUE);
         (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
         const show = useSignal(false);
         return (
@@ -637,7 +635,7 @@ describe.each([
       });
 
       const Parent = component$(() => {
-        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+        const stylesScopedData = useStylesScoped$(STYLE_RED);
         (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
         return (
           <Child>
@@ -706,12 +704,12 @@ describe.each([
   });
 });
 
+const STYLE = `.container{color: blue;}`;
 describe('html wrapper', () => {
   it('should append scoped style to head', async () => {
-    const STYLE = `.container{color: blue;}`;
     (globalThis as any).rawStyleId = '';
     const Wrapper = component$(() => {
-      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE, 's_styles1'));
+      const stylesScopedData = useStylesScoped$(STYLE);
       (globalThis as any).rawStyleId = stylesScopedData.scopeId;
       return <Slot />;
     });

@@ -3979,8 +3979,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-Resource: <T>({ value, onResolved, onPending, onRejected }: ResourceProps<T>) =>
-  JSXOutput;
+Resource: <T>(input: ResourceProps<T>) => JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -3999,6 +3998,17 @@ Description
 <tbody><tr><td>
 
 \{ value, onResolved, onPending, onRejected, }
+
+</td><td>
+
+(not declared)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+input
 
 </td><td>
 

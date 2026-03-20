@@ -93,12 +93,12 @@ fn example_1() {
 		code: r#"
 import { $, component, onRender } from '@qwik.dev/core';
 
-export const renderHeader = $(() => {
+export const renderHeader1 = $(() => {
 	return (
 		<div onClick={$((ctx) => console.log(ctx))}/>
 	);
 });
-const renderHeader = component($(() => {
+const renderHeader2 = component($(() => {
 	console.log("mount");
 	return render;
 }));
@@ -3322,13 +3322,11 @@ export { qwikify$, qwikifyQrl, renderToString };
 }
 
 #[test]
-fn example_qwik_router_inline() {
+fn example_qwik_router_client() {
 	test_input!(TestInput {
 		code: include_str!("fixtures/index.qwik.mjs").to_string(),
 		filename: "../node_modules/@qwik.dev/router/index.qwik.mjs".to_string(),
-		entry_strategy: EntryStrategy::Smart,
 		explicit_extensions: true,
-		mode: EmitMode::Lib,
 		..TestInput::default()
 	});
 }
@@ -5744,6 +5742,42 @@ fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }
 
+fn get_segment_hash_by_ctx_name(output: &TransformOutput, ctx_name: &str) -> String {
+	let hashes: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.filter(|segment| segment.ctx_name.as_ref() == ctx_name)
+		.map(|segment| get_hash(segment.name.as_ref()))
+		.collect();
+	assert_eq!(
+		hashes.len(),
+		1,
+		"Expected exactly one segment for {}, got {:?}",
+		ctx_name,
+		hashes
+	);
+	hashes[0].clone()
+}
+
+fn get_segment_name_by_ctx_name(output: &TransformOutput, ctx_name: &str) -> String {
+	let names: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.filter(|segment| segment.ctx_name.as_ref() == ctx_name)
+		.map(|segment| segment.name.to_string())
+		.collect();
+	assert_eq!(
+		names.len(),
+		1,
+		"Expected exactly one segment for {}, got {:?}",
+		ctx_name,
+		names
+	);
+	names[0].clone()
+}
+
 struct TestInput {
 	pub code: String,
 	pub filename: String,
@@ -5765,6 +5799,1106 @@ struct TestInput {
 	pub strip_ctx_name: Option<Vec<String>>,
 	pub strip_event_handlers: bool,
 	pub is_server: Option<bool>,
+}
+
+#[test]
+fn example_segment_variable_migration() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+// This helper is only used by App component, so it should be migrated to its segment
+const helperFn = (msg) => {
+	console.log('Helper: ' + msg);
+	return msg.toUpperCase();
+};
+
+// This shared variable is used by multiple segments, so it should stay at root
+const SHARED_CONFIG = { value: 42 };
+
+// This is an export, so it must stay at root
+export const publicHelper = () => console.log('public');
+
+export const App = component$(() => {
+	const result = helperFn('hello');
+	return <div>{result} {SHARED_CONFIG.value}</div>;
+});
+
+export const Other = component$(() => {
+	return <div>{SHARED_CONFIG.value}</div>;
+});
+"#
+		.to_string(),
+		snapshot: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn root_level_self_referential_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+// Root-level self-referential component
+// The QRL should NOT be hoisted before the component function is defined
+// or should use two-phase emission to avoid forward reference
+export const Tree = component$((props) => {
+	return (
+		<div>
+			{props.label}
+			{props.children && props.children.map((child) => <Tree {...child} />)}
+		</div>
+	);
+});
+"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn root_level_self_referential_qrl_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+// Root-level self-referential component
+// The QRL should NOT be hoisted before the component function is defined
+// or should use two-phase emission to avoid forward reference
+export const Tree = component$((props) => {
+	return (
+		<div>
+			{props.label}
+			{props.children && props.children.map((child) => <Tree {...child} />)}
+		</div>
+	);
+});
+"#
+		.to_string(),
+		filename: "./node_modules/qwik-tree/index.qwik.jsx".to_string(),
+		transpile_jsx: true,
+		is_server: Some(true),
+		entry_strategy: EntryStrategy::Inline,
+		mode: EmitMode::Dev,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn component_level_self_referential_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useAsync$ } from '@qwik.dev/core';
+		
+// Component-level self-referential component
+export const Foo = component$((props) => {
+	const sig = useAsync$(async ({cleanup}) => {
+		const timer = setInterval(() => {
+			sig.value++;
+		}, 1000);
+		cleanup(() => clearInterval(timer));
+		return 0;
+	});
+	const other = useAsync$(async ({cleanup}) => {
+		const timer = setInterval(() => {
+			other.value++;
+		}, 900);
+		cleanup(() => clearInterval(timer));
+		return 0;
+	});
+	return (
+		<div>
+			{other.value}
+		</div>
+	);
+});
+"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_self_referential_component_migration() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+// Self-referential component: the Nested component references itself in its JSX
+// This should be migrated to its segment using two-phase emission (let + assign)
+// to avoid Temporal Dead Zone errors
+export const Nested = component$(() => {
+	return (
+		<div>
+			<Nested />
+		</div>
+	);
+});
+
+// Another self-referential component with conditional rendering
+export const RecursiveList = component$((props) => {
+	if (props.depth === 0) return <div>End</div>;
+	return (
+		<div>
+			Level {props.depth}
+			<RecursiveList depth={props.depth - 1} />
+		</div>
+	);
+});
+
+// Mutually recursive components: A references B, B references A
+const ComponentA = component$(() => {
+	return (
+		<div>
+			A
+			<ComponentB />
+		</div>
+	);
+});
+
+const ComponentB = component$(() => {
+	return (
+		<div>
+			B
+			<ComponentA />
+		</div>
+	);
+});
+
+export const MutualExample = component$(() => {
+	return <ComponentA />;
+});
+"#
+		.to_string(),
+		snapshot: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+// Non-snapshot tests for robust import resolution
+#[test]
+fn import_collision_with_renaming() {
+	// Test that imports are correctly resolved from global context without fallback
+	// This verifies the fix for SyntaxContext mismatch issues
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Test = component$(() => {
+	return <div>Test</div>;
+});
+"#
+		.to_string(),
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(
+		res.is_ok(),
+		"Transform should succeed without fallback errors"
+	);
+	let output = res.unwrap();
+
+	// Verify the entry module was created
+	let entry = output.modules.iter().find(|m| m.is_entry);
+	assert!(entry.is_some(), "Should have entry module");
+
+	// Verify output modules contain generated code
+	assert!(
+		!output.modules.is_empty(),
+		"Should generate at least one module"
+	);
+}
+
+#[test]
+fn explicit_imports_for_dev_qrls() {
+	// Test that dev mode transform succeeds with explicit imports for hoisted items
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Test = component$(() => {
+	const items = [1, 2, 3];
+	return (
+		<div>
+			{items.map(item => <div>{item}</div>)}
+		</div>
+	);
+});
+"#
+		.to_string(),
+		mode: EmitMode::Dev,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed in dev mode");
+	let output = res.unwrap();
+
+	// Verify all modules have valid import structure
+	for module in &output.modules {
+		// Each module's code should be valid (contain component or segment code)
+		assert!(
+			!module.code.is_empty(),
+			"Module {} should have code",
+			module.path
+		);
+	}
+}
+
+#[test]
+fn import_backed_qrl_hash_matches_across_relative_import_paths() {
+	let code = r#"
+import { $ } from '@qwik.dev/core';
+import { name } from './utils/value';
+
+export const value = $(name);
+"#;
+
+	let first = test_input!(TestInput {
+		code: code.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let second = test_input!(TestInput {
+		code: code.replace("./utils/value", "../shared/../utils/value"),
+		filename: "src/routes/nested/b.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_eq!(
+		get_segment_hash_by_ctx_name(&first, "$"),
+		get_segment_hash_by_ctx_name(&second, "$")
+	);
+}
+
+#[test]
+fn import_backed_qrl_hash_matches_namespace_member() {
+	let named = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from './utils/value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let namespace = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+export const value = $(ns.name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_eq!(
+		get_segment_hash_by_ctx_name(&named, "$"),
+		get_segment_hash_by_ctx_name(&namespace, "$")
+	);
+}
+
+#[test]
+fn import_backed_qrl_hash_normalizes_backslashes_and_non_relative_paths() {
+	let relative = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '.\\utils\\value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let relative_normalized = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from './utils/value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let package_import = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '@pkg/utils/value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_eq!(
+		get_segment_hash_by_ctx_name(&relative, "$"),
+		get_segment_hash_by_ctx_name(&relative_normalized, "$")
+	);
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&relative_normalized, "$"),
+		get_segment_hash_by_ctx_name(&package_import, "$")
+	);
+}
+
+#[test]
+fn import_backed_qrl_default_import_uses_import_based_prefix() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import css from './style.css';
+
+export const value = $(css);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let name = get_segment_name_by_ctx_name(&output, "$");
+	assert!(
+		name.starts_with("style_css_"),
+		"Expected import-based prefix, got {}",
+		name
+	);
+}
+
+#[test]
+fn import_backed_qrl_hash_falls_back_for_unsupported_paths() {
+	let base = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+export const value = $(ns.name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let nested_member = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+export const value = $(ns.name.deep);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let computed_member = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import * as ns from './utils/value';
+
+const key = 'name';
+export const value = $(ns[key]);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let too_many_dotdots = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '../../../value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/a.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let too_many_dotdots_other_file = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { name } from '../../../value';
+
+export const value = $(name);
+"#
+		.to_string(),
+		filename: "src/routes/b.tsx".into(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&base, "$"),
+		get_segment_hash_by_ctx_name(&nested_member, "$")
+	);
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&base, "$"),
+		get_segment_hash_by_ctx_name(&computed_member, "$")
+	);
+	assert_ne!(
+		get_segment_hash_by_ctx_name(&too_many_dotdots, "$"),
+		get_segment_hash_by_ctx_name(&too_many_dotdots_other_file, "$")
+	);
+}
+
+#[test]
+fn inlined_qrl_uses_identifier_reference_when_hoisted() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	return <div>Hello</div>;
+});
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+	let compact_code: String = combined_code
+		.chars()
+		.filter(|c| !c.is_whitespace())
+		.collect();
+
+	assert!(
+		compact_code.contains("_noopQrl(\"App_component_"),
+		"Expected _noopQrl with symbol name.\nGenerated code:\n{}",
+		combined_code
+	);
+	assert!(
+		compact_code.contains(".s(App_component_")
+			|| compact_code.contains(".s(TestComponent_component_"),
+		"Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
+		combined_code
+	);
+}
+
+#[test]
+fn inlined_qrl_uses_identifier_reference_when_hoisted_snapshot() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	return <div>Hello</div>;
+});
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn inlined_qrl_after_ref_identifiers_forward_ref() {
+	// Test that inlinedQrl items are moved to come AFTER their referenced identifiers
+	// even in cases where they might initially appear before them (e.g., third-party libs)
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { useAsyncQrl } from '@qwik.dev/core';
+
+export const TestComponent = component$(() => {
+	// This should be hoisted with an identifier
+	const asyncSig = useAsyncQrl$(async () => {
+		return 42;
+	});
+	return <div>{asyncSig}</div>;
+});
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// Verify that inlinedQrl uses an identifier reference
+	let compact_code: String = combined_code
+		.chars()
+		.filter(|c| !c.is_whitespace())
+		.collect();
+
+	assert!(
+		compact_code.contains("_noopQrl(\"TestComponent_component_"),
+		"Expected _noopQrl with symbol name.\nGenerated code:\n{}",
+		combined_code
+	);
+	assert!(
+		compact_code.contains(".s(App_component_")
+			|| compact_code.contains(".s(TestComponent_component_"),
+		"Expected s (setRef) call with hoisted identifier.\nGenerated code:\n{}",
+		combined_code
+	);
+}
+
+// Non-snapshot tests for generalized q:p/q:ps
+#[test]
+fn loop_iteration_vars_with_params() {
+	// Test that loop iteration variables with event handlers work correctly
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Test = component$(() => {
+	return (
+		<div>
+			{['a', 'b', 'c'].map((item, index) => (
+				<button onClick$={() => console.log(item, index)}>
+					{item}
+				</button>
+			))}
+		</div>
+	);
+});
+"#
+		.to_string(),
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(
+		res.is_ok(),
+		"Transform should succeed for loop with handlers"
+	);
+	let output = res.unwrap();
+
+	// Verify modules were generated
+	assert!(!output.modules.is_empty(), "Should have generated modules");
+
+	// The transform should produce valid output without errors
+	let entry_module = output.modules.iter().find(|m| m.is_entry);
+	assert!(entry_module.is_some(), "Should have entry module");
+}
+
+#[test]
+fn import_resolution_without_fallback() {
+	// Test that imports are resolved correctly from explicit_imports without symbol-only fallbacks
+	let res = test_input!(TestInput {
+		code: r#"
+import { signal, component$ } from '@qwik.dev/core';
+
+export const Test = component$(() => {
+	const sig = signal(0);
+	return <div>{sig}</div>;
+});
+"#
+		.to_string(),
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(
+		res.is_ok(),
+		"Transform should succeed with proper import resolution"
+	);
+	let output = res.unwrap();
+
+	// Verify all generated modules are valid
+	for module in &output.modules {
+		assert!(
+			!module.code.is_empty(),
+			"Module {} should have code",
+			module.path
+		);
+		// Should not have symbol-only import mismatches that cause no-op fallbacks
+	}
+}
+
+#[test]
+fn should_work() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from "@qwik.dev/core";
+		import { globalAction$ } from "@qwik.dev/router";
+
+		export const useSecretAction = globalAction$(
+			async (payload) => console.log(payload) || 'hi'
+		);
+
+		export const SecretForm = component$(() => {
+			const action = useSecretAction();
+			return <div>{action.value}</div>
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn moves_captures_when_possible() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal, $ } from "@qwik.dev/core";
+
+		export const Test = component$(() => {
+			const sig = useSignal(0);
+			const foo = useSignal('foo');
+			const bar = useSignal('bar');
+			return <button onClick$={() => sig.value++} onDblClick$={() => foo.value+=sig.value} onHover$={() => sig.value+=bar.value}>{sig}</button>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn fun_with_scopes() {
+	let res = test_input!(TestInput {
+		code: r#"
+		import { inlinedQrl,$,component$,jsx,useStylesScoped$ } from '@qwik.dev/core';
+			export default () => {
+				const serverFnHash = globalThis.foo();
+				const data = globalThis.bar();
+				const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
+				console.log(qrl);
+			}
+
+			function Lifecycle(props, key, flags) {
+				return component$(() => {
+					return /* @__PURE__ */ jsx(Slot, {});
+				})(props, key, flags);
+			}
+			export const rawFn = (event, element) => {
+						handleFieldEvent(form, field, name, event, element, [
+							"touched",
+							"input"
+						], getElementInput(element, field, type));
+					}
+			export function Field({ children, name, type, ...props }) {
+				const { of: form } = props;
+				const field = getFieldStore(form, name);
+				return /* @__PURE__ */ jsx(Lifecycle, {
+					store: field,
+					...props,
+					children: children(field, {
+						name,
+						autoFocus: isServer && !!field.error,
+						ref: $((element) => {
+							field.internal.elements.push(element);
+						}),
+						onInput$: $(rawFn),
+					})
+				}, name);
+			}
+
+			const STYLE_RED = `.container {background-color: red;}`;
+			describe.each([])('$render.name: useStylesScoped', ({ render }) => {
+
+				it('should render object style', async () => {
+					const StyledComponent = component$(() => {
+						const stylesScopedData = useStylesScoped$(STYLE_RED);
+						const store = useStore({
+							count: 10,
+						});
+
+						return (
+							<button class={['container', `count-${store.count}`]} onClick$={() => store.count++}>
+								Hello world
+							</button>
+						);
+					});
+
+					const { vNode, getStyles, document } = await render(<StyledComponent />, { debug });
+				})
+			})
+
+			"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		is_server: Some(true),
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+	// segments are drained and inlined for Hoist strategy
+	assert!(res.is_ok());
+}
+
+#[test]
+fn hmr() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, component$, $ } from "@qwik.dev/core";
+
+		export const TestGetsHmr = component$(() => {
+			return <div>Test</div>;
+		});
+		export const TestNoHmr = componentQrl($(() => {
+			return <div>Test</div>;
+		}));
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Hmr,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_lib_mode() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, server$, useStyle$, useTask$, useSignal } from '@qwik.dev/core';
+
+export const Works = component$((props) => {
+	useStyle$(STYLES);
+	const text = 'hola';
+	const sig = useSignal('hola');
+	useTask$(() => {
+		console.log(sig.value, text);
+	});
+	return (
+		<div onClick$={server$(() => console.log('in server', sig.value, text))}></div>
+	);
+});
+
+const STYLES = '.class {}';
+"#
+		.to_string(),
+		mode: EmitMode::Lib,
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn lib_mode_inline_expressions() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	return <div>Hello</div>;
+});
+"#
+		.to_string(),
+		mode: EmitMode::Lib,
+		entry_strategy: EntryStrategy::Hoist,
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+	let compact_code: String = combined_code
+		.chars()
+		.filter(|c| !c.is_whitespace())
+		.collect();
+
+	// In lib mode, inlinedQrl should have inline expressions, not extracted identifiers
+	assert!(
+		compact_code.contains("inlinedQrl(("),
+		"Expected inlinedQrl first arg to be an inline function expression in lib mode.\nGenerated code:\n{}",
+		combined_code
+	);
+	// No _captures should be used
+	assert!(
+		!compact_code.contains("_captures"),
+		"Expected no _captures in lib mode output.\nGenerated code:\n{}",
+		combined_code
+	);
+}
+
+#[test]
+fn inlined_qrl_preserves_captures() {
+	// Simulates lib-preprocessed code being processed by the app optimizer.
+	// The inner inlinedQrl has 5 captures, including variables defined via
+	// the outer function's _captures destructuring.
+	let res = test_input!(TestInput {
+		code: r#"
+import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _captures } from '@qwik.dev/core';
+
+export function qwikifyQrl(reactCmp$, opts) {
+	return componentQrl(inlinedQrl((props) => {
+		const opts2 = _captures[0], reactCmp$2 = _captures[1];
+		const hostRef = useSignal();
+		const signal = useSignal();
+		const text = 'hello';
+		useTaskQrl(inlinedQrl(async ({ track }) => {
+			const hostRef2 = _captures[0], reactCmp$3 = _captures[1], opts3 = _captures[2], signal2 = _captures[3], text2 = _captures[4];
+			track(signal2);
+			console.log(hostRef2, reactCmp$3, opts3, text2);
+		}, "s_inner123", [hostRef, reactCmp$2, opts2, signal, text]));
+	}, "s_outer456", [opts, reactCmp$]));
+}
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::Simplify,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Prod,
+		is_server: Some(true),
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// The inner inlinedQrl must preserve all 5 captures
+	// Find the inner QRL call with captures (format: q_s_inner123.w([captures])
+	// or inlinedQrl(ref, "s_inner123", [captures]))
+	let search = combined_code
+		.find("q_s_inner123.w(")
+		.or_else(|| combined_code.find("\"s_inner123\""))
+		.expect(&format!(
+			"Should find s_inner123 call in output.\nGenerated code:\n{}",
+			combined_code
+		));
+
+	// Find the captures array (the [...] argument)
+	let after_hash = &combined_code[search..];
+	let bracket_start = after_hash.find('[').expect(&format!(
+		"Should find captures array for s_inner123.\nGenerated code:\n{}",
+		combined_code
+	));
+	let bracket_end = after_hash[bracket_start..]
+		.find(']')
+		.expect("Should find end of captures array");
+	let captures_str = &after_hash[bracket_start + 1..bracket_start + bracket_end];
+
+	// Count commas to get number of captures (N commas = N+1 elements)
+	let capture_count = if captures_str.trim().is_empty() {
+		0
+	} else {
+		captures_str.split(',').count()
+	};
+
+	assert_eq!(
+		capture_count, 5,
+		"Inner inlinedQrl should have exactly 5 captures, but found {}.\nCaptures: '{}'\nFull code:\n{}",
+		capture_count, captures_str, combined_code
+	);
+
+	// Verify specific capture names are present
+	for name in &["hostRef", "reactCmp$2", "opts2", "signal", "text"] {
+		assert!(
+			captures_str.contains(name),
+			"Capture '{}' should be present in inner captures array.\nCaptures: '{}'\nFull code:\n{}",
+			name, captures_str, combined_code
+		);
+	}
+}
+
+#[test]
+fn inlined_qrl_preserves_destructured_captures() {
+	// Simulates a library .qwik.mjs file being processed by the app optimizer in SSR dev mode.
+	// The library has destructured useCustomSignal() return value, and inner inlinedQrl captures
+	// reference the destructured bindings. transform_props_destructuring must not collapse
+	// the destructuring because it would break the explicit captures.
+	let res = test_input!(TestInput {
+		code: r#"
+import { componentQrl, inlinedQrl, useComputedQrl, useSignal, useTaskQrl, _captures, _jsxSorted } from '@qwik.dev/core';
+import { useCustomSignal } from './use-custom-signal.qwik.mjs';
+
+const MyComponent = componentQrl(inlinedQrl((props) => {
+    const count = useSignal(0);
+    const { openSig: isOpen } = useCustomSignal(props, { open: false });
+    const label = useComputedQrl(inlinedQrl(() => {
+        const count2 = _captures[0], isOpen2 = _captures[1];
+        return count2.value + isOpen2.value;
+    }, "MyComponent_component_label_useComputed_ABC123", [count, isOpen]));
+    useTaskQrl(inlinedQrl(({ track }) => {
+        const isOpen3 = _captures[0];
+        track(() => isOpen3.value);
+        console.log("isOpen changed:", isOpen3.value);
+    }, "MyComponent_component_useTask_DEF456", [isOpen]));
+    return _jsxSorted("div", null, {}, label.value, 0, null);
+}, "MyComponent_component_MNO345"));
+
+export { MyComponent };
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::None,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Dev,
+		is_server: Some(true),
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// Verify isOpen survives transform_props_destructuring
+	assert!(
+		combined_code.contains("isOpen"),
+		"isOpen should be present — transform_props_destructuring must not collapse destructured bindings in inlinedQrl function bodies.\nGenerated code:\n{}",
+		combined_code
+	);
+
+	// Verify computed captures include both count and isOpen
+	let computed_captures = combined_code
+		.find("q_MyComponent_component_label_useComputed_ABC123.w(")
+		.expect(&format!(
+			"Should find computed QRL .w() call.\nGenerated code:\n{}",
+			combined_code
+		));
+	let after = &combined_code[computed_captures..];
+	let bracket_end = after.find("])").expect("Should find end of captures array");
+	let captures_str = &after[..bracket_end + 1];
+	assert!(
+		captures_str.contains("count") && captures_str.contains("isOpen"),
+		"Computed captures should include both count and isOpen.\nCaptures: '{}'\nFull code:\n{}",
+		captures_str,
+		combined_code
+	);
+
+	// Verify task captures include isOpen
+	assert!(
+		combined_code.contains("q_MyComponent_component_useTask_DEF456.w("),
+		"Task QRL should have .w() captures with isOpen.\nGenerated code:\n{}",
+		combined_code
+	);
+}
+
+#[test]
+fn lib_full_names_shortened_in_prod() {
+	// Lib builds emit full symbol names (e.g. "Works_component_useTask_hash").
+	// When a prod build consumes this lib, names should be shortened to "s_hash".
+	let res = test_input!(TestInput {
+		code: r#"
+import { componentQrl, inlinedQrl, useTaskQrl, _captures } from '@qwik.dev/core';
+
+export const Works = componentQrl(inlinedQrl((props) => {
+	const text = 'hola';
+	useTaskQrl(inlinedQrl(() => {
+		const text = _captures[0];
+		console.log(text);
+	}, "Works_component_useTask_pjo5U5Ikll0", [text]));
+}, "Works_component_t45qL4vNGv0"));
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::Simplify,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// Prod should shorten to s_hash format
+	assert!(
+		combined_code.contains("s_pjo5U5Ikll0"),
+		"Prod build should shorten inner QRL name to s_hash.\nGenerated code:\n{}",
+		combined_code
+	);
+	assert!(
+		combined_code.contains("s_t45qL4vNGv0"),
+		"Prod build should shorten outer QRL name to s_hash.\nGenerated code:\n{}",
+		combined_code
+	);
+	// Full names should NOT appear in prod output
+	assert!(
+		!combined_code.contains("Works_component"),
+		"Prod build should not contain full symbol names.\nGenerated code:\n{}",
+		combined_code
+	);
 }
 
 impl TestInput {

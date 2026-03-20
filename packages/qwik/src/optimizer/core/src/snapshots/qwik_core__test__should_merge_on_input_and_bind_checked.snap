@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 5144
+assertion_line: 5193
 expression: output
 ---
 ==INPUT==
@@ -25,11 +25,13 @@ export const FieldInput = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_V4XAtJSTRKg = ()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg");
-export const FieldInput = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_V4XAtJSTRKg, "FieldInput_component_V4XAtJSTRKg"));
+//
+const q_FieldInput_component_V4XAtJSTRKg = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg"), "FieldInput_component_V4XAtJSTRKg");
+//
+export const FieldInput = /*#__PURE__*/ componentQrl(q_FieldInput_component_V4XAtJSTRKg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,mFAWvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,2BAAa,iDAWvB\"}")
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
 
 import { _chk } from "@qwik.dev/core";
@@ -37,7 +39,9 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
-const i_wqR1xEjZjf4 = ()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4");
+//
+const q_FieldInput_component_input_q_e_input_wqR1xEjZjf4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4"), "FieldInput_component_input_q_e_input_wqR1xEjZjf4");
+//
 export const FieldInput_component_V4XAtJSTRKg = ()=>{
     const localValue = useSignal(false);
     return /*#__PURE__*/ _jsxSorted("input", null, {
@@ -46,13 +50,13 @@ export const FieldInput_component_V4XAtJSTRKg = ()=>{
             inlinedQrl(_chk, "_chk", [
                 localValue
             ]),
-            /*#__PURE__*/ qrl(i_wqR1xEjZjf4, "FieldInput_component_input_q_e_input_wqR1xEjZjf4")
+            q_FieldInput_component_input_q_e_input_wqR1xEjZjf4
         ]
     }, null, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gDAGqC;IACnC,MAAM,aAAa,UAAU;IAE7B,qBACE,WAAC;mBACe;;;gBAAA;;;;;AAMpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAGqC;IACnC,MAAM,aAAa,UAAU;IAE7B,qBACE,WAAC;mBACe;;;gBAAA;;;;;AAMpB\"}")
 /*
 {
   "origin": "test.tsx",

@@ -7,6 +7,6 @@
     "declarationDir": null,
     "declaration": false
   },
-  "include": ["scripts", "starters/dev-server.ts"],
+  "include": ["scripts", "e2e/qwik-e2e/dev-server.ts"],
   "exclude": []
 }

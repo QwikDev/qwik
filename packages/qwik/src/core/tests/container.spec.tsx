@@ -429,7 +429,7 @@ describe('serializer v2', () => {
         const [srcQrl] = (obj as any)[SERIALIZABLE_STATE] as QRLInternal[];
         const [dstQrl] = container.$getObjectById$(0)[SERIALIZABLE_STATE] as QRLInternal[];
         expect(dstQrl.$hash$).toEqual(srcQrl.$hash$);
-        expect(dstQrl.$captures$).toEqual(srcQrl.$captures$ ? srcQrl.$captures$ : null);
+        expect(dstQrl.$captures$).toEqual(srcQrl.$captures$ ? srcQrl.$captures$ : undefined);
         await dstQrl.resolve();
         expect(dstQrl.resolved).toEqual((srcQrl as any).resolved);
       });
@@ -493,13 +493,13 @@ describe('serializer v2', () => {
     describe('PropsProxySerializer, //// ' + TypeIds.PropsProxy, () => {
       it('should serialize and deserialize', async () => {
         const obj = createPropsProxy(
-          new JSXNodeImpl('div', { number: 1, text: 'abc' }, { n: 2, t: 'test' }, null, null)
+          new JSXNodeImpl('div', { number: 1, text: 'abc' }, { n: 2, t: 'test' }, null, 0, null)
         );
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
       it('should serialize and deserialize with null const props', async () => {
         const obj = createPropsProxy(
-          new JSXNodeImpl('div', { number: 1, text: 'abc' }, null, null, null)
+          new JSXNodeImpl('div', { number: 1, text: 'abc' }, null, null, 0, null)
         );
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });

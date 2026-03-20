@@ -50,7 +50,7 @@
         "build.client"
       ],
       "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/starters/apps/preloader-test"
+      "cwd": "${workspaceFolder}/e2e/qwik-e2e/apps/preloader-test"
     },
     {
       "type": "node",
@@ -60,7 +60,7 @@
       "internalConsoleOptions": "neverOpen",
       "program": "${workspaceFolder}/./node_modules/tsm/bin.js",
       "cwd": "${workspaceFolder}",
-      "args": ["./starters/dev-server.ts", "3301"]
+      "args": ["./e2e/qwik-e2e/dev-server.ts", "3301"]
     },
     {
       "type": "node",

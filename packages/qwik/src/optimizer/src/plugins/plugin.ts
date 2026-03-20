@@ -1,4 +1,4 @@
-import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
 import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
@@ -125,6 +125,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     devTools: {
       imageDevTools: true,
       clickToSource: ['Alt'],
+      hmr: true,
     },
     inlineStylesUpToBytes: 20000,
     lint: false,
@@ -189,6 +190,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
 
+    if (updatedOpts.devTools) {
+      opts.devTools = {
+        ...opts.devTools,
+        ...updatedOpts.devTools,
+      };
+    }
     if (updatedOpts.assetsDir) {
       opts.assetsDir = updatedOpts.assetsDir;
     }
@@ -433,8 +440,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const getIsServer = (viteOpts?: { ssr?: boolean }) => {
-    return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
+  /** Determine if the current module is being processed for a server environment. */
+  const getIsServer = (ctx: Rollup.PluginContext, viteOpts?: { ssr?: boolean }) => {
+    return ctx.environment
+      ? ctx.environment.config.consumer === 'server'
+      : devServer
+        ? !!viteOpts?.ssr
+        : opts.target === 'ssr' || opts.target === 'test';
   };
 
   let resolveIdCount = 0;
@@ -470,7 +482,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         // Find the actual file on disk by asking vite to resolve it
         const resolved = await ctx.resolve(origId, importerId);
         if (resolved) {
-          const file = devServer!.moduleGraph.getModuleById(resolved.id)?.file;
+          const devEnv = ctx.environment as DevEnvironment;
+          const file = devEnv.moduleGraph.getModuleById(resolved.id)?.file;
           if (file) {
             const path = `${file}${location}`;
             try {
@@ -487,7 +500,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     const count = resolveIdCount++;
-    const isServer = getIsServer(resolveOpts);
+    const isServer = getIsServer(ctx, resolveOpts);
     debug(`resolveId(${count})`, `begin ${id} | ${isServer ? 'server' : 'client'} | ${importerId}`);
 
     const parsedImporterId = importerId && parseId(importerId);
@@ -648,7 +661,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const count = loadCount++;
-    const isServer = getIsServer(loadOpts);
+    const isServer = getIsServer(ctx, loadOpts);
 
     // Virtual modules
     if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
@@ -690,7 +703,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (parentModule) {
           // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
           debug(`load(${count})`, 'transforming QRL parent', parentId);
-          // We need to encode it as an absolute path
           await devServer.transformRequest(parentModule.url);
           // The QRL segment should exist now
           if (!outputs.has(id)) {
@@ -707,7 +719,26 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (transformedModule) {
       debug(`load(${count})`, 'Found', id);
-      const { code, map, segment } = transformedModule[0];
+      let { code } = transformedModule[0];
+      const { map, segment } = transformedModule[0];
+      const parentId = transformedModule[1];
+
+      // In HMR mode, append self-accept code to QRL segments
+      // When the parent file changes, Vite invalidates and re-serves the segment.
+      // The custom event will ensure the re-rendering of mounted components, when non-segment files are changed.
+      if (devServer?.hot && parentId && opts.devTools.hmr) {
+        const parentUrl = parentId.startsWith(opts.rootDir!)
+          ? parentId.slice(opts.rootDir!.length)
+          : parentId;
+        const eventName = 'qHmr' + parentUrl.replace(/[^a-zA-Z0-9_]/g, '_');
+        code +=
+          `\nif (import.meta.hot) {` +
+          `\n  import.meta.hot.accept(() => {
+            document.dispatchEvent(new CustomEvent(${JSON.stringify(eventName)}));
+          });` +
+          `\n}`;
+      }
+
       return { code, map, meta: { segment } };
     }
 
@@ -726,7 +757,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const count = transformCount++;
-    const isServer = getIsServer(transformOpts);
+    const isServer = getIsServer(ctx, transformOpts);
     const currentOutputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
       // This is a QRL segment, and we don't need to process it any further
@@ -750,7 +781,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       );
 
       const mode =
-        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
+        opts.target === 'lib'
+          ? 'lib'
+          : opts.buildMode === 'development'
+            ? devServer?.hot && opts.devTools.hmr
+              ? 'hmr'
+              : 'dev'
+            : 'prod';
 
       if (mode !== 'lib') {
         // this messes a bit with the source map, but it's ok for if statements
@@ -1009,24 +1046,25 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     opts.sourcemap = sourcemap;
   }
 
-  // Only used in Vite dev mode
-  function handleHotUpdate(ctx: HmrContext) {
-    debug('handleHotUpdate()', ctx.file);
+  // Only used in Vite dev mode, called per-environment
+  function hotUpdate(environment: DevEnvironment, ctx: HotUpdateOptions) {
+    const isServer = environment.name === 'ssr';
+    debug('hotUpdate()', ctx.file, environment.name);
+
+    const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
 
     for (const mod of ctx.modules) {
       const { id } = mod;
       if (id) {
-        debug('handleHotUpdate()', `invalidate ${id}`);
+        debug('hotUpdate()', `invalidate ${id}`);
         clientResults.delete(id);
-        for (const outputs of [clientTransformedOutputs, serverTransformedOutputs]) {
-          for (const [key, [_, parentId]] of outputs) {
-            if (parentId === id) {
-              debug('handleHotUpdate()', `invalidate ${id} segment ${key}`);
-              outputs.delete(key);
-              const mod = ctx.server.moduleGraph.getModuleById(key);
-              if (mod) {
-                ctx.server.moduleGraph.invalidateModule(mod);
-              }
+        for (const [key, [_, parentId]] of outputs) {
+          if (parentId === id) {
+            debug('hotUpdate()', `invalidate ${id} segment ${key}`);
+            outputs.delete(key);
+            const segMod = environment.moduleGraph.getModuleById(key);
+            if (segMod) {
+              environment.moduleGraph.invalidateModule(segMod);
             }
           }
         }
@@ -1149,7 +1187,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     validateSource,
     setSourceMapSupport,
     configureServer,
-    handleHotUpdate,
+    hotUpdate,
     manualChunks,
     generateManifest,
   };
@@ -1223,9 +1261,33 @@ const LIB_OUT_DIR = 'lib';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
 
+/** @public */
 export interface QwikPluginDevTools {
+  /**
+   * Validates image sizes for CLS issues during development. In case of issues, provides you with a
+   * correct image size resolutions. If set to `false`, image dev tool will be disabled.
+   *
+   * Default `true`
+   */
   imageDevTools?: boolean | true;
+  /**
+   * Press-hold the defined keys to enable qwik dev inspector. By default the behavior is activated
+   * by pressing the left or right `Alt` key. If set to `false`, qwik dev inspector will be
+   * disabled.
+   *
+   * Valid values are `KeyboardEvent.code` values. Please note that the 'Left' and 'Right' suffixes
+   * are ignored.
+   */
   clickToSource?: string[] | false;
+  /**
+   * Enable HMR for Qwik components. When enabled, editing a component file re-renders only that
+   * component without a full page reload, preserving client state.
+   *
+   * Set this to `false` for full page reloads on component edits.
+   *
+   * Default `true`
+   */
+  hmr?: boolean;
 }
 
 export interface QwikPluginOptions {

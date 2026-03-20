@@ -64,7 +64,7 @@ export default event$((_: Event, el: Element) => {
         const hostElement = domContainer.vNodeLocate(el);
 
         const nav = domContainer?.resolveContext(hostElement, {
-          id: 'qc--n',
+          id: 'qr-n',
         } as ContextId<RouteNavigate>);
 
         if (nav) {

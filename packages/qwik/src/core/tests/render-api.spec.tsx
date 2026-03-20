@@ -105,16 +105,16 @@ const Counter = componentQrl(
       <button
         onClick$={inlinedQrl(
           () => {
-            useLexicalScope()[0].value++;
+            useLexicalScope()[0].value += 1;
           },
-          's_click',
+          's_click4',
           [count]
         )}
       >
         {count.value}
       </button>
     );
-  }, 's_counter')
+  }, 's_counter1')
 );
 
 const renderToStringAndSetPlatform = async (jsx: JSXOutput, opts: RenderToStringOptions = {}) => {
@@ -217,9 +217,9 @@ describe('render api', () => {
           <button
             onClick$={inlinedQrl(
               () => {
-                useLexicalScope()[0].value++;
+                useLexicalScope()[0].value += 2;
               },
-              's_click',
+              's_click5',
               [count]
             )}
           >
@@ -242,7 +242,7 @@ describe('render api', () => {
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <button>
-          <Signal ssr-required>124</Signal>
+          <Signal ssr-required>125</Signal>
         </button>
       );
     });
@@ -288,7 +288,7 @@ describe('render api', () => {
                 {JSON.stringify(obj)}
               </div>
             );
-          }, 's_counter')
+          }, 's_counter2')
         );
         const result = await renderToStringAndSetPlatform(<Cmp />, {
           containerTagName: 'div',
@@ -520,7 +520,9 @@ describe('render api', () => {
         const CounterDerived = component$((props: { initial: number }) => {
           const count = useSignal(props.initial);
           return (
-            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
+            <button
+              onClick$={inlinedQrl(() => (useLexicalScope()[0].value += 3), 's_onClick', [count])}
+            >
               Count: {_fnSignal((p0) => p0.value, [count], 'p0.value')}!
             </button>
           );

@@ -1,8 +1,35 @@
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 
+/**
+ * Build-time route trie node. Mirrors the runtime RouteData shape with the same key conventions
+ * (`_W`, `_A`, lowercase static) plus build-only metadata (`_files`, `_dirPath`).
+ *
+ * During the filesystem walk, `_files` and `_dirPath` are populated. During codegen, `_L`, `_I`,
+ * `_G`, `_B`, `_4`, `_E` are emitted as JS expressions.
+ */
+export interface BuildTrieNode {
+  /** Parameter name (for `_W` and `_A` nodes) */
+  _P?: string;
+  /** Prefix for infix params (e.g. `pre` for `pre[slug]post`) — only on `_W` nodes */
+  _0?: string;
+  /** Suffix for infix params (e.g. `post` for `pre[slug]post`) — only on `_W` nodes */
+  _9?: string;
+  /** Rewrite target path (set by rewriteRoutes), e.g. '/about/' or '/blog/_W/' */
+  _G?: string;
+  /** Source files at this directory level */
+  _files: RouteSourceFile[];
+  /** Filesystem path of this directory */
+  _dirPath: string;
+  /** Children keyed by trie key (lowercase static, `_W`, `_A`, or `(groupName)`) */
+  children: Map<string, BuildTrieNode>;
+}
+
 export interface RoutingContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
+  /** The route trie built from the filesystem walk */
+  routeTrie: BuildTrieNode;
+  /** Derived flat arrays (populated after trie walk for backward compat) */
   routes: BuiltRoute[];
   serverPlugins: BuiltServerPlugin[];
   layouts: BuiltLayout[];

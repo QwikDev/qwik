@@ -7,7 +7,6 @@ import {
 } from '@qwik.dev/core/internal';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import {
-  LoadedRouteProp,
   type ActionInternal,
   type FailReturn,
   type JSONValue,
@@ -50,12 +49,14 @@ export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
+export const RequestEvETagCacheKey = '@eTagCacheKey';
+export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 /** @internal */
 export const RequestEvShareQData = 'qData';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
-  loadedRoute: LoadedRoute | null,
+  loadedRoute: LoadedRoute,
   requestHandlers: RequestHandler<any>[],
   basePathname: string,
   resolved: (response: any) => void
@@ -78,7 +79,7 @@ export function createRequestEvent(
   let writableStream: WritableStream<Uint8Array> | null = null;
   let requestData: Promise<JSONValue | undefined> | undefined = undefined;
   let locale = serverRequestEv.locale;
-  let status = 200;
+  let status = loadedRoute?.$notFound$ ? 404 : 200;
 
   const next = async () => {
     routeModuleIndex++;
@@ -94,11 +95,12 @@ export function createRequestEvent(
   };
 
   const resetRoute = (
-    _loadedRoute: LoadedRoute | null,
+    _loadedRoute: LoadedRoute,
     _requestHandlers: RequestHandler<any>[],
     _url = url
   ) => {
     loadedRoute = _loadedRoute;
+    status = loadedRoute?.$notFound$ ? 404 : 200;
     requestHandlers = _requestHandlers;
     url.pathname = _url.pathname;
     url.search = _url.search;
@@ -168,7 +170,7 @@ export function createRequestEvent(
     signal: request.signal,
     originalUrl: new URL(url),
     get params() {
-      return loadedRoute?.[LoadedRouteProp.Params] ?? {};
+      return loadedRoute?.$params$ ?? {};
     },
     get pathname() {
       return url.pathname;
@@ -349,7 +351,7 @@ export interface RequestEventInternal extends Readonly<RequestEvent>, Readonly<R
   readonly [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
   readonly [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   readonly [RequestEvMode]: ServerRequestMode;
-  readonly [RequestEvRoute]: LoadedRoute | null;
+  readonly [RequestEvRoute]: LoadedRoute;
 
   /**
    * Check if this request is already written to.
@@ -419,6 +421,49 @@ const parseRequest = async (
 };
 
 const isDangerousKey = (k: string) => k === '__proto__' || k === 'constructor' || k === 'prototype';
+const isArrayIndexKey = (k: string) => /^(0|[1-9]\d*)$/.test(k);
+
+const getArrayPaths = (formData: FormData) => {
+  const arrayCandidates = new Map<string, boolean>();
+
+  for (const [name] of formData) {
+    const keys = name.split('.');
+    let hasDangerousKey = false;
+
+    for (const key of keys) {
+      if (isDangerousKey(key)) {
+        hasDangerousKey = true;
+        break;
+      }
+    }
+
+    if (hasDangerousKey) {
+      continue;
+    }
+
+    let path = '';
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (key.endsWith('[]')) {
+        break;
+      }
+
+      path = path ? `${path}.${key}` : key;
+      if (!arrayCandidates.has(path)) {
+        arrayCandidates.set(path, true);
+      }
+      if (!isArrayIndexKey(keys[i + 1])) {
+        arrayCandidates.set(path, false);
+      }
+    }
+  }
+
+  return new Set(
+    Array.from(arrayCandidates.entries())
+      .filter(([, isArrayPath]) => isArrayPath)
+      .map(([path]) => path)
+  );
+};
 
 export const formToObj = (formData: FormData): Record<string, any> => {
   /**
@@ -427,6 +472,7 @@ export const formToObj = (formData: FormData): Record<string, any> => {
    * multiselects Create values object by form data entries
    */
   const values = Object.create(null);
+  const arrayPaths = getArrayPaths(formData);
 
   for (const [name, value] of formData) {
     const keys = name.split('.');
@@ -444,6 +490,7 @@ export const formToObj = (formData: FormData): Record<string, any> => {
     }
 
     let object = values;
+    let path = '';
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
 
@@ -453,15 +500,29 @@ export const formToObj = (formData: FormData): Record<string, any> => {
         if (isDangerousKey(arrayKey)) {
           break;
         }
-        object[arrayKey] = object[arrayKey] || [];
+        const existingValue = object[arrayKey];
+        if (existingValue !== undefined && !Array.isArray(existingValue)) {
+          break;
+        }
+        object[arrayKey] = existingValue || [];
         object[arrayKey].push(value);
+        break;
+      }
+
+      if (Array.isArray(object) && !isArrayIndexKey(key)) {
         break;
       }
 
       // If it is not last index, return nested object or array
       if (i < keys.length - 1) {
-        object = object[key] =
-          object[key] || (Number.isNaN(+keys[i + 1]) ? Object.create(null) : []);
+        path = path ? `${path}.${key}` : key;
+        const nextValue = object[key];
+        if (nextValue !== undefined) {
+          object = nextValue;
+          continue;
+        }
+
+        object = object[key] = arrayPaths.has(path) ? [] : Object.create(null);
       } else {
         object[key] = value;
       }

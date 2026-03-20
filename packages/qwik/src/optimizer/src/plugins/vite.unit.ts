@@ -108,10 +108,7 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(c.optimizeDeps?.include, includeDeps);
   assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
 
-  assert.deepEqual(c.esbuild, false);
-  assert.deepEqual(c.ssr, {
-    noExternal,
-  });
+  assert.deepEqual(c.ssr?.noExternal, noExternal);
 });
 
 test('command: serve, mode: production', async () => {
@@ -147,10 +144,7 @@ test('command: serve, mode: production', async () => {
   assert.deepEqual(build.ssr, undefined);
   assert.deepEqual(c.optimizeDeps?.include, includeDeps);
   assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-  assert.deepEqual(c.esbuild, false);
-  assert.deepEqual(c.ssr, {
-    noExternal,
-  });
+  assert.deepEqual(c.ssr?.noExternal, noExternal);
 });
 
 test('command: build, mode: development', async () => {
@@ -203,13 +197,7 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(build.ssr, undefined);
   assert.deepEqual(c.optimizeDeps?.include, includeDeps);
   assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-  assert.deepEqual(c.esbuild, {
-    logLevel: 'error',
-    jsx: 'automatic',
-  });
-  assert.deepEqual(c.ssr, {
-    noExternal,
-  });
+  assert.deepEqual(c.ssr?.noExternal, noExternal);
 });
 
 test('command: build, mode: production', async () => {
@@ -249,13 +237,7 @@ test('command: build, mode: production', async () => {
   assert.deepEqual(build.ssr, undefined);
   assert.deepEqual(c.optimizeDeps?.include, includeDeps);
   assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-  assert.deepEqual(c.esbuild, {
-    logLevel: 'error',
-    jsx: 'automatic',
-  });
-  assert.deepEqual(c.ssr, {
-    noExternal,
-  });
+  assert.deepEqual(c.ssr?.noExternal, noExternal);
 });
 
 test('command: build, --mode production (client)', async () => {
@@ -325,10 +307,6 @@ test('command: build, --ssr entry.server.tsx', async () => {
   assert.deepEqual(build.ssr, true);
   assert.deepEqual(c.optimizeDeps?.include, includeDeps);
   assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-  assert.deepEqual(c.esbuild, {
-    logLevel: 'error',
-    jsx: 'automatic',
-  });
   assert.deepEqual(c.publicDir, false);
 });
 
@@ -720,5 +698,51 @@ describe('clientPublicOutDir', () => {
 
     // Should NOT be duplicated like: frameworks/keyed/qwik2/dist/frameworks/keyed/qwik2
     assert.notMatch(clientPublicOutDir!, /frameworks.*frameworks/);
+  });
+});
+
+describe('configEnvironment', () => {
+  test('should set noExternal for server environments', async () => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+    // Initialize the plugin first
+    await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    );
+
+    const hook = (plugin as any).configEnvironment;
+    assert.isFunction(hook);
+
+    const result = hook('ssr', { consumer: 'server' }, { command: 'serve', mode: 'development' });
+    assert.deepEqual(result.resolve.noExternal, noExternal);
+  });
+
+  test('should set resolve conditions for client environments in production', async () => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+    await plugin.config.call(configHookPluginContext, {}, { command: 'build', mode: 'production' });
+
+    const hook = (plugin as any).configEnvironment;
+    const result = hook('client', { consumer: 'client' }, { command: 'build', mode: 'production' });
+    assert.deepEqual(result.resolve.conditions, ['min']);
+  });
+
+  test('should return empty config for client environments in development', async () => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+    await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    );
+
+    const hook = (plugin as any).configEnvironment;
+    const result = hook(
+      'client',
+      { consumer: 'client' },
+      { command: 'serve', mode: 'development' }
+    );
+    // In development, we don't set conditions to avoid overriding adapter-provided conditions
+    // (e.g. ['webworker', 'worker'] for edge adapters). Empty object is the correct result.
+    assert.deepEqual(result, {});
   });
 });

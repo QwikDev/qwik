@@ -51,45 +51,55 @@ import { componentQrl } from "@qwik.dev/core";
 import { useClientMountQrl } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
-import { inlinedQrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useStore } from '@qwik.dev/core';
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
+//
+const q_Parent_component_div_Div_onClick_kgowuto5dR0 = /*#__PURE__*/ _noopQrl("Parent_component_div_Div_onClick_kgowuto5dR0");
+const q_Parent_component_div_Div_render_CkMybN6xzQk = /*#__PURE__*/ _noopQrl("Parent_component_div_Div_render_CkMybN6xzQk");
+const q_Parent_component_t6Wy3C0Q0XM = /*#__PURE__*/ _noopQrl("Parent_component_t6Wy3C0Q0XM");
+const q_Parent_component_useTask_ngmvcygWux8 = /*#__PURE__*/ _noopQrl("Parent_component_useTask_ngmvcygWux8");
+const q_qrl_4294901760 = /*#__PURE__*/ _noopQrl("Parent_component_useClientMount_Yn2kIDABoYw");
+const q_qrl_4294901764 = /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do");
+const q_qrl_4294901766 = /*#__PURE__*/ _noopQrl("Parent_component_div_q_e_click_oqNnfO6ubjU");
+//
+q_Parent_component_useTask_ngmvcygWux8.s(()=>{
+// Code
+});
+q_Parent_component_div_Div_onClick_kgowuto5dR0.s(()=>console.log('keep'));
+q_Parent_component_div_Div_render_CkMybN6xzQk.s(()=>{
+    const state = _captures[0];
+    return state.text;
+});
+q_Parent_component_t6Wy3C0Q0XM.s(()=>{
     const state = useStore({
         text: ''
     });
     // Double count watch
-    useClientMountQrl(/*#__PURE__*/ _noopQrl("Parent_component_useClientMount_Yn2kIDABoYw", [
+    useClientMountQrl(q_qrl_4294901760.w([
         state
     ]));
-    useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
-    // Code
-    }, "Parent_component_useTask_ngmvcygWux8"));
-    return /*#__PURE__*/ _jsxSorted("div", null, {
-        shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do", [
-            state
-        ]),
-        "q-e:click": /*#__PURE__*/ _noopQrl("Parent_component_div_q_e_click_oqNnfO6ubjU", [
-            state
-        ])
+    useTaskQrl(q_Parent_component_useTask_ngmvcygWux8);
+    return /*#__PURE__*/ _jsxSorted("div", {
+        "q:p": state
+    }, {
+        shouldRemove$: q_qrl_4294901764,
+        "q-e:click": q_qrl_4294901766
     }, [
         /*#__PURE__*/ _jsxSorted(Div, null, {
-            onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('keep'), "Parent_component_div_Div_onClick_kgowuto5dR0"),
-            render$: /*#__PURE__*/ inlinedQrl(()=>{
-                const state = _captures[0];
-                return state.text;
-            }, "Parent_component_div_Div_render_CkMybN6xzQk", [
+            onClick$: q_Parent_component_div_Div_onClick_kgowuto5dR0,
+            render$: q_Parent_component_div_Div_render_CkMybN6xzQk.w([
                 state
             ])
         }, null, 3, "7R_0"),
         _wrapProp(state, "text")
-    ], 1, "7R_1");
-}, "Parent_component_t6Wy3C0Q0XM"));
+    ], 5, "7R_1");
+});
+export const Parent = /*#__PURE__*/ componentQrl(q_Parent_component_t6Wy3C0Q0XM);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,iBAAiB;AAQjF,OAAO,MAAM,uBAAS,sCAAW;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS;IACR,OAAO;IACR;IAEA,qBACC,WAAC;QACA,aAAa;;;QACb,WAAQ;;;;sBAER,WAAC;YACA,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;kBAEzB;;AAGJ,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,iBAAiB;;;;;;;;;;yCAmBvE;AACR,OAAO;AACR;iDAQa,IAAM,QAAQ,GAAG,CAAC;gDACnB;;WAAM,MAAM,IAAI;;iCAtBI;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA;IAIA,qBACC,WAAC;;;QACA,aAAa;QACb,WAAQ;;sBAER,WAAC;YACA,QAAQ;YACR,OAAO;;;;kBAEP;;AAGJ;AA3BA,OAAO,MAAM,uBAAS,6CA2BnB\"}")
 == DIAGNOSTICS ==
 
 []

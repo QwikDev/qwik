@@ -27,6 +27,12 @@ export interface DevJSX {
   stack?: string;
 }
 
+export const enum JSXNodeFlags {
+  None = 0,
+  StaticSubtree = 1 << 1,
+  HasCapturedProps = 1 << 2,
+}
+
 /**
  * A JSX Node, an internal structure. You probably want to use `JSXOutput` instead.
  *
@@ -54,6 +60,8 @@ export interface JSXNodeInternal<
   toSort: boolean;
   /** The key property */
   key: string | null;
+  /** Flags */
+  flags: JSXNodeFlags;
   /**
    * Props that are not guaranteed shallow equal across runs.
    *

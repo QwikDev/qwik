@@ -2,7 +2,15 @@ import swRegister from '../runtime-generation/sw-register-build?compiled-string'
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { basename, extname, join, resolve } from 'node:path';
-import type { Plugin, PluginOption, Rollup, UserConfig, ViteDevServer } from 'vite';
+import type {
+  ConfigEnv,
+  EnvironmentOptions,
+  Plugin,
+  PluginOption,
+  Rollup,
+  UserConfig,
+  ViteDevServer,
+} from 'vite';
 import { loadEnv } from 'vite';
 import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
 import { parseRoutesDir } from '../build';
@@ -79,6 +87,9 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             userOpts?.defaultLoadersSerializationStrategy || 'never'
           ),
           'globalThis.__NO_TRAILING_SLASH__': JSON.stringify(userOpts?.trailingSlash === false),
+          'globalThis.__SSR_CACHE_SIZE__': JSON.stringify(
+            viteEnv.command === 'serve' ? 0 : (userOpts?.ssrCacheSize ?? 50)
+          ),
         },
         appType: 'custom',
         resolve: {
@@ -106,6 +117,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             QWIK_ROUTER_SW_REGISTER,
           ],
         },
+        // Duplicated from configEnvironment to support legacy vite build --ssr compatibility
         ssr: {
           external: ['node:async_hooks'],
           noExternal: [
@@ -125,6 +137,26 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         },
       };
       return updatedViteConfig;
+    },
+
+    configEnvironment(name: string, _config: EnvironmentOptions, _env: ConfigEnv) {
+      // Use environment name to distinguish server vs client — config.consumer is not yet set
+      // at the time this hook is called.
+      if (name === 'ssr') {
+        return {
+          resolve: {
+            external: ['node:async_hooks'],
+            noExternal: [
+              QWIK_ROUTER,
+              QWIK_ROUTER_CONFIG_ID,
+              QWIK_ROUTER_ENTRIES_ID,
+              QWIK_ROUTER_SW_REGISTER,
+              'zod',
+            ],
+          },
+        } satisfies EnvironmentOptions;
+      }
+      return {};
     },
 
     async configResolved(config) {
@@ -242,7 +274,11 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
           if (isRouterConfig) {
             // @qwik-router-config
-            return generateQwikRouterConfig(ctx, qwikPlugin!, opts?.ssr ?? false);
+            return generateQwikRouterConfig(
+              ctx,
+              qwikPlugin!,
+              this.environment.config.consumer === 'server'
+            );
           }
 
           if (isSwRegister) {
@@ -300,8 +336,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
     generateBundle(_, bundles) {
       // Turn entry and service worker chunks into entry points
-      if (ctx?.target === 'client') {
-        const entries = [...ctx.entries, ...ctx.serviceWorkers].map((entry) => {
+      if (this.environment.config.consumer === 'client') {
+        const entries = [...ctx!.entries, ...ctx!.serviceWorkers].map((entry) => {
           return {
             chunkFileName: entry.chunkFileName,
             extensionlessFilePath: removeExtension(entry.filePath),
@@ -326,7 +362,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     closeBundle: {
       sequential: true,
       async handler() {
-        if (ctx?.target === 'ssr' && outDir) {
+        if (this.environment.config.consumer === 'server' && outDir) {
           await generateServerPackageJson(outDir);
         }
       },

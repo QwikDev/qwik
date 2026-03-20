@@ -4,6 +4,7 @@ import {
   getRequestLoaders,
   getRequestLoaderSerializationStrategyMap,
   getRequestRoute,
+  RequestEvHttpStatusMessage,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
   RequestEvSharedNonce,
@@ -50,6 +51,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
       loadedRoute: getRequestRoute(requestEv),
       response: {
         status: status(),
+        statusMessage: requestEv.sharedMap.get(RequestEvHttpStatusMessage) as string | undefined,
         loaders,
         loadersSerializationStrategy,
         action,

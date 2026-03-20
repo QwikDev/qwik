@@ -31,6 +31,7 @@ export default component$(() => {
       entryStrategy: 'segment',
       files: [],
       version: '',
+      isShowingSolution: false,
     };
     return initStore;
   });
@@ -47,6 +48,7 @@ export default component$(() => {
     store.appId = t.app.id;
     store.prev = t.prev;
     store.next = t.next;
+    store.isShowingSolution = false;
   });
 
   return (
@@ -166,6 +168,7 @@ export interface TutorialStore extends ReplAppInput {
   app: TutorialApp;
   prev: TutorialApp | undefined;
   next: TutorialApp | undefined;
+  isShowingSolution: boolean;
 }
 
 export const PANELS = ['Tutorial', 'Input', 'Output'];

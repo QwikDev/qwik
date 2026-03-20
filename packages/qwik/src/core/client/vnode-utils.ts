@@ -151,6 +151,7 @@ import {
   QScopedStyle,
   QSlot,
   QStyle,
+  QTargetElement,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
@@ -194,7 +195,7 @@ import { isCursor } from '../shared/cursor/cursor';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
-import { fastGetter } from './prototype-utils';
+import { createFastGetter, fastGetter } from './prototype-utils';
 import { decodeVNodeDataString } from '../shared/utils/character-escaping';
 import { parseQRL } from '../shared/serdes/index';
 
@@ -507,8 +508,7 @@ function registerQrlHandlers(attr: Attr, key: string, container: Container, elem
   const scopedKebabName = key.slice(2);
   const qrls = value.split('|');
   const handlers = qrls.map((qrl) => {
-    const handler = parseQRL(qrl);
-    handler.$container$ = container;
+    const handler = parseQRL(qrl, container);
     // These QRLs are mostly _run and _task and don't need wrapping with retryOnPromise
     return handler;
   });
@@ -1064,8 +1064,16 @@ export const vnode_insertVirtualBefore = (
   vnode_unlinkFromOldParent(journal, newChildCurrentParent, parent, newChild);
 
   const parentIsDeleted = parent.flags & VNodeFlags.Deleted;
-  const domParentVNode = parentIsElement ? parent : vnode_getDomParentVNode(parent, false);
-  const parentNode = domParentVNode?.node;
+  const targetEl =
+    !parentIsElement && parent.flags & VNodeFlags.HasTargetElement
+      ? (parent.props?.[QTargetElement] as Element)
+      : null;
+  const domParentVNode = targetEl
+    ? null
+    : parentIsElement
+      ? parent
+      : vnode_getDomParentVNode(parent, false);
+  const parentNode = targetEl || domParentVNode?.node;
   const adjustedInsertBefore = vnode_findInsertBefore(journal, parent, insertBefore);
   const adjustedInsertBeforeNode = adjustedInsertBefore?.node ?? null;
   const isProjection = vnode_isProjection(newChild);
@@ -1297,8 +1305,13 @@ export const vnode_insertBefore = (
 };
 
 export const vnode_getDomParent = (vnode: VNode, includeProjection: boolean): Element | null => {
-  vnode = vnode_getDomParentVNode(vnode, includeProjection) as VNode;
-  return (vnode && (vnode as ElementVNode).node) as Element | null;
+  while (vnode && !vnode_isElementVNode(vnode)) {
+    if (vnode.flags & VNodeFlags.HasTargetElement) {
+      return vnode.props?.[QTargetElement] as Element;
+    }
+    vnode = (vnode.parent || (includeProjection ? vnode.slotParent : null))!;
+  }
+  return vnode ? (vnode as ElementVNode).node : null;
 };
 
 export const vnode_getDomParentVNode = (
@@ -1534,13 +1547,7 @@ export const fastGetAttribute = (element: Element, key: string): string | null =
   return _fastGetAttribute.call(element, key);
 };
 
-let _fastNodeType: ((this: Node) => number) | null = null;
-const fastNodeType = (node: Node): number => {
-  if (!_fastNodeType) {
-    _fastNodeType = fastGetter<typeof _fastNodeType>(node, 'nodeType')!;
-  }
-  return _fastNodeType.call(node);
-};
+const fastNodeType = createFastGetter<Node, number>('nodeType');
 const fastIsTextOrElement = (node: Node): boolean => {
   const type = fastNodeType(node);
   return type === /* Node.TEXT_NODE */ 3 || type === /* Node.ELEMENT_NODE */ 1;
@@ -1565,7 +1572,14 @@ export const fastNextSibling = (node: Node | null): Node | null => {
         if (nodeValue?.startsWith(QIgnore)) {
           return getNodeAfterCommentNode(node, QContainerIsland, _fastNextSibling, _fastFirstChild);
         } else if (node.nodeValue?.startsWith(QContainerIslandEnd)) {
-          return getNodeAfterCommentNode(node, QIgnoreEnd, _fastNextSibling, _fastFirstChild);
+          // Search for either the next container-island or the end of the q:ignore block,
+          // whichever comes first. This handles multiple islands within a single q:ignore.
+          return getNodeAfterCommentNode(
+            node,
+            [QContainerIsland, QIgnoreEnd],
+            _fastNextSibling,
+            _fastFirstChild
+          );
         } else if (nodeValue?.startsWith(QContainerAttr)) {
           while (node && (node = _fastNextSibling.call(node))) {
             if (
@@ -1584,12 +1598,26 @@ export const fastNextSibling = (node: Node | null): Node | null => {
 
 function getNodeAfterCommentNode(
   node: Node | null,
-  commentValue: string,
+  commentValue: string | string[],
   nextSibling: NonNullable<typeof _fastNextSibling>,
   firstChild: NonNullable<typeof _fastFirstChild>
 ): Node | null {
+  const isSingleValue = typeof commentValue === 'string';
+  const length = commentValue.length;
   while (node) {
-    if (node.nodeValue?.startsWith(commentValue)) {
+    const nodeValue = node.nodeValue;
+    let isMatch;
+    if (isSingleValue) {
+      isMatch = nodeValue?.startsWith(commentValue as string);
+    } else {
+      for (let i = 0; i < length; i++) {
+        if (nodeValue?.startsWith((commentValue as string[])[i])) {
+          isMatch = true;
+          break;
+        }
+      }
+    }
+    if (isMatch) {
       node = nextSibling.call(node) || null;
       return node;
     }
@@ -1598,24 +1626,21 @@ function getNodeAfterCommentNode(
     if (!nextNode) {
       nextNode = nextSibling.call(node);
     }
-    if (!nextNode) {
+    // Go up through parents until we find one with a next sibling
+    while (!nextNode) {
       nextNode = fastParentNode(node);
-      if (nextNode) {
-        nextNode = nextSibling.call(nextNode);
+      if (!nextNode) {
+        break;
       }
+      node = nextNode;
+      nextNode = nextSibling.call(nextNode);
     }
     node = nextNode;
   }
   return null;
 }
 
-let _fastParentNode: ((this: Node) => Node | null) | null = null;
-const fastParentNode = (node: Node): Node | null => {
-  if (!_fastParentNode) {
-    _fastParentNode = fastGetter<typeof _fastParentNode>(node, 'parentNode')!;
-  }
-  return _fastParentNode.call(node);
-};
+const fastParentNode = createFastGetter<Node, Node | null>('parentNode');
 
 let _fastFirstChild: ((this: Node) => Node | null) | null = null;
 const fastFirstChild = (node: Node | null): Node | null => {
@@ -1623,46 +1648,29 @@ const fastFirstChild = (node: Node | null): Node | null => {
     _fastFirstChild = fastGetter<typeof _fastFirstChild>(node, 'firstChild')!;
   }
   node = node && _fastFirstChild.call(node);
+  // Handle q:ignore as first child (e.g. qwikify$ Host with reactify$ projections).
+  // Navigate depth-first to the first q:container-island and return its first element.
+  if (
+    node &&
+    fastNodeType(node) === /* Node.COMMENT_NODE */ 8 &&
+    node.nodeValue?.startsWith(QIgnore)
+  ) {
+    if (!_fastNextSibling) {
+      _fastNextSibling = fastGetter<typeof _fastNextSibling>(node, 'nextSibling')!;
+    }
+    return getNodeAfterCommentNode(node, QContainerIsland, _fastNextSibling, _fastFirstChild);
+  }
   while (node && !fastIsTextOrElement(node)) {
     node = fastNextSibling(node);
   }
   return node;
 };
 
-let _fastNamespaceURI: ((this: Element) => string | null) | null = null;
-export const fastNamespaceURI = (element: Element): string | null => {
-  if (!_fastNamespaceURI) {
-    _fastNamespaceURI = fastGetter<typeof _fastNamespaceURI>(element, 'namespaceURI')!;
-  }
-  return _fastNamespaceURI.call(element);
-};
+export const fastNamespaceURI = createFastGetter<Element, string | null>('namespaceURI');
 
-let _fastNodeName: ((this: Element) => string | null) | null = null;
-export const fastNodeName = (element: Element): string | null => {
-  if (!_fastNodeName) {
-    _fastNodeName = fastGetter<typeof _fastNodeName>(element, 'nodeName')!;
-  }
-  return _fastNodeName.call(element);
-};
+export const fastNodeName = createFastGetter<Element, string | null>('nodeName');
 
-let _fastOwnerDocument: ((this: Node) => Document) | null = null;
-const fastOwnerDocument = (node: Node): Document => {
-  if (!_fastOwnerDocument) {
-    _fastOwnerDocument = fastGetter<typeof _fastOwnerDocument>(node, 'ownerDocument')!;
-  }
-  return _fastOwnerDocument.call(node)!;
-};
-
-const hasQStyleAttribute = (element: Element): boolean => {
-  return (
-    element.nodeName === 'STYLE' &&
-    (element.hasAttribute(QScopedStyle) || element.hasAttribute(QStyle))
-  );
-};
-
-const hasPropsSeparator = (element: Element): boolean => {
-  return element.hasAttribute(Q_PROPS_SEPARATOR);
-};
+const fastOwnerDocument = createFastGetter<Node, Document>('ownerDocument');
 
 const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vData?: string) => {
   let vFirstChild: VNode | null = null;
@@ -1809,15 +1817,6 @@ const processVNodeData = (
   while (peek() !== 0) {
     callback(peek, consumeValue, consume, getChar, nextToConsumeIdx);
   }
-};
-
-/** @internal */
-export const vnode_getNextSibling = (vnode: VNode): VNode | null => {
-  return vnode.nextSibling as VNode | null;
-};
-
-export const vnode_getPreviousSibling = (vnode: VNode): VNode | null => {
-  return vnode.previousSibling as VNode | null;
 };
 
 /** @internal */
@@ -1978,11 +1977,12 @@ const isLowercase = (ch: number) => /* `a` */ 97 <= ch && ch <= 122; /* `z` */
 function shouldSkipElement(element: Element) {
   return (
     // Skip over elements that don't have a props separator. They are not rendered by Qwik.
-    !hasPropsSeparator(element) ||
+    !element.hasAttribute(Q_PROPS_SEPARATOR) ||
     // We pretend that style element's don't exist as they can get moved out.
     // skip over style elements, as those need to be moved to the head
     // and are not included in the counts.
-    hasQStyleAttribute(element)
+    (element.nodeName === 'STYLE' &&
+      (element.hasAttribute(QScopedStyle) || element.hasAttribute(QStyle)))
   );
 }
 

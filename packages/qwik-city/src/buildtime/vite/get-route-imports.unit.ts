@@ -107,4 +107,39 @@ describe('modifyBundleGraph', () => {
       }
     `);
   });
+
+  test(`GIVEN a bundle with multiple origins
+        WHEN a later origin matches the route
+        THEN the bundle should still be included in the route imports`, () => {
+    const size = 0;
+    const total = 0;
+    const fakeManifest = {
+      bundles: {
+        'fake-bundle1.js': {
+          size,
+          total,
+          origins: ['src/components/button.tsx', 'src/routes/index.tsx'],
+        },
+      } as Record<string, QwikBundle>,
+    } as QwikManifest;
+
+    const fakeRoutes: BuildRoute[] = [
+      {
+        routeName: '/',
+        filePath: '/home/qwik-app/src/routes/index.tsx',
+      },
+    ] as BuildRoute[];
+
+    const actualResult = getRouteImports(fakeRoutes, fakeManifest);
+
+    expect(actualResult).toMatchInlineSnapshot(`
+      {
+        "/": {
+          "dynamicImports": [
+            "fake-bundle1.js",
+          ],
+        },
+      }
+    `);
+  });
 });

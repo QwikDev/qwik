@@ -21,7 +21,7 @@ export const getReplVersion = async (version: string | undefined, offline: boole
     if (!offline && isExpiredNpmData(npmData)) {
       // fetch most recent NPM version data
       console.debug(`Qwik REPL, fetch npm data: ${QWIK_NPM_V1_DATA}`);
-      const npmData = await fetch(QWIK_NPM_V1_DATA).then((r) => r.json());
+      npmData = await fetch(QWIK_NPM_V1_DATA).then((r) => r.json());
       npmData.timestamp = Date.now();
       const v2Data = await fetch(QWIK_NPM_V2_DATA).then((r) => r.json());
       npmData.versions.unshift(...v2Data.versions);

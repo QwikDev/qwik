@@ -257,10 +257,6 @@ jobs:
             target: x86_64-unknown-linux-gnu
             wasm: true
 
-          # the last x86 macos available as a standard runner
-          - host: macos-13
-            target: x86_64-apple-darwin
-
           - host: macos-latest
             target: aarch64-apple-darwin
 

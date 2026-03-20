@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 328
+assertion_line: 329
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -20,7 +19,7 @@ const Header = component$(() => {
 ============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
 
 import { useStore } from "@qwik.dev/core";
-const i_J4uyIhaBNR4 = ()=>import("./test.tsx_Header_component_J4uyIhaBNR4");
+//
 export const Header_component_J4uyIhaBNR4 = ()=>{
     const thing = useStore();
     const { foo, bar } = foo();
@@ -53,12 +52,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_J4uyIhaBNR4 = ()=>import("./test.tsx_Header_component_J4uyIhaBNR4");
 import { $, component$, useStore } from '@qwik.dev/core';
-const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_J4uyIhaBNR4, "Header_component_J4uyIhaBNR4"));
+//
+const q_Header_component_J4uyIhaBNR4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4");
+//
+const Header = /*#__PURE__*/ componentQrl(q_Header_component_J4uyIhaBNR4);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,iBAAiB;AACzD,MAAM,uBAAS\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,iBAAiB;;;;AACzD,MAAM,uBAAS\"}")
 == DIAGNOSTICS ==
 
 []

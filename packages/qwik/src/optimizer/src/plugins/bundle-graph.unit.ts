@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { generateManifestFromBundles } from '../manifest';
 import { convertManifestToBundleGraph } from './bundle-graph';
-// You can generate this file by uncommenting the writing code in manifest.ts, building, running `pnpm build.client` in the starters/apps/preload-test dir and moving the output
+// You can generate this file by uncommenting the writing code in manifest.ts, building, running `pnpm build.client` in the e2e/qwik-e2e/apps/preloader-test dir and moving the output
 import outputBundles from './fixture-output-bundles.json';
 
 describe('convertManifestToBundleGraph', () => {

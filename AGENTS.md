@@ -40,25 +40,25 @@ Prefer `pnpm build --qwik --qwikrouter --dev` to build qwik and qwik-city faster
 
 ## Key Commands
 
-| Task                     | Command                                | Notes                                                                                                                                                     |
-| ------------------------ | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Install**              | `pnpm install`                         |                                                                                                                                                           |
-| **Build (no Rust)**      | `pnpm build.local`                     | For a fresh start                                                                                                                                         |
-| **Build (with Rust)**    | `pnpm build.full`                      | Only for optimizer changes                                                                                                                                |
-| **Build core only**      | `pnpm build.core`                      | Fast — just Qwik + Router + types                                                                                                                         |
-| **Dev rebuild**          | `pnpm build --dev --qwik --qwikrouter` | Very fast iterative rebuild                                                                                                                               |
-| **Watch mode**           | `pnpm build.watch`                     | Rebuilds on change                                                                                                                                        |
-| **Unit tests**           | `pnpm vitest run`                      | Vitest — runs `packages/**/*.unit.{ts,tsx}` and `*.spec.{ts,tsx}`, or specify a single file. Add `-u` to update snapshots. **NEVER use `pnpm test.unit`** |
-| **E2E tests (Chromium)** | `pnpm test.e2e.chromium`               | Playwright - always run the dev rebuild first!                                                                                                            |
-| **E2E tests (Router)**   | `pnpm test.e2e.router`                 | Router-specific E2E - always run the dev rebuild first!                                                                                                   |
-| **Lint**                 | `pnpm lint`                            | ESLint + Prettier + Rust lint                                                                                                                             |
-| **Lint fix**             | `pnpm lint.fix`                        | Auto-fix ESLint issues                                                                                                                                    |
-| **Format**               | `pnpm fmt`                             | Prettier + syncpack                                                                                                                                       |
-| **Type check**           | `pnpm tsc.check`                       | Full TypeScript check                                                                                                                                     |
-| **Update API docs**      | `pnpm api.update`                      | Regenerates public API `.md` files                                                                                                                        |
-| **Create changeset**     | `pnpm change`                          | Interactive — creates `.changeset/*.md`                                                                                                                   |
-| **Dev server**           | `pnpm serve`                           | Port 3300                                                                                                                                                 |
-| **Docs dev**             | `pnpm docs.dev`                        | Documentation site                                                                                                                                        |
+| Task                     | Command                  | Notes                                                                                                                                                     |
+| ------------------------ | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Install**              | `pnpm install`           |                                                                                                                                                           |
+| **Build (no Rust)**      | `pnpm build.local`       | For a fresh start                                                                                                                                         |
+| **Build (with Rust)**    | `pnpm build.full`        | Only for optimizer changes                                                                                                                                |
+| **Build core only**      | `pnpm build.core`        | Fast — just Qwik + Router + types                                                                                                                         |
+| **Dev rebuild**          | `pnpm build.core.dev`    | Very fast iterative rebuild                                                                                                                               |
+| **Watch mode**           | `pnpm build.watch`       | Rebuilds on change                                                                                                                                        |
+| **Unit tests**           | `pnpm vitest run`        | Vitest — runs `packages/**/*.unit.{ts,tsx}` and `*.spec.{ts,tsx}`, or specify a single file. Add `-u` to update snapshots. **NEVER use `pnpm test.unit`** |
+| **E2E tests (Chromium)** | `pnpm test.e2e.chromium` | Playwright - always run the dev rebuild first!                                                                                                            |
+| **E2E tests (Router)**   | `pnpm test.e2e.router`   | Router-specific E2E - always run the dev rebuild first!                                                                                                   |
+| **Lint**                 | `pnpm lint`              | ESLint + Prettier + Rust lint                                                                                                                             |
+| **Lint fix**             | `pnpm lint.fix`          | Auto-fix ESLint issues                                                                                                                                    |
+| **Format**               | `pnpm fmt`               | Prettier + syncpack                                                                                                                                       |
+| **Type check**           | `pnpm tsc.check`         | Full TypeScript check                                                                                                                                     |
+| **Update API docs**      | `pnpm api.update`        | Regenerates public API `.md` files                                                                                                                        |
+| **Create changeset**     | `pnpm change`            | Interactive — creates `.changeset/*.md`                                                                                                                   |
+| **Dev server**           | `pnpm serve`             | Port 3300                                                                                                                                                 |
+| **Docs dev**             | `pnpm docs.dev`          | Documentation site                                                                                                                                        |
 
 ### Running a Single Test File
 
@@ -67,7 +67,7 @@ Prefer `pnpm build --qwik --qwikrouter --dev` to build qwik and qwik-city faster
 pnpm vitest run packages/qwik/src/core/tests/use-task.spec.tsx
 
 # E2E test — single file
-pnpm playwright test starters/e2e/e2e.events.e2e.ts --project chromium
+pnpm playwright test e2e/qwik-e2e/tests/e2e.events.e2e.ts --project chromium
 ```
 
 ## Architecture Essentials
@@ -172,8 +172,10 @@ packages/qwik/src/core/
 
 ### E2E Tests (Playwright)
 
-- File pattern: `*.e2e.ts` in `starters/e2e/`
-- Config: `starters/playwright.config.ts`
+- File pattern: `*.e2e.ts` in `e2e/qwik-e2e/tests/`
+- Config: `e2e/qwik-e2e/playwright.config.ts`
+- Test fixture apps: `e2e/qwik-e2e/apps/`
+- Dev server: `e2e/qwik-e2e/dev-server.ts`
 - Run: `pnpm test.e2e.chromium`
 - Run one: `pnpm playwright test <path> --project chromium`
 - Browsers: Chromium and WebKit enabled (Firefox disabled)

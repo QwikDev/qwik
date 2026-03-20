@@ -230,7 +230,7 @@ test('experimental[]', async () => {
 describe('resolveId', () => {
   test('qrls', async () => {
     const plugin = await mockPlugin();
-    expect(await plugin.resolveId(null!, 'foo', undefined)).toBeFalsy();
+    expect(await plugin.resolveId({} as any, 'foo', undefined)).toBeFalsy();
     const ctx = { resolve: async () => ({ id: 'Yey' }) } as any;
     await expect(
       plugin.resolveId(
@@ -245,7 +245,7 @@ describe('resolveId', () => {
     expect(
       await plugin.resolveId(ctx, '/root/src/routes/layout.tsx_s_7xk04rim0vu.js', undefined)
     ).toHaveProperty('id', '/root/src/routes/layout.tsx_s_7xk04rim0vu.js');
-    expect(await plugin.resolveId(null!, './foo', '/root/src/routes/layout.tsx')).toBeFalsy();
+    expect(await plugin.resolveId({} as any, './foo', '/root/src/routes/layout.tsx')).toBeFalsy();
     expect(
       (
         (await plugin.resolveId(
@@ -288,15 +288,15 @@ describe('resolveId', () => {
   });
   test('libs', async () => {
     const plugin = await mockPlugin();
-    expect(await plugin.resolveId(null!, '@qwik.dev/core/build', undefined)).toHaveProperty(
+    expect(await plugin.resolveId({} as any, '@qwik.dev/core/build', undefined)).toHaveProperty(
       'id',
       '@qwik.dev/core/build'
     );
-    expect(await plugin.resolveId(null!, '/@qwik.dev/core/build', undefined)).toHaveProperty(
+    expect(await plugin.resolveId({} as any, '/@qwik.dev/core/build', undefined)).toHaveProperty(
       'id',
       '@qwik.dev/core/build'
     );
-    expect(await plugin.resolveId(null!, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
+    expect(await plugin.resolveId({} as any, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
       'id',
       '@qwik-client-manifest'
     );

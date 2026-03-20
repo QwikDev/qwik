@@ -3,6 +3,7 @@ import { build } from 'vite';
 import { fileSize, type BuildConfig } from './util.ts';
 import { minify } from 'terser';
 import type { Plugin } from 'vite';
+import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
 
 /**
  * Custom plugin to apply terser during the bundle generation. Vite doesn't minify library ES
@@ -30,7 +31,7 @@ function customTerserPlugin(): Plugin {
           toplevel: false,
           properties: {
             // use short attribute names for internal properties
-            regex: '^\\$.+\\$$|^[A-Z][a-zA-Z]+$',
+            regex: MANGLE_PROPS_REGEX,
           },
         },
         format: {
@@ -48,7 +49,7 @@ function customTerserPlugin(): Plugin {
  * are provided in the package so CDNs could point to them. The @builder.io/optimizer submodule also
  * provides a utility function.
  */
-export async function submodulePreloader(config: BuildConfig) {
+export async function submodulePreloader(config: BuildConfig): Promise<void> {
   await build({
     build: {
       emptyOutDir: false,

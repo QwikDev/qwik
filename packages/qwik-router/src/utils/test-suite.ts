@@ -48,7 +48,8 @@ export function testAppSuite(
       '..',
       '..',
       '..',
-      'starters',
+      'e2e',
+      'qwik-e2e',
       'apps',
       'qwikrouter-test'
     );

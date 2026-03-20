@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/react",
   "description": "Qwik React allows adding React components into existing Qwik application",
-  "version": "2.0.0-beta.26",
+  "version": "2.0.0-beta.29",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
@@ -38,7 +38,7 @@
     "@types/react-dom": "^18",
     "react": "^18",
     "react-dom": "^18",
-    "vite": ">=5 <8"
+    "vite": ">=6 <9"
   },
   "publishConfig": {
     "access": "public"

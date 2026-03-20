@@ -1,18 +1,7 @@
 import { QError, qError } from '../error/error';
-import { qSerialize } from '../utils/qdev';
 import { isFunction, isString } from '../utils/types';
 import { createQRL, type QRLInternal } from './qrl-class';
 import type { QRL } from './qrl.public';
-
-// https://regexr.com/68v72
-// @ts-expect-error this is a valid regex
-const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
-
-// https://regexr.com/690ds
-const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
-
-// https://regexr.com/6a83h
-const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
 /** @public */
 export interface QRLDev {
@@ -47,26 +36,6 @@ export const qrl = <T = any>(
   let symbolFn: null | (() => Promise<Record<string, any>>) = null;
   if (isFunction(chunkOrFn)) {
     symbolFn = chunkOrFn;
-    if (qSerialize) {
-      let match: RegExpMatchArray | null;
-      const srcCode = String(chunkOrFn);
-      if ((match = srcCode.match(EXTRACT_IMPORT_PATH)) && match[2]) {
-        chunk = match[2];
-      } else if ((match = srcCode.match(EXTRACT_SELF_IMPORT))) {
-        const ref = 'QWIK-SELF';
-        const frames = new Error(ref).stack!.split('\n');
-        const start = frames.findIndex((f) => f.includes(ref));
-        const frame = frames[start + 2 + stackOffset];
-        match = frame.match(EXTRACT_FILE_NAME);
-        if (!match) {
-          chunk = 'main';
-        } else {
-          chunk = match[1];
-        }
-      } else {
-        throw qError(QError.dynamicImportFailed, [srcCode]);
-      }
-    }
   } else if (isString(chunkOrFn)) {
     chunk = chunkOrFn;
   } else {
@@ -110,7 +79,7 @@ export const _noopQrlDEV = <T>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const newQrl = _noopQrl(symbolName, lexicalScopeCapture) as QRLInternal<T>;
-  newQrl.dev = opts;
+  newQrl.$lazy$.dev = opts;
   return newQrl;
 };
 
@@ -122,7 +91,7 @@ export const qrlDEV = <T = any>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
-  newQrl.dev = opts;
+  newQrl.$lazy$.dev = opts;
   return newQrl;
 };
 
@@ -134,7 +103,7 @@ export const inlinedQrlDEV = <T = any>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const qrl = inlinedQrl(symbol, symbolName, lexicalScopeCapture) as QRLInternal<T>;
-  qrl.dev = opts;
+  qrl.$lazy$.dev = opts;
   return qrl;
 };
 

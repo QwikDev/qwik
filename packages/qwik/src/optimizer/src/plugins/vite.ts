@@ -1,5 +1,12 @@
 import type { ResolvedId } from 'rollup';
-import type { BuildOptions, UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
+import type {
+  BuildOptions,
+  ConfigEnv,
+  EnvironmentOptions,
+  UserConfig,
+  ViteDevServer,
+  Plugin as VitePlugin,
+} from 'vite';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -25,6 +32,7 @@ import {
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
   type QwikBuildTarget,
+  type QwikPluginDevTools,
   type QwikPluginOptions,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
@@ -42,6 +50,25 @@ const DEDUPE = [
 
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
+
+const QWIK_HMR_BRIDGE_ID = '@qwik-hmr-bridge';
+/**
+ * Client-side HMR bridge: listens for qwik:hmr events from the server and dispatches events for
+ * each changed file. These events then call _hmr on the specific component that changed, causing it
+ * to re-render, even if it was paused.
+ */
+const QWIK_HMR_BRIDGE_CODE = `
+  // HMR bridge: connects Vite HMR events to Qwik's component re-rendering.
+  if (import.meta.hot) {
+    import.meta.hot.on("qwik:hmr", (data) => {
+      for (const file of data.files) {
+        document.dispatchEvent(
+          new CustomEvent("qHmr" + file.replace(/[^a-zA-Z0-9_]/g, "_"))
+        );
+      }
+    });
+  }
+`;
 
 /**
  * Workaround to make the api be defined in the type.
@@ -68,6 +95,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let rootDir: string | null = null;
 
   let ssrOutDir: string | null = null;
+  let buildMode: QwikBuildMode = 'development';
+  let viteServer: ViteDevServer | undefined;
   // Cache the user-specified clientOutDir to use across multiple normalizeOptions calls
   const userClientOutDir = qwikViteOpts.client?.outDir;
   // Cache the resolved plugin options from config() to reuse in configResolved()
@@ -106,10 +135,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       await qwikPlugin.init();
 
       let target: QwikBuildTarget;
-      if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
-        target = 'ssr';
-      } else if (viteEnv.mode === 'lib') {
+      if (viteEnv.mode === 'lib') {
         target = 'lib';
+      } else if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
+        target = 'ssr';
       } else if (viteEnv.mode === 'test') {
         target = 'test';
       } else {
@@ -118,7 +147,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       viteCommand = viteEnv.command;
 
-      let buildMode: QwikBuildMode;
       if (viteEnv.mode === 'production') {
         buildMode = 'production';
       } else if (viteEnv.mode === 'development') {
@@ -208,19 +236,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qDevKey = 'globalThis.qDev';
       const qTestKey = 'globalThis.qTest';
       const qInspectorKey = 'globalThis.qInspector';
-      const qSerializeKey = 'globalThis.qSerialize';
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
-      const qSerialize = viteConfig?.define?.[qSerializeKey] ?? isDevelopment;
 
       const updatedViteConfig: UserConfig = {
+        // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
         ssr: {
           noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
           dedupe: [...DEDUPE],
-          conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
           alias: {
             '@builder.io/qwik': '@qwik.dev/core',
             '@builder.io/qwik/build': '@qwik.dev/core/build',
@@ -235,13 +261,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             '@builder.io/qwik/testing': '@qwik.dev/core/testing',
           },
         },
-        esbuild:
-          viteCommand === 'serve'
-            ? false
-            : {
-                logLevel: 'error',
-                jsx: 'automatic',
-              },
         optimizeDeps: {
           exclude: [
             // using optimized deps for qwik libraries will lead to duplicate imports
@@ -285,7 +304,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         define: {
           [qDevKey]: qDev,
           [qInspectorKey]: qInspector,
-          [qSerializeKey]: qSerialize,
           [qTestKey]: JSON.stringify(process.env.NODE_ENV === 'test'),
         },
       };
@@ -353,6 +371,29 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       return updatedViteConfig;
     },
 
+    configEnvironment(name: string, _config: EnvironmentOptions, _env: ConfigEnv) {
+      // Use environment name to distinguish server vs client — config.consumer is not yet set
+      // at the time this hook is called.
+      const isServer = name === 'ssr';
+      if (isServer) {
+        return {
+          resolve: {
+            noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+          },
+        } satisfies EnvironmentOptions;
+      }
+      // Client environment — only add 'min' conditions in production to avoid overriding
+      // adapter-provided conditions (e.g. ['webworker', 'worker'] for edge adapters).
+      if (buildMode === 'production') {
+        return {
+          resolve: {
+            conditions: ['min'],
+          },
+        } satisfies EnvironmentOptions;
+      }
+      return {};
+    },
+
     async configResolved(config) {
       basePathname = config.base;
       if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
@@ -394,6 +435,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     resolveId(id, importer, resolveIdOpts) {
+      if (id.endsWith(QWIK_HMR_BRIDGE_ID)) {
+        return QWIK_HMR_BRIDGE_ID;
+      }
       const shouldResolveFile = fileFilter(id, 'resolveId');
       if (isVirtualId(id) || !shouldResolveFile) {
         return null;
@@ -402,6 +446,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     load(id, loadOpts) {
+      if (id === QWIK_HMR_BRIDGE_ID) {
+        return { code: QWIK_HMR_BRIDGE_CODE };
+      }
       const shouldLoadFile = fileFilter(id, 'load');
       if (isVirtualId(id) || !shouldLoadFile) {
         return null;
@@ -449,10 +496,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     generateBundle: {
       order: 'post',
       async handler(_, rollupBundle) {
-        const opts = qwikPlugin.getOptions();
+        const isClient = this.environment.config.consumer === 'client';
 
-        if (opts.target === 'client') {
+        if (isClient) {
           // client build
+          const opts = qwikPlugin.getOptions();
 
           for (const [fileName, b] of Object.entries(rollupBundle)) {
             if (b.type === 'asset') {
@@ -506,7 +554,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async writeBundle(_, rollupBundle) {
       const opts = qwikPlugin.getOptions();
-      if (opts.target === 'ssr') {
+      const isSSR = this.environment.config.consumer === 'server';
+      if (isSSR) {
         // ssr build
 
         const sys = qwikPlugin.getSys();
@@ -564,6 +613,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       return getViteIndexTags(qwikPlugin.getOptions(), basePathname);
     },
     configureServer(server: ViteDevServer) {
+      viteServer = server;
       qwikPlugin.configureServer(server);
       const imageDevTools = qwikViteOpts?.devTools?.imageDevTools ?? true;
 
@@ -580,15 +630,25 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
     },
 
-    handleHotUpdate(ctx) {
-      qwikPlugin.handleHotUpdate(ctx);
+    hotUpdate(ctx) {
+      qwikPlugin.hotUpdate(this.environment, ctx);
 
-      // Tell the client to reload the page if any modules were used in ssr or client
-      // this needs to be refined
-      if (ctx.modules.length) {
-        ctx.server.hot.send({
-          type: 'full-reload',
-        });
+      const hmrEnabled = qwikViteOpts?.devTools?.hmr ?? true;
+      if (this.environment.name === 'ssr' && ctx.modules.length) {
+        if (hmrEnabled) {
+          // Source files live in the SSR module graph. When they change, notify the
+          // client's loaded QRL segments via the client environment's HMR channel.
+          const files = ctx.modules.map((m) => m.type === 'js' && m.url).filter(Boolean);
+          if (files.length > 0 && viteServer) {
+            viteServer.environments.client.hot.send({
+              type: 'custom',
+              event: 'qwik:hmr',
+              data: { files },
+            });
+          }
+        } else {
+          viteServer?.environments.client.hot.send({ type: 'full-reload' });
+        }
       }
     },
 
@@ -696,7 +756,8 @@ async function checkExternals() {
     resolveId: {
       order: 'pre',
       async handler(source, importer, options) {
-        if (!options.ssr || /^([./]|node:|[^a-z@])/i.test(source) || seen.has(source)) {
+        const isSSR = this.environment.config.consumer === 'server';
+        if (!isSSR || /^([./]|node:|[^a-z@])/i.test(source) || seen.has(source)) {
           return;
         }
         const packageName = (
@@ -819,24 +880,7 @@ interface QwikVitePluginCommonOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
-  devTools?: {
-    /**
-     * Validates image sizes for CLS issues during development. In case of issues, provides you with
-     * a correct image size resolutions. If set to `false`, image dev tool will be disabled.
-     *
-     * Default `true`
-     */
-    imageDevTools?: boolean | true;
-    /**
-     * Press-hold the defined keys to enable qwik dev inspector. By default the behavior is
-     * activated by pressing the left or right `Alt` key. If set to `false`, qwik dev inspector will
-     * be disabled.
-     *
-     * Valid values are `KeyboardEvent.code` values. Please note that the 'Left' and 'Right'
-     * suffixes are ignored.
-     */
-    clickToSource?: string[] | false;
-  };
+  devTools?: QwikPluginDevTools;
   /**
    * Predicate function to filter out files from the optimizer. hook for resolveId, load, and
    * transform

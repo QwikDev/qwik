@@ -103,8 +103,7 @@ export const useResourceQrl = <T>(
 
   const ref = {} as { r: T };
   // Wrap the function so we can maintain a stable reference to the store
-  const wrapped = createQRL(null, '_rsc', _rsc, null, [qrl, ref]);
-  qrl.$container$ = iCtx.$container$;
+  const wrapped = createQRL(null, '_rsc', _rsc, null, [qrl, ref], iCtx.$container$);
   const asyncSignal = createAsyncQrl<{ r: T }>(wrapped as any, {
     timeout: opts?.timeout,
     container: iCtx.$container$,

@@ -173,6 +173,20 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+<h2 id="cachekeyfn">CacheKeyFn</h2>
+
+The cacheKey export type. When exported from a page module alongside eTag, enables in-memory SSR caching.
+
+- `true`: use the default cache key `status|eTag|pathname` - Function: receives status, eTag, and pathname; returns a cache key string or null (no cache)
+
+```typescript
+export type CacheKeyFn =
+  | true
+  | ((status: number, eTag: string, pathname: string) => string | null);
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 <h2 id="contentheading">ContentHeading</h2>
 
 ```typescript
@@ -321,6 +335,30 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+<h2 id="contentmoduleetag">ContentModuleETag</h2>
+
+The eTag export type: a static string or a function receiving DocumentHeadProps.
+
+```typescript
+export type ContentModuleETag =
+  | string
+  | ((props: DocumentHeadProps) => string | null);
+```
+
+**References:** [DocumentHeadProps](#documentheadprops)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="contentmodulehead">ContentModuleHead</h2>
+
+```typescript
+export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
+```
+
+**References:** [DocumentHead](#documenthead), [ResolvedDocumentHead](#resolveddocumenthead)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 <h2 id="createrenderer">createRenderer</h2>
 
 Creates the `render()` function that is required by `createQwikRouter()`. It requires a function that returns the `jsx` and `options` for the renderer.
@@ -463,6 +501,23 @@ Description
 ResolveSyncValue
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+[status](./router.documentheadprops.status.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+number
+
+</td><td>
+
+The HTTP status code of the response (e.g. 200, 404).
 
 </td></tr>
 <tr><td>
@@ -740,10 +795,8 @@ export type FailReturn<T> = T & Failed;
 <h2 id="form">Form</h2>
 
 ```typescript
-Form: <O, I>(
-  { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
-  key: string | null,
-) => import("@qwik.dev/core").JSXOutput;
+Form: <O, I>(input: FormProps<O, I>, key: string | null) =>
+  import("@qwik.dev/core").JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -762,6 +815,17 @@ Description
 <tbody><tr><td>
 
 \{ action, spaReset, reloadDocument, onSubmit$, ...rest }
+
+</td><td>
+
+(not declared)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+input
 
 </td><td>
 
@@ -1012,6 +1076,17 @@ globalAction$: ActionConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
+<h2 id="httperrorprops">HttpErrorProps</h2>
+
+```typescript
+export type HttpStatus = {
+  status: number;
+  message: string;
+};
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 <h2 id="jsonobject">JSONObject</h2>
 
 ```typescript
@@ -1173,14 +1248,6 @@ export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-<h2 id="menudata">MenuData</h2>
-
-```typescript
-export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
-
 <h2 id="navigationtype_2">NavigationType_2</h2>
 
 ```typescript
@@ -1248,95 +1315,18 @@ Omit&lt;T, KEYS&gt;
 <h2 id="pagemodule">PageModule</h2>
 
 ```typescript
-export interface PageModule extends RouteModule
+export type PageModule = RouteModule & {
+  readonly default: (props: Record<string, never>) => JSXOutput;
+  readonly routeConfig?: RouteConfig;
+  readonly head?: ContentModuleHead;
+  readonly eTag?: ContentModuleETag;
+  readonly cacheKey?: CacheKeyFn;
+  readonly headings?: ContentHeading[];
+  readonly onStaticGenerate?: StaticGenerateHandler;
+};
 ```
 
-**Extends:** RouteModule
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[default](./router.pagemodule.default.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-unknown
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[head?](./router.pagemodule.head.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-ContentModuleHead
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[headings?](./router.pagemodule.headings.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-[ContentHeading](#contentheading)[]
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[onStaticGenerate?](./router.pagemodule.onstaticgenerate.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-[StaticGenerateHandler](#staticgeneratehandler)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
+**References:** [RouteConfig](#routeconfig), [ContentModuleHead](#contentmodulehead), [ContentModuleETag](#contentmoduleetag), [CacheKeyFn](#cachekeyfn), [ContentHeading](#contentheading), [StaticGenerateHandler](#staticgeneratehandler)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -1497,7 +1487,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[menus?](./router.qwikrouterconfig.menus.md)
+[fallthrough?](./router.qwikrouterconfig.fallthrough.md)
 
 </td><td>
 
@@ -1505,11 +1495,11 @@ _(Optional)_
 
 </td><td>
 
-[MenuData](#menudata)[]
+boolean
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ When true, return null instead of rendering the 404 page, letting the adapter handle it
 
 </td></tr>
 <tr><td>
@@ -1522,7 +1512,7 @@ _(Optional)_
 
 </td><td>
 
-[RouteData](#routedata)[]
+[RouteData](#routedata)
 
 </td><td>
 
@@ -1609,7 +1599,7 @@ RequestEvent
 
 </td><td>
 
-LoadedRoute \| null
+LoadedRoute
 
 </td><td>
 
@@ -2003,18 +1993,299 @@ routeAction$: ActionConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-<h2 id="routedata">RouteData</h2>
+<h2 id="routeconfig">RouteConfig</h2>
+
+Unified route configuration export. Groups head, eTag, and cacheKey with the same resolution rules as DocumentHead: can be a static object or a function receiving DocumentHeadProps.
+
+When a module exports `routeConfig`, the separate `head`, `eTag`, and `cacheKey` exports are ignored for that module.
 
 ```typescript
-export type RouteData =
-  | [routeName: string, moduleLoaders: ModuleLoader[]]
-  | [
-      routeName: string,
-      moduleLoaders: ModuleLoader[],
-      originalPathname: string,
-      routeBundleNames: string[],
-    ];
+export type RouteConfig =
+  | RouteConfigValue
+  | ((props: DocumentHeadProps) => RouteConfigValue);
 ```
+
+**References:** [RouteConfigValue](#routeconfigvalue), [DocumentHeadProps](#documentheadprops)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="routeconfigvalue">RouteConfigValue</h2>
+
+The value shape returned by a routeConfig export (object form or function return).
+
+```typescript
+export interface RouteConfigValue
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[cacheKey?](./router.routeconfigvalue.cachekey.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[CacheKeyFn](#cachekeyfn)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[eTag?](./router.routeconfigvalue.etag.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[ContentModuleETag](#contentmoduleetag)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[head?](./router.routeconfigvalue.head.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[DocumentHeadValue](#documentheadvalue)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="routedata">RouteData</h2>
+
+A nested route trie structure. The root represents `/` and each level represents a URL segment.
+
+Keys starting with `_` are metadata; all other keys are child route segments.
+
+- Use `_W` as the key for a single dynamic segment (param); `_P` on that node names the param. - Use `_A` as the key for a rest/catch-all segment; `_P` on that node names the param. - For infix params like `pre[slug]post`, use `_W` with `_0` (prefix) and `_9` (suffix). - Use `_M` for an array of group (pathless layout) nodes, sorted by group name.
+
+When matching, exact segments are tried first (case-insensitive), then `_W` (with optional prefix/suffix), then `_A`. When no route matches, the closest `_E` (error.tsx) or `_4` (404.tsx) loader in the ancestor chain is used to render the error page.
+
+```typescript
+export interface RouteData
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[\_0?](./router.routedata._0.md)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Prefix for infix params (e.g. "pre" for `pre[slug]post`) — only on `_W` nodes
+
+</td></tr>
+<tr><td>
+
+[\_4?](./router.routedata._4.md)
+
+</td><td>
+
+</td><td>
+
+ContentModuleLoader
+
+</td><td>
+
+_(Optional)_ The not-found (404) module loader for this subtree
+
+</td></tr>
+<tr><td>
+
+[\_9?](./router.routedata._9.md)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Suffix for infix params (e.g. "post" for `pre[slug]post`) — only on `_W` nodes
+
+</td></tr>
+<tr><td>
+
+[\_B?](./router.routedata._b.md)
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ The JS bundle names for this route (SSR only)
+
+</td></tr>
+<tr><td>
+
+[\_E?](./router.routedata._e.md)
+
+</td><td>
+
+</td><td>
+
+ContentModuleLoader
+
+</td><td>
+
+_(Optional)_ The error page module loader for this subtree (error.tsx, takes precedence over \_4)
+
+</td></tr>
+<tr><td>
+
+[\_G?](./router.routedata._g.md)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Rewrite/goto target path. Matcher re-walks trie from root using this path's keys.
+
+</td></tr>
+<tr><td>
+
+[\_I?](./router.routedata._i.md)
+
+</td><td>
+
+</td><td>
+
+ContentModuleLoader \| ModuleLoader[]
+
+</td><td>
+
+_(Optional)_ This node's index/page loader. Single = normal (runtime prepends gathered \_L). Array = override (layout stop / named layout — IS the complete chain).
+
+</td></tr>
+<tr><td>
+
+[\_L?](./router.routedata._l.md)
+
+</td><td>
+
+</td><td>
+
+ContentModuleLoader
+
+</td><td>
+
+_(Optional)_ This node's layout loader (single). Runtime accumulates these during trie traversal.
+
+</td></tr>
+<tr><td>
+
+[\_M?](./router.routedata._m.md)
+
+</td><td>
+
+</td><td>
+
+[RouteData](#routedata)[]
+
+</td><td>
+
+_(Optional)_ Group (pathless layout) nodes merged into this level, sorted by group name
+
+</td></tr>
+<tr><td>
+
+[\_N?](./router.routedata._n.md)
+
+</td><td>
+
+</td><td>
+
+MenuModuleLoader
+
+</td><td>
+
+_(Optional)_ Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal.
+
+</td></tr>
+<tr><td>
+
+[\_P?](./router.routedata._p.md)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The parameter name when this node is reached via `_W` or `_A` from the parent
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -2251,8 +2522,7 @@ Loads the service workers that are defined in the routes. Any file named `servic
 Qwik 1.14.0 and above now use `<link rel="modulepreload">` by default. If you didn't add custom service-worker logic, you should remove your service-worker.ts file(s) for the `ServiceWorkerRegister` Component to actually unregister the service-worker.js and delete its related cache. Make sure to keep the `ServiceWorkerRegister` Component in your app (without any service-worker.ts file) as long as you want to unregister the service-worker.js for your users.
 
 ```typescript
-ServiceWorkerRegister: (props: { nonce?: string }) =>
-  import("packages/qwik/public").JSXOutput;
+ServiceWorkerRegister: (props: { nonce?: string }) => JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -2283,7 +2553,7 @@ props
 
 **Returns:**
 
-import("packages/qwik/public").JSXOutput
+JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/sw-component.tsx)
 
@@ -2454,6 +2724,18 @@ useDocumentHead: <
 **Returns:**
 
 Required&lt;[ResolvedDocumentHead](#resolveddocumenthead)&lt;FrontMatter&gt;&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
+
+<h2 id="usehttpstatus">useHttpStatus</h2>
+
+```typescript
+useHttpStatus: () => import("./types").HttpStatus;
+```
+
+**Returns:**
+
+import("./types").[HttpStatus](#httperrorprops)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
 

@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-beta.26",
+  "version": "2.0.0-beta.29",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.mjs"
@@ -22,7 +22,7 @@
     "image-size": "1.2.1",
     "kleur": "4.1.5",
     "prettier": "3.7.4",
-    "vitest": "4.0.16"
+    "vitest": "4.0.18"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -99,7 +99,11 @@
     "./server.mjs": "./dist/server.mjs",
     "./server": {
       "types": "./server.d.ts",
-      "import": "./dist/server.mjs"
+      "import": {
+        "development": "./dist/server.mjs",
+        "production": "./dist/server.prod.mjs",
+        "default": "./dist/server.prod.mjs"
+      }
     },
     "./testing": {
       "types": "./dist/testing/index.d.ts",
@@ -152,7 +156,7 @@
   "main": "./src/index.ts",
   "peerDependencies": {
     "prettier": "3.6.2",
-    "vite": ">=5 <8",
+    "vite": ">=6 <9",
     "vitest": ">=2 <4"
   },
   "peerDependenciesMeta": {

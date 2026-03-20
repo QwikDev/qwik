@@ -60,6 +60,8 @@ pub struct Segment {
 	pub hash: u64,
 	pub span: Span,
 	pub param_names: Option<Vec<Atom>>,
+	/// For Hoist strategy: the qrl_id (e.g. q_Symbol_name) to emit .s() alongside the const
+	pub qrl_id: Option<Id>,
 }
 
 #[derive(Debug, Clone)]
@@ -75,6 +77,7 @@ pub struct SegmentData {
 	pub display_name: Atom,
 	pub hash: Atom,
 	pub need_transform: bool,
+	pub migrated_root_vars: Vec<ast::ModuleItem>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -92,6 +95,11 @@ struct PropAddContext {
 	is_const: bool,
 	is_fn: bool,
 	spread_props_count: usize,
+}
+
+struct ImportQrlName {
+	display_name: String,
+	hash_seed: String,
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -131,6 +139,15 @@ pub struct QwikTransform<'a> {
 	/// Depths that are component boundaries (not loop callbacks). Used to hoist QRLs with captures to the current component's top.
 	component_depths: Vec<usize>,
 	in_callback: bool,
+	/// Stores post-fold const initializers for inlining into segments when
+	/// a $ call receives a simple identifier referencing a local const.
+	const_initializers: HashMap<Id, Box<ast::Expr>>,
+	/// setRef call statements for inlined QRLs, inserted at module scope
+	pub ref_assignments: Vec<ast::ModuleItem>,
+	/// Segment idents whose .s() calls are emitted by the Hoist drain, not ref_assignments
+	hoisted_segment_idents: HashSet<Id>,
+	/// Pending expression replacement for fold_expr (to return non-CallExpr from fold_call_expr)
+	pending_expr_replacement: Option<ast::Expr>,
 }
 
 pub struct QwikTransformOptions<'a> {
@@ -171,7 +188,7 @@ impl<'a> QwikTransform<'a> {
 			}
 		}
 
-		for id in options.global_collect.exports.keys() {
+		for id in options.global_collect.export_local_ids() {
 			if id.0.ends_with(QRL_SUFFIX) {
 				marker_functions.insert(id.clone(), id.0.clone());
 			}
@@ -278,6 +295,10 @@ impl<'a> QwikTransform<'a> {
 			hoisting_scope_decl_indices: Vec::new(),
 			component_depths: Vec::new(),
 			in_callback: false,
+			const_initializers: HashMap::new(),
+			ref_assignments: Vec::new(),
+			hoisted_segment_idents: HashSet::new(),
+			pending_expr_replacement: None,
 			options,
 		}
 	}
@@ -322,7 +343,12 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
-	fn register_context_name(&mut self, custom_symbol: Option<Atom>) -> (Atom, Atom, Atom, u64) {
+	fn register_context_name(
+		&mut self,
+		custom_symbol: Option<Atom>,
+		display_name_override: Option<&str>,
+		hash_override: Option<&str>,
+	) -> (Atom, Atom, Atom, u64) {
 		if let Some(custom_symbol) = custom_symbol {
 			return (
 				custom_symbol.clone(),
@@ -331,10 +357,15 @@ impl<'a> QwikTransform<'a> {
 				0,
 			);
 		}
-		let mut display_name = self.stack_ctxt.join("_");
-		if self.stack_ctxt.is_empty() {
-			display_name += "s_";
-		}
+		let mut display_name = display_name_override
+			.map(ToOwned::to_owned)
+			.unwrap_or_else(|| {
+				let mut display_name = self.stack_ctxt.join("_");
+				if self.stack_ctxt.is_empty() {
+					display_name += "s_";
+				}
+				display_name
+			});
 		display_name = escape_sym(&display_name);
 		let first_char = display_name.chars().next();
 		if first_char.is_some_and(|c| c.is_ascii_digit()) {
@@ -353,16 +384,23 @@ impl<'a> QwikTransform<'a> {
 			write!(display_name, "_{}", index).unwrap();
 		}
 		let mut hasher = DefaultHasher::new();
-		let local_file_name = self.options.path_data.rel_path.to_slash_lossy();
-		if let Some(scope) = self.options.scope {
-			hasher.write(scope.as_bytes());
+		if let Some(hash_override) = hash_override {
+			hasher.write(hash_override.as_bytes());
+		} else {
+			let local_file_name = self.options.path_data.rel_path.to_slash_lossy();
+			if let Some(scope) = self.options.scope {
+				hasher.write(scope.as_bytes());
+			}
+			hasher.write(local_file_name.as_bytes());
+			hasher.write(display_name.as_bytes());
 		}
-		hasher.write(local_file_name.as_bytes());
-		hasher.write(display_name.as_bytes());
 		let hash = hasher.finish();
 		let hash64 = base64(hash);
 
-		let symbol_name = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Test) {
+		let symbol_name = if matches!(
+			self.options.mode,
+			EmitMode::Dev | EmitMode::Test | EmitMode::Hmr | EmitMode::Lib
+		) {
 			format!("{}_{}", display_name, hash64)
 		} else {
 			format!("s_{}", hash64)
@@ -376,8 +414,85 @@ impl<'a> QwikTransform<'a> {
 		)
 	}
 
+	fn get_import_qrl_name(&self, expr: &ast::Expr) -> Option<ImportQrlName> {
+		let (source, import_name, display_name) = match expr {
+			ast::Expr::Ident(ident) => {
+				let import = self.options.global_collect.imports.get(&id!(ident))?;
+				let source = self.resolve_import_hash_path(import.source.as_ref())?;
+				(
+					source.clone(),
+					import.specifier.to_string(),
+					self.create_import_display_name(&source, import.specifier.as_ref()),
+				)
+			}
+			ast::Expr::Member(member) => {
+				let ast::Expr::Ident(root_ident) = member.obj.as_ref() else {
+					return None;
+				};
+				let import = self.options.global_collect.imports.get(&id!(root_ident))?;
+				if import.kind != ImportKind::All {
+					return None;
+				}
+				let ast::MemberProp::Ident(import_name) = &member.prop else {
+					return None;
+				};
+				let source = self.resolve_import_hash_path(import.source.as_ref())?;
+				(
+					source.clone(),
+					import_name.sym.to_string(),
+					self.create_import_display_name(&source, import_name.sym.as_ref()),
+				)
+			}
+			_ => return None,
+		};
+
+		Some(ImportQrlName {
+			display_name,
+			hash_seed: format!("{}#{}", source, import_name),
+		})
+	}
+
+	fn resolve_import_hash_path(&self, import_path: &str) -> Option<String> {
+		let normalized = import_path.replace('\\', "/");
+		if !normalized.starts_with('.') {
+			return Some(normalized);
+		}
+
+		let base_dir = self.options.path_data.rel_dir.to_slash_lossy();
+		let mut segments: Vec<&str> = base_dir
+			.split('/')
+			.filter(|segment| !segment.is_empty())
+			.collect();
+
+		for segment in normalized.split('/') {
+			match segment {
+				"" | "." => {}
+				".." => {
+					segments.pop()?;
+				}
+				segment => segments.push(segment),
+			}
+		}
+
+		Some(segments.join("/"))
+	}
+
+	fn create_import_display_name(&self, source: &str, import_name: &str) -> String {
+		let path_tail = source.rsplit('/').next().unwrap_or(source);
+		let base_name = escape_sym(path_tail);
+		if import_name == "default" {
+			base_name
+		} else {
+			format!("{}_{}", base_name, escape_sym(import_name))
+		}
+	}
+
 	/** Parse inlinedQrl() (from library code) */
 	fn handle_inlined_qsegment(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
+		// Library mode: pass through existing inlinedQrl calls unchanged
+		if matches!(self.options.mode, EmitMode::Lib) {
+			return node;
+		}
 		// If the first argument of the call is `null`, we skip processing
 		if let Some(ast::ExprOrSpread {
 			expr: first_arg, ..
@@ -420,11 +535,14 @@ impl<'a> QwikTransform<'a> {
 		let (symbol_name, display_name, hash) = {
 			let symbol_name = match *second_arg.expr {
 				ast::Expr::Lit(ast::Lit::Str(string)) => string.value,
-				_ => panic!("dfd"),
+				_ => unreachable!("checked above"),
 			};
 			parse_symbol_name(
 				symbol_name,
-				matches!(self.options.mode, EmitMode::Dev | EmitMode::Test),
+				matches!(
+					self.options.mode,
+					EmitMode::Dev | EmitMode::Test | EmitMode::Hmr
+				),
 				&self.options.path_data.file_name,
 			)
 		};
@@ -433,9 +551,29 @@ impl<'a> QwikTransform<'a> {
 		let folded = *first_arg.expr.fold_with(self);
 		self.segment_stack.pop();
 
+		// Inline const initializer if the value is a simple ident referencing a local const.
+		// This fixes cases like `const STYLE = '...'; inlinedQrl(STYLE, 'name')`
+		// where the entry point would otherwise reference an undefined identifier.
+		// For Inline/Hoist strategies, skip: the .s() call will use the ident directly
+		// (at module scope for globals, or inline via comma expr for non-globals).
+		let folded = if !self.is_inline() {
+			if let ast::Expr::Ident(ref ident) = folded {
+				if let Some(init) = self.const_initializers.get(&id!(ident)) {
+					*init.clone()
+				} else {
+					folded
+				}
+			} else {
+				folded
+			}
+		} else {
+			folded
+		};
+
 		let scoped_idents = {
-			third_arg.map_or_else(Vec::new, |scoped| {
-				let list: Vec<Id> = match &*scoped.expr {
+			if let Some(scoped) = third_arg {
+				// Explicit captures provided as third argument
+				match &*scoped.expr {
 					ast::Expr::Array(array) => array
 						.elems
 						.iter()
@@ -445,9 +583,24 @@ impl<'a> QwikTransform<'a> {
 						})
 						.collect(),
 					_ => vec![],
+				}
+			} else {
+				// No explicit captures — auto-detect scoped identifiers from the value,
+				// just like _create_synthetic_qsegment does for $() calls.
+				let descendent_idents = {
+					let mut collector = IdentCollector::new();
+					folded.visit_with(&mut collector);
+					collector.get_words()
 				};
-				list
-			})
+				let (decl_collect, _): (Vec<_>, Vec<_>) = self
+					.decl_stack
+					.iter()
+					.flat_map(|v| v.iter())
+					.cloned()
+					.partition(|(_, t)| matches!(t, IdentType::Var(_)));
+				let (scoped, _) = compute_scoped_idents(&descendent_idents, &decl_collect);
+				scoped
+			}
 		};
 		let local_idents = self.get_local_idents(&folded);
 		let segment_data = SegmentData {
@@ -462,20 +615,16 @@ impl<'a> QwikTransform<'a> {
 			display_name,
 			need_transform: false,
 			hash,
+			migrated_root_vars: Vec::new(),
 		};
-		let should_emit = self.should_emit_segment(&segment_data);
-		if should_emit {
-			for id in &segment_data.local_idents {
-				if !self.options.global_collect.exports.contains_key(id)
-					&& self.options.global_collect.root.contains_key(id)
-				{
-					self.ensure_export(id);
-				}
+		// Preprocessed inlinedQrl from libs are always emitted — stripping is meant for user code without the user having to write guards; libs can put guards themselves.
+		// App-level $() calls go through _create_synthetic_qsegment which has its own strip check.
+		for id in &segment_data.local_idents {
+			if let Some(root_id) = self.options.global_collect.root_id_for_symbol(&id.0) {
+				self.ensure_export(&root_id);
 			}
 		}
-		if !should_emit {
-			self.create_noop_qrl(&symbol_name, segment_data)
-		} else if self.is_inline() {
+		if self.is_inline() {
 			let folded = if self.should_reg_segment(&segment_data.ctx_name) {
 				ast::Expr::Call(self.create_internal_call(
 					&_REG_SYMBOL,
@@ -667,11 +816,118 @@ impl<'a> QwikTransform<'a> {
 		ctx_name: Atom,
 		custom_symbol: Option<Atom>,
 	) -> (ast::CallExpr, bool) {
+		// Inline const initializer if first_arg is a simple ident referencing a local const.
+		// This fixes cases like `const style = \`${css1}${css2}\`; useStyles$(style);`
+		// where the segment would otherwise get an undefined identifier.
+		// For Inline/Hoist strategies, skip inlining: the ident will either be accessible
+		// at module scope (global), or the .s() call will be emitted inline at the use
+		// site via a comma expression (non-global).
+		let first_arg = if !self.is_inline() {
+			if let ast::Expr::Ident(ref ident) = first_arg {
+				if let Some(init) = self.const_initializers.get(&id!(ident)) {
+					*init.clone()
+				} else {
+					first_arg
+				}
+			} else {
+				first_arg
+			}
+		} else {
+			first_arg
+		};
+		let import_qrl_name = self.get_import_qrl_name(&first_arg);
+
+		// Library mode: inline wrapping with scope capture but no segment extraction.
+		if matches!(self.options.mode, EmitMode::Lib) {
+			let can_capture = can_capture_scope(&first_arg);
+			let first_arg_span = first_arg.span();
+
+			let (symbol_name, display_name, hash, _segment_hash) = self.register_context_name(
+				custom_symbol,
+				import_qrl_name
+					.as_ref()
+					.map(|info| info.display_name.as_ref()),
+				import_qrl_name.as_ref().map(|info| info.hash_seed.as_ref()),
+			);
+
+			// Collect descendent idents for scope analysis
+			let descendent_idents = {
+				let mut collector = IdentCollector::new();
+				first_arg.visit_with(&mut collector);
+				collector.get_words()
+			};
+
+			let decl_collect: Vec<_> = self
+				.decl_stack
+				.iter()
+				.flat_map(|v| v.iter())
+				.filter(|(_, t)| matches!(t, IdentType::Var(_)))
+				.cloned()
+				.collect();
+
+			let span = first_arg.span();
+			self.segment_stack.push(symbol_name.clone());
+			let folded = first_arg.fold_with(self);
+			self.segment_stack.pop();
+
+			let param_idents = get_function_params(&folded);
+			let (mut scoped_idents, _is_const) =
+				compute_scoped_idents(&descendent_idents, &decl_collect);
+			scoped_idents.retain(|id| !param_idents.contains(id));
+
+			if !can_capture && !scoped_idents.is_empty() {
+				HANDLER.with(|handler| {
+					let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
+					handler
+						.struct_span_err_with_code(
+							first_arg_span,
+							&format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
+							errors::get_diagnostic_id(errors::Error::CanNotCapture),
+						)
+						.emit();
+				});
+				scoped_idents = vec![];
+			}
+
+			// Inject _captures destructuring if there are captured variables
+			let folded = if !scoped_idents.is_empty() {
+				let new_local = self.ensure_core_import(&_CAPTURES);
+				transform_function_expr(folded, &new_local, &scoped_idents)
+			} else {
+				folded
+			};
+
+			let segment_data = SegmentData {
+				extension: self.options.extension.clone(),
+				local_idents: vec![],
+				scoped_idents,
+				parent_segment: self.segment_stack.last().cloned(),
+				ctx_kind,
+				ctx_name,
+				origin: self.options.path_data.rel_path.to_slash_lossy().into(),
+				path: self.options.path_data.rel_dir.to_slash_lossy().into(),
+				display_name,
+				need_transform: false,
+				hash,
+				migrated_root_vars: Vec::new(),
+			};
+
+			return (
+				self.create_inline_qrl(segment_data, folded, symbol_name, span),
+				false,
+			);
+		}
+
 		let can_capture = can_capture_scope(&first_arg);
 		let first_arg_span = first_arg.span();
 
-		let (symbol_name, display_name, hash, segment_hash) =
-			self.register_context_name(custom_symbol);
+		let (symbol_name, display_name, hash, segment_hash) = self.register_context_name(
+			custom_symbol,
+			import_qrl_name
+				.as_ref()
+				.map(|info| info.display_name.as_ref()),
+			import_qrl_name.as_ref().map(|info| info.hash_seed.as_ref()),
+		);
 
 		// Collect descendent idents
 		let descendent_idents = {
@@ -730,13 +986,14 @@ impl<'a> QwikTransform<'a> {
 			display_name,
 			need_transform: true,
 			hash,
+			migrated_root_vars: Vec::new(),
 		};
 		let should_emit = self.should_emit_segment(&segment_data);
 		if should_emit {
 			for id in &segment_data.local_idents {
-				if !self.options.global_collect.exports.contains_key(id) {
-					if self.options.global_collect.root.contains_key(id) {
-						self.ensure_export(id);
+				if !self.options.global_collect.has_export_symbol(&id.0) {
+					if let Some(root_id) = self.options.global_collect.root_id_for_symbol(&id.0) {
+						self.ensure_export(&root_id);
 					}
 					if invalid_decl.iter().any(|entry| entry.0 == *id) {
 						HANDLER.with(|handler| {
@@ -794,7 +1051,16 @@ impl<'a> QwikTransform<'a> {
 		let use_h = collector.use_h;
 		let use_fragment = collector.use_fragment;
 
+		// Collect identifiers declared locally within this expression
+		// This prevents shadowed names (like currentScrollState in spa-init.ts)
+		// from being treated as external dependencies
+		let mut locally_declared = HashSet::new();
+		collect_local_declarations_from_expr(expr, &mut locally_declared);
+
 		let mut idents = collector.get_words();
+		// Filter out locally-declared identifiers
+		idents.retain(|id| !locally_declared.contains(id));
+
 		if use_h {
 			if let Some(id) = &self.h_fn {
 				idents.push(id.clone());
@@ -843,6 +1109,7 @@ impl<'a> QwikTransform<'a> {
 			expr: Box::new(expr),
 			hash: segment_hash,
 			param_names,
+			qrl_id: None,
 		});
 		import_expr
 	}
@@ -911,7 +1178,7 @@ impl<'a> QwikTransform<'a> {
 				vec![node_type, var_props, const_props, children, flags, key],
 			)
 		};
-		if self.options.mode == EmitMode::Dev {
+		if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
 			args.push(self.get_dev_location(node.span));
 		}
 
@@ -941,11 +1208,11 @@ impl<'a> QwikTransform<'a> {
 					} else {
 						SegmentKind::JSXProp
 					};
+					let qrl = self.create_synthetic_qsegment(*expr, segment_kind, ctx_name, None);
+					let hoisted = self.hoist_qrl_to_module_scope(qrl);
 					Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
 						span: DUMMY_SP,
-						expr: ast::JSXExpr::Expr(Box::new(ast::Expr::Call(
-							self.create_synthetic_qsegment(*expr, segment_kind, ctx_name, None),
-						))),
+						expr: ast::JSXExpr::Expr(Box::new(hoisted)),
 					}))
 				} else {
 					Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
@@ -972,15 +1239,42 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	fn ensure_export(&mut self, id: &Id) {
-		let exported_name: Option<Atom> = Some(format!("_auto_{}", id.0).into());
+		let canonical_id = self.options.global_collect.canonical_id_for(id);
+		let exported_name: Option<Atom> = Some(format!("_auto_{}", canonical_id.0).into());
 		if self
 			.options
 			.global_collect
-			.add_export(id.clone(), exported_name.clone())
+			.add_export(canonical_id.clone(), exported_name.clone())
 		{
-			self.extra_bottom_items
-				.insert(id.clone(), create_synthetic_named_export(id, exported_name));
+			self.extra_bottom_items.insert(
+				canonical_id.clone(),
+				create_synthetic_named_export(&canonical_id, exported_name),
+			);
 		}
+	}
+
+	/// Pre-compute captures for an event handler expression without folding it.
+	/// Returns the set of captured identifiers (variables from enclosing scope).
+	fn compute_handler_captures(&self, handler: &ast::Expr) -> Vec<Id> {
+		let descendent_idents = {
+			let mut collector = IdentCollector::new();
+			handler.visit_with(&mut collector);
+			collector.get_words()
+		};
+
+		let (decl_collect, _): (Vec<_>, Vec<_>) = self
+			.decl_stack
+			.iter()
+			.flat_map(|v| v.iter())
+			.cloned()
+			.partition(|(_, t)| matches!(t, IdentType::Var(_)));
+
+		let (mut scoped, _) = compute_scoped_idents(&descendent_idents, &decl_collect);
+
+		let params = get_function_params(handler);
+		scoped.retain(|id| !params.contains(id));
+
+		scoped
 	}
 
 	/// Chooses which hoisting scope (0 = root component, 1 = first callback or nested component, …)
@@ -1045,32 +1339,49 @@ impl<'a> QwikTransform<'a> {
 			.unwrap_or(current_depth)
 	}
 
-	/// Hoist QRL creation if inside a loop, or return the call expression as-is
+	/// Hoist QRL creation to module scope. The QRL itself (without captures) is always hoisted
+	/// to module scope. If captures exist, a `.w([...])` call is returned ("with captures").
+	/// When inside a loop, the `w` call is further hoisted to the highest scope
+	/// where all captures are available, for efficiency.
 	fn hoist_qrl_if_needed(&mut self, converted_expr: ast::CallExpr, is_fn: bool) -> ast::Expr {
-		// Hoist QRLs only when inside a loop (for, while, .map(), etc.)
-		// This creates a single QRL declaration outside the loop for efficiency
-		// Don't hoist component$ QRLs (is_fn = true)
-		// Also need an active hoisting scope (hoisted_qrls not empty)
+		let module_hoisted = self.hoist_qrl_to_module_scope(converted_expr);
+
+		// If it's just an ident (no captures), no further hoisting needed
+		let with_captures_call = match module_hoisted {
+			ast::Expr::Call(call_expr) => call_expr,
+			expr => return expr,
+		};
+
+		// Hoist w calls when inside a loop (for, while, .map(), etc.)
+		// This creates a single declaration outside the loop for efficiency.
+		// Don't hoist component$ QRLs (is_fn = true).
 		let should_hoist =
 			!self.iteration_var_stack.is_empty() && !is_fn && !self.hoisted_qrls.is_empty();
 
 		if should_hoist {
-			// Extract symbol name from the QRL call (second argument)
-			let symbol_name =
-				if let Some(ast::ExprOrSpread { expr, .. }) = converted_expr.args.get(1) {
-					if let ast::Expr::Lit(ast::Lit::Str(s)) = &**expr {
-						s.value.to_string()
-					} else {
-						format!("qrl_{}", converted_expr.span.lo.0)
-					}
+			// Extract symbol name from the hoisted ident used as the receiver.
+			// The module-scope const is named `q_<symbol>`, so strip the prefix
+			// to avoid shadowing it.
+			let symbol_name = if let ast::Callee::Expr(box ast::Expr::Member(ref member)) =
+				with_captures_call.callee
+			{
+				if let ast::Expr::Ident(ref ident) = *member.obj {
+					ident
+						.sym
+						.strip_prefix("q_")
+						.unwrap_or(&ident.sym)
+						.to_string()
 				} else {
-					format!("qrl_{}", converted_expr.span.lo.0)
-				};
+					format!("qrl_{}", with_captures_call.span.lo.0)
+				}
+			} else {
+				format!("qrl_{}", with_captures_call.span.lo.0)
+			};
 
 			let current_depth = self.hoisted_qrls.len() - 1;
 			let target_depth = self.compute_hoist_target_depth(current_depth);
 
-			// Check if we already hoisted this QRL at target depth
+			// Check if we already hoisted this w call at target depth
 			let existing_var = self.hoisted_qrls[target_depth]
 				.iter()
 				.find_map(|(name, _)| {
@@ -1088,7 +1399,6 @@ impl<'a> QwikTransform<'a> {
 			if let Some(existing_ident) = existing_var {
 				existing_ident
 			} else {
-				// Hoist the QRL creation to the scope that contains all captures
 				let var_declarator = ast::VarDeclarator {
 					span: DUMMY_SP,
 					name: ast::Pat::Ident(ast::BindingIdent {
@@ -1099,7 +1409,7 @@ impl<'a> QwikTransform<'a> {
 						),
 						type_ann: None,
 					}),
-					init: Some(Box::new(ast::Expr::Call(converted_expr))),
+					init: Some(Box::new(ast::Expr::Call(with_captures_call))),
 					definite: false,
 				};
 
@@ -1112,7 +1422,218 @@ impl<'a> QwikTransform<'a> {
 				))
 			}
 		} else {
-			ast::Expr::Call(converted_expr)
+			ast::Expr::Call(with_captures_call)
+		}
+	}
+
+	fn hoist_qrl_to_module_scope(&mut self, call_expr: ast::CallExpr) -> ast::Expr {
+		// Library mode: don't hoist QRLs to module scope
+		if matches!(self.options.mode, EmitMode::Lib) {
+			return ast::Expr::Call(call_expr);
+		}
+		let mut call_expr = call_expr;
+		let is_inlined = self.is_inlined_qrl_callee(&call_expr);
+
+		// Extract and remove capture array from the QRL call args (if present)
+		let capture_array = {
+			let pos = call_expr
+				.args
+				.iter()
+				.position(|arg| matches!(&*arg.expr, ast::Expr::Array(_)));
+			pos.map(|i| {
+				if let ast::Expr::Array(arr) = *call_expr.args.remove(i).expr {
+					arr
+				} else {
+					unreachable!()
+				}
+			})
+		};
+
+		if let Some(is_dev) = is_inlined {
+			// For inlinedQrl: convert to noopQrl + $ref$ assignment
+			// Args layout: [fn_body, symbol_name_str, optional_dev_info]
+			let fn_body_expr = *call_expr.args.remove(0).expr;
+
+			// Remaining args: [symbol_name_str, optional_dev_info] — exactly what noopQrl needs
+			let symbol_name = call_expr
+				.args
+				.first()
+				.and_then(|arg| match &*arg.expr {
+					ast::Expr::Lit(ast::Lit::Str(s)) => Some(s.value.to_string()),
+					_ => None,
+				})
+				.unwrap_or_else(|| format!("qrl_{}", call_expr.span.lo.0));
+
+			let noop_fn: &Atom = if is_dev { &_NOOP_QRL_DEV } else { &_NOOP_QRL };
+			let noop_local = self.ensure_core_import(noop_fn);
+
+			// Build noopQrl call with remaining args
+			let noop_call = {
+				let span = if let Some(comments) = self.options.comments {
+					let span = Span::dummy_with_cmt();
+					comments.add_pure_comment(span.lo);
+					span
+				} else {
+					DUMMY_SP
+				};
+				ast::CallExpr {
+					callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
+						&noop_local,
+					)))),
+					span,
+					args: call_expr
+						.args
+						.into_iter()
+						.map(|arg| ast::ExprOrSpread {
+							spread: None,
+							expr: arg.expr,
+						})
+						.collect(),
+					..Default::default()
+				}
+			};
+
+			let ident_name = Atom::from(format!("q_{}", symbol_name));
+			let id: Id = (ident_name, SyntaxContext::empty());
+
+			if !self.extra_top_items.contains_key(&id) {
+				let declarator = ast::VarDeclarator {
+					span: DUMMY_SP,
+					name: ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(&id))),
+					init: Some(Box::new(ast::Expr::Call(noop_call))),
+					definite: false,
+				};
+				self.extra_top_items.insert(
+					id.clone(),
+					ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(
+						ast::VarDecl {
+							span: DUMMY_SP,
+							kind: ast::VarDeclKind::Const,
+							declare: false,
+							ctxt: SyntaxContext::empty(),
+							decls: vec![declarator],
+						},
+					)))),
+				);
+			}
+
+			// Add setRef call: q_name.s(fn_body)
+			// For Hoist strategy segment idents, the .s() call is emitted by the
+			// drain code right after the const definition to prevent bundler reordering.
+			let is_hoisted_segment = if let ast::Expr::Ident(ref ident) = fn_body_expr {
+				self.hoisted_segment_idents.contains(&id!(ident))
+			} else {
+				false
+			};
+			// Check if fn_body_expr is a non-global ident (not accessible at module scope).
+			// For such idents, we can't put .s() in ref_assignments (module scope);
+			// instead we emit it inline via a comma expression: (q_X.s(value), q_X)
+			let is_non_global_ident = matches!(&fn_body_expr, ast::Expr::Ident(ident)
+				if !self.options.global_collect.is_global(&id!(ident)));
+			if !is_hoisted_segment && !is_non_global_ident {
+				self.ref_assignments
+					.push(Self::create_ref_assignment(&id, fn_body_expr.clone()));
+			}
+
+			let hoisted_ident = ast::Expr::Ident(new_ident_from_id(&id));
+
+			// Build the result expression, optionally with inline .s() and/or .w()
+			let result = if is_non_global_ident && !is_hoisted_segment {
+				// Emit .s() inline: (q_X.s(value), q_X) or (q_X.s(value), q_X).w([...])
+				let set_ref_call = ast::Expr::Call(ast::CallExpr {
+					callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+						obj: Box::new(hoisted_ident.clone()),
+						prop: ast::MemberProp::Ident(ast::IdentName::new("s".into(), DUMMY_SP)),
+						span: DUMMY_SP,
+					}))),
+					args: vec![ast::ExprOrSpread {
+						spread: None,
+						expr: Box::new(fn_body_expr),
+					}],
+					..Default::default()
+				});
+				ast::Expr::Seq(ast::SeqExpr {
+					span: DUMMY_SP,
+					exprs: vec![Box::new(set_ref_call), Box::new(hoisted_ident)],
+				})
+			} else {
+				hoisted_ident
+			};
+
+			if let Some(captures) = capture_array {
+				ast::Expr::Call(ast::CallExpr {
+					callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+						obj: Box::new(result),
+						prop: ast::MemberProp::Ident(ast::IdentName::new("w".into(), DUMMY_SP)),
+						span: DUMMY_SP,
+					}))),
+					args: vec![ast::ExprOrSpread {
+						spread: None,
+						expr: Box::new(ast::Expr::Array(captures)),
+					}],
+					..Default::default()
+				})
+			} else {
+				result
+			}
+		} else {
+			// For qrl() calls: existing behavior
+			if let Some(comments) = self.options.comments {
+				let span = Span::dummy_with_cmt();
+				comments.add_pure_comment(span.lo);
+				call_expr.span = span;
+			}
+
+			let symbol_name = call_expr
+				.args
+				.get(1)
+				.and_then(|arg| match &*arg.expr {
+					ast::Expr::Lit(ast::Lit::Str(s)) => Some(s.value.to_string()),
+					_ => None,
+				})
+				.unwrap_or_else(|| format!("qrl_{}", call_expr.span.lo.0));
+			let ident_name = Atom::from(format!("q_{}", symbol_name));
+			let id: Id = (ident_name, SyntaxContext::empty());
+
+			if !self.extra_top_items.contains_key(&id) {
+				let declarator = ast::VarDeclarator {
+					span: DUMMY_SP,
+					name: ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(&id))),
+					init: Some(Box::new(ast::Expr::Call(call_expr))),
+					definite: false,
+				};
+				self.extra_top_items.insert(
+					id.clone(),
+					ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(
+						ast::VarDecl {
+							span: DUMMY_SP,
+							kind: ast::VarDeclKind::Const,
+							declare: false,
+							ctxt: SyntaxContext::empty(),
+							decls: vec![declarator],
+						},
+					)))),
+				);
+			}
+
+			let hoisted_ident = ast::Expr::Ident(new_ident_from_id(&id));
+
+			if let Some(captures) = capture_array {
+				ast::Expr::Call(ast::CallExpr {
+					callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+						obj: Box::new(hoisted_ident),
+						prop: ast::MemberProp::Ident(ast::IdentName::new("w".into(), DUMMY_SP)),
+						span: DUMMY_SP,
+					}))),
+					args: vec![ast::ExprOrSpread {
+						spread: None,
+						expr: Box::new(ast::Expr::Array(captures)),
+					}],
+					..Default::default()
+				})
+			} else {
+				hoisted_ident
+			}
 		}
 	}
 
@@ -1341,8 +1862,6 @@ impl<'a> QwikTransform<'a> {
 		segment_data: &SegmentData,
 		span: &Span,
 	) -> ast::CallExpr {
-		// Put the QRL import function in module scope
-		let import_fn_name = private_ident!(format!("i_{}", segment_data.hash));
 		let import_fn = ast::Expr::Arrow(ast::ArrowExpr {
 			body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(
 				ast::CallExpr {
@@ -1364,30 +1883,17 @@ impl<'a> QwikTransform<'a> {
 			)))),
 			..Default::default()
 		});
-		self.extra_top_items.insert(
-			id!(import_fn_name),
-			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
-				kind: ast::VarDeclKind::Const,
-				decls: vec![ast::VarDeclarator {
-					name: ast::Pat::Ident(ast::BindingIdent::from(import_fn_name.clone())),
-					init: Some(Box::new(import_fn)),
-					definite: false,
-					span: DUMMY_SP,
-				}],
-				..Default::default()
-			})))),
-		);
 
-		// Create the qrl arguments
+		// The qrl() call is always hoisted to module scope, so we can inline the import arrow.
 		let mut args = vec![
-			ast::Expr::Ident(import_fn_name),
+			import_fn,
 			ast::Expr::Lit(ast::Lit::Str(ast::Str {
 				span: DUMMY_SP,
 				value: symbol.into(),
 				raw: None,
 			})),
 		];
-		let fn_callee = if self.options.mode == EmitMode::Dev {
+		let fn_callee = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
 			args.push(get_qrl_dev_obj(
 				Atom::from(
 					self.options
@@ -1430,12 +1936,21 @@ impl<'a> QwikTransform<'a> {
 		span: Span,
 	) -> ast::CallExpr {
 		let should_inline = matches!(self.options.entry_strategy, EntryStrategy::Inline)
+			|| matches!(self.options.mode, EmitMode::Lib)
 			|| matches!(expr, ast::Expr::Ident(_));
 		let param_names = Self::extract_param_names(&expr);
 		let inlined_expr = if should_inline {
+			// For Ident/Null: pass through as-is (keeps separate const)
+			// For other expressions: pass through directly — hoist_qrl_to_module_scope
+			// will inline it into the $ref$ assignment
 			expr
 		} else {
 			let new_ident = private_ident!(symbol_name.clone());
+			let qrl_id: Id = (
+				Atom::from(format!("q_{}", symbol_name)),
+				SyntaxContext::empty(),
+			);
+			self.hoisted_segment_idents.insert(id!(new_ident));
 			self.segments.push(Segment {
 				entry: None,
 				span,
@@ -1448,6 +1963,7 @@ impl<'a> QwikTransform<'a> {
 				expr: Box::new(expr),
 				hash: new_ident.ctxt.as_u32() as u64,
 				param_names,
+				qrl_id: Some(qrl_id),
 			});
 			ast::Expr::Ident(new_ident)
 		};
@@ -1461,7 +1977,7 @@ impl<'a> QwikTransform<'a> {
 			})),
 		];
 
-		let fn_callee = if self.options.mode == EmitMode::Dev {
+		let fn_callee = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
 			args.push(get_qrl_dev_obj(
 				Atom::from(
 					self.options
@@ -1657,14 +2173,50 @@ impl<'a> QwikTransform<'a> {
 				let should_runtime_sort = has_spread_props || has_component_bind_props;
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
-				let mut added_iter_var_prop = false; // Track if we've already added q:p or q:ps
+				let mut moved_captures = false; // Track if we've already added q:p or q:ps
 
-				// Collect all iteration variables used by any handler on this element (in loop order)
-				let element_iter_vars: Vec<ast::Ident> = if !self.iteration_var_stack.is_empty()
-					&& !is_fn
-				{
-					if let Some(iter_vars) = self.iteration_var_stack.last() {
-						let mut used_syms: HashSet<(Atom, SyntaxContext)> = HashSet::new();
+				// Collect parameters to lift via q:p/q:ps:
+				// Priority 1: iteration variables (loop context) - collected from iteration_var_stack
+				// Priority 2: extra inline handler params (beyond event, element) - collected from handler signatures
+				let element_lifted_params: Vec<ast::Ident> = if !is_fn {
+					// Check if we're in a loop context
+					if !self.iteration_var_stack.is_empty() {
+						// Use iteration variables (existing loop behavior)
+						if let Some(iter_vars) = self.iteration_var_stack.last() {
+							let mut used_syms: HashSet<(Atom, SyntaxContext)> = HashSet::new();
+							for prop in props.iter() {
+								if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) =
+									prop
+								{
+									let key = match &node.key {
+										ast::PropName::Ident(ref ident) => Some(ident.sym.clone()),
+										ast::PropName::Str(ref s) => Some(s.value.clone()),
+										_ => None,
+									};
+									if key.as_ref().and_then(convert_qrl_word).is_some()
+										&& matches!(
+											*node.value,
+											ast::Expr::Arrow(_) | ast::Expr::Fn(_)
+										) {
+										for var in iter_vars {
+											if expr_uses_ident(&node.value, &id!(var)) {
+												used_syms.insert((var.sym.clone(), var.ctxt));
+											}
+										}
+									}
+								}
+							}
+							iter_vars
+								.iter()
+								.filter(|var| used_syms.contains(&(var.sym.clone(), var.ctxt)))
+								.cloned()
+								.collect()
+						} else {
+							Vec::new()
+						}
+					} else {
+						// No loop context - collect union of captures from all event handlers
+						let mut all_captures: Vec<Id> = Vec::new();
 						for prop in props.iter() {
 							if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) = prop
 							{
@@ -1676,21 +2228,20 @@ impl<'a> QwikTransform<'a> {
 								if key.as_ref().and_then(convert_qrl_word).is_some()
 									&& matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 								{
-									for var in iter_vars {
-										if expr_uses_ident(&node.value, &id!(var)) {
-											used_syms.insert((var.sym.clone(), var.ctxt));
+									let captures = self.compute_handler_captures(&node.value);
+									for cap in captures {
+										if !all_captures.contains(&cap) {
+											all_captures.push(cap);
 										}
 									}
 								}
 							}
 						}
-						iter_vars
+						all_captures.sort();
+						all_captures
 							.iter()
-							.filter(|var| used_syms.contains(&(var.sym.clone(), var.ctxt)))
-							.cloned()
+							.map(|id| ast::Ident::new(id.0.clone(), DUMMY_SP, id.1))
 							.collect()
-					} else {
-						Vec::new()
 					}
 				} else {
 					Vec::new()
@@ -1806,11 +2357,20 @@ impl<'a> QwikTransform<'a> {
 								{
 									if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 									{
-										// Transform event handler with element's full iteration var list (so param order matches q:ps)
-										let transformed_value = if !element_iter_vars.is_empty() {
+										// Use element_lifted_params for both loop iteration vars
+										// and non-loop captures (computed in pre-pass above)
+										let params_to_lift: Vec<ast::Ident> =
+											if !element_lifted_params.is_empty() && !is_fn {
+												element_lifted_params.clone()
+											} else {
+												Vec::new()
+											};
+
+										// Inject lifted params as extra function params
+										let transformed_value = if !params_to_lift.is_empty() {
 											transform_event_handler_with_iter_var(
 												*node.value.clone(),
-												&element_iter_vars,
+												&params_to_lift,
 											)
 										} else {
 											*node.value.clone()
@@ -1850,18 +2410,16 @@ impl<'a> QwikTransform<'a> {
 											&mut const_props,
 										);
 
-										// Add q:p (single) or q:ps (multiple) prop for all iteration vars used on this element
-										// Only add it once per element, even if multiple handlers use different iteration variables
-										if !element_iter_vars.is_empty()
-											&& !is_fn && !added_iter_var_prop
-										{
+										// Add q:p (single) or q:ps (multiple) prop for lifted params
+										// Apply to both loop-based iteration vars AND non-loop inline handler params
+										if !params_to_lift.is_empty() && !is_fn && !moved_captures {
 											let (prop_name, row_value): (&str, Box<ast::Expr>) =
-												if element_iter_vars.len() == 1 {
+												if params_to_lift.len() == 1 {
 													// Single parameter: use q:p without array
 													(
 														"q:p",
 														Box::new(ast::Expr::Ident(
-															element_iter_vars[0].clone(),
+															params_to_lift[0].clone(),
 														)),
 													)
 												} else {
@@ -1870,7 +2428,7 @@ impl<'a> QwikTransform<'a> {
 														"q:ps",
 														Box::new(ast::Expr::Array(ast::ArrayLit {
 															span: DUMMY_SP,
-															elems: element_iter_vars
+															elems: params_to_lift
 																.iter()
 																.map(|ident| {
 																	Some(ast::ExprOrSpread {
@@ -1897,7 +2455,7 @@ impl<'a> QwikTransform<'a> {
 													value: row_value,
 												}),
 											)));
-											added_iter_var_prop = true;
+											moved_captures = true;
 										}
 									} else {
 										let const_prop = is_const_expr(
@@ -2041,6 +2599,9 @@ impl<'a> QwikTransform<'a> {
 				}
 				if static_subtree {
 					flags |= 1 << 1;
+				}
+				if moved_captures {
+					flags |= 1 << 2;
 				}
 				if !should_runtime_sort {
 					var_props.sort_by(|a: &ast::PropOrSpread, b: &ast::PropOrSpread| {
@@ -2355,6 +2916,54 @@ impl<'a> QwikTransform<'a> {
 		false
 	}
 
+	/// Returns Some(is_dev_mode) if the call is an inlinedQrl/inlinedQrlDEV call, None otherwise.
+	fn is_inlined_qrl_callee(&self, call_expr: &ast::CallExpr) -> Option<bool> {
+		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &call_expr.callee {
+			let id = id!(ident);
+			// Check pre-existing imports
+			if let Some(import) = self.options.global_collect.imports.get(&id) {
+				if import.specifier == *_INLINED_QRL {
+					return Some(false);
+				}
+				if import.specifier == *_INLINED_QRL_DEV {
+					return Some(true);
+				}
+			}
+			// Check synthetic imports (generated by ensure_core_import)
+			for (syn_id, import) in &self.options.global_collect.synthetic {
+				if *syn_id == id {
+					if import.specifier == *_INLINED_QRL {
+						return Some(false);
+					}
+					if import.specifier == *_INLINED_QRL_DEV {
+						return Some(true);
+					}
+				}
+			}
+		}
+		None
+	}
+
+	/// Creates `q_name.s(fn_expr)` call statement
+	fn create_ref_assignment(qrl_id: &Id, fn_expr: ast::Expr) -> ast::ModuleItem {
+		ast::ModuleItem::Stmt(ast::Stmt::Expr(ast::ExprStmt {
+			span: DUMMY_SP,
+			expr: Box::new(ast::Expr::Call(ast::CallExpr {
+				callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+					obj: Box::new(ast::Expr::Ident(new_ident_from_id(qrl_id))),
+					prop: ast::MemberProp::Ident(ast::IdentName::new("s".into(), DUMMY_SP)),
+					span: DUMMY_SP,
+				}))),
+				args: vec![ast::ExprOrSpread {
+					spread: None,
+					expr: Box::new(fn_expr),
+				}],
+				span: DUMMY_SP,
+				..Default::default()
+			})),
+		}))
+	}
+
 	fn should_emit_segment(&self, segment_data: &SegmentData) -> bool {
 		if let Some(strip_ctx_name) = self.options.strip_ctx_name {
 			if strip_ctx_name
@@ -2383,7 +2992,7 @@ impl<'a> QwikTransform<'a> {
 		}))];
 
 		let mut fn_name: &Atom = &_NOOP_QRL;
-		if self.options.mode == EmitMode::Dev {
+		if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
 			args.push(get_qrl_dev_obj(
 				Atom::from(
 					self.options
@@ -2687,9 +3296,18 @@ impl<'a> QwikTransform<'a> {
 impl<'a> Fold for QwikTransform<'a> {
 	noop_fold_type!();
 
+	fn fold_expr(&mut self, expr: ast::Expr) -> ast::Expr {
+		let folded = expr.fold_children_with(self);
+		if let Some(replacement) = self.pending_expr_replacement.take() {
+			replacement
+		} else {
+			folded
+		}
+	}
+
 	fn fold_module(&mut self, node: ast::Module) -> ast::Module {
 		let mut body = Vec::with_capacity(node.body.len() + 10);
-		let mut module_body = node
+		let module_body: Vec<_> = node
 			.body
 			.into_iter()
 			.flat_map(|i| {
@@ -2698,13 +3316,13 @@ impl<'a> Fold for QwikTransform<'a> {
 				{
 					self.segments
 						.drain(..)
-						.map(|segment| {
+						.flat_map(|segment| {
 							let id = (
 								segment.name.clone(),
 								SyntaxContext::from_u32(segment.hash as u32),
 							);
-							ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(
-								ast::VarDecl {
+							let const_decl = ast::ModuleItem::Stmt(ast::Stmt::Decl(
+								ast::Decl::Var(Box::new(ast::VarDecl {
 									kind: ast::VarDeclKind::Const,
 									decls: vec![ast::VarDeclarator {
 										name: ast::Pat::Ident(ast::BindingIdent::from(
@@ -2715,8 +3333,19 @@ impl<'a> Fold for QwikTransform<'a> {
 										span: DUMMY_SP,
 									}],
 									..Default::default()
-								},
-							))))
+								})),
+							));
+							// Emit .s() call right after the const definition
+							// so bundlers can't reorder them
+							if let Some(qrl_id) = &segment.qrl_id {
+								let ref_assign = Self::create_ref_assignment(
+									qrl_id,
+									ast::Expr::Ident(new_ident_from_id(&id)),
+								);
+								vec![const_decl, ref_assign]
+							} else {
+								vec![const_decl]
+							}
 						})
 						.chain(iter::once(module_item))
 						.collect()
@@ -2736,8 +3365,63 @@ impl<'a> Fold for QwikTransform<'a> {
 					create_synthetic_named_import(new_local, &import.source)
 				}),
 		);
-		body.extend(self.extra_top_items.values().cloned());
-		body.append(&mut module_body);
+		let extra_top_items = collect_needed_extra_top_items(
+			&self.extra_top_items,
+			&module_body,
+			&self.extra_bottom_items,
+			&self.ref_assignments,
+		);
+
+		// Separate imports from non-imports to ensure all imports stay at the top
+		let (extra_imports, extra_non_imports): (Vec<_>, Vec<_>) =
+			extra_top_items.into_iter().partition(|item| {
+				matches!(
+					item,
+					ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(_))
+				)
+			});
+
+		let (module_imports, module_non_imports): (Vec<_>, Vec<_>) =
+			module_body.into_iter().partition(|item| {
+				matches!(
+					item,
+					ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(_))
+				)
+			});
+
+		// Assemble in proper order: all imports first, then non-imports
+		body.extend(extra_imports);
+		body.extend(module_imports);
+		let non_imports = order_items_by_dependency(
+			extra_non_imports
+				.into_iter()
+				.chain(self.ref_assignments.drain(..))
+				.chain(module_non_imports)
+				.collect(),
+		);
+
+		// Deduplicate declarations by symbol name before adding to body
+		// Use symbol name (Atom) for comparison since SyntaxContext can vary across transformations
+		let mut seen_syms: HashSet<Atom> = HashSet::new();
+		let deduplicated_non_imports: Vec<ast::ModuleItem> = non_imports
+			.into_iter()
+			.filter(|item| {
+				let mut item_defined_idents = HashSet::new();
+				collect_declared_idents(item, &mut item_defined_idents);
+
+				let is_duplicate = item_defined_idents
+					.iter()
+					.any(|id| seen_syms.contains(&id.0));
+				if !is_duplicate {
+					seen_syms.extend(item_defined_idents.iter().map(|id| id.0.clone()));
+					true
+				} else {
+					false
+				}
+			})
+			.collect();
+
+		body.extend(deduplicated_non_imports);
 		body.extend(self.extra_bottom_items.values().cloned());
 
 		ast::Module { body, ..node }
@@ -2760,7 +3444,26 @@ impl<'a> Fold for QwikTransform<'a> {
 				}
 			}
 		}
-		node.fold_children_with(self)
+		let is_const = node.kind == ast::VarDeclKind::Const;
+		let folded = node.fold_children_with(self);
+
+		// Store post-fold const initializers for potential inlining into segments.
+		// When a $ call receives a simple identifier (e.g. useStyles$(style)),
+		// we can replace it with the actual initializer expression.
+		if is_const {
+			for decl in &folded.decls {
+				if let ast::Pat::Ident(ident) = &decl.name {
+					if let Some(init) = &decl.init {
+						// Skip simple Ident inits (e.g. hoisted QRL references like q_name...)
+						if !matches!(**init, ast::Expr::Ident(_)) {
+							self.const_initializers.insert(id!(ident.id), init.clone());
+						}
+					}
+				}
+			}
+		}
+
+		folded
 	}
 
 	fn fold_var_declarator(&mut self, node: ast::VarDeclarator) -> ast::VarDeclarator {
@@ -3283,6 +3986,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			self.iteration_var_stack.push(iteration_vars);
 		}
 
+		let mut is_qcomponent = false;
 		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
 			// Check if this is a _fnSignal call (either by ID or by checking if it's imported as _fnSignal)
 			let is_fn_signal = id_eq!(ident, &self.fn_signal_fn) || {
@@ -3299,11 +4003,30 @@ impl<'a> Fold for QwikTransform<'a> {
 				if let Some(comments) = self.options.comments {
 					comments.add_pure_comment(ident.span.lo);
 				}
-				return self.handle_qsegment(node);
+				let call = self.handle_qsegment(node);
+				let hoisted = self.hoist_qrl_to_module_scope(call);
+				self.pending_expr_replacement = Some(hoisted);
+				return Default::default();
 			} else if self.jsx_functions.contains(&id!(ident)) {
 				return self.handle_jsx(node);
 			} else if id_eq!(ident, &self.inlined_qrl_fn) {
-				return self.handle_inlined_qsegment(node);
+				// Skip processing if the call should be left unchanged:
+				// - null first arg (already a valid lazy QRL)
+				// - non-literal second arg (dynamic symbol name)
+				let should_skip =
+					node.args
+						.first()
+						.is_some_and(|arg| matches!(*arg.expr, ast::Expr::Lit(ast::Lit::Null(_))))
+						|| node.args.get(1).is_none_or(|arg| {
+							!matches!(*arg.expr, ast::Expr::Lit(ast::Lit::Str(_)))
+						});
+				if should_skip {
+					return node.fold_children_with(self);
+				}
+				let call = self.handle_inlined_qsegment(node);
+				let hoisted = self.hoist_qrl_to_module_scope(call);
+				self.pending_expr_replacement = Some(hoisted);
+				return Default::default();
 			} else if is_fn_signal {
 				// Hoist _fnSignal calls
 				let folded_node = node.fold_children_with(self);
@@ -3313,7 +4036,8 @@ impl<'a> Fold for QwikTransform<'a> {
 				ctx_name = specifier.clone();
 				name_token = true;
 
-				if id_eq!(ident, &self.qcomponent_fn) {
+				is_qcomponent = id_eq!(ident, &self.qcomponent_fn);
+				if is_qcomponent {
 					if let Some(comments) = self.options.comments {
 						comments.add_pure_comment(node.span.lo);
 					}
@@ -3329,8 +4053,7 @@ impl<'a> Fold for QwikTransform<'a> {
 						convert_qrl_word(&ident.sym).expect("Specifier ends with $");
 					global_collect
 							.exports
-							.keys()
-							.find(|id| id.0 == new_specifier)
+							.get(&new_specifier)
 							.map_or_else(
 								|| {
 									HANDLER.with(|handler| {
@@ -3343,8 +4066,9 @@ impl<'a> Fold for QwikTransform<'a> {
 											.emit();
 									});
 								},
-								|new_local| {
-									replace_callee = Some(new_ident_from_id(new_local).as_callee());
+								|export_info| {
+									replace_callee =
+										Some(new_ident_from_id(&export_info.local_id).as_callee());
 								},
 							);
 				}
@@ -3367,14 +4091,47 @@ impl<'a> Fold for QwikTransform<'a> {
 			.enumerate()
 			.map(|(i, arg)| {
 				if convert_qrl && i == 0 {
+					let mut component_body = *arg.expr;
+
+					// In HMR mode, inject _useHmr(devPath) as the first statement of component$ bodies
+					if is_qcomponent && self.options.mode == EmitMode::Hmr {
+						let hmr_local = self.ensure_core_import(&_USE_HMR);
+						let dev_path = Atom::from(
+							self.options
+								.dev_path
+								.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
+						);
+						let hmr_call_stmt = ast::Stmt::Expr(ast::ExprStmt {
+							span: DUMMY_SP,
+							expr: Box::new(ast::Expr::Call(ast::CallExpr {
+								span: DUMMY_SP,
+								callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(
+									new_ident_from_id(&hmr_local),
+								))),
+								args: vec![ast::ExprOrSpread {
+									spread: None,
+									expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+										span: DUMMY_SP,
+										value: dev_path,
+										raw: None,
+									}))),
+								}],
+								..Default::default()
+							})),
+						});
+
+						component_body = prepend_stmt_to_fn(component_body, hmr_call_stmt);
+					}
+
+					let qrl = self.create_synthetic_qsegment(
+						component_body,
+						SegmentKind::Function,
+						ctx_name.clone(),
+						None,
+					);
+					let hoisted = self.hoist_qrl_to_module_scope(qrl);
 					ast::ExprOrSpread {
-						expr: Box::new(ast::Expr::Call(self.create_synthetic_qsegment(
-							*arg.expr,
-							SegmentKind::Function,
-							ctx_name.clone(),
-							None,
-						)))
-						.fold_with(self),
+						expr: Box::new(hoisted.fold_with(self)),
 						..arg
 					}
 				} else {
@@ -3398,6 +4155,378 @@ impl<'a> Fold for QwikTransform<'a> {
 			args,
 			..node
 		}
+	}
+}
+
+fn collect_needed_extra_top_items(
+	extra_top_items: &BTreeMap<Id, ast::ModuleItem>,
+	module_body: &[ast::ModuleItem],
+	extra_bottom_items: &BTreeMap<Id, ast::ModuleItem>,
+	ref_assignments: &[ast::ModuleItem],
+) -> Vec<ast::ModuleItem> {
+	if extra_top_items.is_empty() {
+		return Vec::new();
+	}
+
+	let mut needed: HashSet<Id> = HashSet::new();
+	for item in module_body {
+		collect_module_item_idents(item, &mut needed);
+	}
+	for item in extra_bottom_items.values() {
+		collect_module_item_idents(item, &mut needed);
+	}
+	for item in ref_assignments {
+		collect_module_item_idents(item, &mut needed);
+	}
+	let mut needed_syms: HashSet<Atom> = needed.iter().map(|id| id.0.clone()).collect();
+
+	let mut included: HashSet<Id> = HashSet::new();
+	let mut changed = true;
+	while changed {
+		changed = false;
+		for (id, item) in extra_top_items.iter() {
+			if (needed.contains(id) || needed_syms.contains(&id.0)) && included.insert(id.clone()) {
+				let mut item_used = HashSet::new();
+				collect_module_item_idents(item, &mut item_used);
+				for used in item_used {
+					if needed.insert(used.clone()) {
+						needed_syms.insert(used.0.clone());
+						changed = true;
+					}
+				}
+			}
+		}
+	}
+
+	let mut result: Vec<_> = extra_top_items
+		.iter()
+		.filter(|&(id, _)| included.contains(id))
+		.map(|(_, item)| item.clone())
+		.collect();
+
+	// Sort by source position to preserve original declaration order
+	result.sort_by_key(|item| match item {
+		ast::ModuleItem::Stmt(stmt) => stmt.span().lo,
+		ast::ModuleItem::ModuleDecl(decl) => match decl {
+			ast::ModuleDecl::Import(d) => d.span.lo,
+			ast::ModuleDecl::ExportDecl(d) => d.span.lo,
+			ast::ModuleDecl::ExportNamed(d) => d.span.lo,
+			ast::ModuleDecl::ExportDefaultDecl(d) => d.span.lo,
+			ast::ModuleDecl::ExportDefaultExpr(d) => d.span.lo,
+			ast::ModuleDecl::ExportAll(d) => d.span.lo,
+			ast::ModuleDecl::TsImportEquals(d) => d.span.lo,
+			ast::ModuleDecl::TsExportAssignment(d) => d.span.lo,
+			ast::ModuleDecl::TsNamespaceExport(d) => d.span.lo,
+		},
+	});
+
+	result
+}
+
+fn collect_module_item_idents(item: &ast::ModuleItem, out: &mut HashSet<Id>) {
+	let mut collector = AnyIdentCollector::new();
+	item.visit_with(&mut collector);
+	out.extend(collector.local_idents);
+}
+
+fn order_items_by_dependency(items: Vec<ast::ModuleItem>) -> Vec<ast::ModuleItem> {
+	if items.len() < 2 {
+		return items;
+	}
+
+	let mut defines_by_item: Vec<HashSet<Id>> = Vec::with_capacity(items.len());
+	for item in items.iter() {
+		let mut defines = HashSet::new();
+		collect_declared_idents(item, &mut defines);
+		defines_by_item.push(defines);
+	}
+
+	let mut deps_by_item: Vec<HashSet<usize>> = vec![HashSet::new(); items.len()];
+	for (idx, item) in items.iter().enumerate() {
+		let mut used = HashSet::new();
+		collect_module_item_idents(item, &mut used);
+		for id in &defines_by_item[idx] {
+			used.remove(id);
+		}
+		for used_id in used {
+			let def_idx_opt = defines_by_item
+				.iter()
+				.enumerate()
+				.find_map(|(def_idx, defs)| {
+					if def_idx != idx && defs.iter().any(|def_id| def_id.0 == used_id.0) {
+						Some(def_idx)
+					} else {
+						None
+					}
+				});
+
+			if let Some(def_idx) = def_idx_opt {
+				deps_by_item[idx].insert(def_idx);
+			}
+		}
+	}
+
+	let mut in_degree = vec![0usize; items.len()];
+	let mut dependents: Vec<Vec<usize>> = vec![Vec::new(); items.len()];
+	for (idx, deps) in deps_by_item.iter().enumerate() {
+		in_degree[idx] = deps.len();
+		for dep_idx in deps {
+			dependents[*dep_idx].push(idx);
+		}
+	}
+
+	let mut ready: Vec<usize> = (0..items.len()).filter(|i| in_degree[*i] == 0).collect();
+	ready.sort_unstable();
+	let mut ordered: Vec<usize> = Vec::with_capacity(items.len());
+	while let Some(idx) = ready.first().copied() {
+		ready.remove(0);
+		ordered.push(idx);
+		for dependent in &dependents[idx] {
+			in_degree[*dependent] = in_degree[*dependent].saturating_sub(1);
+			if in_degree[*dependent] == 0 {
+				ready.push(*dependent);
+			}
+		}
+		ready.sort_unstable();
+	}
+
+	if ordered.len() < items.len() {
+		let mut seen = vec![false; items.len()];
+		for idx in &ordered {
+			seen[*idx] = true;
+		}
+		for (i, _) in seen.iter().enumerate() {
+			if !seen[i] {
+				ordered.push(i);
+			}
+		}
+	}
+
+	ordered.into_iter().map(|idx| items[idx].clone()).collect()
+}
+
+fn collect_declared_idents(item: &ast::ModuleItem, out: &mut HashSet<Id>) {
+	match item {
+		ast::ModuleItem::Stmt(ast::Stmt::Decl(decl)) => {
+			collect_declared_idents_from_decl(decl, out)
+		}
+		ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(decl)) => {
+			collect_declared_idents_from_decl(&decl.decl, out);
+		}
+		ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDefaultDecl(decl)) => {
+			if let ast::DefaultDecl::Fn(fn_decl) = &decl.decl {
+				if let Some(ident) = &fn_decl.ident {
+					out.insert(id!(ident));
+				}
+			}
+			if let ast::DefaultDecl::Class(class_decl) = &decl.decl {
+				if let Some(ident) = &class_decl.ident {
+					out.insert(id!(ident));
+				}
+			}
+		}
+		_ => {}
+	}
+}
+
+fn collect_declared_idents_from_decl(decl: &ast::Decl, out: &mut HashSet<Id>) {
+	match decl {
+		ast::Decl::Var(var) => {
+			for decl in &var.decls {
+				let mut identifiers: Vec<(Id, Span)> = Vec::new();
+				collect_from_pat(&decl.name, &mut identifiers);
+				out.extend(identifiers.into_iter().map(|(id, _)| id));
+			}
+		}
+		ast::Decl::Fn(func) => {
+			out.insert(id!(func.ident));
+		}
+		ast::Decl::Class(class) => {
+			out.insert(id!(class.ident));
+		}
+		_ => {}
+	}
+}
+
+/// Collects identifiers declared locally within an expression (arrow functions, function expressions, etc.)
+/// This is used to filter out shadowed names from external dependency collection.
+fn collect_local_declarations_from_expr(expr: &ast::Expr, out: &mut HashSet<Id>) {
+	match expr {
+		ast::Expr::Arrow(arrow) => {
+			// Collect parameter names
+			for param in &arrow.params {
+				let mut identifiers: Vec<(Id, Span)> = Vec::new();
+				collect_from_pat(param, &mut identifiers);
+				out.extend(identifiers.into_iter().map(|(id, _)| id));
+			}
+			// Collect declarations from body if it's a block
+			if let ast::BlockStmtOrExpr::BlockStmt(block) = &*arrow.body {
+				collect_block_declarations(block, out);
+			}
+		}
+		ast::Expr::Fn(func) => {
+			// Collect function name if present
+			if let Some(ident) = &func.ident {
+				out.insert(id!(ident));
+			}
+			// Collect parameter names
+			for param in &func.function.params {
+				let mut identifiers: Vec<(Id, Span)> = Vec::new();
+				collect_from_pat(&param.pat, &mut identifiers);
+				out.extend(identifiers.into_iter().map(|(id, _)| id));
+			}
+			// Collect declarations from body
+			if let Some(body) = &func.function.body {
+				collect_block_declarations(body, out);
+			}
+		}
+		_ => {}
+	}
+}
+
+/// Collects variable and function declarations from a block statement
+fn collect_block_declarations(block: &ast::BlockStmt, out: &mut HashSet<Id>) {
+	for stmt in &block.stmts {
+		match stmt {
+			ast::Stmt::Decl(decl) => {
+				collect_declared_idents_from_decl(decl, out);
+			}
+			// Handle nested blocks, if statements, etc.
+			ast::Stmt::Block(block_stmt) => {
+				collect_block_declarations(block_stmt, out);
+			}
+			ast::Stmt::If(if_stmt) => {
+				if let ast::Stmt::Block(block) = &*if_stmt.cons {
+					collect_block_declarations(block, out);
+				}
+				if let Some(alt) = &if_stmt.alt {
+					if let ast::Stmt::Block(block) = &**alt {
+						collect_block_declarations(block, out);
+					}
+				}
+			}
+			ast::Stmt::While(while_stmt) => {
+				if let ast::Stmt::Block(block) = &*while_stmt.body {
+					collect_block_declarations(block, out);
+				}
+			}
+			ast::Stmt::For(for_stmt) => {
+				// Collect loop variable if present
+				if let Some(ast::VarDeclOrExpr::VarDecl(var_decl)) = &for_stmt.init {
+					for decl in &var_decl.decls {
+						let mut identifiers: Vec<(Id, Span)> = Vec::new();
+						collect_from_pat(&decl.name, &mut identifiers);
+						out.extend(identifiers.into_iter().map(|(id, _)| id));
+					}
+				}
+				if let ast::Stmt::Block(block) = &*for_stmt.body {
+					collect_block_declarations(block, out);
+				}
+			}
+			ast::Stmt::ForIn(for_in) => {
+				if let ast::ForHead::VarDecl(var_decl) = &for_in.left {
+					for decl in &var_decl.decls {
+						let mut identifiers: Vec<(Id, Span)> = Vec::new();
+						collect_from_pat(&decl.name, &mut identifiers);
+						out.extend(identifiers.into_iter().map(|(id, _)| id));
+					}
+				}
+				if let ast::Stmt::Block(block) = &*for_in.body {
+					collect_block_declarations(block, out);
+				}
+			}
+			ast::Stmt::ForOf(for_of) => {
+				if let ast::ForHead::VarDecl(var_decl) = &for_of.left {
+					for decl in &var_decl.decls {
+						let mut identifiers: Vec<(Id, Span)> = Vec::new();
+						collect_from_pat(&decl.name, &mut identifiers);
+						out.extend(identifiers.into_iter().map(|(id, _)| id));
+					}
+				}
+				if let ast::Stmt::Block(block) = &*for_of.body {
+					collect_block_declarations(block, out);
+				}
+			}
+			_ => {}
+		}
+	}
+}
+
+#[derive(Debug)]
+enum ExprOrSkip {
+	Expr,
+	Skip,
+}
+
+#[derive(Debug)]
+struct AnyIdentCollector {
+	local_idents: HashSet<Id>,
+	expr_ctxt: Vec<ExprOrSkip>,
+}
+
+impl AnyIdentCollector {
+	fn new() -> Self {
+		Self {
+			local_idents: HashSet::new(),
+			expr_ctxt: Vec::with_capacity(32),
+		}
+	}
+}
+
+impl Visit for AnyIdentCollector {
+	noop_visit_type!();
+
+	fn visit_expr(&mut self, node: &ast::Expr) {
+		self.expr_ctxt.push(ExprOrSkip::Expr);
+		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	fn visit_stmt(&mut self, node: &ast::Stmt) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	fn visit_jsx_element_name(&mut self, node: &ast::JSXElementName) {
+		if let ast::JSXElementName::Ident(ref ident) = node {
+			let ident_name = ident.sym.as_ref().chars().next();
+			if let Some('A'..='Z') = ident_name {
+			} else {
+				return;
+			}
+		}
+
+		node.visit_children_with(self);
+	}
+
+	fn visit_jsx_attr(&mut self, node: &ast::JSXAttr) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	fn visit_ident(&mut self, node: &ast::Ident) {
+		if matches!(self.expr_ctxt.last(), Some(ExprOrSkip::Expr))
+			&& (node.sym != *"undefined"
+				&& node.sym != *"NaN"
+				&& node.sym != *"Infinity"
+				&& node.sym != *"null")
+		{
+			self.local_idents.insert(id!(node));
+		}
+	}
+
+	fn visit_key_value_prop(&mut self, node: &ast::KeyValueProp) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	fn visit_member_expr(&mut self, member: &ast::MemberExpr) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		member.visit_children_with(self);
+		self.expr_ctxt.pop();
 	}
 }
 
@@ -3934,6 +5063,46 @@ fn is_text_only(node: &str) -> bool {
 		node,
 		"text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
 	)
+}
+
+/// Prepend a statement to a function/arrow expression body.
+/// For arrow expressions with expression bodies, converts to a block body with the prepended
+/// statement and a return statement.
+fn prepend_stmt_to_fn(expr: ast::Expr, stmt: ast::Stmt) -> ast::Expr {
+	match expr {
+		ast::Expr::Arrow(mut arrow) => {
+			match *arrow.body {
+				ast::BlockStmtOrExpr::BlockStmt(mut block) => {
+					block.stmts.insert(0, stmt);
+					arrow.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(block));
+				}
+				ast::BlockStmtOrExpr::Expr(expr) => {
+					let block = ast::BlockStmt {
+						span: DUMMY_SP,
+						stmts: vec![
+							stmt,
+							ast::Stmt::Return(ast::ReturnStmt {
+								span: DUMMY_SP,
+								arg: Some(expr),
+							}),
+						],
+						..Default::default()
+					};
+					arrow.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(block));
+				}
+			}
+			ast::Expr::Arrow(arrow)
+		}
+		ast::Expr::Fn(mut fn_expr) => {
+			if let Some(ref mut body) = fn_expr.function.body {
+				body.stmts.insert(0, stmt);
+			}
+			ast::Expr::Fn(fn_expr)
+		}
+		// For other expression types, wrap in an IIFE-like pattern
+		// This shouldn't normally happen for component$ arguments
+		other => other,
+	}
 }
 
 fn process_node_props(pat: &ast::Pat) -> Vec<IdPlusType> {

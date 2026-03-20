@@ -56,7 +56,7 @@ jobs:
 
       - name: Set status to "In progress" (draft)
         if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == true
-        uses: titoportas/update-project-fields@v0.1.0
+        uses: titoportas/update-project-fields@421a54430b3cdc9eefd8f14f9ce0142ab7678751 # v0.1.0
         with:
           project-url: https://github.com/orgs/QwikDev/projects/1
           github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}
@@ -66,7 +66,7 @@ jobs:
 
       - name: Set status to "Waiting For Review" (ready)
         if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == false
-        uses: titoportas/update-project-fields@v0.1.0
+        uses: titoportas/update-project-fields@421a54430b3cdc9eefd8f14f9ce0142ab7678751 # v0.1.0
         with:
           project-url: https://github.com/orgs/QwikDev/projects/1
           github-token: ${{ secrets.QWIK_AUTO_ASSIGN_PR_PAT }}

@@ -14,8 +14,8 @@ export default defineConfig({
   test: {
     root: 'packages',
     include: [
-      '**/*.spec.?(c|m)[jt]s?(x)',
-      '**/*.unit.?(c|m)[jt]s?(x)',
+      '**/*.spec.*',
+      '**/*.unit.*',
       '!*/(lib|dist|build|server|target)/**',
       '!**/node_modules/**',
     ],

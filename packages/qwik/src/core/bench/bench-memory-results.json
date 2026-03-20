@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "generatedAt": "2026-03-19T14:47:29.774Z",
+  "sampleCount": 3,
+  "countPerScenario": 10000,
+  "scenarios": {
+    "function": {
+      "totalBytes": 1127464,
+      "bytesPerInstance": 112.7464
+    },
+    "qrl": {
+      "totalBytes": 2988184,
+      "bytesPerInstance": 298.8184
+    },
+    "qrl-copy": {
+      "totalBytes": 2021600,
+      "bytesPerInstance": 202.16
+    },
+    "lazy-ref": {
+      "totalBytes": 1051984,
+      "bytesPerInstance": 105.1984
+    },
+    "qrl-class": {
+      "totalBytes": 653104,
+      "bytesPerInstance": 65.3104
+    },
+    "signal": {
+      "totalBytes": 660304,
+      "bytesPerInstance": 66.0304
+    },
+    "ComputedSignal": {
+      "totalBytes": 901016,
+      "bytesPerInstance": 90.1016
+    },
+    "wrapped-signal": {
+      "totalBytes": 1460416,
+      "bytesPerInstance": 146.0416
+    },
+    "virtual-vnode": {
+      "totalBytes": 1375648,
+      "bytesPerInstance": 137.5648
+    },
+    "element-vnode": {
+      "totalBytes": 7289544,
+      "bytesPerInstance": 728.9544
+    },
+    "text-vnode": {
+      "totalBytes": 2542032,
+      "bytesPerInstance": 254.2032
+    },
+    "jsx-node": {
+      "totalBytes": 2815064,
+      "bytesPerInstance": 281.5064
+    },
+    "context-id": {
+      "totalBytes": 736696,
+      "bytesPerInstance": 73.6696
+    },
+    "subscription-data": {
+      "totalBytes": 929240,
+      "bytesPerInstance": 92.924
+    },
+    "effect-subscription": {
+      "totalBytes": 4823856,
+      "bytesPerInstance": 482.3856
+    },
+    "delete-operation": {
+      "totalBytes": 1663456,
+      "bytesPerInstance": 166.3456
+    },
+    "set-text-operation": {
+      "totalBytes": 1744488,
+      "bytesPerInstance": 174.4488
+    },
+    "insert-or-move-operation": {
+      "totalBytes": 6323104,
+      "bytesPerInstance": 632.3104
+    },
+    "set-attribute-operation": {
+      "totalBytes": 6722376,
+      "bytesPerInstance": 672.2376
+    },
+    "remove-all-children-operation": {
+      "totalBytes": 6158744,
+      "bytesPerInstance": 615.8744
+    }
+  }
+}

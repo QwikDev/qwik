@@ -77,7 +77,7 @@ import type {
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
-import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
+import { createLoaderSignal, isSameOrigin, isSamePath, toPath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
 
 declare const window: ClientSPAWindow;
@@ -282,6 +282,19 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     };
   });
 
+  const getScroller = $(() => {
+    let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
+    if (!scroller) {
+      scroller = document.getElementById(QWIK_CITY_SCROLLER);
+      if (scroller && isDev) {
+        console.warn(
+          `Please update your scroller ID to "${QWIK_ROUTER_SCROLLER}" as "${QWIK_CITY_SCROLLER}" is deprecated and will be removed in V3`
+        );
+      }
+    }
+    return scroller ?? document.documentElement;
+  });
+
   const goto: RouteNavigate = $(async (path, opt) => {
     const {
       type = 'link',
@@ -353,18 +366,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
 
         // Always scroll on same-page popstates, #hash clicks, or links.
-        let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
-        if (!scroller) {
-          scroller = document.getElementById(QWIK_CITY_SCROLLER);
-          if (scroller && isDev) {
-            console.warn(
-              `Please update your scroller ID to "${QWIK_ROUTER_SCROLLER}" as "${QWIK_CITY_SCROLLER}" is deprecated and will be removed in V3`
-            );
-          }
-        }
-        if (!scroller) {
-          scroller = document.documentElement;
-        }
+        const scroller = await getScroller();
 
         restoreScroll(type, dest, new URL(location.href), scroller, getScrollHistory());
 
@@ -383,12 +385,28 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       return;
     }
 
+    let historyUpdated = false;
+    if (isBrowser && type === 'link' && !forceReload) {
+      // WebKit on iOS may treat async pushState() calls as skippable history entries.
+      // Commit the navigation entry while the original tap/click is still active.
+      const scroller = await getScroller();
+
+      window._qRouterScrollEnabled = false;
+      clearTimeout(window._qRouterScrollDebounce);
+
+      const scrollState = currentScrollState(scroller);
+      saveScrollHistory(scrollState);
+      clientNavigate(window, type, new URL(location.href), dest, replaceState);
+      historyUpdated = true;
+    }
+
     routeInternal.value = {
       type,
       dest,
       forceReload,
       replaceState,
       scroll,
+      historyUpdated,
     };
 
     if (isBrowser) {
@@ -556,8 +574,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           if (navType === 'popstate') {
             scrollState = getScrollHistory();
           }
-          const scroller =
-            document.getElementById(QWIK_ROUTER_SCROLLER) ?? document.documentElement;
+          const scroller = await getScroller();
 
           if (
             (navigation.scroll &&
@@ -759,14 +776,26 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             window._qRouterScrollEnabled = false;
             clearTimeout(window._qRouterScrollDebounce);
 
-            // Save the final scroll state before pushing new state.
-            // Upgrades/replaces state with scroll pos on nav as needed.
-            const scrollState = currentScrollState(scroller);
-            saveScrollHistory(scrollState);
+            if (!navigation.historyUpdated) {
+              // Save the final scroll state before pushing new state.
+              // Upgrades/replaces state with scroll pos on nav as needed.
+              const scrollState = currentScrollState(scroller);
+              saveScrollHistory(scrollState);
+            }
           }
 
           const navigate = () => {
-            clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
+            if (navigation.historyUpdated) {
+              const currentPath = location.pathname + location.search + location.hash;
+              const nextPath = toPath(trackUrl);
+              if (currentPath !== nextPath) {
+                // The history entry was already created under the original user gesture.
+                // We only normalize the current entry here once async navigation resolves.
+                history.replaceState(history.state, '', nextPath);
+              }
+            } else {
+              clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
+            }
             contentInternal.trigger();
             return _waitUntilRendered(container!);
           };

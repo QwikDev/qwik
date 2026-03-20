@@ -36,6 +36,26 @@ test.describe('nav', () => {
       await expect(increment).toHaveText('Click me 1');
     });
 
+    test('should update history before async SPA route load completes', async ({ page }) => {
+      await page.route('**/products/jacket/q-data.json', async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        await route.continue();
+      });
+
+      await page.goto('/qwikrouter-test/products/hat/');
+      const link = page.locator('[data-test-link="products-jacket"]');
+      const heading = page.locator('h1');
+
+      await expect(heading).toHaveText('Product: hat');
+      await link.click();
+
+      await expect
+        .poll(() => new URL(page.url()).pathname)
+        .toBe('/qwikrouter-test/products/jacket/');
+      await expect(heading).toHaveText('Product: hat');
+      await expect(heading).toHaveText('Product: jacket');
+    });
+
     test.describe('scroll-restoration', () => {
       test('should not refresh again on popstate after manual refresh', async ({ page }) => {
         await page.goto('/qwikrouter-test/scroll-restoration/page-long/');

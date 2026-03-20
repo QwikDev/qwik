@@ -25,12 +25,11 @@ Qwik v2 is a ground-up rewrite of the framework. This guide covers what's new, h
 
 ## Quick Start
 
-1. [Run the CLI](#run-the-migration-cli) — package renames and identifier changes
-2. [Verify config files](#verify-config-files) — `tsconfig.json`, `package.json`, `vite.config`
-3. [Handle third-party libraries](#third-party-libraries) — overrides and `ssr.noExternal`
-4. [Check behavioral changes](#behavioral-changes) — sync `useComputed$`, `useQwikRouter()`
-5. [Migrate deprecated APIs](#deprecated-apis) — `useResource$` → `useAsync$`
-6. [Run the checklist](#verification-checklist) — final verification
+1. [Run the CLI](#run-the-migration-cli)
+2. [Handle third-party libraries](#third-party-libraries)
+3. [Check behavioral changes](#behavioral-changes)
+4. [Migrate deprecated APIs](#deprecated-apis)
+5. [Run the checklist](#verification-checklist)
 
 ---
 
@@ -59,14 +58,7 @@ bunx qwik migrate-v2
 </span>
 </PackageManagerTabs>
 
-The CLI handles two things automatically:
-
-- **Package specifiers** — replaced in all text files
-- **Identifier renames** — replaced in `.ts` and `.tsx` files only
-
-<Note title="JS AND MDX FILES">
-Identifiers like `qwikCity()` in `.js`, `.mjs`, or `.mdx` files must be renamed by hand.
-</Note>
+The CLI handles package renames, identifier changes, config updates, and dependency migration automatically.
 
 <LongNote title="What the CLI renames">
 
@@ -93,65 +85,15 @@ Identifiers like `qwikCity()` in `.js`, `.mjs`, or `.mdx` files must be renamed 
 
 </LongNote>
 
-### Deprecated aliases the CLI misses
-
-These old names still compile (removed in v3). Search and rename manually:
-
-| v1 | v2 |
-|---|---|
-| `QWIK_CITY_SCROLLER` | `QWIK_ROUTER_SCROLLER` |
-| `useQwikCityEnv` | `useQwikRouterEnv` |
-| `QwikCityMockProvider` | `QwikRouterMockProvider` |
-| `QwikCityPlan` | `QwikRouterConfig` |
-| `QwikCityProps` | `QwikRouterProps` |
-| `QwikCityPluginApi` | `QwikRouterPluginApi` |
-
-```shell
-grep -r "QwikCity\|qwikCity\|@builder.io" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.mdx" .
-```
-
----
-
-## Verify Config Files
-
-The CLI skips `tsconfig.json` and may not catch everything in `package.json` or `vite.config`.
-
-### tsconfig.json
-
-```json
-{
-  "compilerOptions": {
-    "moduleResolution": "Bundler",
-    "jsxImportSource": "@qwik.dev/core"
-  }
-}
-```
-
-<Note>A `Cannot find module '@builder.io/qwik/jsx-runtime'` error means `jsxImportSource` was not updated.</Note>
-
-### package.json
-
-v2 is ESM-only. Add `"type": "module"` if missing, and move all `@qwik.dev/*` packages to `devDependencies`.
-
-```json
-{
-  "type": "module"
-}
-```
-
-### vite.config
-
-The CLI replaces package specifiers in `.js` configs, but identifier renames like `qwikCity()` → `qwikRouter()` only run on `.ts`/`.tsx`. Check `.js` configs manually.
-
 ---
 
 ## Third-Party Libraries
 
-Libraries that peer-depend on `@builder.io/qwik` cause duplicate installs and unbundled SSR.
+If you use third-party libraries that depend on `@builder.io/qwik`, you may need to configure overrides and SSR bundling.
 
 ### Package manager overrides
 
-Redirect the old name so your package manager doesn't install v1 alongside v2:
+Redirect the old package name so your package manager doesn't install v1 alongside v2:
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
@@ -220,14 +162,14 @@ export default defineConfig({
 
 ## Behavioral Changes
 
-These are silent — no compile error — but break runtime behavior.
+These won't cause compile errors but will break runtime behavior if not addressed.
 
 ### useComputed$ is sync-only
 
 `useComputed$` rejects async functions in v2. Error Q29 fires at runtime.
 
 ```typescript
-// Before (v1) — BROKEN in v2
+// v1 (no longer supported in v2)
 const data = useComputed$(async () => {
   const result = await fetch('/api/data');
   return result.json();
@@ -235,7 +177,7 @@ const data = useComputed$(async () => {
 ```
 
 ```typescript
-// After (v2)
+// v2
 const data = useAsync$(async ({ abortSignal }) => {
   const result = await fetch('/api/data', { signal: abortSignal });
   return result.json();
@@ -269,7 +211,7 @@ The `eagerness` option (`'load'` / `'idle'`) was removed in v2. Delete it if pre
 Replace the `<QwikCityProvider>` wrapper with the `useQwikRouter()` hook:
 
 ```tsx
-// Before (v1)
+// v1
 import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
 
 export default component$(() => {
@@ -287,7 +229,7 @@ export default component$(() => {
 ```
 
 ```tsx
-// After (v2)
+// v2
 import { RouterOutlet, useQwikRouter } from '@qwik.dev/router';
 
 export default component$(() => {
@@ -306,11 +248,11 @@ export default component$(() => {
 });
 ```
 
-<Note>If your root component is reactive (reads signals), use `<QwikRouterProvider>` instead — `useQwikRouter()` only runs once during SSR.</Note>
+<Note>If your root component is reactive (reads signals), use `<QwikRouterProvider>` instead. `useQwikRouter()` only runs once during SSR.</Note>
 
 ### Serialization
 
-v1 used `<script type="qwik/json">` inline. v2 uses `<script type="qwik/vnode">` and `<script type="qwik/state">` at the end of the document. The `<script q:func="qwik/json">` tag still exists for sync QRL helpers. No code change needed, but tooling that parses the old tags will break.
+v1 serialized state into `<script type="qwik/json">` tags. v2 uses `<script type="qwik/vnode">` and `<script type="qwik/state">` at the end of the document. No code change needed, but tooling that parses the old tags will need updating.
 
 ---
 
@@ -325,14 +267,14 @@ Still compile in v2, removed in v3.
 | Return type | `.value: Promise<T>` | `.value: T` |
 | Track deps | `ctx.track(() => sig.value)` | `ctx.track(sig)` (both forms work) |
 | Abort | Manual `AbortController` | `ctx.abortSignal` |
-| Previous value | — | `ctx.previous` |
-| Polling | — | `options.interval` |
-| Initial value | — | `options.initial` |
+| Previous value | - | `ctx.previous` |
+| Polling | - | `options.interval` |
+| Initial value | - | `options.initial` |
 | Rendering | `<Resource onResolved={} />` | `if`/`else` branching |
 
 <LongNote title="Full before/after example">
 
-Before (v1):
+v1:
 
 ```tsx
 import { useResource$, Resource } from '@builder.io/qwik';
@@ -364,7 +306,7 @@ const Cmp = component$(() => {
 });
 ```
 
-After (v2):
+v2:
 
 ```tsx
 import { useAsync$ } from '@qwik.dev/core';
@@ -401,9 +343,9 @@ const Cmp = component$(() => {
 
 </LongNote>
 
-**What changed:**
+What changed:
 
-- `track(() => signal.value)` → `track(signal)` (shorthand — the old form still works)
+- `track(() => signal.value)` → `track(signal)` (shorthand, old form still works)
 - Manual `AbortController` + `cleanup()` → `ctx.abortSignal`
 - `<Resource onResolved={} />` → `if`/`else` branching
 - `.value` is `T` directly, not `Promise<T>`
@@ -417,7 +359,7 @@ const Cmp = component$(() => {
 | Feature | v2 Replacement |
 |---|---|
 | Insights | `@qwik.dev/core/insights` + `@qwik.dev/core/insights/vite` |
-| Typed Routes | Built into `@qwik.dev/router` via `qwikTypes()` — no migration needed |
+| Typed Routes | Built into `@qwik.dev/router` via `qwikTypes()` |
 
 <LongNote title="Migrating Insights step-by-step">
 
@@ -477,7 +419,7 @@ Add to both `ssr.noExternal` and `optimizeDeps.exclude`. See [ssr.noExternal](#s
 
 ### Cannot find module '@builder.io/qwik'
 
-Usually a stale `jsxImportSource` in `tsconfig.json`. See [tsconfig.json](#tsconfigjson).
+Usually a stale `jsxImportSource` in `tsconfig.json`. Run the CLI again or check your `tsconfig.json`.
 
 ### Cannot find module '@builder.io/qwik-labs'
 
@@ -485,7 +427,7 @@ Package removed in v2. See [qwik-labs](#qwik-labs).
 
 ### ERR_REQUIRE_ESM / require() of ES Module
 
-Add `"type": "module"` to `package.json`. See [package.json](#packagejson).
+Add `"type": "module"` to `package.json`. Run the CLI again if this wasn't set automatically.
 
 ### Calling a 'use*()' method outside 'component$(...)'
 
@@ -502,14 +444,9 @@ Move all `@qwik.dev/*` to `devDependencies` in `package.json`.
 Every item should pass before your migration is done.
 
 <Checklist>
-  <ChecklistItem label='No @builder.io references in source files (excluding overrides in package.json)' />
   <ChecklistItem label='tsconfig.json has moduleResolution: Bundler and jsxImportSource: @qwik.dev/core' />
   <ChecklistItem label='package.json has "type": "module"' />
   <ChecklistItem label='All @qwik.dev/* packages are in devDependencies' />
-  <ChecklistItem label='No v1 runtime installed (pnpm ls @builder.io/qwik)' />
-  <ChecklistItem label='No deprecated aliases remain (QwikCityPlan, useQwikCityEnv, etc.)' />
-  <ChecklistItem label='No eagerness option on useVisibleTask$' />
-  <ChecklistItem label='No useResource$ or Resource component in source' />
   <ChecklistItem label='Dev server starts without Code(Q30) in the console' />
   <ChecklistItem label='npx tsc --noEmit passes' />
 </Checklist>

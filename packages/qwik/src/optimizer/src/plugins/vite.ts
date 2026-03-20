@@ -139,7 +139,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         target = 'lib';
       } else if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
         target = 'ssr';
-      } else if (viteEnv.mode === 'test') {
+      } else if (viteEnv.mode === 'test' || viteEnv.mode === 'benchmark') {
         target = 'test';
       } else {
         target = 'client';
@@ -236,10 +236,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qDevKey = 'globalThis.qDev';
       const qTestKey = 'globalThis.qTest';
       const qInspectorKey = 'globalThis.qInspector';
-      const qSerializeKey = 'globalThis.qSerialize';
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
-      const qSerialize = viteConfig?.define?.[qSerializeKey] ?? isDevelopment;
 
       const bundlerOptions = {
         external: ['node:async_hooks'],
@@ -306,7 +304,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         define: {
           [qDevKey]: qDev,
           [qInspectorKey]: qInspector,
-          [qSerializeKey]: qSerialize,
           [qTestKey]: JSON.stringify(process.env.NODE_ENV === 'test'),
         },
       };
@@ -660,7 +657,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (hmrEnabled) {
           // Source files live in the SSR module graph. When they change, notify the
           // client's loaded QRL segments via the client environment's HMR channel.
-          const files = ctx.modules.map((m) => m.type === 'js' && m.url).filter(Boolean);
+          const files = ctx.modules
+            .map((m) => (m.type === 'js' ? m.url.split('?')[0] : null))
+            .filter(Boolean);
           if (files.length > 0 && viteServer) {
             viteServer.environments.client.hot.send({
               type: 'custom',

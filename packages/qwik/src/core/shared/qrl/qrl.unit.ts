@@ -119,28 +119,6 @@ describe('serialization', () => {
     );
   });
 
-  test('should parse reference', () => {
-    const require = (str: string) => {
-      console.warn(str);
-    };
-    matchProps(
-      qrl(
-        () =>
-          Promise.resolve().then(function () {
-            return require('./h_my-app_myapp_init-73253fd4.js');
-          }),
-        'MyApp_init'
-      ),
-      {
-        $chunk$: './h_my-app_myapp_init-73253fd4.js',
-        $symbol$: 'MyApp_init',
-      }
-    );
-  });
-
-  // See https://github.com/QwikDev/qwik/issues/5087#issuecomment-1707185010
-  test.todo('should parse self-reference');
-
   test('should store resolved value', async () => {
     const q = qrl(() => Promise.resolve({ hi: 'hello' }), 'hi');
     assert.equal(q.resolved, undefined);

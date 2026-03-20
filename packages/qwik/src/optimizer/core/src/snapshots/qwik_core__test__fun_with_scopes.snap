@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 6251
+assertion_line: 6512
 expression: output
 ---
 ==INPUT==
@@ -15,7 +15,7 @@ expression: output
 			}
 
 			function Lifecycle(props, key, flags) {
-				return component$(({ of: form, store, validate: validate2, validateOn, revalidateOn, transform, keepActive = false, keepState = true }) => {
+				return component$(() => {
 					return /* @__PURE__ */ jsx(Slot, {});
 				})(props, key, flags);
 			}
@@ -96,7 +96,7 @@ export default (()=>{
     const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
     console.log(qrl);
 });
-const Lifecycle_component_r7jPBpjrWLc = (_rawProps)=>{
+const Lifecycle_component_r7jPBpjrWLc = ()=>{
     return /* @__PURE__ */ _jsxSorted(Slot, null, null, null, 3, "u6_0");
 };
 q_Lifecycle_component_r7jPBpjrWLc.s(Lifecycle_component_r7jPBpjrWLc);

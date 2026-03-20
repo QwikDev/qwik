@@ -6520,7 +6520,7 @@ fn fun_with_scopes() {
 			}
 
 			function Lifecycle(props, key, flags) {
-				return component$(({ of: form, store, validate: validate2, validateOn, revalidateOn, transform, keepActive = false, keepState = true }) => {
+				return component$(() => {
 					return /* @__PURE__ */ jsx(Slot, {});
 				})(props, key, flags);
 			}
@@ -6605,16 +6605,17 @@ fn hmr() {
 fn example_lib_mode() {
 	test_input!(TestInput {
 		code: r#"
-import { $, component$, server$, useStyle$, useTask$ } from '@qwik.dev/core';
+import { $, component$, server$, useStyle$, useTask$, useSignal } from '@qwik.dev/core';
 
 export const Works = component$((props) => {
 	useStyle$(STYLES);
 	const text = 'hola';
+	const sig = useSignal('hola');
 	useTask$(() => {
-		console.log(text);
+		console.log(sig.value, text);
 	});
 	return (
-		<div onClick$={server$(() => console.log('in server', text))}></div>
+		<div onClick$={server$(() => console.log('in server', sig.value, text))}></div>
 	);
 });
 
@@ -6762,6 +6763,87 @@ export function qwikifyQrl(reactCmp$, opts) {
 			name, captures_str, combined_code
 		);
 	}
+}
+
+#[test]
+fn inlined_qrl_preserves_destructured_captures() {
+	// Simulates a library .qwik.mjs file being processed by the app optimizer in SSR dev mode.
+	// The library has destructured useCustomSignal() return value, and inner inlinedQrl captures
+	// reference the destructured bindings. transform_props_destructuring must not collapse
+	// the destructuring because it would break the explicit captures.
+	let res = test_input!(TestInput {
+		code: r#"
+import { componentQrl, inlinedQrl, useComputedQrl, useSignal, useTaskQrl, _captures, _jsxSorted } from '@qwik.dev/core';
+import { useCustomSignal } from './use-custom-signal.qwik.mjs';
+
+const MyComponent = componentQrl(inlinedQrl((props) => {
+    const count = useSignal(0);
+    const { openSig: isOpen } = useCustomSignal(props, { open: false });
+    const label = useComputedQrl(inlinedQrl(() => {
+        const count2 = _captures[0], isOpen2 = _captures[1];
+        return count2.value + isOpen2.value;
+    }, "MyComponent_component_label_useComputed_ABC123", [count, isOpen]));
+    useTaskQrl(inlinedQrl(({ track }) => {
+        const isOpen3 = _captures[0];
+        track(() => isOpen3.value);
+        console.log("isOpen changed:", isOpen3.value);
+    }, "MyComponent_component_useTask_DEF456", [isOpen]));
+    return _jsxSorted("div", null, {}, label.value, 0, null);
+}, "MyComponent_component_MNO345"));
+
+export { MyComponent };
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::None,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Dev,
+		is_server: Some(true),
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// Verify isOpen survives transform_props_destructuring
+	assert!(
+		combined_code.contains("isOpen"),
+		"isOpen should be present — transform_props_destructuring must not collapse destructured bindings in inlinedQrl function bodies.\nGenerated code:\n{}",
+		combined_code
+	);
+
+	// Verify computed captures include both count and isOpen
+	let computed_captures = combined_code
+		.find("q_MyComponent_component_label_useComputed_ABC123.w(")
+		.expect(&format!(
+			"Should find computed QRL .w() call.\nGenerated code:\n{}",
+			combined_code
+		));
+	let after = &combined_code[computed_captures..];
+	let bracket_end = after.find("])").expect("Should find end of captures array");
+	let captures_str = &after[..bracket_end + 1];
+	assert!(
+		captures_str.contains("count") && captures_str.contains("isOpen"),
+		"Computed captures should include both count and isOpen.\nCaptures: '{}'\nFull code:\n{}",
+		captures_str,
+		combined_code
+	);
+
+	// Verify task captures include isOpen
+	assert!(
+		combined_code.contains("q_MyComponent_component_useTask_DEF456.w("),
+		"Task QRL should have .w() captures with isOpen.\nGenerated code:\n{}",
+		combined_code
+	);
 }
 
 #[test]

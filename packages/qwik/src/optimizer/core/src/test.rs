@@ -6901,6 +6901,29 @@ export const Works = componentQrl(inlinedQrl((props) => {
 	);
 }
 
+#[test]
+fn should_not_inline_exported_var_into_segment() {
+	test_input!(TestInput {
+		code: r#"
+		import { wrapperFn, getEnv } from 'utils';
+		import { formAction$, valiForm$ } from 'forms';
+
+		const flagEnabled = getEnv().PUBLIC_FEATURE;
+		export const FeatureSchema = wrapperFn(flagEnabled);
+
+		export const featureAction = formAction$(async (requestEvent) => {
+			return {
+				status: 'success',
+			};
+		}, valiForm$(FeatureSchema));
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 impl TestInput {
 	pub fn default() -> Self {
 		Self {

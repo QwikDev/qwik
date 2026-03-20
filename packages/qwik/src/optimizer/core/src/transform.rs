@@ -556,10 +556,17 @@ impl<'a> QwikTransform<'a> {
 		// where the entry point would otherwise reference an undefined identifier.
 		// For Inline/Hoist strategies, skip: the .s() call will use the ident directly
 		// (at module scope for globals, or inline via comma expr for non-globals).
+		// Skip inlining for exported identifiers: the chunk can import them from the parent
+		// module, so inlining their initializer is unnecessary and may cause referenced
+		// module-level variables to be incorrectly moved into the chunk.
 		let folded = if !self.is_inline() {
 			if let ast::Expr::Ident(ref ident) = folded {
-				if let Some(init) = self.const_initializers.get(&id!(ident)) {
-					*init.clone()
+				if !self.options.global_collect.has_export_symbol(&ident.sym) {
+					if let Some(init) = self.const_initializers.get(&id!(ident)) {
+						*init.clone()
+					} else {
+						folded
+					}
 				} else {
 					folded
 				}
@@ -822,10 +829,17 @@ impl<'a> QwikTransform<'a> {
 		// For Inline/Hoist strategies, skip inlining: the ident will either be accessible
 		// at module scope (global), or the .s() call will be emitted inline at the use
 		// site via a comma expression (non-global).
+		// Skip inlining for exported identifiers: the chunk can import them from the parent
+		// module, so inlining their initializer is unnecessary and may cause referenced
+		// module-level variables to be incorrectly moved into the chunk.
 		let first_arg = if !self.is_inline() {
 			if let ast::Expr::Ident(ref ident) = first_arg {
-				if let Some(init) = self.const_initializers.get(&id!(ident)) {
-					*init.clone()
+				if !self.options.global_collect.has_export_symbol(&ident.sym) {
+					if let Some(init) = self.const_initializers.get(&id!(ident)) {
+						*init.clone()
+					} else {
+						first_arg
+					}
 				} else {
 					first_arg
 				}

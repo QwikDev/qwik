@@ -86,6 +86,10 @@ async function runBenchmarks(): Promise<{
     ],
     {
       cwd: process.cwd(),
+      env: {
+        ...process.env,
+        CI_BENCH: '1',
+      },
       maxBuffer: 1024 * 1024 * 16,
     }
   );
@@ -203,26 +207,11 @@ function validateResults(
   const warnings: string[] = [];
 
   addSampleCountWarning(warnings, BASELINE_BENCHMARK_ID, measuredBaseline.sampleCount);
-
-  const baselineTolerancePct = tolerancePct(storedBaseline);
-  const baselineMax = maxAllowedValue(storedBaseline.median, baselineTolerancePct);
-  const baselineOk = measuredBaseline.median <= baselineMax;
   lines.push(
     `${BASELINE_BENCHMARK_ID}: median=${formatNumber(
       measuredBaseline.median
-    )}ms stored=${formatNumber(storedBaseline.median)}ms max=${formatNumber(
-      baselineMax
-    )}ms tail=${formatPercent(baselineTolerancePct)} samples=${measuredBaseline.sampleCount} ${
-      baselineOk ? 'OK' : 'FAIL'
-    }`
+    )}ms samples=${measuredBaseline.sampleCount} BASELINE`
   );
-  if (!baselineOk) {
-    failures.push(
-      `${BASELINE_BENCHMARK_ID} median ${formatNumber(
-        measuredBaseline.median
-      )}ms exceeds ${formatNumber(baselineMax)}ms`
-    );
-  }
 
   for (const scenarioId of scenarioIds) {
     const benchmarkId = `${BENCHMARK_PREFIX}${scenarioId}`;

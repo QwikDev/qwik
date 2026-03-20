@@ -4461,6 +4461,42 @@ fn collect_block_declarations(block: &ast::BlockStmt, out: &mut HashSet<Id>) {
 					collect_block_declarations(block, out);
 				}
 			}
+			ast::Stmt::Try(try_stmt) => {
+				collect_block_declarations(&try_stmt.block, out);
+				if let Some(catch) = &try_stmt.handler {
+					// Collect the catch parameter binding (e.g. `catch (err)`)
+					if let Some(param) = &catch.param {
+						let mut identifiers: Vec<(Id, Span)> = Vec::new();
+						collect_from_pat(param, &mut identifiers);
+						out.extend(identifiers.into_iter().map(|(id, _)| id));
+					}
+					collect_block_declarations(&catch.body, out);
+				}
+				if let Some(finalizer) = &try_stmt.finalizer {
+					collect_block_declarations(finalizer, out);
+				}
+			}
+			ast::Stmt::DoWhile(do_while) => {
+				if let ast::Stmt::Block(block) = &*do_while.body {
+					collect_block_declarations(block, out);
+				}
+			}
+			ast::Stmt::Switch(switch_stmt) => {
+				for case in &switch_stmt.cases {
+					for stmt in &case.cons {
+						if let ast::Stmt::Block(block) = stmt {
+							collect_block_declarations(block, out);
+						} else if let ast::Stmt::Decl(decl) = stmt {
+							collect_declared_idents_from_decl(decl, out);
+						}
+					}
+				}
+			}
+			ast::Stmt::Labeled(labeled) => {
+				if let ast::Stmt::Block(block) = &*labeled.body {
+					collect_block_declarations(block, out);
+				}
+			}
 			_ => {}
 		}
 	}

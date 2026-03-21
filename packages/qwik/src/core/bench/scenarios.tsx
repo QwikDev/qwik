@@ -1,10 +1,16 @@
-import { component$, createSignal, getPlatform, setPlatform, type JSXOutput } from '@qwik.dev/core';
+import { setPlatform, type JSXOutput } from '@qwik.dev/core';
+import { renderToString } from '../../server/ssr-render';
+import { createDocument } from '../../testing/document';
+import { getTestPlatform } from '../../testing/platform';
+import { waitForDrain } from '../../testing/util';
 import { getDomContainer } from '../client/dom-container';
 import { render } from '../client/dom-render';
 import { _serialize } from '../shared/serdes/serdes.public';
-import { renderToString } from '../../server/ssr-render';
-import { createDocument } from '../../testing/document';
-import { waitForDrain } from '../../testing/util';
+
+// `vitest bench` does not reliably inherit the regular test setup hook, so make sure
+// benchmark DOM renders always use the client test platform and flush their journal.
+const platform = getTestPlatform();
+setPlatform(platform);
 
 export interface BenchmarkScenario {
   id: string;
@@ -33,26 +39,8 @@ const makeRows = (count: number): TableRow[] => {
   return rows;
 };
 
-const makeUpdatedRows = (rows: TableRow[]): TableRow[] => {
-  const nextRows = rows.map((row, index) => ({
-    id: row.id,
-    label: `${row.label}-next-${(index * 13 + row.value) % 17}`,
-    value: (row.value * 7 + index * 11) % 2048,
-  }));
-
-  if (nextRows.length > 4) {
-    const reordered = [...nextRows];
-    const moved = reordered.splice(1, 3);
-    reordered.splice(reordered.length - 1, 0, ...moved);
-    return reordered;
-  }
-
-  return nextRows.reverse();
-};
-
 const rows10 = makeRows(10);
 const rows1000 = makeRows(1000);
-const updatedRows1000 = makeUpdatedRows(rows1000);
 
 const sharedMeta = {
   adjectives: ['pretty', 'large', 'small', 'helpful'],
@@ -103,75 +91,51 @@ const renderTable = (rows: TableRow[]): JSXOutput => {
   );
 };
 
-const renderSsr = async (jsx: JSXOutput): Promise<number> => {
-  const platform = getPlatform();
-  try {
-    const result = await renderToString(jsx, { qwikLoader: 'never', containerTagName: 'div' });
-    return result.html.length;
-  } finally {
-    setPlatform(platform);
-  }
-};
-
-const renderDom = async (jsx: JSXOutput): Promise<number> => {
-  const document = createDocument();
-  await render(document.body, jsx);
-  return 0;
-};
-
-const renderDomUpdate = async (initialRows: TableRow[], nextRows: TableRow[]): Promise<number> => {
-  const document = createDocument();
-  const rows = createSignal(initialRows);
-  const App = component$(() => {
-    return renderTable(rows.value);
-  });
-  await render(document.body, <App />);
-  rows.value = nextRows;
-  await waitForDrain(getDomContainer(document.body));
-  return 0;
-};
-
-const makeScenario = (id: string, rowCount: number, rows: TableRow[]): BenchmarkScenario => {
+const makeSsrScenario = (id: string, rowCount: number, rows: TableRow[]): BenchmarkScenario => {
+  const jsx = renderTable(rows);
   return {
     id,
     title: `SSR table ${rowCount} rows`,
-    run: () => renderSsr(renderTable(rows)),
-  };
-};
-
-const makeDomScenario = (id: string, rowCount: number, rows: TableRow[]): BenchmarkScenario => {
-  return {
-    id,
-    title: `DOM table ${rowCount} rows`,
     run: async () => {
-      await renderDom(renderTable(rows));
-      return 0;
+      try {
+        const result = await renderToString(jsx, { qwikLoader: 'never', containerTagName: 'div' });
+        return result.html.length;
+      } finally {
+        // SSR installs its own server platform, so restore the client test platform after every sample.
+        setPlatform(platform);
+      }
     },
   };
 };
 
-const makeDomUpdateScenario = (
-  id: string,
-  rowCount: number,
-  initialRows: TableRow[],
-  nextRows: TableRow[]
-): BenchmarkScenario => {
+const makeDomScenario = (id: string, rowCount: number, rows: TableRow[]): BenchmarkScenario => {
+  const jsx = renderTable(rows);
   return {
     id,
-    title: `DOM update table ${rowCount} rows`,
+    title: `DOM table ${rowCount} rows`,
     run: async () => {
-      await renderDomUpdate(initialRows, nextRows);
+      // Tinybench bench-level setup/teardown run once per warmup/run, not once per sample,
+      // so DOM scenarios need to create their own fresh document on every invocation.
+      const document = createDocument();
+      await render(document.body, jsx);
+      await waitForDrain(getDomContainer(document.body));
+      const renderedRowCount = document.querySelectorAll('.bench-table tr').length;
+      if (renderedRowCount !== rows.length) {
+        throw new Error(
+          `Expected ${rows.length} rows in the DOM, but found ${renderedRowCount}.\n${document.body.outerHTML}`
+        );
+      }
       return 0;
     },
   };
 };
 
 export const scenarios: BenchmarkScenario[] = [
-  makeScenario('ssr-table-10', 10, rows10),
-  makeScenario('ssr-table-1k', 1000, rows1000),
+  makeSsrScenario('ssr-table-10', 10, rows10),
+  makeSsrScenario('ssr-table-1k', 1000, rows1000),
   makeDomScenario('dom-table-10', 10, rows10),
   makeDomScenario('dom-table-1k', 1000, rows1000),
-  makeDomUpdateScenario('dom-update-table-1k', 1000, rows1000, updatedRows1000),
+  // DOM update is super fast, hard to compare here, the overhead of the test DOM is too high.
   {
     id: 'serialize-state-1k',
     title: 'Serialize 1k-item state graph',

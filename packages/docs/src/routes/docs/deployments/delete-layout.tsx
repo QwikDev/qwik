@@ -9,7 +9,7 @@ export default component$(() => {
   return (
     <div class="docs fixed-header">
       <Header />
-      <Sidebar allOpen={true} />
+      <Sidebar />
       <main
         class={{
           'no-right-menu': true,

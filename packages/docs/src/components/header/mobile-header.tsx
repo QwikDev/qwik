@@ -32,7 +32,9 @@ const MobileNavSection = (props: {
 );
 
 const isActive = (pathname: string | undefined, href: string) => {
-  if (!pathname) return false;
+  if (!pathname) {
+    return false;
+  }
   const clean = pathname.replace(/\/$/, '');
   const target = href.replace(/\/$/, '');
   return clean === target;

@@ -735,6 +735,10 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
     const value = vnodeData[i];
     if (isSsrAttrs(value)) {
       for (const key in value) {
+        // Skip non-serializable props (NON_SERIALIZABLE_MARKER_PREFIX ':')
+        if (key.charCodeAt(0) === 58) {
+          continue;
+        }
         const attrValue = value[key];
         if (
           attrValue == null ||

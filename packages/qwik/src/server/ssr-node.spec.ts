@@ -14,12 +14,12 @@ describe('ssr-node', () => {
     expect(ssrNode.props).toBe(attrs);
   });
 
-  it('should store local props separately from attrs', () => {
+  it('should store all props in attrs (colon-prefixed filtered at serialization)', () => {
     const attrs = {};
     const ssrNode = new SsrNode(null, '1', attrs, [], null);
     vnode_setProp(ssrNode, ':localProp', 'value');
     vnode_setProp(ssrNode, 'serializable', 'data');
-    expect(attrs).toEqual({ serializable: 'data' });
+    expect(attrs).toEqual({ ':localProp': 'value', serializable: 'data' });
     expect(vnode_getProp(ssrNode, ':localProp', null)).toBe('value');
   });
 });

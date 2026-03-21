@@ -123,9 +123,6 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
   /** Node kind for emission dispatch. */
   public nodeKind: SsrNodeKind = SsrNodeKind.Virtual;
 
-  /** Local props which don't serialize (prefixed with NON_SERIALIZABLE_MARKER_PREFIX). */
-  public localProps: Props | null = null;
-
   public cleanupQueue: CleanupQueue;
 
   /**

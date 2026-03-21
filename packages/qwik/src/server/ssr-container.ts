@@ -1448,6 +1448,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private writeFragmentAttrs(fragmentAttrs: Props): void {
     for (const key in fragmentAttrs) {
+      // Skip non-serializable props (NON_SERIALIZABLE_MARKER_PREFIX ':')
+      if (key.charCodeAt(0) === 58) {
+        continue;
+      }
       const rawValue = fragmentAttrs[key];
       let value: string;
       let encodeValue = false;

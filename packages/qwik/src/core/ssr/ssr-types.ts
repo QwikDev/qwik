@@ -22,8 +22,6 @@ export interface StreamWriter {
 
 export interface ISsrNode extends VirtualVNode {
   id: string;
-  // TODO perhaps make props a class so we can filter `:` props during serialization and we don't need localProps
-  localProps: Props | null;
   cleanupQueue: any[];
   parentComponent: ISsrNode | null;
   vnodeData: VNodeData | null;

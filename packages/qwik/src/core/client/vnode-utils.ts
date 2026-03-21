@@ -401,10 +401,6 @@ export const vnode_getProp = <T = unknown>(
   getObject: ((id: string) => unknown) | null
 ): T | null => {
   if (vnode_isElementVNode(vNode) || vnode_isVirtualVNode(vNode)) {
-    // SsrNode stores non-serializable (':' prefixed) props in a separate localProps object
-    if (key.charCodeAt(0) === 58 /* ':' */ && 'localProps' in vNode) {
-      return (((vNode as any).localProps as Record<string, any> | null)?.[key] ?? null) as T | null;
-    }
     const value = vNode.props?.[key] ?? null;
     if (typeof value === 'string' && getObject) {
       const result = getObject(value) as T | null;
@@ -418,12 +414,7 @@ export const vnode_getProp = <T = unknown>(
 
 /** @internal */
 export const vnode_setProp = (vNode: VNode, key: string, value: unknown) => {
-  // SsrNode stores non-serializable (':' prefixed) props in a separate localProps object
-  if (key.charCodeAt(0) === 58 /* ':' */ && 'localProps' in vNode) {
-    ((vNode as any).localProps ||= {})[key] = value;
-    return;
-  }
-  if ('localProps' in vNode) {
+  if ('cleanupQueue' in vNode) {
     // SsrNode: always store (never implicit delete — use vnode_removeProp for that)
     (vNode.props ||= {})[key] = value;
   } else if (value == null && vNode.props) {
@@ -440,12 +431,7 @@ export const vnode_setProp = (vNode: VNode, key: string, value: unknown) => {
 
 /** @internal */
 export const vnode_removeProp = (vNode: VNode, key: string) => {
-  if (key.charCodeAt(0) === 58 /* ':' */ && 'localProps' in vNode) {
-    const localProps = (vNode as any).localProps as Record<string, any> | null;
-    if (localProps) {
-      delete localProps[key];
-    }
-  } else if (vNode.props) {
+  if (vNode.props) {
     delete vNode.props[key];
   }
 };

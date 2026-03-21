@@ -689,7 +689,9 @@ function checkExternals() {
   let loaded = false;
 
   async function loadModules() {
-    if (loaded) return true;
+    if (loaded) {
+      return true;
+    }
     try {
       fs = await import('node:fs').then((m) => m.promises);
       path = await import('node:path');
@@ -761,7 +763,9 @@ function checkExternals() {
     config: {
       order: 'post',
       async handler(config) {
-        if (!(await loadModules())) return;
+        if (!(await loadModules())) {
+          return;
+        }
         const root = config.root || process.cwd();
         const optimizeDepsExclude = config.optimizeDeps?.exclude ?? [];
 
@@ -787,7 +791,9 @@ function checkExternals() {
     resolveId: {
       order: 'pre',
       async handler(source, importer, options) {
-        if (!(await loadModules())) return;
+        if (!(await loadModules())) {
+          return;
+        }
         const isSSR = this.environment.config.consumer === 'server';
         if (!isSSR || /^([./]|node:|[^a-z@])/i.test(source) || seen.has(source)) {
           return;

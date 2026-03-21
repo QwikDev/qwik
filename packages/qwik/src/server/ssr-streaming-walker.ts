@@ -433,8 +433,11 @@ export class IncrementalEmitter {
 
   constructor(
     private writer: StreamWriter,
-    /** Node before whose close tag a callback should be invoked. */
-    private containerDataNode: ISsrNode | null,
+    /**
+     * Node before whose close tag a callback should be invoked. Updated after tree building when
+     * the body SsrNode becomes available.
+     */
+    public containerDataNode: ISsrNode | null,
     /** Suspense boundary state keyed by boundary node. */
     private suspenseBoundaries: Map<ISsrNode, SuspenseBoundaryInfo>,
     /** Grace period before falling back to Suspense fallback content. */

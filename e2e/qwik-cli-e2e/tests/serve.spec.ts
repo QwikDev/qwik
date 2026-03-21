@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import playwright from 'playwright';

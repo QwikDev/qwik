@@ -1,5 +1,3 @@
-import { isServer } from '@qwik.dev/core/build';
-import { QBackRefs } from '../shared/utils/markers';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { Consumer, EffectProperty, EffectSubscription } from './types';
 import { _EFFECT_BACK_REF, type BackRef } from './backref';

@@ -471,19 +471,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // context (e.g., Suspense children). We need to restore it for the emission phase.
     const mainBuildState = this.ssrBuildState;
 
-    // Save the container data frame AFTER tree building (body for html, container root
-    // for non-html). emitContainerDataFrame is set during tree building when openElement
-    // encounters <body>. This frame's vNodeData must be active during emitContainerData
-    // so that script elements are counted in the correct parent.
-    const savedContainerDataFrame = this.emitContainerDataFrame;
-    this.emitContainerDataFrame = null;
-
-    // Determine where to inject container data and set up the incremental emitter:
-    // - For html containers: before </body>
-    // - For non-html containers: before </container>
-    const bodyNode = this.isHtml ? this.findBodyNode(rootSsrNode) : null;
-    const containerDataNode = bodyNode ?? rootSsrNode;
-
     // Suspense boundaries always use OoO streaming, regardless of whether their sub-cursor
     // completed synchronously. Boundaries that are ready by emission time are inlined instead.
     const deferredBoundaries = this.suspenseBoundaries;
@@ -493,10 +480,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.vNodeDatas = [];
     this.depthFirstElementCount = -1;
 
-    // Initialize emitter and emit tree
+    // Initialize emitter — containerDataNode is set after the first processCursorQueue
+    // because the body SsrNode doesn't exist until the cursor builds the tree.
     const emitter = new IncrementalEmitter(
       this.writer,
-      containerDataNode,
+      rootSsrNode, // placeholder — updated below after tree building
       deferredBoundaryMap,
       this.suspenseFallbackDelay,
       (node) => this.markSuspenseFallbackEmitted(node),
@@ -506,8 +494,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     // Emission loop: emit ready nodes, handle callbacks, retry if blocked
     let emitDone = false;
+    let savedContainerDataFrame: typeof this.emitContainerDataFrame = null;
     while (!emitDone) {
       processCursorQueue({ timeBudget: Infinity });
+
+      // After the first processCursorQueue, capture the container data frame.
+      // emitContainerDataFrame is set during tree building when openElement encounters <body>.
+      if (!savedContainerDataFrame && this.emitContainerDataFrame) {
+        savedContainerDataFrame = this.emitContainerDataFrame;
+        this.emitContainerDataFrame = null;
+        // Update emitter's containerDataNode to the body SsrNode
+        const bodyNode = this.isHtml ? savedContainerDataFrame.ssrNode : null;
+        if (bodyNode) {
+          emitter.containerDataNode = bodyNode;
+        }
+      }
       emitter.syncSuspenseBoundaries(this.suspenseBoundaries);
       // Restore main build state — sub-cursor walk may have swapped it
       this.ssrBuildState = mainBuildState;
@@ -1257,33 +1258,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // With inline emission, just add the children back to the frame's slots
     // They will be emitted when the component closes
     frame.slots.push(name, children);
-  }
-
-  /**
-   * Find the <body> SsrNode in the tree. Searches through virtual children (components,
-   * projections) since `<body>` may be nested inside a provider component.
-   */
-  private findBodyNode(root: ISsrNode): ISsrNode | null {
-    const children = (root as SsrNode).orderedChildren;
-    if (!children) {
-      return null;
-    }
-    for (const child of children) {
-      if (!('id' in child)) {
-        continue;
-      }
-      if ((child as any).tagName === 'body') {
-        return child as ISsrNode;
-      }
-      // Recurse through virtual nodes (components, projections, fragments)
-      if (!(child as any).tagName) {
-        const found = this.findBodyNode(child as ISsrNode);
-        if (found) {
-          return found;
-        }
-      }
-    }
-    return null;
   }
 
   private $processInjectionsFromManifest$(): void {

@@ -22,6 +22,7 @@ created_at: '2023-03-20T23:45:13Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Styles
 
@@ -82,7 +83,7 @@ Many apps use a global stylesheet for browser resets and defining global styles.
 import './global.css';
 ```
 
-> Automatically, Qwik will try to inline this file in production mode if the amount of CSS is less than 10KB. If the file is larger than 10KB, it will be loaded as a separate file.
+<Note>Automatically, Qwik will try to inline this file in production mode if the amount of CSS is less than 10KB. If the file is larger than 10KB, it will be loaded as a separate file.</Note>
 
 ## CSS-in-JS
 
@@ -133,7 +134,7 @@ bun run qwik add styled-vanilla-extract
 
 Please refer to the [docs of our official integration](/docs/integrations/styled-vanilla-extract/index.mdx) for more information.
 
-> **How about emotion or other CSS-in-JS libs?** While extremely popular, emotion and other CSS-in-JS libs are not the best choice for Qwik. [They are not optimized for runtime performance and they don't have a good SSR streaming support](https://dev.to/srmagura/why-were-breaking-up-wiht-css-in-js-4g9b), leading to a degraded server and client performance.
+<Note>While extremely popular, emotion and other CSS-in-JS libs are not the best choice for Qwik. [They are not optimized for runtime performance and they don't have a good SSR streaming support](https://dev.to/srmagura/why-were-breaking-up-wiht-css-in-js-4g9b), leading to a degraded server and client performance.</Note>
 
 ## Styled-components
 
@@ -187,7 +188,7 @@ export const Cmp = component$(() => {
 ## Scoped CSS
 
 To use scoped CSS, you can use the `useStylesScoped$()` hook exported from `@qwik.dev/core`.
-> `useStylesScoped$()` uses an emoji to set a unique name on the selector, to avoid CSS name / selector clashes, and to ensure that the styles are correctly scoped as expected.
+<Note>`useStylesScoped$()` uses an emoji to set a unique name on the selector, to avoid CSS name / selector clashes, and to ensure that the styles are correctly scoped as expected.</Note>
 
 ```tsx {4-8} title="src/components/MyComponent/MyComponent.tsx"
 import { component$, useStylesScoped$ } from '@qwik.dev/core';
@@ -250,7 +251,7 @@ export const List = component$(() => {
 
 This will render a css selector of `.list.⚡️8vzca0-0 > *:nth-child(3)`, allowing you to target child components. This could be considered the equivalent of using `::ng-deep` in Angular.
 
-> Beware that this may have unintended effects that cascade down your component tree.
+<Note>Beware that this may have unintended effects that cascade down your component tree.</Note>
 
 
 ## `useStyles$()`
@@ -276,7 +277,7 @@ export const CmpStyles = component$(() => {
 }
 ```
 
-> Notice that in order to import CSS as a string in Vite, you need to add the `?inline` query parameter to the import, like this: `import styles from './code-block.css?inline';`
+<Note>In order to import CSS as a string in Vite, you need to add the `?inline` query parameter to the import, like this: `import styles from './code-block.css?inline';`</Note>
 
 `useStyles$` uses lazy loading strings that won't dynamically update. If you'd like to evaluate some JS, use a `style` tag instead
 

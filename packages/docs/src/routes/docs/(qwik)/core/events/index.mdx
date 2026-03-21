@@ -29,6 +29,7 @@ created_at: '2023-03-20T23:45:13Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Events
 
@@ -42,7 +43,7 @@ For a web application to be interactive, there needs to be a way to respond to u
 
 In the following example, the `onClick$` attribute of the `<button>` element is used to let Qwik know that a callback `() => store.count++` should be executed whenever the `click` event is fired by the `<button>`.
 
-<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx">
 ```tsx {7} /onClick$/
 import { component$, useSignal } from '@qwik.dev/core';
 
@@ -62,13 +63,13 @@ You can also use `bind:propertyName` to conveniently have a [two-way binding](/d
 
 Notice that `onClick$` ends with [`$`](/docs/(qwik)/advanced/dollar/index.mdx). This is a hint to both the [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler is not loaded into the JavaScript Virtual Machine (VM) until the user activates the click event. However, to avoid delays during the first interaction, it is eagerly loaded into the browser cache.
 
-> In real-world applications, the listener may refer to complex code. By creating a lazy-loaded boundary (with the `$`), Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
+<Note>In real-world applications, the listener may refer to complex code. By creating a lazy-loaded boundary (with the `$`), Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.</Note>
 
 ## Reusing Event Handlers
 
 To reuse the same event handler for multiple elements or events, you have to wrap the event handler into the `$()` function exported by `@qwik.dev/core`. This transforms it into a [`QRL`](/docs/advanced/qrl/).
 
-<CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx">
 ```tsx {5} /increment/#a
 import { component$, useSignal, $ } from '@qwik.dev/core';
 
@@ -86,7 +87,7 @@ export default component$(() => {
 </CodeSandbox>
 
 
-> **Note:** If you extract the event handler, you must manually wrap it in the `$(...handler...)`. This ensures that it is lazily attached.
+<Note>If you extract the event handler, you must manually wrap it in the `$(...handler...)`. This ensures that it is lazily attached.</Note>
 
 ## Multiple Event Handlers
 
@@ -117,7 +118,7 @@ export default component$(() => {
 
 The first argument of the event handler is the `Event` object. This object contains information about the event that triggered the handler. For example, the `Event` object for a `click` event contains information about the mouse position and the element that was clicked. You can check out the [MDN docs to know more details about each DOM event](https://developer.mozilla.org/en-US/docs/Web/API/Event).
 
-<CodeSandbox src="/src/routes/demo/events/mouse-position/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/mouse-position/index.tsx">
 ```tsx /event/
 import { component$, useSignal } from '@qwik.dev/core';
 
@@ -149,7 +150,7 @@ Due to Qwik's asynchronous nature, the execution of an event handler might be de
 
 Because event handling is asynchronous, you can't use `event.preventDefault()` or `event.stopPropagation()`. To solve this, Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` and `stoppropagation:{eventName}` attributes.
 
-<CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx">
 ```tsx {7}
 import { component$ } from '@qwik.dev/core';
 
@@ -202,7 +203,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **Note:** `currentTarget` in the DOM points to the element that the event listener was attached to. In the example above it will always be the `<SECTION>` element.
+<Note>`currentTarget` in the DOM points to the element that the event listener was attached to. In the example above it will always be the `<SECTION>` element.</Note>
 
 ### Synchronous Event Handling
 
@@ -245,7 +246,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **NOTE** Using `VisibleTask` to listen for events is an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. You should use JSX to listen for events, for example: `<div onClick$={...}>`. Alternatively, if you need to listen to events programmatically, consider using the `useOn(...)` event methods.
+<Note>Using `VisibleTask` to listen for events is an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. You should use JSX to listen for events, for example: `<div onClick$={...}>`. Alternatively, if you need to listen to events programmatically, consider using the `useOn(...)` event methods.</Note>
 
 ## Custom Event Props
 
@@ -298,7 +299,7 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 ```
 </CodeSandbox>
 
-> Notice the use of the `QRL` type in `onTripleClick$: QRL<() => void>;`. It is like wrapping a function in `$()` but at the type level. If you had `const greet = $(() => "hi 👋");` and hovered over 'greet', you would see that 'greet' is of type `QRL<() => "hi 👋">`
+<Note>Notice the use of the `QRL` type in `onTripleClick$: QRL<() => void>;`. It is like wrapping a function in `$()` but at the type level. If you had `const greet = $(() => "hi");` and hovered over 'greet', you would see that 'greet' is of type `QRL<() => "hi">`</Note>
 
 Event names are case sensitive, but all DOM events except for `DOMContentLoaded` are lowercase. For a better DX, event names are always lowercased, so `onTripleClick$` becomes `tripleclick` under the hood.
 

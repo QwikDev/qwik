@@ -8,6 +8,7 @@ created_at: '2023-10-11T15:09:55Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Static Site Adapter
 
@@ -65,6 +66,6 @@ export default extendConfig(baseConfig, () => {
 });
 ```
 
-> Remember to change the `origin` in this file to your domain.
+<Note>Remember to change the `origin` in this file to your domain.</Note>
 
 Now, you can generate static site while using `Qwik`'s rich ecosystem, file based routing and many more.

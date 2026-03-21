@@ -14,6 +14,7 @@ created_at: '2023-05-26T19:39:35Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
+import { Note } from '~/components/note/note';
 
 
 # Bundle Optimization
@@ -26,7 +27,7 @@ Symbols are individual lazy-loadable pieces in Qwik. A symbol is created wheneve
 
 For example, the code below creates two symbols from `component$` and `onClick$`.
 
-<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx">
 ```tsx /component$/ /onClick$/
 import { component$, useSignal } from '@qwik.dev/core';
 
@@ -146,9 +147,9 @@ To collect symbol usage from a running application:
 3. Open the console and type `symbols` to see the list of symbols used. Use that information to update the `vite.config.ts` file.
 
 
-> **NOTE:** We are looking into creating better ways of collecting this information in the future. (See [Insights](/docs/labs/insights/index.mdx).)
+<Note>We are looking into creating better ways of collecting this information in the future. (See [Insights](/docs/labs/insights/index.mdx).)</Note>
 
-> **NOTE:** Symbols hashes are designed to be stable even across many compilations. However, if the code undergoes complex refactoring it is possible for the hash to change. This will not break the application, but it may cause the symbol to be moved to a different sub-optimal chunk until runtime analytics can be collected again. 
+<Note>Symbols hashes are designed to be stable even across many compilations. However, if the code undergoes complex refactoring it is possible for the hash to change. This will not break the application, but it may cause the symbol to be moved to a different sub-optimal chunk until runtime analytics can be collected again.</Note>
 
 
 ## Service worker
@@ -157,7 +158,7 @@ Qwik apps employ a service worker to ensure that bundles are prefetched into the
 
 See [Speculative Module Fetching](/docs/(qwikrouter)/advanced/speculative-module-fetching/index.mdx).
 
-> Notice that Service Worker feature is available only in secure contexts (HTTPS), in some or all supporting browsers. See the [`serviceWorker` property API specs](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/serviceWorker).
+<Note>Service Worker feature is available only in secure contexts (HTTPS), in some or all supporting browsers. See the [`serviceWorker` property API specs](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/serviceWorker).</Note>
 
 ## Events
 

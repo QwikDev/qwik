@@ -1,6 +1,6 @@
 import { component$, Slot, useSignal, useStylesScoped$ } from '@qwik.dev/core';
-import { EditIcon } from '../svgs/edit-icon';
 import CSS from './index.css?inline';
+import { lucide } from '@qds.dev/ui';
 
 export default component$<{
   src?: string;
@@ -28,49 +28,41 @@ export default component$<{
           ))}
         </div>
       )}
-      <div class="overflow-auto slot-container mb-4">
+      <div class="overflow-auto slot-container mb-4 shadow-base">
         <Slot name={tabs ? String(activeTab.value) : ''} />
       </div>
-      <div class="browser shadow-xl">
-        <div class="bar bg-slate-200 rounded-tl-md rounded-tr-md flex flex-row justify-left px-5 py-2 gap-5">
-          <ul>
-            <li>
-              <span class="bg-red-600 rounded-full w-3 h-3 inline-block"></span>
-            </li>
-            <li>
-              <span class="bg-yellow-500 rounded-full w-3 h-3 inline-block"></span>
-            </li>
-            <li>
-              <span class="bg-lime-500 rounded-full w-3 h-3 inline-block"></span>
-            </li>
-          </ul>
-          <div class="url bg-slate-300 rounded-md inline-grid whitespace-nowrap text-xs px-2 py-1 content-center w-full">
+      <div class="bg-background-base border-[1.6px] border-base rounded-2xl shadow-base overflow-clip">
+        <div class="flex items-center gap-4 p-3">
+          <div class="flex items-center gap-2">
+            <span class="bg-background-accent rounded-full size-3"></span>
+            <span class="bg-background-accent rounded-full size-3"></span>
+            <span class="bg-background-accent rounded-full size-3"></span>
+          </div>
+          <div class="bg-background-accent rounded-lg flex-1 px-2 py-1">
             <a
               href={examplePath(exampleUrl)}
               target="_blank"
-              class="url-link text-ellipsis overflow-hidden"
+              class="text-standalone-accent! text-body-xs no-underline! text-ellipsis overflow-hidden block"
             >
               {new URL(examplePath(exampleUrl), 'https://qwik.dev').toString()}
             </a>
           </div>
-          <ul>
-            <li class="edit">
-              <a
-                href={'https://github.com/QwikDev/qwik/blob/main/packages/docs/' + (url || src)}
-                rel="noopener"
-                target="_blank"
-                title="edit this snippet"
-              >
-                <EditIcon width={20} height={20} />
-              </a>
-            </li>
-          </ul>
+          <a
+            href={'https://github.com/QwikDev/qwik/blob/main/packages/docs/' + (url || src)}
+            rel="noopener"
+            target="_blank"
+            title="edit this snippet"
+            class="text-foreground-muted hover:text-foreground-base"
+          >
+            <lucide.pencil class="size-5 text-foreground-base" />
+          </a>
         </div>
-        <div>
+        <div class="border-t-[1.6px] border-base">
           <iframe
             loading="lazy"
             src={examplePath(exampleUrl)}
             style={{ width: '100%', height: '200px', ...style }}
+            class="border-none m-0 p-2 w-full"
           />
         </div>
       </div>

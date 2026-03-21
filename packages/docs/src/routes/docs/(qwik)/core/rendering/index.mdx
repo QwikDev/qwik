@@ -23,6 +23,8 @@ updated_at: '2023-09-19T17:37:26Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
+import { Note } from '~/components/note/note';
+
 # Rendering
 
 Rendering is the process of updating the DOM based on changes in the state of the application and the component templates.
@@ -93,7 +95,7 @@ export const Child = component$((props: { name: string }) => {
 });
 ```
 
-> In the above example, the Parent component passes a changing `name` property to the Child component. The Child component will only re-render when the count signal changes.
+<Note>In the above example, the Parent component passes a changing `name` property to the Child component. The Child component will only re-render when the count signal changes.</Note>
 
 
 ### Rendering a list of items
@@ -118,7 +120,7 @@ export const Parent = component$(() => {
 });
 ```
 
-> **Note:** it is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.
+<Note>It is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.</Note>
 
 ### Rendering Conditionally
 
@@ -174,7 +176,7 @@ export default component$(() => {
 })
 ```
 
-> The API does not work with `useStore` since it does not return a signal. You can still use the manual approach, combining value and onInput$ as shown below.
+<Note>The API does not work with `useStore` since it does not return a signal. You can still use the manual approach, combining value and onInput$ as shown below.</Note>
 
 The `bind:` is compiled away by the Qwik optimizer to a property set and an event handler, ie, it is just syntax sugar.
 
@@ -207,7 +209,7 @@ export default component$(() => {
 })
 ```
 
-> This API ensures that the `value` of the input is always in sync with the value of the signal, no matter where the change comes from.
+<Note>This API ensures that the `value` of the input is always in sync with the value of the signal, no matter where the change comes from.</Note>
 
 
 ## Async Rendering

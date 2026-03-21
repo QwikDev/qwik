@@ -1,17 +1,17 @@
-@reference "tailwindcss";
+@reference "../../global.css";
 
 .on-this-page {
-  @apply py-8 pt-10;
-  @apply text-base;
-
-  position: sticky;
-  top: var(--header-height);
-  min-width: var(--aside-width);
-  height: calc(100vh - var(--header-height));
+  @apply w-[300px] pb-10 pr-6 text-base sticky top-0 h-screen;
+  padding-top: 160px;
 }
 
 .on-this-page h6 {
-  @apply font-bold text-center pb-3 uppercase;
+  @apply font-bold text-left text-base leading-[22px];
+  color: var(--color-foreground-base);
+}
+
+.on-this-page ul {
+  @apply flex flex-col;
 }
 
 .on-this-page li {
@@ -19,9 +19,26 @@
 }
 
 .on-this-page-item {
-  @apply block px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis;
+  @apply block font-semibold text-base leading-[1.8] py-2.5 px-3 no-underline;
+  color: var(--color-foreground-base);
+}
+
+.on-this-page-item-active {
+  @apply block font-semibold text-base leading-[1.8] py-2.5 px-3 underline underline-offset-8;
+  color: var(--color-standalone-emphasis);
+  text-decoration-color: var(--color-border-base);
+}
+
+.more-section {
+  @apply flex flex-col gap-4;
+}
+
+.on-this-page-more-heading {
+  @apply font-bold text-left text-base leading-[22px];
+  color: var(--color-foreground-base);
 }
 
 .more-item {
-  @apply inline-flex gap-x-2 px-3 py-2 items-center;
+  @apply flex gap-2 items-center font-semibold text-sm leading-5;
+  color: var(--color-secondary-foreground-base);
 }

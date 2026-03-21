@@ -153,6 +153,7 @@
     "terser": "5.46.0",
     "tmp": "0.2.5",
     "tree-kill": "1.2.2",
+    "ts-morph": "27.0.2",
     "typescript": "5.9.3",
     "typescript-eslint": "8.56.1",
     "vfile": "6.0.3",

@@ -31,6 +31,7 @@ const booleanOptions = [
   'eslint',
   'esmNode',
   'insights',
+  'mangle',
   'platformBinding',
   'platformBindingWasmCopy',
   'prepareRelease',

@@ -204,6 +204,13 @@ export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNodeInternal<JSX>, prop:
   ) as T;
 };
 
+export const _getProps = (
+  props: PropsProxy | Record<string, unknown> | null | undefined,
+  prop: string
+): unknown => {
+  return _getVarProps(props)?.[prop] || _getConstProps(props)?.[prop] || null;
+};
+
 /** Used by the optimizer for spread props operations @internal */
 export const _getVarProps = (
   props: PropsProxy | Record<string, unknown> | null | undefined

@@ -2,7 +2,6 @@ import {
   $,
   component$,
   useComputed$,
-  useConstant,
   useOnDocument,
   useSignal,
   type JSXOutput,

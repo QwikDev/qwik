@@ -683,7 +683,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
  * because they use Qwik. If they are not included, the optimizer won't process them, and there will
  * be two instances of Qwik Core loaded.
  */
-function checkExternals() {
+async function checkExternals() {
   let fs: typeof import('fs').promises;
   let path: typeof import('path');
   let loaded = false;

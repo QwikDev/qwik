@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { RedirectMessage } from './redirect-handler';
 import { createRequestEvent } from './request-event';
 import type { ServerRequestEvent } from './types';
 import type { LoadedRoute } from '../../runtime/src/types';
+import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -147,5 +147,15 @@ describe('request-event redirect', () => {
     expect(() => {
       requestEv.redirect(302, '/should-fail');
     }).toThrow('Response already sent');
+  });
+
+  it('should create public ServerError instances from requestEv.error()', () => {
+    const requestEv = createMockRequestEvent();
+
+    const error = requestEv.error(418, 'teapot');
+
+    expect(error).toBeInstanceOf(ServerError);
+    expect(error.status).toBe(418);
+    expect(error.data).toBe('teapot');
   });
 });

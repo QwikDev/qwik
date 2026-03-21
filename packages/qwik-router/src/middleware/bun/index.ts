@@ -76,9 +76,9 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
       // send request to qwik router request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
-        handledResponse.completion.then((v) => {
-          if (v) {
-            console.error(v);
+        handledResponse.completion.then((completion) => {
+          if (completion) {
+            console.error(completion);
           }
         });
         const response = await handledResponse.response;

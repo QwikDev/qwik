@@ -11,7 +11,6 @@ import fs from 'node:fs';
 import { cpus as nodeCpus } from 'node:os';
 import { Worker } from 'node:worker_threads';
 import { isAbsolute, resolve } from 'node:path';
-import { ensureDir } from './system';
 import { normalizePath } from '../utils/fs';
 
 export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
@@ -246,7 +245,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
   };
 
   if (sitemapOutFile) {
-    await ensureDir(sitemapOutFile);
+    await sys.ensureDir(sitemapOutFile);
     sitemapStream = fs.createWriteStream(sitemapOutFile, {
       flags: 'w',
     });

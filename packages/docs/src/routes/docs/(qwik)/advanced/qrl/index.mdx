@@ -14,6 +14,8 @@ updated_at: '2023-10-12T18:28:54Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
+import { Note } from '~/components/note/note';
+
 # QRL
 
 QRL (Qwik URL) is a particular form of URL that Qwik uses to lazy load content.
@@ -134,7 +136,7 @@ The main thing to note is the `q-e:click` attribute. This attribute gets read by
    - `<button q:obj="456, 123"` gets `count` as well as a reference to the `<div q:id="457">`
 9. Once the `qwik/json` is deserialized, `useLexicalScope` can use the QRL's `[0,1]` array to look into `q:obj="456, 123"` to retrieve object with id `456` and `123`, which are props of `<div q:id="123" q:obj="456" q:host>` as well as `store` from `Counter_onMount` function.
 
-> **NOTE:** For performance reasons the `q:obj` and `<script type="qwik/json">` are only updated when the application is deserialized into HTML. When the application is running, these attributes may have stale values.
+<Note>For performance reasons the `q:obj` and `<script type="qwik/json">` are only updated when the application is deserialized into HTML. When the application is running, these attributes may have stale values.</Note>
 
 ## Why not just dynamic `import()`?
 

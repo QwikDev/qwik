@@ -1,27 +1,29 @@
+@reference "../../global.css";
+
+/*
+ In a css file because article styles would override / would need important on all.
+*/
+
 .wrapper {
-  margin: 50px 0;
+  @apply my-16 bg-background-base border-[1.6px] border-base rounded-2xl p-6 shadow-[var(--shadow-base)] flex flex-col gap-6;
+}
+
+.wrapper h3 {
+  @apply font-heading text-h6 text-foreground-base m-0;
+}
+
+.wrapper p {
+  @apply text-body-sm text-foreground-base m-0;
 }
 
 .list {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: left;
-  gap: 8px;
-  align-items: center;
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  @apply flex flex-row flex-wrap gap-3 items-center list-none m-0 p-0;
 }
 
 .contributor {
-  display: inline-block;
-  margin: 0;
-  padding: 0;
+  @apply inline-block m-0 p-0;
 }
 
 .avatar {
-  border-radius: 50%;
-  width: 40px;
-  height: auto;
+  @apply rounded-full size-10 border-[2.4px] border-base object-cover;
 }

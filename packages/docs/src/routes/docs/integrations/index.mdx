@@ -20,7 +20,7 @@ created_at: '2023-04-06T21:28:28Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
-
+import { Note } from '~/components/note/note';
 import { IntegrationsList } from './integrations-list';
 
 # Integrations
@@ -55,7 +55,7 @@ bun run qwik add
 
 This command will prompt you to select the integration you want to add. Once selected, the integration will be added to your application and you can start using it.
 
-> **For Monorepos:** you can add integrations to a specific package by running the command with the `--projectDir=some/subDir` param.
+<Note>For Monorepos: you can add integrations to a specific package by running the command with the `--projectDir=some/subDir` param.</Note>
 
 ### List of possible integrations
 

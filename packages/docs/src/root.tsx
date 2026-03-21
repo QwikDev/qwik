@@ -64,7 +64,8 @@ export default component$(() => {
         <meta name="application-name" content="Qwik" />
         <meta name="apple-mobile-web-app-title" content="Qwik" />
         <meta name="theme-color" content="#006ce9" />
-        <meta name="color-scheme" content="dark light" />
+        {/* TODO: figure out what needs to be fixed on theme management. For now it should be light theme matching our design. */}
+        {/* <meta name="color-scheme" content="dark light" /> */}
 
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
         <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />

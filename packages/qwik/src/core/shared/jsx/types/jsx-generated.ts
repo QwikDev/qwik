@@ -1,4 +1,4 @@
-import * as CSS from 'csstype';
+import type * as CSS from 'csstype';
 import type { DOMAttributes, ClassList, QwikAttributes } from './jsx-qwik-attributes';
 import type { Signal } from '../../../reactive-primitives/signal.public';
 /** @public */

@@ -6,26 +6,18 @@ interface AlertIconProps {
 export const AlertIcon = ({ width, height }: AlertIconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="21"
-    height="21"
+    width={width}
+    height={height}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
     aria-hidden="true"
-    viewBox="0 0 512 512"
   >
-    <path
-      d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z"
-      fill="none"
-      stroke="currentColor"
-      stroke-miterlimit="10"
-      stroke-width="32"
-    />
-    <path
-      d="M250.26 166.05L256 288l5.73-121.95a5.74 5.74 0 00-5.79-6h0a5.74 5.74 0 00-5.68 6z"
-      fill="none"
-      stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="32"
-    />
-    <path d="M256 367.91a20 20 0 1120-20 20 20 0 01-20 20z" fill="currentColor" />
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
   </svg>
 );

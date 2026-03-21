@@ -24,7 +24,7 @@ export const ContentNav = component$(() => {
   });
 
   return (
-    <nav class="content-nav border-t border-slate-300 flex flex-wrap py-4">
+    <nav class="content-nav flex flex-wrap py-4">
       <div class="flex-1">
         {prev.value ? (
           <Link class="px-3 py-1 prev" href={prev.value?.href}>

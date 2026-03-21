@@ -9,12 +9,13 @@ created_at: '2024-01-10T21:56:50Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # OG Image (og-img)
 
 With [`og-img`](https://github.com/fabian-hiller/og-img) you can easily add dynamic Open Graph images to your Qwik website. These are displayed, for example, when your website is shared on social media or via messenger services.
 
-> `og-img` is a framework agnostic package for generating Open Graph images using [Satori](https://github.com/vercel/satori) and [resvg](https://github.com/RazrFalcon/resvg).
+<Note>`og-img` is a framework agnostic package for generating Open Graph images using [Satori](https://github.com/vercel/satori) and [resvg](https://github.com/RazrFalcon/resvg).</Note>
 
 To get started, install the `og-img` package:
 
@@ -45,7 +46,7 @@ bun install og-img
 
 To generate an image, all you need to do is return an `ImageResponse` via a server endpoint. To create one, add a new route to your Qwik website and export a function called `onGet` in the index file. To easily define the content of your image, you can use the `html` tagged template literal.
 
-> To get proper syntax highlighting for the tagged template literal in Visual Studio Code, you can install the [lit-html](https://marketplace.visualstudio.com/items?itemName=bierner.lit-html) extension.
+<Note>To get proper syntax highlighting for the tagged template literal in Visual Studio Code, you can install the [lit-html](https://marketplace.visualstudio.com/items?itemName=bierner.lit-html) extension.</Note>
 
 ```ts title="src/routes/og-image/index.ts"
 import type { RequestHandler } from '@qwik.dev/router';

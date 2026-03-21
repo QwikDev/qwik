@@ -9,6 +9,7 @@ created_at: '2023-04-26T16:12:18Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Library
 
@@ -88,7 +89,7 @@ The most important files of a library are a properly configured `package.json` a
 
 Notice the `qwik` field, this is the entry point for the Qwik Optimizer, it will use this file to generate the `index.qwik.mjs` file.
 
-> The file must be called with the `.qwik.mjs` extension, otherwise the Qwik Optimizer will not recognize it.
+<Note>The file must be called with the `.qwik.mjs` extension, otherwise the Qwik Optimizer will not recognize it.</Note>
 
 ## vite.config.ts
 
@@ -163,6 +164,4 @@ This will create a `lib` folder with the following structure. Then you can publi
 npm publish
 ```
 
-> Notice that before first publishing, you might want to update the `package.json` fields, like `name`, `version`, `description`, etc.
-
-> For any other subsequent publish, you will need to update the `version` field.
+<Note>Before first publishing, you might want to update the `package.json` fields, like `name`, `version`, `description`, etc. For any other subsequent publish, you will need to update the `version` field.</Note>

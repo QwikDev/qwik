@@ -2,13 +2,13 @@ import { component$, Slot } from '@qwik.dev/core';
 import { ContentNav } from '../../../components/content-nav/content-nav';
 import { Footer } from '../../../components/footer/footer';
 import { Header } from '../../../components/header/header';
-import { SideBar } from '../../../components/sidebar/sidebar';
+import { Sidebar } from '../../../components/sidebar/sidebar';
 
 export default component$(() => {
   return (
     <div class="docs fixed-header">
       <Header />
-      <SideBar allOpen={true} />
+      <Sidebar />
       <main
         class={{
           'no-right-menu': true,

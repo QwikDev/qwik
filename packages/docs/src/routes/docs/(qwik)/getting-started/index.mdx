@@ -40,6 +40,7 @@ created_at: '2023-04-02T16:36:48Z'
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note, LongNote } from '~/components/note/note';
 
 # Getting Started Qwikly
 
@@ -126,7 +127,7 @@ Start by serving a page at a particular route. This basic app serves a random da
 1. In your project, create a new `joke` directory in `routes` containing an `index.tsx` file.
 2. Each route's `index.tsx` file must have an `export default component$(...)` so that Qwik Router knows what content to serve. Paste the following content to `src/routes/joke/index.tsx`:
 
-<CodeSandbox src="/src/routes/demo/getting-started/01-route/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/getting-started/01-route/index.tsx">
 ```tsx {3-5} title="src/routes/joke/index.tsx"
 import { component$ } from '@qwik.dev/core';
 
@@ -138,11 +139,11 @@ export default component$(() => {
 
 3. Navigate to `localhost:5173/joke/` to see your new page working.
 
-> NOTE:
->
-> - Your `joke` route default component is surrounded by an existing layout. See [Layout](/docs/layout/) for more details on what layouts are and how to work with them.
-> - index.tsx, layout.tsx in routes folder, root.tsx and all entry files need **export default**. For other components you can use export const and export function
-> - For more details about how to author components, see the [Component API](/docs/(qwik)/core/overview/index.mdx) section.
+<LongNote title="Route and Component Basics">
+- Your `joke` route default component is surrounded by an existing layout. See [Layout](/docs/layout/) for more details on what layouts are and how to work with them.
+- index.tsx, layout.tsx in routes folder, root.tsx and all entry files need **export default**. For other components you can use export const and export function.
+- For more details about how to author components, see the [Component API](/docs/(qwik)/core/overview/index.mdx) section.
+</LongNote>
 
 ### 2. Loading Data
 
@@ -150,7 +151,7 @@ Use the external JSON API at https://icanhazdadjoke.com to load random jokes. Yo
 
 1. Open `src/routes/joke/index.tsx` and add this code:
 
-<CodeSandbox src="/src/routes/demo/getting-started/02-loading-data/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/getting-started/02-loading-data/index.tsx">
 ```tsx /routeLoader$/ /useDadJoke/#a title="src/routes/joke/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
@@ -185,10 +186,10 @@ Code explanation:
 - The function passed to `routeLoader$` is invoked on the server eagerly before any component is rendered and is responsible for loading data.
 - The `routeLoader$` returns a use-hook, `useDadJoke()`, that can be used in the component to retrieve the server data.
 
-> **NOTE**
->
-> - The `routeLoader$` is invoked eagerly on the server before any component is rendered, even if its use-hook is not invoked in any component.
-> - The `routeLoader$` return type is inferred in the component without the need for any additional type information.
+<LongNote title="routeLoader$ Behavior">
+- The `routeLoader$` is invoked eagerly on the server before any component is rendered, even if its use-hook is not invoked in any component.
+- The `routeLoader$` return type is inferred in the component without the need for any additional type information.
+</LongNote>
 
 
 ### 3. Posting Data to the Server

@@ -1,5 +1,5 @@
 import { component$, Slot, useStyles$ } from '@qwik.dev/core';
-import { SideBar } from '../../components/sidebar/sidebar';
+import { Sidebar } from '../../components/sidebar/sidebar';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
@@ -15,7 +15,7 @@ export default component$(() => {
     <div class="docs fixed-header">
       <Header />
       <div class="flex gap-12 xl:gap-20 items-stretch content-container">
-        <SideBar />
+        <Sidebar />
         <main class="contents">
           <div class="docs-container">
             <article>

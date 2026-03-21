@@ -27,6 +27,8 @@ updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
+import { Note } from '~/components/note/note';
+
 # API reference
 
 ## `useContent()`
@@ -223,7 +225,7 @@ const serverDataUrl = useServerData<string>('url');
 const url = new URL(serverDataUrl || 'https://unknown');
 ```
 
-> Notice that `useLocation` is a read-only API, you should never attempt to mutate the values of the `loc` object returned. Instead look into the `useNavigate()` API.
+<Note>`useLocation` is a read-only API, you should never attempt to mutate the values of the `loc` object returned. Instead look into the `useNavigate()` API.</Note>
 
 ## `useNavigate()`
 
@@ -262,7 +264,7 @@ export default component$(() => {
 
 This component has a button that when clicked, will navigate to `/dashboard` without causing a page reload.
 
-> Notice that for SEO, and accessibility it's better to use the `<Link>` component instead of `useNavigate()` programmatically to navigate to a new page after some user interaction.
+<Note>For SEO and accessibility it's better to use the `<Link>` component instead of `useNavigate()` programmatically to navigate to a new page after some user interaction.</Note>
 
 ### Going back
 
@@ -287,7 +289,7 @@ export const BackButton = component$(() => {
 
 The fallback in the nav function ensures that if the previous URL (loc.prevUrl) is not available, the user is redirected to a default path (eg. the root path /). This is useful in scenarios where the navigation history might not include a previous URL, such as when the user directly lands on a specific page without navigating from another page within the app.
 
-> Notice that the **loc.prevUrl** is only available when the user navigates to a page using the [`useNavigate()`](#usenavigate) or [`<Link>`](/docs/cookbook/nav-link). It is not available when the user navigates to a page using [`the anchor element`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a).
+<Note>The **loc.prevUrl** is only available when the user navigates to a page using the [`useNavigate()`](#usenavigate) or [`<Link>`](/docs/cookbook/nav-link). It is not available when the user navigates to a page using [`the anchor element`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a).</Note>
 
 
 ## `routeLoader$()`
@@ -356,7 +358,7 @@ export default component$(() => {
 });
 ```
 
-> `useQwikRouter()` should only be called once, in the root of your application. If your root component is reactive, you should move the reactive part into a child component, or you can use the `<QwikRouterProvider>` component instead.
+<Note>`useQwikRouter()` should only be called once, in the root of your application. If your root component is reactive, you should move the reactive part into a child component, or you can use the `<QwikRouterProvider>` component instead.</Note>
 
 ## `<QwikRouterProvider>`
 
@@ -382,7 +384,7 @@ export default component$(() => (
 The `QwikRouterMockProvider` component initializes a Qwik Router context for testing. It provides the necessary context for Qwik Router code to work in tests, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent). Vice versa for `useNavigate()`, `<Link>`, `useLocation()` and so on.
 It is recommended that you use this in your test files.
 
-> `QwikRouterMockProvider` does not render any DOM elements, meaning it won't be visible in snapshots
+<Note>`QwikRouterMockProvider` does not render any DOM elements, meaning it won't be visible in snapshots</Note>
 
 If you are looking for a general example on how to integrate vitest into your Qwik look checkout the [vitest integration documentation](/docs/integrations/vitest/index.mdx)
 
@@ -410,7 +412,7 @@ test.each(cases)('should render card with %s %s', async ({text, link}) => {
 });
 ```
 
-> A `goto` prop can be passed to customize the `navigate` behavior during tests
+<Note>A `goto` prop can be passed to customize the `navigate` behavior during tests</Note>
 
 ```tsx title="src/components/button.spec.tsx"
 import { $ } from '@qwik.dev/core';
@@ -438,7 +440,7 @@ test('should render the button and navigate', async () => {
 });
 ```
 
-> If you are using `routeLoader$`s in a Qwik Component that you want to test, you can provide a `loaders` prop to mock the data returned by the loaders
+<Note>If you are using `routeLoader$`s in a Qwik Component that you want to test, you can provide a `loaders` prop to mock the data returned by the loaders</Note>
 
 ```ts title="src/loaders/product.loader.ts"
 import { routeLoader$ } from '@builder.io/qwik-city';
@@ -485,7 +487,7 @@ test('should render footer with product name', async () => {
 });
 ```
 
-> The same approach can be used to mock `routeAction$`s by providing an `actions` prop to the `QwikCityMockProvider`
+<Note>The same approach can be used to mock `routeAction$`s by providing an `actions` prop to the `QwikCityMockProvider`</Note>
 
 ```tsx title="src/components/user-form.spec.tsx"
 import { $ } from '@builder.io/qwik';
@@ -555,7 +557,7 @@ export default component$(() => {
 
 The `Link` component works like the `<a>` anchor element, but instead of causing a full page to reload, it will navigate as a SPA (Single Page Navigation). This is useful if you need to navigate without losing your current state.
 
-> Notice that full-page reloads in Qwik are extremely cheap. Other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. Through investigation of internal testing, using `<a>` usually leads to the most snappy interactions.
+<Note>Full-page reloads in Qwik are extremely cheap. Other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. Through investigation of internal testing, using `<a>` usually leads to the most snappy interactions.</Note>
 
 Under the hood, the `<Link>` component uses the [`useNavigate()`](/docs/(qwikrouter)/api/index.mdx#usenavigate) API and prevents the default behavior of the native `<a>`:
 
@@ -612,7 +614,7 @@ Prefetching will not occur if the user has the **data saver** setting enabled.
 
 Setting this value to `"js"` will prefetch only javascript bundles required to render this page on the client, `false` will disable prefetching altogether.
 
-> Warning: if you have a menu with many links, all of them will be loaded immediately when you enter the production page, which may result with too many requests
+<Note title="Warning">If you have a menu with many links, all of them will be loaded immediately when you enter the production page, which may result with too many requests</Note>
 
 ```tsx
 import { component$ } from '@qwik.dev/core';

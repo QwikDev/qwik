@@ -15,6 +15,7 @@ created_at: '2023-03-20T23:45:13Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 
 # Project Structure
@@ -53,7 +54,7 @@ The `src/routes/` directory is a special directory where Qwik Router will look f
 - `src/routes/index.tsx` is the homepage of your app.
 - `src/routes/layout.tsx` is the root layout of your app, all pages will be rendered inside this layout.
 
-> Refer to the [Routing](/docs/routing) section for more information.
+<Note>Refer to the [Routing](/docs/routing) section for more information.</Note>
 
 ### `src/components/`
 
@@ -216,4 +217,4 @@ src
 │   │       └── index.tsx
 ```
 
-> This feature was added in Qwik v1.2, and those using an older version will not see this functionality.
+<Note>This feature was added in Qwik v1.2, and those using an older version will not see this functionality.</Note>

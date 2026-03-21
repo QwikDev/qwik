@@ -35,6 +35,7 @@ created_at: '2023-03-20T23:45:13Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Components
 
@@ -60,16 +61,14 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> The `component$` function, marked by the trailing `$`, enables the Optimizer to split components into separate chunks.
-This allows each chunk to be loaded independently as needed, rather than loading all components whenever the parent component is loaded.
-> Note: index.tsx, layout.tsx in routes folder, root.tsx and all entry files need **export default**. For other components you can use export const and export function.
+<Note>The `component$` function, marked by the trailing `$`, enables the Optimizer to split components into separate chunks. This allows each chunk to be loaded independently as needed, rather than loading all components whenever the parent component is loaded. index.tsx, layout.tsx in routes folder, root.tsx and all entry files need **export default**. For other components you can use export const and export function.</Note>
 
 ### Composing Components
 
 Components can be composed together to create more complex components.
 
 
-<CodeSandbox src="/src/routes/demo/component/child/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/component/child/index.tsx">
 ```tsx {7}
 import { component$ } from '@qwik.dev/core';
 
@@ -88,7 +87,7 @@ const Child = component$(() => {
 ```
 </CodeSandbox>
 
-> Notice that Qwik components are already lazy loaded thanks to the `$` sign. That means that you don't need to dynamically import the child component manually, Qwik will do it for you.
+<Note>Qwik components are already lazy loaded thanks to the `$` sign. That means that you don't need to dynamically import the child component manually, Qwik will do it for you.</Note>
 
 ### Dot Notation Components
 
@@ -146,7 +145,7 @@ export default component$(() => {
 
 A slightly more complex example of a counter.
 
-<CodeSandbox src="/src/routes/demo/state/counter/index.tsx" style={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter/index.tsx">
 ```tsx
 import { component$, useSignal } from '@qwik.dev/core';
 
@@ -253,7 +252,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> In the examples above, we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional, but it allows the TypeScript compiler to check that the props are used correctly.
+<Note>In the examples above, we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional, but it allows the TypeScript compiler to check that the props are used correctly.</Note>
 
 ### Default props
 
@@ -288,7 +287,7 @@ A state change causes the component to get invalidated. When components get inva
 
 Use `ref` to get hold of a DOM element. Create a signal to store DOM element. Then pass the signal to the JSX `ref` property.
 
-> Getting a reference to DOM elements can be useful to calculate the element size (`getBoundingClientRect`), computed styles, initializing a WebGL canvas, or even wire-up some third-party library that interacts with DOM elements directly.
+<Note>Getting a reference to DOM elements can be useful to calculate the element size (`getBoundingClientRect`), computed styles, initializing a WebGL canvas, or even wire-up some third-party library that interacts with DOM elements directly.</Note>
 
 <CodeSandbox src="/src/routes/demo/component/ref/index.tsx" style={{ height: '10em' }}>
 ```tsx /const outputRef = useSignal<Element>();/ /ref={outputRef}/
@@ -420,8 +419,7 @@ const Parent_onRender = () => (
 );
 ```
 
-> **NOTE**
-> For simplicity, not all of the transformations are shown; all resulting symbols are kept in the same file for succinctness.
+<Note>For simplicity, not all of the transformations are shown; all resulting symbols are kept in the same file for succinctness.</Note>
 
 Notice that after the Optimizer transforms the code, the `Parent` no longer directly references `Child`. This is important because it allows the bundler (and tree shakers) to freely move the symbols into different chunks without pulling the rest of the application with it.
 

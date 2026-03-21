@@ -12,6 +12,8 @@ updated_at: '2024-05-07T00:00:01Z'
 created_at: '2023-04-16T21:57:42Z'
 ---
 
+import { Note, LongNote } from '~/components/note/note';
+
 # Environment Variables
 
 Environment variables are a way to store configuration values or sensitive data that should not be included directly in your application code. These variables are typically used for things like API keys, database connection strings, or other environment-specific settings.
@@ -24,7 +26,7 @@ Environment variables are a way to store configuration values or sensitive data 
 
 
 
-> **IMPORTANT! DO NOT** use `build-time` environment variables, (ie. variables that start with `PUBLIC_`) to store any sensitive information, such as API keys, secrets, passwords, etc. These variables are accessible in the browser **ONLY PUBLIC DATA**.
+<Note title="IMPORTANT">DO NOT use `build-time` environment variables, (ie. variables that start with `PUBLIC_`) to store any sensitive information, such as API keys, secrets, passwords, etc. These variables are accessible in the browser — **ONLY PUBLIC DATA**.</Note>
 
 
 ```ini title=".env.local"
@@ -45,7 +47,7 @@ Qwik Router includes a few environment variables out of the box
 
 
 The preferred method for accessing environment variables in Qwik is via `import.meta.env.*` (client side) or through the Request object when run server side.
-> `process.env` is a Node.js only API, and should be avoided at all costs.
+<Note title="IMPORTANT">`process.env` is a Node.js only API, and should be avoided at all costs.</Note>
 
 ## Build-time variables
 
@@ -74,7 +76,7 @@ export default component$(() => {
 })
 ```
 
-> `import.meta.env.PUBLIC_*` variables can be read anywhere, but do not put any sensitive information in them, since they will be visible to the client.
+<Note>`import.meta.env.PUBLIC_*` variables can be read anywhere, but do not put any sensitive information in them, since they will be visible to the client.</Note>
 
 ## Server-side Variables
 
@@ -84,18 +86,19 @@ They are not known at build-time and are not available in the browser, so they c
 
 During production, **setting server-side variables is very platform specific**. Most of the platforms allow you to set environment variables from their dashboard, or CLI. Please, refer to your platform (cloudflare, vercel, netlify) documentation for more information.
 
-> **Special Considerations for Docker and Fastify**:
-> - **Docker:** While Docker allows the inclusion of environment variables directly in the Dockerfile, this method can expose sensitive data.  A more secure practice is to manage these variables at runtime using Docker Compose. For example:
-> ```ini title="docker-compose.yml"
-> version: '3.8'
-> services:
->  your-service:
->    image: your-image-name
->    environment:
->      - FOO=BAR
-> ```
->
-> - **Fastify within Docker:** Environment variables placed in `.env` or `.env.local` files may not be automatically recognized in production environments when using Fastify.  For these settings to take effect it may be necessary to explicitly load them within your Fastify application or pass them through Docker's environment management system (Docker Compose) as shown above
+<LongNote title="Special Considerations for Docker and Fastify">
+- **Docker:** While Docker allows the inclusion of environment variables directly in the Dockerfile, this method can expose sensitive data.  A more secure practice is to manage these variables at runtime using Docker Compose. For example:
+```ini title="docker-compose.yml"
+version: '3.8'
+services:
+ your-service:
+   image: your-image-name
+   environment:
+     - FOO=BAR
+```
+
+- **Fastify within Docker:** Environment variables placed in `.env` or `.env.local` files may not be automatically recognized in production environments when using Fastify.  For these settings to take effect it may be necessary to explicitly load them within your Fastify application or pass them through Docker's environment management system (Docker Compose) as shown above.
+</LongNote>
 
 ### Defining Variables
 
@@ -103,7 +106,7 @@ During production, **setting server-side variables is very platform specific**. 
 DB_PRIVATE_KEY=123456789
 ```
 
-> Make sure you never commit `.env.local` files to git.
+<Note title="IMPORTANT">Make sure you never commit `.env.local` files to git.</Note>
 
 
 ### Usage Examples
@@ -182,8 +185,9 @@ Qwik Router adapters use the following:
 - Cloudflare Pages uses CF_PAGES_URL or ORIGIN
 - Vercel uses VERCEL_URL
 
-> Note:
-> This is not a comprehensive guide on environment variables, nor does it cover all of the 3rd-Party hosting scenarios. It is meant to give insight that can be applied across various environments. 
-> 
-> See this video for a detailed explanation:
-> https://youtu.be/NPf39RWc8LM
+<LongNote title="Additional Resources">
+This is not a comprehensive guide on environment variables, nor does it cover all of the 3rd-Party hosting scenarios. It is meant to give insight that can be applied across various environments.
+
+See this video for a detailed explanation:
+https://youtu.be/NPf39RWc8LM
+</LongNote>

@@ -30,6 +30,8 @@ updated_at: '2023-12-15T11:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
+import { Note } from '~/components/note/note';
+
 # `routeAction$()`
 
 `routeAction$()` is used to define functions called actions that execute exclusively on the server, and only when explicitly called. Actions can have side effects such as writing to a database or sending an email, that cannot happen during client-side rendering. This makes them ideal for handling form submissions, performing operations with side effects, and then returning data back to the client/browser where it can be used to update the UI.
@@ -71,7 +73,7 @@ export default component$(() => {
 });
 ```
 
-> Since actions are not executed during rendering, they can have side effects such as writing to a database, or sending an email. An action only runs when called explicitly.
+<Note>Since actions are not executed during rendering, they can have side effects such as writing to a database, or sending an email. An action only runs when called explicitly.</Note>
 
 
 ## Using actions with `<Form/>`
@@ -106,7 +108,7 @@ Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so 
 
 When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode. Allowing for a full SPA experience.
 
-> This is to clarify that the server re-renders the whole page and re-executes everything, so if you have any [routeLoader$](/docs/route-loader/) they will be executed too.
+<Note>The server re-renders the whole page and re-executes everything, so if you have any [routeLoader$](/docs/route-loader/) they will be executed too.</Note>
 
 [Complex forms](/docs/advanced/complex-forms) can be created using dot notation.
 
@@ -446,7 +448,7 @@ It's recommended to start with `routeAction$()`. Use `globalAction$()` only when
 
 `routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()`s are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
 
-> If you want to manage common reusable routeAction$() it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](/docs/(qwikrouter)/re-exporting-loaders/index.mdx).
+<Note>If you want to manage common reusable routeAction$() it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](/docs/(qwikrouter)/re-exporting-loaders/index.mdx).</Note>
 
 ```tsx title="src/routes/form/index.tsx"
 import { routeAction$ } from '@qwik.dev/router';

@@ -115,7 +115,7 @@ export function walkJSX(jsx: JSXOutput, apply: {
 
 // Warnings were encountered during analysis:
 //
-// /home/wmertens/Projects/qwik.worktrees/ssr-cursors/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:23:5 - (ae-forgotten-export) The symbol "StreamingOptions" needs to be exported by the entry point index.d.ts
+// /home/user/qwik/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:23:5 - (ae-forgotten-export) The symbol "StreamingOptions" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -877,7 +877,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       node = new SsrNode(
         this.ssrBuildState.currentComponentNode,
         '', // placeholder ID — emitter assigns real ID via trackVirtualOpen
-        Object.isFrozen(attrs) ? { ...attrs } : attrs,
+        // Fast path: EMPTY_OBJ (frozen empty) is the most common case in production.
+        // Avoid Object.isFrozen + spread overhead — just create a fresh empty object.
+        Object.isFrozen(attrs) ? {} : attrs,
         this.cleanupQueue,
         this.ssrBuildState.currentElementFrame!.currentFile
       );

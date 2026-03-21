@@ -26,12 +26,7 @@ import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent, SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import type { Cursor } from '../shared/cursor/cursor';
-import {
-  type BaseDiffContext,
-  advance as baseAdvance,
-  stackPush as baseStackPush,
-  stackPopBase,
-} from '../shared/diff-context';
+import { type BaseDiffContext, peekNextSibling } from '../shared/diff-context';
 import { Fragment } from '../shared/jsx/jsx-runtime';
 import { isJSXNode } from '../shared/jsx/jsx-node';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
@@ -87,6 +82,21 @@ function isSsrContentChild(child: SsrChild): child is SsrContentChild {
 }
 
 // ============================================================================
+// Close tags — numeric tags that replace closure-based close callbacks.
+// Stored on the main $stack$ to avoid separate array allocation + closure creation.
+// ============================================================================
+
+const enum CloseTag {
+  None = 0,
+  Element = 1,
+  Fragment = 2,
+  SuspenseBoundary = 3,
+  StreamBlockEnd = 4,
+  /** Followed by 2 saved values on $stack$: savedStyleScoped, savedComponentFrame */
+  ProjectionRestore = 5,
+}
+
+// ============================================================================
 // SsrDiffContext
 // ============================================================================
 
@@ -96,13 +106,6 @@ export interface SsrDiffContext extends BaseDiffContext {
   $currentStyleScoped$: string | null;
   /** Current component frame for slot distribution */
   $parentComponentFrame$: ISsrComponentFrame | null;
-  /**
-   * Close callback stack — synchronized with DiffContext stack. Each ssrDescend pushes a callback
-   * (or null), each ssrAscend pops and executes it. This ensures container open/close operations
-   * (element frames, fragment boundaries) are properly balanced with the DiffContext's
-   * descend/ascend.
-   */
-  $closeStack$: Array<(() => void) | null>;
   /**
    * When set, the diff loop exits early. Used for async operations (async components, async close
    * callbacks) that need to break out of the synchronous loop. The asyncQueue draining handles
@@ -145,7 +148,6 @@ function createSsrDiffContext(
     $isCreationMode$: true,
     $currentStyleScoped$: scopedStyleIdPrefix,
     $parentComponentFrame$: parentComponentFrame,
-    $closeStack$: [],
     $asyncBreak$: false,
     $oldChildren$: null,
     $oldChildIdx$: 0,
@@ -154,22 +156,72 @@ function createSsrDiffContext(
 }
 
 // ============================================================================
-// Stack mechanics with close callback synchronization
+// Stack mechanics — optimized for SSR with numeric close tags
 // ============================================================================
 
-/** Descend into children, optionally registering a close callback for ascend. */
+/**
+ * Descend into children, storing a close tag (not a closure) for ascend.
+ *
+ * In creation mode (first render), we skip saving VNode fields that are always null (vSiblings,
+ * vSiblingsArray, vSideBuffer) and reconciliation state, reducing stack operations from ~15 to ~7
+ * per VNode descend.
+ */
 function ssrDescend(
   ctx: SsrDiffContext,
   children: JSXChildren,
   descendVNode: boolean,
-  closeCallback: (() => void) | null = null
+  closeTag: CloseTag = CloseTag.None
 ) {
-  ctx.$closeStack$.push(closeCallback);
-  // Save reconciliation state on stack before baseStackPush saves JSX/VNode state
+  const stack = ctx.$stack$;
+
+  // Save JSX iteration state
+  stack.push(ctx.$jsxChildren$, ctx.$jsxIdx$, ctx.$jsxCount$, ctx.$jsxValue$);
+
+  // Record whether we're reconciling at push time (must match pop path)
+  const wasReconciling = descendVNode && ctx.$oldChildren$ !== null;
+
   if (descendVNode) {
-    ctx.$stack$.push(ctx.$oldChildren$, ctx.$oldChildIdx$, ctx.$newChildren$);
+    if (wasReconciling) {
+      // Reconciliation mode: save full VNode + reconciliation state
+      stack.push(
+        ctx.$vParent$,
+        ctx.$vCurrent$,
+        ctx.$vNewNode$,
+        ctx.$vSiblingsArray$,
+        ctx.$vSiblings$,
+        ctx.$vSideBuffer$,
+        ctx.$isCreationMode$,
+        ctx.$oldChildren$,
+        ctx.$oldChildIdx$,
+        ctx.$newChildren$
+      );
+    } else {
+      // Creation mode: only save fields that actually change
+      stack.push(ctx.$vParent$, ctx.$vCurrent$, ctx.$vNewNode$);
+    }
   }
-  baseStackPush(ctx, children, descendVNode);
+
+  // Push frame marker: closeTag + wasReconciling + descendVNode
+  stack.push(closeTag, wasReconciling, descendVNode);
+
+  // Set up JSX iteration for children
+  if (Array.isArray(children)) {
+    ctx.$jsxIdx$ = 0;
+    ctx.$jsxCount$ = children.length;
+    ctx.$jsxChildren$ = children;
+    ctx.$jsxValue$ = children.length > 0 ? children[0] : null;
+  } else if (children === undefined) {
+    ctx.$jsxIdx$ = 0;
+    ctx.$jsxValue$ = null;
+    ctx.$jsxChildren$ = null!;
+    ctx.$jsxCount$ = 0;
+  } else {
+    ctx.$jsxIdx$ = 0;
+    ctx.$jsxValue$ = children;
+    ctx.$jsxChildren$ = null!;
+    ctx.$jsxCount$ = 1;
+  }
+
   if (descendVNode) {
     const isReusing = ctx.$vCurrent$ !== null && ctx.$vNewNode$ === null;
     const parent = (ctx.$vNewNode$ || ctx.$vCurrent$)!;
@@ -216,21 +268,74 @@ function ssrDescend(
   ctx.$shouldAdvance$ = false;
 }
 
-/** Ascend from children, executing the close callback pushed during ssrDescend. */
+/** Ascend from children — pops stack and executes the close tag. */
 function ssrAscend(ctx: SsrDiffContext) {
-  const cb = ctx.$closeStack$.pop();
-  const descendVNode = stackPopBase(ctx);
+  const stack = ctx.$stack$;
+
+  // Pop frame marker (must match push order: closeTag, wasReconciling, descendVNode)
+  const descendVNode = stack.pop() as boolean;
+  const wasReconciling = stack.pop() as boolean;
+  const closeTag = stack.pop() as CloseTag;
+
   if (descendVNode) {
-    // Restore reconciliation state from stack
-    ctx.$newChildren$ = ctx.$stack$.pop();
-    ctx.$oldChildIdx$ = ctx.$stack$.pop();
-    ctx.$oldChildren$ = ctx.$stack$.pop();
+    if (wasReconciling) {
+      // Was reconciling: restore full state
+      ctx.$newChildren$ = stack.pop();
+      ctx.$oldChildIdx$ = stack.pop();
+      ctx.$oldChildren$ = stack.pop();
+      ctx.$isCreationMode$ = stack.pop();
+      ctx.$vSideBuffer$ = stack.pop();
+      ctx.$vSiblings$ = stack.pop();
+      ctx.$vSiblingsArray$ = stack.pop();
+      ctx.$vNewNode$ = stack.pop();
+      ctx.$vCurrent$ = stack.pop();
+      ctx.$vParent$ = stack.pop();
+    } else {
+      // Was in creation mode: restore minimal state
+      ctx.$vNewNode$ = stack.pop();
+      ctx.$vCurrent$ = stack.pop();
+      ctx.$vParent$ = stack.pop();
+    }
   }
-  if (cb) {
-    cb();
-  }
+
+  // Restore JSX state
+  ctx.$jsxValue$ = stack.pop();
+  ctx.$jsxCount$ = stack.pop();
+  ctx.$jsxIdx$ = stack.pop();
+  ctx.$jsxChildren$ = stack.pop();
+
+  // Execute close tag (replaces closure-based callbacks)
+  ssrExecuteCloseTag(ctx, closeTag);
+
   if (!ctx.$asyncBreak$) {
     ssrAdvance(ctx);
+  }
+}
+
+/** Execute the close operation identified by a CloseTag enum value. */
+function ssrExecuteCloseTag(ctx: SsrDiffContext, closeTag: CloseTag) {
+  const ssr = ctx.$container$;
+  switch (closeTag) {
+    case CloseTag.None:
+      break;
+    case CloseTag.Element:
+      ssr.closeElement();
+      break;
+    case CloseTag.Fragment:
+      ssr.closeFragment();
+      break;
+    case CloseTag.SuspenseBoundary:
+      ssr.closeSuspenseBoundary();
+      break;
+    case CloseTag.StreamBlockEnd:
+      ssr.streamHandler.streamBlockEnd();
+      break;
+    case CloseTag.ProjectionRestore:
+      ssr.closeProjection();
+      // Restore saved style/component frame from stack (pushed before ssrDescend)
+      ctx.$currentStyleScoped$ = ctx.$stack$.pop() as string | null;
+      ctx.$parentComponentFrame$ = ctx.$stack$.pop() as ISsrComponentFrame | null;
+      break;
   }
 }
 
@@ -238,29 +343,31 @@ function ssrAdvance(ctx: SsrDiffContext) {
   if (ctx.$asyncBreak$) {
     return;
   }
+  if (!ctx.$shouldAdvance$) {
+    ctx.$shouldAdvance$ = true;
+    return;
+  }
+  ctx.$jsxIdx$++;
+  if (ctx.$jsxIdx$ < ctx.$jsxCount$) {
+    ctx.$jsxValue$ = ctx.$jsxChildren$![ctx.$jsxIdx$];
+  } else if (ctx.$stack$.length > 0 && ctx.$stack$[ctx.$stack$.length - 1] === false) {
+    // Non-VNode descend frame — auto-ascend
+    return ssrAscend(ctx);
+  }
   if (ctx.$oldChildren$) {
-    // Reconciliation mode: use array-based navigation instead of VNode linked list.
-    // This mirrors baseAdvance but increments $oldChildIdx$ instead of peekNextSibling.
-    if (!ctx.$shouldAdvance$) {
-      ctx.$shouldAdvance$ = true;
-      return;
-    }
-    ctx.$jsxIdx$++;
-    if (ctx.$jsxIdx$ < ctx.$jsxCount$) {
-      ctx.$jsxValue$ = ctx.$jsxChildren$![ctx.$jsxIdx$];
-    } else if (ctx.$stack$.length > 0 && ctx.$stack$[ctx.$stack$.length - 1] === false) {
-      // Non-VNode descend frame — auto-ascend
-      return ssrAscend(ctx);
-    }
+    // Reconciliation mode: advance old child cursor
     if (ctx.$vNewNode$ !== null) {
-      // New node was inserted — clear it, keep old child cursor in place
       ctx.$vNewNode$ = null;
     } else {
-      // Move to next old child
       ctx.$oldChildIdx$++;
     }
   } else {
-    baseAdvance(ctx, ssrAscend);
+    // Creation mode: advance VNode cursor
+    if (ctx.$vNewNode$ !== null) {
+      ctx.$vNewNode$ = null;
+    } else {
+      ctx.$vCurrent$ = peekNextSibling(ctx.$vCurrent$);
+    }
   }
 }
 
@@ -397,9 +504,45 @@ function diff(ctx: SsrDiffContext, jsxNode: JSXChildren, vStartNode: VNode) {
     ctx.$newChildren$ = newChildren;
   }
 
-  // Root-level push: no close callback needed
-  ctx.$closeStack$.push(null);
-  baseStackPush(ctx, jsxNode, true);
+  // Root-level push using inline stack format (no close callback, descendVNode=true).
+  // Must push VNode state so ssrAscend can pop it correctly. In creation mode we only
+  // save vParent, vCurrent, vNewNode (the 3-value fast path).
+  const isRootReconciling = ctx.$oldChildren$ !== null;
+  ctx.$stack$.push(ctx.$jsxChildren$, ctx.$jsxIdx$, ctx.$jsxCount$, ctx.$jsxValue$);
+  if (isRootReconciling) {
+    ctx.$stack$.push(
+      ctx.$vParent$,
+      ctx.$vCurrent$,
+      ctx.$vNewNode$,
+      ctx.$vSiblingsArray$,
+      ctx.$vSiblings$,
+      ctx.$vSideBuffer$,
+      ctx.$isCreationMode$,
+      ctx.$oldChildren$,
+      ctx.$oldChildIdx$,
+      ctx.$newChildren$
+    );
+  } else {
+    ctx.$stack$.push(ctx.$vParent$, ctx.$vCurrent$, ctx.$vNewNode$);
+  }
+  ctx.$stack$.push(CloseTag.None, isRootReconciling, true /* descendVNode */);
+  // Set up JSX iteration for the root node
+  if (Array.isArray(jsxNode)) {
+    ctx.$jsxIdx$ = 0;
+    ctx.$jsxCount$ = jsxNode.length;
+    ctx.$jsxChildren$ = jsxNode;
+    ctx.$jsxValue$ = jsxNode.length > 0 ? jsxNode[0] : null;
+  } else if (jsxNode === undefined) {
+    ctx.$jsxIdx$ = 0;
+    ctx.$jsxValue$ = null;
+    ctx.$jsxChildren$ = null!;
+    ctx.$jsxCount$ = 0;
+  } else {
+    ctx.$jsxIdx$ = 0;
+    ctx.$jsxValue$ = jsxNode;
+    ctx.$jsxChildren$ = null!;
+    ctx.$jsxCount$ = 1;
+  }
 
   runDiffLoop(ctx);
 
@@ -485,13 +628,15 @@ function runDiffLoop(ctx: SsrDiffContext) {
 
 function drainAsyncQueue(ctx: SsrDiffContext, savedBuildState: any): ValueOrPromise<void> {
   const ssr = ctx.$container$;
+  const queue = ctx.$asyncQueue$;
 
   // Handle async break: process the async item, then resume the diff loop
   if (ctx.$asyncBreak$) {
     ctx.$asyncBreak$ = false;
-    if (ctx.$asyncQueue$.length > 0) {
-      const asyncItem = ctx.$asyncQueue$.shift()!;
-      ctx.$asyncQueue$.shift(); // skip vNode marker
+    if (queue.length > 0) {
+      const vNodeMarker = queue.pop(); // skip vNode marker (pushed last, popped first)
+      void vNodeMarker;
+      const asyncItem = queue.pop()!;
 
       if (isPromise(asyncItem)) {
         return maybeThen(asyncItem as Promise<JSXOutput | void>, (resolved) => {
@@ -510,10 +655,10 @@ function drainAsyncQueue(ctx: SsrDiffContext, savedBuildState: any): ValueOrProm
     }
   }
 
-  // Normal async queue processing
-  while (ctx.$asyncQueue$.length > 0) {
-    const jsxOrPromise = ctx.$asyncQueue$.shift()!;
-    const vNode = ctx.$asyncQueue$.shift() as VNode;
+  // Normal async queue processing (LIFO — most recently pushed items processed first)
+  while (queue.length > 0) {
+    const vNode = queue.pop() as VNode;
+    const jsxOrPromise = queue.pop()!;
 
     if (isPromise(jsxOrPromise)) {
       return maybeThen(jsxOrPromise as Promise<JSXOutput | void>, (resolvedJsx) => {
@@ -617,7 +762,7 @@ function ssrElement(ctx: SsrDiffContext, jsx: JSXNodeInternal, tagName: string) 
         : extraChildren
       : children;
   if (combinedChildren != null && !innerHTML) {
-    ssrDescend(ctx, combinedChildren as JSXChildren, true, () => ssr.closeElement());
+    ssrDescend(ctx, combinedChildren as JSXChildren, true, CloseTag.Element);
   } else {
     ssr.closeElement();
   }
@@ -626,9 +771,14 @@ function ssrElement(ctx: SsrDiffContext, jsx: JSXNodeInternal, tagName: string) 
 /** Fragment: open virtual node, descend, close on ascend. */
 function ssrFragment(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
   const ssr = ctx.$container$;
-  const attrs: Record<string, string | null> = jsx.key != null ? { [ELEMENT_KEY]: jsx.key } : {};
-  if (isDev) {
-    attrs[DEBUG_TYPE] = VirtualType.Fragment;
+  let attrs: Record<string, string | null>;
+  if (jsx.key != null) {
+    attrs = { [ELEMENT_KEY]: jsx.key };
+    if (isDev) {
+      attrs[DEBUG_TYPE] = VirtualType.Fragment;
+    }
+  } else {
+    attrs = isDev ? { [DEBUG_TYPE]: VirtualType.Fragment } : EMPTY_OBJ;
   }
   ssr.openFragment(attrs);
   const node = ssr.getOrCreateLastNode();
@@ -636,7 +786,7 @@ function ssrFragment(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
 
   const children = jsx.children as JSXOutput;
   if (children != null) {
-    ssrDescend(ctx, children as JSXChildren, true, () => ssr.closeFragment());
+    ssrDescend(ctx, children as JSXChildren, true, CloseTag.Fragment);
   } else {
     ssr.closeFragment();
   }
@@ -653,10 +803,9 @@ function ssrComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, component: Func
   const ssr = ctx.$container$;
   const [componentQRL] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
 
-  const componentAttrs: Record<string, string | null> = {};
-  if (isDev) {
-    componentAttrs[DEBUG_TYPE] = VirtualType.Component;
-  }
+  const componentAttrs: Record<string, string | null> = isDev
+    ? { [DEBUG_TYPE]: VirtualType.Component }
+    : EMPTY_OBJ;
 
   // Create component SsrNode directly (without openComponent which would
   // push build state that can't be popped if we defer).
@@ -760,10 +909,10 @@ function ssrInlineComponent(ctx: SsrDiffContext, jsx: JSXNodeInternal, inlineFn:
       }
       ssr.closeFragment();
     });
-    ctx.$asyncQueue$.unshift(asyncLifecycle as any, fragmentVNode);
+    ctx.$asyncQueue$.push(asyncLifecycle as any, fragmentVNode);
   } else if (jsxOutput != null) {
     // Sync inline component: descend into children, close fragment on ascend
-    ssrDescend(ctx, jsxOutput as JSXChildren, true, () => ssr.closeFragment());
+    ssrDescend(ctx, jsxOutput as JSXChildren, true, CloseTag.Fragment);
   } else {
     ssr.closeFragment();
   }
@@ -829,11 +978,11 @@ function ssrSignal(ctx: SsrDiffContext, signal: any) {
       }
       ssr.closeFragment();
     });
-    ctx.$asyncQueue$.unshift(asyncLifecycle as any, signalNode as unknown as VNode);
+    ctx.$asyncQueue$.push(asyncLifecycle as any, signalNode as unknown as VNode);
   } else {
     // Tracked value is synchronous (possibly a literal Promise) — descend into it.
     // If it's a Promise, the inner diff loop creates an Awaited wrapper via ssrPromise.
-    ssrDescend(ctx, trackedValue as JSXChildren, true, () => ssr.closeFragment());
+    ssrDescend(ctx, trackedValue as JSXChildren, true, CloseTag.Fragment);
   }
 }
 
@@ -877,7 +1026,7 @@ function ssrPromise(ctx: SsrDiffContext, promise: Promise<any>) {
     (node as any)._pendingContent--;
     ssr.closeFragment();
   });
-  ctx.$asyncQueue$.unshift(asyncLifecycle as any, node as unknown as VNode);
+  ctx.$asyncQueue$.push(asyncLifecycle as any, node as unknown as VNode);
 }
 
 /** Slot: consume projected content from component frame. */
@@ -913,11 +1062,9 @@ function ssrSlot(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
     ctx.$parentComponentFrame$ = componentFrame.projectionComponentFrame;
 
     if (slotChildren != null) {
-      ssrDescend(ctx, slotChildren as JSXChildren, true, () => {
-        ssr.closeProjection();
-        ctx.$currentStyleScoped$ = savedStyleScoped;
-        ctx.$parentComponentFrame$ = savedComponentFrame;
-      });
+      // Push saved values before ssrDescend — they'll be restored by ProjectionRestore close tag
+      ctx.$stack$.push(savedComponentFrame, savedStyleScoped);
+      ssrDescend(ctx, slotChildren as JSXChildren, true, CloseTag.ProjectionRestore);
     } else {
       ssr.closeProjection();
       ctx.$currentStyleScoped$ = savedStyleScoped;
@@ -954,7 +1101,7 @@ function ssrSuspense(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
   }
 
   if (fallback != null) {
-    ssrDescend(ctx, fallback as JSXChildren, true, () => ssr.closeSuspenseBoundary());
+    ssrDescend(ctx, fallback as JSXChildren, true, CloseTag.SuspenseBoundary);
   } else {
     ssr.closeSuspenseBoundary();
   }
@@ -997,7 +1144,7 @@ function ssrStream(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
       (parentVNode as any)._pendingContent--;
     })();
     ctx.$asyncBreak$ = true;
-    ctx.$asyncQueue$.unshift(lifecycle as any, parentVNode);
+    ctx.$asyncQueue$.push(lifecycle as any, parentVNode);
   } else if (isPromise(value)) {
     // Async function with write callback: block until complete
     (parentVNode as any)._pendingContent = ((parentVNode as any)._pendingContent || 0) + 1;
@@ -1005,7 +1152,7 @@ function ssrStream(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
       (parentVNode as any)._pendingContent--;
     });
     ctx.$asyncBreak$ = true;
-    ctx.$asyncQueue$.unshift(wrappedValue as any, parentVNode);
+    ctx.$asyncQueue$.push(wrappedValue as any, parentVNode);
   }
 }
 
@@ -1016,7 +1163,7 @@ function ssrStreamBlock(ctx: SsrDiffContext, jsx: JSXNodeInternal) {
 
   const children = jsx.children as JSXOutput;
   if (children != null) {
-    ssrDescend(ctx, children as JSXChildren, false, () => ssr.streamHandler.streamBlockEnd());
+    ssrDescend(ctx, children as JSXChildren, false, CloseTag.StreamBlockEnd);
   } else {
     ssr.streamHandler.streamBlockEnd();
   }
@@ -1043,7 +1190,7 @@ function ssrAsyncGenerator(ctx: SsrDiffContext, generator: AsyncGenerator) {
   };
 
   ctx.$asyncBreak$ = true;
-  ctx.$asyncQueue$.unshift(processGenerator() as unknown as JSXChildren, parentVNode);
+  ctx.$asyncQueue$.push(processGenerator() as unknown as JSXChildren, parentVNode);
 }
 
 // ============================================================================

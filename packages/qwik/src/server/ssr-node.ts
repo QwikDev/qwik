@@ -137,6 +137,18 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
    */
   public orderedChildren: SsrChild[] | null = null;
 
+  // Prototype getter/setter that delegates _EFFECT_BACK_REF to serializable props (QBackRefs),
+  // so back refs are included in vnodeData serialization. This replaces per-instance
+  // Object.defineProperty which was a major performance bottleneck.
+  override get [_EFFECT_BACK_REF](): Map<any, any> | undefined {
+    return vnode_getProp(this, QBackRefs, null);
+  }
+  override set [_EFFECT_BACK_REF](value: Map<any, any> | undefined) {
+    if (value !== undefined) {
+      vnode_setProp(this, QBackRefs, value);
+    }
+  }
+
   constructor(
     parentComponent: ISsrNode | null,
     id: string,
@@ -164,18 +176,6 @@ export class SsrNode extends VirtualVNode implements ISsrNode {
     if (this.parentComponent) {
       ssrNode_addChild(this.parentComponent, this);
     }
-
-    // Override VNode's [_EFFECT_BACK_REF] field with getter/setter that delegates to
-    // serializable props (QBackRefs), so back refs are included in vnodeData serialization.
-    Object.defineProperty(this, _EFFECT_BACK_REF, {
-      get: () => vnode_getProp(this, QBackRefs, null),
-      set: (value: any) => {
-        if (value !== undefined) {
-          vnode_setProp(this, QBackRefs, value);
-        }
-      },
-      configurable: true,
-    });
 
     if (isDev && id.indexOf('undefined') != -1) {
       throw new Error(`Invalid SSR node id: ${id}`);

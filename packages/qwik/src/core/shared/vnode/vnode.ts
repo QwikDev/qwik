@@ -7,7 +7,9 @@ import { isDev } from '@qwik.dev/core/build';
 
 /** @internal */
 export abstract class VNode implements BackRef {
-  [_EFFECT_BACK_REF]: Map<any, any> | undefined = undefined;
+  // Intentionally using `declare` (no initializer) to avoid setting this on every instance.
+  // SsrNode overrides with a prototype getter/setter; client VNodes get it lazily when needed.
+  declare [_EFFECT_BACK_REF]: Map<any, any> | undefined;
 
   slotParent: VNode | null = null;
   dirty: ChoreBits = ChoreBits.NONE;

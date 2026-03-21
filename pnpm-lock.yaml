@@ -211,6 +211,9 @@ importers:
       tree-kill:
         specifier: 1.2.2
         version: 1.2.2
+      ts-morph:
+        specifier: 27.0.2
+        version: 27.0.2
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -599,9 +602,6 @@ importers:
       rollup:
         specifier: ^4.59.0
         version: 4.59.0
-      ts-morph:
-        specifier: 27.0.2
-        version: 27.0.2
     devDependencies:
       '@croct/json5-parser':
         specifier: 0.2.2

@@ -6,6 +6,7 @@ import type {
 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ClientConn } from '../request-handler/types';
 import type { QwikCityNodeRequestOptions } from '.';
+import { normalizeRequestUrl } from '../shared/url';
 
 export function computeOrigin(
   req: IncomingMessage | Http2ServerRequest,
@@ -40,14 +41,7 @@ function isIgnoredError(message = '') {
 const invalidHeadersPattern = /^:(method|scheme|authority|path)$/i;
 
 export function normalizeUrl(url: string, base: string) {
-  // defined in function because of lastIndex gotcha with /g
-  const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
-
-  // do not allow the url to have a relative protocol url
-  // which could bypass of CSRF protections
-  // for example: new URL("//attacker.com", "https://qwik.build.io")
-  // would return "https://attacker.com" when it should be "https://qwik.build.io/attacker.com"
-  return new URL(url.replace(DOUBLE_SLASH_REG, '/'), base);
+  return normalizeRequestUrl(url, base);
 }
 
 export async function fromNodeHttp(

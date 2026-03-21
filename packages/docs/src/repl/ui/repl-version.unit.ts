@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('../bundler/bundled', () => ({
+  bundled: { '@builder.io/qwik': { version: '0.0.1' } },
+}));
+
 import { getReplVersion } from './repl-version';
 
 describe('getReplVersion', () => {

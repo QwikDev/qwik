@@ -119,8 +119,12 @@
 
 import { isDev } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../debug';
+import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
+import { isCursor } from '../shared/cursor/cursor';
+import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
+import { parseQRL } from '../shared/serdes/index';
 import {
   type Container,
   DEBUG_TYPE,
@@ -129,7 +133,10 @@ import {
   VirtualType,
   VirtualTypeName,
 } from '../shared/types';
+import { decodeVNodeDataString } from '../shared/utils/character-escaping';
 import { isText } from '../shared/utils/element';
+import { isHtmlAttributeAnEventName } from '../shared/utils/event-names';
+import { mergeMaps } from '../shared/utils/maps';
 import {
   dangerouslySetInnerHTML,
   debugStyleScopeIdPrefixAttr,
@@ -155,30 +162,9 @@ import {
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
-import {
-  _getQContainerElement,
-  getDomContainer,
-  getDomContainerFromQContainerElement,
-} from './dom-container';
-import {
-  type ClientContainer,
-  type ContainerElement,
-  type QDocument,
-  VNodeFlags,
-  VNodeFlagsIndex,
-} from './types';
-import {
-  getNewElementNamespaceData,
-  vnode_cloneElementWithNamespace,
-  vnode_getElementNamespaceFlags,
-} from './vnode-namespace';
-import { mergeMaps } from '../shared/utils/maps';
-import { isHtmlAttributeAnEventName } from '../shared/utils/event-names';
-import { VNode } from '../shared/vnode/vnode';
 import { ElementVNode } from '../shared/vnode/element-vnode';
 import { TextVNode } from '../shared/vnode/text-vnode';
-import { VirtualVNode } from '../shared/vnode/virtual-vnode';
-import { addVNodeOperation } from '../shared/vnode/vnode-dirty';
+import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import {
   createDeleteOperation,
   createInsertOrMoveOperation,
@@ -191,13 +177,28 @@ import {
   SetAttributeOperation,
   SetTextOperation,
 } from '../shared/vnode/types/dom-vnode-operation';
-import { isCursor } from '../shared/cursor/cursor';
-import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
-import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
-import { _flushJournal } from '../shared/cursor/cursor-flush';
+import { VirtualVNode } from '../shared/vnode/virtual-vnode';
+import { VNode } from '../shared/vnode/vnode';
+import { addVNodeOperation } from '../shared/vnode/vnode-dirty';
+import {
+  _getQContainerElement,
+  getDomContainer,
+  getDomContainerFromQContainerElement,
+} from './dom-container';
 import { createFastGetter, fastGetter } from './prototype-utils';
-import { decodeVNodeDataString } from '../shared/utils/character-escaping';
-import { parseQRL } from '../shared/serdes/index';
+import {
+  type ClientContainer,
+  type ContainerElement,
+  type QDocument,
+  VNodeFlags,
+  VNodeFlagsIndex,
+} from './types';
+import {
+  getNewElementNamespaceData,
+  vnode_cloneElementWithNamespace,
+  vnode_getElementNamespaceFlags,
+} from './vnode-namespace';
+import { isSsrNode } from '../reactive-primitives/subscriber';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -414,17 +415,18 @@ export const vnode_getProp = <T = unknown>(
 
 /** @internal */
 export const vnode_setProp = (vNode: VNode, key: string, value: unknown) => {
-  if ('cleanupQueue' in vNode) {
+  const isSsr = isSsrNode(vNode);
+  if (isSsr) {
     // SsrNode: always store (never implicit delete — use vnode_removeProp for that)
     (vNode.props ||= {})[key] = value;
-  } else if (value == null && vNode.props) {
+  } else if (value == null && vNode.props && key in vNode.props) {
     delete vNode.props[key];
   } else {
     vNode.props ||= {};
     vNode.props[key] = value;
   }
   // SsrNode: ELEMENT_SEQ values contain Tasks with cleanup functions
-  if (key === ELEMENT_SEQ && value && 'cleanupQueue' in vNode) {
+  if (key === ELEMENT_SEQ && value && isSsr) {
     (vNode as any).cleanupQueue.push(value);
   }
 };

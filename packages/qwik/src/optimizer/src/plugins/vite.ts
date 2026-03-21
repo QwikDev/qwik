@@ -703,6 +703,7 @@ function checkExternals() {
   }
 
   const seen: Set<string> = new Set();
+  const qwikDeps: string[] = [];
   let rootDir: string;
   const core2 = '@qwik.dev/core';
   const core1 = '@builder.io/qwik';
@@ -735,8 +736,10 @@ function checkExternals() {
           json.qwik ||
           json.dependencies?.[core2] ||
           json.peerDependencies?.[core2] ||
+          json.devDependencies?.[core2] ||
           json.dependencies?.[core1] ||
-          json.peerDependencies?.[core1]
+          json.peerDependencies?.[core1] ||
+          json.devDependencies?.[core1]
         ) {
           return true;
         }
@@ -774,19 +777,39 @@ function checkExternals() {
          * so the Qwik plugin can transform their $() calls.
          */
         const candidates = await getInstalledDependencies(root);
-        const toExclude: string[] = [];
+        qwikDeps.length = 0;
         for (const dep of candidates) {
-          if (!optimizeDepsExclude.includes(dep)) {
-            if (await isQwikDep(dep, root)) {
-              toExclude.push(dep);
-            }
+          if (await isQwikDep(dep, root)) {
+            qwikDeps.push(dep);
           }
         }
+        const toExclude = qwikDeps.filter((dep) => !optimizeDepsExclude.includes(dep));
         return {
           optimizeDeps: { exclude: toExclude },
           ssr: { noExternal: toExclude },
         };
       },
+    },
+    // qwik deps need to be marked as noExternal per-environment
+    configEnvironment(_name: string, options: Record<string, any>) {
+      if (qwikDeps.length === 0) {
+        return;
+      }
+      const existing = options.resolve?.noExternal;
+      if (existing === true) {
+        return;
+      }
+      let currentList: (string | RegExp)[];
+      if (Array.isArray(existing)) {
+        currentList = existing;
+      } else if (existing) {
+        currentList = [existing];
+      } else {
+        currentList = [];
+      }
+      return {
+        resolve: { noExternal: [...currentList, ...qwikDeps] },
+      };
     },
     // We check all SSR build lookups for external Qwik deps
     resolveId: {

@@ -35,7 +35,7 @@ export async function submoduleCore(config: BuildConfig): Promise<object | undef
   return submoduleCoreProd(config);
 }
 
-async function submoduleCoreProd(config: BuildConfig): Promise<object> {
+async function submoduleCoreProd(config: BuildConfig): Promise<object | undefined> {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
@@ -74,7 +74,12 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object> {
 
   // Shared nameCache so that $...$  property mangling is consistent across all Terser runs
   // (core.min.mjs, core.prod.mjs) and can later be reused for the server bundle.
+  // When mangle=false (--mangle=false), skip mangling.
   const nameCache: object = {};
+  const noMangle = config.mangle === false;
+  const mangle = noMangle
+    ? false
+    : { toplevel: true, module: true, properties: { regex: MANGLE_PROPS_REGEX } };
 
   const inputCore = join(config.distQwikPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
@@ -116,7 +121,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object> {
           const esmMinifyResult = await minify(code, {
             module: true,
             toplevel: true,
-            nameCache,
+            nameCache: mangle ? nameCache : undefined,
             compress: {
               defaults: true,
               hoist_funs: true,
@@ -145,13 +150,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object> {
                 'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
               },
             },
-            mangle: {
-              toplevel: true,
-              module: true,
-              properties: {
-                regex: MANGLE_PROPS_REGEX,
-              },
-            },
+            mangle,
             format: {
               comments: /__PURE__/,
               preserve_annotations: true,
@@ -186,10 +185,10 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object> {
     config,
     prodCode,
     join(config.distQwikPkgDir, 'core.prod.mjs'),
-    nameCache
+    mangle ? nameCache : undefined
   );
 
-  return nameCache;
+  return mangle ? nameCache : undefined;
 }
 
 /**
@@ -255,10 +254,14 @@ async function submoduleCoreProduction(
   config: BuildConfig,
   code: string,
   outPath: string,
-  nameCache: object
+  nameCache: object | undefined
 ) {
+  const noMangle = config.mangle === false;
+  const mangle = noMangle
+    ? false
+    : { toplevel: true, module: true, properties: { regex: MANGLE_PROPS_REGEX } };
   const result = await minify(code, {
-    nameCache,
+    nameCache: mangle ? nameCache : undefined,
     compress: {
       defaults: false,
       booleans: true,
@@ -305,13 +308,7 @@ async function submoduleCoreProduction(
       ecma: 2020,
       preamble: getBanner('@qwik.dev/core', config.distVersion),
     },
-    mangle: {
-      toplevel: true,
-      module: true,
-      properties: {
-        regex: MANGLE_PROPS_REGEX,
-      },
-    },
+    mangle,
   });
   code = result.code!;
 

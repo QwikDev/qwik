@@ -7,5 +7,13 @@ export const enum ChoreBits {
   COMPUTE = 1 << 4,
   CHILDREN = 1 << 5,
   CLEANUP = 1 << 6,
-  DIRTY_MASK = TASKS | NODE_DIFF | COMPONENT | NODE_PROPS | COMPUTE | CHILDREN | CLEANUP,
+  RECONCILE = 1 << 7,
+  DIRTY_MASK = TASKS |
+    NODE_DIFF |
+    COMPONENT |
+    NODE_PROPS |
+    COMPUTE |
+    CHILDREN |
+    CLEANUP |
+    RECONCILE,
 }

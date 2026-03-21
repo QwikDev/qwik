@@ -72,6 +72,7 @@ describe.each([
     await waitForDrain(container);
     await waitForDrain(container);
     await waitForDrain(container);
+    await waitForDrain(container);
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button>

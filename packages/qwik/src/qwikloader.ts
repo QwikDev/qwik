@@ -121,8 +121,14 @@ const dispatch = async (
   // The DOM renderer attaches qDispatchEvent to elements, call that if it exists. This bypasses QRL lookups.
   const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
   if (handlers) {
-    if (handlers.length) {
-      for (const handler of handlers) {
+    if (typeof handlers === 'function') {
+      const result = handlers(ev, element);
+      if (isPromise(result)) {
+        await result;
+      }
+    } else if (handlers.length) {
+      for (let i = 0; i < handlers.length; i++) {
+        const handler = handlers[i];
         const result = handler?.(ev, element);
         // only await if there is a promise returned so everything stays sync if possible
         if (isPromise(result)) {
@@ -317,7 +323,8 @@ const processReadyStateChange = () => {
 // ====== Qwik Loader Initialization ======
 
 const addEventOrRoot = (...eventNames: (string | (EventTarget & ParentNode))[]) => {
-  for (const eventNameOrRoot of eventNames) {
+  for (let i = 0; i < eventNames.length; i++) {
+    const eventNameOrRoot = eventNames[i];
     if (typeof eventNameOrRoot === 'string') {
       // If it is string we just add the event to window and each of our roots.
       if (!events.has(eventNameOrRoot)) {

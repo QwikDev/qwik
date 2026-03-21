@@ -36,6 +36,7 @@
       ],
       "@qwik.dev/router/ssg": ["packages/qwik-router/src/ssg"],
       "@qwik.dev/router/vite": ["packages/qwik-router/src/buildtime/vite"],
+      "@qwik-router-ssg-worker/*": ["packages/qwik-router/src/*"],
 
       "@qwik-router-config": ["packages/qwik-router/src/runtime/src/qwik-router-config.ts"],
       "@qwik-router-sw-register-build": [

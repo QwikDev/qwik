@@ -1,6 +1,7 @@
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
+import { ssgWorkerImportPlugin } from './src/buildtime/vite/ssg-worker-imports';
 import pkg from './package.json' with { type: 'json' };
 
 export default defineConfig(() => {
@@ -63,7 +64,7 @@ export default defineConfig(() => {
         ],
       },
     },
-    plugins: [qwikVite(), compiledStringPlugin()],
+    plugins: [ssgWorkerImportPlugin(), qwikVite(), compiledStringPlugin()],
     clearScreen: false,
     optimizeDeps: {
       force: true,

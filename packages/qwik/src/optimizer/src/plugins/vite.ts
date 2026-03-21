@@ -683,20 +683,42 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
  * because they use Qwik. If they are not included, the optimizer won't process them, and there will
  * be two instances of Qwik Core loaded.
  */
-async function checkExternals() {
+function checkExternals() {
   let fs: typeof import('fs').promises;
   let path: typeof import('path');
-  try {
-    fs = await import('node:fs').then((m) => m.promises);
-    path = await import('node:path');
-  } catch {
-    // We can't do anything if we can't import fs and path
-    return;
+  let loaded = false;
+
+  async function loadModules() {
+    if (loaded) return true;
+    try {
+      fs = await import('node:fs').then((m) => m.promises);
+      path = await import('node:path');
+      loaded = true;
+      return true;
+    } catch {
+      return false;
+    }
   }
+
   const seen: Set<string> = new Set();
   let rootDir: string;
-  const core2 = '@qwik-dev/core';
+  const core2 = '@qwik.dev/core';
   const core1 = '@builder.io/qwik';
+  async function getInstalledDependencies(root: string): Promise<string[]> {
+    try {
+      const pkgPath = path.join(root, 'package.json');
+      const data = await fs.readFile(pkgPath, { encoding: 'utf-8' });
+      const json = JSON.parse(data);
+      return [
+        ...Object.keys(json.dependencies || {}),
+        ...Object.keys(json.devDependencies || {}),
+        ...Object.keys(json.optionalDependencies || {}),
+      ];
+    } catch {
+      return [];
+    }
+  }
+
   async function isQwikDep(dep: string, dir: string) {
     while (dir) {
       const pkg = path.join(dir, 'node_modules', dep, 'package.json');
@@ -739,25 +761,33 @@ async function checkExternals() {
     config: {
       order: 'post',
       async handler(config) {
-        const toExclude = [];
-        const externals = [config.ssr?.noExternal, config.environments?.ssr?.resolve?.noExternal]
-          .flat()
-          .filter((t) => typeof t === 'string');
+        if (!(await loadModules())) return;
+        const root = config.root || process.cwd();
         const optimizeDepsExclude = config.optimizeDeps?.exclude ?? [];
-        for (const dep of externals) {
+
+        // Scan all installed dependencies to find Qwik libraries that need
+        // to be excluded from Vite's dep optimizer. Without this, esbuild
+        // pre-bundles them and the Qwik optimizer never transforms their $() calls.
+        const candidates = await getInstalledDependencies(root);
+        const toExclude: string[] = [];
+        for (const dep of candidates) {
           if (!optimizeDepsExclude.includes(dep)) {
-            if (await isQwikDep(dep, config.root || process.cwd())) {
+            if (await isQwikDep(dep, root)) {
               toExclude.push(dep);
             }
           }
         }
-        return { optimizeDeps: { exclude: toExclude } };
+        return {
+          optimizeDeps: { exclude: toExclude },
+          ssr: { noExternal: toExclude },
+        };
       },
     },
     // We check all SSR build lookups for external Qwik deps
     resolveId: {
       order: 'pre',
       async handler(source, importer, options) {
+        if (!(await loadModules())) return;
         const isSSR = this.environment.config.consumer === 'server';
         if (!isSSR || /^([./]|node:|[^a-z@])/i.test(source) || seen.has(source)) {
           return;

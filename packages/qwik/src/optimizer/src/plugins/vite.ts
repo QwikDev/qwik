@@ -769,9 +769,10 @@ function checkExternals() {
         const root = config.root || process.cwd();
         const optimizeDepsExclude = config.optimizeDeps?.exclude ?? [];
 
-        // Scan all installed dependencies to find Qwik libraries that need
-        // to be excluded from Vite's dep optimizer. Without this, esbuild
-        // pre-bundles them and the Qwik optimizer never transforms their $() calls.
+        /**
+         * Find Qwik libraries in the project's dependencies and exclude them from dep optimization
+         * so the Qwik plugin can transform their $() calls.
+         */
         const candidates = await getInstalledDependencies(root);
         const toExclude: string[] = [];
         for (const dep of candidates) {

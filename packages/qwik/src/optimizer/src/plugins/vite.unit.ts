@@ -172,7 +172,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
 
-    assert.deepEqual(c.esbuild, false);
+    expectTransformEngine(c, bundlerOptionsKey, 'serve');
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -211,7 +211,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, undefined);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    assert.deepEqual(c.esbuild, false);
+    expectTransformEngine(c, bundlerOptionsKey, 'serve');
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -308,10 +308,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, undefined);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    assert.deepEqual(c.esbuild, {
-      logLevel: 'error',
-      jsx: 'automatic',
-    });
+    expectTransformEngine(c, bundlerOptionsKey, 'build');
     assert.deepEqual(c.ssr, {
       noExternal,
     });
@@ -384,10 +381,7 @@ describe.each(bundlerMatrix)('$name', ({ configHookPluginContext, bundlerOptions
     assert.deepEqual(build.ssr, true);
     assert.deepEqual(c.optimizeDeps?.include, includeDeps);
     assert.deepEqual(c.optimizeDeps?.exclude, excludeDeps);
-    assert.deepEqual(c.esbuild, {
-      logLevel: 'error',
-      jsx: 'automatic',
-    });
+    expectTransformEngine(c, bundlerOptionsKey, 'build');
     assert.deepEqual(c.publicDir, false);
   });
 

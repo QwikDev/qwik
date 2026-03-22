@@ -3,11 +3,10 @@ import { extendConfig } from "@qwik.dev/router/vite";
 import { builtinModules } from "module";
 import baseConfig from "../../vite.config.ts";
 
-// @ts-expect-error - incompatible types between vite 7 and vite 8-beta
 export default extendConfig(baseConfig, () => {
   return {
     ssr: {
-      external: builtinModules,
+      external: [...builtinModules],
       noExternal: /./,
     },
     build: {

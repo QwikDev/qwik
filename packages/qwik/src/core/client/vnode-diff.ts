@@ -380,7 +380,10 @@ function diff(
                   )) ||
                 _hasOwnProperty.call(diffContext.$jsxValue$.varProps, dangerouslySetInnerHTML);
               if (hasDangerousInnerHTML) {
-                expectNoChildren(diffContext, false);
+                // Only clean up children for existing nodes; new nodes have no children yet
+                if (!diffContext.$vNewNode$) {
+                  expectNoChildren(diffContext, false);
+                }
               } else {
                 descend(diffContext, diffContext.$jsxValue$.children, true);
               }

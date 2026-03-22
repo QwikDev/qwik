@@ -3,8 +3,8 @@
 /* ─── Grid layout: sidebar | content | toc ─── */
 
 .docs-grid {
-  @apply grid min-h-screen;
-  grid-template-columns: auto 1fr;
+  @apply grid min-h-screen relative;
+  grid-template-columns: minmax(0, 1fr);
 
   @variant xl {
     grid-template-columns: auto 1fr;
@@ -25,15 +25,19 @@
 }
 
 .docs-grid > footer {
-  grid-column: 2 / -1;
+  grid-column: 1 / -1;
+
+  @variant xl {
+    grid-column: 2 / -1;
+  }
 }
 
 .docs .docs-content {
-  @apply max-w-[75ch] mx-auto px-6 pt-20 pb-8 xl:pt-40;
+  @apply max-w-[75ch] mx-auto px-4 pt-24 pb-8 sm:px-6 xl:pt-40;
 }
 
 .docs .docs-content-wide {
-  @apply max-w-[960px];
+  @apply max-w-[960px] w-full;
 }
 
 /* ─── Links ─── */

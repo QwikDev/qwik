@@ -167,18 +167,37 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
           }}
         >
           {store.isLoading && (
-            <div class="repl-loading">
-              <svg class="repl-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="24"
-                  stroke-width="4"
-                  stroke-dasharray="37.69911184307752 37.69911184307752"
-                  fill="none"
-                  stroke-linecap="round"
-                />
-              </svg>
+            <div class="repl-loading" role="status" aria-live="polite">
+              <div class="repl-loading-shell">
+                <div class="repl-loading-meta">
+                  <span class="repl-loading-badge">Building preview</span>
+                  <svg
+                    class="repl-spinner"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 100 100"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="24"
+                      stroke-width="4"
+                      stroke-dasharray="37.69911184307752 37.69911184307752"
+                      fill="none"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </div>
+                <p class="repl-loading-title">Refreshing App output</p>
+                <p class="repl-loading-copy">
+                  Compiling the latest client and SSR result for your current code.
+                </p>
+                <div class="repl-loading-skeleton" aria-hidden="true">
+                  <span class="repl-loading-line repl-loading-line-strong" />
+                  <span class="repl-loading-line" />
+                  <span class="repl-loading-line repl-loading-line-short" />
+                </div>
+              </div>
             </div>
           )}
           {store.reload > 0 && (

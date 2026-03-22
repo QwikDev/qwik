@@ -77,43 +77,10 @@
   width: 100%;
 }
 
-.tutorial-lesson-picker span {
-  font-family: 'Ubuntu Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 16px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--tutorial-text-soft);
-}
-
 .tutorial-lesson-picker select {
-  min-width: 0;
-  width: 100%;
-  max-width: 100%;
-  appearance: none;
-  border: 1.6px solid var(--tutorial-border);
-  border-radius: 12px;
-  background: var(--tutorial-card-bg);
-  box-shadow: 4px 4px 0 0 var(--tutorial-shadow);
   color: var(--tutorial-text);
-  cursor: pointer;
-  font-family: 'Ubuntu Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  padding: 9px 40px 9px 14px;
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--tutorial-accent) 50%),
-    linear-gradient(135deg, var(--tutorial-accent) 50%, transparent 50%);
-  background-position:
-    calc(100% - 18px) calc(50% - 2px),
-    calc(100% - 12px) calc(50% - 2px);
-  background-size: 6px 6px;
-  background-repeat: no-repeat;
 }
 
-.tutorial-lesson-picker select:focus-visible,
 .edit-tutorial:focus-visible,
 .tutorial-footer-button:focus-visible {
   outline: 2px solid var(--tutorial-accent);
@@ -268,32 +235,37 @@
 }
 
 .content-footer {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  display: flex;
+  flex-wrap: nowrap;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   padding: 0;
 }
 
 .footer-slot {
+  display: flex;
+  flex: 0 1 auto;
   min-width: 0;
 }
 
 .footer-slot-end {
-  display: flex;
+  min-width: 0;
   justify-content: flex-end;
 }
 
 .footer-actions {
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
   gap: 16px;
+  min-width: 0;
 }
 
 .footer-placeholder {
-  display: block;
+  display: none;
   min-height: 40px;
 }
 
@@ -317,6 +289,16 @@
     transform 200ms ease,
     box-shadow 200ms ease;
   cursor: pointer;
+}
+
+.tutorial-footer-button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer-slot-end .tutorial-footer-button {
+  max-width: min(100%, 260px);
 }
 
 .tutorial-footer-button:hover {
@@ -375,8 +357,33 @@
   background: var(--tutorial-card-bg);
 }
 
+.tutorial .repl-output-panel {
+  margin-top: -1.6px;
+}
+
+.tutorial .repl-output-panel .repl-tab-buttons {
+  border-top: 1.6px solid var(--tutorial-border);
+}
+
 .tutorial .repl .repl-detail-panel,
 .tutorial .repl-commands,
 .tutorial .repl-input-panel .repl-tab-button-close {
   display: none;
+}
+
+@media (max-width: 1320px) {
+  .content-footer {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 12px 16px;
+  }
+
+  .footer-slot-end {
+    justify-content: flex-start;
+  }
+
+  .footer-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
 }

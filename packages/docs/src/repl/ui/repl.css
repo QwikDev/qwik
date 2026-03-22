@@ -122,6 +122,63 @@
   color: #c73768;
 }
 
+.repl-select-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.repl-select-field-inline {
+  width: 100%;
+}
+
+.repl-select-label {
+  color: var(--repl-docs-text-soft);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.repl-select {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  appearance: none;
+  border: 1.6px solid var(--repl-docs-border);
+  border-radius: 12px;
+  background: var(--repl-docs-panel-bg);
+  box-shadow: 4px 4px 0 0 color-mix(in srgb, var(--repl-docs-accent-soft), white 20%);
+  color: var(--repl-docs-accent);
+  cursor: pointer;
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  padding: 9px 40px 9px 14px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--repl-docs-accent) 50%),
+    linear-gradient(135deg, var(--repl-docs-accent) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 12px) calc(50% - 2px);
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.repl-select:focus-visible {
+  outline: 2px solid var(--repl-docs-accent);
+  outline-offset: 3px;
+}
+
+.repl-select:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .output-result {
   height: 100%;
 }
@@ -204,14 +261,238 @@
   background: #ffffff;
 }
 
-.output-panel-section-body .prettier-toggle {
+.output-code-theme .prettier-toggle {
   top: 10px;
   right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
 }
 
-.output-panel-section-body > .relative > button.absolute {
+.output-code-theme > .relative > button.absolute,
+.output-code-theme .output-panel-section-body > .relative > button.absolute,
+.output-code-theme .file-modules > .relative > button.absolute,
+.output-code-theme .file-modules .relative > button.absolute {
   top: 10px;
   right: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  line-height: 1;
+}
+
+.output-diagnostics {
+  padding: 16px;
+  box-sizing: border-box;
+  gap: 0;
+}
+
+.output-diagnostics-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 0;
+}
+
+.diagnostics-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.diagnostics-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 1.6px solid color-mix(in srgb, var(--repl-docs-border), transparent 18%);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #ffffff;
+  color: var(--repl-docs-text-soft);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.diagnostics-summary-pill strong {
+  color: var(--repl-docs-accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.diagnostics-summary-errors {
+  border-color: color-mix(in srgb, #d9597e, white 48%);
+}
+
+.diagnostics-summary-errors strong {
+  color: #c73768;
+}
+
+.diagnostics-summary-warnings {
+  border-color: color-mix(in srgb, #e39d33, white 44%);
+}
+
+.diagnostics-summary-warnings strong {
+  color: #af6a00;
+}
+
+.diagnostics-empty-state {
+  padding: 8px 0 2px;
+}
+
+.diagnostics-empty-title {
+  margin: 0;
+  color: var(--repl-docs-accent);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.diagnostics-empty-copy {
+  margin: 8px 0 0;
+  max-width: 58ch;
+  color: var(--repl-docs-text-soft);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.diagnostics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diagnostic-item {
+  border: 1.6px solid color-mix(in srgb, var(--repl-docs-border), transparent 18%);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--repl-docs-input-strip-bg), white 55%);
+}
+
+.diagnostic-item-error {
+  border-color: color-mix(in srgb, #d9597e, white 45%);
+  background: color-mix(in srgb, #fff3f6, white 18%);
+}
+
+.diagnostic-item-warning {
+  border-color: color-mix(in srgb, #e39d33, white 38%);
+  background: color-mix(in srgb, #fff9ef, white 12%);
+}
+
+.diagnostic-item-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.diagnostic-item-badge,
+.diagnostic-item-code,
+.diagnostic-item-scope,
+.diagnostic-item-location {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.diagnostic-item-badge {
+  background: color-mix(in srgb, var(--repl-docs-accent-soft), white 22%);
+  color: var(--repl-docs-accent);
+}
+
+.diagnostic-item-error .diagnostic-item-badge {
+  background: color-mix(in srgb, #f8d9e3, white 16%);
+  color: #af1f54;
+}
+
+.diagnostic-item-warning .diagnostic-item-badge {
+  background: color-mix(in srgb, #f8e6bf, white 10%);
+  color: #8a5700;
+}
+
+.diagnostic-item-code,
+.diagnostic-item-location,
+.diagnostic-item-file {
+  font-family: 'Ubuntu Mono', 'Ubuntu Sans Mono', monospace;
+}
+
+.diagnostic-item-code,
+.diagnostic-item-location {
+  background: #ffffff;
+  color: var(--repl-docs-text-soft);
+}
+
+.diagnostic-item-scope {
+  background: transparent;
+  color: var(--repl-docs-text-soft);
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.diagnostic-item-message {
+  margin: 10px 0 0;
+  color: var(--repl-docs-text);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+  white-space: pre-wrap;
+}
+
+.diagnostic-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.diagnostic-item-file {
+  color: var(--repl-docs-text-soft);
+  font-size: 13px;
+  line-height: 18px;
+  word-break: break-all;
+}
+
+.diagnostic-item-suggestions {
+  margin-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--repl-docs-border), transparent 32%);
+  padding-top: 10px;
+}
+
+.diagnostic-item-suggestions-title {
+  margin: 0 0 6px;
+  color: var(--repl-docs-accent);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.diagnostic-item-suggestions ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--repl-docs-text-soft);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
 }
 
 .output-modules {
@@ -270,8 +551,6 @@
   gap: 20px;
   min-width: 0;
   overflow: visible;
-  padding-left: 20px;
-  padding-right: 4px;
 }
 
 .output-column-resizer {
@@ -326,6 +605,191 @@
   font-size: 13px;
   font-weight: 700;
   line-height: 18px;
+}
+
+.detail-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.detail-logs {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 100%;
+  padding: 8px 12px;
+  box-sizing: border-box;
+}
+
+.console-empty-state {
+  padding: 8px 0 2px;
+}
+
+.console-empty-title {
+  margin: 0;
+  color: var(--repl-docs-accent);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.console-empty-copy {
+  margin: 8px 0 0;
+  color: var(--repl-docs-text-soft);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.console-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.console-log-entry {
+  border-bottom: 1px solid color-mix(in srgb, var(--repl-docs-border), transparent 36%);
+  padding: 7px 0;
+  background: transparent;
+}
+
+.console-log-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.console-log-linked-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.console-log-linked-source {
+  min-width: 0;
+}
+
+.console-log-linked-message {
+  min-width: 0;
+  padding-left: 0;
+}
+
+.console-platform,
+.console-kind-badge,
+.console-elapsed {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+}
+
+.console-platform {
+  background: color-mix(in srgb, var(--repl-docs-accent-soft), white 22%);
+  color: var(--repl-docs-accent);
+}
+
+.console-platform.ssr {
+  background: color-mix(in srgb, #d8ebfb, white 12%);
+  color: #0f5f94;
+}
+
+.console-platform.client {
+  background: color-mix(in srgb, #d8f0e3, white 10%);
+  color: #1c7b52;
+}
+
+.console-kind-badge,
+.console-elapsed {
+  background: #ffffff;
+  color: var(--repl-docs-text-soft);
+}
+
+.console-log-entry.console-kind-error .console-kind-badge {
+  background: color-mix(in srgb, #f8d9e3, white 16%);
+  color: #af1f54;
+}
+
+.console-log-entry.console-kind-warn .console-kind-badge {
+  background: color-mix(in srgb, #f8e6bf, white 10%);
+  color: #8a5700;
+}
+
+.console-context-value {
+  min-width: 0;
+  max-width: min(42ch, 100%);
+  color: var(--repl-docs-text-soft);
+  font-family: 'Ubuntu Mono', 'Ubuntu Sans Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.console-source-meta {
+  color: var(--repl-docs-text-soft);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.console-message-inline {
+  min-width: 0;
+  color: var(--repl-docs-text);
+  font-family: 'Ubuntu Mono', 'Ubuntu Sans Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  flex: 1 1 220px;
+}
+
+.console-message-linked-value {
+  flex: 1 1 220px;
+}
+
+.console-message-inline span[style] {
+  display: inline;
+}
+
+.console-log-list .console-log-entry:last-child {
+  border-bottom: 0;
+}
+
+.detail-options .repl-select-field,
+.detail-options .repl-toggle-field {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.repl-toggle-field {
+  min-width: 0;
+}
+
+.repl-toggle-control {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+}
+
+.repl-toggle-control input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--repl-docs-accent);
 }
 
 @media (max-width: 900px) {

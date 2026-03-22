@@ -451,7 +451,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       // Using vite.resolveId to check file if exist
       // for example input might be virtual file
-      const resolver = (id: string) => this.resolve(id);
+      const resolver = this.resolve.bind(this);
       await qwikPlugin.validateSource(resolver);
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {

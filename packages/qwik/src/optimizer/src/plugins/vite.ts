@@ -33,9 +33,14 @@ import {
   type QwikPluginDevTools,
   type QwikPluginOptions,
 } from './plugin';
-import { createRollupError, normalizeRollupOutputOptions } from './rollup';
+import {
+  createBundlerError,
+  normalizeRolldownOutputOptions,
+  normalizeRollupOutputOptions,
+} from './rollup';
 import { isVirtualId } from './vite-utils';
-import type { ResolvedId } from 'rolldown';
+import type { BuildOptions, ResolvedId } from 'rolldown';
+import type { RollupOptions } from 'rollup';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -239,16 +244,25 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
 
-      const bundlerOptions = {
+      const sharedBuildOptions: BuildOptions & RollupOptions = {
         external: ['node:async_hooks'],
+        input,
+      };
+      const rolldownBuildOptions: BuildOptions = {
+        ...sharedBuildOptions,
+        experimental: {
+          attachDebugInfo:
+            viteConfig.build?.rolldownOptions?.experimental?.attachDebugInfo ?? 'none',
+        },
+      };
+      const rollupBuildOptions: RollupOptions = {
+        ...sharedBuildOptions,
         /**
          * This is a workaround to have predictable chunk hashes between builds. It doesn't seem to
          * impact the build time.
          * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
          */
         maxParallelFileOps: 1,
-        // This will amend the existing input
-        input,
       };
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
@@ -299,7 +313,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
-          [bundlerOptionsKey]: bundlerOptions,
+          [bundlerOptionsKey]: this.meta.rolldownVersion
+            ? rolldownBuildOptions
+            : rollupBuildOptions,
         },
         define: {
           [qDevKey]: qDev,
@@ -335,12 +351,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const origOnwarn = updatedViteConfig.build![bundlerOptionsKey]?.onwarn;
         updatedViteConfig.build![bundlerOptionsKey] = {
           ...updatedViteConfig.build![bundlerOptionsKey],
-          output: await normalizeRollupOutputOptions(
-            qwikPlugin,
-            viteConfig.build?.[bundlerOptionsKey]?.output,
-            useAssetsDir,
-            opts.outDir
-          ),
+          output: await (
+            this.meta.rolldownVersion
+              ? normalizeRolldownOutputOptions
+              : normalizeRollupOutputOptions
+          )(qwikPlugin, viteConfig.build?.[bundlerOptionsKey]?.output, useAssetsDir, opts.outDir),
           preserveEntrySignatures: 'allow-extension',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
@@ -443,9 +458,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
           if (d.category === 'error') {
-            this.error(createRollupError(id, d));
+            this.error(createBundlerError(id, d));
           } else {
-            this.warn(createRollupError(id, d));
+            this.warn(createBundlerError(id, d));
           }
         });
       });

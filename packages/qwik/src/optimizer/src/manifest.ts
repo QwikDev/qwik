@@ -487,8 +487,6 @@ export function generateManifestFromBundles(
       }
     }
     const bundleImports = outputBundle.imports
-      // Tree shaking might remove imports
-      .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))
       .filter((i) => i !== preloaderBundleName && i !== coreBundleName && i !== qwikHandlersName)
       .filter(Boolean) as string[];
@@ -496,7 +494,6 @@ export function generateManifestFromBundles(
       bundle.imports = bundleImports;
     }
     const bundleDynamicImports = outputBundle.dynamicImports
-      .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))
       .filter(Boolean) as string[];
     if (bundleDynamicImports.length > 0) {

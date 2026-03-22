@@ -909,9 +909,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const newOutput = await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
-      setCachedSegment(id, module.segment, isServer);
-      setCachedSegment(pathId, module.segment, isServer);
-
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
@@ -1172,7 +1169,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     }
   }
 
-  const QwikChunkingFunction = (id: string, ctx: ChunkingContext) => {
+  const manualChunks = (id: string, ctx: ChunkingContext) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
@@ -1191,7 +1188,36 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
         return 'qwik-loader';
       }
     }
+    return mergeRelatedSegments(id, ctx);
+  };
 
+  const codeSplitting: CodeSplittingOptions = {
+    includeDependenciesRecursively: false,
+    groups: [
+      {
+        name: 'qwik-core',
+        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+      },
+      {
+        name: 'qwik-loader',
+        test: /[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/,
+      },
+      {
+        name: 'qwik-preloader',
+        test: (id: string) =>
+          id.endsWith('@qwik.dev/core/build') ||
+          id === '\0vite/preload-helper.js' ||
+          /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id),
+      },
+      {
+        name: (id: string, ctx: ChunkingContext) => {
+          return mergeRelatedSegments(id, ctx);
+        },
+      },
+    ],
+  };
+
+  const mergeRelatedSegments = (id: string, ctx: ChunkingContext) => {
     const module = ctx?.getModuleInfo(id);
     if (module) {
       const segment =
@@ -1214,23 +1240,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
       }
     }
 
-    // The rest is non-qwik code. We let rollup handle it.
     return null;
-  };
-
-  const manualChunks = (id: string, ctx: ChunkingContext) => {
-    return QwikChunkingFunction(id, ctx);
-  };
-
-  const codeSplitting: CodeSplittingOptions = {
-    includeDependenciesRecursively: false,
-    groups: [
-      {
-        name: (id: string, ctx: ChunkingContext) => {
-          return QwikChunkingFunction(id, ctx);
-        },
-      },
-    ],
   };
 
   async function generateManifest(

@@ -77,7 +77,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeOutputOptionsObject(qwikPlugin, rollupOutputOpts, false) as any;
+      return normalizeRollupOutputObject(qwikPlugin, rollupOutputOpts, false) as any;
     },
 
     async buildStart() {
@@ -85,9 +85,9 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
           if (d.category === 'error') {
-            this.error(createRollupError(id, d));
+            this.error(createBundlerError(id, d));
           } else {
-            this.warn(createRollupError(id, d));
+            this.warn(createBundlerError(id, d));
           }
         });
       });
@@ -128,30 +128,68 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   return rollupPlugin;
 }
 
-export async function normalizeRollupOutputOptions(
+//  `outputOptions.onlyExplicitManualChunks` is a new option in Rollup 4.52 that is not present in Rolldown yet so we need to add it manually.
+type ExtendedOutputOptions = OutputOptions & { onlyExplicitManualChunks?: boolean };
+
+async function normalizeOutputOptions(
   qwikPlugin: QwikPlugin,
-  rollupOutputOpts: OutputOptions | OutputOptions[] | undefined,
+  outputOpts: ExtendedOutputOptions | ExtendedOutputOptions[] | undefined,
   useAssetsDir: boolean,
-  outDir?: string
-): Promise<OutputOptions | OutputOptions[]> {
-  if (Array.isArray(rollupOutputOpts)) {
+  outDir: string | undefined,
+  normalizeObject: (
+    qwikPlugin: QwikPlugin,
+    outputOptions: ExtendedOutputOptions | undefined,
+    useAssetsDir: boolean
+  ) => Promise<ExtendedOutputOptions>
+): Promise<ExtendedOutputOptions | ExtendedOutputOptions[]> {
+  if (Array.isArray(outputOpts)) {
     // make sure at least one output is present in every case
-    if (!rollupOutputOpts.length) {
-      rollupOutputOpts.push({});
+    if (!outputOpts.length) {
+      outputOpts.push({});
     }
 
     return await Promise.all(
-      rollupOutputOpts.map(async (outputOptsObj) => ({
-        ...(await normalizeOutputOptionsObject(qwikPlugin, outputOptsObj, useAssetsDir)),
+      outputOpts.map(async (outputOptsObj) => ({
+        ...(await normalizeObject(qwikPlugin, outputOptsObj, useAssetsDir)),
         dir: outDir || outputOptsObj.dir,
       }))
     );
   }
 
   return {
-    ...(await normalizeOutputOptionsObject(qwikPlugin, rollupOutputOpts, useAssetsDir)),
-    dir: outDir || rollupOutputOpts?.dir,
+    ...(await normalizeObject(qwikPlugin, outputOpts, useAssetsDir)),
+    dir: outDir || outputOpts?.dir,
   };
+}
+
+export function normalizeRollupOutputOptions(
+  qwikPlugin: QwikPlugin,
+  outputOpts: ExtendedOutputOptions | ExtendedOutputOptions[] | undefined,
+  useAssetsDir: boolean,
+  outDir?: string
+) {
+  return normalizeOutputOptions(
+    qwikPlugin,
+    outputOpts,
+    useAssetsDir,
+    outDir,
+    normalizeRollupOutputObject
+  );
+}
+
+export function normalizeRolldownOutputOptions(
+  qwikPlugin: QwikPlugin,
+  outputOpts: ExtendedOutputOptions | ExtendedOutputOptions[] | undefined,
+  useAssetsDir: boolean,
+  outDir?: string
+) {
+  return normalizeOutputOptions(
+    qwikPlugin,
+    outputOpts,
+    useAssetsDir,
+    outDir,
+    normalizeRolldownOutputObject
+  );
 }
 
 const getChunkFileName = (
@@ -183,20 +221,14 @@ const getChunkFileName = (
   }
 };
 
-export async function normalizeOutputOptionsObject(
+async function normalizeSharedOutputOptions(
   qwikPlugin: QwikPlugin,
-  outputOptions: (OutputOptions & { onlyExplicitManualChunks?: boolean }) | undefined,
+  outputOptions: ExtendedOutputOptions | undefined,
   useAssetsDir: boolean
-): Promise<OutputOptions> {
+): Promise<ExtendedOutputOptions> {
   const outputOpts = { ...outputOptions };
   const opts = qwikPlugin.getOptions();
   const optimizer = qwikPlugin.getOptimizer();
-  const internalManualChunks = qwikPlugin.manualChunks;
-  const internalCodeSplitting = qwikPlugin.codeSplitting;
-
-  if (internalCodeSplitting) {
-    outputOpts.codeSplitting = internalCodeSplitting;
-  }
 
   if (!outputOpts.assetFileNames) {
     // SEO likes readable asset names
@@ -217,30 +249,6 @@ export async function normalizeOutputOptionsObject(
 
     // client should always be es
     outputOpts.format = 'es';
-    const userManualChunks = outputOpts.manualChunks;
-    if (userManualChunks && typeof userManualChunks !== 'function') {
-      throw new Error(
-        'manualChunks must be a function for Qwik to group qrl segments back together'
-      );
-    }
-    // We need custom chunking for the client build
-    outputOpts.manualChunks = userManualChunks
-      ? (id, meta) => userManualChunks(id, meta) || internalManualChunks(id, meta)
-      : internalManualChunks;
-
-    // User config: only object form is merged (boolean is never passed through)
-    const userCodeSplitting = outputOptions?.codeSplitting;
-    if (typeof userCodeSplitting === 'boolean') {
-      throw new Error(
-        'codeSplitting must be an object for Qwik to group qrl segments back together'
-      );
-    }
-
-    const codeSplitting = {
-      includeDependenciesRecursively: internalCodeSplitting.includeDependenciesRecursively,
-      groups: [...(internalCodeSplitting.groups ?? []), ...(userCodeSplitting?.groups ?? [])],
-    };
-    outputOpts.codeSplitting = codeSplitting;
   } else {
     // server production output, try to be similar to client
     if (!outputOpts.chunkFileNames) {
@@ -256,10 +264,52 @@ export async function normalizeOutputOptionsObject(
     outputOpts.exports = 'auto';
   }
 
+  return outputOpts;
+}
+
+/*
+ * The Vite 8 types override the Rollup types to use the Rolldown ones.
+ * This is why manualChunks appears as deprecated.
+ * Using the Rollup types directly leads to type errors in normalizeSharedOutputOptions because the functions are about the same but the types signatures have been changed in Rolldown.
+ */
+
+export async function normalizeRollupOutputObject(
+  qwikPlugin: QwikPlugin,
+  outputOptions: ExtendedOutputOptions | undefined,
+  useAssetsDir: boolean
+): Promise<ExtendedOutputOptions> {
+  const outputOpts: ExtendedOutputOptions = await normalizeSharedOutputOptions(
+    qwikPlugin,
+    outputOptions,
+    useAssetsDir
+  );
+  const opts = qwikPlugin.getOptions();
+  const optimizer = qwikPlugin.getOptimizer();
+  const internalManualChunks = qwikPlugin.manualChunks;
+
+  if (opts.target === 'client') {
+    const userManualChunks = outputOptions?.manualChunks;
+    if (userManualChunks && typeof userManualChunks !== 'function') {
+      throw new Error(
+        'manualChunks must be a function for Qwik to group qrl segments back together'
+      );
+    }
+
+    // We need custom chunking for the client build
+    outputOpts.manualChunks = userManualChunks
+      ? (id, meta) => userManualChunks(id, meta) || internalManualChunks(id, meta)
+      : internalManualChunks;
+  }
+
   /**
    * Transitive imports must not be hoisted. Otherwise, the bundle-graph static imports will be
    * incorrect; leading to over-preloading.
    */
+  if (outputOpts.hoistTransitiveImports) {
+    throw new Error(
+      'hoistTransitiveImports must be false for Qwik to ensure the bundle graph is correct for proper preloading. Please set it to false in your Rollup output configuration.'
+    );
+  }
   outputOpts.hoistTransitiveImports = false;
 
   // V2 official release TODO: remove below checks and just keep `outputOpts.onlyExplicitManualChunks = true;`
@@ -295,7 +345,44 @@ export async function normalizeOutputOptionsObject(
   return outputOpts;
 }
 
-export function createRollupError(id: string, diagnostic: Diagnostic) {
+export async function normalizeRolldownOutputObject(
+  qwikPlugin: QwikPlugin,
+  outputOptions: ExtendedOutputOptions | undefined,
+  useAssetsDir: boolean
+): Promise<ExtendedOutputOptions> {
+  const outputOpts = await normalizeSharedOutputOptions(qwikPlugin, outputOptions, useAssetsDir);
+  const opts = qwikPlugin.getOptions();
+  const internalCodeSplitting = qwikPlugin.codeSplitting;
+
+  if (opts.target === 'client') {
+    // User config: only object form is merged (boolean is never passed through)
+    const userCodeSplitting = outputOptions?.codeSplitting;
+    if (typeof userCodeSplitting === 'boolean') {
+      throw new Error(
+        "codeSplitting must be a `codeSplitting: { groups: [...] }` object for Qwik's chunking and preloading to work without causing network waterfalls issues."
+      );
+    }
+
+    outputOpts.codeSplitting = {
+      includeDependenciesRecursively: internalCodeSplitting.includeDependenciesRecursively,
+      groups: [...(internalCodeSplitting.groups ?? []), ...(userCodeSplitting?.groups ?? [])],
+    };
+  } else if (internalCodeSplitting) {
+    outputOpts.codeSplitting = internalCodeSplitting;
+  }
+
+  const userComments = outputOptions?.comments;
+  if (userComments) {
+    console.warn(
+      `⚠️ You enabled the "comments" option in your Rollup output configuration. This can lead to larger bundle sizes and slower load times. Disable this option for optimal performance.`
+    );
+  }
+  outputOpts.comments = userComments ?? false;
+
+  return outputOpts;
+}
+
+export function createBundlerError(id: string, diagnostic: Diagnostic) {
   const loc = diagnostic.highlights?.[0];
   const err: Rollup.RollupError = Object.assign(new Error(diagnostic.message), {
     id,

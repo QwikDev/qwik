@@ -44,6 +44,9 @@ function isBundlePartOfRoute(bundle: QwikBundle, routeAndLayoutPaths: string[]) 
   }
   for (const bundleOrigin of bundle.origins) {
     const originPath = removeExtension(bundleOrigin);
-    return routeAndLayoutPaths.some((path) => path.endsWith(originPath));
+    if (routeAndLayoutPaths.some((path) => path.endsWith(originPath))) {
+      return true;
+    }
   }
+  return false;
 }

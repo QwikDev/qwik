@@ -447,3 +447,102 @@
     justify-self: auto;
   }
 }
+
+@media (max-width: 767px) {
+  .tutorial {
+    --panel-toggle-height: 52px;
+  }
+
+  .tutorial main {
+    width: 300vw;
+    grid-template-columns: 100vw 100vw 100vw;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'tutorial-content-panel tutorial-repl-shell tutorial-repl-shell'
+      'content-footer tutorial-repl-shell tutorial-repl-shell';
+    gap: 0;
+    padding: 72px 0 0;
+    height: calc(100dvh - var(--panel-toggle-height));
+    transform: translate3d(0, 0, 0);
+  }
+
+  .tutorial main.tutorial-panel-input {
+    transform: translate3d(-100vw, 0, 0);
+  }
+
+  .tutorial main.tutorial-panel-output {
+    transform: translate3d(-200vw, 0, 0);
+  }
+
+  .tutorial-content-panel {
+    grid-area: tutorial-content-panel;
+    padding: 16px 16px 0;
+    box-sizing: border-box;
+    height: auto;
+  }
+
+  .content-main {
+    padding-right: 0;
+  }
+
+  .tutorial-content-shell {
+    width: 100%;
+    padding-bottom: 24px;
+  }
+
+  .tutorial-toolbar {
+    position: static;
+    padding-bottom: 0;
+    background: none;
+    margin-bottom: 20px;
+  }
+
+  .tutorial-repl-panel {
+    display: contents;
+  }
+
+  .tutorial-repl-shell {
+    grid-area: tutorial-repl-shell;
+    width: 200vw;
+    height: calc(100dvh - 72px - var(--panel-toggle-height) - 32px);
+    margin: 16px 0;
+    overflow: visible;
+    border-radius: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tutorial .repl {
+    width: 200vw;
+    grid-template-columns: 100vw 100vw;
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'repl-input-panel repl-output-panel';
+    background: transparent;
+  }
+
+  .tutorial .repl-panel {
+    width: calc(100vw - 32px);
+    height: 100%;
+    justify-self: center;
+    border: 1.6px solid var(--tutorial-border);
+    border-radius: 16px;
+    background: var(--tutorial-card-bg);
+    box-shadow: 6px 6px 0 0 var(--tutorial-shadow);
+  }
+
+  .tutorial .repl-output-panel {
+    margin-top: 0;
+  }
+
+  .tutorial .repl-output-panel .repl-tab-buttons {
+    border-top: 0;
+  }
+
+  .content-footer {
+    grid-area: content-footer;
+    align-self: start;
+    height: auto;
+    padding: 0 16px 16px;
+  }
+}

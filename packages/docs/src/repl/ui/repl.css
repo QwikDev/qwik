@@ -16,6 +16,8 @@
 .repl-tab-buttons-inner {
   display: flex;
   align-items: center;
+  width: max-content;
+  min-width: 100%;
   gap: 24px;
   padding: 0 16px;
 }
@@ -42,6 +44,7 @@
 
 .repl-tab-button {
   display: inline-flex;
+  flex: 0 0 auto;
   position: relative;
   align-items: center;
   min-width: 0;

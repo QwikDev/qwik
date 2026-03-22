@@ -147,7 +147,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           lookup-only: true
-          path: packages/qwik/bindings
+          path: packages/optimizer/bindings
           key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs') }}
       - run: 'echo ${{ steps.cache-rust.outputs.cache-primary-key }} > rust-key.txt'
       - name: 'check cache: others'
@@ -221,8 +221,8 @@ jobs:
 
       - name: Install NPM Dependencies
         run: |
-          # Ensure that the qwik binary gets made
-          mkdir -p packages/qwik/bindings/
+          # Ensure that the optimizer binary gets made
+          mkdir -p packages/optimizer/bindings/
           pnpm install --frozen-lockfile
 
       - name: 'build: qwik'
@@ -305,14 +305,14 @@ jobs:
 
       - name: Print Packages Dist Build
         continue-on-error: true
-        run: ls -lR packages/qwik/bindings/
+        run: ls -lR packages/optimizer/bindings/
 
       - name: Upload Platform Binding Artifact
         uses: actions/upload-artifact@v4
         with:
           name: artifact-bindings-${{ matrix.settings.target }}
           include-hidden-files: true
-          path: packages/qwik/bindings/
+          path: packages/optimizer/bindings/
           if-no-files-found: error
 
   ############ BUILD PACKAGE ############
@@ -348,16 +348,16 @@ jobs:
         if: needs.changes.outputs.build-rust != 'true'
         uses: actions/cache/restore@v4
         with:
-          path: packages/qwik/bindings
+          path: packages/optimizer/bindings
           key: ${{ needs.changes.outputs.hash-rust }}
 
       - name: Move Rust Artifacts
         if: needs.changes.outputs.build-rust == 'true'
         run: |
-          mkdir -p packages/qwik/bindings
+          mkdir -p packages/optimizer/bindings
           for dir in artifact-bindings-*; do
             if [ -d "$dir" ]; then
-              mv "$dir"/* packages/qwik/bindings/
+              mv "$dir"/* packages/optimizer/bindings/
             fi
           done
 
@@ -366,7 +366,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-rust }}
-          path: packages/qwik/bindings
+          path: packages/optimizer/bindings
 
       - name: Upload Qwik artifact
         uses: actions/upload-artifact@v4
@@ -374,7 +374,7 @@ jobs:
           name: artifact-qwik
           include-hidden-files: true
           path: |
-            packages/qwik/bindings
+            packages/optimizer/bindings
             packages/qwik/dist
           if-no-files-found: error
 

@@ -1,7 +1,8 @@
 import { execa } from 'execa';
 import { copyFile, writeFile } from 'fs/promises';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
+import { readPackageJson } from './package-json.ts';
 import { ensureDir, type BuildConfig } from './util.ts';
 
 export async function buildPlatformBinding(config: BuildConfig) {
@@ -14,7 +15,7 @@ export async function buildPlatformBinding(config: BuildConfig) {
     `--cargo-name`,
     'qwik_napi',
     `--platform`,
-    `--config=packages/qwik/src/napi/napi.config.json`,
+    `--config=${relative(config.rootDir, join(config.srcNapiDir, 'napi.config.json'))}`,
     config.distBindingsDir,
   ];
 
@@ -43,19 +44,14 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
   const cacheDir = join(config.tmpDir, `cached-bindings`);
   ensureDir(cacheDir);
 
-  let version = config.distVersion;
-  const isDev = version.includes('-dev');
+  const optimizerPkg = await readPackageJson(config.optimizerPkgDir);
+  const isDev = config.distVersion.includes('-dev');
+  let version = optimizerPkg.version;
   let cdnUrl = 'https://cdn.jsdelivr.net/npm/';
-  let packageName: string;
+  let packageName = `@qwik.dev/optimizer@${version}`;
   if (isDev) {
     cdnUrl = `https://pkg.pr.new/QwikDev/qwik/`;
-    version = version.split('-dev')[0];
-  }
-  if (version.startsWith('2')) {
-    // 6903 is the PR that builds v2
-    packageName = `@qwik.dev/core@${isDev ? '6903' : version}`;
-  } else {
-    packageName = `@builder.io/qwik@${isDev ? 'main' : version}`;
+    packageName = `@qwik.dev/optimizer@main`;
   }
 
   let cacheVersionDir: string;

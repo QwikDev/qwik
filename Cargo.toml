@@ -1,11 +1,11 @@
 [workspace]
 
 members = [
-    "packages/qwik/src/napi",
-    "packages/qwik/src/wasm",
-    "packages/qwik/src/optimizer/core",
+    "packages/optimizer/napi",
+    "packages/optimizer/wasm",
+    "packages/optimizer/core",
 ]
-exclude = ["packages/qwik/src/wasm"]
+exclude = ["packages/optimizer/wasm"]
 resolver = "2"
 
 [profile.release]
@@ -14,4 +14,3 @@ lto = true
 codegen-units = 1
 opt-level = "z"
 panic = "abort"
-

@@ -1,0 +1,142 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 299
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+import {foo, bar as bbar} from "../state";
+import * as dep2 from "dep2";
+import dep3 from "dep3/something";
+
+export const Header = component$(() => {
+	return (
+		<Header onClick={$((ev) => dep3(ev))}>
+			{dep2.stuff()}{bbar()}
+		</Header>
+	);
+});
+
+export const App = component$(() => {
+	return (
+		<Header>{foo()}</Header>
+	);
+});
+
+============================= project/test.tsx_Header_component_Header_onClick_KjD9TCNkNxY.tsx ==
+
+import dep3 from "dep3/something";
+//
+export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;2DAQqB,CAAC,KAAO,KAAK\"}")
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_component_Header_onClick_KjD9TCNkNxY",
+  "entry": "entry_segments",
+  "displayName": "test.tsx_Header_component_Header_onClick",
+  "hash": "KjD9TCNkNxY",
+  "canonicalFilename": "test.tsx_Header_component_Header_onClick_KjD9TCNkNxY",
+  "path": "project",
+  "extension": "tsx",
+  "parent": "Header_component_UVBJuFYfvDo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    231,
+    247
+  ],
+  "paramNames": [
+    "ev"
+  ]
+}
+*/
+============================= project/test.tsx_Header_component_UVBJuFYfvDo.tsx ==
+
+import { Header } from "./test";
+import { bar as bbar } from "../state";
+import * as dep2 from "dep2";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Header_component_Header_onClick_KjD9TCNkNxY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_Header_onClick_KjD9TCNkNxY"), "Header_component_Header_onClick_KjD9TCNkNxY");
+//
+export const Header_component_UVBJuFYfvDo = ()=>{
+    return <Header onClick={q_Header_component_Header_onClick_KjD9TCNkNxY}>
+			{dep2.stuff()}{bbar()}
+		</Header>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;4CAMiC;IAChC,QACE,OAAO,wDAA8B;GACrC,CAAC,KAAK,KAAK,IAAI,OAAO;EACvB,EAAE;AAEJ\"}")
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_component_UVBJuFYfvDo",
+  "entry": "entry_segments",
+  "displayName": "test.tsx_Header_component",
+  "hash": "UVBJuFYfvDo",
+  "canonicalFilename": "test.tsx_Header_component_UVBJuFYfvDo",
+  "path": "project",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    192,
+    294
+  ]
+}
+*/
+============================= project/test.tsx_App_component_wGkRHWXaqjs.tsx ==
+
+import { Header } from "./test";
+import { foo } from "../state";
+//
+export const App_component_wGkRHWXaqjs = ()=>{
+    return <Header>{foo()}</Header>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAc8B;IAC7B,QACE,QAAQ,QAAQ;AAEnB\"}")
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "App_component_wGkRHWXaqjs",
+  "entry": "entry_segments",
+  "displayName": "test.tsx_App_component",
+  "hash": "wGkRHWXaqjs",
+  "canonicalFilename": "test.tsx_App_component_wGkRHWXaqjs",
+  "path": "project",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    328,
+    378
+  ]
+}
+*/
+============================= project/test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_wGkRHWXaqjs = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wGkRHWXaqjs"), "App_component_wGkRHWXaqjs");
+const q_Header_component_UVBJuFYfvDo = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo");
+//
+export const Header = /*#__PURE__*/ componentQrl(q_Header_component_UVBJuFYfvDo);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_wGkRHWXaqjs);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAMA,OAAO,MAAM,uBAAS,6CAMnB;AAEH,OAAO,MAAM,oBAAM,0CAIhB\"}")
+== DIAGNOSTICS ==
+
+[]

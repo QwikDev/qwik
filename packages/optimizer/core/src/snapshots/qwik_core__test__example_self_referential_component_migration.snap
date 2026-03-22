@@ -1,0 +1,265 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 5888
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+// Self-referential component: the Nested component references itself in its JSX
+// This should be migrated to its segment using two-phase emission (let + assign)
+// to avoid Temporal Dead Zone errors
+export const Nested = component$(() => {
+	return (
+		<div>
+			<Nested />
+		</div>
+	);
+});
+
+// Another self-referential component with conditional rendering
+export const RecursiveList = component$((props) => {
+	if (props.depth === 0) return <div>End</div>;
+	return (
+		<div>
+			Level {props.depth}
+			<RecursiveList depth={props.depth - 1} />
+		</div>
+	);
+});
+
+// Mutually recursive components: A references B, B references A
+const ComponentA = component$(() => {
+	return (
+		<div>
+			A
+			<ComponentB />
+		</div>
+	);
+});
+
+const ComponentB = component$(() => {
+	return (
+		<div>
+			B
+			<ComponentA />
+		</div>
+	);
+});
+
+export const MutualExample = component$(() => {
+	return <ComponentA />;
+});
+
+============================= test.tsx_Nested_component_8cqIQQSPqhE.ts (ENTRY POINT)==
+
+import { Nested } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const Nested_component_8cqIQQSPqhE = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(Nested, null, null, null, 3, "u6_0"), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;4CAMiC;IAChC,qBACC,WAAC,iCACA,WAAC;AAGJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Nested_component_8cqIQQSPqhE",
+  "entry": null,
+  "displayName": "test.tsx_Nested_component",
+  "hash": "8cqIQQSPqhE",
+  "canonicalFilename": "test.tsx_Nested_component_8cqIQQSPqhE",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    282,
+    336
+  ]
+}
+*/
+============================= test.tsx_RecursiveList_component_ignTe6QguYQ.ts (ENTRY POINT)==
+
+import { RecursiveList } from "./test";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+//
+const _hf0 = (p0)=>p0.depth - 1;
+const _hf0_str = "p0.depth-1";
+export const RecursiveList_component_ignTe6QguYQ = (props)=>{
+    if (props.depth === 0) return /*#__PURE__*/ _jsxSorted("div", null, null, "End", 3, "u6_2");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        "Level ",
+        _wrapProp(props, "depth"),
+        /*#__PURE__*/ _jsxSorted(RecursiveList, null, {
+            depth: _fnSignal(_hf0, [
+                props
+            ], _hf0_str)
+        }, null, 3, "u6_3")
+    ], 1, "u6_4");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBAoByB,GAAM,KAAK,GAAG;;mDALC,CAAC;IACxC,IAAI,MAAM,KAAK,KAAK,GAAG,qBAAO,WAAC,mBAAI;IACnC,qBACC,WAAC;QAAI;kBACG;sBACP,WAAC;YAAc,KAAK;;;;;AAGvB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "RecursiveList_component_ignTe6QguYQ",
+  "entry": null,
+  "displayName": "test.tsx_RecursiveList_component",
+  "hash": "ignTe6QguYQ",
+  "canonicalFilename": "test.tsx_RecursiveList_component_ignTe6QguYQ",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    445,
+    605
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_MutualExample_component_LXt10RL0k44.ts (ENTRY POINT)==
+
+import { _auto_ComponentA as ComponentA } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const MutualExample_component_LXt10RL0k44 = ()=>{
+    return /*#__PURE__*/ _jsxSorted(ComponentA, null, null, null, 3, "u6_9");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mDA4CwC;IACvC,qBAAO,WAAC;AACT\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "MutualExample_component_LXt10RL0k44",
+  "entry": null,
+  "displayName": "test.tsx_MutualExample_component",
+  "hash": "LXt10RL0k44",
+  "canonicalFilename": "test.tsx_MutualExample_component_LXt10RL0k44",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    908,
+    941
+  ]
+}
+*/
+============================= test.tsx_ComponentB_component_WfCOFVxlmq4.ts (ENTRY POINT)==
+
+import { _auto_ComponentA as ComponentA } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const ComponentB_component_WfCOFVxlmq4 = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        "B",
+        /*#__PURE__*/ _jsxSorted(ComponentA, null, null, null, 3, "u6_7")
+    ], 1, "u6_8");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;gDAmC8B;IAC7B,qBACC,WAAC;QAAI;sBAEJ,WAAC;;AAGJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ComponentB_component_WfCOFVxlmq4",
+  "entry": null,
+  "displayName": "test.tsx_ComponentB_component",
+  "hash": "WfCOFVxlmq4",
+  "canonicalFilename": "test.tsx_ComponentB_component_WfCOFVxlmq4",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    801,
+    864
+  ]
+}
+*/
+============================= test.tsx_ComponentA_component_100sEyGkGuA.ts (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_ComponentB_component_WfCOFVxlmq4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_ComponentB_component_WfCOFVxlmq4"), "ComponentB_component_WfCOFVxlmq4");
+//
+const ComponentB = /*#__PURE__*/ componentQrl(q_ComponentB_component_WfCOFVxlmq4);
+export const ComponentA_component_100sEyGkGuA = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        "A",
+        /*#__PURE__*/ _jsxSorted(ComponentB, null, null, null, 3, "u6_5")
+    ], 1, "u6_6");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;MAmCM,2BAAa;gDATW;IAC7B,qBACC,WAAC;QAAI;sBAEJ,WAAC;;AAGJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "ComponentA_component_100sEyGkGuA",
+  "entry": null,
+  "displayName": "test.tsx_ComponentA_component",
+  "hash": "100sEyGkGuA",
+  "canonicalFilename": "test.tsx_ComponentA_component_100sEyGkGuA",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    704,
+    767
+  ]
+}
+*/
+============================= test.ts ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_ComponentA_component_100sEyGkGuA = /*#__PURE__*/ qrl(()=>import("./test.tsx_ComponentA_component_100sEyGkGuA"), "ComponentA_component_100sEyGkGuA");
+//
+qrl(()=>import("./test.tsx_ComponentB_component_WfCOFVxlmq4"), "ComponentB_component_WfCOFVxlmq4");
+//
+const q_MutualExample_component_LXt10RL0k44 = /*#__PURE__*/ qrl(()=>import("./test.tsx_MutualExample_component_LXt10RL0k44"), "MutualExample_component_LXt10RL0k44");
+const q_Nested_component_8cqIQQSPqhE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Nested_component_8cqIQQSPqhE"), "Nested_component_8cqIQQSPqhE");
+const q_RecursiveList_component_ignTe6QguYQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_RecursiveList_component_ignTe6QguYQ"), "RecursiveList_component_ignTe6QguYQ");
+// Self-referential component: the Nested component references itself in its JSX
+// This should be migrated to its segment using two-phase emission (let + assign)
+// to avoid Temporal Dead Zone errors
+//
+export const Nested = /*#__PURE__*/ componentQrl(q_Nested_component_8cqIQQSPqhE);
+// Another self-referential component with conditional rendering
+export const RecursiveList = /*#__PURE__*/ componentQrl(q_RecursiveList_component_ignTe6QguYQ);
+// Mutually recursive components: A references B, B references A
+const ComponentA = /*#__PURE__*/ componentQrl(q_ComponentA_component_100sEyGkGuA);
+export const MutualExample = /*#__PURE__*/ componentQrl(q_MutualExample_component_LXt10RL0k44);
+export { ComponentA as _auto_ComponentA };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAGA,gFAAgF;AAChF,iFAAiF;AACjF,qCAAqC;;AACrC,OAAO,MAAM,uBAAS,6CAMnB;AAEH,gEAAgE;AAChE,OAAO,MAAM,8BAAgB,oDAQ1B;AAEH,gEAAgE;AAChE,MAAM,2BAAa;AAkBnB,OAAO,MAAM,8BAAgB,oDAE1B\"}")
+== DIAGNOSTICS ==
+
+[]

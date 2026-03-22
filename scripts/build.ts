@@ -1,7 +1,7 @@
 import { rmSync } from 'fs';
 import { copyFile, watch } from 'fs/promises';
 import { join } from 'path';
-import { apiExtractorQwik, apiExtractorQwikRouter } from './api.ts';
+import { apiExtractorOptimizer, apiExtractorQwik, apiExtractorQwikRouter } from './api.ts';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform.ts';
 import { buildWasmBinding } from './binding-wasm.ts';
 import { buildCreateQwikCli } from './create-qwik-cli.ts';
@@ -25,7 +25,7 @@ import { submoduleBackpatch } from './submodule-backpatch.ts';
 import { submoduleServer } from './submodule-server.ts';
 import { submoduleTesting } from './submodule-testing.ts';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
-import { tsc, tscQwik, tscQwikRouter } from './tsc.ts';
+import { tsc, tscOptimizer, tscQwik, tscQwikRouter } from './tsc.ts';
 import { tscDocs } from './tsc-docs.ts';
 import { emptyDir, ensureDir, panic, type BuildConfig } from './util.ts';
 import { validateBuild } from './validate-build.ts';
@@ -60,6 +60,7 @@ export async function build(config: BuildConfig) {
       rmSync(config.tscDir, { recursive: true, force: true });
       rmSync(config.dtsDir, { recursive: true, force: true });
       await tscQwik(config);
+      await tscOptimizer(config);
     }
 
     let coreNameCache: object | undefined;
@@ -97,6 +98,7 @@ export async function build(config: BuildConfig) {
       rmSync(join(config.rootDir, 'dist-dev', 'api-extractor'), { recursive: true, force: true });
     }
     if (config.api || ((!config.dev || config.tsc) && config.qwik)) {
+      await apiExtractorOptimizer(config);
       await apiExtractorQwik(config);
     }
 
@@ -169,7 +171,8 @@ export async function build(config: BuildConfig) {
           );
         },
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
-        [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
+        [config.optimizerDir]: () => submoduleOptimizer(config),
+        [config.qwikViteDir]: () => submoduleOptimizer(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
         [join(config.srcQwikRouterDir, 'runtime/src')]: () => buildQwikRouter(config),
       });

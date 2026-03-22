@@ -1,0 +1,112 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 3852
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+		export const Counter = component$(() => {
+			const count = useSignal(0);
+
+			return (
+				<div>
+					<p>Count: {count.value}</p>
+					<p>
+						<button onClick$={() => count.value++}>Increment</button>
+					</p>
+				</div>
+			);
+		});
+
+============================= test.tsx_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI.ts (ENTRY POINT)==
+
+export const Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI = (_, _1, count)=>count.value++;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oEASwB,gBAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI",
+  "entry": null,
+  "displayName": "test.tsx_Counter_component_div_p_button_q_e_click",
+  "hash": "Pq1pmfmJWUI",
+  "canonicalFilename": "test.tsx_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI",
+  "path": "",
+  "extension": "ts",
+  "parent": "Counter_component_zTmRHlL09Gg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    213,
+    232
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "count"
+  ]
+}
+*/
+============================= test.tsx_Counter_component_zTmRHlL09Gg.ts (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI"), "Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI");
+//
+export const Counter_component_zTmRHlL09Gg = ()=>{
+    const count = useSignal(0);
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("p", null, null, [
+            "Count: ",
+            _wrapProp(count)
+        ], 3, null),
+        /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", {
+            "q:p": count
+        }, {
+            "q-e:click": q_Counter_component_div_p_button_q_e_click_Pq1pmfmJWUI
+        }, "Increment", 7, null), 1, null)
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;6CAEoC;IACjC,MAAM,QAAQ,UAAU;IAExB,qBACC,WAAC;sBACA,WAAC;YAAE;sBAAQ;;sBACX,WAAC,+BACA,WAAC;;;YAAO,WAAQ;WAAuB;;AAI3C\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Counter_component_zTmRHlL09Gg",
+  "entry": null,
+  "displayName": "test.tsx_Counter_component",
+  "hash": "zTmRHlL09Gg",
+  "canonicalFilename": "test.tsx_Counter_component_zTmRHlL09Gg",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    85,
+    283
+  ]
+}
+*/
+============================= test.ts ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Counter_component_zTmRHlL09Gg = /*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_zTmRHlL09Gg"), "Counter_component_zTmRHlL09Gg");
+//
+export const Counter = /*#__PURE__*/ componentQrl(q_Counter_component_zTmRHlL09Gg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEE,OAAO,MAAM,wBAAU,8CAWpB\"}")
+== DIAGNOSTICS ==
+
+[]

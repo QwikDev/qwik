@@ -1,31 +1,44 @@
 import { platformArchTriples } from '@napi-rs/triples';
-import { constants, existsSync } from 'node:fs';
+import { constants, existsSync, mkdirSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { build as viteBuild, type UserConfig } from 'vite';
 import { compiledStringPlugin } from './compiled-string-plugin.ts';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
 import { access, getBanner, target, writeFile, type BuildConfig } from './util.ts';
 
-/** Builds @qwik.dev/core/optimizer */
+/** Builds packages/optimizer and packages/qwik-vite */
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 
   // Uncomment this to regenerate the platform binding map for the optimizer. This is only necessary when adding new platform bindings to qwik, and should be committed to source control.
   // await generatePlatformBindingsData(config);
 
-  const entryPoint = join(config.optimizerDir, 'index.ts');
+  const entryPoint = join(config.qwikViteDir, 'index.ts');
+  const optimizerEntryPoint = join(config.optimizerDir, 'index.ts');
   const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
 
   // Common Vite configuration
   const commonConfig = {
     clearScreen: false,
+    resolve: {
+      alias: [
+        {
+          find: /^image-size(?=\/|$)/,
+          replacement: join(config.packagesDir, 'qwik', 'node_modules', 'image-size'),
+        },
+        {
+          find: /^launch-editor$/,
+          replacement: join(config.packagesDir, 'qwik', 'node_modules', 'launch-editor'),
+        },
+      ],
+    },
     build: {
       emptyOutDir: false,
       sourcemap: false,
       target: target,
       minify: !config.dev, // Minify in production builds
       rollupOptions: {
-        external: ['node:fs', 'node:path', 'launch-editor'],
+        external: ['node:fs', 'node:path', 'launch-editor', '@qwik.dev/optimizer'],
       },
       lib: {
         entry: entryPoint,
@@ -76,8 +89,39 @@ export async function submoduleOptimizer(config: BuildConfig) {
     },
   };
 
+  const optimizerConfig: UserConfig = {
+    clearScreen: false,
+    build: {
+      emptyOutDir: false,
+      outDir: join(config.optimizerPkgDir, 'dist'),
+      sourcemap: false,
+      target: target,
+      minify: !config.dev,
+      lib: {
+        entry: optimizerEntryPoint,
+        name: 'optimizer',
+        fileName: () => `index.mjs`,
+        formats: ['es'],
+      },
+      rollupOptions: {
+        output: {
+          banner: getBanner('@qwik.dev/optimizer', config.optimizerVersion),
+        },
+      },
+    },
+    define: {
+      'globalThis.QWIK_VERSION': JSON.stringify(config.optimizerVersion),
+    },
+  };
+
   // Build both formats
-  await Promise.all([viteBuild(esmConfig)]);
+  await Promise.all([viteBuild(esmConfig), viteBuild(optimizerConfig)]);
+
+  const optimizerScopeDir = join(config.rootDir, 'node_modules', '@qwik.dev');
+  const optimizerLinkPath = join(optimizerScopeDir, 'optimizer');
+  mkdirSync(optimizerScopeDir, { recursive: true });
+  rmSync(optimizerLinkPath, { force: true, recursive: true });
+  symlinkSync(join('..', '..', 'packages', 'optimizer'), optimizerLinkPath, 'dir');
 
   // Note: Minification is now handled automatically by Vite in production builds
   // The output files will be minified when config.dev is false
@@ -127,7 +171,7 @@ export async function generatePlatformBindingsData(config: BuildConfig) {
 
   const code = c.join('\n') + '\n';
 
-  const platformBindingPath = join(config.srcQwikDir, 'optimizer', 'src', 'qwik-binding-map.ts');
+  const platformBindingPath = join(config.optimizerDir, 'qwik-binding-map.ts');
   let isWritable;
   try {
     await access(platformBindingPath, constants.W_OK);

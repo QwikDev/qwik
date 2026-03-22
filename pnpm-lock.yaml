@@ -67,6 +67,9 @@ importers:
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:packages/qwik
+      '@qwik.dev/optimizer':
+        specifier: workspace:*
+        version: link:packages/optimizer
       '@qwik.dev/partytown':
         specifier: 0.11.2
         version: 0.11.2
@@ -348,6 +351,9 @@ importers:
       '@qwik.dev/devtools':
         specifier: 0.2.5
         version: 0.2.5(@qwik.dev/core@packages+qwik)(@qwik.dev/router@packages+qwik-router)(@tailwindcss/vite@4.1.18(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2)))(tailwindcss@4.1.18)(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2))
+      '@qwik.dev/optimizer':
+        specifier: workspace:*
+        version: link:../optimizer
       '@qwik.dev/partytown':
         specifier: 0.11.2
         version: 0.11.2
@@ -597,8 +603,13 @@ importers:
         specifier: 3.25.48
         version: 3.25.48
 
+  packages/optimizer: {}
+
   packages/qwik:
     dependencies:
+      '@qwik.dev/optimizer':
+        specifier: workspace:*
+        version: link:../optimizer
       csstype:
         specifier: ^3.2.3
         version: 3.2.3

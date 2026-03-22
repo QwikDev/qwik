@@ -12,8 +12,8 @@ import qHandlersMjs from '../../../node_modules/@qwik.dev/core/handlers.mjs?raw-
 import qQwikLoaderJs from '../../../node_modules/@qwik.dev/core/dist/qwikloader.debug.js?raw-source';
 import qServerMjs from '../../../node_modules/@qwik.dev/core/dist/server.mjs?raw-source';
 import qServerDts from '../../../node_modules/@qwik.dev/core/dist/server.d.ts?raw-source';
-import qWasmMjs from '../../../node_modules/@qwik.dev/core/bindings/qwik.wasm.mjs?raw-source';
-import qWasmBinUrl from '../../../node_modules/@qwik.dev/core/bindings/qwik_wasm_bg.wasm?raw-source';
+import qWasmMjs from '../../../node_modules/@qwik.dev/optimizer/bindings/qwik.wasm.mjs?raw-source';
+import qWasmBinUrl from '../../../node_modules/@qwik.dev/optimizer/bindings/qwik_wasm_bg.wasm?raw-source';
 
 import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
 

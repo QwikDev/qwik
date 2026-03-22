@@ -1,7 +1,7 @@
 import { component$, Slot, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
 import type { RequestHandler } from '@qwik.dev/router';
-import { Link, useLocation } from '@qwik.dev/router';
-import tutorialSections, { type TutorialApp } from '@tutorial-data';
+import { useLocation, useNavigate } from '@qwik.dev/router';
+import tutorialSections, { type TutorialApp, type TutorialSection } from '@tutorial-data';
 import { setReplCorsHeaders } from '~/utils/utils';
 import { Header } from '../../components/header/header';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
@@ -9,13 +9,13 @@ import { EditIcon } from '../../components/svgs/edit-icon';
 import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
 import { Repl } from '../../repl/ui';
 import { TutorialContentFooter } from './tutorial-content-footer';
-import { TutorialContentHeader } from './tutorial-content-header';
 import styles from './tutorial.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
 
   const { url } = useLocation();
+  const nav = useNavigate();
   const panelStore = useStore(() => ({
     active: 'Tutorial',
     list: PANELS,
@@ -52,7 +52,7 @@ export default component$(() => {
   });
 
   return (
-    <div class="tutorial full-width fixed-header">
+    <div class="tutorial full-width fixed-header repl-theme-docs">
       <Header />
       <main
         class={{
@@ -61,44 +61,72 @@ export default component$(() => {
         }}
       >
         <article class="tutorial-content-panel">
-          <TutorialContentHeader store={store} />
-
           <div class="content-main">
-            <div>
-              <Slot />
-              {store.next ? (
-                <p class="next-link">
-                  <Link href={`/tutorial/${store.next.id}/`} class="next">
-                    Next: {store.next.title}
-                  </Link>
-                </p>
-              ) : null}
-              <a
-                class="edit-tutorial"
-                href={`https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/tutorial/${store.appId}`}
-                target="_blank"
-              >
-                <EditIcon width={16} height={16} />
-                <span>Edit Tutorial</span>
-              </a>
+            <div class="tutorial-content-shell">
+              <div class="tutorial-toolbar">
+                <label class="tutorial-lesson-picker repl-select-field repl-select-field-inline">
+                  <span class="repl-select-label">Lesson</span>
+                  <select
+                    class="repl-select"
+                    aria-label="Select tutorial lesson"
+                    onChange$={(_, elm) => {
+                      if (url.pathname !== `/tutorial/${elm.value}/`) {
+                        nav(`/tutorial/${elm.value}/`);
+                      }
+                    }}
+                  >
+                    {(tutorialSections as TutorialSection[]).map((section) => (
+                      <optgroup key={section.id} label={section.title}>
+                        {section.apps.map((tutorial) => (
+                          <option
+                            selected={tutorial.id === store.appId}
+                            value={tutorial.id}
+                            key={tutorial.id}
+                          >
+                            {tutorial.title}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </label>
+
+                <a
+                  class="edit-tutorial"
+                  href={`https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/tutorial/${store.appId}`}
+                  target="_blank"
+                >
+                  <EditIcon width={16} height={16} />
+                  <span>Edit tutorial</span>
+                </a>
+              </div>
+
+              <div class="tutorial-copy">
+                <h1>{store.app.title}</h1>
+
+                <div class="tutorial-copy-body">
+                  <Slot />
+                </div>
+              </div>
             </div>
           </div>
-
-          <TutorialContentFooter store={store} />
         </article>
         <div class="tutorial-repl-panel">
-          <div class="repl">
-            <Repl
-              input={store}
-              enableHtmlOutput={store.app.enableHtmlOutput}
-              enableClientOutput={store.app.enableClientOutput}
-              enableSsrOutput={store.app.enableSsrOutput}
-              enableCopyToPlayground={true}
-              enableDownload={true}
-              enableInputDelete={false}
-            />
+          <div class="tutorial-repl-shell">
+            <div class="repl">
+              <Repl
+                input={store}
+                enableHtmlOutput={store.app.enableHtmlOutput}
+                enableClientOutput={store.app.enableClientOutput}
+                enableSsrOutput={store.app.enableSsrOutput}
+                enableCopyToPlayground={false}
+                enableDownload={false}
+                enableInputDelete={false}
+                editorTheme="github-light"
+              />
+            </div>
           </div>
-          <div class="tutorial-repl-footer" />
+          <TutorialContentFooter store={store} />
         </div>
       </main>
       <PanelToggle panelStore={panelStore} />

@@ -28,25 +28,28 @@ export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) 
 
 const StoreBoolean = (props: StoreBooleanProps) => {
   return (
-    <label>
-      <span>{props.label}</span>
-      <input
-        type="checkbox"
-        checked={!!props.input[props.inputProp]}
-        onChange$={(ev?: any) => {
-          const input: HTMLInputElement = ev.target;
-          (props.input as any)[props.inputProp] = input.checked;
-        }}
-      />
+    <label class="repl-toggle-field">
+      <span class="repl-select-label">{props.label}</span>
+      <span class="repl-toggle-control">
+        <input
+          type="checkbox"
+          checked={!!props.input[props.inputProp]}
+          onChange$={(ev?: any) => {
+            const input: HTMLInputElement = ev.target;
+            (props.input as any)[props.inputProp] = input.checked;
+          }}
+        />
+      </span>
     </label>
   );
 };
 
 const StoreOption = (props: StoreOptionProps) => {
   return (
-    <label>
-      <span>{props.label}</span>
+    <label class="repl-select-field">
+      <span class="repl-select-label">{props.label}</span>
       <select
+        class="repl-select"
         onChange$={(ev?: any) => {
           const select: HTMLSelectElement = ev.target;
           (props.input as any)[props.inputProp] = select.value as any;

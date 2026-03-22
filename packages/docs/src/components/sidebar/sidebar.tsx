@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core';
+import { $, component$, type Signal, useSignal } from '@qwik.dev/core';
 import { Link, routeLoader$, useContent, useLocation, type ContentMenu } from '@qwik.dev/router';
 import { lucide, tree } from '@qds.dev/ui';
 
@@ -41,34 +41,44 @@ type MDX = {
   updated_at: string;
 };
 
-export const Sidebar = component$(() => {
+export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
   const { menu } = useContent();
   const { url } = useLocation();
-  const collapsed = useSignal(false);
+  const desktopCollapsed = useSignal(false);
+  const closeMobileSidebarOnLink$ = $((target: EventTarget | null) => {
+    if (target instanceof Element && target.closest('a[href]')) {
+      props.mobileOpen.value = false;
+    }
+  });
 
   const introSection = menu?.items?.[0];
   const guidesSections = menu?.items?.slice(1);
 
   return (
-    <aside class="sticky top-0 h-screen">
-      {/* Open button — always in place, sidebar covers it when open */}
+    <aside
+      class={[
+        'fixed inset-y-0 left-0 z-50 xl:sticky xl:top-0 xl:h-screen xl:pointer-events-auto',
+        props.mobileOpen.value ? 'pointer-events-auto' : 'pointer-events-none',
+      ]}
+    >
       <button
         type="button"
-        onClick$={() => (collapsed.value = false)}
+        onClick$={() => (desktopCollapsed.value = false)}
         aria-label="Open sidebar"
-        aria-hidden={!collapsed.value}
-        tabIndex={collapsed.value ? 0 : -1}
-        class="absolute top-6 left-4 flex items-center justify-center rounded-lg p-2 hover:text-standalone-accent hover:bg-background-accent"
+        aria-hidden={!desktopCollapsed.value}
+        tabIndex={desktopCollapsed.value ? 0 : -1}
+        class="hidden xl:flex absolute top-6 left-4 items-center justify-center p-0 text-foreground-soft transition-colors hover:text-foreground-base"
       >
-        <lucide.panelleftopen class="size-6 text-foreground-base" />
+        <lucide.panelleftopen class="size-6 shrink-0" />
       </button>
 
       <nav
         class={[
           'flex flex-col h-full overflow-y-auto [scrollbar-gutter:stable] w-[287px] bg-background-base border-r-[1.6px] border-base px-4 py-6 gap-4 transition-transform duration-300 ease',
-          collapsed.value ? '-translate-x-full' : 'translate-x-0',
+          props.mobileOpen.value ? 'translate-x-0' : '-translate-x-full',
+          desktopCollapsed.value ? 'xl:-translate-x-full' : 'xl:translate-x-0',
         ]}
-        aria-hidden={collapsed.value}
+        onClick$={(event) => closeMobileSidebarOnLink$(event.target)}
       >
         {/* Logo + collapse */}
         <div class="flex items-center justify-between">
@@ -77,11 +87,14 @@ export const Sidebar = component$(() => {
           </Link>
           <button
             type="button"
-            onClick$={() => (collapsed.value = true)}
+            onClick$={() => {
+              desktopCollapsed.value = true;
+              props.mobileOpen.value = false;
+            }}
             aria-label="Close sidebar"
-            class="flex items-center justify-center rounded-lg p-2 -m-2 hover:text-standalone-accent hover:bg-background-accent"
+            class="flex items-center justify-center p-0 text-foreground-soft transition-colors hover:text-foreground-base"
           >
-            <lucide.panelleftclose class="size-6 text-foreground-base" />
+            <lucide.panelleftclose class="size-6 shrink-0" />
           </button>
         </div>
 

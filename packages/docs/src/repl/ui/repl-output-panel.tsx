@@ -12,8 +12,34 @@ import {
   _vnode_toString,
 } from '@qwik.dev/core/internal';
 
+const getDiagnosticCategoryLabel = (category: string) => {
+  if (category === 'sourceError') {
+    return 'Source Error';
+  }
+  return category.charAt(0).toUpperCase() + category.slice(1);
+};
+
+const formatDiagnosticFile = (file: string) => {
+  if (!file) {
+    return 'Unknown source';
+  }
+  return file.replace(/\\/g, '/');
+};
+
+const formatDiagnosticLocation = (startLine?: number, startCol?: number) => {
+  if (!startLine || !startCol) {
+    return null;
+  }
+  return `L${startLine}:C${startCol}`;
+};
+
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
-  const diagnosticsLen = store.diagnostics.length + store.monacoDiagnostics.length;
+  const diagnostics = [...store.diagnostics, ...store.monacoDiagnostics];
+  const diagnosticsLen = diagnostics.length;
+  const errorCount = diagnostics.filter(
+    (diagnostic) => diagnostic.category === 'error' || diagnostic.category === 'sourceError'
+  ).length;
+  const warningCount = diagnostics.filter((diagnostic) => diagnostic.category === 'warning').length;
 
   const domContainerFromResultHtml = useComputed$(() => {
     try {
@@ -141,18 +167,37 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
           }}
         >
           {store.isLoading && (
-            <div class="repl-loading">
-              <svg class="repl-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="24"
-                  stroke-width="4"
-                  stroke-dasharray="37.69911184307752 37.69911184307752"
-                  fill="none"
-                  stroke-linecap="round"
-                />
-              </svg>
+            <div class="repl-loading" role="status" aria-live="polite">
+              <div class="repl-loading-shell">
+                <div class="repl-loading-meta">
+                  <span class="repl-loading-badge">Building preview</span>
+                  <svg
+                    class="repl-spinner"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 100 100"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="24"
+                      stroke-width="4"
+                      stroke-dasharray="37.69911184307752 37.69911184307752"
+                      fill="none"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </div>
+                <p class="repl-loading-title">Refreshing App output</p>
+                <p class="repl-loading-copy">
+                  Compiling the latest client and SSR result for your current code.
+                </p>
+                <div class="repl-loading-skeleton" aria-hidden="true">
+                  <span class="repl-loading-line repl-loading-line-strong" />
+                  <span class="repl-loading-line" />
+                  <span class="repl-loading-line repl-loading-line-short" />
+                </div>
+              </div>
             </div>
           )}
           {store.reload > 0 && (
@@ -166,19 +211,27 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         </div>
 
         {store.selectedOutputPanel === 'html' ? (
-          <div class="output-result output-html flex flex-col gap-2">
-            <span class="code-block-info">HTML</span>
-            <CodeBlock language="markup" format code={store.html} />
+          <div class="output-result output-code-theme output-panel-stack output-html">
+            <div class="output-panel-section">
+              <div class="output-panel-section-header">HTML</div>
+              <div class="output-panel-section-body">
+                <CodeBlock language="markup" format code={store.html} />
+              </div>
+            </div>
             {parsedState.value ? (
-              <div>
-                <span class="code-block-info">Parsed State</span>
-                <CodeBlock language="clike" code={parsedState.value} />
+              <div class="output-panel-section">
+                <div class="output-panel-section-header">Parsed State</div>
+                <div class="output-panel-section-body">
+                  <CodeBlock language="clike" code={parsedState.value} />
+                </div>
               </div>
             ) : null}
             {vdomTree.value ? (
-              <div>
-                <span class="code-block-info">VNode Tree</span>
-                <CodeBlock language="markup" code={vdomTree.value} />
+              <div class="output-panel-section">
+                <div class="output-panel-section-header">VNode Tree</div>
+                <div class="output-panel-section-body">
+                  <CodeBlock language="markup" code={vdomTree.value} />
+                </div>
               </div>
             ) : null}
           </div>
@@ -197,14 +250,87 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         ) : null}
 
         {store.selectedOutputPanel === 'diagnostics' ? (
-          <div class="output-result output-diagnostics">
-            {diagnosticsLen === 0 ? (
-              <p class="no-diagnostics">- No Reported Diagnostics -</p>
-            ) : (
-              [...store.diagnostics, ...store.monacoDiagnostics].map((d, key) => (
-                <p key={key}>{d.message}</p>
-              ))
-            )}
+          <div class="output-result output-panel-stack output-diagnostics">
+            <div class="output-diagnostics-body">
+              <div class="diagnostics-summary">
+                <div class="diagnostics-summary-pill diagnostics-summary-total">
+                  <span class="diagnostics-summary-label">Total</span>
+                  <strong>{diagnosticsLen}</strong>
+                </div>
+                <div class="diagnostics-summary-pill diagnostics-summary-errors">
+                  <span class="diagnostics-summary-label">Errors</span>
+                  <strong>{errorCount}</strong>
+                </div>
+                <div class="diagnostics-summary-pill diagnostics-summary-warnings">
+                  <span class="diagnostics-summary-label">Warnings</span>
+                  <strong>{warningCount}</strong>
+                </div>
+              </div>
+
+              {diagnosticsLen === 0 ? (
+                <div class="diagnostics-empty-state">
+                  <p class="diagnostics-empty-title">No reported diagnostics</p>
+                  <p class="diagnostics-empty-copy">
+                    Your current input compiled cleanly and Monaco did not report any editor errors.
+                  </p>
+                </div>
+              ) : (
+                <div class="diagnostics-list">
+                  {diagnostics.map((diagnostic, key) => {
+                    const firstHighlight = diagnostic.highlights?.[0];
+                    const location = formatDiagnosticLocation(
+                      firstHighlight?.startLine,
+                      firstHighlight?.startCol
+                    );
+
+                    return (
+                      <article
+                        key={key}
+                        class={{
+                          'diagnostic-item': true,
+                          'diagnostic-item-error':
+                            diagnostic.category === 'error' ||
+                            diagnostic.category === 'sourceError',
+                          'diagnostic-item-warning': diagnostic.category === 'warning',
+                        }}
+                      >
+                        <div class="diagnostic-item-header">
+                          <span class="diagnostic-item-badge">
+                            {getDiagnosticCategoryLabel(diagnostic.category)}
+                          </span>
+                          {diagnostic.code ? (
+                            <code class="diagnostic-item-code">{diagnostic.code}</code>
+                          ) : null}
+                          <span class="diagnostic-item-scope">{diagnostic.scope}</span>
+                        </div>
+
+                        <p class="diagnostic-item-message">{diagnostic.message}</p>
+
+                        <div class="diagnostic-item-meta">
+                          <code class="diagnostic-item-file">
+                            {formatDiagnosticFile(diagnostic.file)}
+                          </code>
+                          {location ? (
+                            <span class="diagnostic-item-location">{location}</span>
+                          ) : null}
+                        </div>
+
+                        {diagnostic.suggestions?.length ? (
+                          <div class="diagnostic-item-suggestions">
+                            <p class="diagnostic-item-suggestions-title">Suggestions</p>
+                            <ul>
+                              {diagnostic.suggestions.map((suggestion, suggestionKey) => (
+                                <li key={suggestionKey}>{suggestion}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         ) : null}
       </div>

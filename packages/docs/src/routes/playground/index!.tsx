@@ -1,6 +1,5 @@
 import playgroundApp from '@playground-data';
 import {
-  $,
   component$,
   isBrowser,
   useSignal,
@@ -20,9 +19,7 @@ import styles from './playground.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
-  const colResizeActive = useSignal(false);
-  const colLeft = useSignal(50);
-  const shareUrlTmr = useSignal<any>(null);
+  const shareUrlTmr = useSignal<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const store = useStore<ReplAppInput>(() => ({
     files: playgroundApp.inputs,
@@ -65,29 +62,13 @@ export default component$(() => {
     }
   });
 
-  const pointerDown = $(() => {
-    colResizeActive.value = true;
-  });
-
-  const pointerMove = $((ev: PointerEvent) => {
-    if (colResizeActive.value) {
-      colLeft.value = (ev.clientX / window.innerWidth) * 100;
-      colLeft.value = Math.max(25, colLeft.value);
-      colLeft.value = Math.min(75, colLeft.value);
-    }
-  });
-
-  const pointerUp = $(() => {
-    colResizeActive.value = false;
-  });
-
   return (
     <div
       class={{
         playground: true,
         'full-width': true,
         'fixed-header': true,
-        'repl-resize-active': colResizeActive.value,
+        'repl-theme-docs': true,
       }}
     >
       <Header />
@@ -98,28 +79,16 @@ export default component$(() => {
           'repl-panel-console': panelStore.active === 'Console',
           repl: true,
         }}
-        style={{
-          gridTemplateColumns: `${colLeft.value}% ${100 - colLeft.value}%`,
-        }}
       >
         <Repl
           input={store}
           enableCopyToPlayground={false}
           enableDownload={true}
           enableInputDelete={true}
+          enableMainSplitter={true}
+          editorTheme="github-light"
         />
       </div>
-
-      <div
-        class="repl-col-resize-bar"
-        onPointerDown$={pointerDown}
-        onPointerMove$={pointerMove}
-        onPointerUp$={pointerUp}
-        onPointerOut$={pointerUp}
-        style={{
-          left: `calc(${colLeft.value}% - 6px)`,
-        }}
-      />
       <PanelToggle panelStore={panelStore} />
     </div>
   );

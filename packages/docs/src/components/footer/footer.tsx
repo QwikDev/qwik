@@ -52,19 +52,19 @@ const socialLinks = [
 
 export const Footer = component$(() => {
   return (
-    <footer class="bg-violet-0 px-20 pt-32 pb-10">
-      <div class="flex flex-col gap-20 max-w-6xl mx-auto">
-        <div class="flex items-start justify-between gap-16">
-          <QwikIconMark class="w-[100px] h-[107px] shrink-0" />
+    <footer class="bg-violet-0 px-6 pt-16 pb-10 sm:px-10 lg:px-20 lg:pt-32">
+      <div class="flex flex-col gap-12 max-w-6xl mx-auto lg:gap-20">
+        <div class="flex flex-col items-start gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
+          <QwikIconMark class="w-20 h-[86px] shrink-0 lg:w-[100px] lg:h-[107px]" />
 
-          <div class="flex flex-col gap-16 flex-1">
+          <div class="flex flex-col gap-10 flex-1 lg:gap-16">
             <h2 class="font-heading text-h5 text-foreground-base m-0">
               Automatically instant web apps
             </h2>
 
-            <div class="flex gap-32">
+            <div class="grid grid-cols-2 gap-x-8 gap-y-10 sm:gap-x-12 lg:grid-cols-4 lg:gap-16 xl:gap-32">
               {linkColumns.map((col) => (
-                <div key={col.heading} class="flex flex-col gap-4">
+                <div key={col.heading} class="flex flex-col gap-4 min-w-0">
                   <span class="text-label-sm text-foreground-soft">{col.heading}</span>
                   {col.links.map((link) => (
                     <Link
@@ -81,11 +81,11 @@ export const Footer = component$(() => {
           </div>
         </div>
 
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <p class="text-body-sm text-foreground-base m-0">
             Copyright &copy; {new Date().getFullYear()} Qwik
           </p>
-          <div class="flex gap-8 items-center">
+          <div class="flex gap-6 items-center">
             {socialLinks.map(({ title, href, Icon }) => (
               <a key={title} href={href} target="_blank" rel="noreferrer" title={title}>
                 <Icon class="size-6 text-foreground-base" />

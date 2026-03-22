@@ -1,5 +1,5 @@
 import { useLocation } from '@qwik.dev/router';
-import { component$, Slot, useComputed$, useStyles$ } from '@qwik.dev/core';
+import { component$, Slot, useComputed$, useSignal, useStyles$ } from '@qwik.dev/core';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import Contributors from '../../components/contributors';
 import { Footer } from '../../components/footer/footer';
@@ -15,12 +15,13 @@ export default component$(() => {
   const loc = useLocation();
   const isOverview = useComputed$(() => loc.url.pathname === '/docs/');
   const hasOnThisPage = useComputed$(() => !isOverview.value);
+  const mobileSidebarOpen = useSignal(false);
 
   return (
     <div class="docs fixed-header">
-      <Header />
+      <Header mobileSidebarOpen={mobileSidebarOpen} />
       <div class="docs-grid bg-violet-shallow">
-        <Sidebar />
+        <Sidebar mobileOpen={mobileSidebarOpen} />
         <div class="docs-content-area pb-10">
           <main>
             <div class={`docs-content ${isOverview.value ? 'docs-content-wide' : ''}`}>

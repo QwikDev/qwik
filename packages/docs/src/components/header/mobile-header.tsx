@@ -1,4 +1,4 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, type Signal } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 import { Link } from '../action/action';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
@@ -23,7 +23,7 @@ const MobileNavSection = (props: {
   pathname: string;
   links: { href: string; label: string }[];
 }) => (
-  <div class="flex flex-col gap-4 w-[130px]">
+  <div class="flex min-w-0 flex-col gap-4">
     <span class="font-bold text-sm leading-[143%] text-foreground-muted">{props.title}</span>
     {props.links.map((link) => (
       <MobileNavLink key={link.href} {...link} active={isActive(props.pathname, link.href)} />
@@ -40,7 +40,7 @@ const isActive = (pathname: string | undefined, href: string) => {
   return clean === target;
 };
 
-export const MobileHeader = component$(() => {
+export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<boolean> }) => {
   const { url } = useLocation();
   const pathname = url.pathname;
   return (
@@ -48,9 +48,26 @@ export const MobileHeader = component$(() => {
       <modal.root>
         {/* Top bar (always visible) */}
         <div class="fixed top-0 left-0 right-0 z-99999 flex items-center justify-between px-4 py-4 bg-background-base border-b-[1.6px] border-base">
-          <a href="/" class="flex items-center gap-2 text-foreground-accent">
-            <QwikLogoOnly />
-          </a>
+          <div class="flex items-center gap-2">
+            {props.mobileSidebarOpen && (
+              <button
+                type="button"
+                aria-label={props.mobileSidebarOpen.value ? 'Close sidebar' : 'Open sidebar'}
+                aria-expanded={props.mobileSidebarOpen.value}
+                class="flex items-center justify-center p-0 text-foreground-soft transition-colors hover:text-foreground-base"
+                onClick$={() => (props.mobileSidebarOpen!.value = !props.mobileSidebarOpen!.value)}
+              >
+                {props.mobileSidebarOpen.value ? (
+                  <lucide.panelleftclose class="size-6 shrink-0" />
+                ) : (
+                  <lucide.panelleftopen class="size-6 shrink-0" />
+                )}
+              </button>
+            )}
+            <a href="/" class="flex items-center gap-2 text-foreground-accent">
+              <QwikLogoOnly />
+            </a>
+          </div>
           <modal.trigger class="text-foreground-base">
             <lucide.menu class="size-6" />
           </modal.trigger>
@@ -78,10 +95,10 @@ export const MobileHeader = component$(() => {
             </div>
           </div>
 
-          <div class="px-6 py-10 flex-1">
+          <div class="px-6 py-8 flex-1">
             <div class="flex flex-col gap-8">
               {/* Row 1: Core + Ecosystem */}
-              <div class="flex gap-16">
+              <div class="grid grid-cols-2 gap-8">
                 <MobileNavSection
                   title="Core"
                   pathname={pathname}
@@ -104,7 +121,7 @@ export const MobileHeader = component$(() => {
                 />
               </div>
               {/* Row 2: Router + Resources */}
-              <div class="flex gap-16">
+              <div class="grid grid-cols-2 gap-8">
                 <MobileNavSection
                   title="Router"
                   pathname={pathname}

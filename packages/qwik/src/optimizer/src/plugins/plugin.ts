@@ -94,7 +94,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const clientChunkNames = new Map<string, string>();
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
-  const serverSegments = new Map<string, SegmentAnalysis>();
   const parentIds = new Map<string, string>();
 
   let internalOptimizer: Optimizer | null = null;
@@ -427,7 +426,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     clientSegments.clear();
     clientChunkNames.clear();
     serverTransformedOutputs.clear();
-    serverSegments.clear();
     parentIds.clear();
 
     if (opts.target === 'client') {
@@ -453,14 +451,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         : opts.target === 'ssr' || opts.target === 'test';
   };
 
-  const getSegmentCache = (isServer: boolean) => (isServer ? serverSegments : clientSegments);
-
-  const setCachedSegment = (id: string, segment: SegmentAnalysis | null, isServer: boolean) => {
+  const setCachedSegment = (id: string, segment: SegmentAnalysis | null) => {
     if (!segment) {
       return;
     }
     const normalizedId = normalizePath(parseId(id).pathId);
-    const cache = getSegmentCache(isServer);
+    const cache = clientSegments;
     cache.set(id, segment);
     cache.set(normalizedId, segment);
   };
@@ -470,7 +466,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx?: ChunkingContext,
     isServer = opts.target === 'ssr'
   ): SegmentAnalysis | undefined => {
-    const cache = getSegmentCache(isServer);
+    const cache = clientSegments;
     const normalizedId = normalizePath(parseId(id).pathId);
     const moduleInfo = ctx?.getModuleInfo(id) as ModuleInfo | null | undefined;
     return (
@@ -937,7 +933,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
-          setCachedSegment(key, mod.segment, isServer);
+          setCachedSegment(key, mod.segment);
           deps.add(key);
           if (opts.target === 'client' && !devServer) {
             // rollup must be told about all entry points
@@ -1137,27 +1133,11 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
         clientChunkNames.clear();
         clientSegments.delete(id);
         clientSegments.delete(normalizePath(parseId(id).pathId));
-        serverSegments.delete(id);
-        serverSegments.delete(normalizePath(parseId(id).pathId));
-        for (const outputs of [clientTransformedOutputs, serverTransformedOutputs]) {
-          for (const [key, [_, parentId]] of outputs) {
-            if (parentId === id) {
-              debug('handleHotUpdate()', `invalidate ${id} segment ${key}`);
-              outputs.delete(key);
-              clientSegments.delete(key);
-              clientSegments.delete(normalizePath(parseId(key).pathId));
-              serverSegments.delete(key);
-              serverSegments.delete(normalizePath(parseId(key).pathId));
-              const mod = ctx.server.moduleGraph.getModuleById(key);
-              if (mod) {
-                ctx.server.moduleGraph.invalidateModule(mod);
-              }
-            }
-          }
-        }
         for (const [key, [_, parentId]] of outputs) {
           if (parentId === id) {
             debug('hotUpdate()', `invalidate ${id} segment ${key}`);
+            clientSegments.delete(key);
+            clientSegments.delete(normalizePath(parseId(key).pathId));
             outputs.delete(key);
             const segMod = environment.moduleGraph.getModuleById(key);
             if (segMod) {

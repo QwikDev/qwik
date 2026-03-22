@@ -38,6 +38,7 @@ import './global.css';
 import { QRL } from './components/qrl/qrl';
 import { AsyncRoot } from './components/use-async/use-async';
 import { Backpatching } from './components/backpatching/backpatching';
+import { EachRoot } from './components/each/each';
 
 const tests: Record<string, FunctionComponent> = {
   '/e2e/two-listeners': () => <TwoListeners />,
@@ -77,6 +78,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/qrl': () => <QRL />,
   '/e2e/async-computed': () => <AsyncRoot />,
   '/e2e/backpatching': () => <Backpatching />,
+  '/e2e/each': () => <EachRoot />,
 };
 
 export const Root = component$<{ pathname: string }>(({ pathname }) => {

@@ -580,6 +580,20 @@
       "mdFile": "core.domattributes.md"
     },
     {
+      "name": "Each",
+      "id": "each",
+      "hierarchy": [
+        {
+          "name": "Each",
+          "id": "each"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nEach: EachComponent\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/each.ts",
+      "mdFile": "core.each.md"
+    },
+    {
       "name": "Element",
       "id": "qwikjsx-element",
       "hierarchy": [

@@ -196,32 +196,35 @@ export async function mainThread(sys: System) {
             .filter((p) => p.startsWith('[') && p.endsWith(']'))
             .map((p) => (p.startsWith('[...') ? p.slice(4, -1) : p.slice(1, -1)));
 
-          // Load all modules (last one is the page module)
-          const modules = await Promise.all(
-            pageLoaders
-              .filter((l): l is () => Promise<any> => typeof l === 'function')
-              .map((l) => l())
-          );
-          const pageModule: PageModule = modules[modules.length - 1];
+          if (paramNames.length === 0) {
+            addToQueue(originalPathname, undefined);
+          } else {
+            // Only the page module can provide onStaticGenerate, so avoid importing layouts or
+            // static pages during discovery. This keeps SSG from stalling on unrelated loaders.
+            const pageLoader = pageLoaders[pageLoaders.length - 1];
+            if (typeof pageLoader === 'function') {
+              const pageModule: PageModule = await pageLoader();
 
-          if (paramNames.length > 0) {
-            if (typeof pageModule.onStaticGenerate === 'function') {
-              const staticGenerate = await pageModule.onStaticGenerate({
-                env: {
-                  get(key: string) {
-                    return sys.getEnv(key);
+              if (typeof pageModule.onStaticGenerate === 'function') {
+                const staticGenerate = await pageModule.onStaticGenerate({
+                  env: {
+                    get(key: string) {
+                      return sys.getEnv(key);
+                    },
                   },
-                },
-              });
-              if (Array.isArray(staticGenerate.params)) {
-                for (const params of staticGenerate.params) {
-                  const pathname = getPathnameForDynamicRoute(originalPathname, paramNames, params);
-                  addToQueue(pathname, params);
+                });
+                if (Array.isArray(staticGenerate.params)) {
+                  for (const params of staticGenerate.params) {
+                    const pathname = getPathnameForDynamicRoute(
+                      originalPathname,
+                      paramNames,
+                      params
+                    );
+                    addToQueue(pathname, params);
+                  }
                 }
               }
             }
-          } else {
-            addToQueue(originalPathname, undefined);
           }
         }
 
@@ -267,8 +270,9 @@ export async function mainThread(sys: System) {
       };
 
       const loadStaticRoutes = async () => {
-        const basePathname = opts.basePathname || '/';
-        await traverseRouteTree(routes, [], basePathname, []);
+        // The route trie already contains any configured base pathname segments, so reconstruct
+        // discovered paths from "/" to avoid prefixing the base twice.
+        await traverseRouteTree(routes, [], '/', []);
         isRoutesLoaded = true;
         flushQueue();
       };

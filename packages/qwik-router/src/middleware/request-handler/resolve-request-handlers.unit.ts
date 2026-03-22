@@ -1,10 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getPathname, isContentType, fixTrailingSlash } from './resolve-request-handlers';
+import { getPathname, fixTrailingSlash, resolveRequestHandlers } from './resolve-request-handlers';
+import { RequestEvHttpStatusMessage } from './request-event-core';
 import { createRequestEvent } from './request-event';
 import { RedirectMessage } from './redirect-handler';
+import { isContentType } from './request-utils';
 import type { ServerRequestEvent } from './types';
 import { checkCSRF } from './resolve-request-handlers';
-import type { LoadedRoute } from '../../runtime/src/types';
+import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
+import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -280,6 +283,41 @@ describe('resolve-request-handler', () => {
 
         fixTrailingSlash(requestEv);
       });
+    });
+  });
+
+  describe('server error handling', () => {
+    it('should catch public ServerError instances in page middleware', async () => {
+      const route: LoadedRoute = {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [
+          {
+            onRequest() {
+              throw new ServerError(418, 'teapot');
+            },
+          } as RouteModule,
+          justHiModule as RouteModule,
+        ],
+        $errorLoader$: vi.fn(async () => ({ default: () => null })),
+      };
+      const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
+        requestEv.exit();
+      });
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler, false);
+      const requestEv = createRequestEvent(
+        createMockServerRequestEvent(),
+        route,
+        handlers,
+        '/',
+        vi.fn()
+      );
+
+      await requestEv.next();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(418);
+      expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('teapot');
     });
   });
 });

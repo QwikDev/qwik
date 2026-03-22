@@ -259,16 +259,19 @@ function validateResults(
     const measuredScenario = measuredResults[scenario.id];
     const allowedMax = Math.round(storedScenario.totalBytes * (1 + RELATIVE_TOLERANCE));
     const ok = measuredScenario.totalBytes <= allowedMax;
+    const great =
+      1 - (measuredScenario.totalBytes - storedScenario.totalBytes) / storedScenario.totalBytes <
+      0.99;
     const measuredPerInstance = measuredScenario.totalBytes / measuredScenario.count;
     const allowedMaxPerInstance = allowedMax / measuredScenario.count;
 
     console.log(
       [
         `${scenario.id}:`,
-        `perInstance=${formatBytes(measuredPerInstance)}`,
-        `stored=${formatBytes(storedScenario.bytesPerInstance)}`,
-        `allowedMax=${formatBytes(allowedMaxPerInstance)}`,
+        formatBytes(measuredPerInstance),
+        `delta ${formatBytes(measuredPerInstance - storedScenario.bytesPerInstance)}`,
         ok ? 'OK' : 'FAIL',
+        great ? '--- GREAT!!!' : '',
       ].join(' ')
     );
 

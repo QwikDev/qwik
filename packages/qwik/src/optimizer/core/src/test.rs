@@ -6901,6 +6901,115 @@ export const Works = componentQrl(inlinedQrl((props) => {
 	);
 }
 
+#[test]
+fn should_not_inline_exported_var_into_segment() {
+	test_input!(TestInput {
+		code: r#"
+		import { wrapperFn, getEnv } from 'utils';
+		import { formAction$, valiForm$ } from 'forms';
+
+		const flagEnabled = getEnv().PUBLIC_FEATURE;
+		export const FeatureSchema = wrapperFn(flagEnabled);
+
+		export const featureAction = formAction$(async (requestEvent) => {
+			return {
+				status: 'success',
+			};
+		}, valiForm$(FeatureSchema));
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_auto_export_var_shadowed_in_catch() {
+	test_input!(TestInput {
+		code: r#"
+import { formAction$ } from 'forms';
+import { translate } from 'i18n';
+
+const t = translate();
+export const action = formAction$((data) => {
+  try {
+    return { status: 'success' };
+  } catch (err) {
+    const t = translate();
+    return { status: 'error', message: t('error-key') };
+  }
+});
+		"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_auto_export_var_shadowed_in_do_while() {
+	test_input!(TestInput {
+		code: r#"
+import { formAction$ } from 'forms';
+const x = 'module-level';
+export const action = formAction$((data) => {
+  let i = 0;
+  do {
+    const x = 'shadowed';
+    i++;
+  } while (i < 3);
+  return {};
+});
+		"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_auto_export_var_shadowed_in_switch() {
+	test_input!(TestInput {
+		code: r#"
+import { formAction$ } from 'forms';
+const x = 'module-level';
+export const action = formAction$((data) => {
+  switch (data.kind) {
+    case 'a': {
+      const x = 'shadowed-in-block';
+      return x;
+    }
+    case 'b': {
+      const x = 'shadowed-in-case';
+      return x;
+    }
+  }
+  return x;
+});
+		"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_auto_export_var_shadowed_in_labeled_block() {
+	test_input!(TestInput {
+		code: r#"
+import { formAction$ } from 'forms';
+const x = 'module-level';
+export const action = formAction$((data) => {
+  label: {
+    const x = 'shadowed';
+    break label;
+  }
+  return {};
+});
+		"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
 impl TestInput {
 	pub fn default() -> Self {
 		Self {

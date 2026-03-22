@@ -339,6 +339,19 @@ export { DomContainer as _DomContainer }
 // @internal (undocumented)
 export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, limit?: number | null) => string;
 
+// Warning: (ae-forgotten-export) The symbol "EachProps" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _eaC: (props: EachProps<any>) => JSXNode<unknown>;
+
+// Warning: (ae-forgotten-export) The symbol "EachComponent" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const Each: EachComponent;
+
+// @internal (undocumented)
+export const _eaT: (input: TaskCtx) => Promise<void>;
+
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
 

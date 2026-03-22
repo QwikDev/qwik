@@ -1,5 +1,4 @@
 import {
-  $,
   component$,
   createSignal,
   untrack,
@@ -7,7 +6,6 @@ import {
   type QRL,
   type Signal,
 } from '@qwik.dev/core';
-import type { _ElementVNode } from '@qwik.dev/core/internal';
 
 const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
 const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore

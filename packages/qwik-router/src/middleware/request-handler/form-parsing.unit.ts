@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formToObj } from './request-event';
+import { formToObj } from './request-event-core';
 
 describe('formToObj', () => {
   describe('Object prototype pollution', () => {

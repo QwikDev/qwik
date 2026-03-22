@@ -160,7 +160,9 @@ export const dispatch = async (
     if ('_qDispatch' in (element as QElement)) {
       const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
       if (handlers) {
-        if (handlers.length) {
+        if (typeof handlers === 'function') {
+          await handlers(event, element);
+        } else if (handlers.length) {
           for (const handler of handlers) {
             if (handler) {
               await (handler as EventHandler)(event, element);

@@ -64,9 +64,10 @@ export default component$(() => {
           <div class="content-main">
             <div class="tutorial-content-shell">
               <div class="tutorial-toolbar">
-                <label class="tutorial-lesson-picker">
-                  <span>Lesson</span>
+                <label class="tutorial-lesson-picker repl-select-field repl-select-field-inline">
+                  <span class="repl-select-label">Lesson</span>
                   <select
+                    class="repl-select"
                     aria-label="Select tutorial lesson"
                     onChange$={(_, elm) => {
                       if (url.pathname !== `/tutorial/${elm.value}/`) {

@@ -69,10 +69,20 @@
 
 .playground .repl-output-panel {
   grid-area: repl-output-panel;
+  border-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .playground .repl-detail-panel {
   grid-area: repl-detail-panel;
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.playground .repl-detail-panel .repl-tab-buttons {
+  border-top: 1.6px solid var(--playground-border);
 }
 
 .playground .repl-main-resizer {

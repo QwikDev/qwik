@@ -12,8 +12,34 @@ import {
   _vnode_toString,
 } from '@qwik.dev/core/internal';
 
+const getDiagnosticCategoryLabel = (category: string) => {
+  if (category === 'sourceError') {
+    return 'Source Error';
+  }
+  return category.charAt(0).toUpperCase() + category.slice(1);
+};
+
+const formatDiagnosticFile = (file: string) => {
+  if (!file) {
+    return 'Unknown source';
+  }
+  return file.replace(/\\/g, '/');
+};
+
+const formatDiagnosticLocation = (startLine?: number, startCol?: number) => {
+  if (!startLine || !startCol) {
+    return null;
+  }
+  return `L${startLine}:C${startCol}`;
+};
+
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
-  const diagnosticsLen = store.diagnostics.length + store.monacoDiagnostics.length;
+  const diagnostics = [...store.diagnostics, ...store.monacoDiagnostics];
+  const diagnosticsLen = diagnostics.length;
+  const errorCount = diagnostics.filter(
+    (diagnostic) => diagnostic.category === 'error' || diagnostic.category === 'sourceError'
+  ).length;
+  const warningCount = diagnostics.filter((diagnostic) => diagnostic.category === 'warning').length;
 
   const domContainerFromResultHtml = useComputed$(() => {
     try {
@@ -205,14 +231,87 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         ) : null}
 
         {store.selectedOutputPanel === 'diagnostics' ? (
-          <div class="output-result output-diagnostics">
-            {diagnosticsLen === 0 ? (
-              <p class="no-diagnostics">- No Reported Diagnostics -</p>
-            ) : (
-              [...store.diagnostics, ...store.monacoDiagnostics].map((d, key) => (
-                <p key={key}>{d.message}</p>
-              ))
-            )}
+          <div class="output-result output-panel-stack output-diagnostics">
+            <div class="output-diagnostics-body">
+              <div class="diagnostics-summary">
+                <div class="diagnostics-summary-pill diagnostics-summary-total">
+                  <span class="diagnostics-summary-label">Total</span>
+                  <strong>{diagnosticsLen}</strong>
+                </div>
+                <div class="diagnostics-summary-pill diagnostics-summary-errors">
+                  <span class="diagnostics-summary-label">Errors</span>
+                  <strong>{errorCount}</strong>
+                </div>
+                <div class="diagnostics-summary-pill diagnostics-summary-warnings">
+                  <span class="diagnostics-summary-label">Warnings</span>
+                  <strong>{warningCount}</strong>
+                </div>
+              </div>
+
+              {diagnosticsLen === 0 ? (
+                <div class="diagnostics-empty-state">
+                  <p class="diagnostics-empty-title">No reported diagnostics</p>
+                  <p class="diagnostics-empty-copy">
+                    Your current input compiled cleanly and Monaco did not report any editor errors.
+                  </p>
+                </div>
+              ) : (
+                <div class="diagnostics-list">
+                  {diagnostics.map((diagnostic, key) => {
+                    const firstHighlight = diagnostic.highlights?.[0];
+                    const location = formatDiagnosticLocation(
+                      firstHighlight?.startLine,
+                      firstHighlight?.startCol
+                    );
+
+                    return (
+                      <article
+                        key={key}
+                        class={{
+                          'diagnostic-item': true,
+                          'diagnostic-item-error':
+                            diagnostic.category === 'error' ||
+                            diagnostic.category === 'sourceError',
+                          'diagnostic-item-warning': diagnostic.category === 'warning',
+                        }}
+                      >
+                        <div class="diagnostic-item-header">
+                          <span class="diagnostic-item-badge">
+                            {getDiagnosticCategoryLabel(diagnostic.category)}
+                          </span>
+                          {diagnostic.code ? (
+                            <code class="diagnostic-item-code">{diagnostic.code}</code>
+                          ) : null}
+                          <span class="diagnostic-item-scope">{diagnostic.scope}</span>
+                        </div>
+
+                        <p class="diagnostic-item-message">{diagnostic.message}</p>
+
+                        <div class="diagnostic-item-meta">
+                          <code class="diagnostic-item-file">
+                            {formatDiagnosticFile(diagnostic.file)}
+                          </code>
+                          {location ? (
+                            <span class="diagnostic-item-location">{location}</span>
+                          ) : null}
+                        </div>
+
+                        {diagnostic.suggestions?.length ? (
+                          <div class="diagnostic-item-suggestions">
+                            <p class="diagnostic-item-suggestions-title">Suggestions</p>
+                            <ul>
+                              {diagnostic.suggestions.map((suggestion, suggestionKey) => (
+                                <li key={suggestionKey}>{suggestion}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         ) : null}
       </div>

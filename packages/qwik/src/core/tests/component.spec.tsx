@@ -242,19 +242,19 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal ssr-required>1</Signal>
+              <Signal>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal ssr-required>1</Signal>
+              <Signal>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal ssr-required>2</Signal>
+              <Signal>2</Signal>
             </div>
           </Component>
         </main>
@@ -269,7 +269,7 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal ssr-required>2</Signal>
+              <Signal>2</Signal>
             </div>
           </Component>
         </main>
@@ -316,13 +316,13 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal ssr-required>1</Signal>
+              <Signal>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal ssr-required>2</Signal>
+              <Signal>2</Signal>
             </div>
           </Component>
         </main>
@@ -343,7 +343,7 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal ssr-required>2</Signal>
+              <Signal>2</Signal>
             </div>
           </Component>
         </main>
@@ -354,8 +354,11 @@ describe.each([
   it('should not rerender component with empty props', async () => {
     (globalThis as any).componentExecuted = [];
     const Component1 = component$<PropsOf<any>>(() => {
+      const sig = useSignal(8);
+      // be reactive
+      sig.value;
       (globalThis as any).componentExecuted.push('Component1');
-      return <div></div>;
+      return <div onClick$={() => sig.value}></div>;
     });
     const Parent = component$(() => {
       (globalThis as any).componentExecuted.push('Parent');
@@ -2623,7 +2626,7 @@ describe.each([
       });
       (globalThis as any).logs.push('ResponsiveImage render');
       return (
-        <span>
+        <span onClick$={() => fullImage.value}>
           {props.image}
           {fullImage.value}
           {computedImage.value}

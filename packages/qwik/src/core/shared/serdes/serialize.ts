@@ -510,22 +510,12 @@ export class Serializer {
         vNodeData[0] |= VNodeDataFlag.SERIALIZE;
       }
       if (value.children) {
-        // can be static, but we need to save vnode data structure + discover the back refs
+        // can be static, but we need to save vnode data structure
         const childrenLength = value.children.length;
         for (let i = 0; i < childrenLength; i++) {
           const child = value.children[i];
           const childVNodeData = child.vnodeData;
           if (childVNodeData) {
-            // add all back refs to the roots
-            for (let i = 0; i < childVNodeData.length; i++) {
-              const value = childVNodeData[i];
-              if (isSsrAttrs(value)) {
-                const backRefs = tryGetBackRefs(value);
-                if (backRefs) {
-                  this.$serializationContext$.$addRoot$(backRefs);
-                }
-              }
-            }
             childVNodeData[0] |= VNodeDataFlag.SERIALIZE;
           }
         }

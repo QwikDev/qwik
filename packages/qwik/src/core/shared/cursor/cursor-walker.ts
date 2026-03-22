@@ -60,14 +60,19 @@ export interface WalkOptions {
  */
 export function processCursorQueue(
   options: WalkOptions = {
-    timeBudget: 1000 / 60, // 60fps
+    timeBudget: isBrowser ? 1000 / 60 : 0, // 60fps on browser, unlimited on server
   }
 ): void {
   isNextTickScheduled = false;
 
+  const startTime = performance.now();
   let cursor: Cursor | null = null;
   while ((cursor = getHighestPriorityCursor())) {
-    walkCursor(cursor, options);
+    const didYield = walkCursor(cursor, options, startTime);
+    // Check if time budget expired (cursor stays in queue, caller decides next step)
+    if (didYield) {
+      return;
+    }
   }
 }
 
@@ -88,21 +93,15 @@ export function processCursorQueue(
  *
  * @param cursor - The cursor to walk
  * @param options - Walk options (time budget, etc.)
- * @returns Walk result indicating completion status
+ * @returns True if the walk yielded (time budget exceeded), false if walk completed
  */
-export function walkCursor(cursor: Cursor, options: WalkOptions): void {
+export function walkCursor(cursor: Cursor, options: WalkOptions, startTime: number): true | void {
   const { timeBudget } = options;
   // If the cursor has SSR build state, force server mode regardless of the current platform.
   // This prevents platform mismatches when cursor async callbacks (from promise chains) run
   // as microtasks after the render loop resolves — the platform may have been restored to
   // client mode by the test harness, but SSR cursors must always use the SSR chore runtime.
-  const cursorSsrBuildState = getCursorData(cursor)?.ssrBuildState;
-  const isRunningOnServer = cursorSsrBuildState
-    ? true
-    : import.meta.env.TEST
-      ? isServerPlatform()
-      : isServer;
-  const startTime = performance.now();
+  const isRunningOnServer = 'tag' in getCursorData(cursor)!.container;
   const choreRuntime = getCursorChoreRuntime(isRunningOnServer);
 
   const cursorData = getCursorData(cursor)!;
@@ -140,6 +139,18 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     }
     if (cursorData.promise) {
       return;
+    }
+    // Check time budget (skipped when 0 — the server default via triggerCursors)
+    if (timeBudget !== 0) {
+      const elapsed = performance.now() - startTime;
+      if (elapsed >= timeBudget) {
+        if (isBrowser) {
+          // Schedule continuation as macrotask to actually yield to browser
+          scheduleYield();
+        }
+        console.log('yielding');
+        return true;
+      }
     }
 
     // Skip if the vNode is not dirty
@@ -245,16 +256,6 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
           triggerCursors();
         });
       return;
-    }
-
-    // Check time budget (only for DOM, not SSR)
-    if (isBrowser) {
-      const elapsed = performance.now() - startTime;
-      if (elapsed >= timeBudget) {
-        // Schedule continuation as macrotask to actually yield to browser
-        scheduleYield();
-        return;
-      }
     }
   }
   isDev &&

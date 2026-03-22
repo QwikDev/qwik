@@ -198,6 +198,7 @@ export interface StreamingOptions {
     inOrder?: InOrderStreaming;
     // (undocumented)
     suspenseFallbackDelay?: number;
+    yieldBudget?: number;
 }
 
 // @public

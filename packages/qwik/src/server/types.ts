@@ -234,6 +234,8 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;
   suspenseFallbackDelay?: number;
+  /** Time budget in ms between I/O yields during SSR. Default: 10. Set to 0 to disable. */
+  yieldBudget?: number;
 }
 
 /** @public */

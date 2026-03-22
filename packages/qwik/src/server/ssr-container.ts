@@ -12,6 +12,7 @@ import {
   _addCursor as addCursor,
   _getCursorData as getCursorData,
   _processCursorQueue as processCursorQueue,
+  _hasActiveCursors as hasActiveCursors,
   _VirtualVNode as VirtualVNode,
   _vnode_getProp as vnode_getProp,
   _vnode_setProp as vnode_setProp,
@@ -495,8 +496,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // Emission loop: emit ready nodes, handle callbacks, retry if blocked
     let emitDone = false;
     let savedContainerDataFrame: typeof this.emitContainerDataFrame = null;
+    const yieldBudget = this.renderOptions.streaming?.yieldBudget ?? 10;
+    const yieldToIO =
+      yieldBudget > 0
+        ? () =>
+            new Promise<void>((r) =>
+              typeof setImmediate !== 'undefined' ? setImmediate(r) : setTimeout(r, 0)
+            )
+        : null;
     while (!emitDone) {
-      processCursorQueue({ timeBudget: Infinity });
+      processCursorQueue({ timeBudget: yieldBudget });
 
       // After the first processCursorQueue, capture the container data frame.
       // emitContainerDataFrame is set during tree building when openElement encounters <body>.
@@ -555,6 +564,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         case EmitResult.BLOCKED_DIRTY:
+          if (hasActiveCursors() && yieldToIO) {
+            // Time budget expired with sync work remaining.
+            // Flush buffered output so the client gets data, then yield to I/O.
+            this.streamHandler?.flush();
+            await yieldToIO();
+            this.ssrBuildState = mainBuildState;
+            break;
+          }
           // Wait for cursor work to complete. Cursor async chains may create
           // multiple rounds of work (pause → resume → pause → resume), each
           // potentially creating a new $renderPromise$. Keep waiting until

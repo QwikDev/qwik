@@ -84,6 +84,15 @@ export function resumeCursor(cursor: Cursor, container: Container): void {
 }
 
 /**
+ * Returns true if there are cursors in the active (non-paused) queue.
+ *
+ * @internal
+ */
+export function hasActiveCursors(): boolean {
+  return globalCursorQueue.length > 0;
+}
+
+/**
  * Removes a cursor from the global queue.
  *
  * @param cursor - The cursor to remove

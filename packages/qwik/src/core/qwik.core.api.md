@@ -446,6 +446,9 @@ function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}
 export { h as createElement }
 export { h }
 
+// @internal
+export function _hasActiveCursors(): boolean;
+
 // @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 

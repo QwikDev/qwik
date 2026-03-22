@@ -34,6 +34,7 @@ export {
 export { addCursor as _addCursor } from './shared/cursor/cursor';
 export { getCursorData as _getCursorData } from './shared/cursor/cursor-props';
 export { processCursorQueue as _processCursorQueue } from './shared/cursor/cursor-walker';
+export { hasActiveCursors as _hasActiveCursors } from './shared/cursor/cursor-queue';
 export type { Container as _Container } from './shared/types';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';

@@ -286,6 +286,7 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
 class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
+    $destroy$(): void;
     // (undocumented)
     $forwardRefs$: Array<number> | null;
     // (undocumented)

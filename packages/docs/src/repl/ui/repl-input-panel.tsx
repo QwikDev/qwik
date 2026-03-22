@@ -13,6 +13,7 @@ export const ReplInputPanel = ({
   enableCopyToPlayground,
   enableDownload,
   enableInputDelete,
+  editorTheme,
 }: ReplInputPanelProps) => {
   return (
     <div class="repl-panel repl-input-panel" translate="no">
@@ -46,6 +47,7 @@ export const ReplInputPanel = ({
       <div class="repl-tab">
         <Editor
           input={input}
+          editorTheme={editorTheme}
           onChange$={onInputChange$}
           store={store}
           ariaLabel="File Input"
@@ -70,4 +72,5 @@ interface ReplInputPanelProps {
   enableDownload?: boolean;
   enableCopyToPlayground?: boolean;
   enableInputDelete?: boolean;
+  editorTheme?: import('./monaco').EditorThemeName;
 }

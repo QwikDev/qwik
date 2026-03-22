@@ -166,19 +166,27 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         </div>
 
         {store.selectedOutputPanel === 'html' ? (
-          <div class="output-result output-html flex flex-col gap-2">
-            <span class="code-block-info">HTML</span>
-            <CodeBlock language="markup" format code={store.html} />
+          <div class="output-result output-code-theme output-panel-stack output-html">
+            <div class="output-panel-section">
+              <div class="output-panel-section-header">HTML</div>
+              <div class="output-panel-section-body">
+                <CodeBlock language="markup" format code={store.html} />
+              </div>
+            </div>
             {parsedState.value ? (
-              <div>
-                <span class="code-block-info">Parsed State</span>
-                <CodeBlock language="clike" code={parsedState.value} />
+              <div class="output-panel-section">
+                <div class="output-panel-section-header">Parsed State</div>
+                <div class="output-panel-section-body">
+                  <CodeBlock language="clike" code={parsedState.value} />
+                </div>
               </div>
             ) : null}
             {vdomTree.value ? (
-              <div>
-                <span class="code-block-info">VNode Tree</span>
-                <CodeBlock language="markup" code={vdomTree.value} />
+              <div class="output-panel-section">
+                <div class="output-panel-section-header">VNode Tree</div>
+                <div class="output-panel-section-body">
+                  <CodeBlock language="markup" code={vdomTree.value} />
+                </div>
               </div>
             ) : null}
           </div>

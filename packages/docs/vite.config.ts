@@ -251,7 +251,7 @@ export default defineConfig(() => {
       qwikInsights({ publicApiKey: insightsApiKey }),
       tailwindcss(),
       overrideManualChunksForRepl(),
-      qwikDevtools(),
+      // qwikDevtools(),
     ],
     build: {
       sourcemap: true,

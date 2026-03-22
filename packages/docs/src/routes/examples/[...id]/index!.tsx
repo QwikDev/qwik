@@ -90,7 +90,7 @@ export default component$(() => {
   });
 
   return (
-    <div class="examples full-width fixed-header">
+    <div class="examples full-width fixed-header repl-theme-docs">
       <Header />
 
       <div
@@ -140,8 +140,15 @@ export default component$(() => {
         </div>
 
         <main class="examples-repl">
-          <div class="repl">
-            <Repl input={store} enableDownload={true} />
+          <div class="examples-repl-shell">
+            <div class="repl">
+              <Repl
+                input={store}
+                enableDownload={true}
+                enableMainSplitter={true}
+                editorTheme="github-light"
+              />
+            </div>
           </div>
         </main>
       </div>

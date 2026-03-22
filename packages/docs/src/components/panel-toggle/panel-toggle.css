@@ -4,36 +4,60 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 8px;
   background-color: var(--panel-toggle-background-color);
   width: 100vw;
   height: var(--panel-toggle-height);
+  padding: 6px 12px;
+  box-sizing: border-box;
 }
 
 .panel-toggle button {
-  background-color: var(--tutorial-nav-button-bg-color);
-  color: var(--tutorial-nav-button-text-color);
-  border: 1px solid var(--tutorial-nav-button-text-color);
-  border-radius: 3px;
+  background: transparent;
+  color: var(--repl-docs-text-soft, #4f5f71);
+  border: 1.6px solid transparent;
+  border-radius: 0;
   min-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 4px 6px;
-  margin: 0 8px;
+  padding: 7px 12px;
+  margin: 0;
+  font-family: 'Ubuntu Sans', sans-serif;
   font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  white-space: nowrap;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
-.panel-toggle button.active,
 .panel-toggle button:hover {
-  background-color: var(--tutorial-nav-button-hover-bg-color);
-  color: var(--qwik-blue);
+  color: var(--tutorial-outline-text, #7c29d1);
+  background: rgba(228, 215, 255, 0.28);
+}
+
+.panel-toggle button.active {
+  color: var(--tutorial-outline-text, #7c29d1);
+  border-color: var(--tutorial-outline-border, #bd96ff);
+  background: var(--tutorial-outline-bg, #ffffff);
+  box-shadow: 4px 4px 0 0 var(--tutorial-secondary-shadow, #ae76fe);
+}
+
+.panel-toggle button:focus-visible {
+  outline: 2px solid var(--repl-docs-accent, #006f96);
+  outline-offset: 2px;
 }
 
 @media (min-width: 380px) {
   .panel-toggle button {
-    padding: 4px 8px;
-    margin: 0 10px;
+    padding: 8px 14px;
     min-width: 70px;
     font-size: 14px;
+    line-height: 18px;
   }
 }
 

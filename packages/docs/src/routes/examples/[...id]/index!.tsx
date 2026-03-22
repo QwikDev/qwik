@@ -90,7 +90,18 @@ export default component$(() => {
   });
 
   return (
-    <div class="examples full-width fixed-header repl-theme-docs">
+    <div
+      class={{
+        examples: true,
+        'full-width': true,
+        'fixed-header': true,
+        'repl-theme-docs': true,
+        'examples-active-examples': panelStore.active === 'Examples',
+        'examples-active-input': panelStore.active === 'Input',
+        'examples-active-output': panelStore.active === 'Output',
+        'examples-active-console': panelStore.active === 'Console',
+      }}
+    >
       <Header />
 
       <div
@@ -113,7 +124,7 @@ export default component$(() => {
                   preventdefault:click
                   onClick$={() => {
                     store.appId = app.id;
-                    panelStore.active === 'Input';
+                    panelStore.active = 'Input';
                     history.replaceState({}, '', `/examples/${app.id}/`);
                   }}
                   class={{

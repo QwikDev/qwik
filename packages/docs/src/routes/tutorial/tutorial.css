@@ -63,10 +63,20 @@
 .tutorial-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
+  position: sticky;
+  top: 0;
+  z-index: 3;
   align-items: center;
   gap: 16px;
   margin-bottom: 24px;
   min-width: 0;
+  padding-bottom: 16px;
+  background: linear-gradient(
+    180deg,
+    var(--tutorial-page-bg) 0,
+    var(--tutorial-page-bg) calc(100% - 10px),
+    rgba(253, 251, 255, 0) 100%
+  );
 }
 
 .tutorial-lesson-picker {
@@ -235,28 +245,33 @@
 }
 
 .content-footer {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   padding: 0;
 }
 
 .footer-slot {
   display: flex;
-  flex: 0 1 auto;
   min-width: 0;
 }
 
+.footer-slot-start {
+  grid-column: 1;
+  justify-self: start;
+}
+
 .footer-slot-end {
+  grid-column: 3;
   min-width: 0;
+  justify-self: end;
   justify-content: flex-end;
 }
 
 .footer-actions {
   display: flex;
-  flex: 0 1 auto;
+  grid-column: 2;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
@@ -267,6 +282,32 @@
 .footer-placeholder {
   display: none;
   min-height: 40px;
+}
+
+.content-footer.has-overflow-nav:not(.no-prev):not(.no-next) {
+  grid-template-rows: auto auto;
+  row-gap: 12px;
+}
+
+.content-footer.has-overflow-nav:not(.no-prev):not(.no-next) .footer-actions {
+  grid-row: 1;
+}
+
+.content-footer.has-overflow-nav:not(.no-prev):not(.no-next) .footer-slot-start,
+.content-footer.has-overflow-nav:not(.no-prev):not(.no-next) .footer-slot-end {
+  grid-row: 2;
+}
+
+.content-footer.no-prev:not(.no-next) .footer-slot-start {
+  display: none;
+}
+
+.content-footer.no-next:not(.no-prev) .footer-slot-end {
+  display: none;
+}
+
+.content-footer.no-prev.no-next .footer-slot {
+  display: none;
 }
 
 .tutorial-footer-button {
@@ -297,8 +338,9 @@
   text-overflow: ellipsis;
 }
 
+.footer-slot-start .tutorial-footer-button,
 .footer-slot-end .tutorial-footer-button {
-  max-width: min(100%, 260px);
+  max-width: min(100%, 240px);
 }
 
 .tutorial-footer-button:hover {
@@ -373,6 +415,7 @@
 
 @media (max-width: 1320px) {
   .content-footer {
+    display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
     gap: 12px 16px;
@@ -385,5 +428,22 @@
   .footer-actions {
     flex-wrap: wrap;
     justify-content: flex-start;
+  }
+
+  .content-footer.no-prev:not(.no-next),
+  .content-footer.no-next:not(.no-prev) {
+    display: flex;
+  }
+
+  .content-footer.no-prev:not(.no-next) .footer-slot-start,
+  .content-footer.no-next:not(.no-prev) .footer-slot-end {
+    display: none;
+  }
+
+  .content-footer.no-prev:not(.no-next) .footer-actions,
+  .content-footer.no-next:not(.no-prev) .footer-actions,
+  .content-footer.no-prev:not(.no-next) .footer-slot-end,
+  .content-footer.no-next:not(.no-prev) .footer-slot-start {
+    justify-self: auto;
   }
 }

@@ -834,6 +834,131 @@
   height: 100%;
 }
 
+.repl-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.96)),
+    radial-gradient(circle at top left, rgba(196, 234, 255, 0.45), transparent 34%);
+  box-sizing: border-box;
+}
+
+.repl-loading-shell {
+  width: min(460px, 100%);
+  border: 1.6px solid var(--repl-docs-border);
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+  background: #ffffff;
+  box-shadow: 6px 6px 0 0 color-mix(in srgb, var(--repl-docs-accent-soft), white 18%);
+}
+
+.repl-loading-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.repl-loading-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 4px 12px;
+  background: color-mix(in srgb, var(--repl-docs-input-strip-bg), white 12%);
+  color: var(--repl-docs-accent);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.repl-loading-title {
+  margin: 14px 0 0;
+  color: var(--repl-docs-text);
+  font-family: 'Tomorrow', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 32px;
+}
+
+.repl-loading-copy {
+  margin: 8px 0 0;
+  max-width: 34ch;
+  color: var(--repl-docs-text-soft);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.repl-loading-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.repl-loading-line {
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--repl-docs-input-strip-bg), white 18%) 0%,
+    #ffffff 50%,
+    color-mix(in srgb, var(--repl-docs-input-strip-bg), white 18%) 100%
+  );
+  background-size: 220% 100%;
+  animation: repl-loading-shimmer 1.2s linear infinite;
+}
+
+.repl-loading-line-strong {
+  width: 76%;
+  height: 14px;
+}
+
+.repl-loading-line-short {
+  width: 58%;
+}
+
+.repl-spinner {
+  width: 26px;
+  height: 26px;
+  color: var(--repl-docs-accent);
+  animation: repl-loading-spin 0.9s linear infinite;
+}
+
+.repl-spinner circle {
+  stroke: currentColor;
+}
+
+@keyframes repl-loading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes repl-loading-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
 .repl-server {
   height: 100%;
 }

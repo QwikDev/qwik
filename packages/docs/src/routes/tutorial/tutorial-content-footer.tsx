@@ -1,12 +1,65 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 import { Link } from '@qwik.dev/router';
 import { createPlaygroundShareUrl } from '../../repl/ui/repl-share-url';
 import { ensureDefaultFiles, type TutorialStore } from './layout';
 
 export const TutorialContentFooter = component$(({ store }: TutorialContentFooterProps) => {
+  const footerRef = useSignal<HTMLElement>();
+  const startRef = useSignal<HTMLElement>();
+  const actionsRef = useSignal<HTMLElement>();
+  const endRef = useSignal<HTMLElement>();
+  const hasOverflowNav = useSignal(false);
+
+  useVisibleTask$(({ cleanup, track }) => {
+    track(() => store.prev?.title);
+    track(() => store.next?.title);
+
+    const footerEl = footerRef.value;
+    const actionsEl = actionsRef.value;
+    const startEl = startRef.value;
+    const endEl = endRef.value;
+
+    if (!footerEl || !actionsEl || !startEl || !endEl || !store.prev || !store.next) {
+      hasOverflowNav.value = false;
+      return;
+    }
+
+    const updateLayout = () => {
+      const footerWidth = footerEl.clientWidth;
+      const actionsWidth = actionsEl.scrollWidth;
+      const startWidth = startEl.scrollWidth;
+      const endWidth = endEl.scrollWidth;
+      const sideWidth = Math.max(0, (footerWidth - actionsWidth - 32) / 2);
+      hasOverflowNav.value = startWidth > sideWidth || endWidth > sideWidth;
+    };
+
+    updateLayout();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateLayout();
+    });
+
+    resizeObserver.observe(footerEl);
+    resizeObserver.observe(actionsEl);
+    resizeObserver.observe(startEl);
+    resizeObserver.observe(endEl);
+
+    cleanup(() => {
+      resizeObserver.disconnect();
+    });
+  });
+
   return (
-    <div class="content-footer">
-      <div class="footer-slot footer-slot-start">
+    <div
+      ref={footerRef}
+      class={{
+        'content-footer': true,
+        'has-overflow-nav': hasOverflowNav.value,
+        'no-prev': !store.prev,
+        'no-next': !store.next,
+      }}
+    >
+      <div ref={startRef} class="footer-slot footer-slot-start">
         {store.prev ? (
           <Link
             title={store.prev.title}
@@ -21,7 +74,7 @@ export const TutorialContentFooter = component$(({ store }: TutorialContentFoote
         )}
       </div>
 
-      <div class="footer-actions">
+      <div ref={actionsRef} class="footer-actions">
         <a
           href={createPlaygroundShareUrl(store)}
           class="tutorial-footer-button is-secondary"
@@ -60,7 +113,7 @@ export const TutorialContentFooter = component$(({ store }: TutorialContentFoote
         )}
       </div>
 
-      <div class="footer-slot footer-slot-end">
+      <div ref={endRef} class="footer-slot footer-slot-end">
         {store.next ? (
           <Link
             title={store.next.title}

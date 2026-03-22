@@ -158,9 +158,8 @@ describe.each([
         </button>
       </Component>
     );
-    const isSsr = render === ssrRenderToDom;
     await expect(document.querySelector('button')).toMatchDOM(
-      jsx('button', { key: '0', children: 'const 0', ...(isSsr ? { 'q:p': 0 } : {}) })
+      jsx('button', { children: 'const 0' })
     );
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
@@ -174,7 +173,7 @@ describe.each([
       </Component>
     );
     await expect(document.querySelector('button')).toMatchDOM(
-      jsx('button', { key: '0', children: 'const 1', ...(isSsr ? { 'q:p': 0 } : {}) })
+      jsx('button', { children: 'const 1' })
     );
   });
   it('should handle all ClassList cases', async () => {

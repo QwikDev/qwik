@@ -15,7 +15,7 @@ export interface OptimizerOptions {
   inlineStylesUpToBytes?: number;
   /** Enable sourcemaps */
   sourcemap?: boolean;
-  _optimizer?: typeof import('@qwik.dev/optimizer');
+  _optimizer?: unknown;
 }
 
 /** @public */

@@ -1,7 +1,7 @@
 import { rmSync } from 'fs';
 import { copyFile, watch } from 'fs/promises';
 import { join } from 'path';
-import { apiExtractorOptimizer, apiExtractorQwik, apiExtractorQwikRouter } from './api.ts';
+import { apiExtractorQwik, apiExtractorQwikRouter } from './api.ts';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform.ts';
 import { buildWasmBinding } from './binding-wasm.ts';
 import { buildCreateQwikCli } from './create-qwik-cli.ts';
@@ -25,7 +25,7 @@ import { submoduleBackpatch } from './submodule-backpatch.ts';
 import { submoduleServer } from './submodule-server.ts';
 import { submoduleTesting } from './submodule-testing.ts';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
-import { tsc, tscOptimizer, tscQwik, tscQwikRouter } from './tsc.ts';
+import { tsc, tscQwik, tscQwikRouter } from './tsc.ts';
 import { tscDocs } from './tsc-docs.ts';
 import { emptyDir, ensureDir, panic, type BuildConfig } from './util.ts';
 import { validateBuild } from './validate-build.ts';
@@ -60,19 +60,32 @@ export async function build(config: BuildConfig) {
       rmSync(config.tscDir, { recursive: true, force: true });
       rmSync(config.dtsDir, { recursive: true, force: true });
       await tscQwik(config);
-      await tscOptimizer(config);
+    }
+    ensureDir(config.distQwikPkgDir);
+    if (config.qwik) {
+      emptyDir(config.distQwikPkgDir);
+    }
+
+    if (config.qwik || config.optimizer) {
+      await submoduleQwikLoader(config);
+    }
+
+    if (config.optimizer) {
+      await submoduleOptimizer(config);
+    }
+    if (config.platformBinding) {
+      await buildPlatformBinding(config);
+    } else if (config.platformBindingWasmCopy) {
+      await copyPlatformBindingWasm(config);
+    }
+    if (config.wasm) {
+      await buildWasmBinding(config);
     }
 
     let coreNameCache: object | undefined;
     if (config.qwik) {
-      if (config.dev) {
-        ensureDir(config.distQwikPkgDir);
-      } else {
-        emptyDir(config.distQwikPkgDir);
-      }
       [coreNameCache] = await Promise.all([
         submoduleCore(config),
-        submoduleQwikLoader(config),
         submoduleBackpatch(config),
         submoduleBuild(config),
         submoduleTesting(config),
@@ -85,11 +98,7 @@ export async function build(config: BuildConfig) {
     if (config.qwik) {
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader
-      await Promise.all([
-        submoduleServer(config, coreNameCache),
-        submoduleOptimizer(config),
-        submodulePreloader(config, coreNameCache),
-      ]);
+      await Promise.all([submoduleServer(config, coreNameCache), submodulePreloader(config)]);
     }
 
     if (config.api || (!config.dev && config.qwik)) {
@@ -98,18 +107,7 @@ export async function build(config: BuildConfig) {
       rmSync(join(config.rootDir, 'dist-dev', 'api-extractor'), { recursive: true, force: true });
     }
     if (config.api || ((!config.dev || config.tsc) && config.qwik)) {
-      await apiExtractorOptimizer(config);
       await apiExtractorQwik(config);
-    }
-
-    if (config.platformBinding) {
-      await buildPlatformBinding(config);
-    } else if (config.platformBindingWasmCopy) {
-      await copyPlatformBindingWasm(config);
-    }
-
-    if (config.wasm) {
-      await buildWasmBinding(config);
     }
 
     if (config.tsc || (!config.dev && config.qwikrouter)) {

@@ -952,7 +952,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // and possibly in other places
       // NOTE: this should be Promise.all to avoid deadlocks
       // This seems to work fine for Rolldown so we ignore it there
-      if (ctx.meta?.rolldownVersion) {
+      if (!ctx.meta?.rolldownVersion) {
         await Promise.all([...deps.values()].map((id) => ctx.load({ id })));
       }
       ctx.addWatchFile(id);

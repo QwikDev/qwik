@@ -1,4 +1,4 @@
-import type { ChunkingContext, CodeSplittingOptions, ModuleInfo } from 'rolldown';
+import type { ChunkingContext, CodeSplittingOptions } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
 import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/shared/utils/hash_code';
@@ -451,30 +451,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         : opts.target === 'ssr' || opts.target === 'test';
   };
 
+  const normalizeId = (id: string) => normalizePath(parseId(id).pathId);
+
   const setCachedSegment = (id: string, segment: SegmentAnalysis | null) => {
     if (!segment) {
       return;
     }
-    const normalizedId = normalizePath(parseId(id).pathId);
-    const cache = clientSegments;
-    cache.set(id, segment);
-    cache.set(normalizedId, segment);
+    clientSegments.set(normalizeId(id), segment);
   };
 
-  const getCachedSegment = (
-    id: string,
-    ctx?: ChunkingContext,
-    isServer = opts.target === 'ssr'
-  ): SegmentAnalysis | undefined => {
-    const cache = clientSegments;
-    const normalizedId = normalizePath(parseId(id).pathId);
-    const moduleInfo = ctx?.getModuleInfo(id) as ModuleInfo | null | undefined;
-    return (
-      cache.get(id) ??
-      cache.get(normalizedId) ??
-      (moduleInfo?.id ? cache.get(moduleInfo.id) : undefined) ??
-      (moduleInfo?.id ? cache.get(normalizePath(parseId(moduleInfo.id).pathId)) : undefined)
-    );
+  /** Rolldown drops module.meta.segment during codeSplitting, so we cache it ourselves. */
+  const getCachedSegment = (id: string): SegmentAnalysis | undefined => {
+    return clientSegments.get(normalizeId(id));
   };
 
   const sanitizeChunkGroupName = (name: string | null | undefined) => {
@@ -1202,9 +1190,9 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
   const mergeRelatedSegments = (id: string, ctx: ChunkingContext) => {
     const module = ctx?.getModuleInfo(id);
     if (module) {
-      const segment =
-        (module.meta.segment as SegmentAnalysis | undefined) ?? getCachedSegment(id, ctx, false);
+      const segment = (module.meta.segment as SegmentAnalysis | undefined) ?? getCachedSegment(id);
       if (segment) {
+        console.log('mergeRelatedSegments', { id, segment });
         // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
         if (['qwikify$', 'useVisibleTask$', 'useComputed$'].includes(segment.ctxName)) {
           return null;

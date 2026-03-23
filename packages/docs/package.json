@@ -21,7 +21,7 @@
     "@qwik.dev/partytown": "0.11.2",
     "@qwik.dev/react": "workspace:*",
     "@qwik.dev/router": "workspace:*",
-    "@rolldown/browser": "1.0.0-beta.59",
+    "@rolldown/browser": "1.0.0-rc.11",
     "@shikijs/colorized-brackets": "3.21.0",
     "@shikijs/langs": "3.21.0",
     "@shikijs/rehype": "3.21.0",

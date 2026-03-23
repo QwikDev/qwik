@@ -1,7 +1,6 @@
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
-import { createOptimizer } from '../optimizer';
 import type {
   Diagnostic,
   EntryStrategy,
@@ -135,6 +134,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   let maybeFs: typeof import('fs') | undefined | null;
   const init = async () => {
     if (!internalOptimizer) {
+      const createOptimizer = (
+        (optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer')) ||
+        (await import('@qwik.dev/optimizer'))
+      ).createOptimizer;
       internalOptimizer = await createOptimizer(optimizerOptions);
       lazyNormalizePath = makeNormalizePath(internalOptimizer.sys);
       if (

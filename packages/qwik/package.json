@@ -154,7 +154,7 @@
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
-    "prettier": "3.6.2",
+    "prettier": "*",
     "vite": ">=6 <9",
     "vitest": ">=2 <4"
   },

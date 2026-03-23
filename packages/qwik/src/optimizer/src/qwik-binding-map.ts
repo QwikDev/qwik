@@ -11,14 +11,6 @@ export const QWIK_BINDING_MAP = {
         "abi": null,
         "platformArchABI": "qwik.darwin-arm64.node"
       }
-    ],
-    "x64": [
-      {
-        "platform": "darwin",
-        "arch": "x64",
-        "abi": null,
-        "platformArchABI": "qwik.darwin-x64.node"
-      }
     ]
   },
   "win32": {

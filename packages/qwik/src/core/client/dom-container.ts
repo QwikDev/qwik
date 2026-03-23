@@ -124,6 +124,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     element.qContainer = this;
+    (element as any).qDestroy = () => this.$destroy$();
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
@@ -135,6 +136,20 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!qTest && element.isConnected) {
       element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
     }
+  }
+
+  /** Tear down this container so stale references fail gracefully. */
+  $destroy$(): void {
+    this.vNodeLocate = () => null as any;
+    this.$rawStateData$.length = 0;
+    this.$stateData$.length = 0;
+    this.$getObjectById$ = () => undefined;
+    const el = this.element;
+    el.qContainer = undefined;
+    el.qVnodeData = undefined;
+    el.qVNodeRefs = undefined;
+    el.removeAttribute(QContainerAttr);
+    (el.ownerDocument as QDocument).qVNodeData = undefined!;
   }
 
   /**

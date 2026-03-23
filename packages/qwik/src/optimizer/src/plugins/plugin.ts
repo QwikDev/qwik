@@ -951,8 +951,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // This can happen in the repl when the plugin is re-initialized
       // and possibly in other places
       // NOTE: this should be Promise.all to avoid deadlocks
-      await Promise.all([...deps.values()].map((id) => ctx.load({ id })));
-
+      // This seems to work fine for Rolldown so we ignore it there
+      if (ctx.meta?.rolldownVersion) {
+        await Promise.all([...deps.values()].map((id) => ctx.load({ id })));
+      }
       ctx.addWatchFile(id);
 
       return {

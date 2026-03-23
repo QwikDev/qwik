@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const USE_STYLES_DEDUPE_MARKER = '--use-styles-dedupe-marker: dedupe-ok';
+const USE_STYLES_DEDUPE_MARKER = '--use-styles-dedupe-marker:dedupe-ok';
 
 test.describe('styles', () => {
   test.beforeEach(async ({ page }) => {

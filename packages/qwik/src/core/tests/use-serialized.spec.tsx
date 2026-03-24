@@ -5,6 +5,7 @@ import {
   Fragment as Component,
   component$,
   useSignal,
+  useAsync$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -184,6 +185,25 @@ describe.each([
         <button>
           <Signal ssr-required>{'2'}</Signal>
         </button>
+      </>
+    );
+  });
+
+  it('should deserialize a Promise initial value as Date', async () => {
+    const DateDisplay = component$(() => {
+      const dateStr = useAsync$(() => Promise.resolve('2025-01-15T12:00:00.000Z'));
+      const date = useSerializer$(() => ({
+        deserialize: (str: string) => new Date(str),
+        serialize: (d) => d.toISOString(),
+        initial: dateStr.value,
+      }));
+      return <span>{date.value.toISOString()}</span>;
+    });
+
+    const { vNode } = await render(<DateDisplay />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <span>2025-01-15T12:00:00.000Z</span>
       </>
     );
   });

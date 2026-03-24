@@ -3,18 +3,17 @@ import type { Container } from '../../server/qwik-types';
 import type { Cursor } from '../shared/cursor/cursor';
 import { isJSXNode } from '../shared/jsx/jsx-node';
 import type { JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
-import { isPromise, maybeThen } from '../shared/utils/promises';
+import { maybeThen } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ClientContainer } from './types';
-import { createDiffContext, vnode_diff_range, type DiffContext } from './vnode-diff';
+import { createDiffContext, vnode_diff_range } from './vnode-diff';
 import {
   type VNodeJournal,
   vnode_getFirstChild,
   vnode_insertBefore,
-  vnode_isElementOrVirtualVNode,
   vnode_remove,
   vnode_truncate,
 } from './vnode-utils';
@@ -22,100 +21,19 @@ import {
 type Key = string;
 type KeyedRowVNode = ElementVNode | VirtualVNode;
 
-function isKeyedRowVNode(child: VNode | null): child is KeyedRowVNode {
-  return !!child && vnode_isElementOrVirtualVNode(child) && child.key != null;
-}
-
-function getNextKeyedSibling(child: VNode | null): KeyedRowVNode | null {
-  while (child) {
-    if (isKeyedRowVNode(child)) {
-      return child;
-    }
-    child = child.nextSibling as VNode | null;
-  }
-  return null;
-}
-
-function getPreviousKeyedSibling(child: VNode | null): KeyedRowVNode | null {
-  while (child) {
-    if (isKeyedRowVNode(child)) {
-      return child;
-    }
-    child = child.previousSibling as VNode | null;
-  }
-  return null;
-}
-
-function collectCurrentKeyedChildren(from: KeyedRowVNode, to: KeyedRowVNode): KeyedRowVNode[] {
-  const rows: KeyedRowVNode[] = [];
-  let child: VNode | null = from;
+function collectChildren(first: KeyedRowVNode, last: KeyedRowVNode | null = null): KeyedRowVNode[] {
+  const children: KeyedRowVNode[] = [];
+  let child: VNode | null = first;
 
   while (child) {
-    if (isKeyedRowVNode(child)) {
-      rows.push(child);
-    }
-    if (child === to) {
+    children.push(child as KeyedRowVNode);
+    if (child === last) {
       break;
     }
     child = child.nextSibling as VNode | null;
   }
 
-  return rows;
-}
-
-function createStableRowMask(oldIndexes: ArrayLike<number>): Uint8Array {
-  const stableRows = new Uint8Array(oldIndexes.length);
-  for (let i = 0; i < oldIndexes.length; i++) {
-    if (oldIndexes[i] >= 0) {
-      stableRows[i] = 1;
-    }
-  }
-  return stableRows;
-}
-
-function getStableRowMask(oldIndexes: ArrayLike<number>): Uint8Array {
-  const predecessors = new Int32Array(oldIndexes.length);
-  predecessors.fill(-1);
-  const lis = new Int32Array(oldIndexes.length);
-  let lisLength = 0;
-
-  for (let i = 0; i < oldIndexes.length; i++) {
-    const oldIndex = oldIndexes[i];
-    if (oldIndex < 0) {
-      continue;
-    }
-
-    let low = 0;
-    let high = lisLength;
-
-    while (low < high) {
-      const mid = (low + high) >> 1;
-      const lisIndex = lis[mid];
-      if (oldIndexes[lisIndex] < oldIndex) {
-        low = mid + 1;
-      } else {
-        high = mid;
-      }
-    }
-
-    if (low > 0) {
-      predecessors[i] = lis[low - 1];
-    }
-
-    lis[low] = i;
-    if (low === lisLength) {
-      lisLength++;
-    }
-  }
-
-  const stableRows = new Uint8Array(oldIndexes.length);
-  let current = lisLength > 0 ? lis[lisLength - 1] : -1;
-  while (current !== -1) {
-    stableRows[current] = 1;
-    current = predecessors[current];
-  }
-
-  return stableRows;
+  return children;
 }
 
 function renderKeyedRow<T>(
@@ -132,48 +50,81 @@ function renderKeyedRow<T>(
   return jsx;
 }
 
-function diffRowRange(
-  container: ClientContainer,
-  journal: VNodeJournal,
-  parent: ElementVNode | VirtualVNode,
-  cursor: Cursor,
-  diffContext: DiffContext,
-  items: readonly any[],
-  getKey: (item: any, index: number) => Key,
-  renderItem: (item: any, index: number) => JSXOutput,
-  fromIndex: number,
-  toIndex: number,
-  end: VNode | null = null
-): ValueOrPromise<void> {
-  const count = toIndex - fromIndex;
-  if (count <= 0) {
-    return;
+function buildJsxRange<T>(
+  items: readonly T[],
+  nextKeys: Key[],
+  keyOf: ((item: T, index: number) => Key) | null,
+  renderItem: (item: T, index: number) => JSXOutput,
+  start: number,
+  end: number
+): JSXNode[] {
+  const jsxItems: JSXNode[] = new Array(end - start + 1);
+
+  for (let i = start; i <= end; i++) {
+    const key = nextKeys[i] ?? (nextKeys[i] = keyOf!(items[i], i));
+    jsxItems[i - start] = renderKeyedRow(items[i], i, key, renderItem);
   }
 
-  let i = 0;
-  const diffNext = (): ValueOrPromise<void> => {
-    while (i < count) {
-      const index = fromIndex + i;
-      const result = vnode_diff_range(
-        container,
-        journal,
-        renderKeyedRow(items[index], index, getKey(items[index], index), renderItem),
-        parent,
-        null,
-        end,
-        cursor,
-        null,
-        true,
-        diffContext
-      );
-      i++;
-      if (isPromise(result)) {
-        return result.then(diffNext);
+  return jsxItems;
+}
+
+function firstInsertedBeforeAnchor(
+  parent: ElementVNode | VirtualVNode,
+  anchor: VNode | null,
+  count: number
+): KeyedRowVNode | null {
+  let inserted = (anchor ? anchor.previousSibling : parent.lastChild) as KeyedRowVNode | null;
+
+  for (let i = 1; i < count && inserted; i++) {
+    inserted = inserted.previousSibling as KeyedRowVNode | null;
+  }
+
+  return inserted;
+}
+
+function longestIncreasingSubsequencePositions(arr: number[]): number[] {
+  const n = arr.length;
+  if (n === 0) {
+    return [];
+  }
+
+  const tails: number[] = [];
+  const prev: number[] = new Array(n).fill(-1);
+
+  for (let i = 0; i < n; i++) {
+    const x = arr[i];
+
+    let low = 0;
+    let high = tails.length;
+    while (low < high) {
+      const mid = (low + high) >> 1;
+      if (arr[tails[mid]] < x) {
+        low = mid + 1;
+      } else {
+        high = mid;
       }
     }
-  };
 
-  return diffNext();
+    if (low > 0) {
+      prev[i] = tails[low - 1];
+    }
+
+    if (low === tails.length) {
+      tails.push(i);
+    } else {
+      tails[low] = i;
+    }
+  }
+
+  const lis: number[] = [];
+  let current = tails[tails.length - 1];
+  while (current !== -1) {
+    lis.push(current);
+    current = prev[current];
+  }
+
+  lis.reverse();
+  return lis;
 }
 
 export function reconcileKeyedLoopToParent<T>(
@@ -186,242 +137,221 @@ export function reconcileKeyedLoopToParent<T>(
   renderItem: (item: T, index: number) => JSXOutput
 ): ValueOrPromise<void> {
   const clientContainer = container as ClientContainer;
+  const nextLength = items.length;
+  const firstLoopChild = vnode_getFirstChild(parent) as KeyedRowVNode | null;
   const diffContext = createDiffContext(clientContainer, journal, cursor, null);
-  const itemsLength = items.length;
-  const firstLoopChild = vnode_getFirstChild(parent);
+  const nextKeys = new Array<Key>(nextLength);
 
   if (firstLoopChild === null) {
-    if (itemsLength > 0) {
-      return diffRowRange(
+    if (nextLength > 0) {
+      return vnode_diff_range(
         clientContainer,
         journal,
+        buildJsxRange(items, nextKeys, keyOf, renderItem, 0, nextLength - 1),
         parent,
+        null,
+        null,
         cursor,
-        diffContext,
-        items,
-        keyOf,
-        renderItem,
-        0,
-        itemsLength
+        null,
+        true,
+        diffContext
       );
     }
+
     return;
   }
 
-  if (itemsLength === 0) {
+  if (nextLength === 0) {
     vnode_truncate(journal, parent, firstLoopChild, true);
     return;
   }
 
-  const keys = new Array<Key>(itemsLength);
-  for (let i = 0; i < itemsLength; i++) {
-    keys[i] = keyOf(items[i], i);
-  }
-
-  const keyAt = (_item: T, index: number): Key => keys[index];
-  let oldStart = getNextKeyedSibling(firstLoopChild);
-  if (oldStart === null) {
-    return diffRowRange(
-      clientContainer,
-      journal,
-      parent,
-      cursor,
-      diffContext,
-      items,
-      keyAt,
-      renderItem,
-      0,
-      itemsLength
-    );
-  }
-
-  let oldEnd = getPreviousKeyedSibling(parent.lastChild as VNode | null);
-  let tailAnchor: KeyedRowVNode | null = null;
-
-  // Trim the unchanged prefix/suffix first and only materialize the middle window if needed.
   let start = 0;
-  while (oldStart && start < itemsLength && oldStart.key === keys[start]) {
-    const current = oldStart;
+  let nextEnd = nextLength - 1;
+  let oldStart: KeyedRowVNode | null = firstLoopChild;
+
+  while (
+    oldStart &&
+    start <= nextEnd &&
+    oldStart.key === (nextKeys[start] ??= keyOf(items[start], start))
+  ) {
+    oldStart = oldStart.nextSibling as KeyedRowVNode | null;
     start++;
-    if (current === oldEnd) {
-      oldStart = null;
-      oldEnd = null;
-      break;
-    }
-    oldStart = getNextKeyedSibling(current.nextSibling as VNode | null);
   }
 
-  let newEnd = itemsLength - 1;
-  while (oldEnd && newEnd >= start && oldEnd.key === keys[newEnd]) {
-    const current = oldEnd;
-    tailAnchor = current;
-    newEnd--;
-    if (current === oldStart) {
-      oldStart = null;
-      oldEnd = null;
-      break;
-    }
-    oldEnd = getPreviousKeyedSibling(current.previousSibling as VNode | null);
-  }
-
-  // Fast path: head/tail scans consumed everything, so the lists already match.
-  if (oldStart === null && start > newEnd) {
-    return;
-  }
-
-  // Fast path: only insertions remain between the matched head and tail.
   if (oldStart === null) {
-    // Insert before an unchanged tail left-to-right so the anchor stays stable.
-    return diffRowRange(
+    if (start > nextEnd) {
+      return;
+    }
+
+    return vnode_diff_range(
       clientContainer,
       journal,
+      buildJsxRange(items, nextKeys, keyOf, renderItem, start, nextEnd),
       parent,
+      null,
+      null,
       cursor,
-      diffContext,
-      items,
-      keyAt,
-      renderItem,
-      start,
-      newEnd + 1,
-      tailAnchor
+      null,
+      true,
+      diffContext
     );
   }
 
-  // Fast path: only removals remain between the matched head and tail.
-  if (start > newEnd) {
-    if (start === 0 && tailAnchor === null) {
-      vnode_truncate(journal, parent, oldStart, true);
-    } else {
-      let row: KeyedRowVNode | null = oldStart;
-      while (row) {
-        const current: KeyedRowVNode = row;
-        row = current === oldEnd ? null : getNextKeyedSibling(current.nextSibling as VNode | null);
-        vnode_remove(journal, parent, current, true);
-      }
+  if (start > nextEnd) {
+    vnode_truncate(journal, parent, oldStart, true);
+    return;
+  }
+
+  const oldStartBoundary = oldStart.previousSibling as KeyedRowVNode | null;
+  let oldEnd = parent.lastChild as KeyedRowVNode | null;
+
+  while (
+    oldEnd !== oldStartBoundary &&
+    nextEnd >= start &&
+    oldEnd!.key === (nextKeys[nextEnd] ??= keyOf(items[nextEnd], nextEnd))
+  ) {
+    oldEnd = oldEnd!.previousSibling as KeyedRowVNode | null;
+    nextEnd--;
+  }
+
+  const suffixAnchor = oldEnd ? (oldEnd.nextSibling as KeyedRowVNode | null) : oldStart;
+
+  if (start > nextEnd) {
+    let child: KeyedRowVNode | null = oldStart;
+    while (child && child !== suffixAnchor) {
+      const nextChild = child.nextSibling as KeyedRowVNode | null;
+      vnode_remove(journal, parent, child, true);
+      child = nextChild;
     }
     return;
   }
 
-  const oldRows = collectCurrentKeyedChildren(oldStart, oldEnd!);
-  const oldRowsLength = oldRows.length;
-  const oldIndexByKey = new Map<Key, number>();
-  for (let i = 0; i < oldRowsLength; i++) {
-    oldIndexByKey.set(oldRows[i].key!, i);
-  }
+  if (oldEnd === oldStartBoundary) {
+    const anchor = suffixAnchor;
 
-  let overlap = 0;
-  let lastOldIndex = -1;
-  let isIncreasing = true;
-  const oldIndexes = new Int32Array(newEnd - start + 1);
-  oldIndexes.fill(-1);
-  for (let i = start; i <= newEnd; i++) {
-    const oldIndex = oldIndexByKey.get(keys[i]);
-    if (oldIndex !== undefined) {
-      overlap++;
-      oldIndexes[i - start] = oldIndex;
-      if (oldIndex <= lastOldIndex) {
-        isIncreasing = false;
-      } else {
-        lastOldIndex = oldIndex;
-      }
-    }
-  }
-
-  // Fast path: the middle window has no shared keys, so replace that slice instead of moving rows.
-  if (overlap === 0) {
-    if (start === 0 && tailAnchor === null) {
-      vnode_truncate(journal, parent, oldStart, true);
-      return diffRowRange(
-        clientContainer,
-        journal,
-        parent,
-        cursor,
-        diffContext,
-        items,
-        keyAt,
-        renderItem,
-        0,
-        itemsLength
-      );
-    }
-
-    for (let i = 0; i < oldRowsLength; i++) {
-      vnode_remove(journal, parent, oldRows[i], true);
-    }
-
-    return diffRowRange(
+    return vnode_diff_range(
       clientContainer,
       journal,
+      buildJsxRange(items, nextKeys, keyOf, renderItem, start, nextEnd),
       parent,
+      anchor,
+      anchor,
       cursor,
-      diffContext,
-      items,
-      keyAt,
-      renderItem,
-      start,
-      newEnd + 1,
-      tailAnchor
+      null,
+      true,
+      diffContext
     );
   }
 
-  // General keyed path: preserve the longest stable subsequence and only move the rest.
-  const stableRows = isIncreasing ? createStableRowMask(oldIndexes) : getStableRowMask(oldIndexes);
-  let anchor: VNode | null = tailAnchor;
-  let i = newEnd;
+  for (let i = start; i <= nextEnd; i++) {
+    nextKeys[i] ??= keyOf(items[i], i);
+  }
 
-  const updateInsertedAnchor = () => {
-    const inserted: KeyedRowVNode | null =
-      (anchor
-        ? (anchor.previousSibling as KeyedRowVNode | null)
-        : (parent.lastChild as KeyedRowVNode | null)) || null;
-    if (isDev && !inserted) {
-      throw new Error('Failed to insert keyed loop row');
+  const middleLength = nextEnd - start + 1;
+  const nextIndexByKey = new Map<Key, number>();
+  for (let i = start; i <= nextEnd; i++) {
+    nextIndexByKey.set(nextKeys[i], i - start);
+  }
+
+  const prev = collectChildren(oldStart, oldEnd!);
+  const survivors: KeyedRowVNode[] = [];
+  const prevRelIndexByKey = new Map<Key, number>();
+  for (let i = 0; i < prev.length; i++) {
+    const prevNode = prev[i];
+    const prevKey = prevNode.key as Key;
+
+    if (nextIndexByKey.has(prevKey)) {
+      prevRelIndexByKey.set(prevKey, survivors.length);
+      survivors.push(prevNode);
+    } else {
+      vnode_remove(journal, parent, prevNode, true);
     }
-    if (inserted) {
-      anchor = inserted;
+  }
+
+  const nextRefs = new Int32Array(middleLength);
+  nextRefs.fill(-1);
+
+  const seq: number[] = [];
+  const seqOffsets: number[] = [];
+
+  for (let offset = 0; offset < middleLength; offset++) {
+    const relIndex = prevRelIndexByKey.get(nextKeys[start + offset]);
+    if (relIndex !== undefined) {
+      nextRefs[offset] = relIndex;
+      seqOffsets.push(offset);
+      seq.push(relIndex);
     }
-  };
+  }
 
-  const resumeKeyedRange = (): ValueOrPromise<void> => {
-    while (i >= start) {
-      const item = items[i];
-      const key = keys[i];
-      const oldIndex = oldIndexByKey.get(key);
+  const keepMask = new Uint8Array(middleLength);
+  const lisPositions = longestIncreasingSubsequencePositions(seq);
+  for (let i = 0; i < lisPositions.length; i++) {
+    keepMask[seqOffsets[lisPositions[i]]] = 1;
+  }
 
-      if (oldIndex !== undefined) {
-        const reused = oldRows[oldIndex];
-        oldIndexByKey.delete(key);
-        if (stableRows[i - start] === 0) {
-          vnode_insertBefore(journal, parent, reused, anchor);
-        }
-        anchor = reused;
-        i--;
+  let index = nextEnd;
+  let anchor = suffixAnchor as VNode | null;
+
+  const resume = (): ValueOrPromise<void> => {
+    while (index >= start) {
+      const offset = index - start;
+
+      if (keepMask[offset] === 1) {
+        anchor = survivors[nextRefs[offset]];
+        index--;
         continue;
       }
 
+      const existingRelIndex = nextRefs[offset];
+      if (existingRelIndex !== -1) {
+        const node = survivors[existingRelIndex];
+        const alreadyPlaced =
+          anchor === null ? parent.lastChild === node : node.nextSibling === anchor;
+
+        if (!alreadyPlaced) {
+          vnode_insertBefore(journal, parent, node, anchor);
+        }
+
+        anchor = node;
+        index--;
+        continue;
+      }
+
+      let blockStart = index;
+      while (blockStart > start) {
+        const prevOffset = blockStart - 1 - start;
+        if (keepMask[prevOffset] === 1 || nextRefs[prevOffset] !== -1) {
+          break;
+        }
+        blockStart--;
+      }
+
+      const blockLength = index - blockStart + 1;
       const result = vnode_diff_range(
         clientContainer,
         journal,
-        renderKeyedRow(item, i, key, renderItem),
+        buildJsxRange(items, nextKeys, null, renderItem, blockStart, index),
         parent,
-        null,
+        anchor,
         anchor,
         cursor,
         null,
-        false,
+        true,
         diffContext
       );
-      return maybeThen(result, () => {
-        updateInsertedAnchor();
-        i--;
-        return resumeKeyedRange();
-      });
-    }
 
-    for (const leftoverIndex of oldIndexByKey.values()) {
-      vnode_remove(journal, parent, oldRows[leftoverIndex], true);
+      return maybeThen(result, () => {
+        const firstInserted = firstInsertedBeforeAnchor(parent, anchor, blockLength);
+        if (isDev && !firstInserted) {
+          throw new Error('Failed to insert keyed loop block');
+        }
+        anchor = firstInserted;
+        index = blockStart - 1;
+        return resume();
+      });
     }
   };
 
-  return resumeKeyedRange();
+  return resume();
 }

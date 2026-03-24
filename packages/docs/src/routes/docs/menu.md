@@ -16,7 +16,6 @@
 - [Tasks & Lifecycle](</docs/(qwik)/core/tasks/index.mdx>)
 - [Context](</docs/(qwik)/core/context/index.mdx>)
 - [Slots](</docs/(qwik)/core/slots/index.mdx>)
-- [Each](</docs/(qwik)/core/each/index.mdx>)
 - [Rendering](</docs/(qwik)/core/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/core/styles/index.mdx>)
 - [API Reference](/api/qwik/)
@@ -159,6 +158,7 @@
 ## Experimental 🧪
 
 - [Overview](/docs/labs/index.mdx)
+- [Each](/docs/labs/each/index.mdx)
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)

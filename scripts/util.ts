@@ -206,22 +206,6 @@ export const target = 'safari15.4';
 
 export const nodeTarget = 'es2024';
 
-/** Helper just to know which Node.js modules that should stay external. */
-export const nodeBuiltIns = [
-  'assert',
-  'async_hooks',
-  'child_process',
-  'crypto',
-  'fs',
-  'module',
-  'net',
-  'os',
-  'path',
-  'tty',
-  'url',
-  'util',
-];
-
 /** Utility just to ignore certain rollup warns we already know aren't issues. */
 export function rollupOnWarn(warning: any, warn: any) {
   // skip certain warnings

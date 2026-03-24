@@ -8,6 +8,7 @@ export default defineConfig({
       debug: !true,
       srcDir: `./packages/qwik/src`,
       devTools: { hmr: false },
+      experimental: ['each'],
     }),
     tsconfigPaths({ ignoreConfigErrors: true }),
   ],

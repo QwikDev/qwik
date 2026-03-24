@@ -1192,7 +1192,6 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     if (module) {
       const segment = (module.meta.segment as SegmentAnalysis | undefined) ?? getCachedSegment(id);
       if (segment) {
-        console.log('mergeRelatedSegments', { id, segment });
         // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
         if (['qwikify$', 'useVisibleTask$', 'useComputed$'].includes(segment.ctxName)) {
           return null;

@@ -3,7 +3,7 @@ import { isPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 
 export type Destroyable = { $destroy$: (() => void) | null };
-export type AsyncDestroyable = Destroyable & { $destroyPromise$: Promise<void> | null };
+export type AsyncDestroyable = Destroyable & { $destroyPromise$?: Promise<void> };
 
 export const cleanupDestroyable = (destroyable: Destroyable) => {
   if (destroyable.$destroy$) {
@@ -44,7 +44,7 @@ export const cleanupAsyncDestroyable = (
         )
         .finally(() => {
           if (destroyable.$destroyPromise$ === cleanupPromise) {
-            destroyable.$destroyPromise$ = null;
+            destroyable.$destroyPromise$ = undefined;
           }
         });
       destroyable.$destroyPromise$ = cleanupPromise;

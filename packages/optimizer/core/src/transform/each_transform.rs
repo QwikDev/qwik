@@ -220,9 +220,9 @@ impl<'a> QwikTransform<'a> {
 						return None;
 					}
 				};
-				build_each_arrow_expr(&callback_info.params, Some(key_stmts), key_expr.clone())
+				build_each_arrow_expr(&callback_info.params, Some(key_stmts), key_expr)
 			}
-			None => build_each_arrow_expr(&callback_info.params, None, key_expr.clone()),
+			None => build_each_arrow_expr(&callback_info.params, None, key_expr),
 		};
 
 		let item_fn_expr = match stmts {
@@ -237,9 +237,9 @@ impl<'a> QwikTransform<'a> {
 							return None;
 						}
 					};
-				build_each_arrow_expr(&callback_info.params, Some(item_stmts), item_expr.clone())
+				build_each_arrow_expr(&callback_info.params, Some(item_stmts), item_expr)
 			}
-			None => build_each_arrow_expr(&callback_info.params, None, item_expr.clone()),
+			None => build_each_arrow_expr(&callback_info.params, None, item_expr),
 		};
 
 		// `item$` / `key$` become QRL-backed JSX props. If either generated callback would
@@ -480,14 +480,14 @@ fn slice_statements_for_target(
 		if defines.is_empty() || defines.is_disjoint(&needed) {
 			continue;
 		}
-		if is_key_slice {
-			if stmt_contains_call(stmt) || stmt_uses_any_ident(stmt, second_param_ids) {
-				return Err(if stmt_contains_call(stmt) {
-					EachCandidateWarning::CallDerivedKey
-				} else {
-					EachCandidateWarning::UsesSecondParamForKey
-				});
-			}
+		let contains_call = stmt_contains_call(stmt);
+		let uses_second_param = stmt_uses_any_ident(stmt, second_param_ids);
+		if is_key_slice && (contains_call || uses_second_param) {
+			return Err(if contains_call {
+				EachCandidateWarning::CallDerivedKey
+			} else {
+				EachCandidateWarning::UsesSecondParamForKey
+			});
 		}
 
 		let mut uses = collect_stmt_used_idents(stmt);

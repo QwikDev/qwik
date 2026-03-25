@@ -16,8 +16,8 @@
 - [Tasks & Lifecycle](</docs/(qwik)/core/tasks/index.mdx>)
 - [Context](</docs/(qwik)/core/context/index.mdx>)
 - [Slots](</docs/(qwik)/core/slots/index.mdx>)
-- [Each](</docs/(qwik)/core/each/index.mdx>)
 - [Rendering](</docs/(qwik)/core/rendering/index.mdx>)
+- [Each (Reference)](</docs/(qwik)/core/each/index.mdx>)
 - [Styling](</docs/(qwik)/core/styles/index.mdx>)
 - [API Reference](/api/qwik/)
 

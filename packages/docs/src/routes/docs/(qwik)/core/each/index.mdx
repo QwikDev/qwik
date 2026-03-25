@@ -9,7 +9,9 @@ import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 
 `Each` is a built-in Qwik component for rendering keyed lists.
 
-It is most useful when list items have a stable identity and you want Qwik to preserve and move existing rows instead of re-rendering the whole list when the order changes.
+For most list rendering, write normal `items.map()` code and let Qwik optimize compatible keyed loops automatically.
+
+This page documents the manual `Each` API for the cases where you want to use it explicitly. For the default list-rendering guidance, see [Rendering](../rendering/index.mdx).
 
 <CodeSandbox src="/src/routes/demo/component/each/index.tsx" style={{ height: '10em' }}>
 ```tsx /Each/ /key$/ /item$/
@@ -76,33 +78,17 @@ export default component$(() => {
 });
 ```
 
-## `Each` vs `items.map()`
+## When to use manual `Each`
 
-If your list items have stable keys, prefer `Each`.
+Most applications should use `items.map()` in component templates.
 
-It is the specialized keyed-list primitive in Qwik and is designed to preserve and move existing rows efficiently.
+Manual `Each` is useful when:
 
-Use `items.map()` for simple list rendering or when you do not have a stable key:
+- you want to make the keyed-list behavior explicit in the source
+- you are building a reusable abstraction around `Each`
+- you prefer the explicit `items`, `key$`, and `item$` API shape for a specific list
 
-```tsx
-<ul>
-  {todos.value.map((todo) => (
-    <li key={todo.id}>{todo.label}</li>
-  ))}
-</ul>
-```
-
-Prefer `Each` when:
-
-- items have stable ids
-- rows are frequently reordered, inserted, or removed
-- you want to preserve existing row DOM and component instances
-
-Prefer `map()` when:
-
-- there is no stable key for the item
-- you want ordinary JSX list rendering without `Each`'s keyed-row preservation behavior
-- the row output should be recomputed from replaced item objects even when the key stays the same
+If you want the usual authoring experience, use `items.map()` and let the optimizer rewrite compatible loops for you.
 
 ## How keyed updates work
 
@@ -127,5 +113,5 @@ Using unstable keys defeats the main benefit of `Each` and can produce confusing
 
 ## Related
 
-- For general list rendering, see [Rendering](../rendering/index.mdx)
+- For default list rendering with `items.map()`, automatic optimization, warnings, and opt-out comments, see [Rendering](../rendering/index.mdx)
 - For the generated API entry, see [API Reference](/api/qwik/#each)

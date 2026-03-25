@@ -119,18 +119,18 @@ function printWorktreeInfo(worktreePath: string) {
 }
 
 const dirsToSync = [
-  'node_modules',
   'dist-dev',
-  'packages/qwik/bindings',
-  'packages/qwik/dist',
-  'packages/qwik-router/lib',
-  'packages/eslint-plugin-qwik/dist',
-  'packages/eslint-plugin-qwik/lib',
-  'packages/qwik-react/dist',
-  'packages/qwik-react/lib',
-  'packages/qwik-dom/lib',
+  'node_modules',
   'packages/create-qwik/dist',
   'packages/create-qwik/lib',
+  'packages/eslint-plugin-qwik/dist',
+  'packages/optimizer/bindings',
+  'packages/optimizer/dist',
+  'packages/qwik-dom/lib',
+  'packages/qwik-react/lib',
+  'packages/qwik-router/lib',
+  'packages/qwik/dist',
+  'target',
 ];
 
 function copyArtifacts(worktreePath: string) {

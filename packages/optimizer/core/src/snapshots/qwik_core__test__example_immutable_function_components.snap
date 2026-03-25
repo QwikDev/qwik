@@ -1,0 +1,38 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 2604
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore, Slot } from '@qwik.dev/core';
+
+export const App = component$((props: Stuff) => {
+	return (
+		<div>
+			<Slot/>
+		</div>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { Slot } from '@qwik.dev/core';
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ _noopQrl("App_component_ckEPmXZlub0");
+//
+const App_component_ckEPmXZlub0 = (props)=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 3, "u6_0"), 1, "u6_1");
+};
+q_App_component_ckEPmXZlub0.s(App_component_ckEPmXZlub0);
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAA+B,IAAI,QAAQ,iBAAiB;;;;kCAE9B,CAAC;IAC9B,qBACC,WAAC,iCACA,WAAC;AAGJ;;AANA,OAAO,MAAM,oBAAM,0CAMhB\"}")
+== DIAGNOSTICS ==
+
+[]

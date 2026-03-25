@@ -1,0 +1,52 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 913
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, server$, useStyle$ } from '@qwik.dev/core';
+
+export const Works = component$((props) => {
+	useStyle$(STYLES);
+	const text = 'hola';
+	return (
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+	);
+});
+
+const STYLES = '.class {}';
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { useStyleQrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { serverQrl } from "@qwik.dev/core";
+import { _regSymbol } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+const q_Works_component_div_q_e_click_server_q39lOt7xGrI = /*#__PURE__*/ _noopQrl("Works_component_div_q_e_click_server_q39lOt7xGrI");
+const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0");
+const q_Works_component_useStyle_i40UL9JyQpg = /*#__PURE__*/ _noopQrl("Works_component_useStyle_i40UL9JyQpg");
+//
+const Works_component_div_q_e_click_server_q39lOt7xGrI = /*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "q39lOt7xGrI");
+q_Works_component_div_q_e_click_server_q39lOt7xGrI.s(Works_component_div_q_e_click_server_q39lOt7xGrI);
+const Works_component_t45qL4vNGv0 = (props)=>{
+    useStyleQrl(q_Works_component_useStyle_i40UL9JyQpg);
+    return /*#__PURE__*/ _jsxSorted("div", {
+        "q-e:click": serverQrl(q_Works_component_div_q_e_click_server_q39lOt7xGrI)
+    }, null, null, 2, "u6_0");
+};
+q_Works_component_t45qL4vNGv0.s(Works_component_t45qL4vNGv0);
+export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
+const STYLES = '.class {}';
+q_Works_component_useStyle_i40UL9JyQpg.s(STYLES);
+export { STYLES as _auto_STYLES };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;kFAOyB,IAAM,QAAQ,GAAG,CAAC,aAF7B;;oCAFkB,CAAC;IAChC;IAEA,qBACC,WAAC;QAAI,aAAU;;AAEjB;;AANA,OAAO,MAAM,sBAAQ,4CAMlB;AAEH,MAAM,SAAS;yCAPJ\"}")
+== DIAGNOSTICS ==
+
+[]

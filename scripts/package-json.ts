@@ -14,3 +14,21 @@ export async function writePackageJson(pkgJsonDir: string, pkgJson: PackageJSON)
   const pkgJsonStr = JSON.stringify(pkgJson, null, 2) + '\n';
   await writeFile(pkgJsonPath, pkgJsonStr);
 }
+
+/** Write a private submodule package.json with standard fields. */
+export async function writeSubmodulePackageJson(
+  dir: string,
+  name: string,
+  version: string,
+  overrides?: Partial<PackageJSON>
+) {
+  await writePackageJson(dir, {
+    name,
+    version,
+    main: 'index.mjs',
+    types: 'index.d.ts',
+    private: true,
+    type: 'module',
+    ...overrides,
+  });
+}

@@ -1,0 +1,61 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 2044
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+import json from "./foo.json" assert { type: "json" };
+
+export const Greeter = component$(() => {
+	return json;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
+//
+export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,wBAAU,8CAEpB\"}")
+============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
+
+import json from "./foo.json" with {
+    type: "json"
+};
+//
+export const Greeter_component_n7HuG2hhU0Q = ()=>{
+    return json;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mCAEqC;IAAE,MAAM;AAAO;;6CAElB;IACjC,OAAO;AACR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_n7HuG2hhU0Q",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component",
+  "hash": "n7HuG2hhU0Q",
+  "canonicalFilename": "test.tsx_Greeter_component_n7HuG2hhU0Q",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    140,
+    163
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

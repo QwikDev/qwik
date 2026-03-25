@@ -1,0 +1,73 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 4490
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+		import { Foo } from './foo';
+
+		export default component$((props) => {
+			return (
+				<Foo s={Math.random()} {...props} hello {...globalThis.nothing} />
+			);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIE,6BAAe,2CAIZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { Foo } from "./foo";
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+//
+export const test_component_LUXeXe0DQrg = (props)=>{
+    return /*#__PURE__*/ _jsxSplit(Foo, {
+        s: Math.random(),
+        ..._getVarProps(props),
+        ..._getConstProps(props),
+        hello: true,
+        ...globalThis.nothing
+    }, null, null, 0, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAI4B,CAAC;IAC1B,qBACC,UAAC;QAAI,GAAG,KAAK,MAAM;wBAAQ;0BAAA;QAAO,KAAK;QAAE,GAAG,WAAW,OAAO;;AAEhE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    109,
+    214
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,95 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 496
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useStyles$ } from '@qwik.dev/core';
+
+export const Foo = component$(() => {
+	useStyles$('.class {}');
+	return (
+		<div class="class"/>
+	);
+}, {
+	tagName: "my-foo",
+});
+
+============================= test.tsx_Foo_component_useStyles_pV9TSCBIhw8.tsx (ENTRY POINT)==
+
+export const Foo_component_useStyles_pV9TSCBIhw8 = '.class {}';
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAIY\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_useStyles_pV9TSCBIhw8",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_useStyles",
+  "hash": "pV9TSCBIhw8",
+  "canonicalFilename": "test.tsx_Foo_component_useStyles_pV9TSCBIhw8",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "function",
+  "ctxName": "useStyles$",
+  "captures": false,
+  "loc": [
+    113,
+    124
+  ]
+}
+*/
+============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+import { useStylesQrl } from "@qwik.dev/core";
+//
+const q_Foo_component_useStyles_pV9TSCBIhw8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_useStyles_pV9TSCBIhw8"), "Foo_component_useStyles_pV9TSCBIhw8");
+//
+export const Foo_component_HTDRsvUbLiE = ()=>{
+    useStylesQrl(q_Foo_component_useStyles_pV9TSCBIhw8);
+    return <div class="class"/>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B;IAC7B;IACA,QACE,IAAI,MAAM;AAEb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    93,
+    165
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+//
+export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE, {
+    tagName: "my-foo"
+});
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAKhB;IACF,SAAS;AACV,GAAG\"}")
+== DIAGNOSTICS ==
+
+[]

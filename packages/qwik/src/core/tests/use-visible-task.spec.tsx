@@ -1127,3 +1127,33 @@ describe.each([
     });
   });
 });
+
+describe('domRender: useVisibleTask async cleanup', () => {
+  it('should await returned async cleanup before rerun', async () => {
+    const log: string[] = [];
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      useVisibleTask$(({ track }) => {
+        const current = track(() => count.value);
+        log.push(`task:${current}`);
+        return async () => {
+          log.push(`cleanup:${current}:start`);
+          await delay(10);
+          log.push(`cleanup:${current}:end`);
+        };
+      });
+      return <button onClick$={() => count.value++}>{count.value}</button>;
+    });
+
+    const { document, container } = await domRender(<Counter />, { debug });
+    expect(log).toEqual(['task:0']);
+
+    const triggerPromise = trigger(document.body, 'button', 'click');
+    await delay(1);
+    expect(log).toEqual(['task:0', 'cleanup:0:start']);
+
+    await triggerPromise;
+    await waitForDrain(container);
+    expect(log).toEqual(['task:0', 'cleanup:0:start', 'cleanup:0:end', 'task:1']);
+  });
+});

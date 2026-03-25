@@ -11,7 +11,13 @@ import {
   useTask$,
   type Signal as SignalType,
 } from '@qwik.dev/core';
-import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import {
+  domRender,
+  getTestPlatform,
+  ssrRenderToDom,
+  trigger,
+  waitForDrain,
+} from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
@@ -1127,5 +1133,110 @@ describe.each([
     } catch (error) {
       expect((error as Error).message).toBe('HANDLE ME');
     }
+  });
+});
+
+describe('domRender: useTask async cleanup', () => {
+  it('should await async cleanup before rerun', async () => {
+    const log: string[] = [];
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      useTask$(({ track, cleanup }) => {
+        const current = track(() => count.value);
+        log.push(`task:${current}`);
+        cleanup(async () => {
+          log.push(`cleanup:${current}:start`);
+          await delay(10);
+          log.push(`cleanup:${current}:end`);
+        });
+      });
+      return <button onClick$={() => count.value++}>{count.value}</button>;
+    });
+
+    const { document, container } = await domRender(<Counter />, { debug });
+    expect(log).toEqual(['task:0']);
+
+    const triggerPromise = trigger(document.body, 'button', 'click');
+    await delay(1);
+    expect(log).toEqual(['task:0', 'cleanup:0:start']);
+
+    await triggerPromise;
+    await waitForDrain(container);
+    expect(log).toEqual(['task:0', 'cleanup:0:start', 'cleanup:0:end', 'task:1']);
+  });
+
+  it('should keep non-blocking updates visible while cleanup is pending', async () => {
+    vi.useFakeTimers();
+    const log: string[] = [];
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      useTask$(
+        ({ track, cleanup }) => {
+          const current = track(() => count.value);
+          log.push(`task:${current}`);
+          cleanup(async () => {
+            log.push(`cleanup:${current}:start`);
+            await delay(100);
+            log.push(`cleanup:${current}:end`);
+          });
+        },
+        {
+          deferUpdates: false,
+        }
+      );
+      return <button onClick$={() => count.value++}>{count.value}</button>;
+    });
+
+    const { document } = await domRender(<Counter />, { debug });
+    expect(log).toEqual(['task:0']);
+
+    const triggerPromise = trigger(document.body, 'button', 'click');
+    await vi.advanceTimersByTimeAsync(99);
+    await expect(document.body.firstChild).toMatchDOM(<button>1</button>);
+    expect(log).toEqual(['task:0', 'cleanup:0:start']);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await triggerPromise;
+    expect(log).toEqual(['task:0', 'cleanup:0:start', 'cleanup:0:end', 'task:1']);
+
+    vi.useRealTimers();
+  });
+});
+
+describe('ssrRenderToDom: useTask async cleanup', () => {
+  it('should await async cleanup before rerun during SSR', async () => {
+    const log: string[] = [];
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      useTask$(({ track, cleanup }) => {
+        const current = track(() => count.value);
+        log.push(`task:${current}`);
+        cleanup(async () => {
+          log.push(`cleanup:${current}:start`);
+          await delay(10);
+          log.push(`cleanup:${current}:end`);
+        });
+        if (current === 0) {
+          count.value = 1;
+        }
+      });
+      log.push(`render:${count.value}`);
+      return <span>{count.value}</span>;
+    });
+
+    const { vNode } = await ssrRenderToDom(<Counter />, { debug });
+
+    expect(log).toContain('cleanup:0:start');
+    expect(log).toContain('cleanup:0:end');
+    expect(log).toContain('task:1');
+    expect(log.indexOf('cleanup:0:start')).toBeLessThan(log.indexOf('cleanup:0:end'));
+    expect(log.indexOf('cleanup:0:end')).toBeLessThan(log.indexOf('task:1'));
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <span>
+          <Signal>1</Signal>
+        </span>
+      </Component>
+    );
   });
 });

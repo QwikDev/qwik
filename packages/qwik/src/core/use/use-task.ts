@@ -18,7 +18,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { newInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
-import { cleanupDestroyable } from './utils/destroyable';
+import { cleanupAsyncDestroyable } from './utils/destroyable';
 import { cleanupFn, trackFn } from './utils/tracker';
 
 export const enum TaskFlags {
@@ -126,11 +126,11 @@ export interface Tracker {
 /** @public */
 export interface TaskCtx {
   track: Tracker;
-  cleanup: (callback: () => void) => void;
+  cleanup: (callback: () => ValueOrPromise<void>) => void;
 }
 
 /** @public */
-export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
+export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;
 
 export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
   $flags$: number;
@@ -185,34 +185,63 @@ export const runTask = (
   container: Container,
   host: HostElement
 ): ValueOrPromise<void> => {
+  const pendingTask = task.$taskPromise$;
+  if (pendingTask) {
+    return pendingTask;
+  }
+
   task.$flags$ &= ~TaskFlags.DIRTY;
-  cleanupDestroyable(task);
-  const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
-  iCtx.$container$ = container;
-  const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
+  const handleError = (reason: unknown) => container.handleError(reason, host);
 
-  const track = trackFn(task, container);
-  const [cleanup] = cleanupFn(task, (reason: unknown) => container.handleError(reason, host));
+  let taskPromise: Promise<void> | null = null;
+  const result = maybeThen(cleanupAsyncDestroyable(task, handleError), () => {
+    const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
+    iCtx.$container$ = container;
+    const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
 
-  const taskApi: TaskCtx = { track, cleanup };
-  return safeCall(
-    () => taskFn(taskApi),
-    cleanup,
-    (err: unknown) => {
-      // If a Promise is thrown, that means we need to re-run the task.
-      if (isPromise(err)) {
-        return err.then(() => runTask(task, container, host));
-      } else {
-        container.handleError(err, host);
+    const track = trackFn(task, container);
+    const [cleanup] = cleanupFn(task, handleError);
+
+    const taskApi: TaskCtx = { track, cleanup };
+    return safeCall(
+      () => taskFn(taskApi),
+      cleanup,
+      (err: unknown) => {
+        // If a Promise is thrown, that means we need to re-run the task.
+        if (isPromise(err)) {
+          return err.then(() => {
+            if (task.$taskPromise$ === taskPromise) {
+              task.$taskPromise$ = null;
+            }
+            return runTask(task, container, host);
+          });
+        } else {
+          handleError(err);
+        }
       }
-    }
-  );
+    );
+  });
+
+  if (isPromise(result)) {
+    taskPromise = Promise.resolve(result).finally(() => {
+      if (task.$taskPromise$ === taskPromise) {
+        task.$taskPromise$ = null;
+      }
+    });
+    task.$taskPromise$ = taskPromise;
+    return taskPromise;
+  }
+
+  return result;
 };
 
 export class Task<T = unknown, B = T>
   extends BackRef
   implements DescriptorBase<unknown, Signal<B>>
 {
+  $destroyPromise$: Promise<void> | null = null;
+  $taskPromise$: Promise<void> | null = null;
+
   constructor(
     public $flags$: number,
     public $index$: number,

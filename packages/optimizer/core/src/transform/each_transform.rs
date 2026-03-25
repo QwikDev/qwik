@@ -29,11 +29,7 @@ struct EachCallbackInfo {
 }
 
 impl<'a> QwikTransform<'a> {
-	fn push_each_candidate_warning(
-		&mut self,
-		span: Span,
-		warning: EachCandidateWarning,
-	) {
+	fn push_each_candidate_warning(&mut self, span: Span, warning: EachCandidateWarning) {
 		let (message, suggestion) = match warning {
 			EachCandidateWarning::MissingKey => (
 				"This .map() was not optimized to Each because the returned JSX node is missing a key.",
@@ -66,10 +62,10 @@ impl<'a> QwikTransform<'a> {
 			file: self
 				.options
 				.path_data
-					.rel_path
-					.to_slash_lossy()
-					.to_string()
-					.into(),
+				.rel_path
+				.to_slash_lossy()
+				.to_string()
+				.into(),
 			message: message.into(),
 			highlights: Some(vec![SourceLocation::from(&self.options.cm, span)]),
 			suggestions: Some(vec![suggestion.into()]),
@@ -83,9 +79,7 @@ impl<'a> QwikTransform<'a> {
 		match expr {
 			ast::Expr::Arrow(arrow) => {
 				let params = arrow.params.clone();
-				let second_param_ids = params
-					.get(1)
-					.map_or_else(Vec::new, collect_ids_from_pat);
+				let second_param_ids = params.get(1).map_or_else(Vec::new, collect_ids_from_pat);
 				let body = match &*arrow.body {
 					ast::BlockStmtOrExpr::Expr(expr) => EachCallbackBody::Expr(expr.clone()),
 					ast::BlockStmtOrExpr::BlockStmt(block) => {
@@ -116,9 +110,7 @@ impl<'a> QwikTransform<'a> {
 					.iter()
 					.map(|param| param.pat.clone())
 					.collect();
-				let second_param_ids = params
-					.get(1)
-					.map_or_else(Vec::new, collect_ids_from_pat);
+				let second_param_ids = params.get(1).map_or_else(Vec::new, collect_ids_from_pat);
 				let body = {
 					let block = fn_expr.function.body.as_ref()?;
 					let (last, prefix) = block.stmts.split_last()?;
@@ -145,6 +137,10 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	pub(super) fn try_rewrite_map_to_each(&mut self, node: &ast::CallExpr) -> Option<ast::Expr> {
+		if self.jsx_children_expr_depth == 0 {
+			return None;
+		}
+
 		let ast::Callee::Expr(box ast::Expr::Member(member)) = &node.callee else {
 			return None;
 		};
@@ -180,14 +176,22 @@ impl<'a> QwikTransform<'a> {
 				self.push_each_candidate_warning(node.span, EachCandidateWarning::MissingKey);
 				return None;
 			};
-			(Box::new(key_expr), Box::new(ast::Expr::JSXElement(Box::new(jsx))), true)
+			(
+				Box::new(key_expr),
+				Box::new(ast::Expr::JSXElement(Box::new(jsx))),
+				true,
+			)
 		} else if let Some(call) = get_transpiled_jsx_call(return_expr, &self.jsx_functions) {
 			let mut jsx_call = call.clone();
 			let Some(key_expr) = remove_key_from_transpiled_jsx_call(&mut jsx_call) else {
 				self.push_each_candidate_warning(node.span, EachCandidateWarning::MissingKey);
 				return None;
 			};
-			(Box::new(key_expr), Box::new(ast::Expr::Call(jsx_call)), false)
+			(
+				Box::new(key_expr),
+				Box::new(ast::Expr::Call(jsx_call)),
+				false,
+			)
 		} else if is_non_single_jsx_like(return_expr, &self.jsx_functions) {
 			self.push_each_candidate_warning(node.span, EachCandidateWarning::NotSingleJsxNode);
 			return None;
@@ -196,7 +200,10 @@ impl<'a> QwikTransform<'a> {
 		};
 
 		if contains_any_ident(key_expr.as_ref(), &callback_info.second_param_ids) {
-			self.push_each_candidate_warning(node.span, EachCandidateWarning::UsesSecondParamForKey);
+			self.push_each_candidate_warning(
+				node.span,
+				EachCandidateWarning::UsesSecondParamForKey,
+			);
 			return None;
 		}
 		if expr_contains_call(key_expr.as_ref()) {

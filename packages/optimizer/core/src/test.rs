@@ -7043,14 +7043,12 @@ export const App = component$(() => {
 	let combined_code = combined_modules_code(&output);
 
 	assert!(
-		combined_code.contains("_jsxSorted(Each")
-			|| combined_code.contains("_jsxSplit(Each"),
+		combined_code.contains("_jsxSorted(Each") || combined_code.contains("_jsxSplit(Each"),
 		"Expected Each render in generated output.\n{}",
 		combined_code
 	);
 	assert!(
-		!combined_code.contains(".map((item)=>")
-			&& !combined_code.contains(".map(item=>"),
+		!combined_code.contains(".map((item)=>") && !combined_code.contains(".map(item=>"),
 		"Expected map callback to be rewritten.\n{}",
 		combined_code
 	);
@@ -7206,6 +7204,66 @@ export const App = component$(() => {
 		"Did not expect warnings for successful rewrite: {:?}",
 		output.diagnostics
 	);
+}
+
+#[test]
+fn snapshot_map_to_each_outside_jsx_children_is_not_rewritten() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  const rendered = items.map((item) => <span key={item.id}>{item.text}</span>);
+  return <div>{rendered}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_inside_normal_function_is_not_rewritten() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  const renderItems = () => items.map((item) => <span key={item.id}>{item.text}</span>);
+  return <div>{renderItems()}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_outside_jsx_children_without_jsx_transpile_is_not_rewritten() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  const rendered = items.map((item) => <span key={item.id}>{item.text}</span>);
+  return <div>{rendered}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: true,
+		..TestInput::default()
+	});
 }
 
 #[test]

@@ -135,6 +135,7 @@ pub struct QwikTransform<'a> {
 	file_hash: u64,
 	jsx_key_counter: u32,
 	root_jsx_mode: bool,
+	jsx_children_expr_depth: usize,
 	jsx_element_is_native: Vec<bool>,
 	hoisted_fn_signals: HashMap<String, Id>,
 	hoisted_fn_counter: u32,
@@ -295,6 +296,7 @@ impl<'a> QwikTransform<'a> {
 			jsx_functions,
 			immutable_function_cmp,
 			root_jsx_mode: true,
+			jsx_children_expr_depth: 0,
 			jsx_mutable: false,
 			jsx_element_is_native: Vec::new(),
 			hoisted_fn_signals: HashMap::new(),
@@ -306,12 +308,12 @@ impl<'a> QwikTransform<'a> {
 			in_callback: false,
 			const_initializers: HashMap::new(),
 			ref_assignments: Vec::new(),
-				hoisted_segment_idents: HashSet::new(),
-				pending_expr_replacement: None,
-				jsx_disabled_rules_by_pos: HashMap::new(),
-				options,
-			}
+			hoisted_segment_idents: HashSet::new(),
+			pending_expr_replacement: None,
+			jsx_disabled_rules_by_pos: HashMap::new(),
+			options,
 		}
+	}
 
 	const fn is_inline(&self) -> bool {
 		matches!(
@@ -402,10 +404,9 @@ impl<'a> QwikTransform<'a> {
 			.map(|child| match &child {
 				ast::JSXElementChild::JSXExprContainer(container) => match &container.expr {
 					ast::JSXExpr::JSXEmptyExpr(empty) => {
-						pending_rules.extend(self.disabled_rules_from_jsx_comment_container(
-							container,
-							empty,
-						));
+						pending_rules.extend(
+							self.disabled_rules_from_jsx_comment_container(container, empty),
+						);
 						child.fold_with(self)
 					}
 					ast::JSXExpr::Expr(expr) => {
@@ -413,7 +414,7 @@ impl<'a> QwikTransform<'a> {
 							self.register_jsx_disabled_rules(expr.span(), &pending_rules);
 							pending_rules.clear();
 						}
-						child.fold_with(self)
+						self.fold_jsx_child_expr(child)
 					}
 				},
 				ast::JSXElementChild::JSXText(text) => {
@@ -428,6 +429,20 @@ impl<'a> QwikTransform<'a> {
 				}
 			})
 			.collect()
+	}
+
+	fn fold_boxed_expr_in_jsx_children_context(&mut self, expr: Box<ast::Expr>) -> Box<ast::Expr> {
+		self.jsx_children_expr_depth += 1;
+		let folded = expr.fold_with(self);
+		self.jsx_children_expr_depth -= 1;
+		folded
+	}
+
+	fn fold_jsx_child_expr(&mut self, child: ast::JSXElementChild) -> ast::JSXElementChild {
+		self.jsx_children_expr_depth += 1;
+		let folded = child.fold_with(self);
+		self.jsx_children_expr_depth -= 1;
+		folded
 	}
 
 	fn has_invalid_qrl_function_reference(&self, expr: &ast::Expr) -> bool {
@@ -2473,12 +2488,14 @@ impl<'a> QwikTransform<'a> {
 										// input, textarea etc
 										if is_text_only {
 											self.jsx_mutable = true;
-											folded.fold_with(self)
+											self.fold_boxed_expr_in_jsx_children_context(folded)
 										} else {
-											Box::new(new_children.fold_with(self))
+											self.fold_boxed_expr_in_jsx_children_context(Box::new(
+												new_children,
+											))
 										}
 									} else {
-										folded.fold_with(self)
+										self.fold_boxed_expr_in_jsx_children_context(folded)
 									};
 									if self.jsx_mutable {
 										static_subtree = false;

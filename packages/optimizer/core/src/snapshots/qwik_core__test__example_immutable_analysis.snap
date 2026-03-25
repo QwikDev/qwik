@@ -1,0 +1,305 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 2138
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore, $ } from '@qwik.dev/core';
+import importedValue from 'v';
+import styles from './styles.module.css';
+
+export const App = component$((props) => {
+	const {Model} = props;
+	const state = useStore({count: 0});
+	const remove = $((id: number) => {
+		const d = state.data;
+		d.splice(
+			d.findIndex((d) => d.id === id),
+			1
+		)
+		});
+	return (
+		<>
+			<p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
+			<Div
+				class={styles.foo}
+				document={window.document}
+				onClick$={props.onClick$}
+				onEvent$={() => console.log('stuff')}
+				transparent$={() => {console.log('stuff')}}
+				immutable1="stuff"
+				immutable2={{
+					foo: 'bar',
+					baz: importedValue ? true : false,
+				}}
+				immutable3={2}
+				immutable4$={(ev) => console.log(state.count)}
+				immutable5={[1, 2, importedValue, null, {}]}
+			>
+				<p>Hello Qwik</p>
+			</Div>
+			[].map(() => (
+				<Model
+					class={state}
+					remove$={remove}
+					mutable1={{
+						foo: 'bar',
+						baz: state.count ? true : false,
+					}}
+					mutable2={(() => console.log(state.count))()}
+					mutable3={[1, 2, state, null, {}]}
+				/>
+			));
+		</>
+	);
+});
+
+============================= test.tsx_App_component_Fragment_Div_onEvent_zrFduYbT3xM.js (ENTRY POINT)==
+
+export const App_component_Fragment_Div_onEvent_zrFduYbT3xM = ()=>console.log('stuff');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAsBc,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Fragment_Div_onEvent_zrFduYbT3xM",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Fragment_Div_onEvent",
+  "hash": "zrFduYbT3xM",
+  "canonicalFilename": "test.tsx_App_component_Fragment_Div_onEvent_zrFduYbT3xM",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "onEvent$",
+  "captures": false,
+  "loc": [
+    543,
+    569
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAKA,OAAO,MAAM,oBAAM,0CA4ChB\"}")
+============================= test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const App_component_Fragment_Div_immutable4_2zF7jA3Yti0 = (ev)=>{
+    const state = _captures[0];
+    return console.log(state.count);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;iEA8BiB,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Fragment_Div_immutable4_2zF7jA3Yti0",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Fragment_Div_immutable4",
+  "hash": "2zF7jA3Yti0",
+  "canonicalFilename": "test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "immutable4$",
+  "captures": true,
+  "loc": [
+    760,
+    792
+  ],
+  "paramNames": [
+    "ev"
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+============================= test.tsx_App_component_Fragment_Div_transparent_eeDEK6EM1oo.js (ENTRY POINT)==
+
+export const App_component_Fragment_Div_transparent_eeDEK6EM1oo = ()=>{
+    console.log('stuff');
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kEAuBkB;IAAO,QAAQ,GAAG,CAAC;AAAQ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Fragment_Div_transparent_eeDEK6EM1oo",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Fragment_Div_transparent",
+  "hash": "eeDEK6EM1oo",
+  "canonicalFilename": "test.tsx_App_component_Fragment_Div_transparent_eeDEK6EM1oo",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "transparent$",
+  "captures": false,
+  "loc": [
+    589,
+    617
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import importedValue from "v";
+import { qrl } from "@qwik.dev/core";
+import styles from "./styles.module.css";
+import { useStore } from "@qwik.dev/core";
+//
+const _hf0 = (p0)=>({
+        foo: 'bar',
+        baz: p0.count ? true : false
+    });
+const _hf0_str = '{foo:"bar",baz:p0.count?true:false}';
+//
+const q_App_component_Fragment_Div_immutable4_2zF7jA3Yti0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0"), "App_component_Fragment_Div_immutable4_2zF7jA3Yti0");
+const q_App_component_Fragment_Div_onEvent_zrFduYbT3xM = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_Div_onEvent_zrFduYbT3xM"), "App_component_Fragment_Div_onEvent_zrFduYbT3xM");
+const q_App_component_Fragment_Div_transparent_eeDEK6EM1oo = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_Div_transparent_eeDEK6EM1oo"), "App_component_Fragment_Div_transparent_eeDEK6EM1oo");
+const q_App_component_remove_pU6yOC5P6sY = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_remove_pU6yOC5P6sY"), "App_component_remove_pU6yOC5P6sY");
+//
+export const App_component_ckEPmXZlub0 = (props)=>{
+    const state = useStore({
+        count: 0
+    });
+    const remove = q_App_component_remove_pU6yOC5P6sY.w([
+        state
+    ]);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("p", {
+            "q-e:click": props.onClick$
+        }, {
+            class: "stuff"
+        }, "Hello Qwik", 2, null),
+        /*#__PURE__*/ _jsxSorted(Div, {
+            document: window.document,
+            onClick$: props.onClick$
+        }, {
+            class: styles.foo,
+            onEvent$: q_App_component_Fragment_Div_onEvent_zrFduYbT3xM,
+            transparent$: q_App_component_Fragment_Div_transparent_eeDEK6EM1oo,
+            immutable1: "stuff",
+            immutable2: {
+                foo: 'bar',
+                baz: importedValue ? true : false
+            },
+            immutable3: 2,
+            immutable4$: q_App_component_Fragment_Div_immutable4_2zF7jA3Yti0.w([
+                state
+            ]),
+            immutable5: [
+                1,
+                2,
+                importedValue,
+                null,
+                {}
+            ]
+        }, /*#__PURE__*/ _jsxSorted("p", null, null, "Hello Qwik", 3, null), 2, "u6_0"),
+        "[].map(() => (",
+        /*#__PURE__*/ _jsxSorted(props.Model, {
+            mutable2: (()=>console.log(state.count))()
+        }, {
+            class: state,
+            remove$: remove,
+            mutable1: _fnSignal(_hf0, [
+                state
+            ], _hf0_str),
+            mutable3: [
+                1,
+                2,
+                state,
+                null,
+                {}
+            ]
+        }, null, 3, "u6_1"),
+        "));"
+    ], 1, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;mBAuCe,CAAA;QACT,KAAK;QACL,KAAK,GAAM,KAAK,GAAG,OAAO;IAC3B,CAAA;;;;;;;;yCArCyB,CAAC;IAE9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,WAAC;YAAgB,aAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,WAAC;YAEA,UAAU,OAAO,QAAQ;YACzB,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YAGjB,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,OAAO;YAC7B;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe;gBAAM,CAAC;aAAE;yBAE3C,WAAC,iBAAE;QACE;sBAEL,WA9Ba,MAAT;YAqCH,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;;YANzC,OAAO;YACP,SAAS;YACT,QAAQ;;;YAKR,UAAU;gBAAC;gBAAG;gBAAG;gBAAO;gBAAM,CAAC;aAAE;;QAChC;;AAIN\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    164,
+    1148
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_App_component_remove_pU6yOC5P6sY.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const App_component_remove_pU6yOC5P6sY = (id)=>{
+    const state = _captures[0];
+    const d = state.data;
+    d.splice(d.findIndex((d)=>d.id === id), 1);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;gDAQkB,CAAC;;IACjB,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACP,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_remove_pU6yOC5P6sY",
+  "entry": null,
+  "displayName": "test.tsx_App_component_remove",
+  "hash": "pU6yOC5P6sY",
+  "canonicalFilename": "test.tsx_App_component_remove_pU6yOC5P6sY",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    256,
+    358
+  ],
+  "paramNames": [
+    "id"
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

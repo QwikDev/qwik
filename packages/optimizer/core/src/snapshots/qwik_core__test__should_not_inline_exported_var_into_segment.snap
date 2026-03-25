@@ -1,0 +1,100 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6906
+expression: output
+---
+==INPUT==
+
+
+		import { wrapperFn, getEnv } from 'utils';
+		import { formAction$, valiForm$ } from 'forms';
+
+		const flagEnabled = getEnv().PUBLIC_FEATURE;
+		export const FeatureSchema = wrapperFn(flagEnabled);
+
+		export const featureAction = formAction$(async (requestEvent) => {
+			return {
+				status: 'success',
+			};
+		}, valiForm$(FeatureSchema));
+		
+============================= test.js ==
+
+import { formActionQrl } from "forms";
+import { qrl } from "@qwik.dev/core";
+import { valiFormQrl } from "forms";
+import { wrapperFn, getEnv } from 'utils';
+//
+const q_featureAction_formAction_cZgh2PzV1cc = /*#__PURE__*/ qrl(()=>import("./test.tsx_featureAction_formAction_cZgh2PzV1cc"), "featureAction_formAction_cZgh2PzV1cc");
+const q_featureAction_formAction_valiForm_3yxd03SSzJ8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_featureAction_formAction_valiForm_3yxd03SSzJ8"), "featureAction_formAction_valiForm_3yxd03SSzJ8");
+//
+const flagEnabled = getEnv().PUBLIC_FEATURE;
+export const FeatureSchema = wrapperFn(flagEnabled);
+export const featureAction = formActionQrl(q_featureAction_formAction_cZgh2PzV1cc, valiFormQrl(q_featureAction_formAction_valiForm_3yxd03SSzJ8));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACE,SAAS,SAAS,EAAE,MAAM,QAAQ,QAAQ;;;;;AAG1C,MAAM,cAAc,SAAS,cAAc;AAC3C,OAAO,MAAM,gBAAgB,UAAU,aAAa;AAEpD,OAAO,MAAM,gBAAgB,sDAI1B,8DAA0B\"}")
+============================= test.tsx_featureAction_formAction_valiForm_3yxd03SSzJ8.js (ENTRY POINT)==
+
+import { FeatureSchema } from "./test";
+//
+export const featureAction_formAction_valiForm_3yxd03SSzJ8 = FeatureSchema;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6DAWe\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "featureAction_formAction_valiForm_3yxd03SSzJ8",
+  "entry": null,
+  "displayName": "test.tsx_featureAction_formAction_valiForm",
+  "hash": "3yxd03SSzJ8",
+  "canonicalFilename": "test.tsx_featureAction_formAction_valiForm_3yxd03SSzJ8",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "valiForm$",
+  "captures": false,
+  "loc": [
+    326,
+    339
+  ]
+}
+*/
+============================= test.tsx_featureAction_formAction_cZgh2PzV1cc.js (ENTRY POINT)==
+
+export const featureAction_formAction_cZgh2PzV1cc = async (requestEvent)=>{
+    return {
+        status: 'success'
+    };
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAO2C,OAAO;IAC/C,OAAO;QACN,QAAQ;IACT;AACD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "featureAction_formAction_cZgh2PzV1cc",
+  "entry": null,
+  "displayName": "test.tsx_featureAction_formAction",
+  "hash": "cZgh2PzV1cc",
+  "canonicalFilename": "test.tsx_featureAction_formAction_cZgh2PzV1cc",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "formAction$",
+  "captures": false,
+  "loc": [
+    244,
+    314
+  ],
+  "paramNames": [
+    "requestEvent"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

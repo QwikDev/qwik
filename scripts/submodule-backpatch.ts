@@ -1,15 +1,8 @@
 import { join } from 'node:path';
 import { build } from 'vite';
-import { writePackageJson } from './package-json.ts';
+import { writeSubmodulePackageJson } from './package-json.ts';
 import { getLoaderJsonString, minifyClientScript } from './submodule-qwikloader.ts';
-import {
-  type BuildConfig,
-  ensureDir,
-  fileSize,
-  type PackageJSON,
-  readFile,
-  writeFile,
-} from './util.ts';
+import { type BuildConfig, ensureDir, fileSize, readFile, writeFile } from './util.ts';
 
 /** Builds and minifies the backpatch executor javascript files. This is based off of the qwikloader */
 export async function submoduleBackpatch(config: BuildConfig) {
@@ -81,13 +74,5 @@ export async function generateBackpatchSubmodule(config: BuildConfig) {
   await writeFile(join(backpatchDistDir, 'index.mjs'), esmCode.join('\n') + '\n');
   await writeFile(join(backpatchDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
 
-  const backpatchPkg: PackageJSON = {
-    name: `@qwik.dev/core/backpatch`,
-    version: config.distVersion,
-    main: `index.mjs`,
-    types: `index.d.ts`,
-    private: true,
-    type: 'module',
-  };
-  await writePackageJson(backpatchDistDir, backpatchPkg);
+  await writeSubmodulePackageJson(backpatchDistDir, '@qwik.dev/core/backpatch', config.distVersion);
 }

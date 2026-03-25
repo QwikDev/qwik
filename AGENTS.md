@@ -110,9 +110,10 @@ The optimizer is a Rust-based compiler plugin (SWC transform) that:
 2. Captures lexical scope for serialization
 3. Generates manifest metadata for prefetching
 
-- Rust source: `packages/qwik/src/optimizer/core/`
-- WASM build: `packages/qwik/src/wasm/`
-- Native bindings: `packages/qwik/src/napi/`
+- Rust source: `packages/optimizer/core/`
+- WASM build: `packages/optimizer/wasm/`
+- Native bindings: `packages/optimizer/napi/`
+- Vite/Rollup tooling: `packages/qwik-vite/src/`
 
 ### Qwik Router (Meta-framework)
 
@@ -229,7 +230,7 @@ This creates a `.changeset/*.md` file describing the change. The core packages (
 
 1. **Don't run the full test suite** — Use `pnpm test.unit` or target specific files. The full `pnpm test` runs build + all tests and takes a very long time.
 2. **Don't forget `pnpm api.update`** — If you change any public API, CI will fail without regenerated API docs.
-3. **Don't modify Rust code without rebuilding** — After touching `packages/qwik/src/optimizer/core/`, run `pnpm build.full` (requires Rust toolchain + wasm-pack).
+3. **Don't modify Rust code without rebuilding** — After touching `packages/optimizer/core/`, run `pnpm build.full` (requires Rust toolchain + wasm-pack).
 4. **Don't skip changesets for user-facing changes** — CI checks for changesets on PRs that touch published packages.
 5. **Don't commit `.only` tests** — ESLint rule `no-only-tests` blocks this.
 6. **Don't edit generated files** — Files in `dist/`, `lib/`, and API docs are generated. Edit the source instead.

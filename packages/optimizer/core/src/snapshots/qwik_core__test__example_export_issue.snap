@@ -1,0 +1,112 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 2410
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+const App = component$(() => {
+	return (
+		<div>hola</div>
+	);
+});
+
+
+export const Root = component$((props: Stuff) => {
+	return (
+		<App/>
+	);
+});
+
+const Other = 12;
+export { Other as App };
+
+export default App;
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_Root_component_royhjYaCbYE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE");
+//
+const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+export const Root = /*#__PURE__*/ componentQrl(q_Root_component_royhjYaCbYE);
+const Other = 12;
+export { Other as App };
+export default App;
+export { App as _auto_App };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,2CAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
+============================= test.tsx_Root_component_royhjYaCbYE.js (ENTRY POINT)==
+
+import { _auto_App as App } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const Root_component_royhjYaCbYE = (props)=>{
+    return /*#__PURE__*/ _jsxSorted(App, null, null, null, 3, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAU+B,CAAC;IAC/B,qBACC,WAAC;AAEH\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Root_component_royhjYaCbYE",
+  "entry": null,
+  "displayName": "test.tsx_Root_component",
+  "hash": "royhjYaCbYE",
+  "canonicalFilename": "test.tsx_Root_component_royhjYaCbYE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    148,
+    192
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const App_component_ckEPmXZlub0 = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, "hola", 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAGuB;IACtB,qBACC,WAAC,mBAAI;AAEP\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    71,
+    112
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,76 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 4527
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+
+		function Hola(props: any) {
+			return <div {...props}></div>;
+		}
+
+		export default component$(() => {
+		return <Hola>
+			<div>1</div>
+			<div>2</div>
+		</Hola>;
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAOE,6BAAe,2CAKZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+//
+function Hola(props) {
+    return /*#__PURE__*/ _jsxSplit("div", {
+        ..._getVarProps(props)
+    }, _getConstProps(props), null, 0, "u6_0");
+}
+export const test_component_LUXeXe0DQrg = ()=>{
+    return /*#__PURE__*/ _jsxSorted(Hola, null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, "1", 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, "2", 3, null)
+    ], 3, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGE,SAAS,KAAK,KAAU;IACvB,qBAAO,UAAC;wBAAQ;sBAAA;AACjB;0CAE0B;IAC1B,qBAAO,WAAC;sBACP,WAAC,mBAAI;sBACL,WAAC,mBAAI;;AAEN\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    147,
+    217
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

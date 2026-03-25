@@ -7404,6 +7404,28 @@ export const App = component$(() => {
 }
 
 #[test]
+fn snapshot_map_to_each_skips_dynamic_item_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const logos = [{ title: 'Qwik', alt: 'Qwik', Logo, downloadHref: '/logos/qwik.svg' }];
+  return <div>{logos.map((item) => (
+    <Card key={item.title} title={item.title}>
+      <item.Logo alt={item.alt} />
+    </Card>
+  ))}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_warn_when_map_key_uses_second_param() {
 	let res = test_input!(TestInput {
 		code: r#"
@@ -7493,6 +7515,55 @@ export const App = component$(() => {
 			.any(|d| d.category == DiagnosticCategory::Warning
 				&& d.message.contains("single JSX node")),
 		"Expected single-node warning, got {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_not_transform_map_to_each_when_component_type_comes_from_item() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const logos = [{ title: 'Qwik', alt: 'Qwik', Logo, downloadHref: '/logos/qwik.svg' }];
+  return <div>{logos.map((item) => (
+    <Card key={item.title} title={item.title}>
+      <item.Logo alt={item.alt} />
+    </Card>
+  ))}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		!combined_code.contains("Each"),
+		"Expected dynamic item component reference to keep the original .map().\n{}",
+		combined_code
+	);
+	assert!(
+		combined_code.contains(".map("),
+		"Expected original .map() call to remain.\n{}",
+		combined_code
+	);
+	assert!(
+		output
+			.diagnostics
+			.iter()
+			.any(|d| d.category == DiagnosticCategory::Warning
+				&& d.code.as_deref() == Some("map-to-each")
+				&& d.message
+					.contains("component type depends on the callback item")),
+		"Expected dynamic-component warning, got {:?}",
 		output.diagnostics
 	);
 }

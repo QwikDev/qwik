@@ -10,6 +10,7 @@ enum EachCandidateWarning {
 	NotSingleJsxNode,
 	UnsafeSlice,
 	LocalFunctionReference,
+	DynamicComponentReference,
 }
 
 #[derive(Clone)]
@@ -54,6 +55,10 @@ impl<'a> QwikTransform<'a> {
 			EachCandidateWarning::LocalFunctionReference => (
 				"This .map() was not optimized to Each because the generated Each callback would capture a local function or class.",
 				"Move the referenced function or component out of the parent scope, or keep the original .map() render loop.",
+			),
+			EachCandidateWarning::DynamicComponentReference => (
+				"This .map() was not optimized to Each because the rendered component type depends on the callback item.",
+				"Keep the original .map() render loop, or render a statically referenced component type.",
 			),
 		};
 		self.diagnostics.push(Diagnostic {
@@ -208,6 +213,17 @@ impl<'a> QwikTransform<'a> {
 		}
 		if expr_contains_call(key_expr.as_ref()) {
 			self.push_each_candidate_warning(node.span, EachCandidateWarning::CallDerivedKey);
+			return None;
+		}
+		if item_expr_has_dynamic_component_reference(
+			item_expr.as_ref(),
+			&callback_info.params,
+			&self.jsx_functions,
+		) {
+			self.push_each_candidate_warning(
+				node.span,
+				EachCandidateWarning::DynamicComponentReference,
+			);
 			return None;
 		}
 
@@ -709,4 +725,77 @@ fn build_each_transpiled_call(
 		args,
 		..template.clone()
 	})
+}
+
+fn item_expr_has_dynamic_component_reference(
+	expr: &ast::Expr,
+	params: &[ast::Pat],
+	jsx_functions: &HashSet<Id>,
+) -> bool {
+	let param_ids: Vec<_> = params.iter().flat_map(collect_ids_from_pat).collect();
+	if param_ids.is_empty() {
+		return false;
+	}
+
+	let mut checker = DynamicComponentReferenceChecker {
+		param_ids: &param_ids,
+		jsx_functions,
+		found: false,
+	};
+	expr.visit_with(&mut checker);
+	checker.found
+}
+
+struct DynamicComponentReferenceChecker<'a> {
+	param_ids: &'a [Id],
+	jsx_functions: &'a HashSet<Id>,
+	found: bool,
+}
+
+impl Visit for DynamicComponentReferenceChecker<'_> {
+	noop_visit_type!();
+
+	fn visit_jsx_opening_element(&mut self, node: &ast::JSXOpeningElement) {
+		if jsx_element_name_uses_any_ident(&node.name, self.param_ids) {
+			self.found = true;
+			return;
+		}
+		node.visit_children_with(self);
+	}
+
+	fn visit_call_expr(&mut self, node: &ast::CallExpr) {
+		let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee else {
+			node.visit_children_with(self);
+			return;
+		};
+
+		if self.jsx_functions.contains(&id!(ident))
+			&& node
+				.args
+				.first()
+				.is_some_and(|arg| match arg.expr.as_ref() {
+					ast::Expr::Lit(ast::Lit::Str(_)) => false,
+					expr => contains_any_ident(expr, self.param_ids),
+				}) {
+			self.found = true;
+			return;
+		}
+
+		node.visit_children_with(self);
+	}
+}
+
+fn jsx_element_name_uses_any_ident(name: &ast::JSXElementName, ids: &[Id]) -> bool {
+	match name {
+		ast::JSXElementName::Ident(ident) => ids.iter().any(|id| id!(ident) == *id),
+		ast::JSXElementName::JSXMemberExpr(member) => jsx_member_expr_uses_any_ident(member, ids),
+		ast::JSXElementName::JSXNamespacedName(_) => false,
+	}
+}
+
+fn jsx_member_expr_uses_any_ident(member: &ast::JSXMemberExpr, ids: &[Id]) -> bool {
+	match &member.obj {
+		ast::JSXObject::Ident(ident) => ids.iter().any(|id| id!(ident) == *id),
+		ast::JSXObject::JSXMemberExpr(member) => jsx_member_expr_uses_any_ident(member, ids),
+	}
 }

@@ -4217,7 +4217,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 [
   {
     "category": "warning",
-    "code": null,
+    "code": "map-to-each",
     "file": "../node_modules/@qwik.dev/router/index.qwik.mjs",
     "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
     "highlights": [
@@ -4237,7 +4237,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   },
   {
     "category": "warning",
-    "code": null,
+    "code": "map-to-each",
     "file": "../node_modules/@qwik.dev/router/index.qwik.mjs",
     "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
     "highlights": [

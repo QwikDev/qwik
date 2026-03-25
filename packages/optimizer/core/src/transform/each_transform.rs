@@ -1,5 +1,7 @@
 use super::*;
 
+const MAP_TO_EACH_DIRECTIVE: &str = "map-to-each";
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum EachCandidateWarning {
 	MissingKey,
@@ -53,12 +55,12 @@ impl<'a> QwikTransform<'a> {
 				"Simplify the callback body so the key and rendered item can be derived independently.",
 			),
 		};
-		self.diagnostics.push(Diagnostic {
-			category: DiagnosticCategory::Warning,
-			code: None,
-			file: self
-				.options
-				.path_data
+			self.diagnostics.push(Diagnostic {
+				category: DiagnosticCategory::Warning,
+				code: Some(MAP_TO_EACH_DIRECTIVE.to_string()),
+				file: self
+					.options
+					.path_data
 				.rel_path
 				.to_slash_lossy()
 				.to_string()
@@ -141,6 +143,14 @@ impl<'a> QwikTransform<'a> {
 		let ast::Callee::Expr(box ast::Expr::Member(member)) = &node.callee else {
 			return None;
 		};
+		let directive_span = if node.span.lo.0 == 0 {
+			member.span
+		} else {
+			node.span
+		};
+		if self.has_disabled_optimizer_rule(directive_span, MAP_TO_EACH_DIRECTIVE) {
+			return None;
+		}
 		if prop_to_string(&member.prop).as_deref() != Some("map") {
 			return None;
 		}

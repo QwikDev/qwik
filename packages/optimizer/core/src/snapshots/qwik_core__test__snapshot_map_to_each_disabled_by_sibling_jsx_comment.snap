@@ -1,5 +1,6 @@
 ---
-source: packages/qwik/src/optimizer/core/src/test.rs
+source: packages/optimizer/core/src/test.rs
+assertion_line: 7585
 expression: output
 ---
 ==INPUT==
@@ -9,7 +10,10 @@ import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
   const items = [{ id: 'a', text: 'A' }];
-  return <div>{items.map((item) => [<div key={item.id}>{item.text}</div>])}</div>;
+  return <div>
+    {/* @qwik-disable-next-line map-to-each */}
+    {items.map((item) => <span key={item.id}>{item.text}</span>)}
+  </div>;
 });
 
 ============================= test.js ==
@@ -22,7 +26,7 @@ const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App
 export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAGhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAMhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -35,13 +39,11 @@ export const App_component_ckEPmXZlub0 = ()=>{
             text: 'A'
         }
     ];
-    return /*#__PURE__*/ _jsxSorted("div", null, null, items.map((item)=>[
-            /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(item, "text"), 1, item.id)
-        ]), 1, "u6_0");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, items.map((item)=>/*#__PURE__*/ _jsxSorted("span", null, null, _wrapProp(item, "text"), 1, item.id)), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B;IAC5B,MAAM,QAAQ;QAAC;YAAE,IAAI;YAAK,MAAM;QAAI;KAAE;IACtC,qBAAO,WAAC,mBAAK,MAAM,GAAG,CAAC,CAAC,OAAS;0BAAC,WAAC,6BAAmB,kBAAV,KAAK,EAAE;SAAoB;AACzE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B;IAC5B,MAAM,QAAQ;QAAC;YAAE,IAAI;YAAK,MAAM;QAAI;KAAE;IACtC,qBAAO,WAAC,mBAEL,MAAM,GAAG,CAAC,CAAC,qBAAS,WAAC,8BAAoB,kBAAV,KAAK,EAAE;AAE3C\"}")
 /*
 {
   "origin": "test.tsx",
@@ -58,31 +60,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     78,
-    212
+    268
   ]
 }
 */
 == DIAGNOSTICS ==
 
-[
-  {
-    "category": "warning",
-    "code": "map-to-each",
-    "file": "test.tsx",
-    "message": "This .map() was not optimized to Each because the callback does not return a single JSX node.",
-    "highlights": [
-      {
-        "lo": 143,
-        "hi": 202,
-        "startLine": 6,
-        "startCol": 16,
-        "endLine": 6,
-        "endCol": 74
-      }
-    ],
-    "suggestions": [
-      "Return a single JSX node from the .map() callback."
-    ],
-    "scope": "optimizer"
-  }
-]
+[]

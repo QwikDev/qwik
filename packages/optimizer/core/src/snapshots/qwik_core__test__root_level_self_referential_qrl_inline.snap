@@ -64,7 +64,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/qwik-tree/index.
 [
   {
     "category": "warning",
-    "code": null,
+    "code": "map-to-each",
     "file": "./node_modules/qwik-tree/index.qwik.jsx",
     "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
     "highlights": [

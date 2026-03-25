@@ -7209,6 +7209,122 @@ export const App = component$(() => {
 }
 
 #[test]
+fn should_not_transform_map_to_each_when_disabled_by_comment() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{
+    /* @qwik-disable-next-line map-to-each */
+    items.map((item) => <span key={item.id}>{item.text}</span>)
+  }</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		!combined_code.contains("Each"),
+		"Expected map callback rewrite to be disabled.\n{}",
+		combined_code
+	);
+	assert!(
+		combined_code.contains(".map("),
+		"Expected original .map() call to remain.\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings when map-to-each is disabled: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_silence_map_to_each_warnings_when_disabled_by_comment() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = ['a'];
+  return <div>{
+    /* @qwik-disable-next-line map-to-each */
+    items.map((item) => <span>{item}</span>)
+  }</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		combined_code.contains(".map("),
+		"Expected original .map() call to remain.\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings when map-to-each is disabled: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_disable_map_to_each_with_sibling_jsx_comment() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>
+    {/* @qwik-disable-next-line map-to-each */}
+    {items.map((item) => <span key={item.id}>{item.text}</span>)}
+  </div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		!combined_code.contains("Each"),
+		"Expected map callback rewrite to be disabled by sibling JSX comment.\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings when map-to-each is disabled by sibling JSX comment: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
 fn should_warn_when_map_key_uses_second_param() {
 	let res = test_input!(TestInput {
 		code: r#"
@@ -7233,6 +7349,7 @@ export const App = component$(() => {
 			.diagnostics
 			.iter()
 			.any(|d| d.category == DiagnosticCategory::Warning
+				&& d.code.as_deref() == Some("map-to-each")
 				&& d.message.contains("index parameter")),
 		"Expected second-parameter warning, got {:?}",
 		output.diagnostics
@@ -7412,6 +7529,69 @@ export const App = component$(() => {
       {item.text}
     </button>
   ))}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_disabled_by_comment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{
+    /* @qwik-disable-next-line map-to-each */
+    items.map((item) => <span key={item.id}>{item.text}</span>)
+  }</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_warning_disabled_by_comment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = ['a'];
+  return <div>{
+    /* @qwik-disable-next-line map-to-each */
+    items.map((item) => <span>{item}</span>)
+  }</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_disabled_by_sibling_jsx_comment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>
+    {/* @qwik-disable-next-line map-to-each */}
+    {items.map((item) => <span key={item.id}>{item.text}</span>)}
+  </div>;
 });
 "#
 		.to_string(),

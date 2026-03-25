@@ -124,7 +124,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 [
   {
     "category": "warning",
-    "code": null,
+    "code": "map-to-each",
     "file": "test.tsx",
     "message": "This .map() was not optimized to Each because the key uses the callback's index parameter.",
     "highlights": [
@@ -144,7 +144,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   },
   {
     "category": "warning",
-    "code": null,
+    "code": "map-to-each",
     "file": "test.tsx",
     "message": "This .map() was not optimized to Each because the key uses the callback's index parameter.",
     "highlights": [

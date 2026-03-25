@@ -1,5 +1,6 @@
 ---
-source: packages/qwik/src/optimizer/core/src/test.rs
+source: packages/optimizer/core/src/test.rs
+assertion_line: 7564
 expression: output
 ---
 ==INPUT==
@@ -9,7 +10,10 @@ import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
   const items = ['a'];
-  return <div>{items.map(item => <div>{item}</div>)}</div>;
+  return <div>{
+    /* @qwik-disable-next-line map-to-each */
+    items.map((item) => <span>{item}</span>)
+  }</div>;
 });
 
 ============================= test.js ==
@@ -22,7 +26,7 @@ const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App
 export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAGhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAMhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -31,11 +35,11 @@ export const App_component_ckEPmXZlub0 = ()=>{
     const items = [
         'a'
     ];
-    return /*#__PURE__*/ _jsxSorted("div", null, null, items.map((item)=>/*#__PURE__*/ _jsxSorted("div", null, null, item, 1, "u6_0")), 1, "u6_1");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, /* @qwik-disable-next-line map-to-each */ items.map((item)=>/*#__PURE__*/ _jsxSorted("span", null, null, item, 1, "u6_0")), 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAC5B,MAAM,QAAQ;QAAC;KAAI;IACnB,qBAAO,WAAC,mBAAK,MAAM,GAAG,CAAC,CAAA,qBAAQ,WAAC,mBAAK;AACvC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAC5B,MAAM,QAAQ;QAAC;KAAI;IACnB,qBAAO,WAAC,mBACN,uCAAuC,GACvC,MAAM,GAAG,CAAC,CAAC,qBAAS,WAAC,oBAAM;AAE/B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -52,31 +56,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     78,
-    170
+    228
   ]
 }
 */
 == DIAGNOSTICS ==
 
-[
-  {
-    "category": "warning",
-    "code": "map-to-each",
-    "file": "test.tsx",
-    "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
-    "highlights": [
-      {
-        "lo": 124,
-        "hi": 160,
-        "startLine": 6,
-        "startCol": 16,
-        "endLine": 6,
-        "endCol": 51
-      }
-    ],
-    "suggestions": [
-      "Add a stable key to the returned JSX node."
-    ],
-    "scope": "optimizer"
-  }
-]
+[]

@@ -203,7 +203,6 @@ jobs:
 
   ############ BUILD Qwik ############
   build-qwik:
-    if: needs.changes.outputs.build-qwik == 'true'
     name: Build Qwik
     needs: changes
     runs-on: ubuntu-latest
@@ -212,7 +211,9 @@ jobs:
         uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
+        if: needs.changes.outputs.build-qwik == 'true'
       - name: Setup Node
+        if: needs.changes.outputs.build-qwik == 'true'
         uses: actions/setup-node@v5
         with:
           node-version: 24.x
@@ -220,20 +221,31 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install NPM Dependencies
+        if: needs.changes.outputs.build-qwik == 'true'
         run: |
           # Ensure that the optimizer binary gets made
           mkdir -p packages/optimizer/bindings/
           pnpm install --frozen-lockfile
 
       - name: 'build: qwik'
+        if: needs.changes.outputs.build-qwik == 'true'
         # Also build optimizer for now
         run: pnpm build --qwik --optimizer --insights --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+
+      - name: Restore qwik cache
+        if: needs.changes.outputs.build-qwik != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          fail-on-cache-miss: true
+          path: packages/qwik/dist
+          key: ${{ needs.changes.outputs.hash-qwik }}
 
       - name: Print Qwik Dist Build
         continue-on-error: true
         run: tree -a packages/qwik/dist/
 
       - name: Save qwik cache
+        if: needs.changes.outputs.build-qwik == 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-qwik }}

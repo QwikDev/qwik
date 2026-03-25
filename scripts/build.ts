@@ -62,7 +62,7 @@ export async function build(config: BuildConfig) {
       await tscQwik(config);
     }
     ensureDir(config.distQwikPkgDir);
-    if (config.qwik) {
+    if (config.qwik && !config.dev) {
       emptyDir(config.distQwikPkgDir);
     }
 

@@ -2307,7 +2307,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface TaskCtx \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cleanup](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(callback: () =&gt; void) =&gt; void\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[track](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[Tracker](#tracker)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface TaskCtx \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cleanup](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(callback: () =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;void&gt;) =&gt; void\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[track](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[Tracker](#tracker)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "core.taskctx.md"
     },
@@ -2321,7 +2321,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;\n```\n**References:** [TaskCtx](#taskctx)<!-- -->, [ValueOrPromise](#valueorpromise)",
+      "content": "```typescript\nexport type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;\n```\n**References:** [TaskCtx](#taskctx)<!-- -->, [ValueOrPromise](#valueorpromise)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "core.taskfn.md"
     },

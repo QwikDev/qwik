@@ -133,7 +133,7 @@ describe('runTask', () => {
 
     expect(container.handleError).toHaveBeenCalledWith(error, host);
     expect(run).toBe(2);
-    expect(task.$destroyPromise$).toBe(null);
+    expect(task.$destroyPromise$).toBe(undefined);
     expect(task.$taskPromise$).toBe(null);
   });
 

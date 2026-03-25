@@ -223,7 +223,7 @@ export const runTask = (
   });
 
   if (isPromise(result)) {
-    taskPromise = Promise.resolve(result).finally(() => {
+    taskPromise = result.finally(() => {
       if (task.$taskPromise$ === taskPromise) {
         task.$taskPromise$ = null;
       }
@@ -239,7 +239,7 @@ export class Task<T = unknown, B = T>
   extends BackRef
   implements DescriptorBase<unknown, Signal<B>>
 {
-  $destroyPromise$: Promise<void> | null = null;
+  $destroyPromise$: Promise<void> | undefined;
   $taskPromise$: Promise<void> | null = null;
 
   constructor(

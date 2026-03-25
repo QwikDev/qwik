@@ -1,0 +1,126 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ key: 'a', text: 'A' }];
+  return <div>{items.map(item => <Card key={item.key} text={item.text} />)}</div>;
+});
+
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAGhB\"}")
+============================= test.tsx_App_component_div_Each_item_f829DjfZibU.tsx (ENTRY POINT)==
+
+export const App_component_div_Each_item_f829DjfZibU = (item)=><Card text={item.text}/>;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAKyB,QAAS,KAAoB,MAAM,KAAK,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_Each_item_f829DjfZibU",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_Each_item",
+  "hash": "f829DjfZibU",
+  "canonicalFilename": "test.tsx_App_component_div_Each_item_f829DjfZibU",
+  "path": "",
+  "extension": "tsx",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "item$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ],
+  "paramNames": [
+    "item"
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.tsx (ENTRY POINT)==
+
+import { Each } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_div_Each_item_f829DjfZibU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_Each_item_f829DjfZibU"), "App_component_div_Each_item_f829DjfZibU");
+const q_App_component_div_Each_key_07Oo5ReT59I = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_Each_key_07Oo5ReT59I"), "App_component_div_Each_key_07Oo5ReT59I");
+//
+export const App_component_ckEPmXZlub0 = ()=>{
+    const items = [
+        {
+            key: 'a',
+            text: 'A'
+        }
+    ];
+    return <div>{<Each items={items} key$={q_App_component_div_Each_key_07Oo5ReT59I} item$={q_App_component_div_Each_item_f829DjfZibU}/>}</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAG8B;IAC5B,MAAM,QAAQ;QAAC;YAAE,KAAK;YAAK,MAAM;QAAI;KAAE;IACvC,QAAQ,kBAAK,6GAA8D;AAC7E\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    213
+  ]
+}
+*/
+============================= test.tsx_App_component_div_Each_key_07Oo5ReT59I.tsx (ENTRY POINT)==
+
+export const App_component_div_Each_key_07Oo5ReT59I = (item)=>item.key;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAKyB,OAAmB,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_Each_key_07Oo5ReT59I",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_Each_key",
+  "hash": "07Oo5ReT59I",
+  "canonicalFilename": "test.tsx_App_component_div_Each_key_07Oo5ReT59I",
+  "path": "",
+  "extension": "tsx",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "key$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ],
+  "paramNames": [
+    "item"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

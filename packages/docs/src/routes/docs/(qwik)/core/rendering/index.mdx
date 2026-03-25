@@ -100,9 +100,9 @@ export const Child = component$((props: { name: string }) => {
 
 ### Rendering a list of items
 
-Qwik supports rendering lists with either `items.map()` or the [`Each`](../each/index.mdx) component.
+Write lists with normal `items.map()` in component templates.
 
-For keyed collections, prefer [`Each`](../each/index.mdx). If you render with `items.map()`, every item in the list must have a unique `key` property on the first child returned by the mapping function. The `key` must be a string or number and must be unique within the list.
+If you render with `items.map()`, every item in the list must have a unique `key` property on the first child returned by the mapping function. The `key` must be a string or number and must be unique within the list.
 
 ```tsx {6} /data.map/ /key/#a
 import { component$ } from '@qwik.dev/core';
@@ -121,6 +121,55 @@ export const Parent = component$(() => {
 ```
 
 <Note>It is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.</Note>
+
+## Automatic `.map()` optimization
+
+For compatible render loops, Qwik optimizes keyed `items.map()` calls into an internal [`Each`](../each/index.mdx)-style keyed list automatically during compilation.
+
+The optimization applies when:
+
+- the callback returns a single JSX node
+- the first returned node has a `key`
+- the key does not use the callback's index parameter
+- the key is not derived from a function call
+
+For example, this authoring pattern:
+
+```tsx
+{items.value.map((item) => (
+  <div key={item.id}>{item.label}</div>
+))}
+```
+
+can be optimized to the same keyed-list machinery used by manual `Each`.
+
+If a `.map()` looks like a keyed list render but cannot be optimized, Qwik emits a `map-to-each` optimizer warning with the reason. If the conditions are not met, the original `.map()` stays unchanged.
+
+Common reasons for the warning are:
+
+- the returned JSX node is missing a `key`
+- the key uses the callback's index parameter
+- the key comes from a function call
+- the callback does not return a single JSX node
+
+## Disabling the optimization
+
+If you want to opt out for a specific render loop, use:
+
+```tsx
+{
+  /* @qwik-disable-next-line map-to-each */
+  items.map((item) => <div key={item.id}>{item.label}</div>)
+}
+```
+
+That disables the optimization and silences `map-to-each` warnings for that call.
+
+## Manual `Each`
+
+Manual [`Each`](../each/index.mdx) is still available as a public API, but it is now the explicit or advanced form rather than the default recommendation.
+
+Use manual `Each` when you want to make the keyed-list behavior explicit in the source or when you are building an abstraction around its `items`, `key$`, and `item$` props.
 
 ### Rendering Conditionally
 

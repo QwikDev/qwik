@@ -350,6 +350,7 @@ describe.each([
         return (
           <>
             <button onClick$={() => (count.value += 1)}>Next</button>
+            {/* @qwik-disable-next-line map-to-each */}
             {[count.value].map((o) => (
               <InnerComponent key={o} value={o} />
             ))}

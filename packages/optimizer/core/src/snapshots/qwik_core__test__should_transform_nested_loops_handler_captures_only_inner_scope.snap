@@ -1,6 +1,5 @@
 ---
-source: packages/optimizer/core/src/test.rs
-assertion_line: 5612
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -122,4 +121,45 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 == DIAGNOSTICS ==
 
-[]
+[
+  {
+    "category": "warning",
+    "code": "map-to-each",
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the key uses the callback's index parameter.",
+    "highlights": [
+      {
+        "lo": 175,
+        "hi": 508,
+        "startLine": 8,
+        "startCol": 8,
+        "endLine": 19,
+        "endCol": 8
+      }
+    ],
+    "suggestions": [
+      "Use a stable key derived from the item instead of the callback's index parameter."
+    ],
+    "scope": "optimizer"
+  },
+  {
+    "category": "warning",
+    "code": "map-to-each",
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the key uses the callback's index parameter.",
+    "highlights": [
+      {
+        "lo": 239,
+        "hi": 483,
+        "startLine": 10,
+        "startCol": 12,
+        "endLine": 17,
+        "endCol": 12
+      }
+    ],
+    "suggestions": [
+      "Use a stable key derived from the item instead of the callback's index parameter."
+    ],
+    "scope": "optimizer"
+  }
+]

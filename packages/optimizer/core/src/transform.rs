@@ -6,6 +6,7 @@ use crate::entry_strategy::EntryPolicy;
 use crate::inlined_fn::{convert_inlined_fn, render_expr};
 use crate::is_const::is_const_expr;
 use crate::parse::{EmitMode, PathData};
+use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use crate::words::*;
 use crate::{errors, EntryStrategy};
 use base64::Engine;
@@ -19,9 +20,9 @@ use std::hash::Hasher; // import without risk of name clashing
 use std::iter;
 use std::str;
 use swc_atoms::{atom, Atom};
-use swc_common::comments::{Comments, SingleThreadedComments};
+use swc_common::comments::{Comment, Comments, SingleThreadedComments};
 use swc_common::SyntaxContext;
-use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
+use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, SourceMapper, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast::{self, SpreadElement};
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
 use swc_ecmascript::visit::{noop_fold_type, noop_visit_type, Fold, FoldWith, Visit, VisitWith};
@@ -41,6 +42,10 @@ macro_rules! id_eq {
 		}
 	};
 }
+
+mod each_transform;
+
+const QWIK_DISABLE_NEXT_LINE_DIRECTIVE: &str = "qwik-disable-next-line";
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -105,6 +110,7 @@ struct ImportQrlName {
 #[allow(clippy::module_name_repetitions)]
 pub struct QwikTransform<'a> {
 	pub segments: Vec<Segment>,
+	pub diagnostics: Vec<Diagnostic>,
 	pub options: QwikTransformOptions<'a>,
 
 	segment_names: HashMap<String, u32>,
@@ -129,6 +135,7 @@ pub struct QwikTransform<'a> {
 	file_hash: u64,
 	jsx_key_counter: u32,
 	root_jsx_mode: bool,
+	jsx_children_expr_depth: usize,
 	jsx_element_is_native: Vec<bool>,
 	hoisted_fn_signals: HashMap<String, Id>,
 	hoisted_fn_counter: u32,
@@ -148,6 +155,8 @@ pub struct QwikTransform<'a> {
 	hoisted_segment_idents: HashSet<Id>,
 	/// Pending expression replacement for fold_expr (to return non-CallExpr from fold_call_expr)
 	pending_expr_replacement: Option<ast::Expr>,
+	/// Rules disabled by a preceding JSX comment sibling, keyed by the next expression's span.lo.
+	jsx_disabled_rules_by_pos: HashMap<u32, HashSet<String>>,
 }
 
 pub struct QwikTransformOptions<'a> {
@@ -256,6 +265,7 @@ impl<'a> QwikTransform<'a> {
 			stack_ctxt: Vec::with_capacity(16),
 			decl_stack: Vec::with_capacity(32),
 			segments: Vec::with_capacity(16),
+			diagnostics: Vec::new(),
 			segment_stack: Vec::with_capacity(16),
 			extra_top_items: BTreeMap::new(),
 			extra_bottom_items: BTreeMap::new(),
@@ -286,6 +296,7 @@ impl<'a> QwikTransform<'a> {
 			jsx_functions,
 			immutable_function_cmp,
 			root_jsx_mode: true,
+			jsx_children_expr_depth: 0,
 			jsx_mutable: false,
 			jsx_element_is_native: Vec::new(),
 			hoisted_fn_signals: HashMap::new(),
@@ -299,6 +310,7 @@ impl<'a> QwikTransform<'a> {
 			ref_assignments: Vec::new(),
 			hoisted_segment_idents: HashSet::new(),
 			pending_expr_replacement: None,
+			jsx_disabled_rules_by_pos: HashMap::new(),
 			options,
 		}
 	}
@@ -308,6 +320,146 @@ impl<'a> QwikTransform<'a> {
 			self.options.entry_strategy,
 			EntryStrategy::Inline | EntryStrategy::Hoist
 		)
+	}
+
+	fn has_disabled_optimizer_rule(&self, span: Span, rule: &str) -> bool {
+		let has_registered_disable = self
+			.jsx_disabled_rules_by_pos
+			.get(&span.lo.0)
+			.is_some_and(|rules| rules.contains("all") || rules.contains(rule));
+		if has_registered_disable {
+			return true;
+		}
+
+		let has_leading_comment_disable = self.options.comments.is_some_and(|comments| {
+			comments.with_leading(span.lo, |comments| {
+				comments
+					.iter()
+					.any(|comment| optimizer_comment_disables_rule(comment.text.as_ref(), rule))
+			})
+		});
+		if has_leading_comment_disable {
+			return true;
+		}
+
+		self.has_disabled_optimizer_rule_on_previous_line(span, rule)
+	}
+
+	fn has_disabled_optimizer_rule_on_previous_line(&self, span: Span, rule: &str) -> bool {
+		if span.lo.0 == 0 {
+			return false;
+		}
+		let loc = self.options.cm.lookup_char_pos(span.lo);
+		let src = &loc.file.src;
+		let Some(previous_line) = src.lines().nth(loc.line.saturating_sub(2)) else {
+			return false;
+		};
+		optimizer_comment_disables_rule(previous_line, rule)
+	}
+
+	fn register_jsx_disabled_rules(&mut self, span: Span, rules: &HashSet<String>) {
+		if rules.is_empty() {
+			return;
+		}
+		self.jsx_disabled_rules_by_pos
+			.entry(span.lo.0)
+			.or_default()
+			.extend(rules.iter().cloned());
+	}
+
+	fn disabled_rules_from_jsx_comment_container(
+		&self,
+		container: &ast::JSXExprContainer,
+		empty: &ast::JSXEmptyExpr,
+	) -> HashSet<String> {
+		let mut rules = HashSet::new();
+		if let Ok(snippet) = self.options.cm.span_to_snippet(container.span) {
+			extend_optimizer_disabled_rules_from_comment_text(&snippet, &mut rules);
+		}
+		let Some(comments) = self.options.comments else {
+			return rules;
+		};
+		for comment in comments.get_leading(empty.span.lo).into_iter().flatten() {
+			extend_optimizer_disabled_rules_from_comment(&comment, &mut rules);
+		}
+		for comment in comments.get_trailing(empty.span.lo).into_iter().flatten() {
+			extend_optimizer_disabled_rules_from_comment(&comment, &mut rules);
+		}
+		for comment in comments.get_leading(empty.span.hi).into_iter().flatten() {
+			extend_optimizer_disabled_rules_from_comment(&comment, &mut rules);
+		}
+		for comment in comments.get_trailing(empty.span.hi).into_iter().flatten() {
+			extend_optimizer_disabled_rules_from_comment(&comment, &mut rules);
+		}
+		rules
+	}
+
+	fn fold_jsx_children_with_disable_directives(
+		&mut self,
+		children: Vec<ast::JSXElementChild>,
+	) -> Vec<ast::JSXElementChild> {
+		let mut pending_rules = HashSet::new();
+		children
+			.into_iter()
+			.map(|child| match &child {
+				ast::JSXElementChild::JSXExprContainer(container) => match &container.expr {
+					ast::JSXExpr::JSXEmptyExpr(empty) => {
+						pending_rules.extend(
+							self.disabled_rules_from_jsx_comment_container(container, empty),
+						);
+						child.fold_with(self)
+					}
+					ast::JSXExpr::Expr(expr) => {
+						if !pending_rules.is_empty() {
+							self.register_jsx_disabled_rules(expr.span(), &pending_rules);
+							pending_rules.clear();
+						}
+						self.fold_jsx_child_expr(child)
+					}
+				},
+				ast::JSXElementChild::JSXText(text) => {
+					if !text.value.trim().is_empty() {
+						pending_rules.clear();
+					}
+					child.fold_with(self)
+				}
+				_ => {
+					pending_rules.clear();
+					child.fold_with(self)
+				}
+			})
+			.collect()
+	}
+
+	fn fold_boxed_expr_in_jsx_children_context(&mut self, expr: Box<ast::Expr>) -> Box<ast::Expr> {
+		self.jsx_children_expr_depth += 1;
+		let folded = expr.fold_with(self);
+		self.jsx_children_expr_depth -= 1;
+		folded
+	}
+
+	fn fold_jsx_child_expr(&mut self, child: ast::JSXElementChild) -> ast::JSXElementChild {
+		self.jsx_children_expr_depth += 1;
+		let folded = child.fold_with(self);
+		self.jsx_children_expr_depth -= 1;
+		folded
+	}
+
+	fn has_invalid_qrl_function_reference(&self, expr: &ast::Expr) -> bool {
+		let descendent_idents = {
+			let mut collector = IdentCollector::new();
+			expr.visit_with(&mut collector);
+			collector.get_words()
+		};
+		let (_decl_collect, invalid_decl): (_, Vec<_>) = self
+			.decl_stack
+			.iter()
+			.flat_map(|v| v.iter())
+			.cloned()
+			.partition(|(_, t)| matches!(t, IdentType::Var(_)));
+		descendent_idents
+			.iter()
+			.any(|ident| invalid_decl.iter().any(|entry| entry.0 == *ident))
 	}
 
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
@@ -2336,12 +2488,14 @@ impl<'a> QwikTransform<'a> {
 										// input, textarea etc
 										if is_text_only {
 											self.jsx_mutable = true;
-											folded.fold_with(self)
+											self.fold_boxed_expr_in_jsx_children_context(folded)
 										} else {
-											Box::new(new_children.fold_with(self))
+											self.fold_boxed_expr_in_jsx_children_context(Box::new(
+												new_children,
+											))
 										}
 									} else {
-										folded.fold_with(self)
+										self.fold_boxed_expr_in_jsx_children_context(folded)
 									};
 									if self.jsx_mutable {
 										static_subtree = false;
@@ -3307,6 +3461,34 @@ impl<'a> QwikTransform<'a> {
 	}
 }
 
+fn optimizer_comment_disables_rule(comment_text: &str, rule: &str) -> bool {
+	let mut rules = HashSet::new();
+	extend_optimizer_disabled_rules_from_comment_text(comment_text, &mut rules);
+	rules.contains("all") || rules.contains(rule)
+}
+
+fn extend_optimizer_disabled_rules_from_comment(comment: &Comment, rules: &mut HashSet<String>) {
+	extend_optimizer_disabled_rules_from_comment_text(comment.text.as_ref(), rules);
+}
+
+fn extend_optimizer_disabled_rules_from_comment_text(
+	comment_text: &str,
+	rules: &mut HashSet<String>,
+) {
+	for line in comment_text.lines() {
+		let line = line.trim_start_matches(['*', ' ', '/', '{', '}']).trim();
+		let line = line.strip_prefix('@').unwrap_or(line);
+		let Some(rest) = line.strip_prefix(QWIK_DISABLE_NEXT_LINE_DIRECTIVE) else {
+			continue;
+		};
+		rules.extend(
+			rest.split(|c: char| c == ',' || c.is_whitespace())
+				.filter(|token| !token.is_empty())
+				.map(str::to_string),
+		);
+	}
+}
+
 impl<'a> Fold for QwikTransform<'a> {
 	noop_fold_type!();
 
@@ -3829,14 +4011,25 @@ impl<'a> Fold for QwikTransform<'a> {
 		} else {
 			(false, false)
 		};
-		let o = node.fold_children_with(self);
+		let mut node = node;
+		node.opening = node.opening.fold_with(self);
+		node.children = self.fold_jsx_children_with_disable_directives(node.children);
+		node.closing = node.closing.fold_with(self);
 		if stacked {
 			self.stack_ctxt.pop();
 		}
 		if is_native {
 			self.jsx_element_is_native.pop();
 		}
-		o
+		node
+	}
+
+	fn fold_jsx_fragment(&mut self, node: ast::JSXFragment) -> ast::JSXFragment {
+		let mut node = node;
+		node.opening = node.opening.fold_with(self);
+		node.children = self.fold_jsx_children_with_disable_directives(node.children);
+		node.closing = node.closing.fold_with(self);
+		node
 	}
 
 	fn fold_export_default_expr(&mut self, node: ast::ExportDefaultExpr) -> ast::ExportDefaultExpr {
@@ -3927,6 +4120,11 @@ impl<'a> Fold for QwikTransform<'a> {
 		let mut name_token = false;
 		let mut replace_callee = None;
 		let mut ctx_name: Atom = QSEGMENT.clone();
+
+		if let Some(replacement) = self.try_rewrite_map_to_each(&node) {
+			self.pending_expr_replacement = Some(replacement);
+			return Default::default();
+		}
 
 		// Check if this is an array iteration method call (e.g., .map(), .filter(), etc.)
 		let is_iteration_method =

@@ -41,7 +41,7 @@ impl PartialOrd for SourceLocation {
 	}
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Diagnostic {
 	pub category: DiagnosticCategory,
@@ -53,7 +53,7 @@ pub struct Diagnostic {
 	pub scope: DiagnosticScope,
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum DiagnosticCategory {
 	/// Fails the build with an error.
@@ -64,7 +64,7 @@ pub enum DiagnosticCategory {
 	SourceError,
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum DiagnosticScope {
 	Optimizer,

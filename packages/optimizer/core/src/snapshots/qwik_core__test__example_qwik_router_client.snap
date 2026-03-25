@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 3326
 expression: output
 ---
 ==INPUT==
@@ -4215,4 +4214,45 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 == DIAGNOSTICS ==
 
-[]
+[
+  {
+    "category": "warning",
+    "code": "map-to-each",
+    "file": "../node_modules/@qwik.dev/router/index.qwik.mjs",
+    "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
+    "highlights": [
+      {
+        "lo": 57097,
+        "hi": 57156,
+        "startLine": 1724,
+        "startCol": 7,
+        "endLine": 1724,
+        "endCol": 65
+      }
+    ],
+    "suggestions": [
+      "Add a stable key to the returned JSX node."
+    ],
+    "scope": "optimizer"
+  },
+  {
+    "category": "warning",
+    "code": "map-to-each",
+    "file": "../node_modules/@qwik.dev/router/index.qwik.mjs",
+    "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
+    "highlights": [
+      {
+        "lo": 57164,
+        "hi": 57224,
+        "startLine": 1725,
+        "startCol": 7,
+        "endLine": 1725,
+        "endCol": 66
+      }
+    ],
+    "suggestions": [
+      "Add a stable key to the returned JSX node."
+    ],
+    "scope": "optimizer"
+  }
+]

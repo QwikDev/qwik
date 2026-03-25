@@ -1,0 +1,91 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  function Filter(props: { filter: string }) {
+    return <li>{props.filter}</li>;
+  }
+
+  return <ul>{['all', 'active'].map((filter) => <Filter filter={filter} key={filter} />)}</ul>;
+	});
+	
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAMf\"}")
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+//
+export const App_component_ckEPmXZlub0 = ()=>{
+    function Filter(props) {
+        return /*#__PURE__*/ _jsxSorted("li", null, null, _wrapProp(props, "filter"), 1, "u6_0");
+    }
+    return /*#__PURE__*/ _jsxSorted("ul", null, null, [
+        'all',
+        'active'
+    ].map((filter)=>/*#__PURE__*/ _jsxSorted(Filter, {
+            filter: filter
+        }, null, null, 3, filter)), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B;IAC5B,SAAS,OAAO,KAAyB;QACvC,qBAAO,WAAC,4BAAI;IACd;IAEA,qBAAO,WAAC,kBAAI;QAAC;QAAO;KAAS,CAAC,GAAG,CAAC,CAAC,uBAAW,WAAC;YAAO,QAAQ;0BAAa;AAC5E\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    272
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[
+  {
+    "category": "warning",
+    "code": "map-to-each",
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the generated Each callback would capture a local function or class.",
+    "highlights": [
+      {
+        "lo": 188,
+        "hi": 262,
+        "startLine": 9,
+        "startCol": 15,
+        "endLine": 9,
+        "endCol": 88
+      }
+    ],
+    "suggestions": [
+      "Move the referenced function or component out of the parent scope, or keep the original .map() render loop."
+    ],
+    "scope": "optimizer"
+  }
+]

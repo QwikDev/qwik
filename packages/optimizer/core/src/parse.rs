@@ -437,6 +437,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					}
 					program.visit_mut_with(&mut hygiene_with_config(Default::default()));
 					program.visit_mut_with(&mut fixer(None));
+					let transform_diagnostics = qt
+						.as_ref()
+						.map(|q| q.diagnostics.clone())
+						.unwrap_or_default();
 
 					let mut modules: Vec<TransformModule> = Vec::with_capacity(segments.len() + 10);
 
@@ -615,7 +619,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						segment: None,
 					});
 
-					let diagnostics = handle_error(&error_buffer, origin, &source_map);
+					let mut diagnostics = handle_error(&error_buffer, origin, &source_map);
+					diagnostics.extend(transform_diagnostics);
 					Ok(TransformOutput {
 						modules,
 						diagnostics,

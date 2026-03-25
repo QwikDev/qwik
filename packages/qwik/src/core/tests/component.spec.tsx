@@ -1030,6 +1030,7 @@ describe.each([
           </button>
 
           <>
+            {/* @qwik-disable-next-line map-to-each */}
             {children.map((value) => {
               return <Child key={value} value={value} active={signal.value === value} />;
             })}
@@ -1101,6 +1102,7 @@ describe.each([
 
       return (
         <div onClick$={() => (keys.value = ['B', 'C', 'A'])}>
+          {/* @qwik-disable-next-line map-to-each */}
           {keys.value.map((key) => (
             <span key={key} id={key}>
               {key}
@@ -1670,6 +1672,7 @@ describe.each([
             }}
           ></button>
           <section>
+            {/* @qwik-disable-next-line map-to-each */}
             {data.items.map((item, index) => {
               return (
                 <FirstChild key={item.id} item={item} index={index}>

@@ -11,6 +11,9 @@ import { type TaskCtx, useTaskQrl } from '../use/use-task';
 import { isServer } from '@qwik.dev/core/build';
 import { SkipRender } from '../shared/jsx/utils.public';
 import { _captures } from '../shared/qrl/qrl-class';
+import { _getProps, type PropsProxy } from '../shared/jsx/props-proxy';
+import { isStore } from '../reactive-primitives/impl/store';
+import { isSignal } from '../internal';
 
 export interface EachProps<T, ITEM extends JSXOutput = JSXOutput> {
   items: readonly T[];
@@ -27,8 +30,13 @@ export type EachComponent = <T, ITEM extends JSXOutput = JSXOutput>(
 
 /** @internal */
 export const eachCmpTask = async ({ track }: TaskCtx) => {
-  const props = _captures![0] as EachProps<any>;
-  track(() => props.items);
+  const props = _captures![0] as PropsProxy;
+  const items = _getProps(props, 'items') as any;
+  if (isSignal(items) || isStore(items)) {
+    track(items);
+  } else {
+    track(() => items);
+  }
   const context = tryGetInvokeContext()!;
   const host = context.$hostElement$!;
   const container = context.$container$!;

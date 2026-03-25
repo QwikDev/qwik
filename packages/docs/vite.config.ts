@@ -134,8 +134,9 @@ function overrideManualChunksForRepl(): Plugin {
   };
 }
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
   const routesDir = resolve('src', 'routes');
+  const isProd = mode === 'production';
   return {
     optimizeDeps: {
       entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
@@ -178,7 +179,7 @@ export default defineConfig(() => {
         },
       ],
       // Make sure to get the browser version of @rolldown/browser
-      conditions: ['browser', 'worker', 'import', 'default'],
+      conditions: ['browser', 'worker', isProd ? 'production' : 'development', 'import', 'default'],
     },
     ssr: {
       noExternal: [
@@ -199,7 +200,7 @@ export default defineConfig(() => {
         '@qds.dev/tools',
       ],
       resolve: {
-        conditions: ['import', 'worker', 'default'],
+        conditions: ['import', 'worker', isProd ? 'production' : 'development', 'default'],
       },
     },
 

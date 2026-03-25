@@ -237,6 +237,42 @@ test('translated pathname /products/[id]', ({ assertRoute }) => {
   );
 });
 
+test('trie has _G nodes for translated routes', ({ ctx }) => {
+  const trie = ctx.routeTrie;
+
+  // Without prefix: 'documentazione' should be a child of root with _G pointing to 'docs'
+  const documentazione = trie.children.get('documentazione');
+  assert.ok(documentazione, 'trie should have "documentazione" child');
+  const perIniziare = documentazione!.children.get('per-iniziare');
+  assert.ok(perIniziare, 'trie should have "per-iniziare" under "documentazione"');
+  assert.equal(perIniziare!._G, 'docs/getting-started');
+
+  // Without prefix: 'informazioni' should point to about-us
+  const informazioni = trie.children.get('informazioni');
+  assert.ok(informazioni, 'trie should have "informazioni" child');
+  assert.equal(informazioni!._G, 'about-us');
+
+  // Without prefix: 'prodotti' should have _W child with _G pointing to products/_W
+  const prodotti = trie.children.get('prodotti');
+  assert.ok(prodotti, 'trie should have "prodotti" child');
+  const prodottiW = prodotti!.children.get('_W');
+  assert.ok(prodottiW, 'trie should have "_W" under "prodotti"');
+  assert.equal(prodottiW!._G, 'products/_W');
+  assert.equal(prodottiW!._P, 'id');
+
+  // With prefix: 'it' should contain translated children
+  const it = trie.children.get('it');
+  assert.ok(it, 'trie should have "it" child');
+  // 'it' root index rewrite
+  assert.equal(it!._G, '');
+  // 'it/documentazione/per-iniziare'
+  const itDoc = it!.children.get('documentazione');
+  assert.ok(itDoc, 'trie should have "documentazione" under "it"');
+  const itDocGs = itDoc!.children.get('per-iniziare');
+  assert.ok(itDocGs, 'trie should have "per-iniziare" under "it/documentazione"');
+  assert.equal(itDocGs!._G, 'docs/getting-started');
+});
+
 const testWithDuplicatedRoutes = testAppSuite('Duplicated segments with multiple prefixes', {
   rewriteRoutes: [
     {

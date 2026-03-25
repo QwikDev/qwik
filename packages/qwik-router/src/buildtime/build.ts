@@ -46,6 +46,11 @@ async function _updateRoutingContext(ctx: RoutingContext) {
   const serverPlugins = await walkServerPlugins(ctx.opts);
   const routeTrie = await walkRoutes(ctx.opts.routesDir);
 
+  // Populate _G nodes in the trie for rewrite routes
+  if (ctx.opts.rewriteRoutes) {
+    applyRewriteRoutes(routeTrie, ctx.opts.rewriteRoutes);
+  }
+
   ctx.routeTrie = routeTrie;
   ctx.serverPlugins = serverPlugins;
 
@@ -262,6 +267,125 @@ function translateRoute(
     pattern: new RegExp(translatedRegExp),
     segments: translatedSegments,
   };
+}
+
+/**
+ * Walk the trie and create _G (rewrite) nodes for each rewriteRoutes config.
+ *
+ * For each route in the trie, if any of its path segments are translatable (listed in a rewrite
+ * config's `paths`), we create a parallel trie path with the translated segment names and set `_G`
+ * on the leaf to point back to the original route's trie key path.
+ *
+ * The `_G` value is a `/`-separated string of trie keys (skipping group nodes), which the runtime
+ * resolver uses to walk the trie and find the target route's loaders and layouts.
+ */
+function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOption[]) {
+  interface TriePathStep {
+    key: string;
+    paramName?: string;
+    prefix?: string;
+    suffix?: string;
+  }
+
+  // Collect all routable paths: array of [steps, node] where steps are the non-group trie keys
+  // from root to the node, including wildcard metadata.
+  const routables: { steps: TriePathStep[]; node: BuildTrieNode }[] = [];
+
+  function walk(node: BuildTrieNode, steps: TriePathStep[]) {
+    const hasRoute = node._files.some(
+      (f) => f.type === 'route' && f.extlessName !== 'error' && f.extlessName !== '404'
+    );
+    if (hasRoute) {
+      routables.push({ steps: [...steps], node });
+    }
+    for (const [key, child] of node.children) {
+      const isGroup = key.startsWith('(') && key.endsWith(')');
+      if (isGroup) {
+        // Groups are pathless — skip in key path but continue walking
+        walk(child, steps);
+      } else {
+        walk(child, [
+          ...steps,
+          {
+            key,
+            paramName: child._P,
+            prefix: child._0,
+            suffix: child._9,
+          },
+        ]);
+      }
+    }
+  }
+
+  walk(root, []);
+
+  for (const config of rewriteConfigs) {
+    const translations = config.paths || {};
+    const translatable = new Set(Object.keys(translations).map((k) => k.toLowerCase()));
+
+    for (const { steps } of routables) {
+      // Check if any segment is translatable or if there's a prefix
+      const hasTranslatable = steps.some((s) => translatable.has(s.key));
+      if (!hasTranslatable && !config.prefix) {
+        continue;
+      }
+      // Root index (steps.length === 0) only gets a rewrite when there's a prefix
+      if (steps.length === 0 && !config.prefix) {
+        continue;
+      }
+
+      // Build the original key path
+      const originalKeyPath = steps.map((s) => s.key).join('/');
+
+      // Build translated steps
+      const translatedSteps: TriePathStep[] = [];
+
+      if (config.prefix) {
+        translatedSteps.push({ key: config.prefix.toLowerCase() });
+      }
+
+      for (const step of steps) {
+        const translated = translations[step.key];
+        translatedSteps.push({
+          ...step,
+          key: translated ? translated.toLowerCase() : step.key,
+        });
+      }
+
+      // Skip if translated path equals original (no actual translation)
+      const translatedKeyPath = translatedSteps.map((s) => s.key).join('/');
+      if (translatedKeyPath === originalKeyPath) {
+        continue;
+      }
+
+      // Create trie nodes for the translated path
+      let current = root;
+      for (const step of translatedSteps) {
+        let child = current.children.get(step.key);
+        if (!child) {
+          child = {
+            _files: [],
+            _dirPath: '',
+            children: new Map(),
+          };
+          if (step.paramName) {
+            child._P = step.paramName;
+          }
+          if (step.prefix) {
+            child._0 = step.prefix;
+          }
+          if (step.suffix) {
+            child._9 = step.suffix;
+          }
+          current.children.set(step.key, child);
+        }
+        current = child;
+      }
+
+      // Set _G on the leaf to point to the original route
+      current._G = originalKeyPath;
+    }
+  }
 }
 
 function validateBuild(ctx: RoutingContext) {

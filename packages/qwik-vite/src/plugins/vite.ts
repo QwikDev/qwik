@@ -290,12 +290,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           },
           rollupOptions: {
             external: ['node:async_hooks'],
-            /**
-             * This is a workaround to have predictable chunk hashes between builds. It doesn't seem
-             * to impact the build time.
-             * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
-             */
-            maxParallelFileOps: 1,
             // This will amend the existing input
             input,
             // temporary fix for rolldown-vite types

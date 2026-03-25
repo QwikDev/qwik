@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 3978
 expression: output
 ---
 ==INPUT==
@@ -486,4 +485,45 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 == DIAGNOSTICS ==
 
-[]
+[
+  {
+    "category": "warning",
+    "code": null,
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
+    "highlights": [
+      {
+        "lo": 257,
+        "hi": 432,
+        "startLine": 7,
+        "startCol": 16,
+        "endLine": 15,
+        "endCol": 10
+      }
+    ],
+    "suggestions": [
+      "Add a stable key to the returned JSX node."
+    ],
+    "scope": "optimizer"
+  },
+  {
+    "category": "warning",
+    "code": null,
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
+    "highlights": [
+      {
+        "lo": 1926,
+        "hi": 2153,
+        "startLine": 81,
+        "startCol": 12,
+        "endLine": 90,
+        "endCol": 12
+      }
+    ],
+    "suggestions": [
+      "Add a stable key to the returned JSX node."
+    ],
+    "scope": "optimizer"
+  }
+]

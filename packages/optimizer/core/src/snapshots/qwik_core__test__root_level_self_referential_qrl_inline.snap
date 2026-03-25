@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5826
 expression: output
 ---
 ==INPUT==
@@ -62,4 +61,25 @@ q_Tree_component_XMEiO6Rrd3Y.s((props)=>{
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/qwik-tree/index.qwik.jsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;AAGA,wCAAwC;AACxC,yEAAyE;AACzE,8DAA8D;;AAC9D,OAAO,MAAM,qBAAO,2CAOjB;+BAP4B,CAAC;IAC/B,qBACC,WAAC;kBACC;QACA,MAAM,QAAQ,IAAI,MAAM,QAAQ,CAAC,GAAG,CAAC,CAAC,sBAAU,UAAC;gCAAS;8BAAA;;;;;;;;;;AAG9D\"}")
 == DIAGNOSTICS ==
 
-[]
+[
+  {
+    "category": "warning",
+    "code": null,
+    "file": "./node_modules/qwik-tree/index.qwik.jsx",
+    "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
+    "highlights": [
+      {
+        "lo": 327,
+        "hi": 377,
+        "startLine": 11,
+        "startCol": 32,
+        "endLine": 11,
+        "endCol": 81
+      }
+    ],
+    "suggestions": [
+      "Add a stable key to the returned JSX node."
+    ],
+    "scope": "optimizer"
+  }
+]

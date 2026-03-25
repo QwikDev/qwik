@@ -6,6 +6,7 @@ use crate::entry_strategy::EntryPolicy;
 use crate::inlined_fn::{convert_inlined_fn, render_expr};
 use crate::is_const::is_const_expr;
 use crate::parse::{EmitMode, PathData};
+use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use crate::words::*;
 use crate::{errors, EntryStrategy};
 use base64::Engine;
@@ -41,6 +42,8 @@ macro_rules! id_eq {
 		}
 	};
 }
+
+mod each_transform;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -105,6 +108,7 @@ struct ImportQrlName {
 #[allow(clippy::module_name_repetitions)]
 pub struct QwikTransform<'a> {
 	pub segments: Vec<Segment>,
+	pub diagnostics: Vec<Diagnostic>,
 	pub options: QwikTransformOptions<'a>,
 
 	segment_names: HashMap<String, u32>,
@@ -256,6 +260,7 @@ impl<'a> QwikTransform<'a> {
 			stack_ctxt: Vec::with_capacity(16),
 			decl_stack: Vec::with_capacity(32),
 			segments: Vec::with_capacity(16),
+			diagnostics: Vec::new(),
 			segment_stack: Vec::with_capacity(16),
 			extra_top_items: BTreeMap::new(),
 			extra_bottom_items: BTreeMap::new(),
@@ -3927,6 +3932,11 @@ impl<'a> Fold for QwikTransform<'a> {
 		let mut name_token = false;
 		let mut replace_callee = None;
 		let mut ctx_name: Atom = QSEGMENT.clone();
+
+		if let Some(replacement) = self.try_rewrite_map_to_each(&node) {
+			self.pending_expr_replacement = Some(replacement);
+			return Default::default();
+		}
 
 		// Check if this is an array iteration method call (e.g., .map(), .filter(), etc.)
 		let is_iteration_method =

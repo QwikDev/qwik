@@ -1,6 +1,5 @@
 ---
-source: packages/optimizer/core/src/test.rs
-assertion_line: 5645
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -146,4 +145,65 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 == DIAGNOSTICS ==
 
-[]
+[
+  {
+    "category": "warning",
+    "code": null,
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the key uses the callback's index parameter.",
+    "highlights": [
+      {
+        "lo": 214,
+        "hi": 652,
+        "startLine": 11,
+        "startCol": 8,
+        "endLine": 26,
+        "endCol": 8
+      }
+    ],
+    "suggestions": [
+      "Use a stable key derived from the item instead of the callback's index parameter."
+    ],
+    "scope": "optimizer"
+  },
+  {
+    "category": "warning",
+    "code": null,
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the key uses the callback's index parameter.",
+    "highlights": [
+      {
+        "lo": 335,
+        "hi": 614,
+        "startLine": 15,
+        "startCol": 14,
+        "endLine": 23,
+        "endCol": 14
+      }
+    ],
+    "suggestions": [
+      "Use a stable key derived from the item instead of the callback's index parameter."
+    ],
+    "scope": "optimizer"
+  },
+  {
+    "category": "warning",
+    "code": null,
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the key uses the callback's index parameter.",
+    "highlights": [
+      {
+        "lo": 406,
+        "hi": 577,
+        "startLine": 17,
+        "startCol": 18,
+        "endLine": 21,
+        "endCol": 18
+      }
+    ],
+    "suggestions": [
+      "Use a stable key derived from the item instead of the callback's index parameter."
+    ],
+    "scope": "optimizer"
+  }
+]

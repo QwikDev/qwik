@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5803
 expression: output
 ---
 ==INPUT==
@@ -72,4 +71,25 @@ export const Tree = /*#__PURE__*/ componentQrl(q_Tree_component_T0k10EAlawU);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,wCAAwC;AACxC,yEAAyE;AACzE,8DAA8D;;AAC9D,OAAO,MAAM,qBAAO,2CAOjB\"}")
 == DIAGNOSTICS ==
 
-[]
+[
+  {
+    "category": "warning",
+    "code": null,
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the returned JSX node is missing a key.",
+    "highlights": [
+      {
+        "lo": 327,
+        "hi": 377,
+        "startLine": 11,
+        "startCol": 32,
+        "endLine": 11,
+        "endCol": 81
+      }
+    ],
+    "suggestions": [
+      "Add a stable key to the returned JSX node."
+    ],
+    "scope": "optimizer"
+  }
+]

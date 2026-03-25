@@ -1,0 +1,181 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, Each } from '@qwik.dev/core';
+
+const Row = component$((props: { text: string }) => {
+  return <p>{props.text}</p>;
+});
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{items.map(item => <Row key={item.id} text={item.text} />)}</div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+//
+qrl(()=>import("./test.tsx_Row_component_OHQZg3MmUDY"), "Row_component_OHQZg3MmUDY");
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAOA,OAAO,MAAM,oBAAM,0CAGhB\"}")
+============================= test.tsx_Row_component_OHQZg3MmUDY.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+//
+export const Row_component_OHQZg3MmUDY = (props)=>{
+    return /*#__PURE__*/ _jsxSorted("p", null, null, _wrapProp(props, "text"), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAGuB,CAAC;IACtB,qBAAO,WAAC,2BAAG;AACb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Row_component_OHQZg3MmUDY",
+  "entry": null,
+  "displayName": "test.tsx_Row_component",
+  "hash": "OHQZg3MmUDY",
+  "canonicalFilename": "test.tsx_Row_component_OHQZg3MmUDY",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    77,
+    139
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_App_component_div_Each_item_f829DjfZibU.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Row_component_OHQZg3MmUDY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Row_component_OHQZg3MmUDY"), "Row_component_OHQZg3MmUDY");
+//
+const Row = /*#__PURE__*/ componentQrl(q_Row_component_OHQZg3MmUDY);
+export const App_component_div_Each_item_f829DjfZibU = (item)=>/*#__PURE__*/ _jsxSorted(Row, null, {
+        text: _wrapProp(item, "text")
+    }, null, 3, null);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;MAGM,oBAAM;wDAMa,qBAAQ,WAAC;QAAkB,IAAI,YAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_Each_item_f829DjfZibU",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_Each_item",
+  "hash": "f829DjfZibU",
+  "canonicalFilename": "test.tsx_App_component_div_Each_item_f829DjfZibU",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "item$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ],
+  "paramNames": [
+    "item"
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { Each } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_div_Each_item_f829DjfZibU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_Each_item_f829DjfZibU"), "App_component_div_Each_item_f829DjfZibU");
+const q_App_component_div_Each_key_07Oo5ReT59I = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_Each_key_07Oo5ReT59I"), "App_component_div_Each_key_07Oo5ReT59I");
+//
+export const App_component_ckEPmXZlub0 = ()=>{
+    const items = [
+        {
+            id: 'a',
+            text: 'A'
+        }
+    ];
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _jsxSorted(Each, {
+        items: items
+    }, {
+        key$: q_App_component_div_Each_key_07Oo5ReT59I,
+        item$: q_App_component_div_Each_item_f829DjfZibU
+    }, null, 3, null), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAO8B;IAC5B,MAAM,QAAQ;QAAC;YAAE,IAAI;YAAK,MAAM;QAAI;KAAE;IACtC,qBAAO,WAAC,mBAAuB;eAAlB;;;;;AACf\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    173,
+    305
+  ]
+}
+*/
+============================= test.tsx_App_component_div_Each_key_07Oo5ReT59I.js (ENTRY POINT)==
+
+export const App_component_div_Each_key_07Oo5ReT59I = (item)=>item.id;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDASyB,OAAkB,KAAK,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_Each_key_07Oo5ReT59I",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_Each_key",
+  "hash": "07Oo5ReT59I",
+  "canonicalFilename": "test.tsx_App_component_div_Each_key_07Oo5ReT59I",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "key$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ],
+  "paramNames": [
+    "item"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

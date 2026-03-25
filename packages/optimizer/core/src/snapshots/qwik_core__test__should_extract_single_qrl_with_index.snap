@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4944
 expression: output
 ---
 ==INPUT==
@@ -235,4 +234,25 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 == DIAGNOSTICS ==
 
-[]
+[
+  {
+    "category": "warning",
+    "code": null,
+    "file": "test.tsx",
+    "message": "This .map() was not optimized to Each because the key is derived from a function call.",
+    "highlights": [
+      {
+        "lo": 294,
+        "hi": 1608,
+        "startLine": 9,
+        "startCol": 12,
+        "endLine": 44,
+        "endCol": 12
+      }
+    ],
+    "suggestions": [
+      "Use a stable key expression without function calls."
+    ],
+    "scope": "optimizer"
+  }
+]

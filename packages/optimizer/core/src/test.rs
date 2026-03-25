@@ -1,6 +1,7 @@
 #![allow(unused_must_use)]
 
 use super::*;
+use crate::utils::DiagnosticCategory;
 use serde_json::to_string_pretty;
 use swc_atoms::Atom;
 
@@ -7006,6 +7007,564 @@ export const action = formAction$((data) => {
 });
 		"#
 		.to_string(),
+		..TestInput::default()
+	});
+}
+
+fn combined_modules_code(output: &TransformOutput) -> String {
+	output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n")
+}
+
+#[test]
+fn should_transform_map_to_each_simple() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = { value: [{ key: 'a', text: 'A' }] };
+  return <div>{items.value.map(item => <div key={item.key}>{item.text}</div>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		combined_code.contains("_jsxSorted(Each")
+			|| combined_code.contains("_jsxSplit(Each"),
+		"Expected Each render in generated output.\n{}",
+		combined_code
+	);
+	assert!(
+		!combined_code.contains(".map((item)=>")
+			&& !combined_code.contains(".map(item=>"),
+		"Expected map callback to be rewritten.\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings for successful rewrite: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_transform_map_to_each_without_jsx_transpile() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ key: 'a', text: 'A' }];
+  return <div>{items.map(item => <Card key={item.key} text={item.text} />)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		combined_code.contains("<Each")
+			|| combined_code.contains("_jsxSorted(Each")
+			|| combined_code.contains("_jsxSplit(Each"),
+		"Expected Each render in generated output.\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings for successful rewrite: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_transform_map_to_each_with_block_body_and_index_usage() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ data: { id: 'a', label: 'A' } }];
+  return <div>{items.map((item, idx) => {
+    const data = item.data;
+    const title = data.label + idx;
+    return <section key={data.id}>{title}</section>;
+  })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		combined_code.contains("Each"),
+		"Expected Each render in generated output.\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings for successful rewrite: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_transform_map_to_each_with_outer_capture() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  const extra = { suffix: '!' };
+  return <div>{items.map((item) => <span key={item.id}>{item.text + extra.suffix}</span>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		combined_code.contains("Each"),
+		"Expected Each render in generated output.\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings for successful rewrite: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_transform_map_to_each_with_item_click_handler() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{items.map((item) => (
+    <button key={item.id} onClick$={() => item.text}>
+      {item.text}
+    </button>
+  ))}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		combined_code.contains("Each"),
+		"Expected Each render in generated output.\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings for successful rewrite: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_warn_when_map_key_uses_second_param() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = ['a'];
+  return <div>{items.map((item, idx) => <div key={idx}>{item}</div>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	assert!(
+		output
+			.diagnostics
+			.iter()
+			.any(|d| d.category == DiagnosticCategory::Warning
+				&& d.message.contains("index parameter")),
+		"Expected second-parameter warning, got {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_warn_when_map_key_comes_from_call() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{items.map((item) => <div key={getKey(item)}>{item.text}</div>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	assert!(
+		output
+			.diagnostics
+			.iter()
+			.any(|d| d.category == DiagnosticCategory::Warning
+				&& d.message.contains("function call")),
+		"Expected call-derived-key warning, got {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_warn_when_map_callback_does_not_return_single_jsx_node() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{items.map((item) => [<div key={item.id}>{item.text}</div>])}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	assert!(
+		output
+			.diagnostics
+			.iter()
+			.any(|d| d.category == DiagnosticCategory::Warning
+				&& d.message.contains("single JSX node")),
+		"Expected single-node warning, got {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn snapshot_map_to_each_simple() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = { value: [{ key: 'a', text: 'A' }] };
+  return <div>{items.value.map(item => <div key={item.key}>{item.text}</div>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_component_root() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, Each } from '@qwik.dev/core';
+
+const Row = component$((props: { text: string }) => {
+  return <p>{props.text}</p>;
+});
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{items.map(item => <Row key={item.id} text={item.text} />)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_without_jsx_transpile() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ key: 'a', text: 'A' }];
+  return <div>{items.map(item => <Card key={item.key} text={item.text} />)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_shared_alias() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ data: { id: 'a', label: 'A' } }];
+  return <div>{items.map((item) => {
+    const data = item.data;
+    return <section key={data.id}>{data.label}</section>;
+  })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_with_outer_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  const extra = { suffix: '!' };
+  return <div>{items.map((item) => <span key={item.id}>{item.text + extra.suffix}</span>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_with_item_click_handler() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{items.map((item) => (
+    <button key={item.id} onClick$={() => item.text}>
+      {item.text}
+    </button>
+  ))}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_nested_control_flow() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', altId: 'b', vip: true, name: 'A' }];
+  return <div>{items.map((item, idx) => {
+    let label = item.name;
+    if (item.vip) {
+      label = label + ':' + idx;
+    }
+
+    let key = item.id;
+    if (item.altId) {
+      key = item.altId;
+    }
+
+    return <article key={key}>{label}</article>;
+  })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_with_loop_slicing() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', parts: ['A', 'B'] }];
+  return <div>{items.map((item) => {
+    let label = '';
+    for (const part of item.parts) {
+      label += part;
+    }
+    const key = item.id;
+    return <article key={key}>{label}</article>;
+  })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_warn_when_map_has_no_key() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = ['a'];
+  return <div>{items.map(item => <div>{item}</div>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_warn_when_map_key_uses_second_param_alias() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = ['a'];
+  return <div>{items.map((item, position) => {
+    const key = position;
+    return <div key={key}>{item}</div>;
+  })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_warn_when_map_key_comes_from_call() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{items.map((item) => <div key={getKey(item)}>{item.text}</div>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_warn_when_map_callback_returns_array() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{items.map((item) => [<div key={item.id}>{item.text}</div>])}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_non_candidate_has_no_warning() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = ['a', 'b'];
+  return <div>{items.map((item) => item.toUpperCase())}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
 		..TestInput::default()
 	});
 }

@@ -1,0 +1,151 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', parts: ['A', 'B'] }];
+  return <div>{items.map((item) => {
+    let label = '';
+    for (const part of item.parts) {
+      label += part;
+    }
+    const key = item.id;
+    return <article key={key}>{label}</article>;
+  })}</div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAUhB\"}")
+============================= test.tsx_App_component_div_Each_item_f829DjfZibU.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const App_component_div_Each_item_f829DjfZibU = (item)=>{
+    let label = '';
+    for (const part of item.parts)label += part;
+    return /*#__PURE__*/ _jsxSorted("article", null, null, label, 1, null);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;wDAK0B;IACtB,IAAI,QAAQ;IACZ,KAAK,MAAM,QAAQ,KAAK,KAAK,CAC3B,SAAS;yBAGJ,WAAC,uBAAmB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_Each_item_f829DjfZibU",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_Each_item",
+  "hash": "f829DjfZibU",
+  "canonicalFilename": "test.tsx_App_component_div_Each_item_f829DjfZibU",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "item$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ],
+  "paramNames": [
+    "item"
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { Each } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_div_Each_item_f829DjfZibU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_Each_item_f829DjfZibU"), "App_component_div_Each_item_f829DjfZibU");
+const q_App_component_div_Each_key_07Oo5ReT59I = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_Each_key_07Oo5ReT59I"), "App_component_div_Each_key_07Oo5ReT59I");
+//
+export const App_component_ckEPmXZlub0 = ()=>{
+    const items = [
+        {
+            id: 'a',
+            parts: [
+                'A',
+                'B'
+            ]
+        }
+    ];
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _jsxSorted(Each, {
+        items: items
+    }, {
+        key$: q_App_component_div_Each_key_07Oo5ReT59I,
+        item$: q_App_component_div_Each_item_f829DjfZibU
+    }, null, 3, null), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAG8B;IAC5B,MAAM,QAAQ;QAAC;YAAE,IAAI;YAAK,OAAO;gBAAC;gBAAK;aAAI;QAAC;KAAE;IAC9C,qBAAO,WAAC,mBAMC;eANI;;;;;AAQf\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    345
+  ]
+}
+*/
+============================= test.tsx_App_component_div_Each_key_07Oo5ReT59I.js (ENTRY POINT)==
+
+export const App_component_div_Each_key_07Oo5ReT59I = (item)=>{
+    const key = item.id;
+    return key;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAK0B;IAKtB,MAAM,MAAM,KAAK,EAAE;WACE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_Each_key_07Oo5ReT59I",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_Each_key",
+  "hash": "07Oo5ReT59I",
+  "canonicalFilename": "test.tsx_App_component_div_Each_key_07Oo5ReT59I",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "key$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ],
+  "paramNames": [
+    "item"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

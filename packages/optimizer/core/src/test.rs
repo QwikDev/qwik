@@ -7325,6 +7325,27 @@ export const App = component$(() => {
 }
 
 #[test]
+fn snapshot_map_to_each_skips_local_function_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  function Filter(props: { filter: string }) {
+    return <li>{props.filter}</li>;
+  }
+
+  return <ul>{['all', 'active'].map((filter) => <Filter filter={filter} key={filter} />)}</ul>;
+	});
+	"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_warn_when_map_key_uses_second_param() {
 	let res = test_input!(TestInput {
 		code: r#"

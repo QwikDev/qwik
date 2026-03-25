@@ -9,6 +9,7 @@ enum EachCandidateWarning {
 	CallDerivedKey,
 	NotSingleJsxNode,
 	UnsafeSlice,
+	LocalFunctionReference,
 }
 
 #[derive(Clone)]
@@ -54,17 +55,21 @@ impl<'a> QwikTransform<'a> {
 				"This .map() was not optimized to Each because the callback body could not be safely sliced.",
 				"Simplify the callback body so the key and rendered item can be derived independently.",
 			),
+			EachCandidateWarning::LocalFunctionReference => (
+				"This .map() was not optimized to Each because the generated Each callback would capture a local function or class.",
+				"Move the referenced function or component out of the parent scope, or keep the original .map() render loop.",
+			),
 		};
-			self.diagnostics.push(Diagnostic {
-				category: DiagnosticCategory::Warning,
-				code: Some(MAP_TO_EACH_DIRECTIVE.to_string()),
-				file: self
-					.options
-					.path_data
-				.rel_path
-				.to_slash_lossy()
-				.to_string()
-				.into(),
+		self.diagnostics.push(Diagnostic {
+			category: DiagnosticCategory::Warning,
+			code: Some(MAP_TO_EACH_DIRECTIVE.to_string()),
+			file: self
+				.options
+				.path_data
+					.rel_path
+					.to_slash_lossy()
+					.to_string()
+					.into(),
 			message: message.into(),
 			highlights: Some(vec![SourceLocation::from(&self.options.cm, span)]),
 			suggestions: Some(vec![suggestion.into()]),
@@ -236,6 +241,19 @@ impl<'a> QwikTransform<'a> {
 			}
 			None => build_each_arrow_expr(&callback_info.params, None, item_expr.clone()),
 		};
+
+		// `item$` / `key$` become QRL-backed JSX props. If either generated callback would
+		// capture a local function or class declaration from the parent scope, keep the
+		// original `.map()` so we don't surface a later FunctionReference optimizer error.
+		if self.has_invalid_qrl_function_reference(&key_fn_expr)
+			|| self.has_invalid_qrl_function_reference(&item_fn_expr)
+		{
+			self.push_each_candidate_warning(
+				directive_span,
+				EachCandidateWarning::LocalFunctionReference,
+			);
+			return None;
+		}
 
 		let each_id = self.ensure_core_import(&Atom::from("Each"));
 		let replacement = if raw_mode {

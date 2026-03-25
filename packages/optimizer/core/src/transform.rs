@@ -430,6 +430,23 @@ impl<'a> QwikTransform<'a> {
 			.collect()
 	}
 
+	fn has_invalid_qrl_function_reference(&self, expr: &ast::Expr) -> bool {
+		let descendent_idents = {
+			let mut collector = IdentCollector::new();
+			expr.visit_with(&mut collector);
+			collector.get_words()
+		};
+		let (_decl_collect, invalid_decl): (_, Vec<_>) = self
+			.decl_stack
+			.iter()
+			.flat_map(|v| v.iter())
+			.cloned()
+			.partition(|(_, t)| matches!(t, IdentType::Var(_)));
+		descendent_idents
+			.iter()
+			.any(|ident| invalid_decl.iter().any(|entry| entry.0 == *ident))
+	}
+
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
 		let loc = self.options.cm.lookup_char_pos(span.lo);
 		let file_name = self

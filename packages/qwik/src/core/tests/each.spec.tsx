@@ -278,6 +278,55 @@ describe.each([
   });
 
   describe('store', async () => {
+    it('should update when a store-backed array shrinks in place', async () => {
+      const Cmp = component$(() => {
+        const items = useStore([
+          { id: 1, label: 'Hello a' },
+          { id: 2, label: 'Hello b' },
+          { id: 3, label: 'Hello c' },
+        ]);
+        return (
+          <>
+            <div id="loop">
+              <Each
+                items={items}
+                key$={(item) => String(item.id)}
+                item$={(item) => <div>{item.label}</div>}
+              />
+            </div>
+            <button onClick$={() => items.pop()}>Pop</button>
+          </>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      await expect(document.getElementById('loop')).toMatchDOM(
+        <div id="loop">
+          <div>Hello a</div>
+          <div>Hello b</div>
+          <div>Hello c</div>
+        </div>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.getElementById('loop')).toMatchDOM(
+        <div id="loop">
+          <div>Hello a</div>
+          <div>Hello b</div>
+        </div>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.getElementById('loop')).toMatchDOM(
+        <div id="loop">
+          <div>Hello a</div>
+        </div>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.getElementById('loop')).toMatchDOM(<div id="loop"></div>);
+    });
+
     it('should update each item', async () => {
       const Cmp = component$(() => {
         const items = useStore({

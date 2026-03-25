@@ -283,6 +283,7 @@ export function createRollupError(id: string, diagnostic: Diagnostic) {
     id,
     plugin: 'qwik',
     loc: loc && {
+      file: id,
       column: loc.startCol,
       line: loc.startLine,
     },

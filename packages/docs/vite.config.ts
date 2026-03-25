@@ -137,17 +137,55 @@ function overrideManualChunksForRepl(): Plugin {
 export default defineConfig(({ mode }) => {
   const routesDir = resolve('src', 'routes');
   const isProd = mode === 'production';
+  const clientConditions = [
+    'browser',
+    'worker',
+    isProd ? 'production' : 'development',
+    'import',
+    'default',
+  ];
+  const ssrConditions = ['import', 'worker', isProd ? 'production' : 'development', 'default'];
+
   return {
-    optimizeDeps: {
-      entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
-      exclude: [
-        '@modular-forms/qwik',
-        '@qwik-ui/headless',
-        'qwik-image',
-        // optimizing breaks the wasm import
-        '@rolldown/browser',
-        '@qwik.dev/devtools',
-      ],
+    environments: {
+      client: {
+        optimizeDeps: {
+          entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
+          exclude: [
+            '@modular-forms/qwik',
+            '@qwik-ui/headless',
+            'qwik-image',
+            // optimizing breaks the wasm import
+            '@rolldown/browser',
+            '@qwik.dev/devtools',
+          ],
+        },
+        resolve: {
+          conditions: clientConditions,
+        },
+      },
+      ssr: {
+        resolve: {
+          noExternal: [
+            '@mui/material',
+            '@mui/system',
+            '@emotion/react',
+            '@algolia/autocomplete-core/dist/esm/resolve',
+            '@algolia/autocomplete-core',
+            '@algolia/autocomplete-shared',
+            'algoliasearch/lite',
+            'algoliasearch',
+            '@algolia/autocomplete-core/dist/esm/reshape',
+            'algoliasearch/dist/algoliasearch-lite.esm.browser',
+            'qwik-image',
+            '@modular-forms/qwik',
+            '@qwik-ui/headless',
+            '@qds.dev/ui',
+            '@qds.dev/tools',
+          ],
+          conditions: ssrConditions,
+        },
+      },
     },
     preview: {
       headers: {
@@ -178,30 +216,6 @@ export default defineConfig(({ mode }) => {
           replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
         },
       ],
-      // Make sure to get the browser version of @rolldown/browser
-      conditions: ['browser', 'worker', isProd ? 'production' : 'development', 'import', 'default'],
-    },
-    ssr: {
-      noExternal: [
-        '@mui/material',
-        '@mui/system',
-        '@emotion/react',
-        '@algolia/autocomplete-core/dist/esm/resolve',
-        '@algolia/autocomplete-core',
-        '@algolia/autocomplete-shared',
-        'algoliasearch/lite',
-        'algoliasearch',
-        '@algolia/autocomplete-core/dist/esm/reshape',
-        'algoliasearch/dist/algoliasearch-lite.esm.browser',
-        'qwik-image',
-        '@modular-forms/qwik',
-        '@qwik-ui/headless',
-        '@qds.dev/ui',
-        '@qds.dev/tools',
-      ],
-      resolve: {
-        conditions: ['import', 'worker', isProd ? 'production' : 'development', 'default'],
-      },
     },
 
     plugins: [

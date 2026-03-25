@@ -29,12 +29,7 @@ export async function apiExtractorQwik(config: BuildConfig) {
     join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
     `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
   );
-  createTypesApi(
-    config,
-    join(config.srcQwikDir, 'optimizer'),
-    join(config.distQwikPkgDir, 'optimizer.d.ts'),
-    '.'
-  );
+  createTypesApi(config, config.qwikVitePkgDir, join(config.distQwikPkgDir, 'optimizer.d.ts'), '.');
   createTypesApi(
     config,
     join(config.srcQwikDir, 'server'),
@@ -72,6 +67,15 @@ export async function apiExtractorQwik(config: BuildConfig) {
   await generateQwikApiMarkdownDocs(config, apiJsonInputDir);
 
   console.log('🥶', 'qwik d.ts API files generated');
+}
+
+export async function apiExtractorOptimizer(config: BuildConfig) {
+  createTypesApi(
+    config,
+    config.optimizerPkgDir,
+    join(config.optimizerPkgDir, 'dist', 'index.d.ts')
+  );
+  console.log('🥶', 'optimizer d.ts API files generated');
 }
 
 export async function apiExtractorQwikRouter(config: BuildConfig) {

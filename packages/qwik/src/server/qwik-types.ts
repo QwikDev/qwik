@@ -27,7 +27,7 @@ export type {
   StreamWriter,
   IStreamHandler,
 } from '../core/ssr/ssr-types';
-export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
+export type { ResolvedManifest, SymbolMapper } from '@qwik.dev/core/optimizer';
 export type { SymbolToChunkResolver } from '../core/ssr/ssr-types';
 export type { NodePropData } from '../core/reactive-primitives/subscription-data';
 export type { SignalImpl } from '../core/reactive-primitives/impl/signal-impl';

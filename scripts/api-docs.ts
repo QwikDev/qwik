@@ -80,6 +80,7 @@ async function createApiData(
   subPkgName: string
 ) {
   const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, 'utf-8'));
+  const mdPrefix = getMdPrefix(apiExtractedJson, subPkgName);
 
   const apiData: ApiData = {
     id: subPkgName.replace('@qwik.dev/', '').replace(/\//g, '-'),
@@ -114,7 +115,7 @@ async function createApiData(
 
     const id = getCanonical(hierarchySplit);
 
-    const mdFile = getMdFile(subPkgName, hierarchySplit);
+    const mdFile = getMdFile(mdPrefix, hierarchySplit);
     const mdPath = join(apiOuputDir, mdFile);
 
     const content: string[] = [];
@@ -306,13 +307,21 @@ function getCanonical(hierarchy: string[]) {
   return hierarchy.map((h) => getSafeFilenameForName(h)).join('-');
 }
 
-function getMdFile(subPkgName: string, hierarchy: string[]) {
+function getMdPrefix(apiExtractedJson: any, subPkgName: string) {
+  if (typeof apiExtractedJson?.name === 'string' && apiExtractedJson.name.length > 0) {
+    return getSafeFilenameForName(apiExtractedJson.name.split('/').pop()!);
+  }
+
+  return subPkgName.includes('router') ? 'router' : 'core';
+}
+
+function getMdFile(mdPrefix: string, hierarchy: string[]) {
   let mdFile = '';
   for (const h of hierarchy) {
     mdFile += '.' + getSafeFilenameForName(h);
   }
 
-  return `${subPkgName.includes('router') ? 'router' : 'core'}${mdFile}.md`;
+  return `${mdPrefix}${mdFile}.md`;
 }
 
 function getSafeFilenameForName(name: string): string {

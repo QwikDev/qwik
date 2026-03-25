@@ -1,0 +1,75 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 5803
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+// Root-level self-referential component
+// The QRL should NOT be hoisted before the component function is defined
+// or should use two-phase emission to avoid forward reference
+export const Tree = component$((props) => {
+	return (
+		<div>
+			{props.label}
+			{props.children && props.children.map((child) => <Tree {...child} />)}
+		</div>
+	);
+});
+
+============================= test.tsx_Tree_component_T0k10EAlawU.tsx (ENTRY POINT)==
+
+import { Tree } from "./test";
+//
+export const Tree_component_T0k10EAlawU = (props)=>{
+    return <div>
+			{props.label}
+			{props.children && props.children.map((child)=><Tree {...child}/>)}
+		</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAM+B,CAAC;IAC/B,QACE,IAAI;GACJ,CAAC,MAAM,KAAK,CAAC;GACb,CAAC,MAAM,QAAQ,IAAI,MAAM,QAAQ,CAAC,GAAG,CAAC,CAAC,SAAW,MAAM,GAAG,KAAK,KAAM;EACvE,EAAE;AAEJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Tree_component_T0k10EAlawU",
+  "entry": null,
+  "displayName": "test.tsx_Tree_component",
+  "hash": "T0k10EAlawU",
+  "canonicalFilename": "test.tsx_Tree_component_T0k10EAlawU",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    257,
+    393
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Tree_component_T0k10EAlawU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Tree_component_T0k10EAlawU"), "Tree_component_T0k10EAlawU");
+// Root-level self-referential component
+// The QRL should NOT be hoisted before the component function is defined
+// or should use two-phase emission to avoid forward reference
+//
+export const Tree = /*#__PURE__*/ componentQrl(q_Tree_component_T0k10EAlawU);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,wCAAwC;AACxC,yEAAyE;AACzE,8DAA8D;;AAC9D,OAAO,MAAM,qBAAO,2CAOjB\"}")
+== DIAGNOSTICS ==
+
+[]

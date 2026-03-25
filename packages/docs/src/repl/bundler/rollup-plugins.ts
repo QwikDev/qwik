@@ -67,6 +67,9 @@ export const replResolver = (
       if (id.startsWith('node:')) {
         return id;
       }
+      if (id.includes('@qwik.dev/optimizer')) {
+        return id;
+      }
       const match = id.match(/(@builder\.io\/qwik|@qwik\.dev\/core)(.*)/);
       if (match) {
         const pkgName = match[2];

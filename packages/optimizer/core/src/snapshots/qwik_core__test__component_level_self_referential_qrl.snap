@@ -1,0 +1,178 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 5854
+expression: output
+---
+==INPUT==
+
+
+import { component$, useAsync$ } from '@qwik.dev/core';
+		
+// Component-level self-referential component
+export const Foo = component$((props) => {
+	const sig = useAsync$(async ({cleanup}) => {
+		const timer = setInterval(() => {
+			sig.value++;
+		}, 1000);
+		cleanup(() => clearInterval(timer));
+		return 0;
+	});
+	const other = useAsync$(async ({cleanup}) => {
+		const timer = setInterval(() => {
+			other.value++;
+		}, 900);
+		cleanup(() => clearInterval(timer));
+		return 0;
+	});
+	return (
+		<div>
+			{other.value}
+		</div>
+	);
+});
+
+============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+import { useAsyncQrl } from "@qwik.dev/core";
+//
+const q_Foo_component_other_useAsync_fsHooibmyyE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_other_useAsync_fsHooibmyyE"), "Foo_component_other_useAsync_fsHooibmyyE");
+const q_Foo_component_sig_useAsync_f0BGwWm4eeY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY"), "Foo_component_sig_useAsync_f0BGwWm4eeY");
+//
+export const Foo_component_HTDRsvUbLiE = (props)=>{
+    const _ref = {};
+    _ref.sig = useAsyncQrl(q_Foo_component_sig_useAsync_f0BGwWm4eeY.w([
+        _ref.sig
+    ]));
+    const { sig } = _ref;
+    _ref.other = useAsyncQrl(q_Foo_component_other_useAsync_fsHooibmyyE.w([
+        _ref.other
+    ]));
+    const { other } = _ref;
+    return <div>
+			{other.value}
+		</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAI8B,CAAC;IAC9B;eAAY;;;IAAZ,QAAM;iBAOQ;;;IAAd,QAAM;IAON,QACE,IAAI;GACJ,CAAC,MAAM,KAAK,CAAC;EACd,EAAE;AAEJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    137,
+    534
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Foo_component_other_useAsync_fsHooibmyyE.tsx (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Foo_component_other_useAsync_fsHooibmyyE = async (_rawProps)=>{
+    const other = _captures[0];
+    const timer = setInterval(()=>{
+        other.value++;
+    }, 900);
+    _rawProps.cleanup(()=>clearInterval(timer));
+    return 0;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;wDAYyB;;IACvB,MAAM,QAAQ,YAAY;QACzB,MAAM,KAAK;IACZ,GAAG;IACH,UAJ+B,QAIvB,IAAM,cAAc;IAC5B,OAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_other_useAsync_fsHooibmyyE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_other_useAsync",
+  "hash": "fsHooibmyyE",
+  "canonicalFilename": "test.tsx_Foo_component_other_useAsync_fsHooibmyyE",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "function",
+  "ctxName": "useAsync$",
+  "captures": true,
+  "loc": [
+    341,
+    482
+  ],
+  "paramNames": [
+    "_rawProps"
+  ],
+  "captureNames": [
+    "other"
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+// Component-level self-referential component
+//
+export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,6CAA6C;;AAC7C,OAAO,MAAM,oBAAM,0CAoBhB\"}")
+============================= test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY.tsx (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Foo_component_sig_useAsync_f0BGwWm4eeY = async (_rawProps)=>{
+    const sig = _captures[0];
+    const timer = setInterval(()=>{
+        sig.value++;
+    }, 1000);
+    _rawProps.cleanup(()=>clearInterval(timer));
+    return 0;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;sDAKuB;;IACrB,MAAM,QAAQ,YAAY;QACzB,IAAI,KAAK;IACV,GAAG;IACH,UAJ6B,QAIrB,IAAM,cAAc;IAC5B,OAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_sig_useAsync_f0BGwWm4eeY",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_sig_useAsync",
+  "hash": "f0BGwWm4eeY",
+  "canonicalFilename": "test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY",
+  "path": "",
+  "extension": "tsx",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "function",
+  "ctxName": "useAsync$",
+  "captures": true,
+  "loc": [
+    173,
+    313
+  ],
+  "paramNames": [
+    "_rawProps"
+  ],
+  "captureNames": [
+    "sig"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

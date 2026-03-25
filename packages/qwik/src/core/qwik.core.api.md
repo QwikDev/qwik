@@ -8,6 +8,7 @@ import type * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
+import { ResolvedManifest } from '@qwik.dev/core/optimizer';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;

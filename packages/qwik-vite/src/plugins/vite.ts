@@ -239,6 +239,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
       const qInspector = viteConfig?.define?.[qInspectorKey] ?? isDevelopment;
 
+      // TODO include development/production into conditions, before default. And remove 'min'
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
         ssr: {

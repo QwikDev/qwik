@@ -170,16 +170,23 @@ async function createApiData(
 
   addMembers(apiExtractedJson, '');
 
-  apiData.members.forEach((m1) => {
-    apiData.members.forEach((m2) => {
-      while (m1.content.includes(`./${m2.mdFile}`)) {
-        m1.content = m1.content.replace(`./${m2.mdFile}`, `#${m2.id}`);
-      }
-    });
-  });
+  const memberNameCounts = getMemberNameCounts(apiData.members);
+  const memberAnchorsByMdFile = new Map(
+    apiData.members.map((member) => [member.mdFile, `#${getAnchorId(member, memberNameCounts)}`])
+  );
 
-  apiData.members.forEach((m) => {
-    m.content = m.content.replace(/\.\/core(.*)\.md/g, '#');
+  apiData.members.forEach((member) => {
+    // `api-documenter` emits many standalone markdown files into `dist-dev/api-docs`,
+    // but the docs site publishes a single `index.mdx` page per package. Rewrite links
+    // to included members as in-page anchors, and fall back to plain text for members
+    // we intentionally omit from the final one-page docs output.
+    member.content = member.content.replace(
+      /\[([^\]]+)\]\(\.\/([^)]+\.md)\)/g,
+      (_match, label: string, mdFile: string) => {
+        const anchor = memberAnchorsByMdFile.get(mdFile);
+        return anchor ? `[${label}](${anchor})` : label;
+      }
+    );
   });
 
   apiData.members.sort((a, b) => {
@@ -199,11 +206,7 @@ async function createApiData(
 async function createApiMarkdown(a: ApiData) {
   let md: string[] = [];
 
-  const memberNameCounts = a.members.reduce((acc: Record<string, number>, m) => {
-    const normalizedName = m.name.toLowerCase();
-    acc[normalizedName] = (acc[normalizedName] || 0) + 1;
-    return acc;
-  }, {});
+  const memberNameCounts = getMemberNameCounts(a.members);
 
   md.push(`---`);
   md.push(`title: \\${a.package} API Reference`);
@@ -214,9 +217,7 @@ async function createApiMarkdown(a: ApiData) {
 
   for (const m of a.members) {
     // const title = `${toSnakeCase(m.kind)} - ${m.name.replace(/"/g, '')}`;
-    const kind = toSnakeCase(m.kind);
-    const isDuplicateName = memberNameCounts[m.name.toLowerCase()] > 1;
-    const anchorId = isDuplicateName ? `${m.id}-${kind}` : m.id;
+    const anchorId = getAnchorId(m, memberNameCounts);
 
     md.push(`<h2 id="${anchorId}">${m.name}</h2>`);
     md.push(``);
@@ -301,6 +302,22 @@ interface ApiMember {
   content: string;
   editUrl?: string;
   mdFile: string;
+}
+
+function getMemberNameCounts(members: ApiMember[]) {
+  return members.reduce((acc: Record<string, number>, member) => {
+    const normalizedName = member.name.toLowerCase();
+    acc[normalizedName] = (acc[normalizedName] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function getAnchorId(member: ApiMember, memberNameCounts: Record<string, number>) {
+  const normalizedName = member.name.toLowerCase();
+  if (memberNameCounts[normalizedName] > 1) {
+    return `${member.id}-${toSnakeCase(member.kind)}`;
+  }
+  return member.id;
 }
 
 function getCanonical(hierarchy: string[]) {

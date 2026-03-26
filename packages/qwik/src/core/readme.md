@@ -91,6 +91,10 @@ Use `useTask` to observe changes on a set of inputs, and then re-execute the `ta
 
 The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
+Cleanup callbacks registered with `cleanup()` or returned from the task may be async. When a task reruns, Qwik waits for the previous cleanup to finish before starting the next invocation.
+
+During SSR, the cleanup function is called immediately after SSR completes. Therefore, it is not called on the client side after resuming, but only the second time the task runs on the client.
+
 @see `Tracker`
 
 @public
@@ -125,6 +129,10 @@ const Timer = component$(() => {
   return <div>{store.count}</div>;
 });
 ```
+
+Visible Tasks are a variant of Tasks that only run in the browser, and are registered but not executed during SSR. They are useful for running code that should only execute in the browser, such as code that interacts with the DOM or browser APIs.
+
+Cleanup callbacks registered with `cleanup()` or returned from the task may be async. When a visible task reruns, Qwik waits for the previous cleanup to finish before starting the next invocation.
 
 @public
 

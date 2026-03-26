@@ -1748,13 +1748,13 @@ export function _task(this: string, _event: Event, element: Element): void;
 // @public (undocumented)
 export interface TaskCtx {
     // (undocumented)
-    cleanup: (callback: () => void) => void;
+    cleanup: (callback: () => ValueOrPromise<void>) => void;
     // (undocumented)
     track: Tracker;
 }
 
 // @public (undocumented)
-export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
+export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;
 
 // @public (undocumented)
 export interface TaskOptions {

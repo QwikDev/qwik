@@ -10,7 +10,8 @@ import { EffectProperty, STORE_ALL_PROPS, type Consumer } from '../../reactive-p
 import { isSignal } from '../../reactive-primitives/utils';
 import { qError, QError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
-import { isFunction, isObject } from '../../shared/utils/types';
+import { isPromise } from '../../shared/utils/promises';
+import { isFunction, isObject, type ValueOrPromise } from '../../shared/utils/types';
 import { invoke, newInvokeContext } from '../use-core';
 import { type Tracker } from '../use-task';
 import type { Destroyable } from './destroyable';
@@ -52,21 +53,28 @@ export const trackFn =
 export const cleanupFn = <T extends Destroyable>(
   target: T,
   handleError: (err: unknown) => void
-): [(callback: () => void) => void, (() => void)[]] => {
-  let cleanupFns: (() => void)[] | null = null;
-  const cleanup = (fn: () => void) => {
+): [(callback: () => ValueOrPromise<void>) => void, (() => ValueOrPromise<void>)[]] => {
+  let cleanupFns: (() => ValueOrPromise<void>)[] | null = null;
+  const cleanup = (fn: () => ValueOrPromise<void>) => {
     if (typeof fn == 'function') {
       if (!cleanupFns) {
         cleanupFns = [];
         target.$destroy$ = () => {
           target.$destroy$ = null;
-          // TODO handle promises
+          let cleanupPromises: Promise<void>[] | null = null;
           for (const fn of cleanupFns!) {
             try {
-              fn();
+              const result = fn();
+              if (isPromise(result)) {
+                (cleanupPromises ||= []).push(result.catch(handleError));
+              }
             } catch (err) {
               handleError(err);
             }
+          }
+          cleanupFns = null;
+          if (cleanupPromises?.length) {
+            return Promise.all(cleanupPromises).then(() => undefined);
           }
         };
       }

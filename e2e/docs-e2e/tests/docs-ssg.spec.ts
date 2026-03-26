@@ -45,4 +45,49 @@ describeSSG('SSG output verification', () => {
     const manifest = JSON.parse(content);
     expect(manifest).toHaveProperty('manifestHash');
   });
+
+  test('llms.txt exists and has expected structure', () => {
+    const llmsPath = resolve(docsDistDir, 'llms.txt');
+    expect(existsSync(llmsPath)).toBe(true);
+
+    const content = readFileSync(llmsPath, 'utf-8');
+    expect(content).toContain('# Qwik');
+    expect(content).toContain('## Start Here');
+    expect(content).toContain('## Core Concepts');
+    expect(content).toContain('## API Packages');
+    expect(content).toContain('https://qwik.dev/');
+  });
+
+  test('llms-ctx.txt exists', () => {
+    const ctxPath = resolve(docsDistDir, 'llms-ctx.txt');
+    expect(existsSync(ctxPath)).toBe(true);
+
+    const content = readFileSync(ctxPath, 'utf-8');
+    expect(content).toContain('<documents project="Qwik">');
+    expect(content).toContain('</documents>');
+  });
+
+  test('llms-ctx-full.txt exists', () => {
+    const ctxFullPath = resolve(docsDistDir, 'llms-ctx-full.txt');
+    expect(existsSync(ctxFullPath)).toBe(true);
+
+    const content = readFileSync(ctxFullPath, 'utf-8');
+    expect(content).toContain('<documents project="Qwik">');
+  });
+
+  test('llms markdown mirrors exist', () => {
+    const mirrors = [
+      'docs/getting-started.md',
+      'docs/routing.md',
+      'api/qwik.md',
+      'api/qwik-router.md',
+    ];
+    for (const mirror of mirrors) {
+      const mirrorPath = resolve(docsDistDir, mirror);
+      expect(existsSync(mirrorPath), `missing mirror: ${mirror}`).toBe(true);
+
+      const content = readFileSync(mirrorPath, 'utf-8');
+      expect(content.length, `empty mirror: ${mirror}`).toBeGreaterThan(0);
+    }
+  });
 });

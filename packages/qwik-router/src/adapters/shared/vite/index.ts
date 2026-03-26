@@ -4,6 +4,7 @@ import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
 import { basename, dirname, join, resolve } from 'node:path';
 import type { Plugin, UserConfig } from 'vite';
 import type { BuiltRoute } from '../../../buildtime/types';
+import { ssgWorkerImportPlugin } from '../../../buildtime/vite/ssg-worker-imports';
 import { postBuild } from './post-build';
 
 /**
@@ -111,12 +112,13 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       }
 
       // Virtual module that serves as both main and worker entry.
-      // Vite bundles the entry.ssr and @qwik-router-config imports.
-      // @qwik.dev/router/ssg is kept external (dynamic import).
+      // Vite bundles everything inline (standalone output).
+      // The ssgWorkerImportPlugin keeps the worker bundle graph isolated.
       return [
         `import { isMainThread } from 'node:worker_threads';`,
         `import render from '${srcDir}/entry.ssr';`,
         `import qwikRouterConfig from '@qwik-router-config';`,
+        `import { runSsg, startWorker } from '@qwik.dev/router/ssg';`,
         ``,
         `const ssgOpts = ${JSON.stringify(ssgOpts)};`,
         ``,
@@ -126,7 +128,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         `if (args.includes('--debug')) ssgOpts.log = 'debug';`,
         ``,
         `if (isMainThread) {`,
-        `  const { runSsg } = await import('@qwik.dev/router/ssg');`,
         `  await runSsg({`,
         `    render,`,
         `    qwikRouterConfig,`,
@@ -134,7 +135,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         `    ...ssgOpts,`,
         `  });`,
         `} else {`,
-        `  const { startWorker } = await import('@qwik.dev/router/ssg');`,
         `  await startWorker({ render, qwikRouterConfig });`,
         `}`,
       ].join('\n');
@@ -252,7 +252,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     },
   };
 
-  return plugin;
+  return [ssgWorkerImportPlugin(), plugin];
 }
 
 /** @public */

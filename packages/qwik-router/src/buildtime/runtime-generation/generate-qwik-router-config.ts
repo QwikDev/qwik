@@ -16,6 +16,12 @@ export function generateQwikRouterConfig(
   c.push(`\n/** Qwik Router Config */`);
   c.push(`\nimport { isDev } from '@qwik.dev/core/build';`);
 
+  if (isSSR) {
+    // Eagerly import all modules containing server$ functions so their _regSymbol
+    // side effects run before any RPC request arrives
+    esmImports.push(`import 'virtual:qwik-router-server-fns';`);
+  }
+
   createServerPlugins(ctx, qwikPlugin, c, esmImports, isSSR);
 
   createRoutes(ctx, qwikPlugin, c, esmImports, isSSR);

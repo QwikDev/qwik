@@ -876,13 +876,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
       }
 
-      // Force loading generated submodules into Rollup cache so later
-      // unchanged imports are not missing in our internal transform cache
-      // This can happen in the repl when the plugin is re-initialized
-      // and possibly in other places
-      // NOTE: this should be Promise.all to avoid deadlocks
-      await Promise.all([...deps.values()].map((id) => ctx.load({ id })));
-
       ctx.addWatchFile(id);
 
       return {

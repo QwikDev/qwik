@@ -402,8 +402,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
       }
       for (const [_, input] of Object.entries(opts.input || {})) {
-        const normalizedInput = normalizePath(sys.path.resolve(opts.rootDir, input));
-        const resolved = await resolver(normalizedInput);
+        const resolved = await resolver(input);
         if (!resolved) {
           throw new Error(`Qwik input "${input}" not found.`);
         }

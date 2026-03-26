@@ -176,20 +176,14 @@ export const message = 'hello';
       resolveLlmsBaseUrl({ QWIK_LLMS_BASE_URL: 'https://v2.qwik.dev/' } as NodeJS.ProcessEnv)
     ).toBe('https://v2.qwik.dev');
     expect(
-      resolveLlmsBaseUrl({ CF_PAGES_URL: 'https://preview.qwik.pages.dev/' } as NodeJS.ProcessEnv)
-    ).toBe('https://preview.qwik.pages.dev');
-    expect(
-      resolveLlmsBaseUrl({
-        QWIK_LLMS_BASE_URL: 'https://v2.qwik.dev/',
-        CF_PAGES_URL: 'https://preview.qwik.pages.dev/',
-      } as NodeJS.ProcessEnv)
+      resolveLlmsBaseUrl({ QWIK_LLMS_BASE_URL: 'https://v2.qwik.dev/' } as NodeJS.ProcessEnv)
     ).toBe('https://v2.qwik.dev');
     expect(() =>
       resolveLlmsBaseUrl({ QWIK_LLMS_BASE_URL: 'not-a-url' } as NodeJS.ProcessEnv)
     ).toThrow('Invalid QWIK_LLMS_BASE_URL');
-    expect(() => resolveLlmsBaseUrl({ CF_PAGES_URL: 'not-a-url' } as NodeJS.ProcessEnv)).toThrow(
-      'Invalid CF_PAGES_URL'
-    );
+    expect(
+      resolveLlmsBaseUrl({ CF_PAGES_URL: 'https://preview.qwik.pages.dev/' } as NodeJS.ProcessEnv)
+    ).toBe('https://qwik.dev');
   });
 
   test('generates mirrors and ctx files', () => {

@@ -369,7 +369,7 @@ function ensureTrailingSlash(value: string) {
 }
 
 export function resolveLlmsBaseUrl(env: NodeJS.ProcessEnv = process.env) {
-  const configuredValue = env.QWIK_LLMS_BASE_URL?.trim() || env.CF_PAGES_URL?.trim();
+  const configuredValue = env.QWIK_LLMS_BASE_URL?.trim();
   if (!configuredValue) {
     return DEFAULT_LLMS_BASE_URL;
   }
@@ -377,8 +377,7 @@ export function resolveLlmsBaseUrl(env: NodeJS.ProcessEnv = process.env) {
   try {
     return new URL(configuredValue).toString().replace(/\/$/, '');
   } catch {
-    const variableName = env.QWIK_LLMS_BASE_URL?.trim() ? 'QWIK_LLMS_BASE_URL' : 'CF_PAGES_URL';
-    throw new Error(`Invalid ${variableName}: ${configuredValue}`);
+    throw new Error(`Invalid QWIK_LLMS_BASE_URL: ${configuredValue}`);
   }
 }
 

@@ -100,9 +100,9 @@ export const Child = component$((props: { name: string }) => {
 
 ### Rendering a list of items
 
-Qwik supports rendering lists with either `items.map()` or the [`Each`](../each/index.mdx) component.
+Qwik supports rendering lists with either `items.map()` or the experimental [`Each`](/docs/labs/each/) component.
 
-For keyed collections, prefer [`Each`](../each/index.mdx). If you render with `items.map()`, every item in the list must have a unique `key` property on the first child returned by the mapping function. The `key` must be a string or number and must be unique within the list.
+For keyed collections, prefer [`Each`](/docs/labs/each/) once you have enabled it with `experimental: ['each']`. If you render with `items.map()`, every item in the list must have a unique `key` property on the first child returned by the mapping function. The `key` must be a string or number and must be unique within the list.
 
 ```tsx {6} /data.map/ /key/#a
 import { component$ } from '@qwik.dev/core';

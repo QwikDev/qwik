@@ -19,6 +19,7 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
 
 // @public
 export enum ExperimentalFeatures {
+    each = "each",
     enableRequestRewrite = "enableRequestRewrite",
     insights = "insights",
     noSPA = "noSPA",

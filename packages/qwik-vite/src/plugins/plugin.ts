@@ -63,6 +63,8 @@ const CLIENT_STRIP_CTX_NAME = [
  * @public
  */
 export enum ExperimentalFeatures {
+  /** Enable the Each keyed-list primitive */
+  each = 'each',
   /** Enable the usePreventNavigate hook */
   preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */
@@ -774,6 +776,28 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
     const ext = parsedPathId.ext.toLowerCase();
+
+    const mode =
+      opts.target === 'lib'
+        ? 'lib'
+        : opts.buildMode === 'development'
+          ? devServer?.hot && opts.devTools.hmr
+            ? 'hmr'
+            : 'dev'
+          : 'prod';
+
+    let didChange = false;
+    if (mode !== 'lib') {
+      // this messes a bit with the source map, but it's ok for if statements
+      code = code.replaceAll(/__EXPERIMENTAL__\.(\w+)/g, (_, feature) => {
+        didChange = true;
+        if (opts.experimental?.[feature as ExperimentalFeatures]) {
+          return 'true';
+        }
+        return 'false';
+      });
+    }
+
     if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
       /** Strip client|server code from qwik server|client, but not in lib/test */
       const strip = opts.target === 'client' || opts.target === 'ssr';
@@ -781,25 +805,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         `transform(${count})`,
         `Transforming ${id} (for: ${isServer ? 'server' : 'client'}${strip ? ', strip' : ''})`
       );
-
-      const mode =
-        opts.target === 'lib'
-          ? 'lib'
-          : opts.buildMode === 'development'
-            ? devServer?.hot && opts.devTools.hmr
-              ? 'hmr'
-              : 'dev'
-            : 'prod';
-
-      if (mode !== 'lib') {
-        // this messes a bit with the source map, but it's ok for if statements
-        code = code.replaceAll(/__EXPERIMENTAL__\.(\w+)/g, (_, feature) => {
-          if (opts.experimental?.[feature as ExperimentalFeatures]) {
-            return 'true';
-          }
-          return 'false';
-        });
-      }
 
       let filePath = base;
       if (opts.srcDir) {
@@ -890,7 +895,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     debug(`transform(${count})`, 'Not transforming', id);
 
-    return null;
+    return didChange ? { code } : null;
   };
 
   type OutputAnalyzer = {

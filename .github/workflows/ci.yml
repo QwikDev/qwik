@@ -43,9 +43,7 @@ env:
   CARGO_INCREMENTAL: 0
 
 permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   changes:
@@ -258,10 +256,6 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             wasm: true
-
-          # the last x86 macos available as a standard runner
-          - host: macos-13
-            target: x86_64-apple-darwin
 
           - host: macos-latest
             target: aarch64-apple-darwin
@@ -826,6 +820,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
 
     needs:
       - changes

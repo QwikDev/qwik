@@ -15,6 +15,7 @@ import { _deserializeData, _serializeData, _verifySerializable } from '@builder.
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { join, extname } from 'node:path';
+import { normalizeRequestUrl } from '../shared/url';
 
 function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
   const url = new URL(request.url);
@@ -22,7 +23,7 @@ function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
   if (!origin) {
     return url;
   }
-  return new URL(`${url.pathname}${url.search}${url.hash}`, origin);
+  return normalizeRequestUrl(`${url.pathname}${url.search}${url.hash}`, origin);
 }
 
 /** @public */

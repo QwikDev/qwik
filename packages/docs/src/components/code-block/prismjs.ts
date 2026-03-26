@@ -2,9 +2,22 @@ import prismjs from 'prismjs';
 import 'prismjs/components/prism-jsx';
 import 'prismjs/components/prism-tsx';
 
+const escapeHtml = (code: string) =>
+  code
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
 export const highlight = (code?: string, language?: string) => {
-  if (!code || !language || !prismjs.languages[language]) {
-    return `<code class="language-${language}"><pre>${code}</pre></code>`;
+  if (!code) {
+    return '';
   }
+
+  if (!language || !prismjs.languages[language]) {
+    return escapeHtml(code);
+  }
+
   return prismjs.highlight(code, prismjs.languages[language], language);
 };

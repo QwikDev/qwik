@@ -3,6 +3,11 @@
 use super::*;
 use serde_json::to_string_pretty;
 use swc_atoms::Atom;
+use swc_common::{comments::SingleThreadedComments, sync::Lrc, FileName, SourceMap};
+use swc_ecmascript::ast;
+use swc_ecmascript::parser::lexer::Lexer;
+use swc_ecmascript::parser::{EsSyntax, Parser, StringInput, Syntax};
+use swc_ecmascript::visit::{Visit, VisitWith};
 
 macro_rules! snapshot_res {
 	($res: expr, $prefix: expr) => {
@@ -85,6 +90,53 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		is_server: input.is_server,
 		// filler to maintain line offsets
 	})
+}
+
+fn parse_js_module(code: &str) -> ast::Module {
+	let source_map: Lrc<SourceMap> = Default::default();
+	let source_file = source_map.new_source_file(
+		FileName::Custom("test-output.js".into()).into(),
+		code.to_string(),
+	);
+	let comments = SingleThreadedComments::default();
+	let lexer = Lexer::new(
+		Syntax::Es(EsSyntax {
+			export_default_from: true,
+			..Default::default()
+		}),
+		Default::default(),
+		StringInput::from(&*source_file),
+		Some(&comments),
+	);
+	let mut parser = Parser::new_from(lexer);
+	parser.parse_module().expect("generated output should parse")
+}
+
+#[derive(Default)]
+struct CaptureArrayFinder {
+	found: bool,
+}
+
+impl Visit for CaptureArrayFinder {
+	fn visit_array_lit(&mut self, array: &ast::ArrayLit) {
+		if array.elems.len() == 3
+			&& matches!(
+				array.elems[0].as_ref().map(|item| &*item.expr),
+				Some(ast::Expr::Ident(ident)) if ident.sym == *"left"
+			)
+			&& matches!(
+				array.elems[1].as_ref().map(|item| &*item.expr),
+				Some(ast::Expr::Lit(ast::Lit::Bool(ast::Bool { value: true, .. })))
+			)
+			&& matches!(
+				array.elems[2].as_ref().map(|item| &*item.expr),
+				Some(ast::Expr::Ident(ident)) if ident.sym == *"right"
+			)
+		{
+			self.found = true;
+		}
+		array.visit_children_with(self);
+	}
 }
 
 #[test]
@@ -7035,4 +7087,43 @@ impl TestInput {
 			is_server: None,
 		}
 	}
+}
+
+#[test]
+fn should_preserve_non_ident_explicit_captures() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { _captures, inlinedQrl } from '@qwik.dev/core';
+
+const left = 1;
+const right = 2;
+
+export const task = inlinedQrl(() => {
+	const left = _captures[0];
+	const middle = _captures[1];
+	const right = _captures[2];
+	return middle ? left : right;
+}, 'task', [left, true, right]);
+"#
+		.to_string(),
+		snapshot: false,
+		mode: EmitMode::Dev,
+		..TestInput::default()
+	});
+
+	let output = res.unwrap();
+	let entry_module = output
+		.modules
+		.iter()
+		.find(|m| m.segment.is_none())
+		.expect("entry module not found");
+	let parsed = parse_js_module(&entry_module.code);
+	let mut finder = CaptureArrayFinder::default();
+	parsed.visit_with(&mut finder);
+
+	assert!(
+		finder.found,
+		"expected transformed capture array [left, true, right] to be preserved, got:\n{}",
+		entry_module.code
+	);
 }

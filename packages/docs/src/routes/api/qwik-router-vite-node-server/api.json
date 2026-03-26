@@ -26,7 +26,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface NodeServerAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[name?](./router.nodeserveradapteroptions.name.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n**_(BETA)_** _(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface NodeServerAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n**_(BETA)_** _(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/adapters/node-server/vite/index.ts",
       "mdFile": "router.nodeserveradapteroptions.md"
     }

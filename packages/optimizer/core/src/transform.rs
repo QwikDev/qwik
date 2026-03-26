@@ -538,22 +538,13 @@ impl<'a> QwikTransform<'a> {
 			folded
 		};
 
-		if self.is_inline() || matches!(self.options.mode, EmitMode::Lib) {
-			ast::Expr::Call(self.create_inline_qrl_without_capture_array(
-				segment_data,
-				folded,
-				symbol_name,
-				span,
-			))
-		} else {
-			ast::Expr::Call(self.create_segment(
-				segment_data,
-				folded,
-				symbol_name,
-				span,
-				segment_hash,
-			))
-		}
+		let _ = segment_hash;
+		ast::Expr::Call(self.create_inline_qrl_without_capture_array(
+			segment_data,
+			folded,
+			symbol_name,
+			span,
+		))
 	}
 
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {

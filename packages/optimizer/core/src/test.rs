@@ -7242,6 +7242,46 @@ export const App = component$(() => {
 }
 
 #[test]
+fn should_not_transform_map_to_each_in_hoist_mode() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  return <div>{items.map((item) => <span key={item.id}>{item.text}</span>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Hoist,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		!combined_code.contains("Each") && !combined_code.contains("_map("),
+		"Expected hoist mode to keep the original .map() call.\n{}",
+		combined_code
+	);
+	assert!(
+		combined_code.contains(".map("),
+		"Expected original .map() call to remain in hoist mode.\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings for hoist-mode bailout: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
 fn snapshot_map_to_each_outside_jsx_children_is_not_rewritten() {
 	test_input!(TestInput {
 		code: r#"

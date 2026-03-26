@@ -137,6 +137,13 @@ impl<'a> QwikTransform<'a> {
 		if self.jsx_children_expr_depth == 0 {
 			return None;
 		}
+		// Hoist mode currently lowers JSX prop QRLs to module-local noop QRLs. That is fine
+		// for many internal uses, but `Each` persists `key$` / `item$` into serialized output,
+		// where resumability needs chunk-backed QRLs. Until the hoist path can emit those
+		// props safely, leave authored `.map()` loops unchanged in hoist builds.
+		if matches!(self.options.entry_strategy, EntryStrategy::Hoist) {
+			return None;
+		}
 
 		let ast::Callee::Expr(box ast::Expr::Member(member)) = &node.callee else {
 			return None;
@@ -284,14 +291,6 @@ impl<'a> QwikTransform<'a> {
 				"map_item",
 				shared_scoped_idents.clone(),
 			);
-			let key_qrl = match key_qrl {
-				ast::Expr::Call(call) => self.hoist_qrl_to_module_scope(call),
-				expr => expr,
-			};
-			let item_qrl = match item_qrl {
-				ast::Expr::Call(call) => self.hoist_qrl_to_module_scope(call),
-				expr => expr,
-			};
 			let captures_expr = ast::Expr::Array(ast::ArrayLit {
 				span: DUMMY_SP,
 				elems: shared_scoped_idents

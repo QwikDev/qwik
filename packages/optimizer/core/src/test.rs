@@ -109,7 +109,9 @@ fn parse_js_module(code: &str) -> ast::Module {
 		Some(&comments),
 	);
 	let mut parser = Parser::new_from(lexer);
-	parser.parse_module().expect("generated output should parse")
+	parser
+		.parse_module()
+		.expect("generated output should parse")
 }
 
 #[derive(Default)]
@@ -123,16 +125,16 @@ impl Visit for CaptureArrayFinder {
 			&& matches!(
 				array.elems[0].as_ref().map(|item| &*item.expr),
 				Some(ast::Expr::Ident(ident)) if ident.sym == *"left"
-			)
-			&& matches!(
-				array.elems[1].as_ref().map(|item| &*item.expr),
-				Some(ast::Expr::Lit(ast::Lit::Bool(ast::Bool { value: true, .. })))
-			)
-			&& matches!(
-				array.elems[2].as_ref().map(|item| &*item.expr),
-				Some(ast::Expr::Ident(ident)) if ident.sym == *"right"
-			)
-		{
+			) && matches!(
+			array.elems[1].as_ref().map(|item| &*item.expr),
+			Some(ast::Expr::Lit(ast::Lit::Bool(ast::Bool {
+				value: true,
+				..
+			})))
+		) && matches!(
+			array.elems[2].as_ref().map(|item| &*item.expr),
+			Some(ast::Expr::Ident(ident)) if ident.sym == *"right"
+		) {
 			self.found = true;
 		}
 		array.visit_children_with(self);

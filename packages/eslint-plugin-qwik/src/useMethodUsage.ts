@@ -56,7 +56,8 @@ export const useMethodUsage: Rule.RuleModule = {
               if (parent.parent.type === 'CallExpression') {
                 if (
                   parent.parent.callee.type === 'Identifier' &&
-                  parent.parent.callee.name === 'component$'
+                  (parent.parent.callee.name === 'component$' ||
+                    parent.parent.callee.name === 'renderHook')
                 ) {
                   return;
                 }

@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 7408
 expression: output
 ---
 ==INPUT==
@@ -73,25 +72,4 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 == DIAGNOSTICS ==
 
-[
-  {
-    "category": "warning",
-    "code": "map-to-each",
-    "file": "test.tsx",
-    "message": "This .map() was not optimized to Each because the rendered component type depends on the callback item.",
-    "highlights": [
-      {
-        "lo": 190,
-        "hi": 310,
-        "startLine": 6,
-        "startCol": 16,
-        "endLine": 10,
-        "endCol": 4
-      }
-    ],
-    "suggestions": [
-      "Keep the original .map() render loop, or render a statically referenced component type."
-    ],
-    "scope": "optimizer"
-  }
-]
+[]

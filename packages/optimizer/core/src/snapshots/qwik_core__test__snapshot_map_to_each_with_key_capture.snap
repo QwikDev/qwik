@@ -8,13 +8,11 @@ expression: output
 import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
-  function Filter(props: { filter: string }) {
-    return <li>{props.filter}</li>;
-  }
+  const items = [{ id: 'a', text: 'A' }];
+  const prefix = { value: 'item:' };
+  return <div>{items.map((item) => <span key={prefix.value + item.id}>{item.text}</span>)}</div>;
+});
 
-  return <ul>{['all', 'active'].map((filter) => <Filter filter={filter} key={filter} />)}</ul>;
-	});
-	
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
@@ -25,21 +23,20 @@ const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App
 export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAMf\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAIhB\"}")
 ============================= test.tsx_map_item_nf66XgXHgFs.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
 //
-export const map_item_nf66XgXHgFs = (filter)=>{
-    const Filter = _captures[0];
-    return /*#__PURE__*/ _jsxSorted(Filter, {
-        filter: filter
-    }, null, null, 3, null);
+export const map_item_nf66XgXHgFs = (item)=>{
+    _captures[0];
+    return /*#__PURE__*/ _jsxSorted("span", null, null, _wrapProp(item, "text"), 1, null);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;qCAQqC;;yBAAW,WAAC;QAAO,QAAQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;qCAM0B;;yBAAS,WAAC,8BAAmC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -59,7 +56,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     0
   ],
   "paramNames": [
-    "filter"
+    "item"
   ]
 }
 */
@@ -74,21 +71,22 @@ const q_map_item_nf66XgXHgFs = /*#__PURE__*/ qrl(()=>import("./test.tsx_map_item
 const q_map_key_bn60zrX6S0A = /*#__PURE__*/ qrl(()=>import("./test.tsx_map_key_bn60zrX6S0A"), "map_key_bn60zrX6S0A");
 //
 export const App_component_ckEPmXZlub0 = ()=>{
-    function Filter(props) {
-        return /*#__PURE__*/ _jsxSorted("li", null, null, _wrapProp(props, "filter"), 1, "u6_0");
-    }
-    return /*#__PURE__*/ _jsxSorted("ul", null, null, /*#__PURE__*/ _map([
-        'all',
-        'active'
-    ], (filter)=>_jsxSorted(Filter, {
-            filter: filter
-        }, null, null, 3, filter), q_map_key_bn60zrX6S0A, q_map_item_nf66XgXHgFs, [
-        Filter
-    ]), 1, "u6_1");
+    const items = [
+        {
+            id: 'a',
+            text: 'A'
+        }
+    ];
+    const prefix = {
+        value: 'item:'
+    };
+    return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _map(items, (item)=>_jsxSorted("span", null, null, _wrapProp(item, "text"), 1, prefix.value + item.id), q_map_key_bn60zrX6S0A, q_map_item_nf66XgXHgFs, [
+        prefix
+    ]), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAG8B;IAC5B,SAAS,OAAO,KAAyB;QACvC,qBAAO,WAAC,4BAAI;IACd;IAEA,qBAAO,WAAC,qCAAI;QAAC;QAAO;KAAS,EAAK,CAAC,SAAW,WAAC;YAAO,QAAQ;0BAAa;;;AAC5E\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAG8B;IAC5B,MAAM,QAAQ;QAAC;YAAE,IAAI;YAAK,MAAM;QAAI;KAAE;IACtC,MAAM,SAAS;QAAE,OAAO;IAAQ;IAChC,qBAAO,WAAC,sCAAK,OAAU,CAAC,OAAS,WAAC,8BAAmC,kBAAzB,OAAO,KAAK,GAAG,KAAK,EAAE;;;AACpE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -105,7 +103,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     78,
-    272
+    264
   ]
 }
 */
@@ -113,13 +111,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { _captures } from "@qwik.dev/core";
 //
-export const map_key_bn60zrX6S0A = (filter)=>{
-    _captures[0];
-    return filter;
+export const map_key_bn60zrX6S0A = (item)=>{
+    const prefix = _captures[0];
+    return prefix.value + item.id;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;oCAQqC;;WAAwC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;oCAM0B;;WAAoB,OAAO,KAAK,GAAG,KAAK,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -139,7 +137,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     0
   ],
   "paramNames": [
-    "filter"
+    "item"
   ]
 }
 */

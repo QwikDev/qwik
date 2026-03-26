@@ -1,7 +1,15 @@
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { component$, Fragment, Fragment as Component, useSignal, useStore } from '@qwik.dev/core';
-import { Each } from '../control-flow/each';
+import {
+  component$,
+  Fragment,
+  Fragment as Component,
+  inlinedQrl,
+  noSerialize,
+  useSignal,
+  useStore,
+} from '@qwik.dev/core';
+import { _map, Each } from '../control-flow/each';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -198,6 +206,74 @@ describe.each([
           <div>Hello a</div>
           <div>Hello b</div>
           <div>Hello c</div>
+        </div>
+      );
+    });
+
+    it('should use Each fast path when _map captures are serializable', () => {
+      const captures = ['serializable'];
+      const result = _map(
+        [
+          { id: 'a', label: 'Hello a' },
+          { id: 'b', label: 'Hello b' },
+        ],
+        (item) => <div key={item.id}>{item.label}</div>,
+        inlinedQrl((item) => item.id, 's_mapKeySerializable'),
+        inlinedQrl((item) => <div>{item.label}</div>, 's_mapItemSerializable'),
+        captures
+      ) as any;
+
+      expect(result.type).toBe(Each);
+      expect(result.props.key$.getCaptured()).toEqual(captures);
+      expect(result.props.item$.getCaptured()).toEqual(captures);
+    });
+
+    it('should fall back to .map() when _map captures are not serializable', async () => {
+      const Cmp = component$(() => {
+        const items = useSignal([
+          { id: 'a', label: 'Hello a' },
+          { id: 'b', label: 'Hello b' },
+        ]);
+        const captures = [noSerialize({ kind: 'non-serializable' })];
+        return (
+          <>
+            <div id="loop">
+              {_map(
+                items.value,
+                (item) => (
+                  <div key={item.id}>{item.label}</div>
+                ),
+                inlinedQrl((item) => item.id, 's_mapKeyFallback'),
+                inlinedQrl((item) => <div>{item.label}</div>, 's_mapItemFallback'),
+                captures
+              )}
+            </div>
+            <button
+              onClick$={() => {
+                items.value = [
+                  { id: 'a', label: 'Hello a' },
+                  { id: 'b', label: 'Updated b' },
+                ];
+              }}
+            >
+              Update
+            </button>
+          </>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      await expect(document.getElementById('loop')).toMatchDOM(
+        <div id="loop">
+          <div>Hello a</div>
+          <div>Hello b</div>
+        </div>
+      );
+      await trigger(document.body, 'button', 'click');
+      await expect(document.getElementById('loop')).toMatchDOM(
+        <div id="loop">
+          <div>Hello a</div>
+          <div>Updated b</div>
         </div>
       );
     });

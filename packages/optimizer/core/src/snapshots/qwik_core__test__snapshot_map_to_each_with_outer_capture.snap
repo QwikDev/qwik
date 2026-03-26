@@ -1,5 +1,5 @@
 ---
-source: packages/qwik/src/optimizer/core/src/test.rs
+source: packages/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -24,7 +24,7 @@ export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAIhB\"}")
-============================= test.tsx_App_component_div_Each_item_f829DjfZibU.js (ENTRY POINT)==
+============================= test.tsx_map_item_nf66XgXHgFs.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
@@ -32,7 +32,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 //
 const _hf0 = (p0, p1)=>p1.text + p0.suffix;
 const _hf0_str = "p1.text+p0.suffix";
-export const App_component_div_Each_item_f829DjfZibU = (item)=>{
+export const map_item_nf66XgXHgFs = (item)=>{
     const extra = _captures[0];
     return /*#__PURE__*/ _jsxSorted("span", null, null, _fnSignal(_hf0, [
         extra,
@@ -41,41 +41,42 @@ export const App_component_div_Each_item_f829DjfZibU = (item)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;uBAMwD,GAAK,IAAI,GAAG,GAAM,MAAM;;wDAAtD;;yBAAS,WAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;uBAMwD,GAAK,IAAI,GAAG,GAAM,MAAM;;qCAAtD;;yBAAS,WAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_Each_item_f829DjfZibU",
+  "name": "map_item_nf66XgXHgFs",
   "entry": null,
-  "displayName": "test.tsx_App_component_div_Each_item",
-  "hash": "f829DjfZibU",
-  "canonicalFilename": "test.tsx_App_component_div_Each_item_f829DjfZibU",
+  "displayName": "test.tsx_map_item",
+  "hash": "nf66XgXHgFs",
+  "canonicalFilename": "test.tsx_map_item_nf66XgXHgFs",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
   "ctxKind": "jSXProp",
   "ctxName": "item$",
-  "captures": true,
+  "captures": false,
   "loc": [
     0,
     0
   ],
   "paramNames": [
     "item"
-  ],
-  "captureNames": [
-    "extra"
   ]
 }
 */
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { Each } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+import { _map } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const q_App_component_div_Each_item_f829DjfZibU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_Each_item_f829DjfZibU"), "App_component_div_Each_item_f829DjfZibU");
-const q_App_component_div_Each_key_07Oo5ReT59I = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_Each_key_07Oo5ReT59I"), "App_component_div_Each_key_07Oo5ReT59I");
+const _hf0 = (p0, p1)=>p1.text + p0.suffix;
+const _hf0_str = "p1.text+p0.suffix";
+//
+const q_map_item_nf66XgXHgFs = /*#__PURE__*/ qrl(()=>import("./test.tsx_map_item_nf66XgXHgFs"), "map_item_nf66XgXHgFs");
+const q_map_key_bn60zrX6S0A = /*#__PURE__*/ qrl(()=>import("./test.tsx_map_key_bn60zrX6S0A"), "map_key_bn60zrX6S0A");
 //
 export const App_component_ckEPmXZlub0 = ()=>{
     const items = [
@@ -87,18 +88,16 @@ export const App_component_ckEPmXZlub0 = ()=>{
     const extra = {
         suffix: '!'
     };
-    return /*#__PURE__*/ _jsxSorted("div", null, null, _jsxSorted(Each, {
-        item$: q_App_component_div_Each_item_f829DjfZibU.w([
-            extra
-        ]),
-        items: items
-    }, {
-        key$: q_App_component_div_Each_key_07Oo5ReT59I
-    }, null, 2, null), 1, "u6_0");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _map(items, (item)=>_jsxSorted("span", null, null, _fnSignal(_hf0, [
+            extra,
+            item
+        ], _hf0_str), 1, item.id), q_map_key_bn60zrX6S0A, q_map_item_nf66XgXHgFs, [
+        extra
+    ]), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAG8B;IAC5B,MAAM,QAAQ;QAAC;YAAE,IAAI;YAAK,MAAM;QAAI;KAAE;IACtC,MAAM,QAAQ;QAAE,QAAQ;IAAI;IAC5B,qBAAO,WAAC,mBAAyB;;;;eAApB;;;;AACf\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAMwD,GAAK,IAAI,GAAG,GAAM,MAAM;;;;;;yCAHlD;IAC5B,MAAM,QAAQ;QAAC;YAAE,IAAI;YAAK,MAAM;QAAI;KAAE;IACtC,MAAM,QAAQ;QAAE,QAAQ;IAAI;IAC5B,qBAAO,WAAC,sCAAK,OAAU,CAAC,OAAS,WAAC;;;yBAAU,KAAK,EAAE;;;AACrD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -119,20 +118,25 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_App_component_div_Each_key_07Oo5ReT59I.js (ENTRY POINT)==
+============================= test.tsx_map_key_bn60zrX6S0A.js (ENTRY POINT)==
 
-export const App_component_div_Each_key_07Oo5ReT59I = (item)=>item.id;
+import { _captures } from "@qwik.dev/core";
+//
+export const map_key_bn60zrX6S0A = (item)=>{
+    _captures[0];
+    return item.id;
+};
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAM0B,OAAoB,KAAK,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;oCAM0B;;WAAoB,KAAK,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_Each_key_07Oo5ReT59I",
+  "name": "map_key_bn60zrX6S0A",
   "entry": null,
-  "displayName": "test.tsx_App_component_div_Each_key",
-  "hash": "07Oo5ReT59I",
-  "canonicalFilename": "test.tsx_App_component_div_Each_key_07Oo5ReT59I",
+  "displayName": "test.tsx_map_key",
+  "hash": "bn60zrX6S0A",
+  "canonicalFilename": "test.tsx_map_key_bn60zrX6S0A",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",

@@ -124,7 +124,7 @@ export const Parent = component$(() => {
 
 ## Automatic `.map()` optimization
 
-For compatible render loops, Qwik optimizes keyed `items.map()` calls into an internal [`Each`](../each/index.mdx)-style keyed list automatically during compilation.
+For compatible render loops, Qwik optimizes keyed `items.map()` calls into the same keyed-list machinery used by [`Each`](../each/index.mdx) automatically during compilation.
 
 The optimization applies when:
 
@@ -141,7 +141,11 @@ For example, this authoring pattern:
 ))}
 ```
 
-can be optimized to the same keyed-list machinery used by manual `Each`.
+can be optimized automatically.
+
+For simple capture-free loops, Qwik can lower the render loop directly to `Each`.
+
+When the row render or key expression captures values from the surrounding scope, Qwik can still lower the loop through an internal fallback-assisted path. In that case, Qwik keeps the original `.map()` behavior available and uses keyed `Each` rendering when the captured values are safe for that path.
 
 If a `.map()` looks like a keyed list render but cannot be optimized, Qwik emits a `map-to-each` optimizer warning with the reason. If the conditions are not met, the original `.map()` stays unchanged.
 

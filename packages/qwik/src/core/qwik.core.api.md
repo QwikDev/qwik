@@ -608,6 +608,9 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 
 // @internal (undocumented)
+export const _map: <T, ITEM extends JSXOutput = JSXOutput>(items: readonly T[], fallbackFn: (item: T, index: number) => ITEM, key$: QRL<(item: T, index: number) => string>, item$: QRL<(item: T, index: number) => ITEM>, captures: Readonly<unknown[]> | null) => JSXNode;
+
+// @internal (undocumented)
 export const _mapApp_findIndx: <T>(array: (T | null)[], key: string, start: number) => number;
 
 // @internal (undocumented)

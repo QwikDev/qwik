@@ -1,7 +1,8 @@
 import type { PublicProps } from '../shared/component.public';
-import type { DevJSX, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { DevJSX, JSXNode, JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { inlinedQrl } from '../shared/qrl/qrl';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
@@ -14,6 +15,8 @@ import { _captures } from '../shared/qrl/qrl-class';
 import { _getProps, type PropsProxy } from '../shared/jsx/props-proxy';
 import { isStore } from '../reactive-primitives/impl/store';
 import { isSignal } from '../internal';
+import { _jsxSorted } from '../shared/jsx/jsx-internal';
+import { canSerialize } from '../shared/serdes/index';
 
 export interface EachProps<T, ITEM extends JSXOutput = JSXOutput> {
   items: readonly T[];
@@ -51,6 +54,32 @@ export const eachCmpTask = async ({ track }: TaskCtx) => {
 export const eachCmp = (props: EachProps<any>) => {
   useTaskQrl(/*#__PURE__*/ inlinedQrl(eachCmpTask, '_eaT', [props]));
   return SkipRender;
+};
+
+/** @internal */
+export const _map = <T, ITEM extends JSXOutput = JSXOutput>(
+  items: readonly T[],
+  fallbackFn: (item: T, index: number) => ITEM,
+  key$: QRL<(item: T, index: number) => string>,
+  item$: QRL<(item: T, index: number) => ITEM>,
+  captures: Readonly<unknown[]> | null
+): JSXNode => {
+  if (!Array.isArray(items) || !canSerialize(captures)) {
+    return (items as any).map(fallbackFn);
+  }
+
+  return _jsxSorted(
+    Each,
+    {
+      item$: (item$ as QRLInternal<(item: T, index: number) => ITEM>).w(captures),
+      items,
+      key$: (key$ as QRLInternal<(item: T, index: number) => string>).w(captures),
+    },
+    null,
+    null,
+    3,
+    null
+  ) as JSXNodeInternal;
 };
 
 /** @public */

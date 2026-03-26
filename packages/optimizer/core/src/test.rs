@@ -7157,8 +7157,43 @@ export const App = component$(() => {
 	let combined_code = combined_modules_code(&output);
 
 	assert!(
-		combined_code.contains("Each"),
-		"Expected Each render in generated output.\n{}",
+		combined_code.contains("_map("),
+		"Expected captured .map() to lower through _map(...).\n{}",
+		combined_code
+	);
+	assert!(
+		output.diagnostics.is_empty(),
+		"Did not expect warnings for successful rewrite: {:?}",
+		output.diagnostics
+	);
+}
+
+#[test]
+fn should_transform_map_to_each_with_key_capture() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  const prefix = { value: 'item:' };
+  return <div>{items.map((item) => <span key={prefix.value + item.id}>{item.text}</span>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed");
+	let output = res.unwrap();
+	let combined_code = combined_modules_code(&output);
+
+	assert!(
+		combined_code.contains("_map("),
+		"Expected captured key rewrite to lower through _map(...).\n{}",
 		combined_code
 	);
 	assert!(
@@ -7556,14 +7591,8 @@ export const App = component$(() => {
 		combined_code
 	);
 	assert!(
-		output
-			.diagnostics
-			.iter()
-			.any(|d| d.category == DiagnosticCategory::Warning
-				&& d.code.as_deref() == Some("map-to-each")
-				&& d.message
-					.contains("component type depends on the callback item")),
-		"Expected dynamic-component warning, got {:?}",
+		output.diagnostics.is_empty(),
+		"Did not expect warnings for dynamic component bailout: {:?}",
 		output.diagnostics
 	);
 }
@@ -7657,6 +7686,25 @@ export const App = component$(() => {
   const items = [{ id: 'a', text: 'A' }];
   const extra = { suffix: '!' };
   return <div>{items.map((item) => <span key={item.id}>{item.text + extra.suffix}</span>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn snapshot_map_to_each_with_key_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const items = [{ id: 'a', text: 'A' }];
+  const prefix = { value: 'item:' };
+  return <div>{items.map((item) => <span key={prefix.value + item.id}>{item.text}</span>)}</div>;
 });
 "#
 		.to_string(),

@@ -8,9 +8,13 @@ enum EachCandidateWarning {
 	UsesSecondParamForKey,
 	CallDerivedKey,
 	NotSingleJsxNode,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum EachSliceError {
+	UsesSecondParamForKey,
+	CallDerivedKey,
 	UnsafeSlice,
-	LocalFunctionReference,
-	DynamicComponentReference,
 }
 
 #[derive(Clone)]
@@ -47,18 +51,6 @@ impl<'a> QwikTransform<'a> {
 			EachCandidateWarning::NotSingleJsxNode => (
 				"This .map() was not optimized to Each because the callback does not return a single JSX node.",
 				"Return a single JSX node from the .map() callback.",
-			),
-			EachCandidateWarning::UnsafeSlice => (
-				"This .map() was not optimized to Each because the callback body could not be safely sliced.",
-				"Simplify the callback body so the key and rendered item can be derived independently.",
-			),
-			EachCandidateWarning::LocalFunctionReference => (
-				"This .map() was not optimized to Each because the generated Each callback would capture a local function or class.",
-				"Move the referenced function or component out of the parent scope, or keep the original .map() render loop.",
-			),
-			EachCandidateWarning::DynamicComponentReference => (
-				"This .map() was not optimized to Each because the rendered component type depends on the callback item.",
-				"Keep the original .map() render loop, or render a statically referenced component type.",
 			),
 		};
 		self.diagnostics.push(Diagnostic {
@@ -220,10 +212,6 @@ impl<'a> QwikTransform<'a> {
 			&callback_info.params,
 			&self.jsx_functions,
 		) {
-			self.push_each_candidate_warning(
-				node.span,
-				EachCandidateWarning::DynamicComponentReference,
-			);
 			return None;
 		}
 
@@ -238,8 +226,10 @@ impl<'a> QwikTransform<'a> {
 					true,
 				) {
 					Ok(stmts) => stmts,
-					Err(warning) => {
-						self.push_each_candidate_warning(node.span, warning);
+					Err(err) => {
+						if let Some(warning) = slice_error_to_warning(err) {
+							self.push_each_candidate_warning(node.span, warning);
+						}
 						return None;
 					}
 				};
@@ -255,8 +245,10 @@ impl<'a> QwikTransform<'a> {
 				let item_stmts =
 					match slice_statements_for_target(stmts, item_expr.as_ref(), &[], false) {
 						Ok(stmts) => stmts,
-						Err(warning) => {
-							self.push_each_candidate_warning(node.span, warning);
+						Err(err) => {
+							if let Some(warning) = slice_error_to_warning(err) {
+								self.push_each_candidate_warning(node.span, warning);
+							}
 							return None;
 						}
 					};
@@ -265,17 +257,58 @@ impl<'a> QwikTransform<'a> {
 			None => build_each_arrow_expr(&callback_info.params, None, item_expr),
 		};
 
-		// `item$` / `key$` become QRL-backed JSX props. If either generated callback would
-		// capture a local function or class declaration from the parent scope, keep the
-		// original `.map()` so we don't surface a later FunctionReference optimizer error.
-		if self.has_invalid_qrl_function_reference(&key_fn_expr)
-			|| self.has_invalid_qrl_function_reference(&item_fn_expr)
-		{
-			self.push_each_candidate_warning(
-				directive_span,
-				EachCandidateWarning::LocalFunctionReference,
+		let mut shared_scoped_idents = self.collect_expr_scoped_idents(&key_fn_expr);
+		for id in self.collect_expr_scoped_idents(&item_fn_expr) {
+			if !shared_scoped_idents.contains(&id) {
+				shared_scoped_idents.push(id);
+			}
+		}
+
+		if !shared_scoped_idents.is_empty() {
+			// Captured values can still use the Each fast path when they are serializable, so
+			// lower to the internal `_map(...)` helper and let runtime decide between `Each`
+			// and the original `.map(...)` callback.
+			let items_expr = member.obj.as_ref().clone().fold_with(self);
+			let fallback_fn = callback.clone().fold_with(self);
+			let key_qrl = self.create_deferred_capture_qsegment(
+				key_fn_expr,
+				SegmentKind::JSXProp,
+				Atom::from("key$"),
+				"map_key",
+				shared_scoped_idents.clone(),
 			);
-			return None;
+			let item_qrl = self.create_deferred_capture_qsegment(
+				item_fn_expr,
+				SegmentKind::JSXProp,
+				Atom::from("item$"),
+				"map_item",
+				shared_scoped_idents.clone(),
+			);
+			let key_qrl = match key_qrl {
+				ast::Expr::Call(call) => self.hoist_qrl_to_module_scope(call),
+				expr => expr,
+			};
+			let item_qrl = match item_qrl {
+				ast::Expr::Call(call) => self.hoist_qrl_to_module_scope(call),
+				expr => expr,
+			};
+			let captures_expr = ast::Expr::Array(ast::ArrayLit {
+				span: DUMMY_SP,
+				elems: shared_scoped_idents
+					.into_iter()
+					.map(|id| {
+						Some(ast::ExprOrSpread {
+							spread: None,
+							expr: Box::new(ast::Expr::Ident(new_ident_from_id(&id))),
+						})
+					})
+					.collect(),
+			});
+			return Some(ast::Expr::Call(self.create_internal_call(
+				&_MAP,
+				vec![items_expr, fallback_fn, key_qrl, item_qrl, captures_expr],
+				true,
+			)));
 		}
 
 		let each_id = self.ensure_core_import(&Atom::from("Each"));
@@ -489,7 +522,7 @@ fn slice_statements_for_target(
 	target_expr: &ast::Expr,
 	second_param_ids: &[Id],
 	is_key_slice: bool,
-) -> Result<Vec<ast::Stmt>, EachCandidateWarning> {
+) -> Result<Vec<ast::Stmt>, EachSliceError> {
 	// Walk backwards from the final expression, pulling in only statements that define
 	// values still needed by that expression. This lets `key$` and `item$` preserve
 	// relevant branches/loops independently instead of copying the entire callback body.
@@ -507,9 +540,9 @@ fn slice_statements_for_target(
 		let uses_second_param = stmt_uses_any_ident(stmt, second_param_ids);
 		if is_key_slice && (contains_call || uses_second_param) {
 			return Err(if contains_call {
-				EachCandidateWarning::CallDerivedKey
+				EachSliceError::CallDerivedKey
 			} else {
-				EachCandidateWarning::UsesSecondParamForKey
+				EachSliceError::UsesSecondParamForKey
 			});
 		}
 
@@ -525,11 +558,19 @@ fn slice_statements_for_target(
 	}
 
 	if needed.iter().any(|id| local_declared.contains(id)) {
-		return Err(EachCandidateWarning::UnsafeSlice);
+		return Err(EachSliceError::UnsafeSlice);
 	}
 
 	selected.reverse();
 	Ok(selected)
+}
+
+fn slice_error_to_warning(err: EachSliceError) -> Option<EachCandidateWarning> {
+	match err {
+		EachSliceError::UsesSecondParamForKey => Some(EachCandidateWarning::UsesSecondParamForKey),
+		EachSliceError::CallDerivedKey => Some(EachCandidateWarning::CallDerivedKey),
+		EachSliceError::UnsafeSlice => None,
+	}
 }
 
 fn get_jsx_element_expr(expr: &ast::Expr) -> Option<&ast::JSXElement> {

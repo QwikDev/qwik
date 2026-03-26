@@ -445,21 +445,115 @@ impl<'a> QwikTransform<'a> {
 		folded
 	}
 
-	fn has_invalid_qrl_function_reference(&self, expr: &ast::Expr) -> bool {
+	fn collect_expr_scoped_idents(&self, expr: &ast::Expr) -> Vec<Id> {
 		let descendent_idents = {
 			let mut collector = IdentCollector::new();
 			expr.visit_with(&mut collector);
 			collector.get_words()
 		};
-		let (_decl_collect, invalid_decl): (_, Vec<_>) = self
-			.decl_stack
-			.iter()
-			.flat_map(|v| v.iter())
-			.cloned()
-			.partition(|(_, t)| matches!(t, IdentType::Var(_)));
-		descendent_idents
-			.iter()
-			.any(|ident| invalid_decl.iter().any(|entry| entry.0 == *ident))
+		let decl_collect: Vec<_> = self.decl_stack.iter().flat_map(|v| v.iter()).cloned().collect();
+		let (scoped, _) = compute_scoped_idents(&descendent_idents, &decl_collect);
+		scoped
+	}
+
+	fn create_deferred_capture_qsegment(
+		&mut self,
+		first_arg: ast::Expr,
+		ctx_kind: SegmentKind,
+		ctx_name: Atom,
+		display_name_seed: &str,
+		shared_scoped_idents: Vec<Id>,
+	) -> ast::Expr {
+		let can_capture = can_capture_scope(&first_arg);
+		let first_arg_span = first_arg.span();
+		let (symbol_name, display_name, hash, segment_hash) = self.register_context_name(
+			None,
+			Some(display_name_seed),
+			None,
+		);
+
+		self.segment_stack.push(symbol_name.clone());
+		let span = first_arg.span();
+		let folded = first_arg.fold_with(self);
+		self.segment_stack.pop();
+
+		let param_idents = get_function_params(&folded);
+		let mut scoped_idents = shared_scoped_idents;
+		scoped_idents.retain(|id| !param_idents.contains(id));
+
+		if !can_capture && !scoped_idents.is_empty() {
+			HANDLER.with(|handler| {
+				let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
+				handler
+					.struct_span_err_with_code(
+						first_arg_span,
+						&format!(
+							"Qrl($) scope is not a function, but it's capturing local identifiers: {}",
+							ids.join(", ")
+						),
+						errors::get_diagnostic_id(errors::Error::CanNotCapture),
+					)
+					.emit();
+			});
+			scoped_idents = vec![];
+		}
+
+		let folded = if !scoped_idents.is_empty() {
+			let new_local = self.ensure_core_import(&_CAPTURES);
+			transform_function_expr(folded, &new_local, &scoped_idents)
+		} else {
+			folded
+		};
+
+		let segment_data = SegmentData {
+			extension: self.options.extension.clone(),
+			local_idents: self.get_local_idents(&folded),
+			scoped_idents: vec![],
+			parent_segment: self.segment_stack.last().cloned(),
+			ctx_kind,
+			ctx_name,
+			origin: self.options.path_data.rel_path.to_slash_lossy().into(),
+			path: self.options.path_data.rel_dir.to_slash_lossy().into(),
+			display_name,
+			need_transform: !matches!(self.options.mode, EmitMode::Lib),
+			hash,
+			migrated_root_vars: Vec::new(),
+		};
+
+		let should_emit = self.should_emit_segment(&segment_data);
+		if !should_emit {
+			return ast::Expr::Call(self.create_noop_qrl(&symbol_name, segment_data));
+		}
+
+		let folded = if self.should_reg_segment(&segment_data.ctx_name) {
+			ast::Expr::Call(self.create_internal_call(
+				&_REG_SYMBOL,
+				vec![
+					folded,
+					ast::Expr::Lit(ast::Lit::Str(ast::Str::from(segment_data.hash.clone()))),
+				],
+				true,
+			))
+		} else {
+			folded
+		};
+
+		if self.is_inline() || matches!(self.options.mode, EmitMode::Lib) {
+			ast::Expr::Call(self.create_inline_qrl_without_capture_array(
+				segment_data,
+				folded,
+				symbol_name,
+				span,
+			))
+		} else {
+			ast::Expr::Call(self.create_segment(
+				segment_data,
+				folded,
+				symbol_name,
+				span,
+				segment_hash,
+			))
+		}
 	}
 
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
@@ -2174,6 +2268,70 @@ impl<'a> QwikTransform<'a> {
 					.collect(),
 			}))
 		}
+
+		self.create_internal_call(&fn_callee, args, true)
+	}
+
+	fn create_inline_qrl_without_capture_array(
+		&mut self,
+		segment_data: SegmentData,
+		expr: ast::Expr,
+		symbol_name: Atom,
+		span: Span,
+	) -> ast::CallExpr {
+		let should_inline = matches!(self.options.entry_strategy, EntryStrategy::Inline)
+			|| matches!(self.options.mode, EmitMode::Lib)
+			|| matches!(expr, ast::Expr::Ident(_));
+		let param_names = Self::extract_param_names(&expr);
+		let inlined_expr = if should_inline {
+			expr
+		} else {
+			let new_ident = private_ident!(symbol_name.clone());
+			let qrl_id: Id = (
+				Atom::from(format!("q_{}", symbol_name)),
+				SyntaxContext::empty(),
+			);
+			self.hoisted_segment_idents.insert(id!(new_ident));
+			self.segments.push(Segment {
+				entry: None,
+				span,
+				canonical_filename: get_canonical_filename(
+					&segment_data.display_name,
+					&symbol_name,
+				),
+				name: symbol_name.clone(),
+				data: segment_data.clone(),
+				expr: Box::new(expr),
+				hash: new_ident.ctxt.as_u32() as u64,
+				param_names,
+				qrl_id: Some(qrl_id),
+			});
+			ast::Expr::Ident(new_ident)
+		};
+
+		let mut args = vec![
+			inlined_expr,
+			ast::Expr::Lit(ast::Lit::Str(ast::Str {
+				span: DUMMY_SP,
+				value: symbol_name,
+				raw: None,
+			})),
+		];
+
+		let fn_callee = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Hmr) {
+			args.push(get_qrl_dev_obj(
+				Atom::from(
+					self.options
+						.dev_path
+						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
+				),
+				&segment_data,
+				&span,
+			));
+			_INLINED_QRL_DEV.clone()
+		} else {
+			_INLINED_QRL.clone()
+		};
 
 		self.create_internal_call(&fn_callee, args, true)
 	}

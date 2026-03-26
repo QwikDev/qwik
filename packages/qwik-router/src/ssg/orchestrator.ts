@@ -15,6 +15,7 @@ export async function mainThread(sys: System) {
   log.info('\n' + bold(green('Starting Qwik Router SSG...')));
 
   const qwikRouterConfig = opts.qwikRouterConfig;
+  const renderTimeout = 30_000;
 
   const queue: SsgRoute[] = [];
   const active = new Set<string>();
@@ -100,10 +101,20 @@ export async function mainThread(sys: System) {
       const render = async (staticRoute: SsgRoute) => {
         try {
           active.add(staticRoute.pathname);
+          log.debug(`render start: ${staticRoute.pathname}`);
 
-          const result = await main.render({ type: 'render', ...staticRoute });
+          const result = await Promise.race([
+            main.render({ type: 'render', ...staticRoute }),
+            new Promise<never>((_, reject) =>
+              setTimeout(
+                () => reject(new Error(`SSG render timed out after ${renderTimeout}ms`)),
+                renderTimeout
+              )
+            ),
+          ]);
 
           active.delete(staticRoute.pathname);
+          log.debug(`render done: ${staticRoute.pathname}`);
 
           if (result.error) {
             const err = new Error(result.error.message);
@@ -270,9 +281,11 @@ export async function mainThread(sys: System) {
       };
 
       const loadStaticRoutes = async () => {
+        log.debug('traversing route tree...');
         // The route trie already contains any configured base pathname segments, so reconstruct
         // discovered paths from "/" to avoid prefixing the base twice.
         await traverseRouteTree(routes, [], '/', []);
+        log.debug(`route tree traversed, ${queue.length} routes queued, ${active.size} active`);
         isRoutesLoaded = true;
         flushQueue();
       };

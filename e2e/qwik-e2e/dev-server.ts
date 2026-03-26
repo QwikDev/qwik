@@ -211,7 +211,7 @@ export {
               clientManifest = manifest;
             },
           },
-          experimental: ['preventNavigate', 'enableRequestRewrite'],
+          experimental: ['each', 'preventNavigate', 'enableRequestRewrite'],
         }),
       ],
     })
@@ -227,7 +227,7 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ['preventNavigate', 'enableRequestRewrite'],
+          experimental: ['each', 'preventNavigate', 'enableRequestRewrite'],
           ssr: {
             manifestInput: clientManifest,
           },

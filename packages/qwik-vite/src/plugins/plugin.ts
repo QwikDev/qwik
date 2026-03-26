@@ -88,6 +88,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const clientResults = new Map<string, TransformOutput>();
   const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
+  // Maintaing our own map of segments because Rolldown doesn't retain module.meta information (https://github.com/rolldown/rolldown/issues/8924)
   const clientSegments = new Map<string, SegmentAnalysis>();
   const clientChunkNames = new Map<string, string>();
 

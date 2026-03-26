@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/optimizer",
   "description": "Qwik optimizer runtime and native bindings.",
-  "version": "2.0.0",
+  "version": "2.0.1-beta.0",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "engines": {
     "node": "^20.3.0 || >=21.0.0"

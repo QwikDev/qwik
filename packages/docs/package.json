@@ -72,7 +72,7 @@
   "private": true,
   "scripts": {
     "build": "pnpm build.repl-sw && qwik build",
-    "build.client": "vite build",
+    "build.client": "vite build && pnpm generate.llms",
     "build.preview": "NODE_OPTIONS=--max-old-space-size=8192 vite build --ssr src/entry.preview.tsx",
     "build.repl-sw": "vite --config vite.config-repl-sw build",
     "build.server": "NODE_OPTIONS=--max-old-space-size=8192 vite build -c adapters/cloudflare-pages/vite.config",
@@ -84,7 +84,6 @@
     "dev": "node check-qwik-build.ts && vite --mode ssr --open",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
     "prebuild.core": "node check-qwik-build.ts",
-    "postbuild.llms": "pnpm generate.llms",
     "preview": "qwik build preview && vite preview --open",
     "preview.only": "NODE_DEBUG=net,http node --inspect-brk ../../node_modules/vite/bin/vite.js preview",
     "preview.wrangler": "wrangler pages dev ./dist --compatibility-flags=nodejs_als",

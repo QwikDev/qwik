@@ -50,7 +50,7 @@ QWIK_LLMS_BASE_URL=https://v2.qwik.dev pnpm generate.llms
 On Cloudflare Pages, the generator also falls back to `CF_PAGES_URL`, so preview deployments can emit links for their deployment URL automatically. Set `QWIK_LLMS_BASE_URL` in the Pages production environment if you want production builds to emit a custom domain instead of the default `*.pages.dev` URL.
 
 `pnpm build` runs the site build first and then writes the generated LLM files into `dist/`.
-The generation runs through the docs package's `postbuild.llms` hook, so it also runs during `qwik build preview` before the preview server starts.
+The generation is chained to the `build.client` script (`vite build && pnpm generate.llms`), so the files exist in `dist/` before the server build runs. This ensures the Cloudflare Pages adapter discovers them as static paths and the Worker serves them correctly.
 
 If you add or want to expose a new docs or API page in the LLM outputs, update the curated manifest in `scripts/generate-llms.ts`.
 

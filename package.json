@@ -254,6 +254,7 @@
     "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit && test.e2e.integrations && test.e2e.qwik-react && pnpm test.e2e.cli",
     "test.e2e.chromium": "playwright test e2e/qwik-e2e/tests --browser=chromium --config e2e/qwik-e2e/playwright.config.ts",
     "test.e2e.chromium.debug": "PWDEBUG=1 playwright test e2e/qwik-e2e/tests --browser=chromium --config e2e/qwik-e2e/playwright.config.ts",
+    "test.e2e.docs": "playwright test --config e2e/docs-e2e/playwright.config.ts --project chromium",
     "test.e2e.cli": "pnpm run test.e2e.cli.chromium && pnpm run test.e2e.cli.webkit",
     "test.e2e.cli.chromium": "pnpm --filter qwik-cli-e2e e2e",
     "test.e2e.cli.webkit": "PW_BROWSER=webkit pnpm --filter qwik-cli-e2e e2e",

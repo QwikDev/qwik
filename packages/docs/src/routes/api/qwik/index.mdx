@@ -8877,7 +8877,7 @@ Description
 
 </td><td>
 
-(callback: () =&gt; void) =&gt; void
+(callback: () =&gt; [ValueOrPromise](#valueorpromise)&lt;void&gt;) =&gt; void
 
 </td><td>
 
@@ -8902,7 +8902,9 @@ Description
 <h2 id="taskfn">TaskFn</h2>
 
 ```typescript
-export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
+export type TaskFn = (
+  ctx: TaskCtx,
+) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;
 ```
 
 **References:** [TaskCtx](#taskctx), [ValueOrPromise](#valueorpromise)

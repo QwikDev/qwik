@@ -166,6 +166,14 @@ export default defineConfig(({ mode }) => {
       },
       ssr: {
         resolve: {
+          external: [
+            // CJS Prism causes issues with rolldown's bundling
+            'prismjs',
+            'prismjs/components/prism-clike',
+            'prismjs/components/prism-jsx',
+            'prismjs/components/prism-markup',
+            'prismjs/components/prism-tsx',
+          ],
           noExternal: [
             '@mui/material',
             '@mui/system',

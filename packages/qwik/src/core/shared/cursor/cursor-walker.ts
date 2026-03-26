@@ -11,6 +11,7 @@ import {
   executeCleanup,
   executeComponentChore,
   executeCompute,
+  executeErrorWrap,
   executeNodeDiff,
   executeNodeProps,
   executeReconcile,
@@ -181,6 +182,11 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
           currentVNode = next;
           continue;
         }
+      } else if (currentVNode.dirty & ChoreBits.ERROR_WRAP) {
+        // Must run after CHILDREN so that all descendant chores (e.g. signal text
+        // NODE_DIFF updates) are flushed before we reparent children into the
+        // errored-host wrapper element.
+        executeErrorWrap(currentVNode, journal);
       }
     } catch (error) {
       container.handleError(error, currentVNode);

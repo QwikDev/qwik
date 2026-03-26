@@ -311,6 +311,10 @@ importers:
         version: 17.7.2
 
   packages/docs:
+    dependencies:
+      prismjs:
+        specifier: 1.30.0
+        version: 1.30.0
     devDependencies:
       '@algolia/autocomplete-core':
         specifier: 1.7.4
@@ -438,9 +442,6 @@ importers:
       prism-themes:
         specifier: 1.9.0
         version: 1.9.0
-      prismjs:
-        specifier: 1.30.0
-        version: 1.30.0
       qwik-image:
         specifier: 0.0.16
         version: 0.0.16

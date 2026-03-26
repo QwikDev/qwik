@@ -62,6 +62,9 @@
     "vite-tsconfig-paths": "6.0.4",
     "wrangler": "3.114.17"
   },
+  "dependencies": {
+    "prismjs": "1.30.0"
+  },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
     "npm": "please-use-pnpm",

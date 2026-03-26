@@ -8,12 +8,14 @@ import {
   executeCompute,
   executeNodeDiff,
   executeNodeProps,
+  executeReconcile,
   executeTasks,
 } from './chore-execution';
 import {
   executeSsrComponent,
   executeSsrNodeDiff,
   executeSsrNodeProps,
+  executeSsrReconcile,
   executeSsrTasks,
   executeSsrUnclaimedProjections,
 } from './ssr-chore-execution';
@@ -26,6 +28,13 @@ export interface CursorChoreRuntime {
   hasCleanNodeLeave: boolean;
   tasks(vNode: VNode, container: Container, cursorData: CursorData): ValueOrPromise<void>;
   component(
+    vNode: VNode,
+    container: Container,
+    cursorData: CursorData,
+    cursor: Cursor,
+    journal: VNodeJournal | null
+  ): ValueOrPromise<void>;
+  reconcile(
     vNode: VNode,
     container: Container,
     cursorData: CursorData,
@@ -63,6 +72,9 @@ export const domCursorChoreRuntime: CursorChoreRuntime = {
   component(vNode, container, _cursorData, cursor, journal) {
     return executeComponentChore(vNode, container, journal!, cursor);
   },
+  reconcile(vNode, container, _cursorData, cursor, journal) {
+    return executeReconcile(vNode, container, journal!, cursor);
+  },
   nodeDiff(vNode, container, _cursorData, cursor, journal) {
     return executeNodeDiff(vNode, container, journal!, cursor);
   },
@@ -82,6 +94,7 @@ export const ssrCursorChoreRuntime: CursorChoreRuntime = {
   hasCleanNodeLeave: true,
   tasks: executeSsrTasks,
   component: executeSsrComponent,
+  reconcile: executeSsrReconcile,
   nodeDiff: executeSsrNodeDiff,
   nodeProps(vNode, container) {
     executeSsrNodeProps(vNode, container);

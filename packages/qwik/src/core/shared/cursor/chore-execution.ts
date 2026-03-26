@@ -1,8 +1,6 @@
 import { VNodeFlags, type ClientContainer } from '../../client/types';
 import { vnode_diff } from '../../client/vnode-diff';
 import { type VNodeJournal } from '../../client/vnode-utils';
-import type { NodeProp } from '../../reactive-primitives/subscription-data';
-import type { Signal } from '../../reactive-primitives/signal.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SignalFlags } from '../../reactive-primitives/types';
@@ -33,12 +31,7 @@ import {
   setNodePropData,
 } from './chore-helpers';
 import type { Cursor } from './cursor';
-import {
-  HOST_SIGNAL,
-  NODE_DIFF_DATA_KEY,
-  NODE_PROPS_DATA_KEY,
-  type CursorData,
-} from './cursor-props';
+import { HOST_SIGNAL, type CursorData } from './cursor-props';
 import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
 import { _getProps } from '../jsx/props-proxy';
 import type { Props } from '../jsx/jsx-runtime';

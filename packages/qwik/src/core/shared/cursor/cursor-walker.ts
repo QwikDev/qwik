@@ -5,7 +5,6 @@
  *   Handles promise blocking, time-slicing, and cursor position tracking.
  */
 
-import { isServerPlatform } from '../platform/platform';
 import type { VNode } from '../vnode/vnode';
 import { type Cursor } from './cursor';
 import { setCursorPosition, getCursorData, type CursorData } from './cursor-props';
@@ -22,7 +21,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
-import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
+import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { getCursorChoreRuntime } from './chore-runtime';
 
 const DEBUG = false;

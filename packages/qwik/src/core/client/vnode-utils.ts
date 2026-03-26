@@ -199,13 +199,8 @@ import {
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { isSsrNode } from '../reactive-primitives/subscriber';
-import { isCursor } from '../shared/cursor/cursor';
 import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
-import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
-import { _flushJournal } from '../shared/cursor/cursor-flush';
-import { decodeVNodeDataString } from '../shared/utils/character-escaping';
 import { isQrl } from '../shared/qrl/qrl-utils';
-import { parseQRL } from '../shared/serdes/index';
 import { runEventHandlerQRL } from './run-qrl';
 import type { QRL } from '../shared/qrl/qrl.public';
 

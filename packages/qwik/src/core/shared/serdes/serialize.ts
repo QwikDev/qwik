@@ -29,7 +29,7 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
+import { ELEMENT_ID, ELEMENT_PROPS } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
 import { Constants, TypeIds } from './constants';
@@ -778,12 +778,6 @@ function serializeWrappingFn(
     value.$func$
   );
   return [syncFnId, value.$args$] as const;
-}
-
-function tryGetBackRefs(props: Props): Map<string, EffectSubscription> | undefined {
-  return Object.prototype.hasOwnProperty.call(props, QBackRefs)
-    ? (props[QBackRefs] as Map<string, EffectSubscription>)
-    : undefined;
 }
 
 class SerializationWeakRef {

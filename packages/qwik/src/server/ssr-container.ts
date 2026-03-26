@@ -609,16 +609,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  async renderJSX(
-    jsx: JSXOutput,
-    options: {
-      currentStyleScoped: string | null;
-      parentComponentFrame: ISsrComponentFrame | null;
-    }
-  ) {
-    await _walkJSX(this, jsx, options);
-  }
-
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
     let ctx = vnode_getProp<Array<string | unknown>>(host, QCtxAttr, null);
     if (ctx == null) {

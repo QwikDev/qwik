@@ -24,18 +24,21 @@ export async function createSystem(opts: SsgGenerateOptions, threadId?: number):
     };
   };
 
+  const noop = () => {};
   const createLogger = async () => {
+    const isQuiet = opts.log === 'quiet';
+    const isDebug = opts.log === 'debug';
     if (threadId !== undefined) {
       return {
-        debug: opts.log === 'debug' ? console.debug.bind(console, `[${threadId}]`) : () => {},
+        debug: isDebug ? console.debug.bind(console, `[${threadId}]`) : noop,
         error: console.error.bind(console, `[${threadId}]`),
-        info: console.info.bind(console, `[${threadId}]`),
+        info: isQuiet ? noop : console.info.bind(console, `[${threadId}]`),
       };
     }
     return {
-      debug: opts.log === 'debug' ? console.debug.bind(console) : () => {},
+      debug: isDebug ? console.debug.bind(console) : noop,
       error: console.error.bind(console),
-      info: console.info.bind(console),
+      info: isQuiet ? noop : console.info.bind(console),
     };
   };
 

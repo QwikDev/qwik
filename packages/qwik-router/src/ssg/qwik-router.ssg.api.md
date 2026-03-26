@@ -37,7 +37,7 @@ export interface SsgRenderOptions extends RenderOptions {
     emitHtml?: boolean;
     exclude?: string[];
     include?: string[];
-    log?: 'debug';
+    log?: 'debug' | 'quiet';
     maxTasksPerWorker?: number;
     maxWorkers?: number;
     origin: string;

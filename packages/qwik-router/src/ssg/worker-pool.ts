@@ -14,6 +14,7 @@ import { isAbsolute, resolve } from 'node:path';
 import { normalizePath } from '../utils/fs';
 
 export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
+  const log = await sys.createLogger();
   const ssgWorkers: SsgWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapStream: fs.WriteStream | null = null;
@@ -137,10 +138,11 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     });
 
     nodeWorker.on('error', (e) => {
-      console.error(`worker error`, e);
+      log.error(`worker error`, e);
     });
 
     nodeWorker.on('exit', (code) => {
+      log.debug(`worker exit code=${code}`);
       if (terminateTimeout) {
         clearTimeout(terminateTimeout);
         terminateTimeout = null;
@@ -255,6 +257,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     );
   }
 
+  log.debug(`creating ${maxWorkers} workers, ${maxTasksPerWorker} tasks each`);
   for (let i = 0; i < maxWorkers; i++) {
     ssgWorkers.push(createWorker());
     // On Windows, add delay between worker creation to avoid resource contention

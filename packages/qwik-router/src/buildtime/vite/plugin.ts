@@ -35,6 +35,7 @@ export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 const QWIK_ROUTER_ENTRIES_ID = '@qwik-router-entries';
 const QWIK_ROUTER = '@qwik.dev/router';
 const QWIK_ROUTER_SW_REGISTER = '@qwik-router-sw-register';
+const VIRTUAL_SERVER_FNS = 'virtual:qwik-router-server-fns';
 
 /**
  * @deprecated Use `qwikRouter` instead. Will be removed in V3
@@ -46,10 +47,10 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
 
 /** @public */
 export function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption[] {
-  return [qwikRouterPlugin(userOpts), ...imagePlugin(userOpts)];
+  return [qwikRouterPlugin(userOpts), serverFnsPlugin(), ...imagePlugin(userOpts)];
 }
 
-function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
+function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions) {
   let ctx: RoutingContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
@@ -254,7 +255,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       return null;
     },
 
-    async load(id, opts) {
+    async load(id) {
       if (ctx) {
         if (id.endsWith(QWIK_ROUTER_ENTRIES_ID)) {
           // @qwik-router-entries
@@ -394,4 +395,85 @@ async function generateServerPackageJson(outDir: string) {
   const serverPackageJsonCode = JSON.stringify(packageJson, null, 2);
 
   await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
+}
+
+/**
+ * Separate plugin that tracks modules containing server$ functions during SSR builds and generates
+ * `virtual:qwik-router-server-fns` — a virtual module that statically imports all such modules so
+ * their `_regSymbol` side effects run before any RPC request arrives.
+ */
+function serverFnsPlugin(): Plugin {
+  const RESOLVED_ID = '\0' + VIRTUAL_SERVER_FNS;
+  const serverFnModules = new Set<string>();
+  let pendingModules = 0;
+  let resolveServerFns: (() => void) | null = null;
+  let serverFnsReady: Promise<void>;
+
+  function reset() {
+    serverFnModules.clear();
+    pendingModules = 0;
+    serverFnsReady = new Promise<void>((r) => {
+      resolveServerFns = r;
+    });
+  }
+  reset();
+
+  return {
+    name: 'vite-plugin-qwik-router-server-fns',
+
+    buildStart() {
+      reset();
+    },
+
+    resolveId(id) {
+      if (id === VIRTUAL_SERVER_FNS) {
+        return { id: RESOLVED_ID, moduleSideEffects: 'no-treeshake' };
+      }
+    },
+
+    load: {
+      order: 'pre',
+      async handler(id) {
+        const isServerBuild =
+          this.environment.config.consumer === 'server' && this.environment.mode === 'build';
+
+        if (id === RESOLVED_ID) {
+          if (isServerBuild) {
+            await serverFnsReady;
+          }
+          if (!isServerBuild || serverFnModules.size === 0) {
+            return '// No server$ functions';
+          }
+          return [...serverFnModules].map((mod) => `import ${JSON.stringify(mod)};`).join('\n');
+        }
+
+        // Count module loads during SSR build for deferred resolution
+        if (isServerBuild && id !== RESOLVED_ID) {
+          pendingModules++;
+
+          this.load({ id })
+            .then((result) => {
+              if (typeof result.code === 'string' && result.code.includes('serverQrl(')) {
+                serverFnModules.add(id);
+              }
+            })
+            .finally(() => {
+              pendingModules--;
+              if (pendingModules <= 0 && resolveServerFns) {
+                // Rollup processes modules in batches — the count may briefly hit 0 between
+                // batches, so delay before resolving to let new loads get queued.
+                setTimeout(() => {
+                  if (pendingModules <= 0 && resolveServerFns) {
+                    resolveServerFns();
+                    resolveServerFns = null;
+                  }
+                }, 50);
+              }
+            });
+        }
+
+        return null;
+      },
+    },
+  };
 }

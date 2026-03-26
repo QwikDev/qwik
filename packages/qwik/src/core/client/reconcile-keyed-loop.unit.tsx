@@ -72,6 +72,66 @@ describe('reconcile-keyed-loop', () => {
     ).toEqual(nextItems);
   });
 
+  it('should append a keyed suffix without keyed-map allocations or rerendering the prefix', async () => {
+    const initialItems = Array.from({ length: 1_000 }, (_, i) => String(i));
+    const nextItems = Array.from({ length: 2_000 }, (_, i) => String(i));
+    const { vNode, container } = vnode_fromJSX(
+      _jsxSorted('test', {}, null, initialItems.map(createRow), 0, 'KA_root')
+    );
+    const initialNodes = Array.from(container.document.querySelectorAll('b'));
+    const journal: VNodeJournal = [];
+    const keyOf = vi.fn((item: string) => item);
+    const renderItem = vi.fn((item: string) => createRow(item));
+    let mapAllocations = 0;
+
+    class CountingMap<K, V> extends Map<K, V> {
+      constructor(entries?: Iterable<readonly [K, V]> | null) {
+        super(entries);
+        mapAllocations++;
+      }
+    }
+
+    vi.stubGlobal('Map', CountingMap);
+    try {
+      await reconcileKeyedLoopToParent(
+        container,
+        journal,
+        vNode as ElementVNode,
+        null as unknown as Cursor,
+        nextItems,
+        keyOf,
+        renderItem
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+
+    expect(mapAllocations).toBe(0);
+    expect(keyOf).toHaveBeenCalledTimes(2_000);
+    expect(renderItem).toHaveBeenCalledTimes(1_000);
+    expect(renderItem.mock.calls[0]).toEqual(['1000', 1000]);
+    expect(renderItem.mock.calls[999]).toEqual(['1999', 1999]);
+    expect(vNode).toMatchVDOM(_jsxSorted('test', {}, null, nextItems.map(createRow), 0, 'KA_root'));
+
+    _flushJournal(journal);
+
+    const finalNodes = Array.from(container.document.querySelectorAll('b'));
+    expect(finalNodes).toHaveLength(2_000);
+    expect(finalNodes.slice(0, 1_000)).toEqual(initialNodes);
+    expect(finalNodes.slice(995, 1005).map((node) => node.textContent)).toEqual([
+      '995',
+      '996',
+      '997',
+      '998',
+      '999',
+      '1000',
+      '1001',
+      '1002',
+      '1003',
+      '1004',
+    ]);
+  });
+
   it('should swap two adjacent keyed rows with a single move', async () => {
     const initialItems = ['0', '1', '2', '3'];
     const nextItems = ['0', '2', '1', '3'];

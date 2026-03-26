@@ -11,7 +11,13 @@ import {
   useTask$,
   type Signal as SignalType,
 } from '@qwik.dev/core';
-import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import {
+  domRender,
+  getTestPlatform,
+  ssrRenderToDom,
+  trigger,
+  waitForDrain,
+} from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
@@ -1126,6 +1132,103 @@ describe.each([
       );
     } catch (error) {
       expect((error as Error).message).toBe('HANDLE ME');
+    }
+  });
+  it('should await async cleanup before rerun', async () => {
+    vi.useFakeTimers();
+    try {
+      (globalThis as any).log = [];
+      const isSsr = render === ssrRenderToDom;
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        useTask$(({ track, cleanup }) => {
+          const current = track(count);
+          (globalThis as any).log.push(`task:${current}`);
+          cleanup(async () => {
+            (globalThis as any).log.push(`cleanup:${current}:start`);
+            await delay(100);
+            (globalThis as any).log.push(`cleanup:${current}:end`);
+          });
+        });
+        return <button onClick$={() => count.value++}>{count.value}</button>;
+      });
+
+      const { document, container } = await render(<Counter />, { debug });
+      expect((globalThis as any).log).toEqual(isSsr ? ['task:0', 'cleanup:0:start'] : ['task:0']);
+      await vi.advanceTimersByTimeAsync(100);
+      expect((globalThis as any).log).toEqual(
+        isSsr ? ['task:0', 'cleanup:0:start', 'cleanup:0:end'] : ['task:0']
+      );
+
+      const triggerPromise = trigger(document.body, 'button', 'click');
+      await vi.advanceTimersByTimeAsync(99);
+      expect((globalThis as any).log).toEqual(
+        isSsr
+          ? ['task:0', 'cleanup:0:start', 'cleanup:0:end', 'task:1']
+          : ['task:0', 'cleanup:0:start']
+      );
+
+      await vi.advanceTimersByTimeAsync(1);
+      await triggerPromise;
+      await waitForDrain(container);
+      expect((globalThis as any).log).toEqual([
+        'task:0',
+        'cleanup:0:start',
+        'cleanup:0:end',
+        'task:1',
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('should keep non-blocking updates visible while cleanup is pending', async () => {
+    vi.useFakeTimers();
+    try {
+      (globalThis as any).log = [];
+      const isSsr = render === ssrRenderToDom;
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        useTask$(
+          ({ track, cleanup }) => {
+            const current = track(count);
+            (globalThis as any).log.push(`task:${current}`);
+            cleanup(async () => {
+              (globalThis as any).log.push(`cleanup:${current}:start`);
+              await delay(100);
+              (globalThis as any).log.push(`cleanup:${current}:end`);
+            });
+          },
+          { deferUpdates: false }
+        );
+        return <button onClick$={() => count.value++}>{count.value}</button>;
+      });
+
+      const { document } = await render(<Counter />, { debug });
+      await vi.advanceTimersByTimeAsync(100);
+      expect((globalThis as any).log).toEqual(
+        isSsr ? ['task:0', 'cleanup:0:start', 'cleanup:0:end'] : ['task:0']
+      );
+
+      const triggerPromise = trigger(document.body, 'button', 'click');
+      await vi.advanceTimersByTimeAsync(99);
+      await expect(document.body.firstChild).toMatchDOM(<button>1</button>);
+      expect((globalThis as any).log).toEqual(
+        isSsr
+          ? ['task:0', 'cleanup:0:start', 'cleanup:0:end', 'task:1']
+          : ['task:0', 'cleanup:0:start']
+      );
+
+      await vi.advanceTimersByTimeAsync(1);
+      await triggerPromise;
+      expect((globalThis as any).log).toEqual([
+        'task:0',
+        'cleanup:0:start',
+        'cleanup:0:end',
+        'task:1',
+      ]);
+    } finally {
+      vi.useRealTimers();
     }
   });
 });

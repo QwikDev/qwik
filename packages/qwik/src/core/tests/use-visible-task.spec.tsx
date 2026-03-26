@@ -17,7 +17,7 @@ import {
   useTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ELEMENT_SEQ } from '../../server/qwik-copy';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { vnode_getProp } from '../client/vnode-utils';
@@ -1125,5 +1125,48 @@ describe.each([
         'entry /',
       ]);
     });
+  });
+  it('should await returned async cleanup before rerun', async () => {
+    vi.useFakeTimers();
+    try {
+      (globalThis as any).log = [] as string[];
+      const isSsr = render === ssrRenderToDom;
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        useVisibleTask$(({ track }) => {
+          const current = track(count);
+          (globalThis as any).log.push(`task:${current}`);
+          return async () => {
+            (globalThis as any).log.push(`cleanup:${current}:start`);
+            await delay(10);
+            (globalThis as any).log.push(`cleanup:${current}:end`);
+          };
+        });
+        return <button onClick$={() => count.value++}>{count.value}</button>;
+      });
+
+      const { document, container } = await render(<Counter />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'button', 'qvisible');
+        await waitForDrain(container);
+      }
+      expect((globalThis as any).log).toEqual(['task:0']);
+
+      const triggerPromise = trigger(document.body, 'button', 'click');
+      vi.advanceTimersByTime(1);
+      expect((globalThis as any).log).toEqual(isSsr ? ['task:0'] : ['task:0']);
+
+      vi.useRealTimers();
+      await triggerPromise;
+      await waitForDrain(container);
+      expect((globalThis as any).log).toEqual([
+        'task:0',
+        'cleanup:0:start',
+        'cleanup:0:end',
+        'task:1',
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

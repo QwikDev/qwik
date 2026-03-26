@@ -1,4 +1,5 @@
 import { vnode_getProp, vnode_setProp } from '../../client/vnode-utils';
+import { SkipRender } from '../jsx/utils.public';
 import { ssrDiff } from '../../ssr/ssr-diff';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { runTask } from '../../use/use-task';
@@ -91,6 +92,12 @@ export function executeSsrComponent(
   ssr.enterComponentContext(ssrNode, storedFrame || undefined);
   vNode.dirty &= ~ChoreBits.COMPONENT;
   const result = runComponentChore(container, component, (jsx) => {
+    // SkipRender means "don't touch my children" — used by Each which manages
+    // its children via RECONCILE instead.
+    if (jsx === SkipRender) {
+      return;
+    }
+
     // Record hook-injected child count (e.g., style elements from useStylesScoped$)
     // so executeSsrNodeDiff can preserve them when clearing content for re-diff.
     // Only set once: on first render, orderedChildren only has hook-injected children.

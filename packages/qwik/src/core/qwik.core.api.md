@@ -357,7 +357,7 @@ export const _eaC: (props: EachProps<any>) => JSXNode<unknown>;
 export const Each: EachComponent;
 
 // @internal (undocumented)
-export const _eaT: (input: TaskCtx) => Promise<void>;
+export const _eaT: (input: TaskCtx) => void;
 
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;

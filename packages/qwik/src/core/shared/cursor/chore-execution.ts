@@ -10,6 +10,7 @@ import { invoke, newInvokeContext, untrack } from '../../use/use-core';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import type { Container, HostElement } from '../types';
+import { SkipRender } from '../jsx/utils.public';
 import { ELEMENT_PROPS, ELEMENT_SEQ } from '../utils/markers';
 import { maybeThen, retryOnPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
@@ -131,6 +132,12 @@ export function executeComponentChore(
     return;
   }
   return runComponentChore(container, component, (jsx) => {
+    // SkipRender means "don't touch my children" — used by Each which manages
+    // its children via RECONCILE instead. Don't schedule NODE_DIFF or the diff
+    // would truncate the reconcile's children via expectNoMore.
+    if (jsx === SkipRender) {
+      return;
+    }
     setNodeDiffPayload(component.host as VNode, jsx);
     markVNodeDirty(container, component.host as VNode, ChoreBits.NODE_DIFF, cursor);
   });

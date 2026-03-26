@@ -2013,20 +2013,18 @@ impl<'a> QwikTransform<'a> {
 	fn emit_captures(&self, captures: &Captures, args: &mut Vec<ast::Expr>) {
 		match captures {
 			Captures::Explicit(arr) => args.push(ast::Expr::Array(arr.clone())),
-			Captures::Auto(ids) if !ids.is_empty() => {
-				args.push(ast::Expr::Array(ast::ArrayLit {
-					span: DUMMY_SP,
-					elems: ids
-						.iter()
-						.map(|id| {
-							Some(ast::ExprOrSpread {
-								spread: None,
-								expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
-							})
+			Captures::Auto(ids) if !ids.is_empty() => args.push(ast::Expr::Array(ast::ArrayLit {
+				span: DUMMY_SP,
+				elems: ids
+					.iter()
+					.map(|id| {
+						Some(ast::ExprOrSpread {
+							spread: None,
+							expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
 						})
-						.collect(),
-				}))
-			}
+					})
+					.collect(),
+			})),
 			_ => {}
 		}
 	}

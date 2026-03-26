@@ -1,102 +1,243 @@
-@reference "tailwindcss";
+@reference "../../global.css";
 
-.docs .content-container {
-  @apply px-8 lg:pl-0 xl:pr-0;
-  @apply mx-auto min-h-[100vh];
-  max-width: min(var(--container-max-width), 100vw);
+/* ─── Grid layout: sidebar | content | toc ─── */
+
+.docs-grid {
+  @apply grid min-h-screen relative;
+  grid-template-columns: minmax(0, 1fr);
+
+  @variant xl {
+    grid-template-columns: auto 1fr;
+  }
 }
 
-.docs .docs-container {
-  @apply pt-8 lg:pt-5;
-  @apply min-w-48;
-
-  /* @screen lg { */
-  /* approx 85ch, but since the contents use font-sizes in absolute values,
-       we need to use an absolute value here too */
-  /* max-width: 850px; */
-  /* }  */
-  @apply lg:max-w-[850px];
+.docs main {
+  @apply min-w-0;
 }
+
+.docs-content-area {
+  @apply grid;
+  grid-template-columns: 1fr;
+
+  @variant xl {
+    grid-template-columns: 1fr 300px;
+  }
+}
+
+.docs-grid > footer {
+  grid-column: 1 / -1;
+
+  @variant xl {
+    grid-column: 2 / -1;
+  }
+}
+
+.docs .docs-content {
+  @apply max-w-[75ch] mx-auto px-4 pt-24 pb-8 sm:px-6 xl:pt-40;
+}
+
+.docs .docs-content-wide {
+  @apply max-w-[960px] w-full;
+}
+
+/* ─── Links ─── */
 
 .docs article a {
-  color: var(--interactive-text-color);
-  text-decoration: underline;
-}
-
-.docs article blockquote {
-  background: var(--blockquote-bg-color);
-  padding: 20px 13px 20px 10px;
-  border-left: 10px solid #ac7ef4;
-  margin: 30px 0;
-}
-
-.docs article blockquote p:first-child {
-  margin-top: 0;
-}
-
-.docs article blockquote p:last-child {
-  margin-bottom: 0;
+  @apply text-secondary-foreground-base underline;
 }
 
 .docs article a:hover {
-  text-decoration: none;
+  @apply no-underline;
 }
 
+/* ─── Blockquotes ─── */
+
+.docs article blockquote {
+  @apply bg-background-accent py-6 pr-4 pl-2;
+  border-left: 8px solid var(--color-secondary-foreground-base);
+}
+
+.docs article blockquote p:first-child {
+  @apply mt-0;
+}
+
+.docs article blockquote p:last-child {
+  @apply mb-0;
+}
+
+/* ─── Cards ─── */
+
 .docs article .card-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 25px;
-  margin: 30px 0;
+  @apply flex flex-wrap gap-6;
 }
 
 .docs article .card {
-  background: var(--bg-secondary-color);
-  border-radius: 10px;
-  min-width: 230px;
-  padding: 25px;
-  flex: 1;
-  color: inherit;
-  text-decoration: none;
+  @apply bg-background-accent rounded-[10px] min-w-[230px] p-6 flex-1 text-inherit no-underline;
 }
 
 .docs article a.card:hover {
-  outline: 2px solid var(--interactive-text-color);
+  @apply outline-2 outline-secondary-foreground-base;
+}
+
+.docs article a.card-intro:hover,
+.docs article a.card-explore:hover {
+  @apply outline-none;
 }
 
 .docs article .card-center {
-  text-align: center;
+  @apply text-center;
 }
 
 .docs article .card h3 {
-  margin-top: 10px;
-  margin-bottom: 0;
-  font-weight: 500;
-  font-size: 22px;
+  @apply mt-2 mb-0 font-medium text-h6;
 }
 
 .docs article .card p {
-  font-size: 14px;
+  @apply text-body-xs;
 }
 
 .docs article .card .icon {
-  font-size: 70px;
-  margin: 0;
-  line-height: 1;
+  @apply text-[70px] m-0 leading-none;
 }
 
 .docs article .card .intro-icon {
-  position: relative;
-  margin: auto;
+  @apply relative mx-auto;
 }
 
-.docs article h1 {
-  @apply mb-7;
-  @apply relative;
+/* ─── Intro cards (two-tone: white icon area + colored text area) ─── */
 
-  line-height: 1.2;
-  font-size: 55px;
-  font-weight: 800;
-  scroll-margin-top: var(--scroll-margin-top);
+.docs article .card-intro {
+  @apply p-0 overflow-hidden flex flex-col transition-all;
+  border: 1.6px solid var(--color-border-base);
+  box-shadow: var(--shadow-sm-base);
+}
+
+.docs article .card-intro.card-violet {
+  border-color: var(--color-secondary-border-base);
+  box-shadow: var(--shadow-secondary-base);
+}
+
+.docs article a.card-intro:hover {
+  @apply -translate-y-1;
+  box-shadow: var(--shadow-sm-accent);
+}
+
+.docs article a.card-intro.card-violet:hover {
+  box-shadow: var(--shadow-secondary-accent);
+}
+
+.docs article .card-intro .card-icon {
+  @apply flex items-center justify-center bg-white py-8;
+}
+
+.docs article .card-intro .card-icon .intro-icon {
+  @apply relative mx-auto;
+  width: 56px;
+  height: 56px;
+  color: var(--color-primary-standalone-base);
+}
+
+.docs article .card-intro .card-body {
+  @apply p-5 bg-background-accent;
+}
+
+.docs article .card-intro.card-violet .card-body {
+  @apply bg-secondary-background-base;
+}
+
+.docs article .card-intro .card-body h3 {
+  @apply mt-0 mb-1 font-heading font-semibold text-h6;
+}
+
+.docs article .card-intro .card-body p {
+  @apply text-body-xs mt-0;
+  color: var(--color-sky-80);
+}
+
+.docs article .card-intro.card-violet .card-body p {
+  color: var(--color-violet-80);
+}
+
+/* ─── Explore cards (horizontal layout) ─── */
+
+.docs article .card-explore {
+  @apply flex flex-row items-stretch gap-0 p-0 overflow-hidden transition-all;
+  border: 1.6px solid var(--color-border-base);
+  box-shadow: var(--shadow-sm-base);
+}
+
+.docs article .card-explore.card-violet {
+  @apply bg-secondary-background-base;
+  border-color: var(--color-secondary-border-base);
+  box-shadow: var(--shadow-secondary-base);
+}
+
+.docs article a.card-explore:hover {
+  @apply -translate-y-1;
+  box-shadow: var(--shadow-sm-accent);
+}
+
+.docs article a.card-explore.card-violet:hover {
+  box-shadow: var(--shadow-secondary-accent);
+}
+
+.docs article .card-explore .card-icon {
+  @apply flex items-center justify-center bg-white flex-shrink-0 rounded-l-[10px] p-4;
+}
+
+.docs article .card-explore .card-icon .intro-icon {
+  @apply relative;
+  width: 40px;
+  height: 40px;
+  color: var(--color-primary-standalone-base);
+}
+
+.docs article .card-explore .card-body {
+  @apply flex flex-col justify-center p-5 bg-background-accent;
+}
+
+.docs article .card-explore.card-violet .card-body {
+  @apply bg-secondary-background-base;
+}
+
+.docs article .card-explore h3 {
+  @apply mt-0 mb-0 font-heading font-semibold text-body-sm;
+}
+
+.docs article .card-explore p {
+  @apply text-body-xs mt-0;
+  color: var(--color-sky-80);
+}
+
+.docs article .card-explore.card-violet p {
+  color: var(--color-violet-80);
+}
+
+/* ─── Feature cards (text only) ─── */
+
+.docs article .card-feature {
+  @apply bg-background-base;
+  border: 1.6px solid var(--color-border-base);
+  box-shadow: var(--shadow-sm-base);
+}
+
+.docs article .card-feature h3 {
+  @apply mt-0 mb-1 font-heading font-semibold text-h6;
+}
+
+.docs article .card-feature p {
+  @apply text-body-xs text-foreground-soft mt-0;
+}
+
+/* ─── Headings ─── */
+
+.docs article h1 {
+  @apply mb-6 relative font-heading text-h4;
+  scroll-margin-top: 80px;
+
+  @variant xl {
+    scroll-margin-top: 160px;
+  }
 }
 
 .docs article h2,
@@ -104,24 +245,27 @@
 .docs article h4,
 .docs article h5,
 .docs article h6 {
-  @apply text-xl font-semibold;
-  @apply relative;
-  margin-top: 1.2em;
-  scroll-margin-top: var(--scroll-margin-top);
+  @apply relative font-heading;
+  scroll-margin-top: 80px;
 
-  margin-bottom: max(0.7em, 18px);
+  @variant xl {
+    scroll-margin-top: 160px;
+  }
+  margin-bottom: max(0.7em, 16px);
 }
 
 .docs article h2 {
-  line-height: 1.2;
-  font-size: 42px;
-  font-weight: 800;
-  scroll-margin-top: var(--scroll-margin-top);
-  margin-top: 45px;
+  @apply text-h5 mt-16;
 }
 
 .docs article h3 {
-  font-size: 1.8rem;
+  @apply text-h6 mt-6;
+}
+
+.docs article h4,
+.docs article h5,
+.docs article h6 {
+  @apply text-body-md mt-6;
 }
 
 .docs h2 a,
@@ -129,17 +273,15 @@
 .docs h4 a,
 .docs h5 a,
 .docs h6 a {
-  position: absolute;
-  width: 100%;
-  height: 1em;
+  @apply absolute w-full h-[1em];
 }
 
 .icon-link {
-  display: none;
+  @apply hidden;
 }
 
 .icon-link::after {
-  position: absolute;
+  @apply absolute;
   content: '#';
   left: -1em;
 }
@@ -149,28 +291,27 @@ h3 a:hover .icon,
 h4 a:hover .icon,
 h5 a:hover .icon,
 h6 a:hover .icon {
-  display: inline;
+  @apply inline;
 }
 
-.docs article p {
-  margin-top: 1.6rem;
-  margin-bottom: 0.9rem;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.7;
-  color: var(--secondary-text-color);
+/* ─── Vertical rhythm ─── */
+
+.docs article > * + * {
+  @apply mt-6;
 }
+
+/* ─── Body text ─── */
+
+.docs article p {
+  @apply text-body-sm text-foreground-base leading-[1.8];
+}
+
+/* ─── Lists ─── */
 
 .docs article ul,
 .docs article ol {
-  @apply my-4;
-  @apply ml-10;
-  line-height: 1.7;
+  @apply pl-6 text-body-sm text-foreground-base leading-[1.8] flex flex-col gap-4;
   list-style: disc;
-
-  font-size: 16px;
-  font-weight: 400;
-  color: var(--secondary-text-color);
 }
 
 .docs article ol {
@@ -178,40 +319,61 @@ h6 a:hover .icon {
 }
 
 .docs article li {
-  @apply my-1;
   @apply pl-2;
+}
+
+.docs article li > * + * {
+  @apply mt-4;
 }
 
 .docs article li::marker,
 .docs article li::-webkit-details-marker {
-  color: var(--interactive-text-color);
-  font-weight: 800;
+  @apply text-secondary-foreground-base font-extrabold;
 }
 
+.docs article ol li::marker {
+  @apply font-heading font-bold text-label-sm;
+}
+
+/* ─── Code blocks (card style) ─── */
+
 .highlighted-word {
-  background: #4199d3;
-  color: #111 !important;
+  @apply bg-violet-15 rounded px-[1px] py-[1px] -mx-[1px] -my-[1px];
 }
 
 .highlighted {
-  background-color: #7b8d9f33 !important;
+  @apply !bg-violet-5 px-2 -mx-2;
+}
+
+/* First highlighted line in a group */
+.highlighted:not(.highlighted + .highlighted) {
+  @apply pt-2 rounded-t;
+}
+
+/* Last highlighted line in a group */
+.highlighted:not(:has(+ .highlighted)) {
+  @apply pb-2 rounded-b;
+}
+
+/* Single highlighted line */
+.highlighted:not(.highlighted + .highlighted):not(:has(+ .highlighted)) {
+  @apply rounded;
 }
 
 .shiki-title {
-  background: #4199d3;
-  color: #111;
-  display: block;
-  padding: 0.5rem;
-  border-radius: 8px 8px 0px 0px;
-}
-
-pre {
-  border-radius: 8px;
+  @apply bg-background-accent text-standalone-accent text-body-xs block px-6 py-2;
+  @apply border-[1.6px] border-base border-b-0 rounded-t-2xl;
+  box-shadow: 6px 0 0 0 var(--color-shadow-base);
 }
 
 .docs article pre {
-  padding: 18px 15px;
-  overflow: auto;
+  @apply bg-background-base border-[1.6px] border-base rounded-2xl shadow-base overflow-clip py-4 px-6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.docs article .shiki-title + pre {
+  @apply rounded-t-none mt-0;
 }
 
 :root {
@@ -219,67 +381,73 @@ pre {
 }
 
 .docs article pre code {
-  display: grid;
+  @apply grid bg-transparent border-none select-auto;
   counter-reset: line;
-  background-color: transparent;
-  border: none;
-  user-select: auto;
   line-height: 1.28;
 }
 
+/* ─── Inline code ─── */
+
 .docs article code {
-  background-color: var(--code-bg-color);
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-size: 0.9em;
-  border-bottom: 2px solid var(--code-border-color);
-  user-select: all;
+  @apply bg-secondary-background-accent px-1 py-0.5 rounded text-[0.9em] select-all box-decoration-clone;
 }
+
+/* ─── Responsive ─── */
 
 @media (max-width: 640px) {
   .docs article code {
-    word-break: break-all;
+    @apply break-all;
   }
+
   .docs article h1 {
-    font-size: 40px;
+    @apply text-h5;
   }
+
   .docs article h2 {
-    font-size: 30px;
+    @apply text-h6;
   }
 }
+
+/* ─── Horizontal Rules ─── */
+
+.docs article hr {
+  border: none;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  height: 1.6px;
+  background-color: var(--color-border-base);
+  box-shadow: 4px 4px 0px 0px var(--color-secondary-border-base);
+}
+
+/* ─── Tables ─── */
 
 .docs article table {
-  @apply my-5;
+  @apply w-full border-collapse;
+  box-shadow: 6px 6px 0px 0px var(--color-shadow-base, #b2e4ff);
 }
 
-.docs article th,
+.docs article th {
+  @apply bg-background-accent border-[1.6px] border-base px-4 py-2.5 text-left;
+  @apply text-label-sm font-bold text-standalone-accent uppercase;
+}
+
 .docs article td {
-  padding: 6px;
-  vertical-align: top;
-}
-
-.docs article th:first-child,
-.docs article td:first-child {
-  padding-left: 0;
-}
-
-.docs article th:last-child,
-.docs article td:last-child {
-  padding-right: 0;
+  @apply bg-background-base border-[1.6px] border-base px-4 py-2.5 align-top;
+  @apply text-body-sm font-semibold text-foreground-base;
 }
 
 .docs article img {
-  border-radius: 5px;
-  overflow: hidden;
+  @apply rounded overflow-hidden;
 }
 
 .docs-long-list {
-  display: flex;
-  flex-wrap: wrap;
+  @apply flex flex-wrap;
+
   & ul {
-    display: contents;
+    @apply contents;
+
     & li {
-      list-style-type: none;
+      @apply list-none;
     }
   }
 }

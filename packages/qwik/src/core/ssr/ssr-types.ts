@@ -111,6 +111,13 @@ export interface SSRContainer extends Container {
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
+  renderJSX(
+    jsx: JSXOutput,
+    options: {
+      currentStyleScoped: string | null;
+      parentComponentFrame: ISsrComponentFrame | null;
+    }
+  ): Promise<void>;
 
   emitPreloaderPre(): void;
 

@@ -175,4 +175,25 @@ test.describe('server$', () => {
 
     expect(notExistingServerFunction.status()).toBe(500);
   });
+
+  test('server$ modules are eagerly registered at startup', async ({ request }) => {
+    // Hit the check endpoint directly — this does NOT visit the route that defines
+    // the server$ function. If server$ modules are eagerly imported via
+    // virtual:qwik-router-server-fns, the global should already be set.
+    const response = await request.get('/qwikrouter-test/server-func/eager-registration/check/');
+    expect(response.status()).toBe(200);
+    const data = await response.json();
+    expect(data.registered).toBe(true);
+  });
+
+  test('modules without server$ are NOT eagerly imported', async ({ request }) => {
+    // A route module that does NOT use server$ should NOT be eagerly imported.
+    // Its side effects should only run when the route is actually visited.
+    const response = await request.get(
+      '/qwikrouter-test/server-func/eager-registration/no-server-fn/check/'
+    );
+    expect(response.status()).toBe(200);
+    const data = await response.json();
+    expect(data.loaded).toBe(false);
+  });
 });

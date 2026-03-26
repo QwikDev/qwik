@@ -1,7 +1,7 @@
 import { qwikDebugToString } from '../../debug';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
-import { trackSignal } from '../../use/use-core';
+import { trackSignal, untrack } from '../../use/use-core';
 import type { SerializerArg } from '../types';
 import {
   EffectProperty,
@@ -39,16 +39,13 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
     }
     throwIfQRLNotResolved(this.$computeQrl$);
 
-    this.$flags$ &= ~SignalFlags.INVALID;
+    const arg = untrack((this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!);
 
-    let arg = (this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!;
-    if (typeof arg === 'function') {
-      arg = arg();
-    }
     const { deserialize, initial } = arg;
     const update = (arg as any).update as ((current: T) => T) | undefined;
     const currentValue =
       this.$untrackedValue$ === NEEDS_COMPUTATION ? initial : this.$untrackedValue$;
+
     const untrackedValue = trackSignal(
       () =>
         this.$didInitialize$
@@ -59,6 +56,9 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
       this.$container$!
     );
     this.$didInitialize$ = true;
+
+    // Needs to invalidate only after all possible Promise throws happened
+    this.$flags$ &= ~SignalFlags.INVALID;
 
     DEBUG && log('SerializerSignal.$compute$', untrackedValue);
     // We allow forcing the update of the signal without changing the value, for example when the deserialized value is the same reference as the old value but its internals have changed. In that case we want to trigger effects that depend on this signal, even though the value is the same.

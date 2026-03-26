@@ -14,6 +14,30 @@ import type {
 import ssrWorkerUrl from './bundler/repl-ssr-worker?worker&url';
 import listenerScript from './bundler/client-events-listener?compiled-string';
 
+const replPreviewStyle = `<style data-repl-preview-font>
+html, body {
+  font-family: sans-serif;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+</style>`;
+
+const injectPreviewStyle = (html: string) => {
+  if (/<\/head>/i.test(html)) {
+    return html.replace(/<\/head>/i, `${replPreviewStyle}</head>`);
+  }
+  if (/<body[^>]*>/i.test(html)) {
+    return html.replace(/<body([^>]*)>/i, `<body$1>${replPreviewStyle}`);
+  }
+  return replPreviewStyle + html;
+};
+
 let channel: BroadcastChannel;
 let registered = false;
 
@@ -238,7 +262,7 @@ export class ReplInstance {
       await ssrPromise.catch(() => {});
       if (this.lastResult.html) {
         // Inject the event listener script
-        return this.lastResult.html + `<script>${listenerScript}</script>`;
+        return injectPreviewStyle(this.lastResult.html) + `<script>${listenerScript}</script>`;
       }
       return errorHtml('No HTML generated', 'REPL');
     }

@@ -4,10 +4,11 @@
 
 ```ts
 
-import * as CSS_2 from 'csstype';
+import type * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
+import { ResolvedManifest } from '@qwik.dev/core/optimizer';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -291,6 +292,7 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
 class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
+    $destroy$(): void;
     // (undocumented)
     $forwardRefs$: Array<number> | null;
     // (undocumented)
@@ -343,6 +345,19 @@ export { DomContainer as _DomContainer }
 
 // @internal (undocumented)
 export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, limit?: number | null) => string;
+
+// Warning: (ae-forgotten-export) The symbol "EachProps" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _eaC: (props: EachProps<any>) => JSXNode<unknown>;
+
+// Warning: (ae-forgotten-export) The symbol "EachComponent" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const Each: EachComponent;
+
+// @internal (undocumented)
+export const _eaT: (input: TaskCtx) => Promise<void>;
 
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
@@ -1761,13 +1776,13 @@ export function _task(this: string, _event: Event, element: Element): void;
 // @public (undocumented)
 export interface TaskCtx {
     // (undocumented)
-    cleanup: (callback: () => void) => void;
+    cleanup: (callback: () => ValueOrPromise<void>) => void;
     // (undocumented)
     track: Tracker;
 }
 
 // @public (undocumented)
-export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
+export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;
 
 // @public (undocumented)
 export interface TaskOptions {

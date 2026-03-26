@@ -11,6 +11,8 @@ updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
+import { Note } from '~/components/note/note';
+
 # Redirects
 
 Sometimes you want to redirect a user from the current page to another page.
@@ -94,7 +96,7 @@ export const onGet: RequestHandler = async ({ url, redirect }) => {
 };
 ```
 
-> Note: This code does not include caching mechanisms. Fetching redirect rules from an external source on every request can lead to performance issues. It's recommended to implement caching to improve efficiency.
+<Note>This code does not include caching mechanisms. Fetching redirect rules from an external source on every request can lead to performance issues. It's recommended to implement caching to improve efficiency.</Note>
 
 The above example demonstrates:
 

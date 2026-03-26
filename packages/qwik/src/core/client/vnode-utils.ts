@@ -199,6 +199,15 @@ import {
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { isSsrNode } from '../reactive-primitives/subscriber';
+import { isCursor } from '../shared/cursor/cursor';
+import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
+import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
+import { _flushJournal } from '../shared/cursor/cursor-flush';
+import { decodeVNodeDataString } from '../shared/utils/character-escaping';
+import { isQrl } from '../shared/qrl/qrl-utils';
+import { parseQRL } from '../shared/serdes/index';
+import { runEventHandlerQRL } from './run-qrl';
+import type { QRL } from '../shared/qrl/qrl.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -521,16 +530,29 @@ export const vnode_ensureElementInflated = (container: Container, vnode: VNode) 
   }
 };
 
+const unwrapEventHandlerQrl = (
+  handler: ReturnType<typeof parseQRL>
+): QRL<(...args: any[]) => void> => {
+  if (handler.$symbol$ === '_run') {
+    const innerHandler = handler.getCaptured()?.[0];
+    if (isQrl(innerHandler)) {
+      return innerHandler as QRL<(...args: any[]) => void>;
+    }
+  }
+  return handler as QRL<(...args: any[]) => void>;
+};
+
 function registerQrlHandlers(attr: Attr, key: string, container: Container, element: QElement) {
   const value = attr.value;
   const scopedKebabName = key.slice(2);
   const qrls = value.split('|');
-  const handlers = qrls.map((qrl) => {
-    const handler = parseQRL(qrl, container);
+  const handlers: EventHandler[] = [];
+  for (let i = 0; i < qrls.length; i++) {
+    const handler = unwrapEventHandlerQrl(parseQRL(qrls[i], container));
     // These QRLs are mostly _run and _task and don't need wrapping with retryOnPromise
-    return handler;
-  });
-  (element._qDispatch ||= {})[scopedKebabName] = handlers;
+    handlers.push(runEventHandlerQRL.bind(null, handler));
+  }
+  (element._qDispatch ||= {})[scopedKebabName] = handlers.length === 1 ? handlers[0] : handlers;
 }
 
 /** Walks the direct children of a parent node and calls the callback for each child. */
@@ -1194,7 +1216,7 @@ const vnode_findInsertBefore = (
   return adjustedInsertBefore;
 };
 
-const vnode_connectSiblings = (
+export const vnode_connectSiblings = (
   parent: ElementVNode | VirtualVNode,
   vNode: VNode,
   vNext: VNode | null
@@ -1419,9 +1441,18 @@ export const vnode_truncate = (
     if (vnode_isElementOrTextVNode(vParent)) {
       addVNodeOperation(journal, createRemoveAllChildrenOperation(vParent.node!));
     } else {
-      vnode_walkDirectChildren(journal, vParent, (vNode) => {
-        addVNodeOperation(journal, createDeleteOperation(vNode.node!));
-      });
+      const domParentVNode = vnode_getDomParentVNode(vParent, false);
+      if (
+        domParentVNode &&
+        domParentVNode.firstChild === vParent &&
+        domParentVNode.lastChild === vParent
+      ) {
+        addVNodeOperation(journal, createRemoveAllChildrenOperation(parent));
+      } else {
+        vnode_walkDirectChildren(journal, vParent, (vNode) => {
+          addVNodeOperation(journal, createDeleteOperation(vNode.node!));
+        });
+      }
     }
   }
   const vPrevious = vDelete.previousSibling;

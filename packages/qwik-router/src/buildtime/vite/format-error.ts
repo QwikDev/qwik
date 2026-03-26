@@ -1,7 +1,4 @@
-import {
-  findLocation,
-  generateCodeFrame,
-} from '../../../../qwik/src/optimizer/src/plugins/vite-utils';
+import { findLocation, generateCodeFrame } from '../../../../qwik-vite/src/plugins/vite-utils';
 import { normalizePath } from '../../utils/fs';
 import fs from 'node:fs';
 

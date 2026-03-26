@@ -1,0 +1,146 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 516
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useTask$ } from '@qwik.dev/core';
+import { CONST } from 'const';
+export const Works = component$(({
+	count,
+	some = 1+2,
+	hello = CONST,
+	stuff: hey,
+	stuffDefault: hey2 = 123,
+	...rest}) => {
+	console.log(hey, some);
+	useTask$(({track}) => {
+		track(() => count);
+		console.log(count, rest, hey, some, hey2);
+	});
+	return (
+		<div some={some} params={{ some }} class={count} {...rest} override>{count}</div>
+	);
+});
+
+export const NoWorks2 = component$(({count, stuff: {hey}}) => {
+	console.log(hey);
+	useTask$(({track}) => {
+		track(() => count);
+		console.log(count);
+	});
+	return (
+		<div class={count}>{count}</div>
+	);
+});
+
+export const NoWorks3 = component$(({count, stuff = hola()}) => {
+	console.log(stuff);
+	useTask$(({track}) => {
+		track(() => count);
+		console.log(count);
+	});
+	return (
+		<div class={count}>{count}</div>
+	);
+});
+
+============================= test.js ==
+
+import { _restProps } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _getConstProps } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+const _hf0 = (p0)=>p0.some ?? 3;
+const _hf0_str = "p0.some??1+2";
+const _hf1 = (p0)=>({
+        some: p0.some ?? 3
+    });
+const _hf1_str = "{some:p0.some??1+2}";
+//
+const q_NoWorks2_component_JPD9t2HyEKg = /*#__PURE__*/ _noopQrl("NoWorks2_component_JPD9t2HyEKg");
+const q_NoWorks2_component_useTask_lXiqwbxxjq0 = /*#__PURE__*/ _noopQrl("NoWorks2_component_useTask_lXiqwbxxjq0");
+const q_NoWorks3_component_fc13h5yYn14 = /*#__PURE__*/ _noopQrl("NoWorks3_component_fc13h5yYn14");
+const q_NoWorks3_component_useTask_3cQGU0s1VwU = /*#__PURE__*/ _noopQrl("NoWorks3_component_useTask_3cQGU0s1VwU");
+const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0");
+const q_Works_component_useTask_pjo5U5Ikll0 = /*#__PURE__*/ _noopQrl("Works_component_useTask_pjo5U5Ikll0");
+//
+q_Works_component_useTask_pjo5U5Ikll0.s(({ track })=>{
+    const _rawProps = _captures[0], rest = _captures[1];
+    track(()=>_rawProps.count);
+    console.log(_rawProps.count, rest, _rawProps.stuff, _rawProps.some ?? 3, _rawProps.stuffDefault ?? 123);
+});
+q_Works_component_t45qL4vNGv0.s((_rawProps)=>{
+    const rest = _restProps(_rawProps, [
+        "count",
+        "some",
+        "hello",
+        "stuff",
+        "stuffDefault"
+    ]);
+    console.log(_rawProps.stuff, _rawProps.some ?? 3);
+    useTaskQrl(q_Works_component_useTask_pjo5U5Ikll0.w([
+        _rawProps,
+        rest
+    ]));
+    return /*#__PURE__*/ _jsxSplit("div", {
+        some: _fnSignal(_hf0, [
+            _rawProps
+        ], _hf0_str),
+        params: _fnSignal(_hf1, [
+            _rawProps
+        ], _hf1_str),
+        class: _wrapProp(_rawProps, "count"),
+        ..._getVarProps(rest)
+    }, {
+        ..._getConstProps(rest),
+        override: true
+    }, _wrapProp(_rawProps, "count"), 0, "u6_0");
+});
+q_NoWorks2_component_useTask_lXiqwbxxjq0.s(({ track })=>{
+    const count = _captures[0];
+    track(()=>count);
+    console.log(count);
+});
+q_NoWorks2_component_JPD9t2HyEKg.s(({ count, stuff: { hey } })=>{
+    console.log(hey);
+    useTaskQrl(q_NoWorks2_component_useTask_lXiqwbxxjq0.w([
+        count
+    ]));
+    return /*#__PURE__*/ _jsxSorted("div", {
+        class: count
+    }, null, count, 1, "u6_1");
+});
+q_NoWorks3_component_useTask_3cQGU0s1VwU.s(({ track })=>{
+    const count = _captures[0];
+    track(()=>count);
+    console.log(count);
+});
+q_NoWorks3_component_fc13h5yYn14.s(({ count, stuff = hola() })=>{
+    console.log(stuff);
+    useTaskQrl(q_NoWorks3_component_useTask_3cQGU0s1VwU.w([
+        count
+    ]));
+    return /*#__PURE__*/ _jsxSorted("div", {
+        class: count
+    }, null, count, 1, "u6_2");
+});
+export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
+export const NoWorks2 = /*#__PURE__*/ componentQrl(q_NoWorks2_component_JPD9t2HyEKg);
+export const NoWorks3 = /*#__PURE__*/ componentQrl(q_NoWorks3_component_fc13h5yYn14);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;sBAKC,QAAO;;mBAWmB,CAAA;QAAE,IAAI,KAXhC,QAAO;IAW0B,CAAA;;;;;;;;;;wCALxB,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cARP;IASC,QAAQ,GAAG,WATZ,OASoB,gBANpB,iBAFA,QAAO,aAGP,gBAAqB;;gCALU;;;;;;;;IAO/B,QAAQ,GAAG,WAHX,iBAFA,QAAO;IAMP;;;;IAIA,qBACC,UAAC;QAAI,IAAI;;;QAAQ,MAAM;;;QAAY,KAAK;wBAAa;;0BAAA;QAAM,QAAQ;;AAErE;2CAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,IAAM;IACZ,QAAQ,GAAG,CAAC;;mCAJqB,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ;;;IAIA,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB;2CAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,IAAM;IACZ,QAAQ,GAAG,CAAC;;mCAJqB,CAAC,EAAC,KAAK,EAAE,QAAQ,MAAM,EAAC;IAC1D,QAAQ,GAAG,CAAC;IACZ;;;IAIA,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB;AArCA,OAAO,MAAM,sBAAQ,4CAelB;AAEH,OAAO,MAAM,yBAAW,+CASrB;AAEH,OAAO,MAAM,yBAAW,+CASrB\"}")
+== DIAGNOSTICS ==
+
+[]

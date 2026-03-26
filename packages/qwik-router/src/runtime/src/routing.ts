@@ -1,5 +1,4 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
-import { MODULE_CACHE } from './constants';
 import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
@@ -14,6 +13,8 @@ import {
 } from './types';
 
 /** LoadRoute() runs in both client and server. */
+const MODULE_CACHE = /*#__PURE__*/ new WeakMap<any, any>();
+
 export const loadRoute = async (
   routes: RouteData | undefined,
   cacheModules: boolean | undefined,
@@ -124,7 +125,22 @@ function walkTrieKeys(
     layouts.push(node._L);
   }
   for (const key of keys) {
-    const next = node[key] as RouteData | undefined;
+    let next = node[key] as RouteData | undefined;
+
+    // If not a direct child, search inside _M group nodes
+    if (!next && node._M) {
+      for (const group of node._M) {
+        next = group[key] as RouteData | undefined;
+        if (next) {
+          // Collect the group's layout
+          if (group._L) {
+            layouts.push(group._L);
+          }
+          break;
+        }
+      }
+    }
+
     if (!next) {
       return undefined;
     }
@@ -155,8 +171,28 @@ function resolveLoaders(
     if (!target) {
       return undefined;
     }
+    let targetNode = target.node;
+    const targetLayouts = target.layouts;
+
+    // If the target node doesn't have _I directly, check group children
+    // (e.g., root index inside (common) group, or routes inside pathless groups)
+    if (!targetNode._I && !targetNode._G) {
+      const indexResult = findIndexNode(targetNode);
+      if (indexResult) {
+        for (const g of indexResult.groups) {
+          if (g._L) {
+            targetLayouts.push(g._L);
+          }
+        }
+        targetNode = indexResult.target;
+        if (targetNode._L) {
+          targetLayouts.push(targetNode._L);
+        }
+      }
+    }
+
     // Recursively resolve the target (it could also have _G, though unlikely)
-    return resolveLoaders(root, target.node, target.layouts);
+    return resolveLoaders(root, targetNode, targetLayouts);
   }
 
   const index = node._I;

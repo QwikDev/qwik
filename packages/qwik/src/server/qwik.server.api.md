@@ -5,7 +5,7 @@
 ```ts
 
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
-import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 import type { SnapshotResult } from '@qwik.dev/core';
 import type { StreamWriter } from '@qwik.dev/core/internal';
@@ -174,10 +174,8 @@ export interface RenderToStringResult extends RenderResult {
     };
 }
 
-// Warning: (ae-forgotten-export) The symbol "ResolvedManifest_2" needs to be exported by the entry point index.d.ts
-//
 // @public
-export function resolveManifest(manifest?: Partial<QwikManifest | ResolvedManifest_2> | undefined): ResolvedManifest_2 | undefined;
+export function resolveManifest(manifest?: Partial<QwikManifest | ResolvedManifest> | undefined): ResolvedManifest | undefined;
 
 // @public (undocumented)
 export interface SerializeDocumentOptions {

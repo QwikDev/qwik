@@ -1443,6 +1443,14 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
+<h2 id="each">Each</h2>
+
+```typescript
+Each: EachComponent;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/each.ts)
+
 <h2 id="qwikjsx-element">Element</h2>
 
 ```typescript
@@ -8890,7 +8898,7 @@ Description
 
 </td><td>
 
-(callback: () =&gt; void) =&gt; void
+(callback: () =&gt; [ValueOrPromise](#valueorpromise)&lt;void&gt;) =&gt; void
 
 </td><td>
 
@@ -8915,7 +8923,9 @@ Description
 <h2 id="taskfn">TaskFn</h2>
 
 ```typescript
-export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
+export type TaskFn = (
+  ctx: TaskCtx,
+) => ValueOrPromise<void | (() => ValueOrPromise<void>)>;
 ```
 
 **References:** [TaskCtx](#taskctx), [ValueOrPromise](#valueorpromise)

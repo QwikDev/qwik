@@ -4,6 +4,8 @@ contributors:
   - GrandSchtroumpf
 ---
 
+import { Note } from '~/components/note/note';
+
 # View Transition API
 
 By default Qwik will start a view transition when SPA navigation. We can run animation either with CSS or WAAPI.
@@ -129,7 +131,7 @@ export default component$(() => {
 }
 ```
 
-> **Note**: `ViewTransition` interface is available with Typescript >5.6.
+<Note>`ViewTransition` interface is available with Typescript >5.6.</Note>
 
 ## WAAPI
 
@@ -195,7 +197,7 @@ export default component$(() => {
 
 When listening on the `qviewtransition` we know that
 
-> **Note**: For it to work correctly, we need to **remove the default view transition** animation else it happens on top of the `.animate()`. I'm using `view-transition-class` which is only working with Chrome right now.
+<Note>For it to work correctly, we need to **remove the default view transition** animation else it happens on top of the `.animate()`. I'm using `view-transition-class` which is only working with Chrome right now.</Note>
 
 ## Root transition
 

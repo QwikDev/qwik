@@ -2,6 +2,7 @@ import { assert, expect, vi, beforeEach, describe, it } from 'vitest';
 import {
   executeTasks,
   executeNodeDiff,
+  executeReconcile,
   executeComponentChore,
   executeNodeProps,
   executeCleanup,
@@ -23,6 +24,7 @@ import { SignalFlags } from '../../reactive-primitives/types';
 import type { ElementVNode } from '../vnode/element-vnode';
 import { runTask } from '../../use/use-task';
 import { vnode_diff } from '../../client/vnode-diff';
+import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
 import { executeComponent } from '../component-execution';
 import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import { invoke, newInvokeContext } from '../../use/use-core';
@@ -30,6 +32,8 @@ import { cleanupDestroyable } from '../../use/utils/destroyable';
 import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
+import type { QRLInternal } from '../qrl/qrl-class';
+import type { JSXOutput } from '../jsx/types/jsx-node';
 
 vi.mock('../../use/use-task', async () => {
   const actual = await vi.importActual<typeof import('../../use/use-task')>('../../use/use-task');
@@ -41,6 +45,10 @@ vi.mock('../../use/use-task', async () => {
 
 vi.mock('../../client/vnode-diff', () => ({
   vnode_diff: vi.fn(),
+}));
+
+vi.mock('../../client/reconcile-keyed-loop', () => ({
+  reconcileKeyedLoopToParent: vi.fn(),
 }));
 
 vi.mock('../component-execution', () => ({
@@ -82,6 +90,7 @@ vi.mock('../../use/use-core', () => ({
   newInvokeContext: vi.fn(() => ({
     $container$: null,
   })),
+  untrack: vi.fn((value: any) => value?.untrackedValue ?? value?.value ?? value),
 }));
 
 vi.mock('../../use/utils/destroyable', () => ({
@@ -154,6 +163,20 @@ function createMockTask(flags: TaskFlags, el: HostElement): Task {
   task.$state$ = undefined;
   task.$destroy$ = null;
   return task;
+}
+
+function createResolvedQrl<T>(value: T): QRLInternal<T> {
+  return {
+    resolved: value,
+    resolve: vi.fn().mockResolvedValue(value),
+  } as any;
+}
+
+function createUnresolvedQrl<T>(value: T): QRLInternal<T> {
+  return {
+    resolved: undefined,
+    resolve: vi.fn().mockResolvedValue(value),
+  } as any;
 }
 
 describe('executeTasks', () => {
@@ -324,6 +347,127 @@ describe('executeNodeDiff', () => {
 
     expect(result).toBeInstanceOf(Promise);
     await result;
+  });
+});
+
+describe('executeReconcile', () => {
+  let container: Container;
+  let journal: VNodeJournal;
+  let cursor: Cursor;
+  let vNode: VNode;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    container = createMockContainer();
+    journal = [] as VNodeJournal;
+    cursor = {} as Cursor;
+    vNode = createMockVNode(VNodeFlags.Element, ChoreBits.RECONCILE);
+  });
+
+  it('should clear RECONCILE dirty bit', () => {
+    executeReconcile(vNode, container, journal, cursor);
+    assert.equal(vNode.dirty & ChoreBits.RECONCILE, 0);
+  });
+
+  it('should return early if no props', () => {
+    executeReconcile(vNode, container, journal, cursor);
+    expect(reconcileKeyedLoopToParent).not.toHaveBeenCalled();
+  });
+
+  it('should reconcile synchronously when key$ and item$ are already resolved', () => {
+    const items = [{ id: '1' }];
+    const keyOf = vi.fn((item: { id: string }) => item.id);
+    const itemFn = vi.fn((item: { id: string }) => ({
+      type: 'tr',
+      props: {},
+      children: [item.id],
+    }));
+
+    container.setHostProp(vNode, ELEMENT_PROPS, {
+      items,
+      key$: createResolvedQrl(keyOf),
+      item$: createResolvedQrl(itemFn),
+    } as Props);
+
+    vi.mocked(reconcileKeyedLoopToParent).mockReturnValue(undefined as any);
+
+    const result = executeReconcile(vNode, container, journal, cursor);
+
+    expect(result).toBe(undefined);
+    expect(reconcileKeyedLoopToParent).toHaveBeenCalledWith(
+      container,
+      journal,
+      vNode,
+      cursor,
+      items,
+      keyOf,
+      itemFn
+    );
+  });
+
+  it('should return a promise when key$ or item$ needs resolution', async () => {
+    const items = [{ id: '1' }];
+    const keyOf = vi.fn((item: { id: string }) => item.id);
+    const itemFn = vi.fn((item: { id: string }) => ({
+      type: 'tr',
+      props: {},
+      children: [item.id],
+    }));
+    const keyQrl = createUnresolvedQrl(keyOf);
+    const itemQrl = createUnresolvedQrl(itemFn);
+
+    container.setHostProp(vNode, ELEMENT_PROPS, {
+      items,
+      key$: keyQrl,
+      item$: itemQrl,
+    } as Props);
+
+    vi.mocked(reconcileKeyedLoopToParent).mockReturnValue(undefined as any);
+
+    const result = executeReconcile(vNode, container, journal, cursor);
+
+    expect(result).toBeInstanceOf(Promise);
+    await result;
+
+    expect(keyQrl.resolve).toHaveBeenCalledTimes(1);
+    expect(itemQrl.resolve).toHaveBeenCalledTimes(1);
+    expect(reconcileKeyedLoopToParent).toHaveBeenCalledWith(
+      container,
+      journal,
+      vNode,
+      cursor,
+      items,
+      keyOf,
+      itemFn
+    );
+  });
+
+  it('should unwrap signal-backed items before reconciling', () => {
+    const items = [{ id: '1' }];
+    const keyOf = vi.fn((item: { id: string }) => item.id);
+    const itemFn = vi.fn(
+      (item: { id: string }): JSXOutput => ({ type: 'tr', props: {}, children: [item.id] }) as any
+    );
+
+    container.setHostProp(vNode, ELEMENT_PROPS, {
+      items: { value: items },
+      key$: createResolvedQrl(keyOf),
+      item$: createResolvedQrl(itemFn),
+    } as Props);
+
+    vi.mocked(reconcileKeyedLoopToParent).mockReturnValue(undefined as any);
+
+    executeReconcile(vNode, container, journal, cursor);
+
+    expect(reconcileKeyedLoopToParent).toHaveBeenCalledWith(
+      container,
+      journal,
+      vNode,
+      cursor,
+      items,
+      keyOf,
+      itemFn
+    );
   });
 });
 

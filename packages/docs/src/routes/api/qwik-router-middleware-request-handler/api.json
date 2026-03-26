@@ -512,7 +512,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;\n```\n**References:** [Cookie](#cookie)",
+      "content": "```typescript\nexport type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEvent) => WritableStream<Uint8Array>;\n```\n**References:** [Cookie](#cookie)<!-- -->, [RequestEvent](#requestevent)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts",
       "mdFile": "router.serverresponsehandler.md"
     },

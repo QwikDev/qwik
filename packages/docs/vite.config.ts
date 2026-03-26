@@ -3,14 +3,15 @@ import { qwikVite } from '@qwik.dev/core/optimizer';
 import { partytownVite } from '@qwik.dev/partytown/utils';
 import { qwikReact } from '@qwik.dev/react/vite';
 import { qwikRouter } from '@qwik.dev/router/vite';
+import { qds } from '@qds.dev/tools/vite';
 import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
 import shikiRehype from '@shikijs/rehype';
-import darkPlus from '@shikijs/themes/dark-plus';
+import githubLight from '@shikijs/themes/github-light';
 import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
 import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
-import { qwikDevtools } from '@qwik.dev/devtools';
+// import { qwikDevtools } from '@qwik.dev/devtools';
 import { defineConfig, loadEnv, type Plugin, type Rollup, type UserConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
@@ -133,19 +134,58 @@ function overrideManualChunksForRepl(): Plugin {
   };
 }
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
   const routesDir = resolve('src', 'routes');
+  const isProd = mode === 'production';
+  const clientConditions = [
+    'browser',
+    'worker',
+    isProd ? 'production' : 'development',
+    'import',
+    'default',
+  ];
+  const ssrConditions = ['import', 'worker', isProd ? 'production' : 'development', 'default'];
+
   return {
-    optimizeDeps: {
-      entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
-      exclude: [
-        '@modular-forms/qwik',
-        '@qwik-ui/headless',
-        'qwik-image',
-        // optimizing breaks the wasm import
-        '@rolldown/browser',
-        '@qwik.dev/devtools',
-      ],
+    environments: {
+      client: {
+        optimizeDeps: {
+          entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
+          exclude: [
+            '@modular-forms/qwik',
+            '@qwik-ui/headless',
+            'qwik-image',
+            // optimizing breaks the wasm import
+            '@rolldown/browser',
+            '@qwik.dev/devtools',
+          ],
+        },
+        resolve: {
+          conditions: clientConditions,
+        },
+      },
+      ssr: {
+        resolve: {
+          noExternal: [
+            '@mui/material',
+            '@mui/system',
+            '@emotion/react',
+            '@algolia/autocomplete-core/dist/esm/resolve',
+            '@algolia/autocomplete-core',
+            '@algolia/autocomplete-shared',
+            'algoliasearch/lite',
+            'algoliasearch',
+            '@algolia/autocomplete-core/dist/esm/reshape',
+            'algoliasearch/dist/algoliasearch-lite.esm.browser',
+            'qwik-image',
+            '@modular-forms/qwik',
+            '@qwik-ui/headless',
+            '@qds.dev/ui',
+            '@qds.dev/tools',
+          ],
+          conditions: ssrConditions,
+        },
+      },
     },
     preview: {
       headers: {
@@ -176,31 +216,10 @@ export default defineConfig(() => {
           replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
         },
       ],
-      // Make sure to get the browser version of @rolldown/browser
-      conditions: ['browser', 'worker', 'import', 'default'],
-    },
-    ssr: {
-      noExternal: [
-        '@mui/material',
-        '@mui/system',
-        '@emotion/react',
-        '@algolia/autocomplete-core/dist/esm/resolve',
-        '@algolia/autocomplete-core',
-        '@algolia/autocomplete-shared',
-        'algoliasearch/lite',
-        'algoliasearch',
-        '@algolia/autocomplete-core/dist/esm/reshape',
-        'algoliasearch/dist/algoliasearch-lite.esm.browser',
-        'qwik-image',
-        '@modular-forms/qwik',
-        '@qwik-ui/headless',
-      ],
-      resolve: {
-        conditions: ['import', 'worker', 'default'],
-      },
     },
 
     plugins: [
+      qds({ icons: true }),
       // some imported react code has sourcemap issues
       muteWarningsPlugin([
         ['SOURCEMAP_ERROR', "Can't resolve original location of error"],
@@ -219,7 +238,7 @@ export default defineConfig(() => {
             [
               shikiRehype,
               {
-                theme: darkPlus,
+                theme: githubLight,
                 transformers: [
                   transformerMetaHighlight(),
                   transformerMetaWordHighlight(),
@@ -247,7 +266,7 @@ export default defineConfig(() => {
       qwikInsights({ publicApiKey: insightsApiKey }),
       tailwindcss(),
       overrideManualChunksForRepl(),
-      qwikDevtools(),
+      // qwikDevtools(),
     ],
     build: {
       sourcemap: true,

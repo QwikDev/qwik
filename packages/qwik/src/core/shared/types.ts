@@ -61,7 +61,7 @@ export interface Container {
 export type HostElement = VNode;
 
 export interface QElement extends Element {
-  _qDispatch?: Record<string, EventHandler[]>;
+  _qDispatch?: Record<string, EventHandler | EventHandler[]>;
   vNode?: VNode;
 }
 

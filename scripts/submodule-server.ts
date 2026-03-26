@@ -91,30 +91,34 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
 
   await Promise.all([esm]);
 
-  if (!config.dev && nameCache) {
-    // Apply property-only mangling with the same nameCache used for core so that $...$
-    // property accesses in server.prod.mjs resolve to the same mangled names as in core.prod.mjs.
-    // The plain server.mjs is left unmangled so it stays compatible with the unmangled core.mjs
-    // used in development (matching the development/production split on @qwik.dev/core/internal).
+  if (!config.dev) {
     const serverMjs = join(config.distQwikPkgDir, 'server.mjs');
     const code = await readFile(serverMjs, 'utf-8');
-    const result = await minify(code, {
-      nameCache,
-      compress: false,
-      mangle: {
-        properties: {
-          regex: MANGLE_PROPS_REGEX,
+    const noMangle = config.mangle === false;
+    if (nameCache && !noMangle) {
+      // Apply property-only mangling with the same nameCache used for core so that $...$
+      // property accesses in server.prod.mjs resolve to the same mangled names as in core.prod.mjs.
+      const result = await minify(code, {
+        nameCache,
+        compress: false,
+        mangle: {
+          properties: {
+            regex: MANGLE_PROPS_REGEX,
+          },
         },
-      },
-      format: {
-        beautify: true,
-        braces: true,
-        comments: 'all',
-        preserve_annotations: true,
-        ecma: 2020,
-      },
-    });
-    await writeFile(join(config.distQwikPkgDir, 'server.prod.mjs'), result.code!);
+        format: {
+          beautify: true,
+          braces: true,
+          comments: 'all',
+          preserve_annotations: true,
+          ecma: 2020,
+        },
+      });
+      await writeFile(join(config.distQwikPkgDir, 'server.prod.mjs'), result.code!);
+    } else {
+      // noMangle or no nameCache: write server.prod.mjs without mangling (copy of server.mjs)
+      await writeFile(join(config.distQwikPkgDir, 'server.prod.mjs'), code);
+    }
   } else if (config.dev) {
     // In dev builds, server.prod.mjs is a proxy to the unmangled server.mjs
     await writeFile(

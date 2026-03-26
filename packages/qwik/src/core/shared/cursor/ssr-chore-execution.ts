@@ -3,7 +3,7 @@ import { ssrDiff } from '../../ssr/ssr-diff';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { runTask } from '../../use/use-task';
 import type { Container } from '../types';
-import { ELEMENT_SEQ, OnRenderProp, QScopedStyle } from '../utils/markers';
+import { ELEMENT_PROPS, ELEMENT_SEQ, OnRenderProp, QScopedStyle } from '../utils/markers';
 import { isPromise } from '../utils/promises';
 import { serializeAttribute } from '../utils/styles';
 import type { ValueOrPromise } from '../utils/types';
@@ -20,6 +20,13 @@ import {
 } from './chore-helpers';
 import type { Cursor } from './cursor';
 import type { CursorData } from './cursor-props';
+import { isSignal } from '../../reactive-primitives/signal.public';
+import { _getProps } from '../jsx/props-proxy';
+import type { EachProps } from '../../control-flow/each';
+import type { QRLInternal } from '../qrl/qrl-class';
+import type { JSXNode } from '../jsx/types/jsx-node';
+import { untrack } from '../../use/use-core';
+import type { Props } from '../jsx/jsx-runtime';
 
 // ============================================================================
 // Cursor-walker SSR chore implementations
@@ -227,4 +234,42 @@ export function executeSsrUnclaimedProjections(
     return (result as Promise<void>).then(cleanup);
   }
   cleanup();
+}
+
+export async function executeSsrReconcile(
+  vNode: VNode,
+  container: Container,
+  _cursorData: CursorData,
+  cursor: Cursor
+): Promise<void> {
+  vNode.dirty &= ~ChoreBits.RECONCILE;
+  const ssr = container as SSRContainer;
+  const props = container.getHostProp<Props | null>(vNode as any, ELEMENT_PROPS) || null;
+  if (!props) {
+    return;
+  }
+  let items = _getProps(props, 'items' satisfies keyof EachProps<any>) as any[];
+  if (isSignal(items)) {
+    items = untrack(items) as any[];
+  }
+  const keyOf = (await (
+    _getProps(props, 'key$' satisfies keyof EachProps<any>) as QRLInternal<
+      (item: any, index: number) => string
+    >
+  ).resolve()) as (item: any, index: number) => string;
+  const itemFn = (await (
+    _getProps(props, 'item$' satisfies keyof EachProps<any>) as QRLInternal<
+      (item: any, index: number) => JSXNode
+    >
+  ).resolve()) as (item: any, index: number) => JSXNode;
+  const children: JSXNode[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const jsx = itemFn(item, i)!;
+    const key = keyOf(item, i);
+    jsx.key = key;
+    children.push(jsx);
+  }
+  const styleScopedId = getScopedStylePrefix(vnode_getProp(vNode, QScopedStyle, null));
+  return ssrDiff(ssr, children as any, vNode, cursor, styleScopedId, null);
 }

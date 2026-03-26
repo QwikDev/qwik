@@ -1,15 +1,18 @@
 import { VNodeFlags, type ClientContainer } from '../../client/types';
 import { vnode_diff } from '../../client/vnode-diff';
 import { type VNodeJournal } from '../../client/vnode-utils';
+import type { NodeProp } from '../../reactive-primitives/subscription-data';
+import type { Signal } from '../../reactive-primitives/signal.public';
+import type { JSXOutput } from '../jsx/types/jsx-node';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SignalFlags } from '../../reactive-primitives/types';
 import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import type { ISsrNode } from '../../ssr/ssr-types';
-import { invoke, newInvokeContext } from '../../use/use-core';
+import { invoke, newInvokeContext, untrack } from '../../use/use-core';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import type { Container, HostElement } from '../types';
-import { ELEMENT_SEQ } from '../utils/markers';
+import { ELEMENT_PROPS, ELEMENT_SEQ } from '../utils/markers';
 import { maybeThen, retryOnPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import type { ElementVNode } from '../vnode/element-vnode';
@@ -30,7 +33,17 @@ import {
   setNodePropData,
 } from './chore-helpers';
 import type { Cursor } from './cursor';
-import { HOST_SIGNAL, type CursorData } from './cursor-props';
+import {
+  HOST_SIGNAL,
+  NODE_DIFF_DATA_KEY,
+  NODE_PROPS_DATA_KEY,
+  type CursorData,
+} from './cursor-props';
+import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
+import { _getProps } from '../jsx/props-proxy';
+import type { Props } from '../jsx/jsx-runtime';
+import type { EachProps } from '../../control-flow/each';
+import type { QRLInternal } from '../qrl/qrl-class';
 
 /**
  * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ
@@ -82,6 +95,8 @@ export function executeNodeDiff(
   if (jsx == null) {
     return;
   }
+  // cleanup payload
+  setNodeDiffPayload(vNode, null);
   if (isSignal(jsx)) {
     jsx = jsx.value as any;
   }
@@ -245,5 +260,58 @@ export function executeCompute(
         return scheduleEffects(container, target, effects);
       }
     }
+  );
+}
+
+/**
+ * Executes a reconcile chore for a vNode if the RECONCILE dirty bit is set. This handles the
+ * reconciliation of a keyed loop.
+ *
+ * @param container - The container
+ * @param journal - The journal
+ * @param vNode - The vNode
+ * @returns Promise if reconcile is async, void otherwise
+ */
+export function executeReconcile(
+  vNode: VNode,
+  container: Container,
+  journal: VNodeJournal,
+  cursor: Cursor
+): ValueOrPromise<void> {
+  vNode.dirty &= ~ChoreBits.RECONCILE;
+  const host = vNode as ElementVNode;
+  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+  if (!props) {
+    return;
+  }
+  let items = _getProps(props, 'items' satisfies keyof EachProps<any>) as any[];
+  if (isSignal(items)) {
+    items = untrack(items) as any[];
+  }
+  const keyQrl = _getProps(props, 'key$' satisfies keyof EachProps<any>) as QRLInternal<
+    (item: any, index: number) => string
+  >;
+  const itemQrl = _getProps(props, 'item$' satisfies keyof EachProps<any>) as QRLInternal<
+    (item: any, index: number) => JSXOutput
+  >;
+  const keyOf = keyQrl.resolved;
+  const itemFn = itemQrl.resolved;
+
+  if (keyOf !== undefined && itemFn !== undefined) {
+    return reconcileKeyedLoopToParent(container, journal, host, cursor, items, keyOf, itemFn);
+  }
+
+  return maybeThen(keyQrl.resolve(), (resolvedKeyOf) =>
+    maybeThen(itemQrl.resolve(), (resolvedItemFn) =>
+      reconcileKeyedLoopToParent(
+        container,
+        journal,
+        host,
+        cursor,
+        items,
+        resolvedKeyOf,
+        resolvedItemFn
+      )
+    )
   );
 }

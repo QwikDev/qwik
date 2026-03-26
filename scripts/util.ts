@@ -5,6 +5,7 @@ import {
   access as fsAccess,
   copyFile as fsCopyFile,
   mkdir as fsMkdir,
+  readFileSync,
   readdir as fsReaddir,
   readFile as fsReadFile,
   stat as fsStat,
@@ -31,6 +32,8 @@ const booleanOptions = [
   'eslint',
   'esmNode',
   'insights',
+  'mangle',
+  'optimizer',
   'platformBinding',
   'platformBindingWasmCopy',
   'prepareRelease',
@@ -59,10 +62,16 @@ export type BuildConfig = { [key in (typeof stringOptions)[number]]: string } & 
   distQwikRouterPkgDir: string;
   distQwikPkgDir: string;
   dtsDir: string;
+  optimizerPkgDir: string;
+  optimizerVersion: string;
+  optimizerRustPkgDir: string;
   packagesDir: string;
+  qwikViteDir: string;
+  qwikVitePkgDir: string;
   rootDir: string;
   scriptsDir: string;
   srcNapiDir: string;
+  srcWasmDir: string;
   optimizerDir: string;
   srcQwikRouterDir: string;
   srcQwikDir: string;
@@ -82,8 +91,14 @@ export function loadConfig(args: string[] = []): BuildConfig {
   const rootDir = join(__dirname, '..');
   const packagesDir = join(rootDir, 'packages');
   const srcQwikDir = join(packagesDir, 'qwik', 'src');
-  const optimizerDir = join(packagesDir, 'qwik', 'src', 'optimizer', 'src');
+  const optimizerPkgDir = join(packagesDir, 'optimizer');
+  const optimizerRustPkgDir = join(packagesDir, 'optimizer');
+  const qwikVitePkgDir = join(packagesDir, 'qwik-vite');
+  const optimizerDir = join(optimizerPkgDir, 'src');
+  const qwikViteDir = join(qwikVitePkgDir, 'src');
   const distQwikPkgDir = join(packagesDir, 'qwik', 'dist');
+  const optimizerVersion = JSON.parse(readFileSync(join(optimizerPkgDir, 'package.json'), 'utf-8'))
+    .version as string;
   const tmpDir = join(rootDir, 'dist-dev');
   const knownOptions = [...stringOptions, ...booleanOptions] as const;
   const kebabOptions = knownOptions.map(kebab);
@@ -124,15 +139,21 @@ export function loadConfig(args: string[] = []): BuildConfig {
     rootDir,
     packagesDir,
     optimizerDir,
+    optimizerPkgDir,
+    optimizerVersion,
+    optimizerRustPkgDir,
+    qwikViteDir,
+    qwikVitePkgDir,
     srcQwikDir,
     tmpDir,
     srcQwikRouterDir: join(packagesDir, 'qwik-router', 'src'),
-    srcNapiDir: join(srcQwikDir, 'napi'),
+    srcNapiDir: join(optimizerRustPkgDir, 'napi'),
+    srcWasmDir: join(optimizerRustPkgDir, 'wasm'),
     scriptsDir: join(rootDir, 'scripts'),
     startersDir: join(rootDir, 'starters'),
     distQwikPkgDir,
     distQwikRouterPkgDir: join(packagesDir, 'qwik-router', 'lib'),
-    distBindingsDir: join(packagesDir, 'qwik', 'bindings'),
+    distBindingsDir: join(optimizerPkgDir, 'bindings'),
     tscDir: join(tmpDir, 'tsc-out'),
     dtsDir: join(tmpDir, 'dts-out'),
     esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,
@@ -204,22 +225,6 @@ export const getBanner = (moduleName: string, version: string) => {
 export const target = 'safari15.4';
 
 export const nodeTarget = 'es2024';
-
-/** Helper just to know which Node.js modules that should stay external. */
-export const nodeBuiltIns = [
-  'assert',
-  'async_hooks',
-  'child_process',
-  'crypto',
-  'fs',
-  'module',
-  'net',
-  'os',
-  'path',
-  'tty',
-  'url',
-  'util',
-];
 
 /** Utility just to ignore certain rollup warns we already know aren't issues. */
 export function rollupOnWarn(warning: any, warn: any) {

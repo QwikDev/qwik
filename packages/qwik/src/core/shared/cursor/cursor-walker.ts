@@ -217,6 +217,8 @@ export function walkCursor(cursor: Cursor, options: WalkOptions, startTime: numb
         result = choreRuntime.tasks(currentVNode, container, cursorData);
       } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
         result = choreRuntime.component(currentVNode, container, cursorData, cursor, journal);
+      } else if (currentVNode.dirty & ChoreBits.RECONCILE) {
+        result = choreRuntime.reconcile(currentVNode, container, cursorData, cursor, journal);
       } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
         result = choreRuntime.nodeDiff(currentVNode, container, cursorData, cursor, journal);
       } else if (currentVNode.dirty & ChoreBits.NODE_PROPS) {

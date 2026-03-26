@@ -7,11 +7,19 @@ export const enum ChoreBits {
   COMPUTE = 1 << 4,
   CHILDREN = 1 << 5,
   CLEANUP = 1 << 6,
+  RECONCILE = 1 << 7,
   /**
    * Cursor has a pending promise on this node. NOT in DIRTY_MASK — the walker should not dispatch
    * it as a chore. The emitter's isReady() checks `(dirty & ~CHILDREN) === 0`, which catches
    * PROMISE and blocks emission until the promise resolves.
    */
-  PROMISE = 1 << 7,
-  DIRTY_MASK = TASKS | NODE_DIFF | COMPONENT | NODE_PROPS | COMPUTE | CHILDREN | CLEANUP,
+  PROMISE = 1 << 8,
+  DIRTY_MASK = TASKS |
+    NODE_DIFF |
+    COMPONENT |
+    NODE_PROPS |
+    COMPUTE |
+    CHILDREN |
+    CLEANUP |
+    RECONCILE,
 }

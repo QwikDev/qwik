@@ -387,12 +387,362 @@ function ensureDirectory(filePath: string) {
 
 function cleanupInlineText(value: string) {
   return value
+    .replace(
+      /<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi,
+      (_match, href: string, text: string) => {
+        const label = text.replace(/<[^>]+>/g, '').trim();
+        return label ? `[${label}](${href})` : href;
+      }
+    )
+    .replace(/<\/?span(?:\s[^>]*)?>/gi, '')
     .replace(/<[^>]+>/g, '')
     .replace(/&rsaquo;/g, '›')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .trim();
+}
+
+function escapeMarkdownTableCell(value: string) {
+  return value.replace(/\|/g, '\\|');
+}
+
+function extractAttribute(tag: string, attributeName: string) {
+  const match = tag.match(new RegExp(`\\b${attributeName}="([^"]+)"`, 'i'));
+  return match?.[1]?.trim() ?? '';
+}
+
+function countMatches(value: string, pattern: RegExp) {
+  return value.match(pattern)?.length ?? 0;
+}
+
+function collectBalancedDivBlock(lines: string[], startIndex: number) {
+  const block: string[] = [];
+  let depth = 0;
+
+  for (let index = startIndex; index < lines.length; index++) {
+    const line = lines[index];
+    block.push(line);
+    depth += countMatches(line, /<div\b/g);
+    depth -= countMatches(line, /<\/div>/g);
+
+    if (depth === 0) {
+      return {
+        block,
+        endIndex: index,
+      };
+    }
+  }
+
+  return {
+    block,
+    endIndex: lines.length - 1,
+  };
+}
+
+function collectBalancedTagBlock(
+  lines: string[],
+  startIndex: number,
+  tagName: 'a' | 'details' | 'div'
+) {
+  const block: string[] = [];
+  let depth = 0;
+  const openPattern = new RegExp(`<${tagName}\\b`, 'g');
+  const closePattern = new RegExp(`</${tagName}>`, 'g');
+
+  for (let index = startIndex; index < lines.length; index++) {
+    const line = lines[index];
+    block.push(line);
+    depth += countMatches(line, openPattern);
+    depth -= countMatches(line, closePattern);
+
+    if (depth === 0) {
+      return {
+        block,
+        endIndex: index,
+      };
+    }
+  }
+
+  return {
+    block,
+    endIndex: lines.length - 1,
+  };
+}
+
+function extractCardTitle(blockLines: string[]) {
+  for (const line of blockLines) {
+    const headingMatch = line.trim().match(/^<h3(?:\s[^>]*)?>(.*)<\/h3>$/i);
+    if (headingMatch) {
+      return cleanupInlineText(headingMatch[1]);
+    }
+  }
+  return '';
+}
+
+function extractCardDescription(blockLines: string[]) {
+  for (const line of blockLines) {
+    const trimmed = line.trim();
+    const paragraphMatch = trimmed.match(/^<p(?:\s[^>]*)?>(.*)<\/p>$/i);
+    if (!paragraphMatch) {
+      continue;
+    }
+    if (/<(?:img|Img[A-Z0-9_]*)\b/.test(paragraphMatch[1])) {
+      continue;
+    }
+    const description = cleanupInlineText(paragraphMatch[1]);
+    if (description) {
+      return description;
+    }
+  }
+  return '';
+}
+
+function renderCardBullet(blockLines: string[]) {
+  const title = extractCardTitle(blockLines);
+  const description = extractCardDescription(blockLines);
+  const firstLine = blockLines[0]?.trim() ?? '';
+  const hrefMatch = firstLine.match(/\bhref="([^"]+)"/);
+
+  if (!title && !description) {
+    return '';
+  }
+
+  if (hrefMatch) {
+    return description
+      ? `- [${title}](${hrefMatch[1]}): ${description}`
+      : `- [${title}](${hrefMatch[1]})`;
+  }
+
+  if (!title) {
+    return description ? `- ${description}` : '';
+  }
+
+  return description ? `- **${title}:** ${description}` : `- **${title}**`;
+}
+
+function transformCardGridBlock(blockLines: string[]) {
+  const bullets: string[] = [];
+  const innerLines = blockLines.slice(1, -1);
+
+  for (let index = 0; index < innerLines.length; index++) {
+    const trimmed = innerLines[index]?.trim();
+    if (!trimmed) {
+      continue;
+    }
+
+    if (trimmed.startsWith('<a ')) {
+      const { block, endIndex } = collectBalancedTagBlock(innerLines, index, 'a');
+      const bullet = renderCardBullet(block);
+      if (bullet) {
+        bullets.push(bullet);
+      }
+      index = endIndex;
+      continue;
+    }
+
+    if (trimmed.startsWith('<div ') && /\bclass="[^"]*\bcard\b/.test(trimmed)) {
+      const { block, endIndex } = collectBalancedTagBlock(innerLines, index, 'div');
+      const bullet = renderCardBullet(block);
+      if (bullet) {
+        bullets.push(bullet);
+      }
+      index = endIndex;
+    }
+  }
+
+  return bullets.length > 0 ? [...bullets, ''] : [];
+}
+
+function transformDetailsBlock(blockLines: string[]) {
+  const contentLines = blockLines.slice(1, -1);
+  const output: string[] = [];
+  let summaryHandled = false;
+
+  for (const line of contentLines) {
+    const trimmed = line.trim();
+    const summaryMatch = trimmed.match(/^<summary(?:\s[^>]*)?>([\s\S]*)<\/summary>$/i);
+    if (summaryMatch) {
+      const summary = cleanupInlineText(summaryMatch[1]);
+      if (summary) {
+        output.push(`**${summary}**`);
+        output.push('');
+      }
+      summaryHandled = true;
+      continue;
+    }
+
+    output.push(line);
+  }
+
+  if (!summaryHandled) {
+    return [];
+  }
+
+  output.push('');
+  return output;
+}
+
+function preprocessCardGrids(sourceContent: string) {
+  const lines = sourceContent.split('\n');
+  const output: string[] = [];
+
+  for (let index = 0; index < lines.length; index++) {
+    const trimmed = lines[index]?.trim();
+    if (trimmed === '<div class="card-grid">') {
+      const { block, endIndex } = collectBalancedDivBlock(lines, index);
+      output.push(...transformCardGridBlock(block));
+      index = endIndex;
+      continue;
+    }
+
+    output.push(lines[index]);
+  }
+
+  return output.join('\n');
+}
+
+function preprocessDetailsBlocks(sourceContent: string) {
+  const lines = sourceContent.split('\n');
+  const output: string[] = [];
+
+  for (let index = 0; index < lines.length; index++) {
+    const trimmed = lines[index]?.trim();
+    if (trimmed === '<details>') {
+      const { block, endIndex } = collectBalancedTagBlock(lines, index, 'details');
+      output.push(...transformDetailsBlock(block));
+      index = endIndex;
+      continue;
+    }
+
+    output.push(lines[index]);
+  }
+
+  return output.join('\n');
+}
+
+function renderMarkdownTable(tableHtml: string) {
+  const rows = Array.from(tableHtml.matchAll(/<tr>([\s\S]*?)<\/tr>/gi)).map((match) => {
+    return Array.from(match[1].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)).map((cellMatch) =>
+      escapeMarkdownTableCell(
+        cleanupInlineText(cellMatch[1])
+          .replace(/<br\s*\/?>/gi, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+      )
+    );
+  });
+
+  const nonEmptyRows = rows.filter((row) => row.length > 0);
+  if (nonEmptyRows.length === 0) {
+    return '';
+  }
+
+  const [headerRow, ...bodyRows] = nonEmptyRows;
+  const lines = [
+    `| ${headerRow.join(' | ')} |`,
+    `| ${headerRow.map(() => '---').join(' | ')} |`,
+    ...bodyRows.map((row) => `| ${row.join(' | ')} |`),
+  ];
+
+  return lines.join('\n');
+}
+
+function preprocessHtmlTables(sourceContent: string) {
+  return sourceContent.replace(/<table>[\s\S]*?<\/table>/gi, (tableHtml) => {
+    const markdownTable = renderMarkdownTable(tableHtml);
+    return markdownTable ? `\n${markdownTable}\n` : '\n';
+  });
+}
+
+function preprocessMediaBlocks(sourceContent: string) {
+  let content = sourceContent;
+
+  content = content.replace(
+    /<div\b[^>]*>\s*(<svg\b[\s\S]*?<\/svg>)\s*<\/div>/gi,
+    (_match, svgBlock: string) => {
+      const label = extractAttribute(svgBlock, 'aria-label');
+      return label ? `\n**Diagram:** ${label}\n` : '\n';
+    }
+  );
+
+  content = content.replace(/<svg\b[\s\S]*?<\/svg>/gi, (svgBlock) => {
+    const label = extractAttribute(svgBlock, 'aria-label');
+    return label ? `\n**Diagram:** ${label}\n` : '\n';
+  });
+
+  content = content.replace(/<video\b[^>]*>[\s\S]*?<\/video>/gi, (videoBlock) => {
+    const sourceMatch = videoBlock.match(/<source\b[^>]*src="([^"]+)"/i);
+    return sourceMatch ? `\n[Video](${sourceMatch[1]})\n` : '\n';
+  });
+
+  content = content.replace(/<img\b[^>]*\/?>/gi, (imgTag) => {
+    const src = extractAttribute(imgTag, 'src');
+    const alt = cleanupInlineText(extractAttribute(imgTag, 'alt'));
+    if (src && alt) {
+      return `![${alt}](${src})`;
+    }
+    if (alt) {
+      return alt;
+    }
+    return '';
+  });
+
+  return content;
+}
+
+function preprocessSimpleHtml(sourceContent: string) {
+  return sourceContent
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/^\s*<\/?(?:div|video|source)\b[^>]*>\s*$/gim, '')
+    .replace(/\n{3,}/g, '\n\n');
+}
+
+function preprocessStructuralHtml(sourceContent: string) {
+  return preprocessMediaBlocks(
+    preprocessHtmlTables(preprocessDetailsBlocks(preprocessCardGrids(sourceContent)))
+  );
+}
+
+function preprocessNonCodeContent(sourceContent: string) {
+  return preprocessSimpleHtml(sourceContent);
+}
+
+function preprocessOutsideCodeFences(sourceContent: string) {
+  const lines = sourceContent.split('\n');
+  const output: string[] = [];
+  const pending: string[] = [];
+  let inCodeFence = false;
+
+  const flushPending = () => {
+    if (pending.length === 0) {
+      return;
+    }
+    output.push(preprocessNonCodeContent(pending.join('\n')));
+    pending.length = 0;
+  };
+
+  for (const line of lines) {
+    if (isFenceLine(line)) {
+      if (!inCodeFence) {
+        flushPending();
+        inCodeFence = true;
+      } else {
+        inCodeFence = false;
+      }
+      output.push(line);
+      continue;
+    }
+
+    if (inCodeFence) {
+      output.push(line);
+    } else {
+      pending.push(line);
+    }
+  }
+
+  flushPending();
+  return output.join('\n');
 }
 
 function isFenceLine(line: string) {
@@ -411,7 +761,9 @@ function extractTitleAttr(line: string) {
 
 export function transformSourceToMarkdown(source: string) {
   const parsed = matter(source);
-  const sourceContent = parsed.content.replace(/\r\n/g, '\n');
+  const sourceContent = preprocessOutsideCodeFences(
+    preprocessStructuralHtml(parsed.content.replace(/\r\n/g, '\n'))
+  );
   const lines = sourceContent.split('\n');
   const output: string[] = [];
   let inCodeFence = false;

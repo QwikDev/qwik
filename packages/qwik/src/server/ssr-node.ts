@@ -131,7 +131,8 @@ export class SsrNode implements ISsrNode {
     if (this.flags & SsrNodeFlags.Updatable) {
       this.flags &= ~SsrNodeFlags.Updatable;
       if (this.children) {
-        for (const child of this.children) {
+        for (let i = 0; i < this.children.length; i++) {
+          const child = this.children[i];
           (child as SsrNode).setTreeNonUpdatable();
         }
       }

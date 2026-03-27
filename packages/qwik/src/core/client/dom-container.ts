@@ -288,7 +288,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       vNode.flags |= VNodeFlags.Resolved;
       const props = vNode.props;
       if (props) {
-        for (const prop of Object.keys(props)) {
+        const propKeys = Object.keys(props);
+        for (let i = 0; i < propKeys.length; i++) {
+          const prop = propKeys[i];
           if (isSlotProp(prop)) {
             const value = props[prop];
             if (typeof value == 'string') {
@@ -321,9 +323,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
     if (this.$styleIds$ == null) {
       this.$styleIds$ = new Set();
-      this.element.querySelectorAll(QStyleSelector).forEach((style) => {
-        this.$styleIds$!.add(style.getAttribute(QStyle)!);
-      });
+      const styleElements = this.document.querySelectorAll(QStyleSelector);
+      for (let i = 0; i < styleElements.length; i++) {
+        const style = styleElements[i];
+        this.$styleIds$.add(style.getAttribute(QStyle)!);
+      }
     }
     if (!this.$styleIds$.has(styleId)) {
       this.$styleIds$.add(styleId);

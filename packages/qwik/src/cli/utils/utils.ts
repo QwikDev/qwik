@@ -68,13 +68,16 @@ export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
     engines: { node: srcPkg.engines?.node || '^18.17.0 || ^20.3.0 || >=21.0.0' },
   };
 
-  Object.keys(cleanedPkg).forEach((prop) => {
+  const allowedProps = Object.keys(cleanedPkg);
+  for (let i = 0; i < allowedProps.length; i++) {
+    const prop = allowedProps[i];
     delete (srcPkg as any)[prop];
-  });
+  }
   delete srcPkg.__qwik__;
 
   const sortedKeys = Object.keys(srcPkg).sort();
-  for (const key of sortedKeys) {
+  for (let i = 0; i < sortedKeys.length; i++) {
+    const key = sortedKeys[i];
     (cleanedPkg as any)[key] = (srcPkg as any)[key];
   }
 
@@ -152,7 +155,8 @@ export async function getFilesDeep(root: string) {
     }
 
     const filesInDirectory = await fs.promises.readdir(directory);
-    for (const file of filesInDirectory) {
+    for (let i = 0; i < filesInDirectory.length; i++) {
+      const file = filesInDirectory[i];
       const absolute = join(directory, file);
 
       if (fs.statSync(absolute).isDirectory()) {

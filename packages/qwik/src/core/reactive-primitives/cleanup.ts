@@ -17,6 +17,7 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
   if (!effects) {
     return;
   }
+
   for (const [, effect] of effects) {
     clearEffectSubscription(container, effect);
   }

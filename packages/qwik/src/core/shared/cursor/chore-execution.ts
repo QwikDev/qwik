@@ -69,7 +69,8 @@ export function executeTasks(
   // Execute all tasks in sequence
   let taskPromise: Promise<void> | undefined;
 
-  for (const item of elementSeq) {
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
     if (item instanceof Task) {
       const task = item as Task<TaskFn, TaskFn>;
 
@@ -308,7 +309,8 @@ export function executeCleanup(vNode: VNode, container: Container): void {
     return;
   }
 
-  for (const item of elementSeq) {
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
     if (item instanceof Task) {
       if (item.$flags$ & TaskFlags.NEEDS_CLEANUP) {
         item.$flags$ &= ~TaskFlags.NEEDS_CLEANUP;

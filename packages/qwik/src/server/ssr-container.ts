@@ -971,7 +971,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   emitPatchDataIfNeeded(): void {
     const patches: (string | number | boolean | null)[] = [];
     for (const [elementIndex, backpatchEntries] of this.backpatchMap) {
-      for (const backpatchEntry of backpatchEntries) {
+      for (let i = 0; i < backpatchEntries.length; i++) {
+        const backpatchEntry = backpatchEntries[i];
         patches.push(
           elementIndex,
           backpatchEntry.attrName,
@@ -1153,7 +1154,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           );
           let indent = '    ';
           let lastName = '';
-          for (const frame of frames) {
+          for (let i = 0; i < frames.length; i++) {
+            const frame = frames[i];
             const [name, example] = allowedContent(frame.tagNesting);
             text.push(
               `${indent}<${frame.elementName}>${

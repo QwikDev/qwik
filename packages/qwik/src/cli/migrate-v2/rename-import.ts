@@ -15,35 +15,46 @@ export function replaceImportInFiles(
     project.addSourceFileAtPath(path);
   });
 
-  project.getSourceFiles().forEach((sourceFile) => {
+  const sourceFiles = project.getSourceFiles();
+  for (let i = 0; i < sourceFiles.length; i++) {
+    const sourceFile = sourceFiles[i];
     let hasChanges = false;
 
-    sourceFile.getImportDeclarations().forEach((importDeclaration) => {
+    const importDeclarations = sourceFile.getImportDeclarations();
+    for (let j = 0; j < importDeclarations.length; j++) {
+      const importDeclaration = importDeclarations[j];
       // startsWith is used in order to handle nested imports
       if (importDeclaration.getModuleSpecifierValue().startsWith(library)) {
-        for (const [oldImport, newImport] of changes) {
-          importDeclaration.getNamedImports().forEach((namedImport) => {
+        for (let k = 0; k < changes.length; k++) {
+          const [oldImport, newImport] = changes[k];
+
+          const namedImports = importDeclaration.getNamedImports();
+          for (let l = 0; l < namedImports.length; l++) {
+            const namedImport = namedImports[l];
             if (namedImport.getName() === oldImport) {
               namedImport.setName(newImport);
               hasChanges = true;
             }
-          });
+          }
         }
       }
-    });
+    }
 
-    sourceFile.getDescendantsOfKind(ts.SyntaxKind.Identifier).forEach((identifier) => {
-      for (const [oldImport, newImport] of changes) {
+    const descendants = sourceFile.getDescendantsOfKind(ts.SyntaxKind.Identifier);
+    for (let m = 0; m < descendants.length; m++) {
+      const identifier = descendants[m];
+      for (let n = 0; n < changes.length; n++) {
+        const [oldImport, newImport] = changes[n];
         if (identifier.getText() === oldImport) {
           identifier.replaceWithText(newImport);
           hasChanges = true;
         }
       }
-    });
+    }
 
     if (hasChanges) {
       sourceFile.saveSync();
       log.info(`Updated imports in ${sourceFile.getFilePath()}`);
     }
-  });
+  }
 }

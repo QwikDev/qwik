@@ -11,7 +11,8 @@ import { inflate, inflateWrappedSignalValue } from './inflate';
 
 const encodeObjectData = (entries: Array<[unknown, unknown]>): unknown[] => {
   const out: unknown[] = [];
-  for (const [key, value] of entries) {
+  for (let i = 0; i < entries.length; i++) {
+    const [key, value] = entries[i];
     out.push(TypeIds.Plain, key, TypeIds.Plain, value);
   }
   return out;
@@ -308,7 +309,9 @@ describe('inflate(TypeIds.Object) unsafe key handling', () => {
 
     inflate(container, target, TypeIds.Object, data);
 
-    for (const key of ['constructor', 'prototype', 'toString', 'valueOf', 'toJSON', 'then']) {
+    const keys = ['constructor', 'prototype', 'toString', 'valueOf', 'toJSON', 'then'];
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
       expect(Object.prototype.hasOwnProperty.call(target, key)).toBe(false);
     }
     expect(target.safeFn).toBe(fn);

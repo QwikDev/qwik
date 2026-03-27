@@ -10,6 +10,7 @@ export const cursorDatas = new WeakMap<Cursor, CursorData>();
 /** Key used to store pending node prop updates in vNode props. */
 export const NODE_PROPS_DATA_KEY = ':nodeProps';
 export const NODE_DIFF_DATA_KEY = ':nodeDiff';
+export const ERROR_DATA_KEY = ':errorData';
 export const HOST_SIGNAL = ':signal';
 
 export interface CursorData {

@@ -211,8 +211,13 @@ const getChunkFileName = (
 
       // The chunk name can often be a path. We sanitize it to use dashes instead of slashes, to keep the same folder structure as without debug:true.
       // Besides, Rollup doesn't accept absolute or relative paths as inputs for the [name] placeholder for the same reason.
-      const relativePath = optimizer.sys.path.relative(optimizer.sys.cwd(), chunkInfo.name);
-      const sanitized = relativePath
+      let name = optimizer.sys.path.relative(optimizer.sys.cwd(), chunkInfo.name);
+      // Strip everything up to the last node_modules/ to get the meaningful package path
+      const lastNodeModules = name.lastIndexOf('node_modules-');
+      if (lastNodeModules !== -1) {
+        name = name.slice(lastNodeModules + 'node_modules-'.length);
+      }
+      const sanitized = name
         .replace(/^(\.\.\/)+/, '')
         .replace(/^\/+/, '')
         .replace(/\//g, '-');
@@ -264,6 +269,7 @@ async function normalizeSharedOutputOptions(
     outputOpts.exports = 'auto';
   }
 
+  debugger;
   return outputOpts;
 }
 

@@ -122,7 +122,9 @@ export interface SsgGenerateOptions extends SsgOptions {
   workerFilePath?: string | URL;
 }
 
-export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions {}
+export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions {
+  qwikRouterConfig?: QwikRouterConfig;
+}
 
 export type WorkerInputMessage = SsgRenderInput | WorkerCloseMessage;
 

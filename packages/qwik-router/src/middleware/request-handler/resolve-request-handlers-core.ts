@@ -88,31 +88,30 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
       );
     }
 
-    if (route) {
-      const routeModules = route.$mods$;
-      _resolveRequestHandlers(
-        routeLoaders,
-        routeActions,
-        requestHandlers,
-        routeModules,
-        isPageRoute,
-        method
-      );
-      const routeName = route.$routeName$;
-      if (
-        checkOrigin &&
-        (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
-      ) {
-        if (checkOrigin === 'lax-proto') {
-          requestHandlers.unshift(csrfLaxProtoCheckMiddleware);
-        } else {
-          requestHandlers.unshift(csrfCheckMiddleware);
-        }
+    const routeModules = route.$mods$;
+    _resolveRequestHandlers(
+      routeLoaders,
+      routeActions,
+      requestHandlers,
+      routeModules,
+      isPageRoute,
+      method
+    );
+    const routeName = route.$routeName$;
+    if (
+      checkOrigin &&
+      (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
+    ) {
+      if (checkOrigin === 'lax-proto') {
+        requestHandlers.unshift(csrfLaxProtoCheckMiddleware);
+      } else {
+        requestHandlers.unshift(csrfCheckMiddleware);
       }
-      if (isPageRoute) {
-        if (method === 'POST' || method === 'GET') {
-          requestHandlers.push(runServerFunction);
-        }
+    }
+    if (isPageRoute) {
+      if (method === 'POST' || method === 'GET') {
+        requestHandlers.push(runServerFunction);
+      }
 
       if (!route.$notFound$) {
         requestHandlers.push(fixTrailingSlash);

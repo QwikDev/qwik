@@ -66,6 +66,165 @@ export const message = 'hello';
     expect(markdown).not.toContain('import { Note }');
   });
 
+  test('flattens card grids into markdown lists', () => {
+    const markdown = transformSourceToMarkdown(`---
+title: Cards
+---
+## Getting Started with Qwik
+
+<div class="card-grid">
+  <a class="card card-intro" href="/docs/getting-started/">
+    <div class="card-icon">
+      <pixel.businessproductstartup1 class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>Getting Started</h3>
+      <p>Learn the basics and create your first Qwik app in minutes.</p>
+    </div>
+  </a>
+  <a class="card card-intro card-violet" href="/docs/concepts/think-qwik/">
+    <div class="card-icon">
+      <pixel.interfaceessentialflash class="intro-icon" />
+    </div>
+    <div class="card-body">
+      <h3>Why Qwik?</h3>
+      <p>Understand resumability, JS streaming, and what makes Qwik unique.</p>
+    </div>
+  </a>
+</div>
+
+<div class="card-grid">
+  <div class="card card-feature">
+    <h3>General-purpose</h3>
+    <p>Qwik can be used to build any type of website or application.</p>
+  </div>
+</div>
+`);
+
+    expect(markdown).toContain('## Getting Started with Qwik');
+    expect(markdown).toContain(
+      '- [Getting Started](/docs/getting-started/): Learn the basics and create your first Qwik app in minutes.'
+    );
+    expect(markdown).toContain(
+      '- [Why Qwik?](/docs/concepts/think-qwik/): Understand resumability, JS streaming, and what makes Qwik unique.'
+    );
+    expect(markdown).toContain(
+      '- **General-purpose:** Qwik can be used to build any type of website or application.'
+    );
+    expect(markdown).not.toContain('<div class="card-grid">');
+    expect(markdown).not.toContain('<pixel.');
+  });
+
+  test('flattens details blocks into readable markdown', () => {
+    const markdown = transformSourceToMarkdown(`---
+title: Details
+---
+<details>
+  <summary style={{color: "#17ADF5"}}>What is component$ and $?</summary>
+  <p><span style={{color: "#A273F2"}}>component$</span> is used to declare a <a href="https://qwik.dev/docs/core/overview/#component">Qwik component.</a></p>
+  <p><a href="https://qwik.dev/docs/advanced/dollar/#the-dollar--sign">The dollar sign</a> <span style={{color: "#A273F2"}}>$</span> is used to signal both the optimizer and the developer when Qwik splits up your application into many small pieces we call symbols.</p>
+</details>
+`);
+
+    expect(markdown).toContain('**What is component$ and $?**');
+    expect(markdown).toContain(
+      'component$ is used to declare a [Qwik component.](https://qwik.dev/docs/core/overview/#component)'
+    );
+    expect(markdown).toContain(
+      '[The dollar sign](https://qwik.dev/docs/advanced/dollar/#the-dollar--sign) $ is used to signal both the optimizer'
+    );
+    expect(markdown).not.toContain('<details>');
+    expect(markdown).not.toContain('<summary');
+  });
+
+  test('converts html tables into markdown tables', () => {
+    const markdown = transformSourceToMarkdown(`---
+title: Table
+---
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th></tr></thead>
+<tbody><tr><td>
+
+expression
+
+</td><td>
+
+T
+
+</td></tr>
+</tbody></table>
+`);
+
+    expect(markdown).toContain('| Parameter | Type |');
+    expect(markdown).toContain('| --- | --- |');
+    expect(markdown).toContain('| expression | T |');
+    expect(markdown).not.toContain('<table>');
+    expect(markdown).not.toContain('<th>');
+  });
+
+  test('converts html tables even when a cell contains a fenced code block', () => {
+    const markdown = transformSourceToMarkdown(`---
+title: Table with code
+---
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+loading
+
+</td><td>
+
+Whether the signal is currently loading.
+
+\`\`\`tsx
+signal.loading ? <Loading /> : <Ready />
+\`\`\`
+
+</td></tr>
+</tbody></table>
+    `);
+
+    expect(markdown).toContain('| Property | Description |');
+    expect(markdown).toContain('| loading | Whether the signal is currently loading.');
+    expect(markdown).toContain('```tsx');
+    expect(markdown).not.toContain('<table>');
+  });
+
+  test('replaces svg diagrams with readable text', () => {
+    const markdown = transformSourceToMarkdown(`---
+title: Diagram
+---
+<div style="background:white">
+<svg viewBox="0 0 10 10" role="img" aria-label="Task lifecycle diagram">
+  <rect x="0" y="0" width="10" height="10" />
+</svg>
+</div>
+
+<video autoplay>
+  <source src="https://cdn.example.com/demo.mp4" />
+</video>
+`);
+
+    expect(markdown).toContain('**Diagram:** Task lifecycle diagram');
+    expect(markdown).toContain('[Video](https://cdn.example.com/demo.mp4)');
+    expect(markdown).not.toContain('<svg');
+    expect(markdown).not.toContain('<video');
+  });
+
   test('normalizes box drawing characters in generated mirrors', () => {
     const packageDir = createTempDir();
     const outputDir = path.join(packageDir, 'dist');

@@ -16,10 +16,6 @@ import { isDev } from '@qwik.dev/core/build';
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  }
   try {
     // https://developers.cloudflare.com/workers/configuration/compatibility-dates/#streams-constructors
     // this will throw if CF compatibility_date < 2022-11-30

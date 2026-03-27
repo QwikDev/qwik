@@ -26,6 +26,60 @@ A production build should generate the client and server modules by running both
 pnpm build
 ```
 
+### LLM Files
+
+The docs build also generates these public LLM-facing files:
+
+- `dist/llms.txt`
+- `dist/llms-ctx.txt`
+- `dist/llms-ctx-full.txt`
+- curated markdown mirrors, such as `dist/docs/getting-started.md`
+
+You can regenerate them directly with:
+
+```
+pnpm generate.llms
+```
+
+To emit links for a different host or subdomain, set `QWIK_LLMS_BASE_URL` when generating:
+
+```
+QWIK_LLMS_BASE_URL=https://v2.qwik.dev pnpm generate.llms
+```
+
+On Cloudflare Pages, the generator also falls back to `CF_PAGES_URL`, so preview deployments can emit links for their deployment URL automatically. Set `QWIK_LLMS_BASE_URL` in the Pages production environment if you want production builds to emit a custom domain instead of the default `*.pages.dev` URL.
+
+`pnpm build` runs the site build first and then writes the generated LLM files into `dist/`.
+The generation is chained to the `build.client` script (`vite build && pnpm generate.llms`), so the files exist in `dist/` before the server build runs. This ensures the Cloudflare Pages adapter discovers them as static paths and the Worker serves them correctly.
+
+If you add or want to expose a new docs or API page in the LLM outputs, update the curated manifest in `scripts/generate-llms.ts`.
+
+For each new entry, add:
+
+- `section`
+- `title`
+- `pathname`
+- `sourcePath`
+- `description`
+- optional `optional` flag
+
+After updating the manifest, run:
+
+```
+pnpm generate.llms
+```
+
+or just:
+
+```
+pnpm build
+```
+
+Notes:
+
+- Editing an existing page that is already in the manifest is automatic; rebuilding regenerates the LLM files from the latest source.
+- Adding a brand new page to the LLM surface is not automatic yet; it must be added to the manifest on purpose.
+
 ### Client Modules
 
 Production build that creates only the client-side modules that are dynamically imported by the browser.

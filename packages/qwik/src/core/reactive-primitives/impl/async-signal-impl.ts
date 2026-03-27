@@ -28,13 +28,6 @@ import {
 } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 
-/**
- * Planned features:
- *
- * - `eagerCleanup`: boolean - whether to run cleanups eagerly when there are no more subscribers, or
- *   to wait until the next computation/destroy.
- */
-
 const DEBUG = false;
 const log = (...args: any[]) =>
   // eslint-disable-next-line no-console

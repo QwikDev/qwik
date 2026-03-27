@@ -76,10 +76,12 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    */
   awaitPrevious?: boolean;
   /**
-   * In the browser, re-run the function after `interval` ms if subscribers exist, even when no
-   * input state changed. If `0`, does not poll.
+   * Controls staleness and polling behavior.
    *
-   * Defaults to `0`.
+   * - **Positive**: Re-run the function after `interval` ms if subscribers exist (polling).
+   * - **Negative**: Mark the value as stale after `|interval|` ms, but do NOT auto-recompute.
+   *   Consumers can check staleness and manually trigger recomputation.
+   * - **`0`** (default): No staleness tracking or polling.
    */
   interval?: number;
   /**

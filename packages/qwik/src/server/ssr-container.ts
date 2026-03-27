@@ -529,6 +529,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
       switch (result) {
         case EmitResult.COMPLETE:
+          // Don't exit if cursors still have pending work (e.g., processCursorQueue
+          // yielded mid-walk due to time budget). Drain all remaining cursor work first.
+          if (hasActiveCursors() || this.$pendingCount$ > 0) {
+            if (yieldToIO) {
+              await yieldToIO();
+            }
+            break;
+          }
           emitDone = true;
           break;
 

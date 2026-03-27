@@ -953,6 +953,12 @@ export interface RenderSSROptions {
 // @internal
 export function _res(this: string | undefined, _: any, element: Element): void;
 
+// @public
+export function _resetGlobalCursorQueue(): void;
+
+// @public
+export function _resetTickScheduled(): void;
+
 // @internal (undocumented)
 export const _resolveContextWithoutSequentialScope: <STATE>(context: ContextId<STATE>) => STATE | undefined;
 

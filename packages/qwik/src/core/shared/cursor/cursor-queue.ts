@@ -92,6 +92,12 @@ export function hasActiveCursors(): boolean {
   return globalCursorQueue.length > 0;
 }
 
+/** Reset the global cursor queues. Used by test infrastructure to prevent leaks between tests. */
+export function _resetGlobalCursorQueue(): void {
+  globalCursorQueue.length = 0;
+  pausedCursorQueue.length = 0;
+}
+
 /**
  * Removes a cursor from the global queue.
  *

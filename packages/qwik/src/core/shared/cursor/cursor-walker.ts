@@ -30,6 +30,11 @@ const nextMicroTask = createMicroTask(processCursorQueue);
 const nextMacroTask = createMacroTask(processCursorQueue);
 let isNextTickScheduled = false;
 
+/** Reset scheduling flag. Used by test infrastructure to prevent stale state between tests. */
+export function _resetTickScheduled(): void {
+  isNextTickScheduled = false;
+}
+
 export function triggerCursors(): void {
   if (!isNextTickScheduled) {
     isNextTickScheduled = true;
@@ -147,7 +152,6 @@ export function walkCursor(cursor: Cursor, options: WalkOptions, startTime: numb
           // Schedule continuation as macrotask to actually yield to browser
           scheduleYield();
         }
-        console.log('yielding');
         return true;
       }
     }

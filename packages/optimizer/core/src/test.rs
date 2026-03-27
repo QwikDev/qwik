@@ -7039,7 +7039,7 @@ impl TestInput {
 
 #[test]
 fn should_preserve_non_ident_explicit_captures() {
-	test_input!(TestInput {
+	let res = test_input!(TestInput {
 		code: r#"
 import { _captures, inlinedQrl } from '@qwik.dev/core';
 
@@ -7057,4 +7057,23 @@ export const task = inlinedQrl(() => {
 		mode: EmitMode::Dev,
 		..TestInput::default()
 	});
+
+	// check to make sure no snapshot regression in captures
+	let output = res.unwrap();
+	let entry_module = output
+		.modules
+		.iter()
+		.find(|m| m.segment.is_none())
+		.expect("entry module not found");
+	let compact_code: String = entry_module
+		.code
+		.chars()
+		.filter(|c| !c.is_whitespace())
+		.collect();
+
+	assert!(
+		compact_code.contains(".w([left,true,right])"),
+		"expected transformed capture array [left, true, right] to be preserved, got:\n{}",
+		entry_module.code
+	);
 }

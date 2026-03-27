@@ -67,7 +67,7 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
 
     const requestHandlers: RequestHandler[] = [];
 
-    const isPageRoute = !!(route && isLastModulePageRoute(route.$mods$));
+    const isPageRoute = !!isLastModulePageRoute(route.$mods$);
 
     if (isInternal) {
       requestHandlers.push(handleQDataRedirect);
@@ -114,22 +114,23 @@ export function createResolveRequestHandlers(deps: ResolveRequestHandlersDeps) {
           requestHandlers.push(runServerFunction);
         }
 
+      if (!route.$notFound$) {
         requestHandlers.push(fixTrailingSlash);
-
-        if (isInternal) {
-          requestHandlers.push(renderQData);
-        }
       }
 
-      if (isPageRoute) {
-        requestHandlers.push((ev) => {
-          ev.sharedMap.set(deps.RequestRouteName, routeName);
-        });
-        requestHandlers.push(actionsMiddleware(routeActions));
-        requestHandlers.push(loadersMiddleware(routeLoaders));
-        requestHandlers.push(eTagMiddleware(route));
-        requestHandlers.push(renderHandler);
+      if (isInternal) {
+        requestHandlers.push(renderQData);
       }
+    }
+
+    if (isPageRoute) {
+      requestHandlers.push((ev) => {
+        ev.sharedMap.set(deps.RequestRouteName, routeName);
+      });
+      requestHandlers.push(actionsMiddleware(routeActions));
+      requestHandlers.push(loadersMiddleware(routeLoaders));
+      requestHandlers.push(eTagMiddleware(route));
+      requestHandlers.push(renderHandler);
     }
 
     return requestHandlers;

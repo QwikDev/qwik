@@ -236,7 +236,9 @@ number
 
 </td><td>
 
-Poll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`, polling stops.
+Staleness/poll interval in ms. Writable and immediately effective.
+
+- \*\*Positive\*\*: Poll — re-compute after this many ms when subscribers exist. - \*\*Negative\*\*: Stale-only — mark stale after `|interval|` ms, no auto-recompute. - \*\*`0`\*\*: No staleness tracking or polling.
 
 </td></tr>
 <tr><td>
@@ -417,9 +419,9 @@ number
 
 </td><td>
 
-_(Optional)_ In the browser, re-run the function after `interval` ms if subscribers exist, even when no input state changed. If `0`, does not poll.
+_(Optional)_ Controls staleness and polling behavior.
 
-Defaults to `0`.
+- \*\*Positive\*\*: Re-run the function after `interval` ms if subscribers exist (polling). - \*\*Negative\*\*: Mark the value as stale after `|interval|` ms, but do NOT auto-recompute. Consumers can check staleness and manually trigger recomputation. - \*\*`0`\*\* (default): No staleness tracking or polling.
 
 </td></tr>
 <tr><td>

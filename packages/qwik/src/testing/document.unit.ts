@@ -1,4 +1,4 @@
-import { createDocument, createWindow, ensureGlobals } from './document';
+import { createDocument, createWindow, ensureGlobals, mockAttachShadow } from './document';
 import { pathToFileURL } from 'node:url';
 import { assert, test } from 'vitest';
 
@@ -116,4 +116,22 @@ test('some other document', () => {
   ensureGlobals(doc, {}); // shouldn't reset
   assert.notEqual(doc.defaultView, undefined);
   assert.equal(doc.defaultView.document, doc);
+});
+
+test('shadow root append preserves all document fragment children', () => {
+  const doc = createDocument();
+  const host = mockAttachShadow(doc.createElement('div'));
+  const shadowRoot = host.attachShadow({ mode: 'open' });
+  const fragment = doc.createDocumentFragment();
+
+  fragment.appendChild(doc.createElement('a'));
+  fragment.appendChild(doc.createElement('b'));
+  fragment.appendChild(doc.createElement('c'));
+
+  shadowRoot.append(fragment);
+
+  assert.equal(shadowRoot.childNodes.length, 3);
+  assert.equal((shadowRoot.childNodes[0] as Element).tagName, 'A');
+  assert.equal((shadowRoot.childNodes[1] as Element).tagName, 'B');
+  assert.equal((shadowRoot.childNodes[2] as Element).tagName, 'C');
 });

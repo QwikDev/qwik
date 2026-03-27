@@ -89,9 +89,10 @@ async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPa
     const srcPkgJson = JSON.parse(srcContent);
     const props = ['scripts', 'dependencies', 'devDependencies'];
     const destPkgJson = JSON.parse(await fs.promises.readFile(destPath, 'utf-8'));
-    props.forEach((prop) => {
+    for (let i = 0; i < props.length; i++) {
+      const prop = props[i];
       mergePackageJsonSort(srcPkgJson, destPkgJson, prop);
-    });
+    }
     if (destPkgJson.scripts?.qwik) {
       const qwikVal = destPkgJson.scripts.qwik;
       delete destPkgJson.scripts.qwik;
@@ -145,7 +146,8 @@ function mergePackageJsonSort(src: any, dest: any, prop: string) {
 
     const sorted: any = {};
     const keys = Object.keys(dest[prop]).sort();
-    for (const key of keys) {
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
       sorted[key] = dest[prop][key];
     }
     dest[prop] = sorted;
@@ -185,7 +187,8 @@ async function mergeIgnoresFile(fileUpdates: FsUpdates, srcPath: string, destPat
     const destContent = await fs.promises.readFile(destPath, 'utf-8');
     const srcLines = srcContent.trim().split(/\r?\n/);
     const destLines = destContent.trim().split(/\r?\n/);
-    for (const srcLine of srcLines) {
+    for (let i = 0; i < srcLines.length; i++) {
+      const srcLine = srcLines[i];
       if (!destLines.includes(srcLine)) {
         if (srcLine.startsWith('#')) {
           destLines.push('');

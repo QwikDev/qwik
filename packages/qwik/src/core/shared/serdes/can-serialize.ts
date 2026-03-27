@@ -45,6 +45,10 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
       return true;
     } else if (proto == Array.prototype) {
       for (let i = 0; i < (value as unknown[]).length; i++) {
+        // ignore sparse array holes
+        if (!(i in (value as unknown[]))) {
+          return false;
+        }
         if (!canSerialize((value as unknown[])[i], seen)) {
           return false;
         }

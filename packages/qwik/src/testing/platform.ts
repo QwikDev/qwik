@@ -88,7 +88,8 @@ function toPath(url: URL) {
   const path = fileURLToPath(String(normalizedUrl));
   const importPaths = [path, ...testExts.map((ext) => path + ext)];
 
-  for (const importPath of importPaths) {
+  for (let i = 0; i < importPaths.length; i++) {
+    const importPath = importPaths[i];
     if (existsSync(importPath)) {
       return importPath;
     }

@@ -48,7 +48,8 @@ export const getQueue = () => {
   sortQueue();
   let probability = 0.4;
   const result: (string | number)[] = [];
-  for (const b of queue) {
+  for (let i = 0; i < queue.length; i++) {
+    const b = queue[i];
     const nextProbability = Math.round((1 - b.$inverseProbability$) * 10);
     if (nextProbability !== probability) {
       probability = nextProbability;
@@ -186,7 +187,8 @@ export const adjustProbabilities = (
     seen ||= new Set();
     seen.add(bundle);
     const probability = 1 - bundle.$inverseProbability$;
-    for (const dep of bundle.$deps$) {
+    for (let i = 0; i < bundle.$deps$.length; i++) {
+      const dep = bundle.$deps$[i];
       const depBundle = getBundle(dep.$name$)!;
       if (depBundle.$inverseProbability$ === 0) {
         // it's already at max probability

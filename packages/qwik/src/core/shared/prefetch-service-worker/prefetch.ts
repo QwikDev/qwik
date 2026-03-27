@@ -64,13 +64,14 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
 ) => {
   if ('getRegistrations' in c) {
     c.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => {
+      for (let i = 0; i < registrations.length; i++) {
+        const registration = registrations[i];
         if (registration.active) {
           if (registration.active.scriptURL.endsWith('_URL_')) {
             registration.unregister().catch(console.error);
           }
         }
-      });
+      }
     });
   }
   if ('caches' in window) {

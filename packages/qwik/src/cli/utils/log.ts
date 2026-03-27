@@ -6,9 +6,10 @@ export function logSuccessFooter(docs: string[]) {
 
   if (docs.length > 0) {
     outString.push(`📄 ${cyan('Relevant docs:')}`);
-    docs.forEach((link) => {
+    for (let i = 0; i < docs.length; i++) {
+      const link = docs[i];
       outString.push(`   ${link}`);
-    });
+    }
   }
   outString.push(``);
   outString.push(`💬 ${cyan('Questions? Start the conversation at:')}`);
@@ -23,9 +24,10 @@ export function logSuccessFooter(docs: string[]) {
 export function logNextStep(nextSteps: NextSteps | undefined, packageManager: string) {
   const outString: string[] = [];
   if (nextSteps) {
-    nextSteps.lines.forEach((step) =>
-      outString.push(`${step.replace(/\bpnpm\b/g, packageManager)}`)
-    );
+    for (let i = 0; i < nextSteps.lines.length; i++) {
+      const step = nextSteps.lines[i];
+      outString.push(`${step.replace(/\bpnpm\b/g, packageManager)}`);
+    }
   }
   return outString.join('\n');
 }

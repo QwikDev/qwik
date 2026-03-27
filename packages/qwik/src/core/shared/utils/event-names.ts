@@ -23,6 +23,10 @@ export const enum EventNameHtmlScope {
 
 export const EVENT_SUFFIX = '$';
 export const DOM_CONTENT_LOADED_EVENT = 'DOMContentLoaded';
+export const PREVENT_DEFAULT_PREFIX = 'preventdefault:';
+export const STOP_PROPAGATION_PREFIX = 'stoppropagation:';
+export const CAPTURE_PREFIX = 'capture:';
+export const PASSIVE_PREFIX = 'passive:';
 
 export const isJsxPropertyAnEventName = (name: string): boolean => {
   return (
@@ -94,7 +98,32 @@ export const getEventNameScopeFromJsxEvent = (name: string): string => {
 };
 
 export function isPreventDefault(key: string): boolean {
-  return key.startsWith('preventdefault:');
+  return key.startsWith(PREVENT_DEFAULT_PREFIX);
+}
+
+export function isStopPropagation(key: string): boolean {
+  return key.startsWith(STOP_PROPAGATION_PREFIX);
+}
+
+export function isCaptureEventOption(key: string): boolean {
+  return key.startsWith(CAPTURE_PREFIX);
+}
+
+export function isPassiveEventOption(key: string): boolean {
+  return key.startsWith(PASSIVE_PREFIX);
+}
+
+export function isSerializedEventOption(key: string): boolean {
+  return isCaptureEventOption(key) || isPassiveEventOption(key);
+}
+
+export function getEventNameFromOption(key: string): string {
+  const index = key.indexOf(':');
+  return index === -1 ? '' : key.slice(index + 1);
+}
+
+export function isEventOptionEnabled(value: string | null): boolean {
+  return value !== null && value !== 'false';
 }
 
 /** Converts a camelCase string to kebab-case. This is used for event names. */

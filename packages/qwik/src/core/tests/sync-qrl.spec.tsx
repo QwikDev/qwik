@@ -1,4 +1,4 @@
-import { component$, sync$ } from '@qwik.dev/core';
+import { $, component$, sync$ } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
@@ -35,5 +35,49 @@ describe.each([
     input?.setAttribute('shouldPreventDefault', 'true');
     await trigger(document.body, input, 'click');
     expect(input?.getAttribute('prevented')).toBe('true');
+  });
+
+  it('should dispatch capture handlers before bubble handlers', async () => {
+    const Cmp = component$(() => {
+      return (
+        <div
+          id="parent"
+          onClick$={$((_ev, el) => {
+            el.setAttribute('order', (el.getAttribute('order') || '') + '|parent-bubble');
+          })}
+        >
+          <section
+            id="section"
+            capture:click
+            onClick$={$((_ev, el) => {
+              const parent = el.closest('#parent')!;
+              parent.setAttribute(
+                'order',
+                (parent.getAttribute('order') || '') + '|section-capture'
+              );
+            })}
+          >
+            <button
+              id="button"
+              onClick$={$((_ev, el) => {
+                const parent = el.closest('#parent')!;
+                parent.setAttribute(
+                  'order',
+                  (parent.getAttribute('order') || '') + '|button-bubble'
+                );
+              })}
+            >
+              Click
+            </button>
+          </section>
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, '#button', 'click');
+    expect(document.querySelector('#parent')?.getAttribute('order')).toBe(
+      '|section-capture|button-bubble|parent-bubble'
+    );
   });
 });

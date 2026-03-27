@@ -270,6 +270,68 @@ describe.each([
     );
   });
 
+  it('should render and update capture attributes', async () => {
+    const Cmp = component$(() => {
+      const enabled = useSignal(true);
+      return (
+        <>
+          <button id="toggle" onClick$={() => (enabled.value = !enabled.value)}></button>
+          <div id="target" capture:click={enabled.value}></div>
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await expect(document.querySelector('#target')).toMatchDOM(
+      // @ts-ignore-next-line
+      <div id="target" capture:click=""></div>
+    );
+
+    await trigger(document.body, '#toggle', 'click');
+    await expect(document.querySelector('#target')).toMatchDOM(
+      // @ts-ignore-next-line
+      <div id="target" capture:click="false"></div>
+    );
+
+    await trigger(document.body, '#toggle', 'click');
+    await expect(document.querySelector('#target')).toMatchDOM(
+      // @ts-ignore-next-line
+      <div id="target" capture:click=""></div>
+    );
+  });
+
+  it('should render and update passive attributes', async () => {
+    const Cmp = component$(() => {
+      const enabled = useSignal(true);
+      return (
+        <>
+          <button id="toggle" onClick$={() => (enabled.value = !enabled.value)}></button>
+          <div id="target" passive:wheel={enabled.value}></div>
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await expect(document.querySelector('#target')).toMatchDOM(
+      // @ts-ignore-next-line
+      <div id="target" passive:wheel=""></div>
+    );
+
+    await trigger(document.body, '#toggle', 'click');
+    await expect(document.querySelector('#target')).toMatchDOM(
+      // @ts-ignore-next-line
+      <div id="target" passive:wheel="false"></div>
+    );
+
+    await trigger(document.body, '#toggle', 'click');
+    await expect(document.querySelector('#target')).toMatchDOM(
+      // @ts-ignore-next-line
+      <div id="target" passive:wheel=""></div>
+    );
+  });
+
   it('should update var prop attribute', async () => {
     const Cmp = component$(() => {
       const counter = useSignal(0);

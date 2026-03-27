@@ -1,6 +1,6 @@
 import type { ClassList } from '../jsx/types/jsx-qwik-attributes';
 import { QError, qError } from '../error/error';
-import { isPreventDefault } from './event-names';
+import { isPreventDefault, isSerializedEventOption } from './event-names';
 import { isClassAttr } from './scoped-styles';
 import { isArray, isString } from './types';
 import { isUnitlessNumber } from './unitless_number';
@@ -88,8 +88,8 @@ export function serializeAttribute(
     // aria attrs, tabindex etc.
     value = serializeBooleanOrNumberAttribute(value);
   } else if (value === false || value == null) {
-    value = null;
-  } else if (value === true && isPreventDefault(key)) {
+    value = value === false && isSerializedEventOption(key) ? 'false' : null;
+  } else if (value === true && (isPreventDefault(key) || isSerializedEventOption(key))) {
     value = '';
   }
   return value;

@@ -26,14 +26,26 @@ import type {
 
 /** Event handlers get the captured ids as a string `this` */
 type Handler = (this: string | undefined, ev: Event, el: Element) => void | Promise<void>;
+type RegisteredListener = {
+  handler: (ev: Event) => void;
+};
 
 const doc = document as Document;
 const win = window as unknown as qWindow;
 const windowPrefix = 'w';
 const documentPrefix = 'd';
+const preventDefaultPrefix = 'preventdefault:';
+const capturePrefix = 'capture:';
+const passivePrefix = 'passive:';
+const falseValue = 'false';
+const listenerModeActive = 0;
+const listenerModePassive = 1;
+const listenerModeAll = 2;
 
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
+const registeredListeners = new Map<EventTarget, Map<string, RegisteredListener>>();
+const handledEvents = new WeakMap<Event, Set<EventTarget>>();
 const symbols = new Map<string, Handler>();
 let observer: IntersectionObserver | undefined;
 let hasInitialized: number | undefined;
@@ -51,8 +63,16 @@ const addEventListener = (
   el: EventTarget,
   eventName: string,
   handler: (ev: Event) => void,
+  capture = false,
+  passive = false
+) => el.addEventListener(eventName, handler, { capture, passive });
+
+const removeEventListener = (
+  el: EventTarget,
+  eventName: string,
+  handler: (ev: Event) => void,
   capture = false
-) => el.addEventListener(eventName, handler, { capture, passive: false });
+) => el.removeEventListener(eventName, handler, { capture });
 
 const findShadowRoots = (fragment: EventTarget & ParentNode) => {
   addEventOrRoot(fragment);
@@ -96,6 +116,104 @@ const parseKebabEvent = (event: string) => ({
   scope: event.charAt(0),
   eventName: kebabToCamel(event.slice(2)),
 });
+
+const isEventOptionEnabled = (value: string | null) => value !== null && value !== falseValue;
+const getEventPathWithinCurrentRoot = (target: EventTarget | null, kebabName: string) => {
+  const elements: Element[] = [];
+  const captures: boolean[] = [];
+  const passives: boolean[] = [];
+  let element = target as Element | null;
+  const captureAttribute = capturePrefix + kebabName;
+  const passiveAttribute = passivePrefix + kebabName;
+  const preventDefaultAttribute = preventDefaultPrefix + kebabName;
+
+  while (element && element.getAttribute) {
+    elements.push(element);
+    captures.push(isEventOptionEnabled(element.getAttribute(captureAttribute)));
+    passives.push(
+      isEventOptionEnabled(element.getAttribute(passiveAttribute)) &&
+        !element.hasAttribute(preventDefaultAttribute)
+    );
+    element = element.parentElement;
+  }
+
+  return { elements, captures, passives };
+};
+
+const getElementListenerPolicy = (root: ParentNode, kebabName: string) => {
+  let active = false;
+  let passive = false;
+  const candidates = new Set<Element>();
+  nativeQuerySelectorAll(root, '[q-e\\:' + kebabName + ']').forEach((element) =>
+    candidates.add(element)
+  );
+  nativeQuerySelectorAll(root, '[preventdefault\\:' + kebabName + ']').forEach((element) =>
+    candidates.add(element)
+  );
+  nativeQuerySelectorAll(root, '[passive\\:' + kebabName + ']').forEach((element) =>
+    candidates.add(element)
+  );
+  candidates.forEach((element) => {
+    const isPassive =
+      isEventOptionEnabled(element.getAttribute(passivePrefix + kebabName)) &&
+      !element.hasAttribute(preventDefaultPrefix + kebabName);
+    if (isPassive) {
+      passive = true;
+    } else {
+      active = true;
+    }
+  });
+  if (!active && !passive) {
+    active = true;
+  }
+  return { active, passive };
+};
+
+const hasHandledEvent = (ev: Event, root: EventTarget) => handledEvents.get(ev)?.has(root);
+const markEventHandled = (ev: Event, root: EventTarget) => {
+  let handledTargets = handledEvents.get(ev);
+  if (!handledTargets) {
+    handledTargets = new Set<EventTarget>();
+    handledEvents.set(ev, handledTargets);
+  }
+  handledTargets.add(root);
+};
+
+const registerRootEventListener = (
+  target: EventTarget,
+  listenerKey: string,
+  eventName: string,
+  handler: (ev: Event) => void,
+  passive = false
+) => {
+  let listeners = registeredListeners.get(target);
+  if (!listeners) {
+    listeners = new Map();
+    registeredListeners.set(target, listeners);
+  }
+  const existing = listeners.get(listenerKey);
+  if (existing) {
+    removeEventListener(target, eventName, existing.handler, true);
+  }
+  addEventListener(target, eventName, handler, true, passive);
+  listeners.set(listenerKey, { handler });
+};
+
+const unregisterRootEventListener = (
+  target: EventTarget,
+  listenerKey: string,
+  eventName: string
+) => {
+  const listeners = registeredListeners.get(target);
+  const existing = listeners?.get(listenerKey);
+  if (existing) {
+    removeEventListener(target, eventName, existing.handler, true);
+    listeners!.delete(listenerKey);
+    if (listeners!.size === 0) {
+      registeredListeners.delete(target);
+    }
+  }
+};
 
 // ====== Event Processing ======
 
@@ -229,23 +347,52 @@ const dispatch = async (
  *
  * @param ev - Browser event.
  */
-const processElementEvent = async (ev: Event) => {
+const processElementEvent = async (ev: Event, listenerMode = listenerModeAll) => {
   const kebabName = camelToKebab(ev.type);
   const scopedKebabName = 'e:' + kebabName;
-  let element = ev.target as Element | null;
+  const { elements, captures, passives } = getEventPathWithinCurrentRoot(ev.target, kebabName);
 
-  // Bubble up the DOM tree, awaiting any async handlers
-  while (element && element.getAttribute) {
-    const results = dispatch(element, ev, scopedKebabName, kebabName);
-    // The event bubbling is reset after awaiting
-    const doBubble = ev.bubbles && !ev.cancelBubble;
+  for (let i = elements.length - 1; i >= 0; i--) {
+    if (
+      !captures[i] ||
+      (listenerMode !== listenerModeAll && passives[i] !== (listenerMode === listenerModePassive))
+    ) {
+      continue;
+    }
+    const results = dispatch(elements[i], ev, scopedKebabName, kebabName);
     if (isPromise(results)) {
       await results;
     }
-    // Even though it's deprecated as a writeable property, cancelBubble is the only way to know if stopPropagation was called
-    element = doBubble && ev.bubbles && !ev.cancelBubble ? element.parentElement : null;
+    if (ev.cancelBubble) {
+      return;
+    }
+  }
+
+  for (let i = 0; i < elements.length; i++) {
+    if (
+      captures[i] ||
+      (listenerMode !== listenerModeAll && passives[i] !== (listenerMode === listenerModePassive))
+    ) {
+      continue;
+    }
+    const results = dispatch(elements[i], ev, scopedKebabName, kebabName);
+    if (isPromise(results)) {
+      await results;
+    }
+    if (!ev.bubbles || ev.cancelBubble) {
+      return;
+    }
   }
 };
+
+const createElementEventListener =
+  (root: EventTarget & ParentNode, listenerMode: number) => async (ev: Event) => {
+    if (hasHandledEvent(ev, root)) {
+      return;
+    }
+    markEventHandled(ev, root);
+    await processElementEvent(ev, listenerMode);
+  };
 
 const broadcast = (infix: QwikLoaderEventScope, ev: Event) => {
   const kebabName = camelToKebab(ev.type);
@@ -322,52 +469,91 @@ const processReadyStateChange = () => {
 
 // ====== Qwik Loader Initialization ======
 
+const refreshScopedEventOnRoot = (
+  root: EventTarget & ParentNode,
+  scopedEventName: string,
+  eventName: string
+) => {
+  const activeListenerKey = scopedEventName + '|active';
+  const passiveListenerKey = scopedEventName + '|passive';
+  const { active, passive } = getElementListenerPolicy(root, scopedEventName.slice(2));
+
+  if (active) {
+    registerRootEventListener(
+      root,
+      activeListenerKey,
+      eventName,
+      createElementEventListener(root, passive ? listenerModeAll : listenerModeActive)
+    );
+  } else {
+    unregisterRootEventListener(root, activeListenerKey, eventName);
+  }
+
+  if (passive) {
+    registerRootEventListener(
+      root,
+      passiveListenerKey,
+      eventName,
+      createElementEventListener(root, listenerModePassive),
+      true
+    );
+  } else {
+    unregisterRootEventListener(root, passiveListenerKey, eventName);
+  }
+};
+
+const refreshScopedEvent = (scopedEventName: string) => {
+  const { scope, eventName } = parseKebabEvent(scopedEventName);
+  if (scope === windowPrefix) {
+    registerRootEventListener(win, scopedEventName, eventName, processWindowEvent);
+    return;
+  }
+  if (scope === documentPrefix) {
+    roots.forEach((root) =>
+      registerRootEventListener(root, scopedEventName, eventName, processDocumentEvent)
+    );
+    return;
+  }
+  roots.forEach((root) => refreshScopedEventOnRoot(root, scopedEventName, eventName));
+};
+
 const addEventOrRoot = (...eventNames: (string | (EventTarget & ParentNode))[]) => {
   for (let i = 0; i < eventNames.length; i++) {
     const eventNameOrRoot = eventNames[i];
     if (typeof eventNameOrRoot === 'string') {
-      // If it is string we just add the event to window and each of our roots.
-      if (!events.has(eventNameOrRoot)) {
+      const isNewEvent = !events.has(eventNameOrRoot);
+      if (isNewEvent) {
         events.add(eventNameOrRoot);
-        const { scope, eventName } = parseKebabEvent(eventNameOrRoot);
-
-        if (scope === windowPrefix) {
-          addEventListener(win, eventName, processWindowEvent, true);
-        } else {
-          roots.forEach((root) =>
-            addEventListener(
-              root,
-              eventName,
-              scope === documentPrefix ? processDocumentEvent : processElementEvent,
-              true
-            )
-          );
-        }
-        if (
-          hasInitialized === 1 &&
-          (eventNameOrRoot === 'e:qvisible' ||
-            eventNameOrRoot === 'd:qinit' ||
-            eventNameOrRoot === 'd:qidle')
-        ) {
-          processReadyStateChange();
-        }
+      }
+      refreshScopedEvent(eventNameOrRoot);
+      if (
+        isNewEvent &&
+        hasInitialized === 1 &&
+        (eventNameOrRoot === 'e:qvisible' ||
+          eventNameOrRoot === 'd:qinit' ||
+          eventNameOrRoot === 'd:qidle')
+      ) {
+        processReadyStateChange();
       }
     } else {
       // If it is a new root, we also need this root to catch up to all of the document events so far.
       if (!roots.has(eventNameOrRoot)) {
-        events.forEach((kebabEventName) => {
-          const { scope, eventName } = parseKebabEvent(kebabEventName);
+        roots.add(eventNameOrRoot);
+        events.forEach((scopedEventName) => {
+          const { scope, eventName } = parseKebabEvent(scopedEventName);
           if (scope !== windowPrefix) {
-            addEventListener(
-              eventNameOrRoot,
-              eventName,
-              scope === documentPrefix ? processDocumentEvent : processElementEvent,
-              true
-            );
+            if (scope === documentPrefix) {
+              registerRootEventListener(
+                eventNameOrRoot,
+                scopedEventName,
+                eventName,
+                processDocumentEvent
+              );
+            } else {
+              refreshScopedEventOnRoot(eventNameOrRoot, scopedEventName, eventName);
+            }
           }
         });
-
-        roots.add(eventNameOrRoot);
       }
     }
   }

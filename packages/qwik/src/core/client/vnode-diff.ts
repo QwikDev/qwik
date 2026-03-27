@@ -32,7 +32,7 @@ import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { _CONST_PROPS, _OWNER, _PROPS_HANDLER, _VAR_PROPS } from '../shared/utils/constants';
-import { isHtmlAttributeAnEventName } from '../shared/utils/event-names';
+import { isHtmlAttributeAnEventName, isSerializedEventOption } from '../shared/utils/event-names';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_PROPS,
@@ -1189,7 +1189,7 @@ function diffProps(
         }
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }
-    } else if (newValue != null) {
+    } else if (newValue != null || (newValue === false && isSerializedEventOption(key))) {
       patchProperty(diffContext, vnode, key, newValue, currentFile);
     }
   }

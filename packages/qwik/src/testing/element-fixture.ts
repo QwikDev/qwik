@@ -134,8 +134,25 @@ export async function trigger(
 
 const PREVENT_DEFAULT = 'preventdefault:';
 const STOP_PROPAGATION = 'stoppropagation:';
+const CAPTURE = 'capture:';
+const FALSE_VALUE = 'false';
 const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
+
+const isEventOptionEnabled = (value: string | null) => value !== null && value !== FALSE_VALUE;
+const getEventPathWithinCurrentRoot = (target: Element | null, kebabName: string) => {
+  const elements: Element[] = [];
+  const captures: boolean[] = [];
+  const captureName = CAPTURE + kebabName;
+
+  while (target) {
+    elements.push(target);
+    captures.push(isEventOptionEnabled(target.getAttribute(captureName)));
+    target = target.parentElement;
+  }
+
+  return { elements, captures };
+};
 
 /** Dispatch in the same way that Qwik Loader does, for testing purposes. */
 export const dispatch = async (
@@ -146,7 +163,7 @@ export const dispatch = async (
 ) => {
   const preventAttributeName = PREVENT_DEFAULT + kebabName;
   const stopPropagationName = STOP_PROPAGATION + kebabName;
-  while (element) {
+  const invokeHandlers = async (element: Element) => {
     if (kebabName) {
       const preventDefault = element.hasAttribute(preventAttributeName);
       const stopPropagation = element.hasAttribute(stopPropagationName);
@@ -170,7 +187,9 @@ export const dispatch = async (
           }
         }
       }
-    } else if (element.hasAttribute('q-' + scopedKebabName)) {
+      return;
+    }
+    if (element.hasAttribute('q-' + scopedKebabName)) {
       const qrls = element.getAttribute('q-' + scopedKebabName)!;
       try {
         for (const qrl of qrls.split('|')) {
@@ -197,9 +216,29 @@ export const dispatch = async (
         console.error('!!! qrl error', qrls, error);
         throw error;
       }
+    }
+  };
+
+  const { elements, captures } = getEventPathWithinCurrentRoot(element, kebabName);
+
+  for (let i = elements.length - 1; i >= 0; i--) {
+    if (!captures[i]) {
+      continue;
+    }
+    await invokeHandlers(elements[i]);
+    if (event.cancelBubble) {
       return;
     }
-    element = event.bubbles && !event.cancelBubble ? element.parentElement : null;
+  }
+
+  for (let i = 0; i < elements.length; i++) {
+    if (captures[i]) {
+      continue;
+    }
+    await invokeHandlers(elements[i]);
+    if (!event.bubbles || event.cancelBubble) {
+      return;
+    }
   }
 };
 

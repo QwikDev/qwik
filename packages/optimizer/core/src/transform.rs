@@ -2996,12 +2996,31 @@ impl<'a> QwikTransform<'a> {
 		true
 	}
 
-	// TODO export segment data for the noop qrl
+	// Noop segments are now added to the segments collection for manifest generation
 	fn create_noop_qrl(
 		&mut self,
 		symbol_name: &swc_atoms::Atom,
 		segment_data: SegmentData,
 	) -> ast::CallExpr {
+		// Add the noop segment to the segments collection for manifest generation
+		let canonical_filename = get_canonical_filename(&segment_data.display_name, symbol_name);
+
+		// Create a dummy expression for the noop segment
+		let dummy_expr = ast::Expr::Lit(ast::Lit::Null(ast::Null { span: DUMMY_SP }));
+
+		// Add the segment to the collection with entry set to None to indicate it's a noop
+		self.segments.push(Segment {
+			entry: None,
+			span: DUMMY_SP,
+			canonical_filename,
+			name: symbol_name.clone(),
+			data: segment_data.clone(),
+			expr: Box::new(dummy_expr),
+			hash: 0,
+			param_names: None,
+			qrl_id: None,
+		});
+
 		let mut args = vec![ast::Expr::Lit(ast::Lit::Str(ast::Str {
 			span: DUMMY_SP,
 			value: symbol_name.clone(),

@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 7042
+assertion_line: 7250
 expression: output
 ---
 ==INPUT==
@@ -44,10 +44,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "parent": null,
   "ctxKind": "function",
   "ctxName": "task",
-  "captures": false,
+  "captures": true,
   "loc": [
     124,
     251
+  ],
+  "captureNames": [
+    "left",
+    "right"
   ]
 }
 */
@@ -62,6 +66,8 @@ const q_task = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_task_task"), "task", 
     displayName: "test.tsx_task"
 });
 //
+const left = 1;
+const right = 2;
 export const task = q_task.w([
     left,
     true,
@@ -69,7 +75,7 @@ export const task = q_task.w([
 ]);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAMA,OAAO,MAAM,gBAKF;IAAC;IAAM;IAAM;CAAM,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,MAAM,OAAO;AACb,MAAM,QAAQ;AAEd,OAAO,MAAM,gBAKF;IAAC;IAAM;IAAM;CAAM,EAAE\"}")
 == DIAGNOSTICS ==
 
 []

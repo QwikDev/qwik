@@ -1,0 +1,73 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 7197
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+
+const shared = {
+  id: 'abc',
+};
+
+export function readShared() {
+  return shared.id;
+}
+
+export const handler = $(() => {
+  console.log(shared.id);
+});
+
+		
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_handler_T7IDIUVU4lI = /*#__PURE__*/ qrl(()=>import("./test.tsx_handler_T7IDIUVU4lI"), "handler_T7IDIUVU4lI");
+//
+const shared = {
+    id: 'abc'
+};
+export function readShared() {
+    return shared.id;
+}
+export const handler = q_handler_T7IDIUVU4lI;
+export { shared as _auto_shared };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,MAAM,SAAS;IACb,IAAI;AACN;AAEA,OAAO,SAAS;IACd,OAAO,OAAO,EAAE;AAClB;AAEA,OAAO,MAAM,gCAEV\"}")
+============================= test.tsx_handler_T7IDIUVU4lI.js (ENTRY POINT)==
+
+import { _auto_shared as shared } from "./test";
+//
+export const handler_T7IDIUVU4lI = ()=>{
+    console.log(shared.id);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mCAWyB;IACvB,QAAQ,GAAG,CAAC,OAAO,EAAE;AACvB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "handler_T7IDIUVU4lI",
+  "entry": null,
+  "displayName": "test.tsx_handler",
+  "hash": "T7IDIUVU4lI",
+  "canonicalFilename": "test.tsx_handler_T7IDIUVU4lI",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    152,
+    187
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

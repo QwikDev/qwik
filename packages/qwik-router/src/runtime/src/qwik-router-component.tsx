@@ -146,6 +146,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     throw new Error(`Missing Qwik URL Env Data`);
   }
   const serverHead = useServerData<DocumentHeadValue>('documentHead');
+  const manifestHash =
+    useServerData<Record<string, string>>('containerAttributes')?.['q:manifest-hash'];
 
   if (
     env.ev.originalUrl.pathname !== env.ev.url.pathname &&
@@ -212,7 +214,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     scroll: true,
   });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(() =>
-    createDocumentHead(serverHead)
+    createDocumentHead(serverHead, manifestHash)
   );
   const content = useStore<Editable<ContentState>>({
     headings: undefined,

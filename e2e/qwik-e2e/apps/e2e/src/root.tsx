@@ -33,6 +33,7 @@ import { TreeshakingApp } from './components/treeshaking/treeshaking';
 import { TwoListeners } from './components/two-listeners/twolisteners';
 import { UseId } from './components/useid/useid';
 import { Watch } from './components/watch/watch';
+import { Worker } from './components/worker/worker';
 
 import './global.css';
 import { QRL } from './components/qrl/qrl';
@@ -51,6 +52,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/container': () => <Containers />,
   '/e2e/factory': () => <Factory />,
   '/e2e/watch': () => <Watch />,
+  '/e2e/worker': () => <Worker />,
   '/e2e/effect-client': () => <EffectClient />,
   '/e2e/context': () => <ContextRoot />,
   '/e2e/toggle': () => <Toggle />,

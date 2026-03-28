@@ -334,6 +334,48 @@ pub fn build_root_var_usage_map(
 	usage_map
 }
 
+/// Finds root variables that are still referenced from the main module after
+/// QRL extraction. This intentionally only considers module items that must
+/// remain in the root module, such as top-level statements and exported
+/// declarations/expressions.
+pub fn build_main_module_usage_set(
+	module: &ast::Module,
+	root_dependencies: &HashMap<Id, RootVarDependency>,
+) -> HashSet<Id> {
+	let root_ids: HashSet<Id> = root_dependencies.keys().cloned().collect();
+	let mut usage = HashSet::new();
+
+	for item in &module.body {
+		let should_check = match item {
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(_)) => false,
+			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(_)) => false,
+			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(_)) => false,
+			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportAll(_)) => false,
+			_ => true,
+		};
+
+		if !should_check {
+			continue;
+		}
+
+		let mut collector = IdentCollector::new();
+		item.visit_with(&mut collector);
+		let referenced = collector.get_words();
+
+		let mut declared = Vec::new();
+		collect_item_decl_idents(item, &mut declared);
+		let declared: HashSet<Id> = declared.into_iter().collect();
+
+		for id in referenced {
+			if root_ids.contains(&id) && !declared.contains(&id) {
+				usage.insert(id);
+			}
+		}
+	}
+
+	usage
+}
+
 /// Finds variables that are exclusive to a single segment and not exported.
 /// For each exclusive variable, also collects its transitive dependencies.
 /// Returns a map of segment_index -> Vec<variables to migrate>
@@ -341,6 +383,7 @@ pub fn find_migratable_vars(
 	segments: &[crate::transform::Segment],
 	root_dependencies: &HashMap<Id, RootVarDependency>,
 	root_var_usage: &indexmap::IndexMap<Id, Vec<usize>>,
+	main_module_usage: &HashSet<Id>,
 ) -> std::collections::BTreeMap<usize, Vec<Id>> {
 	let mut migratable: std::collections::BTreeMap<usize, Vec<Id>> =
 		std::collections::BTreeMap::new();
@@ -350,7 +393,8 @@ pub fn find_migratable_vars(
 		// 1. Used by exactly one segment
 		// 2. Not exported
 		// 3. Not already an import (must be a root variable declaration)
-		if segments_using.len() == 1 {
+		// 4. Not still referenced by the main/root module
+		if segments_using.len() == 1 && !main_module_usage.contains(root_var_id) {
 			let seg_idx = segments_using[0];
 			if let Some(dep_info) = root_dependencies.get(root_var_id) {
 				if !dep_info.is_exported && !dep_info.is_imported {
@@ -360,6 +404,7 @@ pub fn find_migratable_vars(
 						root_dependencies,
 						segments,
 						seg_idx,
+						main_module_usage,
 					);
 
 					migratable.entry(seg_idx).or_default().extend(transitive);
@@ -384,7 +429,19 @@ pub fn find_migratable_vars(
 		for (seg_idx, vars) in migratable.iter_mut() {
 			let before_len = vars.len();
 			vars.retain(|candidate_id| {
+				if main_module_usage.contains(candidate_id) {
+					return false;
+				}
+
 				let candidate_target = assignment.get(candidate_id).copied().unwrap_or(*seg_idx);
+				if !shared_declarator_migrates_as_a_unit(
+					candidate_id,
+					candidate_target,
+					&assignment,
+					root_dependencies,
+				) {
+					return false;
+				}
 
 				let used_by_incompatible_root =
 					root_dependencies.iter().any(|(root_id, dep_info)| {
@@ -423,6 +480,7 @@ fn collect_transitive_dependencies(
 	root_dependencies: &HashMap<Id, RootVarDependency>,
 	_segments: &[crate::transform::Segment],
 	_target_seg_idx: usize,
+	main_module_usage: &HashSet<Id>,
 ) -> Vec<Id> {
 	let mut result = vec![var_id.clone()];
 	let mut queue = VecDeque::new();
@@ -439,9 +497,12 @@ fn collect_transitive_dependencies(
 					// Only include dependency if it's:
 					// 1. A root variable (not imported)
 					// 2. Not exported
-					// 3. Only used by this segment or shared with no harm
+					// 3. Not still referenced by the main/root module
 					if let Some(dep_info) = root_dependencies.get(dep) {
-						if !dep_info.is_exported && !dep_info.is_imported {
+						if !dep_info.is_exported
+							&& !dep_info.is_imported
+							&& !main_module_usage.contains(dep)
+						{
 							// Assume it's safe to migrate (doesn't have side effects)
 							result.push(dep.clone());
 							queue.push_back(dep.clone());
@@ -453,4 +514,74 @@ fn collect_transitive_dependencies(
 	}
 
 	result
+}
+
+fn shared_declarator_migrates_as_a_unit(
+	candidate_id: &Id,
+	candidate_target: usize,
+	assignment: &std::collections::BTreeMap<Id, usize>,
+	root_dependencies: &HashMap<Id, RootVarDependency>,
+) -> bool {
+	let Some(dep_info) = root_dependencies.get(candidate_id) else {
+		return true;
+	};
+
+	let RootVarDecl::Var(decl) = &dep_info.decl else {
+		return true;
+	};
+
+	let mut decl_ids = Vec::new();
+	collect_decl_idents(&decl.name, &mut decl_ids);
+	if decl_ids.len() <= 1 {
+		return true;
+	}
+
+	decl_ids
+		.iter()
+		.all(|decl_id| assignment.get(decl_id) == Some(&candidate_target))
+}
+
+fn collect_item_decl_idents(item: &ast::ModuleItem, idents: &mut Vec<Id>) {
+	match item {
+		ast::ModuleItem::Stmt(ast::Stmt::Decl(decl)) => collect_decl_idents_from_decl(decl, idents),
+		ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(export_decl)) => {
+			collect_decl_idents_from_decl(&export_decl.decl, idents);
+		}
+		ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDefaultDecl(default_decl)) => {
+			match &default_decl.decl {
+				ast::DefaultDecl::Class(class) => {
+					if let Some(ident) = &class.ident {
+						idents.push((ident.sym.clone(), ident.ctxt));
+					}
+				}
+				ast::DefaultDecl::Fn(func) => {
+					if let Some(ident) = &func.ident {
+						idents.push((ident.sym.clone(), ident.ctxt));
+					}
+				}
+				_ => {}
+			}
+		}
+		_ => {}
+	}
+}
+
+fn collect_decl_idents_from_decl(decl: &ast::Decl, idents: &mut Vec<Id>) {
+	match decl {
+		ast::Decl::Var(var_decl) => {
+			for decl in &var_decl.decls {
+				collect_decl_idents(&decl.name, idents);
+			}
+		}
+		ast::Decl::Fn(function) => {
+			idents.push((function.ident.sym.clone(), function.ident.ctxt));
+		}
+		ast::Decl::Class(class) => {
+			idents.push((class.ident.sym.clone(), class.ident.ctxt));
+		}
+		ast::Decl::TsEnum(enu) => {
+			idents.push((enu.id.sym.clone(), enu.id.ctxt));
+		}
+		_ => {}
+	}
 }

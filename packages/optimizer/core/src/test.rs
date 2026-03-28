@@ -6942,6 +6942,8 @@ export const action = formAction$((data) => {
 });
 		"#
 		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
 		..TestInput::default()
 	});
 }
@@ -6962,6 +6964,8 @@ export const action = formAction$((data) => {
 });
 		"#
 		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
 		..TestInput::default()
 	});
 }
@@ -6987,6 +6991,8 @@ export const action = formAction$((data) => {
 });
 		"#
 		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
 		..TestInput::default()
 	});
 }
@@ -7006,6 +7012,71 @@ export const action = formAction$((data) => {
 });
 		"#
 		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_module_level_var_used_in_both_main_and_qrl() {
+	// Minimal repro: module-level variable used both in main module scope
+	// AND inside a $() closure. The optimizer must keep (or re-export) the
+	// variable in the main module — moving it only to the chunk is a bug.
+	test_input!(TestInput {
+		code: r#"
+import { $, isServer } from '@qwik.dev/core';
+
+const state = {
+  counter: 0,
+  id: Math.random().toString(36).slice(2, 8),
+};
+
+console.log('Module init, id:', state.id);
+
+export function doSomething() {
+  if (!isServer) {
+    state.counter++;
+  }
+}
+
+export function useHook() {
+  const fn = $(() => {
+    state.counter++;
+    console.log(state.id);
+  });
+  return fn;
+}
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_non_migrated_binding_from_shared_destructuring_declarator() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const { a, b } = {
+  a: 1,
+  b: 2,
+};
+
+console.log('root', b);
+
+export const handler = $(() => {
+  console.log('qrl', a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
 		..TestInput::default()
 	});
 }

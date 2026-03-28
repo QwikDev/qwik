@@ -19,7 +19,7 @@ export const action = formAction$((data) => {
   }
 });
 		
-============================= test.tsx ==
+============================= test.js ==
 
 import { formActionQrl } from "forms";
 import { qrl } from "@qwik.dev/core";
@@ -32,7 +32,7 @@ export const action = formActionQrl(q_action_formAction_dIQV5vh1He4);
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,SAAS,QAAQ,OAAO;;;;AAEvB;AACV,OAAO,MAAM,SAAS,+CAOnB\"}")
-============================= test.tsx_action_formAction_dIQV5vh1He4.tsx (ENTRY POINT)==
+============================= test.tsx_action_formAction_dIQV5vh1He4.js (ENTRY POINT)==
 
 import { translate } from "i18n";
 //
@@ -61,7 +61,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "hash": "dIQV5vh1He4",
   "canonicalFilename": "test.tsx_action_formAction_dIQV5vh1He4",
   "path": "",
-  "extension": "tsx",
+  "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "formAction$",

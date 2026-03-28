@@ -1,0 +1,89 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 7026
+expression: output
+---
+==INPUT==
+
+
+import { $, isServer } from '@qwik.dev/core';
+
+const state = {
+  counter: 0,
+  id: Math.random().toString(36).slice(2, 8),
+};
+
+console.log('Module init, id:', state.id);
+
+export function doSomething() {
+  if (!isServer) {
+    state.counter++;
+  }
+}
+
+export function useHook() {
+  const fn = $(() => {
+    state.counter++;
+    console.log(state.id);
+  });
+  return fn;
+}
+
+		
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+import { isServer } from '@qwik.dev/core';
+//
+const q_useHook_fn_kScGJcREaTg = /*#__PURE__*/ qrl(()=>import("./test.tsx_useHook_fn_kScGJcREaTg"), "useHook_fn_kScGJcREaTg");
+//
+const state = {
+    counter: 0,
+    id: Math.random().toString(36).slice(2, 8)
+};
+console.log('Module init, id:', state.id);
+export function doSomething() {
+    if (!isServer) state.counter++;
+}
+export function useHook() {
+    const fn = q_useHook_fn_kScGJcREaTg;
+    return fn;
+}
+export { state as _auto_state };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,QAAQ,QAAQ,iBAAiB;;;;AAE7C,MAAM,QAAQ;IACZ,SAAS;IACT,IAAI,KAAK,MAAM,GAAG,QAAQ,CAAC,IAAI,KAAK,CAAC,GAAG;AAC1C;AAEA,QAAQ,GAAG,CAAC,oBAAoB,MAAM,EAAE;AAExC,OAAO,SAAS;IACd,IAAI,CAAC,UACH,MAAM,OAAO;AAEjB;AAEA,OAAO,SAAS;IACd,MAAM;IAIN,OAAO;AACT\"}")
+============================= test.tsx_useHook_fn_kScGJcREaTg.js (ENTRY POINT)==
+
+import { _auto_state as state } from "./test";
+//
+export const useHook_fn_kScGJcREaTg = ()=>{
+    state.counter++;
+    console.log(state.id);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;sCAiBe;IACX,MAAM,OAAO;IACb,QAAQ,GAAG,CAAC,MAAM,EAAE;AACtB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "useHook_fn_kScGJcREaTg",
+  "entry": null,
+  "displayName": "test.tsx_useHook_fn",
+  "hash": "kScGJcREaTg",
+  "canonicalFilename": "test.tsx_useHook_fn_kScGJcREaTg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    295,
+    354
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

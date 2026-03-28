@@ -421,7 +421,9 @@ export { RequestEventLoader }
 export { RequestHandler }
 
 // @public (undocumented)
-export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Record<string, unknown>> = Required<DocumentHeadValue<FrontMatter>>;
+export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Record<string, unknown>> = Required<DocumentHeadValue<FrontMatter>> & {
+    readonly manifestHash: string;
+};
 
 // @public (undocumented)
 export const routeAction$: ActionConstructor;

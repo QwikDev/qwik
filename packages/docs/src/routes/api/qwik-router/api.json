@@ -824,7 +824,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Record<string, unknown>> = Required<DocumentHeadValue<FrontMatter>>;\n```\n**References:** [DocumentHeadValue](#documentheadvalue)",
+      "content": "```typescript\nexport type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Record<string, unknown>> = Required<DocumentHeadValue<FrontMatter>> & {\n    readonly manifestHash: string;\n};\n```\n**References:** [DocumentHeadValue](#documentheadvalue)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.resolveddocumenthead.md"
     },

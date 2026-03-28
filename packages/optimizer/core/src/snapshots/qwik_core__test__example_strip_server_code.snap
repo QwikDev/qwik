@@ -48,6 +48,58 @@ export const Parent = component$(() => {
 	);
 });
 
+============================= test.tsx_Parent_component_serverStuff_r1qAHX7Opp0.js (ENTRY POINT)==
+
+export const s_r1qAHX7Opp0 = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_r1qAHX7Opp0",
+  "entry": null,
+  "displayName": "test.tsx_Parent_component_serverStuff",
+  "hash": "r1qAHX7Opp0",
+  "canonicalFilename": "test.tsx_Parent_component_serverStuff_r1qAHX7Opp0",
+  "path": "",
+  "extension": "js",
+  "parent": "s_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "serverStuff$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ]
+}
+*/
+============================= test.tsx_serverless_handler_ddV1irobfWI.js (ENTRY POINT)==
+
+export const s_ddV1irobfWI = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_ddV1irobfWI",
+  "entry": null,
+  "displayName": "test.tsx_serverless_handler",
+  "hash": "ddV1irobfWI",
+  "canonicalFilename": "test.tsx_serverless_handler_ddV1irobfWI",
+  "path": "",
+  "extension": "js",
+  "parent": "s_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "serverLoader$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ]
+}
+*/
 ============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js (ENTRY POINT)==
 
 import { _captures } from "@qwik.dev/core";

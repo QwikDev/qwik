@@ -346,13 +346,13 @@ pub fn build_main_module_usage_set(
 	let mut usage = HashSet::new();
 
 	for item in &module.body {
-		let should_check = match item {
-			ast::ModuleItem::Stmt(ast::Stmt::Decl(_)) => false,
-			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(_)) => false,
-			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(_)) => false,
-			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportAll(_)) => false,
-			_ => true,
-		};
+		let should_check = !matches!(
+			item,
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(_))
+				| ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(_))
+				| ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(_))
+				| ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportAll(_))
+		);
 
 		if !should_check {
 			continue;

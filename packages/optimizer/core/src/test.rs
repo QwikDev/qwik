@@ -7081,6 +7081,143 @@ export const handler = $(() => {
 	});
 }
 
+#[test]
+fn should_keep_root_var_used_by_export_decl_and_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const shared = {
+  id: 'abc',
+};
+
+export const exportedValue = shared.id;
+
+export const handler = $(() => {
+  console.log(shared.id);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_migrate_destructured_binding_with_imported_dependency() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { source } from 'lib';
+
+const { a } = source;
+
+export const handler = $(() => {
+  console.log(a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_non_migrated_binding_from_shared_array_destructuring_declarator() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const [a, b] = [1, 2];
+
+console.log('root', b);
+
+export const handler = $(() => {
+  console.log('qrl', a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_non_migrated_binding_from_shared_destructuring_with_default() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const { a = 1, b } = { b: 2 };
+
+console.log('root', b);
+
+export const handler = $(() => {
+  console.log('qrl', a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_non_migrated_binding_from_shared_destructuring_with_rest() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const { a, ...rest } = { a: 1, b: 2, c: 3 };
+
+console.log('root', rest.b, rest.c);
+
+export const handler = $(() => {
+  console.log('qrl', a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_root_var_used_by_exported_function_and_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const shared = {
+  id: 'abc',
+};
+
+export function readShared() {
+  return shared.id;
+}
+
+export const handler = $(() => {
+  console.log(shared.id);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
 impl TestInput {
 	pub fn default() -> Self {
 		Self {

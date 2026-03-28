@@ -2763,6 +2763,34 @@
       "mdFile": "core.withlocale.md"
     },
     {
+      "name": "worker$",
+      "id": "worker_",
+      "hierarchy": [
+        {
+          "name": "worker$",
+          "id": "worker_"
+        }
+      ],
+      "kind": "Function",
+      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nWraps a function so it executes in a dedicated web worker.\n\n`worker$()` is equivalent to calling [workerQrl()](#workerqrl) with the function converted to a `QRL` as the first argument. Use it for CPU-heavy client-side work that would otherwise block the main thread, such as parsing, hashing, indexing, or image processing.\n\n\n```typescript\nworker$: <T extends (...args: any[]) => any>(qrl: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl-type-alias)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/web-worker/index.ts",
+      "mdFile": "core.worker_.md"
+    },
+    {
+      "name": "workerQrl",
+      "id": "workerqrl",
+      "hierarchy": [
+        {
+          "name": "workerQrl",
+          "id": "workerqrl"
+        }
+      ],
+      "kind": "Function",
+      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nCreates a worker-backed QRL which executes in a dedicated web worker.\n\nUse `workerQrl()` when you already have a `QRL` and want its work to run off the main thread. For most application code, prefer [worker$()](#worker_)<!-- -->, which is the ergonomic shorthand.\n\nArguments and return values must be serializable by Qwik. DOM nodes and browser events should not be passed directly. If a form submit event is provided, it is converted to `FormData` before it is serialized to the worker.\n\nThe wrapped function runs in the worker context, so it must not depend on component hooks or direct DOM access.\n\n\n```typescript\nworkerQrl: <T extends (...args: any[]) => any>(fnQrl: QRL<T>) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfnQrl\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl-type-alias)<!-- -->&lt;T&gt;\n\nA QRL proxy whose invocation resolves with the worker result.",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/web-worker/index.ts",
+      "mdFile": "core.workerqrl.md"
+    },
+    {
       "name": "write",
       "id": "ssrstreamwriter-write",
       "hierarchy": [

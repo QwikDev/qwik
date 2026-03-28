@@ -24,6 +24,7 @@ import { submoduleQwikLoader } from './submodule-qwikloader.ts';
 import { submoduleBackpatch } from './submodule-backpatch.ts';
 import { submoduleServer } from './submodule-server.ts';
 import { submoduleTesting } from './submodule-testing.ts';
+import { submoduleQwikWorker } from './submodule-qwikworker.ts';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
 import { tsc, tscQwik, tscQwikRouter } from './tsc.ts';
 import { tscDocs } from './tsc-docs.ts';
@@ -68,6 +69,9 @@ export async function build(config: BuildConfig) {
 
     if (config.qwik || config.optimizer) {
       await submoduleQwikLoader(config);
+    }
+    if (config.qwik || config.qwikworker) {
+      await submoduleQwikWorker(config);
     }
 
     if (config.optimizer) {

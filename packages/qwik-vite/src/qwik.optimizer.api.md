@@ -24,8 +24,7 @@ export enum ExperimentalFeatures {
     insights = "insights",
     noSPA = "noSPA",
     preventNavigate = "preventNavigate",
-    valibot = "valibot",
-    webWorker = "webWorker"
+    valibot = "valibot"
 }
 
 // @public (undocumented)

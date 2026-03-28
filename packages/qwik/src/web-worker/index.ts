@@ -1,17 +1,11 @@
-//@ts-ignore
-import type { ClientContainer } from '@qwik.dev/core';
 import { implicit$FirstArg } from '../core/shared/qrl/implicit_dollar';
-import { $, type QRL } from '../core/shared/qrl/qrl.public';
+import { createQRL, _captures, type QRLInternal } from '../core/shared/qrl/qrl-class';
+import { type QRL } from '../core/shared/qrl/qrl.public';
 import { _serialize } from '../core/shared/serdes/index';
-import { _getContextContainer, _getContextHostElement } from '../core/use/use-core';
-import workerUrl from './worker.js?worker&url';
+import type { ClientContainer } from '../core/client/types';
+import { _getContextContainer } from '../core/use/use-core';
 
-export interface ServerFunction {
-  (...args: any[]): any;
-}
-export interface WorkerConstructorQRL {
-  <T extends ServerFunction>(fnQrl: QRL<T>): QRL<T>;
-}
+const workerUrl = new URL('./worker.js', import.meta.url).href;
 
 const qwikWorkers = new Map<string, Worker>();
 let workerRequests = 0;
@@ -35,54 +29,70 @@ const getWorker = (qrl: QRL) => {
   return worker;
 };
 
-/**
- * @internal
- * @experimental
- */
-export const workerQrl: WorkerConstructorQRL = (qrl) => {
-  if (!__EXPERIMENTAL__.webWorker) {
-    throw new Error(
-      'worker$ is experimental and must be enabled with `experimental: ["webWorker"]` in the `qwikVite` plugin.'
-    );
-  }
-  return $(async (...args: any[]) => {
-    const containerEl =
-      (_getContextContainer() as ClientContainer | undefined)?.element ?? document.documentElement;
-    const worker = getWorker(qrl);
-    const requestId = getWorkerRequest();
-    const qbase = containerEl.getAttribute('q:base') ?? '/';
-    const baseURI = document.baseURI;
-    const filtered = args.map((arg) => {
-      if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
-        return new FormData(arg.target);
-      } else if (arg instanceof Event) {
-        return null;
-      } else if (arg instanceof Node) {
-        return null;
-      }
-      return arg;
-    });
+const _worker = async (...args: any[]) => {
+  const [qrl] = _captures as [QRLInternal<(...args: any[]) => any>];
+  const containerEl =
+    (_getContextContainer() as ClientContainer | undefined)?.element ?? document.documentElement;
+  const worker = getWorker(qrl);
+  const requestId = getWorkerRequest();
+  const qbase = containerEl.getAttribute('q:base') ?? '/';
+  const baseURI = document.baseURI;
+  const filtered = args.map((arg) => {
+    if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
+      return new FormData(arg.target);
+    } else if (arg instanceof Event) {
+      return null;
+    } else if (arg instanceof Node) {
+      return null;
+    }
+    return arg;
+  });
 
-    const data = await _serialize([qrl, ...filtered]);
-    return new Promise((resolve, reject) => {
-      const handler = ({ data }: MessageEvent) => {
-        if (Array.isArray(data) && data.length === 3 && data[0] === requestId) {
-          worker.removeEventListener('message', handler);
-          if (data[1] === true) {
-            resolve(data[2]);
-          } else {
-            reject(data[2]);
-          }
+  const data = await _serialize([qrl, ...filtered]);
+  return new Promise((resolve, reject) => {
+    const handler = ({ data }: MessageEvent) => {
+      if (Array.isArray(data) && data.length === 3 && data[0] === requestId) {
+        worker.removeEventListener('message', handler);
+        if (data[1] === true) {
+          resolve(data[2]);
+        } else {
+          reject(data[2]);
         }
-      };
-      worker.addEventListener('message', handler);
-      worker.postMessage([requestId, baseURI, qbase, data]);
-    });
-  }) as any;
+      }
+    };
+    worker.addEventListener('message', handler);
+    worker.postMessage([requestId, baseURI, qbase, data]);
+  });
 };
 
 /**
+ * Creates a worker-backed QRL which executes in a dedicated web worker.
+ *
+ * Use `workerQrl()` when you already have a `QRL` and want its work to run off the main thread. For
+ * most application code, prefer {@link worker$}, which is the ergonomic shorthand.
+ *
+ * Arguments and return values must be serializable by Qwik. DOM nodes and browser events should not
+ * be passed directly. If a form submit event is provided, it is converted to `FormData` before it
+ * is serialized to the worker.
+ *
+ * The wrapped function runs in the worker context, so it must not depend on component hooks or
+ * direct DOM access.
+ *
+ * @param qrl - The QRL to execute in the worker.
+ * @returns A QRL proxy whose invocation resolves with the worker result.
  * @beta
- * @experimental
+ */
+export const workerQrl = (<T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T> => {
+  return createQRL(null, '_wrk', _worker as any, null, [qrl], _getContextContainer()) as QRL<T>;
+}) as <T extends (...args: any[]) => any>(fnQrl: QRL<T>) => QRL<T>;
+
+/**
+ * Wraps a function so it executes in a dedicated web worker.
+ *
+ * `worker$()` is equivalent to calling {@link workerQrl} with the function converted to a `QRL` as
+ * the first argument. Use it for CPU-heavy client-side work that would otherwise block the main
+ * thread, such as parsing, hashing, indexing, or image processing.
+ *
+ * @beta
  */
 export const worker$ = implicit$FirstArg(workerQrl);

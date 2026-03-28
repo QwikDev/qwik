@@ -1,0 +1,99 @@
+---
+title: worker$ | Qwik
+description: Run CPU-heavy Qwik functions in a web worker.
+updated_at: '2026-03-28T00:00:00Z'
+created_at: '2026-03-28T00:00:00Z'
+---
+
+import { Note } from '~/components/note/note';
+
+# `worker$()`
+
+`worker$()` lets you run a Qwik function in a dedicated web worker and await the result from your
+component code.
+
+It is a good fit for CPU-heavy client-side work such as parsing, hashing, image processing, or
+search indexing that would otherwise block the main thread.
+
+## Basic usage
+
+```tsx
+import { component$, useSignal, worker$ } from '@qwik.dev/core';
+
+const fibonacci = worker$((n: number) => {
+  const fib = (value: number): number => {
+    return value < 2 ? value : fib(value - 1) + fib(value - 2);
+  };
+
+  return fib(n);
+});
+
+export default component$(() => {
+  const input = useSignal(40);
+  const result = useSignal<number>();
+  const pending = useSignal(false);
+
+  return (
+    <>
+      <button
+        onClick$={async () => {
+          pending.value = true;
+          result.value = await fibonacci(input.value);
+          pending.value = false;
+        }}
+      >
+        Run in worker
+      </button>
+
+      <p>{pending.value ? 'Working...' : result.value}</p>
+    </>
+  );
+});
+```
+
+## What `worker$()` returns
+
+`worker$()` returns a callable QRL. In practice, you usually treat it like an async function and
+`await` the result.
+
+If you already have a `QRL`, use [`workerQrl`](/api/qwik/#workerqrl) directly. For most app code,
+prefer `worker$()`.
+
+## Serialization rules
+
+Arguments and return values must be serializable by Qwik.
+
+<Note>
+  Pass plain data into `worker$()`, not live DOM objects. If you need something from an event or
+  element, read the value on the main thread first and pass that value to the worker.
+</Note>
+
+In particular:
+
+- primitives, arrays, objects, `FormData`, and other serializable values work well
+- DOM nodes and most browser events should not be passed directly
+- if a `SubmitEvent` from a form is passed, Qwik converts it to `FormData`
+
+## Worker constraints
+
+Code inside `worker$()` runs in a web worker, not on the main thread.
+
+That means:
+
+- no direct DOM access
+- no component hooks inside the worker function
+- browser APIs that are available in workers are fine
+
+If the work belongs on the server instead, use [`server$()`](/docs/server$/) rather than
+`worker$()`.
+
+## Build behavior
+
+`worker$()` is part of `@qwik.dev/core` and does not require an experimental `qwikVite()` flag.
+Qwik ships the worker runtime as part of the core package build.
+
+## Related
+
+- [QRL](/docs/qrl/)
+- [The $ dollar sign](/docs/dollar/)
+- [API reference](/api/qwik/#worker)

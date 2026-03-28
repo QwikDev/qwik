@@ -227,6 +227,10 @@ test('experimental[]', async () => {
   assert.deepEqual(opts.experimental, { [flag]: true } as any);
 });
 
+test('webWorker is no longer experimental', () => {
+  assert.notInclude(Object.values(ExperimentalFeatures), 'webWorker');
+});
+
 describe('resolveId', () => {
   test('qrls', async () => {
     const plugin = await mockPlugin();

@@ -83,6 +83,8 @@ export {
   ValueOrPromise,
   version,
   withLocale,
+  worker$,
+  workerQrl,
   SVGAttributes,
   HTMLElementAttrs,
   SVGProps,

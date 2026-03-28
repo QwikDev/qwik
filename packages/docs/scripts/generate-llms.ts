@@ -206,6 +206,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Core Concepts',
+      'worker$',
+      '/docs/advanced/worker/',
+      'Guide for running CPU-heavy client-side work in a dedicated web worker with `worker$` and `workerQrl`.',
+      toSourcePath('docs', '(qwik)', 'advanced', 'worker', 'index.mdx')
+    ),
+    docEntry(
+      'Core Concepts',
       'State',
       '/docs/core/state/',
       'Reference for signals, stores, computed values, async state, and related reactive primitives.',

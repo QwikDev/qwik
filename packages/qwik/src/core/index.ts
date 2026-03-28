@@ -19,6 +19,7 @@ if (import.meta.hot) {
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { componentQrl, component$ } from './shared/component.public';
+export { workerQrl, worker$ } from '../web-worker/index';
 
 export type { PropsOf, OnRenderFn, Component, PublicProps } from './shared/component.public';
 

@@ -10395,6 +10395,100 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-locale.ts)
 
+<h2 id="worker_">worker$</h2>
+
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Wraps a function so it executes in a dedicated web worker.
+
+`worker$()` is equivalent to calling [workerQrl()](#workerqrl) with the function converted to a `QRL` as the first argument. Use it for CPU-heavy client-side work that would otherwise block the main thread, such as parsing, hashing, indexing, or image processing.
+
+```typescript
+worker$: <T extends (...args: any[]) => any>(qrl: T) => QRL<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[QRL](#qrl-type-alias)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/web-worker/index.ts)
+
+<h2 id="workerqrl">workerQrl</h2>
+
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Creates a worker-backed QRL which executes in a dedicated web worker.
+
+Use `workerQrl()` when you already have a `QRL` and want its work to run off the main thread. For most application code, prefer [worker$()](#worker_), which is the ergonomic shorthand.
+
+Arguments and return values must be serializable by Qwik. DOM nodes and browser events should not be passed directly. If a form submit event is provided, it is converted to `FormData` before it is serialized to the worker.
+
+The wrapped function runs in the worker context, so it must not depend on component hooks or direct DOM access.
+
+```typescript
+workerQrl: <T extends (...args: any[]) => any>(fnQrl: QRL<T>) => QRL<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fnQrl
+
+</td><td>
+
+[QRL](#qrl-type-alias)&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[QRL](#qrl-type-alias)&lt;T&gt;
+
+A QRL proxy whose invocation resolves with the worker result.
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/web-worker/index.ts)
+
 <h2 id="ssrstreamwriter-write">write</h2>
 
 ```typescript

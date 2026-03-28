@@ -2058,6 +2058,12 @@ export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;
 
+// @beta
+export const worker$: <T extends (...args: any[]) => any>(qrl: T) => QRL<T>;
+
+// @beta
+export const workerQrl: <T extends (...args: any[]) => any>(fnQrl: QRL<T>) => QRL<T>;
+
 // Warning: (ae-forgotten-export) The symbol "WrappedProp" needs to be exported by the entry point index.d.ts
 //
 // @internal

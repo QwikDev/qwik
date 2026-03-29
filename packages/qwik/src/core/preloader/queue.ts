@@ -1,6 +1,5 @@
-import { isBrowser } from '@qwik.dev/core/build';
 import { base, getBundle, graph } from './bundle-graph';
-import { config, doc, loadStart, rel } from './constants';
+import { config, doc, hasDocument, loadStart, rel } from './constants';
 import type { BundleImport, BundleImports } from './types';
 import {
   BundleImportState_Loaded,
@@ -251,12 +250,12 @@ export const preload = (name: string | (number | string)[], probability?: number
   } else {
     handleBundle(name, inverseProbability);
   }
-  if (isBrowser) {
+  if (hasDocument) {
     trigger();
   }
 };
 
-if (isBrowser) {
+if (hasDocument) {
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

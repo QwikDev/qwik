@@ -4,13 +4,16 @@
  * @public
  */
 export const isBrowser: boolean = /*#__PURE__*/ (() =>
-  typeof window !== 'undefined' &&
-  typeof HTMLElement !== 'undefined' &&
-  !!window.document &&
-  String(HTMLElement).includes('[native code]'))();
+  (typeof window !== 'undefined' &&
+    typeof HTMLElement !== 'undefined' &&
+    !!window.document &&
+    String(HTMLElement).includes('[native code]')) ||
+  (typeof WorkerGlobalScope !== 'undefined' &&
+    typeof self !== 'undefined' &&
+    self instanceof WorkerGlobalScope))();
 
 /**
- * True when build is made for SSR purposes.
+ * True when build is made for non-browser execution.
  *
  * @public
  */

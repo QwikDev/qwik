@@ -46,6 +46,7 @@ export {
 } from './shared-types';
 export { _chk, _res, _val } from './shared/jsx/bind-handlers';
 export { _jsxC, _jsxQ, _jsxS, _jsxSorted, _jsxSplit } from './shared/jsx/jsx-internal';
+export { _worker as _wrk } from '../web-worker/index';
 export { isJSXNode as _isJSXNode } from './shared/jsx/jsx-node';
 export { _getConstProps, _getVarProps } from './shared/jsx/props-proxy';
 export { _fnSignal } from './shared/qrl/inlined-fn';

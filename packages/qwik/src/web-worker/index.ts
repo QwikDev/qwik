@@ -1,11 +1,11 @@
 import { implicit$FirstArg } from '../core/shared/qrl/implicit_dollar';
-import { createQRL, _captures, type QRLInternal } from '../core/shared/qrl/qrl-class';
+import { _captures, type QRLInternal } from '../core/shared/qrl/qrl-class';
 import { type QRL } from '../core/shared/qrl/qrl.public';
+import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { _serialize } from '../core/shared/serdes/index';
 import type { ClientContainer } from '../core/client/types';
 import { _getContextContainer } from '../core/use/use-core';
-
-const workerUrl = new URL('./worker.js', import.meta.url).href;
+// import workerUrl from './worker.js?worker&url';
 
 const qwikWorkers = new Map<string, Worker>();
 let workerRequests = 0;
@@ -20,7 +20,7 @@ const getWorker = (qrl: QRL) => {
   if (!worker) {
     qwikWorkers.set(
       qrl.getHash(),
-      (worker = new Worker(workerUrl, {
+      (worker = new Worker(new URL('./worker.js', import.meta.url), {
         name: `worker$(${qrl.getSymbol()})`,
         type: 'module',
       }))
@@ -29,7 +29,8 @@ const getWorker = (qrl: QRL) => {
   return worker;
 };
 
-const _worker = async (...args: any[]) => {
+/** @internal */
+export const _worker = async (...args: any[]) => {
   const [qrl] = _captures as [QRLInternal<(...args: any[]) => any>];
   const containerEl =
     (_getContextContainer() as ClientContainer | undefined)?.element ?? document.documentElement;
@@ -48,7 +49,7 @@ const _worker = async (...args: any[]) => {
     return arg;
   });
 
-  const data = await _serialize([qrl, ...filtered]);
+  const qrlData = await _serialize([qrl, ...filtered]);
   return new Promise((resolve, reject) => {
     const handler = ({ data }: MessageEvent) => {
       if (Array.isArray(data) && data.length === 3 && data[0] === requestId) {
@@ -61,7 +62,7 @@ const _worker = async (...args: any[]) => {
       }
     };
     worker.addEventListener('message', handler);
-    worker.postMessage([requestId, baseURI, qbase, data]);
+    worker.postMessage([requestId, baseURI, qbase, qrlData]);
   });
 };
 
@@ -83,7 +84,7 @@ const _worker = async (...args: any[]) => {
  * @beta
  */
 export const workerQrl = (<T extends (...args: any[]) => any>(qrl: QRL<T>): QRL<T> => {
-  return createQRL(null, '_wrk', _worker as any, null, [qrl], _getContextContainer()) as QRL<T>;
+  return inlinedQrl(_worker, '_wrk', [qrl]) as QRL<T>;
 }) as <T extends (...args: any[]) => any>(fnQrl: QRL<T>) => QRL<T>;
 
 /**

@@ -1,5 +1,5 @@
 import { isBrowser } from '@qwik.dev/core/build';
-import { config, isJSRegex } from './constants';
+import { config, hasDocument, isJSRegex } from './constants';
 import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
@@ -87,7 +87,7 @@ export const loadBundleGraph = (
       config.$invPreloadProbability$ = 1 - (opts['Q'] as number);
     }
   }
-  if (!isBrowser || basePath == null) {
+  if (!isBrowser || !hasDocument || basePath == null) {
     return;
   }
   base = basePath;

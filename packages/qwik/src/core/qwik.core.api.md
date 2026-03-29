@@ -2072,6 +2072,9 @@ export const _wrapProp: <T extends object, P extends keyof T>(...args: [T, P?]) 
 // @internal @deprecated (undocumented)
 export const _wrapSignal: <T extends object, P extends keyof T>(obj: T, prop: P) => T[P] | WrappedProp<T, P>;
 
+// @internal (undocumented)
+export const _wrk: (...args: any[]) => Promise<unknown>;
+
 // (No @packageDocumentation comment for this package)
 
 ```

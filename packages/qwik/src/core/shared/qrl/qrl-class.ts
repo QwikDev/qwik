@@ -142,7 +142,10 @@ export class LazyRef<TYPE = unknown> {
       // Sync QRL
       isDev && assertDefined(this.$container$, 'Sync QRL must have container element');
       const hash = (this.$container$ as DomContainer).$instanceHash$;
-      const doc = (this.$container$ as DomContainer).element?.ownerDocument || document;
+      const doc =
+        (this.$container$ as DomContainer).element?.ownerDocument ||
+        (typeof document === 'object' ? document : undefined);
+      isDev && assertDefined(doc, 'Sync QRL must have container element or document');
       const qFuncs = getQFuncs(doc, hash);
       return (this.$ref$ = qFuncs[Number(this.$symbol$)] as TYPE);
     }

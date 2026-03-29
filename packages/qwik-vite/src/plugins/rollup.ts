@@ -269,7 +269,6 @@ async function normalizeSharedOutputOptions(
     outputOpts.exports = 'auto';
   }
 
-  debugger;
   return outputOpts;
 }
 

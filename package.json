@@ -143,12 +143,12 @@
     "globals": "17.0.0",
     "imagetools-core": "9.1.0",
     "install": "0.13.0",
-    "lint-staged": "^16.3.0",
+    "lint-staged": "^16.4.0",
     "memfs": "4.51.1",
     "monaco-editor": "0.54.0",
     "mri": "1.2.0",
-    "oxfmt": "0.27.0",
-    "oxlint": "1.42.0",
+    "oxfmt": "0.41.0",
+    "oxlint": "1.56.0",
     "path-browserify": "1.0.1",
     "prompts": "2.4.2",
     "rollup": "4.59.0",
@@ -274,11 +274,8 @@
     "worktree": "node --require ./scripts/runBefore.ts scripts/worktrees.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,cjs}": [
-      "oxfmt --write",
-      "oxlint --quiet"
-    ],
-    "*.{json,jsonc,css,html,md,mdx,yaml,yml}": "oxfmt --write"
+    "*": "oxfmt --write",
+    "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --quiet"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged"

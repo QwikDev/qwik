@@ -1,0 +1,22 @@
+# Ignore patterns
+**/**.api.md
+**/*.log
+**/.DS_Store
+pnpm-lock.yaml
+dist
+dist-dev
+lib
+target
+node_modules
+tsconfig.tsbuildinfo
+packages/docs/public/repl/repl-sw.js*
+packages/*/lib
+packages/*/dist
+packages/*/server
+packages/docs/src/routes/api
+packages/insights/drizzle
+packages/insights/.netlify
+packages/insights/scripts
+packages/insights/**/*.gen.d.ts
+**/q-insights.json
+packages/docs/public/builder

@@ -114,6 +114,11 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
   promise(): Promise<void>;
   /** Abort the current computation and run cleanups if needed. */
   abort(reason?: any): void;
+  /**
+   * Use this to force recalculation. If you pass `info`, it will be provided to the calculation
+   * function.
+   */
+  invalidate(info?: unknown): void;
 }
 
 /**

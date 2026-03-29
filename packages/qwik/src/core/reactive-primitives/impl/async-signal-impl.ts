@@ -43,7 +43,11 @@ class AsyncJob<T> implements AsyncCtx<T> {
   $cleanups$: Parameters<AsyncCtx<T>['cleanup']>[0][] | undefined;
   $abortController$: AbortController | undefined;
 
-  constructor(readonly $signal$: AsyncSignalImpl<T>) {}
+  constructor(
+    readonly $signal$: AsyncSignalImpl<T>,
+    readonly info: unknown,
+    readonly $infoVersion$: number
+  ) {}
 
   get track(): AsyncCtx<T>['track'] {
     return (this.$track$ ||= trackFn(this.$signal$, this.$signal$.$container$));
@@ -97,6 +101,8 @@ export class AsyncSignalImpl<T>
   $concurrency$: number = 1;
   $interval$: number = 0;
   $timeoutMs$: number | undefined;
+  $info$: unknown = undefined;
+  $infoVersion$: number = 0;
   declare $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined;
   declare $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
 
@@ -265,9 +271,13 @@ export class AsyncSignalImpl<T>
   }
 
   /** Invalidates the signal, causing it to re-compute its value. */
-  override async invalidate() {
+  override async invalidate(info?: unknown) {
     this.$flags$ |= SignalFlags.INVALID;
     this.$clearNextPoll$();
+    if (arguments.length > 0) {
+      this.$info$ = info;
+      this.$infoVersion$++;
+    }
     if (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size) {
       // compute in next microtask
       await true;
@@ -339,7 +349,8 @@ export class AsyncSignalImpl<T>
     this.$flags$ &= ~SignalFlags.INVALID;
 
     // We put the actual computation in a separate method so we can easily retain the promise
-    const running = new AsyncJob(this);
+    const infoVersion = this.$infoVersion$;
+    const running = new AsyncJob(this, this.$info$, infoVersion);
     this.$current$ = running;
     this.$jobs$.push(running);
     running.$promise$ = this.$runComputation$(running);
@@ -393,6 +404,9 @@ export class AsyncSignalImpl<T>
 
     if (isCurrent()) {
       clearTimeout(this.$computationTimeoutId$);
+      if (running.$infoVersion$ === this.$infoVersion$) {
+        this.$info$ = undefined;
+      }
 
       if (this.$flags$ & SignalFlags.INVALID) {
         DEBUG && log('Computation finished but signal is invalid, re-running');

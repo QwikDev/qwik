@@ -125,6 +125,7 @@ describe('signal types', () => {
     expectTypeOf(signal.untrackedValue).toEqualTypeOf<number>();
     expectTypeOf(signal.abort()).toEqualTypeOf<void>();
     expectTypeOf(signal.invalidate()).toEqualTypeOf<void>();
+    expectTypeOf(signal.invalidate('info')).toEqualTypeOf<void>();
   });
 });
 
@@ -330,6 +331,72 @@ describe('signal', () => {
 
           // Poll timeout should be cleared
           expect(signal.$pollTimeoutId$).toBeUndefined();
+        });
+      });
+
+      it('should expose invalidate info to the next computation', async () => {
+        await withContainer(async () => {
+          const infos: unknown[] = [];
+          const signal = createAsync$(
+            async ({ info }) => {
+              infos.push(info);
+              return infos.length;
+            },
+            { initial: 0 }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+          await signal.promise();
+
+          signal.invalidate('refresh');
+          await signal.promise();
+
+          expect(infos).toEqual([undefined, 'refresh']);
+        });
+      });
+
+      it('should reset invalidate info after computation completes', async () => {
+        await withContainer(async () => {
+          const infos: unknown[] = [];
+          const signal = createAsync$(
+            async ({ info }) => {
+              infos.push(info);
+              return infos.length;
+            },
+            { initial: 0 }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+          await signal.promise();
+
+          signal.invalidate(true);
+          await signal.promise();
+          signal.invalidate();
+          await signal.promise();
+
+          expect(infos).toEqual([undefined, true, undefined]);
+        });
+      });
+
+      it('should use the latest invalidate info before recalculation starts', async () => {
+        await withContainer(async () => {
+          const infos: unknown[] = [];
+          const signal = createAsync$(
+            async ({ info }) => {
+              infos.push(info);
+              return infos.length;
+            },
+            { initial: 0 }
+          ) as AsyncSignalImpl<number>;
+
+          effect$(() => signal.value);
+          await signal.promise();
+
+          signal.invalidate('first');
+          signal.invalidate('second');
+          await signal.promise();
+
+          expect(infos).toEqual([undefined, 'second']);
         });
       });
 

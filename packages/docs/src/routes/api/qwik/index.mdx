@@ -288,6 +288,15 @@ Abort the current computation and run cleanups if needed.
 </td></tr>
 <tr><td>
 
+[invalidate(info)](#asyncsignal-invalidate)
+
+</td><td>
+
+Use this to force recalculation. If you pass `info`, it will be provided to the calculation function.
+
+</td></tr>
+<tr><td>
+
 [promise()](#asyncsignal-promise)
 
 </td><td>
@@ -783,7 +792,7 @@ Description
 </td></tr>
 <tr><td>
 
-[invalidate()](#computedsignal-invalidate)
+invalidate()
 
 </td><td>
 
@@ -2032,13 +2041,41 @@ interface IntrinsicElements extends LenientQwikElements
 
 **Extends:** LenientQwikElements
 
-<h2 id="computedsignal-invalidate">invalidate</h2>
+<h2 id="asyncsignal-invalidate">invalidate</h2>
 
-Use this to force recalculation.
+Use this to force recalculation. If you pass `info`, it will be provided to the calculation function.
 
 ```typescript
-invalidate(): void;
+invalidate(info?: unknown): void;
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+info
+
+</td><td>
+
+unknown
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 
 **Returns:**
 

@@ -110,6 +110,7 @@ export const trigger = () => {
   const fragment = doc.createDocumentFragment();
   const deadline = Date.now() + yieldInterval;
   let shouldYield = false;
+  let queuedInSlice = 0;
   while (queue.length) {
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
@@ -122,7 +123,7 @@ export const trigger = () => {
     if (probability >= 0.99 || preloadCount < allowedPreloads) {
       queue.shift();
       preloadOne(bundle, fragment);
-      if (Date.now() >= deadline) {
+      if (++queuedInSlice === 8 || Date.now() >= deadline) {
         shouldYield = true;
         break;
       }

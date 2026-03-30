@@ -26,6 +26,12 @@ const installTestPlatform = async () => {
   setPlatform(getTestPlatform() as any);
 };
 
+const flushPromises = () =>
+  Promise.resolve()
+    .then(() => Promise.resolve())
+    .then(() => Promise.resolve())
+    .then(() => Promise.resolve());
+
 const createLinearGraph = (length: number) => {
   const serialized: (string | number)[] = [];
   for (let i = 0; i < length; i++) {
@@ -149,4 +155,37 @@ test('yields during dependency propagation and resumes later', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(4);
   expect(headAppend).toHaveBeenCalledTimes(2);
   expect(getQueue()).toEqual([]);
+});
+
+test('defers bundle graph re-adjustment to a later task', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(Date, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const headAppend = vi.spyOn(document.head, 'appendChild');
+  const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload, resetQueue } = await import('./queue');
+
+  resetQueue();
+  preload('entry-a.js', 1);
+  loadBundleGraph(
+    '',
+    Promise.resolve({
+      text: () => Promise.resolve(JSON.stringify(createLinearGraph(4))),
+    } as Response)
+  );
+
+  await flushPromises();
+
+  expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
+  expect(headAppend).not.toHaveBeenCalled();
+
+  vi.runOnlyPendingTimers();
+
+  expect(headAppend).toHaveBeenCalled();
 });

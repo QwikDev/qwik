@@ -9,12 +9,17 @@ import {
   BundleImportState_Queued,
 } from './types';
 import type { QwikSymbolEvent } from '../shared/jsx/types/jsx-qwik-events';
+import { createMacroTask } from '../shared/platform/next-tick';
+import { isServerPlatform } from '../shared/platform/platform';
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 let preloadCount = 0;
 const queue: BundleImport[] = [];
+const yieldInterval = 1000 / 60;
+const nextMacroTask = createMacroTask(() => trigger());
+let isTriggerScheduled = false;
 
 export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
@@ -30,6 +35,7 @@ export const resetQueue = () => {
   shouldResetFactor = true;
   preloadCount = 0;
   queue.length = 0;
+  isTriggerScheduled = false;
 };
 export const sortQueue = () => {
   if (queueDirty) {
@@ -70,10 +76,14 @@ export const getQueue = () => {
  * We make sure to first preload the high priority items.
  */
 export const trigger = () => {
+  isTriggerScheduled = false;
   if (!queue.length) {
     return;
   }
   sortQueue();
+  const fragment = doc.createDocumentFragment();
+  const deadline = Date.now() + yieldInterval;
+  let shouldYield = false;
   while (queue.length) {
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
@@ -85,10 +95,21 @@ export const trigger = () => {
     // When we're 99% sure, everything needs to be queued
     if (probability >= 0.99 || preloadCount < allowedPreloads) {
       queue.shift();
-      preloadOne(bundle);
+      preloadOne(bundle, fragment);
+      if (Date.now() >= deadline) {
+        shouldYield = true;
+        break;
+      }
     } else {
       break;
     }
+  }
+  if (fragment.firstChild) {
+    doc.head.appendChild(fragment);
+  }
+  if (shouldYield && queue.length && !isTriggerScheduled) {
+    isTriggerScheduled = true;
+    nextMacroTask();
   }
   /**
    * The low priority bundles are opportunistic, and we want to give the browser some breathing room
@@ -104,7 +125,7 @@ export const trigger = () => {
   }
 };
 
-const preloadOne = (bundle: BundleImport) => {
+const preloadOne = (bundle: BundleImport, parent: DocumentFragment) => {
   if (bundle.$state$ >= BundleImportState_Preload) {
     return;
   }
@@ -139,7 +160,7 @@ const preloadOne = (bundle: BundleImport) => {
     trigger();
   };
 
-  doc.head.appendChild(link);
+  parent.appendChild(link);
 };
 
 /**
@@ -253,12 +274,12 @@ export const preload = (name: string | (number | string)[], probability?: number
   } else {
     handleBundle(name, inverseProbability);
   }
-  if (isBrowser) {
+  if (import.meta.env.TEST ? !isServerPlatform() : isBrowser) {
     trigger();
   }
 };
 
-if (isBrowser) {
+if (import.meta.env.TEST ? !isServerPlatform() : isBrowser) {
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

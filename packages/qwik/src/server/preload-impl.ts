@@ -9,7 +9,8 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
   }
   const segments = `${base}${path}`.split('/');
   const simplified = [];
-  for (const segment of segments) {
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
     if (segment === '..' && simplified.length > 0) {
       simplified.pop();
     } else {
@@ -145,7 +146,8 @@ export const includePreloader = (
     // Keep the same as in getQueue (but *10)
     let probability = 4;
     const tenXMinProbability = ssrPreloadProbability * 10;
-    for (const hrefOrProbability of expandedBundles) {
+    for (let i = 0; i < expandedBundles.length; i++) {
+      const hrefOrProbability = expandedBundles[i];
       if (typeof hrefOrProbability === 'string') {
         if (probability < tenXMinProbability) {
           break;

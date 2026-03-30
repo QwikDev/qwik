@@ -85,15 +85,19 @@ export function processVNodeData(document: Document) {
 
   // Process all of the `qwik/vnode` script tags by attaching them to the corresponding containers.
   const attachVnodeDataAndRefs = (element: Document | ShadowRoot) => {
-    Array.from(element.querySelectorAll('script[type="qwik/vnode"]')).forEach((script) => {
+    const scripts = element.querySelectorAll('script[type="qwik/vnode"]');
+    for (let i = 0; i < scripts.length; i++) {
+      const script = scripts[i];
       const qContainerElement = script.closest('[q\\:container]') as ContainerElement | null;
       qContainerElement!.qVnodeData = script.textContent!;
       qContainerElement!.qVNodeRefs = new Map<number, Element | ElementVNode>();
-    });
-    element.querySelectorAll('[q\\:shadowroot]').forEach((parent) => {
+    }
+    const shadowRoots = element.querySelectorAll('[q\\:shadowroot]');
+    for (let i = 0; i < shadowRoots.length; i++) {
+      const parent = shadowRoots[i];
       const shadowRoot = parent.shadowRoot;
       shadowRoot && attachVnodeDataAndRefs(shadowRoot);
-    });
+    }
   };
   attachVnodeDataAndRefs(document);
 

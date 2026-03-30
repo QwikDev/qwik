@@ -57,7 +57,8 @@ function cloneDomTreeWithNamespace(
   const newElement = element.ownerDocument.createElementNS(namespace, elementName);
 
   // Copy all attributes
-  for (const attr of element.attributes) {
+  for (let i = 0; i < element.attributes.length; i++) {
+    const attr = element.attributes[i];
     if (attr.name !== Q_PROPS_SEPARATOR) {
       newElement.setAttribute(attr.name, attr.value);
     }
@@ -65,7 +66,8 @@ function cloneDomTreeWithNamespace(
 
   if (deep) {
     // Recursively clone all child nodes
-    for (const child of element.childNodes) {
+    for (let i = 0; i < element.childNodes.length; i++) {
+      const child = element.childNodes[i];
       const nodeType = child.nodeType;
       if (nodeType === 3 /* Node.TEXT_NODE */) {
         newElement.appendChild(child.cloneNode());

@@ -18,8 +18,10 @@ export async function updateDependencies() {
     'optionalDependencies',
   ] as const;
 
-  for (const name of packageNames) {
-    for (const propName of dependencyNames) {
+  for (let i = 0; i < packageNames.length; i++) {
+    const name = packageNames[i];
+    for (let j = 0; j < dependencyNames.length; j++) {
+      const propName = dependencyNames[j];
       const prop = packageJson[propName];
       if (prop && prop[name]) {
         prop[name] = version;
@@ -63,7 +65,8 @@ function getPackageTag() {
       return aIndex - bIndex;
     });
 
-  for (const [, version] of tags) {
+  for (let i = 0; i < tags.length; i++) {
+    const [, version] = tags[i];
     if (major(version) === 2) {
       return version;
     }

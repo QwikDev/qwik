@@ -48,7 +48,8 @@ export function _res(this: string | undefined, _: any, element: Element) {
   maybeScopeFromQL(this, element);
   // Captures are deserialized, now trigger computation on AsyncSignals
   if (_captures) {
-    for (const capture of _captures) {
+    for (let i = 0; i < _captures.length; i++) {
+      const capture = _captures[i];
       if (capture instanceof AsyncSignalImpl && capture.$flags$ & AsyncSignalFlags.CLIENT_ONLY) {
         capture.$computeIfNeeded$();
       }

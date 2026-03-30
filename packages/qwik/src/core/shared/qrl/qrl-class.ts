@@ -205,7 +205,8 @@ export class QRLClass<TYPE> {
       }
       if (qDev) {
         if ($captures$ && typeof $captures$ === 'object') {
-          for (const item of $captures$) {
+          for (let i = 0; i < $captures$.length; i++) {
+            const item = $captures$[i];
             verifySerializable(item, 'Captured variable in the closure can not be serialized');
           }
         }
@@ -400,7 +401,9 @@ export const setCaptures = (captures: Readonly<unknown[]> | null) => {
 
 export const deserializeCaptures = (container: Container, captures: string) => {
   const refs = [];
-  for (const id of captures.split(' ')) {
+  const captureIds = captures.split(' ');
+  for (let i = 0; i < captureIds.length; i++) {
+    const id = captureIds[i];
     refs.push(container.$getObjectById$(id));
   }
   return refs;

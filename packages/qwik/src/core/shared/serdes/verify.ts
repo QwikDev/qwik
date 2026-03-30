@@ -48,13 +48,17 @@ const _verifySerializable = <T>(
         if (isArray(unwrapped)) {
           let expectIndex = 0;
           // Make sure the array has no holes
-          unwrapped.forEach((v, i) => {
+          for (let i = 0; i < unwrapped.length; i++) {
+            if (!(i in unwrapped)) {
+              throw qError(QError.verifySerializable, [unwrapped]);
+            }
+            const v = unwrapped[i];
             if (i !== expectIndex) {
               throw qError(QError.verifySerializable, [unwrapped]);
             }
             _verifySerializable(v, seen, ctx + '[' + i + ']');
             expectIndex = i + 1;
-          });
+          }
           return value;
         }
         // We don't want to walk internal objects, assume we already checked the contents

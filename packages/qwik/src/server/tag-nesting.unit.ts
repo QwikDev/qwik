@@ -244,7 +244,8 @@ describe('tag-nesting', () => {
 function isValidNesting(path: string): true | string {
   const parts = path.split('>');
   let state = TagNesting.DOCUMENT;
-  for (const part of parts) {
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
     state =
       part === '#text'
         ? (state & TagNesting.TEXT) === 0

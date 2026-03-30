@@ -85,7 +85,8 @@ function executeTasksChore(container: Container, ssrNode: ISsrNode): ValueOrProm
     return null;
   }
   let promise: ValueOrPromise<void> | null = null;
-  for (const item of elementSeq) {
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
     if (item instanceof Task) {
       const task = item as Task<TaskFn, TaskFn>;
 

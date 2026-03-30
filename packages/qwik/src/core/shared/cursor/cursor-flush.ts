@@ -194,8 +194,8 @@ function executeAfterFlush(container: Container, cursorData: CursorData): void {
     );
 
   let visibleTaskPromise: Promise<void> | undefined;
-  for (const visibleTask of visibleTasks) {
-    const task = visibleTask;
+  for (let i = 0; i < visibleTasks.length; i++) {
+    const task = visibleTasks[i];
     const result = runTask(task, container, task.$el$);
     if (isPromise(result)) {
       visibleTaskPromise = visibleTaskPromise ? visibleTaskPromise.then(() => result) : result;

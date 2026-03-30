@@ -65,20 +65,24 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   console.log(``);
-  for (const script of prebuildScripts) {
+  for (let i = 0; i < prebuildScripts.length; i++) {
+    const script = prebuildScripts[i];
     console.log(dim(script!));
   }
-  for (const script of scripts) {
+  for (let i = 0; i < scripts.length; i++) {
+    const script = scripts[i];
     console.log(dim(script!));
   }
-  for (const script of postbuildScripts) {
+  for (let i = 0; i < postbuildScripts.length; i++) {
+    const script = postbuildScripts[i];
     console.log(dim(script!));
   }
   console.log(``);
 
   let typecheck: Promise<Step> | null = null;
 
-  for (const script of prebuildScripts) {
+  for (let i = 0; i < prebuildScripts.length; i++) {
+    const script = prebuildScripts[i];
     try {
       await execaCommand(script, {
         cwd: app.rootDir,
@@ -278,13 +282,14 @@ export async function runBuildCommand(app: AppCommand) {
   if (step2.length > 0) {
     await Promise.all(step2)
       .then((steps) => {
-        steps.forEach((step) => {
+        for (let i = 0; i < steps.length; i++) {
+          const step = steps[i];
           if (step.stdout) {
             console.log('');
             console.log(step.stdout);
           }
           console.log(`${cyan('✓')} ${step.title}`);
-        });
+        }
 
         if (!isPreviewBuild && !buildServerScript && !buildStaticScript && !isLibraryBuild) {
           const pmRun = pmRunCmd();
@@ -318,7 +323,8 @@ export async function runBuildCommand(app: AppCommand) {
       .catch((error) => console.log(red(error)));
   }
 
-  for (const script of postbuildScripts) {
+  for (let i = 0; i < postbuildScripts.length; i++) {
+    const script = postbuildScripts[i];
     try {
       await execaCommand(script, {
         stdout: 'inherit',

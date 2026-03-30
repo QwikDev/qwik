@@ -111,16 +111,19 @@ export async function qwikInsights(qwikInsightsOpts: {
               string,
               { imports?: string[] | undefined; dynamicImports?: string[] | undefined }
             > = {};
-            for (const item of data?.prefetch || []) {
-              if (item.symbols) {
-                let route = item.route;
-                if (route.startsWith('/')) {
-                  route = route.slice(1);
+            if (data) {
+              for (let i = 0; i < data.prefetch.length; i++) {
+                const item = data.prefetch[i];
+                if (item.symbols) {
+                  let route = item.route;
+                  if (route.startsWith('/')) {
+                    route = route.slice(1);
+                  }
+                  if (!route.endsWith('/')) {
+                    route += '/';
+                  }
+                  result[route] = { ...manifest.bundles[route], imports: item.symbols };
                 }
-                if (!route.endsWith('/')) {
-                  route += '/';
-                }
-                result[route] = { ...manifest.bundles[route], imports: item.symbols };
               }
             }
             return result;

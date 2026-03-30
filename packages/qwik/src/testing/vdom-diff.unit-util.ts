@@ -203,9 +203,10 @@ function diffJsxVNode(
     path.push(tagToString(expected.type));
 
     allProps.sort();
-    allProps.forEach((prop) => {
+    for (let i = 0; i < allProps.length; i++) {
+      const prop = allProps[i];
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
-        return;
+        continue;
       }
       // we need this, because Domino lowercases all attributes for `element.attributes`
       const propLowerCased = prop.toLowerCase();
@@ -238,7 +239,7 @@ function diffJsxVNode(
         diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
         diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
       }
-    });
+    }
     diffJsxVNodeChildren(received, expected, path, container, isSsr, diffs);
   } else if (isSsr && isSkippableNode(expected)) {
     diffJsxVNodeChildren(received, expected, path, container, isSsr, diffs);
@@ -314,7 +315,8 @@ function getFilteredJSXChildren(
   };
 
   function processChildren(children: JSXChildren[]) {
-    for (const child of children) {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
       if (typeof child === 'string' || typeof child === 'number') {
         // skip empty strings
         if (child !== '') {
@@ -384,9 +386,11 @@ export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
   const html: string[] = [];
   if (jsx.type) {
     html.push(pad, '<', tagToString(jsx.type), '>\n');
-    getJSXChildren(jsx).forEach((jsx) => {
+    const children = getJSXChildren(jsx);
+    for (let i = 0; i < children.length; i++) {
+      const jsx = children[i];
       html.push(jsxToHTML(jsx as JSXNode, pad + '  '));
-    });
+    }
     html.push(pad, '</', tagToString(jsx.type), '>\n');
   } else {
     html.push(pad, JSON.stringify(jsx), '\n');
@@ -454,7 +458,8 @@ export function walkJSX(
   if (_isJSXNode(jsx)) {
     apply.enter(jsx);
     if (Array.isArray(jsx.children)) {
-      for (const child of jsx.children) {
+      for (let i = 0; i < jsx.children.length; i++) {
+        const child = jsx.children[i];
         processChild(child);
       }
     } else if (jsx.children) {
@@ -555,11 +560,12 @@ function constPropsFromElement(element: Element) {
 }
 
 function propsAdd(existing: string[], incoming: string[]) {
-  for (const prop of incoming) {
+  for (let i = 0; i < incoming.length; i++) {
+    const prop = incoming[i];
     if (prop !== 'children') {
       let found = false;
-      for (let i = 0; i < existing.length; i++) {
-        if (existing[i].toLowerCase() === prop.toLowerCase()) {
+      for (let j = 0; j < existing.length; j++) {
+        if (existing[j].toLowerCase() === prop.toLowerCase()) {
           found = true;
           break;
         }

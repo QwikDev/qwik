@@ -43,6 +43,7 @@ const nativeQuerySelectorAll = (root: ParentNode, selector: string) =>
   Array.from(root.querySelectorAll(selector));
 const querySelectorAll = (query: string) => {
   const elements: Element[] = [];
+  // eslint-disable-next-line qwik-local/loop-style
   roots.forEach((root) => elements.push(...nativeQuerySelectorAll(root, query)));
   return elements;
 };
@@ -56,10 +57,12 @@ const addEventListener = (
 
 const findShadowRoots = (fragment: EventTarget & ParentNode) => {
   addEventOrRoot(fragment);
-  nativeQuerySelectorAll(fragment, '[q\\:shadowroot]').forEach((parent) => {
+  const shadowRoots = nativeQuerySelectorAll(fragment, '[q\\:shadowroot]');
+  for (let i = 0; i < shadowRoots.length; i++) {
+    const parent = shadowRoots[i];
     const shadowRoot = parent.shadowRoot;
     shadowRoot && findShadowRoots(shadowRoot);
-  });
+  }
 };
 
 const isPromise = (promise: any): promise is Promise<any> =>
@@ -147,7 +150,9 @@ const dispatch = async (
     )! as QContainerElement;
     const qBase = container.getAttribute('q:base')!;
     const base = new URL(qBase, doc.baseURI);
-    for (const qrl of attrValue.split('|')) {
+    const qrls = attrValue.split('|');
+    for (let i = 0; i < qrls.length; i++) {
+      const qrl = qrls[i];
       const reqTime = performance.now();
       const [chunk, symbol, capturedIds] = qrl.split('#');
       const eventData: QwikSymbolEvent['detail'] = {
@@ -250,9 +255,11 @@ const processElementEvent = async (ev: Event) => {
 const broadcast = (infix: QwikLoaderEventScope, ev: Event) => {
   const kebabName = camelToKebab(ev.type);
   const scopedKebabName = infix + ':' + kebabName;
-  querySelectorAll('[q-' + infix + '\\:' + kebabName + ']').forEach((el) =>
-    dispatch(el, ev, scopedKebabName, kebabName)
-  );
+  const elements = querySelectorAll('[q-' + infix + '\\:' + kebabName + ']');
+  for (let i = 0; i < elements.length; i++) {
+    const el = elements[i];
+    dispatch(el, ev, scopedKebabName, kebabName);
+  }
 };
 
 /**
@@ -280,15 +287,18 @@ const processReadyStateChange = () => {
   if (readyState == 'interactive' || readyState == 'complete') {
     hasInitialized = 1;
 
+    // eslint-disable-next-line qwik-local/loop-style
     roots.forEach(findShadowRoots);
 
     if (events.has('d:qinit')) {
       events.delete('d:qinit');
       const ev = createEvent('qinit');
-      querySelectorAll('[q-d\\:qinit]').forEach((el) => {
+      const elements = querySelectorAll('[q-d\\:qinit]');
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i];
         dispatch(el, ev, 'd:qinit');
         el.removeAttribute('q-d:qinit');
-      });
+      }
     }
 
     if (events.has('d:qidle')) {
@@ -296,26 +306,31 @@ const processReadyStateChange = () => {
       const riC = win.requestIdleCallback ?? win.setTimeout;
       riC.bind(win)(() => {
         const ev = createEvent('qidle');
-        querySelectorAll('[q-d\\:qidle]').forEach((el) => {
+        const elements = querySelectorAll('[q-d\\:qidle]');
+        for (let i = 0; i < elements.length; i++) {
+          const el = elements[i];
           dispatch(el, ev, 'd:qidle');
           el.removeAttribute('q-d:qidle');
-        });
+        }
       });
     }
 
     if (events.has('e:qvisible')) {
       observer ||= new IntersectionObserver((entries) => {
-        for (const entry of entries) {
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
           if (entry.isIntersecting) {
             observer!.unobserve(entry.target);
             dispatch(entry.target, createEvent<QwikVisibleEvent>('qvisible', entry), 'e:qvisible');
           }
         }
       });
-      querySelectorAll('[q-e\\:qvisible]:not([q\\:observed])').forEach((el) => {
-        observer!.observe(el);
+      const elements = querySelectorAll('[q-e\\:qvisible]:not([q\\:observed])');
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i];
+        observer.observe(el);
         el.setAttribute('q:observed', 'true');
-      });
+      }
     }
   }
 };
@@ -334,6 +349,7 @@ const addEventOrRoot = (...eventNames: (string | (EventTarget & ParentNode))[]) 
         if (scope === windowPrefix) {
           addEventListener(win, eventName, processWindowEvent, true);
         } else {
+          // eslint-disable-next-line qwik-local/loop-style
           roots.forEach((root) =>
             addEventListener(
               root,
@@ -355,6 +371,7 @@ const addEventOrRoot = (...eventNames: (string | (EventTarget & ParentNode))[]) 
     } else {
       // If it is a new root, we also need this root to catch up to all of the document events so far.
       if (!roots.has(eventNameOrRoot)) {
+        // eslint-disable-next-line qwik-local/loop-style
         events.forEach((kebabEventName) => {
           const { scope, eventName } = parseKebabEvent(kebabEventName);
           if (scope !== windowPrefix) {

@@ -271,7 +271,8 @@ function process(html: string): ClientContainer[] {
   // console.log(html);
   const document = createDocument({ html });
   const templates = Array.from(document.querySelectorAll('template'));
-  for (const template of templates) {
+  for (let i = 0; i < templates.length; i++) {
+    const template = templates[i];
     const parent = template.parentElement!;
     if (parent.hasAttribute('q:shadowroot')) {
       const content = (template as any).content;
@@ -290,13 +291,17 @@ function process(html: string): ClientContainer[] {
 }
 
 const findContainers = (element: Document | ShadowRoot, containers: Element[]) => {
-  Array.from(element.querySelectorAll('[q\\:container]')).forEach((container) => {
+  const qContainerElements = element.querySelectorAll('[q\\:container]');
+  for (let i = 0; i < qContainerElements.length; i++) {
+    const container = qContainerElements[i];
     containers.push(container);
-  });
-  element.querySelectorAll('[q\\:shadowroot]').forEach((parent) => {
+  }
+  const shadowRoots = element.querySelectorAll('[q\\:shadowroot]');
+  for (let i = 0; i < shadowRoots.length; i++) {
+    const parent = shadowRoots[i];
     const shadowRoot = parent.shadowRoot;
     shadowRoot && findContainers(shadowRoot, containers);
-  });
+  }
 };
 
 function encodeVNode(data: Record<number, string> = {}) {
@@ -305,7 +310,8 @@ function encodeVNode(data: Record<number, string> = {}) {
     .sort();
   let result = '';
   let idx = 0;
-  for (const key of keys) {
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
     result += emitVNodeSeparators(idx, key) + data[key];
     idx = key;
   }

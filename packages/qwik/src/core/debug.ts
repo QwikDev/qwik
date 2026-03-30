@@ -85,16 +85,19 @@ export const jsxToString = (value: any): string => {
     }
     let str = '<' + value.type;
     if (value.props) {
-      for (const [key, val] of Object.entries(value.props)) {
+      const propsEntries = Object.entries(value.props);
+      for (let i = 0; i < propsEntries.length; i++) {
+        const [key, val] = propsEntries[i];
         str += ' ' + key + '=' + qwikDebugToString(val);
       }
       const children = value.children;
       if (children != null) {
         str += '>';
         if (Array.isArray(children)) {
-          children.forEach((child) => {
+          for (let i = 0; i < children.length; i++) {
+            const child = children[i];
             str += jsxToString(child);
-          });
+          }
         } else {
           str += jsxToString(children);
         }

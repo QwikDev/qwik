@@ -111,9 +111,10 @@ export function resolveManifest(
   }
   if (mergedManifest!.mapping) {
     const mapper: SymbolMapper = {};
-    Object.entries(mergedManifest.mapping).forEach(([symbol, bundleFilename]) => {
+    for (const symbol in mergedManifest.mapping) {
+      const bundleFilename = mergedManifest.mapping[symbol];
       mapper[getSymbolHash(symbol)] = [symbol, bundleFilename];
-    });
+    }
     return {
       mapper,
       manifest: mergedManifest,

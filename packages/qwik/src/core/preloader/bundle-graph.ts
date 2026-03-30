@@ -108,7 +108,8 @@ export const loadBundleGraph = (
         }
         config.$DEBUG$ &&
           log(`parseBundleGraph got ${graph.size} bundles, adjusting ${toAdjust.length}`);
-        for (const [bundle, inverseProbability] of toAdjust) {
+        for (let i = 0; i < toAdjust.length; i++) {
+          const [bundle, inverseProbability] = toAdjust[i];
           adjustProbabilities(bundle, inverseProbability);
         }
         trigger();

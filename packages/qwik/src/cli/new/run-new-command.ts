@@ -232,7 +232,8 @@ async function writeToFile(name: string, slug: string, template: Template, outDi
 function inject(raw: string, vars: string[][]) {
   let output = raw;
 
-  for (const v of vars) {
+  for (let i = 0; i < vars.length; i++) {
+    const v = vars[i];
     output = output.replaceAll(v[0], v[1]);
   }
 

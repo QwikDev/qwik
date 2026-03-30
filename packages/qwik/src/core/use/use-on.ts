@@ -111,7 +111,8 @@ const _useOn = (prefix: EventNameHtmlScope, eventName: string | string[], eventQ
   }
   if (eventQrl) {
     if (Array.isArray(eventName)) {
-      for (const event of eventName) {
+      for (let i = 0; i < eventName.length; i++) {
+        const event = eventName[i];
         addEvent(prefix + fromCamelToKebabCase(event), eventQrl);
       }
     } else {

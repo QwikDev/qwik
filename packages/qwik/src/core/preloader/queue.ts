@@ -1,7 +1,7 @@
 import { isBrowser } from '@qwik.dev/core/build';
 import { base, getBundle, graph } from './bundle-graph';
 import { config, doc, loadStart, rel } from './constants';
-import type { BundleImport, BundleImports } from './types';
+import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {
   BundleImportState_Loaded,
   BundleImportState_None,
@@ -19,7 +19,30 @@ let preloadCount = 0;
 const queue: BundleImport[] = [];
 const yieldInterval = 1000 / 60;
 const nextMacroTask = createMacroTask(() => trigger());
+const nextAdjustmentMacroTask = createMacroTask(() => {
+  isAdjustmentScheduled = false;
+  processPendingAdjustments(true);
+});
 let isTriggerScheduled = false;
+let isAdjustmentScheduled = false;
+let isProcessingAdjustments = false;
+
+type AdjustmentContext = {
+  $depsCount$: number;
+};
+
+type AdjustmentFrame = {
+  $bundle$: BundleImport;
+  $inverseProbability$: number;
+  $seen$?: Set<BundleImport>;
+  $context$: AdjustmentContext;
+  $deps$?: ImportProbability[];
+  $index$?: number;
+};
+
+const adjustmentStack: AdjustmentFrame[] = [];
+
+const isBrowserRuntime = () => (import.meta.env.TEST ? !isServerPlatform() : isBrowser);
 
 export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
@@ -35,7 +58,10 @@ export const resetQueue = () => {
   shouldResetFactor = true;
   preloadCount = 0;
   queue.length = 0;
+  adjustmentStack.length = 0;
   isTriggerScheduled = false;
+  isAdjustmentScheduled = false;
+  isProcessingAdjustments = false;
 };
 export const sortQueue = () => {
   if (queueDirty) {
@@ -125,6 +151,135 @@ export const trigger = () => {
   }
 };
 
+const enqueueAdjustment = (
+  bundle: BundleImport,
+  inverseProbability: number,
+  context: AdjustmentContext,
+  seen?: Set<BundleImport>
+) => {
+  // Keep existing work on the stack hot and append new roots behind it.
+  adjustmentStack.unshift({
+    $bundle$: bundle,
+    $inverseProbability$: inverseProbability,
+    $seen$: seen,
+    $context$: context,
+  });
+};
+
+const processAdjustmentFrame = () => {
+  const frame = adjustmentStack[adjustmentStack.length - 1]!;
+  const bundle = frame.$bundle$;
+
+  if (frame.$deps$) {
+    const index = frame.$index$!;
+    if (index >= frame.$deps$.length) {
+      adjustmentStack.pop();
+      return false;
+    }
+
+    const dep = frame.$deps$[index];
+    frame.$index$ = index + 1;
+
+    const depBundle = getBundle(dep.$name$)!;
+    if (depBundle.$inverseProbability$ === 0) {
+      return true;
+    }
+
+    const probability = 1 - bundle.$inverseProbability$;
+    let newInverseProbability: number;
+    if (probability === 1 || (probability >= 0.99 && frame.$context$.$depsCount$ < 100)) {
+      frame.$context$.$depsCount$++;
+      // we're loaded at max probability, so elevate dynamic imports to 99% sure
+      newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
+    } else {
+      const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
+      /** We need to undo the previous adjustment */
+      const prevAdjust = dep.$factor$;
+      const factor = newInverseImportProbability / prevAdjust;
+      // limit organic probability to 98%
+      newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
+      dep.$factor$ = factor;
+    }
+
+    adjustmentStack.push({
+      $bundle$: depBundle,
+      $inverseProbability$: newInverseProbability,
+      $seen$: frame.$seen$,
+      $context$: frame.$context$,
+    });
+    return true;
+  }
+
+  if (frame.$seen$?.has(bundle)) {
+    adjustmentStack.pop();
+    return false;
+  }
+
+  const previousInverseProbability = bundle.$inverseProbability$;
+  bundle.$inverseProbability$ = frame.$inverseProbability$;
+  // Don't propagate tiny changes
+  if (previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
+    adjustmentStack.pop();
+    return false;
+  }
+
+  if (
+    // don't queue until we have initialized the preloader
+    base != null &&
+    bundle.$state$ < BundleImportState_Preload
+  ) {
+    if (bundle.$state$ === BundleImportState_None) {
+      bundle.$state$ = BundleImportState_Queued;
+      queue.push(bundle);
+      config.$DEBUG$ &&
+        log(`queued ${Math.round((1 - bundle.$inverseProbability$) * 100)}%`, bundle.$name$);
+    }
+
+    // It's in the queue, so we need to re-sort it
+    queueDirty = true;
+  }
+
+  if (bundle.$deps$?.length) {
+    const seen = frame.$seen$ || new Set<BundleImport>();
+    seen.add(bundle);
+    frame.$seen$ = seen;
+    frame.$deps$ = bundle.$deps$;
+    frame.$index$ = 0;
+    return false;
+  }
+
+  adjustmentStack.pop();
+  return false;
+};
+
+const processPendingAdjustments = (shouldYield = isBrowserRuntime()) => {
+  if (isProcessingAdjustments || !adjustmentStack.length) {
+    return;
+  }
+
+  isProcessingAdjustments = true;
+  const deadline = shouldYield ? Date.now() + yieldInterval : 0;
+  let processed = false;
+
+  while (adjustmentStack.length) {
+    processed = true;
+    const checkDeadline = processAdjustmentFrame();
+    if (shouldYield && checkDeadline && Date.now() >= deadline) {
+      if (!isAdjustmentScheduled) {
+        isAdjustmentScheduled = true;
+        nextAdjustmentMacroTask();
+      }
+      break;
+    }
+  }
+
+  isProcessingAdjustments = false;
+
+  if (processed) {
+    trigger();
+  }
+};
+
 const preloadOne = (bundle: BundleImport, parent: DocumentFragment) => {
   if (bundle.$state$ >= BundleImportState_Preload) {
     return;
@@ -177,90 +332,32 @@ export const adjustProbabilities = (
   newInverseProbability: number,
   seen?: Set<BundleImport>
 ) => {
-  if (seen?.has(bundle)) {
-    return;
-  }
-
-  const previousInverseProbability = bundle.$inverseProbability$;
-  bundle.$inverseProbability$ = newInverseProbability;
-  // Don't propagate tiny changes
-  if (previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
-    return;
-  }
-
-  if (
-    // don't queue until we have initialized the preloader
-    base != null &&
-    bundle.$state$ < BundleImportState_Preload
-  ) {
-    if (bundle.$state$ === BundleImportState_None) {
-      bundle.$state$ = BundleImportState_Queued;
-      queue.push(bundle);
-      config.$DEBUG$ &&
-        log(`queued ${Math.round((1 - bundle.$inverseProbability$) * 100)}%`, bundle.$name$);
-    }
-
-    // It's in the queue, so we need to re-sort it
-    queueDirty = true;
-  }
-
-  if (bundle.$deps$) {
-    seen ||= new Set();
-    seen.add(bundle);
-    const probability = 1 - bundle.$inverseProbability$;
-    for (let i = 0; i < bundle.$deps$.length; i++) {
-      const dep = bundle.$deps$[i];
-      const depBundle = getBundle(dep.$name$)!;
-      if (depBundle.$inverseProbability$ === 0) {
-        // it's already at max probability
-        continue;
-      }
-      /**
-       * The chance that a dep won't be loaded is 1-(the chance that the dep will be loaded)*(the
-       * chance that the current bundle will be loaded).
-       *
-       * We can multiply this chance together with all other bundle adjustments to get the chance
-       * that a dep will be loaded given all the chances of the other bundles.
-       *
-       * But when we're very likely to load the current bundle, make the dynamic imports very likely
-       * too.
-       */
-      let newInverseProbability: number;
-      if (probability === 1 || (probability >= 0.99 && depsCount < 100)) {
-        depsCount++;
-        // we're loaded at max probability, so elevate dynamic imports to 99% sure
-        newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
-      } else {
-        const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
-        /** We need to undo the previous adjustment */
-        const prevAdjust = dep.$factor$;
-        const factor = newInverseImportProbability / prevAdjust;
-        // limit organic probability to 98%
-        newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
-        dep.$factor$ = factor;
-      }
-
-      adjustProbabilities(depBundle, newInverseProbability, seen);
-    }
-  }
+  enqueueAdjustment(bundle, newInverseProbability, { $depsCount$: 0 }, seen);
+  processPendingAdjustments();
 };
 
-export const handleBundle = (name: string, inverseProbability: number) => {
+export const handleBundle = (
+  name: string,
+  inverseProbability: number,
+  context?: AdjustmentContext
+) => {
   const bundle = getBundle(name);
   if (bundle && bundle.$inverseProbability$ > inverseProbability) {
-    adjustProbabilities(bundle, inverseProbability);
+    if (context) {
+      enqueueAdjustment(bundle, inverseProbability, context);
+    } else {
+      adjustProbabilities(bundle, inverseProbability);
+    }
   }
 };
-
-let depsCount: number;
 
 export const preload = (name: string | (number | string)[], probability?: number) => {
   if (!name?.length) {
     return;
   }
-  depsCount = 0;
 
   let inverseProbability = probability ? 1 - probability : 0.4;
+  const context = { $depsCount$: 0 };
   if (Array.isArray(name)) {
     // We must process in reverse order to ensure first bundles are handled first
     for (let i = name.length - 1; i >= 0; i--) {
@@ -268,18 +365,16 @@ export const preload = (name: string | (number | string)[], probability?: number
       if (typeof item === 'number') {
         inverseProbability = 1 - item / 10;
       } else {
-        handleBundle(item, inverseProbability);
+        handleBundle(item, inverseProbability, context);
       }
     }
   } else {
-    handleBundle(name, inverseProbability);
+    handleBundle(name, inverseProbability, context);
   }
-  if (import.meta.env.TEST ? !isServerPlatform() : isBrowser) {
-    trigger();
-  }
+  processPendingAdjustments();
 };
 
-if (import.meta.env.TEST ? !isServerPlatform() : isBrowser) {
+if (isBrowserRuntime()) {
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

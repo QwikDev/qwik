@@ -25,6 +25,20 @@ const installTestPlatform = async () => {
   const { getTestPlatform } = await import('../../testing/platform');
   setPlatform(getTestPlatform() as any);
 };
+
+const createLinearGraph = (length: number) => {
+  const serialized: (string | number)[] = [];
+  for (let i = 0; i < length; i++) {
+    const nameIndex = serialized.length;
+    serialized.push(i === 0 ? 'entry-a.js' : `dep-${i}.js`);
+    if (i < length - 1) {
+      serialized.push(-10);
+      serialized.push(nameIndex + 3);
+    }
+  }
+  return serialized;
+};
+
 beforeEach(() => {
   vi.useFakeTimers();
 });
@@ -94,4 +108,45 @@ test('yields after the frame budget and resumes later', async () => {
   expect(getQueue()).toEqual([10, 'entry-a.js']);
   expect(document.head.querySelectorAll('link').length).toBe(2);
   expect(headAppend).toHaveBeenCalledTimes(2);
+});
+
+test('yields during dependency propagation and resumes later', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  const nowValues = [0, 5, 20, 20, 21, 22, 30, 35, 40, 41, 42];
+  let lastNow = nowValues[nowValues.length - 1];
+  vi.spyOn(Date, 'now').mockImplementation(() => {
+    const next = nowValues.shift();
+    if (typeof next === 'number') {
+      lastNow = next;
+      return next;
+    }
+    lastNow++;
+    return lastNow;
+  });
+  vi.resetModules();
+  await installTestPlatform();
+
+  const headAppend = vi.spyOn(document.head, 'appendChild');
+  const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload, resetQueue, getQueue } = await import('./queue');
+
+  resetQueue();
+  initPreloader(createLinearGraph(4));
+  preload('entry-a.js', 1);
+
+  expect(timeoutSpy).toHaveBeenCalledTimes(1);
+  expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
+  expect(document.head.querySelectorAll('link').length).toBe(3);
+  expect(headAppend).toHaveBeenCalledTimes(1);
+  expect(getQueue()).toEqual([]);
+
+  vi.runOnlyPendingTimers();
+
+  expect(document.head.querySelectorAll('link').length).toBe(4);
+  expect(headAppend).toHaveBeenCalledTimes(2);
+  expect(getQueue()).toEqual([]);
 });

@@ -8,6 +8,7 @@ export const enum ChoreBits {
   CHILDREN = 1 << 5,
   CLEANUP = 1 << 6,
   RECONCILE = 1 << 7,
+  ERROR_WRAP = 1 << 8,
   DIRTY_MASK = TASKS |
     NODE_DIFF |
     COMPONENT |
@@ -15,5 +16,6 @@ export const enum ChoreBits {
     COMPUTE |
     CHILDREN |
     CLEANUP |
-    RECONCILE,
+    RECONCILE |
+    ERROR_WRAP,
 }

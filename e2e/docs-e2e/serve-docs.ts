@@ -32,6 +32,7 @@ const MIME_TYPES: Record<string, string> = {
   '.webp': 'image/webp',
   '.avif': 'image/avif',
   '.txt': 'text/plain',
+  '.md': 'text/markdown',
   '.xml': 'text/xml',
   '.webmanifest': 'application/manifest+json',
 };

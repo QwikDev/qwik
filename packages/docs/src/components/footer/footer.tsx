@@ -1,44 +1,62 @@
 import { component$ } from '@qwik.dev/core';
-import { Link } from '@qwik.dev/router';
-import { simpleicons } from '@qds.dev/ui';
+import { Link, useLocation } from '@qwik.dev/router';
+import { lucide, simpleicons } from '@qds.dev/ui';
+import { Link as ActionLink } from '../action/action';
 
-const linkColumns = [
+type FooterLinkItem = {
+  title: string;
+  href: string;
+  matchHash?: string;
+  matchPath?: string;
+};
+
+type FooterColumn = {
+  heading: string;
+  links: FooterLinkItem[];
+};
+
+const linkColumns: FooterColumn[] = [
   {
     heading: 'Core',
     links: [
-      { title: 'Qwik Core', href: '/docs/' },
-      { title: 'Tutorial', href: '/ecosystem/#courses' },
-      { title: 'Lifecycle', href: '/docs/components/lifecycle/' },
-      { title: 'Events', href: '/docs/components/events/' },
-      { title: 'Tasks', href: '/docs/components/tasks/' },
-      { title: 'Slots', href: '/docs/components/slots/' },
+      { title: 'Qwik Core', href: '/docs' },
+      { title: 'Tutorial', href: '/tutorial/welcome/overview' },
+      {
+        title: 'Lifecycle',
+        href: '/docs/core/tasks#lifecycle',
+        matchHash: '#lifecycle',
+      },
+      { title: 'Events', href: '/docs/core/events' },
+      { title: 'Tasks', href: '/docs/core/tasks' },
+      { title: 'Slots', href: '/docs/core/slots' },
     ],
   },
   {
     heading: 'Ecosystem',
     links: [
-      { title: 'Integrations', href: '/ecosystem/#integrations' },
-      { title: 'Cookbooks', href: '/docs/cookbook/' },
+      { title: 'Integrations', href: '/docs/integrations' },
+      { title: 'Cookbooks', href: '/docs/cookbook' },
     ],
   },
   {
     heading: 'Router',
     links: [
-      { title: 'Qwik Router', href: '/docs/qwikrouter/' },
-      { title: 'Routing', href: '/docs/qwikrouter/routing/' },
-      { title: 'Data Fetching', href: '/docs/qwikrouter/data/' },
-      { title: 'Deployments', href: '/ecosystem/#deployments' },
-      { title: 'Middleware', href: '/docs/qwikrouter/middleware/' },
-      { title: 'API Routes', href: '/docs/qwikrouter/api/' },
+      { title: 'Qwik Router', href: '/docs/qwikrouter' },
+      { title: 'Routing', href: '/docs/routing' },
+      { title: 'Data Fetching', href: '/docs/route-loader' },
+      { title: 'Deployments', href: '/docs/deployments' },
+      { title: 'Middleware', href: '/docs/middleware' },
+      { title: 'API Routes', href: '/docs/endpoints' },
     ],
   },
   {
     heading: 'Resources',
     links: [
-      { title: 'Blog', href: '/blog/' },
-      { title: 'Concepts', href: '/docs/concepts/think-qwik/' },
-      { title: 'Sandbox', href: '/playground/' },
-      { title: 'Qwik Labs', href: '/docs/labs/' },
+      { title: 'Blog', href: '/blog' },
+      { title: 'Concepts', href: '/docs/concepts/think-qwik' },
+      { title: 'Sandbox', href: '/playground' },
+      { title: 'Qwik Labs', href: '/docs/labs' },
+      { title: 'llms.txt', href: '/llms.txt' },
     ],
   },
 ];
@@ -50,48 +68,140 @@ const socialLinks = [
   { href: 'https://bsky.app/profile/qwik.dev', title: 'Bluesky', Icon: simpleicons.bluesky },
 ];
 
+const normalizePath = (value: string) => {
+  const pathname = value.split('#')[0] || '/';
+  return pathname === '/' ? pathname : pathname.replace(/\/+$/, '');
+};
+
+const normalizeHash = (value?: string) => {
+  if (!value) {
+    return '';
+  }
+  return value.startsWith('#') ? value.toLowerCase() : `#${value.toLowerCase()}`;
+};
+
+const isLinkActive = (pathname: string, hash: string, link: FooterLinkItem) => {
+  const targetPath = normalizePath(link.matchPath ?? link.href);
+  const targetHash = normalizeHash(link.matchHash ?? link.href.split('#')[1]);
+
+  if (pathname !== targetPath) {
+    return false;
+  }
+
+  if (!targetHash) {
+    return true;
+  }
+
+  return hash === targetHash;
+};
+
+const footerLinkClass = (pathname: string, hash: string, link: FooterLinkItem, mobile = false) => [
+  mobile ? 'text-body-md leading-[140%]' : 'text-body-sm leading-[137.5%]',
+  'font-semibold no-underline transition-colors',
+  isLinkActive(pathname, hash, link)
+    ? 'text-standalone-accent'
+    : 'text-foreground-base hover:text-standalone-accent',
+];
+
 export const Footer = component$(() => {
+  const location = useLocation();
+  const pathname = normalizePath(location.url.pathname);
+  const hash = normalizeHash(location.url.hash);
+
   return (
-    <footer class="bg-violet-0 px-6 pt-16 pb-10 sm:px-10 lg:px-20 lg:pt-32">
-      <div class="flex flex-col gap-12 max-w-6xl mx-auto lg:gap-20">
-        <div class="flex flex-col items-start gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
-          <QwikIconMark class="w-20 h-[86px] shrink-0 lg:w-[100px] lg:h-[107px]" />
+    <footer class="bg-violet-0 px-4 pb-6 pt-16 sm:px-6 md:px-8 lg:px-20 lg:pb-10 lg:pt-32">
+      <div class="mx-auto flex w-full max-w-[1280px] flex-col gap-16 lg:gap-20">
+        <div class="flex flex-col gap-16 lg:hidden">
+          <div class="flex flex-col items-start gap-8">
+            <QwikIconMark class="h-16 w-[60px] shrink-0" />
 
-          <div class="flex flex-col gap-10 flex-1 lg:gap-16">
-            <h2 class="font-heading text-h5 text-foreground-base m-0">
-              Automatically instant web apps
-            </h2>
+            <div class="flex flex-col items-start gap-6">
+              <h2 class="m-0 w-full max-w-none text-[20px] leading-[1.26] text-foreground-base">
+                <span class="font-heading">Start building </span>
+                <span class="font-heading text-sky-45">Qwikly</span>
+                <span class="font-heading"> today!</span>
+              </h2>
 
-            <div class="grid grid-cols-2 gap-x-8 gap-y-10 sm:gap-x-12 lg:grid-cols-4 lg:gap-16 xl:gap-32">
-              {linkColumns.map((col) => (
-                <div key={col.heading} class="flex flex-col gap-4 min-w-0">
-                  <span class="text-label-sm text-foreground-soft">{col.heading}</span>
-                  {col.links.map((link) => (
+              <ActionLink href="/docs/getting-started" variant="primary" class="text-sm">
+                <span>Get Started</span>
+                <lucide.arrowright class="size-4" />
+              </ActionLink>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-x-12 gap-y-16">
+            {linkColumns.map((column) => (
+              <div key={column.heading} class="flex min-w-0 flex-col gap-4">
+                <span class="text-body-sm leading-[137.5%] text-foreground-muted">
+                  {column.heading}
+                </span>
+
+                <div class="flex flex-col items-start gap-4">
+                  {column.links.map((link) => (
                     <Link
                       key={link.title}
                       href={link.href}
-                      class="text-body-sm text-foreground-base no-underline hover:underline"
+                      class={footerLinkClass(pathname, hash, link, true)}
                     >
                       {link.title}
                     </Link>
                   ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="hidden items-start gap-[127px] lg:flex">
+          <QwikIconMark class="h-[107px] w-[101px] shrink-0" />
+
+          <div class="flex max-w-[825px] flex-1 flex-col gap-16">
+            <h2 class="m-0 font-heading text-h5 text-foreground-base">
+              Automatically instant web apps
+            </h2>
+
+            <div class="grid grid-cols-4 gap-x-16 xl:gap-x-32">
+              {linkColumns.map((column) => (
+                <div key={column.heading} class="flex min-w-0 flex-col gap-4">
+                  <span class="text-label-sm text-foreground-soft">{column.heading}</span>
+
+                  <div class="flex flex-col items-start gap-3">
+                    {column.links.map((link) => (
+                      <Link
+                        key={link.title}
+                        href={link.href}
+                        class={footerLinkClass(pathname, hash, link)}
+                      >
+                        {link.title}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-body-sm text-foreground-base m-0">
-            Copyright &copy; {new Date().getFullYear()} Qwik
-          </p>
-          <div class="flex gap-6 items-center">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div class="order-1 flex items-center gap-8 lg:order-2">
             {socialLinks.map(({ title, href, Icon }) => (
-              <a key={title} href={href} target="_blank" rel="noreferrer" title={title}>
-                <Icon class="size-6 text-foreground-base" />
+              <a
+                key={title}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={title}
+                title={title}
+                class="text-foreground-base transition-colors hover:text-standalone-accent"
+              >
+                <Icon class="size-6" />
               </a>
             ))}
           </div>
+
+          <p class="order-2 m-0 text-body-sm text-foreground-base lg:order-1">
+            Copyright &copy; {new Date().getFullYear()} Qwik
+          </p>
         </div>
       </div>
     </footer>

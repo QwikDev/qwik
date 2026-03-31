@@ -1,3 +1,4 @@
+import type { ChunkingContext, CodeSplittingOptions } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
@@ -89,6 +90,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const clientResults = new Map<string, TransformOutput>();
   const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
+  // Maintaing our own map of segments because Rolldown doesn't retain module.meta information (https://github.com/rolldown/rolldown/issues/8924)
+  const clientSegments = new Map<string, SegmentAnalysis>();
+  const clientChunkNames = new Map<string, string>();
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
@@ -387,26 +391,24 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return out;
   };
 
-  let hasValidatedSource = false;
-
   const validateSource = async (resolver: (id: string) => Promise<unknown | undefined>) => {
-    if (!hasValidatedSource) {
-      hasValidatedSource = true;
-
-      const sys = getSys();
-      if (sys.env === 'node') {
-        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-        if (!fs.existsSync(opts.rootDir)) {
-          throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
-        }
-        if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
-          throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
-        }
-        for (const [_, input] of Object.entries(opts.input || {})) {
-          const resolved = await resolver(input);
-          if (!resolved) {
-            throw new Error(`Qwik input "${input}" not found.`);
-          }
+    const sys = getSys();
+    if (sys.env === 'node') {
+      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+      if (!fs.existsSync(opts.rootDir)) {
+        throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
+      }
+      if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
+        throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
+      }
+      for (const [_, input] of Object.entries(opts.input || {})) {
+        const normalizedInput =
+          sys.path.isAbsolute(input) || input.startsWith('@') || input.startsWith('\0')
+            ? input
+            : normalizePath(sys.path.resolve(opts.rootDir, input));
+        const resolved = await resolver(normalizedInput);
+        if (!resolved) {
+          throw new Error(`Qwik input "${input}" not found.`);
         }
       }
     }
@@ -427,8 +429,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     debug(`transformedOutputs.clear()`);
+    clientResults.clear();
     clientTransformedOutputs.clear();
+    clientSegments.clear();
+    clientChunkNames.clear();
     serverTransformedOutputs.clear();
+    parentIds.clear();
 
     if (opts.target === 'client') {
       const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
@@ -451,6 +457,55 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       : devServer
         ? !!viteOpts?.ssr
         : opts.target === 'ssr' || opts.target === 'test';
+  };
+
+  const normalizeId = (id: string) => normalizePath(parseId(id).pathId);
+
+  const setCachedSegment = (id: string, segment: SegmentAnalysis | null) => {
+    if (!segment) {
+      return;
+    }
+    clientSegments.set(normalizeId(id), segment);
+  };
+
+  /** Rolldown drops module.meta.segment during codeSplitting, so we cache it ourselves. */
+  const getCachedSegment = (id: string): SegmentAnalysis | undefined => {
+    return clientSegments.get(normalizeId(id));
+  };
+
+  const sanitizeChunkGroupName = (name: string | null | undefined) => {
+    if (!name) {
+      return null;
+    }
+    if (!/^(\.\.?([/\\]|$)|[/\\]|[A-Za-z]:[/\\])/.test(name)) {
+      return name;
+    }
+
+    const normalizedName = name
+      .replace(/^[A-Za-z]:/, '')
+      .replace(/^(\.\.[/\\])+/, '')
+      .replace(/^\.[/\\]/, '')
+      .replace(/^[/\\]+/, '')
+      .replace(/[/\\]+/g, '-');
+
+    return normalizedName || null;
+  };
+
+  const normalizeChunkGroupName = (entry: string | null | undefined, srcDir: string) => {
+    if (!entry) {
+      return null;
+    }
+    const path = getPath();
+    const normalizedEntry = normalizePath(entry);
+    const absoluteEntry = path.isAbsolute(normalizedEntry)
+      ? normalizedEntry
+      : normalizePath(path.resolve(srcDir, normalizedEntry));
+    const rootRelativeEntry = normalizePath(path.relative(opts.rootDir, absoluteEntry));
+    const preferredName =
+      !rootRelativeEntry.startsWith('../') && !path.isAbsolute(rootRelativeEntry)
+        ? rootRelativeEntry
+        : absoluteEntry;
+    return sanitizeChunkGroupName(preferredName);
   };
 
   let resolveIdCount = 0;
@@ -849,7 +904,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const newOutput = await optimizer.transformModules(transformOpts);
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
-
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
@@ -863,12 +917,22 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
+        if (mod.segment) {
+          mod.segment.entry = normalizeChunkGroupName(mod.segment.entry, srcDir);
+        }
+        if (!isServer && mod.segment) {
+          const chunkName = mod.segment.entry;
+          if (chunkName) {
+            clientChunkNames.set(mod.segment.hash, chunkName);
+          }
+        }
         // TODO handle noop modules
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
           debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
+          setCachedSegment(key, mod.segment);
           deps.add(key);
           if (opts.target === 'client' && !devServer) {
             // rollup must be told about all entry points
@@ -1058,9 +1122,14 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
       if (id) {
         debug('hotUpdate()', `invalidate ${id}`);
         clientResults.delete(id);
+        clientChunkNames.clear();
+        clientSegments.delete(id);
+        clientSegments.delete(normalizePath(parseId(id).pathId));
         for (const [key, [_, parentId]] of outputs) {
           if (parentId === id) {
             debug('hotUpdate()', `invalidate ${id} segment ${key}`);
+            clientSegments.delete(key);
+            clientSegments.delete(normalizePath(parseId(key).pathId));
             outputs.delete(key);
             const segMod = environment.moduleGraph.getModuleById(key);
             if (segMod) {
@@ -1072,7 +1141,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     }
   }
 
-  const manualChunks: Rollup.ManualChunksOption = (id: string, { getModuleInfo }) => {
+  const manualChunks = (id: string, ctx: ChunkingContext) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
@@ -1091,10 +1160,39 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
         return 'qwik-loader';
       }
     }
+    return mergeRelatedSegments(id, ctx);
+  };
 
-    const module = getModuleInfo(id);
+  const codeSplitting: CodeSplittingOptions = {
+    includeDependenciesRecursively: false,
+    groups: [
+      {
+        name: 'qwik-core',
+        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+      },
+      {
+        name: 'qwik-loader',
+        test: /[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/,
+      },
+      {
+        name: 'qwik-preloader',
+        test: (id: string) =>
+          id.endsWith('@qwik.dev/core/build') ||
+          id === '\0vite/preload-helper.js' ||
+          /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id),
+      },
+      {
+        name: (id: string, ctx: ChunkingContext) => {
+          return mergeRelatedSegments(id, ctx);
+        },
+      },
+    ],
+  };
+
+  const mergeRelatedSegments = (id: string, ctx: ChunkingContext) => {
+    const module = ctx?.getModuleInfo(id);
     if (module) {
-      const segment = module.meta.segment as SegmentAnalysis | undefined;
+      const segment = (module.meta.segment as SegmentAnalysis | undefined) ?? getCachedSegment(id);
       if (segment) {
         // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
         if (['qwikify$', 'useVisibleTask$', 'useComputed$'].includes(segment.ctxName)) {
@@ -1113,7 +1211,6 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
       }
     }
 
-    // The rest is non-qwik code. We let rollup handle it.
     return null;
   };
 
@@ -1189,6 +1286,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     configureServer,
     hotUpdate,
     manualChunks,
+    codeSplitting,
     generateManifest,
   };
 }

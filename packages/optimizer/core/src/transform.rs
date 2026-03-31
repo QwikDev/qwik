@@ -85,6 +85,10 @@ pub struct SegmentData {
 	pub hash: Atom,
 	pub need_transform: bool,
 	pub migrated_root_vars: Vec<ast::ModuleItem>,
+	/// When the bundler inlines capture variables, the explicit captures array
+	/// from inlinedQrl may contain non-Ident expressions. We preserve the original
+	/// array to use directly in the .w() call, bypassing scoped_idents.
+	pub raw_capture_exprs: Option<ast::ArrayLit>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -584,10 +588,20 @@ impl<'a> QwikTransform<'a> {
 			folded
 		};
 
+		// When explicit captures are provided (third arg of inlinedQrl), we always preserve
+		// the original array for the .w() call. The function body has _captures[N] indices
+		// that match this array's order, so it must be passed through as-is. This is
+		// important because bundlers (e.g. Rolldown) may inline capture variables before
+		// our optimizer runs, turning simple Idents into complex expressions.
+		let mut raw_capture_array: Option<ast::ArrayLit> = None;
 		let (scoped_idents, captures) = {
 			if let Some(scoped) = third_arg {
 				match &*scoped.expr {
 					ast::Expr::Array(array) => {
+						// Always preserve the original array for .w()
+						raw_capture_array = Some(array.clone());
+						// Extract Ident-only entries for scoped_idents (used by segment
+						// file generation and other bookkeeping, not for .w())
 						let idents: Vec<Id> = array
 							.elems
 							.iter()
@@ -635,6 +649,7 @@ impl<'a> QwikTransform<'a> {
 			need_transform: false,
 			hash,
 			migrated_root_vars: Vec::new(),
+			raw_capture_exprs: raw_capture_array,
 		};
 		// Preprocessed inlinedQrl from libs are always emitted — stripping is meant for user code without the user having to write guards; libs can put guards themselves.
 		// App-level $() calls go through _create_synthetic_qsegment which has its own strip check.
@@ -938,6 +953,7 @@ impl<'a> QwikTransform<'a> {
 				need_transform: false,
 				hash,
 				migrated_root_vars: Vec::new(),
+				raw_capture_exprs: None,
 			};
 
 			return (
@@ -1017,6 +1033,7 @@ impl<'a> QwikTransform<'a> {
 			need_transform: true,
 			hash,
 			migrated_root_vars: Vec::new(),
+			raw_capture_exprs: None,
 		};
 		let should_emit = self.should_emit_segment(&segment_data);
 		if should_emit {
@@ -1938,7 +1955,26 @@ impl<'a> QwikTransform<'a> {
 			_QRL.clone()
 		};
 
-		self.emit_captures(&segment_data.captures, &mut args);
+		// Injects state — prefer the original captures array from inlinedQrl (preserves
+		// correct indices), otherwise build from scoped_idents for $() calls.
+		if let Some(ref raw_array) = segment_data.raw_capture_exprs {
+			args.push(ast::Expr::Array(raw_array.clone()));
+		} else if !segment_data.scoped_idents.is_empty() {
+			args.push(ast::Expr::Array(ast::ArrayLit {
+				span: DUMMY_SP,
+				elems: segment_data
+					.scoped_idents
+					.iter()
+					.map(|id| {
+						Some(ast::ExprOrSpread {
+							spread: None,
+							expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
+						})
+					})
+					.collect(),
+			}))
+		}
+
 		self.create_internal_call(&fn_callee, args, true)
 	}
 
@@ -2006,7 +2042,25 @@ impl<'a> QwikTransform<'a> {
 			_INLINED_QRL.clone()
 		};
 
-		self.emit_captures(&segment_data.captures, &mut args);
+		// Injects state — prefer the original captures array from inlinedQrl (preserves
+		// correct indices), otherwise build from scoped_idents for $() calls.
+		if let Some(ref raw_array) = segment_data.raw_capture_exprs {
+			args.push(ast::Expr::Array(raw_array.clone()));
+		} else if !segment_data.scoped_idents.is_empty() {
+			args.push(ast::Expr::Array(ast::ArrayLit {
+				span: DUMMY_SP,
+				elems: segment_data
+					.scoped_idents
+					.iter()
+					.map(|id| {
+						Some(ast::ExprOrSpread {
+							spread: None,
+							expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
+						})
+					})
+					.collect(),
+			}))
+		}
 		self.create_internal_call(&fn_callee, args, true)
 	}
 

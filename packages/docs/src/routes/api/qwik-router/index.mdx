@@ -1978,7 +1978,9 @@ export type RendererOutputOptions = Omit<RenderOptions, "serverData"> & {
 ```typescript
 export type ResolvedDocumentHead<
   FrontMatter extends Record<string, any> = Record<string, unknown>,
-> = Required<DocumentHeadValue<FrontMatter>>;
+> = Required<DocumentHeadValue<FrontMatter>> & {
+  readonly manifestHash: string;
+};
 ```
 
 **References:** [DocumentHeadValue](#documentheadvalue)

@@ -65,6 +65,7 @@ export interface SSRContainer extends Container {
   readonly resolvedManifest: ResolvedManifest;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
+  $noScriptHere$: number;
 
   write(text: string): void;
 

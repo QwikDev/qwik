@@ -12,7 +12,7 @@ import {
   _addCursor as addCursor,
   _getCursorData as getCursorData,
   _processCursorQueue as processCursorQueue,
-  _hasActiveCursors as hasActiveCursors,
+  _removeContainerCursors as removeContainerCursors,
   _VirtualVNode as VirtualVNode,
   _vnode_getProp as vnode_getProp,
   _vnode_setProp as vnode_setProp,
@@ -529,14 +529,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
       switch (result) {
         case EmitResult.COMPLETE:
-          // Don't exit if cursors still have pending work (e.g., processCursorQueue
-          // yielded mid-walk due to time budget). Drain all remaining cursor work first.
-          if (hasActiveCursors() || this.$pendingCount$ > 0) {
-            if (yieldToIO) {
-              await yieldToIO();
-            }
-            break;
-          }
           emitDone = true;
           break;
 
@@ -572,8 +564,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         case EmitResult.BLOCKED_DIRTY:
-          if (hasActiveCursors() && yieldToIO) {
-            // Time budget expired with sync work remaining.
+          if (cursor.flags & VNodeFlags.Cursor && yieldToIO) {
+            // Time budget expired with sync work remaining on our cursor.
             // Flush buffered output so the client gets data, then yield to I/O.
             this.streamHandler?.flush();
             await yieldToIO();
@@ -606,6 +598,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           break;
       }
     }
+
+    // Remove ALL cursors belonging to this container (main + any sub-cursors from
+    // Suspense). The emit loop may exit while cursors still have yielded or paused
+    // work. The remaining work is not needed (emission is done), but cursors must be
+    // removed to avoid polluting the global queue for other containers.
+    removeContainerCursors(this);
 
     // Sync counters from emitter
     this.size = emitter.size;

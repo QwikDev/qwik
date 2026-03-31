@@ -92,10 +92,27 @@ export function hasActiveCursors(): boolean {
   return globalCursorQueue.length > 0;
 }
 
-/** Reset the global cursor queues. Used by test infrastructure to prevent leaks between tests. */
-export function _resetGlobalCursorQueue(): void {
-  globalCursorQueue.length = 0;
-  pausedCursorQueue.length = 0;
+/**
+ * Remove all cursors (active and paused) belonging to a specific container. Used when a container
+ * finishes rendering to ensure no orphaned cursors remain.
+ */
+export function removeContainerCursors(container: Container): void {
+  for (let i = globalCursorQueue.length - 1; i >= 0; i--) {
+    const data = getCursorData(globalCursorQueue[i]);
+    if (data && data.container === container) {
+      globalCursorQueue[i].flags &= ~VNodeFlags.Cursor;
+      globalCursorQueue.splice(i, 1);
+      container.$pendingCount$--;
+    }
+  }
+  for (let i = pausedCursorQueue.length - 1; i >= 0; i--) {
+    const data = getCursorData(pausedCursorQueue[i]);
+    if (data && data.container === container) {
+      pausedCursorQueue[i].flags &= ~VNodeFlags.Cursor;
+      pausedCursorQueue.splice(i, 1);
+      container.$pendingCount$--;
+    }
+  }
 }
 
 /**

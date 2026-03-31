@@ -908,6 +908,16 @@ export interface ReadonlySignal<T = unknown> {
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
 
+// Warning: (ae-incompatible-release-tags) The symbol "removeContainerCursors" is marked as @public, but its signature references "_Container" which is marked as @internal
+//
+// @public
+export function _removeContainerCursors(container: _Container): void;
+
+// Warning: (ae-incompatible-release-tags) The symbol "removeCursorFromQueue" is marked as @public, but its signature references "_Container" which is marked as @internal
+//
+// @public
+export function _removeCursorFromQueue(cursor: Cursor, container: _Container, keepCursorFlag?: boolean): void;
+
 // @internal
 export function _removeProjection(container: _Container, parentVNode: _VirtualVNode, vnode: _VirtualVNode, slotName: string): void;
 
@@ -952,12 +962,6 @@ export interface RenderSSROptions {
 
 // @internal
 export function _res(this: string | undefined, _: any, element: Element): void;
-
-// @public
-export function _resetGlobalCursorQueue(): void;
-
-// @public
-export function _resetTickScheduled(): void;
 
 // @internal (undocumented)
 export const _resolveContextWithoutSequentialScope: <STATE>(context: ContextId<STATE>) => STATE | undefined;

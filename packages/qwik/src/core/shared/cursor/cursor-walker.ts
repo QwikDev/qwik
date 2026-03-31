@@ -30,11 +30,6 @@ const nextMicroTask = createMicroTask(processCursorQueue);
 const nextMacroTask = createMacroTask(processCursorQueue);
 let isNextTickScheduled = false;
 
-/** Reset scheduling flag. Used by test infrastructure to prevent stale state between tests. */
-export function _resetTickScheduled(): void {
-  isNextTickScheduled = false;
-}
-
 export function triggerCursors(): void {
   if (!isNextTickScheduled) {
     isNextTickScheduled = true;
@@ -72,7 +67,19 @@ export function processCursorQueue(
   const startTime = performance.now();
   let cursor: Cursor | null = null;
   while ((cursor = getHighestPriorityCursor())) {
-    const didYield = walkCursor(cursor, options, startTime);
+    let didYield: true | void;
+    try {
+      didYield = walkCursor(cursor, options, startTime);
+    } catch (e) {
+      // If a cursor's walk fails (e.g., its container was disposed), remove it
+      // from the queue so it doesn't block other cursors.
+      const cursorData = getCursorData(cursor);
+      if (cursorData) {
+        removeCursorFromQueue(cursor, cursorData.container);
+        cursorData.container.handleError(e, cursor);
+      }
+      continue;
+    }
     // Check if time budget expired (cursor stays in queue, caller decides next step)
     if (didYield) {
       return;

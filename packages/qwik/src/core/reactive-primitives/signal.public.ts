@@ -103,14 +103,22 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
    */
   error: Error | undefined;
   /**
-   * Poll interval in ms. Writable and immediately effective when the signal has consumers. If set
-   * to `0`, polling stops.
+   * Staleness/poll interval in ms. Writable and immediately effective.
+   *
+   * - **Positive**: Poll — re-compute after this many ms when subscribers exist.
+   * - **Negative**: Stale-only — mark stale after `|interval|` ms, no auto-recompute.
+   * - **`0`**: No staleness tracking or polling.
    */
   interval: number;
   /** A promise that resolves when the value is computed or rejected. */
   promise(): Promise<void>;
   /** Abort the current computation and run cleanups if needed. */
   abort(reason?: any): void;
+  /**
+   * Use this to force recalculation. If you pass `info`, it will be provided to the calculation
+   * function.
+   */
+  invalidate(info?: unknown): void;
 }
 
 /**

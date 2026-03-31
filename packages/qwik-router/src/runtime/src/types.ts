@@ -180,7 +180,10 @@ export interface DocumentHeadValue<
 /** @public */
 export type ResolvedDocumentHead<
   FrontMatter extends Record<string, any> = Record<string, unknown>,
-> = Required<DocumentHeadValue<FrontMatter>>;
+> = Required<DocumentHeadValue<FrontMatter>> & {
+  /** The build's manifest hash, used for per-loader data URLs. Always defined (`'dev'` in dev). */
+  readonly manifestHash: string;
+};
 
 /** @public */
 export type DocumentMeta = QwikIntrinsicElements['meta'];

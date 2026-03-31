@@ -176,7 +176,7 @@ function processJSXNode(
           enqueue(ssr.additionalHeadNodes);
         } else if (type === 'body') {
           enqueue(ssr.additionalBodyNodes);
-        } else if (!ssr.isHtml && !(ssr as any)._didAddQwikLoader) {
+        } else if (!ssr.isHtml && !(ssr as any)._didAddQwikLoader && !ssr.$noScriptHere$) {
           ssr.emitQwikLoaderAtTopIfNeeded();
           ssr.emitPreloaderPre();
           (ssr as any)._didAddQwikLoader = true;

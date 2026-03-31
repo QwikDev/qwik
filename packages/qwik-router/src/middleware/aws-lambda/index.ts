@@ -1,28 +1,18 @@
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { Render } from '@qwik.dev/core/server';
-import type { QwikCityPlan, QwikRouterConfig } from '@qwik.dev/router';
 import { createQwikRouter as createQwikRouterNode } from '@qwik.dev/router/middleware/node';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
 
 interface AwsOpt {
   render: Render;
   manifest?: QwikManifest;
-  /** @deprecated Not used */
-  qwikRouterConfig?: QwikRouterConfig;
-  /** @deprecated Not used */
-  qwikCityPlan?: QwikCityPlan;
 }
 
 /** @public */
 export function createQwikRouter(opts: AwsOpt) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  }
   try {
     const { router, staticFile, notFound } = createQwikRouterNode({
       render: opts.render,
-      qwikRouterConfig: opts.qwikRouterConfig,
       manifest: opts.manifest,
       static: {
         cacheControl: 'public, max-age=31557600',

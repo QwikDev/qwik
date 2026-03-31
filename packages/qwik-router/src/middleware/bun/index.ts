@@ -27,10 +27,6 @@ function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterBunOptions) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  }
   // @qwik.dev/router/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
   globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill as any;

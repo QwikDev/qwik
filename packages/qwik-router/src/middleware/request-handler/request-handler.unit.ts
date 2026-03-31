@@ -34,7 +34,6 @@ describe('requestHandler .well-known ignore', () => {
     const ev = createMockServerRequestEvent('http://localhost/.well-known');
     const result = await requestHandler(ev, {
       render: (async () => ({ html: '' })) as any,
-      qwikRouterConfig: {} as any,
     });
     expect(result).toBeNull();
   });
@@ -43,7 +42,6 @@ describe('requestHandler .well-known ignore', () => {
     const ev = createMockServerRequestEvent('http://localhost/.well-known/acme-challenge/token');
     const result = await requestHandler(ev, {
       render: (async () => ({ html: '' })) as any,
-      qwikRouterConfig: {} as any,
     });
     expect(result).toBeNull();
   });

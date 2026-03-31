@@ -397,6 +397,12 @@ async function main() {
     app.use(`/${appName}`, express.static(publicPath));
   });
 
+  // Debug logging backchannel: browser sends errors/logs here
+  app.post('/__log', express.text(), (req, res) => {
+    console.error(`[BROWSER] ${req.body}`);
+    res.status(204).end();
+  });
+
   app.get('/', startersHomepage);
   app.get('/favicon*', favicon);
   app.all('/*', handleApp);

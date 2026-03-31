@@ -19,7 +19,7 @@ export const rel =
     : 'preload';
 
 // Global state
-export const loadStart = Date.now();
+export const loadStart = performance.now();
 
 export const isJSRegex = /\.[mc]?js$/;
 

@@ -62,9 +62,12 @@ afterEach(() => {
   });
 });
 
-test('batches preloads into a single head append per trigger', async () => {
+test('appends preloads directly to head within a trigger slice', async () => {
   const document = installBrowserGlobals();
-  vi.spyOn(Date, 'now').mockImplementation(() => 0);
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
   vi.resetModules();
   await installTestPlatform();
 
@@ -76,8 +79,13 @@ test('batches preloads into a single head append per trigger', async () => {
   initPreloader(['entry-a.js', 'entry-b.js']);
   preload(['entry-a.js', 'entry-b.js'], 1);
 
-  expect(headAppend).toHaveBeenCalledTimes(1);
-  expect(headAppend.mock.calls[0][0].nodeType).toBe(11);
+  expect(headAppend).toHaveBeenCalledTimes(0);
+  expect(document.head.querySelectorAll('link').length).toBe(0);
+
+  vi.runAllTimers();
+
+  expect(headAppend).toHaveBeenCalledTimes(2);
+  expect(headAppend.mock.calls[0][0].nodeName).toBe('LINK');
   expect(document.head.querySelectorAll('link').length).toBe(2);
   expect(getQueue()).toEqual([]);
 });
@@ -88,7 +96,7 @@ test('yields after the frame budget and resumes later', async () => {
     MessageChannel: undefined,
   });
   let now = 0;
-  vi.spyOn(Date, 'now').mockImplementation(() => {
+  vi.spyOn(performance, 'now').mockImplementation(() => {
     now += 10;
     return now;
   });
@@ -104,16 +112,34 @@ test('yields after the frame budget and resumes later', async () => {
   initPreloader(['entry-a.js', 'entry-b.js', 'entry-c.js']);
   preload(['entry-a.js', 'entry-b.js', 'entry-c.js'], 1);
 
+  expect(getQueue()).toEqual([]);
+  expect(document.head.querySelectorAll('link').length).toBe(0);
+  expect(headAppend).toHaveBeenCalledTimes(0);
+
+  vi.advanceTimersToNextTimer();
+
+  expect(getQueue()).toEqual([10, 'entry-c.js', 'entry-b.js', 'entry-a.js']);
+  expect(document.head.querySelectorAll('link').length).toBe(0);
+  expect(headAppend).toHaveBeenCalledTimes(0);
+
+  vi.advanceTimersToNextTimer();
+
   expect(getQueue()).toEqual([10, 'entry-b.js', 'entry-a.js']);
   expect(document.head.querySelectorAll('link').length).toBe(1);
   expect(headAppend).toHaveBeenCalledTimes(1);
   expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
 
-  vi.runOnlyPendingTimers();
+  vi.advanceTimersToNextTimer();
 
-  expect(getQueue()).toEqual([10, 'entry-a.js']);
   expect(document.head.querySelectorAll('link').length).toBe(2);
   expect(headAppend).toHaveBeenCalledTimes(2);
+  expect(getQueue()).toEqual([10, 'entry-a.js']);
+
+  vi.advanceTimersToNextTimer();
+
+  expect(document.head.querySelectorAll('link').length).toBe(3);
+  expect(headAppend).toHaveBeenCalledTimes(3);
+  expect(getQueue()).toEqual([]);
 });
 
 test('yields during dependency propagation and resumes later', async () => {
@@ -123,7 +149,7 @@ test('yields during dependency propagation and resumes later', async () => {
   });
   const nowValues = [0, 5, 20, 20, 21, 22, 30, 35, 40, 41, 42];
   let lastNow = nowValues[nowValues.length - 1];
-  vi.spyOn(Date, 'now').mockImplementation(() => {
+  vi.spyOn(performance, 'now').mockImplementation(() => {
     const next = nowValues.shift();
     if (typeof next === 'number') {
       lastNow = next;
@@ -146,14 +172,63 @@ test('yields during dependency propagation and resumes later', async () => {
 
   expect(timeoutSpy).toHaveBeenCalledTimes(1);
   expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
-  expect(document.head.querySelectorAll('link').length).toBe(3);
-  expect(headAppend).toHaveBeenCalledTimes(1);
+  expect(document.head.querySelectorAll('link').length).toBe(0);
+  expect(headAppend).toHaveBeenCalledTimes(0);
   expect(getQueue()).toEqual([]);
 
-  vi.runOnlyPendingTimers();
+  vi.advanceTimersToNextTimer();
+
+  expect(document.head.querySelectorAll('link').length).toBe(0);
+  expect(headAppend).toHaveBeenCalledTimes(0);
+  expect(getQueue()).toEqual([10, 'entry-a.js', 'dep-1.js', 'dep-2.js']);
+
+  vi.runAllTimers();
 
   expect(document.head.querySelectorAll('link').length).toBe(4);
-  expect(headAppend).toHaveBeenCalledTimes(2);
+  expect(headAppend.mock.calls.length).toBeGreaterThanOrEqual(1);
+  expect(getQueue()).toEqual([]);
+});
+
+test('can yield more than once while propagating dependencies', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  let now = 0;
+  vi.spyOn(performance, 'now').mockImplementation(() => {
+    const stack = new Error().stack ?? '';
+    if (stack.includes('processPendingAdjustments')) {
+      now += 20;
+      return now;
+    }
+    return 0;
+  });
+  vi.resetModules();
+  await installTestPlatform();
+
+  const headAppend = vi.spyOn(document.head, 'appendChild');
+  const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload, resetQueue, getQueue } = await import('./queue');
+
+  resetQueue();
+  initPreloader(createLinearGraph(7));
+  preload('entry-a.js', 1);
+
+  expect(timeoutSpy).toHaveBeenCalledTimes(1);
+  expect(document.head.querySelectorAll('link').length).toBe(0);
+  expect(getQueue()).toEqual([]);
+
+  vi.advanceTimersToNextTimer();
+
+  expect(timeoutSpy.mock.calls.length).toBeGreaterThan(2);
+  expect(document.head.querySelectorAll('link').length).toBeLessThan(7);
+  expect(getQueue()).toEqual([10, 'entry-a.js']);
+
+  vi.runAllTimers();
+
+  expect(document.head.querySelectorAll('link').length).toBe(7);
+  expect(headAppend.mock.calls.length).toBeGreaterThan(1);
   expect(getQueue()).toEqual([]);
 });
 
@@ -162,7 +237,7 @@ test('defers bundle graph re-adjustment to a later task', async () => {
   Object.assign(globalThis, {
     MessageChannel: undefined,
   });
-  vi.spyOn(Date, 'now').mockImplementation(() => 0);
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
   vi.resetModules();
   await installTestPlatform();
 

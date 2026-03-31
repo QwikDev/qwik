@@ -23,6 +23,7 @@ export const nextAdjustmentMacroTask = createMacroTask(processPendingAdjustments
 let isTriggerScheduled = false;
 let isAdjustmentScheduled = false;
 let isProcessingAdjustments = false;
+const shouldYieldInBrowser = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
 
 type AdjustmentContext = {
   $depsCount$: number;
@@ -42,7 +43,7 @@ const adjustmentStack: AdjustmentFrame[] = [];
 export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
   console.log(
-    `Preloader ${Date.now() - loadStart}ms ${preloadCount}/${queue.length} queued>`,
+    `Preloader ${performance.now() - loadStart}ms ${preloadCount}/${queue.length} queued>`,
     ...args
   );
 };
@@ -102,8 +103,7 @@ function trigger() {
     return;
   }
   sortQueue();
-  const fragment = doc.createDocumentFragment();
-  const deadline = Date.now() + yieldInterval;
+  const deadline = performance.now() + yieldInterval;
   let shouldYield = false;
   while (queue.length) {
     const bundle = queue[0];
@@ -116,17 +116,14 @@ function trigger() {
     // When we're 99% sure, everything needs to be queued
     if (probability >= 0.99 || preloadCount < allowedPreloads) {
       queue.shift();
-      preloadOne(bundle, fragment);
-      if (Date.now() >= deadline) {
+      preloadOne(bundle);
+      if (performance.now() >= deadline) {
         shouldYield = true;
         break;
       }
     } else {
       break;
     }
-  }
-  if (fragment.firstChild) {
-    doc.head.appendChild(fragment);
   }
   if (shouldYield && queue.length && !isTriggerScheduled) {
     isTriggerScheduled = true;
@@ -252,16 +249,15 @@ function processPendingAdjustments() {
     return;
   }
 
-  const shouldYield = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
-
+  isAdjustmentScheduled = false;
   isProcessingAdjustments = true;
-  const deadline = shouldYield ? Date.now() + yieldInterval : 0;
+  const deadline = shouldYieldInBrowser ? performance.now() + yieldInterval : 0;
   let processed = false;
 
   while (adjustmentStack.length) {
     processed = true;
     const checkDeadline = processAdjustmentFrame();
-    if (shouldYield && checkDeadline && Date.now() >= deadline) {
+    if (shouldYieldInBrowser && checkDeadline && performance.now() >= deadline) {
       if (!isAdjustmentScheduled) {
         isAdjustmentScheduled = true;
         nextAdjustmentMacroTask();
@@ -272,18 +268,18 @@ function processPendingAdjustments() {
 
   isProcessingAdjustments = false;
 
-  if (processed) {
+  if (processed && shouldYieldInBrowser) {
     nextTriggerMacroTask();
   }
 }
 
-const preloadOne = (bundle: BundleImport, parent: DocumentFragment) => {
+const preloadOne = (bundle: BundleImport) => {
   if (bundle.$state$ >= BundleImportState_Preload) {
     return;
   }
   preloadCount++;
 
-  const start = Date.now();
+  const start = performance.now();
   bundle.$waitedMs$ = start - bundle.$createdTs$;
   bundle.$state$ = BundleImportState_Preload;
 
@@ -302,7 +298,7 @@ const preloadOne = (bundle: BundleImport, parent: DocumentFragment) => {
   // Handle completion of the preload
   link.onload = link.onerror = () => {
     preloadCount--;
-    const end = Date.now();
+    const end = performance.now();
     bundle.$loadedMs$ = end - start;
     bundle.$state$ = BundleImportState_Loaded;
     config.$DEBUG$ && log(`>> done after ${bundle.$loadedMs$}ms`, bundle.$name$);
@@ -312,7 +308,7 @@ const preloadOne = (bundle: BundleImport, parent: DocumentFragment) => {
     nextTriggerMacroTask();
   };
 
-  parent.appendChild(link);
+  doc.head.appendChild(link);
 };
 
 /**
@@ -330,7 +326,11 @@ export const adjustProbabilities = (
   seen?: Set<BundleImport>
 ) => {
   enqueueAdjustment(bundle, newInverseProbability, { $depsCount$: 0 }, seen);
-  nextAdjustmentMacroTask();
+  if (shouldYieldInBrowser) {
+    nextAdjustmentMacroTask();
+  } else {
+    processPendingAdjustments();
+  }
 };
 
 export const handleBundle = (
@@ -368,7 +368,11 @@ export const preload = (name: string | (number | string)[], probability?: number
   } else {
     handleBundle(name, inverseProbability, context);
   }
-  nextAdjustmentMacroTask();
+  if (shouldYieldInBrowser) {
+    nextAdjustmentMacroTask();
+  } else {
+    processPendingAdjustments();
+  }
 };
 
 if (import.meta.env.TEST ? !isServerPlatform() : isBrowser) {

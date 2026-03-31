@@ -22,7 +22,7 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
     $state$: isJSRegex.test(name) ? BundleImportState_None : BundleImportState_Alias,
     $deps$: shouldResetFactor ? deps?.map((d) => ({ ...d, $factor$: 1 })) : deps,
     $inverseProbability$: 1,
-    $createdTs$: Date.now(),
+    $createdTs$: performance.now(),
     $waitedMs$: 0,
     $loadedMs$: 0,
   };
@@ -123,12 +123,12 @@ export const loadBundleGraph = (
         }
         let i = 0;
         const continueAdjust = createMacroTask(() => {
-          const deadline = Date.now() + yieldInterval;
+          const deadline = performance.now() + yieldInterval;
           while (i < toAdjust.length) {
             const [bundle, inverseProbability] = toAdjust[i];
             i++;
             adjustProbabilities(bundle, inverseProbability);
-            if (i < toAdjust.length && Date.now() >= deadline) {
+            if (i < toAdjust.length && performance.now() >= deadline) {
               continueAdjust();
               return;
             }

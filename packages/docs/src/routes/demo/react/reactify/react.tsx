@@ -1,5 +1,9 @@
 /** @jsxImportSource react */
-import { qwikify$, reactify$ } from '@qwik.dev/react';
+import {
+  qwikify$,
+  // @ts-ignore - somehow this errors
+  reactify$,
+} from '@qwik.dev/react';
 import { QwikCounter } from './counter';
 
 const Counter = reactify$(QwikCounter);

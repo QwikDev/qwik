@@ -294,7 +294,7 @@ export class AsyncSignalImpl<T>
   set interval(value: number) {
     this.$clearNextPoll$();
     this.$interval$ = value;
-    if (this.$interval$ > 0 && this.$effects$?.size) {
+    if (this.$interval$ !== 0 && this.$hasSubscribers$()) {
       this.$scheduleNextPoll$();
     }
   }
@@ -471,11 +471,22 @@ export class AsyncSignalImpl<T>
   }
 
   private $scheduleNextPoll$() {
-    if ((import.meta.env.TEST ? !isServerPlatform() : isBrowser) && this.$interval$ > 0) {
-      this.$clearNextPoll$();
-      this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$interval$);
-      this.$pollTimeoutId$?.unref?.();
+    if (!(import.meta.env.TEST ? !isServerPlatform() : isBrowser) || this.$interval$ === 0) {
+      return;
     }
+
+    this.$clearNextPoll$();
+
+    if (this.$interval$ < 0) {
+      this.$pollTimeoutId$ = setTimeout(() => {
+        this.$pollTimeoutId$ = undefined;
+        this.$flags$ |= SignalFlags.INVALID;
+      }, -this.$interval$);
+    } else {
+      this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$interval$);
+    }
+
+    this.$pollTimeoutId$?.unref?.();
   }
 
   private $hasSubscribers$(): boolean {

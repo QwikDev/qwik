@@ -51,6 +51,17 @@ describe('async signal', () => {
       });
     });
 
+    it('should store negative interval without scheduling before consumers', async () => {
+      await withContainer(async () => {
+        const interval = -50;
+        const signal = createAsync$(async () => 42, { interval }) as AsyncSignalImpl<number>;
+
+        expect(signal.interval).toBe(interval);
+        expect(signal.$interval$).toBe(interval);
+        expect(signal.$pollTimeoutId$).toBeUndefined();
+      });
+    });
+
     it('should update interval and reschedule with consumers', async () => {
       await withContainer(async () => {
         const signal = createAsync$(async () => 42, { interval: 0 }) as AsyncSignalImpl<number>;
@@ -65,6 +76,35 @@ describe('async signal', () => {
         expect(signal.$pollTimeoutId$).toBeDefined();
 
         signal.interval = 0;
+        expect(signal.$pollTimeoutId$).toBeUndefined();
+      });
+    });
+
+    it('should mark negative interval signals stale without recomputing', async () => {
+      await withContainer(async () => {
+        const ref = { computeCalls: 0 };
+        const signal = createAsync$(
+          async () => {
+            ref.computeCalls++;
+            return ref.computeCalls;
+          },
+          { interval: -10 }
+        ) as AsyncSignalImpl<number>;
+
+        await retryOnPromise(async () => {
+          effect$(() => signal.value);
+        });
+        await signal.promise();
+
+        expect(ref.computeCalls).toBe(1);
+        expect(signal.$flags$ & SignalFlags.INVALID).toBe(0);
+        expect(signal.$pollTimeoutId$).toBeDefined();
+
+        await delay(20);
+
+        expect(ref.computeCalls).toBe(1);
+        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$untrackedValue$).toBe(1);
         expect(signal.$pollTimeoutId$).toBeUndefined();
       });
     });
@@ -106,6 +146,38 @@ describe('async signal', () => {
         const signal = createAsync$(async () => 99, { interval }) as AsyncSignalImpl<number>;
 
         expect(signal.$interval$).toBe(interval);
+      });
+    });
+
+    it('should switch from polling to stale-only when interval becomes negative', async () => {
+      await withContainer(async () => {
+        const ref = { computeCalls: 0 };
+        const signal = createAsync$(
+          async () => {
+            ref.computeCalls++;
+            return ref.computeCalls;
+          },
+          { interval: 50 }
+        ) as AsyncSignalImpl<number>;
+
+        await retryOnPromise(async () => {
+          effect$(() => signal.value);
+        });
+        await signal.promise();
+
+        expect(ref.computeCalls).toBe(1);
+        expect(signal.$pollTimeoutId$).toBeDefined();
+
+        signal.interval = -10;
+
+        expect(signal.$pollTimeoutId$).toBeDefined();
+
+        await delay(20);
+
+        expect(ref.computeCalls).toBe(1);
+        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$untrackedValue$).toBe(1);
+        expect(signal.$pollTimeoutId$).toBeUndefined();
       });
     });
   });

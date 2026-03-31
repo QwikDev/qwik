@@ -1,6 +1,6 @@
 import { isBrowser } from '@qwik.dev/core/build';
 import { base, getBundle, graph } from './bundle-graph';
-import { config, doc, loadStart, rel } from './constants';
+import { config, doc, loadStart, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {
   BundleImportState_Loaded,
@@ -17,12 +17,9 @@ export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 let preloadCount = 0;
 const queue: BundleImport[] = [];
-const yieldInterval = 1000 / 60;
-const nextMacroTask = createMacroTask(() => trigger());
-const nextAdjustmentMacroTask = createMacroTask(() => {
-  isAdjustmentScheduled = false;
-  processPendingAdjustments(true);
-});
+
+export const nextTriggerMacroTask = createMacroTask(trigger);
+export const nextAdjustmentMacroTask = createMacroTask(processPendingAdjustments);
 let isTriggerScheduled = false;
 let isAdjustmentScheduled = false;
 let isProcessingAdjustments = false;
@@ -41,8 +38,6 @@ type AdjustmentFrame = {
 };
 
 const adjustmentStack: AdjustmentFrame[] = [];
-
-const isBrowserRuntime = () => (import.meta.env.TEST ? !isServerPlatform() : isBrowser);
 
 export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
@@ -101,7 +96,7 @@ export const getQueue = () => {
  *
  * We make sure to first preload the high priority items.
  */
-export const trigger = () => {
+function trigger() {
   isTriggerScheduled = false;
   if (!queue.length) {
     return;
@@ -110,7 +105,6 @@ export const trigger = () => {
   const fragment = doc.createDocumentFragment();
   const deadline = Date.now() + yieldInterval;
   let shouldYield = false;
-  let queuedInSlice = 0;
   while (queue.length) {
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
@@ -123,7 +117,7 @@ export const trigger = () => {
     if (probability >= 0.99 || preloadCount < allowedPreloads) {
       queue.shift();
       preloadOne(bundle, fragment);
-      if (++queuedInSlice === 8 || Date.now() >= deadline) {
+      if (Date.now() >= deadline) {
         shouldYield = true;
         break;
       }
@@ -136,7 +130,7 @@ export const trigger = () => {
   }
   if (shouldYield && queue.length && !isTriggerScheduled) {
     isTriggerScheduled = true;
-    nextMacroTask();
+    nextTriggerMacroTask();
   }
   /**
    * The low priority bundles are opportunistic, and we want to give the browser some breathing room
@@ -150,7 +144,7 @@ export const trigger = () => {
       `>>>> done ${loaded.length}/${bundles.size} total: ${waitTime}ms waited, ${loadTime}ms loaded`
     );
   }
-};
+}
 
 const enqueueAdjustment = (
   bundle: BundleImport,
@@ -253,10 +247,12 @@ const processAdjustmentFrame = () => {
   return false;
 };
 
-const processPendingAdjustments = (shouldYield = isBrowserRuntime()) => {
+function processPendingAdjustments() {
   if (isProcessingAdjustments || !adjustmentStack.length) {
     return;
   }
+
+  const shouldYield = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
 
   isProcessingAdjustments = true;
   const deadline = shouldYield ? Date.now() + yieldInterval : 0;
@@ -277,9 +273,9 @@ const processPendingAdjustments = (shouldYield = isBrowserRuntime()) => {
   isProcessingAdjustments = false;
 
   if (processed) {
-    trigger();
+    nextTriggerMacroTask();
   }
-};
+}
 
 const preloadOne = (bundle: BundleImport, parent: DocumentFragment) => {
   if (bundle.$state$ >= BundleImportState_Preload) {
@@ -313,7 +309,7 @@ const preloadOne = (bundle: BundleImport, parent: DocumentFragment) => {
     // Keep the <head> clean
     link.remove();
     // More bundles may be ready to preload
-    trigger();
+    nextTriggerMacroTask();
   };
 
   parent.appendChild(link);
@@ -334,7 +330,7 @@ export const adjustProbabilities = (
   seen?: Set<BundleImport>
 ) => {
   enqueueAdjustment(bundle, newInverseProbability, { $depsCount$: 0 }, seen);
-  processPendingAdjustments();
+  nextAdjustmentMacroTask();
 };
 
 export const handleBundle = (
@@ -372,10 +368,10 @@ export const preload = (name: string | (number | string)[], probability?: number
   } else {
     handleBundle(name, inverseProbability, context);
   }
-  processPendingAdjustments();
+  nextAdjustmentMacroTask();
 };
 
-if (isBrowserRuntime()) {
+if (import.meta.env.TEST ? !isServerPlatform() : isBrowser) {
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

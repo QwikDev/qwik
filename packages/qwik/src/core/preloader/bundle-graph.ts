@@ -1,14 +1,19 @@
 import { isServer } from '@qwik.dev/core/build';
 import { isServerPlatform } from '../shared/platform/platform';
 import { createMacroTask } from '../shared/platform/next-tick';
-import { config, isJSRegex } from './constants';
-import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
+import { config, isJSRegex, yieldInterval } from './constants';
+import {
+  adjustProbabilities,
+  bundles,
+  log,
+  shouldResetFactor,
+  nextTriggerMacroTask,
+} from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
 
 export let base: string | undefined;
 export let graph: BundleGraph;
-const yieldInterval = 1000 / 60;
 const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
 
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
@@ -113,7 +118,7 @@ export const loadBundleGraph = (
         config.$DEBUG$ &&
           log(`parseBundleGraph got ${graph.size} bundles, adjusting ${toAdjust.length}`);
         if (!toAdjust.length) {
-          trigger();
+          nextTriggerMacroTask();
           return;
         }
         let i = 0;
@@ -128,7 +133,7 @@ export const loadBundleGraph = (
               return;
             }
           }
-          trigger();
+          nextTriggerMacroTask();
         });
         continueAdjust();
       })

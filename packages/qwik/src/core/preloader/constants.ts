@@ -22,3 +22,5 @@ export const rel =
 export const loadStart = Date.now();
 
 export const isJSRegex = /\.[mc]?js$/;
+
+export const yieldInterval = 1000 / 60;

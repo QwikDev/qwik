@@ -183,6 +183,35 @@ export class AsyncSignalImpl<T>
   }
 
   /**
+   * Read the value, subscribing if in a tracking context. Triggers computation if needed.
+   *
+   * Setting the value will mark the signal as not loading and clear any error, and prevent any
+   * pending computations from writing their results.
+   *
+   * If you want to set the value without affecting loading or error state, set `untrackedValue`
+   * instead and make sure to trigger effects manually if needed.
+   *
+   * If you want to abort pending computations when setting, you have to call `abort()` manually.
+   */
+  override get value(): T {
+    return super.value;
+  }
+
+  override set value(value: T) {
+    this.$flags$ &= ~SignalFlags.INVALID;
+    this.untrackedLoading = false;
+    this.untrackedError = undefined;
+    this.$info$ = undefined;
+    // Prevent pending computations from overwriting this value
+    for (let i = 0; i < this.$jobs$.length; i++) {
+      this.$jobs$[i].$canWrite$ = false;
+    }
+    this.$clearNextPoll$();
+    super.value = value;
+    this.$scheduleNextPoll$();
+  }
+
+  /**
    * Loading is true if the signal is still waiting for the promise to resolve, false if the promise
    * has resolved or rejected.
    *
@@ -375,7 +404,9 @@ export class AsyncSignalImpl<T>
         }, this.$timeoutMs$);
       }
 
-      const value = await retryOnPromise(fn.bind(null, running));
+      // Try to stay sync if possible
+      const valuePromise = retryOnPromise(fn.bind(null, running));
+      const value = isPromise(valuePromise) ? await valuePromise : valuePromise;
 
       running.$promise$ = null;
 
@@ -392,7 +423,10 @@ export class AsyncSignalImpl<T>
 
         // Note that these assignments run setters
         this.untrackedError = undefined;
-        this.value = value;
+        // Use super.value instead of this.value to avoid the AsyncSignalImpl setter
+        // which clears INVALID and disables all jobs. INVALID must persist so that
+        // line 442 can detect dependency changes during computation and re-run.
+        super.value = value;
       }
     } catch (err) {
       running.$promise$ = null;

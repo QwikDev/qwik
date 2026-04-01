@@ -497,21 +497,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let emitDone = false;
     let savedContainerDataFrame: typeof this.emitContainerDataFrame = null;
     const yieldBudget = this.renderOptions.streaming?.yieldBudget ?? 10;
-    const yieldToIO =
-      yieldBudget > 0
-        ? () =>
-            new Promise<void>((r) =>
-              typeof setImmediate !== 'undefined' ? setImmediate(r) : setTimeout(r, 0)
-            )
-        : null;
     while (!emitDone) {
-      // Process cursor queue. Use timeBudget for main work, then drain any
-      // remaining sync cursors (e.g. Suspense sub-cursors created during the walk).
-      // Sub-cursors with higher priority (-1) need to complete before emission so that
-      // Suspense boundaries that resolve synchronously are inlined.
       processCursorQueue({ timeBudget: yieldBudget });
-      // Drain remaining sync sub-cursors (e.g. Suspense children that resolve immediately)
-      processCursorQueue({ timeBudget: 0 });
 
       // After the first processCursorQueue, capture the container data frame.
       // emitContainerDataFrame is set during tree building when openElement encounters <body>.
@@ -525,12 +512,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
       }
       emitter.syncSuspenseBoundaries(this.suspenseBoundaries);
-      // Restore main build state — sub-cursor walk may have swapped it
       this.ssrBuildState = mainBuildState;
       if (this._ssrError) {
         throw this._ssrError;
       }
-
       const result = emitter.emitReady();
 
       switch (result) {
@@ -570,11 +555,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         case EmitResult.BLOCKED_DIRTY:
-          if (cursor.flags & VNodeFlags.Cursor && yieldToIO) {
+          if (cursor.flags & VNodeFlags.Cursor) {
             // Time budget expired with sync work remaining on our cursor.
             // Flush buffered output so the client gets data, then yield to I/O.
             this.streamHandler?.flush();
-            await yieldToIO();
+            await Promise.resolve();
             this.ssrBuildState = mainBuildState;
             break;
           }

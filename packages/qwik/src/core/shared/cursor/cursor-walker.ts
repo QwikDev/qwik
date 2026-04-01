@@ -77,6 +77,9 @@ export function processCursorQueue(
       if (cursorData) {
         removeCursorFromQueue(cursor, cursorData.container);
         cursorData.container.handleError(e, cursor);
+        // Ensure $renderPromise$ is resolved so the emit loop doesn't hang
+        // waiting for a cursor that was removed due to an error.
+        cursorData.container.$checkPendingCount$();
       }
       continue;
     }

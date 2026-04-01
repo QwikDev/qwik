@@ -12,7 +12,13 @@ export const PanelToggle = component$((props: PanelToggleProps) => {
   useStyles$(styles);
 
   return (
-    <div class="panel-toggle">
+    <div
+      class={{
+        'panel-toggle': true,
+        'grid-cols-4': props.panelStore.list.length === 4,
+        'grid-cols-3': props.panelStore.list.length === 3,
+      }}
+    >
       {props.panelStore.list.map((p) => (
         <button
           key={p}
@@ -21,7 +27,10 @@ export const PanelToggle = component$((props: PanelToggleProps) => {
           }}
           type="button"
           preventdefault:click
-          class={{ active: props.panelStore.active === p }}
+          class={{
+            'underlined-tab': true,
+            active: props.panelStore.active === p,
+          }}
         >
           {p}
         </button>

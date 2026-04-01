@@ -100,6 +100,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
           onClick$={async () => {
             store.selectedOutputPanel = 'app';
           }}
+          order={6}
         />
 
         {store.enableHtmlOutput ? (
@@ -109,6 +110,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             onClick$={async () => {
               store.selectedOutputPanel = 'html';
             }}
+            order={5}
           />
         ) : null}
 
@@ -119,6 +121,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             onClick$={async () => {
               store.selectedOutputPanel = 'segments';
             }}
+            order={4}
           />
         ) : null}
 
@@ -129,6 +132,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             onClick$={async () => {
               store.selectedOutputPanel = 'clientBundles';
             }}
+            order={3}
           />
         ) : null}
 
@@ -139,6 +143,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             onClick$={async () => {
               store.selectedOutputPanel = 'serverModules';
             }}
+            order={2}
           />
         ) : null}
 
@@ -149,6 +154,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
           onClick$={async () => {
             store.selectedOutputPanel = 'diagnostics';
           }}
+          order={1}
         />
       </ReplTabButtons>
 

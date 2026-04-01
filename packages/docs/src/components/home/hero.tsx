@@ -45,7 +45,7 @@ export const Hero = component$(() => {
     <section class="relative space-y-10 flex flex-col items-center overflow-x-clip mx-auto px-4">
       <Decor />
       {/* Design spacer. TODO: adjust as needed for responsiveness */}
-      <Spacer class="2xl:h-63.5 h-[128px]" />
+      <Spacer class="2xl:h-[254px] h-[64px]" />
 
       <div class="relative">
         <h1 class="uppercase font-display 2xl:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">

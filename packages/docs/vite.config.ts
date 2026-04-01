@@ -254,6 +254,7 @@ export default defineConfig(({ mode }) => {
       qwikVite({
         debug: false,
         experimental: ['each', 'preventNavigate', 'insights'],
+        devTools: { hmr: false },
       }),
       partytownVite({
         dest: resolve('dist', '~partytown'),

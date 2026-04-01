@@ -1,3 +1,5 @@
+@reference "../../global.css";
+
 .repl-tab-buttons {
   background: transparent;
   overflow-x: auto;
@@ -11,6 +13,7 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+  box-shadow: 6px 6px 0 0 var(--color-shadow-base);
 }
 
 .repl-tab-buttons-inner {
@@ -23,14 +26,12 @@
 }
 
 .repl-input-panel .repl-tab-buttons {
-  border-bottom: 1.6px solid var(--repl-docs-border);
-  background: var(--repl-docs-input-strip-bg);
+  @apply border-b-[1.6px] border-border-base bg-background-accent;
 }
 
 .repl-output-panel .repl-tab-buttons,
 .repl-detail-panel .repl-tab-buttons {
-  border-bottom: 1.6px solid var(--repl-docs-border);
-  background: var(--repl-docs-panel-bg);
+  @apply border-b-[1.6px] border-border-base bg-background-base;
 }
 
 .repl-tab {
@@ -39,58 +40,27 @@
   height: 100%;
   min-height: 0;
   overflow: auto;
-  background: var(--repl-docs-panel-bg);
 }
 
 .repl-tab-button {
-  display: inline-flex;
-  flex: 0 0 auto;
-  position: relative;
-  align-items: center;
-  min-width: 0;
-  height: 100%;
-  margin: 0;
-  border: 0;
-  padding: 8px 0;
-  background: transparent;
-  color: var(--repl-docs-text-soft);
-  font-family: 'Ubuntu Sans', sans-serif;
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 20px;
-  height: 36px;
+  @apply h-9 py-2 text-body-xs text-foreground-soft;
 }
 
 .repl-tab-button.active-tab {
-  background: transparent;
-  color: var(--repl-docs-accent);
-  font-weight: 700;
-  border-bottom: 2px solid var(--repl-docs-accent);
+  @apply text-label-xs bg-transparent text-standalone-accent;
+  @apply border-b-2 border-b-standalone-accent;
 }
 
 .repl-tab-button-select {
-  display: inline-flex;
-  align-items: center;
-  height: 100%;
-  min-height: 0;
-  border: 0;
-  line-height: 1;
+  @apply cursor-pointer;
 }
 
 .repl-tab-button-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 6px;
-  padding: 0;
-  opacity: 0.48;
-  color: var(--repl-docs-text-soft);
+  @apply ml-1.5 text-foreground-muted opacity-70;
 }
 
 .repl-tab-button-close:hover {
-  opacity: 1;
-  color: var(--repl-docs-accent);
+  @apply opacity-100;
 }
 
 .repl-main-resizer,
@@ -109,11 +79,11 @@
   width: 2px;
   transform: translateX(-50%);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--repl-docs-border), white 10%);
   box-shadow: 0 0 0 4px transparent;
   transition:
     background 120ms ease,
     box-shadow 120ms ease;
+  @apply bg-border-base;
 }
 
 .repl-main-resizer:hover .repl-main-resizer-line {
@@ -137,49 +107,27 @@
 }
 
 .repl-select-label {
-  color: var(--repl-docs-text-soft);
-  font-family: 'Ubuntu Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 16px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  @apply text-body-xs text-foreground-base;
+}
+
+.repl-select-wrapper {
+  @apply text-body-xs text-foreground-muted bg-background-base;
+  @apply p-2.5 pr-[34px] border-[1.6px] border-base rounded-lg max-w-full w-full;
+  @apply shadow-sm-base;
+  @apply relative [&:has(select:open)_.repl-select-icon]:rotate-180;
+}
+
+.repl-select-icon {
+  @apply pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 transition-transform duration-200;
+  @apply text-foreground-muted;
 }
 
 .repl-select {
-  min-width: 0;
-  width: 100%;
-  max-width: 100%;
-  appearance: none;
-  border: 1.6px solid var(--repl-docs-border);
-  border-radius: 12px;
-  background: var(--repl-docs-panel-bg);
-  box-shadow: 4px 4px 0 0 color-mix(in srgb, var(--repl-docs-accent-soft), white 20%);
-  color: var(--repl-docs-accent);
-  cursor: pointer;
-  font-family: 'Ubuntu Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  padding: 9px 40px 9px 14px;
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--repl-docs-accent) 50%),
-    linear-gradient(135deg, var(--repl-docs-accent) 50%, transparent 50%);
-  background-position:
-    calc(100% - 18px) calc(50% - 2px),
-    calc(100% - 12px) calc(50% - 2px);
-  background-size: 6px 6px;
-  background-repeat: no-repeat;
+  @apply max-w-full w-full text-ellipsis overflow-hidden appearance-none outline-0;
 }
 
-.repl-select:focus-visible {
-  outline: 2px solid var(--repl-docs-accent);
-  outline-offset: 3px;
-}
-
-.repl-select:disabled {
-  cursor: wait;
-  opacity: 0.72;
+.repl-select:open {
+  @apply text-foreground-base;
 }
 
 .output-result {
@@ -222,24 +170,14 @@
 }
 
 .output-panel-section {
-  border: 1.6px solid var(--repl-docs-border);
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 4px 4px 0 0 var(--repl-docs-accent-soft);
-  box-shadow: 4px 4px 0 0 color-mix(in srgb, var(--repl-docs-accent-soft), transparent 45%);
-  overflow: hidden;
+  box-shadow: 6px 6px 0 0 var(--color-shadow-base);
+  @apply border-[1.6px] border-border-base rounded-2xl overflow-hidden;
 }
 
 .output-panel-section-header {
   padding: 10px 16px;
-  background: var(--repl-docs-input-strip-bg);
-  border-bottom: 1px solid var(--repl-docs-border);
-  border-bottom: 1px solid color-mix(in srgb, var(--repl-docs-border), transparent 30%);
-  color: var(--repl-docs-accent);
-  font-family: 'Ubuntu Mono', 'Ubuntu Sans Mono', monospace;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 18px;
+  @apply text-label-xs text-standalone-accent bg-background-emphasis;
+  @apply border-b-[1.6px] border-border-base;
 }
 
 .output-panel-section-body {
@@ -312,7 +250,6 @@
   align-items: center;
   gap: 8px;
   min-height: 38px;
-  border: 1.6px solid color-mix(in srgb, var(--repl-docs-border), transparent 18%);
   border-radius: 999px;
   padding: 8px 12px;
   background: #ffffff;
@@ -321,6 +258,7 @@
   font-size: 13px;
   font-weight: 600;
   line-height: 18px;
+  @apply border-[1.6px] border-border-base;
 }
 
 .diagnostics-summary-pill strong {
@@ -598,16 +536,11 @@
 }
 
 .file-toggle-button {
-  margin: 0 16px 16px;
-  border: 1.6px solid var(--repl-docs-border);
-  border-radius: 999px;
-  padding: 8px 12px;
-  background: #ffffff;
-  color: var(--repl-docs-accent);
-  font-family: 'Ubuntu Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 18px;
+  @apply cursor-pointer text-body-sm flex justify-center items-center text-foreground-muted w-full h-[38px];
+}
+
+.file-toggle-button:hover {
+  @apply text-standalone-accent;
 }
 
 .detail-options {
@@ -792,11 +725,12 @@
 .repl-toggle-control input[type='checkbox'] {
   width: 18px;
   height: 18px;
-  accent-color: var(--repl-docs-accent);
+  @apply accent-border-emphasis;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 90rem) {
   .output-modules {
+    display: block;
     grid-template-columns: 1fr;
     height: auto;
     overflow: auto;
@@ -805,13 +739,73 @@
   .file-tree,
   .file-modules {
     grid-column: 1;
-    overflow: visible;
     padding-left: 0;
     padding-right: 0;
+    margin-bottom: 20px;
   }
 
   .output-column-resizer {
     display: none;
+  }
+
+  .repl-panel {
+    box-shadow: none;
+  }
+
+  .repl.repl-mobile-paged {
+    height: 100%;
+    grid-template-rows: minmax(0, 1fr);
+    transform: translate3d(0, 0, 0);
+    transition: transform 500ms;
+    overflow: visible;
+    background: transparent;
+  }
+
+  .repl.repl-mobile-paged-2 {
+    width: 200vw;
+    grid-template-columns: 100vw 100vw;
+    grid-template-areas: 'repl-input-panel repl-output-panel';
+  }
+
+  .repl.repl-mobile-paged-3 {
+    width: 300vw;
+    grid-template-columns: 100vw 100vw 100vw;
+    grid-template-areas: 'repl-input-panel repl-output-panel repl-detail-panel';
+  }
+
+  .repl.repl-mobile-paged.repl-mobile-panel-output {
+    transform: translate3d(-100vw, 0, 0);
+  }
+
+  .repl.repl-mobile-paged.repl-mobile-panel-console {
+    transform: translate3d(-200vw, 0, 0);
+  }
+
+  .repl.repl-mobile-paged .repl-panel {
+    height: 100%;
+    width: calc(100vw - 1px);
+    justify-self: center;
+  }
+
+  .repl.repl-mobile-paged .repl-main-resizer {
+    display: none;
+  }
+
+  .repl-input-panel .repl-tab-buttons {
+    @apply bg-transparent;
+  }
+
+  .repl-tab-buttons-inner {
+    @apply -mb-4 mt-4 gap-0;
+  }
+
+  .repl-tab-button {
+    @apply attached-tab h-[54px] pt-2 px-4 pb-6;
+    z-index: var(--buttons-z-index, 1);
+  }
+
+  .repl-tab-button.active-tab {
+    @apply border-b-0 attached-tab-selected;
   }
 }
 
@@ -852,11 +846,11 @@
 
 .repl-loading-shell {
   width: min(460px, 100%);
-  border: 1.6px solid var(--repl-docs-border);
+  border: 1.6px solid var(--color-border-base);
   border-radius: 18px;
   padding: 18px 18px 16px;
-  background: #ffffff;
-  box-shadow: 6px 6px 0 0 color-mix(in srgb, var(--repl-docs-accent-soft), white 18%);
+  background: var(--color-background-base);
+  box-shadow: 6px 6px 0 0 color-mix(in srgb, var(--color-border-base), white 18%);
 }
 
 .repl-loading-meta {
@@ -872,7 +866,7 @@
   min-height: 28px;
   border-radius: 999px;
   padding: 4px 12px;
-  background: color-mix(in srgb, var(--repl-docs-input-strip-bg), white 12%);
+  background: var(--color-background-accent);
   color: var(--repl-docs-accent);
   font-family: 'Ubuntu Sans', sans-serif;
   font-size: 12px;
@@ -884,7 +878,7 @@
 
 .repl-loading-title {
   margin: 14px 0 0;
-  color: var(--repl-docs-text);
+  color: var(--color-foreground-base);
   font-family: 'Tomorrow', sans-serif;
   font-size: 28px;
   font-weight: 600;
@@ -894,7 +888,6 @@
 .repl-loading-copy {
   margin: 8px 0 0;
   max-width: 34ch;
-  color: var(--repl-docs-text-soft);
   font-family: 'Ubuntu Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -914,9 +907,9 @@
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--repl-docs-input-strip-bg), white 18%) 0%,
+    var(--color-background-accent) 0%,
     #ffffff 50%,
-    color-mix(in srgb, var(--repl-docs-input-strip-bg), white 18%) 100%
+    var(--color-background-accent) 100%
   );
   background-size: 220% 100%;
   animation: repl-loading-shimmer 1.2s linear infinite;

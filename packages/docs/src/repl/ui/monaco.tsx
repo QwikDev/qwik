@@ -47,6 +47,9 @@ export const initMonacoEditor = async (
 
   const editor = monaco.editor.create(containerElm, {
     ...defaultEditorOpts,
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, DejaVu Sans Mono, monospace',
+    fontSize: 14,
     ariaLabel: props.ariaLabel,
     lineNumbers: props.lineNumbers,
     wordWrap: props.wordWrap,

@@ -29,7 +29,7 @@ export async function runV2Migration(app: AppCommand) {
   try {
     const installedTsMorph = await installTsMorph();
     const { replaceImportInFiles } = await import('./rename-import');
-    replaceImportInFiles(
+    await replaceImportInFiles(
       [
         ['QwikCityProvider', 'QwikRouterProvider'],
         ['qwikCity', 'qwikRouter'],
@@ -40,11 +40,11 @@ export async function runV2Migration(app: AppCommand) {
       ],
       '@builder.io/qwik-city'
     );
-    replaceImportInFiles(
+    await replaceImportInFiles(
       [['qwikCityPlan', 'qwikRouterConfig']],
       '@qwik-city-plan' // using old name, package name will be updated in the next step
     );
-    replaceImportInFiles([['jsxs', 'jsx']], '@builder.io/qwik/jsx-runtime');
+    await replaceImportInFiles([['jsxs', 'jsx']], '@builder.io/qwik/jsx-runtime');
 
     replacePackage('@qwik-city-plan', '@qwik-router-config', true);
     replacePackage('@builder.io/qwik-city', '@qwik.dev/router');

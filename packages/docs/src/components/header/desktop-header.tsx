@@ -4,6 +4,7 @@ import {
   useComputed$,
   useOnDocument,
   useSignal,
+  useVisibleTask$,
   type JSXOutput,
 } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
@@ -54,7 +55,7 @@ const NavPill = (props: { href: string; label: string; icon?: JSXOutput }) => (
     href={props.href}
     class="flex gap-3 items-center px-4 pt-4 pb-3 relative rounded-[4px] bg-secondary-background-base hover:bg-secondary-background-accent transition-colors shadow-secondary-border-inset"
   >
-    <div class="size-9 bg-secondary-background-base border-[1.6px] border-emphasis rounded-lg shadow-xs-emphasis flex items-center justify-center shrink-0">
+    <div class="size-9 bg-background-base border-[1.6px] border-emphasis rounded-lg shadow-xs-emphasis flex items-center justify-center shrink-0">
       {props.icon}
     </div>
     <span class="font-bold text-base leading-[22px] text-secondary-foreground-base whitespace-nowrap">
@@ -88,31 +89,37 @@ export const DesktopHeader = component$(() => {
 
   const navRef = useSignal<HTMLElement>();
 
-  useOnDocument(
-    'scroll',
-    $(() => {
-      const y = window.scrollY;
+  const toggleNavbar = $(() => {
+    const y = window.scrollY;
 
-      if (!initialized.value) {
-        initialized.value = true;
-        lastScrollY.value = y;
-        return;
-      }
-
-      // Don't hide while a dropdown menu is open
-      if (navRef.value?.querySelector('[ui-open]')) {
-        lastScrollY.value = y;
-        return;
-      }
-
-      focused.value = false;
-      if (y > lastScrollY.value && y > 100) {
-        hidden.value = true;
-      } else {
-        hidden.value = false;
-      }
+    if (!initialized.value) {
+      initialized.value = true;
       lastScrollY.value = y;
-    })
+      return;
+    }
+
+    // Don't hide while a dropdown menu is open
+    if (navRef.value?.querySelector('[ui-open]')) {
+      lastScrollY.value = y;
+      return;
+    }
+
+    focused.value = false;
+    if (y >= lastScrollY.value && y > 40) {
+      hidden.value = true;
+    } else {
+      hidden.value = false;
+    }
+    lastScrollY.value = y;
+  });
+
+  useOnDocument('scroll', toggleNavbar);
+
+  useVisibleTask$(
+    () => {
+      toggleNavbar();
+    },
+    { strategy: 'document-ready' }
   );
 
   const loc = useLocation();
@@ -125,7 +132,7 @@ export const DesktopHeader = component$(() => {
       class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] 2xl:block hidden"
     >
       <navbar.root
-        class="fixed top-6 left-1/2 z-99999 flex w-full max-w-[840px] items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-6 shadow-base transition-[translate,opacity] duration-300 ease"
+        class="fixed top-6 left-1/2 z-99999 flex w-full h-[70px] max-w-[840px] items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-6 shadow-base transition-[translate,opacity] duration-300 ease"
         style={{
           translate: isHidden.value ? '-50% calc(-100% - 24px)' : '-50% 0',
           opacity: isHidden.value ? 0 : 1,
@@ -307,7 +314,7 @@ export const DesktopHeader = component$(() => {
                 />
                 <NavPill
                   href="/playground"
-                  label="Sandbox"
+                  label="Playground"
                   icon={<pixel.codingappswebsitesplugin class={navPillIconClass} />}
                 />
                 <NavPill

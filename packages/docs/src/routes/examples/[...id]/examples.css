@@ -1,26 +1,23 @@
+@reference "../../../global.css";
+
 .examples {
-  --examples-page-bg: #fdfbff;
-  --examples-card-bg: #ffffff;
-  --examples-shadow: #b2e4ff;
-  --examples-text: #293749;
-  --examples-text-soft: #4f5f71;
-  --repl-docs-panel-bg: #ffffff;
-  --repl-docs-border: #45c6ff;
-  --repl-docs-input-strip-bg: #c4eaff;
-  --repl-docs-text-soft: #4f5f71;
-  --repl-docs-accent: #006f96;
-  --repl-docs-accent-soft: rgba(0, 111, 150, 0.32);
   --examples-repl-gap: 24px;
   position: fixed;
   inset: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  color: var(--examples-text);
-  background:
-    radial-gradient(circle at top left, rgba(196, 234, 255, 0.62), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(178, 228, 255, 0.48), transparent 28%),
-    var(--examples-page-bg);
+}
+
+.examples-menu-section h2 {
+  margin: 0 0 12px;
+  color: var(--repl-docs-accent);
+  font-family: 'Ubuntu Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .examples-menu-container {
@@ -63,17 +60,6 @@
   margin-top: 24px;
 }
 
-.examples-menu-section h2 {
-  margin: 0 0 12px;
-  color: var(--repl-docs-accent);
-  font-family: 'Ubuntu Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 16px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .example-button,
 .example-button-new {
   display: grid;
@@ -82,10 +68,7 @@
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
-  border: 1.6px solid var(--repl-docs-border);
-  border-radius: 18px;
   background: var(--examples-card-bg);
-  box-shadow: 4px 4px 0 0 color-mix(in srgb, var(--repl-docs-accent-soft), white 20%);
   color: var(--examples-text);
   text-decoration: none;
   text-align: left;
@@ -94,6 +77,8 @@
     transform 180ms ease,
     box-shadow 180ms ease,
     background 180ms ease;
+  box-shadow: 6px 6px 0 0 var(--color-shadow-base);
+  @apply border-[1.6px] border-border-base rounded-2xl overflow-hidden transition-transform;
 }
 
 .example-button + .example-button {
@@ -103,15 +88,8 @@
 .example-button:hover,
 .example-button.selected,
 .example-button-new:hover {
-  background: color-mix(in srgb, var(--repl-docs-input-strip-bg), white 26%);
-  transform: translateY(-2px);
-  box-shadow: 6px 6px 0 0 color-mix(in srgb, var(--repl-docs-accent-soft), white 12%);
-}
-
-.example-button:focus-visible,
-.example-button-new:focus-visible {
-  outline: 2px solid var(--repl-docs-accent);
-  outline-offset: 3px;
+  @apply bg-background-accent;
+  @apply -translate-y-1;
 }
 
 .example-button-icon {
@@ -189,12 +167,8 @@
 }
 
 .examples .repl-panel {
-  min-width: 0;
-  min-height: 0;
-  border: 1.6px solid var(--repl-docs-border);
-  border-radius: 16px;
-  background: var(--examples-card-bg);
-  box-shadow: 6px 6px 0 0 var(--examples-shadow);
+  box-shadow: 6px 6px 0 0 var(--color-shadow-base);
+  @apply border-[1.6px] border-border-base rounded-2xl overflow-hidden;
 }
 
 .examples .repl-input-panel,
@@ -221,8 +195,7 @@
   }
 
   .examples-menu-container {
-    height: calc(100dvh - 72px - var(--panel-toggle-height));
-    margin-top: 72px;
+    @apply m-0 p-0;
   }
 
   .examples.examples-active-examples .examples-menu-container {
@@ -235,12 +208,8 @@
     transform: translate3d(-100vw, 0, 0);
   }
 
-  .examples-menu {
-    padding: 20px 22px 32px 18px;
-  }
-
   .examples-repl {
-    padding: 20px 12px 34px;
+    @apply p-0;
   }
 
   .examples-repl-shell {
@@ -286,8 +255,8 @@
     height: 100%;
     margin-top: 0;
     grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-    padding: 118px 24px 28px;
     box-sizing: border-box;
+    padding: 118px 24px 28px;
     transform: translate3d(0, 0, 0);
     transition: none;
   }
@@ -298,7 +267,6 @@
 
   .examples-repl {
     overflow: visible;
-    padding: 0 8px 8px 12px;
   }
 
   .examples-repl-shell {
@@ -352,8 +320,8 @@
   }
 
   .examples .repl-main-resizer:hover .repl-main-resizer-line {
-    background: var(--repl-docs-accent);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--repl-docs-accent-soft), white 35%);
+    box-shadow: 0 0 0 4px rgba(178, 228, 255, 0.7);
+    @apply bg-border-base;
   }
 
   .examples .repl-input-panel {
@@ -374,6 +342,6 @@
   }
 
   .examples .repl-detail-panel .repl-tab-buttons {
-    border-top: 1.6px solid var(--repl-docs-border);
+    @apply border-t-[1.6px] border-border-base;
   }
 }

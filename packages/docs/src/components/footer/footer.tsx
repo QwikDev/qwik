@@ -54,7 +54,7 @@ const linkColumns: FooterColumn[] = [
     links: [
       { title: 'Blog', href: '/blog' },
       { title: 'Concepts', href: '/docs/concepts/think-qwik' },
-      { title: 'Sandbox', href: '/playground' },
+      { title: 'Playground', href: '/playground' },
       { title: 'Qwik Labs', href: '/docs/labs' },
       { title: 'llms.txt', href: '/llms.txt' },
     ],

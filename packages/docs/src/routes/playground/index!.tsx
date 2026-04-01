@@ -72,24 +72,27 @@ export default component$(() => {
       }}
     >
       <Header />
-
-      <div
-        class={{
-          'repl-panel-output': panelStore.active === 'Output',
-          'repl-panel-console': panelStore.active === 'Console',
-          repl: true,
-        }}
-      >
-        <Repl
-          input={store}
-          enableCopyToPlayground={false}
-          enableDownload={true}
-          enableInputDelete={true}
-          enableMainSplitter={true}
-          editorTheme="github-light"
-        />
-      </div>
       <PanelToggle panelStore={panelStore} />
+      <main class="playground-main">
+        <div
+          class={{
+            repl: true,
+            'repl-mobile-paged': true,
+            'repl-mobile-paged-3': true,
+            'repl-mobile-panel-output': panelStore.active === 'Output',
+            'repl-mobile-panel-console': panelStore.active === 'Console',
+          }}
+        >
+          <Repl
+            input={store}
+            enableCopyToPlayground={false}
+            enableDownload={true}
+            enableInputDelete={true}
+            enableMainSplitter={true}
+            editorTheme="github-light"
+          />
+        </div>
+      </main>
     </div>
   );
 });

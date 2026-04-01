@@ -16,11 +16,22 @@
 }
 
 .docs-content-area {
-  @apply grid;
+  @apply grid gap-10 justify-center;
   grid-template-columns: 1fr;
 
   @variant xl {
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 733px 300px;
+  }
+}
+
+.docs-content-area-wide {
+  @apply flex;
+
+  @variant xl {
+    justify-self: center;
+    width: 100%;
+    max-width: 920px;
+    transform: translateX(-15%);
   }
 }
 
@@ -32,12 +43,12 @@
   }
 }
 
-.docs .docs-content {
-  @apply max-w-[75ch] mx-auto px-4 pt-24 pb-8 sm:px-6 xl:pt-40;
+.fixed-header {
+  @apply 2xl:mt-[102px];
 }
 
-.docs .docs-content-wide {
-  @apply max-w-[960px] w-full;
+.docs .docs-content {
+  @apply mx-auto px-4 pb-8 sm:px-6 2xl:pt-16 pt-6;
 }
 
 /* ─── Links ─── */
@@ -109,7 +120,7 @@
 .docs article .card-intro {
   @apply p-0 overflow-hidden flex flex-col transition-all;
   border: 1.6px solid var(--color-border-base);
-  box-shadow: var(--shadow-sm-base);
+  box-shadow: var(--shadow-emphasis);
 }
 
 .docs article .card-intro.card-violet {
@@ -119,11 +130,6 @@
 
 .docs article a.card-intro:hover {
   @apply -translate-y-1;
-  box-shadow: var(--shadow-sm-accent);
-}
-
-.docs article a.card-intro.card-violet:hover {
-  box-shadow: var(--shadow-secondary-accent);
 }
 
 .docs article .card-intro .card-icon {
@@ -363,7 +369,7 @@ h6 a:hover .icon {
 .shiki-title {
   @apply bg-background-accent text-standalone-accent text-body-xs block px-6 py-2;
   @apply border-[1.6px] border-base border-b-0 rounded-t-2xl;
-  box-shadow: 6px 0 0 0 var(--color-shadow-base);
+  box-shadow: 6px 6px 0 0 var(--color-shadow-base);
 }
 
 .docs article pre {
@@ -389,7 +395,7 @@ h6 a:hover .icon {
 /* ─── Inline code ─── */
 
 .docs article code {
-  @apply bg-secondary-background-accent px-1 py-0.5 rounded text-[0.9em] select-all box-decoration-clone;
+  @apply bg-secondary-background-base px-1 py-0.5 rounded text-[0.9em] select-all box-decoration-clone;
 }
 
 /* ─── Responsive ─── */

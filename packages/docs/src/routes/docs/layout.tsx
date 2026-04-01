@@ -18,22 +18,25 @@ export default component$(() => {
   const mobileSidebarOpen = useSignal(false);
 
   return (
-    <div class="docs fixed-header">
+    <div class="docs">
       <Header mobileSidebarOpen={mobileSidebarOpen} />
       <div class="docs-grid bg-violet-shallow">
         <Sidebar mobileOpen={mobileSidebarOpen} />
-        <div class="docs-content-area pb-10">
-          <main>
-            <div class={`docs-content ${isOverview.value ? 'docs-content-wide' : ''}`}>
-              <article>
-                <Slot />
-                <Contributors />
-              </article>
-              <ContentNav />
-            </div>
-          </main>
+        <main
+          class={{
+            'docs-content-area pb-10 fixed-header': true,
+            'docs-content-area-wide': isOverview.value,
+          }}
+        >
+          <div class="docs-content">
+            <article>
+              <Slot />
+              <Contributors />
+            </article>
+            <ContentNav />
+          </div>
           {hasOnThisPage.value && <OnThisPage />}
-        </div>
+        </main>
         <Footer />
       </div>
     </div>

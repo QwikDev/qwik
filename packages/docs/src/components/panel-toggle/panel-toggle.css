@@ -1,68 +1,17 @@
+@reference "../../global.css";
+
 .panel-toggle {
-  position: -webkit-sticky;
-  position: sticky;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  background-color: var(--panel-toggle-background-color);
-  width: 100vw;
-  height: var(--panel-toggle-height);
-  padding: 6px 12px;
-  box-sizing: border-box;
+  @apply grid h-[36px] min-h-[36px] border-b-[1.6px] border-base 2xl:hidden bg-background-base;
 }
 
-.panel-toggle button {
-  background: transparent;
-  color: var(--repl-docs-text-soft, #4f5f71);
-  border: 1.6px solid transparent;
-  border-radius: 0;
-  min-width: 60px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 7px 12px;
-  margin: 0;
-  font-family: 'Ubuntu Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 16px;
-  white-space: nowrap;
-  transition:
-    color 180ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
+.underlined-tab {
+  @apply text-body-xs text-foreground-soft;
 }
 
-.panel-toggle button:hover {
-  color: var(--tutorial-outline-text, #7c29d1);
-  background: rgba(228, 215, 255, 0.28);
+.underlined-tab:hover {
+  @apply text-standalone-accent;
 }
 
-.panel-toggle button.active {
-  color: var(--tutorial-outline-text, #7c29d1);
-  border-color: var(--tutorial-outline-border, #bd96ff);
-  background: var(--tutorial-outline-bg, #ffffff);
-  box-shadow: 4px 4px 0 0 var(--tutorial-secondary-shadow, #ae76fe);
-}
-
-.panel-toggle button:focus-visible {
-  outline: 2px solid var(--repl-docs-accent, #006f96);
-  outline-offset: 2px;
-}
-
-@media (min-width: 380px) {
-  .panel-toggle button {
-    padding: 8px 14px;
-    min-width: 70px;
-    font-size: 14px;
-    line-height: 18px;
-  }
-}
-
-@media (min-width: 768px) {
-  .panel-toggle {
-    display: none;
-  }
+.underlined-tab.active {
+  @apply text-label-sm border-b-2 border-standalone-accent;
 }

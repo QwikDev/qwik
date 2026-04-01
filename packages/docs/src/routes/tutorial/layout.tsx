@@ -10,16 +10,19 @@ import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
 import { Repl } from '../../repl/ui';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import styles from './tutorial.css?inline';
+import { lucide } from '@qds.dev/ui';
+
+export type ActivePanel = 'Tutorial' | 'Input' | 'Output';
 
 export default component$(() => {
   useStyles$(styles);
 
   const { url } = useLocation();
   const nav = useNavigate();
-  const panelStore = useStore(() => ({
+  const panelStore = useStore<{ active: ActivePanel; list: string[] }>({
     active: 'Tutorial',
     list: PANELS,
-  }));
+  });
 
   const store = useStore<TutorialStore>(() => {
     const initStore: TutorialStore = {
@@ -54,6 +57,7 @@ export default component$(() => {
   return (
     <div class="tutorial full-width fixed-header repl-theme-docs">
       <Header />
+      <PanelToggle panelStore={panelStore} />
       <main
         class={{
           'tutorial-panel-input': panelStore.active === 'Input',
@@ -66,29 +70,34 @@ export default component$(() => {
               <div class="tutorial-toolbar">
                 <label class="tutorial-lesson-picker repl-select-field repl-select-field-inline">
                   <span class="repl-select-label">Lesson</span>
-                  <select
-                    class="repl-select"
-                    aria-label="Select tutorial lesson"
-                    onChange$={(_, elm) => {
-                      if (url.pathname !== `/tutorial/${elm.value}/`) {
-                        nav(`/tutorial/${elm.value}/`);
-                      }
-                    }}
-                  >
-                    {(tutorialSections as TutorialSection[]).map((section) => (
-                      <optgroup key={section.id} label={section.title}>
-                        {section.apps.map((tutorial) => (
-                          <option
-                            selected={tutorial.id === store.appId}
-                            value={tutorial.id}
-                            key={tutorial.id}
-                          >
-                            {tutorial.title}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
+                  <div class="repl-select-wrapper">
+                    <select
+                      class="repl-select"
+                      aria-label="Select tutorial lesson"
+                      onChange$={(_, elm) => {
+                        if (url.pathname !== `/tutorial/${elm.value}/`) {
+                          nav(`/tutorial/${elm.value}/`);
+                        }
+                      }}
+                    >
+                      {(tutorialSections as TutorialSection[]).map((section) => (
+                        <optgroup key={section.id} label={section.title}>
+                          {section.apps.map((tutorial) => (
+                            <option
+                              selected={tutorial.id === store.appId}
+                              value={tutorial.id}
+                              key={tutorial.id}
+                            >
+                              {tutorial.title}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <span class="repl-select-icon">
+                      <lucide.chevrondown class="size-4" />
+                    </span>
+                  </div>
                 </label>
 
                 <a
@@ -113,7 +122,7 @@ export default component$(() => {
         </article>
         <div class="tutorial-repl-panel">
           <div class="tutorial-repl-shell">
-            <div class="repl">
+            <div class="repl repl-mobile-paged repl-mobile-paged-2">
               <Repl
                 input={store}
                 enableHtmlOutput={store.app.enableHtmlOutput}
@@ -126,10 +135,9 @@ export default component$(() => {
               />
             </div>
           </div>
-          <TutorialContentFooter store={store} />
         </div>
+        <TutorialContentFooter store={store} />
       </main>
-      <PanelToggle panelStore={panelStore} />
     </div>
   );
 });

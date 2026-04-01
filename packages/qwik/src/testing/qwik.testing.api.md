@@ -88,6 +88,17 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     getStyles: () => Record<string, string | string[]>;
 }>;
 
+// @public (undocumented)
+export interface StreamingOptions {
+    // Warning: (ae-forgotten-export) The symbol "InOrderStreaming" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    inOrder?: InOrderStreaming;
+    // (undocumented)
+    suspenseFallbackDelay?: number;
+    yieldBudget?: number;
+}
+
 // @public
 export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any, options?: {
     waitForIdle?: boolean;
@@ -112,10 +123,6 @@ export function walkJSX(jsx: JSXOutput, apply: {
     leave: (jsx: JSXNodeInternal) => void;
     text: (text: _Stringifiable) => void;
 }): void;
-
-// Warnings were encountered during analysis:
-//
-// /home/wmertens/Projects/qwik.worktrees/ssr-cursors/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:23:5 - (ae-forgotten-export) The symbol "StreamingOptions" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

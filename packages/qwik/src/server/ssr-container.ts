@@ -409,7 +409,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
-  private $noScriptHere$: number = 0;
+  $noScriptHere$: number = 0;
 
   /** Renders opening tag for DOM element */
   openElement(
@@ -423,7 +423,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ): string | undefined {
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
-
+    // keep track of noscript and template, and for html we only emit inside body
+    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+      this.$noScriptHere$++;
+    }
     if (
       // don't append qwik loader before qwik style elements
       // it will confuse the resuming, because styles are expected to be the first nodes in subtree
@@ -433,10 +436,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (this.$noScriptHere$ === 0 && this.size > 30 * 1024 && elementName !== 'body') {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
-      }
-      // keep track of noscript and template, and for html we only emit inside body
-      else if (elementName === 'noscript' || elementName === 'template') {
-        this.$noScriptHere$++;
       }
     }
 
@@ -540,11 +539,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write(GT);
     }
     this.lastNode = null;
-    if (this.qlInclude === QwikLoaderInclude.Inline) {
-      // keep track of noscript and template
-      if (elementName === 'noscript' || elementName === 'template') {
-        this.$noScriptHere$--;
-      }
+    // keep track of where to emit scripts
+    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+      this.$noScriptHere$--;
     }
   }
 
@@ -1170,7 +1167,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               allowedContent(previousTagNesting)[0]
             }.`
           );
-          throw newTagError(text.join('\n'));
+          throw newTagError(text.map(escapeHTML).join('\n'));
         }
       }
     }

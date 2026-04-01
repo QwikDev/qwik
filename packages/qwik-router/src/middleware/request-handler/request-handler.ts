@@ -1,6 +1,6 @@
 import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
-import { type QwikRouterConfig, type RebuildRouteInfoInternal } from '../../runtime/src/types';
+import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
 export { _asyncRequestStore } from './async-request-store';
 import { _asyncRequestStore } from './async-request-store';
 import { getRouteMatchPathname } from './request-path';
@@ -8,11 +8,15 @@ import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { runQwikRouter, type QwikRouterRun } from './user-response';
 
-/**
- * We need to delay importing the config until the first request, because vite also imports from
- * this file and @qwik-router-config doesn't exist from the vite config before the build.
- */
-let qwikRouterConfigActual: QwikRouterConfig;
+let qwikRouterConfig: QwikRouterConfig;
+
+async function getConfig(): Promise<QwikRouterConfig> {
+  if (!qwikRouterConfig) {
+    qwikRouterConfig = (await import('@qwik-router-config')) as any as QwikRouterConfig;
+  }
+  return qwikRouterConfig;
+}
+
 /**
  * The request handler for QwikRouter. Called by every adapter.
  *
@@ -23,16 +27,7 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions
 ): Promise<QwikRouterRun<T> | null> {
   const { render, checkOrigin } = opts;
-  let { qwikRouterConfig } = opts;
-  if (!qwikRouterConfig) {
-    if (!qwikRouterConfigActual) {
-      qwikRouterConfigActual = (await import('@qwik-router-config')) as any as QwikRouterConfig;
-    }
-    qwikRouterConfig = qwikRouterConfigActual;
-  }
-  if (!qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
-  }
+  const config = await getConfig();
 
   const { pathname, isInternal } = getRouteMatchPathname(serverRequestEv.url.pathname);
   // Ignore requests for .well-known so static servers or other middleware can handle them
@@ -41,7 +36,7 @@ export async function requestHandler<T = unknown>(
   }
   // TODO cache pages
   const { loadedRoute, requestHandlers } = await loadRequestHandlers(
-    qwikRouterConfig,
+    config,
     pathname,
     serverRequestEv.request.method,
     checkOrigin ?? true,
@@ -50,7 +45,7 @@ export async function requestHandler<T = unknown>(
   );
 
   // When fallthrough is enabled and no route matched, let the adapter handle it
-  if (qwikRouterConfig.fallthrough && loadedRoute.$notFound$) {
+  if (config.fallthrough && loadedRoute.$notFound$) {
     return null;
   }
 
@@ -58,7 +53,7 @@ export async function requestHandler<T = unknown>(
     // once internal, always internal, don't override
     const { pathname } = getRouteMatchPathname(url.pathname);
     return loadRequestHandlers(
-      qwikRouterConfig,
+      config,
       pathname,
       serverRequestEv.request.method,
       checkOrigin ?? true,
@@ -72,7 +67,7 @@ export async function requestHandler<T = unknown>(
     loadedRoute,
     requestHandlers,
     rebuildRouteInfo,
-    qwikRouterConfig.basePathname
+    config.basePathname
   );
 }
 

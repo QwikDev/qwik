@@ -26,6 +26,7 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     abort(reason?: any): void;
     error: Error | undefined;
     interval: number;
+    invalidate(info?: unknown): void;
     loading: boolean;
     promise(): Promise<void>;
 }

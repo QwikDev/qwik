@@ -202,11 +202,15 @@ const mergeArray = (
   }
 };
 
-export const createDocumentHead = (defaults?: DocumentHeadValue): ResolvedDocumentHead => ({
+export const createDocumentHead = (
+  defaults?: DocumentHeadValue,
+  manifestHash?: string
+): ResolvedDocumentHead => ({
   title: defaults?.title || '',
   meta: [...(defaults?.meta || [])],
   links: [...(defaults?.links || [])],
   styles: [...(defaults?.styles || [])],
   scripts: [...(defaults?.scripts || [])],
   frontmatter: { ...defaults?.frontmatter },
+  manifestHash: manifestHash || 'dev',
 });

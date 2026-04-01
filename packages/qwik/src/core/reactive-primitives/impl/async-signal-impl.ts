@@ -85,6 +85,8 @@ class AsyncJob<T> implements AsyncCtx<T> {
  * AsyncSignalImpl
  *
  * # ================================
+ *
+ * @internal
  */
 export class AsyncSignalImpl<T>
   extends ComputedSignalImpl<T, AsyncQRL<T>>
@@ -433,6 +435,8 @@ export class AsyncSignalImpl<T>
       DEBUG && log('Error caught in promise.catch', err);
       if (isCurrent()) {
         this.untrackedError = err as Error;
+        // Reset value so next read throws the promise instead of returning stale data
+        this.$untrackedValue$ = NEEDS_COMPUTATION;
       }
     }
 

@@ -310,12 +310,17 @@ async function bundleMemoryScenarios(): Promise<string> {
         name: 'qwik-memory-stubs',
         setup(buildApi) {
           buildApi.onResolve({ filter: /^@qwik\.dev\/core$/ }, () => ({
-            path: resolve(process.cwd(), 'packages/qwik/dist/core.mjs'),
-            external: true,
+            path: resolve(process.cwd(), 'packages/qwik/src/core/index.ts'),
           }));
           buildApi.onResolve({ filter: /^@qwik\.dev\/core\/internal$/ }, () => ({
-            path: resolve(process.cwd(), 'packages/qwik/dist/core.mjs'),
-            external: true,
+            path: resolve(process.cwd(), 'packages/qwik/src/core/internal.ts'),
+          }));
+          buildApi.onResolve({ filter: /^@qwik\.dev\/core\/build$/ }, () => ({
+            path: resolve(process.cwd(), 'packages/qwik/src/build/index.dev.ts'),
+          }));
+          buildApi.onResolve({ filter: /^@qwik\.dev\/core\/preloader$/ }, () => ({
+            path: 'preloader-stub',
+            namespace: 'qwik-memory-stub',
           }));
           buildApi.onResolve({ filter: /^@qwik-client-manifest$/ }, () => ({
             path: 'qwik-client-manifest-stub',
@@ -329,6 +334,12 @@ async function bundleMemoryScenarios(): Promise<string> {
           });
 
           buildApi.onLoad({ filter: /.*/, namespace: 'qwik-memory-stub' }, (args) => {
+            if (args.path === 'preloader-stub') {
+              return {
+                contents: 'export const p = undefined;',
+                loader: 'js',
+              };
+            }
             if (args.path === 'vnode-utils-stub') {
               return {
                 contents: 'export const vnode_toString = () => "[VNode]";',

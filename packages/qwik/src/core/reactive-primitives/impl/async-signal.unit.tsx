@@ -9,7 +9,13 @@ import type { Container, HostElement } from '../../shared/types';
 import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
-import { type AsyncCtx, AsyncSignalFlags, EffectProperty, SignalFlags } from '../types';
+import {
+  type AsyncCtx,
+  AsyncSignalFlags,
+  EffectProperty,
+  NEEDS_COMPUTATION,
+  SignalFlags,
+} from '../types';
 import { clearAllEffects } from '../cleanup';
 import { createSignal, createAsync$, createAsyncQrl } from '../signal.public';
 import { getSubscriber } from '../subscriber';
@@ -641,6 +647,68 @@ describe('async signal', () => {
         });
 
         expect(signal.value).toBe(5);
+        expect(signal.error).toBeUndefined();
+      });
+    });
+
+    it('should throw the retried promise instead of returning a stale value after an error', async () => {
+      await withContainer(async () => {
+        const ref = {
+          started: 0,
+          rejectFirst: undefined as ((error: Error) => void) | undefined,
+          resolveSecond: undefined as ((value: number) => void) | undefined,
+        };
+        const signal = createAsync$(
+          async () => {
+            ref.started++;
+            if (ref.started === 1) {
+              return new Promise<number>((_resolve, reject) => {
+                ref.rejectFirst = reject;
+              });
+            }
+            return new Promise<number>((resolve) => {
+              ref.resolveSecond = resolve;
+            });
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+
+        effect$(() => signal.value);
+
+        await retryOnPromise(() => {
+          if (ref.started !== 1 || !ref.rejectFirst) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        await signal.invalidate();
+
+        const failure = new Error('first failure');
+        ref.rejectFirst!(failure);
+
+        await retryOnPromise(() => {
+          if (ref.started !== 2 || !ref.resolveSecond) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        let thrown: unknown;
+        try {
+          signal.value;
+        } catch (err) {
+          thrown = err;
+        }
+
+        expect(thrown).toBeInstanceOf(Promise);
+        expect(signal.error).toBe(failure);
+        expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+
+        ref.resolveSecond!(2);
+        await signal.promise();
+
+        expect(signal.value).toBe(2);
         expect(signal.error).toBeUndefined();
       });
     });

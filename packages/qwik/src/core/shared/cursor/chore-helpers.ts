@@ -104,7 +104,8 @@ export function executeTaskSequence(
 
   let taskPromise: Promise<void> | undefined;
 
-  for (const item of elementSeq) {
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
     if (!(item instanceof Task)) {
       continue;
     }

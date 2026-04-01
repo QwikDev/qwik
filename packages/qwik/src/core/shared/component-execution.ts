@@ -133,7 +133,8 @@ export const executeComponent = (
               return;
             }
             let p: ValueOrPromise<void> | undefined;
-            for (const item of elementSeq) {
+            for (let i = 0; i < elementSeq.length; i++) {
+              const item = elementSeq[i];
               if (item instanceof Task && item.$flags$ & TaskFlags.DIRTY) {
                 const r = runTask(item, container, renderHost);
                 if (isPromise(r)) {

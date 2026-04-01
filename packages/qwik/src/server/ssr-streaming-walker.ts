@@ -477,7 +477,9 @@ export class IncrementalEmitter {
   syncSuspenseBoundaries(boundaries: Iterable<SuspenseBoundaryInfo>): void {
     this.suspenseBoundaries.clear();
     this.suspenseBoundariesByPlaceholderId.clear();
-    for (const boundary of boundaries) {
+    const boundariesArray = Array.from(boundaries);
+    for (let i = 0; i < boundariesArray.length; i++) {
+      const boundary = boundariesArray[i];
       this.suspenseBoundaries.set(boundary.node, boundary);
       this.suspenseBoundariesByPlaceholderId.set(boundary.placeholderId, boundary);
     }

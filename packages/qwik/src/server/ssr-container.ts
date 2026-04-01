@@ -505,7 +505,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             )
         : null;
     while (!emitDone) {
+      // Process cursor queue. Use timeBudget for main work, then drain any
+      // remaining sync cursors (e.g. Suspense sub-cursors created during the walk).
+      // Sub-cursors with higher priority (-1) need to complete before emission so that
+      // Suspense boundaries that resolve synchronously are inlined.
       processCursorQueue({ timeBudget: yieldBudget });
+      // Drain remaining sync sub-cursors (e.g. Suspense children that resolve immediately)
+      processCursorQueue({ timeBudget: 0 });
 
       // After the first processCursorQueue, capture the container data frame.
       // emitContainerDataFrame is set during tree building when openElement encounters <body>.
@@ -1607,8 +1613,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         deferredPatches.push({ elementIndex, entries: backpatchEntries });
       }
       deferredPatches.sort((a, b) => a.elementIndex - b.elementIndex);
-      for (const { elementIndex, entries } of deferredPatches) {
-        for (const backpatchEntry of entries) {
+      for (let i = 0; i < deferredPatches.length; i++) {
+        const { elementIndex, entries } = deferredPatches[i];
+        for (let j = 0; j < entries.length; j++) {
+          const backpatchEntry = entries[j];
           patches.push(
             elementIndex,
             backpatchEntry.attrName,
@@ -1998,7 +2006,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * 2. A `<script>` that swaps the placeholder with the content
    */
   private emitOoOChunks(boundaries: SuspenseBoundary[] = this.suspenseBoundaries) {
-    for (const boundary of boundaries) {
+    for (let i = 0; i < boundaries.length; i++) {
+      const boundary = boundaries[i];
       const placeholderId = boundary.placeholderId;
       const templateId = `qooo-${placeholderId}`;
 

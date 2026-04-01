@@ -78,6 +78,22 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return new URL(value as string);
     case TypeIds.Date:
       return new Date(value as number);
+    case TypeIds.TemporalDuration:
+      return Temporal.Duration.from(value as string);
+    case TypeIds.TemporalInstant:
+      return Temporal.Instant.from(value as string);
+    case TypeIds.TemporalPlainDate:
+      return Temporal.PlainDate.from(value as string);
+    case TypeIds.TemporalPlainDateTime:
+      return Temporal.PlainDateTime.from(value as string);
+    case TypeIds.TemporalPlainMonthDay:
+      return Temporal.PlainMonthDay.from(value as string);
+    case TypeIds.TemporalPlainTime:
+      return Temporal.PlainTime.from(value as string);
+    case TypeIds.TemporalPlainYearMonth:
+      return Temporal.PlainYearMonth.from(value as string);
+    case TypeIds.TemporalZonedDateTime:
+      return Temporal.ZonedDateTime.from(value as string);
     case TypeIds.Regex:
       const idx = (value as string).lastIndexOf('/');
       return new RegExp((value as string).slice(1, idx), (value as string).slice(idx + 1));

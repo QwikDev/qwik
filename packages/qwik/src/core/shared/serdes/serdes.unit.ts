@@ -186,6 +186,63 @@ describe('shared-serialization', () => {
         (6 chars)"
       `);
     });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalDuration), async () => {
+      expect(await dump(Temporal.Duration.from('PT194972H22M2.783S'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalDuration "PT194972H22M2.783S"
+        (25 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalInstant), async () => {
+      expect(await dump(Temporal.Instant.from('2003-12-29T00:00:00Z'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalInstant "2003-12-29T00:00:00Z"
+        (27 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainDate), async () => {
+      expect(await dump(Temporal.PlainDate.from('2003-12-29'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainDate "2003-12-29"
+        (17 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainDateTime), async () => {
+      expect(await dump(Temporal.PlainDateTime.from('2003-12-29T04:20:00'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainDateTime "2003-12-29T04:20:00"
+        (26 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainMonthDay), async () => {
+      expect(await dump(Temporal.PlainMonthDay.from('12-29'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainMonthDay "12-29"
+        (12 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainTime), async () => {
+      expect(await dump(Temporal.PlainTime.from('04:20:00'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainTime "04:20:00"
+        (15 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalPlainYearMonth), async () => {
+      expect(await dump(Temporal.PlainYearMonth.from('2003-12'))).toMatchInlineSnapshot(`
+        "
+        0 TemporalPlainYearMonth "2003-12"
+        (14 chars)"
+      `);
+    });
+    it.skipIf(typeof Temporal === 'undefined')(title(TypeIds.TemporalZonedDateTime), async () => {
+      expect(await dump(Temporal.ZonedDateTime.from('2003-12-29T04:20:00+01:00[Europe/Berlin]')))
+        .toMatchInlineSnapshot(`
+        "
+        0 TemporalZonedDateTime "2003-12-29T04:20:00+01:00[Europe/Berlin]"
+        (47 chars)"
+      `);
+    });
     it(title(TypeIds.Regex), async () => {
       expect(await dump(/abc/gm)).toMatchInlineSnapshot(`
         "
@@ -995,6 +1052,32 @@ describe('shared-serialization', () => {
       expect(date).toBeInstanceOf(Date);
       expect(date.toISOString()).toBe('2009-02-13T23:31:30.000Z');
     });
+    const testTemporal = (id: TypeIds, T_: () => typeof __TemporalStub<unknown>, value: string) => {
+      it.skipIf(typeof Temporal === 'undefined')(title(id), async () => {
+        const T = T_();
+        const original = T.from(value);
+        const objs = await serialize(original);
+        const deserialized = deserialize(objs)[0];
+        expect(deserialized).toBeInstanceOf(T);
+        expect(original).toEqual(deserialized);
+      });
+    };
+    testTemporal(TypeIds.TemporalDuration, () => Temporal.Duration, 'PT194972H22M2.783S');
+    testTemporal(TypeIds.TemporalInstant, () => Temporal.Instant, '2003-12-29T00:00:00Z');
+    testTemporal(TypeIds.TemporalPlainDate, () => Temporal.PlainDate, '2003-12-29');
+    testTemporal(
+      TypeIds.TemporalPlainDateTime,
+      () => Temporal.PlainDateTime,
+      '2003-12-29T04:20:00'
+    );
+    testTemporal(TypeIds.TemporalPlainMonthDay, () => Temporal.PlainMonthDay, '12-29');
+    testTemporal(TypeIds.TemporalPlainTime, () => Temporal.PlainTime, '04:20:00');
+    testTemporal(TypeIds.TemporalPlainYearMonth, () => Temporal.PlainYearMonth, '2003-12');
+    testTemporal(
+      TypeIds.TemporalZonedDateTime,
+      () => Temporal.ZonedDateTime,
+      '2003-12-29T04:20:00+01:00[Europe/Berlin]'
+    );
     it(title(TypeIds.Regex), async () => {
       const objs = await serialize(/abc/gm);
       const regex = deserialize(objs)[0] as RegExp;

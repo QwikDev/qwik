@@ -28,13 +28,6 @@ import {
 } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 
-/**
- * Planned features:
- *
- * - `eagerCleanup`: boolean - whether to run cleanups eagerly when there are no more subscribers, or
- *   to wait until the next computation/destroy.
- */
-
 const DEBUG = false;
 const log = (...args: any[]) =>
   // eslint-disable-next-line no-console
@@ -50,7 +43,11 @@ class AsyncJob<T> implements AsyncCtx<T> {
   $cleanups$: Parameters<AsyncCtx<T>['cleanup']>[0][] | undefined;
   $abortController$: AbortController | undefined;
 
-  constructor(readonly $signal$: AsyncSignalImpl<T>) {}
+  constructor(
+    readonly $signal$: AsyncSignalImpl<T>,
+    readonly info: unknown,
+    readonly $infoVersion$: number
+  ) {}
 
   get track(): AsyncCtx<T>['track'] {
     return (this.$track$ ||= trackFn(this.$signal$, this.$signal$.$container$));
@@ -104,6 +101,8 @@ export class AsyncSignalImpl<T>
   $concurrency$: number = 1;
   $interval$: number = 0;
   $timeoutMs$: number | undefined;
+  $info$: unknown = undefined;
+  $infoVersion$: number = 0;
   declare $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined;
   declare $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
 
@@ -181,6 +180,35 @@ export class AsyncSignalImpl<T>
   }
   set untrackedValue(value: T) {
     this.$untrackedValue$ = value;
+  }
+
+  /**
+   * Read the value, subscribing if in a tracking context. Triggers computation if needed.
+   *
+   * Setting the value will mark the signal as not loading and clear any error, and prevent any
+   * pending computations from writing their results.
+   *
+   * If you want to set the value without affecting loading or error state, set `untrackedValue`
+   * instead and make sure to trigger effects manually if needed.
+   *
+   * If you want to abort pending computations when setting, you have to call `abort()` manually.
+   */
+  override get value(): T {
+    return super.value;
+  }
+
+  override set value(value: T) {
+    this.$flags$ &= ~SignalFlags.INVALID;
+    this.untrackedLoading = false;
+    this.untrackedError = undefined;
+    this.$info$ = undefined;
+    // Prevent pending computations from overwriting this value
+    for (let i = 0; i < this.$jobs$.length; i++) {
+      this.$jobs$[i].$canWrite$ = false;
+    }
+    this.$clearNextPoll$();
+    super.value = value;
+    this.$scheduleNextPoll$();
   }
 
   /**
@@ -266,15 +294,19 @@ export class AsyncSignalImpl<T>
   set interval(value: number) {
     this.$clearNextPoll$();
     this.$interval$ = value;
-    if (this.$interval$ > 0 && this.$effects$?.size) {
+    if (this.$interval$ !== 0 && this.$hasSubscribers$()) {
       this.$scheduleNextPoll$();
     }
   }
 
   /** Invalidates the signal, causing it to re-compute its value. */
-  override async invalidate() {
+  override async invalidate(info?: unknown) {
     this.$flags$ |= SignalFlags.INVALID;
     this.$clearNextPoll$();
+    if (arguments.length > 0) {
+      this.$info$ = info;
+      this.$infoVersion$++;
+    }
     if (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size) {
       // compute in next microtask
       await true;
@@ -346,7 +378,8 @@ export class AsyncSignalImpl<T>
     this.$flags$ &= ~SignalFlags.INVALID;
 
     // We put the actual computation in a separate method so we can easily retain the promise
-    const running = new AsyncJob(this);
+    const infoVersion = this.$infoVersion$;
+    const running = new AsyncJob(this, this.$info$, infoVersion);
     this.$current$ = running;
     this.$jobs$.push(running);
     running.$promise$ = this.$runComputation$(running);
@@ -371,7 +404,9 @@ export class AsyncSignalImpl<T>
         }, this.$timeoutMs$);
       }
 
-      const value = await retryOnPromise(fn.bind(null, running));
+      // Try to stay sync if possible
+      const valuePromise = retryOnPromise(fn.bind(null, running));
+      const value = isPromise(valuePromise) ? await valuePromise : valuePromise;
 
       running.$promise$ = null;
 
@@ -388,7 +423,10 @@ export class AsyncSignalImpl<T>
 
         // Note that these assignments run setters
         this.untrackedError = undefined;
-        this.value = value;
+        // Use super.value instead of this.value to avoid the AsyncSignalImpl setter
+        // which clears INVALID and disables all jobs. INVALID must persist so that
+        // line 442 can detect dependency changes during computation and re-run.
+        super.value = value;
       }
     } catch (err) {
       running.$promise$ = null;
@@ -400,6 +438,9 @@ export class AsyncSignalImpl<T>
 
     if (isCurrent()) {
       clearTimeout(this.$computationTimeoutId$);
+      if (running.$infoVersion$ === this.$infoVersion$) {
+        this.$info$ = undefined;
+      }
 
       if (this.$flags$ & SignalFlags.INVALID) {
         DEBUG && log('Computation finished but signal is invalid, re-running');
@@ -430,11 +471,22 @@ export class AsyncSignalImpl<T>
   }
 
   private $scheduleNextPoll$() {
-    if ((import.meta.env.TEST ? !isServerPlatform() : isBrowser) && this.$interval$ > 0) {
-      this.$clearNextPoll$();
-      this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$interval$);
-      this.$pollTimeoutId$?.unref?.();
+    if (!(import.meta.env.TEST ? !isServerPlatform() : isBrowser) || this.$interval$ === 0) {
+      return;
     }
+
+    this.$clearNextPoll$();
+
+    if (this.$interval$ < 0) {
+      this.$pollTimeoutId$ = setTimeout(() => {
+        this.$pollTimeoutId$ = undefined;
+        this.$flags$ |= SignalFlags.INVALID;
+      }, -this.$interval$);
+    } else {
+      this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$interval$);
+    }
+
+    this.$pollTimeoutId$?.unref?.();
   }
 
   private $hasSubscribers$(): boolean {

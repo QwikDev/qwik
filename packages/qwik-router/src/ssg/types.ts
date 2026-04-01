@@ -64,8 +64,8 @@ export interface SsgRenderOptions extends RenderOptions {
    * root of the `outDir`. Setting to `null` will prevent the sitemap from being created.
    */
   sitemapOutFile?: string | null;
-  /** Log level. */
-  log?: 'debug';
+  /** Log level. `'quiet'` suppresses per-page output, `'debug'` enables verbose logging. */
+  log?: 'debug' | 'quiet';
   /**
    * Set to `false` if the generated static HTML files should not be written to disk. Setting to
    * `false` is useful if the SSG should only write the `q-data.json` files to disk. Defaults to
@@ -122,7 +122,9 @@ export interface SsgGenerateOptions extends SsgOptions {
   workerFilePath?: string | URL;
 }
 
-export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions {}
+export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions {
+  qwikRouterConfig?: QwikRouterConfig;
+}
 
 export type WorkerInputMessage = SsgRenderInput | WorkerCloseMessage;
 

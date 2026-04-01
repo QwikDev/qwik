@@ -686,7 +686,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
-  private $noScriptHere$: number = 0;
+  $noScriptHere$: number = 0;
 
   /** Renders opening tag for DOM element */
   openElement(
@@ -700,7 +700,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ): string | undefined {
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
-
+    // keep track of noscript and template, and for html we only emit inside body
+    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+      this.$noScriptHere$++;
+    }
     if (
       // don't append qwik loader before qwik style elements
       // it will confuse the resuming, because styles are expected to be the first nodes in subtree
@@ -710,10 +713,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (this.$noScriptHere$ === 0 && this.size > 30 * 1024 && elementName !== 'body') {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
-      }
-      // keep track of noscript and template, and for html we only emit inside body
-      else if (elementName === 'noscript' || elementName === 'template') {
-        this.$noScriptHere$++;
       }
     }
 
@@ -883,10 +882,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     // In tree-building mode, walker handles close tags
     this.lastNode = null;
-    if (this.qlInclude === QwikLoaderInclude.Inline) {
-      if (elementName === 'noscript' || elementName === 'template') {
-        this.$noScriptHere$--;
-      }
+    // keep track of where to emit scripts
+    if (elementName === 'noscript' || elementName === 'template' || elementName === 'script') {
+      this.$noScriptHere$--;
     }
   }
 
@@ -1589,7 +1587,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   emitPatchDataIfNeeded(): void {
     const patches: (string | number | boolean | null)[] = [];
     for (const [elementIndex, backpatchEntries] of this.backpatchMap) {
-      for (const backpatchEntry of backpatchEntries) {
+      for (let i = 0; i < backpatchEntries.length; i++) {
+        const backpatchEntry = backpatchEntries[i];
         patches.push(
           elementIndex,
           backpatchEntry.attrName,
@@ -1793,7 +1792,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           );
           let indent = '    ';
           let lastName = '';
-          for (const frame of frames) {
+          for (let i = 0; i < frames.length; i++) {
+            const frame = frames[i];
             const [name, example] = allowedContent(frame.tagNesting);
             text.push(
               `${indent}<${frame.elementName}>${
@@ -1808,7 +1808,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               allowedContent(previousTagNesting)[0]
             }.`
           );
-          throw newTagError(text.join('\n'));
+          throw newTagError(text.map(escapeHTML).join('\n'));
         }
       }
     }

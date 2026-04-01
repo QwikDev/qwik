@@ -1413,7 +1413,10 @@ export const vnode_queryDomNodes = (
     if (element.matches(selector)) {
       cb(element);
     } else {
-      element.querySelectorAll(selector).forEach(cb);
+      const found = element.querySelectorAll(selector);
+      for (let i = 0; i < found.length; i++) {
+        cb(found[i]);
+      }
     }
   } else {
     let child = vnode_getFirstChild(vNode);
@@ -1948,12 +1951,14 @@ export function vnode_toString(
         attrs.push(` dirty:${vnode.dirty}`);
       }
       if (container) {
-        vnode_getAttrKeys(container, vnode).forEach((key) => {
+        const attrKeys = vnode_getAttrKeys(container, vnode);
+        for (let i = 0; i < attrKeys.length; i++) {
+          const key = attrKeys[i];
           if (key !== DEBUG_TYPE && key !== debugStyleScopeIdPrefixAttr) {
             const value = vnode_getProp(vnode!, key, null);
             attrs.push(' ' + key + '=' + qwikDebugToString(value));
           }
-        });
+        }
       }
       const name =
         (colorize ? NAME_COL_PREFIX : '') +
@@ -1980,7 +1985,8 @@ export function vnode_toString(
         attrs.push(` dirtyChildren[${vnode.dirtyChildren.length}]`);
       }
       const keys = container ? vnode_getAttrKeys(container, vnode) : [];
-      for (const key of keys) {
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
         const value = vnode_getProp(vnode!, key, null);
         attrs.push(' ' + key + '=' + qwikDebugToString(value));
       }

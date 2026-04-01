@@ -65,10 +65,17 @@ pub struct Segment {
 }
 
 #[derive(Debug, Clone)]
+pub enum Captures {
+	Auto(Vec<Id>),
+	Explicit(ast::ArrayLit),
+}
+
+#[derive(Debug, Clone)]
 pub struct SegmentData {
 	pub extension: Atom,
 	pub local_idents: Vec<Id>,
 	pub scoped_idents: Vec<Id>,
+	pub captures: Captures,
 	pub parent_segment: Option<Atom>,
 	pub ctx_kind: SegmentKind,
 	pub ctx_name: Atom,
@@ -577,23 +584,27 @@ impl<'a> QwikTransform<'a> {
 			folded
 		};
 
-		let scoped_idents = {
+		let (scoped_idents, captures) = {
 			if let Some(scoped) = third_arg {
-				// Explicit captures provided as third argument
 				match &*scoped.expr {
-					ast::Expr::Array(array) => array
-						.elems
-						.iter()
-						.flat_map(|item| match &*item.as_ref().unwrap().expr {
-							ast::Expr::Ident(ident) => Some(id!(ident)),
-							_ => None,
-						})
-						.collect(),
-					_ => vec![],
+					ast::Expr::Array(array) => {
+						let idents: Vec<Id> = array
+							.elems
+							.iter()
+							.flat_map(|item| match &*item.as_ref().unwrap().expr {
+								ast::Expr::Ident(ident) => Some(id!(ident)),
+								_ => None,
+							})
+							.collect();
+						if idents.len() < array.elems.len() {
+							(idents, Captures::Explicit(array.clone()))
+						} else {
+							(idents.clone(), Captures::Auto(idents))
+						}
+					}
+					_ => (vec![], Captures::Auto(vec![])),
 				}
 			} else {
-				// No explicit captures — auto-detect scoped identifiers from the value,
-				// just like _create_synthetic_qsegment does for $() calls.
 				let descendent_idents = {
 					let mut collector = IdentCollector::new();
 					folded.visit_with(&mut collector);
@@ -606,7 +617,7 @@ impl<'a> QwikTransform<'a> {
 					.cloned()
 					.partition(|(_, t)| matches!(t, IdentType::Var(_)));
 				let (scoped, _) = compute_scoped_idents(&descendent_idents, &decl_collect);
-				scoped
+				(scoped.clone(), Captures::Auto(scoped))
 			}
 		};
 		let local_idents = self.get_local_idents(&folded);
@@ -614,6 +625,7 @@ impl<'a> QwikTransform<'a> {
 			extension: self.options.extension.clone(),
 			local_idents,
 			scoped_idents,
+			captures,
 			parent_segment: self.segment_stack.last().cloned(),
 			ctx_kind,
 			ctx_name,
@@ -911,10 +923,12 @@ impl<'a> QwikTransform<'a> {
 				folded
 			};
 
+			let captures = Captures::Auto(scoped_idents.clone());
 			let segment_data = SegmentData {
 				extension: self.options.extension.clone(),
 				local_idents: vec![],
 				scoped_idents,
+				captures,
 				parent_segment: self.segment_stack.last().cloned(),
 				ctx_kind,
 				ctx_name,
@@ -988,10 +1002,12 @@ impl<'a> QwikTransform<'a> {
 			});
 			scoped_idents = vec![];
 		}
+		let captures = Captures::Auto(scoped_idents.clone());
 		let segment_data = SegmentData {
 			extension: self.options.extension.clone(),
 			local_idents,
 			scoped_idents,
+			captures,
 			parent_segment: self.segment_stack.last().cloned(),
 			ctx_kind,
 			ctx_name,
@@ -1922,23 +1938,7 @@ impl<'a> QwikTransform<'a> {
 			_QRL.clone()
 		};
 
-		// Injects state
-		if !segment_data.scoped_idents.is_empty() {
-			args.push(ast::Expr::Array(ast::ArrayLit {
-				span: DUMMY_SP,
-				elems: segment_data
-					.scoped_idents
-					.iter()
-					.map(|id| {
-						Some(ast::ExprOrSpread {
-							spread: None,
-							expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
-						})
-					})
-					.collect(),
-			}))
-		}
-
+		self.emit_captures(&segment_data.captures, &mut args);
 		self.create_internal_call(&fn_callee, args, true)
 	}
 
@@ -2006,12 +2006,16 @@ impl<'a> QwikTransform<'a> {
 			_INLINED_QRL.clone()
 		};
 
-		// Injects state
-		if !segment_data.scoped_idents.is_empty() {
-			args.push(ast::Expr::Array(ast::ArrayLit {
+		self.emit_captures(&segment_data.captures, &mut args);
+		self.create_internal_call(&fn_callee, args, true)
+	}
+
+	fn emit_captures(&self, captures: &Captures, args: &mut Vec<ast::Expr>) {
+		match captures {
+			Captures::Explicit(arr) => args.push(ast::Expr::Array(arr.clone())),
+			Captures::Auto(ids) if !ids.is_empty() => args.push(ast::Expr::Array(ast::ArrayLit {
 				span: DUMMY_SP,
-				elems: segment_data
-					.scoped_idents
+				elems: ids
 					.iter()
 					.map(|id| {
 						Some(ast::ExprOrSpread {
@@ -2020,10 +2024,9 @@ impl<'a> QwikTransform<'a> {
 						})
 					})
 					.collect(),
-			}))
+			})),
+			_ => {}
 		}
-
-		self.create_internal_call(&fn_callee, args, true)
 	}
 
 	pub fn create_internal_call(
@@ -2993,12 +2996,31 @@ impl<'a> QwikTransform<'a> {
 		true
 	}
 
-	// TODO export segment data for the noop qrl
+	// Noop segments are now added to the segments collection for manifest generation
 	fn create_noop_qrl(
 		&mut self,
 		symbol_name: &swc_atoms::Atom,
 		segment_data: SegmentData,
 	) -> ast::CallExpr {
+		// Add the noop segment to the segments collection for manifest generation
+		let canonical_filename = get_canonical_filename(&segment_data.display_name, symbol_name);
+
+		// Create a dummy expression for the noop segment
+		let dummy_expr = ast::Expr::Lit(ast::Lit::Null(ast::Null { span: DUMMY_SP }));
+
+		// Add the segment to the collection with entry set to None to indicate it's a noop
+		self.segments.push(Segment {
+			entry: None,
+			span: DUMMY_SP,
+			canonical_filename,
+			name: symbol_name.clone(),
+			data: segment_data.clone(),
+			expr: Box::new(dummy_expr),
+			hash: 0,
+			param_names: None,
+			qrl_id: None,
+		});
+
 		let mut args = vec![ast::Expr::Lit(ast::Lit::Str(ast::Str {
 			span: DUMMY_SP,
 			value: symbol_name.clone(),
@@ -3019,22 +3041,7 @@ impl<'a> QwikTransform<'a> {
 			fn_name = &_NOOP_QRL_DEV;
 		};
 
-		// Injects state
-		if !segment_data.scoped_idents.is_empty() {
-			args.push(ast::Expr::Array(ast::ArrayLit {
-				span: DUMMY_SP,
-				elems: segment_data
-					.scoped_idents
-					.iter()
-					.map(|id| {
-						Some(ast::ExprOrSpread {
-							spread: None,
-							expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
-						})
-					})
-					.collect(),
-			}))
-		}
+		self.emit_captures(&segment_data.captures, &mut args);
 		self.create_internal_call(fn_name, args, true)
 	}
 

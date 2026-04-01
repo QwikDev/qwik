@@ -22,6 +22,8 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/bundle-graph.ts)
 
+<h2 id="experimentalfeatures-each">each</h2>
+
 <h2 id="experimentalfeatures-enablerequestrewrite">enableRequestRewrite</h2>
 
 <h2 id="experimentalfeatures">ExperimentalFeatures</h2>
@@ -48,6 +50,19 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+each
+
+</td><td>
+
+`"each"`
+
+</td><td>
+
+Enable the Each keyed-list primitive
+
+</td></tr>
+<tr><td>
 
 enableRequestRewrite
 
@@ -154,7 +169,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[attributes?](./qwik-vite.globalinjections.attributes.md)
+attributes?
 
 </td><td>
 
@@ -169,7 +184,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[location](./qwik-vite.globalinjections.location.md)
+location
 
 </td><td>
 
@@ -182,7 +197,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[tag](./qwik-vite.globalinjections.tag.md)
+tag
 
 </td><td>
 
@@ -228,7 +243,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[name](./qwik-vite.qwikasset.name.md)
+name
 
 </td><td>
 
@@ -243,7 +258,7 @@ Name of the asset
 </td></tr>
 <tr><td>
 
-[size](./qwik-vite.qwikasset.size.md)
+size
 
 </td><td>
 
@@ -301,7 +316,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[dynamicImports?](./qwik-vite.qwikbundle.dynamicimports.md)
+dynamicImports?
 
 </td><td>
 
@@ -316,7 +331,7 @@ _(Optional)_ Dynamic imports
 </td></tr>
 <tr><td>
 
-[imports?](./qwik-vite.qwikbundle.imports.md)
+imports?
 
 </td><td>
 
@@ -331,7 +346,7 @@ _(Optional)_ Direct imports
 </td></tr>
 <tr><td>
 
-[interactivity?](./qwik-vite.qwikbundle.interactivity.md)
+interactivity?
 
 </td><td>
 
@@ -346,7 +361,7 @@ _(Optional)_ Interactivity score of the bundle
 </td></tr>
 <tr><td>
 
-[origins?](./qwik-vite.qwikbundle.origins.md)
+origins?
 
 </td><td>
 
@@ -361,7 +376,7 @@ _(Optional)_ Source files of the bundle
 </td></tr>
 <tr><td>
 
-[size](./qwik-vite.qwikbundle.size.md)
+size
 
 </td><td>
 
@@ -376,7 +391,7 @@ Size of the bundle
 </td></tr>
 <tr><td>
 
-[symbols?](./qwik-vite.qwikbundle.symbols.md)
+symbols?
 
 </td><td>
 
@@ -391,7 +406,7 @@ _(Optional)_ Symbols in the bundle
 </td></tr>
 <tr><td>
 
-[total](./qwik-vite.qwikbundle.total.md)
+total
 
 </td><td>
 
@@ -447,7 +462,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[assets?](./qwik-vite.qwikmanifest.assets.md)
+assets?
 
 </td><td>
 
@@ -462,7 +477,7 @@ _(Optional)_ All assets. The key is the fileName relative to the rootDir
 </td></tr>
 <tr><td>
 
-[bundleGraph?](./qwik-vite.qwikmanifest.bundlegraph.md)
+bundleGraph?
 
 </td><td>
 
@@ -477,7 +492,7 @@ _(Optional)_ All bundles in a compact graph format with probabilities
 </td></tr>
 <tr><td>
 
-[bundleGraphAsset?](./qwik-vite.qwikmanifest.bundlegraphasset.md)
+bundleGraphAsset?
 
 </td><td>
 
@@ -492,7 +507,7 @@ _(Optional)_ The bundle graph fileName
 </td></tr>
 <tr><td>
 
-[bundles](./qwik-vite.qwikmanifest.bundles.md)
+bundles
 
 </td><td>
 
@@ -507,7 +522,7 @@ All code bundles, used to know the import graph. The key is the bundle fileName 
 </td></tr>
 <tr><td>
 
-[core?](./qwik-vite.qwikmanifest.core.md)
+core?
 
 </td><td>
 
@@ -522,7 +537,7 @@ _(Optional)_ The Qwik core bundle fileName
 </td></tr>
 <tr><td>
 
-[injections?](./qwik-vite.qwikmanifest.injections.md)
+injections?
 
 </td><td>
 
@@ -537,7 +552,7 @@ _(Optional)_ CSS etc to inject in the document head
 </td></tr>
 <tr><td>
 
-[manifestHash](./qwik-vite.qwikmanifest.manifesthash.md)
+manifestHash
 
 </td><td>
 
@@ -552,7 +567,7 @@ Content hash of the manifest, if this changes, the code changed
 </td></tr>
 <tr><td>
 
-[mapping](./qwik-vite.qwikmanifest.mapping.md)
+mapping
 
 </td><td>
 
@@ -567,7 +582,7 @@ Where QRLs are located. The key is the symbol name, the value is the bundle file
 </td></tr>
 <tr><td>
 
-[options?](./qwik-vite.qwikmanifest.options.md)
+options?
 
 </td><td>
 
@@ -582,7 +597,7 @@ _(Optional)_ The options used to build the manifest
 </td></tr>
 <tr><td>
 
-[platform?](./qwik-vite.qwikmanifest.platform.md)
+platform?
 
 </td><td>
 
@@ -597,7 +612,7 @@ _(Optional)_ The platform used to build the manifest
 </td></tr>
 <tr><td>
 
-[preloader?](./qwik-vite.qwikmanifest.preloader.md)
+preloader?
 
 </td><td>
 
@@ -612,7 +627,7 @@ _(Optional)_ The preloader bundle fileName
 </td></tr>
 <tr><td>
 
-[qwikLoader?](./qwik-vite.qwikmanifest.qwikloader.md)
+qwikLoader?
 
 </td><td>
 
@@ -627,7 +642,7 @@ _(Optional)_ The Qwik loader bundle fileName
 </td></tr>
 <tr><td>
 
-[symbols](./qwik-vite.qwikmanifest.symbols.md)
+symbols
 
 </td><td>
 
@@ -642,7 +657,7 @@ QRL symbols
 </td></tr>
 <tr><td>
 
-[version](./qwik-vite.qwikmanifest.version.md)
+version
 
 </td><td>
 
@@ -726,7 +741,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[buildMode?](./qwik-vite.qwikrolluppluginoptions.buildmode.md)
+buildMode?
 
 </td><td>
 
@@ -743,7 +758,7 @@ Default `development`
 </td></tr>
 <tr><td>
 
-[csr?](./qwik-vite.qwikrolluppluginoptions.csr.md)
+csr?
 
 </td><td>
 
@@ -758,7 +773,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[debug?](./qwik-vite.qwikrolluppluginoptions.debug.md)
+debug?
 
 </td><td>
 
@@ -775,7 +790,7 @@ Default `false`
 </td></tr>
 <tr><td>
 
-[entryStrategy?](./qwik-vite.qwikrolluppluginoptions.entrystrategy.md)
+entryStrategy?
 
 </td><td>
 
@@ -792,7 +807,7 @@ Default `{ type: "smart" }`)
 </td></tr>
 <tr><td>
 
-[experimental?](./qwik-vite.qwikrolluppluginoptions.experimental.md)
+experimental?
 
 </td><td>
 
@@ -807,7 +822,7 @@ _(Optional)_ Experimental features. These can come and go in patch releases, and
 </td></tr>
 <tr><td>
 
-[lint?](./qwik-vite.qwikrolluppluginoptions.lint.md)
+lint?
 
 </td><td>
 
@@ -822,7 +837,7 @@ _(Optional)_ Run eslint on the source files for the ssr build or dev server. Thi
 </td></tr>
 <tr><td>
 
-[manifestInput?](./qwik-vite.qwikrolluppluginoptions.manifestinput.md)
+manifestInput?
 
 </td><td>
 
@@ -839,7 +854,7 @@ Default `undefined`
 </td></tr>
 <tr><td>
 
-[manifestOutput?](./qwik-vite.qwikrolluppluginoptions.manifestoutput.md)
+manifestOutput?
 
 </td><td>
 
@@ -856,7 +871,7 @@ Default `undefined`
 </td></tr>
 <tr><td>
 
-[optimizerOptions?](./qwik-vite.qwikrolluppluginoptions.optimizeroptions.md)
+optimizerOptions?
 
 </td><td>
 
@@ -871,7 +886,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[rootDir?](./qwik-vite.qwikrolluppluginoptions.rootdir.md)
+rootDir?
 
 </td><td>
 
@@ -888,7 +903,7 @@ Default `process.cwd()`
 </td></tr>
 <tr><td>
 
-[srcDir?](./qwik-vite.qwikrolluppluginoptions.srcdir.md)
+srcDir?
 
 </td><td>
 
@@ -905,7 +920,7 @@ Default `src`
 </td></tr>
 <tr><td>
 
-[srcInputs?](./qwik-vite.qwikrolluppluginoptions.srcinputs.md)
+srcInputs?
 
 </td><td>
 
@@ -922,7 +937,7 @@ Default: `null`
 </td></tr>
 <tr><td>
 
-[target?](./qwik-vite.qwikrolluppluginoptions.target.md)
+target?
 
 </td><td>
 
@@ -939,7 +954,7 @@ Default `client`
 </td></tr>
 <tr><td>
 
-[transformedModuleOutput?](./qwik-vite.qwikrolluppluginoptions.transformedmoduleoutput.md)
+transformedModuleOutput?
 
 </td><td>
 
@@ -981,7 +996,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[canonicalFilename](./qwik-vite.qwiksymbol.canonicalfilename.md)
+canonicalFilename
 
 </td><td>
 
@@ -994,7 +1009,7 @@ string
 </td></tr>
 <tr><td>
 
-[captureNames?](./qwik-vite.qwiksymbol.capturenames.md)
+captureNames?
 
 </td><td>
 
@@ -1009,7 +1024,7 @@ _(Optional)_ The transformed names of scoped variables, if any
 </td></tr>
 <tr><td>
 
-[captures](./qwik-vite.qwiksymbol.captures.md)
+captures
 
 </td><td>
 
@@ -1024,7 +1039,7 @@ Whether the symbol captures a variable
 </td></tr>
 <tr><td>
 
-[ctxKind](./qwik-vite.qwiksymbol.ctxkind.md)
+ctxKind
 
 </td><td>
 
@@ -1037,7 +1052,7 @@ Whether the symbol captures a variable
 </td></tr>
 <tr><td>
 
-[ctxName](./qwik-vite.qwiksymbol.ctxname.md)
+ctxName
 
 </td><td>
 
@@ -1050,7 +1065,7 @@ string
 </td></tr>
 <tr><td>
 
-[displayName](./qwik-vite.qwiksymbol.displayname.md)
+displayName
 
 </td><td>
 
@@ -1063,7 +1078,7 @@ string
 </td></tr>
 <tr><td>
 
-[hash](./qwik-vite.qwiksymbol.hash.md)
+hash
 
 </td><td>
 
@@ -1076,7 +1091,7 @@ string
 </td></tr>
 <tr><td>
 
-[loc](./qwik-vite.qwiksymbol.loc.md)
+loc
 
 </td><td>
 
@@ -1089,7 +1104,7 @@ string
 </td></tr>
 <tr><td>
 
-[origin](./qwik-vite.qwiksymbol.origin.md)
+origin
 
 </td><td>
 
@@ -1102,7 +1117,7 @@ string
 </td></tr>
 <tr><td>
 
-[paramNames?](./qwik-vite.qwiksymbol.paramnames.md)
+paramNames?
 
 </td><td>
 
@@ -1117,7 +1132,7 @@ _(Optional)_ The parameter names if it's a function with parameters
 </td></tr>
 <tr><td>
 
-[parent](./qwik-vite.qwiksymbol.parent.md)
+parent
 
 </td><td>
 
@@ -1213,7 +1228,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[getAssetsDir](./qwik-vite.qwikvitepluginapi.getassetsdir.md)
+getAssetsDir
 
 </td><td>
 
@@ -1226,7 +1241,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getClientOutDir](./qwik-vite.qwikvitepluginapi.getclientoutdir.md)
+getClientOutDir
 
 </td><td>
 
@@ -1239,7 +1254,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getClientPublicOutDir](./qwik-vite.qwikvitepluginapi.getclientpublicoutdir.md)
+getClientPublicOutDir
 
 </td><td>
 
@@ -1252,7 +1267,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getManifest](./qwik-vite.qwikvitepluginapi.getmanifest.md)
+getManifest
 
 </td><td>
 
@@ -1265,7 +1280,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getOptimizer](./qwik-vite.qwikvitepluginapi.getoptimizer.md)
+getOptimizer
 
 </td><td>
 
@@ -1278,7 +1293,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getOptions](./qwik-vite.qwikvitepluginapi.getoptions.md)
+getOptions
 
 </td><td>
 
@@ -1291,7 +1306,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getRootDir](./qwik-vite.qwikvitepluginapi.getrootdir.md)
+getRootDir
 
 </td><td>
 
@@ -1304,7 +1319,7 @@ Description
 </td></tr>
 <tr><td>
 
-[registerBundleGraphAdder](./qwik-vite.qwikvitepluginapi.registerbundlegraphadder.md)
+registerBundleGraphAdder
 
 </td><td>
 
@@ -1354,7 +1369,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[bundleGraph?](./qwik-vite.resolvedmanifest.bundlegraph.md)
+bundleGraph?
 
 </td><td>
 
@@ -1369,7 +1384,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[injections?](./qwik-vite.resolvedmanifest.injections.md)
+injections?
 
 </td><td>
 
@@ -1384,7 +1399,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[manifest](./qwik-vite.resolvedmanifest.manifest.md)
+manifest
 
 </td><td>
 
@@ -1397,7 +1412,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[mapper](./qwik-vite.resolvedmanifest.mapper.md)
+mapper
 
 </td><td>
 

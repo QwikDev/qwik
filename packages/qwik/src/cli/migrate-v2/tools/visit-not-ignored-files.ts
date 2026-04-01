@@ -14,7 +14,9 @@ export function visitNotIgnoredFiles(dirPath: string, visitor: (path: string) =>
   if (dirPath !== '' && ig?.ignores(dirPath)) {
     return;
   }
-  for (const child of readdirSync(join(process.cwd(), dirPath))) {
+  const dirResults = readdirSync(join(process.cwd(), dirPath));
+  for (let i = 0; i < dirResults.length; i++) {
+    const child = dirResults[i];
     const fullPath = join(dirPath, child);
     if (ig?.ignores(fullPath)) {
       continue;

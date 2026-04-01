@@ -38,6 +38,9 @@ import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
+import { setErrorPayload } from '../shared/cursor/chore-execution';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
@@ -51,15 +54,11 @@ import {
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
-  vnode_createErrorDiv,
   vnode_getProp,
-  vnode_insertElementBefore,
-  vnode_isElementVNode,
   vnode_isVirtualVNode,
   vnode_locate,
   vnode_newUnMaterializedElement,
   vnode_setProp,
-  type VNodeJournal,
 } from './vnode-utils';
 
 /** @public */
@@ -186,24 +185,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   handleError(err: any, host: VNode | null): void {
     if (qDev && host) {
       if (typeof document !== 'undefined') {
-        const createErrorWrapper = () => {
-          const vHost = host;
-          const vHostParent = vHost.parent;
-          const vHostNextSibling = vHost.nextSibling as VNode | null;
-          const journal: VNodeJournal = [];
-          const vErrorDiv = vnode_createErrorDiv(journal, document, vHost, err);
-          // If the host is an element node, we need to insert the error div into its parent.
-          const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
-          // If the host is different then we need to insert errored-host in the same position as the host.
-          const insertBefore = insertHost === vHost ? null : vHostNextSibling;
-          vnode_insertElementBefore(
-            journal,
-            insertHost as ElementVNode | VirtualVNode,
-            vErrorDiv,
-            insertBefore
-          );
-        };
-        this.$renderPromise$ ? this.$renderPromise$.then(createErrorWrapper) : createErrorWrapper();
+        setErrorPayload(host, err);
+        markVNodeDirty(this, host, ChoreBits.ERROR_WRAP);
       }
 
       if (err && err instanceof Error) {
@@ -288,7 +271,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       vNode.flags |= VNodeFlags.Resolved;
       const props = vNode.props;
       if (props) {
-        for (const prop of Object.keys(props)) {
+        const propKeys = Object.keys(props);
+        for (let i = 0; i < propKeys.length; i++) {
+          const prop = propKeys[i];
           if (isSlotProp(prop)) {
             const value = props[prop];
             if (typeof value == 'string') {
@@ -321,9 +306,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
     if (this.$styleIds$ == null) {
       this.$styleIds$ = new Set();
-      this.element.querySelectorAll(QStyleSelector).forEach((style) => {
-        this.$styleIds$!.add(style.getAttribute(QStyle)!);
-      });
+      const styleElements = this.document.querySelectorAll(QStyleSelector);
+      for (let i = 0; i < styleElements.length; i++) {
+        const style = styleElements[i];
+        this.$styleIds$.add(style.getAttribute(QStyle)!);
+      }
     }
     if (!this.$styleIds$.has(styleId)) {
       this.$styleIds$.add(styleId);

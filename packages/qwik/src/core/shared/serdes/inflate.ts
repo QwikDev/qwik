@@ -278,7 +278,8 @@ export const inflate = (
       const bytes = target as Uint8Array;
       const buf = atob(data as string);
       let i = 0;
-      for (const s of buf) {
+      for (let j = 0; j < buf.length; j++) {
+        const s = buf[j];
         bytes[i++] = s.charCodeAt(0);
       }
       break;

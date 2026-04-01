@@ -35,11 +35,16 @@ export const eachCmpTask = ({ track }: TaskCtx) => {
 
 /** @internal */
 export const eachCmp = (props: EachProps<any>) => {
+  if (!__EXPERIMENTAL__.each) {
+    throw new Error(
+      'Each is experimental and must be enabled with `experimental: ["each"]` in the `qwikVite` plugin.'
+    );
+  }
   useTaskQrl(/*#__PURE__*/ inlinedQrl(eachCmpTask, '_eaT', [props]));
   return SkipRender;
 };
 
-/** @public */
+/** @public @experimental */
 export const Each = /*#__PURE__*/ componentQrl<EachProps<any>>(
   /*#__PURE__*/ inlinedQrl(eachCmp, '_eaC')
 ) as EachComponent;

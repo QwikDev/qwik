@@ -3,8 +3,7 @@ import type { RoutingContext, FrontmatterAttrs } from '../types';
 import { normalizePath } from '../../utils/fs';
 import { visit } from 'unist-util-visit';
 import { parse as parseYaml } from 'yaml';
-import type { ResolvedDocumentHead } from '../../runtime/src';
-import type { DocumentMeta, Editable } from '../../runtime/src/types';
+import type { DocumentHeadValue, DocumentMeta, Editable } from '../../runtime/src/types';
 
 export function parseFrontmatter(ctx: RoutingContext): Transformer {
   return (mdast, vfile) => {
@@ -52,7 +51,7 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
   if (attrs != null && typeof attrs === 'object') {
     const attrNames = Object.keys(attrs);
     if (attrNames.length > 0) {
-      const head: Editable<Required<ResolvedDocumentHead>> = {
+      const head: Editable<Required<DocumentHeadValue>> = {
         title: '',
         meta: [],
         styles: [],

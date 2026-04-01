@@ -59,6 +59,7 @@ jobs:
       hash-unit: ${{ steps.cache-unit.outputs.cache-primary-key }}
       hash-e2e: ${{ steps.cache-e2e.outputs.cache-primary-key }}
       hash-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-primary-key }}
+      hash-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-primary-key }}
       build-qwik: ${{ steps.cache-qwik.outputs.cache-hit != 'true' }}
       build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' }}
       build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' }}
@@ -67,6 +68,7 @@ jobs:
       build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' }}
       build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' }}
       build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' }}
+      build-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-hit != 'true' }}
       disttag: ${{ steps.set_dist_tag.outputs.disttag }}
 
     steps:
@@ -200,6 +202,14 @@ jobs:
           lookup-only: true
           path: cli-e2e-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'e2e/**/*') }}
+      - name: 'check cache: docs e2e tests'
+        id: cache-docs-e2e
+        uses: actions/cache/restore@v4
+        with:
+          lookup-only: true
+          path: docs-e2e-tests-completed.txt
+          key: ${{ hashfiles('others-key.txt', 'e2e/docs/**/*') }}
+
 
   ############ BUILD Qwik ############
   build-qwik:
@@ -588,6 +598,57 @@ jobs:
           key: ${{ needs.changes.outputs.hash-docs }}
           path: docs-build-completed.txt
 
+  ############ DOCS E2E TEST ############
+  test-e2e-docs:
+    timeout-minutes: 15
+    name: Docs E2E Tests
+    if: always() && needs.build-docs.result == 'success'
+    needs:
+      - changes
+      - build-docs
+      - build-other-packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Move Distribution Artifacts
+        run: pnpm ci.restore-artifacts
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: npx playwright install chromium --with-deps
+
+      - name: Docs E2E Tests
+        run: pnpm run test.e2e.docs && echo ok > docs-e2e-tests-completed.txt
+
+      - name: Save Docs E2E Tests Cache
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ needs.changes.outputs.hash-docs-e2e }}
+          path: docs-e2e-tests-completed.txt
+
+      - name: Upload Playwright Trace
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: docs-playwright-report
+          path: e2e/docs-e2e/test-results/
+          retention-days: 30
+
   ############ UNIT TEST ############
   test-unit:
     name: Unit Tests
@@ -962,6 +1023,7 @@ jobs:
     needs:
       - test-unit
       - test-e2e
+      - test-e2e-docs
       - test-cli-e2e
       - lint-package
       - build-docs
@@ -973,6 +1035,7 @@ jobs:
           !(
             (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
             (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
+            (needs.test-e2e-docs.result == 'success' || needs.test-e2e-docs.result == 'skipped') &&
             (needs.test-cli-e2e.result == 'success' || needs.test-cli-e2e.result == 'skipped') &&
             (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
             (needs.build-docs.result == 'success' || needs.build-docs.result == 'skipped') &&

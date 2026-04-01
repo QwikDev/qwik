@@ -4,7 +4,12 @@ import { removeCursorFromQueue } from './cursor-queue';
 import type { Container } from '../types';
 import type { VNodeJournal } from '../../client/vnode-utils';
 import type { Task } from '../../use/use-task';
-export { HOST_SIGNAL, NODE_DIFF_DATA_KEY, NODE_PROPS_DATA_KEY } from './chore-helpers';
+export {
+  ERROR_DATA_KEY,
+  HOST_SIGNAL,
+  NODE_DIFF_DATA_KEY,
+  NODE_PROPS_DATA_KEY,
+} from './chore-helpers';
 
 export const cursorDatas = new WeakMap<Cursor, CursorData>();
 

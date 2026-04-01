@@ -1,15 +1,42 @@
 ---
-title: Each | Components
+title: "\U0001F9EA Each | Experimental"
 keywords: 'lists, keyed rendering, control flow, loops'
 ---
 
-import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+import { Note } from '~/components/note/note';
 
 # `Each`
 
+**Stage:** `implementation`
+
+<Note>
+  `Each` is experimental and currently a technical preview. Its API and behavior may still change
+  as we gather feedback from real-world usage.
+</Note>
+
 `Each` is a built-in Qwik component for rendering keyed lists.
 
-It is most useful when list items have a stable identity and you want Qwik to preserve and move existing rows instead of re-rendering the whole list when the order changes.
+It is most useful when list items have a stable identity and you want Qwik to preserve and move
+existing rows instead of re-rendering the whole list when the order changes.
+
+To use it, you must add `experimental: ['each']` to your `qwikVite` plugin options:
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+
+export default defineConfig(() => {
+  return {
+    plugins: [
+      qwikVite({
+        experimental: ['each'],
+      }),
+    ],
+  };
+});
+```
 
 <CodeSandbox src="/src/routes/demo/component/each/index.tsx" style={{ height: '10em' }}>
 ```tsx /Each/ /key$/ /item$/
@@ -54,7 +81,8 @@ export default component$(() => {
 - `key$`: returns a stable unique key for each item
 - `item$`: returns the JSX for one item
 
-`item$` must return a single JSX node. If you need multiple siblings, wrap them in a container element or a `Fragment`.
+`item$` must return a single JSX node. If you need multiple siblings, wrap them in a container
+element or a `Fragment`.
 
 ```tsx /Fragment/ /Each/
 import { Each, Fragment, component$ } from '@qwik.dev/core';
@@ -80,7 +108,8 @@ export default component$(() => {
 
 If your list items have stable keys, prefer `Each`.
 
-It is the specialized keyed-list primitive in Qwik and is designed to preserve and move existing rows efficiently.
+It is the specialized keyed-list primitive in Qwik and is designed to preserve and move existing
+rows efficiently.
 
 Use `items.map()` for simple list rendering or when you do not have a stable key:
 
@@ -91,6 +120,10 @@ Use `items.map()` for simple list rendering or when you do not have a stable key
   ))}
 </ul>
 ```
+
+Qwik may also be able to optimize some keyed `.map()` patterns into `Each` under the hood in the
+future when it can prove the transformation is safe. For now, use `Each` explicitly when you want
+its keyed-row preservation behavior.
 
 Prefer `Each` when:
 
@@ -108,13 +141,19 @@ Prefer `map()` when:
 
 `Each` uses the value from `key$` as the identity of the row.
 
-When keys stay the same, Qwik can move and reuse the existing rows instead of recreating them. This is why `Each` is a good fit for drag-and-drop lists, sortable tables, and other UIs where items move around often.
+When keys stay the same, Qwik can move and reuse the existing rows instead of recreating them. This
+is why `Each` is a good fit for drag-and-drop lists, sortable tables, and other UIs where items
+move around often.
 
-There is an important tradeoff: if you replace an item object but keep the same key, `Each` preserves the existing row. That means the row template is not re-run just because a new object with the same key was passed in.
+There is an important tradeoff: if you replace an item object but keep the same key, `Each`
+preserves the existing row. That means the row template is not re-run just because a new object
+with the same key was passed in.
 
 So `Each` is usually the right choice for keyed collections. It has a different update strategy.
 
-If you need the row output to update from replaced item objects, prefer `map()`. If you need row-local updates with `Each`, model that row state with Qwik reactivity instead of relying on replacing the whole item object.
+If you need the row output to update from replaced item objects, prefer `map()`. If you need
+row-local updates with `Each`, model that row state with Qwik reactivity instead of relying on
+replacing the whole item object.
 
 ## Keys
 
@@ -127,5 +166,5 @@ Using unstable keys defeats the main benefit of `Each` and can produce confusing
 
 ## Related
 
-- For general list rendering, see [Rendering](../rendering/index.mdx)
+- For general list rendering, see [Rendering](/docs/core/rendering/)
 - For the generated API entry, see [API Reference](/api/qwik/#each)

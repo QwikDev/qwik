@@ -232,8 +232,8 @@ export const ssrNode_setTreeNonUpdatable = (node: ISsrNode): void => {
   if (!(node.flags & VNodeFlags.OpenTagEmitted)) {
     node.flags |= VNodeFlags.OpenTagEmitted;
     if (node.children) {
-      for (const child of node.children) {
-        ssrNode_setTreeNonUpdatable(child);
+      for (let i = 0; i < node.children.length; i++) {
+        ssrNode_setTreeNonUpdatable(node.children[i]);
       }
     }
   }

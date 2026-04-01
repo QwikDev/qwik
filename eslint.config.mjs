@@ -3,6 +3,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import noOnlyTests from 'eslint-plugin-no-only-tests';
 import { globalIgnores } from 'eslint/config';
+import { qwikLoopStyleRule } from './eslint-rules/qwik-loop-style.mjs';
 // import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
 
 const ignores = [
@@ -111,6 +112,25 @@ export default tseslint.config(
     files: ['packages/docs/**/*.{ts,tsx}'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['packages/qwik/src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      'qwik-local': {
+        rules: {
+          'loop-style': qwikLoopStyleRule,
+        },
+      },
+    },
+    rules: {
+      'qwik-local/loop-style': 'error',
     },
   },
   {

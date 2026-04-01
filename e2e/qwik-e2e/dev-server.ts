@@ -211,7 +211,7 @@ export {
               clientManifest = manifest;
             },
           },
-          experimental: ['preventNavigate', 'enableRequestRewrite'],
+          experimental: ['each', 'preventNavigate', 'enableRequestRewrite'],
         }),
       ],
     })
@@ -227,7 +227,7 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ['preventNavigate', 'enableRequestRewrite'],
+          experimental: ['each', 'preventNavigate', 'enableRequestRewrite'],
           ssr: {
             manifestInput: clientManifest,
           },
@@ -395,6 +395,12 @@ async function main() {
 
     const publicPath = join(appsDir, appName, 'public');
     app.use(`/${appName}`, express.static(publicPath));
+  });
+
+  // Debug logging backchannel: browser sends errors/logs here
+  app.post('/__log', express.text(), (req, res) => {
+    console.error(`[BROWSER] ${req.body}`);
+    res.status(204).end();
   });
 
   app.get('/', startersHomepage);

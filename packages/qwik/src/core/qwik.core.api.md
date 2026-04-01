@@ -31,6 +31,7 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     abort(reason?: any): void;
     error: Error | undefined;
     interval: number;
+    invalidate(info?: unknown): void;
     loading: boolean;
     promise(): Promise<void>;
 }
@@ -908,14 +909,10 @@ export interface ReadonlySignal<T = unknown> {
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
 
-// Warning: (ae-incompatible-release-tags) The symbol "removeContainerCursors" is marked as @public, but its signature references "_Container" which is marked as @internal
-//
-// @public
+// @internal
 export function _removeContainerCursors(container: _Container): void;
 
-// Warning: (ae-incompatible-release-tags) The symbol "removeCursorFromQueue" is marked as @public, but its signature references "_Container" which is marked as @internal
-//
-// @public
+// @internal
 export function _removeCursorFromQueue(cursor: Cursor, container: _Container, keepCursorFlag?: boolean): void;
 
 // @internal

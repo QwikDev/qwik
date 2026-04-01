@@ -116,7 +116,7 @@ Expression which should be lazy loaded
 
 **Returns:**
 
-[QRL](#qrl)&lt;T&gt;
+[QRL](#qrl-type-alias)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
@@ -211,7 +211,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[error](#)
+error
 
 </td><td>
 
@@ -226,7 +226,7 @@ The error that occurred while computing the signal, if any. This will be cleared
 </td></tr>
 <tr><td>
 
-[interval](#)
+interval
 
 </td><td>
 
@@ -236,12 +236,14 @@ number
 
 </td><td>
 
-Poll interval in ms. Writable and immediately effective when the signal has consumers. If set to `0`, polling stops.
+Staleness/poll interval in ms. Writable and immediately effective.
+
+- \*\*Positive\*\*: Poll — re-compute after this many ms when subscribers exist. - \*\*Negative\*\*: Stale-only — mark stale after `|interval|` ms, no auto-recompute. - \*\*`0`\*\*: No staleness tracking or polling.
 
 </td></tr>
 <tr><td>
 
-[loading](#)
+loading
 
 </td><td>
 
@@ -286,6 +288,15 @@ Abort the current computation and run cleanups if needed.
 </td></tr>
 <tr><td>
 
+[invalidate(info)](#asyncsignal-invalidate)
+
+</td><td>
+
+Use this to force recalculation. If you pass `info`, it will be provided to the calculation function.
+
+</td></tr>
+<tr><td>
+
 [promise()](#asyncsignal-promise)
 
 </td><td>
@@ -324,7 +335,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[awaitPrevious?](#)
+awaitPrevious?
 
 </td><td>
 
@@ -341,7 +352,7 @@ Defaults to `true`.
 </td></tr>
 <tr><td>
 
-[clientOnly?](#)
+clientOnly?
 
 </td><td>
 
@@ -358,7 +369,7 @@ Defaults to `false`.
 </td></tr>
 <tr><td>
 
-[concurrency?](#)
+concurrency?
 
 </td><td>
 
@@ -375,7 +386,7 @@ Defaults to `1`.
 </td></tr>
 <tr><td>
 
-[eagerCleanup?](#)
+eagerCleanup?
 
 </td><td>
 
@@ -392,7 +403,7 @@ Defaults to `false`, meaning cleanup happens only when inputs change.
 </td></tr>
 <tr><td>
 
-[initial?](#)
+initial?
 
 </td><td>
 
@@ -407,7 +418,7 @@ _(Optional)_ Like useSignal's `initial`; prevents the throw on first read when u
 </td></tr>
 <tr><td>
 
-[interval?](#)
+interval?
 
 </td><td>
 
@@ -417,14 +428,14 @@ number
 
 </td><td>
 
-_(Optional)_ In the browser, re-run the function after `interval` ms if subscribers exist, even when no input state changed. If `0`, does not poll.
+_(Optional)_ Controls staleness and polling behavior.
 
-Defaults to `0`.
+- \*\*Positive\*\*: Re-run the function after `interval` ms if subscribers exist (polling). - \*\*Negative\*\*: Mark the value as stale after `|interval|` ms, but do NOT auto-recompute. Consumers can check staleness and manually trigger recomputation. - \*\*`0`\*\* (default): No staleness tracking or polling.
 
 </td></tr>
 <tr><td>
 
-[timeout?](#)
+timeout?
 
 </td><td>
 
@@ -660,7 +671,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[key?](#)
+key?
 
 </td><td>
 
@@ -710,7 +721,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[container?](#)
+container?
 
 </td><td>
 
@@ -725,7 +736,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[serializationStrategy?](#)
+serializationStrategy?
 
 </td><td>
 
@@ -781,7 +792,7 @@ Description
 </td></tr>
 <tr><td>
 
-[invalidate()](#computedsignal-invalidate)
+invalidate()
 
 </td><td>
 
@@ -859,7 +870,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[\_\_brand_context_type\_\_](#)
+\_\_brand_context_type\_\_
 
 </td><td>
 
@@ -876,7 +887,7 @@ Design-time property to store type information for the context.
 </td></tr>
 <tr><td>
 
-[id](#)
+id
 
 </td><td>
 
@@ -928,7 +939,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[chunkForSymbol](#)
+chunkForSymbol
 
 </td><td>
 
@@ -945,7 +956,7 @@ When the application is running on the server the symbols may be imported from d
 </td></tr>
 <tr><td>
 
-[importSymbol](#)
+importSymbol
 
 </td><td>
 
@@ -964,7 +975,7 @@ Why not use `import()`? Because `import()` is relative to the current file, and 
 </td></tr>
 <tr><td>
 
-[isServer](#)
+isServer
 
 </td><td>
 
@@ -979,7 +990,7 @@ True of running on the server platform.
 </td></tr>
 <tr><td>
 
-[raf](#)
+raf
 
 </td><td>
 
@@ -1025,7 +1036,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[newState](#)
+newState
 
 </td><td>
 
@@ -1040,7 +1051,7 @@ Description
 </td></tr>
 <tr><td>
 
-[prevState](#)
+prevState
 
 </td><td>
 
@@ -1341,7 +1352,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[columnNumber](#)
+columnNumber
 
 </td><td>
 
@@ -1354,7 +1365,7 @@ number
 </td></tr>
 <tr><td>
 
-[fileName](#)
+fileName
 
 </td><td>
 
@@ -1367,7 +1378,7 @@ string
 </td></tr>
 <tr><td>
 
-[lineNumber](#)
+lineNumber
 
 </td><td>
 
@@ -1380,7 +1391,7 @@ number
 </td></tr>
 <tr><td>
 
-[stack?](#)
+stack?
 
 </td><td>
 
@@ -1426,7 +1437,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[class?](#)
+class?
 
 </td><td>
 
@@ -1484,7 +1495,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[children](#)
+children
 
 </td><td>
 
@@ -1530,7 +1541,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[error](#)
+error
 
 </td><td>
 
@@ -1579,7 +1590,7 @@ T
 
 **Returns:**
 
-import("./qrl.public").[QRL](#qrl)&lt;T&gt;
+import("./qrl.public").[QRL](#qrl-type-alias)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.dollar.ts)
 
@@ -1927,7 +1938,7 @@ fn
 
 </td><td>
 
-(qrl: [QRL](#qrl)&lt;FIRST&gt;, ...rest: REST) =&gt; RET
+(qrl: [QRL](#qrl-type-alias)&lt;FIRST&gt;, ...rest: REST) =&gt; RET
 
 </td><td>
 
@@ -2010,7 +2021,7 @@ _(Optional)_ A set of lexically scoped variables to capture.
 
 **Returns:**
 
-[QRL](#qrl)&lt;T&gt;
+[QRL](#qrl-type-alias)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.ts)
 
@@ -2030,13 +2041,41 @@ interface IntrinsicElements extends LenientQwikElements
 
 **Extends:** LenientQwikElements
 
-<h2 id="computedsignal-invalidate">invalidate</h2>
+<h2 id="asyncsignal-invalidate">invalidate</h2>
 
-Use this to force recalculation.
+Use this to force recalculation. If you pass `info`, it will be provided to the calculation function.
 
 ```typescript
-invalidate(): void;
+invalidate(info?: unknown): void;
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+info
+
+</td><td>
+
+unknown
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 
 **Returns:**
 
@@ -2324,7 +2363,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[children](#)
+children
 
 </td><td>
 
@@ -2337,7 +2376,7 @@ Description
 </td></tr>
 <tr><td>
 
-[dev?](#)
+dev?
 
 </td><td>
 
@@ -2352,7 +2391,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[key](#)
+key
 
 </td><td>
 
@@ -2365,7 +2404,7 @@ string \| null
 </td></tr>
 <tr><td>
 
-[props](#)
+props
 
 </td><td>
 
@@ -2378,7 +2417,7 @@ T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt
 </td></tr>
 <tr><td>
 
-[type](#)
+type
 
 </td><td>
 
@@ -2745,7 +2784,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[strategy?](#)
+strategy?
 
 </td><td>
 
@@ -2886,7 +2925,7 @@ Alias for `QRL<T>`. Of historic relevance only.
 export type PropFunction<T> = QRL<T>;
 ```
 
-**References:** [QRL](#qrl)
+**References:** [QRL](#qrl-type-alias)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
@@ -3180,7 +3219,7 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRLEventHandlerMulti<EV, EL>[];
 ```
 
-**References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)
+**References:** [QRL](#qrl-type-alias), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
@@ -3227,7 +3266,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[class?](#)
+class?
 
 </td><td>
 
@@ -3670,7 +3709,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[value](#)
+value
 
 </td><td>
 
@@ -3799,7 +3838,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[serverData?](#)
+serverData?
 
 </td><td>
 
@@ -3867,7 +3906,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[base?](#)
+base?
 
 </td><td>
 
@@ -3882,7 +3921,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[containerAttributes](#)
+containerAttributes
 
 </td><td>
 
@@ -3895,7 +3934,7 @@ Record&lt;string, string&gt;
 </td></tr>
 <tr><td>
 
-[containerTagName](#)
+containerTagName
 
 </td><td>
 
@@ -3908,7 +3947,7 @@ string
 </td></tr>
 <tr><td>
 
-[manifestHash](#)
+manifestHash
 
 </td><td>
 
@@ -3921,7 +3960,7 @@ string
 </td></tr>
 <tr><td>
 
-[serverData?](#)
+serverData?
 
 </td><td>
 
@@ -3936,7 +3975,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[stream](#)
+stream
 
 </td><td>
 
@@ -4098,7 +4137,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[timeout?](#)
+timeout?
 
 </td><td>
 
@@ -4150,7 +4189,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[onPending?](#)
+onPending?
 
 </td><td>
 
@@ -4165,7 +4204,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[onRejected?](#)
+onRejected?
 
 </td><td>
 
@@ -4180,7 +4219,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[onResolved](#)
+onResolved
 
 </td><td>
 
@@ -4193,7 +4232,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[value](#)
+value
 
 </td><td>
 
@@ -4348,7 +4387,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[untrackedValue](#)
+untrackedValue
 
 </td><td>
 
@@ -4363,7 +4402,7 @@ Reading from this does not subscribe to updates; writing to this does not trigge
 </td></tr>
 <tr><td>
 
-[value](#)
+value
 
 </td><td>
 
@@ -4446,7 +4485,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[el](#)
+el
 
 </td><td>
 
@@ -4459,7 +4498,7 @@ Element
 </td></tr>
 <tr><td>
 
-[key](#)
+key
 
 </td><td>
 
@@ -4472,13 +4511,13 @@ string
 </td></tr>
 <tr><td>
 
-[qrl](#)
+qrl
 
 </td><td>
 
 </td><td>
 
-[QRL](#qrl)&lt;any&gt;
+[QRL](#qrl-type-alias)&lt;any&gt;
 
 </td><td>
 
@@ -4522,7 +4561,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[c?](#)
+c?
 
 </td><td>
 
@@ -4537,7 +4576,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[h?](#)
+h?
 
 </td><td>
 
@@ -4552,7 +4591,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[s?](#)
+s?
 
 </td><td>
 
@@ -4567,7 +4606,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[w?](#)
+w?
 
 </td><td>
 
@@ -4609,7 +4648,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[funcs](#)
+funcs
 
 </td><td>
 
@@ -4622,7 +4661,7 @@ string[]
 </td></tr>
 <tr><td>
 
-[mode](#)
+mode
 
 </td><td>
 
@@ -4635,7 +4674,7 @@ string[]
 </td></tr>
 <tr><td>
 
-[objs?](#)
+objs?
 
 </td><td>
 
@@ -4650,20 +4689,20 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[qrls](#)
+qrls
 
 </td><td>
 
 </td><td>
 
-[QRL](#qrl)[]
+[QRL](#qrl-type-alias)[]
 
 </td><td>
 
 </td></tr>
 <tr><td>
 
-[resources](#)
+resources
 
 </td><td>
 
@@ -4676,7 +4715,7 @@ ResourceReturnInternal&lt;any&gt;[]
 </td></tr>
 <tr><td>
 
-[state?](#)
+state?
 
 </td><td>
 
@@ -4722,7 +4761,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[ctx](#)
+ctx
 
 </td><td>
 
@@ -4735,7 +4774,7 @@ Description
 </td></tr>
 <tr><td>
 
-[objs](#)
+objs
 
 </td><td>
 
@@ -4748,7 +4787,7 @@ any[]
 </td></tr>
 <tr><td>
 
-[refs](#)
+refs
 
 </td><td>
 
@@ -4761,7 +4800,7 @@ Record&lt;string, string&gt;
 </td></tr>
 <tr><td>
 
-[subs](#)
+subs
 
 </td><td>
 
@@ -4927,7 +4966,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-["accent-height"?](#)
+"accent-height"?
 
 </td><td>
 
@@ -4942,7 +4981,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["alignment-baseline"?](#)
+"alignment-baseline"?
 
 </td><td>
 
@@ -4957,7 +4996,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["arabic-form"?](#)
+"arabic-form"?
 
 </td><td>
 
@@ -4972,7 +5011,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["baseline-shift"?](#)
+"baseline-shift"?
 
 </td><td>
 
@@ -4987,7 +5026,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["cap-height"?](#)
+"cap-height"?
 
 </td><td>
 
@@ -5002,7 +5041,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["clip-path"?](#)
+"clip-path"?
 
 </td><td>
 
@@ -5017,7 +5056,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["clip-rule"?](#)
+"clip-rule"?
 
 </td><td>
 
@@ -5032,7 +5071,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["color-interpolation-filters"?](#)
+"color-interpolation-filters"?
 
 </td><td>
 
@@ -5047,7 +5086,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["color-interpolation"?](#)
+"color-interpolation"?
 
 </td><td>
 
@@ -5062,7 +5101,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["color-profile"?](#)
+"color-profile"?
 
 </td><td>
 
@@ -5077,7 +5116,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["color-rendering"?](#)
+"color-rendering"?
 
 </td><td>
 
@@ -5092,7 +5131,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["dominant-baseline"?](#)
+"dominant-baseline"?
 
 </td><td>
 
@@ -5107,7 +5146,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["edge-mode"?](#)
+"edge-mode"?
 
 </td><td>
 
@@ -5122,7 +5161,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["enable-background"?](#)
+"enable-background"?
 
 </td><td>
 
@@ -5137,7 +5176,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["fill-opacity"?](#)
+"fill-opacity"?
 
 </td><td>
 
@@ -5152,7 +5191,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["fill-rule"?](#)
+"fill-rule"?
 
 </td><td>
 
@@ -5167,7 +5206,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["flood-color"?](#)
+"flood-color"?
 
 </td><td>
 
@@ -5182,7 +5221,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["flood-opacity"?](#)
+"flood-opacity"?
 
 </td><td>
 
@@ -5197,7 +5236,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["font-family"?](#)
+"font-family"?
 
 </td><td>
 
@@ -5212,7 +5251,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["font-size-adjust"?](#)
+"font-size-adjust"?
 
 </td><td>
 
@@ -5227,7 +5266,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["font-size"?](#)
+"font-size"?
 
 </td><td>
 
@@ -5242,7 +5281,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["font-stretch"?](#)
+"font-stretch"?
 
 </td><td>
 
@@ -5257,7 +5296,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["font-style"?](#)
+"font-style"?
 
 </td><td>
 
@@ -5272,7 +5311,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["font-variant"?](#)
+"font-variant"?
 
 </td><td>
 
@@ -5287,7 +5326,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["font-weight"?](#)
+"font-weight"?
 
 </td><td>
 
@@ -5302,7 +5341,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["glyph-name"?](#)
+"glyph-name"?
 
 </td><td>
 
@@ -5317,7 +5356,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["glyph-orientation-horizontal"?](#)
+"glyph-orientation-horizontal"?
 
 </td><td>
 
@@ -5332,7 +5371,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["glyph-orientation-vertical"?](#)
+"glyph-orientation-vertical"?
 
 </td><td>
 
@@ -5347,7 +5386,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["horiz-adv-x"?](#)
+"horiz-adv-x"?
 
 </td><td>
 
@@ -5362,7 +5401,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["horiz-origin-x"?](#)
+"horiz-origin-x"?
 
 </td><td>
 
@@ -5377,7 +5416,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["image-rendering"?](#)
+"image-rendering"?
 
 </td><td>
 
@@ -5392,7 +5431,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["letter-spacing"?](#)
+"letter-spacing"?
 
 </td><td>
 
@@ -5407,7 +5446,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["lighting-color"?](#)
+"lighting-color"?
 
 </td><td>
 
@@ -5422,7 +5461,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["marker-end"?](#)
+"marker-end"?
 
 </td><td>
 
@@ -5437,7 +5476,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["marker-mid"?](#)
+"marker-mid"?
 
 </td><td>
 
@@ -5452,7 +5491,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["marker-start"?](#)
+"marker-start"?
 
 </td><td>
 
@@ -5467,7 +5506,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["overline-position"?](#)
+"overline-position"?
 
 </td><td>
 
@@ -5482,7 +5521,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["overline-thickness"?](#)
+"overline-thickness"?
 
 </td><td>
 
@@ -5497,7 +5536,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["paint-order"?](#)
+"paint-order"?
 
 </td><td>
 
@@ -5512,7 +5551,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["pointer-events"?](#)
+"pointer-events"?
 
 </td><td>
 
@@ -5527,7 +5566,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["rendering-intent"?](#)
+"rendering-intent"?
 
 </td><td>
 
@@ -5542,7 +5581,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["shape-rendering"?](#)
+"shape-rendering"?
 
 </td><td>
 
@@ -5557,7 +5596,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["stop-color"?](#)
+"stop-color"?
 
 </td><td>
 
@@ -5572,7 +5611,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["stop-opacity"?](#)
+"stop-opacity"?
 
 </td><td>
 
@@ -5587,7 +5626,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["strikethrough-position"?](#)
+"strikethrough-position"?
 
 </td><td>
 
@@ -5602,7 +5641,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["strikethrough-thickness"?](#)
+"strikethrough-thickness"?
 
 </td><td>
 
@@ -5617,7 +5656,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["stroke-dasharray"?](#)
+"stroke-dasharray"?
 
 </td><td>
 
@@ -5632,7 +5671,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["stroke-dashoffset"?](#)
+"stroke-dashoffset"?
 
 </td><td>
 
@@ -5647,7 +5686,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["stroke-linecap"?](#)
+"stroke-linecap"?
 
 </td><td>
 
@@ -5662,7 +5701,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["stroke-linejoin"?](#)
+"stroke-linejoin"?
 
 </td><td>
 
@@ -5677,7 +5716,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["stroke-miterlimit"?](#)
+"stroke-miterlimit"?
 
 </td><td>
 
@@ -5692,7 +5731,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["stroke-opacity"?](#)
+"stroke-opacity"?
 
 </td><td>
 
@@ -5707,7 +5746,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["stroke-width"?](#)
+"stroke-width"?
 
 </td><td>
 
@@ -5722,7 +5761,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["text-anchor"?](#)
+"text-anchor"?
 
 </td><td>
 
@@ -5737,7 +5776,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["text-decoration"?](#)
+"text-decoration"?
 
 </td><td>
 
@@ -5752,7 +5791,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["text-rendering"?](#)
+"text-rendering"?
 
 </td><td>
 
@@ -5767,7 +5806,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["underline-position"?](#)
+"underline-position"?
 
 </td><td>
 
@@ -5782,7 +5821,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["underline-thickness"?](#)
+"underline-thickness"?
 
 </td><td>
 
@@ -5797,7 +5836,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["unicode-bidi"?](#)
+"unicode-bidi"?
 
 </td><td>
 
@@ -5812,7 +5851,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["unicode-range"?](#)
+"unicode-range"?
 
 </td><td>
 
@@ -5827,7 +5866,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["units-per-em"?](#)
+"units-per-em"?
 
 </td><td>
 
@@ -5842,7 +5881,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["v-alphabetic"?](#)
+"v-alphabetic"?
 
 </td><td>
 
@@ -5857,7 +5896,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["v-hanging"?](#)
+"v-hanging"?
 
 </td><td>
 
@@ -5872,7 +5911,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["v-ideographic"?](#)
+"v-ideographic"?
 
 </td><td>
 
@@ -5887,7 +5926,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["v-mathematical"?](#)
+"v-mathematical"?
 
 </td><td>
 
@@ -5902,7 +5941,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["vector-effect"?](#)
+"vector-effect"?
 
 </td><td>
 
@@ -5917,7 +5956,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["vert-adv-y"?](#)
+"vert-adv-y"?
 
 </td><td>
 
@@ -5932,7 +5971,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["vert-origin-x"?](#)
+"vert-origin-x"?
 
 </td><td>
 
@@ -5947,7 +5986,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["vert-origin-y"?](#)
+"vert-origin-y"?
 
 </td><td>
 
@@ -5962,7 +6001,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["word-spacing"?](#)
+"word-spacing"?
 
 </td><td>
 
@@ -5977,7 +6016,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["writing-mode"?](#)
+"writing-mode"?
 
 </td><td>
 
@@ -5992,7 +6031,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["x-channel-selector"?](#)
+"x-channel-selector"?
 
 </td><td>
 
@@ -6007,7 +6046,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-["x-height"?](#)
+"x-height"?
 
 </td><td>
 
@@ -6187,7 +6226,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[accumulate?](#)
+accumulate?
 
 </td><td>
 
@@ -6202,7 +6241,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[additive?](#)
+additive?
 
 </td><td>
 
@@ -6217,7 +6256,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[allowReorder?](#)
+allowReorder?
 
 </td><td>
 
@@ -6232,7 +6271,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[alphabetic?](#)
+alphabetic?
 
 </td><td>
 
@@ -6247,7 +6286,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[amplitude?](#)
+amplitude?
 
 </td><td>
 
@@ -6262,7 +6301,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[ascent?](#)
+ascent?
 
 </td><td>
 
@@ -6277,7 +6316,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[attributeName?](#)
+attributeName?
 
 </td><td>
 
@@ -6292,7 +6331,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[attributeType?](#)
+attributeType?
 
 </td><td>
 
@@ -6307,7 +6346,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[autoReverse?](#)
+autoReverse?
 
 </td><td>
 
@@ -6322,7 +6361,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[azimuth?](#)
+azimuth?
 
 </td><td>
 
@@ -6337,7 +6376,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[baseFrequency?](#)
+baseFrequency?
 
 </td><td>
 
@@ -6352,7 +6391,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[baseProfile?](#)
+baseProfile?
 
 </td><td>
 
@@ -6367,7 +6406,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[bbox?](#)
+bbox?
 
 </td><td>
 
@@ -6382,7 +6421,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[begin?](#)
+begin?
 
 </td><td>
 
@@ -6397,7 +6436,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[bias?](#)
+bias?
 
 </td><td>
 
@@ -6412,7 +6451,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[by?](#)
+by?
 
 </td><td>
 
@@ -6427,7 +6466,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[calcMode?](#)
+calcMode?
 
 </td><td>
 
@@ -6442,7 +6481,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[clip?](#)
+clip?
 
 </td><td>
 
@@ -6457,7 +6496,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[clipPathUnits?](#)
+clipPathUnits?
 
 </td><td>
 
@@ -6472,7 +6511,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[color?](#)
+color?
 
 </td><td>
 
@@ -6487,7 +6526,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[contentScriptType?](#)
+contentScriptType?
 
 </td><td>
 
@@ -6502,7 +6541,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[contentStyleType?](#)
+contentStyleType?
 
 </td><td>
 
@@ -6517,7 +6556,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[crossOrigin?](#)
+crossOrigin?
 
 </td><td>
 
@@ -6532,7 +6571,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[cursor?](#)
+cursor?
 
 </td><td>
 
@@ -6547,7 +6586,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[cx?](#)
+cx?
 
 </td><td>
 
@@ -6562,7 +6601,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[cy?](#)
+cy?
 
 </td><td>
 
@@ -6577,7 +6616,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[d?](#)
+d?
 
 </td><td>
 
@@ -6592,7 +6631,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[decelerate?](#)
+decelerate?
 
 </td><td>
 
@@ -6607,7 +6646,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[descent?](#)
+descent?
 
 </td><td>
 
@@ -6622,7 +6661,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[diffuseConstant?](#)
+diffuseConstant?
 
 </td><td>
 
@@ -6637,7 +6676,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[direction?](#)
+direction?
 
 </td><td>
 
@@ -6652,7 +6691,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[display?](#)
+display?
 
 </td><td>
 
@@ -6667,7 +6706,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[divisor?](#)
+divisor?
 
 </td><td>
 
@@ -6682,7 +6721,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[dur?](#)
+dur?
 
 </td><td>
 
@@ -6697,7 +6736,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[dx?](#)
+dx?
 
 </td><td>
 
@@ -6712,7 +6751,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[dy?](#)
+dy?
 
 </td><td>
 
@@ -6727,7 +6766,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[elevation?](#)
+elevation?
 
 </td><td>
 
@@ -6742,7 +6781,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[end?](#)
+end?
 
 </td><td>
 
@@ -6757,7 +6796,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[exponent?](#)
+exponent?
 
 </td><td>
 
@@ -6772,7 +6811,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[externalResourcesRequired?](#)
+externalResourcesRequired?
 
 </td><td>
 
@@ -6787,7 +6826,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[fill?](#)
+fill?
 
 </td><td>
 
@@ -6802,7 +6841,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[filter?](#)
+filter?
 
 </td><td>
 
@@ -6817,7 +6856,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[filterRes?](#)
+filterRes?
 
 </td><td>
 
@@ -6832,7 +6871,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[filterUnits?](#)
+filterUnits?
 
 </td><td>
 
@@ -6847,7 +6886,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[focusable?](#)
+focusable?
 
 </td><td>
 
@@ -6862,7 +6901,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[format?](#)
+format?
 
 </td><td>
 
@@ -6877,7 +6916,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[fr?](#)
+fr?
 
 </td><td>
 
@@ -6892,7 +6931,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[from?](#)
+from?
 
 </td><td>
 
@@ -6907,7 +6946,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[fx?](#)
+fx?
 
 </td><td>
 
@@ -6922,7 +6961,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[fy?](#)
+fy?
 
 </td><td>
 
@@ -6937,7 +6976,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[g1?](#)
+g1?
 
 </td><td>
 
@@ -6952,7 +6991,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[g2?](#)
+g2?
 
 </td><td>
 
@@ -6967,7 +7006,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[glyphRef?](#)
+glyphRef?
 
 </td><td>
 
@@ -6982,7 +7021,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[gradientTransform?](#)
+gradientTransform?
 
 </td><td>
 
@@ -6997,7 +7036,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[gradientUnits?](#)
+gradientUnits?
 
 </td><td>
 
@@ -7012,7 +7051,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[hanging?](#)
+hanging?
 
 </td><td>
 
@@ -7027,7 +7066,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[height?](#)
+height?
 
 </td><td>
 
@@ -7042,7 +7081,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[href?](#)
+href?
 
 </td><td>
 
@@ -7057,7 +7096,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[id?](#)
+id?
 
 </td><td>
 
@@ -7072,7 +7111,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[ideographic?](#)
+ideographic?
 
 </td><td>
 
@@ -7087,7 +7126,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[in?](#)
+in?
 
 </td><td>
 
@@ -7102,7 +7141,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[in2?](#)
+in2?
 
 </td><td>
 
@@ -7117,7 +7156,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[intercept?](#)
+intercept?
 
 </td><td>
 
@@ -7132,7 +7171,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[k?](#)
+k?
 
 </td><td>
 
@@ -7147,7 +7186,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[k1?](#)
+k1?
 
 </td><td>
 
@@ -7162,7 +7201,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[k2?](#)
+k2?
 
 </td><td>
 
@@ -7177,7 +7216,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[k3?](#)
+k3?
 
 </td><td>
 
@@ -7192,7 +7231,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[k4?](#)
+k4?
 
 </td><td>
 
@@ -7207,7 +7246,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[kernelMatrix?](#)
+kernelMatrix?
 
 </td><td>
 
@@ -7222,7 +7261,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[kernelUnitLength?](#)
+kernelUnitLength?
 
 </td><td>
 
@@ -7237,7 +7276,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[kerning?](#)
+kerning?
 
 </td><td>
 
@@ -7252,7 +7291,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[keyPoints?](#)
+keyPoints?
 
 </td><td>
 
@@ -7267,7 +7306,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[keySplines?](#)
+keySplines?
 
 </td><td>
 
@@ -7282,7 +7321,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[keyTimes?](#)
+keyTimes?
 
 </td><td>
 
@@ -7297,7 +7336,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[lang?](#)
+lang?
 
 </td><td>
 
@@ -7312,7 +7351,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[lengthAdjust?](#)
+lengthAdjust?
 
 </td><td>
 
@@ -7327,7 +7366,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[limitingConeAngle?](#)
+limitingConeAngle?
 
 </td><td>
 
@@ -7342,7 +7381,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[local?](#)
+local?
 
 </td><td>
 
@@ -7357,7 +7396,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[markerHeight?](#)
+markerHeight?
 
 </td><td>
 
@@ -7372,7 +7411,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[markerUnits?](#)
+markerUnits?
 
 </td><td>
 
@@ -7387,7 +7426,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[markerWidth?](#)
+markerWidth?
 
 </td><td>
 
@@ -7402,7 +7441,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[mask?](#)
+mask?
 
 </td><td>
 
@@ -7417,7 +7456,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[maskContentUnits?](#)
+maskContentUnits?
 
 </td><td>
 
@@ -7432,7 +7471,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[maskUnits?](#)
+maskUnits?
 
 </td><td>
 
@@ -7447,7 +7486,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[mathematical?](#)
+mathematical?
 
 </td><td>
 
@@ -7462,7 +7501,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[max?](#)
+max?
 
 </td><td>
 
@@ -7477,7 +7516,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[media?](#)
+media?
 
 </td><td>
 
@@ -7492,7 +7531,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[method?](#)
+method?
 
 </td><td>
 
@@ -7507,7 +7546,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[min?](#)
+min?
 
 </td><td>
 
@@ -7522,7 +7561,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[mode?](#)
+mode?
 
 </td><td>
 
@@ -7537,7 +7576,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[name?](#)
+name?
 
 </td><td>
 
@@ -7552,7 +7591,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[numOctaves?](#)
+numOctaves?
 
 </td><td>
 
@@ -7567,7 +7606,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[offset?](#)
+offset?
 
 </td><td>
 
@@ -7582,7 +7621,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[opacity?](#)
+opacity?
 
 </td><td>
 
@@ -7597,7 +7636,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[operator?](#)
+operator?
 
 </td><td>
 
@@ -7612,7 +7651,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[order?](#)
+order?
 
 </td><td>
 
@@ -7627,7 +7666,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[orient?](#)
+orient?
 
 </td><td>
 
@@ -7642,7 +7681,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[orientation?](#)
+orientation?
 
 </td><td>
 
@@ -7657,7 +7696,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[origin?](#)
+origin?
 
 </td><td>
 
@@ -7672,7 +7711,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[overflow?](#)
+overflow?
 
 </td><td>
 
@@ -7687,7 +7726,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[panose1?](#)
+panose1?
 
 </td><td>
 
@@ -7702,7 +7741,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[path?](#)
+path?
 
 </td><td>
 
@@ -7717,7 +7756,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[pathLength?](#)
+pathLength?
 
 </td><td>
 
@@ -7732,7 +7771,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[patternContentUnits?](#)
+patternContentUnits?
 
 </td><td>
 
@@ -7747,7 +7786,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[patternTransform?](#)
+patternTransform?
 
 </td><td>
 
@@ -7762,7 +7801,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[patternUnits?](#)
+patternUnits?
 
 </td><td>
 
@@ -7777,7 +7816,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[points?](#)
+points?
 
 </td><td>
 
@@ -7792,7 +7831,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[pointsAtX?](#)
+pointsAtX?
 
 </td><td>
 
@@ -7807,7 +7846,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[pointsAtY?](#)
+pointsAtY?
 
 </td><td>
 
@@ -7822,7 +7861,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[pointsAtZ?](#)
+pointsAtZ?
 
 </td><td>
 
@@ -7837,7 +7876,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[preserveAlpha?](#)
+preserveAlpha?
 
 </td><td>
 
@@ -7852,7 +7891,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[preserveAspectRatio?](#)
+preserveAspectRatio?
 
 </td><td>
 
@@ -7867,7 +7906,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[primitiveUnits?](#)
+primitiveUnits?
 
 </td><td>
 
@@ -7882,7 +7921,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[r?](#)
+r?
 
 </td><td>
 
@@ -7897,7 +7936,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[radius?](#)
+radius?
 
 </td><td>
 
@@ -7912,7 +7951,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[refX?](#)
+refX?
 
 </td><td>
 
@@ -7927,7 +7966,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[refY?](#)
+refY?
 
 </td><td>
 
@@ -7942,7 +7981,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[repeatCount?](#)
+repeatCount?
 
 </td><td>
 
@@ -7957,7 +7996,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[repeatDur?](#)
+repeatDur?
 
 </td><td>
 
@@ -7972,7 +8011,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[requiredextensions?](#)
+requiredextensions?
 
 </td><td>
 
@@ -7987,7 +8026,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[requiredFeatures?](#)
+requiredFeatures?
 
 </td><td>
 
@@ -8002,7 +8041,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[restart?](#)
+restart?
 
 </td><td>
 
@@ -8017,7 +8056,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[result?](#)
+result?
 
 </td><td>
 
@@ -8032,7 +8071,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[role?](#)
+role?
 
 </td><td>
 
@@ -8047,7 +8086,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[rotate?](#)
+rotate?
 
 </td><td>
 
@@ -8062,7 +8101,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[rx?](#)
+rx?
 
 </td><td>
 
@@ -8077,7 +8116,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[ry?](#)
+ry?
 
 </td><td>
 
@@ -8092,7 +8131,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[scale?](#)
+scale?
 
 </td><td>
 
@@ -8107,7 +8146,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[seed?](#)
+seed?
 
 </td><td>
 
@@ -8122,7 +8161,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[slope?](#)
+slope?
 
 </td><td>
 
@@ -8137,7 +8176,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[spacing?](#)
+spacing?
 
 </td><td>
 
@@ -8152,7 +8191,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[specularConstant?](#)
+specularConstant?
 
 </td><td>
 
@@ -8167,7 +8206,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[specularExponent?](#)
+specularExponent?
 
 </td><td>
 
@@ -8182,7 +8221,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[speed?](#)
+speed?
 
 </td><td>
 
@@ -8197,7 +8236,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[spreadMethod?](#)
+spreadMethod?
 
 </td><td>
 
@@ -8212,7 +8251,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[startOffset?](#)
+startOffset?
 
 </td><td>
 
@@ -8227,7 +8266,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[stdDeviation?](#)
+stdDeviation?
 
 </td><td>
 
@@ -8242,7 +8281,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[stemh?](#)
+stemh?
 
 </td><td>
 
@@ -8257,7 +8296,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[stemv?](#)
+stemv?
 
 </td><td>
 
@@ -8272,7 +8311,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[stitchTiles?](#)
+stitchTiles?
 
 </td><td>
 
@@ -8287,7 +8326,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[string?](#)
+string?
 
 </td><td>
 
@@ -8302,7 +8341,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[stroke?](#)
+stroke?
 
 </td><td>
 
@@ -8317,7 +8356,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[style?](#)
+style?
 
 </td><td>
 
@@ -8332,7 +8371,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[surfaceScale?](#)
+surfaceScale?
 
 </td><td>
 
@@ -8347,7 +8386,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[systemLanguage?](#)
+systemLanguage?
 
 </td><td>
 
@@ -8362,7 +8401,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[tabindex?](#)
+tabindex?
 
 </td><td>
 
@@ -8377,7 +8416,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[tableValues?](#)
+tableValues?
 
 </td><td>
 
@@ -8392,7 +8431,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[target?](#)
+target?
 
 </td><td>
 
@@ -8407,7 +8446,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[targetX?](#)
+targetX?
 
 </td><td>
 
@@ -8422,7 +8461,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[targetY?](#)
+targetY?
 
 </td><td>
 
@@ -8437,7 +8476,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[textLength?](#)
+textLength?
 
 </td><td>
 
@@ -8452,7 +8491,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[to?](#)
+to?
 
 </td><td>
 
@@ -8467,7 +8506,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[transform?](#)
+transform?
 
 </td><td>
 
@@ -8482,7 +8521,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[type?](#)
+type?
 
 </td><td>
 
@@ -8497,7 +8536,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[u1?](#)
+u1?
 
 </td><td>
 
@@ -8512,7 +8551,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[u2?](#)
+u2?
 
 </td><td>
 
@@ -8527,7 +8566,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[unicode?](#)
+unicode?
 
 </td><td>
 
@@ -8542,7 +8581,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[values?](#)
+values?
 
 </td><td>
 
@@ -8557,7 +8596,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[version?](#)
+version?
 
 </td><td>
 
@@ -8572,7 +8611,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[viewBox?](#)
+viewBox?
 
 </td><td>
 
@@ -8587,7 +8626,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[viewTarget?](#)
+viewTarget?
 
 </td><td>
 
@@ -8602,7 +8641,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[visibility?](#)
+visibility?
 
 </td><td>
 
@@ -8617,7 +8656,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[width?](#)
+width?
 
 </td><td>
 
@@ -8632,7 +8671,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[widths?](#)
+widths?
 
 </td><td>
 
@@ -8647,7 +8686,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[x?](#)
+x?
 
 </td><td>
 
@@ -8662,7 +8701,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[x1?](#)
+x1?
 
 </td><td>
 
@@ -8677,7 +8716,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[x2?](#)
+x2?
 
 </td><td>
 
@@ -8692,7 +8731,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[xmlns?](#)
+xmlns?
 
 </td><td>
 
@@ -8707,7 +8746,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[y?](#)
+y?
 
 </td><td>
 
@@ -8722,7 +8761,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[y1?](#)
+y1?
 
 </td><td>
 
@@ -8737,7 +8776,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[y2?](#)
+y2?
 
 </td><td>
 
@@ -8752,7 +8791,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[yChannelSelector?](#)
+yChannelSelector?
 
 </td><td>
 
@@ -8767,7 +8806,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[z?](#)
+z?
 
 </td><td>
 
@@ -8782,7 +8821,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[zoomAndPan?](#)
+zoomAndPan?
 
 </td><td>
 
@@ -8863,7 +8902,7 @@ export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
-**References:** [QRL](#qrl)
+**References:** [QRL](#qrl-type-alias)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
@@ -8892,7 +8931,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[cleanup](#)
+cleanup
 
 </td><td>
 
@@ -8905,7 +8944,7 @@ Description
 </td></tr>
 <tr><td>
 
-[track](#)
+track
 
 </td><td>
 
@@ -8957,7 +8996,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[deferUpdates?](#)
+deferUpdates?
 
 </td><td>
 
@@ -10030,7 +10069,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[deep?](#)
+deep?
 
 </td><td>
 
@@ -10045,7 +10084,7 @@ _(Optional)_ If `true` then all nested objects and arrays will be tracked as wel
 </td></tr>
 <tr><td>
 
-[reactive?](#)
+reactive?
 
 </td><td>
 
@@ -10139,7 +10178,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[scopeId](#)
+scopeId
 
 </td><td>
 

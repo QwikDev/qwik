@@ -1,0 +1,62 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 7110
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+import { source } from 'lib';
+
+const { a } = source;
+
+export const handler = $(() => {
+  console.log(a);
+});
+
+		
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_handler_T7IDIUVU4lI = /*#__PURE__*/ qrl(()=>import("./test.tsx_handler_T7IDIUVU4lI"), "handler_T7IDIUVU4lI");
+//
+export const handler = q_handler_T7IDIUVU4lI;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,OAAO,MAAM,gCAEV\"}")
+============================= test.tsx_handler_T7IDIUVU4lI.js (ENTRY POINT)==
+
+import { source } from "lib";
+//
+const { a } = source;
+export const handler_T7IDIUVU4lI = ()=>{
+    console.log(a);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;MAIM,EAAE,CAAC,EAAE,GAAG;mCAEW;IACvB,QAAQ,GAAG,CAAC;AACd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "handler_T7IDIUVU4lI",
+  "entry": null,
+  "displayName": "test.tsx_handler",
+  "hash": "T7IDIUVU4lI",
+  "canonicalFilename": "test.tsx_handler_T7IDIUVU4lI",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    117,
+    144
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

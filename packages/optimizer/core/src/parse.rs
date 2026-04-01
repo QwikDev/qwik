@@ -11,8 +11,8 @@ use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::{collect_from_pat, global_collect, Id, Import, ImportKind};
 use crate::const_replace::ConstReplacerVisitor;
 use crate::dependency_analysis::{
-	analyze_root_dependencies, build_root_var_usage_map, find_migratable_vars, RootVarDecl,
-	RootVarDependency,
+	analyze_root_dependencies, build_main_module_usage_set, build_root_var_usage_map,
+	find_migratable_vars, RootVarDecl, RootVarDependency,
 };
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
@@ -442,7 +442,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
 					let comments_maps = comments.clone().take_all();
 					// Now process each segment
-					// TODO handle noop segments, don't generate code for them
+					// Note: noop segments (entry: None, e.g. routeLoader$) still generate
+					// code here but their SegmentAnalysis is what matters for manifest generation
 					if !segments.is_empty() {
 						let q = qt.as_ref().unwrap();
 						for h in segments.into_iter() {
@@ -989,10 +990,16 @@ fn apply_variable_migration(
 
 	// Build usage map: which segments use which root variables
 	let root_var_usage = build_root_var_usage_map(segments, &root_dependencies);
+	let main_module_usage = build_main_module_usage_set(module, &root_dependencies);
 
 	// Find migratable variables: those used by exactly one segment and not exported
 	// This returns a BTreeMap for deterministic iteration order
-	let migratable = find_migratable_vars(segments, &root_dependencies, &root_var_usage);
+	let migratable = find_migratable_vars(
+		segments,
+		&root_dependencies,
+		&root_var_usage,
+		&main_module_usage,
+	);
 
 	// PHASE 1: Pre-declare all needed auto-exports BEFORE migration
 	// This ensures all dependencies are known upfront, preventing surprises during migration

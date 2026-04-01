@@ -732,16 +732,18 @@ function getSlotNameKey(diffContext: DiffContext, vHost: VNode | null) {
 }
 
 function cleanupSideBuffer(diffContext: DiffContext) {
-  if (diffContext.$vSideBuffer$) {
+  const sideBuffer = diffContext.$vSideBuffer$;
+  if (sideBuffer) {
     // Remove all nodes in the side buffer as they are no longer needed
-    for (const vNode of diffContext.$vSideBuffer$.values()) {
+
+    for (const vNode of sideBuffer.values()) {
       if (vNode.flags & VNodeFlags.Deleted) {
         continue;
       }
       cleanup(diffContext.$container$, diffContext.$journal$, vNode, diffContext.$cursor$);
       vnode_remove(diffContext.$journal$, diffContext.$vParent$, vNode, true);
     }
-    diffContext.$vSideBuffer$.clear();
+    sideBuffer.clear();
     diffContext.$vSideBuffer$ = null;
   }
   diffContext.$vCurrent$ = null;
@@ -1883,7 +1885,9 @@ export function cleanup(
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
         const attrs = (vCursor as VirtualVNode).props;
         if (attrs) {
-          for (const key of Object.keys(attrs)) {
+          const keys = Object.keys(attrs);
+          for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
             if (isSlotProp(key)) {
               const value = attrs[key];
               if (value) {
@@ -2029,7 +2033,8 @@ function containsWrappedSignal(data: unknown[], signal: Signal<any>): boolean {
   if (!(signal instanceof WrappedSignalImpl)) {
     return false;
   }
-  for (const item of data) {
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
     if (item instanceof WrappedSignalImpl && areWrappedSignalsEqual(item, signal)) {
       return true;
     }

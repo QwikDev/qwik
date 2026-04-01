@@ -91,6 +91,12 @@ describe('verifySerializable', () => {
       const fn = () => {};
       expect(() => verifySerializable(fn, 'Custom error')).toThrow(/Custom error/);
     });
+
+    it('should throw for sparse arrays', () => {
+      const value = [1, 2, 3];
+      delete value[1];
+      expect(() => verifySerializable(value)).toThrow();
+    });
   });
 
   describe('untrack integration', () => {

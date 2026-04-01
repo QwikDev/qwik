@@ -50,8 +50,8 @@ export function getPreloadPaths(
 
   // If we have a bundle graph, all we need is the symbols
   const symbols = new Set<string>();
-  for (const qrl of qrls) {
-    const symbol = getSymbolHash(qrl.$symbol$);
+  for (let i = 0; i < qrls.length; i++) {
+    const symbol = getSymbolHash(qrls[i].$symbol$);
     if (symbol && symbol.length >= 10) {
       symbols.add(symbol);
     }
@@ -67,8 +67,8 @@ export const expandBundles = (names: string[], resolvedManifest?: ResolvedManife
   resetQueue();
 
   let probability = 0.99;
-  for (const name of names) {
-    preload(name, probability);
+  for (let i = 0; i < names.length; i++) {
+    preload(names[i], probability);
     // later symbols have less probability
     probability *= 0.95;
   }

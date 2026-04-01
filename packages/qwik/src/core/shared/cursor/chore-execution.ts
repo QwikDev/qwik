@@ -1,6 +1,11 @@
 import { VNodeFlags, type ClientContainer } from '../../client/types';
 import { vnode_diff } from '../../client/vnode-diff';
-import { type VNodeJournal } from '../../client/vnode-utils';
+import {
+  type VNodeJournal,
+  vnode_createErrorDiv,
+  vnode_insertElementBefore,
+  vnode_isElementVNode,
+} from '../../client/vnode-utils';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SignalFlags } from '../../reactive-primitives/types';
@@ -15,6 +20,7 @@ import { ELEMENT_PROPS, ELEMENT_SEQ } from '../utils/markers';
 import { maybeThen, retryOnPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import type { ElementVNode } from '../vnode/element-vnode';
+import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
 import type { VNode } from '../vnode/vnode';
@@ -32,7 +38,7 @@ import {
   setNodePropData,
 } from './chore-helpers';
 import type { Cursor } from './cursor';
-import { HOST_SIGNAL, type CursorData } from './cursor-props';
+import { ERROR_DATA_KEY, HOST_SIGNAL, type CursorData } from './cursor-props';
 import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
 import { _getProps } from '../jsx/props-proxy';
 import type { Props } from '../jsx/jsx-runtime';
@@ -76,6 +82,49 @@ export function executeTasks(
 }
 
 export { setNodeDiffPayload, setNodePropData };
+
+function getErrorPayload(vNode: VNode): Error | null {
+  const props = vNode.props as Props;
+  return (props?.[ERROR_DATA_KEY] as Error) ?? null;
+}
+
+export function setErrorPayload(vNode: VNode, error: Error | null): void {
+  const props = (vNode.props ||= {}) as Props;
+  props[ERROR_DATA_KEY] = error;
+}
+
+export function executeErrorWrap(vNode: VNode, journal: VNodeJournal): void {
+  vNode.dirty &= ~ChoreBits.ERROR_WRAP;
+
+  const err = getErrorPayload(vNode);
+  if (!err) {
+    return;
+  }
+  // cleanup payload
+  setErrorPayload(vNode, null);
+
+  const vHost = vNode;
+  const vHostParent = vHost.parent;
+  const vHostNextSibling = vHost.nextSibling as VNode | null;
+  const vErrorDiv = vnode_createErrorDiv(journal, document, vHost, err);
+  // If the host is an element node, we need to insert the error div into its parent.
+  const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
+  // If the host is different then we need to insert errored-host in the same position as the host.
+  const insertBefore = insertHost === vHost ? null : vHostNextSibling;
+  vnode_insertElementBefore(
+    journal,
+    insertHost as ElementVNode | VirtualVNode,
+    vErrorDiv,
+    insertBefore
+  );
+  // vnode_createErrorDiv moves children into the errored-host element, which can
+  // mark the host with CHILDREN dirty bit. Clear it along with dirtyChildren to
+  // avoid an infinite loop — those children are now under errored-host, not this host.
+  // This is safe because CHILDREN is always processed before ERROR_WRAP in the walker,
+  // so any pre-existing child work has already completed.
+  vNode.dirty &= ~ChoreBits.CHILDREN;
+  vNode.dirtyChildren = null;
+}
 
 export function executeNodeDiff(
   vNode: VNode,
@@ -214,7 +263,8 @@ export function executeCleanup(vNode: VNode, container: Container): void {
     return;
   }
 
-  for (const item of elementSeq) {
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
     if (item instanceof Task) {
       if (item.$flags$ & TaskFlags.NEEDS_CLEANUP) {
         item.$flags$ &= ~TaskFlags.NEEDS_CLEANUP;

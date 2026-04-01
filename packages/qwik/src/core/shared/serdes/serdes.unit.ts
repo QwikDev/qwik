@@ -1298,11 +1298,10 @@ describe('shared-serialization', () => {
       const objs = await serialize(asyncSig);
       const restored = deserialize(objs)[0] as AsyncSignalImpl<number>;
 
-      for (const effectSet of [
-        restored.$effects$,
-        restored.$loadingEffects$,
-        restored.$errorEffects$,
-      ]) {
+      const effectSets = [restored.$effects$, restored.$loadingEffects$, restored.$errorEffects$];
+
+      for (let i = 0; i < effectSets.length; i++) {
+        const effectSet = effectSets[i];
         expect(effectSet).toBeDefined();
         expect(effectSet!.size).toBe(1);
         const restoredEffect = [...effectSet!][0];
@@ -1879,8 +1878,8 @@ async function serialize(...roots: any[]): Promise<any[]> {
     new WeakMap<any, any>(),
     null!
   );
-  for (const root of roots) {
-    sCtx.$addRoot$(root);
+  for (let i = 0; i < roots.length; i++) {
+    sCtx.$addRoot$(roots[i]);
   }
   await sCtx.$serialize$();
   const objs = JSON.parse(sCtx.$writer$.toString());

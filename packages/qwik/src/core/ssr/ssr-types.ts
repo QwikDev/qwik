@@ -62,6 +62,7 @@ export interface SSRContainer extends Container {
   additionalBodyNodes: Array<JSXNodeInternal>;
   /** Per-cursor SSR build state (frame state), swapped by cursor walker. */
   ssrBuildState: unknown;
+  $noScriptHere$: number;
 
   write(text: string): void;
 

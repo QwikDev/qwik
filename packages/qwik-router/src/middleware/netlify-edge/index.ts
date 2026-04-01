@@ -18,10 +18,6 @@ import { isDev } from '@qwik.dev/core/build';
 declare const Deno: any;
 /** @public */
 export function createQwikRouter(opts: QwikRouterNetlifyOptions) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  }
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }

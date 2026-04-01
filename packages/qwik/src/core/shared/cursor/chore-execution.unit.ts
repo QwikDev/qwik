@@ -35,6 +35,37 @@ import { markVNodeDirty } from '../vnode/vnode-dirty';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 
+vi.mock('../../client/vnode-utils', () => ({
+  vnode_createErrorDiv: vi.fn(() => {
+    // Return a mock ElementVNode
+    const node = { tagName: 'ERRORED-HOST' } as any;
+    return {
+      flags: 1, // VNodeFlags.Element
+      dirty: 0,
+      parent: null,
+      previousSibling: null,
+      nextSibling: null,
+      lastChild: null,
+      firstChild: null,
+      node,
+      props: {},
+    };
+  }),
+  vnode_insertElementBefore: vi.fn(),
+  vnode_isElementVNode: vi.fn((vNode: any) => !!(vNode?.flags & 1)),
+  vnode_getProp: vi.fn((vNode: any, key: string, _default: any) => vNode?.props?.[key] ?? _default),
+  vnode_setProp: vi.fn((vNode: any, key: string, value: any) => {
+    if (vNode?.props) {
+      vNode.props[key] = value;
+    }
+  }),
+  vnode_removeProp: vi.fn((vNode: any, key: string) => {
+    if (vNode?.props) {
+      delete vNode.props[key];
+    }
+  }),
+}));
+
 vi.mock('../../use/use-task', async () => {
   const actual = await vi.importActual<typeof import('../../use/use-task')>('../../use/use-task');
   return {

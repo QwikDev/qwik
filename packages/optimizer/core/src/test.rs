@@ -6942,6 +6942,8 @@ export const action = formAction$((data) => {
 });
 		"#
 		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
 		..TestInput::default()
 	});
 }
@@ -6962,6 +6964,8 @@ export const action = formAction$((data) => {
 });
 		"#
 		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
 		..TestInput::default()
 	});
 }
@@ -6987,6 +6991,8 @@ export const action = formAction$((data) => {
 });
 		"#
 		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
 		..TestInput::default()
 	});
 }
@@ -7006,6 +7012,208 @@ export const action = formAction$((data) => {
 });
 		"#
 		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_module_level_var_used_in_both_main_and_qrl() {
+	// Minimal repro: module-level variable used both in main module scope
+	// AND inside a $() closure. The optimizer must keep (or re-export) the
+	// variable in the main module — moving it only to the chunk is a bug.
+	test_input!(TestInput {
+		code: r#"
+import { $, isServer } from '@qwik.dev/core';
+
+const state = {
+  counter: 0,
+  id: Math.random().toString(36).slice(2, 8),
+};
+
+console.log('Module init, id:', state.id);
+
+export function doSomething() {
+  if (!isServer) {
+    state.counter++;
+  }
+}
+
+export function useHook() {
+  const fn = $(() => {
+    state.counter++;
+    console.log(state.id);
+  });
+  return fn;
+}
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_non_migrated_binding_from_shared_destructuring_declarator() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const { a, b } = {
+  a: 1,
+  b: 2,
+};
+
+console.log('root', b);
+
+export const handler = $(() => {
+  console.log('qrl', a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_root_var_used_by_export_decl_and_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const shared = {
+  id: 'abc',
+};
+
+export const exportedValue = shared.id;
+
+export const handler = $(() => {
+  console.log(shared.id);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_migrate_destructured_binding_with_imported_dependency() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { source } from 'lib';
+
+const { a } = source;
+
+export const handler = $(() => {
+  console.log(a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_non_migrated_binding_from_shared_array_destructuring_declarator() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const [a, b] = [1, 2];
+
+console.log('root', b);
+
+export const handler = $(() => {
+  console.log('qrl', a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_non_migrated_binding_from_shared_destructuring_with_default() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const { a = 1, b } = { b: 2 };
+
+console.log('root', b);
+
+export const handler = $(() => {
+  console.log('qrl', a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_non_migrated_binding_from_shared_destructuring_with_rest() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const { a, ...rest } = { a: 1, b: 2, c: 3 };
+
+console.log('root', rest.b, rest.c);
+
+export const handler = $(() => {
+  console.log('qrl', a);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_root_var_used_by_exported_function_and_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const shared = {
+  id: 'abc',
+};
+
+export function readShared() {
+  return shared.id;
+}
+
+export const handler = $(() => {
+  console.log(shared.id);
+});
+
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
 		..TestInput::default()
 	});
 }
@@ -7035,4 +7243,45 @@ impl TestInput {
 			is_server: None,
 		}
 	}
+}
+
+#[test]
+fn should_preserve_non_ident_explicit_captures() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { _captures, inlinedQrl } from '@qwik.dev/core';
+
+const left = 1;
+const right = 2;
+
+export const task = inlinedQrl(() => {
+	const left = _captures[0];
+	const middle = _captures[1];
+	const right = _captures[2];
+	return middle ? left : right;
+}, 'task', [left, true, right]);
+"#
+		.to_string(),
+		mode: EmitMode::Dev,
+		..TestInput::default()
+	});
+
+	// check to make sure no snapshot regression in captures
+	let output = res.unwrap();
+	let entry_module = output
+		.modules
+		.iter()
+		.find(|m| m.segment.is_none())
+		.expect("entry module not found");
+	let compact_code: String = entry_module
+		.code
+		.chars()
+		.filter(|c| !c.is_whitespace())
+		.collect();
+
+	assert!(
+		compact_code.contains(".w([left,true,right])"),
+		"expected transformed capture array [left, true, right] to be preserved, got:\n{}",
+		entry_module.code
+	);
 }

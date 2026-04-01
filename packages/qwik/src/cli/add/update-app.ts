@@ -52,7 +52,9 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
     let passed = true;
     try {
       const dirs = new Set(fileUpdates.files.map((f) => dirname(f.path)));
-      for (const dir of Array.from(dirs)) {
+      const dirsArray = Array.from(dirs);
+      for (let i = 0; i < dirsArray.length; i++) {
+        const dir = dirsArray[i];
         try {
           fs.mkdirSync(dir, { recursive: true });
         } catch (e) {

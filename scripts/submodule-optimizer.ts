@@ -83,9 +83,15 @@ export async function submoduleOptimizer(config: BuildConfig) {
 
   const optimizerScopeDir = join(config.rootDir, 'node_modules', '@qwik.dev');
   const optimizerLinkPath = join(optimizerScopeDir, 'optimizer');
+  const optimizerTargetPath =
+    process.platform === 'win32'
+      ? config.optimizerPkgDir
+      : join('..', '..', 'packages', 'optimizer');
+  const optimizerLinkType = process.platform === 'win32' ? 'junction' : 'dir';
   mkdirSync(optimizerScopeDir, { recursive: true });
   rmSync(optimizerLinkPath, { force: true, recursive: true });
-  symlinkSync(join('..', '..', 'packages', 'optimizer'), optimizerLinkPath, 'dir');
+  // Windows commonly blocks directory symlinks unless Developer Mode or elevated privileges are enabled.
+  symlinkSync(optimizerTargetPath, optimizerLinkPath, optimizerLinkType);
 
   console.log('🐹', submodule);
 }

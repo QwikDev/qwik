@@ -1,5 +1,34 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.30
+
+### Major Changes
+
+- BREAKING: `useTask()` and `useVisibleTask()` now await their cleanup functions before running the next invocation. If this is not what you want, do not return the cleanup `Promise` (and handle errors). (by [@wmertens](https://github.com/wmertens) in [#8481](https://github.com/QwikDev/qwik/pull/8481))
+
+### Minor Changes
+
+- ✨ introduce Each component for fast list operations (by [@Varixo](https://github.com/Varixo) in [#8434](https://github.com/QwikDev/qwik/pull/8434))
+
+### Patch Changes
+
+- 🐞🩹 prevent auto-exports for variables shadowed inside catch/do-while/switch/labeled blocks (by [@Varixo](https://github.com/Varixo) in [#8458](https://github.com/QwikDev/qwik/pull/8458))
+
+- 🐞🩹 imported css passed to useStyles$ is now deduplicated (by [@wmertens](https://github.com/wmertens) in [#8436](https://github.com/QwikDev/qwik/pull/8436))
+
+- fix(core): useSerializer$ now can handle thrown Promises while initializing. (by [@wmertens](https://github.com/wmertens) in [#8473](https://github.com/QwikDev/qwik/pull/8473))
+
+- Split the optimizer bindings into the new `@qwik.dev/optimizer` package. (by [@wmertens](https://github.com/wmertens) in [#8469](https://github.com/QwikDev/qwik/pull/8469))
+  `@qwik.dev/core/optimizer` now re-exports the optimizer runtime from that package while keeping
+  the Vite plugin bundled in core.
+
+- 🐞🩹 exported variables passed to $ functions are no longer incorrectly inlined into segments (by [@Varixo](https://github.com/Varixo) in [#8458](https://github.com/QwikDev/qwik/pull/8458))
+
+- 🐞🩹 sibling node duplication when toggling elements with dangerouslySetInnerHTML (by [@Varixo](https://github.com/Varixo) in [#8461](https://github.com/QwikDev/qwik/pull/8461))
+
+- Updated dependencies [[`4e54bce`](https://github.com/QwikDev/qwik/commit/4e54bce4d8aa59ecbceb768f06479a4aefb41d9e)]:
+  - @qwik.dev/optimizer@2.0.1-beta.0
+
 ## 2.0.0-beta.29
 
 ## 2.0.0-beta.28

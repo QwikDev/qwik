@@ -81,7 +81,9 @@ export async function domRender(
 function getStylesFactory(document: Document) {
   return () => {
     const styles: Record<string, string | string[]> = {};
-    Array.from(document.querySelectorAll('style')).forEach((style) => {
+    const styleElements = document.querySelectorAll('style');
+    for (let i = 0; i < styleElements.length; i++) {
+      const style = styleElements[i];
       const id = style.hasAttribute(QStyle)
         ? style.getAttribute(QStyle)
         : style.getAttribute(QScopedStyle)
@@ -96,7 +98,7 @@ function getStylesFactory(document: Document) {
           styles[id] = text;
         }
       }
-    });
+    }
     return styles;
   };
 }
@@ -213,7 +215,8 @@ export async function ssrRenderToDom(
     // Set the container vnode as a parent of the fragment
     vnode_insertBefore(journal, containerVNode, fragment, insertBefore);
     // Set the fragment as a parent of the children
-    for (const child of childrenToMove) {
+    for (let i = 0; i < childrenToMove.length; i++) {
+      const child = childrenToMove[i];
       vnode_moveToVirtual(fragment, child, null);
     }
     vNode = fragment;
@@ -333,6 +336,7 @@ export function emulateExecutionOfBackpatch(document: Document) {
 function renderStyles(getStyles: () => Record<string, string | string[]>) {
   const START = '\x1b[34m';
   const END = '\x1b[0m';
+  // eslint-disable-next-line qwik-local/loop-style
   Object.entries(getStyles()).forEach(([key, value], idx) => {
     if (idx == 0) {
       console.log('-  -  -  -  -  -  -  <style>  -  -  -  -  -  -  -  -  -');

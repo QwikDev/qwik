@@ -95,6 +95,8 @@ export function hasActiveCursors(): boolean {
 /**
  * Remove all cursors (active and paused) belonging to a specific container. Used when a container
  * finishes rendering to ensure no orphaned cursors remain.
+ *
+ * @internal
  */
 export function removeContainerCursors(container: Container): void {
   for (let i = globalCursorQueue.length - 1; i >= 0; i--) {
@@ -119,6 +121,7 @@ export function removeContainerCursors(container: Container): void {
  * Removes a cursor from the global queue.
  *
  * @param cursor - The cursor to remove
+ * @internal
  */
 export function removeCursorFromQueue(
   cursor: Cursor,

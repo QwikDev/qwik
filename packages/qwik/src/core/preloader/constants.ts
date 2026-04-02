@@ -1,4 +1,7 @@
-import { isBrowser } from '@qwik.dev/core/build';
+import { isServer } from '@qwik.dev/core/build';
+import { isServerPlatform } from '../shared/platform/platform';
+
+const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
 
 // Browser-specific setup
 export const doc = isBrowser ? document : undefined!;
@@ -11,11 +14,13 @@ export const config = {
 
 // Determine which rel attribute to use based on browser support
 export const rel =
-  isBrowser && doc.createElement('link').relList.supports('modulepreload')
+  isBrowser && doc.createElement('link').relList?.supports?.('modulepreload')
     ? 'modulePreload'
     : 'preload';
 
 // Global state
-export const loadStart = Date.now();
+export const loadStart = performance.now();
 
 export const isJSRegex = /\.[mc]?js$/;
+
+export const yieldInterval = 1000 / 60;

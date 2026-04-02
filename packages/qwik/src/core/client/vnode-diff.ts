@@ -63,6 +63,12 @@ import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
 import { runEventHandlerQRL } from '../client/run-qrl';
+import {
+  type BaseDiffContext,
+  stackPush as baseStackPush,
+  stackPopBase,
+  peekNextSibling,
+} from '../shared/diff-context';
 import { VNodeFlags, type ClientContainer } from './types';
 import { mapApp_findIndx, mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
@@ -98,56 +104,18 @@ import {
 } from './vnode-utils';
 import { isObjectEmpty } from '../shared/utils/objects';
 
-export interface DiffContext {
+export interface DiffContext extends BaseDiffContext {
   $container$: ClientContainer;
   $journal$: VNodeJournal;
-  $cursor$: Cursor;
-  $scopedStyleIdPrefix$: string | null;
-  /**
-   * Stack is used to keep track of the state of the traversal.
-   *
-   * We push current state into the stack before descending into the child, and we pop the state
-   * when we are done with the child.
-   */
-  $stack$: any[];
-  $asyncQueue$: Array<VNode | ValueOrPromise<JSXChildren> | Promise<JSXChildren>>;
   $asyncAttributePromises$: Promise<void>[];
-  ////////////////////////////////
-  //// Traverse state variables
-  ////////////////////////////////
+  // Narrow parent type for client (elements have DOM nodes)
   $vParent$: ElementVNode | VirtualVNode;
-  /// Current node we compare against. (Think of it as a cursor.)
-  /// (Node can be null, if we are at the end of the list.)
-  $vCurrent$: VNode | null;
-  /// When we insert new node we start it here so that we can descend into it.
-  /// NOTE: it can't be stored in `vCurrent` because `vNewNode` is in journal
-  /// and is not connected to the tree.
-  $vNewNode$: VNode | null;
   $vEnd$: VNode | null;
   $vEndParent$: ElementVNode | VirtualVNode | null;
-  $vSiblings$: Map<string, VNode> | null;
-  /// The array even indices will contains keys and odd indices the non keyed siblings.
-  $vSiblingsArray$: Array<string | VNode | null> | null;
-  /// Side buffer to store nodes that are moved out of order during key scanning.
-  /// This contains nodes that were found before the target key and need to be moved later.
-  $vSideBuffer$: Map<string, VNode> | null;
-  /// Current set of JSX children.
-  $jsxChildren$: JSXChildren[] | null;
-  // Current JSX child.
-  $jsxValue$: JSXChildren | null;
-  $jsxIdx$: number;
-  $jsxCount$: number;
-  // When we descend into children, we need to skip advance() because we just descended.
-  $shouldAdvance$: boolean;
-  $isCreationMode$: boolean;
   $subscriptionData$: {
     $const$: SubscriptionData;
     $var$: SubscriptionData;
   };
-}
-
-function peekNextSibling(vCurrent: VNode | null): VNode | null {
-  return vCurrent ? (vCurrent.nextSibling as VNode | null) : null;
 }
 
 function getLevelBoundary(diffContext: DiffContext): VNode | null {
@@ -573,59 +541,12 @@ function descend(
 }
 
 function ascend(diffContext: DiffContext) {
-  const descendVNode = diffContext.$stack$.pop(); // boolean: descendVNode
-  if (descendVNode) {
-    diffContext.$isCreationMode$ = diffContext.$stack$.pop();
-    diffContext.$vSideBuffer$ = diffContext.$stack$.pop();
-    diffContext.$vSiblings$ = diffContext.$stack$.pop();
-    diffContext.$vSiblingsArray$ = diffContext.$stack$.pop();
-    diffContext.$vNewNode$ = diffContext.$stack$.pop();
-    diffContext.$vCurrent$ = diffContext.$stack$.pop();
-    diffContext.$vParent$ = diffContext.$stack$.pop();
-  }
-  diffContext.$jsxValue$ = diffContext.$stack$.pop();
-  diffContext.$jsxCount$ = diffContext.$stack$.pop();
-  diffContext.$jsxIdx$ = diffContext.$stack$.pop();
-  diffContext.$jsxChildren$ = diffContext.$stack$.pop();
+  stackPopBase(diffContext);
   advance(diffContext);
 }
 
 function stackPush(diffContext: DiffContext, children: JSXChildren, descendVNode: boolean) {
-  diffContext.$stack$.push(
-    diffContext.$jsxChildren$,
-    diffContext.$jsxIdx$,
-    diffContext.$jsxCount$,
-    diffContext.$jsxValue$
-  );
-  if (descendVNode) {
-    diffContext.$stack$.push(
-      diffContext.$vParent$,
-      diffContext.$vCurrent$,
-      diffContext.$vNewNode$,
-      diffContext.$vSiblingsArray$,
-      diffContext.$vSiblings$,
-      diffContext.$vSideBuffer$,
-      diffContext.$isCreationMode$
-    );
-  }
-  diffContext.$stack$.push(descendVNode);
-  if (Array.isArray(children)) {
-    diffContext.$jsxIdx$ = 0;
-    diffContext.$jsxCount$ = children.length;
-    diffContext.$jsxChildren$ = children;
-    diffContext.$jsxValue$ = diffContext.$jsxCount$ > 0 ? children[0] : null;
-  } else if (children === undefined) {
-    // no children
-    diffContext.$jsxIdx$ = 0;
-    diffContext.$jsxValue$ = null;
-    diffContext.$jsxChildren$ = null!;
-    diffContext.$jsxCount$ = 0;
-  } else {
-    diffContext.$jsxIdx$ = 0;
-    diffContext.$jsxValue$ = children;
-    diffContext.$jsxChildren$ = null!;
-    diffContext.$jsxCount$ = 1;
-  }
+  baseStackPush(diffContext, children, descendVNode);
 }
 
 function getInsertBefore(diffContext: DiffContext) {

@@ -11,7 +11,7 @@ import { Serializer } from './serialize';
 type SsrNode = {
   id: string;
   children: ISsrNode[] | null;
-  vnodeData: VNodeData;
+  vnodeData: VNodeData | null;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null;
 };
 type DomRef = {

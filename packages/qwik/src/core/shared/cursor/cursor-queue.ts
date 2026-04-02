@@ -84,9 +84,44 @@ export function resumeCursor(cursor: Cursor, container: Container): void {
 }
 
 /**
+ * Returns true if there are cursors in the active (non-paused) queue.
+ *
+ * @internal
+ */
+export function hasActiveCursors(): boolean {
+  return globalCursorQueue.length > 0;
+}
+
+/**
+ * Remove all cursors (active and paused) belonging to a specific container. Used when a container
+ * finishes rendering to ensure no orphaned cursors remain.
+ *
+ * @internal
+ */
+export function removeContainerCursors(container: Container): void {
+  for (let i = globalCursorQueue.length - 1; i >= 0; i--) {
+    const data = getCursorData(globalCursorQueue[i]);
+    if (data && data.container === container) {
+      globalCursorQueue[i].flags &= ~VNodeFlags.Cursor;
+      globalCursorQueue.splice(i, 1);
+      container.$pendingCount$--;
+    }
+  }
+  for (let i = pausedCursorQueue.length - 1; i >= 0; i--) {
+    const data = getCursorData(pausedCursorQueue[i]);
+    if (data && data.container === container) {
+      pausedCursorQueue[i].flags &= ~VNodeFlags.Cursor;
+      pausedCursorQueue.splice(i, 1);
+      container.$pendingCount$--;
+    }
+  }
+}
+
+/**
  * Removes a cursor from the global queue.
  *
  * @param cursor - The cursor to remove
+ * @internal
  */
 export function removeCursorFromQueue(
   cursor: Cursor,

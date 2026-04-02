@@ -12,6 +12,8 @@ export { walkJSX, vnode_fromJSX } from './vdom-diff.unit-util';
 export { trigger, ElementFixture } from './element-fixture';
 export { waitForDrain } from './util';
 
+export type { StreamingOptions } from '../server/types';
+
 // TODO get api-extractor to export this too
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput, isCsr?: boolean): R;

@@ -1,6 +1,5 @@
 /** @file Public types for the SSR */
 
-import type { ChoreBits } from '../../server/qwik-copy';
 import type {
   Container,
   JSXChildren,
@@ -13,26 +12,22 @@ import type { VNodeData } from '../../server/vnode-data';
 import type { Props } from '../shared/jsx/jsx-runtime';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
-import type { SsrNodeFlags } from '../shared/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
+import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 
 /** @internal */
 export interface StreamWriter {
   write(chunk: string): void;
 }
 
-export interface ISsrNode {
+export interface ISsrNode extends VirtualVNode {
   id: string;
-  flags: SsrNodeFlags;
-  dirty: ChoreBits;
+  cleanupQueue: any[];
   parentComponent: ISsrNode | null;
-  vnodeData: VNodeData;
+  vnodeData: VNodeData | null;
   currentFile: string | null;
-  setProp(name: string, value: any): void;
-  getProp(name: string): any;
-  removeProp(name: string): void;
-  addChild(child: ISsrNode): void;
-  setTreeNonUpdatable(): void;
+  children: ISsrNode[] | null;
+  orderedChildren: any[] | null;
 }
 
 /** @internal */
@@ -65,6 +60,8 @@ export interface SSRContainer extends Container {
   readonly resolvedManifest: ResolvedManifest;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
+  /** Per-cursor SSR build state (frame state), swapped by cursor walker. */
+  ssrBuildState: unknown;
   $noScriptHere$: number;
 
   write(text: string): void;
@@ -89,10 +86,23 @@ export interface SSRContainer extends Container {
   openProjection(attrs: Props): void;
   closeProjection(): void;
 
-  openComponent(attrs: Props): void;
   getComponentFrame(projectionDepth: number): ISsrComponentFrame | null;
   getParentComponentFrame(): ISsrComponentFrame | null;
-  closeComponent(): Promise<void>;
+  enterComponentContext(componentNode: ISsrNode, existingFrame?: ISsrComponentFrame): void;
+  leaveComponentContext(): void;
+  /**
+   * Creates a component frame for host and distributes children into slots. Does NOT modify walker
+   * context (no stack pushes). Used by ssrComponent during tree-building to set up deferred
+   * component state without stack imbalance.
+   */
+  createAndDistributeComponentFrame(
+    host: ISsrNode,
+    children: JSXChildren,
+    parentScopedStyle: string | null,
+    parentComponentFrame: ISsrComponentFrame | null
+  ): ISsrComponentFrame;
+
+  emitUnclaimedProjectionForComponent(frame: ISsrComponentFrame): ValueOrPromise<void>;
 
   textNode(text: string): void;
   htmlNode(rawHtml: string): void;
@@ -102,22 +112,18 @@ export interface SSRContainer extends Container {
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
-  renderJSX(
-    jsx: JSXOutput,
-    options: {
-      currentStyleScoped: string | null;
-      parentComponentFrame: ISsrComponentFrame | null;
-    }
-  ): Promise<void>;
 
   emitPreloaderPre(): void;
 
   emitQwikLoaderAtTopIfNeeded(): void;
 
+  openSuspenseBoundary(attrs: Props): void;
+  closeSuspenseBoundary(): void;
+
   emitPatchDataIfNeeded(): void;
 
   addBackpatchEntry(
-    ssrNodeId: string,
+    ssrNodeOrId: string | ISsrNode,
     attrName: string,
     serializedValue: string | boolean | null
   ): void;

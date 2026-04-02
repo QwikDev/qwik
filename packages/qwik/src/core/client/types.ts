@@ -97,11 +97,13 @@ export const enum VNodeFlags {
   NS_math /* ****************** */ = 0b010_000000000, // http://www.w3.org/1998/Math/MathML
   /// Marks if the vnode has a target element for external projection rendering.
   HasTargetElement /* ********* */ = 0b100_000000000,
+  /// SSR: marks if the opening tag has been streamed (node is no longer updatable).
+  OpenTagEmitted /* *********** */ = 0b1000_000000000,
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************** */ = 0b111_111111111,
-  shift /* ************* */ = 12,
+  mask /* ************** */ = 0b1111_111111111,
+  shift /* ************* */ = 13,
 }
 
 export const enum VNodeProps {

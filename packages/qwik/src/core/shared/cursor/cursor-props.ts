@@ -4,14 +4,14 @@ import { removeCursorFromQueue } from './cursor-queue';
 import type { Container } from '../types';
 import type { VNodeJournal } from '../../client/vnode-utils';
 import type { Task } from '../../use/use-task';
+export {
+  ERROR_DATA_KEY,
+  HOST_SIGNAL,
+  NODE_DIFF_DATA_KEY,
+  NODE_PROPS_DATA_KEY,
+} from './chore-helpers';
 
 export const cursorDatas = new WeakMap<Cursor, CursorData>();
-
-/** Key used to store pending node prop updates in vNode props. */
-export const NODE_PROPS_DATA_KEY = ':nodeProps';
-export const NODE_DIFF_DATA_KEY = ':nodeDiff';
-export const ERROR_DATA_KEY = ':errorData';
-export const HOST_SIGNAL = ':signal';
 
 export interface CursorData {
   afterFlushTasks: Task[] | null;
@@ -21,6 +21,10 @@ export interface CursorData {
   position: VNode | null;
   priority: number;
   promise: Promise<void> | null;
+  /** Per-cursor SSR build state (frame state). Only used on server. */
+  ssrBuildState: unknown | null;
+  /** Callback invoked when the cursor completes (finishWalk). Used for sub-cursor tracking. */
+  onDone: (() => void) | null;
 }
 
 /**
@@ -87,6 +91,7 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
  *
  * @param vNode - The vNode
  * @returns The cursor data, or null if none or not a cursor
+ * @internal
  */
 export function getCursorData(vNode: VNode): CursorData | null {
   return cursorDatas.get(vNode) ?? null;

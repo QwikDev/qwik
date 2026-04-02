@@ -42,6 +42,7 @@ import { useContextProvider } from '../core/use/use-context';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import type { HostElement } from '../server/qwik-types';
 import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
+import type { StreamingOptions } from '../server/types';
 import { createDocument } from './document';
 import './vdom-diff.unit-util';
 import type { VNode } from '../core/shared/vnode/vnode';
@@ -112,6 +113,8 @@ export async function ssrRenderToDom(
     raw?: boolean;
     /** Include QwikLoader */
     qwikLoader?: boolean;
+    /** SSR streaming behavior overrides. */
+    streaming?: StreamingOptions;
     /** Inject nodes into the document before test runs (for testing purposes) */
     onBeforeResume?: (document: Document) => void;
   } = {}
@@ -129,6 +132,7 @@ export async function ssrRenderToDom(
         ];
     const result = await renderToString(jsxToRender, {
       qwikLoader: opts.qwikLoader ? 'inline' : 'never',
+      streaming: opts.streaming,
     });
     html = result.html;
   } finally {

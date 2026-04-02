@@ -79,6 +79,7 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     debug?: boolean;
     raw?: boolean;
     qwikLoader?: boolean;
+    streaming?: StreamingOptions;
     onBeforeResume?: (document: Document) => void;
 }): Promise<{
     container: _DomContainer;
@@ -86,6 +87,17 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     vNode: _VNode | null;
     getStyles: () => Record<string, string | string[]>;
 }>;
+
+// @public (undocumented)
+export interface StreamingOptions {
+    // Warning: (ae-forgotten-export) The symbol "InOrderStreaming" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    inOrder?: InOrderStreaming;
+    // (undocumented)
+    suspenseFallbackDelay?: number;
+    yieldBudget?: number;
+}
 
 // @public
 export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any, options?: {

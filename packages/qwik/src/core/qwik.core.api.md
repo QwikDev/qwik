@@ -13,6 +13,11 @@ import { ResolvedManifest } from '@qwik.dev/core/optimizer';
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "Cursor" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export function _addCursor(container: _Container, root: _VNode, priority: number): Cursor;
+
 // @internal
 export function _addProjection(container: _Container, parentVNode: _VirtualVNode, componentQRL: QRL<any>, props: Record<string, unknown>, slotName: string): _VirtualVNode;
 
@@ -353,7 +358,7 @@ export const _eaC: (props: EachProps<any>) => JSXNode<unknown>;
 export const Each: EachComponent;
 
 // @internal (undocumented)
-export const _eaT: (input: TaskCtx) => Promise<void>;
+export const _eaT: (input: TaskCtx) => void;
 
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
@@ -393,12 +398,6 @@ export type EventHandler<EV = Event, EL = Element> = {
 // @internal (undocumented)
 export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "SSRContainer" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ISsrNode" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export function _executeSsrChores(container: SSRContainer, ssrNode: ISsrNode): ValueOrPromise<void>;
-
 // Warning: (ae-forgotten-export) The symbol "WrappedSignalImpl" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
@@ -432,7 +431,12 @@ export const _getContextContainer: () => _Container | undefined;
 export const _getContextEvent: () => unknown;
 
 // @internal (undocumented)
-export const _getContextHostElement: () => HostElement | undefined;
+export const _getContextHostElement: () => _VNode | undefined;
+
+// Warning: (ae-forgotten-export) The symbol "CursorData" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export function _getCursorData(vNode: _VNode): CursorData | null;
 
 // Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "ClientContainer" which is marked as @internal
 //
@@ -457,6 +461,9 @@ export const _getVarProps: (props: PropsProxy | Record<string, unknown> | null |
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 export { h as createElement }
 export { h }
+
+// @internal
+export function _hasActiveCursors(): boolean;
 
 // @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
@@ -502,6 +509,8 @@ export const isSignal: (value: any) => value is Signal<unknown>;
 //
 // @internal (undocumented)
 export interface ISsrComponentFrame {
+    // Warning: (ae-forgotten-export) The symbol "ISsrNode" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     componentNode: ISsrNode;
     // (undocumented)
@@ -701,6 +710,11 @@ export const PrefetchServiceWorker: (opts: {
 // @internal
 export function _preprocessState(data: unknown[], container: DeserializeContainer): void;
 
+// Warning: (ae-forgotten-export) The symbol "WalkOptions" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export function _processCursorQueue(options?: WalkOptions): void;
+
 // @public
 export type PropFunction<T> = QRL<T>;
 
@@ -894,6 +908,12 @@ export interface ReadonlySignal<T = unknown> {
 
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
+
+// @internal
+export function _removeContainerCursors(container: _Container): void;
+
+// @internal
+export function _removeCursorFromQueue(cursor: Cursor, container: _Container, keepCursorFlag?: boolean): void;
 
 // @internal
 export function _removeProjection(container: _Container, parentVNode: _VirtualVNode, vnode: _VirtualVNode, slotName: string): void;
@@ -1149,6 +1169,11 @@ export const SSRComment: FunctionComponent<{
     data: string;
 }>;
 
+// Warning: (ae-forgotten-export) The symbol "SSRContainer" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export function _ssrDiff(container: SSRContainer, jsx: JSXOutput, parentVNode: _VNode, cursor: Cursor, scopedStyleIdPrefix: string | null, parentComponentFrame?: ISsrComponentFrame | null): ValueOrPromise<void>;
+
 // @public (undocumented)
 export type SSRHintProps = {
     dynamic?: boolean;
@@ -1200,6 +1225,15 @@ export class _SubscriptionData {
     // (undocumented)
     data: NodePropData;
 }
+
+// @public (undocumented)
+export const Suspense: FunctionComponent<SuspenseProps>;
+
+// @public (undocumented)
+export type SuspenseProps = {
+    fallback?: JSXOutput;
+    children?: JSXOutput;
+};
 
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts
 //
@@ -1994,6 +2028,9 @@ export const _vnode_getAttrKeys: (container: _Container, vnode: _ElementVNode | 
 export const _vnode_getFirstChild: (vnode: _VNode) => _VNode | null;
 
 // @internal (undocumented)
+export const _vnode_getProp: <T = unknown>(vNode: _VNode, key: string, getObject: ((id: string) => unknown) | null) => T | null;
+
+// @internal (undocumented)
 export const _vnode_isMaterialized: (vNode: _VNode) => boolean;
 
 // @internal (undocumented)
@@ -2001,6 +2038,12 @@ export const _vnode_isTextVNode: (vNode: _VNode) => vNode is _TextVNode;
 
 // @internal (undocumented)
 export const _vnode_isVirtualVNode: (vNode: _VNode) => vNode is _VirtualVNode;
+
+// @internal (undocumented)
+export const _vnode_removeProp: (vNode: _VNode, key: string) => void;
+
+// @internal (undocumented)
+export const _vnode_setProp: (vNode: _VNode, key: string, value: unknown) => void;
 
 // @internal (undocumented)
 export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean, container?: _Container | null): string;
@@ -2038,23 +2081,19 @@ export const enum _VNodeFlags {
     // (undocumented)
     NS_svg = 512,
     // (undocumented)
-    Resolved = 16,// http://www.w3.org/1999/xhtml
+    OpenTagEmitted = 4096,// http://www.w3.org/1999/xhtml
     // (undocumented)
-    Text = 4,// http://www.w3.org/2000/svg
+    Resolved = 16,// http://www.w3.org/2000/svg
     // (undocumented)
-    TYPE_MASK = 7,// http://www.w3.org/1998/Math/MathML
+    Text = 4,// http://www.w3.org/1998/Math/MathML
+    // (undocumented)
+    TYPE_MASK = 7,
     // (undocumented)
     Virtual = 2
 }
 
 // @internal (undocumented)
 export const _waitUntilRendered: (container: _Container) => Promise<void>;
-
-// @internal (undocumented)
-export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-}): Promise<void>;
 
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;

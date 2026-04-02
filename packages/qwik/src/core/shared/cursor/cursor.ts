@@ -20,6 +20,7 @@ export type Cursor = VNode;
  * @param root - The vNode that will become the cursor root (dirty root)
  * @param priority - Priority level (lower = higher priority, 0 is default)
  * @returns The vNode itself, now acting as a cursor
+ * @internal
  */
 export function addCursor(container: Container, root: VNode, priority: number): Cursor {
   const cursorData: CursorData = {
@@ -30,6 +31,8 @@ export function addCursor(container: Container, root: VNode, priority: number): 
     position: root,
     priority: priority,
     promise: null,
+    ssrBuildState: null,
+    onDone: null,
   };
 
   setCursorData(root, cursorData);

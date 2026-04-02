@@ -1,133 +1,257 @@
-import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
-import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
-import { SsrNodeFlags, type Container } from '../types';
-import { ELEMENT_PROPS, ELEMENT_SEQ } from '../utils/markers';
+import { vnode_getProp, vnode_setProp } from '../../client/vnode-utils';
+import { SkipRender } from '../jsx/utils.public';
+import { ssrDiff } from '../../ssr/ssr-diff';
+import type { ISsrComponentFrame, ISsrNode, SSRContainer } from '../../ssr/ssr-types';
+import { runTask } from '../../use/use-task';
+import type { Container } from '../types';
+import { ELEMENT_PROPS, ELEMENT_SEQ, OnRenderProp, QScopedStyle } from '../utils/markers';
+import { isPromise } from '../utils/promises';
+import { serializeAttribute } from '../utils/styles';
 import type { ValueOrPromise } from '../utils/types';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
-import { logWarn } from '../utils/log';
-import { serializeAttribute } from '../utils/styles';
-import { NODE_PROPS_DATA_KEY } from './cursor-props';
-import type { NodeProp } from '../../reactive-primitives/subscription-data';
-import { isSignal, type Signal } from '../../reactive-primitives/signal.public';
-import { executeCompute } from './chore-execution';
-import { isPromise } from '../utils/promises';
-import { type Props } from '../jsx/jsx-runtime';
-import type { EachProps } from '../../control-flow/each';
+import type { VNode } from '../vnode/vnode';
+import {
+  executeTaskSequence,
+  forEachPendingNodeProp,
+  getComponentChoreData,
+  getScopedStylePrefix,
+  runComponentChore,
+  setNodeDiffPayload,
+  takeNodeDiffPayload,
+} from './chore-helpers';
+import type { Cursor } from './cursor';
+import type { CursorData } from './cursor-props';
+import { isSignal } from '../../reactive-primitives/signal.public';
 import { _getProps } from '../jsx/props-proxy';
+import type { EachProps } from '../../control-flow/each';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { JSXNode } from '../jsx/types/jsx-node';
-import { _jsxSorted } from '../../internal';
 import { untrack } from '../../use/use-core';
+import type { Props } from '../jsx/jsx-runtime';
 
-/** @internal */
-export function _executeSsrChores(
-  container: SSRContainer,
-  ssrNode: ISsrNode
+// ============================================================================
+// Cursor-walker SSR chore implementations
+// These are called by walkCursor when isRunningOnServer is true.
+// They mirror the client chore functions but operate on SsrNodes.
+// ============================================================================
+
+/**
+ * Execute tasks for an SSR node. Mirrors client `executeTasks`.
+ *
+ * Tasks are stored in the ELEMENT_SEQ property and executed in order. Render-blocking tasks return
+ * promises that pause the cursor. Non-blocking tasks go into extraPromises on cursorData.
+ */
+export function executeSsrTasks(
+  vNode: VNode,
+  container: Container,
+  cursorData: CursorData
 ): ValueOrPromise<void> {
-  if (!(ssrNode.flags & SsrNodeFlags.Updatable)) {
-    if (ssrNode.dirty & ChoreBits.NODE_PROPS) {
-      executeNodePropChore(container, ssrNode);
-    }
-    if (ssrNode.dirty & ChoreBits.COMPUTE) {
-      executeCompute(ssrNode, container);
-    }
-    if (ssrNode.dirty & ChoreBits.DIRTY_MASK) {
-      // We are running on the server.
-      // On server we can't schedule task for a different host!
-      // Server is SSR, and therefore scheduling for anything but the current host
-      // implies that things need to be re-run and that is not supported because of streaming.
-      const warningMessage = `A chore was scheduled on a host element that has already been streamed to the client.
-        This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
-        
-        Problematic chore:
-          - Host: ${ssrNode.toString()}
-          - Nearest element location: ${ssrNode.currentFile}
-        
-        This is often caused by modifying a signal in an already rendered component during SSR.`;
-      logWarn(warningMessage);
-    }
-    ssrNode.dirty &= ~ChoreBits.DIRTY_MASK;
+  vNode.dirty &= ~ChoreBits.TASKS;
+  return executeTaskSequence(vNode, container, cursorData, {
+    getElementSeq(node) {
+      return vnode_getProp(node, ELEMENT_SEQ, null) as unknown[] | null;
+    },
+    isRenderBlocking() {
+      return true;
+    },
+    treatVisibleTaskAsAfterFlush: false,
+    collectNonBlockingPromise(data, promise) {
+      (data.extraPromises ||= []).push(promise);
+    },
+    runTask,
+  });
+}
+
+/**
+ * Execute component rendering for an SSR node. Mirrors client `executeComponentChore`.
+ *
+ * Executes the component QRL and stores the resulting JSX as `:nodeDiff` on the vNode, then marks
+ * NODE_DIFF dirty so the cursor walker processes it in the next chore cycle. This two-phase
+ * approach (COMPONENT → NODE_DIFF) matches the client-side pattern and enables the cursor walker to
+ * handle cascading task dependencies naturally via its TASKS → COMPONENT → NODE_DIFF ordering.
+ */
+export function executeSsrComponent(
+  vNode: VNode,
+  container: Container,
+  _cursorData: CursorData,
+  _cursor: Cursor
+): ValueOrPromise<void> {
+  const component = getComponentChoreData(vNode, container);
+  if (!component) {
+    // No QRL means this was just dirtied during initial inline execution — nothing to do.
+    vNode.dirty &= ~ChoreBits.COMPONENT;
     return;
   }
 
-  let promise: ValueOrPromise<void> | null = null;
-  if (ssrNode.dirty & ChoreBits.TASKS) {
-    const result = executeTasksChore(container, ssrNode);
-    if (isPromise(result)) {
-      promise = result;
+  const ssrNode = vNode as unknown as ISsrNode;
+  const ssr = container as SSRContainer;
+
+  // Push component context BEFORE executing so hooks (useStylesScoped, useContext, etc.)
+  // can find the component frame via getComponentFrame(0).
+  const storedFrame = vnode_getProp(vNode, ':componentFrame', null) as any;
+  ssr.enterComponentContext(ssrNode, storedFrame || undefined);
+  vNode.dirty &= ~ChoreBits.COMPONENT;
+  const result = runComponentChore(container, component, (jsx) => {
+    // SkipRender means "don't touch my children" — used by Each which manages
+    // its children via RECONCILE instead.
+    if (jsx === SkipRender) {
+      return;
     }
-  }
 
-  if (ssrNode.dirty & ChoreBits.RECONCILE) {
-    const result = executeReconcileChore(container, ssrNode);
-    promise = promise ? promise.then(() => result) : result;
-  }
+    // Record hook-injected child count (e.g., style elements from useStylesScoped$)
+    // so executeSsrNodeDiff can preserve them when clearing content for re-diff.
+    // Only set once: on first render, orderedChildren only has hook-injected children.
+    // On re-render, orderedChildren also has content from previous ssrDiff, so we
+    // must not overwrite the original boundary.
+    if (vnode_getProp(vNode, ':hookChildCount', null) == null) {
+      const orderedChildren = (ssrNode as any).orderedChildren;
+      vnode_setProp(vNode, ':hookChildCount', orderedChildren?.length ?? 0);
+    }
 
-  // In SSR, we don't handle the COMPONENT bit here.
-  // During initial render, if a task completes and marks the component dirty,
-  // we want to leave the COMPONENT bit set so that executeComponent can detect
-  // it after $waitOn$ completes and re-execute the component function.
-  // executeComponent will clear the bit after re-executing.
+    setNodeDiffPayload(vNode, jsx);
+    vNode.dirty |= ChoreBits.NODE_DIFF;
+  });
 
-  // Clear all dirty bits EXCEPT COMPONENT
-  ssrNode.dirty &= ~(ChoreBits.DIRTY_MASK & ~ChoreBits.COMPONENT);
-
-  if (promise) {
-    return promise;
+  if (isPromise(result)) {
+    // The walker will set ChoreBits.PROMISE on this node when it pauses, blocking the emitter.
+    // No need to set NODE_DIFF preemptively — PROMISE handles the dirty=0 gap.
+    return (result as Promise<void>).catch((error) => {
+      ssr.leaveComponentContext();
+      throw error;
+    });
   }
 }
 
-function executeTasksChore(container: Container, ssrNode: ISsrNode): ValueOrPromise<void> | null {
-  ssrNode.dirty &= ~ChoreBits.TASKS;
-  const elementSeq = ssrNode.getProp(ELEMENT_SEQ);
-  if (!elementSeq || elementSeq.length === 0) {
-    // No tasks to execute, clear the bit
-    return null;
-  }
-  let promise: ValueOrPromise<void> | null = null;
-  for (let i = 0; i < elementSeq.length; i++) {
-    const item = elementSeq[i];
-    if (item instanceof Task) {
-      const task = item as Task<TaskFn, TaskFn>;
+/**
+ * Execute node diff for an SSR node. Mirrors client `executeNodeDiff`.
+ *
+ * Processes stored JSX (from render() or signal-driven re-diffs) into child SsrNodes via ssrDiff.
+ * The cursor walker drives traversal through the resulting tree.
+ */
+export function executeSsrNodeDiff(
+  vNode: VNode,
+  container: Container,
+  _cursorData: CursorData,
+  cursor: Cursor
+): ValueOrPromise<void> {
+  vNode.dirty &= ~ChoreBits.NODE_DIFF;
 
-      // Skip if task is not dirty
-      if (!(task.$flags$ & TaskFlags.DIRTY)) {
-        continue;
+  const jsx = takeNodeDiffPayload(vNode);
+  if (jsx) {
+    const ssr = container as SSRContainer;
+    const styleScopedId = getScopedStylePrefix(vnode_getProp(vNode, QScopedStyle, null));
+
+    // For component nodes (have OnRenderProp), the component context was already
+    // pushed by executeSsrComponent. Use it and pop when done.
+    const isComponent = !!vnode_getProp(vNode, OnRenderProp, null);
+    if (isComponent) {
+      const componentFrame = ssr.getComponentFrame(0);
+      const result = ssrDiff(ssr, jsx as string, vNode, cursor, styleScopedId, componentFrame);
+      if (isPromise(result)) {
+        // The walker will set ChoreBits.PROMISE, blocking the emitter.
+        return (result as Promise<void>).then(() => {
+          ssr.leaveComponentContext();
+        });
       }
-
-      const result = runTask(task, container, ssrNode);
-      promise = promise ? promise.then(() => result as Promise<void>) : (result as Promise<void>);
+      ssr.leaveComponentContext();
+      return;
     }
+
+    return ssrDiff(ssr, jsx as string, vNode, cursor, styleScopedId, null);
   }
-  return promise;
 }
 
-export function executeNodePropChore(container: SSRContainer, ssrNode: ISsrNode): void {
-  ssrNode.dirty &= ~ChoreBits.NODE_PROPS;
+/**
+ * Execute node prop updates for an SSR node. Mirrors client `executeNodeProps`.
+ *
+ * For already-streamed nodes, adds backpatch entries. For not-yet-streamed nodes, the attrs are
+ * already on the SsrNode and will be emitted normally.
+ */
+export function executeSsrNodeProps(vNode: VNode, container: Container): void {
+  vNode.dirty &= ~ChoreBits.NODE_PROPS;
 
-  const allPropData = ssrNode.getProp(NODE_PROPS_DATA_KEY) as Map<string, NodeProp> | null;
-  if (!allPropData || allPropData.size === 0) {
+  const ssrNode = vNode as unknown as ISsrNode;
+  const hasPropData = forEachPendingNodeProp(vNode, (property, value, nodeProp) => {
+    const serializedValue = serializeAttribute(property, value, nodeProp.scopedStyleIdPrefix);
+    (container as SSRContainer).addBackpatchEntry(ssrNode, property, serializedValue);
+  });
+  if (!hasPropData) {
     return;
   }
-
-  for (const [property, nodeProp] of allPropData.entries()) {
-    let value: Signal<any> | string = nodeProp.value;
-    if (isSignal(value)) {
-      // TODO: Handle async signals (promises) - need to track pending async prop data
-      value = value.value as any;
-    }
-    const serializedValue = serializeAttribute(property, value, nodeProp.scopedStyleIdPrefix);
-    container.addBackpatchEntry(ssrNode.id, property, serializedValue);
-  }
 }
 
-export async function executeReconcileChore(
-  container: SSRContainer,
-  ssrNode: ISsrNode
+/**
+ * Emit unclaimed projections for a component VNode after all its children have been processed.
+ *
+ * Called by the cursor walker when a node is about to be left (no more dirty bits, or after
+ * CHILDREN processing). This must happen AFTER children processing because deferred child
+ * components may consume slots during their execution (via Slot resolution). If we emitted
+ * unclaimed projections immediately in leaveComponentContext, we'd create duplicate SsrNodes with
+ * wrong parentComponent.
+ *
+ * Sets up minimal build state: the component's ssrNode as the current element frame's ssrNode
+ * (matching the state during original closeComponent), currentComponentNode pointing to the
+ * component node for proper parentComponent assignment on new SsrNodes.
+ */
+export function executeSsrUnclaimedProjections(
+  vNode: VNode,
+  container: Container,
+  _cursorData: CursorData,
+  cursor: Cursor
+): ValueOrPromise<void> {
+  const ssrNode = vNode as unknown as ISsrNode;
+  const componentFrame = vnode_getProp(vNode, ':componentFrame', null) as ISsrComponentFrame | null;
+  if (!componentFrame) {
+    return;
+  }
+  if (componentFrame.slots.length === 0) {
+    return;
+  }
+  const ssr = container as SSRContainer;
+  // Set up build state to match the state during original closeComponent:
+  // currentComponentNode = this component, ssrNode = this component's node
+  // tagNesting = the component's parent element nesting (so q:template is allowed)
+  const buildState = (ssr as any).ssrBuildState;
+  const savedComponentNode = buildState.currentComponentNode;
+  const savedSsrNode = buildState.currentElementFrame?.ssrNode ?? null;
+  const savedTagNesting = buildState.currentElementFrame?.tagNesting;
+  buildState.currentComponentNode = ssrNode;
+  if (buildState.currentElementFrame) {
+    buildState.currentElementFrame.ssrNode = ssrNode;
+    // Use the stored parent tag nesting from tree-building time, or ANYTHING as fallback
+    const storedTagNesting = vnode_getProp(vNode, ':parentTagNesting', null);
+    if (storedTagNesting != null) {
+      buildState.currentElementFrame.tagNesting = storedTagNesting;
+    }
+  }
+
+  const result = ssr.emitUnclaimedProjectionForComponent(componentFrame);
+
+  const cleanup = () => {
+    buildState.currentComponentNode = savedComponentNode;
+    if (buildState.currentElementFrame) {
+      buildState.currentElementFrame.ssrNode = savedSsrNode;
+      if (savedTagNesting != null) {
+        buildState.currentElementFrame.tagNesting = savedTagNesting;
+      }
+    }
+  };
+
+  if (isPromise(result)) {
+    return (result as Promise<void>).then(cleanup);
+  }
+  cleanup();
+}
+
+export async function executeSsrReconcile(
+  vNode: VNode,
+  container: Container,
+  _cursorData: CursorData,
+  cursor: Cursor
 ): Promise<void> {
-  ssrNode.dirty &= ~ChoreBits.RECONCILE;
-  const host = ssrNode;
-  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+  vNode.dirty &= ~ChoreBits.RECONCILE;
+  const ssr = container as SSRContainer;
+  const props = container.getHostProp<Props | null>(vNode as any, ELEMENT_PROPS) || null;
   if (!props) {
     return;
   }
@@ -153,8 +277,6 @@ export async function executeReconcileChore(
     jsx.key = key;
     children.push(jsx);
   }
-  await container.renderJSX(children, {
-    currentStyleScoped: null,
-    parentComponentFrame: container.getComponentFrame(0),
-  });
+  const styleScopedId = getScopedStylePrefix(vnode_getProp(vNode, QScopedStyle, null));
+  return ssrDiff(ssr, children as any, vNode, cursor, styleScopedId, null);
 }

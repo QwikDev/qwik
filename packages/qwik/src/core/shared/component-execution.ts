@@ -18,6 +18,7 @@ import { EMPTY_OBJ } from './utils/flyweight';
 import { logWarn } from './utils/log';
 import {
   ELEMENT_PROPS,
+  ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
   USE_ON_LOCAL,
@@ -32,6 +33,7 @@ import { isServerPlatform } from './platform/platform';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { ChoreBits } from './vnode/enums/chore-bits.enum';
 import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { runTask, Task, TaskFlags } from '../use/use-task';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -114,12 +116,43 @@ export const executeComponent = (
         return maybeThen(componentFn(props), (jsx) => maybeThen(iCtx.$waitOn$, () => jsx));
       },
       (jsx) => {
-        // In SSR, check if the component was marked dirty (COMPONENT bit) during execution.
-        // This happens when something completes and updates reactive primitives
-        // while we're waiting on $waitOn$. If so, we need to re-execute the component
-        // to get fresh JSX with updated values.
+        // In SSR, handle cascading task dependencies before returning JSX.
+        // When task A sets store.x and task B tracks store.x, the subscription fires
+        // synchronously during task execution, setting ChoreBits.TASKS on the host.
+        // Run those dirty tasks now so the component's JSX sees final values.
+        // This mirrors the cursor walker's TASKS → COMPONENT loop for inline execution.
+        if (isSsr && !isInlineComponent && vnode_isVNode(renderHost)) {
+          const runDirtyTasks = (): ValueOrPromise<void> => {
+            const vnode = renderHost as unknown as ISsrNode;
+            if (!(vnode.dirty & ChoreBits.TASKS)) {
+              return;
+            }
+            vnode.dirty &= ~ChoreBits.TASKS;
+            const elementSeq = container.getHostProp<any[]>(renderHost, ELEMENT_SEQ);
+            if (!elementSeq) {
+              return;
+            }
+            let p: ValueOrPromise<void> | undefined;
+            for (let i = 0; i < elementSeq.length; i++) {
+              const item = elementSeq[i];
+              if (item instanceof Task && item.$flags$ & TaskFlags.DIRTY) {
+                const r = runTask(item, container, renderHost);
+                if (isPromise(r)) {
+                  p = p ? maybeThen(p, () => r as Promise<void>) : (r as Promise<void>);
+                }
+              }
+            }
+            return maybeThen(p!, () => runDirtyTasks());
+          };
+          const result = runDirtyTasks();
+          if (isPromise(result)) {
+            return maybeThen(result, () => jsx);
+          }
+        }
+
+        // Also check COMPONENT re-dirty (signal changes during $waitOn$)
         if (isSsr && !isInlineComponent) {
-          const ssrNode = renderHost as ISsrNode;
+          const ssrNode = renderHost as unknown as ISsrNode;
           if (ssrNode.dirty & ChoreBits.COMPONENT) {
             ssrNode.dirty &= ~ChoreBits.COMPONENT;
             if (retryCount < MAX_RETRY_ON_PROMISE_COUNT) {

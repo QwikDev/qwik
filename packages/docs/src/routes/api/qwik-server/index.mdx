@@ -781,6 +781,21 @@ boolean
 _(Optional)_ Defaults to `true`
 
 </td></tr>
+<tr><td>
+
+streaming?
+
+</td><td>
+
+</td><td>
+
+[StreamingOptions](#streamingoptions)
+
+</td><td>
+
+_(Optional)_ Streaming behavior for SSR output.
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
@@ -1287,6 +1302,36 @@ inOrder?
 </td><td>
 
 _(Optional)_
+
+</td></tr>
+<tr><td>
+
+suspenseFallbackDelay?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+yieldBudget?
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Time budget in ms between I/O yields during SSR. Default: 10. Set to 0 to disable.
 
 </td></tr>
 </tbody></table>

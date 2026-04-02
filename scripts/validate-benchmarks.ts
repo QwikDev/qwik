@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 const BENCH_ENTRY = 'packages/qwik/src/core/bench/core.bench.ts';
@@ -14,7 +15,7 @@ const LOW_SAMPLE_MIN_TOLERANCE_PCT = 10;
 const VERY_LOW_SAMPLE_MIN_TOLERANCE_PCT = 15;
 const execFileAsync = promisify(execFile);
 
-type BenchmarkMetrics = {
+export type BenchmarkMetrics = {
   mean: number;
   median: number;
   p75: number;
@@ -26,7 +27,7 @@ type BenchmarkMetrics = {
   factor?: number;
 };
 
-type StoredResults = {
+export type StoredResults = {
   version: number;
   generatedAt: string;
   benchmarks: Record<string, BenchmarkMetrics>;
@@ -137,7 +138,7 @@ async function runBenchmarks(): Promise<{
   return { measuredBenchmarks: benchmarks, measuredSizes };
 }
 
-function buildStoredResults(
+export function buildStoredResults(
   scenarioIds: string[],
   measuredBenchmarks: Record<string, BenchmarkMetrics>,
   measuredSizes: Record<string, number>
@@ -155,7 +156,7 @@ function buildStoredResults(
         ? benchmark
         : {
             ...benchmark,
-            factor: benchmark.median / baseline.median,
+            factor: benchmark.mean / baseline.mean,
           };
   }
 
@@ -182,7 +183,7 @@ async function readStoredResults(storedPath: string): Promise<StoredResults> {
   }
 }
 
-function validateResults(
+export function validateResults(
   scenarioIds: string[],
   stored: StoredResults,
   measuredBenchmarks: Record<string, BenchmarkMetrics>,
@@ -208,7 +209,7 @@ function validateResults(
 
   addSampleCountWarning(warnings, BASELINE_BENCHMARK_ID, measuredBaseline.sampleCount);
   lines.push(
-    `${BASELINE_BENCHMARK_ID}: median=${formatNumber(
+    `${BASELINE_BENCHMARK_ID}: mean=${formatNumber(measuredBaseline.mean)}ms median=${formatNumber(
       measuredBaseline.median
     )}ms samples=${measuredBaseline.sampleCount} BASELINE`
   );
@@ -228,7 +229,7 @@ function validateResults(
     const medianTolerancePct = tolerancePct(storedBenchmark);
     const factorTolerancePct = tolerancePct(storedBenchmark) + tolerancePct(storedBaseline);
     const storedFactor = storedBenchmark.factor;
-    const measuredFactor = measuredBenchmark.median / measuredBaseline.median;
+    const measuredFactor = measuredBenchmark.mean / measuredBaseline.mean;
     const medianMax = maxAllowedValue(storedBenchmark.median, medianTolerancePct);
     const factorMax =
       storedFactor == null ? null : maxAllowedValue(storedFactor, factorTolerancePct);
@@ -243,9 +244,10 @@ function validateResults(
     lines.push(
       [
         `${benchmarkId}:`,
+        `mean=${formatNumber(measuredBenchmark.mean)}ms`,
         `median=${formatNumber(measuredBenchmark.median)}ms`,
-        `stored=${formatNumber(storedBenchmark.median)}ms`,
-        `max=${formatNumber(medianMax)}ms`,
+        `storedMedian=${formatNumber(storedBenchmark.median)}ms`,
+        `medianMax=${formatNumber(medianMax)}ms`,
         `factor=${formatNumber(measuredFactor)}x`,
         storedFactor == null ? '' : `storedFactor=${formatNumber(storedFactor)}x`,
         factorMax == null ? '' : `factorMax=${formatNumber(factorMax)}x`,
@@ -415,7 +417,12 @@ function formatPercent(value: number) {
   return `${value.toFixed(2)}%`;
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error);
-  process.exitCode = 1;
-});
+const isDirectExecution =
+  process.argv[1] != null && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+
+if (isDirectExecution) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  });
+}

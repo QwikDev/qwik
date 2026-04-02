@@ -2242,6 +2242,34 @@
       "mdFile": "core.ssrstreamwriter.md"
     },
     {
+      "name": "Suspense",
+      "id": "suspense",
+      "hierarchy": [
+        {
+          "name": "Suspense",
+          "id": "suspense"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSuspense: FunctionComponent<SuspenseProps>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
+      "mdFile": "core.suspense.md"
+    },
+    {
+      "name": "SuspenseProps",
+      "id": "suspenseprops",
+      "hierarchy": [
+        {
+          "name": "SuspenseProps",
+          "id": "suspenseprops"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SuspenseProps = {\n    fallback?: JSXOutput;\n    children?: JSXOutput;\n};\n```\n**References:** [JSXOutput](#jsxoutput)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
+      "mdFile": "core.suspenseprops.md"
+    },
+    {
       "name": "SVGAttributes",
       "id": "svgattributes",
       "hierarchy": [

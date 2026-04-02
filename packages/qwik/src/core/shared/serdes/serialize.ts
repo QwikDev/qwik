@@ -29,7 +29,7 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
+import { ELEMENT_ID, ELEMENT_PROPS } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
 import { Constants, TypeIds } from './constants';
@@ -386,7 +386,7 @@ export class Serializer {
         this.output(TypeIds.Object, out.length ? out : 0);
       }
     } else if (this.$serializationContext$.$isDomRef$(value)) {
-      value.$ssrNode$.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+      value.$ssrNode$.vnodeData![0] |= VNodeDataFlag.SERIALIZE;
       this.output(TypeIds.RefVNode, value.$ssrNode$.id);
     } else if (value instanceof SignalImpl) {
       if (value instanceof SerializerSignalImpl) {
@@ -510,22 +510,12 @@ export class Serializer {
         vNodeData[0] |= VNodeDataFlag.SERIALIZE;
       }
       if (value.children) {
-        // can be static, but we need to save vnode data structure + discover the back refs
+        // can be static, but we need to save vnode data structure
         const childrenLength = value.children.length;
         for (let i = 0; i < childrenLength; i++) {
           const child = value.children[i];
           const childVNodeData = child.vnodeData;
           if (childVNodeData) {
-            // add all back refs to the roots
-            for (let i = 0; i < childVNodeData.length; i++) {
-              const value = childVNodeData[i];
-              if (isSsrAttrs(value)) {
-                const backRefs = tryGetBackRefs(value);
-                if (backRefs) {
-                  this.$serializationContext$.$addRoot$(backRefs);
-                }
-              }
-            }
             childVNodeData[0] |= VNodeDataFlag.SERIALIZE;
           }
         }
@@ -735,6 +725,10 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
     const value = vnodeData[i];
     if (isSsrAttrs(value)) {
       for (const key in value) {
+        // Skip non-serializable props (NON_SERIALIZABLE_MARKER_PREFIX ':')
+        if (key.charCodeAt(0) === 58) {
+          continue;
+        }
         const attrValue = value[key];
         if (
           attrValue == null ||
@@ -784,12 +778,6 @@ function serializeWrappingFn(
     value.$func$
   );
   return [syncFnId, value.$args$] as const;
-}
-
-function tryGetBackRefs(props: Props): Map<string, EffectSubscription> | undefined {
-  return Object.prototype.hasOwnProperty.call(props, QBackRefs)
-    ? (props[QBackRefs] as Map<string, EffectSubscription>)
-    : undefined;
 }
 
 class SerializationWeakRef {

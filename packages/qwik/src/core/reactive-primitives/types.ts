@@ -7,7 +7,6 @@ import type { ComputedFn } from '../use/use-computed';
 import type { AsyncFn } from '../use/use-async';
 import type { Container, SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
-import type { ISsrNode } from '../ssr/ssr-types';
 import type { PropsProxy } from '../shared/jsx/props-proxy';
 
 /**
@@ -139,10 +138,10 @@ export type AllSignalFlags =
  * There are three types of effects:
  *
  * - `Task`: `useTask`, `useVisibleTask`, `useResource`
- * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
+ * - `VNode` (including `SsrNode` which extends `VNode`): Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
  */
-export type Consumer = Task | VNode | SignalImpl | ISsrNode;
+export type Consumer = Task | VNode | SignalImpl;
 
 /**
  * An effect consumer plus type of effect, back references to producers and additional data

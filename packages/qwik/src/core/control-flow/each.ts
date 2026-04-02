@@ -5,10 +5,8 @@ import { inlinedQrl } from '../shared/qrl/qrl';
 import { tryGetInvokeContext } from '../use/use-core';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
-import { isServerPlatform } from '../shared/platform/platform';
 import { componentQrl } from '../shared/component.public';
 import { type TaskCtx, useTaskQrl } from '../use/use-task';
-import { isServer } from '@qwik.dev/core/build';
 import { SkipRender } from '../shared/jsx/utils.public';
 import { _captures } from '../shared/qrl/qrl-class';
 
@@ -26,17 +24,13 @@ export type EachComponent = <T, ITEM extends JSXOutput = JSXOutput>(
 ) => JSXOutput;
 
 /** @internal */
-export const eachCmpTask = async ({ track }: TaskCtx) => {
+export const eachCmpTask = ({ track }: TaskCtx) => {
   const props = _captures![0] as EachProps<any>;
   track(() => props.items);
   const context = tryGetInvokeContext()!;
   const host = context.$hostElement$!;
   const container = context.$container$!;
   markVNodeDirty(container, host, ChoreBits.RECONCILE);
-  const isSsr = import.meta.env.TEST ? isServerPlatform() : isServer;
-  if (isSsr) {
-    await container.$renderPromise$;
-  }
 };
 
 /** @internal */

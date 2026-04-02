@@ -2,7 +2,6 @@ import type { ISsrNode, Props } from './qwik-types';
 import { SsrNode } from './ssr-node';
 import type { CleanupQueue } from './ssr-container';
 import { VNodeDataFlag } from './types';
-import { _EMPTY_ARRAY } from '@qwik.dev/core/internal';
 
 /**
  * Array of numbers which describes virtual nodes in the tree.
@@ -124,14 +123,11 @@ export function vNodeData_createSsrNodeReference(
       }
     }
   }
-  return new SsrNode(
-    currentComponentNode,
-    refId,
-    attributesIndex,
-    cleanupQueue,
-    vNodeData,
-    currentFile
-  );
+  // Extract the attrs object from vNodeData (shared reference — writes to attrs update vNodeData too)
+  const attrs = attributesIndex >= 0 ? (vNodeData[attributesIndex] as Props) : {};
+  const node = new SsrNode(currentComponentNode, refId, attrs, cleanupQueue, currentFile);
+  node.vnodeData = vNodeData;
+  return node;
 }
 
 /**

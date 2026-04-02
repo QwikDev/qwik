@@ -146,6 +146,18 @@ describe('shared-serialization', () => {
       `);
       expect(objs).toHaveLength(8);
     });
+    it('should keep colon-prefixed keys in plain objects', async () => {
+      expect(await dump({ ':local': 'kept', normal: 'also kept' })).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          {string} ":local"
+          {string} "kept"
+          {string} "normal"
+          {string} "also kept"
+        ]
+        (50 chars)"
+      `);
+    });
     it(title(TypeIds.URL), async () => {
       expect(await dump(new URL('http://example.com:80/'))).toMatchInlineSnapshot(`
         "

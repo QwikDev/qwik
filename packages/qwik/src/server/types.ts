@@ -36,11 +36,11 @@ export interface PreloaderOptions {
    */
   ssrPreloads?: number;
   /**
-   * The minimum probability for a bundle to be added as a preload link during SSR.
+   * @deprecated The minimum probability for a bundle to be added as a preload link during SSR.
    *
-   * Defaults to `0.7` (70% probability)
+   *   Defaults to `0.3` (30% probability)
    *
-   * This makes sure that the most likely bundles are preloaded ahead of time.
+   *   This makes sure that the most likely bundles are preloaded ahead of time.
    */
   ssrPreloadProbability?: number;
   /**

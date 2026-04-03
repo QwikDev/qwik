@@ -102,6 +102,71 @@ describe.each([
     );
   });
 
+  it('should insert a node before an errored-host', async () => {
+    const ErrorCmp = component$(() => {
+      const counter = useSignal(0);
+      if (counter.value !== 0) {
+        throw new Error('error');
+      }
+      return (
+        <main>
+          <button id="error-btn" onClick$={() => counter.value++}>
+            {counter.value}
+          </button>
+        </main>
+      );
+    });
+
+    const Parent = component$(() => {
+      const show = useSignal(false);
+      return (
+        <>
+          <button id="show-btn" onClick$={() => (show.value = true)}>
+            toggle
+          </button>
+          {show.value && <div id="inserted">inserted</div>}
+          <ErrorCmp />
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(
+      <ErrorProvider>
+        <Parent />
+      </ErrorProvider>,
+      { debug }
+    );
+    globalThis.document = document;
+
+    // Trigger the error first
+    await trigger(document.body, '#error-btn', 'click');
+
+    // Now insert a node before the errored-host
+    await trigger(document.body, '#show-btn', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Projection ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <button id="show-btn">toggle</button>
+              <div id="inserted">inserted</div>
+              <Component ssr-required>
+                <errored-host>
+                  <main>
+                    <button id="error-btn">
+                      <Signal ssr-required>1</Signal>
+                    </button>
+                  </main>
+                </errored-host>
+              </Component>
+            </Fragment>
+          </Component>
+        </Projection>
+      </Component>
+    );
+  });
+
   it('should handle error in event handler', async () => {
     const Cmp = component$(() => {
       const counter = useSignal(0);

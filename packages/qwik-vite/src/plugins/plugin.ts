@@ -436,7 +436,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     serverTransformedOutputs.clear();
     parentIds.clear();
 
-    if (opts.target === 'client') {
+    if (opts.target === 'client' && !devServer) {
+      // emitFile() is only supported during build, not in Vite serve mode
       const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
         skipSelf: true,
       });

@@ -19,7 +19,8 @@ export const serializeClass = (obj: ClassList): string => {
   const classes: string[] = [];
 
   if (isArray(obj)) {
-    for (const o of obj) {
+    for (let i = 0; i < obj.length; i++) {
+      const o = obj[i];
       const classList = serializeClass(o);
       if (classList) {
         classes.push(classList);

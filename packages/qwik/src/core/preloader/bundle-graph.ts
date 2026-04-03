@@ -1,11 +1,20 @@
-import { isBrowser } from '@qwik.dev/core/build';
-import { config, isJSRegex } from './constants';
-import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
+import { isServer } from '@qwik.dev/core/build';
+import { isServerPlatform } from '../shared/platform/platform';
+import { createMacroTask } from '../shared/platform/next-tick';
+import { config, isJSRegex, yieldInterval } from './constants';
+import {
+  adjustProbabilities,
+  bundles,
+  log,
+  shouldResetFactor,
+  nextTriggerMacroTask,
+} from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
 
 export let base: string | undefined;
 export let graph: BundleGraph;
+const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
 
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {
@@ -13,7 +22,7 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
     $state$: isJSRegex.test(name) ? BundleImportState_None : BundleImportState_Alias,
     $deps$: shouldResetFactor ? deps?.map((d) => ({ ...d, $factor$: 1 })) : deps,
     $inverseProbability$: 1,
-    $createdTs$: Date.now(),
+    $createdTs$: performance.now(),
     $waitedMs$: 0,
     $loadedMs$: 0,
   };
@@ -108,10 +117,25 @@ export const loadBundleGraph = (
         }
         config.$DEBUG$ &&
           log(`parseBundleGraph got ${graph.size} bundles, adjusting ${toAdjust.length}`);
-        for (const [bundle, inverseProbability] of toAdjust) {
-          adjustProbabilities(bundle, inverseProbability);
+        if (!toAdjust.length) {
+          nextTriggerMacroTask();
+          return;
         }
-        trigger();
+        let i = 0;
+        const continueAdjust = createMacroTask(() => {
+          const deadline = performance.now() + yieldInterval;
+          while (i < toAdjust.length) {
+            const [bundle, inverseProbability] = toAdjust[i];
+            i++;
+            adjustProbabilities(bundle, inverseProbability);
+            if (i < toAdjust.length && performance.now() >= deadline) {
+              continueAdjust();
+              return;
+            }
+          }
+          nextTriggerMacroTask();
+        });
+        continueAdjust();
       })
       .catch(console.warn);
   }

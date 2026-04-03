@@ -20,7 +20,8 @@ describe('qwik core relative benchmarks', () => {
     );
   }
 
-  for (const scenario of scenarios) {
+  for (let i = 0; i < scenarios.length; i++) {
+    const scenario = scenarios[i];
     let lastSize: number | null = null;
     bench(
       `current.${scenario.id}`,

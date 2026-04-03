@@ -13,6 +13,7 @@ import { isPromise } from '../utils/promises';
 import { isDomRef } from './serialization-context';
 // Keep last
 import { Fragment } from '../jsx/jsx-runtime';
+import { isSerializerObj } from '../../reactive-primitives/utils';
 
 const getKeyVal = <T>(value: T, key: keyof T) => value[key];
 
@@ -45,6 +46,10 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
       return true;
     } else if (proto == Array.prototype) {
       for (let i = 0; i < (value as unknown[]).length; i++) {
+        // ignore sparse array holes
+        if (!(i in (value as unknown[]))) {
+          return false;
+        }
         if (!canSerialize((value as unknown[])[i], seen)) {
           return false;
         }
@@ -57,6 +62,8 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
     } else if (isPromise(value)) {
       return true;
     } else if (isJSXNode(value)) {
+      return true;
+    } else if (isSerializerObj(value)) {
       return true;
     } else if (value instanceof Error) {
       return true;

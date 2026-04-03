@@ -42,7 +42,9 @@ export class ElementFixture {
       this.parent.innerHTML = options.html;
       this.host = this.parent.firstElementChild as HTMLElement;
       assertDefined(this.host, 'host element must be defined');
-      this.host.querySelectorAll('script[q\\:func="qwik/json"]').forEach((script) => {
+      const scripts = this.host.querySelectorAll('script[q\\:func="qwik/json"]');
+      for (let i = 0; i < scripts.length; i++) {
+        const script = scripts[i];
         const code = script.textContent;
         if (code?.match(Q_FUNCS_PREFIX)) {
           const equal = code.indexOf('=');
@@ -51,7 +53,7 @@ export class ElementFixture {
           const hash = container.getAttribute(QInstanceAttr);
           (document as any)[QFuncsPrefix + hash] = qFuncs;
         }
-      });
+      }
       this.child = null!;
     } else {
       this.host = this.document.createElement(options.tagName || 'host');
@@ -111,7 +113,8 @@ export async function trigger(
       ? Array.from(root.querySelectorAll(queryOrElement))
       : [queryOrElement];
   let container: ClientContainer | null = null;
-  for (const element of elements) {
+  for (let i = 0; i < elements.length; i++) {
+    const element = elements[i];
     if (!element) {
       continue;
     }
@@ -163,7 +166,8 @@ export const dispatch = async (
         if (typeof handlers === 'function') {
           await handlers(event, element);
         } else if (handlers.length) {
-          for (const handler of handlers) {
+          for (let i = 0; i < handlers.length; i++) {
+            const handler = handlers[i];
             if (handler) {
               await (handler as EventHandler)(event, element);
             }
@@ -173,7 +177,9 @@ export const dispatch = async (
     } else if (element.hasAttribute('q-' + scopedKebabName)) {
       const qrls = element.getAttribute('q-' + scopedKebabName)!;
       try {
-        for (const qrl of qrls.split('|')) {
+        const qrlsArray = qrls.split('|');
+        for (let i = 0; i < qrlsArray.length; i++) {
+          const qrl = qrlsArray[i];
           const [chunk, symbol, captures] = qrl.split('#');
           let fn: Function;
           if (chunk) {

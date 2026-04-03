@@ -1,4 +1,9 @@
-import { type VNodeJournal } from '../../client/vnode-utils';
+import {
+  type VNodeJournal,
+  vnode_createErrorDiv,
+  vnode_insertElementBefore,
+  vnode_isElementVNode,
+} from '../../client/vnode-utils';
 import { vnode_diff } from '../../client/vnode-diff';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
 import { executeComponent } from '../component-execution';
@@ -17,10 +22,12 @@ import type { NodeProp } from '../../reactive-primitives/subscription-data';
 import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import type { ElementVNode } from '../vnode/element-vnode';
+import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import {
   HOST_SIGNAL,
+  ERROR_DATA_KEY,
   NODE_DIFF_DATA_KEY,
   NODE_PROPS_DATA_KEY,
   type CursorData,
@@ -69,7 +76,8 @@ export function executeTasks(
   // Execute all tasks in sequence
   let taskPromise: Promise<void> | undefined;
 
-  for (const item of elementSeq) {
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
     if (item instanceof Task) {
       const task = item as Task<TaskFn, TaskFn>;
 
@@ -110,6 +118,49 @@ function getNodeDiffPayload(vNode: VNode): JSXOutput | null {
 export function setNodeDiffPayload(vNode: VNode, payload: JSXOutput | Signal<JSXOutput>): void {
   const props = (vNode.props ||= {}) as Props;
   props[NODE_DIFF_DATA_KEY] = payload;
+}
+
+function getErrorPayload(vNode: VNode): Error | null {
+  const props = vNode.props as Props;
+  return (props?.[ERROR_DATA_KEY] as Error) ?? null;
+}
+
+export function setErrorPayload(vNode: VNode, error: Error | null): void {
+  const props = (vNode.props ||= {}) as Props;
+  props[ERROR_DATA_KEY] = error;
+}
+
+export function executeErrorWrap(vNode: VNode, journal: VNodeJournal): void {
+  vNode.dirty &= ~ChoreBits.ERROR_WRAP;
+
+  const err = getErrorPayload(vNode);
+  if (!err) {
+    return;
+  }
+  // cleanup payload
+  setErrorPayload(vNode, null);
+
+  const vHost = vNode;
+  const vHostParent = vHost.parent;
+  const vHostNextSibling = vHost.nextSibling as VNode | null;
+  const vErrorDiv = vnode_createErrorDiv(journal, document, vHost, err);
+  // If the host is an element node, we need to insert the error div into its parent.
+  const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
+  // If the host is different then we need to insert errored-host in the same position as the host.
+  const insertBefore = insertHost === vHost ? null : vHostNextSibling;
+  vnode_insertElementBefore(
+    journal,
+    insertHost as ElementVNode | VirtualVNode,
+    vErrorDiv,
+    insertBefore
+  );
+  // vnode_createErrorDiv moves children into the errored-host element, which can
+  // mark the host with CHILDREN dirty bit. Clear it along with dirtyChildren to
+  // avoid an infinite loop — those children are now under errored-host, not this host.
+  // This is safe because CHILDREN is always processed before ERROR_WRAP in the walker,
+  // so any pre-existing child work has already completed.
+  vNode.dirty &= ~ChoreBits.CHILDREN;
+  vNode.dirtyChildren = null;
 }
 
 export function executeNodeDiff(
@@ -308,7 +359,8 @@ export function executeCleanup(vNode: VNode, container: Container): void {
     return;
   }
 
-  for (const item of elementSeq) {
+  for (let i = 0; i < elementSeq.length; i++) {
+    const item = elementSeq[i];
     if (item instanceof Task) {
       if (item.$flags$ & TaskFlags.NEEDS_CLEANUP) {
         item.$flags$ &= ~TaskFlags.NEEDS_CLEANUP;

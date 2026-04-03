@@ -2,14 +2,13 @@ import { execSync } from 'node:child_process';
 import { installDeps } from '../utils/install-deps';
 import { getPackageManager, readPackageJson, writePackageJson } from './../utils/utils';
 import { packageNames, versionTagPriority } from './versions';
-import { major } from 'semver';
 import { log, spinner } from '@clack/prompts';
 
 export async function updateDependencies() {
   // TODO(migrate-v2): rely on workspaceRoot instead?
   const packageJson = await readPackageJson(process.cwd());
 
-  const version = getPackageTag();
+  const version = await getPackageTag();
 
   const dependencyNames = [
     'dependencies',
@@ -18,8 +17,10 @@ export async function updateDependencies() {
     'optionalDependencies',
   ] as const;
 
-  for (const name of packageNames) {
-    for (const propName of dependencyNames) {
+  for (let i = 0; i < packageNames.length; i++) {
+    const name = packageNames[i];
+    for (let j = 0; j < dependencyNames.length; j++) {
+      const propName = dependencyNames[j];
       const prop = packageJson[propName];
       if (prop && prop[name]) {
         prop[name] = version;
@@ -38,7 +39,8 @@ export async function updateDependencies() {
  * Resolve the list of available package tags for the "@qwik.dev/core" and get the best match of
  * ^2.0.0 based on the "versionTagPriority"
  */
-function getPackageTag() {
+async function getPackageTag() {
+  const { major } = await import('semver');
   // we assume all migrated packages have the same set of tags
   const tags: [tag: string, version: string][] = execSync('npm dist-tag @qwik.dev/core', {
     encoding: 'utf-8',
@@ -63,7 +65,8 @@ function getPackageTag() {
       return aIndex - bIndex;
     });
 
-  for (const [, version] of tags) {
+  for (let i = 0; i < tags.length; i++) {
+    const [, version] = tags[i];
     if (major(version) === 2) {
       return version;
     }

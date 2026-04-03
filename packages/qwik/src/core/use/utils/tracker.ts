@@ -62,7 +62,8 @@ export const cleanupFn = <T extends Destroyable>(
         target.$destroy$ = () => {
           target.$destroy$ = null;
           let cleanupPromises: Promise<void>[] | null = null;
-          for (const fn of cleanupFns!) {
+          for (let i = 0; i < cleanupFns!.length; i++) {
+            const fn = cleanupFns![i];
             try {
               const result = fn();
               if (isPromise(result)) {

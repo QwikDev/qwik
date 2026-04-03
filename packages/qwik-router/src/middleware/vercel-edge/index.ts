@@ -21,10 +21,6 @@ const BASE_URL = 'BASE_URL';
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterVercelEdgeOptions) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Simply remove it.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  }
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }

@@ -25,15 +25,10 @@ let isAdjustmentScheduled = false;
 let isProcessingAdjustments = false;
 const shouldYieldInBrowser = import.meta.env.TEST ? !isServerPlatform() : isBrowser;
 
-type AdjustmentContext = {
-  $depsCount$: number;
-};
-
 type AdjustmentFrame = {
   $bundle$: BundleImport;
   $inverseProbability$: number;
   $seen$?: Set<BundleImport>;
-  $context$: AdjustmentContext;
   $deps$?: ImportProbability[];
   $index$?: number;
 };
@@ -146,7 +141,6 @@ function trigger() {
 const enqueueAdjustment = (
   bundle: BundleImport,
   inverseProbability: number,
-  context: AdjustmentContext,
   seen?: Set<BundleImport>
 ) => {
   // Keep existing work on the stack hot and append new roots behind it.
@@ -154,7 +148,6 @@ const enqueueAdjustment = (
     $bundle$: bundle,
     $inverseProbability$: inverseProbability,
     $seen$: seen,
-    $context$: context,
   });
 };
 
@@ -179,8 +172,7 @@ const processAdjustmentFrame = () => {
 
     const probability = 1 - bundle.$inverseProbability$;
     let newInverseProbability: number;
-    if (probability === 1 || (probability >= 0.99 && frame.$context$.$depsCount$ < 100)) {
-      frame.$context$.$depsCount$++;
+    if (probability === 1 || probability >= 0.99) {
       // we're loaded at max probability, so elevate dynamic imports to 99% sure
       newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
     } else {
@@ -197,7 +189,6 @@ const processAdjustmentFrame = () => {
       $bundle$: depBundle,
       $inverseProbability$: newInverseProbability,
       $seen$: frame.$seen$,
-      $context$: frame.$context$,
     });
     return true;
   }
@@ -325,7 +316,7 @@ export const adjustProbabilities = (
   newInverseProbability: number,
   seen?: Set<BundleImport>
 ) => {
-  enqueueAdjustment(bundle, newInverseProbability, { $depsCount$: 0 }, seen);
+  enqueueAdjustment(bundle, newInverseProbability, seen);
   if (shouldYieldInBrowser) {
     nextAdjustmentMacroTask();
   } else {
@@ -333,40 +324,26 @@ export const adjustProbabilities = (
   }
 };
 
-export const handleBundle = (
-  name: string,
-  inverseProbability: number,
-  context?: AdjustmentContext
-) => {
+export const handleBundle = (name: string, inverseProbability: number) => {
   const bundle = getBundle(name);
-  if (bundle && bundle.$inverseProbability$ > inverseProbability) {
-    if (context) {
-      enqueueAdjustment(bundle, inverseProbability, context);
-    } else {
-      adjustProbabilities(bundle, inverseProbability);
-    }
+  if (bundle) {
+    enqueueAdjustment(bundle, inverseProbability);
   }
 };
 
-export const preload = (name: string | (number | string)[], probability?: number) => {
-  if (!name?.length) {
+export const preload = (item: string | string[], probability?: number) => {
+  if (!item?.length) {
     return;
   }
-
-  let inverseProbability = probability ? 1 - probability : 0.4;
-  const context = { $depsCount$: 0 };
-  if (Array.isArray(name)) {
+  const inverseProbability = probability ? 1 - probability : 0.4;
+  if (Array.isArray(item)) {
     // We must process in reverse order to ensure first bundles are handled first
-    for (let i = name.length - 1; i >= 0; i--) {
-      const item = name[i];
-      if (typeof item === 'number') {
-        inverseProbability = 1 - item / 10;
-      } else {
-        handleBundle(item, inverseProbability, context);
-      }
+    for (let i = item.length - 1; i >= 0; i--) {
+      const bundle = item[i];
+      handleBundle(bundle, inverseProbability);
     }
   } else {
-    handleBundle(name, inverseProbability, context);
+    handleBundle(item, inverseProbability);
   }
   if (shouldYieldInBrowser) {
     nextAdjustmentMacroTask();

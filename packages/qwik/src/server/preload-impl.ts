@@ -129,43 +129,33 @@ export const includePreloader = (
   if (referencedBundles.length === 0 || options === false) {
     return null;
   }
-  const { ssrPreloads, ssrPreloadProbability } = normalizePreLoaderOptions(
+  const { ssrPreloads } = normalizePreLoaderOptions(
     typeof options === 'boolean' ? undefined : options
   );
-  let allowed = ssrPreloads;
+
+  let allowedSsrPreloads = ssrPreloads;
 
   const base = getBase(container);
 
   const links = [];
 
   const { resolvedManifest } = container;
-  if (allowed) {
+  if (allowedSsrPreloads) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
     const coreBundle = resolvedManifest?.manifest.core;
     const expandedBundles = expandBundles(referencedBundles, resolvedManifest);
-    // Keep the same as in getQueue (but *10)
-    let probability = 4;
-    const tenXMinProbability = ssrPreloadProbability * 10;
     for (let i = 0; i < expandedBundles.length; i++) {
-      const hrefOrProbability = expandedBundles[i];
-      if (typeof hrefOrProbability === 'string') {
-        if (probability < tenXMinProbability) {
-          break;
-        }
-        // we already preload the preloader and core bundles
-        if (hrefOrProbability === preloaderBundle || hrefOrProbability === coreBundle) {
-          continue;
-        }
-        links.push(hrefOrProbability);
-        if (--allowed === 0) {
-          break;
-        }
-      } else {
-        probability = hrefOrProbability;
+      const href = expandedBundles[i];
+      // we already preload the preloader and core bundles
+      if (href === preloaderBundle || href === coreBundle) {
+        continue;
+      }
+      links.push(href);
+      if (--allowedSsrPreloads === 0) {
+        break;
       }
     }
   }
-
   const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest.preloader);
   const insertLinks = links.length
     ? /**
@@ -231,7 +221,7 @@ function normalizePreLoaderOptions(
 
 const preLoaderOptionsDefault: Required<PreloaderOptions> = {
   ssrPreloads: 7,
-  ssrPreloadProbability: 0.5,
+  ssrPreloadProbability: 0.3, // deprecated
   debug: false,
   maxIdlePreloads: 25,
   preloadProbability: 0.35, // deprecated

@@ -103,6 +103,14 @@ type StopPropagation = {
   [K in keyof HTMLElementEventMap as `stoppropagation:${K}`]?: boolean;
 };
 
+type Capture = {
+  [K in keyof HTMLElementEventMap as `capture:${K}`]?: boolean;
+};
+
+type Passive = {
+  [K in keyof HTMLElementEventMap as `passive:${K}`]?: boolean;
+};
+
 // Corrections to the TS types
 type EventCorrectionMap = {
   auxclick: PointerEvent;
@@ -262,7 +270,7 @@ interface RefAttr<EL extends Element> {
   ref?: Ref<EL> | undefined;
 }
 interface DOMAttributesBase<EL extends Element>
-  extends QwikIntrinsicAttributes, PreventDefault, StopPropagation, RefAttr<EL> {
+  extends QwikIntrinsicAttributes, PreventDefault, StopPropagation, Capture, Passive, RefAttr<EL> {
   dangerouslySetInnerHTML?: string | undefined;
 }
 

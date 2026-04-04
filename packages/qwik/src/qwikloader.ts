@@ -52,8 +52,9 @@ const addEventListener = (
   el: EventTarget,
   eventName: string,
   handler: (ev: Event) => void,
-  capture = false
-) => el.addEventListener(eventName, handler, { capture, passive: false });
+  capture = false,
+  passive = false
+) => el.addEventListener(eventName, handler, { capture, passive });
 
 const findShadowRoots = (fragment: EventTarget & ParentNode) => {
   addEventOrRoot(fragment);

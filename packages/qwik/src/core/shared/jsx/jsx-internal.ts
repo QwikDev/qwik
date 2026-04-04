@@ -1,7 +1,7 @@
 import type { OnRenderFn } from '../component.public';
 import { createQRL } from '../qrl/qrl-class';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { jsxEventToHtmlAttribute } from '../utils/event-names';
+import { jsxEventToHtmlAttribute, normalizeJsxEventName } from '../utils/event-names';
 import { logOnceWarn } from '../utils/log';
 import type { OnRenderProp, QSlot, QSlotS, QScopedStyle, ELEMENT_ID } from '../utils/markers';
 import { qDev } from '../utils/qdev';
@@ -13,7 +13,21 @@ import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 const BIND_VALUE = 'bind:value';
 const BIND_CHECKED = 'bind:checked';
+const PASSIVE = 'passive:';
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
+
+const getPassiveEventKey = (key: string): string | null => {
+  if (key.startsWith('on') && key.endsWith('$')) {
+    return normalizeJsxEventName(key.slice(2, -1));
+  }
+  if (key.startsWith('window:on') && key.endsWith('$')) {
+    return normalizeJsxEventName(key.slice(9, -1));
+  }
+  if (key.startsWith('document:on') && key.endsWith('$')) {
+    return normalizeJsxEventName(key.slice(11, -1));
+  }
+  return null;
+};
 
 /**
  * Create a JSXNode with the properties fully split into variable and constant parts, and children
@@ -77,20 +91,23 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
 
   // Apply transformations for native HTML elements only
   if (typeof type === 'string') {
-    // Transform event names (onClick$ -> q-e:click)
+    const passiveEvents = new Set<string>();
+    const constEventKeys: string[] = [];
+    const varEventKeys: string[] = [];
+    const constPassiveKeys: string[] = [];
+    const varPassiveKeys: string[] = [];
+    const constKeyOrder = new Map<string, number>();
+    const varKeyOrder = new Map<string, number>();
+
     if (constProps) {
-      const processedKeys = new Set<string>();
+      let index = 0;
       for (const k in constProps) {
-        const attr = jsxEventToHtmlAttribute(k);
-        if (attr) {
-          if (!constPropsCopied) {
-            constProps = { ...constProps };
-            constPropsCopied = true;
-          }
-          if (!_hasOwnProperty.call(constProps, attr) || processedKeys.has(attr)) {
-            constProps[attr] = constProps[k];
-          }
-          delete constProps[k];
+        constKeyOrder.set(k, index++);
+        if (k.startsWith(PASSIVE)) {
+          constPassiveKeys.push(k);
+          passiveEvents.add(normalizeJsxEventName(k.slice(PASSIVE.length)));
+        } else if (getPassiveEventKey(k) !== null) {
+          constEventKeys.push(k);
         } else if (k === BIND_CHECKED) {
           // Set flag, will process after walk
           bindCheckedSignal = constProps[k];
@@ -98,24 +115,17 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
           // Set flag, will process after walk
           bindValueSignal = constProps[k];
         }
-        processedKeys.add(k);
       }
     }
     if (varProps) {
-      const processedKeys = new Set<string>();
+      let index = 0;
       for (const k in varProps) {
-        const attr = jsxEventToHtmlAttribute(k);
-        if (attr) {
-          if (!varPropsCopied) {
-            varProps = { ...varProps };
-            varPropsCopied = true;
-          }
-          // Transform event name in place
-          if (!_hasOwnProperty.call(varProps, attr) || processedKeys.has(attr)) {
-            varProps[attr] = varProps[k];
-          }
-          delete varProps[k];
-          toSort = true;
+        varKeyOrder.set(k, index++);
+        if (k.startsWith(PASSIVE)) {
+          varPassiveKeys.push(k);
+          passiveEvents.add(normalizeJsxEventName(k.slice(PASSIVE.length)));
+        } else if (getPassiveEventKey(k) !== null) {
+          varEventKeys.push(k);
         } else if (k === BIND_CHECKED) {
           // Set flag, will process after walk
           bindCheckedSignal = varProps[k];
@@ -123,7 +133,63 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
           // Set flag, will process after walk
           bindValueSignal = varProps[k];
         }
-        processedKeys.add(k);
+      }
+    }
+
+    if (constProps && constPassiveKeys.length > 0) {
+      if (!constPropsCopied) {
+        constProps = { ...constProps };
+        constPropsCopied = true;
+      }
+      for (const k of constPassiveKeys) {
+        delete constProps[k];
+      }
+    }
+
+    if (varProps && varPassiveKeys.length > 0) {
+      if (!varPropsCopied) {
+        varProps = { ...varProps };
+        varPropsCopied = true;
+      }
+      for (const k of varPassiveKeys) {
+        delete varProps[k];
+      }
+    }
+
+    if (constProps) {
+      for (const k of constEventKeys) {
+        const passiveEventKey = getPassiveEventKey(k)!;
+        const attr = jsxEventToHtmlAttribute(k, passiveEvents.has(passiveEventKey));
+        if (attr) {
+          if (!constPropsCopied) {
+            constProps = { ...constProps };
+            constPropsCopied = true;
+          }
+          const attrIndex = constKeyOrder.get(attr);
+          if (attrIndex === undefined || attrIndex < constKeyOrder.get(k)!) {
+            constProps[attr] = constProps[k];
+          }
+          delete constProps[k];
+        }
+      }
+    }
+
+    if (varProps) {
+      for (const k of varEventKeys) {
+        const passiveEventKey = getPassiveEventKey(k)!;
+        const attr = jsxEventToHtmlAttribute(k, passiveEvents.has(passiveEventKey));
+        if (attr) {
+          if (!varPropsCopied) {
+            varProps = { ...varProps };
+            varPropsCopied = true;
+          }
+          const attrIndex = varKeyOrder.get(attr);
+          if (attrIndex === undefined || attrIndex < varKeyOrder.get(k)!) {
+            varProps[attr] = varProps[k];
+          }
+          delete varProps[k];
+          toSort = true;
+        }
       }
     }
 

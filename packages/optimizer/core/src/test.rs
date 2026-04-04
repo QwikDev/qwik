@@ -4735,6 +4735,61 @@ fn should_convert_jsx_events() {
 }
 
 #[test]
+fn should_convert_passive_jsx_events() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		const PassiveEventsComponent = component$(() => {
+			return (
+				<div>
+					<button passive:click onClick$={() => {}}>
+						click
+					</button>
+					<button passive:scroll passive:touchstart window:onScroll$={() => {}} document:onTouchStart$={() => {}}>
+						scroll
+					</button>
+					<button passive:mouseover>
+						noop
+					</button>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_ignore_passive_jsx_events_without_handlers() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		const PassiveOnlyComponent = component$(() => {
+			return (
+				<div>
+					<button passive:click>
+						click
+					</button>
+					<button passive:scroll passive:touchstart>
+						scroll
+					</button>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_event_names_without_jsx_transpile() {
 	test_input!(TestInput {
 		code: r#"
@@ -4751,6 +4806,31 @@ export const Greeter = component$(() => {
 			<div onClick$={() => {}}/>
 			<div onClick$={() => {}}/>
 			<div onClick$={() => {}}/>
+		</div>
+	)
+});
+
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_passive_event_names_without_jsx_transpile() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Greeter = component$(() => {
+	return (
+		<div>
+			<div passive:click onClick$={() => {}}/>
+			<div passive:scroll window:onScroll$={() => {}}/>
+			<div passive:touchstart document:onTouchStart$={() => {}}/>
+			<div passive:mouseover/>
 		</div>
 	)
 });

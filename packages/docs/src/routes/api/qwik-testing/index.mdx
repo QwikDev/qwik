@@ -67,7 +67,7 @@ createDOM: (input?: { html?: string }) =>
       queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
       eventNameCamel: string | keyof WindowEventMap,
       eventPayload?: any,
-    ) => Promise<void>;
+    ) => Promise<Event | null>;
   }>;
 ```
 
@@ -114,7 +114,7 @@ _(Optional)_
 
 **Returns:**
 
-Promise&lt;\{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@qwik.dev/core").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \| Element \| keyof HTMLElementTagNameMap \| null, eventNameCamel: string \| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;void&gt;; }&gt;
+Promise&lt;\{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@qwik.dev/core").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \| Element \| keyof HTMLElementTagNameMap \| null, eventNameCamel: string \| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;Event \| null&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/library.ts)
 
@@ -527,7 +527,7 @@ export declare function trigger(
   options?: {
     waitForIdle?: boolean;
   },
-): Promise<void>;
+): Promise<Event | null>;
 ```
 
 <table><thead><tr><th>
@@ -606,7 +606,7 @@ _(Optional)_
 
 **Returns:**
 
-Promise&lt;void&gt;
+Promise&lt;Event \| null&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/element-fixture.ts)
 

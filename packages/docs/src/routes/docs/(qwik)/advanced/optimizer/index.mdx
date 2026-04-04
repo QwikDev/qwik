@@ -8,7 +8,8 @@ contributors:
   - mrhoodz
   - thejackshelton
   - wtlin1228
-updated_at: '2023-06-25T19:43:33Z'
+  - varixo
+updated_at: '2026-04-04T00:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -57,3 +58,9 @@ Notice that every occurrence of `$` results in a new lazy loadable symbol.
 ## Serialization
 
 See [serialization](../../concepts/resumable/index.mdx#serialization) for a discussion of what is serializable.
+
+## Suppressing optimizer diagnostics
+
+Some optimizer diagnostics can be suppressed for a single line with [`@qwik-disable-next-line`](../disable-next-line/index.mdx).
+
+Use it when a warning is intentional and you want to silence only that specific occurrence.

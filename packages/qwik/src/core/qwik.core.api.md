@@ -462,7 +462,10 @@ export { h }
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
 // @internal
-export const _hmr: (event: Event, element: Element) => void;
+export const _hmr: (event: CustomEvent<{
+    files: string[];
+    t: number;
+}>, element: Element) => void;
 
 // Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts

@@ -79,7 +79,7 @@ export const _noopQrlDEV = <T>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const newQrl = _noopQrl(symbolName, lexicalScopeCapture) as QRLInternal<T>;
-  newQrl.$lazy$.dev = opts;
+  newQrl.$setDev$(opts);
   return newQrl;
 };
 
@@ -91,7 +91,7 @@ export const qrlDEV = <T = any>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
-  newQrl.$lazy$.dev = opts;
+  newQrl.$setDev$(opts);
   return newQrl;
 };
 
@@ -103,7 +103,7 @@ export const inlinedQrlDEV = <T = any>(
   lexicalScopeCapture?: Readonly<unknown[]>
 ): QRL<T> => {
   const qrl = inlinedQrl(symbol, symbolName, lexicalScopeCapture) as QRLInternal<T>;
-  qrl.$lazy$.dev = opts;
+  qrl.$setDev$(opts);
   return qrl;
 };
 

@@ -5,7 +5,7 @@ pub enum DiagnosticRule {
 	PreventdefaultPassiveCheck,
 }
 
-pub fn get_diagnostic_code(rule: DiagnosticRule) -> &'static str {
+pub const fn get_diagnostic_code(rule: DiagnosticRule) -> &'static str {
 	match rule {
 		DiagnosticRule::FunctionReference => "C02",
 		DiagnosticRule::CanNotCapture => "C03",

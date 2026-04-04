@@ -158,8 +158,11 @@ const parseTriggerEvent = (eventName: string) => {
 
 const PREVENT_DEFAULT = 'preventdefault:';
 const STOP_PROPAGATION = 'stoppropagation:';
+const CAPTURE = 'capture:';
 const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
+
+const isElementNode = (node: Node | null): node is Element => !!node && node.nodeType === 1;
 
 /** Dispatch in the same way that Qwik Loader does, for testing purposes. */
 export const dispatch = async (
@@ -169,9 +172,70 @@ export const dispatch = async (
   kebabName: string,
   allowPreventDefault = true
 ) => {
+  const captureAttributeName = CAPTURE + kebabName;
+  const elements: Element[] = [];
+  const captureHandlers: boolean[] = [];
+  let current = element as Node | null;
+  while (current) {
+    if (isElementNode(current)) {
+      elements.push(current);
+      captureHandlers.push(
+        current.hasAttribute(captureAttributeName) &&
+          (!!current.getAttribute('q-' + scopedKebabName) ||
+            ('_qDispatch' in (current as QElement) &&
+              !!(current as QElement)._qDispatch?.[scopedKebabName]))
+      );
+      current = current.parentElement;
+    } else {
+      current = (current as ChildNode).parentElement;
+    }
+  }
+
+  for (let i = elements.length - 1; i >= 0; i--) {
+    if (captureHandlers[i]) {
+      const result = dispatchOnElement(
+        elements[i],
+        event,
+        scopedKebabName,
+        kebabName,
+        allowPreventDefault
+      );
+      const continuePropagation = !event.cancelBubble;
+      await result;
+      if (!continuePropagation || event.cancelBubble) {
+        return;
+      }
+    }
+  }
+
+  for (let i = 0; i < elements.length; i++) {
+    if (!captureHandlers[i]) {
+      const result = dispatchOnElement(
+        elements[i],
+        event,
+        scopedKebabName,
+        kebabName,
+        allowPreventDefault
+      );
+      const doBubble = event.bubbles && !event.cancelBubble;
+      await result;
+      if (!doBubble || event.cancelBubble) {
+        return;
+      }
+    }
+  }
+};
+
+const dispatchOnElement = async (
+  element: Element | null,
+  event: Event,
+  scopedKebabName: string,
+  kebabName: string,
+  allowPreventDefault = true
+) => {
   const preventAttributeName = PREVENT_DEFAULT + kebabName;
   const stopPropagationName = STOP_PROPAGATION + kebabName;
-  while (element) {
+  if (element) {
     const handlers =
       '_qDispatch' in (element as QElement)
         ? (element as QElement)._qDispatch?.[scopedKebabName]
@@ -200,8 +264,7 @@ export const dispatch = async (
             }
           }
         }
-        element = event.bubbles && !event.cancelBubble ? element.parentElement : null;
-        continue;
+        return;
       }
     }
 
@@ -234,9 +297,7 @@ export const dispatch = async (
         console.error('!!! qrl error', qrls, error);
         throw error;
       }
-      return;
     }
-    element = event.bubbles && !event.cancelBubble ? element.parentElement : null;
   }
 };
 

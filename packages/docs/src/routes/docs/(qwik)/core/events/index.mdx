@@ -205,6 +205,49 @@ about that combination with the `preventdefault-passive-check` optimizer diagnos
   [`@qwik-disable-next-line`](/docs/(qwik)/advanced/optimizer-hints/index.mdx).
 </Note>
 
+### Capture events
+
+Use `capture:eventname` to run an element event handler during the capture phase instead of the
+default bubbling phase.
+
+This is useful when a parent element needs to observe or intercept an event before it reaches a
+child's bubbling handler.
+
+```tsx /capture:click/
+<div
+  capture:click
+  onClick$={() => console.log('parent capture')}
+>
+  <button onClick$={() => console.log('button bubble')} />
+</div>
+```
+
+When the button is clicked, Qwik runs:
+
+1. the parent's `click` handler during capture
+2. the button's `click` handler during bubbling
+
+`capture:eventname` is scoped to a single event. For example, this makes `click` capture-phase
+while leaving `scroll` in its normal mode:
+
+```tsx /capture:click/
+<div
+  capture:click
+  onClick$={() => console.log('capture click')}
+  onScroll$={() => console.log('bubble scroll')}
+/>
+```
+
+`capture:eventname` only applies to element-scoped handlers such as `onClick$`. It does not change
+`window:on*` or `document:on*` listeners.
+
+<Note>
+  `capture:eventname` is a marker for the existing handler bucket for that event. A single element
+  event cannot be both capture and bubble at the same time. For example, you can mark `click` as
+  capture and leave `scroll` as bubble on the same element, but you cannot register both capture
+  and bubble handlers for `click` on the same element.
+</Note>
+
 ### Event Target
 
 Because event handling is asynchronous, you can't use `event.currentTarget`. To solve this, Qwik handlers provide a `currentTarget` as a second argument.

@@ -38,6 +38,7 @@ const documentPrefix = 'd';
 const passiveDocumentPrefix = 'dp';
 const elementPrefix = 'e';
 const passiveElementPrefix = 'ep';
+const capturePrefix = 'capture:';
 
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
@@ -116,6 +117,17 @@ const isPassiveScope = (scope: QwikLoaderEventScope) => scope.length === 2;
 
 const getRootScope = (scope: QwikLoaderEventScope): 'e' | 'd' | 'w' =>
   scope.charAt(0) as 'e' | 'd' | 'w';
+
+const isElementNode = (node: Node | null): node is Element => !!node && node.nodeType === 1;
+
+const isCaptureHandlerElement = (
+  element: Element,
+  scopedKebabName: string,
+  captureAttribute: string
+) =>
+  element.hasAttribute(captureAttribute) &&
+  (!!(element as QElement)._qDispatch?.[scopedKebabName] ||
+    element.hasAttribute('q-' + scopedKebabName));
 
 // ====== Event Processing ======
 
@@ -259,18 +271,45 @@ const processElementEvent = async (
 ) => {
   const kebabName = camelToKebab(ev.type);
   const scopedKebabName = scope + ':' + kebabName;
-  let element = ev.target as Element | null;
+  const captureAttribute = capturePrefix + kebabName;
+  const elements: Element[] = [];
+  const captureHandlers: boolean[] = [];
+  let current = ev.target as Node | null;
 
-  // Bubble up the DOM tree, awaiting any async handlers
-  while (element && element.getAttribute) {
-    const results = dispatch(element, ev, scopedKebabName, kebabName, allowPreventDefault);
-    // The event bubbling is reset after awaiting
-    const doBubble = ev.bubbles && !ev.cancelBubble;
-    if (isPromise(results)) {
-      await results;
+  while (current) {
+    if (isElementNode(current)) {
+      elements.push(current);
+      captureHandlers.push(isCaptureHandlerElement(current, scopedKebabName, captureAttribute));
+      current = current.parentElement;
+    } else {
+      current = (current as ChildNode).parentElement;
     }
-    // Even though it's deprecated as a writeable property, cancelBubble is the only way to know if stopPropagation was called
-    element = doBubble && ev.bubbles && !ev.cancelBubble ? element.parentElement : null;
+  }
+
+  for (let i = elements.length - 1; i >= 0; i--) {
+    if (captureHandlers[i]) {
+      const results = dispatch(elements[i], ev, scopedKebabName, kebabName, allowPreventDefault);
+      const continuePropagation = !ev.cancelBubble;
+      if (isPromise(results)) {
+        await results;
+      }
+      if (!continuePropagation || ev.cancelBubble) {
+        return;
+      }
+    }
+  }
+
+  for (let i = 0; i < elements.length; i++) {
+    if (!captureHandlers[i]) {
+      const results = dispatch(elements[i], ev, scopedKebabName, kebabName, allowPreventDefault);
+      const doBubble = ev.bubbles && !ev.cancelBubble;
+      if (isPromise(results)) {
+        await results;
+      }
+      if (!doBubble || ev.cancelBubble) {
+        return;
+      }
+    }
   }
 };
 

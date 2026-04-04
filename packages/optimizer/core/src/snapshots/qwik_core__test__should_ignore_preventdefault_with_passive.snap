@@ -159,7 +159,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 [
   {
     "category": "warning",
-    "code": null,
+    "code": "preventdefault-passive-check",
     "file": "test.tsx",
     "message": "preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()",
     "highlights": [
@@ -177,7 +177,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   },
   {
     "category": "warning",
-    "code": null,
+    "code": "preventdefault-passive-check",
     "file": "test.tsx",
     "message": "preventdefault:scroll has no effect when passive:scroll is also set; passive event listeners cannot call preventDefault()",
     "highlights": [

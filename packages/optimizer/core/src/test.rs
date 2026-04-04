@@ -4816,6 +4816,86 @@ fn should_ignore_preventdefault_with_passive() {
 }
 
 #[test]
+fn should_disable_passive_warning_with_qwik_disable_next_line() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, sync$ } from '@qwik.dev/core';
+
+		const PassiveOnlyComponent = component$(() => {
+			return (
+				<div>
+					<button onClick$={sync$((event) => {
+						// keep me
+						event.preventDefault();
+					})}>
+						click
+					</button>
+					{/* @qwik-disable-next-line preventdefault-passive-check */}
+					<button passive:click preventdefault:click onClick$={() => {}}>
+						click
+					</button>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_only_disable_the_next_line() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		const PassiveOnlyComponent = component$(() => {
+			return (
+				<div>
+					{/* @qwik-disable-next-line preventdefault-passive-check */}
+					<button passive:click preventdefault:click onClick$={() => {}}>
+						click
+					</button>
+					<button passive:click preventdefault:click onClick$={() => {}}>
+						click
+					</button>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_disable_multiple_rules_from_single_directive() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useTask$ } from '@qwik.dev/core';
+
+		export const useMemo$ = (qrl) => {
+			useTask$(qrl);
+		};
+
+		export const App = component$(() => {
+			/* @qwik-disable-next-line C05, preventdefault-passive-check */
+			useMemo$(() => <button passive:click preventdefault:click onClick$={() => {}}>click</button>);
+			return <div />;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_event_names_without_jsx_transpile() {
 	test_input!(TestInput {
 		code: r#"

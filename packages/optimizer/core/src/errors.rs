@@ -1,12 +1,15 @@
-use swc_common::errors::DiagnosticId;
-
-pub enum Error {
-	FunctionReference = 2,
+pub enum DiagnosticRule {
+	FunctionReference,
 	CanNotCapture,
-	MissingQrlImplementation = 5,
+	MissingQrlImplementation,
+	PreventdefaultPassiveCheck,
 }
 
-pub fn get_diagnostic_id(err: Error) -> DiagnosticId {
-	let id = err as u32;
-	DiagnosticId::Error(format!("C{:02}", id))
+pub fn get_diagnostic_code(rule: DiagnosticRule) -> &'static str {
+	match rule {
+		DiagnosticRule::FunctionReference => "C02",
+		DiagnosticRule::CanNotCapture => "C03",
+		DiagnosticRule::MissingQrlImplementation => "C05",
+		DiagnosticRule::PreventdefaultPassiveCheck => "preventdefault-passive-check",
+	}
 }

@@ -181,7 +181,7 @@ Use `passive:eventname` to mark a Qwik event listener as passive when the handle
 This is especially useful for events such as `touchstart`, `touchmove`, and `scroll`, where the
 browser can optimize scrolling when it knows the listener is passive.
 
-```tsx
+```tsx /passive:touchmove/ /passive:touchstart/ /passive:scroll/
 <div passive:touchmove onTouchMove$={() => console.log('move')} />
 
 <button
@@ -202,7 +202,7 @@ about that combination with the `preventdefault-passive-check` optimizer diagnos
 <Note>
   If you need to prevent the browser default, do not use `passive:eventname` for that event. If
   you intentionally want to suppress the optimizer warning for one line, use
-  [`@qwik-disable-next-line`](/docs/(qwik)/advanced/disable-next-line/index.mdx).
+  [`@qwik-disable-next-line`](/docs/(qwik)/advanced/optimizer-hints/index.mdx).
 </Note>
 
 ### Event Target

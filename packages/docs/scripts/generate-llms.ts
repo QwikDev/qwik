@@ -206,6 +206,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Core Concepts',
+      'Optimizer Hints',
+      '/docs/advanced/optimizer-hints/',
+      'Documents optimizer suppression hints like `@qwik-disable-next-line` and when to use named diagnostics sparingly.',
+      toSourcePath('docs', '(qwik)', 'advanced', 'optimizer-hints', 'index.mdx')
+    ),
+    docEntry(
+      'Core Concepts',
       'State',
       '/docs/core/state/',
       'Reference for signals, stores, computed values, async state, and related reactive primitives.',

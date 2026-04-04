@@ -32,13 +32,15 @@ const removePassiveMarkers = (
       mutableProps = { ...mutableProps };
       copied = true;
     }
-    for (const k of passiveKeys) {
+    for (let i = 0; i < passiveKeys.length; i++) {
+      const k = passiveKeys[i];
       delete mutableProps[k];
     }
   }
 
   if (preventDefaultKeys.length > 0) {
-    for (const k of preventDefaultKeys) {
+    for (let i = 0; i < preventDefaultKeys.length; i++) {
+      const k = preventDefaultKeys[i];
       if (passiveEvents.has(normalizeJsxEventName(k.slice(PREVENT_DEFAULT.length)))) {
         if (!copied) {
           mutableProps = { ...mutableProps };
@@ -75,7 +77,8 @@ const convertJsxEventProps = (
   let mutableProps = props;
   let copied = canMutate;
 
-  for (const k of eventKeys) {
+  for (let i = 0; i < eventKeys.length; i++) {
+    const k = eventKeys[i];
     const passiveEventKey = getPassiveEventKey(k)!;
     const attr = jsxEventToHtmlAttribute(k, passiveEvents.has(passiveEventKey));
     if (attr) {

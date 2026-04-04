@@ -108,6 +108,14 @@ struct PropAddContext {
 	spread_props_count: usize,
 }
 
+#[derive(Clone, Copy)]
+struct TransformJsxPropContext<'a> {
+	is_fn: bool,
+	passive_events: &'a HashSet<String>,
+	should_sort: bool,
+	is_target_const_props: bool,
+}
+
 struct ImportQrlName {
 	display_name: String,
 	hash_seed: String,
@@ -1753,26 +1761,23 @@ impl<'a> QwikTransform<'a> {
 	/// - Handle bind:value and bind:checked (always for constProps, only for _jsxSorted in varProps)
 	fn transform_jsx_prop(
 		&mut self,
-		is_fn: bool,
 		original_key_word: &Option<Atom>,
 		node: &ast::KeyValueProp,
-		passive_events: &HashSet<String>,
 		maybe_const_props: &mut Vec<ast::PropOrSpread>,
-		should_sort: bool,
-		is_target_const_props: bool,
+		context: TransformJsxPropContext<'_>,
 	) -> (Option<Atom>, Option<Atom>, bool) {
 		let mut key_word = original_key_word.clone();
 		let mut transformed_event_key = None;
 
 		// Only for native elements, not components
-		if !is_fn {
+		if !context.is_fn {
 			if let Some(ref kw) = original_key_word {
 				if kw.as_ref().starts_with("passive:") {
 					return (key_word, transformed_event_key, true);
 				}
 				if kw.as_ref().starts_with("preventdefault:") {
 					let event = kw.as_ref().strip_prefix("preventdefault:").unwrap();
-					if passive_events.contains(event) {
+					if context.passive_events.contains(event) {
 						self.emit_span_warning_with_code(
 							node.key.span(),
 							&format!(
@@ -1788,7 +1793,7 @@ impl<'a> QwikTransform<'a> {
 
 				// Transform event props (e.g., onClick$ -> q-e:click)
 				let is_passive = jsx_event_to_event_name(kw.as_ref())
-					.is_some_and(|event_name| passive_events.contains(&event_name));
+					.is_some_and(|event_name| context.passive_events.contains(&event_name));
 				if let Some(html_attr) = jsx_event_to_html_attribute(kw.as_ref(), is_passive) {
 					transformed_event_key = Some(html_attr.clone());
 					key_word = Some(html_attr);
@@ -1803,11 +1808,11 @@ impl<'a> QwikTransform<'a> {
 				// - Always transform when targeting constProps (compile-time known)
 				// - Only transform for _jsxSorted (should_sort = false) when targeting varProps
 				// - For _jsxSplit, leave bind:* untouched (runtime handles it)
-				if should_sort && Self::is_bind_prop(kw) {
+				if context.should_sort && Self::is_bind_prop(kw) {
 					return (key_word, transformed_event_key, false);
 				}
 			}
-			if is_target_const_props || !should_sort {
+			if context.is_target_const_props || !context.should_sort {
 				if let Some(ref kw) = original_key_word {
 					if Self::is_bind_prop(kw) {
 						let is_checked = kw == &*BIND_CHECKED;
@@ -2317,13 +2322,15 @@ impl<'a> QwikTransform<'a> {
 							// Transform JSX props (event handlers, className, bind:value/checked)
 							let (key_word, transformed_event_key, skip_prop) = self
 								.transform_jsx_prop(
-									is_fn,
 									&original_key_word,
 									node,
-									&passive_events,
 									maybe_const_props,
-									should_runtime_sort,
-									is_target_const_props,
+									TransformJsxPropContext {
+										is_fn,
+										passive_events: &passive_events,
+										should_sort: should_runtime_sort,
+										is_target_const_props,
+									},
 								);
 
 							// Skip the bind: prop itself - don't add it to any props list
@@ -3974,11 +3981,11 @@ impl<'a> Fold for QwikTransform<'a> {
 							sym: html_attr,
 						}))
 					} else {
-						self.stack_ctxt.push(context_name.clone());
+						self.stack_ctxt.push(context_name);
 						None
 					}
 				} else {
-					self.stack_ctxt.push(context_name.clone());
+					self.stack_ctxt.push(context_name);
 					None
 				};
 				if new_word.is_some() {

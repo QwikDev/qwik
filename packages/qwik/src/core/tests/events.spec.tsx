@@ -78,13 +78,7 @@ describe.each([
     const Cmp = component$(() => {
       return (
         // @qwik-disable-next-line preventdefault-passive-check
-        <div
-          passive:touchmove
-          preventdefault:touchmove
-          onTouchMove$={() => {
-            console.log('test');
-          }}
-        ></div>
+        <div passive:touchmove preventdefault:touchmove onTouchMove$={() => {}}></div>
       );
     });
 

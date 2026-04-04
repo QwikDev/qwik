@@ -92,8 +92,9 @@ if (typeof document !== 'undefined') {
               const match = inspectUrl.match(/^(.*?)(:\d+(:\d+)?)?$/);
               if (match) {
                 const [, filePath, location] = match;
-                fetch(`${base}${filePath}?editor${location}`).then(() => {
+                fetch(`${base}${filePath}?editor${location}`, { cache: 'no-cache' }).then((r) => {
                   body.style.removeProperty('cursor');
+                  r.blob();
                 });
               }
             }

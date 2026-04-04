@@ -1,0 +1,74 @@
+---
+title: "@qwik-disable-next-line | Advanced"
+contributors:
+  - varixo
+updated_at: '2026-04-04T00:00:00Z'
+created_at: '2026-04-04T00:00:00Z'
+---
+
+import { Note } from '~/components/note/note';
+
+# Optimizer Hints
+
+Qwik supports an inline optimizer directive named `@qwik-disable-next-line`.
+
+Use it to suppress a specific optimizer diagnostic for the next line of code, similar to how `eslint-disable-next-line` works.
+
+## Syntax
+
+Add the directive in a comment immediately before the line you want to suppress:
+
+```tsx
+{/* @qwik-disable-next-line rule-name */}
+```
+
+You can also disable more than one rule by separating them with commas:
+
+```tsx
+{/* @qwik-disable-next-line rule-one, rule-two */}
+```
+
+The directive only applies to the next physical line.
+
+## Example
+
+The optimizer warns when `preventdefault:*` is combined with `passive:*` for the same event, because passive listeners cannot call `preventDefault()`.
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  return (
+    <div>
+      {/* @qwik-disable-next-line preventdefault-passive-check */}
+      <button passive:click preventdefault:click onClick$={() => {}}>
+        click
+      </button>
+    </div>
+  );
+});
+```
+
+In this example, the optimizer suppresses the `preventdefault-passive-check` diagnostic for that button.
+
+## When to use it
+
+Use `@qwik-disable-next-line` sparingly.
+
+It is most useful when:
+
+- you understand why the optimizer is warning
+- the warning is intentional in your codebase
+- you want to suppress a single known case without affecting nearby code
+
+<Note>The directive is consumed by the optimizer and removed from the generated output.</Note>
+
+## Choosing a rule name
+
+Use the rule name documented for the optimizer diagnostic you want to suppress.
+
+For example:
+
+- `preventdefault-passive-check`
+
+If a diagnostic does not document a named optimizer rule, it should not be treated as something to routinely suppress.

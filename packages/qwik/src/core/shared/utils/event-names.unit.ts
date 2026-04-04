@@ -29,10 +29,22 @@ const testCases = [
   { jsx: 'document:onUnload$', html: 'q-d:unload' },
 ];
 
+const passiveTestCases = [
+  { jsx: 'onClick$', html: 'q-ep:click' },
+  { jsx: 'window:onScroll$', html: 'q-wp:scroll' },
+  { jsx: 'document:onTouchStart$', html: 'q-dp:touchstart' },
+];
+
 describe('Event conversion utilities', () => {
   describe.each(testCases)('jsxEventToHtmlAttribute', (test) => {
     it(`should convert ${test.jsx} to ${test.html}`, () => {
       expect(jsxEventToHtmlAttribute(test.jsx)).toBe(test.html);
+    });
+  });
+
+  describe.each(passiveTestCases)('jsxEventToHtmlAttribute passive', (test) => {
+    it(`should convert ${test.jsx} to ${test.html} when passive`, () => {
+      expect(jsxEventToHtmlAttribute(test.jsx, true)).toBe(test.html);
     });
   });
 });

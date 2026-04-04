@@ -22,6 +22,55 @@ describe('_jsxSplit', () => {
       expect(node.varProps['q-e:input']).toBeDefined();
     });
 
+    it('should convert event handlers to passive attributes when marked passive', () => {
+      const node = _jsxSplit(
+        'button',
+        {
+          'passive:click': true,
+          'passive:scroll': true,
+          'passive:touchstart': true,
+          'passive:mouseover': true,
+          onClick$: (() => {}) as any as QRL,
+          'window:onScroll$': (() => {}) as any as QRL,
+          'document:onTouchStart$': (() => {}) as any as QRL,
+        },
+        null,
+        null,
+        0
+      );
+
+      expect(node.varProps['onClick$']).toBeUndefined();
+      expect(node.varProps['window:onScroll$']).toBeUndefined();
+      expect(node.varProps['document:onTouchStart$']).toBeUndefined();
+      expect(node.varProps['q-ep:click']).toBeDefined();
+      expect(node.varProps['q-wp:scroll']).toBeDefined();
+      expect(node.varProps['q-dp:touchstart']).toBeDefined();
+      expect(node.varProps['passive:click']).toBeUndefined();
+      expect(node.varProps['passive:scroll']).toBeUndefined();
+      expect(node.varProps['passive:touchstart']).toBeUndefined();
+      expect(node.varProps['passive:mouseover']).toBeUndefined();
+      expect(node.varProps['q-ep:mouseover']).toBeUndefined();
+    });
+
+    it('should ignore passive markers when there is no matching event handler', () => {
+      const node = _jsxSplit(
+        'button',
+        {
+          'passive:click': true,
+          'passive:scroll': true,
+        },
+        null,
+        null,
+        0
+      );
+
+      expect(node.varProps['passive:click']).toBeUndefined();
+      expect(node.varProps['passive:scroll']).toBeUndefined();
+      expect(node.varProps['q-ep:click']).toBeUndefined();
+      expect(node.varProps['q-wp:scroll']).toBeUndefined();
+      expect(node.constProps).toBeNull();
+    });
+
     it('should convert multiple event handlers', () => {
       const node = _jsxSplit(
         'button',

@@ -86,12 +86,13 @@ export async function trigger(
   eventName: string,
   eventPayload: any = {},
   options?: { waitForIdle?: boolean }
-): Promise<void> {
+): Promise<Event | null> {
   const waitForIdle = options?.waitForIdle ?? true;
   let scope: QwikLoaderEventScope;
   let kebabName: string;
   let scopedKebabName: string;
   const separatorIndex = eventName.indexOf(':');
+  let event: Event | null = null;
   if (separatorIndex !== -1) {
     scopedKebabName = eventName;
     scope = eventName.slice(0, separatorIndex) as QwikLoaderEventScope;
@@ -124,16 +125,18 @@ export async function trigger(
     }
 
     const { bubbles = true, cancelable = true, ...rest } = eventPayload ?? {};
-    const event = new Event(eventName, {
+    event = new Event(eventName, {
       bubbles,
       cancelable,
     });
     Object.assign(event, rest);
-    await dispatch(element, event, scopedKebabName, kebabName, !scope.endsWith('p'));
+    const hasPassive = scope.length === 2;
+    await dispatch(element, event, scopedKebabName, kebabName, !hasPassive);
   }
   if (waitForIdle && container) {
     await waitForDrain(container);
   }
+  return event;
 }
 
 const PREVENT_DEFAULT = 'preventdefault:';
@@ -159,17 +162,9 @@ export const dispatch = async (
     const attrValue = element.getAttribute('q-' + scopedKebabName);
 
     if (kebabName) {
-      const passiveScopedKebabName = 'ep:' + kebabName;
-      const passiveElementOnly =
-        scopedKebabName === 'e:' + kebabName &&
-        !handlers &&
-        !attrValue &&
-        (element.hasAttribute('q-' + passiveScopedKebabName) ||
-          !!(element as QElement)._qDispatch?.[passiveScopedKebabName]);
-
       const preventDefault = element.hasAttribute(preventAttributeName);
       const stopPropagation = element.hasAttribute(stopPropagationName);
-      if (allowPreventDefault && !passiveElementOnly && preventDefault) {
+      if (allowPreventDefault && preventDefault) {
         event.preventDefault();
       }
       if (stopPropagation) {

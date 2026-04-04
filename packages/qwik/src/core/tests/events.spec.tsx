@@ -73,4 +73,24 @@ describe.each([
       </Component>
     );
   });
+
+  it('registers touchmove as passive', async () => {
+    const Cmp = component$(() => {
+      return (
+        <div
+          passive:touchmove
+          preventdefault:touchmove
+          onTouchMove$={() => {
+            console.log('test');
+          }}
+        ></div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    const ev = await trigger(document.body, 'div', 'touchmove');
+
+    expect(ev!.defaultPrevented).toBe(false);
+  });
 });

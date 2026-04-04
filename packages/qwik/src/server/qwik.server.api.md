@@ -83,6 +83,7 @@ export interface PreloaderOptions {
     maxIdlePreloads?: number;
     // @deprecated (undocumented)
     preloadProbability?: number;
+    // @deprecated (undocumented)
     ssrPreloadProbability?: number;
     ssrPreloads?: number;
 }

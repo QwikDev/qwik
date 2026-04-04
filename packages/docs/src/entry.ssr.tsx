@@ -2,7 +2,7 @@ import { createRenderer } from '@qwik.dev/router';
 import Root from './root';
 
 // You can pass these as query parameters, as well as `preloadDebug`
-const preloaderSettings = ['ssrPreloads', 'ssrPreloadProbability', 'maxIdlePreloads'] as const;
+const preloaderSettings = ['ssrPreloads', 'maxIdlePreloads'] as const;
 
 export default createRenderer((opts) => {
   const { serverData } = opts;

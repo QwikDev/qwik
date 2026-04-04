@@ -28,7 +28,7 @@ export const createDOM: (input?: {
 }) => Promise<{
     render: (jsxElement: JSXOutput) => Promise<RenderResult>;
     screen: HTMLElement;
-    userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<void>;
+    userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<Event | null>;
 }>;
 
 // @public (undocumented)
@@ -90,7 +90,7 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
 // @public
 export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any, options?: {
     waitForIdle?: boolean;
-}): Promise<void>;
+}): Promise<Event | null>;
 
 // @public (undocumented)
 export function vnode_fromJSX(jsx: JSXOutput): {

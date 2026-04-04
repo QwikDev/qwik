@@ -77,6 +77,7 @@ describe.each([
   it('registers touchmove as passive', async () => {
     const Cmp = component$(() => {
       return (
+        // @qwik-disable-next-line preventdefault-passive-check
         <div
           passive:touchmove
           preventdefault:touchmove

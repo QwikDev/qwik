@@ -108,10 +108,10 @@ export const fromCamelToKebabCase = (text: string): string => {
   return text.replace(/([A-Z-])/g, (a) => '-' + a.toLowerCase());
 };
 
-/** E.g. `"q-e:click"` => `['e', 'click']` */
+/** E.g. `"q-e:click"` => `['e', 'click']`, `"q-ep:click"` => `['ep', 'click']` */
 export const getEventDataFromHtmlAttribute = (htmlKey: string): [string, string] => {
-  const isPassive = htmlKey.charAt(3) === 'p';
-  return [htmlKey.charAt(2), htmlKey.substring(isPassive ? 5 : 4)];
+  const separatorIndex = htmlKey.indexOf(':');
+  return [htmlKey.slice(2, separatorIndex), htmlKey.slice(separatorIndex + 1)];
 };
 
 /** E.g. `"e:click"`, `"w:load"` */

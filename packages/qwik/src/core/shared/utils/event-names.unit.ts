@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { jsxEventToHtmlAttribute } from './event-names';
+import { getEventDataFromHtmlAttribute, jsxEventToHtmlAttribute } from './event-names';
 
 /**
  * Test cases for event conversion utilities.
@@ -46,5 +46,11 @@ describe('Event conversion utilities', () => {
     it(`should convert ${test.jsx} to ${test.html} when passive`, () => {
       expect(jsxEventToHtmlAttribute(test.jsx, true)).toBe(test.html);
     });
+  });
+
+  it('should parse passive html event attributes', () => {
+    expect(getEventDataFromHtmlAttribute('q-ep:click')).toEqual(['ep', 'click']);
+    expect(getEventDataFromHtmlAttribute('q-dp:touchstart')).toEqual(['dp', 'touchstart']);
+    expect(getEventDataFromHtmlAttribute('q-wp:scroll')).toEqual(['wp', 'scroll']);
   });
 });

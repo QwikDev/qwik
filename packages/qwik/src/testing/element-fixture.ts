@@ -91,10 +91,11 @@ export async function trigger(
   let scope: QwikLoaderEventScope;
   let kebabName: string;
   let scopedKebabName: string;
-  if (eventName.charAt(1) === ':') {
+  const separatorIndex = eventName.indexOf(':');
+  if (separatorIndex !== -1) {
     scopedKebabName = eventName;
-    scope = eventName.charAt(0) as QwikLoaderEventScope;
-    kebabName = eventName.substring(2);
+    scope = eventName.slice(0, separatorIndex) as QwikLoaderEventScope;
+    kebabName = eventName.substring(separatorIndex + 1);
     if (kebabName === 'DOMContentLoaded') {
       kebabName = '-d-o-m-content-loaded';
       scopedKebabName = scope + ':' + kebabName;
@@ -128,7 +129,7 @@ export async function trigger(
       cancelable,
     });
     Object.assign(event, rest);
-    await dispatch(element, event, scopedKebabName, kebabName);
+    await dispatch(element, event, scopedKebabName, kebabName, !scope.endsWith('p'));
   }
   if (waitForIdle && container) {
     await waitForDrain(container);
@@ -145,15 +146,30 @@ export const dispatch = async (
   element: Element | null,
   event: Event,
   scopedKebabName: string,
-  kebabName: string
+  kebabName: string,
+  allowPreventDefault = true
 ) => {
   const preventAttributeName = PREVENT_DEFAULT + kebabName;
   const stopPropagationName = STOP_PROPAGATION + kebabName;
   while (element) {
+    const handlers =
+      '_qDispatch' in (element as QElement)
+        ? (element as QElement)._qDispatch?.[scopedKebabName]
+        : undefined;
+    const attrValue = element.getAttribute('q-' + scopedKebabName);
+
     if (kebabName) {
+      const passiveScopedKebabName = 'ep:' + kebabName;
+      const passiveElementOnly =
+        scopedKebabName === 'e:' + kebabName &&
+        !handlers &&
+        !attrValue &&
+        (element.hasAttribute('q-' + passiveScopedKebabName) ||
+          !!(element as QElement)._qDispatch?.[passiveScopedKebabName]);
+
       const preventDefault = element.hasAttribute(preventAttributeName);
       const stopPropagation = element.hasAttribute(stopPropagationName);
-      if (preventDefault) {
+      if (allowPreventDefault && !passiveElementOnly && preventDefault) {
         event.preventDefault();
       }
       if (stopPropagation) {
@@ -161,7 +177,6 @@ export const dispatch = async (
       }
     }
     if ('_qDispatch' in (element as QElement)) {
-      const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
       if (handlers) {
         if (typeof handlers === 'function') {
           await handlers(event, element);
@@ -173,9 +188,13 @@ export const dispatch = async (
             }
           }
         }
+        element = event.bubbles && !event.cancelBubble ? element.parentElement : null;
+        continue;
       }
-    } else if (element.hasAttribute('q-' + scopedKebabName)) {
-      const qrls = element.getAttribute('q-' + scopedKebabName)!;
+    }
+
+    if (attrValue) {
+      const qrls = attrValue;
       try {
         const qrlsArray = qrls.split('|');
         for (let i = 0; i < qrlsArray.length; i++) {
@@ -221,5 +240,5 @@ export function cleanupAttrs(innerHTML: string | undefined): any {
     ?.replaceAll(/ q:key="[^"]+"/g, '')
     .replaceAll(/ :=""/g, '')
     .replaceAll(/ :="[^"]+"/g, '')
-    .replaceAll(/ q-.:\w+="[^"]+"/g, '');
+    .replaceAll(/ q-[a-z]{1,2}:[^=]+="[^"]+"/g, '');
 }

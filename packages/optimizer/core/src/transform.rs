@@ -22,10 +22,13 @@ use std::str;
 use swc_atoms::{atom, Atom};
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::SyntaxContext;
-use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
+use swc_common::{sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast::{self, SpreadElement};
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
 use swc_ecmascript::visit::{noop_fold_type, noop_visit_type, Fold, FoldWith, Visit, VisitWith};
+
+mod disable_next_line_directive;
+use disable_next_line_directive::DisabledDiagnostics;
 
 macro_rules! id {
 	($ident: expr) => {
@@ -155,6 +158,7 @@ pub struct QwikTransform<'a> {
 	pub ref_assignments: Vec<ast::ModuleItem>,
 	/// Segment idents whose .s() calls are emitted by the Hoist drain, not ref_assignments
 	hoisted_segment_idents: HashSet<Id>,
+	disabled_diagnostics: DisabledDiagnostics,
 	/// Pending expression replacement for fold_expr (to return non-CallExpr from fold_call_expr)
 	pending_expr_replacement: Option<ast::Expr>,
 }
@@ -259,6 +263,9 @@ impl<'a> QwikTransform<'a> {
 				}
 			})
 			.collect();
+
+		let disabled_diagnostics = Self::collect_disabled_diagnostics(&options);
+
 		QwikTransform {
 			file_hash: hasher.finish(),
 			jsx_key_counter: 0,
@@ -308,6 +315,7 @@ impl<'a> QwikTransform<'a> {
 			const_initializers: HashMap::new(),
 			ref_assignments: Vec::new(),
 			hoisted_segment_idents: HashSet::new(),
+			disabled_diagnostics,
 			pending_expr_replacement: None,
 			options,
 		}
@@ -905,16 +913,15 @@ impl<'a> QwikTransform<'a> {
 			scoped_idents.retain(|id| !param_idents.contains(id));
 
 			if !can_capture && !scoped_idents.is_empty() {
-				HANDLER.with(|handler| {
-					let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
-					handler
-						.struct_span_err_with_code(
-							first_arg_span,
-							&format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
-							errors::get_diagnostic_id(errors::Error::CanNotCapture),
-						)
-						.emit();
-				});
+				let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
+				self.emit_span_error_with_code(
+					first_arg_span,
+					&format!(
+						"Qrl($) scope is not a function, but it's capturing local identifiers: {}",
+						ids.join(", ")
+					),
+					errors::get_diagnostic_code(errors::DiagnosticRule::CanNotCapture),
+				);
 				scoped_idents = vec![];
 			}
 
@@ -993,16 +1000,15 @@ impl<'a> QwikTransform<'a> {
 		scoped_idents.retain(|id| !param_idents.contains(id));
 
 		if !can_capture && !scoped_idents.is_empty() {
-			HANDLER.with(|handler| {
-				let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
-				handler
-					.struct_span_err_with_code(
-						first_arg_span,
-						&format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
-						errors::get_diagnostic_id(errors::Error::CanNotCapture),
-					)
-					.emit();
-			});
+			let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
+			self.emit_span_error_with_code(
+				first_arg_span,
+				&format!(
+					"Qrl($) scope is not a function, but it's capturing local identifiers: {}",
+					ids.join(", ")
+				),
+				errors::get_diagnostic_code(errors::DiagnosticRule::CanNotCapture),
+			);
 			scoped_idents = vec![];
 		}
 		let captures = Captures::Auto(scoped_idents.clone());
@@ -1029,17 +1035,14 @@ impl<'a> QwikTransform<'a> {
 						self.ensure_export(&root_id);
 					}
 					if invalid_decl.iter().any(|entry| entry.0 == *id) {
-						HANDLER.with(|handler| {
-							handler
-								.struct_err_with_code(
-									&format!(
-										"Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
-										id.0
-									),
-									errors::get_diagnostic_id(errors::Error::FunctionReference),
-								)
-								.emit();
-						});
+						self.emit_error_with_code(
+							first_arg_span,
+							&format!(
+								"Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
+								id.0
+							),
+							errors::get_diagnostic_code(errors::DiagnosticRule::FunctionReference),
+						);
 					}
 				}
 			}
@@ -1770,14 +1773,15 @@ impl<'a> QwikTransform<'a> {
 				if kw.as_ref().starts_with("preventdefault:") {
 					let event = kw.as_ref().strip_prefix("preventdefault:").unwrap();
 					if passive_events.contains(event) {
-						HANDLER.with(|handler| {
-							handler.struct_span_warn(
-								node.key.span(),
-								&format!(
-									"preventdefault:{event} has no effect when passive:{event} is also set; passive event listeners cannot call preventDefault()"
-								),
-							).emit();
-						});
+						self.emit_span_warning_with_code(
+							node.key.span(),
+							&format!(
+								"preventdefault:{event} has no effect when passive:{event} is also set; passive event listeners cannot call preventDefault()"
+							),
+							errors::get_diagnostic_code(
+								errors::DiagnosticRule::PreventdefaultPassiveCheck,
+							),
+						);
 						return (key_word, transformed_event_key, true);
 					}
 				}
@@ -4139,26 +4143,24 @@ impl<'a> Fold for QwikTransform<'a> {
 				} else {
 					let new_specifier =
 						convert_qrl_word(&ident.sym).expect("Specifier ends with $");
-					global_collect
-							.exports
-							.get(&new_specifier)
-							.map_or_else(
-								|| {
-									HANDLER.with(|handler| {
-										handler
-											.struct_span_err_with_code(
-												ident.span,
-												&format!("Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly", &ident.sym, &new_specifier),
-												errors::get_diagnostic_id(errors::Error::MissingQrlImplementation),
-										)
-											.emit();
-									});
-								},
-								|export_info| {
-									replace_callee =
-										Some(new_ident_from_id(&export_info.local_id).as_callee());
-								},
-							);
+					let exported_local = global_collect
+						.exports
+						.get(&new_specifier)
+						.map(|export_info| export_info.local_id.clone());
+					if let Some(exported_local) = exported_local {
+						replace_callee = Some(new_ident_from_id(&exported_local).as_callee());
+					} else {
+						self.emit_span_error_with_code(
+							ident.span,
+							&format!(
+								"Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly",
+								&ident.sym, &new_specifier
+							),
+							errors::get_diagnostic_code(
+								errors::DiagnosticRule::MissingQrlImplementation,
+							),
+						);
+					}
 				}
 			} else {
 				self.stack_ctxt.push(ident.sym.to_string());

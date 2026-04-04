@@ -93,7 +93,7 @@ test.describe('events', () => {
   });
 });
 
-test.describe.only('events with client rerender', () => {
+test.describe('events with client rerender', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/events');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));

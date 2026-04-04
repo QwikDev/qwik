@@ -6,6 +6,7 @@ use crate::entry_strategy::EntryPolicy;
 use crate::inlined_fn::{convert_inlined_fn, render_expr};
 use crate::is_const::is_const_expr;
 use crate::parse::{EmitMode, PathData};
+
 use crate::words::*;
 use crate::{errors, EntryStrategy};
 use base64::Engine;
@@ -1765,6 +1766,20 @@ impl<'a> QwikTransform<'a> {
 			if let Some(ref kw) = original_key_word {
 				if kw.as_ref().starts_with("passive:") {
 					return (key_word, transformed_event_key, true);
+				}
+				if kw.as_ref().starts_with("preventdefault:") {
+					let event = kw.as_ref().strip_prefix("preventdefault:").unwrap();
+					if passive_events.contains(event) {
+						HANDLER.with(|handler| {
+							handler.struct_span_warn(
+								node.key.span(),
+								&format!(
+									"preventdefault:{event} has no effect when passive:{event} is also set; passive event listeners cannot call preventDefault()"
+								),
+							).emit();
+						});
+						return (key_word, transformed_event_key, true);
+					}
 				}
 
 				// Transform event props (e.g., onClick$ -> q-e:click)

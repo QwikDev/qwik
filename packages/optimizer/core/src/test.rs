@@ -4790,6 +4790,32 @@ fn should_ignore_passive_jsx_events_without_handlers() {
 }
 
 #[test]
+fn should_ignore_preventdefault_with_passive() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		const PassiveOnlyComponent = component$(() => {
+			return (
+				<div>
+					<button passive:click preventdefault:click onClick$={() => {}}>
+						click
+					</button>
+					<button passive:scroll preventdefault:click preventdefault:scroll onClick$={() => {}} onScroll$={() => {}}>
+						click
+					</button>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_event_names_without_jsx_transpile() {
 	test_input!(TestInput {
 		code: r#"

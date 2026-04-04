@@ -71,6 +71,97 @@ describe('_jsxSplit', () => {
       expect(node.constProps).toBeNull();
     });
 
+    it('should drop preventdefault markers when the same event is passive', () => {
+      const node = _jsxSplit(
+        'button',
+        {
+          'preventdefault:click': true,
+          onClick$: (() => {}) as any as QRL,
+        },
+        {
+          'passive:click': true,
+        },
+        null,
+        0
+      );
+
+      expect(node.varProps['preventdefault:click']).toBeUndefined();
+      expect(node.varProps['q-ep:click']).toBeDefined();
+      expect(node.constProps?.['passive:click']).toBeUndefined();
+    });
+
+    it('should drop preventdefault markers when passive and preventdefault are both in varProps', () => {
+      const node = _jsxSplit(
+        'button',
+        {
+          'passive:click': true,
+          'preventdefault:click': true,
+          onClick$: (() => {}) as any as QRL,
+        },
+        null,
+        null,
+        0
+      );
+
+      expect(node.varProps['passive:click']).toBeUndefined();
+      expect(node.varProps['preventdefault:click']).toBeUndefined();
+      expect(node.varProps['q-ep:click']).toBeDefined();
+    });
+
+    it('should drop preventdefault markers when passive is in varProps and preventdefault is in constProps', () => {
+      const node = _jsxSplit(
+        'button',
+        {
+          'passive:click': true,
+          onClick$: (() => {}) as any as QRL,
+        },
+        {
+          'preventdefault:click': true,
+        },
+        null,
+        0
+      );
+
+      expect(node.varProps['passive:click']).toBeUndefined();
+      expect(node.varProps['q-ep:click']).toBeDefined();
+      expect(node.constProps?.['preventdefault:click']).toBeUndefined();
+    });
+
+    it('should drop preventdefault markers when passive is in constProps and preventdefault is in constProps', () => {
+      const node = _jsxSplit(
+        'button',
+        {
+          onClick$: (() => {}) as any as QRL,
+        },
+        {
+          'passive:click': true,
+          'preventdefault:click': true,
+        },
+        null,
+        0
+      );
+
+      expect(node.varProps['q-ep:click']).toBeDefined();
+      expect(node.constProps?.['passive:click']).toBeUndefined();
+      expect(node.constProps?.['preventdefault:click']).toBeUndefined();
+    });
+
+    it('should keep preventdefault markers when there is no matching passive event', () => {
+      const node = _jsxSplit(
+        'button',
+        {
+          'preventdefault:click': true,
+          onClick$: (() => {}) as any as QRL,
+        },
+        null,
+        null,
+        0
+      );
+
+      expect(node.varProps['preventdefault:click']).toBe(true);
+      expect(node.varProps['q-e:click']).toBeDefined();
+    });
+
     it('should convert multiple event handlers', () => {
       const node = _jsxSplit(
         'button',

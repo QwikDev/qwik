@@ -1,0 +1,196 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 4794
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+
+		const PassiveOnlyComponent = component$(() => {
+			return (
+				<div>
+					<button passive:click preventdefault:click onClick$={() => {}}>
+						click
+					</button>
+					<button passive:scroll preventdefault:click preventdefault:scroll onClick$={() => {}} onScroll$={() => {}}>
+						click
+					</button>
+				</div>
+			);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
+//
+/*#__PURE__*/ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;cAG+B\"}")
+============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_scroll_mEFu5wN04Ss.js (ENTRY POINT)==
+
+export const PassiveOnlyComponent_component_div_button_q_ep_scroll_mEFu5wN04Ss = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iFASsG,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_div_button_q_ep_scroll_mEFu5wN04Ss",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_scroll",
+  "hash": "mEFu5wN04Ss",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_scroll_mEFu5wN04Ss",
+  "path": "",
+  "extension": "js",
+  "parent": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onScroll$",
+  "captures": false,
+  "loc": [
+    320,
+    328
+  ]
+}
+*/
+============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA.js (ENTRY POINT)==
+
+export const PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gFAM0D,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click",
+  "hash": "w9du90RdaGA",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA",
+  "path": "",
+  "extension": "js",
+  "parent": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    180,
+    188
+  ]
+}
+*/
+============================= test.tsx_PassiveOnlyComponent_component_div_button_q_e_click_LwIFaB1GqYc.js (ENTRY POINT)==
+
+export const PassiveOnlyComponent_component_div_button_q_e_click_LwIFaB1GqYc = ()=>{};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+EASiF,KAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_div_button_q_e_click_LwIFaB1GqYc",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component_div_button_q_e_click",
+  "hash": "LwIFaB1GqYc",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_div_button_q_e_click_LwIFaB1GqYc",
+  "path": "",
+  "extension": "js",
+  "parent": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    299,
+    307
+  ]
+}
+*/
+============================= test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_PassiveOnlyComponent_component_div_button_q_e_click_LwIFaB1GqYc = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveOnlyComponent_component_div_button_q_e_click_LwIFaB1GqYc"), "PassiveOnlyComponent_component_div_button_q_e_click_LwIFaB1GqYc");
+const q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA"), "PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA");
+const q_PassiveOnlyComponent_component_div_button_q_ep_scroll_mEFu5wN04Ss = /*#__PURE__*/ qrl(()=>import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_scroll_mEFu5wN04Ss"), "PassiveOnlyComponent_component_div_button_q_ep_scroll_mEFu5wN04Ss");
+//
+export const PassiveOnlyComponent_component_LuEXQIZuHLw = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA
+        }, "click", 3, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "preventdefault:click": true,
+            "q-e:click": q_PassiveOnlyComponent_component_div_button_q_e_click_LwIFaB1GqYc,
+            "q-ep:scroll": q_PassiveOnlyComponent_component_div_button_q_ep_scroll_mEFu5wN04Ss
+        }, "click", 3, null)
+    ], 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0DAG0C;IACvC,qBACC,WAAC;sBACA,WAAC;YAA0C,YAAQ;WAAY;sBAG/D,WAAC;YAAD,sBAES;YAFyD,WAAQ;YAAY,aAAS;WAAY;;AAK9G\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component",
+  "hash": "LuEXQIZuHLw",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    92,
+    378
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[
+  {
+    "category": "warning",
+    "code": null,
+    "file": "test.tsx",
+    "message": "preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()",
+    "highlights": [
+      {
+        "lo": 127,
+        "hi": 217,
+        "startLine": 7,
+        "startCol": 21,
+        "endLine": 9,
+        "endCol": 29
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "warning",
+    "code": null,
+    "file": "test.tsx",
+    "message": "preventdefault:scroll has no effect when passive:scroll is also set; passive event listeners cannot call preventDefault()",
+    "highlights": [
+      {
+        "lo": 223,
+        "hi": 357,
+        "startLine": 10,
+        "startCol": 21,
+        "endLine": 12,
+        "endCol": 29
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

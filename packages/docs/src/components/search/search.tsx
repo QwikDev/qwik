@@ -122,6 +122,7 @@ export const SearchModal = component$(() => {
   const showEmpty = useComputed$(() => {
     return queryReady.value && !isLoading.value && !isUnavailable.value && !hasResults.value;
   });
+  const shouldScrollResults = useComputed$(() => hasResults.value && !isLoading.value);
 
   return (
     <modal.root bind:open={isOpen}>
@@ -129,31 +130,48 @@ export const SearchModal = component$(() => {
         <lucide.search class="size-6 text-foreground-base" />
       </modal.trigger>
 
-      <modal.content class="search-modal">
-        <AutocompleteInput
-          icon="search"
-          type="search"
-          value={query.value}
-          autoFocus
-          autocomplete="off"
-          placeholder="Search docs"
-          onInput$={(_, target) => {
-            query.value = target.value;
+      <modal.content
+        class={{
+          'search-modal': true,
+          'search-modal-scrollable': shouldScrollResults.value,
+        }}
+      >
+        <div
+          class={{
+            'flex flex-col': true,
+            'search-modal-body-scrollable': shouldScrollResults.value,
           }}
-        />
+        >
+          <AutocompleteInput
+            icon="search"
+            type="search"
+            value={query.value}
+            autoFocus
+            autocomplete="off"
+            placeholder="Search docs"
+            onInput$={(_, target) => {
+              query.value = target.value;
+            }}
+          />
 
-        <div class="search-results mt-10 max-h-[min(60vh,32rem)] overflow-y-auto pr-2 w-full">
-          {!queryReady.value ? (
-            <SearchIdle />
-          ) : isLoading.value ? (
-            <SearchLoading />
-          ) : isUnavailable.value ? (
-            <SearchUnavailable />
-          ) : showEmpty.value ? (
-            <SearchNoResults />
-          ) : (
-            results.value.map((group) => <SearchResults key={group.title} group={group} />)
-          )}
+          <div
+            class={{
+              'search-results mt-10 pr-2 w-full': true,
+              'search-results-scrollable': shouldScrollResults.value,
+            }}
+          >
+            {!queryReady.value ? (
+              <SearchIdle />
+            ) : isLoading.value ? (
+              <SearchLoading />
+            ) : isUnavailable.value ? (
+              <SearchUnavailable />
+            ) : showEmpty.value ? (
+              <SearchNoResults />
+            ) : (
+              results.value.map((group) => <SearchResults key={group.title} group={group} />)
+            )}
+          </div>
         </div>
       </modal.content>
     </modal.root>

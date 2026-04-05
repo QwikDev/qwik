@@ -25,7 +25,7 @@
 }
 
 .docs-main {
-  @apply min-w-0 2xl:pt-16;
+  @apply min-w-0 2xl:pt-16 pt-6;
 
   @variant xl {
     @apply order-1 w-full;

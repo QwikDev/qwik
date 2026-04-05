@@ -1,11 +1,38 @@
 @reference "../../global.css";
 
 .search-modal {
-  @apply fixed 2xl:top-6 top-4 left-1/2 w-[calc(100vw-2rem)] max-w-[548px] -translate-x-1/2 shadow-emphasis rounded-2xl p-6 border-[1.6px] border-emphasis bg-background-base;
+  @apply fixed 2xl:top-6 top-4 left-1/2 w-[calc(100vw-2rem)] max-w-[548px] -translate-x-1/2 overflow-hidden shadow-emphasis rounded-2xl p-6 border-[1.6px] border-emphasis bg-background-base;
 }
 
 .search-modal::backdrop {
   backdrop-filter: blur(6px);
+}
+
+.search-modal-scrollable .search-results-scrollable {
+  overflow-y: auto;
+}
+
+@media (max-width: 90rem) {
+  .search-modal-scrollable {
+    height: calc(100dvh - 2rem);
+    max-height: calc(100dvh - 2rem);
+  }
+
+  .search-modal-body-scrollable {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .search-results-scrollable {
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+}
+
+@media (min-width: 90rem) {
+  .search-results-scrollable {
+    max-height: min(60vh, 32rem);
+  }
 }
 
 .search-results mark {

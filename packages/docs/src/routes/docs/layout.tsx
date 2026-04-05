@@ -13,8 +13,7 @@ export { useMarkdownItems } from '../../components/sidebar/sidebar';
 export default component$(() => {
   useStyles$(styles);
   const loc = useLocation();
-  const isOverview = useComputed$(() => loc.url.pathname === '/docs/');
-  const hasOnThisPage = useComputed$(() => !isOverview.value);
+  const hasOnThisPage = useComputed$(() => loc.url.pathname !== '/docs/');
   const mobileSidebarOpen = useSignal(false);
 
   return (
@@ -22,21 +21,25 @@ export default component$(() => {
       <Header mobileSidebarOpen={mobileSidebarOpen} />
       <div class="docs-grid bg-violet-shallow">
         <Sidebar mobileOpen={mobileSidebarOpen} />
-        <main
-          class={{
-            'docs-content-area pb-10 fixed-header': true,
-            'docs-content-area-wide': isOverview.value,
-          }}
-        >
-          <div class="docs-content">
-            <article>
+        <div class="docs-shell fixed-header">
+          {hasOnThisPage.value && (
+            <div class="docs-toc">
+              <OnThisPage />
+            </div>
+          )}
+          <main
+            class={{
+              'docs-main': true,
+              'docs-main-full': !hasOnThisPage.value,
+            }}
+          >
+            <article class="docs-content">
               <Slot />
               <Contributors />
             </article>
             <ContentNav />
-          </div>
-          {hasOnThisPage.value && <OnThisPage />}
-        </main>
+          </main>
+        </div>
         <Footer />
       </div>
     </div>

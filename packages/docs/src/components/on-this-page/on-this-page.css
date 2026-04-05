@@ -1,7 +1,7 @@
 @reference "../../global.css";
 
 .on-this-page {
-  @apply sticky self-start w-[300px] overflow-y-auto pb-10 text-base top-0 pt-[40px];
+  @apply w-[300px] overflow-y-auto pb-10 text-base;
 }
 
 .on-this-page h6 {

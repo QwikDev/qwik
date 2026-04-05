@@ -54,16 +54,15 @@ const serverGreeter = server$((firstName: string, lastName: string) => {
 });
  
 export default component$(() => (
-    <button
-      onClick$={async () => {
-        const greeting = await serverGreeter('John', 'Doe');
-        alert(greeting);
-      }}
-    >
-      greet
-    </button>
-  );
-);`.trim();
+  <button
+    onClick$={async () => {
+      const greeting = await serverGreeter('John', 'Doe');
+      alert(greeting);
+    }}
+  >
+    greet
+  </button>
+));`.trim();
 
 const unusedServerBad = `
 import { component$ } from '@builder.io/qwik';
@@ -75,16 +74,15 @@ const serverGreeter = server$((firstName: string, lastName: string) => {
 });
  
 export default component$(() => (
-    <button
-      onClick$={async () => {
-        const greeting = 'not using the server$ function';
-        alert(greeting);
-      }}
-    >
-      greet
-    </button>
-  );
-);`.trim();
+  <button
+    onClick$={async () => {
+      const greeting = 'not using the server$ function';
+      alert(greeting);
+    }}
+  >
+    greet
+  </button>
+));`.trim();
 
 export const unusedServerExamples: QwikEslintExamples = {
   unusedServer: {

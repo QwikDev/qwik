@@ -3,35 +3,49 @@
 /* ─── Grid layout: sidebar | content | toc ─── */
 
 .docs-grid {
-  @apply grid min-h-screen relative;
-  grid-template-columns: minmax(0, 1fr);
+  @apply min-h-screen relative;
 
   @variant xl {
-    grid-template-columns: auto 1fr;
+    @apply grid;
+    grid-template-columns: auto minmax(0, 1fr);
   }
 }
 
-.docs main {
-  @apply min-w-0;
-}
-
-.docs-content-area {
-  @apply grid gap-10 justify-center;
-  grid-template-columns: 1fr;
+.docs-shell {
+  @apply min-w-0 px-4 pb-8 sm:px-6;
 
   @variant xl {
-    grid-template-columns: 733px 300px;
+    @apply mx-auto grid items-start px-4;
+    grid-column: 2;
+    grid-template-columns: minmax(0, 733px) 300px;
+    column-gap: 40px;
+    width: fit-content;
+    max-width: 100%;
   }
 }
 
-.docs-content-area-wide {
-  @apply flex;
+.docs-main {
+  @apply min-w-0 2xl:pt-16;
 
   @variant xl {
-    justify-self: center;
-    width: 100%;
-    max-width: 920px;
-    transform: translateX(-15%);
+    @apply order-1 w-full;
+  }
+}
+
+.docs-main-full {
+  @variant xl {
+    max-width: 973px;
+    grid-column: 1 / -1;
+  }
+}
+
+.docs-toc {
+  @apply hidden;
+
+  @variant xl {
+    @apply block order-2 self-start sticky pt-10;
+    top: 0;
+    max-height: 100vh;
   }
 }
 
@@ -39,6 +53,7 @@
   grid-column: 1 / -1;
 
   @variant xl {
+    @apply order-3;
     grid-column: 2 / -1;
   }
 }
@@ -48,7 +63,7 @@
 }
 
 .docs .docs-content {
-  @apply mx-auto px-4 pb-8 sm:px-6 2xl:pt-16 pt-6;
+  @apply min-w-0 w-full;
 }
 
 /* ─── Links ─── */

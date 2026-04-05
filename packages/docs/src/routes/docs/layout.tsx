@@ -33,9 +33,11 @@ export default component$(() => {
               'docs-main-full': !hasOnThisPage.value,
             }}
           >
-            <article class="docs-content">
+            <article class="docs-content" data-pagefind-body>
               <Slot />
-              <Contributors />
+              <div data-pagefind-ignore>
+                <Contributors />
+              </div>
             </article>
             <ContentNav />
           </main>

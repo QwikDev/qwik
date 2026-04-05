@@ -1,4 +1,4 @@
-import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-options';
+import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-option-values';
 // We use deflate because it has no metadata, just raw compression
 import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
 

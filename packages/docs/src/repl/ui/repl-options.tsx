@@ -1,5 +1,6 @@
 import { lucide } from '@qds.dev/ui';
 import type { ReplAppInput } from '../types';
+import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-option-values';
 
 export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) => {
   return (
@@ -76,11 +77,6 @@ const StoreOption = (props: StoreOptionProps) => {
     </label>
   );
 };
-
-export const BUILD_MODE_OPTIONS = ['development', 'production'];
-
-// We don't support `inline` and `hoist` for client bundles
-export const ENTRY_STRATEGY_OPTIONS = ['component', 'segment', 'single', 'smart'];
 
 interface StoreOptionProps {
   label: string;

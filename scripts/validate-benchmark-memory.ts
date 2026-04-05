@@ -15,6 +15,8 @@ const RELATIVE_TOLERANCE = 0.01;
 const GC_ROUNDS = 4;
 const execFileAsync = promisify(execFile);
 const CHILD_MEASURE_SOURCE = [
+  // Override qDev set by runBefore.ts — benchmark should measure production memory
+  'globalThis.qDev = false;',
   "import { pathToFileURL } from 'node:url';",
   `const GC_ROUNDS = ${GC_ROUNDS};`,
   'const [bundlePath, scenarioId, expectedCount] = process.argv.slice(1);',
@@ -67,6 +69,8 @@ const scenarioToMeasure = getArgValue('--measure');
 const bundlePathArg = getArgValue('--bundle');
 
 async function main() {
+  // Benchmark should measure production memory, override runBefore.ts
+  (globalThis as any).qDev = false;
   requireGc();
   const ownBundlePath = bundlePathArg ? null : await bundleMemoryScenarios();
   const bundlePath = bundlePathArg || ownBundlePath!;

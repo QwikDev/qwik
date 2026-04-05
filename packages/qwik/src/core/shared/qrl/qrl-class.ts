@@ -180,9 +180,9 @@ if (isBrowser && import.meta.hot) {
 export class LazyRef<TYPE = unknown> {
   $container$: Container | undefined;
   // Don't allocate dev property immediately so that in prod we don't have this property
-  dev?: QRLDev | null | undefined;
+  declare dev?: QRLDev | null | undefined;
   // documenter fails on WeakRef
-  qrls?: Set<any>;
+  declare qrls?: Set<any>;
 
   constructor(
     readonly $chunk$: string | null,

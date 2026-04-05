@@ -264,8 +264,7 @@ function validateResults(
     const allowedMax = Math.round(storedScenario.totalBytes * (1 + RELATIVE_TOLERANCE));
     const ok = measuredScenario.totalBytes <= allowedMax;
     const great =
-      1 - (measuredScenario.totalBytes - storedScenario.totalBytes) / storedScenario.totalBytes <
-      0.99;
+      measuredScenario.totalBytes < storedScenario.totalBytes * (1 - RELATIVE_TOLERANCE);
     const measuredPerInstance = measuredScenario.totalBytes / measuredScenario.count;
     const allowedMaxPerInstance = allowedMax / measuredScenario.count;
 

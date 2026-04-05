@@ -1,15 +1,15 @@
 ---
-title: Cookbook | Synchronous Events with State
+title: Synchronous Events with State | Advanced
 contributors:
   - mhevery
   - RumNCodeDev
 ---
 
-import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
+import CodeSandbox, {CodeFile} from '../../../../../components/code-sandbox/index.tsx';
 import { Note } from '~/components/note/note';
 
 
-# `sync$()` Synchronous Events (BETA)
+# `sync$()` Synchronous Events
 
 Qwik processes events asynchronously. This means that some APIs such as `event.preventDefault()` and `event.stopPropagation()` do not work as expected. To work around this limitation, Qwik provides a `sync$()` API which allows you to process events synchronously. But `sync$()` comes with a few caveats:
 1. `sync$()` can't close over any state.

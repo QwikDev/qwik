@@ -11,7 +11,7 @@ import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.t
 
 Building drag-and-drop functionality is a pretty common task in web development. With Qwik, you can easily implement drag-and-drop functionality by using the `onDragStart$`, `onDragOver$`, `onDragLeave$`, and `onDrop$` APIs. You need to have in mind that Qwik processes events asynchronously. This means that some APIs such as `event.preventDefault()`, `e.dataTransfer.getData()` or `e.dataTransfer.setData()` do not work as expected.
 
-To work around this limitations, Qwik provides a [sync$()](/docs/cookbook/sync-events) API which allows you to process events synchronously. For preventing the default behavior, 
+To work around this limitations, Qwik provides a [sync$()](/docs/advanced/sync-events) API which allows you to process events synchronously. For preventing the default behavior, 
 you can use the `preventdefault:dragover` and `preventdefault:drop` attributes.
 
 

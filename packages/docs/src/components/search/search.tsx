@@ -31,6 +31,7 @@ const importPagefind = async (): Promise<PagefindModuleNamespace> => {
   // gets picked up by the Qwik/Vite build and Rollup then tries to resolve it
   // as a normal source dependency, but Pagefind only exists as a generated
   // public asset after indexing.
+  // eslint-disable-next-line no-new-func
   const importer = new Function('return import("/pagefind/pagefind.js")') as () => Promise<unknown>;
   return (await importer()) as PagefindModuleNamespace;
 };

@@ -44,6 +44,7 @@
     "magic-string": "0.30.21",
     "openai": "3.3.0",
     "playwright": "1.57.0",
+    "pagefind": "1.4.0",
     "prettier": "3.7.4",
     "prism-themes": "1.9.0",
     "prismjs": "1.30.0",
@@ -59,7 +60,7 @@
     "valibot": "1.2.0",
     "vite": "7.3.1",
     "vite-tsconfig-paths": "6.0.4",
-    "wrangler": "3.114.17"
+    "wrangler": "4.80.0"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
@@ -71,8 +72,10 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "pnpm build.repl-sw && qwik build",
+    "build": "pnpm build.repl-sw && qwik build && pnpm build.pagefind",
     "build.client": "vite build && pnpm generate.llms",
+    "build.pagefind": "pagefind --output-subdir pagefind",
+    "build.pagefind.dev": "pagefind --output-path public/pagefind",
     "build.preview": "NODE_OPTIONS=--max-old-space-size=8192 vite build --ssr src/entry.preview.tsx",
     "build.repl-sw": "vite --config vite.config-repl-sw build",
     "build.server": "NODE_OPTIONS=--max-old-space-size=8192 vite build -c adapters/cloudflare-pages/vite.config",

@@ -19,6 +19,7 @@ import navQwikCoreImg from '../../media/navbar/nav-qwik-core.png';
 import navRouterImg from '../../media/navbar/nav-router.png';
 import navTutorialImg from '../../media/navbar/nav-tutorial.png';
 import { tw } from '~/utils/utils';
+import { SearchModal } from '../search/search';
 
 const ImageCard = (props: {
   href: string;
@@ -72,14 +73,21 @@ const triggerAnchorReset = 'anchor-name: none;';
 const contentAnchorReset = 'position-anchor: none;';
 const navPillIconClass = 'size-5 text-border-emphasis';
 
-const contentWidths: Record<string, string> = {
-  Core: 'w-[calc(100vw-48px)] max-w-[840px]',
-  Ecosystem: 'w-[calc(100vw-48px)] max-w-[680px]',
-  Router: 'w-[calc(100vw-48px)] max-w-[680px]',
-  Resources: 'w-[calc(100vw-48px)] max-w-[680px]',
+enum NavSections {
+  Core = 'Core',
+  Ecosystem = 'Ecosystem',
+  Router = 'Router',
+  Resources = 'Resources',
+}
+
+const contentWidths: Record<NavSections, string> = {
+  [NavSections.Core]: 'w-[calc(100vw-48px)] max-w-[840px]',
+  [NavSections.Ecosystem]: 'w-[calc(100vw-48px)] max-w-[680px]',
+  [NavSections.Router]: 'w-[calc(100vw-48px)] max-w-[680px]',
+  [NavSections.Resources]: 'w-[calc(100vw-48px)] max-w-[680px]',
 };
 
-const getContentWidthClass = (label: string) => contentWidths[label] ?? contentWidths.Core;
+const getContentWidthClass = (label: NavSections) => contentWidths[label] ?? contentWidths.Core;
 
 export const DesktopHeader = component$(() => {
   const initialized = useSignal(false);
@@ -132,7 +140,7 @@ export const DesktopHeader = component$(() => {
       class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] 2xl:block hidden"
     >
       <navbar.root
-        class="fixed top-6 left-1/2 z-99999 flex w-full h-[70px] max-w-[840px] items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-6 shadow-base transition-[translate,opacity] duration-300 ease"
+        class="fixed top-6 left-1/2 z-99999 flex w-full h-[70px] max-w-[840px] items-center justify-between rounded-2xl border-[1.6px] border-base mx-auto bg-background-base shadow-base transition-[translate,opacity] duration-300 ease px-6"
         style={{
           translate: isHidden.value ? '-50% calc(-100% - 24px)' : '-50% 0',
           opacity: isHidden.value ? 0 : 1,
@@ -154,7 +162,7 @@ export const DesktopHeader = component$(() => {
               <span>Core</span>
             </navbar.itemtrigger>
             <navbar.itemcontent
-              class={[contentBaseClass, getContentWidthClass('Core')]}
+              class={[contentBaseClass, getContentWidthClass(NavSections.Core)]}
               style={contentAnchorReset}
             >
               {/* Pills column */}
@@ -212,7 +220,7 @@ export const DesktopHeader = component$(() => {
               <span>Ecosystem</span>
             </navbar.itemtrigger>
             <navbar.itemcontent
-              class={[contentBaseClass, getContentWidthClass('Ecosystem')]}
+              class={[contentBaseClass, getContentWidthClass(NavSections.Ecosystem)]}
               style={contentAnchorReset}
             >
               <ImageCard
@@ -241,7 +249,7 @@ export const DesktopHeader = component$(() => {
               <span>Router</span>
             </navbar.itemtrigger>
             <navbar.itemcontent
-              class={[contentBaseClass, getContentWidthClass('Router')]}
+              class={[contentBaseClass, getContentWidthClass(NavSections.Router)]}
               style={contentAnchorReset}
             >
               {/* Pills column */}
@@ -292,7 +300,7 @@ export const DesktopHeader = component$(() => {
               <span>Resources</span>
             </navbar.itemtrigger>
             <navbar.itemcontent
-              class={[contentBaseClass, getContentWidthClass('Resources')]}
+              class={[contentBaseClass, getContentWidthClass(NavSections.Resources)]}
               style={contentAnchorReset}
             >
               {/* Wide image card */}
@@ -325,6 +333,9 @@ export const DesktopHeader = component$(() => {
               </div>
             </navbar.itemcontent>
           </navbar.item>
+
+          {/* ── Search ── */}
+          <SearchModal />
         </div>
 
         <Link href="/docs/getting-started" variant="primary">

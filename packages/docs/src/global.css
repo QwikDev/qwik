@@ -131,6 +131,10 @@
   --text-label-xs--line-height: 142.857%;
   --text-label-xs--font-weight: 700;
 
+  --text-label-base: 16px;
+  --text-label-base--line-height: 137.5%;
+  --text-label-base--font-weight: 700;
+
   /*
      * Spacing — uses Tailwind 4 defaults (4px base).
      * Design tokens: 8 16 24 32 40 48 56 64 72 80 88 96 104 112 120

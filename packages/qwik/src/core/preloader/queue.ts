@@ -116,7 +116,7 @@ const processAdjustmentFrame = () => {
     const probability = 1 - bundle.$inverseProbability$;
     let newInverseProbability: number;
     if (probability === 1 || probability >= 0.99) {
-      // we're loaded at max probability, so elevate dynamic imports to 99% sure
+      // bundle is requested at max probability, so elevate all its transitive static and dynamic deps to 99% sure
       newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
     } else {
       const newInverseImportProbability = 1 - dep.$importProbability$ * probability;

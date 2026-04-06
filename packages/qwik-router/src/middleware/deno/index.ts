@@ -11,6 +11,7 @@ import {
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
 import { MIME_TYPES } from '../request-handler/mime-types';
+import { normalizeRequestUrl } from '../shared/url';
 // @ts-ignore
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 import { isDev } from '@qwik.dev/core/build';
@@ -35,7 +36,7 @@ function getRequestUrl(request: Request, opts: QwikCityDenoOptions, info?: Serve
   if (!origin) {
     return url;
   }
-  return new URL(`${url.pathname}${url.search}${url.hash}`, origin);
+  return normalizeRequestUrl(`${url.pathname}${url.search}${url.hash}`, origin);
 }
 
 /** @public */

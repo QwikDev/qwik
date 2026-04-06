@@ -42,9 +42,7 @@ env:
   CARGO_INCREMENTAL: 0
 
 permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   changes:
@@ -63,13 +61,13 @@ jobs:
       hash-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-primary-key }}
       build-qwik: ${{ steps.cache-qwik.outputs.cache-hit != 'true' }}
       build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' }}
-      build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' }}
+      build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
       build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
-      build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' }}
-      build-bench: ${{ steps.cache-bench.outputs.cache-hit != 'true' }}
-      build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' }}
-      build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' }}
+      build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
+      build-bench: ${{ steps.cache-bench.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
+      build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
+      build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       build-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-hit != 'true' }}
       disttag: ${{ steps.set_dist_tag.outputs.disttag }}
 
@@ -772,8 +770,16 @@ jobs:
       - build-docs
 
     steps:
-      - name: Verify build-other-packages
-        if: needs.build-other-packages.result != 'success'
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-other-packages.result == 'success' &&
+            (
+              needs.build-docs.result == 'success' ||
+              needs.build-docs.result == 'skipped'
+            )
+          )
         run: exit 1
 
       - name: Checkout
@@ -814,6 +820,14 @@ jobs:
     if: always() && needs.changes.outputs.build-bench == 'true' && needs.test-bench.result == 'success'
 
     steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.test-bench.result == 'success'
+          )
+        run: exit 1
+
       - name: Mark benchmarks complete
         run: echo ok > bench-tests-completed.txt
 
@@ -1058,6 +1072,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
 
     needs:
       - changes

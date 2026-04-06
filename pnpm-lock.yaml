@@ -312,12 +312,6 @@ importers:
 
   packages/docs:
     devDependencies:
-      '@algolia/autocomplete-core':
-        specifier: 1.7.4
-        version: 1.7.4
-      '@algolia/client-search':
-        specifier: 4.14.3
-        version: 4.14.3
       '@emotion/react':
         specifier: 11.14.0
         version: 11.14.0(@types/react@19.2.7)(react@19.2.3)
@@ -342,9 +336,6 @@ importers:
       '@qds.dev/ui':
         specifier: 0.14.3
         version: 0.14.3(@qwik.dev/core@packages+qwik)
-      '@qwik-ui/headless':
-        specifier: 0.6.7
-        version: 0.6.7
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:../qwik
@@ -423,9 +414,6 @@ importers:
       magic-string:
         specifier: 0.30.21
         version: 0.30.21
-      openai:
-        specifier: 3.3.0
-        version: 3.3.0
       pagefind:
         specifier: 1.4.0
         version: 1.4.0
@@ -809,17 +797,8 @@ importers:
 
 packages:
 
-  '@algolia/autocomplete-core@1.7.4':
-    resolution: {integrity: sha512-daoLpQ3ps/VTMRZDEBfU8ixXd+amZcNJ4QSP3IERGyzqnL5Ch8uSRFt/4G8pUvW9c3o6GA4vtVv4I4lmnkdXyg==}
-
-  '@algolia/autocomplete-shared@1.7.4':
-    resolution: {integrity: sha512-2VGCk7I9tA9Ge73Km99+Qg87w0wzW4tgUruvWAn/gfey1ZXgmxZtyIRBebk35R1O8TbK77wujVtCnpsGpRy1kg==}
-
   '@algolia/cache-browser-local-storage@4.16.0':
     resolution: {integrity: sha512-jVrk0YB3tjOhD5/lhBtYCVCeLjZmVpf2kdi4puApofytf/R0scjWz0GdozlW4HhU+Prxmt/c9ge4QFjtv5OAzQ==}
-
-  '@algolia/cache-common@4.14.3':
-    resolution: {integrity: sha512-oZJofOoD9FQOwiGTzyRnmzvh3ZP8WVTNPBLH5xU5JNF7drDbRT0ocVT0h/xB2rPHYzOeXRrLaQQBwRT/CKom0Q==}
 
   '@algolia/cache-common@4.16.0':
     resolution: {integrity: sha512-4iHjkSYQYw46pITrNQgXXhvUmcekI8INz1m+SzmqLX8jexSSy4Ky4zfGhZzhhhLHXUP3+x/PK/c0qPjxEvRwKQ==}
@@ -833,23 +812,14 @@ packages:
   '@algolia/client-analytics@4.16.0':
     resolution: {integrity: sha512-cONWXH3BfilgdlCofUm492bJRWtpBLVW/hsUlfoFtiX1u05xoBP7qeiDwh9RR+4pSLHLodYkHAf5U4honQ55Qg==}
 
-  '@algolia/client-common@4.14.3':
-    resolution: {integrity: sha512-jkPPDZdi63IK64Yg4WccdCsAP4pHxSkr4usplkUZM5C1l1oEpZXsy2c579LQ0rvwCs5JFmwfNG4ahOszidfWPw==}
-
   '@algolia/client-common@4.16.0':
     resolution: {integrity: sha512-QVdR4019ukBH6f5lFr27W60trRxQF1SfS1qo0IP6gjsKhXhUVJuHxOCA6ArF87jrNkeuHEoRoDU+GlvaecNo8g==}
 
   '@algolia/client-personalization@4.16.0':
     resolution: {integrity: sha512-irtLafssDGPuhYqIwxqOxiWlVYvrsBD+EMA1P9VJtkKi3vSNBxiWeQ0f0Tn53cUNdSRNEssfoEH84JL97SV2SQ==}
 
-  '@algolia/client-search@4.14.3':
-    resolution: {integrity: sha512-I2U7xBx5OPFdPLA8AXKUPPxGY3HDxZ4r7+mlZ8ZpLbI8/ri6fnu6B4z3wcL7sgHhDYMwnAE8Xr0AB0h3Hnkp4A==}
-
   '@algolia/client-search@4.16.0':
     resolution: {integrity: sha512-xsfrAE1jO/JDh1wFrRz+alVyW+aA6qnkzmbWWWZWEgVF3EaFqzIf9r1l/aDtDdBtNTNhX9H3Lg31+BRtd5izQA==}
-
-  '@algolia/logger-common@4.14.3':
-    resolution: {integrity: sha512-kUEAZaBt/J3RjYi8MEBT2QEexJR2kAE2mtLmezsmqMQZTV502TkHCxYzTwY2dE7OKcUTxi4OFlMuS4GId9CWPw==}
 
   '@algolia/logger-common@4.16.0':
     resolution: {integrity: sha512-U9H8uCzSDuePJmbnjjTX21aPDRU6x74Tdq3dJmdYu2+pISx02UeBJm4kSgc9RW5jcR5j35G9gnjHY9Q3ngWbyQ==}
@@ -860,17 +830,11 @@ packages:
   '@algolia/requester-browser-xhr@4.16.0':
     resolution: {integrity: sha512-gK+kvs6LHl/PaOJfDuwjkopNbG1djzFLsVBklGBsSU6h6VjFkxIpo6Qq80IK14p9cplYZfhfaL12va6Q9p3KVQ==}
 
-  '@algolia/requester-common@4.14.3':
-    resolution: {integrity: sha512-RrRzqNyKFDP7IkTuV3XvYGF9cDPn9h6qEDl595lXva3YUk9YSS8+MGZnnkOMHvjkrSCKfoLeLbm/T4tmoIeclw==}
-
   '@algolia/requester-common@4.16.0':
     resolution: {integrity: sha512-3Zmcs/iMubcm4zqZ3vZG6Zum8t+hMWxGMzo0/uY2BD8o9q5vMxIYI0c4ocdgQjkXcix189WtZNkgjSOBzSbkdw==}
 
   '@algolia/requester-node-http@4.16.0':
     resolution: {integrity: sha512-L8JxM2VwZzh8LJ1Zb8TFS6G3icYsCKZsdWW+ahcEs1rGWmyk9SybsOe1MLnjonGBaqPWJkn9NjS7mRdjEmBtKA==}
-
-  '@algolia/transporter@4.14.3':
-    resolution: {integrity: sha512-2qlKlKsnGJ008exFRb5RTeTOqhLZj0bkMCMVskxoqWejs2Q2QtWmsiH98hDfpw0fmnyhzHEt0Z7lqxBYp8bW2w==}
 
   '@algolia/transporter@4.16.0':
     resolution: {integrity: sha512-H9BVB2EAjT65w7XGBNf5drpsW39x2aSZ942j4boSAAJPPlLmjtj5IpAP7UAtsV8g9Beslonh0bLa1XGmE/P0BA==}
@@ -2750,9 +2714,6 @@ packages:
   '@oddbird/css-anchor-positioning@0.6.1':
     resolution: {integrity: sha512-/M1guQMJROMAFjS0uTmcg93S2X5r0Gwe6m5DqmRrGxNEUe1llmY6/Qw8UuhvexP6yeD+GDCP9CJtXBJS1vS9UQ==}
 
-  '@oddbird/popover-polyfill@0.4.3':
-    resolution: {integrity: sha512-kBS0ZAwH8kZqFl0mV89KPK4cLYl2ZoKSfYngK4dz1eLAhKzTK0yu4LrvLdMeM7JhjWK6GxBtiY+cl1s6vR2pUg==}
-
   '@opentelemetry/api-logs@0.203.0':
     resolution: {integrity: sha512-9B9RU0H7Ya1Dx/Rkyc4stuBZSGVQF27WigitInx2QQoj6KUpEFYPKoWjdFTunJYxmXmh17HeBvbMa1EhGyPmqQ==}
     engines: {node: '>=8.0.0'}
@@ -3444,10 +3405,6 @@ packages:
     resolution: {integrity: sha512-xSnWgHqXbbp4WEda8rjw/YFDKQi9UhZP1ZIYUVI7z4+IzJ51H558xDV04qpKZWAHdO0XD68KVFLW12rAcS73EQ==}
     peerDependencies:
       '@qwik.dev/core': '>=2.0.0-beta.27'
-
-  '@qwik-ui/headless@0.6.7':
-    resolution: {integrity: sha512-rbBQslITfPFXpqcDlh5jKrb2hwGuTncyB9Z4Vu/8WKHO1iLiAxPcML16yKFxEBkMxq4hEjFRUc31ztg93sH3Rg==}
-    engines: {node: '>=16.0.0'}
 
   '@qwik.dev/devtools@0.2.5':
     resolution: {integrity: sha512-rM0ZXVwanth8i6MZQLy1vQ06LC2xnuLZqlHSffJHzdR22gZXX9hkSsMIijC8+Xv6M7HjfRybHJZo5TjpXzGtdA==}
@@ -4401,9 +4358,6 @@ packages:
   async@3.2.6:
     resolution: {integrity: sha512-htCUDlxyyCLMgaM3xXg0C0LW2xqfuQ6p05pCEIsXuyQ+a1koYKTuBMzRNwmybfLgvJDMd0r1LTn4+E0Ti6C2AA==}
 
-  asynckit@0.4.0:
-    resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
-
   atomic-sleep@1.0.0:
     resolution: {integrity: sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==}
     engines: {node: '>=8.0.0'}
@@ -4424,9 +4378,6 @@ packages:
 
   avvio@9.2.0:
     resolution: {integrity: sha512-2t/sy01ArdHHE0vRH5Hsay+RtCZt3dLPji7W7/MMOCEgze5b7SNDC4j5H6FnVgPkI1MTNFGzHdHrVXDDl7QSSQ==}
-
-  axios@0.26.1:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
 
   b4a@1.7.3:
     resolution: {integrity: sha512-5Q2mfq2WfGuFp3uS//0s6baOJLMoVduPYVeNmDYxu5OUA1/cBfvr2RIS7vi62LdNj/urk1hfmj867I3qt6uZ7Q==}
@@ -4505,9 +4456,6 @@ packages:
   body-parser@2.2.2:
     resolution: {integrity: sha512-oP5VkATKlNwcgvxi0vM0p/D3n2C3EReYVX+DNYs5TjZFn/oQt2j+4sVJtSMr18pdRr8wjTcBl6LoV+FUwzPmNA==}
     engines: {node: '>=18'}
-
-  body-scroll-lock-upgrade@1.1.0:
-    resolution: {integrity: sha512-nnfVAS+tB7CS9RaksuHVTpgHWHF7fE/ptIBJnwZrMqImIvWJF1OGcLnMpBhC6qhkx9oelvyxmWXwmIJXCV98Sw==}
 
   boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
@@ -4743,10 +4691,6 @@ packages:
   colors@1.4.0:
     resolution: {integrity: sha512-a+UqTh4kgZg/SlGvfbzDHpgRu7AAQOmmqRHJnxhRZICKFUT91brVhNNt58CMWU9PsBbv3PDCZUHbVxuDiH2mtA==}
     engines: {node: '>=0.1.90'}
-
-  combined-stream@1.0.8:
-    resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
-    engines: {node: '>= 0.8'}
 
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
@@ -5027,10 +4971,6 @@ packages:
 
   defu@6.1.4:
     resolution: {integrity: sha512-mEQCMmwJu317oSz8CwdIOdwf3xMif1ttiM8LTufzc3g6kR+9Pe236twL8j3IYT1F7GfRgGcW6MWxzZjLIkuHIg==}
-
-  delayed-stream@1.0.0:
-    resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
-    engines: {node: '>=0.4.0'}
 
   density-clustering@1.3.0:
     resolution: {integrity: sha512-icpmBubVTwLnsaor9qH/4tG5+7+f61VcqMN3V3pm9sxxSCt2Jcs0zWOgwZW9ARJYaKD3FumIgHiMOcIMRRAzFQ==}
@@ -5937,9 +5877,6 @@ packages:
   fn.name@1.1.0:
     resolution: {integrity: sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==}
 
-  focus-trap@7.5.4:
-    resolution: {integrity: sha512-N7kHdlgsO/v+iD/dMoJKtsSqs5Dz/dXZVebRgJw23LDk+jMi/974zyiOYDziY2JPp8xivq9BmUGwIJMiuSBi7w==}
-
   folder-walker@3.2.0:
     resolution: {integrity: sha512-VjAQdSLsl6AkpZNyrQJfO7BXLo4chnStqb055bumZMbRUPpVuPN3a4ktsnRCmrFZjtMlYLkyXiR5rAs4WOpC4Q==}
 
@@ -5959,10 +5896,6 @@ packages:
   foreground-child@3.3.1:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
     engines: {node: '>=14'}
-
-  form-data@4.0.4:
-    resolution: {integrity: sha512-KrGhL9Q4zjj0kiUt5OO4Mr/A/jlI2jDYs5eHBpYHPcBEVSiipAvn2Ko2HnPe20rmcuuvMHNdZFp+4IlGTMF0Ow==}
-    engines: {node: '>= 6'}
 
   format@0.2.2:
     resolution: {integrity: sha512-wzsgA6WOq+09wrU1tsJ09udeR/YZRaeArL9e1wPbFg3GG2yDnC2ldKpxs4xunpFF9DgqCqOIra3bc1HWrJ37Ww==}
@@ -7671,9 +7604,6 @@ packages:
     resolution: {integrity: sha512-smsWv2LzFjP03xmvFoJ331ss6h+jixfA4UUV/Bsiyuu4YJPfN+FIQGOIiv4w9/+MoHkfkJ22UIaQWRVFRfH6Vw==}
     engines: {node: '>=20'}
 
-  openai@3.3.0:
-    resolution: {integrity: sha512-uqxI/Au+aPRnsaQRe8CojU0eCR7I0mBiKjD3sNMzY6DaC1ZVrc85u98mtJW6voDug8fgGN+DIZmTDxTthxb7dQ==}
-
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
@@ -8923,9 +8853,6 @@ packages:
     resolution: {integrity: sha512-ulAk51I9UVUyJgxlv9M6lFot2WP3e7t8Kz9+IS6D4rVba1tR9kON+Ey69f+1R4Q8cd45Lod6a4IcJIxnzGc/zA==}
     engines: {node: '>=18'}
 
-  tabbable@6.2.0:
-    resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
-
   tagged-tag@1.0.0:
     resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
     engines: {node: '>=20'}
@@ -9816,17 +9743,9 @@ packages:
 
 snapshots:
 
-  '@algolia/autocomplete-core@1.7.4':
-    dependencies:
-      '@algolia/autocomplete-shared': 1.7.4
-
-  '@algolia/autocomplete-shared@1.7.4': {}
-
   '@algolia/cache-browser-local-storage@4.16.0':
     dependencies:
       '@algolia/cache-common': 4.16.0
-
-  '@algolia/cache-common@4.14.3': {}
 
   '@algolia/cache-common@4.16.0': {}
 
@@ -9847,11 +9766,6 @@ snapshots:
       '@algolia/requester-common': 4.16.0
       '@algolia/transporter': 4.16.0
 
-  '@algolia/client-common@4.14.3':
-    dependencies:
-      '@algolia/requester-common': 4.14.3
-      '@algolia/transporter': 4.14.3
-
   '@algolia/client-common@4.16.0':
     dependencies:
       '@algolia/requester-common': 4.16.0
@@ -9863,19 +9777,11 @@ snapshots:
       '@algolia/requester-common': 4.16.0
       '@algolia/transporter': 4.16.0
 
-  '@algolia/client-search@4.14.3':
-    dependencies:
-      '@algolia/client-common': 4.14.3
-      '@algolia/requester-common': 4.14.3
-      '@algolia/transporter': 4.14.3
-
   '@algolia/client-search@4.16.0':
     dependencies:
       '@algolia/client-common': 4.16.0
       '@algolia/requester-common': 4.16.0
       '@algolia/transporter': 4.16.0
-
-  '@algolia/logger-common@4.14.3': {}
 
   '@algolia/logger-common@4.16.0': {}
 
@@ -9887,19 +9793,11 @@ snapshots:
     dependencies:
       '@algolia/requester-common': 4.16.0
 
-  '@algolia/requester-common@4.14.3': {}
-
   '@algolia/requester-common@4.16.0': {}
 
   '@algolia/requester-node-http@4.16.0':
     dependencies:
       '@algolia/requester-common': 4.16.0
-
-  '@algolia/transporter@4.14.3':
-    dependencies:
-      '@algolia/cache-common': 4.14.3
-      '@algolia/logger-common': 4.14.3
-      '@algolia/requester-common': 4.14.3
 
   '@algolia/transporter@4.16.0':
     dependencies:
@@ -12013,8 +11911,6 @@ snapshots:
       css-tree: 3.1.0
       nanoid: 5.1.6
 
-  '@oddbird/popover-polyfill@0.4.3': {}
-
   '@opentelemetry/api-logs@0.203.0':
     dependencies:
       '@opentelemetry/api': 1.9.0
@@ -12466,15 +12362,6 @@ snapshots:
       '@oddbird/css-anchor-positioning': 0.6.1
       '@qwik.dev/core': link:packages/qwik
       temporal-polyfill: 0.3.2
-
-  '@qwik-ui/headless@0.6.7':
-    dependencies:
-      '@builder.io/qwik': link:packages/qwik
-      '@floating-ui/core': 1.7.3
-      '@floating-ui/dom': 1.7.4
-      '@oddbird/popover-polyfill': 0.4.3
-      body-scroll-lock-upgrade: 1.1.0
-      focus-trap: 7.5.4
 
   '@qwik.dev/devtools@0.2.5(@qwik.dev/core@packages+qwik)(@qwik.dev/router@packages+qwik-router)(@tailwindcss/vite@4.1.18(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2)))(tailwindcss@4.1.18)(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2))':
     dependencies:
@@ -13552,8 +13439,6 @@ snapshots:
 
   async@3.2.6: {}
 
-  asynckit@0.4.0: {}
-
   atomic-sleep@1.0.0: {}
 
   atomically@2.0.3:
@@ -13578,12 +13463,6 @@ snapshots:
     dependencies:
       '@fastify/error': 4.2.0
       fastq: 1.19.1
-
-  axios@0.26.1:
-    dependencies:
-      follow-redirects: 1.15.11(debug@4.4.3)
-    transitivePeerDependencies:
-      - debug
 
   b4a@1.7.3: {}
 
@@ -13674,8 +13553,6 @@ snapshots:
       type-is: 2.0.1
     transitivePeerDependencies:
       - supports-color
-
-  body-scroll-lock-upgrade@1.1.0: {}
 
   boolbase@1.0.0: {}
 
@@ -13897,10 +13774,6 @@ snapshots:
       color-string: 2.1.2
 
   colors@1.4.0: {}
-
-  combined-stream@1.0.8:
-    dependencies:
-      delayed-stream: 1.0.0
 
   comma-separated-tokens@2.0.3: {}
 
@@ -14154,8 +14027,6 @@ snapshots:
       object-keys: 1.1.1
 
   defu@6.1.4: {}
-
-  delayed-stream@1.0.0: {}
 
   density-clustering@1.3.0(patch_hash=69aaf4eca107f315672d9346910ffffc755c7836f40794e9233441514a7fb84d): {}
 
@@ -15211,10 +15082,6 @@ snapshots:
 
   fn.name@1.1.0: {}
 
-  focus-trap@7.5.4:
-    dependencies:
-      tabbable: 6.2.0
-
   folder-walker@3.2.0:
     dependencies:
       from2: 2.3.0
@@ -15231,14 +15098,6 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
-
-  form-data@4.0.4:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      es-set-tostringtag: 2.1.0
-      hasown: 2.0.2
-      mime-types: 2.1.35
 
   format@0.2.2: {}
 
@@ -17433,13 +17292,6 @@ snapshots:
       powershell-utils: 0.1.0
       wsl-utils: 0.3.1
 
-  openai@3.3.0:
-    dependencies:
-      axios: 0.26.1
-      form-data: 4.0.4
-    transitivePeerDependencies:
-      - debug
-
   optionator@0.9.4:
     dependencies:
       deep-is: 0.1.4
@@ -18918,8 +18770,6 @@ snapshots:
       - typescript
 
   system-architecture@0.1.0: {}
-
-  tabbable@6.2.0: {}
 
   tagged-tag@1.0.0: {}
 

@@ -6,8 +6,6 @@ import type { QwikManifest } from './types';
 
 export type {
   PrefetchResource,
-  PrefetchImplementation,
-  PrefetchStrategy,
   PreloaderOptions,
   RenderToStringOptions,
   RenderToStringResult,

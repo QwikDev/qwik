@@ -43,27 +43,14 @@ export const preloaderPre = (
     bundleGraphPath = (import.meta.env.BASE_URL || '/') + bundleGraphPath;
   }
   if (preloaderBundle && bundleGraphPath && options !== false) {
-    const preloaderOpts: Parameters<typeof initPreloader>[1] =
-      typeof options === 'object'
-        ? {
-            debug: options.debug,
-            preloadProbability: options.ssrPreloadProbability,
-          }
-        : undefined;
     const bundleGraph = container.resolvedManifest?.manifest.bundleGraph;
-    initPreloader(bundleGraph, preloaderOpts);
+    initPreloader(bundleGraph);
 
     // Add the preloader script to the head
     const opts: string[] = [];
     if (options) {
-      if (options.debug) {
-        opts.push('d:1');
-      }
       if (options.maxIdlePreloads) {
         opts.push(`P:${options.maxIdlePreloads}`);
-      }
-      if (options.preloadProbability) {
-        opts.push(`Q:${options.preloadProbability}`);
       }
     }
     const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
@@ -232,8 +219,5 @@ export const getBundles = (qrls: QRLInternal[]) => {
 
 const preLoaderOptionsDefault: Required<PreloaderOptions> = {
   ssrPreloads: 7,
-  ssrPreloadProbability: 0.3, // deprecated
-  debug: false,
   maxIdlePreloads: 25,
-  preloadProbability: 0.35, // deprecated
 };

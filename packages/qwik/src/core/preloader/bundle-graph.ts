@@ -73,19 +73,11 @@ export const loadBundleGraph = (
   opts?: {
     /** Maximum number of simultaneous preload links */
     P?: number;
-    /** Minimum probability for a bundle to be added to the preload queue */
-    Q?: number;
   }
 ) => {
   if (opts) {
-    if ('d' in opts) {
-      config.$DEBUG$ = !!opts.d;
-    }
     if ('P' in opts) {
       config.$maxIdlePreloads$ = opts['P'] as number;
-    }
-    if ('Q' in opts) {
-      config.$invPreloadProbability$ = 1 - (opts['Q'] as number);
     }
   }
   if (!isBrowser || basePath == null) {
@@ -132,18 +124,7 @@ export const loadBundleGraph = (
 };
 
 /** Used during SSR */
-export const initPreloader = (
-  serializedBundleGraph?: (string | number)[],
-  opts?: {
-    debug?: boolean;
-    preloadProbability?: number;
-  }
-) => {
-  if (opts) {
-    if (typeof opts.preloadProbability === 'number') {
-      config.$invPreloadProbability$ = 1 - opts.preloadProbability;
-    }
-  }
+export const initPreloader = (serializedBundleGraph?: (string | number)[]) => {
   if (base != null || !serializedBundleGraph) {
     return;
   }

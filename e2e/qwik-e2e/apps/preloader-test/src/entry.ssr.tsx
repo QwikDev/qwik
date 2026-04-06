@@ -15,8 +15,7 @@ import Root from './root';
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
     preloader: {
-      debug: false,
-      ssrPreloads: 0,
+      ssrPreloads: 5,
       maxIdlePreloads: 1,
     },
     ...opts,

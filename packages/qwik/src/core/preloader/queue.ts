@@ -1,5 +1,5 @@
 import { isBrowser } from '@qwik.dev/core/build';
-import { base, getBundle, graph } from './bundle-graph';
+import { base, getBundle } from './bundle-graph';
 import { config, doc, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {

@@ -27,19 +27,6 @@ import { isPropsProxy } from '../jsx/props-proxy';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
-import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
-import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
-import { isPromise, maybeThen } from '../utils/promises';
-import { fastSkipSerialize, SerializerSymbol } from './verify';
-import { Constants, TypeIds } from './constants';
-import { qrlToString } from './qrl-to-string';
-import {
-  SerializationBackRef,
-  type SeenRef,
-  type SerializationContext,
-} from './serialization-context';
-import { isObjectEmpty } from '../utils/objects';
 import {
   BRACKET_CLOSE,
   BRACKET_OPEN,
@@ -48,7 +35,19 @@ import {
   ESCAPED_CLOSE_TAG,
   QUOTE,
 } from '../ssr-const';
-import { _EFFECT_BACK_REF } from '../../reactive-primitives/backref';
+import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
+import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
+import { ELEMENT_ID, ELEMENT_PROPS } from '../utils/markers';
+import { isObjectEmpty } from '../utils/objects';
+import { isPromise, maybeThen } from '../utils/promises';
+import { Constants, TypeIds } from './constants';
+import { qrlToString } from './qrl-to-string';
+import {
+  SerializationBackRef,
+  type SeenRef,
+  type SerializationContext,
+} from './serialization-context';
+import { fastSkipSerialize, SerializerSymbol } from './verify';
 
 /**
  * Format:
@@ -510,22 +509,12 @@ export class Serializer {
         vNodeData[0] |= VNodeDataFlag.SERIALIZE;
       }
       if (value.children) {
-        // can be static, but we need to save vnode data structure + discover the back refs
+        // Mark child vnode data for serialization (structure only, no value discovery needed)
         const childrenLength = value.children.length;
         for (let i = 0; i < childrenLength; i++) {
           const child = value.children[i];
           const childVNodeData = child.vnodeData;
           if (childVNodeData) {
-            // add all back refs to the roots
-            for (let i = 0; i < childVNodeData.length; i++) {
-              const value = childVNodeData[i];
-              if (isSsrAttrs(value)) {
-                const backRefs = tryGetBackRefs(value);
-                if (backRefs) {
-                  this.$serializationContext$.$addRoot$(backRefs);
-                }
-              }
-            }
             childVNodeData[0] |= VNodeDataFlag.SERIALIZE;
           }
         }
@@ -784,12 +773,6 @@ function serializeWrappingFn(
     value.$func$
   );
   return [syncFnId, value.$args$] as const;
-}
-
-function tryGetBackRefs(props: Props): Map<string, EffectSubscription> | undefined {
-  return Object.prototype.hasOwnProperty.call(props, QBackRefs)
-    ? (props[QBackRefs] as Map<string, EffectSubscription>)
-    : undefined;
 }
 
 class SerializationWeakRef {

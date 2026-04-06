@@ -57,6 +57,7 @@ jobs:
       hash-docs: ${{ steps.cache-docs.outputs.cache-primary-key }}
       hash-insights: ${{ steps.cache-insights.outputs.cache-primary-key }}
       hash-unit: ${{ steps.cache-unit.outputs.cache-primary-key }}
+      hash-bench: ${{ steps.cache-bench.outputs.cache-primary-key }}
       hash-e2e: ${{ steps.cache-e2e.outputs.cache-primary-key }}
       hash-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-primary-key }}
       hash-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-primary-key }}
@@ -66,6 +67,7 @@ jobs:
       build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
       build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
       build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' }}
+      build-bench: ${{ steps.cache-bench.outputs.cache-hit != 'true' }}
       build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' }}
       build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' }}
       build-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-hit != 'true' }}
@@ -188,6 +190,13 @@ jobs:
           lookup-only: true
           path: unit-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'packages/**/*.unit.*') }}
+      - name: 'check cache: benchmarks'
+        id: cache-bench
+        uses: actions/cache/restore@v4
+        with:
+          lookup-only: true
+          path: bench-tests-completed.txt
+          key: ${{ hashfiles('others-key.txt', 'packages/**/*.bench.*', 'scripts/validate-bench*', 'packages/docs/**/*') }}
       - name: 'check cache: e2e tests'
         id: cache-e2e
         uses: actions/cache/restore@v4
@@ -725,10 +734,6 @@ jobs:
 
       - name: Unit Tests
         run: pnpm run test.unit
-        
-      - name: Benchmark Tests
-        if: matrix.settings.host == 'ubuntu-latest'
-        run: pnpm run test.bench
 
   save-unit-tests-cache:
     name: Save Unit Tests Cache
@@ -755,6 +760,68 @@ jobs:
         with:
           key: ${{ needs.changes.outputs.hash-unit }}
           path: unit-tests-completed.txt
+
+  ############ BENCHMARK TEST ############
+  test-bench:
+    name: Benchmark Tests
+    if: always() && needs.changes.outputs.build-bench == 'true'
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - build-other-packages
+      - build-docs
+
+    steps:
+      - name: Verify build-other-packages
+        if: needs.build-other-packages.result != 'success'
+        run: exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Move Distribution Artifacts
+        run: pnpm ci.restore-artifacts
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Timing Benchmarks
+        run: pnpm run test.bench.timing
+
+      - name: Memory Benchmarks
+        run: pnpm run test.bench.memory
+
+      - name: Docs Size Benchmarks
+        if: needs.build-docs.result == 'success'
+        run: pnpm run test.bench.docs-size
+
+  save-bench-cache:
+    name: Save Benchmark Cache
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - test-bench
+    if: always() && needs.changes.outputs.build-bench == 'true' && needs.test-bench.result == 'success'
+
+    steps:
+      - name: Mark benchmarks complete
+        run: echo ok > bench-tests-completed.txt
+
+      - name: Save benchmarks cache
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ needs.changes.outputs.hash-bench }}
+          path: bench-tests-completed.txt
 
   ############ E2E TEST ############
   test-e2e:
@@ -1110,6 +1177,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test-unit
+      - test-bench
       - test-e2e
       - test-e2e-docs
       - test-cli-e2e
@@ -1122,6 +1190,7 @@ jobs:
         if: |
           !(
             (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
+            (needs.test-bench.result == 'success' || needs.test-bench.result == 'skipped') &&
             (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
             (needs.test-e2e-docs.result == 'success' || needs.test-e2e-docs.result == 'skipped') &&
             (needs.test-cli-e2e.result == 'success' || needs.test-cli-e2e.result == 'skipped') &&

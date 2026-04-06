@@ -16,9 +16,6 @@ export default createRenderer((opts) => {
           ...(typeof opts.preloader === 'object' ? opts.preloader : undefined),
         },
       };
-      if (searchParams.has('preloaderDebug')) {
-        newOpts.preloader!.debug = true;
-      }
       for (const type of preloaderSettings) {
         if (searchParams.has(type)) {
           newOpts.preloader[type] = Number(searchParams.get(type));

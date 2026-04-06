@@ -73,9 +73,8 @@ test('appends preloads directly to head within a trigger slice', async () => {
 
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const { initPreloader } = await import('./bundle-graph');
-  const { preload, resetQueue, getQueue } = await import('./queue');
+  const { preload } = await import('./queue');
 
-  resetQueue();
   initPreloader(['entry-a.js', 'entry-b.js']);
   preload(['entry-a.js', 'entry-b.js'], 1);
 
@@ -87,7 +86,6 @@ test('appends preloads directly to head within a trigger slice', async () => {
   expect(headAppend).toHaveBeenCalledTimes(2);
   expect(headAppend.mock.calls[0][0].nodeName).toBe('LINK');
   expect(document.head.querySelectorAll('link').length).toBe(2);
-  expect(getQueue()).toEqual([]);
 });
 
 test('yields after the frame budget and resumes later', async () => {
@@ -106,25 +104,21 @@ test('yields after the frame budget and resumes later', async () => {
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
   const { initPreloader } = await import('./bundle-graph');
-  const { preload, resetQueue, getQueue } = await import('./queue');
+  const { preload } = await import('./queue');
 
-  resetQueue();
   initPreloader(['entry-a.js', 'entry-b.js', 'entry-c.js']);
   preload(['entry-a.js', 'entry-b.js', 'entry-c.js'], 1);
 
-  expect(getQueue()).toEqual([]);
   expect(document.head.querySelectorAll('link').length).toBe(0);
   expect(headAppend).toHaveBeenCalledTimes(0);
 
   vi.advanceTimersToNextTimer();
 
-  expect(getQueue()).toEqual([10, 'entry-c.js', 'entry-b.js', 'entry-a.js']);
   expect(document.head.querySelectorAll('link').length).toBe(0);
   expect(headAppend).toHaveBeenCalledTimes(0);
 
   vi.advanceTimersToNextTimer();
 
-  expect(getQueue()).toEqual([10, 'entry-b.js', 'entry-a.js']);
   expect(document.head.querySelectorAll('link').length).toBe(1);
   expect(headAppend).toHaveBeenCalledTimes(1);
   expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
@@ -133,13 +127,11 @@ test('yields after the frame budget and resumes later', async () => {
 
   expect(document.head.querySelectorAll('link').length).toBe(2);
   expect(headAppend).toHaveBeenCalledTimes(2);
-  expect(getQueue()).toEqual([10, 'entry-a.js']);
 
   vi.advanceTimersToNextTimer();
 
   expect(document.head.querySelectorAll('link').length).toBe(3);
   expect(headAppend).toHaveBeenCalledTimes(3);
-  expect(getQueue()).toEqual([]);
 });
 
 test('yields during dependency propagation and resumes later', async () => {
@@ -164,9 +156,8 @@ test('yields during dependency propagation and resumes later', async () => {
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
   const { initPreloader } = await import('./bundle-graph');
-  const { preload, resetQueue, getQueue } = await import('./queue');
+  const { preload } = await import('./queue');
 
-  resetQueue();
   initPreloader(createLinearGraph(4));
   preload('entry-a.js', 1);
 
@@ -174,19 +165,16 @@ test('yields during dependency propagation and resumes later', async () => {
   expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
   expect(document.head.querySelectorAll('link').length).toBe(0);
   expect(headAppend).toHaveBeenCalledTimes(0);
-  expect(getQueue()).toEqual([]);
 
   vi.advanceTimersToNextTimer();
 
   expect(document.head.querySelectorAll('link').length).toBe(0);
   expect(headAppend).toHaveBeenCalledTimes(0);
-  expect(getQueue()).toEqual([10, 'entry-a.js', 'dep-1.js', 'dep-2.js']);
 
   vi.runAllTimers();
 
   expect(document.head.querySelectorAll('link').length).toBe(4);
   expect(headAppend.mock.calls.length).toBeGreaterThanOrEqual(1);
-  expect(getQueue()).toEqual([]);
 });
 
 test('can yield more than once while propagating dependencies', async () => {
@@ -209,27 +197,23 @@ test('can yield more than once while propagating dependencies', async () => {
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
   const { initPreloader } = await import('./bundle-graph');
-  const { preload, resetQueue, getQueue } = await import('./queue');
+  const { preload } = await import('./queue');
 
-  resetQueue();
   initPreloader(createLinearGraph(7));
   preload('entry-a.js', 1);
 
   expect(timeoutSpy).toHaveBeenCalledTimes(1);
   expect(document.head.querySelectorAll('link').length).toBe(0);
-  expect(getQueue()).toEqual([]);
 
   vi.advanceTimersToNextTimer();
 
   expect(timeoutSpy.mock.calls.length).toBeGreaterThan(2);
   expect(document.head.querySelectorAll('link').length).toBeLessThan(7);
-  expect(getQueue()).toEqual([10, 'entry-a.js']);
 
   vi.runAllTimers();
 
   expect(document.head.querySelectorAll('link').length).toBe(7);
   expect(headAppend.mock.calls.length).toBeGreaterThan(1);
-  expect(getQueue()).toEqual([]);
 });
 
 test('defers bundle graph re-adjustment to a later task', async () => {
@@ -244,9 +228,8 @@ test('defers bundle graph re-adjustment to a later task', async () => {
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
   const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload, resetQueue } = await import('./queue');
+  const { preload } = await import('./queue');
 
-  resetQueue();
   preload('entry-a.js', 1);
   loadBundleGraph(
     '',

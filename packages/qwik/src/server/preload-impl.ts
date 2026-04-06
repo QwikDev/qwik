@@ -1,4 +1,4 @@
-import { expandBundles, getPreloadPaths } from './preload-strategy';
+import { getPlatform } from '@qwik.dev/core';
 import { initPreloader } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
 import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
@@ -143,9 +143,8 @@ export const includePreloader = (
   if (allowedSsrPreloads) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
     const coreBundle = resolvedManifest?.manifest.core;
-    const expandedBundles = expandBundles(referencedBundles, resolvedManifest);
-    for (let i = 0; i < expandedBundles.length; i++) {
-      const href = expandedBundles[i];
+    for (let i = 0; i < referencedBundles.length; i++) {
+      const href = referencedBundles[i];
       // we already preload the preloader and core bundles
       if (href === preloaderBundle || href === coreBundle) {
         continue;
@@ -204,12 +203,8 @@ export const includePreloader = (
 export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, nonce?: string) => {
   if (opts.preloader !== false) {
     const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
-    // skip prefetch implementation if prefetchStrategy === null
-    const preloadBundles = getPreloadPaths(qrls, opts, ssrContainer.resolvedManifest);
-    // If no preloadBundles, there is no reactivity, so no need to include the preloader
-    if (preloadBundles.length > 0) {
-      includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce);
-    }
+    const preloadBundles = getBundles(qrls);
+    includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce);
   }
 };
 
@@ -218,6 +213,22 @@ function normalizePreLoaderOptions(
 ): Required<PreloaderOptions> {
   return { ...preLoaderOptionsDefault, ...input };
 }
+
+export const getBundles = (qrls: QRLInternal[]) => {
+  const platform = getPlatform();
+  const bundles = (qrls as QRLInternal[])
+    ?.map((qrl) => {
+      const symbol = qrl.$symbol$;
+      const chunk = qrl.$chunk$;
+      const result = platform.chunkForSymbol(symbol, chunk, qrl.dev?.file);
+      if (result) {
+        return result[1];
+      }
+      return chunk;
+    })
+    .filter(Boolean) as string[];
+  return [...new Set(bundles)];
+};
 
 const preLoaderOptionsDefault: Required<PreloaderOptions> = {
   ssrPreloads: 7,

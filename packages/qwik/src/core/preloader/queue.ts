@@ -1,6 +1,6 @@
 import { isBrowser } from '@qwik.dev/core/build';
 import { base, getBundle, graph } from './bundle-graph';
-import { config, doc, loadStart, rel, yieldInterval } from './constants';
+import { config, doc, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {
   BundleImportState_Loaded,
@@ -35,44 +35,11 @@ type AdjustmentFrame = {
 
 const adjustmentStack: AdjustmentFrame[] = [];
 
-export const resetQueue = () => {
-  bundles.clear();
-  queueDirty = false;
-  shouldResetFactor = true;
-  preloadCount = 0;
-  queue.length = 0;
-  adjustmentStack.length = 0;
-  isTriggerScheduled = false;
-  isAdjustmentScheduled = false;
-  isProcessingAdjustments = false;
-};
 export const sortQueue = () => {
   if (queueDirty) {
     queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
     queueDirty = false;
   }
-};
-/**
- * This returns `[probability, url1, url2, probability, url3, ...]` in the way `preload()` expects.
- *
- * `probability` is a number between 0 and 10.
- *
- * The client will use this array to reconstruct the queue.
- */
-export const getQueue = () => {
-  sortQueue();
-  let probability = 0.4;
-  const result: (string | number)[] = [];
-  for (let i = 0; i < queue.length; i++) {
-    const b = queue[i];
-    const nextProbability = Math.round((1 - b.$inverseProbability$) * 10);
-    if (nextProbability !== probability) {
-      probability = nextProbability;
-      result.push(probability);
-    }
-    result.push(b.$name$);
-  }
-  return result;
 };
 
 /**
@@ -96,12 +63,8 @@ function trigger() {
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
     const probability = 1 - inverseProbability;
-    const allowedPreloads = graph
-      ? config.$maxIdlePreloads$
-      : // While the graph is not available, we limit to 5 preloads
-        5;
-    // When we're 99% sure, everything needs to be queued
-    if (probability >= 0.99 || preloadCount < allowedPreloads) {
+    // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
+    if (probability >= 0.99 || preloadCount < config.$maxIdlePreloads$) {
       queue.shift();
       preloadOne(bundle);
       if (performance.now() >= deadline) {

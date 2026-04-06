@@ -6,12 +6,17 @@ import {
   Slot,
   useSignal,
   useStyles$,
+  useStylesQrl,
 } from '@qwik.dev/core';
 import { renderToString } from '@qwik.dev/core/server';
 import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
 import { getPlatform, setPlatform } from '../shared/platform/platform';
 import { QStyleSelector } from '../shared/utils/markers';
+import { inlinedQrl } from '../shared/qrl/qrl';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { _useHmr } from '../internal';
+import { waitForDrain } from '@qwik.dev/core/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -190,6 +195,46 @@ describe.each([
     const qStyles = container.document.querySelectorAll(QStyleSelector);
     expect(qStyles).toHaveLength(2);
   });
+  it.skipIf(render !== domRender)('should update style content on HMR re-render', async () => {
+    const INITIAL_CSS = `.hmr-test { color: red; }`;
+    const UPDATED_CSS = `.hmr-test { color: green; }`;
+
+    // Create a QRL we can mutate to simulate HMR updating the module
+    const styleQrl = inlinedQrl(INITIAL_CSS, 'hmrStyleQrl') as QRLInternal<string>;
+
+    const StyledComponent = component$(() => {
+      useStylesQrl(styleQrl);
+      _useHmr('hmr-styles.tsx');
+      return (
+        <div class="hmr-test" data-qwik-inspector="hmr-styles.tsx:1:1">
+          styled
+        </div>
+      );
+    });
+
+    const { container } = await render(<StyledComponent />, { debug });
+
+    // Verify initial style content
+    const styleEl = container.document.querySelector(QStyleSelector) as HTMLStyleElement;
+    expect(styleEl).toBeTruthy();
+    expect(styleEl.textContent).toBe(INITIAL_CSS);
+
+    // Simulate HMR: update the QRL's resolved value (as Vite would do)
+    styleQrl.resolved = UPDATED_CSS;
+
+    // Trigger HMR re-render (component body re-executes with new resolved value)
+    const t = Date.now();
+    (container.document as any).__hmrT = t; // Simulate Vite's HMR timestamp update
+    await trigger(container.element, null, 'd:q-hmr', {
+      detail: { files: ['hmr-styles.tsx'], t },
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    await waitForDrain(container);
+
+    // The style element content should have been updated in-place
+    expect(styleEl.textContent).toBe(UPDATED_CSS);
+  });
+
   it('should skip style node in front of text node', async () => {
     const InnerCmp = component$(() => {
       return <div>Hello world</div>;

@@ -1,6 +1,5 @@
 // keep these imports above the rest to prevent circular dep issues
 import { getPlatform, isServerPlatform } from '../platform/platform';
-import { verifySerializable } from '../serdes/verify';
 // ^^^ keep these imports above the rest to prevent circular dep issues
 
 import { isBrowser, isDev } from '@qwik.dev/core/build';
@@ -12,6 +11,7 @@ import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
 import { isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
+import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
@@ -79,7 +79,6 @@ export type QRLInternalMethods<TYPE> = {
   readonly $lazy$: LazyRef<TYPE>;
 };
 
-let allLazyRefs: Map<string, LazyRef<any>> | undefined;
 let getLazyRef: <TYPE>(
   chunk: string | null,
   symbol: string,
@@ -89,89 +88,6 @@ let getLazyRef: <TYPE>(
 ) => LazyRef<TYPE> = (chunk, symbol, symbolFn, ref, container) => {
   return new LazyRef(chunk, symbol, symbolFn, ref, container);
 };
-
-if (isBrowser && import.meta.hot) {
-  allLazyRefs = new Map<string, LazyRef<any>>();
-
-  getLazyRef = (chunk, symbol, symbolFn, ref, container) => {
-    let lazyRef = allLazyRefs!.get(symbol);
-    if (!lazyRef) {
-      lazyRef = new LazyRef(chunk, symbol, symbolFn, ref, container);
-      // Ignore sync QRLs
-      if (chunk !== '') {
-        allLazyRefs!.set(symbol, lazyRef);
-      }
-    }
-    return lazyRef;
-  };
-
-  /** Replace or add `?t=<timestamp>` to a URL, preserving other query params. */
-  const bustTimestamp = (url: string, t: number | string): string => {
-    const [path, query] = url.split('?', 2);
-    if (!query) {
-      return `${path}?t=${t}`;
-    }
-    const params = query.split('&').filter((p) => !p.startsWith('t='));
-    params.push(`t=${t}`);
-    return `${path}?${params.join('&')}`;
-  };
-
-  document.addEventListener('qHmr' as any, (ev: CustomEvent<{ files: string[]; t: number }>) => {
-    const files = ev.detail.files;
-    const t = ev.detail.t || (document as any).__hmrT || Date.now();
-    let didReload = false;
-    for (const lazy of allLazyRefs!.values()) {
-      const devFile = lazy.dev?.file || lazy.$chunk$;
-      if (!devFile || !files.some((file) => devFile.startsWith(file))) {
-        continue;
-      }
-      const chunk = lazy.$chunk$;
-      if (chunk) {
-        (lazy as any).$chunk$ = bustTimestamp(chunk, t);
-        didReload = true;
-      }
-      const fnStr = lazy.$symbolFn$?.toString();
-      if (fnStr) {
-        const newStr = fnStr.replace(/import\((['"])(.+?)\1\)/, (match, p1, p2) => {
-          const newPath = bustTimestamp(p2, t);
-          return `import(${p1}${newPath}${p1})`;
-        });
-        if (newStr !== fnStr) {
-          try {
-            // eslint-disable-next-line no-new-func
-            (lazy as any).$symbolFn$ = new Function(`return (${newStr})`)() as () => Promise<
-              Record<string, any>
-            >;
-            didReload = true;
-          } catch (err) {
-            console.error(`Failed to update symbolFn for ${lazy.$symbol$}`, err);
-          }
-        } else {
-          console.warn(
-            `Couldn't find import() in symbolFn for ${lazy.$symbol$}, cannot update it for HMR`,
-            fnStr
-          );
-        }
-      }
-      if (didReload) {
-        lazy.$ref$ = undefined;
-        (document as any).__hmrDone = (document as any).__hmrT;
-        if (lazy.qrls) {
-          for (const qrlRef of lazy.qrls) {
-            const qrl = qrlRef.deref();
-            if (qrl) {
-              if (qrl.resolved) {
-                qrl.resolved = undefined;
-              }
-            } else {
-              lazy.qrls!.delete(qrlRef);
-            }
-          }
-        }
-      }
-    }
-  });
-}
 
 /**
  * Shared lazy-loading reference that holds module loading metadata. Multiple QRLs pointing to the
@@ -199,13 +115,7 @@ export class LazyRef<TYPE = unknown> {
       // Note that this container is not necessarily the same one as from the captures
       this.$container$ = container;
     }
-    if (qDev) {
-      // this will be filled in later
-      this.dev = null;
-      if (typeof document !== 'undefined') {
-        this.qrls = new Set();
-      }
-    }
+    qDev && initLazyRefDev(this);
 
     /** Preload the chunk with somewhat lower probability when we create the QRL. */
     if (isBrowser && $chunk$) {
@@ -267,6 +177,12 @@ export class LazyRef<TYPE = unknown> {
   }
 }
 
+isBrowser &&
+  import.meta.hot &&
+  setupHmr(LazyRef, (fn) => {
+    getLazyRef = fn;
+  });
+
 const QRL_STATE = Symbol('qrl-state');
 
 type QRLCallable<TYPE = unknown> = QRLInternal<TYPE> & {
@@ -303,18 +219,7 @@ export class QRLClass<TYPE> {
         // We cannot rely on the container of the lazy ref, it may be missing or different
         this.$container$ = container;
       }
-      if (qDev) {
-        if ($captures$ && typeof $captures$ === 'object') {
-          for (let i = 0; i < $captures$.length; i++) {
-            const item = $captures$[i];
-            verifySerializable(item, 'Captured variable in the closure can not be serialized');
-          }
-        }
-      }
-    }
-
-    if (qDev && $lazy$.qrls) {
-      $lazy$.qrls.add(new WeakRef(this));
+      qDev && initQrlClassDev($lazy$, $captures$, this);
     }
 
     // If it is plain value with deserialized or missing captures, resolve it immediately

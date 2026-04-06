@@ -1,5 +1,8 @@
 ---
-'@qwik.dev/core': patch
+'@qwik.dev/core': major
 ---
 
-We deprecated ssrPreloadProbability as the ssrPreloads should be a fixed number the developer can know ahead of time.
+We removed the following `renderToStream` APIs:
+- `preloads.ssrPreloadProbability` and `preloads.preloadProbability` APIs because the number of simultaneous idle preloads should be easy to determine for the developer.
+- `preloads.debug` API because it hasn't really proved useful after a full year of modulepreloads.
+- the deprecated Service Worker `prefetchStrategy` API.

@@ -64,12 +64,25 @@ const QWIK_HMR_BRIDGE_ID = '@qwik-hmr-bridge';
 const QWIK_HMR_BRIDGE_CODE = `
   // HMR bridge: connects Vite HMR events to Qwik's component re-rendering.
   if (import.meta.hot) {
+    let timeout;
     import.meta.hot.on("qwik:hmr", (data) => {
-      for (const file of data.files) {
-        document.dispatchEvent(
-          new CustomEvent("qHmr" + file.replace(/[^a-zA-Z0-9_]/g, "_"))
-        );
+      if (data.t === document.__hmrT) {
+        console.log("Received duplicate HMR update, ignoring", data.files);
+        return;
       }
+      clearTimeout(timeout);
+      document.__hmrT = data.t;
+      document.__hmrDone = 0;
+      document.dispatchEvent(
+        new CustomEvent("qHmr", { detail: data })
+      );
+      timeout = setTimeout(() => {
+      console.log(document.__hmrDone, document.__hmrT);
+        if (document.__hmrDone !== document.__hmrT) {
+          console.log("HMR update did not match active code, reloading the page", location.href);
+          location.reload();
+        }
+      }, 500);
     });
   }
 `;
@@ -672,14 +685,28 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (hmrEnabled) {
           // Source files live in the SSR module graph. When they change, notify the
           // client's loaded QRL segments via the client environment's HMR channel.
-          const files = ctx.modules
-            .map((m) => (m.type === 'js' ? m.url.split('?')[0] : null))
-            .filter(Boolean);
-          if (files.length > 0 && viteServer) {
+          // Some non-source imports (e.g. .css?inline) are type 'js' but their URL
+          // isn't a JS/TS file. For those, emit their JS importers instead, since
+          // the component that needs to re-render is the importer.
+          const files = new Set<string>();
+          const isSourceUrl = (url: string) => /\.[mc]?[jt]sx?$/.test(url.split('?')[0]);
+          for (const m of ctx.modules) {
+            const url = m.url.split('?')[0];
+            if (m.type === 'js' && isSourceUrl(m.url)) {
+              files.add(url);
+            } else {
+              for (const importer of m.importers) {
+                if (importer.type === 'js' && isSourceUrl(importer.url)) {
+                  files.add(importer.url.split('?')[0]);
+                }
+              }
+            }
+          }
+          if (files.size > 0 && viteServer) {
             viteServer.environments.client.hot.send({
               type: 'custom',
               event: 'qwik:hmr',
-              data: { files },
+              data: { files: [...files], t: ctx.timestamp },
             });
           }
         } else {

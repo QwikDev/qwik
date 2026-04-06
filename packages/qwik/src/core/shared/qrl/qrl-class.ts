@@ -1,6 +1,5 @@
 // keep these imports above the rest to prevent circular dep issues
 import { getPlatform, isServerPlatform } from '../platform/platform';
-import { verifySerializable } from '../serdes/verify';
 // ^^^ keep these imports above the rest to prevent circular dep issues
 
 import { isBrowser, isDev } from '@qwik.dev/core/build';
@@ -12,6 +11,7 @@ import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
 import { isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
+import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
@@ -54,6 +54,7 @@ export type QRLInternalMethods<TYPE> = {
       unknown;
 
   $callFn$(withThis: unknown, ...args: QrlArgs<TYPE>): ValueOrPromise<QrlReturn<TYPE>>;
+  $setDev$(dev: QRLDev | null): void;
 
   /**
    * "with captures" - Get a new QRL for these captures, reusing the lazy ref. It's an internal
@@ -78,6 +79,16 @@ export type QRLInternalMethods<TYPE> = {
   readonly $lazy$: LazyRef<TYPE>;
 };
 
+let getLazyRef: <TYPE>(
+  chunk: string | null,
+  symbol: string,
+  symbolFn: null | (() => Promise<Record<string, TYPE>>),
+  ref: ValueOrPromise<TYPE> | undefined,
+  container: Container | undefined
+) => LazyRef<TYPE> = (chunk, symbol, symbolFn, ref, container) => {
+  return new LazyRef(chunk, symbol, symbolFn, ref, container);
+};
+
 /**
  * Shared lazy-loading reference that holds module loading metadata. Multiple QRLs pointing to the
  * same chunk+symbol can share a single LazyRef, differing only in their captured scope.
@@ -85,7 +96,9 @@ export type QRLInternalMethods<TYPE> = {
 export class LazyRef<TYPE = unknown> {
   $container$: Container | undefined;
   // Don't allocate dev property immediately so that in prod we don't have this property
-  dev?: QRLDev | null | undefined;
+  declare dev?: QRLDev | null | undefined;
+  // documenter fails on WeakRef
+  declare qrls?: Set<any>;
 
   constructor(
     readonly $chunk$: string | null,
@@ -102,10 +115,7 @@ export class LazyRef<TYPE = unknown> {
       // Note that this container is not necessarily the same one as from the captures
       this.$container$ = container;
     }
-    if (qDev) {
-      // this will be filled in later
-      this.dev = null;
-    }
+    qDev && initLazyRefDev(this);
 
     /** Preload the chunk with somewhat lower probability when we create the QRL. */
     if (isBrowser && $chunk$) {
@@ -167,6 +177,12 @@ export class LazyRef<TYPE = unknown> {
   }
 }
 
+isBrowser &&
+  import.meta.hot &&
+  setupHmr(LazyRef, (fn) => {
+    getLazyRef = fn;
+  });
+
 const QRL_STATE = Symbol('qrl-state');
 
 type QRLCallable<TYPE = unknown> = QRLInternal<TYPE> & {
@@ -203,14 +219,7 @@ export class QRLClass<TYPE> {
         // We cannot rely on the container of the lazy ref, it may be missing or different
         this.$container$ = container;
       }
-      if (qDev) {
-        if ($captures$ && typeof $captures$ === 'object') {
-          for (let i = 0; i < $captures$.length; i++) {
-            const item = $captures$[i];
-            verifySerializable(item, 'Captured variable in the closure can not be serialized');
-          }
-        }
-      }
+      qDev && initQrlClassDev($lazy$, $captures$, this);
     }
 
     // If it is plain value with deserialized or missing captures, resolve it immediately
@@ -361,6 +370,15 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
       return this[QRL_STATE].$lazy$.dev;
     },
   },
+  ...(qDev
+    ? {
+        $setDev$: {
+          value(this: QRLCallable<any>, dev: QRLDev | null) {
+            this[QRL_STATE].$lazy$.dev = dev;
+          },
+        },
+      }
+    : undefined),
   $callFn$: {
     value: qrlCallFn,
   },
@@ -507,7 +525,7 @@ export const createQRL = <TYPE>(
   captures?: Readonly<unknown[]> | string | null,
   container?: Container
 ): QRLInternal<TYPE> => {
-  const lazy = new LazyRef<TYPE>(chunk, symbol, symbolFn, symbolRef, container);
+  const lazy = getLazyRef<TYPE>(chunk, symbol, symbolFn!, symbolRef!, container);
   const qrl = new QRLClass<TYPE>(lazy, captures!, container);
 
   return makeQrlFn(qrl);

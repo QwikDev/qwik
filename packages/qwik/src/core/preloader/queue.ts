@@ -35,14 +35,6 @@ type AdjustmentFrame = {
 
 const adjustmentStack: AdjustmentFrame[] = [];
 
-export const log = (...args: any[]) => {
-  // eslint-disable-next-line no-console
-  console.log(
-    `Preloader ${performance.now() - loadStart}ms ${preloadCount}/${queue.length} queued>`,
-    ...args
-  );
-};
-
 export const resetQueue = () => {
   bundles.clear();
   queueDirty = false;
@@ -124,18 +116,6 @@ function trigger() {
     isTriggerScheduled = true;
     nextTriggerMacroTask();
   }
-  /**
-   * The low priority bundles are opportunistic, and we want to give the browser some breathing room
-   * for other resources, so we cycle between 4 and 10 outstanding modulepreloads.
-   */
-  if (config.$DEBUG$ && !queue.length) {
-    const loaded = [...bundles.values()].filter((b) => b.$state$ > BundleImportState_None);
-    const waitTime = loaded.reduce((acc, b) => acc + b.$waitedMs$, 0);
-    const loadTime = loaded.reduce((acc, b) => acc + b.$loadedMs$, 0);
-    log(
-      `>>>> done ${loaded.length}/${bundles.size} total: ${waitTime}ms waited, ${loadTime}ms loaded`
-    );
-  }
 }
 
 const enqueueAdjustment = (
@@ -214,8 +194,6 @@ const processAdjustmentFrame = () => {
     if (bundle.$state$ === BundleImportState_None) {
       bundle.$state$ = BundleImportState_Queued;
       queue.push(bundle);
-      config.$DEBUG$ &&
-        log(`queued ${Math.round((1 - bundle.$inverseProbability$) * 100)}%`, bundle.$name$);
     }
 
     // It's in the queue, so we need to re-sort it
@@ -274,12 +252,6 @@ const preloadOne = (bundle: BundleImport) => {
   bundle.$waitedMs$ = start - bundle.$createdTs$;
   bundle.$state$ = BundleImportState_Preload;
 
-  config.$DEBUG$ &&
-    log(
-      `<< load ${Math.round((1 - bundle.$inverseProbability$) * 100)}% after ${`${bundle.$waitedMs$}ms`}`,
-      bundle.$name$
-    );
-
   const link = doc.createElement('link');
   // Only bundles with state none are js bundles
   link.href = new URL(`${base}${bundle.$name$}`, doc.baseURI).toString();
@@ -292,7 +264,6 @@ const preloadOne = (bundle: BundleImport) => {
     const end = performance.now();
     bundle.$loadedMs$ = end - start;
     bundle.$state$ = BundleImportState_Loaded;
-    config.$DEBUG$ && log(`>> done after ${bundle.$loadedMs$}ms`, bundle.$name$);
     // Keep the <head> clean
     link.remove();
     // More bundles may be ready to preload

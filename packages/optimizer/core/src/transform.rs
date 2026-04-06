@@ -85,10 +85,6 @@ pub struct SegmentData {
 	pub hash: Atom,
 	pub need_transform: bool,
 	pub migrated_root_vars: Vec<ast::ModuleItem>,
-	/// When the bundler inlines capture variables, the explicit captures array
-	/// from inlinedQrl may contain non-Ident expressions. We preserve the original
-	/// array to use directly in the .w() call, bypassing scoped_idents.
-	pub raw_capture_exprs: Option<ast::ArrayLit>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -639,7 +635,6 @@ impl<'a> QwikTransform<'a> {
 			need_transform: false,
 			hash,
 			migrated_root_vars: Vec::new(),
-			raw_capture_exprs: raw_capture_array,
 		};
 		// Preprocessed inlinedQrl from libs are always emitted — stripping is meant for user code without the user having to write guards; libs can put guards themselves.
 		// App-level $() calls go through _create_synthetic_qsegment which has its own strip check.
@@ -943,7 +938,6 @@ impl<'a> QwikTransform<'a> {
 				need_transform: false,
 				hash,
 				migrated_root_vars: Vec::new(),
-				raw_capture_exprs: None,
 			};
 
 			return (
@@ -1023,7 +1017,6 @@ impl<'a> QwikTransform<'a> {
 			need_transform: true,
 			hash,
 			migrated_root_vars: Vec::new(),
-			raw_capture_exprs: None,
 		};
 		let should_emit = self.should_emit_segment(&segment_data);
 		if should_emit {

@@ -1,6 +1,6 @@
 // oxlint-disable no-unused-vars
 import { assertType, describe, expectTypeOf, test } from 'vitest';
-import { useOn, type EventQRL } from './use-on';
+import { useOn, type EventQRL, type UseOnOptions } from './use-on';
 import { $, type QRL, type QrlReturn } from '../shared/qrl/qrl.public';
 
 describe('types', () => {
@@ -61,5 +61,36 @@ describe('types', () => {
         assertType<Event>(ev);
       })
     );
+    useOn(
+      'touchmove',
+      $((ev) => {
+        expectTypeOf(ev).not.toBeAny();
+        assertType<TouchEvent>(ev);
+      }),
+      {
+        capture: true,
+        passive: true,
+        stoppropagation: true,
+      }
+    );
+  });
+
+  test('UseOnOptions excludes passive and preventdefault together', () => () => {
+    expectTypeOf<{
+      capture: true;
+      passive: true;
+      stoppropagation: true;
+    }>().toExtend<UseOnOptions>();
+
+    expectTypeOf<{
+      capture: true;
+      preventdefault: true;
+      stoppropagation: true;
+    }>().toExtend<UseOnOptions>();
+
+    expectTypeOf<{
+      passive: true;
+      preventdefault: true;
+    }>().not.toExtend<UseOnOptions>();
   });
 });

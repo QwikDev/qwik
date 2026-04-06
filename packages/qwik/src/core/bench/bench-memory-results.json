@@ -1,88 +1,88 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-19T14:47:29.774Z",
+  "generatedAt": "2026-04-05T09:27:12.432Z",
   "sampleCount": 3,
   "countPerScenario": 10000,
   "scenarios": {
     "function": {
-      "totalBytes": 1127464,
-      "bytesPerInstance": 112.7464
+      "totalBytes": 1129176,
+      "bytesPerInstance": 112.9176
     },
     "qrl": {
-      "totalBytes": 2988184,
-      "bytesPerInstance": 298.8184
+      "totalBytes": 2913192,
+      "bytesPerInstance": 291.3192
     },
     "qrl-copy": {
-      "totalBytes": 2021600,
-      "bytesPerInstance": 202.16
+      "totalBytes": 2023224,
+      "bytesPerInstance": 202.3224
     },
     "lazy-ref": {
-      "totalBytes": 1051984,
-      "bytesPerInstance": 105.1984
+      "totalBytes": 974704,
+      "bytesPerInstance": 97.4704
     },
     "qrl-class": {
-      "totalBytes": 653104,
-      "bytesPerInstance": 65.3104
+      "totalBytes": 654440,
+      "bytesPerInstance": 65.444
     },
     "signal": {
-      "totalBytes": 660304,
-      "bytesPerInstance": 66.0304
+      "totalBytes": 663024,
+      "bytesPerInstance": 66.3024
     },
     "ComputedSignal": {
-      "totalBytes": 901016,
-      "bytesPerInstance": 90.1016
+      "totalBytes": 904944,
+      "bytesPerInstance": 90.4944
     },
     "wrapped-signal": {
-      "totalBytes": 1460416,
-      "bytesPerInstance": 146.0416
+      "totalBytes": 1464232,
+      "bytesPerInstance": 146.4232
     },
     "virtual-vnode": {
-      "totalBytes": 1375648,
-      "bytesPerInstance": 137.5648
+      "totalBytes": 1379720,
+      "bytesPerInstance": 137.972
     },
     "element-vnode": {
-      "totalBytes": 7289544,
-      "bytesPerInstance": 728.9544
+      "totalBytes": 7293640,
+      "bytesPerInstance": 729.364
     },
     "text-vnode": {
-      "totalBytes": 2542032,
-      "bytesPerInstance": 254.2032
+      "totalBytes": 2546200,
+      "bytesPerInstance": 254.62
     },
     "jsx-node": {
-      "totalBytes": 2815064,
-      "bytesPerInstance": 281.5064
+      "totalBytes": 2818360,
+      "bytesPerInstance": 281.836
     },
     "context-id": {
-      "totalBytes": 736696,
-      "bytesPerInstance": 73.6696
+      "totalBytes": 739896,
+      "bytesPerInstance": 73.9896
     },
     "subscription-data": {
-      "totalBytes": 929240,
-      "bytesPerInstance": 92.924
+      "totalBytes": 937752,
+      "bytesPerInstance": 93.7752
     },
     "effect-subscription": {
-      "totalBytes": 4823856,
-      "bytesPerInstance": 482.3856
+      "totalBytes": 4829768,
+      "bytesPerInstance": 482.9768
     },
     "delete-operation": {
-      "totalBytes": 1663456,
-      "bytesPerInstance": 166.3456
+      "totalBytes": 1675480,
+      "bytesPerInstance": 167.548
     },
     "set-text-operation": {
-      "totalBytes": 1744488,
-      "bytesPerInstance": 174.4488
+      "totalBytes": 1740600,
+      "bytesPerInstance": 174.06
     },
     "insert-or-move-operation": {
-      "totalBytes": 6323104,
-      "bytesPerInstance": 632.3104
+      "totalBytes": 6325952,
+      "bytesPerInstance": 632.5952
     },
     "set-attribute-operation": {
-      "totalBytes": 6722376,
-      "bytesPerInstance": 672.2376
+      "totalBytes": 6725520,
+      "bytesPerInstance": 672.552
     },
     "remove-all-children-operation": {
-      "totalBytes": 6158744,
-      "bytesPerInstance": 615.8744
+      "totalBytes": 6162912,
+      "bytesPerInstance": 616.2912
     }
   }
 }

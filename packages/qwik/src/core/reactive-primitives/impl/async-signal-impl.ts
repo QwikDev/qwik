@@ -142,6 +142,15 @@ export class AsyncSignalImpl<T>
     if (clientOnly) {
       this.$flags$ |= AsyncSignalFlags.CLIENT_ONLY;
     }
+    if (options?.allowStale === false) {
+      if (isDev && initial !== undefined) {
+        throw new Error(
+          'allowStale: false and initial cannot be used together. ' +
+            'allowStale: false clears the value on invalidation, which conflicts with providing an initial value.'
+        );
+      }
+      this.$flags$ |= AsyncSignalFlags.CLEAR_ON_INVALIDATE;
+    }
     if (interval) {
       this.interval = interval;
     }
@@ -308,6 +317,11 @@ export class AsyncSignalImpl<T>
     if (arguments.length > 0) {
       this.$info$ = info;
       this.$infoVersion$++;
+    }
+    // When allowStale is false (CLEAR_ON_INVALIDATE set), clear the value so reads throw
+    // the computation promise instead of returning stale data (useful for navigations)
+    if (this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE) {
+      this.$untrackedValue$ = NEEDS_COMPUTATION;
     }
     if (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size) {
       // compute in next microtask

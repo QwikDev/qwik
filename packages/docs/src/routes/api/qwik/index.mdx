@@ -335,6 +335,25 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+allowStale?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ When true (default), the previous value is kept while the signal re-computes after invalidation, so reads return stale data instead of throwing a promise.
+
+When false, invalidation clears the value so reads throw the computation promise (like the initial load), which is useful for navigations where showing old data would be confusing.
+
+Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
 awaitPrevious?
 
 </td><td>

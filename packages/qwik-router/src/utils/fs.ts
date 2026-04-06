@@ -156,7 +156,7 @@ export function isIndexModule(extlessName: string) {
 }
 
 export function isPluginModule(extlessName: string) {
-  return /^plugin(|@.+)$/.test(extlessName);
+  return /^plugin(|@.+)$/.test(extlessName) && !/\.(test|unit|spec)(\.[jt]s)?$/.test(extlessName);
 }
 
 export function isLayoutModule(extlessName: string) {

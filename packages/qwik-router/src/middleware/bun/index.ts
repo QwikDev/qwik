@@ -1,4 +1,5 @@
 /// <reference types="bun" />
+import { isDev } from '@qwik.dev/core/build';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ClientConn,
@@ -14,7 +15,7 @@ import {
 } from '@qwik.dev/router/middleware/request-handler';
 import { extname, join } from 'node:path';
 import { MIME_TYPES } from '../request-handler/mime-types';
-import { isDev } from '@qwik.dev/core/build';
+import { normalizeRequestUrl } from '../shared/url';
 
 function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
   const url = new URL(request.url);
@@ -22,7 +23,7 @@ function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
   if (!origin) {
     return url;
   }
-  return new URL(`${url.pathname}${url.search}${url.hash}`, origin);
+  return normalizeRequestUrl(`${url.pathname}${url.search}${url.hash}`, origin);
 }
 
 /** @public */

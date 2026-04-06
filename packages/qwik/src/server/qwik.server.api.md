@@ -167,11 +167,6 @@ export interface StreamingOptions {
     inOrder?: InOrderStreaming;
 }
 
-// @public
-export type SymbolsToPrefetch = 'auto' | ((opts: {
-    manifest: ServerQwikManifest;
-}) => PrefetchResource[]);
-
 // @public (undocumented)
 export const versions: {
     readonly qwik: string;

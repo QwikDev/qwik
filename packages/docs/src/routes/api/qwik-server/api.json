@@ -339,20 +339,6 @@
       "mdFile": "core.streamingoptions.md"
     },
     {
-      "name": "SymbolsToPrefetch",
-      "id": "symbolstoprefetch",
-      "hierarchy": [
-        {
-          "name": "SymbolsToPrefetch",
-          "id": "symbolstoprefetch"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "Auto: Prefetch all possible QRLs used by the document. Default\n\n\n```typescript\nexport type SymbolsToPrefetch = 'auto' | ((opts: {\n    manifest: ServerQwikManifest;\n}) => PrefetchResource[]);\n```\n**References:** [PrefetchResource](#prefetchresource)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
-      "mdFile": "core.symbolstoprefetch.md"
-    },
-    {
       "name": "versions",
       "id": "versions",
       "hierarchy": [

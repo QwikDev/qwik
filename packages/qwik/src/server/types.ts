@@ -43,15 +43,6 @@ export interface PreloaderOptions {
   maxIdlePreloads?: number;
 }
 
-/**
- * Auto: Prefetch all possible QRLs used by the document. Default
- *
- * @public
- */
-export type SymbolsToPrefetch =
-  | 'auto'
-  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
-
 /** @public */
 export interface PrefetchResource {
   url: string;

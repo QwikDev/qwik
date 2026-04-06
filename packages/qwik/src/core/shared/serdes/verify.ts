@@ -6,6 +6,7 @@ import { canSerialize } from './index';
 import { isSignal } from '../../reactive-primitives/utils';
 import { unwrapStore } from '../../reactive-primitives/impl/store';
 import { untrack } from '../../use/use-core';
+import { VNode } from '../vnode/vnode';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
@@ -61,8 +62,12 @@ const _verifySerializable = <T>(
           }
           return value;
         }
-        // We don't want to walk internal objects, assume we already checked the contents
-        if ((unwrapped as any).__brand) {
+        // We don't want to walk internal framework objects
+        if (unwrapped instanceof VNode) {
+          return value;
+        }
+        // We have .__brand and .__brand__
+        if ((unwrapped as any).__brand || (unwrapped as any).__brand__) {
           return value;
         }
         if (isSerializableObject(unwrapped)) {

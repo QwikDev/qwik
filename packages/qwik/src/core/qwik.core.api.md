@@ -462,7 +462,7 @@ export { h }
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
 // @internal
-export const _hmr: (event: CustomEvent<{
+export const _hmr: (this: string | undefined, event: CustomEvent<{
     files: string[];
     t: number;
 }>, element: Element) => void;

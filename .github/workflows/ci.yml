@@ -398,11 +398,25 @@ jobs:
       - build-qwik
       - changes
       - combined-optimizer
-    if: always()
+    if: always() && needs.changes.outputs.build-others == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Verify combined-optimizer
-        if: needs.combined-optimizer.result == 'error'
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-qwik.result == 'success' &&
+            (
+              (
+                needs.changes.outputs.build-rust == 'true' &&
+                needs.combined-optimizer.result == 'success'
+              ) ||
+              (
+                needs.changes.outputs.build-rust != 'true' &&
+                needs.combined-optimizer.result == 'skipped'
+              )
+            )
+          )
         run: exit 1
 
       - name: Checkout
@@ -515,8 +529,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verify build-other-packages
-        if: needs.build-other-packages.result != 'success'
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-other-packages.result == 'success'
+          )
         run: exit 1
 
       - name: Checkout
@@ -558,8 +576,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verify build-other-packages
-        if: needs.build-other-packages.result != 'success'
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-other-packages.result == 'success'
+          )
         run: exit 1
 
       - name: Checkout
@@ -610,6 +632,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-other-packages.result == 'success' &&
+            needs.build-docs.result == 'success'
+          )
+        run: exit 1
+
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -665,8 +696,12 @@ jobs:
       - build-other-packages
 
     steps:
-      - name: Verify build-other-packages
-        if: needs.build-other-packages.result != 'success'
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-other-packages.result == 'success'
+          )
         run: exit 1
 
       - name: Checkout
@@ -704,6 +739,14 @@ jobs:
     if: always() && needs.changes.outputs.build-unit == 'true' && needs.test-unit.result == 'success'
 
     steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.test-unit.result == 'success'
+          )
+        run: exit 1
+
       - name: Mark unit tests complete
         run: echo ok > unit-tests-completed.txt
 
@@ -741,6 +784,18 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-other-packages.result == 'success' &&
+            (
+              needs.test-unit.result == 'success' ||
+              needs.test-unit.result == 'skipped'
+            )
+          )
+        run: exit 1
+
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -800,6 +855,18 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-other-packages.result == 'success' &&
+            (
+              needs.test-unit.result == 'success' ||
+              needs.test-unit.result == 'skipped'
+            )
+          )
+        run: exit 1
+
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -839,6 +906,14 @@ jobs:
     if: always() && needs.changes.outputs.build-e2e == 'true' && needs.test-e2e.result == 'success'
 
     steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.test-e2e.result == 'success'
+          )
+        run: exit 1
+
       - name: Mark e2e tests complete
         run: echo ok > e2e-tests-completed.txt
 
@@ -857,6 +932,14 @@ jobs:
     if: always() && needs.changes.outputs.build-cli-e2e == 'true' && needs.test-cli-e2e.result == 'success'
 
     steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.test-cli-e2e.result == 'success'
+          )
+        run: exit 1
+
       - name: Mark cli e2e tests complete
         run: echo ok > cli-e2e-tests-completed.txt
 
@@ -926,19 +1009,24 @@ jobs:
       )
 
     steps:
-      - name: Verify test-e2e
-        if: needs.test-e2e.result != 'skipped'
-        run: |
-          if [ "${{ needs.test-e2e.result }}" != success ] ; then
-            exit 1
-          fi
-
-      - name: Verify test-cli-e2e
-        if: needs.test-cli-e2e.result != 'skipped'
-        run: |
-          if [ "${{ needs.test-cli-e2e.result }}" != success ] ; then
-            exit 1
-          fi
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            (
+              needs.test-unit.result == 'success' ||
+              needs.test-unit.result == 'skipped'
+            ) &&
+            (
+              needs.test-e2e.result == 'success' ||
+              needs.test-e2e.result == 'skipped'
+            ) &&
+            (
+              needs.test-cli-e2e.result == 'success' ||
+              needs.test-cli-e2e.result == 'skipped'
+            )
+          )
+        run: exit 1
 
       - name: Checkout
         uses: actions/checkout@v5

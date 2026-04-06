@@ -355,6 +355,18 @@ The `window:on`/`document:` prefixes are used to register an event at the curren
 
 `useOn[window|document]()` hook will add a DOM-based event listener at the component level programmatically. This is often useful when you want to create your own use hooks or if you don't know the event name at the time of compilation.
 
+Use `useOn()` when you need the ergonomics of JSX event handlers, but the listener must be registered from a reusable hook or helper instead of directly in markup. The event still stays lazy-loadable because the callback is wrapped in `$()`.
+
+As a rule of thumb:
+
+- Prefer JSX such as `<button onClick$={...}>` when the listener belongs directly to that element in the component's template.
+- Use `useOn()` when you are building a custom `use*()` hook and the hook should attach to the current component's host element.
+- Use `useOnDocument()` or `useOnWindow()` when the event source is global rather than the component's own host element.
+
+The "host element" for `useOn()` is the top-level DOM element rendered by the current component. That means `useOn('click', ...)` behaves like attaching a listener to that root node, not to every child in the component.
+
+All three hooks also accept an optional third argument. Pass `{ passive: true }` to register a passive listener for events such as `touchmove`, `wheel`, or `scroll` when the handler does not need to call `preventDefault()`.
+
 <CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" style={{ height: '10em' }}>
 ```tsx
 import { $, component$, useOnDocument, useStore } from '@qwik.dev/core';
@@ -384,3 +396,23 @@ export default component$(() => {
 });
 ```
 </CodeSandbox>
+
+In the example above, `useMousePosition()` is a reusable hook. It cannot write `onMouseMove$` into JSX because it does not render any DOM itself, so it registers the listener programmatically with `useOnDocument()`. This is the main use case for the `useOn*()` family.
+
+```tsx
+import { $, component$, useOnWindow, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const scrollCount = useSignal(0);
+
+  useOnWindow(
+    'scroll',
+    $(() => {
+      scrollCount.value++;
+    }),
+    { passive: true }
+  );
+
+  return <p>Scroll events: {scrollCount.value}</p>;
+});
+```

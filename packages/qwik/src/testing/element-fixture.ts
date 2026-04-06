@@ -88,26 +88,10 @@ export async function trigger(
   options?: { waitForIdle?: boolean }
 ): Promise<Event | null> {
   const waitForIdle = options?.waitForIdle ?? true;
-  let scope: QwikLoaderEventScope;
-  let kebabName: string;
-  let scopedKebabName: string;
-  const separatorIndex = eventName.indexOf(':');
+  const { rootScope, kebabName, selectors, scopedEventNames } = parseTriggerEvent(eventName);
   let event: Event | null = null;
-  if (separatorIndex !== -1) {
-    scopedKebabName = eventName;
-    scope = eventName.slice(0, separatorIndex) as QwikLoaderEventScope;
-    kebabName = eventName.substring(separatorIndex + 1);
-    if (kebabName === 'DOMContentLoaded') {
-      kebabName = '-d-o-m-content-loaded';
-      scopedKebabName = scope + ':' + kebabName;
-    }
-  } else {
-    scope = 'e';
-    kebabName = fromCamelToKebabCase(eventName);
-    scopedKebabName = 'e:' + kebabName;
-  }
-  if (scope !== 'e') {
-    queryOrElement = `[q-${scope}\\:${kebabName}]`;
+  if (selectors) {
+    queryOrElement = selectors;
   }
 
   const elements =
@@ -130,14 +114,47 @@ export async function trigger(
       cancelable,
     });
     Object.assign(event, rest);
-    const hasPassive = scope.length === 2;
-    await dispatch(element, event, scopedKebabName, kebabName, !hasPassive);
+    for (let i = 0; i < scopedEventNames.length; i++) {
+      const { scope, scopedKebabName } = scopedEventNames[i];
+      await dispatch(element, event, scopedKebabName, kebabName, scope === rootScope);
+    }
   }
   if (waitForIdle && container) {
     await waitForDrain(container);
   }
   return event;
 }
+
+const parseTriggerEvent = (eventName: string) => {
+  let scope: QwikLoaderEventScope = 'e';
+  let kebabName = eventName;
+  const separatorIndex = eventName.indexOf(':');
+  if (separatorIndex !== -1) {
+    scope = eventName.slice(0, separatorIndex) as QwikLoaderEventScope;
+    kebabName = eventName.substring(separatorIndex + 1);
+    if (kebabName === 'DOMContentLoaded') {
+      kebabName = '-d-o-m-content-loaded';
+    }
+  } else {
+    kebabName = fromCamelToKebabCase(eventName);
+  }
+
+  const rootScope = scope.charAt(0) as 'd' | 'e' | 'w';
+  const scopes = scope.length === 2 ? [scope] : ([scope, `${scope}p`] as QwikLoaderEventScope[]);
+
+  return {
+    rootScope,
+    kebabName,
+    selectors:
+      rootScope === 'e'
+        ? undefined
+        : scopes.map((scope) => `[q-${scope}\\:${kebabName}]`).join(', '),
+    scopedEventNames: scopes.map((scope) => ({
+      scope,
+      scopedKebabName: `${scope}:${kebabName}`,
+    })),
+  };
+};
 
 const PREVENT_DEFAULT = 'preventdefault:';
 const STOP_PROPAGATION = 'stoppropagation:';

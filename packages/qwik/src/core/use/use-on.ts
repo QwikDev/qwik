@@ -14,6 +14,11 @@ export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
   | undefined;
 
+/** @public */
+export interface UseOnOptions {
+  passive?: boolean;
+}
+
 // <docs markdown="../readme.md#useOn">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useOn instead and run `pnpm docs.sync`)
@@ -29,8 +34,12 @@ export type EventQRL<T extends string = AllEventKeys> =
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  */
 // </docs>
-export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(EventNameHtmlScope.on, event, eventQrl);
+export const useOn = <T extends KnownEventNames>(
+  event: T | T[],
+  eventQrl: EventQRL<T>,
+  options?: UseOnOptions
+) => {
+  _useOn(options?.passive ? EventNameHtmlScope.onPassive : EventNameHtmlScope.on, event, eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -64,8 +73,16 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  * ```
  */
 // </docs>
-export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(EventNameHtmlScope.document, event, eventQrl);
+export const useOnDocument = <T extends KnownEventNames>(
+  event: T | T[],
+  eventQrl: EventQRL<T>,
+  options?: UseOnOptions
+) => {
+  _useOn(
+    options?.passive ? EventNameHtmlScope.documentPassive : EventNameHtmlScope.document,
+    event,
+    eventQrl
+  );
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -100,8 +117,16 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  * ```
  */
 // </docs>
-export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(EventNameHtmlScope.window, event, eventQrl);
+export const useOnWindow = <T extends KnownEventNames>(
+  event: T | T[],
+  eventQrl: EventQRL<T>,
+  options?: UseOnOptions
+) => {
+  _useOn(
+    options?.passive ? EventNameHtmlScope.windowPassive : EventNameHtmlScope.window,
+    event,
+    eventQrl
+  );
 };
 
 const _useOn = (prefix: EventNameHtmlScope, eventName: string | string[], eventQrl: EventQRL) => {

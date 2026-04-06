@@ -54,6 +54,18 @@
     },
     {
       "type": "node",
+      "name": "preloader-test preview",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/e2e/qwik-e2e/apps/preloader-test"
+    },
+    {
+      "type": "node",
       "name": "e2e.test",
       "request": "launch",
       "console": "integratedTerminal",

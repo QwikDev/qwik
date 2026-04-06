@@ -408,7 +408,14 @@ As a rule of thumb:
 
 The "host element" for `useOn()` is the top-level DOM element rendered by the current component. That means `useOn('click', ...)` behaves like attaching a listener to that root node, not to every child in the component.
 
-All three hooks also accept an optional third argument. Pass `{ passive: true }` to register a passive listener for events such as `touchmove`, `wheel`, or `scroll` when the handler does not need to call `preventDefault()`.
+All three hooks also accept an optional third argument for event modifiers:
+
+- `{ passive: true }` registers a passive listener for events such as `touchmove`, `wheel`, or `scroll` when the handler does not need to call `preventDefault()`.
+- `{ capture: true }` runs the listener during the capture phase instead of the bubbling phase.
+- `{ preventdefault: true }` applies the same behavior as JSX `preventdefault:event`, so Qwik calls `event.preventDefault()` before the handler runs.
+- `{ stoppropagation: true }` applies the same behavior as JSX `stoppropagation:event`, so Qwik stops propagation before the handler runs.
+
+Avoid combining `passive: true` with `preventdefault: true`, because passive listeners cannot cancel the browser's default behavior.
 
 <CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" style={{ height: '10em' }}>
 ```tsx
@@ -457,5 +464,28 @@ export default component$(() => {
   );
 
   return <p>Scroll events: {scrollCount.value}</p>;
+});
+```
+
+```tsx
+import { $, component$, useOn, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const logs = useSignal<string[]>([]);
+
+  useOn(
+    'click',
+    $(() => {
+      logs.value = [...logs.value, 'captured on host'];
+    }),
+    { capture: true, stoppropagation: true }
+  );
+
+  return (
+    <div>
+      <button>Click me</button>
+      <pre>{logs.value.join('\n')}</pre>
+    </div>
+  );
 });
 ```

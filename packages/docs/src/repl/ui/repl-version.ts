@@ -17,14 +17,16 @@ export const getReplVersion = async (version: string | undefined, offline: boole
   let npmData: NpmData | null = null;
 
   try {
-    npmData = JSON.parse(localStorage.getItem(NPM_STORAGE_KEY)!);
+    const cachedNpmData = localStorage.getItem(NPM_STORAGE_KEY);
+    npmData = cachedNpmData ? (JSON.parse(cachedNpmData) as NpmData) : null;
     if (!offline && isExpiredNpmData(npmData)) {
       // fetch most recent NPM version data
       console.debug(`Qwik REPL, fetch npm data: ${QWIK_NPM_V1_DATA}`);
-      npmData = await fetch(QWIK_NPM_V1_DATA).then((r) => r.json());
-      npmData.timestamp = Date.now();
+      const fetchedNpmData = (await fetch(QWIK_NPM_V1_DATA).then((r) => r.json())) as NpmData;
+      fetchedNpmData.timestamp = Date.now();
       const v2Data = await fetch(QWIK_NPM_V2_DATA).then((r) => r.json());
-      npmData.versions.unshift(...v2Data.versions);
+      fetchedNpmData.versions.unshift(...v2Data.versions);
+      npmData = fetchedNpmData;
       localStorage.setItem(NPM_STORAGE_KEY, JSON.stringify(npmData));
     } else {
       console.debug(`Qwik REPL, using cached npm data`);

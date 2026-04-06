@@ -123,12 +123,12 @@ describe('modifyBundleGraph', () => {
       } as Record<string, QwikBundle>,
     } as QwikManifest;
 
-    const fakeRoutes: BuildRoute[] = [
+    const fakeRoutes: BuiltRoute[] = [
       {
         routeName: '/',
         filePath: '/home/qwik-app/src/routes/index.tsx',
       },
-    ] as BuildRoute[];
+    ] as BuiltRoute[];
 
     const actualResult = getRouteImports(fakeRoutes, fakeManifest);
 

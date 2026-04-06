@@ -190,7 +190,7 @@ function addUseOnEvents(
             targetElement = placeholderElement;
           } else {
             if (isDev) {
-              const sourceLocation = getUseOnSourceLocation(useOnEvents[key]);
+              const sourceLocation = getUseOnSourceLocation(useOnEvents[key].qrls);
               logWarn(
                 'You are trying to add an event "' +
                   key +
@@ -207,7 +207,7 @@ function addUseOnEvents(
           if (targetElement.type === 'script' && key === qVisibleEvent) {
             eventKey = 'q-d:qinit';
             if (isDev) {
-              const sourceLocation = getUseOnSourceLocation(useOnEvents[key]);
+              const sourceLocation = getUseOnSourceLocation(useOnEvents[key].qrls);
               logWarn(
                 `You are trying to add the event "${key}" ` +
                   'using the `useVisibleTask$` hook with the "intersection-observer" strategy, ' +

@@ -131,9 +131,15 @@ async function measureRoutes(distDir: string): Promise<Record<string, RouteResul
       throw new Error(`Route ${route} not found at ${fullPath}`);
     }
 
-    // Strip the q:version attribute before measuring — its value includes the git hash
-    // and optionally a timestamp, so it differs between CI and local builds.
-    const content = Buffer.from(raw.toString('utf-8').replace(/ q:version="[^"]*"/, ''));
+    // Normalize line endings and strip the q:version attribute before measuring.
+    // Line endings differ between Windows (\r\n) and Unix (\n), and q:version includes
+    // the git hash and optionally a timestamp, so both differ between CI and local builds.
+    const content = Buffer.from(
+      raw
+        .toString('utf-8')
+        .replace(/\r\n/g, '\n')
+        .replace(/ q:version="[^"]*"/, '')
+    );
     const gzipped = gzipSync(content, { level: 9 });
     results[route] = {
       rawBytes: content.length,

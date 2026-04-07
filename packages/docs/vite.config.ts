@@ -274,7 +274,7 @@ export default defineConfig(({ mode }) => {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
-        external: ['@docsearch/css'],
+        external: ['@docsearch/css', 'fsevents'],
       },
     },
     worker: {

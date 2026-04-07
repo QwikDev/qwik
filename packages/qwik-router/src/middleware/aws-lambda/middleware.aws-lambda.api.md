@@ -4,13 +4,13 @@
 
 ```ts
 
-import { Http2ServerRequest } from 'http2';
-import { IncomingMessage } from 'http';
-import { NodeRequestNextFunction } from '@qwik.dev/router/middleware/node';
+import type { Http2ServerRequest } from 'node:http2';
+import type { IncomingMessage } from 'node:http';
+import type { NodeRequestNextFunction } from '@qwik.dev/router/middleware/node';
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { Render } from '@qwik.dev/core/server';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
-import { ServerResponse } from 'http';
+import type { ServerResponse } from 'node:http';
 
 // @public @deprecated (undocumented)
 export const createQwikCity: typeof createQwikRouter;
@@ -18,13 +18,7 @@ export const createQwikCity: typeof createQwikRouter;
 // Warning: (ae-forgotten-export) The symbol "AwsOpt" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function createQwikRouter(opts: AwsOpt): {
-    fixPath: (pathT: string) => string;
-    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
-    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
-    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;
-    handle: (req: any, res: any) => void;
-};
+export function createQwikRouter(opts: AwsOpt): QwikRouterAwsLambdaMiddleware;
 
 // @public (undocumented)
 export interface PlatformAwsLambda extends Object {
@@ -32,6 +26,20 @@ export interface PlatformAwsLambda extends Object {
 
 // @public @deprecated (undocumented)
 export type QwikCityAwsLambdaOptions = QwikRouterAwsLambdaOptions;
+
+// @public (undocumented)
+export interface QwikRouterAwsLambdaMiddleware {
+    // (undocumented)
+    fixPath: (pathT: string) => string;
+    // (undocumented)
+    handle: (req: any, res: any) => void;
+    // @deprecated (undocumented)
+    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
+    // (undocumented)
+    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
+    // (undocumented)
+    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
+}
 
 // @public (undocumented)
 export interface QwikRouterAwsLambdaOptions extends ServerRenderOptions {

@@ -32,6 +32,7 @@ import { isServerPlatform } from './platform/platform';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { ChoreBits } from './vnode/enums/chore-bits.enum';
 import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { isTask } from '../use/use-task';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -189,12 +190,14 @@ function addUseOnEvents(
             targetElement = placeholderElement;
           } else {
             if (isDev) {
+              const sourceLocation = getUseOnSourceLocation(useOnEvents[key]);
               logWarn(
                 'You are trying to add an event "' +
                   key +
                   '" using `useOn` hook, ' +
                   'but a node to which you can add an event is not found. ' +
-                  'Please make sure that the component has a valid element node. '
+                  'Please make sure that the component outputs a DOM element.' +
+                  (sourceLocation ? ` Offending \`useOn\`: ${sourceLocation}.` : '')
               );
             }
             continue;
@@ -204,12 +207,13 @@ function addUseOnEvents(
           if (targetElement.type === 'script' && key === qVisibleEvent) {
             eventKey = 'q-d:qinit';
             if (isDev) {
+              const sourceLocation = getUseOnSourceLocation(useOnEvents[key]);
               logWarn(
-                'You are trying to add an event "' +
-                  key +
-                  '" using the `useVisibleTask$` hook with the "intersection-observer" strategy, ' +
-                  'but a node to which you can add an event is not found. ' +
-                  'Using "document-ready" or "document-idle" instead.'
+                `You are trying to add the event "${key}" ` +
+                  'using the `useVisibleTask$` hook with the "intersection-observer" strategy, ' +
+                  'but this only works when the component outputs a DOM element. Falling back to ' +
+                  '"document-ready" instead.' +
+                  (sourceLocation ? ` Offending \`useVisibleTask$\`: ${sourceLocation}.` : '')
               );
             }
           }
@@ -219,6 +223,22 @@ function addUseOnEvents(
     }
     return jsxResult;
   });
+}
+
+function getUseOnSourceLocation(eventQrls: EventQRL<KnownEventNames>[]): string | null {
+  for (let i = 0; i < eventQrls.length; i++) {
+    const eventQrl = eventQrls[i];
+    const task = eventQrl?.getCaptured()?.[0];
+    if (isTask(task)) {
+      const dev = task.$qrl$.dev;
+      if (dev?.file) {
+        return typeof dev.lo === 'number' && typeof dev.hi === 'number'
+          ? `${dev.file}:${dev.lo}-${dev.hi}`
+          : dev.file;
+      }
+    }
+  }
+  return null;
 }
 
 /**

@@ -4,7 +4,7 @@ import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-ha
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterFirebaseOptions) {
-  const { staticFile, notFound, router } = createQwikRouterNode({
+  const { staticFile, router } = createQwikRouterNode({
     render: opts.render,
     manifest: opts.manifest,
     static: {
@@ -20,7 +20,7 @@ export function createQwikRouter(opts: QwikRouterFirebaseOptions) {
 
   const qwikApp = (req: any, res: any) => {
     return staticFile(req, res, () => {
-      router(req, res, () => notFound(req, res, () => {}));
+      router(req, res, () => {});
     });
   };
 

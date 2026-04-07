@@ -40,6 +40,40 @@ async function main() {
     );
   }
 
+  if (shouldUpdate) {
+    // First check that the docs build is more recent than the qwik and qwik-router builds
+    const qwikStat = await stat(resolve(process.cwd(), 'packages/qwik/dist/core.mjs')).catch(
+      () => null
+    );
+    const routerStat = await stat(
+      resolve(process.cwd(), 'packages/qwik-router/lib/index.qwik.mjs')
+    ).catch(() => null);
+    const docsStat = await stat(resolve(distDir, 'index.html')).catch(() => null);
+    if (
+      !(qwikStat && routerStat && docsStat) ||
+      docsStat.mtimeMs < qwikStat.mtimeMs ||
+      docsStat.mtimeMs < routerStat.mtimeMs
+    ) {
+      // run the docs build
+      console.log('!!! Docs build is older than qwik/qwik-router builds. Rebuilding docs...');
+      const { exec } = await import('node:child_process');
+      await new Promise((resolve, reject) => {
+        const buildProcess = exec('pnpm run build.packages.docs', (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Docs build failed: ${error.message}`);
+            reject(error);
+          } else {
+            console.log(stdout);
+            console.error(stderr);
+            resolve(null);
+          }
+        });
+        buildProcess.stdout?.pipe(process.stdout);
+        buildProcess.stderr?.pipe(process.stderr);
+      });
+    }
+  }
+
   const measured = await measureRoutes(distDir);
 
   if (shouldUpdate) {

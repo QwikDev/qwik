@@ -145,14 +145,11 @@ async function buildApp(appDir: string, appName: string, enableRouterServer: boo
         if (id.endsWith(qwikRouterVirtualEntry)) {
           return `import { createQwikRouter } from '@qwik.dev/router/middleware/node';
 import render from '${escapeChars(resolve(appSrcDir, 'entry.ssr'))}';
-const { router, notFound } = createQwikRouter({
+const { router } = createQwikRouter({
   render,
   base: '${basePath}build/',
 });
-export {
-  router,
-  notFound
-}
+export { router }
 `;
         }
       },
@@ -267,11 +264,7 @@ async function routerApp(req: Request, res: Response, next: NextFunction, appDir
   (globalThis as any).__qwik = null;
   const mod = await import(file(ssrPath));
   const router: any = mod.router;
-  router(req, res, () => {
-    mod.notFound(req, res, () => {
-      next();
-    });
-  });
+  router(req, res, next);
 }
 
 async function ssrApp(

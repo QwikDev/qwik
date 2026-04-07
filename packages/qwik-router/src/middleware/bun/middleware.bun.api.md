@@ -11,14 +11,20 @@ import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-ha
 export const createQwikCity: typeof createQwikRouter;
 
 // @public (undocumented)
-export function createQwikRouter(opts: QwikRouterBunOptions): {
-    router: (request: Request) => Promise<Response | null>;
-    notFound: (request: Request) => Promise<Response>;
-    staticFile: (request: Request) => Promise<Response | null>;
-};
+export function createQwikRouter(opts: QwikRouterBunOptions): QwikRouterBunMiddleware;
 
 // @public @deprecated (undocumented)
 export type QwikCityBunOptions = QwikRouterBunOptions;
+
+// @public (undocumented)
+export interface QwikRouterBunMiddleware {
+    // @deprecated (undocumented)
+    notFound: (request: Request) => Promise<Response>;
+    // (undocumented)
+    router: (request: Request) => Promise<Response | null>;
+    // (undocumented)
+    staticFile: (request: Request) => Promise<Response | null>;
+}
 
 // @public (undocumented)
 export interface QwikRouterBunOptions extends ServerRenderOptions {

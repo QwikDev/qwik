@@ -12,7 +12,7 @@ import { createQwikRouter } from "@qwik.dev/router/middleware/deno";
 import render from "./entry.ssr";
 
 // Create the Qwik Router Deno middleware
-const { router, notFound, staticFile } = createQwikRouter({
+const { router, staticFile } = createQwikRouter({
   render,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
@@ -32,13 +32,7 @@ Deno.serve({ port }, async (request: Request, info: any) => {
   }
 
   // Server-side render this request with Qwik Router
-  const qwikRouterResponse = await router(request, info);
-  if (qwikRouterResponse) {
-    return qwikRouterResponse;
-  }
-
-  // Path not found
-  return notFound(request);
+  return (await router(request, info))!;
 });
 
 declare const Deno: any;

@@ -382,12 +382,21 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
 
-    const out = { ...opts };
     // Make sure to know what the actual input is
     opts.input ||= updatedOpts.input as string[];
     if (opts.input && typeof opts.input === 'string') {
       opts.input = [opts.input];
     }
+    // Normalize relative input paths to absolute (consistent with rootDir/srcDir/outDir)
+    if (Array.isArray(opts.input)) {
+      opts.input = opts.input.map((inp) =>
+        inp.startsWith('@') || inp.startsWith('\0') || path.isAbsolute(inp)
+          ? inp
+          : normalizePath(path.resolve(opts.rootDir, inp))
+      );
+    }
+
+    const out = { ...opts };
     return out;
   };
 
@@ -402,11 +411,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
       }
       for (const [_, input] of Object.entries(opts.input || {})) {
-        const normalizedInput =
-          sys.path.isAbsolute(input) || input.startsWith('@') || input.startsWith('\0')
-            ? input
-            : normalizePath(sys.path.resolve(opts.rootDir, input));
-        const resolved = await resolver(normalizedInput);
+        const resolved = await resolver(input);
         if (!resolved) {
           throw new Error(`Qwik input "${input}" not found.`);
         }

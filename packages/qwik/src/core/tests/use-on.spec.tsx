@@ -86,6 +86,93 @@ describe.each([
     );
   });
 
+  it('should support capture option', async () => {
+    (globalThis as any).logs = [];
+    const Counter = component$(() => {
+      useOn(
+        'click',
+        $(() => {
+          (globalThis as any).logs.push('parent capture');
+        }),
+        {
+          capture: true,
+        }
+      );
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              (globalThis as any).logs.push('button bubble');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { container } = await render(<Counter />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect((globalThis as any).logs).toEqual(['parent capture', 'button bubble']);
+    (globalThis as any).logs = undefined;
+  });
+
+  it('should merge useOn handlers and modifiers for the same event', async () => {
+    (globalThis as any).logs = [];
+    const Counter = component$(() => {
+      useOn(
+        'click',
+        $(() => {
+          (globalThis as any).logs.push('first');
+        }),
+        {
+          capture: true,
+        }
+      );
+      useOn(
+        'click',
+        $(() => {
+          (globalThis as any).logs.push('second');
+        }),
+        {
+          preventdefault: true,
+          stoppropagation: true,
+        }
+      );
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              (globalThis as any).logs.push('button bubble');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { container } = await render(<Counter />, { debug });
+    const event = await trigger(container.element, 'button', 'click');
+    expect((globalThis as any).logs).toEqual(['first', 'second']);
+    expect(event!.defaultPrevented).toBe(true);
+    expect(event!.cancelBubble).toBe(true);
+    (globalThis as any).logs = undefined;
+  });
+
+  it('should support preventdefault option when listener is not passive', async () => {
+    const Counter = component$(() => {
+      useOn(
+        'touchmove',
+        $(() => {}),
+        {
+          preventdefault: true,
+        }
+      );
+      return <div></div>;
+    });
+
+    const { container } = await render(<Counter />, { debug });
+    const event = await trigger(container.element, 'div', 'touchmove');
+    expect(event!.defaultPrevented).toBe(true);
+  });
+
   it('should update value with multiple useOn', async () => {
     const Counter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);
@@ -289,6 +376,27 @@ describe.each([
           </Fragment>
         </Component>
       );
+    });
+
+    it('should support modifiers on placeholder script nodes', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnDocument(
+          'click',
+          $(() => count.value++),
+          {
+            preventdefault: true,
+          }
+        );
+        return <>Count: {count.value}!</>;
+      });
+
+      const { container } = await render(<Counter initial={123} />, { debug });
+      expect(container.element.querySelector('script')?.hasAttribute('preventdefault:click')).toBe(
+        true
+      );
+      const event = await trigger(container.element, 'script', 'd:click');
+      expect(event!.defaultPrevented).toBe(true);
     });
 
     it('should work with inline component not rendering children', async () => {
@@ -530,6 +638,27 @@ describe.each([
           </Fragment>
         </Component>
       );
+    });
+
+    it('should support modifiers on placeholder script nodes', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnWindow(
+          'click',
+          $(() => count.value++),
+          {
+            stoppropagation: true,
+          }
+        );
+        return <>Count: {count.value}!</>;
+      });
+
+      const { container } = await render(<Counter initial={123} />, { debug });
+      expect(container.element.querySelector('script')?.hasAttribute('stoppropagation:click')).toBe(
+        true
+      );
+      const event = await trigger(container.element, 'script', 'w:click');
+      expect(event!.cancelBubble).toBe(true);
     });
 
     it('should update value for window event on element and useOnWindow', async () => {

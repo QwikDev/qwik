@@ -94,6 +94,54 @@ function getListeners(target: ReturnType<typeof createEventTarget>, eventName: s
   return registrations!;
 }
 
+function createMockElement(
+  parentElement: any,
+  attrs: Record<string, string | boolean>,
+  handler?: (ev: any, element: any) => unknown
+) {
+  const attributeMap = new Map<string, string>();
+  for (const [name, value] of Object.entries(attrs)) {
+    if (value === true) {
+      attributeMap.set(name, '');
+    } else if (typeof value === 'string') {
+      attributeMap.set(name, value);
+    }
+  }
+
+  const element: any = {
+    nodeType: 1,
+    parentElement,
+    isConnected: true,
+    getAttribute: (name: string) => attributeMap.get(name) ?? null,
+    hasAttribute: (name: string) => attributeMap.has(name),
+  };
+
+  if (handler) {
+    element._qDispatch = {
+      'e:click': handler,
+    };
+  }
+
+  return element;
+}
+
+function createMockEvent(target: any, overrides: Partial<any> = {}) {
+  return {
+    type: 'click',
+    target,
+    bubbles: true,
+    cancelBubble: false,
+    defaultPrevented: false,
+    stopPropagation() {
+      this.cancelBubble = true;
+    },
+    preventDefault() {
+      this.defaultPrevented = true;
+    },
+    ...overrides,
+  };
+}
+
 describe('qwikloader behavior', () => {
   test('registers listeners for each scope and supports late event registration', () => {
     const { doc, win } = createLoaderEnvironment([
@@ -137,5 +185,75 @@ describe('qwikloader behavior', () => {
       capture: true,
       passive: true,
     });
+  });
+
+  test('dispatches capture handlers before bubbling handlers without double-running', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const root = createMockElement(
+      null,
+      {
+        'capture:click': true,
+      },
+      () => logs.push('root capture')
+    );
+    const parent = createMockElement(
+      root,
+      {
+        'capture:click': true,
+      },
+      () => logs.push('parent capture')
+    );
+    const child = createMockElement(parent, {}, () => logs.push('child bubble'));
+
+    await getSingleListener(doc, 'click').handler(createMockEvent(child));
+
+    expect(logs).toEqual(['root capture', 'parent capture', 'child bubble']);
+  });
+
+  test('stops propagation after a capture handler calls stopPropagation', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const root = createMockElement(
+      null,
+      {
+        'capture:click': true,
+      },
+      () => logs.push('root capture')
+    );
+    const parent = createMockElement(
+      root,
+      {
+        'capture:click': true,
+      },
+      (ev) => {
+        logs.push('parent capture');
+        ev.stopPropagation();
+      }
+    );
+    const child = createMockElement(parent, {}, () => logs.push('child bubble'));
+
+    await getSingleListener(doc, 'click').handler(createMockEvent(child));
+
+    expect(logs).toEqual(['root capture', 'parent capture']);
+  });
+
+  test('stops propagation for async bubbling handlers when stoppropagation attribute is set', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const root = createMockElement(null, {}, () => logs.push('root bubble'));
+    const child = createMockElement(
+      root,
+      {
+        'stoppropagation:click': true,
+      },
+      async () => {
+        logs.push('child bubble');
+      }
+    );
+
+    await getSingleListener(doc, 'click').handler(createMockEvent(child));
+
+    expect(logs).toEqual(['child bubble']);
   });
 });

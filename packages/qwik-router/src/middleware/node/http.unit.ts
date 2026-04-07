@@ -23,9 +23,19 @@ import { normalizeUrl } from './http';
     expect: 'https://qwik.dev/attacker.com',
   },
   {
+    url: '///attacker.com',
+    base: 'https://qwik.dev',
+    expect: 'https://qwik.dev/attacker.com',
+  },
+  {
     url: '/some-path//attacker.com',
     base: 'https://qwik.dev',
     expect: 'https://qwik.dev/some-path/attacker.com',
+  },
+  {
+    url: '/callback?redirect=https://idp.example/callback',
+    base: 'https://qwik.dev',
+    expect: 'https://qwik.dev/callback?redirect=https://idp.example/callback',
   },
 ].forEach((t) => {
   test(`normalizeUrl(${t.url}, ${t.base})`, () => {

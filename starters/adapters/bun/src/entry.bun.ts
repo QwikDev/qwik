@@ -12,7 +12,7 @@ import { createQwikRouter } from "@qwik.dev/router/middleware/bun";
 import render from "./entry.ssr";
 
 // Create the Qwik Router Bun middleware
-const { router, notFound, staticFile } = createQwikRouter({
+const { router, staticFile } = createQwikRouter({
   render,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
@@ -33,13 +33,7 @@ Bun.serve({
     }
 
     // Server-side render this request with Qwik Router
-    const qwikRouterResponse = await router(request);
-    if (qwikRouterResponse) {
-      return qwikRouterResponse;
-    }
-
-    // Path not found
-    return notFound(request);
+    return (await router(request))!;
   },
   port,
 });

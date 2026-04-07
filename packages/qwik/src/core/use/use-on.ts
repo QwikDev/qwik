@@ -14,6 +14,24 @@ export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
   | undefined;
 
+interface UseOnOptionsBase {
+  capture?: boolean;
+  stoppropagation?: boolean;
+}
+
+/** @public */
+export type UseOnOptions = UseOnOptionsBase &
+  (
+    | {
+        passive?: boolean;
+        preventdefault?: never;
+      }
+    | {
+        passive?: never;
+        preventdefault?: boolean;
+      }
+  );
+
 // <docs markdown="../readme.md#useOn">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useOn instead and run `pnpm docs.sync`)
@@ -29,8 +47,17 @@ export type EventQRL<T extends string = AllEventKeys> =
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  */
 // </docs>
-export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(EventNameHtmlScope.on, event, eventQrl);
+export const useOn = <T extends KnownEventNames>(
+  event: T | T[],
+  eventQrl: EventQRL<T>,
+  options?: UseOnOptions
+) => {
+  _useOn(
+    options?.passive ? EventNameHtmlScope.onPassive : EventNameHtmlScope.on,
+    event,
+    eventQrl,
+    options
+  );
 };
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -64,8 +91,17 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  * ```
  */
 // </docs>
-export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(EventNameHtmlScope.document, event, eventQrl);
+export const useOnDocument = <T extends KnownEventNames>(
+  event: T | T[],
+  eventQrl: EventQRL<T>,
+  options?: UseOnOptions
+) => {
+  _useOn(
+    options?.passive ? EventNameHtmlScope.documentPassive : EventNameHtmlScope.document,
+    event,
+    eventQrl,
+    options
+  );
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -100,11 +136,25 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  * ```
  */
 // </docs>
-export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(EventNameHtmlScope.window, event, eventQrl);
+export const useOnWindow = <T extends KnownEventNames>(
+  event: T | T[],
+  eventQrl: EventQRL<T>,
+  options?: UseOnOptions
+) => {
+  _useOn(
+    options?.passive ? EventNameHtmlScope.windowPassive : EventNameHtmlScope.window,
+    event,
+    eventQrl,
+    options
+  );
 };
 
-const _useOn = (prefix: EventNameHtmlScope, eventName: string | string[], eventQrl: EventQRL) => {
+const _useOn = (
+  prefix: EventNameHtmlScope,
+  eventName: string | string[],
+  eventQrl: EventQRL,
+  options?: UseOnOptions
+) => {
   const { isAdded, addEvent } = useOnEventsSequentialScope();
   if (isAdded) {
     return;
@@ -113,10 +163,10 @@ const _useOn = (prefix: EventNameHtmlScope, eventName: string | string[], eventQ
     if (Array.isArray(eventName)) {
       for (let i = 0; i < eventName.length; i++) {
         const event = eventName[i];
-        addEvent(prefix + fromCamelToKebabCase(event), eventQrl);
+        addEvent(prefix + fromCamelToKebabCase(event), eventQrl, options);
       }
     } else {
-      addEvent(prefix + fromCamelToKebabCase(eventName), eventQrl);
+      addEvent(prefix + fromCamelToKebabCase(eventName), eventQrl, options);
     }
   }
 };
@@ -154,13 +204,31 @@ const useOnEventsSequentialScope = () => {
   while (addedFlags.length <= seqIdx) {
     addedFlags.push(false);
   }
-  const addEvent = (eventName: string, eventQrl: EventQRL<KnownEventNames>) => {
+  const addEvent = (
+    eventName: string,
+    eventQrl: EventQRL<KnownEventNames>,
+    options?: UseOnOptions
+  ) => {
     addedFlags[seqIdx] = true;
-    let events = onMap![eventName];
-    if (!events) {
-      onMap![eventName] = events = [];
+    let event = onMap![eventName];
+    if (!event) {
+      onMap![eventName] = event = {
+        qrls: [],
+        capture: false,
+        preventdefault: false,
+        stoppropagation: false,
+      };
     }
-    events.push(eventQrl);
+    event.qrls.push(eventQrl);
+    if (options?.capture) {
+      event.capture = true;
+    }
+    if (options?.preventdefault) {
+      event.preventdefault = true;
+    }
+    if (options?.stoppropagation) {
+      event.stoppropagation = true;
+    }
   };
 
   return {
@@ -169,4 +237,14 @@ const useOnEventsSequentialScope = () => {
   };
 };
 
-export type UseOnMap = Record<string, EventQRL<KnownEventNames>[]>;
+export interface UseOnEventOptions {
+  capture?: boolean;
+  preventdefault?: boolean;
+  stoppropagation?: boolean;
+}
+
+export interface UseOnEvent extends UseOnEventOptions {
+  qrls: EventQRL<KnownEventNames>[];
+}
+
+export type UseOnMap = Record<string, UseOnEvent>;

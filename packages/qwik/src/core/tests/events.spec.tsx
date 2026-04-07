@@ -73,4 +73,72 @@ describe.each([
       </Component>
     );
   });
+
+  it('registers touchmove as passive', async () => {
+    const Cmp = component$(() => {
+      return (
+        // @qwik-disable-next-line preventdefault-passive-check
+        <div passive:touchmove preventdefault:touchmove onTouchMove$={() => {}}></div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    const ev = await trigger(document.body, 'div', 'touchmove');
+
+    expect(ev!.defaultPrevented).toBe(false);
+  });
+
+  it('dispatches capture handlers before bubbling handlers', async () => {
+    (globalThis as any).logs = [];
+    const Cmp = component$(() => {
+      return (
+        <div
+          capture:click
+          onClick$={() => {
+            (globalThis as any).logs.push('parent capture');
+          }}
+        >
+          <button
+            onClick$={() => {
+              (globalThis as any).logs.push('button bubble');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).logs).toEqual(['parent capture', 'button bubble']);
+    (globalThis as any).logs = undefined;
+  });
+
+  it('stops bubbling after capture stoppropagation', async () => {
+    (globalThis as any).logs = [];
+    const Cmp = component$(() => {
+      return (
+        <div
+          capture:click
+          stoppropagation:click
+          onClick$={() => {
+            (globalThis as any).logs.push('parent capture');
+          }}
+        >
+          <button
+            onClick$={() => {
+              (globalThis as any).logs.push('button bubble');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).logs).toEqual(['parent capture']);
+    (globalThis as any).logs = undefined;
+  });
 });

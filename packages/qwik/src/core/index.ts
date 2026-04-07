@@ -125,7 +125,7 @@ export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContextId } from './use/use-context';
 export { useServerData } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
-export { useOn, useOnDocument, useOnWindow } from './use/use-on';
+export { useOn, useOnDocument, useOnWindow, type UseOnOptions } from './use/use-on';
 export { useSignal, useConstant } from './use/use-signal';
 export { withLocale, getLocale } from './use/use-locale';
 

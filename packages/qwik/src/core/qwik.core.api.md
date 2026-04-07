@@ -1837,13 +1837,24 @@ export const useLexicalScope: <VARS extends any[]>() => VARS;
 // Warning: (ae-forgotten-export) The symbol "EventQRL" needs to be exported by the entry point index.d.ts
 //
 // @public
-export const useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
+export const useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void;
 
 // @public
-export const useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
+export const useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void;
+
+// Warning: (ae-forgotten-export) The symbol "UseOnOptionsBase" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type UseOnOptions = UseOnOptionsBase & ({
+    passive?: boolean;
+    preventdefault?: never;
+} | {
+    passive?: never;
+    preventdefault?: boolean;
+});
 
 // @public
-export const useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
+export const useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void;
 
 // @public @deprecated
 export const useResource$: <T>(qrl: ResourceFn<T>, opts?: ResourceOptions | undefined) => ResourceReturn<T>;

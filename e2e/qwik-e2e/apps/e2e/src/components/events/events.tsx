@@ -20,6 +20,12 @@ const EventsParent = component$(() => {
     countWrapped: 0,
     countAnchor: 0,
     propagationStoppedCount: 0,
+    passiveRegularClickCount: 0,
+    passiveClickCount: 0,
+    passivePreventDefaultCount: 0,
+    passivePreventDefaultState: 'unset',
+    passiveDocumentCount: 0,
+    passiveWindowCount: 0,
   });
   return (
     <>
@@ -75,6 +81,66 @@ const EventsParent = component$(() => {
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
       <p id="count-anchor">countAnchor: {store.countAnchor}</p>
       <p id="count-propagation">countPropagationStopped: {store.propagationStoppedCount}</p>
+      <div>
+        <button
+          id="passive-regular-click"
+          onClick$={() => {
+            store.passiveRegularClickCount++;
+          }}
+        >
+          Regular click
+        </button>
+        <button
+          id="passive-click"
+          passive:click
+          onClick$={() => {
+            store.passiveClickCount++;
+          }}
+        >
+          Passive click
+        </button>
+        <button
+          id="passive-preventdefault"
+          passive:click
+          preventdefault:click
+          onClick$={(ev) => {
+            store.passivePreventDefaultCount++;
+            store.passivePreventDefaultState = String(ev.defaultPrevented);
+          }}
+        >
+          Passive preventdefault
+        </button>
+        <button
+          id="passive-document"
+          passive:touchstart
+          document:onTouchStart$={() => {
+            store.passiveDocumentCount++;
+          }}
+        >
+          Passive document
+        </button>
+        <button
+          id="passive-window"
+          passive:scroll
+          window:onScroll$={() => {
+            store.passiveWindowCount++;
+          }}
+        >
+          Passive window
+        </button>
+      </div>
+      <p id="count-passive-regular-click">
+        countPassiveRegularClick: {store.passiveRegularClickCount}
+      </p>
+      <p id="count-passive-click">countPassiveClick: {store.passiveClickCount}</p>
+      <p id="count-passive-preventdefault">
+        countPassivePreventDefault: {store.passivePreventDefaultCount}
+      </p>
+      <p id="state-passive-preventdefault">
+        passivePreventDefaultState: {store.passivePreventDefaultState}
+      </p>
+      <p id="count-passive-document">countPassiveDocument: {store.passiveDocumentCount}</p>
+      <p id="count-passive-window">countPassiveWindow: {store.passiveWindowCount}</p>
       <UseOnWindowConditionalRenderIssue3948 />
       <UndefinedEventHandler />
       <ExecuteAllEventHandlers />

@@ -8,8 +8,11 @@
  * kebab-case, meaning `-` indicates uppercase next letter, and they start with:
  *
  * - `e:` for element events
+ * - `ep:` for passive element events
  * - `d:` for document events
+ * - `dp:` for passive document events
  * - `w:` for window events
+ * - `wp:` for passive window events
  */
 
 import type {
@@ -30,7 +33,12 @@ type Handler = (this: string | undefined, ev: Event, el: Element) => void | Prom
 const doc = document as Document;
 const win = window as unknown as qWindow;
 const windowPrefix = 'w';
+const passiveWindowPrefix = 'wp';
 const documentPrefix = 'd';
+const passiveDocumentPrefix = 'dp';
+const elementPrefix = 'e';
+const passiveElementPrefix = 'ep';
+const capturePrefix = 'capture:';
 
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
@@ -52,8 +60,9 @@ const addEventListener = (
   el: EventTarget,
   eventName: string,
   handler: (ev: Event) => void,
-  capture = false
-) => el.addEventListener(eventName, handler, { capture, passive: false });
+  capture = false,
+  passive = false
+) => el.addEventListener(eventName, handler, { capture, passive });
 
 const findShadowRoots = (fragment: EventTarget & ParentNode) => {
   addEventOrRoot(fragment);
@@ -95,10 +104,30 @@ const emitEvent = <T extends CustomEvent = any>(eventName: string, detail?: T['d
 const camelToKebab = (str: string) => str.replace(/([A-Z-])/g, (a) => '-' + a.toLowerCase());
 const kebabToCamel = (eventName: string) => eventName.replace(/-./g, (a) => a[1].toUpperCase());
 
-const parseKebabEvent = (event: string) => ({
-  scope: event.charAt(0),
-  eventName: kebabToCamel(event.slice(2)),
-});
+const parseKebabEvent = (event: string) => {
+  const separatorIndex = event.indexOf(':');
+  const scope = event.slice(0, separatorIndex) as QwikLoaderEventScope;
+  return {
+    scope,
+    eventName: kebabToCamel(event.slice(separatorIndex + 1)),
+  };
+};
+
+const isPassiveScope = (scope: QwikLoaderEventScope) => scope.length === 2;
+
+const getRootScope = (scope: QwikLoaderEventScope): 'e' | 'd' | 'w' =>
+  scope.charAt(0) as 'e' | 'd' | 'w';
+
+const isElementNode = (node: Node | null): node is Element => !!node && node.nodeType === 1;
+
+const isCaptureHandlerElement = (
+  element: Element,
+  scopedKebabName: string,
+  captureAttribute: string
+) =>
+  element.hasAttribute(captureAttribute) &&
+  (!!(element as QElement)._qDispatch?.[scopedKebabName] ||
+    element.hasAttribute('q-' + scopedKebabName));
 
 // ====== Event Processing ======
 
@@ -111,10 +140,11 @@ const dispatch = async (
   ev: Event,
   scopedKebabName: string,
   /** This must only be provided if checking for preventDefault and stopPropagation attributes */
-  kebabName?: string
+  kebabName?: string,
+  allowPreventDefault = true
 ) => {
   if (kebabName) {
-    if (element.hasAttribute('preventdefault:' + kebabName)) {
+    if (allowPreventDefault && element.hasAttribute('preventdefault:' + kebabName)) {
       ev.preventDefault();
     }
     if (element.hasAttribute('stoppropagation:' + kebabName)) {
@@ -234,31 +264,65 @@ const dispatch = async (
  *
  * @param ev - Browser event.
  */
-const processElementEvent = async (ev: Event) => {
+const processElementEvent = async (
+  ev: Event,
+  scope: 'e' | 'ep' = elementPrefix,
+  allowPreventDefault = true
+) => {
   const kebabName = camelToKebab(ev.type);
-  const scopedKebabName = 'e:' + kebabName;
-  let element = ev.target as Element | null;
+  const scopedKebabName = scope + ':' + kebabName;
+  const captureAttribute = capturePrefix + kebabName;
+  const elements: Element[] = [];
+  const captureHandlers: boolean[] = [];
+  let current = ev.target as Node | null;
 
-  // Bubble up the DOM tree, awaiting any async handlers
-  while (element && element.getAttribute) {
-    const results = dispatch(element, ev, scopedKebabName, kebabName);
-    // The event bubbling is reset after awaiting
-    const doBubble = ev.bubbles && !ev.cancelBubble;
-    if (isPromise(results)) {
-      await results;
+  while (current) {
+    if (isElementNode(current)) {
+      elements.push(current);
+      captureHandlers.push(isCaptureHandlerElement(current, scopedKebabName, captureAttribute));
+      current = current.parentElement;
+    } else {
+      current = (current as ChildNode).parentElement;
     }
-    // Even though it's deprecated as a writeable property, cancelBubble is the only way to know if stopPropagation was called
-    element = doBubble && ev.bubbles && !ev.cancelBubble ? element.parentElement : null;
+  }
+
+  for (let i = elements.length - 1; i >= 0; i--) {
+    if (captureHandlers[i]) {
+      const results = dispatch(elements[i], ev, scopedKebabName, kebabName, allowPreventDefault);
+      const continuePropagation = !ev.cancelBubble;
+      if (isPromise(results)) {
+        await results;
+      }
+      if (!continuePropagation || ev.cancelBubble) {
+        return;
+      }
+    }
+  }
+
+  for (let i = 0; i < elements.length; i++) {
+    if (!captureHandlers[i]) {
+      const results = dispatch(elements[i], ev, scopedKebabName, kebabName, allowPreventDefault);
+      const doBubble = ev.bubbles && !ev.cancelBubble;
+      if (isPromise(results)) {
+        await results;
+      }
+      if (!doBubble || ev.cancelBubble) {
+        return;
+      }
+    }
   }
 };
 
-const broadcast = (infix: QwikLoaderEventScope, ev: Event) => {
+const processPassiveElementEvent = (ev: Event) =>
+  processElementEvent(ev, passiveElementPrefix, false);
+
+const broadcast = (scope: QwikLoaderEventScope, ev: Event, allowPreventDefault = true) => {
   const kebabName = camelToKebab(ev.type);
-  const scopedKebabName = infix + ':' + kebabName;
-  const elements = querySelectorAll('[q-' + infix + '\\:' + kebabName + ']');
+  const scopedKebabName = scope + ':' + kebabName;
+  const elements = querySelectorAll('[q-' + scope + '\\:' + kebabName + ']');
   for (let i = 0; i < elements.length; i++) {
     const el = elements[i];
-    dispatch(el, ev, scopedKebabName, kebabName);
+    dispatch(el, ev, scopedKebabName, kebabName, allowPreventDefault);
   }
 };
 
@@ -274,8 +338,16 @@ const processDocumentEvent = async (ev: Event) => {
   broadcast(documentPrefix, ev);
 };
 
+const processPassiveDocumentEvent = async (ev: Event) => {
+  broadcast(passiveDocumentPrefix, ev, false);
+};
+
 const processWindowEvent = (ev: Event) => {
   broadcast(windowPrefix, ev);
+};
+
+const processPassiveWindowEvent = (ev: Event) => {
+  broadcast(passiveWindowPrefix, ev, false);
 };
 
 /**
@@ -345,17 +417,32 @@ const addEventOrRoot = (...eventNames: (string | (EventTarget & ParentNode))[]) 
       if (!events.has(eventNameOrRoot)) {
         events.add(eventNameOrRoot);
         const { scope, eventName } = parseKebabEvent(eventNameOrRoot);
+        const passive = isPassiveScope(scope);
+        const rootScope = getRootScope(scope);
 
-        if (scope === windowPrefix) {
-          addEventListener(win, eventName, processWindowEvent, true);
+        if (rootScope === windowPrefix) {
+          addEventListener(
+            win,
+            eventName,
+            passive ? processPassiveWindowEvent : processWindowEvent,
+            true,
+            passive
+          );
         } else {
           // eslint-disable-next-line qwik-local/loop-style
           roots.forEach((root) =>
             addEventListener(
               root,
               eventName,
-              scope === documentPrefix ? processDocumentEvent : processElementEvent,
-              true
+              rootScope === documentPrefix
+                ? passive
+                  ? processPassiveDocumentEvent
+                  : processDocumentEvent
+                : passive
+                  ? processPassiveElementEvent
+                  : processElementEvent,
+              true,
+              passive
             )
           );
         }
@@ -374,12 +461,21 @@ const addEventOrRoot = (...eventNames: (string | (EventTarget & ParentNode))[]) 
         // eslint-disable-next-line qwik-local/loop-style
         events.forEach((kebabEventName) => {
           const { scope, eventName } = parseKebabEvent(kebabEventName);
-          if (scope !== windowPrefix) {
+          const passive = isPassiveScope(scope);
+          const rootScope = getRootScope(scope);
+          if (rootScope !== windowPrefix) {
             addEventListener(
               eventNameOrRoot,
               eventName,
-              scope === documentPrefix ? processDocumentEvent : processElementEvent,
-              true
+              rootScope === documentPrefix
+                ? passive
+                  ? processPassiveDocumentEvent
+                  : processDocumentEvent
+                : passive
+                  ? processPassiveElementEvent
+                  : processElementEvent,
+              true,
+              passive
             );
           }
         });

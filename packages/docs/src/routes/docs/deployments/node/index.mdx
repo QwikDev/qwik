@@ -165,7 +165,7 @@ If you want to disable CSRF protection, you can set `checkOrigin: false` in the 
 
 ```tsx {6} /checkOrigin/ title="entry.preview.tsx"
 // ...
-const { router, notFound, staticFile } = createQwikRouter({
+const { router, staticFile } = createQwikRouter({
   render,
   checkOrigin: false,
 });

@@ -479,7 +479,7 @@ Qwik Router applications are protected against CSRF (Cross-Site Request Forgery)
 
 ```tsx
 // src/entry.express.tsx or src/entry.fastify.tsx
-const { router, notFound } = createQwikRouter({
+const { router } = createQwikRouter({
   render,
   // CSRF protection is enabled by default when ORIGIN is set
   checkOrigin: true
@@ -491,7 +491,7 @@ const { router, notFound } = createQwikRouter({
 When behind a reverse proxy (Nginx, CloudFront, etc.), use `'lax-proto'` to handle `X-Forwarded-Proto` headers:
 
 ```tsx
-const { router, notFound } = createQwikRouter({
+const { router } = createQwikRouter({
   render,
   checkOrigin: 'lax-proto' // Required for proper proxy support
 });
@@ -500,7 +500,7 @@ const { router, notFound } = createQwikRouter({
 ##### 3. Disabling CSRF (Not Recommended)
 
 ```tsx
-const { router, notFound } = createQwikRouter({
+const { router } = createQwikRouter({
   render,
   checkOrigin: false // Disables CSRF protection (not recommended for production)
 });

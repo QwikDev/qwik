@@ -86,26 +86,12 @@ export async function trigger(
   eventName: string,
   eventPayload: any = {},
   options?: { waitForIdle?: boolean }
-): Promise<void> {
+): Promise<Event | null> {
   const waitForIdle = options?.waitForIdle ?? true;
-  let scope: QwikLoaderEventScope;
-  let kebabName: string;
-  let scopedKebabName: string;
-  if (eventName.charAt(1) === ':') {
-    scopedKebabName = eventName;
-    scope = eventName.charAt(0) as QwikLoaderEventScope;
-    kebabName = eventName.substring(2);
-    if (kebabName === 'DOMContentLoaded') {
-      kebabName = '-d-o-m-content-loaded';
-      scopedKebabName = scope + ':' + kebabName;
-    }
-  } else {
-    scope = 'e';
-    kebabName = fromCamelToKebabCase(eventName);
-    scopedKebabName = 'e:' + kebabName;
-  }
-  if (scope !== 'e') {
-    queryOrElement = `[q-${scope}\\:${kebabName}]`;
+  const { rootScope, kebabName, selectors, scopedEventNames } = parseTriggerEvent(eventName);
+  let event: Event | null = null;
+  if (selectors) {
+    queryOrElement = selectors;
   }
 
   const elements =
@@ -123,37 +109,143 @@ export async function trigger(
     }
 
     const { bubbles = true, cancelable = true, ...rest } = eventPayload ?? {};
-    const event = new Event(eventName, {
+    event = new Event(eventName, {
       bubbles,
       cancelable,
     });
     Object.assign(event, rest);
-    await dispatch(element, event, scopedKebabName, kebabName);
+    for (let i = 0; i < scopedEventNames.length; i++) {
+      const { scope, scopedKebabName } = scopedEventNames[i];
+      await dispatch(element, event, scopedKebabName, kebabName, scope === rootScope);
+    }
   }
   if (waitForIdle && container) {
     await waitForDrain(container);
   }
+  return event;
 }
+
+const parseTriggerEvent = (eventName: string) => {
+  let scope: QwikLoaderEventScope = 'e';
+  let kebabName = eventName;
+  const separatorIndex = eventName.indexOf(':');
+  if (separatorIndex !== -1) {
+    scope = eventName.slice(0, separatorIndex) as QwikLoaderEventScope;
+    kebabName = eventName.substring(separatorIndex + 1);
+    if (kebabName === 'DOMContentLoaded') {
+      kebabName = '-d-o-m-content-loaded';
+    }
+  } else {
+    kebabName = fromCamelToKebabCase(eventName);
+  }
+
+  const rootScope = scope.charAt(0) as 'd' | 'e' | 'w';
+  const scopes = scope.length === 2 ? [scope] : ([scope, `${scope}p`] as QwikLoaderEventScope[]);
+
+  return {
+    rootScope,
+    kebabName,
+    selectors:
+      rootScope === 'e'
+        ? undefined
+        : scopes.map((scope) => `[q-${scope}\\:${kebabName}]`).join(', '),
+    scopedEventNames: scopes.map((scope) => ({
+      scope,
+      scopedKebabName: `${scope}:${kebabName}`,
+    })),
+  };
+};
 
 const PREVENT_DEFAULT = 'preventdefault:';
 const STOP_PROPAGATION = 'stoppropagation:';
+const CAPTURE = 'capture:';
 const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
+
+const isElementNode = (node: Node | null): node is Element => !!node && node.nodeType === 1;
 
 /** Dispatch in the same way that Qwik Loader does, for testing purposes. */
 export const dispatch = async (
   element: Element | null,
   event: Event,
   scopedKebabName: string,
-  kebabName: string
+  kebabName: string,
+  allowPreventDefault = true
+) => {
+  const captureAttributeName = CAPTURE + kebabName;
+  const elements: Element[] = [];
+  const captureHandlers: boolean[] = [];
+  let current = element as Node | null;
+  while (current) {
+    if (isElementNode(current)) {
+      elements.push(current);
+      captureHandlers.push(
+        current.hasAttribute(captureAttributeName) &&
+          (!!current.getAttribute('q-' + scopedKebabName) ||
+            ('_qDispatch' in (current as QElement) &&
+              !!(current as QElement)._qDispatch?.[scopedKebabName]))
+      );
+      current = current.parentElement;
+    } else {
+      current = (current as ChildNode).parentElement;
+    }
+  }
+
+  for (let i = elements.length - 1; i >= 0; i--) {
+    if (captureHandlers[i]) {
+      const result = dispatchOnElement(
+        elements[i],
+        event,
+        scopedKebabName,
+        kebabName,
+        allowPreventDefault
+      );
+      const continuePropagation = !event.cancelBubble;
+      await result;
+      if (!continuePropagation || event.cancelBubble) {
+        return;
+      }
+    }
+  }
+
+  for (let i = 0; i < elements.length; i++) {
+    if (!captureHandlers[i]) {
+      const result = dispatchOnElement(
+        elements[i],
+        event,
+        scopedKebabName,
+        kebabName,
+        allowPreventDefault
+      );
+      const doBubble = event.bubbles && !event.cancelBubble;
+      await result;
+      if (!doBubble || event.cancelBubble) {
+        return;
+      }
+    }
+  }
+};
+
+const dispatchOnElement = async (
+  element: Element | null,
+  event: Event,
+  scopedKebabName: string,
+  kebabName: string,
+  allowPreventDefault = true
 ) => {
   const preventAttributeName = PREVENT_DEFAULT + kebabName;
   const stopPropagationName = STOP_PROPAGATION + kebabName;
-  while (element) {
+  if (element) {
+    const handlers =
+      '_qDispatch' in (element as QElement)
+        ? (element as QElement)._qDispatch?.[scopedKebabName]
+        : undefined;
+    const attrValue = element.getAttribute('q-' + scopedKebabName);
+
     if (kebabName) {
       const preventDefault = element.hasAttribute(preventAttributeName);
       const stopPropagation = element.hasAttribute(stopPropagationName);
-      if (preventDefault) {
+      if (allowPreventDefault && preventDefault) {
         event.preventDefault();
       }
       if (stopPropagation) {
@@ -161,7 +253,6 @@ export const dispatch = async (
       }
     }
     if ('_qDispatch' in (element as QElement)) {
-      const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
       if (handlers) {
         if (typeof handlers === 'function') {
           await handlers(event, element);
@@ -173,9 +264,12 @@ export const dispatch = async (
             }
           }
         }
+        return;
       }
-    } else if (element.hasAttribute('q-' + scopedKebabName)) {
-      const qrls = element.getAttribute('q-' + scopedKebabName)!;
+    }
+
+    if (attrValue) {
+      const qrls = attrValue;
       try {
         const qrlsArray = qrls.split('|');
         for (let i = 0; i < qrlsArray.length; i++) {
@@ -203,9 +297,7 @@ export const dispatch = async (
         console.error('!!! qrl error', qrls, error);
         throw error;
       }
-      return;
     }
-    element = event.bubbles && !event.cancelBubble ? element.parentElement : null;
   }
 };
 
@@ -221,5 +313,5 @@ export function cleanupAttrs(innerHTML: string | undefined): any {
     ?.replaceAll(/ q:key="[^"]+"/g, '')
     .replaceAll(/ :=""/g, '')
     .replaceAll(/ :="[^"]+"/g, '')
-    .replaceAll(/ q-.:\w+="[^"]+"/g, '');
+    .replaceAll(/ q-[a-z]{1,2}:[^=]+="[^"]+"/g, '');
 }

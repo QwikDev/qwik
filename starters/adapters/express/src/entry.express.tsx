@@ -30,7 +30,7 @@ const assetsDir = join(distDir, "assets");
 const PORT = process.env.PORT ?? 3000;
 
 // Create the Qwik Router Node middleware
-const { router, notFound } = createQwikRouter({
+const { router } = createQwikRouter({
   render,
   // getOrigin(req) {
   //   // If deploying under a proxy, you may need to build the origin from the request headers
@@ -60,9 +60,6 @@ app.use(express.static(distDir, { redirect: false }));
 
 // Use Qwik Router's page and endpoint request handler
 app.use(router);
-
-// Use Qwik Router's 404 handler
-app.use(notFound);
 
 // Start the express server
 app.listen(PORT, () => {

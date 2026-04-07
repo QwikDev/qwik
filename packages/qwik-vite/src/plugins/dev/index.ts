@@ -38,14 +38,12 @@ export async function configurePreviewServer(
     const previewModuleImport = await sys.strictDynamicImport(entryPreviewImportPath);
 
     let previewMiddleware: Connect.HandleFunction | null = null;
-    let preview404Middleware: Connect.HandleFunction | null = null;
 
     if (previewModuleImport.default) {
       if (typeof previewModuleImport.default === 'function') {
         previewMiddleware = previewModuleImport.default;
       } else if (typeof previewModuleImport.default === 'object') {
         previewMiddleware = previewModuleImport.default.router;
-        preview404Middleware = previewModuleImport.default.notFound;
       }
     }
 
@@ -57,10 +55,6 @@ export async function configurePreviewServer(
     }
 
     middlewares.use(previewMiddleware);
-
-    if (typeof preview404Middleware === 'function') {
-      middlewares.use(preview404Middleware);
-    }
   } catch (e) {
     return invalidPreviewMessage(middlewares, String(e));
   }

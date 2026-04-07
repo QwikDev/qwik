@@ -14,11 +14,7 @@ import type { ServerResponse } from 'node:http';
 export const createQwikCity: typeof createQwikRouter;
 
 // @public (undocumented)
-export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions): {
-    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
-    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;
-    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
-};
+export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions): QwikRouterNodeMiddleware;
 
 // @public (undocumented)
 export interface NodeRequestNextFunction {
@@ -38,6 +34,16 @@ export interface PlatformNode {
 
 // @public @deprecated (undocumented)
 export type QwikCityNodeRequestOptions = QwikRouterNodeRequestOptions;
+
+// @public (undocumented)
+export interface QwikRouterNodeMiddleware {
+    // @deprecated (undocumented)
+    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;
+    // (undocumented)
+    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
+    // (undocumented)
+    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
+}
 
 // @public (undocumented)
 export interface QwikRouterNodeRequestOptions extends ServerRenderOptions {

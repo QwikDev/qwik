@@ -1,7 +1,10 @@
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { Render } from '@qwik.dev/core/server';
 import { createQwikRouter as createQwikRouterNode } from '@qwik.dev/router/middleware/node';
+import type { NodeRequestNextFunction } from '@qwik.dev/router/middleware/node';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
+import type { Http2ServerRequest } from 'node:http2';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
 interface AwsOpt {
   render: Render;
@@ -9,9 +12,31 @@ interface AwsOpt {
 }
 
 /** @public */
-export function createQwikRouter(opts: AwsOpt) {
+export interface QwikRouterAwsLambdaMiddleware {
+  fixPath: (pathT: string) => string;
+  router: (
+    req: IncomingMessage | Http2ServerRequest,
+    res: ServerResponse,
+    next: NodeRequestNextFunction
+  ) => Promise<void>;
+  staticFile: (
+    req: IncomingMessage | Http2ServerRequest,
+    res: ServerResponse,
+    next: (e?: any) => void
+  ) => Promise<void>;
+  /** @deprecated `router` handles 404 responses. Will be removed in V3. */
+  notFound: (
+    req: IncomingMessage | Http2ServerRequest,
+    res: ServerResponse,
+    next: (e?: any) => void
+  ) => Promise<void>;
+  handle: (req: any, res: any) => void;
+}
+
+/** @public */
+export function createQwikRouter(opts: AwsOpt): QwikRouterAwsLambdaMiddleware {
   try {
-    const { router, staticFile, notFound } = createQwikRouterNode({
+    const { router, staticFile } = createQwikRouterNode({
       render: opts.render,
       manifest: opts.manifest,
       static: {
@@ -41,10 +66,13 @@ export function createQwikRouter(opts: AwsOpt) {
     const handle = (req: any, res: any) => {
       req.url = fixPath(req.url);
       staticFile(req, res, () => {
-        router(req, res, () => {
-          notFound(req, res, () => {});
-        });
+        router(req, res, () => {});
       });
+    };
+
+    /** @deprecated `router` handles 404 responses. Will be removed in V3. */
+    const notFound = async (_req: any, _res: any, next: (e?: any) => void) => {
+      next();
     };
 
     return { fixPath, router, staticFile, notFound, handle };

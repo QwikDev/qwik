@@ -9507,7 +9507,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Events are case sensitive.
 
 ```typescript
-useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
+useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void
 ```
 
 <table><thead><tr><th>
@@ -9543,6 +9543,19 @@ eventQrl
 EventQRL&lt;T&gt;
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[UseOnOptions](#useonoptions)
+
+</td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>
@@ -9562,7 +9575,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Events are case sensitive.
 
 ```typescript
-useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
+useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void
 ```
 
 <table><thead><tr><th>
@@ -9600,11 +9613,66 @@ EventQRL&lt;T&gt;
 </td><td>
 
 </td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[UseOnOptions](#useonoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
 </tbody></table>
 
 **Returns:**
 
 void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
+
+<h2 id="useonoptions">UseOnOptions</h2>
+
+```typescript
+export interface UseOnOptions
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+passive?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
@@ -9617,7 +9685,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Events are case sensitive.
 
 ```typescript
-useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
+useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void
 ```
 
 <table><thead><tr><th>
@@ -9653,6 +9721,19 @@ eventQrl
 EventQRL&lt;T&gt;
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[UseOnOptions](#useonoptions)
+
+</td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>

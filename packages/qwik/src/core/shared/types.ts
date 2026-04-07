@@ -71,7 +71,7 @@ export type qWindow = Window & {
    * while we add new events to qwikloader.
    */
   _qwikEv: {
-    /** The scoped kebabcase names of events, e.g. `"e:my-event"` or `"w:load"` */
+    /** The scoped kebabcase names of events, e.g. `"e:my-event"`, `"ep:touchstart"` or `"w:load"` */
     events: Set<string>;
     /** The known root nodes (document, shadow roots) */
     roots: Set<Node>;
@@ -80,7 +80,7 @@ export type qWindow = Window & {
   };
 };
 
-export type QwikLoaderEventScope = 'd' | 'w' | 'e';
+export type QwikLoaderEventScope = 'd' | 'dp' | 'w' | 'wp' | 'e' | 'ep';
 
 /**
  * A friendly name tag for a VirtualVNode.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { jsxEventToHtmlAttribute } from './event-names';
+import { getEventDataFromHtmlAttribute, jsxEventToHtmlAttribute } from './event-names';
 
 /**
  * Test cases for event conversion utilities.
@@ -29,10 +29,28 @@ const testCases = [
   { jsx: 'document:onUnload$', html: 'q-d:unload' },
 ];
 
+const passiveTestCases = [
+  { jsx: 'onClick$', html: 'q-ep:click' },
+  { jsx: 'window:onScroll$', html: 'q-wp:scroll' },
+  { jsx: 'document:onTouchStart$', html: 'q-dp:touchstart' },
+];
+
 describe('Event conversion utilities', () => {
   describe.each(testCases)('jsxEventToHtmlAttribute', (test) => {
     it(`should convert ${test.jsx} to ${test.html}`, () => {
       expect(jsxEventToHtmlAttribute(test.jsx)).toBe(test.html);
     });
+  });
+
+  describe.each(passiveTestCases)('jsxEventToHtmlAttribute passive', (test) => {
+    it(`should convert ${test.jsx} to ${test.html} when passive`, () => {
+      expect(jsxEventToHtmlAttribute(test.jsx, true)).toBe(test.html);
+    });
+  });
+
+  it('should parse passive html event attributes', () => {
+    expect(getEventDataFromHtmlAttribute('q-ep:click')).toEqual(['ep', 'click']);
+    expect(getEventDataFromHtmlAttribute('q-dp:touchstart')).toEqual(['dp', 'touchstart']);
+    expect(getEventDataFromHtmlAttribute('q-wp:scroll')).toEqual(['wp', 'scroll']);
   });
 });

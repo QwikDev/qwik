@@ -6,6 +6,7 @@ use crate::entry_strategy::EntryPolicy;
 use crate::inlined_fn::{convert_inlined_fn, render_expr};
 use crate::is_const::is_const_expr;
 use crate::parse::{EmitMode, PathData};
+
 use crate::words::*;
 use crate::{errors, EntryStrategy};
 use base64::Engine;
@@ -21,10 +22,13 @@ use std::str;
 use swc_atoms::{atom, Atom};
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::SyntaxContext;
-use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
+use swc_common::{sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast::{self, SpreadElement};
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
 use swc_ecmascript::visit::{noop_fold_type, noop_visit_type, Fold, FoldWith, Visit, VisitWith};
+
+mod disable_next_line_directive;
+use disable_next_line_directive::DisabledDiagnostics;
 
 macro_rules! id {
 	($ident: expr) => {
@@ -104,6 +108,14 @@ struct PropAddContext {
 	spread_props_count: usize,
 }
 
+#[derive(Clone, Copy)]
+struct TransformJsxPropContext<'a> {
+	is_fn: bool,
+	passive_events: &'a HashSet<String>,
+	should_sort: bool,
+	is_target_const_props: bool,
+}
+
 struct ImportQrlName {
 	display_name: String,
 	hash_seed: String,
@@ -137,6 +149,7 @@ pub struct QwikTransform<'a> {
 	jsx_key_counter: u32,
 	root_jsx_mode: bool,
 	jsx_element_is_native: Vec<bool>,
+	jsx_element_passive_events: Vec<HashSet<String>>,
 	hoisted_fn_signals: HashMap<String, Id>,
 	hoisted_fn_counter: u32,
 	iteration_var_stack: Vec<Vec<ast::Ident>>,
@@ -153,6 +166,7 @@ pub struct QwikTransform<'a> {
 	pub ref_assignments: Vec<ast::ModuleItem>,
 	/// Segment idents whose .s() calls are emitted by the Hoist drain, not ref_assignments
 	hoisted_segment_idents: HashSet<Id>,
+	disabled_diagnostics: DisabledDiagnostics,
 	/// Pending expression replacement for fold_expr (to return non-CallExpr from fold_call_expr)
 	pending_expr_replacement: Option<ast::Expr>,
 }
@@ -257,6 +271,9 @@ impl<'a> QwikTransform<'a> {
 				}
 			})
 			.collect();
+
+		let disabled_diagnostics = Self::collect_disabled_diagnostics(&options);
+
 		QwikTransform {
 			file_hash: hasher.finish(),
 			jsx_key_counter: 0,
@@ -295,6 +312,7 @@ impl<'a> QwikTransform<'a> {
 			root_jsx_mode: true,
 			jsx_mutable: false,
 			jsx_element_is_native: Vec::new(),
+			jsx_element_passive_events: Vec::new(),
 			hoisted_fn_signals: HashMap::new(),
 			hoisted_fn_counter: 0,
 			iteration_var_stack: Vec::new(),
@@ -305,6 +323,7 @@ impl<'a> QwikTransform<'a> {
 			const_initializers: HashMap::new(),
 			ref_assignments: Vec::new(),
 			hoisted_segment_idents: HashSet::new(),
+			disabled_diagnostics,
 			pending_expr_replacement: None,
 			options,
 		}
@@ -902,16 +921,15 @@ impl<'a> QwikTransform<'a> {
 			scoped_idents.retain(|id| !param_idents.contains(id));
 
 			if !can_capture && !scoped_idents.is_empty() {
-				HANDLER.with(|handler| {
-					let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
-					handler
-						.struct_span_err_with_code(
-							first_arg_span,
-							&format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
-							errors::get_diagnostic_id(errors::Error::CanNotCapture),
-						)
-						.emit();
-				});
+				let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
+				self.emit_span_error_with_code(
+					first_arg_span,
+					&format!(
+						"Qrl($) scope is not a function, but it's capturing local identifiers: {}",
+						ids.join(", ")
+					),
+					errors::get_diagnostic_code(errors::DiagnosticRule::CanNotCapture),
+				);
 				scoped_idents = vec![];
 			}
 
@@ -990,16 +1008,15 @@ impl<'a> QwikTransform<'a> {
 		scoped_idents.retain(|id| !param_idents.contains(id));
 
 		if !can_capture && !scoped_idents.is_empty() {
-			HANDLER.with(|handler| {
-				let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
-				handler
-					.struct_span_err_with_code(
-						first_arg_span,
-						&format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
-						errors::get_diagnostic_id(errors::Error::CanNotCapture),
-					)
-					.emit();
-			});
+			let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
+			self.emit_span_error_with_code(
+				first_arg_span,
+				&format!(
+					"Qrl($) scope is not a function, but it's capturing local identifiers: {}",
+					ids.join(", ")
+				),
+				errors::get_diagnostic_code(errors::DiagnosticRule::CanNotCapture),
+			);
 			scoped_idents = vec![];
 		}
 		let captures = Captures::Auto(scoped_idents.clone());
@@ -1026,17 +1043,14 @@ impl<'a> QwikTransform<'a> {
 						self.ensure_export(&root_id);
 					}
 					if invalid_decl.iter().any(|entry| entry.0 == *id) {
-						HANDLER.with(|handler| {
-							handler
-								.struct_err_with_code(
-									&format!(
-										"Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
-										id.0
-									),
-									errors::get_diagnostic_id(errors::Error::FunctionReference),
-								)
-								.emit();
-						});
+						self.emit_error_with_code(
+							first_arg_span,
+							&format!(
+								"Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
+								id.0
+							),
+							errors::get_diagnostic_code(errors::DiagnosticRule::FunctionReference),
+						);
 					}
 				}
 			}
@@ -1233,7 +1247,7 @@ impl<'a> QwikTransform<'a> {
 				let is_fn = matches!(*expr, ast::Expr::Arrow(_) | ast::Expr::Fn(_));
 				if is_fn {
 					// Determine segment kind: EventHandler for event props, JSXProp otherwise
-					let segment_kind = if jsx_event_to_html_attribute(&ctx_name).is_some() {
+					let segment_kind = if jsx_event_to_html_attribute(&ctx_name, false).is_some() {
 						SegmentKind::EventHandler
 					} else {
 						SegmentKind::JSXProp
@@ -1747,45 +1761,58 @@ impl<'a> QwikTransform<'a> {
 	/// - Handle bind:value and bind:checked (always for constProps, only for _jsxSorted in varProps)
 	fn transform_jsx_prop(
 		&mut self,
-		is_fn: bool,
 		original_key_word: &Option<Atom>,
 		node: &ast::KeyValueProp,
 		maybe_const_props: &mut Vec<ast::PropOrSpread>,
-		should_sort: bool,
-		is_target_const_props: bool,
+		context: TransformJsxPropContext<'_>,
 	) -> (Option<Atom>, Option<Atom>, bool) {
 		let mut key_word = original_key_word.clone();
 		let mut transformed_event_key = None;
 
-		// Transform event props (e.g., onClick$ -> q-e:click)
 		// Only for native elements, not components
-		if !is_fn {
+		if !context.is_fn {
 			if let Some(ref kw) = original_key_word {
-				if let Some(html_attr) = jsx_event_to_html_attribute(kw.as_ref()) {
+				if kw.as_ref().starts_with("passive:") {
+					return (key_word, transformed_event_key, true);
+				}
+				if kw.as_ref().starts_with("preventdefault:") {
+					let event = kw.as_ref().strip_prefix("preventdefault:").unwrap();
+					if context.passive_events.contains(event) {
+						self.emit_span_warning_with_code(
+							node.key.span(),
+							&format!(
+								"preventdefault:{event} has no effect when passive:{event} is also set; passive event listeners cannot call preventDefault()"
+							),
+							errors::get_diagnostic_code(
+								errors::DiagnosticRule::PreventdefaultPassiveCheck,
+							),
+						);
+						return (key_word, transformed_event_key, true);
+					}
+				}
+
+				// Transform event props (e.g., onClick$ -> q-e:click)
+				let is_passive = jsx_event_to_event_name(kw.as_ref())
+					.is_some_and(|event_name| context.passive_events.contains(&event_name));
+				if let Some(html_attr) = jsx_event_to_html_attribute(kw.as_ref(), is_passive) {
 					transformed_event_key = Some(html_attr.clone());
 					key_word = Some(html_attr);
 				}
-			}
-		}
 
-		if !is_fn {
-			// Only for native elements
-			if let Some(ref kw) = original_key_word {
 				if kw == &*CLASS_NAME {
 					key_word = Some(CLASS.clone());
 					transformed_event_key = Some(CLASS.clone());
 				}
-			}
-			// Handle bind:value and bind:checked:
-			// - Always transform when targeting constProps (compile-time known)
-			// - Only transform for _jsxSorted (should_sort = false) when targeting varProps
-			// - For _jsxSplit, leave bind:* untouched (runtime handles it)
-			if let Some(ref kw) = original_key_word {
-				if should_sort && Self::is_bind_prop(kw) {
+
+				// Handle bind:value and bind:checked:
+				// - Always transform when targeting constProps (compile-time known)
+				// - Only transform for _jsxSorted (should_sort = false) when targeting varProps
+				// - For _jsxSplit, leave bind:* untouched (runtime handles it)
+				if context.should_sort && Self::is_bind_prop(kw) {
 					return (key_word, transformed_event_key, false);
 				}
 			}
-			if is_target_const_props || !should_sort {
+			if context.is_target_const_props || !context.should_sort {
 				if let Some(ref kw) = original_key_word {
 					if Self::is_bind_prop(kw) {
 						let is_checked = kw == &*BIND_CHECKED;
@@ -2263,6 +2290,7 @@ impl<'a> QwikTransform<'a> {
 				} else {
 					Vec::new()
 				};
+				let passive_events = collect_passive_event_names_from_props(&props);
 
 				for prop in props.into_iter() {
 					let mut name_token = false;
@@ -2294,12 +2322,15 @@ impl<'a> QwikTransform<'a> {
 							// Transform JSX props (event handlers, className, bind:value/checked)
 							let (key_word, transformed_event_key, skip_prop) = self
 								.transform_jsx_prop(
-									is_fn,
 									&original_key_word,
 									node,
 									maybe_const_props,
-									should_runtime_sort,
-									is_target_const_props,
+									TransformJsxPropContext {
+										is_fn,
+										passive_events: &passive_events,
+										should_sort: should_runtime_sort,
+										is_target_const_props,
+									},
 								);
 
 							// Skip the bind: prop itself - don't add it to any props list
@@ -3832,16 +3863,32 @@ impl<'a> Fold for QwikTransform<'a> {
 			let is_native_element = ident.sym.chars().next().is_some_and(|c| c.is_lowercase());
 			self.stack_ctxt.push(ident.sym.to_string());
 			self.jsx_element_is_native.push(is_native_element);
+			self.jsx_element_passive_events
+				.push(collect_passive_event_names_from_jsx_attrs(
+					&node.opening.attrs,
+				));
 			(true, true)
 		} else {
 			(false, false)
 		};
-		let o = node.fold_children_with(self);
+		let mut o = node.fold_children_with(self);
+		if is_native {
+			o.opening.attrs.retain(|attr| {
+				!matches!(
+					attr,
+					ast::JSXAttrOrSpread::JSXAttr(ast::JSXAttr {
+						name: ast::JSXAttrName::JSXNamespacedName(namespaced),
+						..
+					}) if namespaced.ns.sym.as_ref() == "passive"
+				)
+			});
+		}
 		if stacked {
 			self.stack_ctxt.pop();
 		}
 		if is_native {
 			self.jsx_element_is_native.pop();
+			self.jsx_element_passive_events.pop();
 		}
 		o
 	}
@@ -3874,7 +3921,16 @@ impl<'a> Fold for QwikTransform<'a> {
 				// Transform event names (onClick$ -> q-e:click) only on native HTML elements
 				let is_native_element = self.jsx_element_is_native.last().copied().unwrap_or(false);
 				let transformed_name = if is_native_element {
-					if let Some(html_attr) = jsx_event_to_html_attribute(&ident.sym) {
+					let passive_events = self.jsx_element_passive_events.last();
+					let is_passive = passive_events
+						.and_then(|events| {
+							jsx_event_to_event_name(ident.sym.as_ref())
+								.map(|event| events.contains(&event))
+						})
+						.unwrap_or(false);
+					if let Some(html_attr) =
+						jsx_event_to_html_attribute(ident.sym.as_ref(), is_passive)
+					{
 						// Push transformed name to context for event handlers
 						self.stack_ctxt.push(html_attr.to_string());
 						Some(ast::JSXAttrName::Ident(ast::IdentName {
@@ -3906,18 +3962,40 @@ impl<'a> Fold for QwikTransform<'a> {
 			}
 			ast::JSXAttrName::JSXNamespacedName(ref namespaced) => {
 				let new_word = convert_qrl_word(&namespaced.name.sym);
-				let ident_name = [
-					namespaced.ns.sym.as_ref(),
-					"-",
-					namespaced.name.sym.as_ref(),
-				]
-				.concat();
-				self.stack_ctxt.push(ident_name.clone());
+				let jsx_attr_name = format!("{}:{}", namespaced.ns.sym, namespaced.name.sym);
+				let context_name = format!("{}-{}", namespaced.ns.sym, namespaced.name.sym);
+				let is_native_element = self.jsx_element_is_native.last().copied().unwrap_or(false);
+				let transformed_name = if is_native_element {
+					let passive_events = self.jsx_element_passive_events.last();
+					let is_passive = passive_events
+						.and_then(|events| {
+							jsx_event_to_event_name(&jsx_attr_name)
+								.map(|event| events.contains(&event))
+						})
+						.unwrap_or(false);
+					if let Some(html_attr) = jsx_event_to_html_attribute(&jsx_attr_name, is_passive)
+					{
+						self.stack_ctxt.push(html_attr.to_string());
+						Some(ast::JSXAttrName::Ident(ast::IdentName {
+							span: namespaced.span,
+							sym: html_attr,
+						}))
+					} else {
+						self.stack_ctxt.push(context_name);
+						None
+					}
+				} else {
+					self.stack_ctxt.push(context_name);
+					None
+				};
 				if new_word.is_some() {
 					ast::JSXAttr {
-						value: self.handle_jsx_value(Atom::from(ident_name), node.value),
+						value: self.handle_jsx_value(Atom::from(jsx_attr_name), node.value),
+						name: transformed_name.unwrap_or_else(|| node.name.clone()),
 						..node
 					}
+				} else if let Some(name) = transformed_name {
+					ast::JSXAttr { name, ..node }
 				} else {
 					node
 				}
@@ -4072,26 +4150,24 @@ impl<'a> Fold for QwikTransform<'a> {
 				} else {
 					let new_specifier =
 						convert_qrl_word(&ident.sym).expect("Specifier ends with $");
-					global_collect
-							.exports
-							.get(&new_specifier)
-							.map_or_else(
-								|| {
-									HANDLER.with(|handler| {
-										handler
-											.struct_span_err_with_code(
-												ident.span,
-												&format!("Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly", &ident.sym, &new_specifier),
-												errors::get_diagnostic_id(errors::Error::MissingQrlImplementation),
-										)
-											.emit();
-									});
-								},
-								|export_info| {
-									replace_callee =
-										Some(new_ident_from_id(&export_info.local_id).as_callee());
-								},
-							);
+					let exported_local = global_collect
+						.exports
+						.get(&new_specifier)
+						.map(|export_info| export_info.local_id.clone());
+					if let Some(exported_local) = exported_local {
+						replace_callee = Some(new_ident_from_id(&exported_local).as_callee());
+					} else {
+						self.emit_span_error_with_code(
+							ident.span,
+							&format!(
+								"Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly",
+								&ident.sym, &new_specifier
+							),
+							errors::get_diagnostic_code(
+								errors::DiagnosticRule::MissingQrlImplementation,
+							),
+						);
+					}
 				}
 			} else {
 				self.stack_ctxt.push(ident.sym.to_string());
@@ -4653,23 +4729,9 @@ fn escape_sym(str: &str) -> String {
 		.0
 }
 
-/// Converts JSX event names (e.g., onClick$) to HTML attribute names (e.g., q-e:click)
-/// Follows the same logic as jsxEventToHtmlAttribute in event-names.ts
-fn jsx_event_to_html_attribute(jsx_event: &str) -> Option<Atom> {
-	if !jsx_event.ends_with('$') {
-		return None;
-	}
-
-	let (prefix, idx) = get_event_scope_data_from_jsx_event(jsx_event);
-
-	if idx == usize::MAX {
-		return None;
-	}
-
-	let name = &jsx_event[idx..jsx_event.len() - 1];
-
+fn normalize_jsx_event_name(name: &str) -> String {
 	if name == "DOMContentLoaded" {
-		return Some(Atom::from(format!("{}-d-o-m-content-loaded", prefix)));
+		return "-d-o-m-content-loaded".to_string();
 	}
 
 	let processed_name = if let Some(stripped) = name.strip_prefix('-') {
@@ -4679,17 +4741,101 @@ fn jsx_event_to_html_attribute(jsx_event: &str) -> Option<Atom> {
 		name.to_lowercase()
 	};
 
-	Some(create_event_name(&processed_name, prefix))
+	create_event_name(&processed_name, "").to_string()
+}
+
+fn jsx_event_to_event_name(jsx_event: &str) -> Option<String> {
+	if !jsx_event.ends_with('$') {
+		return None;
+	}
+
+	let (_, idx) = get_event_scope_data_from_jsx_event(jsx_event, false);
+
+	if idx == usize::MAX {
+		return None;
+	}
+
+	Some(normalize_jsx_event_name(
+		&jsx_event[idx..jsx_event.len() - 1],
+	))
+}
+
+fn passive_attr_to_event_name(passive_attr: &str) -> Option<String> {
+	passive_attr
+		.strip_prefix("passive:")
+		.map(normalize_jsx_event_name)
+}
+
+fn collect_passive_event_names_from_props(props: &[ast::PropOrSpread]) -> HashSet<String> {
+	props
+		.iter()
+		.filter_map(|prop| match prop {
+			ast::PropOrSpread::Prop(prop) => match prop.as_ref() {
+				ast::Prop::KeyValue(node) => match &node.key {
+					ast::PropName::Ident(ident) => passive_attr_to_event_name(ident.sym.as_ref()),
+					ast::PropName::Str(s) => passive_attr_to_event_name(s.value.as_ref()),
+					_ => None,
+				},
+				_ => None,
+			},
+			_ => None,
+		})
+		.collect()
+}
+
+fn collect_passive_event_names_from_jsx_attrs(attrs: &[ast::JSXAttrOrSpread]) -> HashSet<String> {
+	attrs
+		.iter()
+		.filter_map(|attr| {
+			if let ast::JSXAttrOrSpread::JSXAttr(jsx_attr) = attr {
+				match &jsx_attr.name {
+					ast::JSXAttrName::Ident(ident) => {
+						passive_attr_to_event_name(ident.sym.as_ref())
+					}
+					ast::JSXAttrName::JSXNamespacedName(namespaced)
+						if namespaced.ns.sym == *"passive" =>
+					{
+						passive_attr_to_event_name(
+							format!("passive:{}", namespaced.name.sym).as_str(),
+						)
+					}
+					_ => None,
+				}
+			} else {
+				None
+			}
+		})
+		.collect()
+}
+
+/// Converts JSX event names (e.g., onClick$) to HTML attribute names (e.g., q-e:click)
+/// Follows the same logic as jsxEventToHtmlAttribute in event-names.ts
+fn jsx_event_to_html_attribute(jsx_event: &str, is_passive: bool) -> Option<Atom> {
+	if !jsx_event.ends_with('$') {
+		return None;
+	}
+
+	let (prefix, idx) = get_event_scope_data_from_jsx_event(jsx_event, is_passive);
+
+	if idx == usize::MAX {
+		return None;
+	}
+
+	Some(Atom::from(format!(
+		"{}{}",
+		prefix,
+		normalize_jsx_event_name(&jsx_event[idx..jsx_event.len() - 1])
+	)))
 }
 
 /// Get the event scope prefix and starting index from a JSX event name
-fn get_event_scope_data_from_jsx_event(jsx_event: &str) -> (&str, usize) {
+fn get_event_scope_data_from_jsx_event(jsx_event: &str, is_passive: bool) -> (&str, usize) {
 	if jsx_event.starts_with("window:on") {
-		("q-w:", 9)
+		(if is_passive { "q-wp:" } else { "q-w:" }, 9)
 	} else if jsx_event.starts_with("document:on") {
-		("q-d:", 11)
+		(if is_passive { "q-dp:" } else { "q-d:" }, 11)
 	} else if jsx_event.starts_with("on") {
-		("q-e:", 2)
+		(if is_passive { "q-ep:" } else { "q-e:" }, 2)
 	} else {
 		("", usize::MAX)
 	}

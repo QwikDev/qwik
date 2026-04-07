@@ -1,7 +1,7 @@
 import type { OnRenderFn } from '../component.public';
 import { createQRL } from '../qrl/qrl-class';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { jsxEventToHtmlAttribute } from '../utils/event-names';
+import { jsxEventToHtmlAttribute, normalizeJsxEventName } from '../utils/event-names';
 import { logOnceWarn } from '../utils/log';
 import type { OnRenderProp, QSlot, QSlotS, QScopedStyle, ELEMENT_ID } from '../utils/markers';
 import { qDev } from '../utils/qdev';
@@ -13,7 +13,89 @@ import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 const BIND_VALUE = 'bind:value';
 const BIND_CHECKED = 'bind:checked';
+const PASSIVE = 'passive:';
+const PREVENT_DEFAULT = 'preventdefault:';
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
+
+const removePassiveMarkers = (
+  props: Props,
+  passiveKeys: string[],
+  preventDefaultKeys: string[],
+  passiveEvents: Set<string>,
+  canMutate = false
+): Props => {
+  let mutableProps = props;
+  let copied = canMutate;
+
+  if (passiveKeys.length > 0) {
+    if (!copied) {
+      mutableProps = { ...mutableProps };
+      copied = true;
+    }
+    for (let i = 0; i < passiveKeys.length; i++) {
+      const k = passiveKeys[i];
+      delete mutableProps[k];
+    }
+  }
+
+  if (preventDefaultKeys.length > 0) {
+    for (let i = 0; i < preventDefaultKeys.length; i++) {
+      const k = preventDefaultKeys[i];
+      if (passiveEvents.has(normalizeJsxEventName(k.slice(PREVENT_DEFAULT.length)))) {
+        if (!copied) {
+          mutableProps = { ...mutableProps };
+          copied = true;
+        }
+        delete mutableProps[k];
+      }
+    }
+  }
+
+  return mutableProps;
+};
+
+const getPassiveEventKey = (key: string): string | null => {
+  if (key.startsWith('on') && key.endsWith('$')) {
+    return normalizeJsxEventName(key.slice(2, -1));
+  }
+  if (key.startsWith('window:on') && key.endsWith('$')) {
+    return normalizeJsxEventName(key.slice(9, -1));
+  }
+  if (key.startsWith('document:on') && key.endsWith('$')) {
+    return normalizeJsxEventName(key.slice(11, -1));
+  }
+  return null;
+};
+
+const convertJsxEventProps = (
+  props: Props,
+  eventKeys: string[],
+  keyOrder: Map<string, number>,
+  passiveEvents: Set<string>,
+  canMutate = false
+): Props => {
+  let mutableProps = props;
+  let copied = canMutate;
+
+  for (let i = 0; i < eventKeys.length; i++) {
+    const k = eventKeys[i];
+    const passiveEventKey = getPassiveEventKey(k)!;
+    const attr = jsxEventToHtmlAttribute(k, passiveEvents.has(passiveEventKey));
+    if (attr) {
+      if (!copied) {
+        mutableProps = { ...mutableProps };
+        copied = true;
+      }
+      const attrIndex = keyOrder.get(attr);
+      if (attrIndex === undefined || attrIndex < keyOrder.get(k)!) {
+        mutableProps[attr] = mutableProps[k];
+      }
+      delete mutableProps[k];
+    }
+  }
+
+  return mutableProps;
+};
 
 /**
  * Create a JSXNode with the properties fully split into variable and constant parts, and children
@@ -77,20 +159,27 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
 
   // Apply transformations for native HTML elements only
   if (typeof type === 'string') {
-    // Transform event names (onClick$ -> q-e:click)
+    const passiveEvents = new Set<string>();
+    const constEventKeys: string[] = [];
+    const varEventKeys: string[] = [];
+    const constPassiveKeys: string[] = [];
+    const varPassiveKeys: string[] = [];
+    const constPreventDefaultKeys: string[] = [];
+    const varPreventDefaultKeys: string[] = [];
+    const constKeyOrder = new Map<string, number>();
+    const varKeyOrder = new Map<string, number>();
+
     if (constProps) {
-      const processedKeys = new Set<string>();
+      let index = 0;
       for (const k in constProps) {
-        const attr = jsxEventToHtmlAttribute(k);
-        if (attr) {
-          if (!constPropsCopied) {
-            constProps = { ...constProps };
-            constPropsCopied = true;
-          }
-          if (!_hasOwnProperty.call(constProps, attr) || processedKeys.has(attr)) {
-            constProps[attr] = constProps[k];
-          }
-          delete constProps[k];
+        constKeyOrder.set(k, index++);
+        if (k.startsWith(PASSIVE)) {
+          constPassiveKeys.push(k);
+          passiveEvents.add(normalizeJsxEventName(k.slice(PASSIVE.length)));
+        } else if (k.startsWith(PREVENT_DEFAULT)) {
+          constPreventDefaultKeys.push(k);
+        } else if (getPassiveEventKey(k) !== null) {
+          constEventKeys.push(k);
         } else if (k === BIND_CHECKED) {
           // Set flag, will process after walk
           bindCheckedSignal = constProps[k];
@@ -98,24 +187,19 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
           // Set flag, will process after walk
           bindValueSignal = constProps[k];
         }
-        processedKeys.add(k);
       }
     }
     if (varProps) {
-      const processedKeys = new Set<string>();
+      let index = 0;
       for (const k in varProps) {
-        const attr = jsxEventToHtmlAttribute(k);
-        if (attr) {
-          if (!varPropsCopied) {
-            varProps = { ...varProps };
-            varPropsCopied = true;
-          }
-          // Transform event name in place
-          if (!_hasOwnProperty.call(varProps, attr) || processedKeys.has(attr)) {
-            varProps[attr] = varProps[k];
-          }
-          delete varProps[k];
-          toSort = true;
+        varKeyOrder.set(k, index++);
+        if (k.startsWith(PASSIVE)) {
+          varPassiveKeys.push(k);
+          passiveEvents.add(normalizeJsxEventName(k.slice(PASSIVE.length)));
+        } else if (k.startsWith(PREVENT_DEFAULT)) {
+          varPreventDefaultKeys.push(k);
+        } else if (getPassiveEventKey(k) !== null) {
+          varEventKeys.push(k);
         } else if (k === BIND_CHECKED) {
           // Set flag, will process after walk
           bindCheckedSignal = varProps[k];
@@ -123,8 +207,48 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
           // Set flag, will process after walk
           bindValueSignal = varProps[k];
         }
-        processedKeys.add(k);
       }
+    }
+
+    if (constProps) {
+      const originalConstProps = constProps;
+      constProps = removePassiveMarkers(
+        constProps,
+        constPassiveKeys,
+        constPreventDefaultKeys,
+        passiveEvents,
+        constPropsCopied
+      );
+      constPropsCopied = constPropsCopied || constProps !== originalConstProps;
+      constProps = convertJsxEventProps(
+        constProps,
+        constEventKeys,
+        constKeyOrder,
+        passiveEvents,
+        constPropsCopied
+      );
+      constPropsCopied = constPropsCopied || constProps !== originalConstProps;
+    }
+
+    if (varProps) {
+      const originalVarProps = varProps;
+      varProps = removePassiveMarkers(
+        varProps,
+        varPassiveKeys,
+        varPreventDefaultKeys,
+        passiveEvents,
+        varPropsCopied
+      );
+      varPropsCopied = varPropsCopied || varProps !== originalVarProps;
+      varProps = convertJsxEventProps(
+        varProps,
+        varEventKeys,
+        varKeyOrder,
+        passiveEvents,
+        varPropsCopied
+      );
+      varPropsCopied = varPropsCopied || varProps !== originalVarProps;
+      toSort = toSort || varEventKeys.length > 0;
     }
 
     // Handle bind:* - only in varProps, bind:* should be moved to varProps

@@ -3,6 +3,6 @@
   "private": true,
   "devDependencies": {
     "image-size": "1.2.1",
-    "rolldown": "1.0.0-rc.12"
+    "rolldown": "1.0.0-rc.13"
   }
 }

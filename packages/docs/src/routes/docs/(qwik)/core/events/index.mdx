@@ -205,6 +205,49 @@ about that combination with the `preventdefault-passive-check` optimizer diagnos
   [`@qwik-disable-next-line`](/docs/(qwik)/advanced/optimizer-hints/index.mdx).
 </Note>
 
+### Capture events
+
+Use `capture:eventname` to run an element event handler during the capture phase instead of the
+default bubbling phase.
+
+This is useful when a parent element needs to observe or intercept an event before it reaches a
+child's bubbling handler.
+
+```tsx /capture:click/
+<div
+  capture:click
+  onClick$={() => console.log('parent capture')}
+>
+  <button onClick$={() => console.log('button bubble')} />
+</div>
+```
+
+When the button is clicked, Qwik runs:
+
+1. the parent's `click` handler during capture
+2. the button's `click` handler during bubbling
+
+`capture:eventname` is scoped to a single event. For example, this makes `click` capture-phase
+while leaving `scroll` in its normal mode:
+
+```tsx /capture:click/
+<div
+  capture:click
+  onClick$={() => console.log('capture click')}
+  onScroll$={() => console.log('bubble scroll')}
+/>
+```
+
+`capture:eventname` only applies to element-scoped handlers such as `onClick$`. It does not change
+`window:on*` or `document:on*` listeners.
+
+<Note>
+  `capture:eventname` is a marker for the existing handler bucket for that event. A single element
+  event cannot be both capture and bubble at the same time. For example, you can mark `click` as
+  capture and leave `scroll` as bubble on the same element, but you cannot register both capture
+  and bubble handlers for `click` on the same element.
+</Note>
+
 ### Event Target
 
 Because event handling is asynchronous, you can't use `event.currentTarget`. To solve this, Qwik handlers provide a `currentTarget` as a second argument.
@@ -365,7 +408,14 @@ As a rule of thumb:
 
 The "host element" for `useOn()` is the top-level DOM element rendered by the current component. That means `useOn('click', ...)` behaves like attaching a listener to that root node, not to every child in the component.
 
-All three hooks also accept an optional third argument. Pass `{ passive: true }` to register a passive listener for events such as `touchmove`, `wheel`, or `scroll` when the handler does not need to call `preventDefault()`.
+All three hooks also accept an optional third argument for event modifiers:
+
+- `{ passive: true }` registers a passive listener for events such as `touchmove`, `wheel`, or `scroll` when the handler does not need to call `preventDefault()`.
+- `{ capture: true }` runs the listener during the capture phase instead of the bubbling phase.
+- `{ preventdefault: true }` applies the same behavior as JSX `preventdefault:event`, so Qwik calls `event.preventDefault()` before the handler runs.
+- `{ stoppropagation: true }` applies the same behavior as JSX `stoppropagation:event`, so Qwik stops propagation before the handler runs.
+
+Avoid combining `passive: true` with `preventdefault: true`, because passive listeners cannot cancel the browser's default behavior.
 
 <CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" style={{ height: '10em' }}>
 ```tsx
@@ -414,5 +464,28 @@ export default component$(() => {
   );
 
   return <p>Scroll events: {scrollCount.value}</p>;
+});
+```
+
+```tsx
+import { $, component$, useOn, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const logs = useSignal<string[]>([]);
+
+  useOn(
+    'click',
+    $(() => {
+      logs.value = [...logs.value, 'captured on host'];
+    }),
+    { capture: true, stoppropagation: true }
+  );
+
+  return (
+    <div>
+      <button>Click me</button>
+      <pre>{logs.value.join('\n')}</pre>
+    </div>
+  );
 });
 ```

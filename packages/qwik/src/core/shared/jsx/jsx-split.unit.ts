@@ -162,6 +162,40 @@ describe('_jsxSplit', () => {
       expect(node.varProps['q-e:click']).toBeDefined();
     });
 
+    it('should preserve capture markers while lowering event handlers', () => {
+      const node = _jsxSplit(
+        'button',
+        {
+          'capture:click': true,
+          onClick$: (() => {}) as any as QRL,
+        },
+        null,
+        null,
+        0
+      );
+
+      expect(node.varProps['capture:click']).toBe(true);
+      expect(node.varProps['q-e:click']).toBeDefined();
+    });
+
+    it('should preserve capture markers with passive events', () => {
+      const node = _jsxSplit(
+        'button',
+        {
+          'capture:touchstart': true,
+          'passive:touchstart': true,
+          onTouchStart$: (() => {}) as any as QRL,
+        },
+        null,
+        null,
+        0
+      );
+
+      expect(node.varProps['capture:touchstart']).toBe(true);
+      expect(node.varProps['passive:touchstart']).toBeUndefined();
+      expect(node.varProps['q-ep:touchstart']).toBeDefined();
+    });
+
     it('should convert multiple event handlers', () => {
       const node = _jsxSplit(
         'button',

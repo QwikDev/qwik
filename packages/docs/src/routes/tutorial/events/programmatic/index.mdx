@@ -28,3 +28,10 @@ Qwik provides the following [functions](https://qwik.dev/docs/core/events/#useon
 The `$` function signals Qwik to lazy load a reference. When setting up a listener with `useOn`, the second argument is a [Qwik URL](../../../docs/(qwik)/advanced/qrl/index.mdx).
 
 Qwik URLs (QRL) are lazy-loadable references to your code. If `useOn` took a function directly rather than QRL, it would have to eagerly execute to allocate the listener closure. By using a QRL via the `$` function, Qwik can lazy load the closure only as `click` listener is triggered.
+
+All three `useOn*()` hooks also accept an optional third argument for listener modifiers. For example:
+
+- `{ passive: true }` for passive listeners.
+- `{ capture: true }` to run in the capture phase.
+- `{ preventdefault: true }` to call `event.preventDefault()` before the handler.
+- `{ stoppropagation: true }` to call `event.stopPropagation()` before the handler.

@@ -1842,11 +1842,16 @@ export const useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQ
 // @public
 export const useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void;
 
+// Warning: (ae-forgotten-export) The symbol "UseOnOptionsBase" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export interface UseOnOptions {
-    // (undocumented)
+export type UseOnOptions = UseOnOptionsBase & ({
     passive?: boolean;
-}
+    preventdefault?: never;
+} | {
+    passive?: never;
+    preventdefault?: boolean;
+});
 
 // @public
 export const useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>, options?: UseOnOptions) => void;

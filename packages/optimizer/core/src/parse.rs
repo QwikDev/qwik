@@ -33,7 +33,7 @@ use anyhow::{Context, Error};
 
 use swc_atoms::Atom;
 use swc_common::comments::{Comment, CommentKind, Comments, SingleThreadedComments};
-use swc_common::errors::{DiagnosticBuilder, DiagnosticId, Emitter, Handler};
+use swc_common::errors::{DiagnosticBuilder, DiagnosticId, Emitter, Handler, Level};
 use swc_common::{sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
@@ -908,7 +908,11 @@ fn handle_error(
 				message,
 				highlights,
 				suggestions,
-				category: DiagnosticCategory::Error,
+				category: if diagnostic.level == Level::Warning {
+					DiagnosticCategory::Warning
+				} else {
+					DiagnosticCategory::Error
+				},
 				scope: DiagnosticScope::Optimizer,
 			}
 		})

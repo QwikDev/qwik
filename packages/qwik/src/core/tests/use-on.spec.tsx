@@ -55,6 +55,37 @@ describe.each([
     );
   });
 
+  it('should update value for passive option', async () => {
+    const Counter = component$((props: { initial: number }) => {
+      const count = useSignal(props.initial);
+      useOn(
+        'click',
+        $(() => count.value++),
+        {
+          passive: true,
+        }
+      );
+      return <button>Count: {count.value}!</button>;
+    });
+
+    const { vNode, container } = await render(<Counter initial={123} />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal ssr-required>{'123'}</Signal>!
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          Count: <Signal ssr-required>{'124'}</Signal>!
+        </button>
+      </>
+    );
+  });
+
   it('should update value with multiple useOn', async () => {
     const Counter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);

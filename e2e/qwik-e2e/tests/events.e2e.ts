@@ -104,7 +104,7 @@ test.describe('events with client rerender', () => {
     });
   });
 
-  function eventsTest() {
+  function eventsTest(isClient: boolean) {
     test('should not throw if event handler is array with undefined value', async ({ page }) => {
       const button = page.locator('#undefined-event-handler');
       await button.click();
@@ -117,9 +117,58 @@ test.describe('events with client rerender', () => {
       await button.click();
       await expect(button).toHaveText('2 / 3');
     });
+
+    test('should handle passive event scopes', async ({ page }) => {
+      const regularClick = page.locator('#passive-regular-click');
+      const passiveClick = page.locator('#passive-click');
+      const passivePreventDefault = page.locator('#passive-preventdefault');
+      const passiveDocument = page.locator('#passive-document');
+      const passiveWindow = page.locator('#passive-window');
+
+      if (!isClient) {
+        await expect(regularClick).toHaveAttribute('q-e:click');
+        await expect(regularClick).not.toHaveAttribute('q-ep:click');
+
+        await expect(passiveClick).toHaveAttribute('q-ep:click');
+        await expect(passiveClick).not.toHaveAttribute('q-e:click');
+        await expect(passiveClick).not.toHaveAttribute('passive:click');
+
+        await expect(passiveDocument).toHaveAttribute('q-dp:touchstart');
+        await expect(passiveDocument).not.toHaveAttribute('q-d:touchstart');
+        await expect(passiveDocument).not.toHaveAttribute('passive:touchstart');
+
+        await expect(passiveWindow).toHaveAttribute('q-wp:scroll');
+        await expect(passiveWindow).not.toHaveAttribute('q-w:scroll');
+        await expect(passiveWindow).not.toHaveAttribute('passive:scroll');
+      }
+
+      await regularClick.click();
+      await passiveClick.click();
+
+      await expect(page.locator('#count-passive-regular-click')).toHaveText(
+        'countPassiveRegularClick: 1'
+      );
+      await expect(page.locator('#count-passive-click')).toHaveText('countPassiveClick: 1');
+
+      await passivePreventDefault.click();
+      await expect(page.locator('#count-passive-preventdefault')).toHaveText(
+        'countPassivePreventDefault: 1'
+      );
+      await expect(page.locator('#state-passive-preventdefault')).toHaveText(
+        'passivePreventDefaultState: false'
+      );
+
+      await page.evaluate(() => {
+        document.dispatchEvent(new Event('touchstart', { bubbles: true, cancelable: true }));
+        window.dispatchEvent(new Event('scroll'));
+      });
+
+      await expect(page.locator('#count-passive-document')).toHaveText('countPassiveDocument: 1');
+      await expect(page.locator('#count-passive-window')).toHaveText('countPassiveWindow: 1');
+    });
   }
 
-  eventsTest();
+  eventsTest(false);
 
   test.describe('client rerender', () => {
     test.beforeEach(async ({ page }) => {
@@ -127,7 +176,7 @@ test.describe('events with client rerender', () => {
       await toggleRender.click();
       await expect(page.locator('#render-count')).toHaveText('1');
     });
-    eventsTest();
+    eventsTest(true);
   });
 });
 

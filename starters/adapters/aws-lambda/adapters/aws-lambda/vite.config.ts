@@ -13,7 +13,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       minify: false,
       ssr: true,
-      rollupOptions: {
+      rolldownOptions: {
         input: ["./src/entry_aws-lambda.tsx"],
       },
     },

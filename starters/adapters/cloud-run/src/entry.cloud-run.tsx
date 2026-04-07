@@ -47,7 +47,7 @@ const DEFAULT_HEADERS = {
   "X-XSS-Protection": "0",
 };
 
-const { router, notFound, staticFile } = createQwikRouter({
+const { router, staticFile } = createQwikRouter({
   render,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
@@ -83,9 +83,7 @@ server.on("request", (req, res) => {
   }
 
   staticFile(req, res, () => {
-    router(req, res, () => {
-      notFound(req, res, () => {});
-    });
+    router(req, res, () => {});
   });
 });
 

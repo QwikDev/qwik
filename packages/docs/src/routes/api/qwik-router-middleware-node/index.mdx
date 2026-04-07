@@ -21,23 +21,7 @@ createQwikCity: typeof createQwikRouter;
 ```typescript
 export declare function createQwikRouter(
   opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions,
-): {
-  router: (
-    req: IncomingMessage | Http2ServerRequest,
-    res: ServerResponse,
-    next: NodeRequestNextFunction,
-  ) => Promise<void>;
-  notFound: (
-    req: IncomingMessage | Http2ServerRequest,
-    res: ServerResponse,
-    next: (e: any) => void,
-  ) => Promise<void>;
-  staticFile: (
-    req: IncomingMessage | Http2ServerRequest,
-    res: ServerResponse,
-    next: (e?: any) => void,
-  ) => Promise<void>;
-};
+): QwikRouterNodeMiddleware;
 ```
 
 <table><thead><tr><th>
@@ -68,7 +52,7 @@ opts
 
 **Returns:**
 
-\{ router: (req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; }
+[QwikRouterNodeMiddleware](#qwikrouternodemiddleware)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
 
@@ -163,6 +147,72 @@ export type QwikCityNodeRequestOptions = QwikRouterNodeRequestOptions;
 ```
 
 **References:** [QwikRouterNodeRequestOptions](#qwikrouternoderequestoptions)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
+
+<h2 id="qwikrouternodemiddleware">QwikRouterNodeMiddleware</h2>
+
+```typescript
+export interface QwikRouterNodeMiddleware
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+notFound
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+router
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)) =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+staticFile
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/node/index.ts)
 

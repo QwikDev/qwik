@@ -11,11 +11,7 @@ import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-ha
 export const createQwikCity: typeof createQwikRouter;
 
 // @public (undocumented)
-export function createQwikRouter(opts: QwikRouterDenoOptions): {
-    router: (request: Request, info: ServeHandlerInfo) => Promise<Response | null>;
-    notFound: (request: Request) => Promise<Response>;
-    staticFile: (request: Request) => Promise<Response | null>;
-};
+export function createQwikRouter(opts: QwikRouterDenoOptions): QwikRouterDenoMiddleware;
 
 // @public (undocumented)
 export interface NetAddr {
@@ -29,6 +25,16 @@ export interface NetAddr {
 
 // @public @deprecated (undocumented)
 export type QwikCityDenoOptions = QwikRouterDenoOptions;
+
+// @public (undocumented)
+export interface QwikRouterDenoMiddleware {
+    // @deprecated (undocumented)
+    notFound: (request: Request) => Promise<Response>;
+    // (undocumented)
+    router: (request: Request, info: ServeHandlerInfo) => Promise<Response | null>;
+    // (undocumented)
+    staticFile: (request: Request) => Promise<Response | null>;
+}
 
 // @public (undocumented)
 export interface QwikRouterDenoOptions extends ServerRenderOptions {

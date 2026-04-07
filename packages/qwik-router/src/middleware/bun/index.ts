@@ -8,7 +8,6 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import {
   _TextEncoderStream_polyfill,
-  getNotFound,
   isStaticPath,
   mergeHeadersCookies,
   requestHandler,
@@ -16,6 +15,14 @@ import {
 import { extname, join } from 'node:path';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { normalizeRequestUrl } from '../shared/url';
+
+/** @public */
+export interface QwikRouterBunMiddleware {
+  router: (request: Request) => Promise<Response | null>;
+  /** @deprecated `router` handles 404 responses. Will be removed in V3. */
+  notFound: (request: Request) => Promise<Response>;
+  staticFile: (request: Request) => Promise<Response | null>;
+}
 
 function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
   const url = new URL(request.url);
@@ -27,7 +34,7 @@ function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
 }
 
 /** @public */
-export function createQwikRouter(opts: QwikRouterBunOptions) {
+export function createQwikRouter(opts: QwikRouterBunOptions): QwikRouterBunMiddleware {
   // @qwik.dev/router/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
   globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill as any;
@@ -103,29 +110,9 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
     }
   }
 
-  const notFound = async (request: Request) => {
-    try {
-      const url = getRequestUrl(request, opts);
-
-      // In the development server, we replace the getNotFound function
-      // For static paths, we assign a static "Not Found" message.
-      // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml =
-        !request.headers.get('accept')?.includes('text/html') ||
-        isStaticPath(request.method || 'GET', url)
-          ? 'Not Found'
-          : getNotFound(url.pathname);
-      return new Response(notFoundHtml, {
-        status: 404,
-        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
-      });
-    } catch (e) {
-      console.error(e);
-      return new Response(isDev ? String(e || 'Error') : 'Internal Server Error', {
-        status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'bun-server' },
-      });
-    }
+  /** @deprecated `router` handles 404 responses. Will be removed in V3. */
+  const notFound = async (_request: Request) => {
+    return null as never;
   };
 
   const openStaticFile = async (url: URL) => {

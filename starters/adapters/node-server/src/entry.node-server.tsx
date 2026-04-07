@@ -15,7 +15,7 @@ import render from "./entry.ssr";
 const PORT = process.env.PORT ?? 3004;
 
 // Create the Qwik Router express middleware
-const { router, notFound, staticFile } = createQwikRouter({
+const { router, staticFile } = createQwikRouter({
   render,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
@@ -26,9 +26,7 @@ const server = createServer();
 
 server.on("request", (req, res) => {
   staticFile(req, res, () => {
-    router(req, res, () => {
-      notFound(req, res, () => {});
-    });
+    router(req, res, () => {});
   });
 });
 

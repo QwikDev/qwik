@@ -1,11 +1,7 @@
 import { isDev } from '@qwik.dev/core';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type { ClientConn, ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
-import {
-  getNotFound,
-  isStaticPath,
-  requestHandler,
-} from '@qwik.dev/router/middleware/request-handler';
+import { isStaticPath, requestHandler } from '@qwik.dev/router/middleware/request-handler';
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Http2ServerRequest } from 'node:http2';
@@ -17,7 +13,29 @@ import { computeOrigin, fromNodeHttp, getUrl } from './http';
 // @qwik.dev/router/middleware/node
 
 /** @public */
-export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions) {
+export interface QwikRouterNodeMiddleware {
+  router: (
+    req: IncomingMessage | Http2ServerRequest,
+    res: ServerResponse,
+    next: NodeRequestNextFunction
+  ) => Promise<void>;
+  /** @deprecated `router` handles 404 responses. Will be removed in V3. */
+  notFound: (
+    req: IncomingMessage | Http2ServerRequest,
+    res: ServerResponse,
+    next: (e: any) => void
+  ) => Promise<void>;
+  staticFile: (
+    req: IncomingMessage | Http2ServerRequest,
+    res: ServerResponse,
+    next: (e?: any) => void
+  ) => Promise<void>;
+}
+
+/** @public */
+export function createQwikRouter(
+  opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions
+): QwikRouterNodeMiddleware {
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
@@ -59,34 +77,12 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
     }
   };
 
+  /** @deprecated `router` handles 404 responses. Will be removed in V3. */
   const notFound = async (
-    req: IncomingMessage | Http2ServerRequest,
-    res: ServerResponse,
-    next: (e: any) => void
-  ) => {
-    try {
-      if (!res.headersSent) {
-        const origin = computeOrigin(req, opts);
-        const url = getUrl(req, origin);
-
-        // In the development server, we replace the getNotFound function
-        // For static paths, we assign a static "Not Found" message.
-        // This ensures consistency between development and production environments for specific URLs.
-        const notFoundHtml =
-          !req.headers.accept?.includes('text/html') || isStaticPath(req.method || 'GET', url)
-            ? 'Not Found'
-            : getNotFound(url.pathname);
-        res.writeHead(404, {
-          'Content-Type': 'text/html; charset=utf-8',
-          'X-Not-Found': url.pathname,
-        });
-        res.end(notFoundHtml);
-      }
-    } catch (e) {
-      console.error(e);
-      next(e);
-    }
-  };
+    _req: IncomingMessage | Http2ServerRequest,
+    _res: ServerResponse,
+    next: (e?: any) => void
+  ) => next();
 
   const staticFile = async (
     req: IncomingMessage | Http2ServerRequest,

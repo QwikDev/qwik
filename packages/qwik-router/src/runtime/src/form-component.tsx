@@ -1,4 +1,4 @@
-import { jsx, component$, Slot, $, type QwikJSX, type QRLEventHandlerMulti } from '@qwik.dev/core';
+import { jsx, component$, Slot, $, type QRLEventHandlerMulti, type QwikJSX } from '@qwik.dev/core';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 
@@ -29,9 +29,6 @@ export interface FormProps<O, I> extends Omit<
    * Defaults to `false`
    */
   spaReset?: boolean;
-
-  /** Event handler executed right when the form is submitted. */
-  onSubmit$?: QRLEventHandlerMulti<SubmitEvent, HTMLFormElement> | undefined;
 
   /** Event handler executed right after the action is executed successfully and returns some data. */
   onSubmitCompleted$?:
@@ -113,7 +110,10 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
         data-spa-reset={spaReset ? 'true' : undefined}
         {...rest}
         onSubmit$={[
-          ...(Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]),
+          ...((Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]) as QRLEventHandlerMulti<
+            SubmitEvent,
+            HTMLFormElement
+          >[]), // type casting to keep consumers linters happy
           $(async (_evt, form) => {
             const formData = new FormData(form);
             const params = new URLSearchParams();
@@ -138,9 +138,7 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
                 },
               })
             );
-            //
           }),
-          // end of array
         ]}
       >
         <Slot />

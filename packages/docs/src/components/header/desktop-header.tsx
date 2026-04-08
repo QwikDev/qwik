@@ -80,7 +80,7 @@ const contentWidths: Record<NavSections, string> = {
   [NavSections.Core]: 'w-[calc(100vw-48px)] max-w-[840px]',
   [NavSections.Ecosystem]: 'w-[calc(100vw-48px)] max-w-[680px]',
   [NavSections.Router]: 'w-[calc(100vw-48px)] max-w-[680px]',
-  [NavSections.Resources]: 'w-[calc(100vw-48px)] max-w-[680px]',
+  [NavSections.Resources]: 'w-[calc(100vw-48px)] max-w-[840px]',
 };
 
 const getContentWidthClass = (label: NavSections) => contentWidths[label] ?? contentWidths.Core;
@@ -304,25 +304,25 @@ export const DesktopHeader = component$(() => {
               class={[contentBaseClass, getContentWidthClass(NavSections.Resources)]}
               style={contentAnchorReset}
             >
-              {/* Wide image card */}
+              {/* Image cards */}
               <ImageCard
                 href="/blog"
                 label="Blog"
                 description="Latest news and updates"
-                class="flex-1 min-w-0 self-stretch"
+                class="w-64.5 shrink-0 self-stretch"
               >
                 <NavBlogImg class={ImageCardClasses} />
               </ImageCard>
-              {/* Right column: half-height card + pills */}
+              <ImageCard
+                href="/docs/concepts/think-qwik"
+                label="Concepts"
+                description="Think Qwik"
+                class="w-64.5 shrink-0 self-stretch"
+              >
+                <NavConceptsImg class={ImageCardClasses} />
+              </ImageCard>
+              {/* Pills column */}
               <div class="flex flex-col gap-4 w-64.5 shrink-0">
-                <ImageCard
-                  href="/docs/concepts/think-qwik"
-                  label="Concepts"
-                  description="Think Qwik"
-                  class="h-[212px]"
-                >
-                  <NavConceptsImg class={ImageCardClasses} />
-                </ImageCard>
                 <NavPill
                   href="/playground"
                   label="Playground"
@@ -332,6 +332,21 @@ export const DesktopHeader = component$(() => {
                   href="/docs/labs"
                   label="Qwik Labs"
                   icon={<pixel.healthlaboratory class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/media/"
+                  label="Media"
+                  icon={<pixel.entertainmenteventshobbiesfilmplayer class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/press/"
+                  label="Press"
+                  icon={<pixel.interfaceessentialpaginatefilterpicture class={navPillIconClass} />}
+                />
+                <NavPill
+                  href="/ecosystem/#community"
+                  label="Community"
+                  icon={<pixel.businessproductsnetworkuser class={navPillIconClass} />}
                 />
               </div>
             </navbar.itemcontent>

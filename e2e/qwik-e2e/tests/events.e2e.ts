@@ -59,6 +59,28 @@ test.describe('events', () => {
     await expect(countWrapped).toHaveText('countAnchor: 1');
   });
 
+  test('should prevent redirect when clicking a child button inside a prevented anchor', async ({
+    page,
+  }) => {
+    const childButton = page.locator('#prevent-default-child-button');
+
+    await childButton.click();
+
+    await expect(page).toHaveURL(/\/e2e\/events$/);
+    await expect(page.locator('#count-nested-anchor')).toHaveText('countNestedAnchor: 1');
+    await expect(page.locator('#count-nested-button')).toHaveText('countNestedButton: 1');
+  });
+
+  test('should preserve mouseleave and mouseover execution order', async ({ page }) => {
+    const red = page.locator('#hover-order-red');
+    const blue = page.locator('#hover-order-blue');
+
+    await red.hover();
+    await blue.hover();
+
+    await expect(page.locator('#hover-order-log')).toHaveText('red mouse out|blue mouse in');
+  });
+
   test(`GIVEN "stoppropagation" is set as a attribute 
         THEN it should stop propagation`, async ({ page }) => {
     const stoppedPropagationButton = page.locator('#stop-propagation');

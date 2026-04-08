@@ -33,8 +33,8 @@ test('preloader script', async () => {
   const compressed = compress(Buffer.from(code), { mode: 1, quality: 11 });
   expect({ brotli: compressed.length, minified: code.length }).toMatchInlineSnapshot(`
     {
-      "brotli": 1257,
-      "minified": 2449,
+      "brotli": 1676,
+      "minified": 3532,
     }
   `);
 });

@@ -94,6 +94,16 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    */
   clientOnly?: boolean;
   /**
+   * When true (default), the previous value is kept while the signal re-computes after
+   * invalidation, so reads return stale data instead of throwing a promise.
+   *
+   * When false, invalidation clears the value so reads throw the computation promise (like the
+   * initial load), which is useful for navigations where showing old data would be confusing.
+   *
+   * Defaults to `true`.
+   */
+  allowStale?: boolean;
+  /**
    * Maximum time in milliseconds to wait for the async computation to complete. If exceeded, the
    * computation is aborted and an error is thrown.
    *
@@ -125,6 +135,7 @@ export const enum SerializationSignalFlags {
 export const enum AsyncSignalFlags {
   EAGER_CLEANUP = 32,
   CLIENT_ONLY = 64,
+  CLEAR_ON_INVALIDATE = 128,
 }
 
 export type AllSignalFlags =

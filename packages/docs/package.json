@@ -5,6 +5,7 @@
   "author": "Qwik Team",
   "bugs": "https://github.com/QwikDev/qwik",
   "devDependencies": {
+    "@emnapi/core": "1.9.2",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@modular-forms/qwik": "0.29.1",

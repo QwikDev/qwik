@@ -1,7 +1,6 @@
 import {
   component$,
   noSerialize,
-  useAsync$,
   useComputed$,
   useSignal,
   useStyles$,
@@ -44,6 +43,9 @@ export const SearchModal = component$(() => {
   const query = useSignal('');
   const pagefind = useSignal<NoSerialize<PagefindModuleNamespace>>();
   const initState = useSignal<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const results = useSignal<SearchResultGroup[]>([]);
+  const searchError = useSignal(false);
+  const isSearching = useSignal(false);
 
   useTask$(({ track }) => {
     track(() => `${loc.url.pathname}${loc.url.search}${loc.url.hash}`);
@@ -73,57 +75,84 @@ export const SearchModal = component$(() => {
     }
   });
 
-  const results = useAsync$<SearchResultGroup[]>(
-    async ({ track }) => {
-      const open = track(isOpen);
-      const trimmedQuery = track(() => query.value.trim());
-      const currentInitState = track(initState);
+  useTask$(async ({ track, cleanup }) => {
+    const open = track(isOpen);
+    const trimmedQuery = track(() => query.value.trim());
+    const currentInitState = track(initState);
+    const loadedPagefind = track(() => pagefind.value);
 
-      if (
-        !open ||
-        currentInitState !== 'ready' ||
-        trimmedQuery.length < MIN_QUERY_LENGTH ||
-        !pagefind.value
-      ) {
-        return [];
+    if (
+      !open ||
+      currentInitState !== 'ready' ||
+      trimmedQuery.length < MIN_QUERY_LENGTH ||
+      !loadedPagefind
+    ) {
+      isSearching.value = false;
+      searchError.value = false;
+
+      if (trimmedQuery.length < MIN_QUERY_LENGTH) {
+        results.value = [];
       }
 
-      const search = await pagefind.value.debouncedSearch(
+      return;
+    }
+
+    let cancelled = false;
+    cleanup(() => {
+      cancelled = true;
+    });
+
+    // Preserve the previous results until the next search settles.
+    isSearching.value = true;
+    searchError.value = false;
+
+    try {
+      const search = await loadedPagefind.debouncedSearch(
         trimmedQuery,
         undefined,
         SEARCH_DEBOUNCE_MS
       );
 
+      if (cancelled) {
+        return;
+      }
+
       if (!search || search.results.length === 0) {
-        return [];
+        results.value = [];
+        return;
       }
 
       const loadedResults = await Promise.all(
         search.results.slice(0, MAX_RESULTS).map((result) => result.data())
       );
 
-      return groupSearchResults(normalizePagefindResults(loadedResults), trimmedQuery);
-    },
-    {
-      clientOnly: true,
-      initial: [],
+      if (cancelled) {
+        return;
+      }
+
+      results.value = groupSearchResults(normalizePagefindResults(loadedResults), trimmedQuery);
+    } catch (_error) {
+      if (!cancelled) {
+        searchError.value = true;
+      }
+    } finally {
+      if (!cancelled) {
+        isSearching.value = false;
+      }
     }
-  );
+  });
 
   const trimmedQuery = useComputed$(() => query.value.trim());
   const queryReady = useComputed$(() => trimmedQuery.value.length >= MIN_QUERY_LENGTH);
-  const isUnavailable = useComputed$(() => initState.value === 'error' || Boolean(results.error));
+  const isUnavailable = useComputed$(() => initState.value === 'error' || searchError.value);
   const isLoading = useComputed$(() => {
-    return (
-      queryReady.value &&
-      (initState.value === 'loading' || (initState.value === 'ready' && results.loading))
-    );
+    return queryReady.value && (initState.value === 'loading' || isSearching.value);
   });
   const hasResults = useComputed$(() => results.value.length > 0);
   const showEmpty = useComputed$(() => {
     return queryReady.value && !isLoading.value && !isUnavailable.value && !hasResults.value;
   });
-  const shouldScrollResults = useComputed$(() => hasResults.value && !isLoading.value);
+  const shouldScrollResults = useComputed$(() => hasResults.value);
 
   return (
     <modal.root bind:open={isOpen}>
@@ -163,8 +192,6 @@ export const SearchModal = component$(() => {
           >
             {!queryReady.value ? (
               <SearchIdle />
-            ) : isLoading.value ? (
-              <SearchLoading />
             ) : isUnavailable.value ? (
               <SearchUnavailable />
             ) : showEmpty.value ? (
@@ -180,15 +207,47 @@ export const SearchModal = component$(() => {
 });
 
 const SearchIdle = component$(() => {
-  return (
-    <p class="w-full text-center text-foreground-muted text-body-xs">
-      Type at least 2 characters to search the docs.
-    </p>
-  );
-});
-
-const SearchLoading = component$(() => {
-  return <p class="w-full text-center text-foreground-muted text-body-xs">Searching...</p>;
+  const group: SearchResultGroup = {
+    title: 'Docs',
+    items: [
+      {
+        title: 'Getting Started',
+        subtitle: 'Learn how to get started with Qwik',
+        href: '/docs/getting-started/overview',
+        excerpt: 'This section provides an overview of getting started with Qwik.',
+        group: 'Docs',
+      },
+      {
+        title: 'State',
+        subtitle: 'Manage state in Qwik',
+        href: '/docs/core/state',
+        excerpt: 'Learn how to manage state in Qwik applications.',
+        group: 'Docs',
+      },
+      {
+        title: 'Events',
+        subtitle: 'Handle events in Qwik',
+        href: '/docs/core/events',
+        excerpt: 'Discover how to handle events in Qwik applications.',
+        group: 'Docs',
+      },
+      {
+        title: 'Routing',
+        subtitle: 'Navigate between pages in Qwik',
+        href: '/docs/routing',
+        excerpt: 'Understand how to implement routing in Qwik applications.',
+        group: 'Docs',
+      },
+      {
+        title: 'Deployment',
+        subtitle: 'Deploy your Qwik app',
+        href: '/docs/deployments',
+        excerpt: 'Find out how to deploy your Qwik application to production.',
+        group: 'Docs',
+      },
+    ],
+  };
+  return <SearchResults group={group} />;
 });
 
 const SearchUnavailable = component$(() => {

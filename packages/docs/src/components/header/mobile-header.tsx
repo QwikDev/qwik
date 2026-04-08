@@ -141,6 +141,9 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
                     { href: '/docs/concepts/think-qwik', label: 'Concepts' },
                     { href: '/playground', label: 'Playground' },
                     { href: '/docs/labs', label: 'Qwik Labs' },
+                    { href: '/media/', label: 'Media' },
+                    { href: '/press/', label: 'Press' },
+                    { href: '/ecosystem/#community', label: 'Community' },
                   ]}
                 />
               </div>

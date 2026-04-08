@@ -165,8 +165,7 @@ test('tsconfigFileNames, empty array fallback to default', async () => {
 test('input string', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ input: 'src/cmps/main.tsx' });
-  // we don't provide input so that we don't override the vite input
-  assert.deepEqual(opts.input, undefined);
+  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src/cmps/main.tsx'))]);
 });
 
 test('input array', async () => {
@@ -174,8 +173,23 @@ test('input array', async () => {
   const opts = await plugin.normalizeOptions({
     input: ['src/cmps/a.tsx', 'src/cmps/b.tsx'],
   });
-  // we don't provide input so that we don't override the vite input
-  assert.deepEqual(opts.input, undefined);
+  assert.deepEqual(opts.input, [
+    normalizePath(resolve(cwd, 'src/cmps/a.tsx')),
+    normalizePath(resolve(cwd, 'src/cmps/b.tsx')),
+  ]);
+});
+
+test('input with absolute path is not double-resolved', async () => {
+  const plugin = await mockPlugin();
+  const absPath = normalizePath(resolve(cwd, 'src/entry.preview.tsx'));
+  const opts = await plugin.normalizeOptions({ input: [absPath] });
+  assert.deepEqual(opts.input, [absPath]);
+});
+
+test('input with @ prefix is not resolved', async () => {
+  const plugin = await mockPlugin();
+  const opts = await plugin.normalizeOptions({ input: ['@some/virtual-entry'] });
+  assert.deepEqual(opts.input, ['@some/virtual-entry']);
 });
 
 test('outDir', async () => {

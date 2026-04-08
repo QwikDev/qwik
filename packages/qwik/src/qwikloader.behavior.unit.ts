@@ -94,10 +94,20 @@ function getListeners(target: ReturnType<typeof createEventTarget>, eventName: s
   return registrations!;
 }
 
+function createDeferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
+
 function createMockElement(
   parentElement: any,
   attrs: Record<string, string | boolean>,
-  handler?: (ev: any, element: any) => unknown
+  handler?:
+    | ((ev: any, element: any) => unknown)
+    | Array<((ev: any, element: any) => unknown) | undefined>
 ) {
   const attributeMap = new Map<string, string>();
   for (const [name, value] of Object.entries(attrs)) {
@@ -123,6 +133,27 @@ function createMockElement(
   }
 
   return element;
+}
+
+function setDispatch(
+  element: any,
+  scopedName: string,
+  handler:
+    | ((ev: any, element: any) => unknown)
+    | Array<((ev: any, element: any) => unknown) | undefined>
+) {
+  element._qDispatch = {
+    ...element._qDispatch,
+    [scopedName]: handler,
+  };
+  return element;
+}
+
+function createMockContainer(attrs: Record<string, string>) {
+  return {
+    _qwikjson_: undefined,
+    getAttribute: (name: string) => attrs[name] ?? null,
+  };
 }
 
 function createMockEvent(target: any, overrides: Partial<any> = {}) {
@@ -211,6 +242,20 @@ describe('qwikloader behavior', () => {
     expect(logs).toEqual(['root capture', 'parent capture', 'child bubble']);
   });
 
+  test('runs _qDispatch handler arrays in order and skips empty entries', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const child = createMockElement(null, {}, [
+      () => logs.push('first'),
+      undefined,
+      () => logs.push('second'),
+    ]);
+
+    await getSingleListener(doc, 'click').handler(createMockEvent(child));
+
+    expect(logs).toEqual(['first', 'second']);
+  });
+
   test('stops propagation after a capture handler calls stopPropagation', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];
@@ -255,5 +300,191 @@ describe('qwikloader behavior', () => {
     await getSingleListener(doc, 'click').handler(createMockEvent(child));
 
     expect(logs).toEqual(['child bubble']);
+  });
+
+  test('runs target non-capture handlers for non-bubbling events without reaching ancestors', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const root = createMockElement(null, {}, () => logs.push('root bubble'));
+    const child = createMockElement(root, {}, () => logs.push('child bubble'));
+
+    await getSingleListener(doc, 'click').handler(createMockEvent(child, { bubbles: false }));
+
+    expect(logs).toEqual(['child bubble']);
+  });
+
+  test('ignores non-bubbling events without an element target', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+
+    expect(
+      getSingleListener(doc, 'click').handler(
+        createMockEvent(
+          {
+            nodeType: 9,
+            parentElement: null,
+          },
+          { bubbles: false }
+        )
+      )
+    ).toBeUndefined();
+  });
+
+  test('prevents default before awaiting child handlers when an ancestor requires it', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const childDeferred = createDeferred();
+    const parent = createMockElement(
+      null,
+      {
+        'preventdefault:click': true,
+      },
+      () => logs.push('parent bubble')
+    );
+    const child = createMockElement(parent, {}, async () => {
+      logs.push('child start');
+      await childDeferred.promise;
+      logs.push('child end');
+    });
+    const event = createMockEvent(child);
+
+    const result = getSingleListener(doc, 'click').handler(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(logs).toEqual(['child start']);
+
+    childDeferred.resolve();
+    await result;
+
+    expect(logs).toEqual(['child start', 'child end', 'parent bubble']);
+  });
+
+  test('stops propagation before awaiting child handlers when an ancestor requires it', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const childDeferred = createDeferred();
+    const root = createMockElement(null, {}, () => logs.push('root bubble'));
+    const parent = createMockElement(
+      root,
+      {
+        'stoppropagation:click': true,
+      },
+      () => logs.push('parent bubble')
+    );
+    const child = createMockElement(parent, {}, async () => {
+      logs.push('child start');
+      await childDeferred.promise;
+      logs.push('child end');
+    });
+    const event = createMockEvent(child);
+
+    const result = getSingleListener(doc, 'click').handler(event);
+
+    expect(event.cancelBubble).toBe(true);
+    expect(logs).toEqual(['child start']);
+
+    childDeferred.resolve();
+    await result;
+
+    expect(logs).toEqual(['child start', 'child end', 'parent bubble']);
+  });
+
+  test('keeps async completion order aligned with invocation order across events', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const firstDeferred = createDeferred();
+    const secondDeferred = createDeferred();
+    const firstParent = createMockElement(null, {}, () => logs.push('first parent'));
+    const first = createMockElement(firstParent, {}, () => firstDeferred.promise);
+    const secondParent = createMockElement(null, {}, () => logs.push('second parent'));
+    const second = createMockElement(secondParent, {}, () => secondDeferred.promise);
+
+    const firstResult = getSingleListener(doc, 'click').handler(createMockEvent(first));
+    const secondResult = getSingleListener(doc, 'click').handler(createMockEvent(second));
+
+    secondDeferred.resolve();
+    await Promise.resolve();
+    expect(logs).toEqual([]);
+
+    firstDeferred.resolve();
+    await firstResult;
+    await secondResult;
+
+    expect(logs).toEqual(['first parent', 'second parent']);
+  });
+
+  test('keeps later sync work immediate while queuing later async continuations', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const firstDeferred = createDeferred();
+    const secondDeferred = createDeferred();
+    const firstParent = createMockElement(null, {}, () => logs.push('first parent'));
+    const first = createMockElement(firstParent, {}, () => firstDeferred.promise);
+    const secondParent = createMockElement(null, {}, () => logs.push('second parent'));
+    const second = createMockElement(secondParent, {}, [
+      () => logs.push('second sync'),
+      () => secondDeferred.promise,
+    ]);
+
+    const firstResult = getSingleListener(doc, 'click').handler(createMockEvent(first));
+    const secondResult = getSingleListener(doc, 'click').handler(createMockEvent(second));
+
+    expect(logs).toEqual(['second sync']);
+
+    secondDeferred.resolve();
+    await Promise.resolve();
+    expect(logs).toEqual(['second sync']);
+
+    firstDeferred.resolve();
+    await firstResult;
+    await secondResult;
+
+    expect(logs).toEqual(['second sync', 'first parent', 'second parent']);
+  });
+
+  test('broadcasts document and window events to matching handlers', () => {
+    const { doc, win } = createLoaderEnvironment(['d:scroll', 'w:resize']);
+    const logs: string[] = [];
+    const documentEl = setDispatch(createMockElement(null, {}, undefined), 'd:scroll', () =>
+      logs.push('document')
+    );
+    const windowEl = setDispatch(createMockElement(null, {}, undefined), 'w:resize', () =>
+      logs.push('window')
+    );
+    doc.querySelectorAll = vi.fn((selector: string) => {
+      if (selector === '[q-d\\:scroll]') {
+        return [documentEl];
+      }
+      if (selector === '[q-w\\:resize]') {
+        return [windowEl];
+      }
+      return [];
+    });
+
+    getSingleListener(doc, 'scroll').handler(createMockEvent(null, { type: 'scroll' }));
+    getSingleListener(win, 'resize').handler(createMockEvent(null, { type: 'resize' }));
+
+    expect(logs).toEqual(['document', 'window']);
+  });
+
+  test('invokes sync qrl handlers from qFuncs using captured ids', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const container = createMockContainer({
+      'q:base': '/build/',
+      'q:instance': 'test',
+    });
+    const child = createMockElement(null, {
+      'q-e:click': '#0#capture',
+    });
+    child.closest = vi.fn(() => container);
+    doc.qFuncs_test = [
+      function (this: string | undefined, ev: any, el: any) {
+        logs.push(`${this}:${ev.type}:${el === child}`);
+      },
+    ];
+
+    await getSingleListener(doc, 'click').handler(createMockEvent(child));
+
+    expect(logs).toEqual(['capture:click:true']);
   });
 });

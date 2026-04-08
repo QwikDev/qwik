@@ -43,6 +43,7 @@ const capturePrefix = 'capture:';
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
 const symbols = new Map<string, Handler>();
+let queue = Promise.resolve() as Promise<void>;
 let observer: IntersectionObserver | undefined;
 let hasInitialized: number | undefined;
 
@@ -76,6 +77,8 @@ const findShadowRoots = (fragment: EventTarget & ParentNode) => {
 
 const isPromise = (promise: any): promise is Promise<any> =>
   promise && typeof promise.then === 'function';
+
+const enqueue = (task: () => void | Promise<void>) => (queue = queue.then(task, task));
 
 const resolveContainer = (containerEl: QContainerElement) => {
   if (containerEl._qwikjson_ === undefined) {
@@ -132,10 +135,10 @@ const isCaptureHandlerElement = (
 // ====== Event Processing ======
 
 /**
- * Dispatch an event by invoking QRL handlers. If there are multiple handlers, they are awaited in
+ * Dispatch an event by invoking QRL handlers. If there are multiple handlers, they are resumed in
  * order.
  */
-const dispatch = async (
+const dispatch = (
   element: Element,
   ev: Event,
   scopedKebabName: string,
@@ -155,21 +158,17 @@ const dispatch = async (
   const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
   if (handlers) {
     if (typeof handlers === 'function') {
-      const result = handlers(ev, element);
-      if (isPromise(result)) {
-        await result;
-      }
-    } else if (handlers.length) {
-      for (let i = 0; i < handlers.length; i++) {
-        const handler = handlers[i];
-        const result = handler?.(ev, element);
-        // only await if there is a promise returned so everything stays sync if possible
+      return handlers(ev, element);
+    }
+    const run = (index = 0): void | Promise<void> => {
+      for (let i = index; i < handlers.length; i++) {
+        const result = handlers[i]?.(ev, element);
         if (isPromise(result)) {
-          await result;
+          return result.then(() => run(i + 1));
         }
       }
-    }
-    return;
+    };
+    return run();
   }
 
   // Find the attribute that contains the QRLs
@@ -181,78 +180,84 @@ const dispatch = async (
     const qBase = container.getAttribute('q:base')!;
     const base = new URL(qBase, doc.baseURI);
     const qrls = attrValue.split('|');
-    for (let i = 0; i < qrls.length; i++) {
-      const qrl = qrls[i];
-      const reqTime = performance.now();
-      const [chunk, symbol, capturedIds] = qrl.split('#');
-      const eventData: QwikSymbolEvent['detail'] = {
-        qBase,
-        symbol,
-        element,
-        reqTime,
-      };
-
-      let handler: Handler | undefined;
-      let importError: undefined | 'sync' | 'async' | 'no-symbol';
-      let error: undefined | Error;
-
-      // Load the handler
-      if (chunk === '') {
-        // Sync QRL
-        const hash = container.getAttribute('q:instance')!;
-        handler = ((doc as any)['qFuncs_' + hash] || [])[Number.parseInt(symbol)];
-        if (!handler) {
-          importError = 'sync';
-          error = new Error('sym:' + symbol);
-        }
-      } else {
-        const key = `${symbol}|${qBase}|${chunk}`;
-        handler = symbols.get(key);
-
-        if (!handler) {
-          const href = new URL(chunk, base).href;
-          try {
-            const module = import(/* @vite-ignore */ href);
-            resolveContainer(container);
-            handler = (await module)[symbol];
-            if (!handler) {
-              importError = 'no-symbol';
-              error = new Error(`${symbol} not in ${href}`);
-            } else {
-              symbols.set(key, handler);
-              emitEvent<QwikSymbolEvent>('qsymbol', eventData);
+    const run = (index = 0): void | Promise<void> => {
+      for (let i = index; i < qrls.length; i++) {
+        const [chunk, symbol, capturedIds] = qrls[i].split('#');
+        const eventData: QwikSymbolEvent['detail'] = {
+          qBase,
+          symbol,
+          element,
+          reqTime: performance.now(),
+        };
+        const onError = (error: any, importError?: 'sync' | 'async' | 'no-symbol') => {
+          if (importError) {
+            emitEvent<QwikErrorEvent>('qerror', { importError, error, ...eventData });
+            console.error(error);
+          } else {
+            emitEvent<QwikErrorEvent>('qerror', { error, ...eventData });
+          }
+        };
+        const invoke = (handler: Handler) => {
+          if (element.isConnected) {
+            try {
+              const result = handler.call(capturedIds, ev, element);
+              return isPromise(result) ? result.catch(onError) : result;
+            } catch (error) {
+              onError(error);
             }
-          } catch (err) {
-            importError = 'async';
-            error = err as Error;
+          }
+        };
+        let handler: Handler | Promise<Handler | undefined> | undefined;
+        if (chunk === '') {
+          const hash = container.getAttribute('q:instance')!;
+          handler = ((doc as any)['qFuncs_' + hash] || [])[+symbol];
+          if (!handler) {
+            onError(new Error('sym:' + symbol), 'sync');
+          }
+        } else {
+          const key = `${symbol}|${qBase}|${chunk}`;
+          handler = symbols.get(key);
+          if (!handler) {
+            const href = new URL(chunk, base).href;
+            resolveContainer(container);
+            handler = import(/* @vite-ignore */ href).then(
+              (module) => {
+                const loadedHandler = module[symbol];
+                if (!loadedHandler) {
+                  onError(new Error(`${symbol} not in ${href}`), 'no-symbol');
+                  return;
+                }
+                symbols.set(key, loadedHandler);
+                emitEvent<QwikSymbolEvent>('qsymbol', eventData);
+                return loadedHandler as Handler;
+              },
+              (error) => {
+                onError(error as Error, 'async');
+                return;
+              }
+            ) as Promise<Handler | undefined>;
           }
         }
-      }
-
-      if (!handler) {
-        emitEvent<QwikErrorEvent>('qerror', {
-          importError,
-          error,
-          ...eventData,
-        });
-        console.error(error);
-        continue;
-      }
-
-      // Execute the handler
-      // After the await, the element could have been removed
-      if (element.isConnected) {
-        try {
-          const result = handler.call(capturedIds, ev, element);
-          // only await if there is a promise returned
+        if (isPromise(handler)) {
+          return handler.then((loadedHandler) => {
+            if (loadedHandler) {
+              const result = invoke(loadedHandler);
+              if (isPromise(result)) {
+                return result.then(() => run(i + 1));
+              }
+            }
+            return run(i + 1);
+          });
+        }
+        if (handler) {
+          const result = invoke(handler);
           if (isPromise(result)) {
-            await result;
+            return result.then(() => run(i + 1));
           }
-        } catch (error) {
-          emitEvent<QwikErrorEvent>('qerror', { error, ...eventData });
         }
       }
-    }
+    };
+    return run();
   }
 };
 
@@ -264,7 +269,7 @@ const dispatch = async (
  *
  * @param ev - Browser event.
  */
-const processElementEvent = async (
+const processElementEvent = (
   ev: Event,
   scope: 'e' | 'ep' = elementPrefix,
   allowPreventDefault = true
@@ -272,45 +277,85 @@ const processElementEvent = async (
   const kebabName = camelToKebab(ev.type);
   const scopedKebabName = scope + ':' + kebabName;
   const captureAttribute = capturePrefix + kebabName;
+  const stopPropagationName = 'stoppropagation:' + kebabName;
+  const preventDefaultName = 'preventdefault:' + kebabName;
   const elements: Element[] = [];
-  const captureHandlers: boolean[] = [];
+  const stopPropagation = ev.stopPropagation;
+  let stop = 0;
+  ev.stopPropagation = function () {
+    stop = 1;
+    return stopPropagation.call(this);
+  };
+  let captureStopIndex = -1;
+  let bubbleStopIndex = -1;
+  let preventDefault = false;
   let current = ev.target as Node | null;
 
   while (current) {
     if (isElementNode(current)) {
+      const captureHandler = isCaptureHandlerElement(current, scopedKebabName, captureAttribute);
       elements.push(current);
-      captureHandlers.push(isCaptureHandlerElement(current, scopedKebabName, captureAttribute));
+      if (allowPreventDefault && current.hasAttribute(preventDefaultName)) {
+        preventDefault = true;
+      }
+      if (current.hasAttribute(stopPropagationName)) {
+        if (captureHandler) {
+          captureStopIndex = elements.length - 1;
+        } else if (bubbleStopIndex < 0) {
+          bubbleStopIndex = elements.length - 1;
+        }
+      }
       current = current.parentElement;
     } else {
       current = (current as ChildNode).parentElement;
     }
   }
-
-  for (let i = elements.length - 1; i >= 0; i--) {
-    if (captureHandlers[i]) {
-      const results = dispatch(elements[i], ev, scopedKebabName, kebabName, allowPreventDefault);
-      const continuePropagation = !ev.cancelBubble;
-      if (isPromise(results)) {
-        await results;
-      }
-      if (!continuePropagation || ev.cancelBubble) {
-        return;
-      }
-    }
+  if (!elements.length) {
+    return;
   }
 
-  for (let i = 0; i < elements.length; i++) {
-    if (!captureHandlers[i]) {
-      const results = dispatch(elements[i], ev, scopedKebabName, kebabName, allowPreventDefault);
-      const doBubble = ev.bubbles && !ev.cancelBubble;
-      if (isPromise(results)) {
-        await results;
-      }
-      if (!doBubble || ev.cancelBubble) {
-        return;
+  if (preventDefault) {
+    ev.preventDefault();
+  }
+  if (~captureStopIndex || ~bubbleStopIndex) {
+    stopPropagation.call(ev);
+  }
+
+  const process = (
+    index: number,
+    end: number,
+    step: 1 | -1,
+    capture: boolean,
+    stopIndex: number
+  ): void | Promise<void> => {
+    for (let i = index; i !== end; i += step) {
+      if (isCaptureHandlerElement(elements[i], scopedKebabName, captureAttribute) === capture) {
+        const result = dispatch(elements[i], ev, scopedKebabName);
+        if (isPromise(result)) {
+          return enqueue(() =>
+            result.then(() => {
+              if (stop || i === stopIndex) {
+                return;
+              }
+              return process((i + step) as number, end, step, capture, stopIndex);
+            })
+          );
+        }
+        if (stop || i === stopIndex) {
+          return;
+        }
       }
     }
+  };
+
+  const captureResult = process(elements.length - 1, -1, -1, true, captureStopIndex);
+  if (isPromise(captureResult)) {
+    return captureResult;
   }
+  if (stop || ~captureStopIndex) {
+    return;
+  }
+  return process(0, ev.bubbles ? elements.length : 1, 1, false, bubbleStopIndex);
 };
 
 const processPassiveElementEvent = (ev: Event) =>
@@ -334,11 +379,11 @@ const broadcast = (scope: QwikLoaderEventScope, ev: Event, allowPreventDefault =
  *
  * @param ev - Browser event.
  */
-const processDocumentEvent = async (ev: Event) => {
+const processDocumentEvent = (ev: Event) => {
   broadcast(documentPrefix, ev);
 };
 
-const processPassiveDocumentEvent = async (ev: Event) => {
+const processPassiveDocumentEvent = (ev: Event) => {
   broadcast(passiveDocumentPrefix, ev, false);
 };
 

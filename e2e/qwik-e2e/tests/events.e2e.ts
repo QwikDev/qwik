@@ -105,6 +105,30 @@ test.describe('events with client rerender', () => {
   });
 
   function eventsTest(isClient: boolean) {
+    test('should apply ancestor modifiers before async child handlers resolve', async ({
+      page,
+    }) => {
+      const asyncPreventDefaultChild = page.locator('#async-preventdefault-child');
+      const asyncStopPropagationChild = page.locator('#async-stoppropagation-child');
+
+      await asyncPreventDefaultChild.click();
+      await expect(page).toHaveURL(/\/e2e\/events$/);
+      await expect(page.locator('#count-async-preventdefault-anchor')).toHaveText(
+        'countAsyncPreventDefaultAnchor: 1'
+      );
+      await expect(page.locator('#count-async-preventdefault-child')).toHaveText(
+        'countAsyncPreventDefaultChild: 1'
+      );
+
+      await asyncStopPropagationChild.click();
+      await expect(page.locator('#count-async-stoppropagation-parent')).toHaveText(
+        'countAsyncStopPropagationParent: 0'
+      );
+      await expect(page.locator('#count-async-stoppropagation-child')).toHaveText(
+        'countAsyncStopPropagationChild: 1'
+      );
+    });
+
     test('should not throw if event handler is array with undefined value', async ({ page }) => {
       const button = page.locator('#undefined-event-handler');
       await button.click();

@@ -161,11 +161,23 @@ const STOP_PROPAGATION = 'stoppropagation:';
 const CAPTURE = 'capture:';
 const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
+let queue = Promise.resolve() as Promise<void>;
 
+const isPromise = (promise: any): promise is Promise<any> =>
+  promise && typeof promise.then === 'function';
+const enqueue = (task: () => void | Promise<void>) => (queue = queue.then(task, task));
 const isElementNode = (node: Node | null): node is Element => !!node && node.nodeType === 1;
+const isCaptureHandlerElement = (
+  element: Element,
+  scopedKebabName: string,
+  captureAttribute: string
+) =>
+  element.hasAttribute(captureAttribute) &&
+  (!!(element as QElement)._qDispatch?.[scopedKebabName] ||
+    element.hasAttribute('q-' + scopedKebabName));
 
 /** Dispatch in the same way that Qwik Loader does, for testing purposes. */
-export const dispatch = async (
+export const dispatch = (
   element: Element | null,
   event: Event,
   scopedKebabName: string,
@@ -175,66 +187,106 @@ export const dispatch = async (
   const captureAttributeName = CAPTURE + kebabName;
   const elements: Element[] = [];
   const captureHandlers: boolean[] = [];
+  let captureStopIndex = -1;
+  let bubbleStopIndex = -1;
+  let preventDefault = false;
   let current = element as Node | null;
   while (current) {
     if (isElementNode(current)) {
-      elements.push(current);
-      captureHandlers.push(
-        current.hasAttribute(captureAttributeName) &&
-          (!!current.getAttribute('q-' + scopedKebabName) ||
-            ('_qDispatch' in (current as QElement) &&
-              !!(current as QElement)._qDispatch?.[scopedKebabName]))
+      const captureHandler = isCaptureHandlerElement(
+        current,
+        scopedKebabName,
+        captureAttributeName
       );
+      elements.push(current);
+      captureHandlers.push(captureHandler);
+      if (allowPreventDefault && current.hasAttribute(PREVENT_DEFAULT + kebabName)) {
+        preventDefault = true;
+      }
+      if (current.hasAttribute(STOP_PROPAGATION + kebabName)) {
+        if (captureHandler) {
+          captureStopIndex = elements.length - 1;
+        } else if (bubbleStopIndex < 0) {
+          bubbleStopIndex = elements.length - 1;
+        }
+      }
       current = current.parentElement;
     } else {
       current = (current as ChildNode).parentElement;
     }
   }
-
-  for (let i = elements.length - 1; i >= 0; i--) {
-    if (captureHandlers[i]) {
-      const result = dispatchOnElement(
-        elements[i],
-        event,
-        scopedKebabName,
-        kebabName,
-        allowPreventDefault
-      );
-      const continuePropagation = !event.cancelBubble;
-      await result;
-      if (!continuePropagation || event.cancelBubble) {
-        return;
-      }
-    }
+  if (!elements.length) {
+    return;
   }
 
-  for (let i = 0; i < elements.length; i++) {
-    if (!captureHandlers[i]) {
-      const result = dispatchOnElement(
-        elements[i],
-        event,
-        scopedKebabName,
-        kebabName,
-        allowPreventDefault
-      );
-      const doBubble = event.bubbles && !event.cancelBubble;
-      await result;
-      if (!doBubble || event.cancelBubble) {
-        return;
+  if (preventDefault) {
+    event.preventDefault();
+  }
+  if (~captureStopIndex || ~bubbleStopIndex) {
+    event.stopPropagation();
+  }
+  const initialCancelBubble = event.cancelBubble;
+  let hadSyncCapture = false;
+
+  const process = (
+    index: number,
+    end: number,
+    step: 1 | -1,
+    capture: boolean,
+    stopIndex: number
+  ): void | Promise<void> => {
+    for (let i = index; i !== end; i += step) {
+      if (captureHandlers[i] === capture) {
+        const result = dispatchOnElement(elements[i], event, scopedKebabName, kebabName, false);
+        const stoppedByHandler = event.cancelBubble && !initialCancelBubble;
+        const shouldStop = stoppedByHandler || i === stopIndex;
+        if (isPromise(result)) {
+          return enqueue(() =>
+            result.then(() => {
+              if (shouldStop) {
+                return;
+              }
+              return process((i + step) as number, end, step, capture, stopIndex);
+            })
+          );
+        }
+        if (capture) {
+          hadSyncCapture = true;
+        }
+        if (shouldStop) {
+          return;
+        }
       }
     }
+  };
+
+  const captureResult = process(elements.length - 1, -1, -1, true, captureStopIndex);
+  if (isPromise(captureResult)) {
+    return captureResult.then(() => {
+      if ((event.cancelBubble && !initialCancelBubble) || ~captureStopIndex) {
+        return;
+      }
+      return process(0, event.bubbles ? elements.length : 1, 1, false, bubbleStopIndex);
+    });
   }
+  if ((event.cancelBubble && !initialCancelBubble) || ~captureStopIndex) {
+    return;
+  }
+  if (hadSyncCapture) {
+    return Promise.resolve().then(() =>
+      process(0, event.bubbles ? elements.length : 1, 1, false, bubbleStopIndex)
+    );
+  }
+  return process(0, event.bubbles ? elements.length : 1, 1, false, bubbleStopIndex);
 };
 
-const dispatchOnElement = async (
+const dispatchOnElement = (
   element: Element | null,
   event: Event,
   scopedKebabName: string,
-  kebabName: string,
+  kebabName?: string,
   allowPreventDefault = true
 ) => {
-  const preventAttributeName = PREVENT_DEFAULT + kebabName;
-  const stopPropagationName = STOP_PROPAGATION + kebabName;
   if (element) {
     const handlers =
       '_qDispatch' in (element as QElement)
@@ -243,8 +295,8 @@ const dispatchOnElement = async (
     const attrValue = element.getAttribute('q-' + scopedKebabName);
 
     if (kebabName) {
-      const preventDefault = element.hasAttribute(preventAttributeName);
-      const stopPropagation = element.hasAttribute(stopPropagationName);
+      const preventDefault = element.hasAttribute(PREVENT_DEFAULT + kebabName);
+      const stopPropagation = element.hasAttribute(STOP_PROPAGATION + kebabName);
       if (allowPreventDefault && preventDefault) {
         event.preventDefault();
       }
@@ -255,24 +307,24 @@ const dispatchOnElement = async (
     if ('_qDispatch' in (element as QElement)) {
       if (handlers) {
         if (typeof handlers === 'function') {
-          await handlers(event, element);
-        } else if (handlers.length) {
-          for (let i = 0; i < handlers.length; i++) {
-            const handler = handlers[i];
-            if (handler) {
-              await (handler as EventHandler)(event, element);
+          return handlers(event, element);
+        }
+        const run = (index = 0): void | Promise<void> => {
+          for (let i = index; i < handlers.length; i++) {
+            const result = (handlers[i] as EventHandler | undefined)?.(event, element);
+            if (isPromise(result)) {
+              return result.then(() => run(i + 1));
             }
           }
-        }
-        return;
+        };
+        return run();
       }
     }
 
     if (attrValue) {
-      const qrls = attrValue;
-      try {
-        const qrlsArray = qrls.split('|');
-        for (let i = 0; i < qrlsArray.length; i++) {
+      const qrlsArray = attrValue.split('|');
+      const run = async (index = 0): Promise<void> => {
+        for (let i = index; i < qrlsArray.length; i++) {
           const qrl = qrlsArray[i];
           const [chunk, symbol, captures] = qrl.split('#');
           let fn: Function;
@@ -293,10 +345,11 @@ const dispatchOnElement = async (
           }
           await fn.apply(captures, [event, element]);
         }
-      } catch (error) {
-        console.error('!!! qrl error', qrls, error);
+      };
+      return run().catch((error) => {
+        console.error('!!! qrl error', attrValue, error);
         throw error;
-      }
+      });
     }
   }
 };

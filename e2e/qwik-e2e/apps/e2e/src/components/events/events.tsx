@@ -20,6 +20,10 @@ const EventsParent = component$(() => {
     countWrapped: 0,
     countAnchor: 0,
     propagationStoppedCount: 0,
+    asyncPreventDefaultAnchorCount: 0,
+    asyncPreventDefaultChildCount: 0,
+    asyncStopPropagationParentCount: 0,
+    asyncStopPropagationChildCount: 0,
     passiveRegularClickCount: 0,
     passiveClickCount: 0,
     passivePreventDefaultCount: 0,
@@ -81,6 +85,55 @@ const EventsParent = component$(() => {
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
       <p id="count-anchor">countAnchor: {store.countAnchor}</p>
       <p id="count-propagation">countPropagationStopped: {store.propagationStoppedCount}</p>
+      <div>
+        <a
+          href="/"
+          preventdefault:click
+          id="async-preventdefault-anchor"
+          onClick$={() => {
+            store.asyncPreventDefaultAnchorCount++;
+          }}
+        >
+          <button
+            id="async-preventdefault-child"
+            onClick$={async () => {
+              await Promise.resolve();
+              store.asyncPreventDefaultChildCount++;
+            }}
+          >
+            Async prevent default child
+          </button>
+        </a>
+      </div>
+      <p id="count-async-preventdefault-anchor">
+        countAsyncPreventDefaultAnchor: {store.asyncPreventDefaultAnchorCount}
+      </p>
+      <p id="count-async-preventdefault-child">
+        countAsyncPreventDefaultChild: {store.asyncPreventDefaultChildCount}
+      </p>
+      <div
+        onClick$={() => {
+          store.asyncStopPropagationParentCount++;
+        }}
+      >
+        <div stoppropagation:click id="async-stoppropagation-self">
+          <button
+            id="async-stoppropagation-child"
+            onClick$={async () => {
+              await Promise.resolve();
+              store.asyncStopPropagationChildCount++;
+            }}
+          >
+            Async stop propagation child
+          </button>
+        </div>
+      </div>
+      <p id="count-async-stoppropagation-parent">
+        countAsyncStopPropagationParent: {store.asyncStopPropagationParentCount}
+      </p>
+      <p id="count-async-stoppropagation-child">
+        countAsyncStopPropagationChild: {store.asyncStopPropagationChildCount}
+      </p>
       <div>
         <button
           id="passive-regular-click"

@@ -9,7 +9,13 @@ import type { Container, HostElement } from '../../shared/types';
 import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
-import { type AsyncCtx, AsyncSignalFlags, EffectProperty, SignalFlags } from '../types';
+import {
+  type AsyncCtx,
+  AsyncSignalFlags,
+  EffectProperty,
+  NEEDS_COMPUTATION,
+  SignalFlags,
+} from '../types';
 import { clearAllEffects } from '../cleanup';
 import { createSignal, createAsync$, createAsyncQrl } from '../signal.public';
 import { getSubscriber } from '../subscriber';
@@ -644,6 +650,68 @@ describe('async signal', () => {
         expect(signal.error).toBeUndefined();
       });
     });
+
+    it('should throw the retried promise instead of returning a stale value after an error', async () => {
+      await withContainer(async () => {
+        const ref = {
+          started: 0,
+          rejectFirst: undefined as ((error: Error) => void) | undefined,
+          resolveSecond: undefined as ((value: number) => void) | undefined,
+        };
+        const signal = createAsync$(
+          async () => {
+            ref.started++;
+            if (ref.started === 1) {
+              return new Promise<number>((_resolve, reject) => {
+                ref.rejectFirst = reject;
+              });
+            }
+            return new Promise<number>((resolve) => {
+              ref.resolveSecond = resolve;
+            });
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+
+        effect$(() => signal.value);
+
+        await retryOnPromise(() => {
+          if (ref.started !== 1 || !ref.rejectFirst) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        await signal.invalidate();
+
+        const failure = new Error('first failure');
+        ref.rejectFirst!(failure);
+
+        await retryOnPromise(() => {
+          if (ref.started !== 2 || !ref.resolveSecond) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        let thrown: unknown;
+        try {
+          signal.value;
+        } catch (err) {
+          thrown = err;
+        }
+
+        expect(thrown).toBeInstanceOf(Promise);
+        expect(signal.error).toBe(failure);
+        expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+
+        ref.resolveSecond!(2);
+        await signal.promise();
+
+        expect(signal.value).toBe(2);
+        expect(signal.error).toBeUndefined();
+      });
+    });
   });
 
   describe('initial value', () => {
@@ -998,6 +1066,121 @@ describe('async signal', () => {
 
         ref.resolve?.(1);
         await delay(0);
+      });
+    });
+  });
+
+  describe('allowStale', () => {
+    it('should not set CLEAR_ON_INVALIDATE flag by default', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 42, {
+          initial: 10,
+        }) as AsyncSignalImpl<number>;
+
+        expect(signal.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE).toBe(0);
+      });
+    });
+
+    it('should set CLEAR_ON_INVALIDATE flag when allowStale is false', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 42, {
+          allowStale: false,
+        }) as AsyncSignalImpl<number>;
+
+        expect(signal.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE).toBe(
+          AsyncSignalFlags.CLEAR_ON_INVALIDATE
+        );
+      });
+    });
+
+    it('should throw when allowStale is false and initial is provided', async () => {
+      await withContainer(async () => {
+        expect(() => {
+          createAsync$(async () => 42, {
+            initial: 10,
+            allowStale: false,
+          });
+        }).toThrow('allowStale: false and initial cannot be used together');
+      });
+    });
+
+    it('should keep stale value on invalidate when allowStale is true (default)', async () => {
+      await withContainer(async () => {
+        const ref = {
+          resolve: undefined as ((value: number) => void) | undefined,
+          started: 0,
+        };
+
+        const signal = createAsync$(
+          async () => {
+            ref.started++;
+            return new Promise<number>((resolve) => {
+              ref.resolve = resolve;
+            });
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+
+        effect$(() => signal.value);
+        // Wait for first computation to start
+        await retryOnPromise(() => {
+          if (!ref.resolve) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+        });
+        ref.resolve!(42);
+        await signal.promise();
+        expect(signal.value).toBe(42);
+
+        // Invalidate — with allowStale=true (default), value should remain
+        ref.resolve = undefined;
+        await signal.invalidate();
+
+        // Value is still the old one while recomputing
+        expect(signal.$untrackedValue$).toBe(42);
+      });
+    });
+
+    it('should clear value on invalidate when allowStale is false', async () => {
+      await withContainer(async () => {
+        const ref = {
+          resolve: undefined as ((value: number) => void) | undefined,
+          started: 0,
+        };
+
+        const signal = createAsync$(
+          async () => {
+            ref.started++;
+            return new Promise<number>((resolve) => {
+              ref.resolve = resolve;
+            });
+          },
+          { allowStale: false }
+        ) as AsyncSignalImpl<number>;
+
+        effect$(() => {
+          try {
+            signal.value;
+          } catch {
+            // ignore promise throws during loading
+          }
+        });
+        // Wait for first computation to start
+        await retryOnPromise(() => {
+          if (!ref.resolve) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+        });
+        ref.resolve!(42);
+        await signal.promise();
+        expect(signal.value).toBe(42);
+
+        // Invalidate — with allowStale=false, value should be cleared
+        ref.resolve = undefined;
+        await signal.invalidate();
+
+        // Value should be NEEDS_COMPUTATION
+        expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
       });
     });
   });

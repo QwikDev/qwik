@@ -85,6 +85,8 @@ class AsyncJob<T> implements AsyncCtx<T> {
  * AsyncSignalImpl
  *
  * # ================================
+ *
+ * @internal
  */
 export class AsyncSignalImpl<T>
   extends ComputedSignalImpl<T, AsyncQRL<T>>
@@ -139,6 +141,15 @@ export class AsyncSignalImpl<T>
     }
     if (clientOnly) {
       this.$flags$ |= AsyncSignalFlags.CLIENT_ONLY;
+    }
+    if (options?.allowStale === false) {
+      if (isDev && initial !== undefined) {
+        throw new Error(
+          'allowStale: false and initial cannot be used together. ' +
+            'allowStale: false clears the value on invalidation, which conflicts with providing an initial value.'
+        );
+      }
+      this.$flags$ |= AsyncSignalFlags.CLEAR_ON_INVALIDATE;
     }
     if (interval) {
       this.interval = interval;
@@ -307,6 +318,11 @@ export class AsyncSignalImpl<T>
       this.$info$ = info;
       this.$infoVersion$++;
     }
+    // When allowStale is false (CLEAR_ON_INVALIDATE set), clear the value so reads throw
+    // the computation promise instead of returning stale data (useful for navigations)
+    if (this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE) {
+      this.$untrackedValue$ = NEEDS_COMPUTATION;
+    }
     if (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size) {
       // compute in next microtask
       await true;
@@ -433,6 +449,8 @@ export class AsyncSignalImpl<T>
       DEBUG && log('Error caught in promise.catch', err);
       if (isCurrent()) {
         this.untrackedError = err as Error;
+        // Reset value so next read throws the promise instead of returning stale data
+        this.$untrackedValue$ = NEEDS_COMPUTATION;
       }
     }
 

@@ -213,13 +213,15 @@ export class QRLClass<TYPE> {
     $captures$?: Readonly<unknown[]> | string | null,
     container?: Container | null
   ) {
+    if (qDev) {
+      initQrlClassDev($lazy$, $captures$, this);
+    }
     if ($captures$) {
       this.$captures$ = $captures$;
       if (typeof $captures$ === 'string') {
         // We cannot rely on the container of the lazy ref, it may be missing or different
         this.$container$ = container;
       }
-      qDev && initQrlClassDev($lazy$, $captures$, this);
     }
 
     // If it is plain value with deserialized or missing captures, resolve it immediately

@@ -1,11 +1,36 @@
-import type { ContextId, DomContainer, _ContainerElement } from 'packages/qwik/core-internal';
 import type { ClientSPAWindow } from './qwik-router-component';
 import type { ScrollHistoryState } from './scroll-restoration';
-import type { RouteNavigate, ScrollState } from './types';
+import type { ScrollState } from './types';
 
 import { event$, isDev } from '@qwik.dev/core';
 
 declare const window: ClientSPAWindow;
+
+export const Q_ROUTER_POPSTATE_EVENT = 'qrouterpopstate';
+export interface RouterPopstateEventDetail {
+  href: string;
+}
+
+export const createCurrentPathTracker = (initialPath: string) => {
+  let currentPath = initialPath;
+
+  return (nextPath: string) => {
+    if (currentPath !== nextPath) {
+      currentPath = nextPath;
+      return true;
+    }
+
+    return false;
+  };
+};
+
+export const dispatchRouterPopstate = (document: Document, href: string) => {
+  document.dispatchEvent(
+    new CustomEvent<RouterPopstateEventDetail>(Q_ROUTER_POPSTATE_EVENT, {
+      detail: { href },
+    })
+  );
+};
 
 // TODO Dedupe handler code from here and QwikRouterProvider?
 // TODO Navigation API; check for support & simplify.
@@ -20,7 +45,7 @@ export default event$((_: Event, el: Element) => {
   // This complements qwik-router-component.ts
   // only run once, when router didn't init yet
   if (!window._qRouterSPA && !window._qRouterInitPopstate) {
-    const currentPath = location.pathname + location.search;
+    const hasPathChanged = createCurrentPathTracker(location.pathname + location.search);
 
     const checkAndScroll = (scrollState: ScrollState | undefined) => {
       if (scrollState) {
@@ -55,24 +80,8 @@ export default event$((_: Event, el: Element) => {
       window._qRouterScrollEnabled = false;
       clearTimeout(window._qRouterScrollDebounce);
 
-      if (currentPath !== location.pathname + location.search) {
-        const getContainer = (el: Element) =>
-          el.closest('[q\\:container]:not([q\\:container=html]):not([q\\:container=text])');
-
-        const container = getContainer(el);
-        const domContainer = (container as _ContainerElement).qContainer as DomContainer;
-        const hostElement = domContainer.vNodeLocate(el);
-
-        const nav = domContainer?.resolveContext(hostElement, {
-          id: 'qr-n',
-        } as ContextId<RouteNavigate>);
-
-        if (nav) {
-          nav(location.href, { type: 'popstate' });
-        } else {
-          // No useNavigate ctx available, fallback to reload.
-          location.reload();
-        }
+      if (hasPathChanged(location.pathname + location.search)) {
+        dispatchRouterPopstate(document, location.href);
       } else {
         if (history.scrollRestoration === 'manual') {
           const scrollState = (history.state as ScrollHistoryState)?._qRouterScroll;

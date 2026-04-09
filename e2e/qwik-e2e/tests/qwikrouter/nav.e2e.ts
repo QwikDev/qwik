@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import {
   assertPage,
   getScrollHeight,
@@ -11,6 +11,31 @@ import {
 } from './util.js';
 
 test.describe('nav', () => {
+  // Firefox can lag a bit before exposing image DOM properties on the MPA/SSR path,
+  // so wait for a fully loaded image state instead of reading natural* eagerly.
+  async function expectLoadedImage(locator: Locator, naturalWidth: number, naturalHeight: number) {
+    await expect
+      .poll(async () => {
+        return locator.evaluate((node) => {
+          if (!(node instanceof HTMLImageElement)) {
+            return null;
+          }
+          return {
+            complete: node.complete,
+            currentSrc: !!node.currentSrc,
+            naturalHeight: node.naturalHeight,
+            naturalWidth: node.naturalWidth,
+          };
+        });
+      })
+      .toEqual({
+        complete: true,
+        currentSrc: true,
+        naturalHeight,
+        naturalWidth,
+      });
+  }
+
   test.describe('mpa', () => {
     test.use({ javaScriptEnabled: false });
     tests();
@@ -58,20 +83,40 @@ test.describe('nav', () => {
 
     test.describe('scroll-restoration', () => {
       test('should not refresh again on popstate after manual refresh', async ({ page }) => {
+        const documentLoadsKey = '__qwik_router_document_loads__';
+        await page.addInitScript((storageKey) => {
+          const documentLoads = Number(sessionStorage.getItem(storageKey) || '0') + 1;
+          sessionStorage.setItem(storageKey, String(documentLoads));
+        }, documentLoadsKey);
+        const getDocumentLoads = () =>
+          page.evaluate(
+            (storageKey) => Number(sessionStorage.getItem(storageKey) || '0'),
+            documentLoadsKey
+          );
+
         await page.goto('/qwikrouter-test/scroll-restoration/page-long/');
         const link = page.locator('#to-page-short');
         await link.click();
 
         await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-short/');
         await expect(page.locator('h1')).toHaveText('Page Short');
+        await expect.poll(getDocumentLoads).toBe(1);
 
         await page.reload();
         await expect(page.locator('h1')).toHaveText('Page Short');
+        await expect.poll(getDocumentLoads).toBe(2);
 
         await page.goBack();
 
         await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-long/');
         await expect(page.locator('h1')).toHaveText('Page Long');
+        await expect.poll(getDocumentLoads).toBe(2);
+
+        await page.goForward();
+
+        await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-short/');
+        await expect(page.locator('h1')).toHaveText('Page Short');
+        await expect.poll(getDocumentLoads).toBe(2);
       });
       test('should scroll on hash change', async ({ page }) => {
         await page.goto('/qwikrouter-test/scroll-restoration/hash/');
@@ -444,16 +489,14 @@ test.describe('nav', () => {
     test('media in home page', async ({ page }) => {
       await page.goto('/qwikrouter-test/');
 
-      await expect(page.locator('#image-jpeg')).toHaveJSProperty('naturalWidth', 520);
-      await expect(page.locator('#image-jpeg')).toHaveJSProperty('naturalHeight', 520);
+      await expectLoadedImage(page.locator('#image-jpeg'), 520, 520);
 
-      await expect(page.locator('#image-jpeg')).toHaveJSProperty('loading', 'eager');
-      await expect(page.locator('#image-jpeg')).toHaveJSProperty('decoding', 'auto');
+      await expect(page.locator('#image-jpeg')).toHaveAttribute('loading', 'eager');
+      await expect(page.locator('#image-jpeg')).toHaveAttribute('decoding', 'auto');
 
-      await expect(page.locator('#image-avif')).toHaveJSProperty('width', 100);
-      await expect(page.locator('#image-avif')).toHaveJSProperty('height', 100);
-      await expect(page.locator('#image-avif')).toHaveJSProperty('naturalWidth', 520);
-      await expect(page.locator('#image-avif')).toHaveJSProperty('naturalHeight', 520);
+      await expect(page.locator('#image-avif')).toHaveAttribute('width', '100');
+      await expect(page.locator('#image-avif')).toHaveAttribute('height', '100');
+      await expectLoadedImage(page.locator('#image-avif'), 520, 520);
     });
 
     test('redirects, re-runs loaders and changes the url within the same page when search params changed', async ({

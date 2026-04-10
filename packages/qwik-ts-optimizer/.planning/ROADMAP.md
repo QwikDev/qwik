@@ -31,7 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. SipHash-1-3 with zero keys produces hashes byte-identical to every hash value found in all snapshot metadata
   4. Display names and symbol names constructed from file path and context match every snapshot's metadata exactly
   5. Test runner can execute a batch of N snapshots, report pass/fail, and lock passing batches so they never regress
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Project setup and snapshot parser (TEST-01)
+- [ ] 01-02-PLAN.md — SipHash-1-3 hashing and naming construction (HASH-01 through HASH-05)
+- [ ] 01-03-PLAN.md — AST comparison, metadata comparison, and batch runner (TEST-02, TEST-03, TEST-04)
 
 ### Phase 2: Core Extraction Pipeline
 **Goal**: The optimizer can parse source files, detect marker functions, extract segments, rewrite parent modules, and produce the correct module structure
@@ -101,7 +106,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 1. Test Infrastructure and Hash Verification | 0/TBD | Not started | - |
+| 1. Test Infrastructure and Hash Verification | 0/3 | Planning complete | - |
 | 2. Core Extraction Pipeline | 0/TBD | Not started | - |
 | 3. Capture Analysis and Variable Migration | 0/TBD | Not started | - |
 | 4. JSX, Signals, and Event Handlers | 0/TBD | Not started | - |

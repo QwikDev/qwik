@@ -29,7 +29,9 @@ import {
   needsPureAnnotation,
   getQrlImportSource,
 } from './rewrite-calls.js';
+import { buildQrlDevDeclaration } from './dev-mode.js';
 import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
+import type { EmitMode } from './types.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -110,6 +112,8 @@ export function rewriteParentModule(
   migrationDecisions?: MigrationDecision[],
   moduleLevelDecls?: ModuleLevelDecl[],
   jsxOptions?: JsxRewriteOptions,
+  mode?: EmitMode,
+  devFilePath?: string,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const { program } = parseSync(relPath, source);
@@ -291,6 +295,7 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // Step 4c: JSX transformation (Phase 4)
   // -----------------------------------------------------------------------
+  const isDevMode = mode === 'dev';
   let jsxResult: JsxTransformOutput | null = null;
   if (jsxOptions?.enableJsx) {
     // Build skip ranges from extraction argument ranges.
@@ -304,7 +309,10 @@ export function rewriteParentModule(
     // This converts JSX elements/fragments to _jsxSorted/_jsxSplit calls.
     // Must run AFTER call site rewriting (so $() calls are replaced)
     // but BEFORE import assembly (so we can add JSX imports).
-    jsxResult = transformAllJsx(source, s, program, jsxOptions.importedNames, skipRanges);
+    jsxResult = transformAllJsx(
+      source, s, program, jsxOptions.importedNames, skipRanges,
+      isDevMode ? { relPath } : undefined,
+    );
   }
 
   // -----------------------------------------------------------------------
@@ -315,8 +323,11 @@ export function rewriteParentModule(
   // Only top-level extractions contribute imports to the parent module.
   // Nested extractions get their imports in the segment module that contains them.
   const hasTopLevelNonSync = topLevel.some((e) => !e.isSync);
-  if (hasTopLevelNonSync && !alreadyImported.has('qrl')) {
-    neededImports.set('qrl', '@qwik.dev/core');
+  if (hasTopLevelNonSync) {
+    const qrlSymbol = isDevMode ? 'qrlDEV' : 'qrl';
+    if (!alreadyImported.has(qrlSymbol)) {
+      neededImports.set(qrlSymbol, '@qwik.dev/core');
+    }
   }
 
   // Each unique qrlCallee from top-level extractions needs an import
@@ -369,7 +380,19 @@ export function rewriteParentModule(
   // Only top-level (non-nested) non-sync extractions get QRL declarations in the parent
   const topLevelNonSync = extractions.filter((e) => !e.isSync && e.parent === null);
   const qrlDecls = topLevelNonSync
-    .map((ext) => buildQrlDeclaration(ext.symbolName, ext.canonicalFilename))
+    .map((ext) => {
+      if (isDevMode && devFilePath) {
+        return buildQrlDevDeclaration(
+          ext.symbolName,
+          ext.canonicalFilename,
+          devFilePath,
+          ext.loc[0],
+          ext.loc[1],
+          ext.displayName,
+        );
+      }
+      return buildQrlDeclaration(ext.symbolName, ext.canonicalFilename);
+    })
     .sort();
 
   // -----------------------------------------------------------------------

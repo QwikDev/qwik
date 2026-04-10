@@ -99,7 +99,7 @@ export function buildSyncTransform(originalFnText: string): string {
 // ---------------------------------------------------------------------------
 
 /** Set of Qrl callee names that get PURE annotations. */
-const PURE_CALLEES = new Set(['componentQrl', 'qrl']);
+const PURE_CALLEES = new Set(['componentQrl', 'qrl', 'qrlDEV']);
 
 /**
  * Determine if a QRL wrapper call needs a PURE annotation.

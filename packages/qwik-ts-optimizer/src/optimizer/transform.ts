@@ -15,6 +15,8 @@ import { rewriteParentModule } from './rewrite-parent.js';
 import { generateSegmentCode, type SegmentCaptureInfo } from './segment-codegen.js';
 import { collectImports, type ImportInfo } from './marker-detection.js';
 import { buildQrlDeclaration } from './rewrite-calls.js';
+import { resolveEntryField } from './entry-strategy.js';
+import { buildQrlDevDeclaration, buildDevFilePath, buildJsxSourceInfo } from './dev-mode.js';
 import { analyzeCaptures, collectScopeIdentifiers } from './capture-analysis.js';
 import {
   analyzeMigration,
@@ -216,7 +218,12 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // Compute parent module path for _auto_ imports (no extension)
     const parentModulePath = computeParentModulePath(relPath);
 
-    // 3. Rewrite parent module (pass migration decisions + JSX options)
+    // 3. Rewrite parent module (pass migration decisions + JSX options + mode)
+    const emitMode = options.mode ?? 'prod';
+    const devFile = emitMode === 'dev'
+      ? buildDevFilePath(input.path, options.srcDir, input.devPath)
+      : undefined;
+
     const parentResult = rewriteParentModule(
       input.code,
       relPath,
@@ -227,6 +234,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       (ext === '.tsx' || ext === '.jsx')
         ? { enableJsx: true, importedNames }
         : undefined,
+      emitMode,
+      devFile,
     );
 
     // 4. Build parent TransformModule
@@ -313,10 +322,34 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       );
 
       // 2d. Build segment metadata with captureNames and paramNames
+      // Resolve entry field based on entry strategy
+      const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
+      // Find parent component symbol for component entry strategy
+      let parentComponentSymbol: string | null = null;
+      if (entryStrategy.type === 'component') {
+        // Walk up parent chain to find nearest component extraction
+        let current = ext.parent;
+        while (current) {
+          const parentExt = updatedExtractions.find((e) => e.symbolName === current);
+          if (parentExt && parentExt.ctxName === 'component') {
+            parentComponentSymbol = parentExt.symbolName;
+            break;
+          }
+          current = parentExt?.parent ?? null;
+        }
+      }
+      const entryField = resolveEntryField(
+        entryStrategy.type,
+        ext.symbolName,
+        ext.ctxName,
+        parentComponentSymbol,
+        'manual' in entryStrategy ? entryStrategy.manual : undefined,
+      );
+
       const segmentAnalysis: SegmentMetadataInternal = {
         origin: ext.origin,
         name: ext.symbolName,
-        entry: null, // Phase 5 handles entry strategies
+        entry: entryField,
         displayName: ext.displayName,
         hash: ext.hash,
         canonicalFilename: ext.canonicalFilename,

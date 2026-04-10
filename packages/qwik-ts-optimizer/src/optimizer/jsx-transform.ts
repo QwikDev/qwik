@@ -925,12 +925,37 @@ export function transformAllJsx(
   program: any,
   importedNames: Set<string>,
   skipRanges?: Array<{ start: number; end: number }>,
+  devOptions?: { relPath: string },
 ): JsxTransformOutput {
   const keyCounter = new JsxKeyCounter();
   const signalHoister = new SignalHoister();
   const neededImports = new Set<string>();
   let needsFragment = false;
   const ranges = skipRanges ?? [];
+
+  // Dev mode: build source info suffix for JSX calls
+  // Precompute line starts for efficient offset->line/col lookup
+  let lineStarts: number[] | null = null;
+  if (devOptions) {
+    lineStarts = [0];
+    for (let i = 0; i < source.length; i++) {
+      if (source[i] === '\n') lineStarts.push(i + 1);
+    }
+  }
+
+  function getDevSourceSuffix(nodeStart: number): string {
+    if (!devOptions || !lineStarts) return '';
+    // Binary search for line number
+    let lo = 0, hi = lineStarts.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (lineStarts[mid] <= nodeStart) lo = mid;
+      else hi = mid - 1;
+    }
+    const lineNumber = lo + 1; // 1-indexed
+    const columnNumber = nodeStart - lineStarts[lo] + 1; // 1-indexed
+    return `, {\n    fileName: "${devOptions.relPath}",\n    lineNumber: ${lineNumber},\n    columnNumber: ${columnNumber}\n}`;
+  }
 
   // Loop context tracking: stack of active loop contexts
   const loopStack: LoopContext[] = [];
@@ -973,10 +998,15 @@ export function transformAllJsx(
           currentLoop,
         );
         if (result) {
+          const devSuffix = getDevSourceSuffix(node.start);
+          // Insert dev source info before closing paren of callString
+          const callStr = devSuffix
+            ? result.callString.slice(0, -1) + devSuffix + ')'
+            : result.callString;
           s.overwrite(
             node.start,
             node.end,
-            `/*#__PURE__*/ ${result.callString}`,
+            `/*#__PURE__*/ ${callStr}`,
           );
           for (const imp of result.neededImports) {
             neededImports.add(imp);
@@ -991,10 +1021,14 @@ export function transformAllJsx(
           keyCounter,
         );
         if (result) {
+          const devSuffix = getDevSourceSuffix(node.start);
+          const callStr = devSuffix
+            ? result.callString.slice(0, -1) + devSuffix + ')'
+            : result.callString;
           s.overwrite(
             node.start,
             node.end,
-            `/*#__PURE__*/ ${result.callString}`,
+            `/*#__PURE__*/ ${callStr}`,
           );
           for (const imp of result.neededImports) {
             neededImports.add(imp);

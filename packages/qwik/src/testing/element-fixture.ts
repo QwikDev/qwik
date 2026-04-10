@@ -10,6 +10,8 @@ import type { MockDocument, MockWindow } from './types';
 import { waitForDrain } from './util';
 import type { QRLInternal } from '../server/qwik-types';
 
+type Task = () => void | Promise<void>;
+
 /**
  * Creates a simple DOM structure for testing components.
  *
@@ -163,6 +165,19 @@ const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
 
 const isElementNode = (node: Node | null): node is Element => !!node && node.nodeType === 1;
+const isPromise = (promise: any): promise is Promise<any> =>
+  promise && typeof promise.then === 'function';
+let queuedTasks: Promise<void> | undefined;
+const runTasks = async (tasks: Task[]) => {
+  for (let i = 0; i < tasks.length; i++) {
+    await tasks[i]();
+  }
+};
+const queueTasks = (tasks: Task[]) => {
+  const run = () => runTasks(tasks);
+  queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run();
+  return queuedTasks;
+};
 
 /** Dispatch in the same way that Qwik Loader does, for testing purposes. */
 export const dispatch = async (
@@ -175,6 +190,7 @@ export const dispatch = async (
   const captureAttributeName = CAPTURE + kebabName;
   const elements: Element[] = [];
   const captureHandlers: boolean[] = [];
+  const tasks: Task[] = [];
   let current = element as Node | null;
   while (current) {
     if (isElementNode(current)) {
@@ -193,16 +209,10 @@ export const dispatch = async (
 
   for (let i = elements.length - 1; i >= 0; i--) {
     if (captureHandlers[i]) {
-      const result = dispatchOnElement(
-        elements[i],
-        event,
-        scopedKebabName,
-        kebabName,
-        allowPreventDefault
-      );
+      dispatchOnElement(elements[i], event, scopedKebabName, tasks, kebabName, allowPreventDefault);
       const continuePropagation = !event.cancelBubble;
-      await result;
       if (!continuePropagation || event.cancelBubble) {
+        await queueTasks(tasks);
         return;
       }
     }
@@ -210,32 +220,29 @@ export const dispatch = async (
 
   for (let i = 0; i < elements.length; i++) {
     if (!captureHandlers[i]) {
-      const result = dispatchOnElement(
-        elements[i],
-        event,
-        scopedKebabName,
-        kebabName,
-        allowPreventDefault
-      );
+      dispatchOnElement(elements[i], event, scopedKebabName, tasks, kebabName, allowPreventDefault);
       const doBubble = event.bubbles && !event.cancelBubble;
-      await result;
       if (!doBubble || event.cancelBubble) {
+        await queueTasks(tasks);
         return;
       }
     }
   }
+  await queueTasks(tasks);
 };
 
-const dispatchOnElement = async (
+const dispatchOnElement = (
   element: Element | null,
   event: Event,
   scopedKebabName: string,
+  tasks: Task[],
   kebabName: string,
   allowPreventDefault = true
 ) => {
   const preventAttributeName = PREVENT_DEFAULT + kebabName;
   const stopPropagationName = STOP_PROPAGATION + kebabName;
   if (element) {
+    let defer = false;
     const handlers =
       '_qDispatch' in (element as QElement)
         ? (element as QElement)._qDispatch?.[scopedKebabName]
@@ -255,12 +262,40 @@ const dispatchOnElement = async (
     if ('_qDispatch' in (element as QElement)) {
       if (handlers) {
         if (typeof handlers === 'function') {
-          await handlers(event, element);
+          const run = () => handlers(event, element);
+          if (defer) {
+            tasks.push(async () => {
+              const result = run();
+              if (isPromise(result)) {
+                await result;
+              }
+            });
+          } else {
+            const result = run();
+            if (isPromise(result)) {
+              defer = true;
+              tasks.push(() => result);
+            }
+          }
         } else if (handlers.length) {
           for (let i = 0; i < handlers.length; i++) {
             const handler = handlers[i];
             if (handler) {
-              await (handler as EventHandler)(event, element);
+              const run = () => (handler as EventHandler)(event, element);
+              if (defer) {
+                tasks.push(async () => {
+                  const result = run();
+                  if (isPromise(result)) {
+                    await result;
+                  }
+                });
+              } else {
+                const result = run();
+                if (isPromise(result)) {
+                  defer = true;
+                  tasks.push(() => result);
+                }
+              }
             }
           }
         }
@@ -275,23 +310,37 @@ const dispatchOnElement = async (
         for (let i = 0; i < qrlsArray.length; i++) {
           const qrl = qrlsArray[i];
           const [chunk, symbol, captures] = qrl.split('#');
-          let fn: Function;
-          if (chunk) {
-            // This is added by qrl-to-string.ts during serialization
-            fn = (globalThis as any).__qrl_back_channel__?.get(symbol);
-            if (typeof fn !== 'function') {
-              throw new Error(`QRL function not found in back channel for ${qrl}`);
+          const run = () => {
+            let fn: Function;
+            if (chunk) {
+              // This is added by qrl-to-string.ts during serialization
+              fn = (globalThis as any).__qrl_back_channel__?.get(symbol);
+              if (typeof fn !== 'function') {
+                throw new Error(`QRL function not found in back channel for ${qrl}`);
+              }
+            } else {
+              const container = getDomContainer(element as HTMLElement);
+              const sync = container.parseQRL(qrl) as QRLInternal<Function>;
+              sync.resolve();
+              fn = sync.resolved as Function;
             }
+            return fn.apply(captures, [event, element]);
+          };
+          if (chunk || defer) {
+            defer = true;
+            tasks.push(async () => {
+              const result = run();
+              if (isPromise(result)) {
+                await result;
+              }
+            });
           } else {
-            const container = getDomContainer(element as HTMLElement);
-            // Sync QRL
-            const sync = container.parseQRL(qrl) as QRLInternal<Function>;
-            // This synchronously resolves the sync function
-            // even though it returns a promise
-            sync.resolve();
-            fn = sync.resolved as Function;
+            const result = run();
+            if (isPromise(result)) {
+              defer = true;
+              tasks.push(() => result);
+            }
           }
-          await fn.apply(captures, [event, element]);
         }
       } catch (error) {
         console.error('!!! qrl error', qrls, error);

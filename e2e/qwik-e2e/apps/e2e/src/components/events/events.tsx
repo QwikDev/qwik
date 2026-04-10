@@ -1,4 +1,4 @@
-import { $, component$, useOnWindow, useSignal, useStore, type QRL } from '@qwik.dev/core';
+import { $, component$, useOnWindow, useSignal, useStore } from '@qwik.dev/core';
 
 export const Events = component$(() => {
   const rerenderCount = useSignal(0);
@@ -19,6 +19,8 @@ const EventsParent = component$(() => {
     countTransparent: 0,
     countWrapped: 0,
     countAnchor: 0,
+    countNestedAnchor: 0,
+    countNestedButton: 0,
     propagationStoppedCount: 0,
     passiveRegularClickCount: 0,
     passiveClickCount: 0,
@@ -26,6 +28,7 @@ const EventsParent = component$(() => {
     passivePreventDefaultState: 'unset',
     passiveDocumentCount: 0,
     passiveWindowCount: 0,
+    hoverOrderLog: '',
   });
   return (
     <>
@@ -43,6 +46,25 @@ const EventsParent = component$(() => {
         </a>
       </p>
       <div>
+        <p>
+          <a
+            href="/e2e/events-client"
+            preventdefault:click
+            id="prevent-default-parent-anchor"
+            onClick$={() => {
+              store.countNestedAnchor++;
+            }}
+          >
+            <button
+              id="prevent-default-child-button"
+              onClick$={async () => {
+                store.countNestedButton++;
+              }}
+            >
+              Should not redirect when child button is clicked
+            </button>
+          </a>
+        </p>
         <div
           onClick$={() => {
             throw new Error('event was not stopped');
@@ -80,7 +102,33 @@ const EventsParent = component$(() => {
       <p id="count-transparent">countTransparent: {store.countTransparent}</p>
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
       <p id="count-anchor">countAnchor: {store.countAnchor}</p>
+      <p id="count-nested-anchor">countNestedAnchor: {store.countNestedAnchor}</p>
+      <p id="count-nested-button">countNestedButton: {store.countNestedButton}</p>
       <p id="count-propagation">countPropagationStopped: {store.propagationStoppedCount}</p>
+      <div id="hover-order-fixture" style="display:flex;gap:16px">
+        <div
+          id="hover-order-red"
+          style="width:80px;height:80px;background:#d44"
+          onMouseLeave$={$(async () => {
+            await new Promise<void>((resolve) => {
+              setTimeout(resolve, 60);
+            });
+            store.hoverOrderLog = store.hoverOrderLog
+              ? `${store.hoverOrderLog}|red mouse out`
+              : 'red mouse out';
+          })}
+        ></div>
+        <div
+          id="hover-order-blue"
+          style="width:80px;height:80px;background:#48f"
+          onMouseOver$={$(() => {
+            store.hoverOrderLog = store.hoverOrderLog
+              ? `${store.hoverOrderLog}|blue mouse in`
+              : 'blue mouse in';
+          })}
+        ></div>
+      </div>
+      <p id="hover-order-log">{store.hoverOrderLog}</p>
       <div>
         <button
           id="passive-regular-click"

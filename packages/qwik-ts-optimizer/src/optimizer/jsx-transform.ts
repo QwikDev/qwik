@@ -10,6 +10,9 @@
 
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
+import { analyzeSignalExpression, SignalHoister, type SignalExprResult } from './signal-analysis.js';
+import { transformEventPropName, isEventProp, isPassiveDirective, collectPassiveDirectives } from './event-handler-transform.js';
+import { isBindProp, transformBindProp, mergeEventHandlers } from './bind-transform.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -39,6 +42,8 @@ export interface JsxTransformOutput {
   neededImports: Set<string>;
   /** Whether _Fragment is needed from jsx-runtime */
   needsFragment: boolean;
+  /** Hoisted signal function declarations (const _hf0 = ...; const _hf0_str = ...;) */
+  hoistedDeclarations: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -497,26 +502,35 @@ function processOneChild(
 
 /**
  * Process JSX attributes and classify them into varProps and constProps.
+ * Integrates signal analysis, event handler naming, and bind desugaring.
  * Returns the key prop value if found.
  */
 function processProps(
   attributes: any[],
   source: string,
   importedNames: Set<string>,
+  tagIsHtml: boolean,
+  passiveEvents: Set<string>,
+  signalHoister: SignalHoister,
 ): {
   varEntries: string[];
   constEntries: string[];
   key: string | null;
   hasVarProps: boolean;
   hasSpread: boolean;
+  neededImports: Set<string>;
 } {
   const varEntries: string[] = [];
   const constEntries: string[] = [];
+  const neededImports = new Set<string>();
   let key: string | null = null;
   let hasSpread = false;
 
+  // Track bind handlers for merging (event name -> handler code)
+  const bindHandlers = new Map<string, string>();
+
   if (!attributes || attributes.length === 0) {
-    return { varEntries, constEntries, key, hasVarProps: false, hasSpread };
+    return { varEntries, constEntries, key, hasVarProps: false, hasSpread, neededImports };
   }
 
   for (const attr of attributes) {
@@ -554,6 +568,11 @@ function processProps(
       continue; // key is not included in props
     }
 
+    // --- (a) Strip passive: directives ---
+    if (isPassiveDirective(propName)) {
+      continue; // consumed by collectPassiveDirectives, not in output
+    }
+
     // Get value expression
     let valueText: string;
     let valueNode: any;
@@ -571,7 +590,63 @@ function processProps(
       valueText = source.slice(attr.value.start, attr.value.end);
     }
 
-    // Classify the prop
+    // --- (b) Bind desugaring ---
+    if (isBindProp(propName) && !hasSpread) {
+      const bindResult = transformBindProp(propName, valueText);
+      const formattedBindName = needsQuoting(bindResult.propName)
+        ? `"${bindResult.propName}"`
+        : bindResult.propName;
+      constEntries.push(`${formattedBindName}: ${bindResult.propValue}`);
+      if (bindResult.handler) {
+        // Track bind handler for merging
+        const existing = bindHandlers.get(bindResult.handler.name);
+        bindHandlers.set(
+          bindResult.handler.name,
+          mergeEventHandlers(existing ?? null, bindResult.handler.code),
+        );
+      }
+      for (const imp of bindResult.needsImport) {
+        neededImports.add(imp);
+      }
+      continue;
+    }
+
+    // --- (c) Event prop renaming (HTML elements only) ---
+    if (isEventProp(propName) && tagIsHtml) {
+      const renamedProp = transformEventPropName(propName, passiveEvents);
+      if (renamedProp !== null) {
+        const formattedName = needsQuoting(renamedProp)
+          ? `"${renamedProp}"`
+          : renamedProp;
+        constEntries.push(`${formattedName}: ${valueText}`);
+        continue;
+      }
+    }
+
+    // --- (d) Signal analysis ---
+    if (valueNode) {
+      const signalResult = analyzeSignalExpression(valueNode, source, importedNames);
+      if (signalResult.type === 'wrapProp') {
+        const formattedName = needsQuoting(propName)
+          ? `"${propName}"`
+          : propName;
+        constEntries.push(`${formattedName}: ${signalResult.code}`);
+        neededImports.add('_wrapProp');
+        continue;
+      }
+      if (signalResult.type === 'fnSignal') {
+        const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr);
+        const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
+        const formattedName = needsQuoting(propName)
+          ? `"${propName}"`
+          : propName;
+        constEntries.push(`${formattedName}: ${fnSignalCall}`);
+        neededImports.add('_fnSignal');
+        continue;
+      }
+    }
+
+    // --- (e) Existing classifyProp fallback ---
     const classification = valueNode
       ? classifyProp(valueNode, importedNames)
       : 'const'; // boolean shorthand (true) is const
@@ -590,12 +665,28 @@ function processProps(
     }
   }
 
+  // --- After loop: merge bind handlers into constEntries ---
+  for (const [eventName, handlerCode] of bindHandlers) {
+    // Check if there's an existing handler entry for this event in constEntries
+    const quotedEventName = `"${eventName}"`;
+    const existingIdx = constEntries.findIndex((e) => e.startsWith(`${quotedEventName}: `));
+    if (existingIdx >= 0) {
+      // Merge: existing handler + bind handler
+      const existingEntry = constEntries[existingIdx];
+      const existingValue = existingEntry.slice(quotedEventName.length + 2); // skip `"q-e:input": `
+      constEntries[existingIdx] = `${quotedEventName}: ${mergeEventHandlers(existingValue, handlerCode)}`;
+    } else {
+      constEntries.push(`${quotedEventName}: ${handlerCode}`);
+    }
+  }
+
   return {
     varEntries,
     constEntries,
     key,
     hasVarProps: varEntries.length > 0,
     hasSpread,
+    neededImports,
   };
 }
 
@@ -627,6 +718,8 @@ export function transformJsxElement(
   s: MagicString,
   importedNames: Set<string>,
   keyCounter: JsxKeyCounter,
+  passiveEvents?: Set<string>,
+  signalHoister?: SignalHoister,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
@@ -636,6 +729,18 @@ export function transformJsxElement(
   // --- Tag ---
   const tag = processJsxTag(openingElement.name);
 
+  // Determine if tag is an HTML element (lowercase first char)
+  // tag is either `"div"` (string literal for HTML) or `Div` (identifier for component)
+  const tagIsHtml = tag.startsWith('"') && tag.length > 2 &&
+    tag[1] === tag[1].toLowerCase() && tag[1] >= 'a' && tag[1] <= 'z';
+
+  // Collect passive directives for this element
+  const elementPassiveEvents = passiveEvents ??
+    collectPassiveDirectives(openingElement.attributes);
+
+  // Use provided signalHoister or create a local one
+  const hoister = signalHoister ?? new SignalHoister();
+
   // --- Props ---
   const {
     varEntries,
@@ -643,7 +748,13 @@ export function transformJsxElement(
     key: explicitKey,
     hasVarProps,
     hasSpread,
-  } = processProps(openingElement.attributes, source, importedNames);
+    neededImports: propImports,
+  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister);
+
+  // Merge prop imports
+  for (const imp of propImports) {
+    neededImports.add(imp);
+  }
 
   // --- Children ---
   const { text: childrenText, type: childrenType } = processChildren(
@@ -797,6 +908,7 @@ export function transformAllJsx(
   skipRanges?: Array<{ start: number; end: number }>,
 ): JsxTransformOutput {
   const keyCounter = new JsxKeyCounter();
+  const signalHoister = new SignalHoister();
   const neededImports = new Set<string>();
   let needsFragment = false;
   const ranges = skipRanges ?? [];
@@ -809,12 +921,19 @@ export function transformAllJsx(
       }
 
       if (node.type === 'JSXElement') {
+        // Collect passive directives for this element
+        const passiveEvents = collectPassiveDirectives(
+          node.openingElement?.attributes ?? [],
+        );
+
         const result = transformJsxElement(
           node,
           source,
           s,
           importedNames,
           keyCounter,
+          passiveEvents,
+          signalHoister,
         );
         if (result) {
           s.overwrite(
@@ -849,5 +968,8 @@ export function transformAllJsx(
     },
   });
 
-  return { neededImports, needsFragment };
+  // Get hoisted signal declarations
+  const hoistedDeclarations = signalHoister.getDeclarations();
+
+  return { neededImports, needsFragment, hoistedDeclarations };
 }

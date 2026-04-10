@@ -349,6 +349,8 @@ export function rewriteParentModule(
     if (jsxResult.needsFragment && !alreadyImported.has('_Fragment')) {
       neededImports.set('Fragment as _Fragment', '@qwik.dev/core/jsx-runtime');
     }
+    // Hoisted signal declarations (_hf0, _hf0_str, etc.) need to be added
+    // They will be prepended after imports in the preamble assembly step
   }
 
   // Sort imports alphabetically by symbol name
@@ -383,6 +385,10 @@ export function rewriteParentModule(
   if (qrlDecls.length > 0) {
     preamble.push('//');
     preamble.push(...qrlDecls);
+  }
+  // Add hoisted signal declarations (_hf0, _hf0_str, etc.)
+  if (jsxResult && jsxResult.hoistedDeclarations.length > 0) {
+    preamble.push(...jsxResult.hoistedDeclarations);
   }
   preamble.push('//');
 

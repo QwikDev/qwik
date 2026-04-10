@@ -12,6 +12,9 @@ import {
   detectLoopContext,
   hoistEventCaptures,
   findEnclosingLoop,
+  generateParamPadding,
+  buildQpProp,
+  analyzeLoopHandler,
   type LoopContext,
 } from '../../src/optimizer/loop-hoisting.js';
 
@@ -260,5 +263,195 @@ describe('findEnclosingLoop', () => {
     expect(loopCtx!.type).toBe('map');
     // Should find the inner .map(), not the outer one
     expect(loopCtx!.iterVars).toEqual(['cell']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// generateParamPadding
+// ---------------------------------------------------------------------------
+
+describe('generateParamPadding', () => {
+  it('generates base padding with no loop vars', () => {
+    const params = generateParamPadding([]);
+    expect(params).toEqual(['_', '_1']);
+  });
+
+  it('generates padding with single loop var', () => {
+    const params = generateParamPadding(['item']);
+    expect(params).toEqual(['_', '_1', 'item']);
+  });
+
+  it('generates padding with multiple loop vars', () => {
+    const params = generateParamPadding(['index', 'item']);
+    expect(params).toEqual(['_', '_1', 'index', 'item']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildQpProp
+// ---------------------------------------------------------------------------
+
+describe('buildQpProp', () => {
+  it('returns null for empty loop vars', () => {
+    const result = buildQpProp([]);
+    expect(result).toBeNull();
+  });
+
+  it('returns q:p for single loop var', () => {
+    const result = buildQpProp(['item']);
+    expect(result).not.toBeNull();
+    expect(result!.propName).toBe('q:p');
+    expect(result!.propValue).toBe('item');
+  });
+
+  it('returns q:ps for multiple loop vars sorted alphabetically', () => {
+    const result = buildQpProp(['index', 'item']);
+    expect(result).not.toBeNull();
+    expect(result!.propName).toBe('q:ps');
+    expect(result!.propValue).toBe('[index, item]');
+  });
+
+  it('sorts loop vars alphabetically for q:ps', () => {
+    const result = buildQpProp(['z', 'a', 'm']);
+    expect(result).not.toBeNull();
+    expect(result!.propName).toBe('q:ps');
+    expect(result!.propValue).toBe('[a, m, z]');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// analyzeLoopHandler
+// ---------------------------------------------------------------------------
+
+describe('analyzeLoopHandler', () => {
+  it('produces full loop hoist result with single loop var', () => {
+    const source = `results.map((item) => item + 1)`;
+    const node = findFirstNode(source, 'CallExpression');
+    const loopCtx = detectLoopContext(node, source)!;
+
+    const result = analyzeLoopHandler(
+      'handler',
+      'q_handler_qrl',
+      ['cart'],
+      ['item'],
+      loopCtx,
+    );
+
+    expect(result.hoistedDecl).toBe('const handler = q_handler_qrl.w([cart])');
+    expect(result.qpProp).not.toBeNull();
+    expect(result.qpProp!.propName).toBe('q:p');
+    expect(result.qpProp!.propValue).toBe('item');
+    expect(result.paramNames).toEqual(['_', '_1', 'item']);
+    expect(result.flags & 4).toBe(4); // bit 2 set
+  });
+
+  it('produces q:ps for multiple loop vars', () => {
+    const source = `results.map((item, index) => item)`;
+    const node = findFirstNode(source, 'CallExpression');
+    const loopCtx = detectLoopContext(node, source)!;
+
+    const result = analyzeLoopHandler(
+      'handler',
+      'q_handler_qrl',
+      ['cart'],
+      ['item', 'index'],
+      loopCtx,
+    );
+
+    expect(result.qpProp!.propName).toBe('q:ps');
+    expect(result.qpProp!.propValue).toBe('[index, item]');
+    expect(result.paramNames).toEqual(['_', '_1', 'item', 'index']);
+  });
+
+  it('returns null hoistedDecl when no captures', () => {
+    const source = `results.map((item) => item)`;
+    const node = findFirstNode(source, 'CallExpression');
+    const loopCtx = detectLoopContext(node, source)!;
+
+    const result = analyzeLoopHandler(
+      'handler',
+      'q_handler_qrl',
+      [],
+      ['item'],
+      loopCtx,
+    );
+
+    expect(result.hoistedDecl).toBeNull();
+    expect(result.qpProp!.propName).toBe('q:p');
+  });
+
+  it('flags include bit 2 (value 4) for loop context', () => {
+    const source = `results.map((item) => item)`;
+    const node = findFirstNode(source, 'CallExpression');
+    const loopCtx = detectLoopContext(node, source)!;
+
+    const result = analyzeLoopHandler(
+      'handler',
+      'q_handler_qrl',
+      ['cart'],
+      ['item'],
+      loopCtx,
+    );
+
+    expect(result.flags).toBe(4);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Snapshot-matching patterns
+// ---------------------------------------------------------------------------
+
+describe('snapshot pattern matching', () => {
+  it('matches loop hoisting pattern from event_listeners_inside_loop snap', () => {
+    // From snapshot: paramNames: ["_", "_1", "item"], captureNames: ["cart"]
+    // The handler segment signature is (_, _1, item) with cart captured via .w()
+    const params = generateParamPadding(['item']);
+    expect(params).toEqual(['_', '_1', 'item']);
+
+    const hoistPlan = hoistEventCaptures(
+      'App_component_loopArrowFn_span_q_e_click_Wau7C836nf0',
+      'q_App_component_loopArrowFn_span_q_e_click_Wau7C836nf0',
+      ['cart'],
+    );
+    expect(hoistPlan).not.toBeNull();
+    expect(hoistPlan!.hoistedDecl).toContain('.w([cart])');
+
+    const qp = buildQpProp(['item']);
+    expect(qp!.propName).toBe('q:p');
+    expect(qp!.propValue).toBe('item');
+  });
+
+  it('matches nested loop pattern from cross_scope snap', () => {
+    // From snapshot: paramNames: ["_", "_1", "j", "cellKey"], captureNames: ["i"]
+    // Multiple loop vars -> q:ps sorted alphabetically
+    const params = generateParamPadding(['j', 'cellKey']);
+    expect(params).toEqual(['_', '_1', 'j', 'cellKey']);
+
+    const qp = buildQpProp(['j', 'cellKey']);
+    expect(qp!.propName).toBe('q:ps');
+    expect(qp!.propValue).toBe('[cellKey, j]');
+  });
+
+  it('matches for-i loop pattern with captures', () => {
+    // From snapshot: paramNames: ["_", "_1", "i"], captureNames: ["cart", "results"]
+    const params = generateParamPadding(['i']);
+    expect(params).toEqual(['_', '_1', 'i']);
+
+    const hoistPlan = hoistEventCaptures(
+      'App_component_loopForI_span_q_e_click_PbCYbPM6etI',
+      'q_App_component_loopForI_span_q_e_click_PbCYbPM6etI',
+      ['cart', 'results'],
+    );
+    expect(hoistPlan!.hoistedDecl).toContain('.w([cart, results])');
+  });
+
+  it('matches for-in loop pattern with key iter var', () => {
+    // From snapshot: paramNames: ["_", "_1", "key"], captureNames: ["cart", "results"]
+    const params = generateParamPadding(['key']);
+    expect(params).toEqual(['_', '_1', 'key']);
+
+    const qp = buildQpProp(['key']);
+    expect(qp!.propName).toBe('q:p');
+    expect(qp!.propValue).toBe('key');
   });
 });

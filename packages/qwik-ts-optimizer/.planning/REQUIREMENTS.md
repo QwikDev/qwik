@@ -25,9 +25,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Core Extraction
 
 - [x] **EXTRACT-01**: Detect marker function calls (any call where callee name ends with `$`)
-- [ ] **EXTRACT-02**: Extract closure argument from marker call as a segment
+- [x] **EXTRACT-02**: Extract closure argument from marker call as a segment
 - [ ] **EXTRACT-03**: Handle nested `$()` calls (segments within segments, parent-child relationships)
-- [ ] **EXTRACT-04**: Generate segment module with exported const using deterministic name
+- [x] **EXTRACT-04**: Generate segment module with exported const using deterministic name
 - [ ] **EXTRACT-05**: Rewrite parent module replacing `$()` calls with `qrl(() => import(...))` references
 - [ ] **EXTRACT-06**: Handle custom inlined functions (user-defined `$`-suffixed functions)
 - [x] **EXTRACT-07**: Emit segment metadata (origin, name, hash, displayName, parent, ctxKind, ctxName, captures, loc, paramNames, captureNames)
@@ -43,11 +43,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Call Form Rewriting
 
-- [ ] **CALL-01**: Rewrite `component$` to `componentQrl`
-- [ ] **CALL-02**: Rewrite `useTask$`, `useVisibleTask$`, `useComputed$` and other `use*$` hooks to `*Qrl` forms
-- [ ] **CALL-03**: Rewrite `server$` to `serverQrl`
-- [ ] **CALL-04**: Handle `sync$` to `_qrlSync` with serialized function body string
-- [ ] **CALL-05**: Add `/*#__PURE__*/` annotations on QRL declarations and `componentQrl` calls
+- [x] **CALL-01**: Rewrite `component$` to `componentQrl`
+- [x] **CALL-02**: Rewrite `useTask$`, `useVisibleTask$`, `useComputed$` and other `use*$` hooks to `*Qrl` forms
+- [x] **CALL-03**: Rewrite `server$` to `serverQrl`
+- [x] **CALL-04**: Handle `sync$` to `_qrlSync` with serialized function body string
+- [x] **CALL-05**: Add `/*#__PURE__*/` annotations on QRL declarations and `componentQrl` calls
 
 ### Import Handling
 
@@ -55,7 +55,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **IMP-02**: Rewrite `@builder.io/qwik-city` to `@qwik.dev/router`
 - [x] **IMP-03**: Rewrite `@builder.io/qwik-react` to `@qwik.dev/react`
 - [ ] **IMP-04**: Add necessary imports to parent module (`qrl`, `componentQrl`, etc.)
-- [ ] **IMP-05**: Add necessary imports to segment modules (only what each segment references)
+- [x] **IMP-05**: Add necessary imports to segment modules (only what each segment references)
 - [ ] **IMP-06**: Deduplicate imports — don't re-import already-imported symbols
 
 ### JSX Transform
@@ -176,22 +176,22 @@ Requirements for initial release. Each maps to roadmap phases.
 | HASH-04 | Phase 1 | Complete |
 | HASH-05 | Phase 1 | Complete |
 | EXTRACT-01 | Phase 2 | Complete |
-| EXTRACT-02 | Phase 2 | Pending |
+| EXTRACT-02 | Phase 2 | Complete |
 | EXTRACT-03 | Phase 2 | Pending |
-| EXTRACT-04 | Phase 2 | Pending |
+| EXTRACT-04 | Phase 2 | Complete |
 | EXTRACT-05 | Phase 2 | Pending |
 | EXTRACT-06 | Phase 2 | Pending |
 | EXTRACT-07 | Phase 2 | Complete |
-| CALL-01 | Phase 2 | Pending |
-| CALL-02 | Phase 2 | Pending |
-| CALL-03 | Phase 2 | Pending |
-| CALL-04 | Phase 2 | Pending |
-| CALL-05 | Phase 2 | Pending |
+| CALL-01 | Phase 2 | Complete |
+| CALL-02 | Phase 2 | Complete |
+| CALL-03 | Phase 2 | Complete |
+| CALL-04 | Phase 2 | Complete |
+| CALL-05 | Phase 2 | Complete |
 | IMP-01 | Phase 2 | Complete |
 | IMP-02 | Phase 2 | Complete |
 | IMP-03 | Phase 2 | Complete |
 | IMP-04 | Phase 2 | Pending |
-| IMP-05 | Phase 2 | Pending |
+| IMP-05 | Phase 2 | Complete |
 | IMP-06 | Phase 2 | Pending |
 | API-01 | Phase 2 | Pending |
 | API-02 | Phase 2 | Pending |

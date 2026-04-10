@@ -53,7 +53,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — API types, dependency installation, and import path rewriting (EXTRACT-07, API-03, IMP-01..03)
 - [x] 02-02-PLAN.md — Context stack for naming and marker function detection (EXTRACT-01)
-- [ ] 02-03-PLAN.md — Extraction engine, segment codegen, and call form rewriting (EXTRACT-02, EXTRACT-04, EXTRACT-07, IMP-05, CALL-01..05)
+- [x] 02-03-PLAN.md — Extraction engine, segment codegen, and call form rewriting (EXTRACT-02, EXTRACT-04, EXTRACT-07, IMP-05, CALL-01..05)
 - [ ] 02-04-PLAN.md — Parent module rewriting with magic-string, nested segments, custom inlined functions (EXTRACT-03, EXTRACT-05, EXTRACT-06, IMP-04, IMP-06)
 - [ ] 02-05-PLAN.md — transformModule() public API and snapshot batch validation (API-01, API-02)
 

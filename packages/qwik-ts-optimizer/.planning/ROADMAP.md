@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Project setup and snapshot parser (TEST-01)
+- [x] 01-01-PLAN.md — Project setup and snapshot parser (TEST-01)
 - [ ] 01-02-PLAN.md — SipHash-1-3 hashing and naming construction (HASH-01 through HASH-05)
 - [ ] 01-03-PLAN.md — AST comparison, metadata comparison, and batch runner (TEST-02, TEST-03, TEST-04)
 

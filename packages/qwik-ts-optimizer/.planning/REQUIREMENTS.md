@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Test Infrastructure
 
-- [ ] **TEST-01**: Snapshot parser reads `.snap` files and extracts INPUT, segment outputs, metadata JSON, and diagnostics
+- [x] **TEST-01**: Snapshot parser reads `.snap` files and extracts INPUT, segment outputs, metadata JSON, and diagnostics
 - [ ] **TEST-02**: AST comparison utility parses both expected and actual code with oxc-parser and compares structurally (ignoring whitespace/formatting)
 - [ ] **TEST-03**: Segment metadata comparison matches name, hash, displayName, captures, paramNames, captureNames, ctxKind, ctxName, parent, extension exactly
 - [ ] **TEST-04**: Test runner supports batch mode — run N snapshots at a time, lock passing batches in CI
@@ -166,7 +166,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | Phase 1 | Pending |
+| TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Pending |
 | TEST-03 | Phase 1 | Pending |
 | TEST-04 | Phase 1 | Pending |

@@ -108,9 +108,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [x] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
-- [x] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
-- [ ] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
+- [ ] 05-01-PLAN.md — Entry strategy metadata, dev mode qrlDEV/JSX source info/_useHmr (ENT-01, ENT-03, ENT-04, MODE-01, MODE-02, MODE-03)
+- [ ] 05-02-PLAN.md — Inline/hoist strategy and server/client strip modes (ENT-02, MODE-04, MODE-05)
+- [ ] 05-03-PLAN.md — Strip exports and isServer/isBrowser/isDev const replacement (MODE-06, MODE-07)
 
 ### Phase 6: Diagnostics and Convergence
 **Goal**: The optimizer emits correct diagnostics for invalid code patterns and passes all remaining snapshot tests
@@ -125,9 +125,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [x] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
-- [ ] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
-- [ ] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
+- [ ] 06-01-PLAN.md — TBD
+- [ ] 06-02-PLAN.md — TBD
+- [ ] 06-03-PLAN.md — TBD
 
 ## Progress
 
@@ -137,8 +137,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 1. Test Infrastructure and Hash Verification | 3/3 | Complete | 2026-04-10 |
-| 2. Core Extraction Pipeline | 0/5 | Planning complete | - |
-| 3. Capture Analysis and Variable Migration | 0/3 | Planning complete | - |
-| 4. JSX, Signals, and Event Handlers | 5/7 | Gap closure planned | - |
-| 5. Entry Strategies and Build Modes | 0/TBD | Not started | - |
-| 6. Diagnostics and Convergence | 0/TBD | Not started | - |
+| 2. Core Extraction Pipeline | 5/5 | Complete | 2026-04-10 |
+| 3. Capture Analysis and Variable Migration | 3/3 | Complete | 2026-04-10 |
+| 4. JSX, Signals, and Event Handlers | 7/7 | Complete | 2026-04-10 |
+| 5. Entry Strategies and Build Modes | 0/3 | Planning complete | - |
+| 6. Diagnostics and Convergence | 0/3 | Not started | - |

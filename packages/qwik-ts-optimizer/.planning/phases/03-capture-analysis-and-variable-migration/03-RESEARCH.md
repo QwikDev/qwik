@@ -467,22 +467,16 @@ function analyzeVariableMigration(
 | A3 | Self-referential variable pattern (_ref = {}) can be deferred to later if no snapshots in Phase 3 scope require it | Pitfall 5 | MEDIUM -- component_level_self_referential_qrl snapshot requires this, but may be Phase 4 scope since it involves JSX |
 | A4 | Import filtering for capture analysis can reuse the existing `collectImports()` from marker-detection.ts | Pattern 2 | LOW -- collectImports already tracks all import bindings |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How to distinguish function-scope captures from module-scope migration?**
-   - What we know: Root-level `$()` closures use migration (_auto_), nested `$()` closures use captures (_captures). The scope level of the enclosing context determines which mechanism.
-   - What's unclear: Edge cases where a `$()` is at root level but captures a function parameter from an enclosing IIFE or similar construct.
-   - Recommendation: Check if the `$()` call's parent segment is `null` (top-level) -- use migration. If parent is non-null -- use captures. This handles all snapshot cases.
+   - RESOLVED: Check if the `$()` call's parent segment is `null` (top-level) → use migration. If parent is non-null → use captures. Verified against all snapshot cases.
 
 2. **Should Phase 3 handle the component$ _rawProps renaming?**
-   - What we know: When component$ has `({count, ...rest})`, the output renames the parameter to `_rawProps` and destructures. This is tightly coupled with the props destructuring feature (LOOP-02 scope).
-   - What's unclear: Whether _rawProps is purely a Phase 4 concern or if Phase 3 needs the basic parameter renaming.
-   - Recommendation: Phase 3 should handle the basic capture case where component$ params are captured as-is. The _rawProps renaming is Phase 4 (props destructuring).
+   - RESOLVED: No. Phase 3 handles basic capture where component$ params are captured as-is. The _rawProps renaming is Phase 4 scope (props destructuring).
 
 3. **getUndeclaredIdentifiersInFunction and global filtering**
-   - What we know: The function returns ALL undeclared identifiers including globals like `console`, `setTimeout`.
-   - What's unclear: Complete list of globals to filter out.
-   - Recommendation: Use a well-known globals list (globalThis properties) plus filter against import bindings. Any identifier that is neither declared in parent scope nor imported is assumed to be a global and excluded from captures.
+   - RESOLVED: Filter against import bindings + well-known globals list (globalThis properties). Any identifier neither declared in parent scope nor imported is excluded from captures.
 
 ## Environment Availability
 

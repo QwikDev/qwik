@@ -125,10 +125,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Diagnostics
 
-- [ ] **DIAG-01**: Emit C02 FunctionReference error for functions/classes crossing `$()` boundary
-- [ ] **DIAG-02**: Emit C03 CanNotCapture error for invalid captures
-- [ ] **DIAG-03**: Emit C05 MissingQrlImplementation error for missing `$` implementations
-- [ ] **DIAG-04**: Support `@qwik-disable-next-line` comment directive for suppression
+- [x] **DIAG-01**: Emit C02 FunctionReference error for functions/classes crossing `$()` boundary
+- [x] **DIAG-02**: Emit C03 CanNotCapture error for invalid captures
+- [x] **DIAG-03**: Emit C05 MissingQrlImplementation error for missing `$` implementations
+- [x] **DIAG-04**: Support `@qwik-disable-next-line` comment directive for suppression
 
 ### Public API
 
@@ -243,10 +243,10 @@ Requirements for initial release. Each maps to roadmap phases.
 | MODE-05 | Phase 5 | Complete |
 | MODE-06 | Phase 5 | Complete |
 | MODE-07 | Phase 5 | Complete |
-| DIAG-01 | Phase 6 | Pending |
-| DIAG-02 | Phase 6 | Pending |
-| DIAG-03 | Phase 6 | Pending |
-| DIAG-04 | Phase 6 | Pending |
+| DIAG-01 | Phase 6 | Complete |
+| DIAG-02 | Phase 6 | Complete |
+| DIAG-03 | Phase 6 | Complete |
+| DIAG-04 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 81 total

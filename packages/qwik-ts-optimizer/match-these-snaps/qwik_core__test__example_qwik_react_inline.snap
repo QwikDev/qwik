@@ -1,0 +1,199 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 3223
+expression: output
+---
+==INPUT==
+
+
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
+import { jsx, Fragment } from '@qwik.dev/core/jsx-runtime';
+import { isBrowser, isServer } from '@qwik.dev/core';
+
+function qwikifyQrl(reactCmpQrl) {
+	return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+		const [reactCmpQrl] = useLexicalScope();
+		const hostElement = useHostElement();
+		const store = useStore({});
+		let run;
+		if (props['client:visible']) run = 'visible';
+		else if (props['client:load'] || props['client:only']) run = 'load';
+		useTaskQrl(inlinedQrl(async (track)=>{
+			const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
+			track(props);
+			if (isBrowser) {
+				if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+				else {
+					const [Cmp, client] = await Promise.all([
+						reactCmpQrl.resolve(),
+						import('./client-f762f78c.js')
+					]);
+					let root;
+					if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
+					else {
+						root = client.createRoot(hostElement);
+						root.render(client.Main(Cmp, filterProps(props)));
+					}
+					store.data = noSerialize({
+						client,
+						cmp: Cmp,
+						root
+					});
+				}
+			}
+		}, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+			hostElement,
+			props,
+			reactCmpQrl,
+			store
+		]), {
+			run
+		});
+		if (isServer && !props['client:only']) {
+			const jsx$1 = Promise.all([
+				reactCmpQrl.resolve(),
+				import('./server-9ac6caad.js')
+			]).then(([Cmp, server])=>{
+				const html = server.render(Cmp, filterProps(props));
+				return /*#__PURE__*/ jsx(Host, {
+					dangerouslySetInnerHTML: html,
+					[_IMMUTABLE]: [
+						"dangerouslySetInnerHTML"
+					]
+				});
+			});
+			return /*#__PURE__*/ jsx(Fragment, {
+				children: jsx$1
+			});
+		}
+		return /*#__PURE__*/ jsx(Host, {
+			children: /*#__PURE__*/ jsx(SkipRerender, {})
+		});
+	}, "qwikifyQrl_component_zH94hIe0Ick", [
+		reactCmpQrl
+	]), {
+		tagName: 'qwik-wrap'
+	});
+}
+const filterProps = (props)=>{
+	const obj = {};
+	Object.keys(props).forEach((key)=>{
+		if (!key.startsWith('client:')) obj[key] = props[key];
+	});
+	return obj;
+};
+const qwikify$ = implicit$FirstArg(qwikifyQrl);
+
+async function renderToString(rootNode, opts) {
+	const mod = await import('./server-9ac6caad.js');
+	const result = await mod.renderToString(rootNode, opts);
+	const styles = mod.getGlobalStyleTag(result.html);
+	const finalHtml = styles + result.html;
+	return {
+		...result,
+		html: finalHtml
+	};
+}
+
+export { qwikify$, qwikifyQrl, renderToString };
+		
+============================= ../node_modules/@qwik.dev/react/index.qwik.mjs ==
+
+import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { componentQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
+import { Fragment } from '@qwik.dev/core/jsx-runtime';
+import { isBrowser, isServer } from '@qwik.dev/core';
+//
+const q_qwikifyQrl_component_useWatch_x04JC5xeP1U = /*#__PURE__*/ _noopQrl("qwikifyQrl_component_useWatch_x04JC5xeP1U");
+const q_qwikifyQrl_component_zH94hIe0Ick = /*#__PURE__*/ _noopQrl("qwikifyQrl_component_zH94hIe0Ick");
+//
+function qwikifyQrl(reactCmpQrl) {
+    return /*#__PURE__*/ componentQrl(q_qwikifyQrl_component_zH94hIe0Ick.w([
+        reactCmpQrl
+    ]), {
+        tagName: 'qwik-wrap'
+    });
+}
+const filterProps = (props)=>{
+    const obj = {};
+    Object.keys(props).forEach((key)=>{
+        if (!key.startsWith('client:')) obj[key] = props[key];
+    });
+    return obj;
+};
+q_qwikifyQrl_component_useWatch_x04JC5xeP1U.s(async (track)=>{
+    const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
+    track(props);
+    if (isBrowser) {
+        if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+        else {
+            const [Cmp, client] = await Promise.all([
+                reactCmpQrl.resolve(),
+                import('./client-f762f78c.js')
+            ]);
+            let root;
+            if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
+            else {
+                root = client.createRoot(hostElement);
+                root.render(client.Main(Cmp, filterProps(props)));
+            }
+            store.data = noSerialize({
+                client,
+                cmp: Cmp,
+                root
+            });
+        }
+    }
+});
+q_qwikifyQrl_component_zH94hIe0Ick.s((props)=>{
+    const [reactCmpQrl] = useLexicalScope();
+    const hostElement = useHostElement();
+    const store = useStore({});
+    let run;
+    if (props['client:visible']) run = 'visible';
+    else if (props['client:load'] || props['client:only']) run = 'load';
+    useTaskQrl(q_qwikifyQrl_component_useWatch_x04JC5xeP1U.w([
+        hostElement,
+        props,
+        reactCmpQrl,
+        store
+    ]), {
+        run
+    });
+    if (isServer && !props['client:only']) {
+        const jsx$1 = Promise.all([
+            reactCmpQrl.resolve(),
+            import('./server-9ac6caad.js')
+        ]).then(([Cmp, server])=>{
+            const html = server.render(Cmp, filterProps(props));
+            return /*#__PURE__*/ _jsxSorted(Host, {
+                dangerouslySetInnerHTML: html,
+                [_IMMUTABLE]: [
+                    "dangerouslySetInnerHTML"
+                ]
+            }, null, null, 3, "8p_0");
+        });
+        return /*#__PURE__*/ _jsxSorted(Fragment, null, null, jsx$1, 1, "8p_1");
+    }
+    return /*#__PURE__*/ _jsxSorted(Host, null, null, /*#__PURE__*/ _jsxSorted(SkipRerender, null, null, null, 3, "8p_2"), 1, "8p_3");
+});
+const qwikify$ = implicit$FirstArg(qwikifyQrl);
+async function renderToString(rootNode, opts) {
+    const mod = await import('./server-9ac6caad.js');
+    const result = await mod.renderToString(rootNode, opts);
+    const styles = mod.getGlobalStyleTag(result.html);
+    const finalHtml = styles + result.html;
+    return {
+        ...result,
+        html: finalHtml
+    };
+}
+export { qwikify$, qwikifyQrl, renderToString };
+export { filterProps as _auto_filterProps };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAc,eAAe,EAAE,cAAc,EAAE,QAAQ,EAAE,UAAU,EAAE,WAAW,EAAE,YAAY,EAAE,iBAAiB,QAAQ,iBAAiB;AAC/J,SAAc,QAAQ,QAAQ,6BAA6B;AAC3D,SAAS,SAAS,EAAE,QAAQ,QAAQ,iBAAiB;;;;;AAErD,SAAS,WAAW,WAAW;IAC9B,OAAO,WAAW,GAAG;;QA4DjB;QACH,SAAS;IACV;AACD;AACA,MAAM,cAAc,CAAC;IACpB,MAAM,MAAM,CAAC;IACb,OAAO,IAAI,CAAC,OAAO,OAAO,CAAC,CAAC;QAC3B,IAAI,CAAC,IAAI,UAAU,CAAC,YAAY,GAAG,CAAC,IAAI,GAAG,KAAK,CAAC,IAAI;IACtD;IACA,OAAO;AACR;8CA/DwB,OAAO;IAC5B,MAAM,CAAC,aAAa,OAAO,aAAa,MAAM,GAAG;IACjD,MAAM;IACN,IAAI;QACH,IAAI,MAAM,IAAI,EAAE,MAAM,IAAI,CAAC,IAAI,CAAC,MAAM,CAAC,MAAM,IAAI,CAAC,MAAM,CAAC,IAAI,CAAC,MAAM,IAAI,CAAC,GAAG,EAAE,YAAY;aACrF;YACJ,MAAM,CAAC,KAAK,OAAO,GAAG,MAAM,QAAQ,GAAG,CAAC;gBACvC,YAAY,OAAO;gBACnB,MAAM,CAAC;aACP;YACD,IAAI;YACJ,IAAI,YAAY,iBAAiB,GAAG,GAAG,OAAO,OAAO,WAAW,CAAC,aAAa,OAAO,IAAI,CAAC,KAAK,YAAY,QAAQ,MAAM,KAAK;iBACzH;gBACJ,OAAO,OAAO,UAAU,CAAC;gBACzB,KAAK,MAAM,CAAC,OAAO,IAAI,CAAC,KAAK,YAAY;YAC1C;YACA,MAAM,IAAI,GAAG,YAAY;gBACxB;gBACA,KAAK;gBACL;YACD;QACD;;AAEF;qCA9B4C,CAAC;IAC7C,MAAM,CAAC,YAAY,GAAG;IACtB,MAAM,cAAc;IACpB,MAAM,QAAQ,SAAS,CAAC;IACxB,IAAI;IACJ,IAAI,KAAK,CAAC,iBAAiB,EAAE,MAAM;SAC9B,IAAI,KAAK,CAAC,cAAc,IAAI,KAAK,CAAC,cAAc,EAAE,MAAM;IAC7D;;;;;QA4BI;QACH;IACD;IACA,IAAI,YAAY,CAAC,KAAK,CAAC,cAAc,EAAE;QACtC,MAAM,QAAQ,QAAQ,GAAG,CAAC;YACzB,YAAY,OAAO;YACnB,MAAM,CAAC;SACP,EAAE,IAAI,CAAC,CAAC,CAAC,KAAK,OAAO;YACrB,MAAM,OAAO,OAAO,MAAM,CAAC,KAAK,YAAY;YAC5C,OAAO,WAAW,GAAG,WAAI;gBACxB,yBAAyB;gBACzB,CAAC,WAAW,EAAE;oBACb;iBACA;;QAEH;QACA,OAAO,WAAW,GAAG,WAAI,sBACd;IAEZ;IACA,OAAO,WAAW,GAAG,WAAI,kBACd,WAAW,GAAG,WAAI;AAE9B;AAaD,MAAM,WAAW,kBAAkB;AAEnC,eAAe,eAAe,QAAQ,EAAE,IAAI;IAC3C,MAAM,MAAM,MAAM,MAAM,CAAC;IACzB,MAAM,SAAS,MAAM,IAAI,cAAc,CAAC,UAAU;IAClD,MAAM,SAAS,IAAI,iBAAiB,CAAC,OAAO,IAAI;IAChD,MAAM,YAAY,SAAS,OAAO,IAAI;IACtC,OAAO;QACN,GAAG,MAAM;QACT,MAAM;IACP;AACD;AAEA,SAAS,QAAQ,EAAE,UAAU,EAAE,cAAc,GAAG\"}")
+== DIAGNOSTICS ==
+
+[]

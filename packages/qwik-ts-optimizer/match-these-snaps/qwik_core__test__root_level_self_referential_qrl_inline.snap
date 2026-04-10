@@ -1,0 +1,65 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 5826
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+// Root-level self-referential component
+// The QRL should NOT be hoisted before the component function is defined
+// or should use two-phase emission to avoid forward reference
+export const Tree = component$((props) => {
+	return (
+		<div>
+			{props.label}
+			{props.children && props.children.map((child) => <Tree {...child} />)}
+		</div>
+	);
+});
+
+============================= ./node_modules/qwik-tree/index.qwik.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _getConstProps } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _noopQrlDEV } from "@qwik.dev/core";
+//
+const q_Tree_component_XMEiO6Rrd3Y = /*#__PURE__*/ _noopQrlDEV("Tree_component_XMEiO6Rrd3Y", {
+    file: "/user/qwik/src/node_modules/qwik-tree/index.qwik.jsx",
+    lo: 257,
+    hi: 393,
+    displayName: "index.qwik.jsx_Tree_component"
+});
+// Root-level self-referential component
+// The QRL should NOT be hoisted before the component function is defined
+// or should use two-phase emission to avoid forward reference
+//
+export const Tree = /*#__PURE__*/ componentQrl(q_Tree_component_XMEiO6Rrd3Y);
+q_Tree_component_XMEiO6Rrd3Y.s((props)=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        _wrapProp(props, "label"),
+        props.children && props.children.map((child)=>/*#__PURE__*/ _jsxSplit(Tree, {
+                ..._getVarProps(child)
+            }, _getConstProps(child), null, 0, "zi_0", {
+                fileName: "./node_modules/qwik-tree/index.qwik.jsx",
+                lineNumber: 11,
+                columnNumber: 53
+            }))
+    ], 1, "zi_1", {
+        fileName: "./node_modules/qwik-tree/index.qwik.jsx",
+        lineNumber: 9,
+        columnNumber: 3
+    });
+});
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/qwik-tree/index.qwik.jsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;AAGA,wCAAwC;AACxC,yEAAyE;AACzE,8DAA8D;;AAC9D,OAAO,MAAM,qBAAO,2CAOjB;+BAP4B,CAAC;IAC/B,qBACC,WAAC;kBACC;QACA,MAAM,QAAQ,IAAI,MAAM,QAAQ,CAAC,GAAG,CAAC,CAAC,sBAAU,UAAC;gCAAS;8BAAA;;;;;;;;;;AAG9D\"}")
+== DIAGNOSTICS ==
+
+[]

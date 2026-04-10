@@ -1,0 +1,70 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 2013
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+
+export const Greeter = component$(() => {
+	const value = useSignal(0);
+	const checked = useSignal(false);
+	const stuff = useSignal();
+	return (
+		<>
+			<input bind:value={value} />
+			<input bind:checked={checked} />
+			<input bind:stuff={stuff} />
+			<div>{value}</div>
+			<div>{value.value}</div>
+		</>
+
+	)
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _val } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _chk } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+//
+const q_s_n7HuG2hhU0Q = /*#__PURE__*/ _noopQrl("s_n7HuG2hhU0Q");
+//
+q_s_n7HuG2hhU0Q.s(()=>{
+    const value = useSignal(0);
+    const checked = useSignal(false);
+    const stuff = useSignal();
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("input", null, {
+            "value": value,
+            "q-e:input": inlinedQrl(_val, "_val", [
+                value
+            ])
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("input", null, {
+            "checked": checked,
+            "q-e:input": inlinedQrl(_chk, "_chk", [
+                checked
+            ])
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("input", null, {
+            "bind:stuff": stuff
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, value, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(value), 3, null)
+    ], 3, "u6_0");
+});
+export const Greeter = /*#__PURE__*/ componentQrl(q_s_n7HuG2hhU0Q);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;kBAGkC;IACjC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ;IACd,qBACC;sBACC,WAAC;qBAAkB;;gBAAA;;;sBACnB,WAAC;uBAAoB;;gBAAA;;;sBACrB,WAAC;YAAD,cAAmB;;sBACnB,WAAC,mBAAK;sBACN,WAAC,6BAAK;;AAIT;AAdA,OAAO,MAAM,wBAAU,8BAcpB\"}")
+== DIAGNOSTICS ==
+
+[]

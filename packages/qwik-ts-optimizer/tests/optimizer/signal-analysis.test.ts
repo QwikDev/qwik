@@ -11,6 +11,7 @@ import {
   analyzeSignalExpression,
   isSignalValueAccess,
   isStoreFieldAccess,
+  SignalHoister,
 } from '../../src/optimizer/signal-analysis.js';
 
 /**
@@ -134,6 +135,97 @@ describe('signal-analysis', () => {
     it('returns false for non-MemberExpression', () => {
       const { node } = parseExpr('42');
       expect(isStoreFieldAccess(node, importedNames)).toBe(false);
+    });
+  });
+
+  describe('_fnSignal generation', () => {
+    const importedNames = new Set(['dep', 'mutable', 'Cmp']);
+
+    it('generates fnSignal for 12 + signal.value', () => {
+      const { node, source } = parseExpr('12 + signal.value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['signal']);
+        expect(result.hoistedFn).toBe('(p0)=>12+p0.value');
+        expect(result.hoistedStr).toBe('"12+p0.value"');
+      }
+    });
+
+    it('generates fnSignal for ternary: signal.value > 0 ? "yes" : "no"', () => {
+      const { node, source } = parseExpr('signal.value > 0 ? "yes" : "no"');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['signal']);
+        expect(result.hoistedFn).toContain('p0.value');
+        expect(result.hoistedFn).toContain('?');
+      }
+    });
+
+    it('generates fnSignal for deep store access: store.address.city.name', () => {
+      const { node, source } = parseExpr('store.address.city.name');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['store']);
+        expect(result.hoistedFn).toBe('(p0)=>p0.address.city.name');
+        expect(result.hoistedStr).toBe('"p0.address.city.name"');
+      }
+    });
+
+    it('generates fnSignal for ternary on deep store: store.address.city.name ? "true" : "false"', () => {
+      const { node, source } = parseExpr("store.address.city.name ? 'true' : 'false'");
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['store']);
+        expect(result.hoistedFn).toContain('p0.address.city.name');
+        expect(result.hoistedStr).toBe('\'p0.address.city.name?"true":"false"\'');
+      }
+    });
+
+    it('generates fnSignal with multiple signal deps: a.value + b.value', () => {
+      const { node, source } = parseExpr('a.value + b.value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['a', 'b']);
+        expect(result.hoistedFn).toBe('(p0,p1)=>p0.value+p1.value');
+        expect(result.hoistedStr).toBe('"p0.value+p1.value"');
+      }
+    });
+
+    it('string representation uses minimal whitespace', () => {
+      const { node, source } = parseExpr('12 + signal.value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      if (result.type === 'fnSignal') {
+        // No spaces around operators
+        expect(result.hoistedStr).not.toContain(' + ');
+        expect(result.hoistedStr).not.toContain(' - ');
+      }
+    });
+  });
+
+  describe('SignalHoister', () => {
+    it('generates _hf0, _hf1, _hf2 names sequentially', () => {
+      const hoister = new SignalHoister();
+      expect(hoister.hoist('(p0)=>12+p0.value', '"12+p0.value"')).toBe('_hf0');
+      expect(hoister.hoist('(p0)=>p0.name', '"p0.name"')).toBe('_hf1');
+      expect(hoister.hoist('(p0,p1)=>p0.value+p1.value', '"p0.value+p1.value"')).toBe('_hf2');
+    });
+
+    it('generates correct _hfN and _hfN_str declarations', () => {
+      const hoister = new SignalHoister();
+      hoister.hoist('(p0)=>12+p0.value', '"12+p0.value"');
+      hoister.hoist('(p0)=>p0.name', '"p0.name"');
+      const decls = hoister.getDeclarations();
+      expect(decls).toEqual([
+        'const _hf0 = (p0)=>12+p0.value;',
+        'const _hf0_str = "12+p0.value";',
+        'const _hf1 = (p0)=>p0.name;',
+        'const _hf1_str = "p0.name";',
+      ]);
     });
   });
 });

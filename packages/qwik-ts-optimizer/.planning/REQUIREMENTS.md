@@ -114,8 +114,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **MODE-03**: HMR injection — `_useHmr(filePath)` in component segments
 - [x] **MODE-04**: Server strip mode — server-only code replaced with null exports
 - [x] **MODE-05**: Client strip mode — client-only code replaced with null
-- [ ] **MODE-06**: Strip exports mode — specified exports replaced with throw statements
-- [ ] **MODE-07**: `isServer`/`isBrowser`/`isDev` const replacement
+- [x] **MODE-06**: Strip exports mode — specified exports replaced with throw statements
+- [x] **MODE-07**: `isServer`/`isBrowser`/`isDev` const replacement
 
 ### Bind Syntax
 
@@ -241,8 +241,8 @@ Requirements for initial release. Each maps to roadmap phases.
 | MODE-03 | Phase 5 | Complete |
 | MODE-04 | Phase 5 | Complete |
 | MODE-05 | Phase 5 | Complete |
-| MODE-06 | Phase 5 | Pending |
-| MODE-07 | Phase 5 | Pending |
+| MODE-06 | Phase 5 | Complete |
+| MODE-07 | Phase 5 | Complete |
 | DIAG-01 | Phase 6 | Pending |
 | DIAG-02 | Phase 6 | Pending |
 | DIAG-03 | Phase 6 | Pending |

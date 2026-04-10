@@ -110,7 +110,7 @@ Plans:
 Plans:
 - [x] 05-01-PLAN.md — Entry strategy metadata, dev mode qrlDEV/JSX source info/_useHmr (ENT-01, ENT-03, ENT-04, MODE-01, MODE-02, MODE-03)
 - [x] 05-02-PLAN.md — Inline/hoist strategy and server/client strip modes (ENT-02, MODE-04, MODE-05)
-- [ ] 05-03-PLAN.md — Strip exports and isServer/isBrowser/isDev const replacement (MODE-06, MODE-07)
+- [x] 05-03-PLAN.md — Strip exports and isServer/isBrowser/isDev const replacement (MODE-06, MODE-07)
 
 ### Phase 6: Diagnostics and Convergence
 **Goal**: The optimizer emits correct diagnostics for invalid code patterns and passes all remaining snapshot tests

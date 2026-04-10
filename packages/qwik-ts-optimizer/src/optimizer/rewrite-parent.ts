@@ -12,14 +12,16 @@
  *   [QRL const declarations]
  *   //
  *   [rewritten module body]
+ *   [_auto_ exports if any]
  *
- * Implements: EXTRACT-03, EXTRACT-05, EXTRACT-06, IMP-04, IMP-06
+ * Implements: EXTRACT-03, EXTRACT-05, EXTRACT-06, IMP-04, IMP-06, CAPT-03
  */
 
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import type { ExtractionResult } from './extract.js';
 import type { ImportInfo } from './marker-detection.js';
+import type { MigrationDecision, ModuleLevelDecl } from './variable-migration.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import {
   buildQrlDeclaration,
@@ -84,6 +86,8 @@ function isCustomInlined(
  * @param relPath - Relative file path
  * @param extractions - Extraction results from extractSegments()
  * @param originalImports - Import map from collectImports()
+ * @param migrationDecisions - Optional migration decisions from analyzeMigration()
+ * @param moduleLevelDecls - Optional module-level declarations for removal of moved vars
  * @returns Rewritten parent module code and updated extractions
  */
 export function rewriteParentModule(
@@ -91,6 +95,8 @@ export function rewriteParentModule(
   relPath: string,
   extractions: ExtractionResult[],
   originalImports: Map<string, ImportInfo>,
+  migrationDecisions?: MigrationDecision[],
+  moduleLevelDecls?: ModuleLevelDecl[],
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const { program } = parseSync(relPath, source);
@@ -250,6 +256,26 @@ export function rewriteParentModule(
   }
 
   // -----------------------------------------------------------------------
+  // Step 4b: .w() wrapping for captures (CAPT-03)
+  // -----------------------------------------------------------------------
+  for (const ext of topLevel) {
+    if (ext.isSync) continue;
+    if (ext.captureNames.length === 0) continue;
+
+    // Build the .w() call: .w([\n        var1,\n        var2\n    ])
+    const wrapVars = ext.captureNames.join(',\n        ');
+    const wText = `.w([\n        ${wrapVars}\n    ])`;
+
+    if (ext.isBare) {
+      // Bare $(): entire call was replaced with q_symbolName at callStart..callEnd
+      s.appendLeft(ext.callEnd, wText);
+    } else {
+      // Named marker: arg was replaced with q_symbolName at argStart..argEnd
+      s.appendLeft(ext.argEnd, wText);
+    }
+  }
+
+  // -----------------------------------------------------------------------
   // Step 5: Build optimizer-added imports (IMP-04)
   // -----------------------------------------------------------------------
   const neededImports = new Map<string, string>(); // symbol -> source
@@ -317,6 +343,38 @@ export function rewriteParentModule(
   preamble.push('//');
 
   s.prepend(preamble.join('\n') + '\n');
+
+  // -----------------------------------------------------------------------
+  // Step 6b: _auto_ exports (module-level migration)
+  // -----------------------------------------------------------------------
+  if (migrationDecisions) {
+    for (const decision of migrationDecisions) {
+      if (decision.action === 'reexport') {
+        s.append(`\nexport { ${decision.varName} as _auto_${decision.varName} };`);
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 6c: Remove migrated (moved) declarations from parent
+  // -----------------------------------------------------------------------
+  if (migrationDecisions && moduleLevelDecls) {
+    // Track which ranges we've already removed to avoid double-removal
+    // (multiple bindings from the same declaration)
+    const removedRanges = new Set<string>();
+    for (const decision of migrationDecisions) {
+      if (decision.action !== 'move') continue;
+      const decl = moduleLevelDecls.find((d) => d.name === decision.varName);
+      if (!decl) continue;
+      const rangeKey = `${decl.declStart}:${decl.declEnd}`;
+      if (removedRanges.has(rangeKey)) continue;
+      removedRanges.add(rangeKey);
+      // Remove the declaration text including trailing newline
+      let end = decl.declEnd;
+      if (end < source.length && source[end] === '\n') end++;
+      s.remove(decl.declStart, end);
+    }
+  }
 
   return {
     code: s.toString(),

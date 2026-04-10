@@ -156,6 +156,111 @@ export const handler = $(() => {
     expect(segments.length).toBeGreaterThanOrEqual(2);
   });
 
+  // -----------------------------------------------------------------------
+  // Phase 3: Capture analysis and variable migration integration tests
+  // -----------------------------------------------------------------------
+
+  it('captures: nested $() inside component$ captures parent scope variables', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$, $ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const count = 0;
+  const handler = $(() => {
+    console.log(count);
+  });
+  return <div onClick$={handler}>Hello</div>;
+});`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    // Find parent module and segments
+    const parent = result.modules[0];
+    const segments = result.modules.filter((m) => m.segment !== null);
+
+    // Find the inner $() segment (the one with captures)
+    const innerSegment = segments.find((s) => s.segment!.ctxName === '$' && s.segment!.parent !== null);
+    expect(innerSegment).toBeDefined();
+
+    // Inner segment should have captures
+    expect(innerSegment!.segment!.captures).toBe(true);
+    const meta = innerSegment!.segment! as any;
+    expect(meta.captureNames).toContain('count');
+
+    // Inner segment code should have _captures import and unpacking
+    expect(innerSegment!.code).toContain('_captures');
+    expect(innerSegment!.code).toContain('const count = _captures[0]');
+  });
+
+  it('migration: top-level const used by $() gets _auto_ export and import', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+const TITLE = "Hello World";
+export const App = component$(() => {
+  return <div>{TITLE}</div>;
+});`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    const segments = result.modules.filter((m) => m.segment !== null);
+    const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
+    expect(appSegment).toBeDefined();
+
+    // Parent should NOT have .w() (these are _auto_ imports, not captures)
+    // The segment should NOT have _captures
+    expect(appSegment!.segment!.captures).toBe(false);
+
+    // Parent should have _auto_ export for TITLE
+    expect(parent.code).toContain('_auto_TITLE');
+
+    // Segment should have _auto_ import
+    expect(appSegment!.code).toContain('_auto_TITLE');
+    expect(appSegment!.code).toContain('as TITLE');
+  });
+
+  it('migration: variable used by segment gets _auto_ reexport when also in root scope', () => {
+    // helperFn appears in root scope (its own declaration) AND in the segment,
+    // so migration correctly chooses reexport (not move).
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+const helperFn = (msg) => console.log(msg);
+export const App = component$(() => {
+  helperFn("hello");
+  return <div>Hello</div>;
+});`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    const segments = result.modules.filter((m) => m.segment !== null);
+    const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
+    expect(appSegment).toBeDefined();
+
+    // Parent should have _auto_ export
+    expect(parent.code).toContain('_auto_helperFn');
+
+    // Segment should import _auto_helperFn
+    expect(appSegment!.code).toContain('_auto_helperFn as helperFn');
+
+    // Segment should NOT use _captures for this
+    expect(appSegment!.segment!.captures).toBe(false);
+  });
+
   it('sets segment analysis metadata correctly', () => {
     const result = transformModule({
       input: [

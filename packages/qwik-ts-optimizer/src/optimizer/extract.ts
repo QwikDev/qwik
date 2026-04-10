@@ -61,6 +61,10 @@ export interface ExtractionResult {
   parent: string | null;
   captures: boolean;
 
+  // Capture analysis (Phase 3)
+  captureNames: string[];
+  paramNames: string[];
+
   // Imports needed by this segment
   segmentImports: ImportInfo[];
 }
@@ -334,7 +338,9 @@ export function extractSegments(
           extension,
           loc: [line, col],
           parent: null, // Plan 04 handles nesting
-          captures: false, // Phase 3 concern
+          captures: false, // Phase 3: populated by transform.ts
+          captureNames: [], // Phase 3: populated by transform.ts
+          paramNames: [], // Phase 3: populated by transform.ts
           segmentImports,
         });
       }

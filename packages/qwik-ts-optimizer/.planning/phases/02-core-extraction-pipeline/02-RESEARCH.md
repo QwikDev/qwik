@@ -605,27 +605,24 @@ export type EmitMode = 'dev' | 'prod' | 'lib';
 | A5 | Segment extension is determined by JSX presence in the segment body, not the source file extension | Pattern 8 | MEDIUM -- some edge cases might differ. Verify against full corpus. |
 | A6 | Phase 2 can emit `captures: false` for all segments and defer capture analysis to Phase 3 | Summary | LOW -- Phase 3 will handle captures, but some snapshot tests might fail if captures metadata is wrong. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How does oxc-parser represent the AST positions for magic-string?**
    - What we know: oxc-parser outputs ESTree with `start` and `end` properties on nodes
    - What's unclear: Whether these are byte offsets or character offsets (matters for UTF-8 multi-byte chars)
-   - Recommendation: Test immediately with a simple `$()` extraction. File paths and identifiers in practice are ASCII.
+   - RESOLVED: oxc-parser uses byte offsets. In practice all Qwik source is ASCII, so byte = character offset. Test immediately with first extraction task.
 
 2. **Should segment code generation use magic-string or string concatenation?**
    - What we know: Parent module rewriting must use magic-string (edit-in-place). Segments are generated from scratch.
-   - What's unclear: Whether magic-string adds value for segments or if simple string building is better
-   - Recommendation: Use string concatenation for segment modules. They are built from extracted code + generated imports, not edited from original source.
+   - RESOLVED: String concatenation for segment modules. They are built from extracted code + generated imports, not edited from original source. Plan 03 implements this.
 
 3. **How to handle the `entry` field in segment metadata?**
    - What we know: Most segments have `entry: null`. Some (exported component segments) have `entry: "test.tsx_entry_Parent"` pattern.
-   - What's unclear: Exact rules for when `entry` is non-null
-   - Recommendation: Start with `entry: null` for all segments. Refine when entry strategy logic is added in Phase 5.
+   - RESOLVED: entry=null for all segments in Phase 2. Entry strategy logic deferred to Phase 5 (ENT-01..04).
 
 4. **What determines segment ordering in parent module output?**
    - What we know: QRL declarations appear sorted alphabetically in the parent module
-   - What's unclear: Whether it's sorted by symbol name or by source position
-   - Recommendation: Sort QRL declarations alphabetically by symbol name, matching snapshot evidence.
+   - RESOLVED: Sort QRL declarations alphabetically by symbol name, matching snapshot evidence. Plan 04 implements this.
 
 ## Environment Availability
 

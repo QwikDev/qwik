@@ -38,10 +38,15 @@ created: 2026-04-10
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 2-01-01 | 01 | 1 | EXTRACT-01..07 | — | N/A | unit+snapshot | `npx vitest run` | ❌ W0 | ⬜ pending |
-| 2-02-01 | 02 | 1 | CALL-01..05 | — | N/A | unit+snapshot | `npx vitest run` | ❌ W0 | ⬜ pending |
-| 2-03-01 | 03 | 2 | IMP-01..06 | — | N/A | unit+snapshot | `npx vitest run` | ❌ W0 | ⬜ pending |
-| 2-04-01 | 04 | 2 | API-01..03 | — | N/A | unit+snapshot | `npx vitest run` | ❌ W0 | ⬜ pending |
+| 2-01-01 | 01 | 1 | API-03, IMP-01..03 | — | N/A | unit | `npx vitest run tests/optimizer/rewrite-imports.test.ts` | ❌ W0 | ⬜ pending |
+| 2-01-02 | 01 | 1 | EXTRACT-07 | — | N/A | unit | `npx tsc --noEmit` | ❌ W0 | ⬜ pending |
+| 2-02-01 | 02 | 1 | EXTRACT-01 | — | N/A | unit | `npx vitest run tests/optimizer/context-stack.test.ts` | ❌ W0 | ⬜ pending |
+| 2-02-02 | 02 | 1 | EXTRACT-01 | — | N/A | unit | `npx vitest run tests/optimizer/marker-detection.test.ts` | ❌ W0 | ⬜ pending |
+| 2-03-01 | 03 | 2 | EXTRACT-02,04,07 IMP-05 | — | N/A | unit | `npx vitest run tests/optimizer/extract.test.ts` | ❌ W0 | ⬜ pending |
+| 2-03-02 | 03 | 2 | CALL-01..05 | — | N/A | unit | `npx vitest run tests/optimizer/rewrite-calls.test.ts` | ❌ W0 | ⬜ pending |
+| 2-04-01 | 04 | 3 | EXTRACT-03,05,06 IMP-04,06 | — | N/A | unit | `npx vitest run tests/optimizer/rewrite-parent.test.ts` | ❌ W0 | ⬜ pending |
+| 2-05-01 | 05 | 4 | API-01,02 | — | N/A | unit | `npx tsc --noEmit` | ❌ W0 | ⬜ pending |
+| 2-05-02 | 05 | 4 | API-01,02 | — | N/A | snapshot | `npx vitest run tests/optimizer/transform.test.ts tests/optimizer/snapshot-batch.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

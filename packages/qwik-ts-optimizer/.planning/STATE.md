@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-04-10T20:47:17.128Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-04-10T20:54:42.875Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 16
-  completed_plans: 12
-  percent: 75
+  completed_plans: 13
+  percent: 81
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 ## Current Position
 
 Phase: 04 (JSX, Signals, and Event Handlers) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P02 | 2min | 1 tasks | 2 files |
 | Phase 03 P03 | 6min | 2 tasks | 5 files |
 | Phase 04 P01 | 5min | 2 tasks | 2 files |
+| Phase 04 P02 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Top-level segments have migrated variable names filtered from captureNames to prevent double-handling via _captures and _auto_
 - [Phase 04]: Flags bitmask: bit0=immutable props, bit1=static children, bit2=loop context (verified against snapshot corpus)
 - [Phase 04]: JSX transform built as single module with tightly-coupled spread/fragment/tag functions
+- [Phase 04]: Deep store access (depth >= 2) produces _fnSignal not _wrapProp; single-level produces _wrapProp(obj, field)
 
 ### Pending Todos
 
@@ -115,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T20:47:17.126Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-04-10T20:54:42.873Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None

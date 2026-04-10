@@ -69,11 +69,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Signal Optimizations
 
-- [ ] **SIG-01**: Detect `signal.value` access in JSX props and wrap with `_wrapProp(signal)`
-- [ ] **SIG-02**: Detect `store.field` access in JSX props and wrap with `_wrapProp(store, "field")`
-- [ ] **SIG-03**: Detect computed expressions in JSX props and generate `_fnSignal(_hf0, [deps], _hf0_str)`
-- [ ] **SIG-04**: Hoist signal functions to module scope as `_hf0`, `_hf1` with corresponding `_hf0_str` strings
-- [ ] **SIG-05**: Correctly identify when NOT to wrap (function calls, binary with unknown operands, etc.)
+- [x] **SIG-01**: Detect `signal.value` access in JSX props and wrap with `_wrapProp(signal)`
+- [x] **SIG-02**: Detect `store.field` access in JSX props and wrap with `_wrapProp(store, "field")`
+- [x] **SIG-03**: Detect computed expressions in JSX props and generate `_fnSignal(_hf0, [deps], _hf0_str)`
+- [x] **SIG-04**: Hoist signal functions to module scope as `_hf0`, `_hf1` with corresponding `_hf0_str` strings
+- [x] **SIG-05**: Correctly identify when NOT to wrap (function calls, binary with unknown operands, etc.)
 
 ### Event Handler Transform
 
@@ -213,11 +213,11 @@ Requirements for initial release. Each maps to roadmap phases.
 | JSX-04 | Phase 4 | Complete |
 | JSX-05 | Phase 4 | Complete |
 | JSX-06 | Phase 4 | Complete |
-| SIG-01 | Phase 4 | Pending |
-| SIG-02 | Phase 4 | Pending |
-| SIG-03 | Phase 4 | Pending |
-| SIG-04 | Phase 4 | Pending |
-| SIG-05 | Phase 4 | Pending |
+| SIG-01 | Phase 4 | Complete |
+| SIG-02 | Phase 4 | Complete |
+| SIG-03 | Phase 4 | Complete |
+| SIG-04 | Phase 4 | Complete |
+| SIG-05 | Phase 4 | Complete |
 | EVT-01 | Phase 4 | Pending |
 | EVT-02 | Phase 4 | Pending |
 | EVT-03 | Phase 4 | Pending |

@@ -5,6 +5,7 @@
  * Qwik's base64 encoding (URL-safe, no padding, replace - and _ with 0).
  */
 
+import { charIn, createRegExp, exactly, global as g, oneOrMore } from 'magic-regexp';
 import SipHash13 from 'siphash/lib/siphash13.js';
 
 const ZERO_KEY: [number, number, number, number] = [0, 0, 0, 0];
@@ -40,10 +41,15 @@ export function qwikHash(
   bytes[7] = (result.h >>> 24) & 0xff;
 
   // HASH-03: Base64url encode, no padding, replace - and _ with 0
+  const PLUS = createRegExp(exactly('+'), [g]);
+  const SLASH = createRegExp(exactly('/'), [g]);
+  const TRAILING_PAD = createRegExp(oneOrMore('=').at.lineEnd());
+  const DASH_UNDERSCORE = createRegExp(charIn('-_'), [g]);
+
   const base64 = btoa(String.fromCharCode(...bytes));
   return base64
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '')
-    .replace(/[-_]/g, '0');
+    .replace(PLUS, '-')
+    .replace(SLASH, '_')
+    .replace(TRAILING_PAD, '')
+    .replace(DASH_UNDERSCORE, '0');
 }

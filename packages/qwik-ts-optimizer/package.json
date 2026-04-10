@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "magic-regexp": "^0.11.0",
     "pathe": "^2.0.3",
     "siphash": "^1.1.0"
   },

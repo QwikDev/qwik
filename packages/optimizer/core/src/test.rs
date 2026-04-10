@@ -6020,6 +6020,73 @@ export const Other = component$(() => {
 	});
 }
 
+/// Regression test: when a root variable is pulled in as a transitive dependency
+/// for migration to segment A, but is also directly used by segment B, it must NOT
+/// be migrated. Otherwise segment B loses access to it (the export is removed).
+/// This reproduces the qwik-router bug where `currentScrollState` and `saveScrollHistory`
+/// were migrated to the useTask segment but also needed by the goto segment.
+#[test]
+fn variable_migration_transitive_dep_used_by_other_segment() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+
+// scrollState is used by both segments - must NOT be migrated
+const scrollState = (el) => ({ x: el.scrollLeft, y: el.scrollTop });
+
+// saveScroll is used by both segments - must NOT be migrated
+const saveScroll = (s) => history.replaceState(s, '');
+
+// bigHelper depends on scrollState and saveScroll, used only by App
+const bigHelper = (el) => {
+  const s = scrollState(el);
+  saveScroll(s);
+  return s;
+};
+
+export const App = component$(() => {
+  // Uses bigHelper (which transitively uses scrollState and saveScroll)
+  const s = bigHelper(document.body);
+  return <div>{s.x}</div>;
+});
+
+export const Other = component$(() => {
+  // Directly uses scrollState and saveScroll
+  const s = scrollState(document.body);
+  saveScroll(s);
+  return <div>{s.y}</div>;
+});
+"#
+		.to_string(),
+		snapshot: true,
+		..TestInput::default()
+	});
+
+	// Verify the fix: scrollState and saveScroll must be importable by both segments
+	let output = res.unwrap();
+	let other_segment = output
+		.modules
+		.iter()
+		.find(|m| m.path.contains("Other_component"))
+		.expect("Other_component segment should exist");
+
+	// scrollState must be imported (not missing) in the Other segment
+	assert!(
+		other_segment.code.contains("scrollState")
+			&& (other_segment.code.contains("import")
+				|| other_segment.code.contains("const scrollState")),
+		"scrollState must be available in Other segment (imported or inlined), got:\n{}",
+		other_segment.code
+	);
+	assert!(
+		other_segment.code.contains("saveScroll")
+			&& (other_segment.code.contains("import")
+				|| other_segment.code.contains("const saveScroll")),
+		"saveScroll must be available in Other segment (imported or inlined), got:\n{}",
+		other_segment.code
+	);
+}
+
 #[test]
 fn root_level_self_referential_qrl() {
 	test_input!(TestInput {

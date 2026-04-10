@@ -353,8 +353,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         }
         // Named export specifiers
         for (const spec of stmt.specifiers ?? []) {
-          if (spec.exported?.name) {
-            moduleExportNames.add(spec.exported.name);
+          const exported = spec.exported;
+          const exportedName = exported?.type === 'Identifier' ? exported.name : (exported as any)?.value;
+          if (exportedName) {
+            moduleExportNames.add(exportedName);
           }
         }
       }

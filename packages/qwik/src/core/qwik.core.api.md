@@ -29,6 +29,8 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     invalidate(info?: unknown): void;
     loading: boolean;
     promise(): Promise<void>;
+    untrackedError: Error | undefined;
+    untrackedLoading: boolean;
 }
 
 // @public (undocumented)

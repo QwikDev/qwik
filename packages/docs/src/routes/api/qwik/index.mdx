@@ -221,7 +221,7 @@ Error \| undefined
 
 </td><td>
 
-The error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed.
+The error that occurred while computing the signal, if any. This will be cleared when the signal is successfully computed. It does not trigger lazy loading of the signal.
 
 </td></tr>
 <tr><td>
@@ -264,6 +264,40 @@ signal.loading ? (
   <Component value={signal.value} />
 );
 ```
+
+</td></tr>
+<tr><td>
+
+untrackedError
+
+</td><td>
+
+</td><td>
+
+Error \| undefined
+
+</td><td>
+
+Lets you read the error state without subscribing to `.error` updates. It does not trigger lazy loading of the signal.
+
+Setting it will trigger listeners for `.error`.
+
+</td></tr>
+<tr><td>
+
+untrackedLoading
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+Lets you read the loading state without subscribing to `.loading` updates. It also triggers lazy loading of the signal.
+
+Setting it will trigger listeners for `.loading`.
 
 </td></tr>
 </tbody></table>

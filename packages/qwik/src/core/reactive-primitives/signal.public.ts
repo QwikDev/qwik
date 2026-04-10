@@ -98,10 +98,24 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
    */
   loading: boolean;
   /**
+   * Lets you read the loading state without subscribing to `.loading` updates. It also triggers
+   * lazy loading of the signal.
+   *
+   * Setting it will trigger listeners for `.loading`.
+   */
+  untrackedLoading: boolean;
+  /**
    * The error that occurred while computing the signal, if any. This will be cleared when the
-   * signal is successfully computed.
+   * signal is successfully computed. It does not trigger lazy loading of the signal.
    */
   error: Error | undefined;
+  /**
+   * Lets you read the error state without subscribing to `.error` updates. It does not trigger lazy
+   * loading of the signal.
+   *
+   * Setting it will trigger listeners for `.error`.
+   */
+  untrackedError: Error | undefined;
   /**
    * Staleness/poll interval in ms. Writable and immediately effective.
    *

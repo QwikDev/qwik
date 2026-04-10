@@ -60,12 +60,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### JSX Transform
 
-- [ ] **JSX-01**: Transform JSX elements to `_jsxSorted(tag, varProps, constProps, children, flags, key)` calls
-- [ ] **JSX-02**: Classify props into varProps (mutable — signals, stores, computed) and constProps (immutable — literals)
-- [ ] **JSX-03**: Compute flags bitmask encoding children type and mutability
-- [ ] **JSX-04**: Generate deterministic keys (`u6_N` pattern) for JSX elements
-- [ ] **JSX-05**: Handle `_jsxSplit` for elements with spread props, using `_getVarProps`/`_getConstProps`
-- [ ] **JSX-06**: Handle fragment transform
+- [x] **JSX-01**: Transform JSX elements to `_jsxSorted(tag, varProps, constProps, children, flags, key)` calls
+- [x] **JSX-02**: Classify props into varProps (mutable — signals, stores, computed) and constProps (immutable — literals)
+- [x] **JSX-03**: Compute flags bitmask encoding children type and mutability
+- [x] **JSX-04**: Generate deterministic keys (`u6_N` pattern) for JSX elements
+- [x] **JSX-05**: Handle `_jsxSplit` for elements with spread props, using `_getVarProps`/`_getConstProps`
+- [x] **JSX-06**: Handle fragment transform
 
 ### Signal Optimizations
 
@@ -207,12 +207,12 @@ Requirements for initial release. Each maps to roadmap phases.
 | MIG-03 | Phase 3 | Complete |
 | MIG-04 | Phase 3 | Complete |
 | MIG-05 | Phase 3 | Complete |
-| JSX-01 | Phase 4 | Pending |
-| JSX-02 | Phase 4 | Pending |
-| JSX-03 | Phase 4 | Pending |
-| JSX-04 | Phase 4 | Pending |
-| JSX-05 | Phase 4 | Pending |
-| JSX-06 | Phase 4 | Pending |
+| JSX-01 | Phase 4 | Complete |
+| JSX-02 | Phase 4 | Complete |
+| JSX-03 | Phase 4 | Complete |
+| JSX-04 | Phase 4 | Complete |
+| JSX-05 | Phase 4 | Complete |
+| JSX-06 | Phase 4 | Complete |
 | SIG-01 | Phase 4 | Pending |
 | SIG-02 | Phase 4 | Pending |
 | SIG-03 | Phase 4 | Pending |

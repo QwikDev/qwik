@@ -87,7 +87,7 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — JSX element transformation with prop classification, flags, keys, spreads, fragments (JSX-01..06)
+- [x] 04-01-PLAN.md — JSX element transformation with prop classification, flags, keys, spreads, fragments (JSX-01..06)
 - [ ] 04-02-PLAN.md — Signal analysis with _wrapProp, _fnSignal, and hoisted functions (SIG-01..05)
 - [ ] 04-03-PLAN.md — Event handler naming and bind syntax desugaring (EVT-01..06, BIND-01..03)
 - [ ] 04-04-PLAN.md — Loop detection, .w() hoisting, q:p/q:ps injection, parameter padding (LOOP-01..05)

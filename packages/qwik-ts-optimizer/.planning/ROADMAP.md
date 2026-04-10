@@ -84,13 +84,14 @@ Plans:
   3. Event handlers (`onClick$`, `document:onFocus$`, `window:onClick$`, etc.) are extracted as segments and transformed to `q-e:click`, `q-d:focus`, `q-w:click` in constProps
   4. Event handlers inside loops have their `.w([captures])` hoisted above the loop, with `q:p`/`q:ps` injection and positional parameter padding
   5. `bind:value` and `bind:checked` produce value prop + `q-e:input` handler with `inlinedQrl`
-**Plans**: 3 plans
+**Plans**: 5 plans
 
 Plans:
-- [x] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
-- [x] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
-- [x] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
-**UI hint**: yes
+- [ ] 04-01-PLAN.md — JSX element transformation with prop classification, flags, keys, spreads, fragments (JSX-01..06)
+- [ ] 04-02-PLAN.md — Signal analysis with _wrapProp, _fnSignal, and hoisted functions (SIG-01..05)
+- [ ] 04-03-PLAN.md — Event handler naming and bind syntax desugaring (EVT-01..06, BIND-01..03)
+- [ ] 04-04-PLAN.md — Loop detection, .w() hoisting, q:p/q:ps injection, parameter padding (LOOP-01..05)
+- [ ] 04-05-PLAN.md — Pipeline integration, type updates, and JSX snapshot validation (all Phase 4 reqs)
 
 ### Phase 5: Entry Strategies and Build Modes
 **Goal**: The optimizer supports all entry strategies and build mode configurations that Qwik's Vite plugin can request
@@ -136,6 +137,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Test Infrastructure and Hash Verification | 3/3 | Complete | 2026-04-10 |
 | 2. Core Extraction Pipeline | 0/5 | Planning complete | - |
 | 3. Capture Analysis and Variable Migration | 0/3 | Planning complete | - |
-| 4. JSX, Signals, and Event Handlers | 0/TBD | Not started | - |
+| 4. JSX, Signals, and Event Handlers | 0/5 | Planning complete | - |
 | 5. Entry Strategies and Build Modes | 0/TBD | Not started | - |
 | 6. Diagnostics and Convergence | 0/TBD | Not started | - |

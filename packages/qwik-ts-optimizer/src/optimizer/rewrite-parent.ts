@@ -162,10 +162,10 @@ export function rewriteParentModule(
           }
         }
       }
-      // Rebuild: import { kept } from "source";
+      // Rebuild: import { kept } from "source"; (use rewritten source path)
       const sourceNode = node.source;
-      const sourceValue = source.slice(sourceNode.start, sourceNode.end);
-      const newImport = `import { ${kept.join(', ')} } from ${sourceValue};`;
+      const rewrittenSource = rewriteImportSource(sourceNode.value);
+      const newImport = `import { ${kept.join(', ')} } from "${rewrittenSource}";`;
       let end = node.end;
       if (end < source.length && source[end] === '\n') end++;
       s.overwrite(node.start, end, newImport + '\n');
@@ -228,7 +228,7 @@ export function rewriteParentModule(
   }
 
   // -----------------------------------------------------------------------
-  // Step 4: Build optimizer-added imports (IMP-04)
+  // Step 5: Build optimizer-added imports (IMP-04)
   // -----------------------------------------------------------------------
   const neededImports = new Map<string, string>(); // symbol -> source
 
@@ -281,12 +281,6 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // Step 6: Assemble final output
   // -----------------------------------------------------------------------
-  const preambleParts: string[] = [];
-
-  if (importStatements.length > 0) {
-    preambleParts.push(importStatements.join('\n'));
-  }
-
   // The modified body (with import rewrites and call rewrites) already comes from s.toString()
   // We need to prepend: imports + // + QRL decls + //
 

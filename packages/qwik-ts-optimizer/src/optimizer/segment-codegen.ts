@@ -29,23 +29,53 @@ export function generateSegmentCode(
 ): string {
   const parts: string[] = [];
 
-  // Group imports by source to produce one import statement per source
-  const importsBySource = new Map<string, string[]>();
+  // Group imports by source, tracking specifier form for each
+  interface SegmentImportSpec {
+    localName: string;
+    importedName: string; // 'default', '*', or the original exported name
+  }
+  const importsBySource = new Map<string, SegmentImportSpec[]>();
   for (const imp of extraction.segmentImports) {
     const rewrittenSource = rewriteImportSource(imp.source);
     const existing = importsBySource.get(rewrittenSource);
+    const spec: SegmentImportSpec = { localName: imp.localName, importedName: imp.importedName };
     if (existing) {
-      if (!existing.includes(imp.localName)) {
-        existing.push(imp.localName);
+      if (!existing.some((s) => s.localName === imp.localName)) {
+        existing.push(spec);
       }
     } else {
-      importsBySource.set(rewrittenSource, [imp.localName]);
+      importsBySource.set(rewrittenSource, [spec]);
     }
   }
 
-  // Emit import statements
-  for (const [source, names] of importsBySource) {
-    parts.push(`import { ${names.join(', ')} } from "${source}";`);
+  // Emit import statements with correct syntax per import kind
+  for (const [source, specs] of importsBySource) {
+    const defaultSpec = specs.find((s) => s.importedName === 'default');
+    const nsSpec = specs.find((s) => s.importedName === '*');
+    const namedSpecs = specs.filter((s) => s.importedName !== 'default' && s.importedName !== '*');
+
+    if (nsSpec) {
+      parts.push(`import * as ${nsSpec.localName} from "${source}";`);
+    } else {
+      const specParts: string[] = [];
+      if (defaultSpec) specParts.push(defaultSpec.localName);
+      if (namedSpecs.length > 0) {
+        const namedStr = namedSpecs
+          .map((s) =>
+            s.importedName !== s.localName ? `${s.importedName} as ${s.localName}` : s.localName,
+          )
+          .join(', ');
+        if (defaultSpec) {
+          // default + named: import foo, { bar } from "source";
+          specParts.push(`{ ${namedStr} }`);
+          parts.push(`import ${specParts.join(', ')} from "${source}";`);
+        } else {
+          parts.push(`import { ${namedStr} } from "${source}";`);
+        }
+      } else if (defaultSpec) {
+        parts.push(`import ${defaultSpec.localName} from "${source}";`);
+      }
+    }
   }
 
   // Separator after imports

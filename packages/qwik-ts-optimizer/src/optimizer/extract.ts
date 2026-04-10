@@ -260,8 +260,13 @@ export function extractSegments(
           return;
         }
 
+        // Resolve the canonical (imported) name for aliased imports
+        // e.g., `import { component$ as c$ }` → calleeName is "c$" but canonical is "component$"
+        const importInfo = imports.get(calleeName);
+        const canonicalCallee = importInfo ? importInfo.importedName : calleeName;
+
         // Push callee name for naming context
-        ctx.push(calleeName);
+        ctx.push(canonicalCallee);
         pushCount++;
 
         const arg = node.arguments?.[0];
@@ -271,9 +276,9 @@ export function extractSegments(
         }
 
         const bodyText = source.slice(arg.start, arg.end);
-        const isBare = calleeName === '$';
-        const isSync = isSyncMarker(calleeName);
-        const qrlCallee = computeQrlCallee(calleeName);
+        const isBare = canonicalCallee === '$';
+        const isSync = isSyncMarker(canonicalCallee);
+        const qrlCallee = computeQrlCallee(canonicalCallee);
 
         // Check the context stack for JSX event attribute
         const ctxStack = ctx.getContextStack();
@@ -285,8 +290,8 @@ export function extractSegments(
           attrCtx.startsWith('on') &&
           attrCtx.endsWith('$');
 
-        const ctxKind = getCtxKind(calleeName, isEventAttr);
-        const ctxName = getCtxName(calleeName, isEventAttr, isEventAttr ? attrCtx : undefined);
+        const ctxKind = getCtxKind(canonicalCallee, isEventAttr);
+        const ctxName = getCtxName(canonicalCallee, isEventAttr, isEventAttr ? attrCtx : undefined);
 
         const displayName = ctx.getDisplayName();
         const symbolName = ctx.getSymbolName();
@@ -319,7 +324,7 @@ export function extractSegments(
           argStart: arg.start,
           argEnd: arg.end,
           bodyText,
-          calleeName,
+          calleeName: canonicalCallee,
           isBare,
           isSync,
           qrlCallee,

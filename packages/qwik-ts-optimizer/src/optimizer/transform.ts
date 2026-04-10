@@ -109,7 +109,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // 4. Build parent TransformModule
     const parentModule: TransformModule = {
       path: relPath,
-      isEntry: true,
+      isEntry: false,
       code: parentResult.code,
       map: null, // Source maps deferred
       segment: null,
@@ -149,7 +149,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
       const segmentModule: TransformModule = {
         path: ext.canonicalFilename + ext.extension,
-        isEntry: false,
+        isEntry: true,
         code: segmentCode,
         map: null,
         segment: segmentAnalysis,

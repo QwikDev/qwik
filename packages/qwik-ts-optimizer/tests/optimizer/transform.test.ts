@@ -25,7 +25,7 @@ export const App = component$(() => {
 
     expect(result.modules.length).toBeGreaterThan(1);
     // Parent module
-    expect(result.modules[0].isEntry).toBe(true);
+    expect(result.modules[0].isEntry).toBe(false);
     expect(result.modules[0].segment).toBeNull();
     expect(result.modules[0].origPath).toBe('test.tsx');
     // Parent code should have componentQrl and qrl references
@@ -33,7 +33,7 @@ export const App = component$(() => {
     expect(result.modules[0].code).toContain('qrl(');
 
     // Segment module
-    expect(result.modules[1].isEntry).toBe(false);
+    expect(result.modules[1].isEntry).toBe(true);
     expect(result.modules[1].segment).not.toBeNull();
     expect(result.modules[1].segment!.ctxName).toBe('component$');
     expect(result.modules[1].segment!.ctxKind).toBe('function');
@@ -98,7 +98,7 @@ const fn = sync$(() => true);`,
 
     // sync$ should not produce a segment module
     expect(result.modules.length).toBe(1);
-    expect(result.modules[0].isEntry).toBe(true);
+    expect(result.modules[0].isEntry).toBe(false);
     expect(result.modules[0].code).toContain('_qrlSync');
   });
 

@@ -168,6 +168,8 @@ describe('generateSegmentCode', () => {
       loc: [2, 0] as [number, number],
       parent: null,
       captures: false,
+      captureNames: [],
+      paramNames: [],
       segmentImports: [
         { localName: 'foo', importedName: 'foo', source: './foo', isQwikCore: false },
       ],
@@ -203,6 +205,8 @@ describe('generateSegmentCode', () => {
       loc: [1, 0] as [number, number],
       parent: null,
       captures: false,
+      captureNames: [],
+      paramNames: [],
       segmentImports: [],
     };
 

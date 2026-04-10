@@ -92,7 +92,7 @@ Plans:
 - [x] 04-03-PLAN.md — Event handler naming and bind syntax desugaring (EVT-01..06, BIND-01..03)
 - [x] 04-04-PLAN.md — Loop detection, .w() hoisting, q:p/q:ps injection, parameter padding (LOOP-01..05)
 - [x] 04-05-PLAN.md — Pipeline integration, type updates, and JSX snapshot validation (all Phase 4 reqs)
-- [ ] 04-06-PLAN.md — Gap closure: wire signal, event, and bind modules into JSX prop processing (SIG-01..05, EVT-01..06, BIND-01..03)
+- [x] 04-06-PLAN.md — Gap closure: wire signal, event, and bind modules into JSX prop processing (SIG-01..05, EVT-01..06, BIND-01..03)
 - [ ] 04-07-PLAN.md — Gap closure: wire loop hoisting into JSX transform pipeline (LOOP-01..05)
 
 ### Phase 5: Entry Strategies and Build Modes

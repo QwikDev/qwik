@@ -26,9 +26,16 @@ export interface CustomInlinedInfo {
   qrlName: string;
 }
 
-/** Known Qwik core package prefixes. */
+/**
+ * Known Qwik package prefixes that may export $-suffixed marker functions.
+ * Includes core, react, and router packages in both old and new naming.
+ */
 const QWIK_CORE_PREFIXES = [
   '@qwik.dev/core',
+  '@qwik.dev/react',
+  '@qwik.dev/router',
+  '@builder.io/qwik-react',
+  '@builder.io/qwik-city',
   '@builder.io/qwik',
 ];
 

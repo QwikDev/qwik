@@ -311,7 +311,7 @@ export function extractSegments(
           symbolName,
           displayName,
           hash,
-          canonicalFilename: symbolName,
+          canonicalFilename: displayName + '_' + hash,
           callStart: node.start,
           callEnd: node.end,
           calleeStart: node.callee.start,

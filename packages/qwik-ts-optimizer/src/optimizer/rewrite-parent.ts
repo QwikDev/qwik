@@ -232,14 +232,15 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   const neededImports = new Map<string, string>(); // symbol -> source
 
-  // qrl is always needed if any non-sync segments extracted
-  const hasNonSync = extractions.some((e) => !e.isSync);
-  if (hasNonSync && !alreadyImported.has('qrl')) {
+  // Only top-level extractions contribute imports to the parent module.
+  // Nested extractions get their imports in the segment module that contains them.
+  const hasTopLevelNonSync = topLevel.some((e) => !e.isSync);
+  if (hasTopLevelNonSync && !alreadyImported.has('qrl')) {
     neededImports.set('qrl', '@qwik.dev/core');
   }
 
-  // Each unique qrlCallee needs an import
-  for (const ext of extractions) {
+  // Each unique qrlCallee from top-level extractions needs an import
+  for (const ext of topLevel) {
     if (ext.isSync) {
       // _qrlSync import
       if (!alreadyImported.has('_qrlSync')) {
@@ -271,8 +272,9 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // Step 5: Build QRL declarations
   // -----------------------------------------------------------------------
-  const nonSyncExtractions = extractions.filter((e) => !e.isSync);
-  const qrlDecls = nonSyncExtractions
+  // Only top-level (non-nested) non-sync extractions get QRL declarations in the parent
+  const topLevelNonSync = extractions.filter((e) => !e.isSync && e.parent === null);
+  const qrlDecls = topLevelNonSync
     .map((ext) => buildQrlDeclaration(ext.symbolName, ext.canonicalFilename))
     .sort();
 

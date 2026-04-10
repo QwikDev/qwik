@@ -53,7 +53,7 @@ export interface ExtractionResult {
   qrlCallee: string;
 
   // Metadata
-  ctxKind: 'function' | 'eventHandler';
+  ctxKind: 'function' | 'eventHandler' | 'jSXProp';
   ctxName: string;
   origin: string;
   extension: string;
@@ -294,7 +294,13 @@ export function extractSegments(
           attrCtx.startsWith('on') &&
           attrCtx.endsWith('$');
 
-        const ctxKind = getCtxKind(canonicalCallee, isEventAttr);
+        // Non-event JSX prop: ends with $ but does NOT start with "on"
+        const isJsxNonEventAttr =
+          attrCtx !== undefined &&
+          attrCtx.endsWith('$') &&
+          !attrCtx.startsWith('on');
+
+        const ctxKind = getCtxKind(canonicalCallee, isEventAttr, isJsxNonEventAttr);
         const ctxName = getCtxName(canonicalCallee, isEventAttr, isEventAttr ? attrCtx : undefined);
 
         const displayName = ctx.getDisplayName();

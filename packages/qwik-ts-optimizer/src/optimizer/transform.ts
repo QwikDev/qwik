@@ -30,6 +30,13 @@ import type {
   SegmentMetadataInternal,
 } from './types.js';
 
+// Phase 4: JSX transform modules
+import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
+import { analyzeSignalExpression, SignalHoister } from './signal-analysis.js';
+import { transformEventPropName, isEventProp, collectPassiveDirectives } from './event-handler-transform.js';
+import { transformBindProp, isBindProp } from './bind-transform.js';
+import { detectLoopContext, findEnclosingLoop, analyzeLoopHandler } from './loop-hoisting.js';
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -209,7 +216,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // Compute parent module path for _auto_ imports (no extension)
     const parentModulePath = computeParentModulePath(relPath);
 
-    // 3. Rewrite parent module (pass migration decisions)
+    // 3. Rewrite parent module (pass migration decisions + JSX options)
     const parentResult = rewriteParentModule(
       input.code,
       relPath,
@@ -217,6 +224,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       originalImports,
       migrationDecisions,
       moduleLevelDecls,
+      (ext === '.tsx' || ext === '.jsx')
+        ? { enableJsx: true, importedNames }
+        : undefined,
     );
 
     // 4. Build parent TransformModule
@@ -296,6 +306,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
         (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0)
           ? captureInfo
+          : undefined,
+        (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx)
+          ? { enableJsx: true, importedNames }
           : undefined,
       );
 

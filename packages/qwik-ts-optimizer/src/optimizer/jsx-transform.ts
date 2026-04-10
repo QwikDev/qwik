@@ -772,18 +772,42 @@ export function transformJsxFragment(
  * Uses leave callback to ensure inner JSX is transformed before outer JSX.
  * Returns the set of needed imports.
  */
+/**
+ * Check if a node falls within any of the skip ranges.
+ * Skip ranges represent already-rewritten regions (e.g., extracted $() calls).
+ */
+function isInSkipRange(
+  nodeStart: number,
+  nodeEnd: number,
+  skipRanges: Array<{ start: number; end: number }>,
+): boolean {
+  for (const range of skipRanges) {
+    if (nodeStart >= range.start && nodeEnd <= range.end) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function transformAllJsx(
   source: string,
   s: MagicString,
   program: any,
   importedNames: Set<string>,
+  skipRanges?: Array<{ start: number; end: number }>,
 ): JsxTransformOutput {
   const keyCounter = new JsxKeyCounter();
   const neededImports = new Set<string>();
   let needsFragment = false;
+  const ranges = skipRanges ?? [];
 
   walk(program, {
     leave(node: any) {
+      // Skip JSX nodes that fall within already-rewritten extraction ranges
+      if (ranges.length > 0 && isInSkipRange(node.start, node.end, ranges)) {
+        return;
+      }
+
       if (node.type === 'JSXElement') {
         const result = transformJsxElement(
           node,

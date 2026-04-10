@@ -188,13 +188,17 @@ export function isSyncMarker(calleeName: string): boolean {
 /**
  * Determine ctxKind for a marker call.
  * "eventHandler" for JSX event attributes (onClick$, onChange$, etc.),
+ * "jSXProp" for non-event $-suffixed JSX attribute props (e.g., transparent$),
  * "function" for everything else.
  */
 export function getCtxKind(
   calleeName: string,
-  isJsxEventAttr: boolean
-): 'function' | 'eventHandler' {
-  return isJsxEventAttr ? 'eventHandler' : 'function';
+  isJsxEventAttr: boolean,
+  isJsxNonEventAttr: boolean = false,
+): 'function' | 'eventHandler' | 'jSXProp' {
+  if (isJsxEventAttr) return 'eventHandler';
+  if (isJsxNonEventAttr) return 'jSXProp';
+  return 'function';
 }
 
 /**

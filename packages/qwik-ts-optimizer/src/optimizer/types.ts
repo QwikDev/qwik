@@ -71,7 +71,7 @@ export interface SegmentAnalysis {
   canonicalFilename: string;
   extension: string;
   parent: string | null;
-  ctxKind: 'eventHandler' | 'function';
+  ctxKind: 'eventHandler' | 'function' | 'jSXProp';
   ctxName: string;
   captures: boolean;
   loc: [number, number];

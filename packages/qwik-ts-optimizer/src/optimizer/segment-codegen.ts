@@ -7,8 +7,11 @@
  * Implements: EXTRACT-04, CAPT-02
  */
 
+import MagicString from 'magic-string';
+import { parseSync } from 'oxc-parser';
 import { rewriteImportSource } from './rewrite-imports.js';
 import type { ExtractionResult } from './extract.js';
+import { transformAllJsx } from './jsx-transform.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -128,6 +131,16 @@ function injectIntoBlockBody(bodyText: string, line: string): string {
 // ---------------------------------------------------------------------------
 
 /**
+ * Options for JSX transformation in segment bodies.
+ */
+export interface SegmentJsxOptions {
+  /** Whether to transform JSX in this segment's body */
+  enableJsx: boolean;
+  /** Set of imported identifier names (for prop classification) */
+  importedNames: Set<string>;
+}
+
+/**
  * Generate the segment module source code for an extracted segment.
  *
  * Output structure:
@@ -142,12 +155,14 @@ function injectIntoBlockBody(bodyText: string, line: string): string {
  * @param extraction - The extraction result containing segment info
  * @param nestedQrlDecls - Optional nested QRL declarations (for Plan 04)
  * @param captureInfo - Optional capture/migration info for this segment
+ * @param jsxOptions - Optional JSX transform options for segment body
  * @returns The segment module source code string
  */
 export function generateSegmentCode(
   extraction: ExtractionResult,
   nestedQrlDecls?: string[],
   captureInfo?: SegmentCaptureInfo,
+  jsxOptions?: SegmentJsxOptions,
 ): string {
   const parts: string[] = [];
 
@@ -251,6 +266,35 @@ export function generateSegmentCode(
   let bodyText = extraction.bodyText;
   if (captureInfo && captureInfo.captureNames.length > 0) {
     bodyText = injectCapturesUnpacking(bodyText, captureInfo.captureNames);
+  }
+
+  // JSX transformation in segment body (Phase 4)
+  if (jsxOptions?.enableJsx && (bodyText.includes('<') || bodyText.includes('JSX'))) {
+    try {
+      // Wrap body in expression context for parsing
+      const wrappedBody = `(${bodyText})`;
+      const bodyParse = parseSync('segment.tsx', wrappedBody);
+      const bodyS = new MagicString(wrappedBody);
+      const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames);
+      const transformedWrapped = bodyS.toString();
+      // Unwrap the parentheses
+      bodyText = transformedWrapped.slice(1, -1);
+
+      // Add JSX imports needed by the segment body
+      for (const sym of jsxResult.neededImports) {
+        // Check if import already exists in parts
+        if (!parts.some(p => p.includes(`{ ${sym} }`) || p.includes(`, ${sym}`))) {
+          parts.splice(parts.indexOf('//'), 0, `import { ${sym} } from "@qwik.dev/core";`);
+        }
+      }
+      if (jsxResult.needsFragment) {
+        if (!parts.some(p => p.includes('_Fragment'))) {
+          parts.splice(parts.indexOf('//'), 0, `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`);
+        }
+      }
+    } catch {
+      // If JSX parsing fails, use the original body text
+    }
   }
 
   parts.push(`export const ${extraction.symbolName} = ${bodyText};`);

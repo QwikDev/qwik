@@ -29,6 +29,7 @@ import {
   needsPureAnnotation,
   getQrlImportSource,
 } from './rewrite-calls.js';
+import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -80,6 +81,16 @@ function isCustomInlined(
 // ---------------------------------------------------------------------------
 
 /**
+ * Options for JSX transformation during parent rewriting.
+ */
+export interface JsxRewriteOptions {
+  /** Whether to run JSX transform (true for .tsx/.jsx files) */
+  enableJsx: boolean;
+  /** Set of imported identifier names (for prop classification) */
+  importedNames: Set<string>;
+}
+
+/**
  * Rewrite a parent module source using magic-string.
  *
  * @param source - Original source code text
@@ -88,6 +99,7 @@ function isCustomInlined(
  * @param originalImports - Import map from collectImports()
  * @param migrationDecisions - Optional migration decisions from analyzeMigration()
  * @param moduleLevelDecls - Optional module-level declarations for removal of moved vars
+ * @param jsxOptions - Optional JSX transform options
  * @returns Rewritten parent module code and updated extractions
  */
 export function rewriteParentModule(
@@ -97,6 +109,7 @@ export function rewriteParentModule(
   originalImports: Map<string, ImportInfo>,
   migrationDecisions?: MigrationDecision[],
   moduleLevelDecls?: ModuleLevelDecl[],
+  jsxOptions?: JsxRewriteOptions,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const { program } = parseSync(relPath, source);
@@ -276,6 +289,25 @@ export function rewriteParentModule(
   }
 
   // -----------------------------------------------------------------------
+  // Step 4c: JSX transformation (Phase 4)
+  // -----------------------------------------------------------------------
+  let jsxResult: JsxTransformOutput | null = null;
+  if (jsxOptions?.enableJsx) {
+    // Build skip ranges from extraction argument ranges.
+    // These regions have already been rewritten (e.g., $() argument replaced with q_symbolName)
+    // so the JSX transform must not try to overwrite nodes within them.
+    const skipRanges = topLevel.map((ext) => ({
+      start: ext.argStart,
+      end: ext.argEnd,
+    }));
+    // Run JSX transform on the same magic-string instance.
+    // This converts JSX elements/fragments to _jsxSorted/_jsxSplit calls.
+    // Must run AFTER call site rewriting (so $() calls are replaced)
+    // but BEFORE import assembly (so we can add JSX imports).
+    jsxResult = transformAllJsx(source, s, program, jsxOptions.importedNames, skipRanges);
+  }
+
+  // -----------------------------------------------------------------------
   // Step 5: Build optimizer-added imports (IMP-04)
   // -----------------------------------------------------------------------
   const neededImports = new Map<string, string>(); // symbol -> source
@@ -304,6 +336,18 @@ export function rewriteParentModule(
       if (!isCustomInlined(ext, originalImports)) {
         neededImports.set(qrlCallee, getQrlImportSource(qrlCallee));
       }
+    }
+  }
+
+  // Add JSX transform imports (Phase 4)
+  if (jsxResult) {
+    for (const sym of jsxResult.neededImports) {
+      if (!alreadyImported.has(sym)) {
+        neededImports.set(sym, '@qwik.dev/core');
+      }
+    }
+    if (jsxResult.needsFragment && !alreadyImported.has('_Fragment')) {
+      neededImports.set('Fragment as _Fragment', '@qwik.dev/core/jsx-runtime');
     }
   }
 

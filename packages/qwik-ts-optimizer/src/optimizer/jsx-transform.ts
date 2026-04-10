@@ -13,6 +13,7 @@ import { walk } from 'oxc-walker';
 import { analyzeSignalExpression, SignalHoister, type SignalExprResult } from './signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective, collectPassiveDirectives } from './event-handler-transform.js';
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind-transform.js';
+import { detectLoopContext, buildQpProp, type LoopContext } from './loop-hoisting.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -720,6 +721,7 @@ export function transformJsxElement(
   keyCounter: JsxKeyCounter,
   passiveEvents?: Set<string>,
   signalHoister?: SignalHoister,
+  loopCtx?: LoopContext | null,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
@@ -756,6 +758,18 @@ export function transformJsxElement(
     neededImports.add(imp);
   }
 
+  // --- Loop context: inject q:p/q:ps prop ---
+  const inLoop = !!loopCtx && loopCtx.iterVars.length > 0;
+  if (inLoop && tagIsHtml) {
+    const qpResult = buildQpProp(loopCtx!.iterVars);
+    if (qpResult) {
+      const formattedQpName = needsQuoting(qpResult.propName)
+        ? `"${qpResult.propName}"`
+        : qpResult.propName;
+      constEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
+    }
+  }
+
   // --- Children ---
   const { text: childrenText, type: childrenType } = processChildren(
     node.children,
@@ -763,7 +777,7 @@ export function transformJsxElement(
   );
 
   // --- Flags ---
-  const flags = hasSpread ? 0 : computeFlags(hasVarProps, childrenType);
+  const flags = hasSpread ? 0 : computeFlags(hasVarProps, childrenType, !!loopCtx);
 
   // --- Key ---
   // Key assignment logic:
@@ -913,12 +927,29 @@ export function transformAllJsx(
   let needsFragment = false;
   const ranges = skipRanges ?? [];
 
+  // Loop context tracking: stack of active loop contexts
+  const loopStack: LoopContext[] = [];
+
   walk(program, {
+    enter(node: any) {
+      const loopCtx = detectLoopContext(node, source);
+      if (loopCtx) {
+        loopStack.push(loopCtx);
+      }
+    },
     leave(node: any) {
+      // Check if leaving a loop node — pop from stack
+      if (loopStack.length > 0 && loopStack[loopStack.length - 1].loopNode === node) {
+        loopStack.pop();
+      }
+
       // Skip JSX nodes that fall within already-rewritten extraction ranges
       if (ranges.length > 0 && isInSkipRange(node.start, node.end, ranges)) {
         return;
       }
+
+      // Current loop context (top of stack, or null)
+      const currentLoop = loopStack.length > 0 ? loopStack[loopStack.length - 1] : null;
 
       if (node.type === 'JSXElement') {
         // Collect passive directives for this element
@@ -934,6 +965,7 @@ export function transformAllJsx(
           keyCounter,
           passiveEvents,
           signalHoister,
+          currentLoop,
         );
         if (result) {
           s.overwrite(

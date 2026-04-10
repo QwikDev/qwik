@@ -401,6 +401,24 @@ export class AsyncSignalImpl<T>
     running.$promise$ = this.$runComputation$(running);
   }
 
+  /**
+   * Sets the error from the given job. We only accept errors from the current job and we ignore
+   * AbortErrors.
+   */
+  $setError$(job: AsyncJob<T>, error: Error): void {
+    if (job !== this.$current$ || !job.$canWrite$) {
+      return;
+    }
+    job.$canWrite$ = false;
+    if (error instanceof Error && error.name === 'AbortError') {
+      // AbortError from AbortSignal is a cancellation, not an actual error
+      return;
+    }
+    this.untrackedError = error;
+    // Job failures should be rare and require retrying
+    this.untrackedValue = NEEDS_COMPUTATION;
+  }
+
   async $runComputation$(running: AsyncJob<T>): Promise<void> {
     const isCurrent = () => running === this.$current$;
 
@@ -411,12 +429,9 @@ export class AsyncSignalImpl<T>
     try {
       if (this.$timeoutMs$) {
         this.$computationTimeoutId$ = setTimeout(() => {
-          running.$abortController$?.abort();
-          const error = new Error(`timeout`);
-          if (isCurrent()) {
-            this.untrackedError = error;
-            running.$canWrite$ = false;
-          }
+          const error = new Error(`timeout ${this.$timeoutMs$}ms`);
+          this.$setError$(running, error);
+          running.$abortController$?.abort(error);
         }, this.$timeoutMs$);
       }
 
@@ -447,11 +462,7 @@ export class AsyncSignalImpl<T>
     } catch (err) {
       running.$promise$ = null;
       DEBUG && log('Error caught in promise.catch', err);
-      if (isCurrent()) {
-        this.untrackedError = err as Error;
-        // Reset value so next read throws the promise instead of returning stale data
-        this.$untrackedValue$ = NEEDS_COMPUTATION;
-      }
+      this.$setError$(running, err as Error);
     }
 
     if (isCurrent()) {

@@ -651,6 +651,64 @@ describe('async signal', () => {
       });
     });
 
+    it('should ignore AbortError from a superseded computation', async () => {
+      await withContainer(async () => {
+        const ref = {
+          started: 0,
+          resolveCurrent: undefined as ((value: number) => void) | undefined,
+        };
+
+        const signal = createAsync$(
+          async ({ abortSignal }) => {
+            ref.started++;
+
+            return new Promise<number>((resolve, reject) => {
+              const onAbort = () => {
+                const err = new Error('aborted');
+                err.name = 'AbortError';
+                reject(err);
+              };
+              abortSignal.addEventListener('abort', onAbort, { once: true });
+
+              ref.resolveCurrent = (value: number) => {
+                abortSignal.removeEventListener('abort', onAbort);
+                resolve(value);
+              };
+            });
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+
+        effect$(() => signal.value);
+
+        await retryOnPromise(() => {
+          if (ref.started !== 1 || !ref.resolveCurrent) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        await signal.invalidate();
+
+        await retryOnPromise(() => {
+          if (ref.started !== 2 || !ref.resolveCurrent) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        expect(signal.error).toBeUndefined();
+        expect(signal.value).toBe(0);
+
+        ref.resolveCurrent!(7);
+        await signal.promise();
+
+        expect(signal.value).toBe(7);
+        expect(signal.error).toBeUndefined();
+        expect(signal.$untrackedValue$).toBe(7);
+      });
+    });
+
     it('should throw the retried promise instead of returning a stale value after an error', async () => {
       await withContainer(async () => {
         const ref = {

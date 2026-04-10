@@ -140,6 +140,7 @@ export function rewriteParentModule(
   inlineOptions?: InlineStrategyOptions,
   stripExports?: string[],
   isServer?: boolean,
+  explicitExtensions?: boolean,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const { program } = parseSync(relPath, source);
@@ -587,7 +588,7 @@ export function rewriteParentModule(
             ext.displayName,
           ));
         } else {
-          qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename));
+          qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions));
         }
         qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
       }
@@ -605,7 +606,7 @@ export function rewriteParentModule(
           ext.displayName,
         ));
       } else {
-        qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename));
+        qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions));
       }
       qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
     }

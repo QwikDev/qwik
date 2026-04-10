@@ -48,8 +48,10 @@ export function getQrlCalleeName(markerName: string): string {
 export function buildQrlDeclaration(
   symbolName: string,
   canonicalFilename: string,
+  explicitExtensions?: boolean,
 ): string {
-  return `const q_${symbolName} = /*#__PURE__*/ qrl(()=>import("./${canonicalFilename}"), "${symbolName}");`;
+  const ext = explicitExtensions ? '.js' : '';
+  return `const q_${symbolName} = /*#__PURE__*/ qrl(()=>import("./${canonicalFilename}${ext}"), "${symbolName}");`;
 }
 
 // ---------------------------------------------------------------------------

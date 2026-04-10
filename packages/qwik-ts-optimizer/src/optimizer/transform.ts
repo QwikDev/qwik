@@ -10,7 +10,8 @@
  */
 
 import { parseSync } from 'oxc-parser';
-import { getUndeclaredIdentifiersInFunction } from 'oxc-walker';
+import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
+import MagicString from 'magic-string';
 import { extractSegments } from './extract.js';
 import { rewriteParentModule } from './rewrite-parent.js';
 import { generateSegmentCode, type SegmentCaptureInfo } from './segment-codegen.js';
@@ -111,6 +112,198 @@ function computeParentModulePath(relPath: string): string {
   const stripped = stripExtension(relPath);
   if (stripped.startsWith('./') || stripped.startsWith('../')) return stripped;
   return './' + stripped;
+}
+
+// ---------------------------------------------------------------------------
+// Import cleanup
+// ---------------------------------------------------------------------------
+
+/**
+ * Qwik package prefixes whose imports should never be removed.
+ * These may have been added by the rewriter and are always needed.
+ */
+const QWIK_IMPORT_PREFIXES = [
+  '@qwik.dev/',
+  '@builder.io/qwik',
+];
+
+/**
+ * Remove unused non-Qwik imports from a rewritten parent module.
+ *
+ * After extraction moves closures into segments, some imports in the parent
+ * module may no longer be referenced. This function re-parses the rewritten
+ * code, identifies which import specifiers are unreferenced in the remaining
+ * body, and removes them.
+ *
+ * Safety rules:
+ * - Never removes Qwik imports (they may have been added by the rewriter)
+ * - Never removes side-effect imports (`import 'module'` with no specifiers)
+ * - Never removes namespace imports (`import * as ns from '...'`)
+ * - Only removes named specifiers whose local name has zero references outside imports
+ *
+ * @param code - The rewritten parent module source code
+ * @param filename - Filename for parser (determines language)
+ * @returns Cleaned code with unused imports removed
+ */
+function removeUnusedImports(code: string, filename: string): string {
+  let parsed;
+  try {
+    parsed = parseSync(filename, code);
+  } catch {
+    // If parsing fails, return code unchanged
+    return code;
+  }
+
+  const program = parsed.program;
+
+  // 1. Collect all import declarations and their specifiers
+  interface ImportSpec {
+    localName: string;
+    node: any; // The ImportDeclaration node
+    specIndex: number;
+    specNode: any;
+  }
+
+  const importSpecs: ImportSpec[] = [];
+  const importNodes: any[] = [];
+
+  for (const node of program.body) {
+    if (node.type !== 'ImportDeclaration') continue;
+
+    // Skip side-effect imports (no specifiers)
+    if (!node.specifiers || node.specifiers.length === 0) continue;
+
+    // Skip Qwik imports
+    const source = node.source?.value ?? '';
+    if (QWIK_IMPORT_PREFIXES.some((prefix) => source.startsWith(prefix))) continue;
+
+    importNodes.push(node);
+
+    for (let i = 0; i < node.specifiers.length; i++) {
+      const spec = node.specifiers[i];
+      // Skip namespace imports -- they could be referenced via property access
+      if (spec.type === 'ImportNamespaceSpecifier') continue;
+
+      const localName = spec.local?.name;
+      if (localName) {
+        importSpecs.push({ localName, node, specIndex: i, specNode: spec });
+      }
+    }
+  }
+
+  if (importSpecs.length === 0) return code;
+
+  // 2. Collect all Identifier references in the non-import part of the AST
+  const referencedNames = new Set<string>();
+  walk(program, {
+    enter(node: any, parent: any) {
+      // Skip import declaration subtrees (use this.skip() to prevent walking children)
+      if (node.type === 'ImportDeclaration') {
+        this.skip();
+        return;
+      }
+
+      if (node.type === 'Identifier' && node.name) {
+        // Skip property keys in non-shorthand object properties
+        if (
+          parent?.type === 'Property' &&
+          parent.key === node &&
+          !parent.shorthand &&
+          !parent.computed
+        ) {
+          return;
+        }
+        // Skip member expression property names (obj.prop -- skip prop)
+        if (
+          parent?.type === 'MemberExpression' &&
+          parent.property === node &&
+          !parent.computed
+        ) {
+          return;
+        }
+        referencedNames.add(node.name);
+      }
+    },
+  });
+
+  // 3. Find unreferenced import specifiers
+  const unreferencedSpecs = importSpecs.filter(
+    (spec) => !referencedNames.has(spec.localName),
+  );
+
+  if (unreferencedSpecs.length === 0) return code;
+
+  // 4. Remove unreferenced imports using magic-string
+  const ms = new MagicString(code);
+
+  // Group unreferenced specs by their parent import node
+  const specsByNode = new Map<any, ImportSpec[]>();
+  for (const spec of unreferencedSpecs) {
+    const existing = specsByNode.get(spec.node) ?? [];
+    existing.push(spec);
+    specsByNode.set(spec.node, existing);
+  }
+
+  for (const [node, specs] of specsByNode) {
+    const totalSpecs = node.specifiers?.length ?? 0;
+    const unreferencedCount = specs.length;
+    // Count how many specifiers in this import are namespace (which we never remove)
+    const namespaceCount = (node.specifiers ?? []).filter(
+      (s: any) => s.type === 'ImportNamespaceSpecifier',
+    ).length;
+    const removableTotal = totalSpecs - namespaceCount;
+
+    if (unreferencedCount >= removableTotal && namespaceCount === 0) {
+      // All specifiers are unreferenced: remove entire import declaration
+      let end = node.end;
+      if (end < code.length && code[end] === '\n') end++;
+      ms.overwrite(node.start, end, '');
+    } else {
+      // Only some specifiers are unreferenced: rebuild the import
+      const unreferencedNames = new Set(specs.map((s) => s.localName));
+      const keptParts: string[] = [];
+      let defaultPart = '';
+      let nsPart = '';
+
+      for (const spec of node.specifiers ?? []) {
+        const localName = spec.local?.name;
+        if (unreferencedNames.has(localName)) continue;
+
+        if (spec.type === 'ImportDefaultSpecifier') {
+          defaultPart = localName;
+        } else if (spec.type === 'ImportNamespaceSpecifier') {
+          nsPart = `* as ${localName}`;
+        } else {
+          const importedName = spec.imported?.name ?? localName;
+          if (importedName !== localName) {
+            keptParts.push(`${importedName} as ${localName}`);
+          } else {
+            keptParts.push(localName);
+          }
+        }
+      }
+
+      let importParts = '';
+      if (nsPart) {
+        importParts = defaultPart ? `${defaultPart}, ${nsPart}` : nsPart;
+      } else if (keptParts.length > 0) {
+        importParts = defaultPart
+          ? `${defaultPart}, { ${keptParts.join(', ')} }`
+          : `{ ${keptParts.join(', ')} }`;
+      } else if (defaultPart) {
+        importParts = defaultPart;
+      }
+
+      const sourceValue = node.source?.value ?? '';
+      const quote = code[node.source.start] === "'" ? "'" : '"';
+      const newImport = `import ${importParts} from ${quote}${sourceValue}${quote};`;
+      let end = node.end;
+      if (end < code.length && code[end] === '\n') end++;
+      ms.overwrite(node.start, end, newImport + '\n');
+    }
+  }
+
+  return ms.toString();
 }
 
 // ---------------------------------------------------------------------------
@@ -320,13 +513,18 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           : undefined,
       options.stripExports,
       options.isServer,
+      options.explicitExtensions,
     );
+
+    // 3b. Import cleanup: remove non-Qwik imports whose identifiers are no longer
+    // referenced in the parent module after extraction moved their consumers to segments.
+    const cleanedCode = removeUnusedImports(parentResult.code, relPath);
 
     // 4. Build parent TransformModule
     const parentModule: TransformModule = {
       path: relPath,
       isEntry: false,
-      code: parentResult.code,
+      code: cleanedCode,
       map: null, // Source maps deferred
       segment: null,
       origPath: input.path,
@@ -469,7 +667,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // Determine nested QRL declarations for segments that have children
       const children = updatedExtractions.filter((c) => c.parent === ext.symbolName && !c.isSync);
       const nestedQrlDecls = children.map((child) =>
-        buildQrlDeclaration(child.symbolName, child.canonicalFilename),
+        buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions),
       );
 
       // 2c. Build SegmentCaptureInfo for this extraction
@@ -607,8 +805,6 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 // ---------------------------------------------------------------------------
 // Diagnostic helper functions
 // ---------------------------------------------------------------------------
-
-import { walk } from 'oxc-walker';
 
 /**
  * Find all call sites of a named function in an AST.

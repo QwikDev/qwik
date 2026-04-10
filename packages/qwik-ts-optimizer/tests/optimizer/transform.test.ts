@@ -643,6 +643,124 @@ export const Comp = (props) => {
     expect(parent.code).not.toContain('"passive:click"');
   });
 
+  // -----------------------------------------------------------------------
+  // Phase 4: Loop hoisting integration tests (LOOP-01..05)
+  // -----------------------------------------------------------------------
+
+  it('loop: for-of loop injects q:p prop and sets loop flag (LOOP-01, LOOP-02, LOOP-05)', () => {
+    // Use for-of loop with JSX pushed to array (not inside JSX children)
+    // so the element is transformed directly by the walk
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const items = [1, 2, 3];
+  const els = [];
+  for (const item of items) {
+    els.push(<div onClick$={() => console.log(item)}>{item}</div>);
+  }
+  return <div>{els}</div>;
+});`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const segments = result.modules.filter((m) => m.segment !== null);
+    const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
+    expect(appSegment).toBeDefined();
+
+    const code = appSegment!.code;
+    // The <div> inside the for-of loop should have q:p for the iteration variable
+    expect(code).toContain('"q:p": item');
+    // Flags should include bit 4 (loop context)
+    // Match the flags argument in _jsxSorted call (5 = 1|4, or 7 = 1|2|4)
+    const divMatch = code.match(/_jsxSorted\("div",\s*null,\s*\{[^}]+\},\s*\w+,\s*(\d+),/);
+    expect(divMatch).toBeTruthy();
+    const flags = parseInt(divMatch![1], 10);
+    expect(flags & 4).toBe(4);
+  });
+
+  it('loop: for-i loop detected and q:p injected (LOOP-05)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const items = [];
+  for (let i = 0; i < 10; i++) {
+    items.push(<span>{i}</span>);
+  }
+  return <div>{items}</div>;
+});`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const segments = result.modules.filter((m) => m.segment !== null);
+    const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
+    expect(appSegment).toBeDefined();
+
+    const code = appSegment!.code;
+    // Check q:p for the iteration variable i
+    expect(code).toContain('"q:p": i');
+    // The <span> inside the for loop should have loop flag (5 = 1|4)
+    expect(code).toMatch(/_jsxSorted\("span".*5.*"u6_0"\)/);
+  });
+
+  it('loop: non-loop JSX elements do NOT get loop flag (LOOP-05 negative)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+export const Comp = (props) => {
+  return <div class="hello">world</div>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    // Flags should NOT include bit 4 (no loop context)
+    const divMatch = parent.code.match(/_jsxSorted\("div",\s*null,\s*\{[^}]+\},\s*"world",\s*(\d+),/);
+    expect(divMatch).toBeTruthy();
+    const flags = parseInt(divMatch![1], 10);
+    expect(flags & 4).toBe(0); // loop bit should NOT be set
+  });
+
+  it('loop: parent-level .map() loop injects q:p and loop flag (LOOP-01)', () => {
+    // Non-extracted JSX at parent level (not inside component$)
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+export const Comp = (props) => {
+  const items = [1, 2, 3];
+  const els = [];
+  for (const item of items) {
+    els.push(<span class="item">{item}</span>);
+  }
+  return <div>{els}</div>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    // The <span> inside the for-of loop should have q:p and loop flag
+    expect(parent.code).toContain('"q:p": item');
+    // Check flags include loop bit (5 = 1|4)
+    expect(parent.code).toMatch(/_jsxSorted\("span".*5.*"u6_0"\)/);
+  });
+
   it('sets segment analysis metadata correctly', () => {
     const result = transformModule({
       input: [

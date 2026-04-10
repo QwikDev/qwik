@@ -48,7 +48,14 @@ Plans:
   3. Call forms are rewritten correctly (`component$` to `componentQrl`, `useTask$` to `useTaskQrl`, `sync$` to `_qrlSync`, etc.) with `/*#__PURE__*/` annotations
   4. Import paths are rewritten (`@builder.io/qwik` to `@qwik.dev/core`, etc.) and necessary imports are added to both parent and segment modules without duplication
   5. `transformModule()` function accepts the same options interface as the NAPI binding and returns transformed code, segment array, and diagnostics
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — API types, dependency installation, and import path rewriting (EXTRACT-07, API-03, IMP-01..03)
+- [ ] 02-02-PLAN.md — Context stack for naming and marker function detection (EXTRACT-01)
+- [ ] 02-03-PLAN.md — Extraction engine, segment codegen, and call form rewriting (EXTRACT-02, EXTRACT-04, EXTRACT-07, IMP-05, CALL-01..05)
+- [ ] 02-04-PLAN.md — Parent module rewriting with magic-string, nested segments, custom inlined functions (EXTRACT-03, EXTRACT-05, EXTRACT-06, IMP-04, IMP-06)
+- [ ] 02-05-PLAN.md — transformModule() public API and snapshot batch validation (API-01, API-02)
 
 ### Phase 3: Capture Analysis and Variable Migration
 **Goal**: The optimizer correctly identifies variables crossing `$()` boundaries, injects capture machinery, and migrates movable declarations
@@ -106,8 +113,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 1. Test Infrastructure and Hash Verification | 0/3 | Planning complete | - |
-| 2. Core Extraction Pipeline | 0/TBD | Not started | - |
+| 1. Test Infrastructure and Hash Verification | 3/3 | Complete | 2026-04-10 |
+| 2. Core Extraction Pipeline | 0/5 | Planning complete | - |
 | 3. Capture Analysis and Variable Migration | 0/TBD | Not started | - |
 | 4. JSX, Signals, and Event Handlers | 0/TBD | Not started | - |
 | 5. Entry Strategies and Build Modes | 0/TBD | Not started | - |

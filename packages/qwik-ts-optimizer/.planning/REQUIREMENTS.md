@@ -86,11 +86,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Loop-Context Hoisting
 
-- [ ] **LOOP-01**: Hoist `.w([captures])` above loops for event handlers inside loops
-- [ ] **LOOP-02**: Inject `q:p` prop for iteration variable access by handlers
-- [ ] **LOOP-03**: Inject `q:ps` for multiple handler captures on same element (sorted alphabetically)
-- [ ] **LOOP-04**: Generate positional parameter padding (`_`, `_1`, `_2`) for unused positions
-- [ ] **LOOP-05**: Handle all loop types (map, for-i, for-of, for-in, while/do-while)
+- [x] **LOOP-01**: Hoist `.w([captures])` above loops for event handlers inside loops
+- [x] **LOOP-02**: Inject `q:p` prop for iteration variable access by handlers
+- [x] **LOOP-03**: Inject `q:ps` for multiple handler captures on same element (sorted alphabetically)
+- [x] **LOOP-04**: Generate positional parameter padding (`_`, `_1`, `_2`) for unused positions
+- [x] **LOOP-05**: Handle all loop types (map, for-i, for-of, for-in, while/do-while)
 
 ### Variable Migration
 
@@ -227,11 +227,11 @@ Requirements for initial release. Each maps to roadmap phases.
 | BIND-01 | Phase 4 | Complete |
 | BIND-02 | Phase 4 | Complete |
 | BIND-03 | Phase 4 | Complete |
-| LOOP-01 | Phase 4 | Pending |
-| LOOP-02 | Phase 4 | Pending |
-| LOOP-03 | Phase 4 | Pending |
-| LOOP-04 | Phase 4 | Pending |
-| LOOP-05 | Phase 4 | Pending |
+| LOOP-01 | Phase 4 | Complete |
+| LOOP-02 | Phase 4 | Complete |
+| LOOP-03 | Phase 4 | Complete |
+| LOOP-04 | Phase 4 | Complete |
+| LOOP-05 | Phase 4 | Complete |
 | ENT-01 | Phase 5 | Pending |
 | ENT-02 | Phase 5 | Pending |
 | ENT-03 | Phase 5 | Pending |

@@ -91,7 +91,7 @@ Plans:
 - [x] 04-02-PLAN.md — Signal analysis with _wrapProp, _fnSignal, and hoisted functions (SIG-01..05)
 - [x] 04-03-PLAN.md — Event handler naming and bind syntax desugaring (EVT-01..06, BIND-01..03)
 - [x] 04-04-PLAN.md — Loop detection, .w() hoisting, q:p/q:ps injection, parameter padding (LOOP-01..05)
-- [ ] 04-05-PLAN.md — Pipeline integration, type updates, and JSX snapshot validation (all Phase 4 reqs)
+- [x] 04-05-PLAN.md — Pipeline integration, type updates, and JSX snapshot validation (all Phase 4 reqs)
 
 ### Phase 5: Entry Strategies and Build Modes
 **Goal**: The optimizer supports all entry strategies and build mode configurations that Qwik's Vite plugin can request

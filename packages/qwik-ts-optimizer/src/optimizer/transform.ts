@@ -10,6 +10,7 @@
  */
 
 import { parseSync } from 'oxc-parser';
+import { getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import { extractSegments } from './extract.js';
 import { rewriteParentModule } from './rewrite-parent.js';
 import { generateSegmentCode, type SegmentCaptureInfo } from './segment-codegen.js';
@@ -39,6 +40,16 @@ import { analyzeSignalExpression, SignalHoister } from './signal-analysis.js';
 import { transformEventPropName, isEventProp, collectPassiveDirectives } from './event-handler-transform.js';
 import { transformBindProp, isBindProp } from './bind-transform.js';
 import { detectLoopContext, findEnclosingLoop, analyzeLoopHandler } from './loop-hoisting.js';
+
+// Phase 6: Diagnostics
+import {
+  emitC02,
+  emitC05,
+  emitPreventdefaultPassiveCheck,
+  classifyDeclarationType,
+  parseDisableDirectives,
+  filterSuppressedDiagnostics,
+} from './diagnostics.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -211,6 +222,68 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       extraction.captures = result.captures;
     }
 
+    // 2a-diag. Diagnostic detection: C02 (function/class references crossing $() boundary)
+    // C02 fires when a function or class declaration from the enclosing scope is
+    // REFERENCED inside a $() closure -- even if it's not a formal capture (fn/class
+    // can't be serialized, so they don't appear in captureNames).
+    // We parse each extraction's body independently and get undeclared identifiers,
+    // then classify each against the enclosing scope.
+    for (const extraction of extractions) {
+      // Parse this extraction's body to get undeclared identifiers
+      let undeclaredIds: string[];
+      try {
+        const wrappedBody = `(${extraction.bodyText})`;
+        const bodyParse = parseSync('segment.tsx', wrappedBody);
+        const exprStmt = bodyParse.program.body[0];
+        let closureNode = exprStmt?.type === 'ExpressionStatement' ? exprStmt.expression : null;
+        while (closureNode?.type === 'ParenthesizedExpression') {
+          closureNode = closureNode.expression;
+        }
+        if (!closureNode || (closureNode.type !== 'ArrowFunctionExpression' && closureNode.type !== 'FunctionExpression')) {
+          continue;
+        }
+        undeclaredIds = getUndeclaredIdentifiersInFunction(closureNode);
+      } catch {
+        continue;
+      }
+      if (undeclaredIds.length === 0) continue;
+
+      // Find enclosing extraction using range containment (not symbolName)
+      let enclosingExt: typeof extractions[0] | null = null;
+      for (const other of extractions) {
+        if (other === extraction) continue;
+        if (extraction.callStart >= other.argStart && extraction.callEnd <= other.argEnd) {
+          if (!enclosingExt || (other.argStart >= enclosingExt.argStart && other.argEnd <= enclosingExt.argEnd)) {
+            enclosingExt = other;
+          }
+        }
+      }
+
+      // Classify each undeclared identifier against enclosing scope
+      // Skip imports and known globals
+      for (const refName of undeclaredIds) {
+        if (importedNames.has(refName)) continue;
+
+        // Classify in the enclosing scope
+        let declType: 'var' | 'fn' | 'class';
+        if (enclosingExt) {
+          try {
+            const wrappedBody = `(${enclosingExt.bodyText})`;
+            const bodyParse = parseSync('segment.tsx', wrappedBody);
+            declType = classifyDeclarationType(bodyParse.program, refName);
+          } catch {
+            declType = 'var';
+          }
+        } else {
+          declType = classifyDeclarationType(program, refName);
+        }
+
+        if (declType === 'fn' || declType === 'class') {
+          diagnostics.push(emitC02(refName, relPath, declType === 'class'));
+        }
+      }
+    }
+
     // 2b. Run variable migration analysis
     const moduleLevelDecls = collectModuleLevelDecls(program, input.code);
     const { segmentUsage, rootUsage } = computeSegmentUsage(program, extractions);
@@ -259,6 +332,67 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       origPath: input.path,
     };
     allModules.push(parentModule);
+
+    // 4a-diag. C05 detection: custom $-suffixed exports missing Qrl counterpart
+    // Collect all exported names from the module
+    const moduleExportNames = new Set<string>();
+    for (const stmt of program.body) {
+      if (stmt.type === 'ExportNamedDeclaration') {
+        if (stmt.declaration?.type === 'VariableDeclaration') {
+          for (const decl of stmt.declaration.declarations ?? []) {
+            if (decl.id?.type === 'Identifier') {
+              moduleExportNames.add(decl.id.name);
+            }
+          }
+        }
+        if (stmt.declaration?.type === 'FunctionDeclaration' && stmt.declaration.id) {
+          moduleExportNames.add(stmt.declaration.id.name);
+        }
+        if (stmt.declaration?.type === 'ClassDeclaration' && stmt.declaration.id) {
+          moduleExportNames.add(stmt.declaration.id.name);
+        }
+        // Named export specifiers
+        for (const spec of stmt.specifiers ?? []) {
+          if (spec.exported?.name) {
+            moduleExportNames.add(spec.exported.name);
+          }
+        }
+      }
+    }
+
+    // Check each exported $-suffixed name for a corresponding Qrl export
+    for (const exportName of moduleExportNames) {
+      if (!exportName.endsWith('$')) continue;
+
+      // Skip known Qwik core functions (they don't need Qrl exports)
+      const importInfo = originalImports.get(exportName);
+      if (importInfo?.isQwikCore) continue;
+
+      // Derive expected Qrl name
+      const qrlName = exportName.slice(0, -1) + 'Qrl';
+      if (!moduleExportNames.has(qrlName)) {
+        // Find call sites of this function in the source for highlight spans
+        // Scan extractions for usages, or find call expressions in the AST
+        const callSites = findCallSites(program, exportName);
+        for (const site of callSites) {
+          const [startLine, startCol] = computeLineColFromOffset(input.code, site.start);
+          const [endLine, endCol] = computeLineColFromOffset(input.code, site.end);
+          diagnostics.push(emitC05(exportName, qrlName, relPath, {
+            lo: site.start,
+            hi: site.end,
+            startLine,
+            startCol,
+            endLine,
+            endCol,
+          }));
+        }
+      }
+    }
+
+    // 4b-diag. preventdefault-passive-check: detect contradictory passive + preventdefault
+    if (ext === '.tsx' || ext === '.jsx') {
+      detectPassivePreventdefaultConflicts(program, relPath, input.code, diagnostics);
+    }
 
     // 5. Generate segment modules for non-sync extractions
     // Updated extractions have parent info from rewriteParentModule
@@ -450,10 +584,124 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     }
   }
 
+  // 6. Apply @qwik-disable-next-line suppression to all diagnostics
+  // Parse directives from all input files and filter diagnostics
+  let filteredDiagnostics = diagnostics;
+  for (const input of options.input) {
+    const directives = parseDisableDirectives(input.code);
+    if (directives.size > 0) {
+      filteredDiagnostics = filterSuppressedDiagnostics(filteredDiagnostics, directives);
+    }
+  }
+
   return {
     modules: allModules,
-    diagnostics,
+    diagnostics: filteredDiagnostics,
     isTypeScript,
     isJsx,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Diagnostic helper functions
+// ---------------------------------------------------------------------------
+
+import { walk } from 'oxc-walker';
+
+/**
+ * Find all call sites of a named function in an AST.
+ * Returns array of { start, end } positions for the callee identifier.
+ */
+function findCallSites(program: any, funcName: string): Array<{ start: number; end: number }> {
+  const sites: Array<{ start: number; end: number }> = [];
+  walk(program, {
+    enter(node: any) {
+      if (
+        node.type === 'CallExpression' &&
+        node.callee?.type === 'Identifier' &&
+        node.callee.name === funcName
+      ) {
+        sites.push({ start: node.callee.start, end: node.callee.end });
+      }
+    },
+  });
+  return sites;
+}
+
+/**
+ * Compute 1-based line and column from a character offset in source text.
+ */
+function computeLineColFromOffset(source: string, offset: number): [number, number] {
+  let line = 1;
+  let col = 1;
+  for (let i = 0; i < offset && i < source.length; i++) {
+    if (source[i] === '\n') {
+      line++;
+      col = 1;
+    } else {
+      col++;
+    }
+  }
+  return [line, col];
+}
+
+/**
+ * Detect preventdefault + passive conflicts on JSX elements.
+ * Walks the AST looking for JSXOpeningElement nodes that have both
+ * passive:EVENT and preventdefault:EVENT attributes.
+ */
+function detectPassivePreventdefaultConflicts(
+  program: any,
+  file: string,
+  source: string,
+  diagnostics: import('./types.js').Diagnostic[],
+): void {
+  walk(program, {
+    enter(node: any) {
+      if (node.type !== 'JSXOpeningElement') return;
+
+      const attrs = node.attributes ?? [];
+      const passiveEvents = new Set<string>();
+      const preventdefaultEvents = new Set<string>();
+
+      for (const attr of attrs) {
+        if (attr.type !== 'JSXAttribute') continue;
+
+        let name: string | null = null;
+        if (attr.name?.type === 'JSXIdentifier') {
+          name = attr.name.name;
+        } else if (attr.name?.type === 'JSXNamespacedName') {
+          name = `${attr.name.namespace.name}:${attr.name.name.name}`;
+        }
+        if (!name) continue;
+
+        if (name.startsWith('passive:')) {
+          passiveEvents.add(name.slice('passive:'.length));
+        } else if (name.startsWith('preventdefault:')) {
+          preventdefaultEvents.add(name.slice('preventdefault:'.length));
+        }
+      }
+
+      // Check for conflicts
+      for (const eventName of passiveEvents) {
+        if (preventdefaultEvents.has(eventName)) {
+          // Build highlight span for the JSX element
+          const [startLine, startCol] = computeLineColFromOffset(source, node.start);
+          // Find the closing > of the opening element
+          const parent = node.parent;
+          const elementEnd = node.end;
+          const [endLine, endCol] = computeLineColFromOffset(source, elementEnd);
+
+          diagnostics.push(emitPreventdefaultPassiveCheck(eventName, file, {
+            lo: node.start,
+            hi: elementEnd,
+            startLine,
+            startCol,
+            endLine,
+            endCol,
+          }));
+        }
+      }
+    },
+  });
 }

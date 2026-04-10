@@ -1,17 +1,21 @@
 /**
  * Tests for the diagnostics module.
  *
- * Covers: C02 (FunctionReference), C03 (CanNotCapture),
- * parseDisableDirectives, filterSuppressedDiagnostics.
+ * Covers: C02 (FunctionReference), C03 (CanNotCapture), C05 (MissingQrlImplementation),
+ * preventdefault-passive-check, parseDisableDirectives, filterSuppressedDiagnostics,
+ * and integration with the transform pipeline.
  */
 
 import { describe, it, expect } from 'vitest';
 import {
   emitC02,
   emitC03,
+  emitC05,
+  emitPreventdefaultPassiveCheck,
   parseDisableDirectives,
   filterSuppressedDiagnostics,
 } from '../../src/optimizer/diagnostics.js';
+import { transformModule } from '../../src/optimizer/transform.js';
 import type { Diagnostic } from '../../src/optimizer/types.js';
 
 describe('emitC02', () => {
@@ -160,5 +164,227 @@ describe('filterSuppressedDiagnostics', () => {
     const result = filterSuppressedDiagnostics(diags, directives);
     // C02 has null highlights, no startLine -- cannot match line-based suppression
     expect(result).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// C05 and preventdefault-passive-check unit tests
+// ---------------------------------------------------------------------------
+
+describe('emitC05', () => {
+  it('produces error with code C05 for missing Qrl export', () => {
+    const diag = emitC05('useMemo$', 'useMemoQrl', 'test.tsx', {
+      lo: 241,
+      hi: 249,
+      startLine: 11,
+      startCol: 5,
+      endLine: 11,
+      endCol: 12,
+    });
+    expect(diag.category).toBe('error');
+    expect(diag.code).toBe('C05');
+    expect(diag.message).toBe(
+      "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly"
+    );
+    expect(diag.highlights).toEqual([
+      { lo: 241, hi: 249, startLine: 11, startCol: 5, endLine: 11, endCol: 12 },
+    ]);
+    expect(diag.scope).toBe('optimizer');
+  });
+});
+
+describe('emitPreventdefaultPassiveCheck', () => {
+  it('produces warning for passive + preventdefault conflict', () => {
+    const diag = emitPreventdefaultPassiveCheck('click', 'test.tsx');
+    expect(diag.category).toBe('warning');
+    expect(diag.code).toBe('preventdefault-passive-check');
+    expect(diag.message).toBe(
+      'preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()'
+    );
+    expect(diag.scope).toBe('optimizer');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Integration tests -- diagnostics through transform pipeline
+// ---------------------------------------------------------------------------
+
+describe('transform pipeline diagnostics', () => {
+  it('emits C02 for function/class captures in example_capturing_fn_class', () => {
+    const input = `
+import { $, component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+\tfunction hola() {
+\t\tconsole.log('hola');
+\t}
+\tclass Thing {}
+\tclass Other {}
+
+\treturn $(() => {
+\t\thola();
+\t\tnew Thing();
+\t\treturn (
+\t\t\t<div></div>
+\t\t)
+\t});
+})
+`;
+    const result = transformModule({
+      input: [{ path: 'test.tsx', code: input }],
+      srcDir: '.',
+    });
+
+    // Should still produce code output (diagnostics are non-blocking)
+    expect(result.modules.length).toBeGreaterThan(0);
+    expect(result.modules[0].code).toBeTruthy();
+
+    // Should emit C02 diagnostics for hola and Thing (not Other -- not captured)
+    const c02Diags = result.diagnostics.filter((d) => d.code === 'C02');
+    expect(c02Diags.length).toBe(2);
+
+    const messages = c02Diags.map((d) => d.message);
+    expect(messages).toContainEqual(
+      "Reference to identifier 'hola' can not be used inside a Qrl($) scope because it's a function"
+    );
+    expect(messages).toContainEqual(
+      "Reference to identifier 'Thing' can not be used inside a Qrl($) scope because it's a function"
+    );
+  });
+
+  it('emits C05 for missing custom inlined Qrl export', () => {
+    const input = `
+import { component$ as Component, $ as onRender, useStore, wrap, useEffect } from '@qwik.dev/core';
+
+
+export const useMemo$ = (qrt) => {
+\tuseEffect(qrt);
+};
+
+export const App = component$((props) => {
+\tconst state = useStore({count: 0});
+\tuseMemo$(() => {
+\t\tconsole.log(state.count);
+\t});
+\treturn $(() => (
+\t\t<div>{state.count}</div>
+\t));
+});
+`;
+    const result = transformModule({
+      input: [{ path: 'test.tsx', code: input }],
+      srcDir: '.',
+    });
+
+    // Should still produce code
+    expect(result.modules.length).toBeGreaterThan(0);
+
+    // Should emit C05 for useMemo$ without useMemoQrl
+    const c05Diags = result.diagnostics.filter((d) => d.code === 'C05');
+    expect(c05Diags.length).toBe(1);
+    expect(c05Diags[0].message).toContain("Found 'useMemo$'");
+    expect(c05Diags[0].message).toContain("'useMemoQrl'");
+  });
+
+  it('emits preventdefault-passive-check warning', () => {
+    const input = `
+\t\timport { component$ } from '@qwik.dev/core';
+
+\t\tconst PassiveOnlyComponent = component$(() => {
+\t\t\treturn (
+\t\t\t\t<div>
+\t\t\t\t\t<button passive:click preventdefault:click onClick$={() => {}}>
+\t\t\t\t\t\tclick
+\t\t\t\t\t</button>
+\t\t\t\t</div>
+\t\t\t);
+\t\t});
+\t\t`;
+    const result = transformModule({
+      input: [{ path: 'test.tsx', code: input }],
+      srcDir: '.',
+    });
+
+    const passiveDiags = result.diagnostics.filter(
+      (d) => d.code === 'preventdefault-passive-check'
+    );
+    expect(passiveDiags.length).toBe(1);
+    expect(passiveDiags[0].category).toBe('warning');
+    expect(passiveDiags[0].message).toContain('preventdefault:click');
+    expect(passiveDiags[0].message).toContain('passive:click');
+  });
+
+  it('suppresses diagnostics with @qwik-disable-next-line', () => {
+    const input = `
+\t\timport { component$ } from '@qwik.dev/core';
+
+\t\tconst PassiveOnlyComponent = component$(() => {
+\t\t\treturn (
+\t\t\t\t<div>
+\t\t\t\t\t{/* @qwik-disable-next-line preventdefault-passive-check */}
+\t\t\t\t\t<button passive:click preventdefault:click onClick$={() => {}}>
+\t\t\t\t\t\tclick
+\t\t\t\t\t</button>
+\t\t\t\t</div>
+\t\t\t);
+\t\t});
+\t\t`;
+    const result = transformModule({
+      input: [{ path: 'test.tsx', code: input }],
+      srcDir: '.',
+    });
+
+    // The preventdefault-passive-check should be suppressed
+    const passiveDiags = result.diagnostics.filter(
+      (d) => d.code === 'preventdefault-passive-check'
+    );
+    expect(passiveDiags.length).toBe(0);
+  });
+
+  it('suppresses C05 with @qwik-disable-next-line', () => {
+    const input = `
+\t\timport { component$, useEffect } from '@qwik.dev/core';
+
+\t\texport const useMemo$ = (qrt) => {
+\t\t\tuseEffect(qrt);
+\t\t};
+
+\t\texport const App = component$(() => {
+\t\t\t/* @qwik-disable-next-line C05 */
+\t\t\tuseMemo$(() => {
+\t\t\t\tconsole.log('suppressed');
+\t\t\t});
+\t\t\treturn <div />;
+\t\t});
+\t\t`;
+    const result = transformModule({
+      input: [{ path: 'test.tsx', code: input }],
+      srcDir: '.',
+    });
+
+    const c05Diags = result.diagnostics.filter((d) => d.code === 'C05');
+    expect(c05Diags.length).toBe(0);
+  });
+
+  it('produces code output even when diagnostics are present', () => {
+    const input = `
+import { $, component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+\tfunction hola() { console.log('hi'); }
+\treturn $(() => { hola(); return <div />; });
+})
+`;
+    const result = transformModule({
+      input: [{ path: 'test.tsx', code: input }],
+      srcDir: '.',
+    });
+
+    // Diagnostics present
+    expect(result.diagnostics.length).toBeGreaterThan(0);
+
+    // Code still produced
+    expect(result.modules.length).toBeGreaterThan(0);
+    expect(result.modules[0].code.length).toBeGreaterThan(0);
   });
 });

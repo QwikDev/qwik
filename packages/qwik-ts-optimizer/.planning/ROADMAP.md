@@ -125,9 +125,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — TBD
-- [ ] 06-02-PLAN.md — TBD
-- [ ] 06-03-PLAN.md — TBD
+- [ ] 06-01-PLAN.md — Diagnostic emission (C02, C03, C05, preventdefault-passive-check) and @qwik-disable-next-line suppression (DIAG-01..04)
+- [ ] 06-02-PLAN.md — Convergence infrastructure: snapshot options map, import cleanup, explicitExtensions (DIAG-04)
+- [ ] 06-03-PLAN.md — Final convergence: TS stripping, edge case fixes, 209/209 snapshot validation (DIAG-01..04)
 
 ## Progress
 
@@ -141,4 +141,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Capture Analysis and Variable Migration | 3/3 | Complete | 2026-04-10 |
 | 4. JSX, Signals, and Event Handlers | 7/7 | Complete | 2026-04-10 |
 | 5. Entry Strategies and Build Modes | 0/3 | Planning complete | - |
-| 6. Diagnostics and Convergence | 0/3 | Not started | - |
+| 6. Diagnostics and Convergence | 0/3 | Planning complete | - |

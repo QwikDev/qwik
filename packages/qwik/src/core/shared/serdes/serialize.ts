@@ -353,11 +353,13 @@ export class Serializer {
         value[_PROPS_HANDLER].$effects$,
       ]);
     } else if (value instanceof SubscriptionData) {
+      // TODO make everything optional or use two types
       this.output(TypeIds.SubscriptionData, [
         value.data.$scopedStyleIdPrefix$,
         value.data.$isConst$,
       ]);
     } else if (value instanceof EffectSubscription) {
+      // TODO no data if [null, true]
       this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;

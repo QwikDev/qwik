@@ -166,13 +166,93 @@ Requirements for initial release. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Populated during roadmap creation) | | |
+| TEST-01 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Pending |
+| TEST-03 | Phase 1 | Pending |
+| TEST-04 | Phase 1 | Pending |
+| HASH-01 | Phase 1 | Pending |
+| HASH-02 | Phase 1 | Pending |
+| HASH-03 | Phase 1 | Pending |
+| HASH-04 | Phase 1 | Pending |
+| HASH-05 | Phase 1 | Pending |
+| EXTRACT-01 | Phase 2 | Pending |
+| EXTRACT-02 | Phase 2 | Pending |
+| EXTRACT-03 | Phase 2 | Pending |
+| EXTRACT-04 | Phase 2 | Pending |
+| EXTRACT-05 | Phase 2 | Pending |
+| EXTRACT-06 | Phase 2 | Pending |
+| EXTRACT-07 | Phase 2 | Pending |
+| CALL-01 | Phase 2 | Pending |
+| CALL-02 | Phase 2 | Pending |
+| CALL-03 | Phase 2 | Pending |
+| CALL-04 | Phase 2 | Pending |
+| CALL-05 | Phase 2 | Pending |
+| IMP-01 | Phase 2 | Pending |
+| IMP-02 | Phase 2 | Pending |
+| IMP-03 | Phase 2 | Pending |
+| IMP-04 | Phase 2 | Pending |
+| IMP-05 | Phase 2 | Pending |
+| IMP-06 | Phase 2 | Pending |
+| API-01 | Phase 2 | Pending |
+| API-02 | Phase 2 | Pending |
+| API-03 | Phase 2 | Pending |
+| CAPT-01 | Phase 3 | Pending |
+| CAPT-02 | Phase 3 | Pending |
+| CAPT-03 | Phase 3 | Pending |
+| CAPT-04 | Phase 3 | Pending |
+| CAPT-05 | Phase 3 | Pending |
+| CAPT-06 | Phase 3 | Pending |
+| MIG-01 | Phase 3 | Pending |
+| MIG-02 | Phase 3 | Pending |
+| MIG-03 | Phase 3 | Pending |
+| MIG-04 | Phase 3 | Pending |
+| MIG-05 | Phase 3 | Pending |
+| JSX-01 | Phase 4 | Pending |
+| JSX-02 | Phase 4 | Pending |
+| JSX-03 | Phase 4 | Pending |
+| JSX-04 | Phase 4 | Pending |
+| JSX-05 | Phase 4 | Pending |
+| JSX-06 | Phase 4 | Pending |
+| SIG-01 | Phase 4 | Pending |
+| SIG-02 | Phase 4 | Pending |
+| SIG-03 | Phase 4 | Pending |
+| SIG-04 | Phase 4 | Pending |
+| SIG-05 | Phase 4 | Pending |
+| EVT-01 | Phase 4 | Pending |
+| EVT-02 | Phase 4 | Pending |
+| EVT-03 | Phase 4 | Pending |
+| EVT-04 | Phase 4 | Pending |
+| EVT-05 | Phase 4 | Pending |
+| EVT-06 | Phase 4 | Pending |
+| BIND-01 | Phase 4 | Pending |
+| BIND-02 | Phase 4 | Pending |
+| BIND-03 | Phase 4 | Pending |
+| LOOP-01 | Phase 4 | Pending |
+| LOOP-02 | Phase 4 | Pending |
+| LOOP-03 | Phase 4 | Pending |
+| LOOP-04 | Phase 4 | Pending |
+| LOOP-05 | Phase 4 | Pending |
+| ENT-01 | Phase 5 | Pending |
+| ENT-02 | Phase 5 | Pending |
+| ENT-03 | Phase 5 | Pending |
+| ENT-04 | Phase 5 | Pending |
+| MODE-01 | Phase 5 | Pending |
+| MODE-02 | Phase 5 | Pending |
+| MODE-03 | Phase 5 | Pending |
+| MODE-04 | Phase 5 | Pending |
+| MODE-05 | Phase 5 | Pending |
+| MODE-06 | Phase 5 | Pending |
+| MODE-07 | Phase 5 | Pending |
+| DIAG-01 | Phase 6 | Pending |
+| DIAG-02 | Phase 6 | Pending |
+| DIAG-03 | Phase 6 | Pending |
+| DIAG-04 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 72 total
-- Mapped to phases: 0
-- Unmapped: 72
+- v1 requirements: 81 total
+- Mapped to phases: 81
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-10*
-*Last updated: 2026-04-10 after initial definition*
+*Last updated: 2026-04-10 after roadmap creation*

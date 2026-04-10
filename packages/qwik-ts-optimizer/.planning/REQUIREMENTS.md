@@ -16,11 +16,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Hash and Naming
 
-- [ ] **HASH-01**: SipHash-1-3 implementation with keys (0,0) produces byte-identical hashes to SWC optimizer
-- [ ] **HASH-02**: Hash input is raw concatenated bytes: scope + rel_path + display_name (no separators)
-- [ ] **HASH-03**: Hash output is u64 little-endian, base64url-encoded (no padding), with `-` and `_` replaced by `0`
-- [ ] **HASH-04**: Display name construction follows `{file}_{context}` pattern, verified against all snapshot metadata
-- [ ] **HASH-05**: Symbol name follows `{context}_{ctxName}_{hash}` pattern
+- [x] **HASH-01**: SipHash-1-3 implementation with keys (0,0) produces byte-identical hashes to SWC optimizer
+- [x] **HASH-02**: Hash input is raw concatenated bytes: scope + rel_path + display_name (no separators)
+- [x] **HASH-03**: Hash output is u64 little-endian, base64url-encoded (no padding), with `-` and `_` replaced by `0`
+- [x] **HASH-04**: Display name construction follows `{file}_{context}` pattern, verified against all snapshot metadata
+- [x] **HASH-05**: Symbol name follows `{context}_{ctxName}_{hash}` pattern
 
 ### Core Extraction
 
@@ -170,11 +170,11 @@ Requirements for initial release. Each maps to roadmap phases.
 | TEST-02 | Phase 1 | Pending |
 | TEST-03 | Phase 1 | Pending |
 | TEST-04 | Phase 1 | Pending |
-| HASH-01 | Phase 1 | Pending |
-| HASH-02 | Phase 1 | Pending |
-| HASH-03 | Phase 1 | Pending |
-| HASH-04 | Phase 1 | Pending |
-| HASH-05 | Phase 1 | Pending |
+| HASH-01 | Phase 1 | Complete |
+| HASH-02 | Phase 1 | Complete |
+| HASH-03 | Phase 1 | Complete |
+| HASH-04 | Phase 1 | Complete |
+| HASH-05 | Phase 1 | Complete |
 | EXTRACT-01 | Phase 2 | Pending |
 | EXTRACT-02 | Phase 2 | Pending |
 | EXTRACT-03 | Phase 2 | Pending |

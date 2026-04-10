@@ -35,8 +35,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Capture Analysis
 
 - [x] **CAPT-01**: Detect variables referenced inside `$()` closure but declared outside (scoped identifiers)
-- [ ] **CAPT-02**: Inject `_captures` array access in segment modules for captured variables
-- [ ] **CAPT-03**: Generate `.w([captured1, captured2])` wrapping on QRL references in parent module
+- [x] **CAPT-02**: Inject `_captures` array access in segment modules for captured variables
+- [x] **CAPT-03**: Generate `.w([captured1, captured2])` wrapping on QRL references in parent module
 - [x] **CAPT-04**: Handle `var` hoisting across `$()` boundaries correctly
 - [x] **CAPT-05**: Handle destructured parameters and bindings in capture analysis
 - [x] **CAPT-06**: Distinguish between captures (outer scope) and paramNames (positional args from `q:p`/`q:ps`)
@@ -197,8 +197,8 @@ Requirements for initial release. Each maps to roadmap phases.
 | API-02 | Phase 2 | Complete |
 | API-03 | Phase 2 | Complete |
 | CAPT-01 | Phase 3 | Complete |
-| CAPT-02 | Phase 3 | Pending |
-| CAPT-03 | Phase 3 | Pending |
+| CAPT-02 | Phase 3 | Complete |
+| CAPT-03 | Phase 3 | Complete |
 | CAPT-04 | Phase 3 | Complete |
 | CAPT-05 | Phase 3 | Complete |
 | CAPT-06 | Phase 3 | Complete |

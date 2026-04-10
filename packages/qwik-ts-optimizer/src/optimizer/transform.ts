@@ -294,7 +294,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           ext.symbolName,
           ext.ctxName,
           null,
-          'manual' in entryStrategy ? entryStrategy.manual : undefined,
+          'manual' in entryStrategy ? (entryStrategy as any).manual as Record<string, string> | undefined : undefined,
         );
 
         const segmentAnalysis: SegmentMetadataInternal = {
@@ -418,7 +418,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         ext.symbolName,
         ext.ctxName,
         parentComponentSymbol,
-        'manual' in entryStrategy ? entryStrategy.manual : undefined,
+        'manual' in entryStrategy ? (entryStrategy as any).manual as Record<string, string> | undefined : undefined,
       );
 
       const segmentAnalysis: SegmentMetadataInternal = {

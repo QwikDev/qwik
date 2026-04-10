@@ -39,6 +39,8 @@ import {
 } from './inline-strategy.js';
 import { isStrippedSegment } from './strip-ctx.js';
 import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
+import { stripExportDeclarations } from './strip-exports.js';
+import { replaceConstants } from './const-replacement.js';
 import type { EmitMode } from './types.js';
 
 // ---------------------------------------------------------------------------
@@ -136,6 +138,8 @@ export function rewriteParentModule(
   mode?: EmitMode,
   devFilePath?: string,
   inlineOptions?: InlineStrategyOptions,
+  stripExports?: string[],
+  isServer?: boolean,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const { program } = parseSync(relPath, source);
@@ -237,6 +241,21 @@ export function rewriteParentModule(
       if (end < source.length && source[end] === '\n') end++;
       s.overwrite(node.start, end, newImport + '\n');
     }
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 2b: Strip exports (MODE-06)
+  // -----------------------------------------------------------------------
+  if (stripExports && stripExports.length > 0) {
+    stripExportDeclarations(source, s, program, stripExports, originalImports);
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 2c: Const replacement (MODE-07)
+  // -----------------------------------------------------------------------
+  const isDev = mode === 'dev' ? true : mode === 'prod' ? false : undefined;
+  if (isServer !== undefined || isDev !== undefined) {
+    replaceConstants(source, s, program, originalImports, isServer, isDev);
   }
 
   // -----------------------------------------------------------------------

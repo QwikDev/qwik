@@ -245,6 +245,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         : options.stripCtxName || options.stripEventHandlers
           ? { inline: false, stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers }
           : undefined,
+      options.stripExports,
+      options.isServer,
     );
 
     // 4. Build parent TransformModule

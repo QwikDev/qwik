@@ -67,7 +67,12 @@ Plans:
   3. Variables used only by one segment are migrated into that segment's module; shared variables are re-exported from parent as `_auto_VARNAME`
   4. Exported variables and declarations with side effects are never migrated
   5. Capture metadata (captures, captureNames, paramNames) in segment output matches snapshot expectations exactly
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
+- [ ] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
+- [ ] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
 
 ### Phase 4: JSX, Signals, and Event Handlers
 **Goal**: JSX elements are transformed to optimized `_jsxSorted` calls with signal-aware prop classification, event handler extraction, and loop-context hoisting
@@ -79,7 +84,12 @@ Plans:
   3. Event handlers (`onClick$`, `document:onFocus$`, `window:onClick$`, etc.) are extracted as segments and transformed to `q-e:click`, `q-d:focus`, `q-w:click` in constProps
   4. Event handlers inside loops have their `.w([captures])` hoisted above the loop, with `q:p`/`q:ps` injection and positional parameter padding
   5. `bind:value` and `bind:checked` produce value prop + `q-e:input` handler with `inlinedQrl`
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
+- [ ] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
+- [ ] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
 **UI hint**: yes
 
 ### Phase 5: Entry Strategies and Build Modes
@@ -92,7 +102,12 @@ Plans:
   3. Dev mode generates `qrlDEV()` with file/line/displayName metadata, JSX source info, and `_useHmr(filePath)` in component segments
   4. Server strip mode replaces server-only code with null exports; client strip mode does the same for client-only code; strip exports mode replaces specified exports with throw statements
   5. `isServer`, `isBrowser`, and `isDev` constants are replaced with their correct boolean values based on configuration
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
+- [ ] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
+- [ ] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
 
 ### Phase 6: Diagnostics and Convergence
 **Goal**: The optimizer emits correct diagnostics for invalid code patterns and passes all remaining snapshot tests
@@ -104,7 +119,12 @@ Plans:
   3. `@qwik-disable-next-line` comment directive suppresses the next diagnostic
   4. All ~180 snapshot tests pass via AST-based comparison with no regressions from previously locked batches
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
+- [ ] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
+- [ ] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
 
 ## Progress
 
@@ -115,7 +135,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|---------------|--------|-----------|
 | 1. Test Infrastructure and Hash Verification | 3/3 | Complete | 2026-04-10 |
 | 2. Core Extraction Pipeline | 0/5 | Planning complete | - |
-| 3. Capture Analysis and Variable Migration | 0/TBD | Not started | - |
+| 3. Capture Analysis and Variable Migration | 0/3 | Planning complete | - |
 | 4. JSX, Signals, and Event Handlers | 0/TBD | Not started | - |
 | 5. Entry Strategies and Build Modes | 0/TBD | Not started | - |
 | 6. Diagnostics and Convergence | 0/TBD | Not started | - |

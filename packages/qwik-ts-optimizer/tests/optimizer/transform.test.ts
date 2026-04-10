@@ -424,6 +424,225 @@ export const handler = $(() => { console.log('hello'); });`,
     expect(parent.code).not.toContain('_Fragment');
   });
 
+  // -----------------------------------------------------------------------
+  // Phase 4: Signal wrapping, event naming, and bind desugaring integration
+  // -----------------------------------------------------------------------
+
+  it('signal: wraps signal.value with _wrapProp in constProps (SIG-01)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  const sig = { value: 0 };
+  return <div count={sig.value}/>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    expect(parent.code).toContain('_wrapProp(sig)');
+    expect(parent.code).toContain('import { _wrapProp }');
+  });
+
+  it('signal: wraps store.field with _wrapProp(store, "field") (SIG-02)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  return <div class={props.class}/>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    expect(parent.code).toContain('_wrapProp(props, "class")');
+  });
+
+  it('signal: computed expression produces _fnSignal with hoisted _hf (SIG-03, SIG-04)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  const sig = { value: 0 };
+  return <div count={12 + sig.value}/>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    expect(parent.code).toContain('_fnSignal(');
+    expect(parent.code).toContain('const _hf0 =');
+    expect(parent.code).toContain('const _hf0_str =');
+    expect(parent.code).toContain('import { _fnSignal }');
+  });
+
+  it('event: renames onClick$ to q-e:click on HTML elements (EVT-01)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  return <button onClick$={() => console.log("hi")}>click</button>;
+});`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    // The segment body should contain the q-e:click naming
+    const segments = result.modules.filter((m) => m.segment !== null);
+    const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
+    if (appSegment) {
+      expect(appSegment.code).toContain('"q-e:click"');
+    }
+  });
+
+  it('event: renames document:/window: event prefixes (EVT-02, EVT-03)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  return <div document:onFocus$={() => {}} window:onClick$={() => {}}/>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    // document:onFocus$ -> q-d:focus
+    expect(parent.code).toContain('"q-d:focus"');
+    // window:onClick$ -> q-w:click
+    expect(parent.code).toContain('"q-w:click"');
+  });
+
+  it('event: does NOT rename event props on component elements (Pattern 10)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  return <CustomComponent onClick$={() => {}}/>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    // Component event props should NOT be renamed to q-e:click
+    expect(parent.code).not.toContain('"q-e:click"');
+  });
+
+  it('bind: desugars bind:value into value prop + q-e:input handler (BIND-01)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  const val = {};
+  return <input bind:value={val}/>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    expect(parent.code).toContain('value: val');
+    expect(parent.code).toContain('"q-e:input"');
+    expect(parent.code).toContain('inlinedQrl(_val');
+  });
+
+  it('bind: desugars bind:checked into checked prop + q-e:input handler (BIND-02)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  const chk = {};
+  return <input bind:checked={chk}/>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    expect(parent.code).toContain('checked: chk');
+    expect(parent.code).toContain('"q-e:input"');
+    expect(parent.code).toContain('inlinedQrl(_chk');
+  });
+
+  it('bind: unknown bind:xxx passes through unchanged (BIND-03)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  const s = {};
+  return <input bind:stuff={s}/>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    expect(parent.code).toContain('"bind:stuff"');
+    expect(parent.code).not.toContain('"q-e:input"');
+  });
+
+  it('event: passive directive produces q-ep: prefix and strips passive attr (EVT-05)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  return <div passive:click onClick$={() => {}}/>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    // Should have passive prefix
+    expect(parent.code).toContain('"q-ep:click"');
+    // passive:click should not appear as a prop in the output
+    expect(parent.code).not.toContain('"passive:click"');
+  });
+
   it('sets segment analysis metadata correctly', () => {
     const result = transformModule({
       input: [

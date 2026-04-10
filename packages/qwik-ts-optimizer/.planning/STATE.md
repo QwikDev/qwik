@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-04-10T19:11:19.597Z"
+status: verifying
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-04-10T19:20:37.024Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 
 Phase: 02 (Core Extraction Pipeline) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-10
 
 Progress: [░░░░░░░░░░] 0%
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P02 | 3min | 2 tasks | 4 files |
 | Phase 02 P03 | 4min | 2 tasks | 5 files |
 | Phase 02 P04 | 3min | 1 tasks | 2 files |
+| Phase 02 P05 | 7min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Recent decisions affecting current work:
 - [Phase 02]: Context stack pushes callee name for marker calls to produce correct display names (e.g., App_component)
 - [Phase 02]: Only top-level extractions have call sites rewritten in parent; nested calls handled in segment bodies
 - [Phase 02]: Nesting detected by range containment: inner callStart >= outer argStart && inner callEnd <= outer argEnd
+- [Phase 02]: canonicalFilename includes file stem prefix (displayName + hash), matching Rust optimizer behavior
+- [Phase 02]: Only top-level extractions get QRL declarations/imports in parent; nested ones go in their parent segment
+- [Phase 02]: QWIK_CORE_PREFIXES expanded to all Qwik packages (core, react, router) in both old and new naming
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T19:11:19.591Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-04-10T19:20:37.022Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None

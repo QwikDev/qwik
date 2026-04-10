@@ -132,8 +132,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Public API
 
-- [ ] **API-01**: Export `transformModule()` function with same interface as current NAPI binding
-- [ ] **API-02**: Return transformed parent module code, array of segments (code + metadata), and diagnostics
+- [x] **API-01**: Export `transformModule()` function with same interface as current NAPI binding
+- [x] **API-02**: Return transformed parent module code, array of segments (code + metadata), and diagnostics
 - [x] **API-03**: Accept options: filename, entryStrategy, mode (dev/prod), isServer, stripExports, etc.
 
 ## v2 Requirements
@@ -193,8 +193,8 @@ Requirements for initial release. Each maps to roadmap phases.
 | IMP-04 | Phase 2 | Complete |
 | IMP-05 | Phase 2 | Complete |
 | IMP-06 | Phase 2 | Complete |
-| API-01 | Phase 2 | Pending |
-| API-02 | Phase 2 | Pending |
+| API-01 | Phase 2 | Complete |
+| API-02 | Phase 2 | Complete |
 | API-03 | Phase 2 | Complete |
 | CAPT-01 | Phase 3 | Pending |
 | CAPT-02 | Phase 3 | Pending |

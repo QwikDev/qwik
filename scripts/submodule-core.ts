@@ -18,9 +18,6 @@ import {
  */
 export const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
 
-// This ensures that import.meta.env is always defined, and the () make sure it doesn't get replaced during bundling
-const importMetaFix = '(import.meta).env||={};';
-
 /**
  * Build the core package which is also the root package: @qwik.dev/core
  *
@@ -85,11 +82,6 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
     : { toplevel: true, module: true, properties: { regex: MANGLE_PROPS_REGEX } };
 
   const inputCore = join(config.distQwikPkgDir, 'core.mjs');
-
-  // prepend import.meta.env so it can be imported without vite
-  const esmCode = await readFile(inputCore);
-  await writeFile(inputCore, importMetaFix + esmCode);
-
   const inputMin: InputOptions = {
     external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
     input: inputCore,
@@ -320,7 +312,7 @@ async function submoduleCoreProduction(
   });
   code = result.code!;
 
-  await writeFile(outPath, importMetaFix + code + '\n');
+  await writeFile(outPath, code + '\n');
 
   console.log('🦝 core.prod.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.prod.mjs')));
 }
@@ -340,17 +332,14 @@ async function submoduleCoreDev(config: BuildConfig) {
     },
   };
 
-  await build({
+  const esm = await build({
     ...opts,
     external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });
 
-  // prepend import.meta.env so it can be imported without vite
-  const esmPath = join(config.distQwikPkgDir, 'core.mjs');
-  const esmCode = await readFile(esmPath);
-  await writeFile(esmPath, importMetaFix + esmCode);
+  await Promise.all([esm]);
 
   // Point the minified and prod versions to the dev versions
   await writeFile(join(config.distQwikPkgDir, 'core.prod.mjs'), `export * from './core.mjs';\n`);

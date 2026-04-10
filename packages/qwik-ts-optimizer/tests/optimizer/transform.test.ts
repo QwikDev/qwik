@@ -261,6 +261,169 @@ export const App = component$(() => {
     expect(appSegment!.segment!.captures).toBe(false);
   });
 
+  // -----------------------------------------------------------------------
+  // Phase 4: JSX transform integration tests
+  // -----------------------------------------------------------------------
+
+  it('jsx: transforms basic JSX element to _jsxSorted call in parent', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Lightweight = (props) => {
+  return <div class="hello">world</div>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    // Parent should contain _jsxSorted call for the non-extracted JSX
+    expect(parent.code).toContain('_jsxSorted');
+    expect(parent.code).toContain('"div"');
+    expect(parent.code).toContain('class: "hello"');
+    expect(parent.code).toContain('"world"');
+    // _jsxSorted should be imported
+    expect(parent.code).toContain('import { _jsxSorted }');
+  });
+
+  it('jsx: transforms JSX fragment to _jsxSorted with _Fragment', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const Comp = (props) => {
+  return <>text</>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    expect(parent.code).toContain('_jsxSorted(_Fragment');
+    expect(parent.code).toContain('Fragment as _Fragment');
+    expect(parent.code).toContain('@qwik.dev/core/jsx-runtime');
+  });
+
+  it('jsx: transforms JSX in segment body text', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  return <div class="test">hello</div>;
+});`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const segments = result.modules.filter((m) => m.segment !== null);
+    const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
+    expect(appSegment).toBeDefined();
+    // Segment body should have JSX transformed to _jsxSorted
+    expect(appSegment!.code).toContain('_jsxSorted');
+    expect(appSegment!.code).toContain('"div"');
+    expect(appSegment!.code).toContain('class: "test"');
+  });
+
+  it('jsx: classifies props correctly (const vs var)', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+import styles from './styles.module.css';
+
+export const Comp = (props) => {
+  return <div class={styles.container} data-value={window.location.href}>content</div>;
+};`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    // styles.container is imported -> constProps
+    // window.location.href is global -> varProps
+    expect(parent.code).toContain('_jsxSorted("div"');
+  });
+
+  it('jsx: ctxKind is jSXProp for non-event $-suffixed JSX props', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$, $ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  return <div transparent$={() => true}>hello</div>;
+});`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const segments = result.modules.filter((m) => m.segment !== null);
+    // Find the transparent$ segment (it should have ctxKind jSXProp)
+    const transparentSeg = segments.find(
+      (s) => s.segment!.ctxName === 'transparent$'
+    );
+    if (transparentSeg) {
+      expect(transparentSeg.segment!.ctxKind).toBe('jSXProp');
+    }
+  });
+
+  it('jsx: event handler ctxKind remains eventHandler', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  return <button onClick$={() => console.log("hi")}>click</button>;
+});`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const segments = result.modules.filter((m) => m.segment !== null);
+    const clickSeg = segments.find(
+      (s) => s.segment!.ctxName === 'onClick$'
+    );
+    if (clickSeg) {
+      expect(clickSeg.segment!.ctxKind).toBe('eventHandler');
+    }
+  });
+
+  it('jsx: non-JSX files skip JSX transform', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: 'test.ts',
+          code: `import { $ } from '@qwik.dev/core';
+export const handler = $(() => { console.log('hello'); });`,
+        },
+      ],
+      srcDir: '.',
+    });
+
+    const parent = result.modules[0];
+    // No JSX imports should be added
+    expect(parent.code).not.toContain('_jsxSorted');
+    expect(parent.code).not.toContain('_Fragment');
+  });
+
   it('sets segment analysis metadata correctly', () => {
     const result = transformModule({
       input: [

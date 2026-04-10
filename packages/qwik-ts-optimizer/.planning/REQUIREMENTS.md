@@ -24,7 +24,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Core Extraction
 
-- [ ] **EXTRACT-01**: Detect marker function calls (any call where callee name ends with `$`)
+- [x] **EXTRACT-01**: Detect marker function calls (any call where callee name ends with `$`)
 - [ ] **EXTRACT-02**: Extract closure argument from marker call as a segment
 - [ ] **EXTRACT-03**: Handle nested `$()` calls (segments within segments, parent-child relationships)
 - [ ] **EXTRACT-04**: Generate segment module with exported const using deterministic name
@@ -175,7 +175,7 @@ Requirements for initial release. Each maps to roadmap phases.
 | HASH-03 | Phase 1 | Complete |
 | HASH-04 | Phase 1 | Complete |
 | HASH-05 | Phase 1 | Complete |
-| EXTRACT-01 | Phase 2 | Pending |
+| EXTRACT-01 | Phase 2 | Complete |
 | EXTRACT-02 | Phase 2 | Pending |
 | EXTRACT-03 | Phase 2 | Pending |
 | EXTRACT-04 | Phase 2 | Pending |

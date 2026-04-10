@@ -9,6 +9,7 @@
  */
 
 import type MagicString from 'magic-string';
+import { walk } from 'oxc-walker';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -777,10 +778,6 @@ export function transformAllJsx(
   program: any,
   importedNames: Set<string>,
 ): JsxTransformOutput {
-  // Dynamic import to avoid circular dependency
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { walk } = require('oxc-walker');
-
   const keyCounter = new JsxKeyCounter();
   const neededImports = new Set<string>();
   let needsFragment = false;

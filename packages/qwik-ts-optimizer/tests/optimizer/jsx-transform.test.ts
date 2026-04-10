@@ -11,6 +11,10 @@ import {
   computeFlags,
   JsxKeyCounter,
   transformJsxElement,
+  transformJsxFragment,
+  isHtmlElement,
+  processJsxTag,
+  transformAllJsx,
 } from '../../src/optimizer/jsx-transform.js';
 import MagicString from 'magic-string';
 
@@ -322,5 +326,269 @@ describe('transformJsxElement', () => {
     );
 
     expect(result!.tag).toBe('"div"');
+  });
+
+  it('extracts explicit key={value} as 6th arg', () => {
+    const source = '<Cmp prop="23" key={props.stuff}/>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const importedNames = new Set<string>();
+    const keyCounter = new JsxKeyCounter();
+
+    const result = transformJsxElement(
+      jsxNode,
+      source,
+      s,
+      importedNames,
+      keyCounter,
+    );
+
+    // Key should be the expression, not auto-generated u6_N
+    expect(result!.key).toBe('props.stuff');
+    // key should NOT appear in constProps or varProps
+    expect(result!.constProps).not.toContain('key');
+  });
+
+  it('extracts explicit key="stuff" as string literal', () => {
+    const source = '<Cmp key="stuff"/>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const importedNames = new Set<string>();
+    const keyCounter = new JsxKeyCounter();
+
+    const result = transformJsxElement(
+      jsxNode,
+      source,
+      s,
+      importedNames,
+      keyCounter,
+    );
+
+    expect(result!.key).toBe('"stuff"');
+  });
+
+  it('handles multiple children as array', () => {
+    const source = '<div><span/><span/><span/></div>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const importedNames = new Set<string>();
+    const keyCounter = new JsxKeyCounter();
+
+    const result = transformJsxElement(
+      jsxNode,
+      source,
+      s,
+      importedNames,
+      keyCounter,
+    );
+
+    // Multiple children should produce array-like output
+    expect(result!.children).toContain('[');
+    expect(result!.children).toContain(']');
+  });
+
+  it('handles single child directly (not array)', () => {
+    const source = '<div><p/></div>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const importedNames = new Set<string>();
+    const keyCounter = new JsxKeyCounter();
+
+    const result = transformJsxElement(
+      jsxNode,
+      source,
+      s,
+      importedNames,
+      keyCounter,
+    );
+
+    // Single child should NOT be in an array
+    expect(result!.children).not.toMatch(/^\[/);
+  });
+
+  it('handles spread props with _jsxSplit', () => {
+    const source = '<button {...props}/>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const importedNames = new Set<string>();
+    const keyCounter = new JsxKeyCounter();
+
+    const result = transformJsxElement(
+      jsxNode,
+      source,
+      s,
+      importedNames,
+      keyCounter,
+    );
+
+    expect(result!.callString).toContain('_jsxSplit');
+    expect(result!.callString).toContain('_getVarProps(props)');
+    expect(result!.callString).toContain('_getConstProps(props)');
+    expect(result!.flags).toBe(0);
+    expect(result!.neededImports.has('_jsxSplit')).toBe(true);
+    expect(result!.neededImports.has('_getVarProps')).toBe(true);
+    expect(result!.neededImports.has('_getConstProps')).toBe(true);
+  });
+
+  it('handles JSXMemberExpression tag (Foo.Bar)', () => {
+    const source = '<Foo.Bar/>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const importedNames = new Set<string>();
+    const keyCounter = new JsxKeyCounter();
+
+    const result = transformJsxElement(
+      jsxNode,
+      source,
+      s,
+      importedNames,
+      keyCounter,
+    );
+
+    expect(result!.tag).toBe('Foo.Bar');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isHtmlElement
+// ---------------------------------------------------------------------------
+
+describe('isHtmlElement', () => {
+  it('returns true for lowercase tags', () => {
+    expect(isHtmlElement('div')).toBe(true);
+    expect(isHtmlElement('p')).toBe(true);
+    expect(isHtmlElement('button')).toBe(true);
+  });
+
+  it('returns false for uppercase tags', () => {
+    expect(isHtmlElement('Div')).toBe(false);
+    expect(isHtmlElement('CustomComponent')).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// processJsxTag
+// ---------------------------------------------------------------------------
+
+describe('processJsxTag', () => {
+  it('returns string literal for HTML elements', () => {
+    const source = '<div/>';
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const nameNode = jsxNode.openingElement.name;
+    expect(processJsxTag(nameNode)).toBe('"div"');
+  });
+
+  it('returns identifier for component elements', () => {
+    const source = '<MyComponent/>';
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const nameNode = jsxNode.openingElement.name;
+    expect(processJsxTag(nameNode)).toBe('MyComponent');
+  });
+
+  it('returns dotted path for member expressions', () => {
+    const source = '<Foo.Bar/>';
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const nameNode = jsxNode.openingElement.name;
+    expect(processJsxTag(nameNode)).toBe('Foo.Bar');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// transformJsxFragment
+// ---------------------------------------------------------------------------
+
+describe('transformJsxFragment', () => {
+  it('transforms <>child</> to _jsxSorted(_Fragment, ...)', () => {
+    const source = '<>child</>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const importedNames = new Set<string>();
+    const keyCounter = new JsxKeyCounter();
+
+    const result = transformJsxFragment(
+      jsxNode,
+      source,
+      s,
+      importedNames,
+      keyCounter,
+    );
+
+    expect(result).toBeDefined();
+    expect(result!.tag).toBe('_Fragment');
+    expect(result!.callString).toContain('_jsxSorted(_Fragment');
+    expect(result!.children).toBe('"child"');
+    expect(result!.neededImports.has('_jsxSorted')).toBe(true);
+  });
+
+  it('transforms fragment with multiple children to array', () => {
+    const source = '<><div/><span/></>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const jsxNode = (program.body[0] as any).expression;
+    const importedNames = new Set<string>();
+    const keyCounter = new JsxKeyCounter();
+
+    const result = transformJsxFragment(
+      jsxNode,
+      source,
+      s,
+      importedNames,
+      keyCounter,
+    );
+
+    expect(result!.children).toContain('[');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// transformAllJsx - integration
+// ---------------------------------------------------------------------------
+
+describe('transformAllJsx', () => {
+  it('transforms nested JSX elements bottom-up', () => {
+    const source = '<div><p>hello</p></div>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const importedNames = new Set<string>();
+
+    const output = transformAllJsx(source, s, program, importedNames);
+
+    const result = s.toString();
+    // Inner <p> should be transformed first, then outer <div>
+    expect(result).toContain('_jsxSorted');
+    expect(output.neededImports.has('_jsxSorted')).toBe(true);
+  });
+
+  it('sets needsFragment for fragment nodes', () => {
+    const source = '<>child</>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const importedNames = new Set<string>();
+
+    const output = transformAllJsx(source, s, program, importedNames);
+
+    expect(output.needsFragment).toBe(true);
+  });
+
+  it('adds PURE annotation to transformed calls', () => {
+    const source = '<div class="foo">bar</div>';
+    const s = new MagicString(source);
+    const { program } = parseSync('test.tsx', source);
+    const importedNames = new Set<string>();
+
+    const output = transformAllJsx(source, s, program, importedNames);
+
+    const result = s.toString();
+    expect(result).toContain('/*#__PURE__*/');
   });
 });

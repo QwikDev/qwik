@@ -94,11 +94,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Variable Migration
 
-- [ ] **MIG-01**: Move variable declarations used only by one segment into that segment's module
-- [ ] **MIG-02**: Export shared variables from parent as `_auto_VARNAME`
-- [ ] **MIG-03**: Keep exported variables at root level (never migrate)
-- [ ] **MIG-04**: Don't migrate declarations with side effects
-- [ ] **MIG-05**: Handle complex destructuring patterns during migration
+- [x] **MIG-01**: Move variable declarations used only by one segment into that segment's module
+- [x] **MIG-02**: Export shared variables from parent as `_auto_VARNAME`
+- [x] **MIG-03**: Keep exported variables at root level (never migrate)
+- [x] **MIG-04**: Don't migrate declarations with side effects
+- [x] **MIG-05**: Handle complex destructuring patterns during migration
 
 ### Entry Strategies
 
@@ -202,11 +202,11 @@ Requirements for initial release. Each maps to roadmap phases.
 | CAPT-04 | Phase 3 | Complete |
 | CAPT-05 | Phase 3 | Complete |
 | CAPT-06 | Phase 3 | Complete |
-| MIG-01 | Phase 3 | Pending |
-| MIG-02 | Phase 3 | Pending |
-| MIG-03 | Phase 3 | Pending |
-| MIG-04 | Phase 3 | Pending |
-| MIG-05 | Phase 3 | Pending |
+| MIG-01 | Phase 3 | Complete |
+| MIG-02 | Phase 3 | Complete |
+| MIG-03 | Phase 3 | Complete |
+| MIG-04 | Phase 3 | Complete |
+| MIG-05 | Phase 3 | Complete |
 | JSX-01 | Phase 4 | Pending |
 | JSX-02 | Phase 4 | Pending |
 | JSX-03 | Phase 4 | Pending |

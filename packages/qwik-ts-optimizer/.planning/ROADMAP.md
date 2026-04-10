@@ -71,7 +71,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
-- [ ] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
+- [x] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
 - [ ] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
 
 ### Phase 4: JSX, Signals, and Event Handlers
@@ -87,7 +87,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
+- [x] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
 - [ ] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
 - [ ] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
 **UI hint**: yes

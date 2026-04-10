@@ -15,8 +15,7 @@ import type {
   MinifyMode,
   EmitMode,
   Diagnostic,
-  DiagnosticHighlight,
-  SourceLocation,
+  DiagnosticHighlightFlat,
   SegmentMetadataInternal,
 } from '../../src/optimizer/types.js';
 
@@ -125,20 +124,19 @@ describe('TransformModule', () => {
 });
 
 describe('Diagnostic', () => {
-  it('has correct shape with highlights', () => {
+  it('has correct shape with highlights (snapshot format)', () => {
     const diag: Diagnostic = {
-      severity: 'error',
+      category: 'error',
       code: 'C02',
-      message: 'Function reference error',
       file: 'test.tsx',
+      message: 'Function reference error',
       highlights: [
-        {
-          message: 'here',
-          loc: { start_line: 1, start_col: 0, end_line: 1, end_col: 10 },
-        },
+        { lo: 0, hi: 10, startLine: 1, startCol: 0, endLine: 1, endCol: 10 },
       ],
+      suggestions: null,
+      scope: 'optimizer',
     };
-    expect(diag.severity).toBe('error');
+    expect(diag.category).toBe('error');
     expect(diag.highlights).toHaveLength(1);
   });
 });

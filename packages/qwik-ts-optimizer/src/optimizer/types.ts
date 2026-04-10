@@ -109,22 +109,21 @@ export type EmitMode = 'dev' | 'prod' | 'lib';
 // Diagnostics
 // ---------------------------------------------------------------------------
 
+export interface DiagnosticHighlightFlat {
+  lo: number;
+  hi: number;
+  startLine: number;
+  startCol: number;
+  endLine: number;
+  endCol: number;
+}
+
 export interface Diagnostic {
-  severity: 'error' | 'warning';
+  category: 'error' | 'warning';
   code: string;
-  message: string;
   file: string;
-  highlights: DiagnosticHighlight[];
-}
-
-export interface DiagnosticHighlight {
-  message: string | null;
-  loc: SourceLocation;
-}
-
-export interface SourceLocation {
-  start_line: number;
-  start_col: number;
-  end_line: number;
-  end_col: number;
+  message: string;
+  highlights: DiagnosticHighlightFlat[] | null;
+  suggestions: null;
+  scope: string;
 }

@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 Phase: 2
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-04-10
+Last activity: 2026-04-10 - Completed quick task 260410-ith: Switch from npm to pnpm, add hash tests, replace regex with magic-regexp
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -78,6 +78,12 @@ None yet.
 
 - siphash npm package API needs verification against SipHash-1-3 variant with zero keys
 - oxc-transform position stability needs verification (does TS stripping shift character positions?)
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260410-ith | Switch from npm to pnpm, add hash tests, replace regex with magic-regexp | 2026-04-10 | c5655fd | [260410-ith-switch-from-npm-to-pnpm-add-hash-tests-r](./quick/260410-ith-switch-from-npm-to-pnpm-add-hash-tests-r/) |
 
 ## Session Continuity
 

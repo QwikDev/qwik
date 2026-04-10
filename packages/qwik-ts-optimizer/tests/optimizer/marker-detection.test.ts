@@ -15,7 +15,7 @@ import {
 
 /** Helper: parse code and return the AST program node */
 function parse(code: string) {
-  const result = parseSync(code, { sourceFilename: 'test.tsx', sourceType: 'module' });
+  const result = parseSync('test.tsx', code);
   return result.program;
 }
 

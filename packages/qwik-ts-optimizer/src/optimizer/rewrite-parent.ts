@@ -62,10 +62,15 @@ function isCustomInlined(
   ext: ExtractionResult,
   originalImports: Map<string, ImportInfo>,
 ): boolean {
-  const importInfo = originalImports.get(ext.calleeName);
-  // If the callee is not in imports, or not from qwik core, it's custom inlined
-  if (!importInfo) return true;
-  return !importInfo.isQwikCore;
+  // ext.calleeName is the canonical (imported) name, but originalImports is keyed by local name.
+  // Search by importedName to handle aliases (e.g., `import { component$ as c$ }`).
+  for (const [, info] of originalImports) {
+    if (info.importedName === ext.calleeName) {
+      return !info.isQwikCore;
+    }
+  }
+  // Not found in imports at all — must be custom inlined
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -148,24 +153,41 @@ export function rewriteParentModule(
       s.overwrite(node.start, end, '');
     } else {
       // Remove only the marker specifiers
-      // Rebuild the specifier list keeping non-markers
-      const kept: string[] = [];
+      // Rebuild the specifier list keeping non-markers, handling all import forms
+      let defaultPart = '';
+      let nsPart = '';
+      const namedParts: string[] = [];
       for (let i = 0; i < specifiers.length; i++) {
-        if (!toRemove.includes(i)) {
-          const spec = specifiers[i];
+        if (toRemove.includes(i)) continue;
+        const spec = specifiers[i];
+        if (spec.type === 'ImportDefaultSpecifier') {
+          defaultPart = spec.local.name;
+        } else if (spec.type === 'ImportNamespaceSpecifier') {
+          nsPart = `* as ${spec.local.name}`;
+        } else {
           const localName = spec.local.name;
           const importedName = (spec as any).imported?.name ?? localName;
           if (importedName !== localName) {
-            kept.push(`${importedName} as ${localName}`);
+            namedParts.push(`${importedName} as ${localName}`);
           } else {
-            kept.push(localName);
+            namedParts.push(localName);
           }
         }
       }
-      // Rebuild: import { kept } from "source"; (use rewritten source path)
+      // Rebuild import with correct syntax for each form
       const sourceNode = node.source;
       const rewrittenSource = rewriteImportSource(sourceNode.value);
-      const newImport = `import { ${kept.join(', ')} } from "${rewrittenSource}";`;
+      let importParts = '';
+      if (nsPart) {
+        importParts = defaultPart ? `${defaultPart}, ${nsPart}` : nsPart;
+      } else if (namedParts.length > 0) {
+        importParts = defaultPart
+          ? `${defaultPart}, { ${namedParts.join(', ')} }`
+          : `{ ${namedParts.join(', ')} }`;
+      } else if (defaultPart) {
+        importParts = defaultPart;
+      }
+      const newImport = `import ${importParts} from "${rewrittenSource}";`;
       let end = node.end;
       if (end < source.length && source[end] === '\n') end++;
       s.overwrite(node.start, end, newImport + '\n');

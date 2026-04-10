@@ -217,6 +217,254 @@ function countSignalValueAccesses(node: any): number {
 }
 
 // ---------------------------------------------------------------------------
+// Reactive root detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Get the root identifier of a member expression chain.
+ * For `store.address.city.name`, returns `store`.
+ */
+function getMemberChainRoot(node: any): string | null {
+  if (node.type === 'Identifier') return node.name;
+  if (node.type === 'MemberExpression') return getMemberChainRoot(node.object);
+  return null;
+}
+
+/**
+ * Get the depth of a member expression chain.
+ * `store.field` = 1, `store.address.city` = 2, `store.address.city.name` = 3
+ */
+function getMemberChainDepth(node: any): number {
+  if (node.type !== 'MemberExpression') return 0;
+  return 1 + getMemberChainDepth(node.object);
+}
+
+/**
+ * Check if a MemberExpression is a deep store access (depth >= 2)
+ * on a local (non-imported, non-global) identifier.
+ */
+function isDeepStoreAccess(node: any, importedNames: Set<string>): boolean {
+  if (node.type !== 'MemberExpression') return false;
+  const depth = getMemberChainDepth(node);
+  if (depth < 2) return false;
+  const root = getMemberChainRoot(node);
+  if (root == null) return false;
+  if (importedNames.has(root)) return false;
+  if (GLOBAL_NAMES.has(root)) return false;
+  return true;
+}
+
+/**
+ * Collect all reactive roots from an expression.
+ * Reactive roots are:
+ * - The object of a `.value` access (signal pattern)
+ * - The root identifier of a deep member chain on a local object (store pattern)
+ *
+ * Returns unique root names in order of first appearance.
+ */
+function collectReactiveRoots(
+  node: any,
+  importedNames: Set<string>,
+): string[] {
+  const roots: string[] = [];
+  const seen = new Set<string>();
+
+  function walk(n: any): void {
+    if (n == null) return;
+
+    // signal.value access -> root is the object name
+    if (isSignalValueAccess(n)) {
+      const root = getMemberChainRoot(n.object);
+      if (root != null && !seen.has(root)) {
+        seen.add(root);
+        roots.push(root);
+      }
+      return; // Don't recurse further into this node
+    }
+
+    // Deep store access -> root is the chain root
+    if (isDeepStoreAccess(n, importedNames)) {
+      const root = getMemberChainRoot(n);
+      if (root != null && !seen.has(root)) {
+        seen.add(root);
+        roots.push(root);
+      }
+      return; // Don't recurse further
+    }
+
+    // Recurse into child nodes
+    for (const key of Object.keys(n)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc')
+        continue;
+      const val = n[key];
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            if (item && typeof item.type === 'string') walk(item);
+          }
+        } else if (typeof val.type === 'string') {
+          walk(val);
+        }
+      }
+    }
+  }
+
+  walk(node);
+  return roots;
+}
+
+// ---------------------------------------------------------------------------
+// fnSignal generation
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate the hoisted function body by replacing reactive root names
+ * with pN parameters. Also generates the minimal-whitespace string.
+ *
+ * The function body preserves the original expression structure but
+ * replaces root object names.
+ */
+function generateFnSignal(
+  exprNode: any,
+  source: string,
+  roots: string[],
+): { hoistedFn: string; hoistedStr: string } {
+  const rootToParam = new Map<string, string>();
+  for (let i = 0; i < roots.length; i++) {
+    rootToParam.set(roots[i], `p${i}`);
+  }
+
+  // Extract the expression source text
+  const exprText = source.slice(exprNode.start, exprNode.end);
+  const exprStart = exprNode.start;
+
+  // Collect all positions where root identifiers need to be replaced.
+  // We need to find root identifiers that are the base of reactive accesses.
+  const replacements: Array<{ start: number; end: number; replacement: string }> = [];
+
+  function findRootReplacements(n: any): void {
+    if (n == null) return;
+
+    // For signal.value or deep store access, find the root identifier
+    if (isSignalValueAccess(n) || isDeepStoreAccess(n, new Set())) {
+      const rootId = findRootIdentifier(n);
+      if (rootId && rootToParam.has(rootId.name)) {
+        replacements.push({
+          start: rootId.start - exprStart,
+          end: rootId.end - exprStart,
+          replacement: rootToParam.get(rootId.name)!,
+        });
+      }
+      return;
+    }
+
+    for (const key of Object.keys(n)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc')
+        continue;
+      const val = n[key];
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            if (item && typeof item.type === 'string') findRootReplacements(item);
+          }
+        } else if (typeof val.type === 'string') {
+          findRootReplacements(val);
+        }
+      }
+    }
+  }
+
+  findRootReplacements(exprNode);
+
+  // Sort replacements by position (ascending) and apply
+  replacements.sort((a, b) => a.start - b.start);
+
+  let fnBody = '';
+  let pos = 0;
+  for (const r of replacements) {
+    fnBody += exprText.slice(pos, r.start);
+    fnBody += r.replacement;
+    pos = r.end;
+  }
+  fnBody += exprText.slice(pos);
+
+  // Generate params string
+  const params = roots.map((_, i) => `p${i}`).join(',');
+
+  // Hoisted function: preserves original spacing in body
+  const hoistedFn = `(${params})=>${fnBody}`;
+
+  // String representation: minimal whitespace
+  const strBody = removeWhitespace(fnBody);
+
+  // Determine quote style for string representation
+  // If the string body contains double quotes, use single quotes for wrapping
+  const hasDoubleQuotes = strBody.includes('"');
+  const hoistedStr = hasDoubleQuotes
+    ? `'${strBody}'`
+    : `"${strBody}"`;
+
+  return { hoistedFn, hoistedStr };
+}
+
+/**
+ * Find the root Identifier node at the base of a member chain.
+ */
+function findRootIdentifier(node: any): any | null {
+  if (node.type === 'Identifier') return node;
+  if (node.type === 'MemberExpression') return findRootIdentifier(node.object);
+  return null;
+}
+
+/**
+ * Remove whitespace around operators for the minimal string representation.
+ * Preserves whitespace inside string literals.
+ */
+function removeWhitespace(text: string): string {
+  let result = '';
+  let inString: string | null = null;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+
+    if (inString) {
+      result += ch;
+      if (ch === inString && text[i - 1] !== '\\') {
+        inString = null;
+      }
+      continue;
+    }
+
+    if (ch === '"' || ch === "'") {
+      inString = ch;
+      result += ch;
+      continue;
+    }
+
+    if (ch === '`') {
+      // Template literals - just include everything until closing backtick
+      result += ch;
+      i++;
+      while (i < text.length && text[i] !== '`') {
+        result += text[i];
+        i++;
+      }
+      if (i < text.length) result += text[i]; // closing backtick
+      continue;
+    }
+
+    // Skip whitespace (spaces, tabs)
+    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') {
+      continue;
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Main analysis function
 // ---------------------------------------------------------------------------
 
@@ -281,6 +529,19 @@ export function analyzeSignalExpression(
       return { type: 'wrapProp', code: `_wrapProp(${objText})` };
     }
 
+    // Deep store access (store.address.city.name) -> fnSignal
+    if (isDeepStoreAccess(exprNode, importedNames)) {
+      const roots = collectReactiveRoots(exprNode, importedNames);
+      if (roots.length > 0) {
+        const { hoistedFn, hoistedStr } = generateFnSignal(
+          exprNode,
+          source,
+          roots,
+        );
+        return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+      }
+    }
+
     // store.field / props['field'] (single-level, local obj)
     if (isStoreFieldAccess(exprNode, importedNames)) {
       const objText = source.slice(exprNode.object.start, exprNode.object.end);
@@ -296,17 +557,12 @@ export function analyzeSignalExpression(
   }
 
   // BinaryExpression or other compound expressions
-  // Check if contains signal.value + something that prevents wrapping
+  // Check for reactive roots (signal.value or deep store access)
   if (
     exprNode.type === 'BinaryExpression' ||
     exprNode.type === 'ConditionalExpression' ||
     exprNode.type === 'LogicalExpression'
   ) {
-    const hasSignalValue = countSignalValueAccesses(exprNode) > 0;
-
-    if (!hasSignalValue) return { type: 'none' };
-
-    // Has signal.value, but check for non-wrap conditions
     // SIG-05: mixed with unknown call -> NOT wrapped
     if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
 
@@ -314,10 +570,17 @@ export function analyzeSignalExpression(
     if (containsImportedReference(exprNode, importedNames))
       return { type: 'none' };
 
-    // If we get here, it's a computed expression with signal.value only
-    // This will be handled by fnSignal in Task 2
-    // For now, return none (Task 2 will add fnSignal support)
-    return { type: 'none' };
+    // Collect reactive roots (signal.value + deep store accesses)
+    const roots = collectReactiveRoots(exprNode, importedNames);
+    if (roots.length === 0) return { type: 'none' };
+
+    // Generate fnSignal
+    const { hoistedFn, hoistedStr } = generateFnSignal(
+      exprNode,
+      source,
+      roots,
+    );
+    return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
   }
 
   return { type: 'none' };

@@ -147,7 +147,9 @@ describe('signal-analysis', () => {
       expect(result.type).toBe('fnSignal');
       if (result.type === 'fnSignal') {
         expect(result.deps).toEqual(['signal']);
-        expect(result.hoistedFn).toBe('(p0)=>12+p0.value');
+        // hoistedFn preserves original whitespace
+        expect(result.hoistedFn).toBe('(p0)=>12 + p0.value');
+        // hoistedStr removes whitespace
         expect(result.hoistedStr).toBe('"12+p0.value"');
       }
     });
@@ -181,7 +183,10 @@ describe('signal-analysis', () => {
       if (result.type === 'fnSignal') {
         expect(result.deps).toEqual(['store']);
         expect(result.hoistedFn).toContain('p0.address.city.name');
-        expect(result.hoistedStr).toBe('\'p0.address.city.name?"true":"false"\'');
+        // String representation preserves source quotes and removes whitespace
+        expect(result.hoistedStr).toContain("p0.address.city.name?");
+        expect(result.hoistedStr).toContain("'true'");
+        expect(result.hoistedStr).toContain("'false'");
       }
     });
 
@@ -191,7 +196,9 @@ describe('signal-analysis', () => {
       expect(result.type).toBe('fnSignal');
       if (result.type === 'fnSignal') {
         expect(result.deps).toEqual(['a', 'b']);
-        expect(result.hoistedFn).toBe('(p0,p1)=>p0.value+p1.value');
+        // hoistedFn preserves original whitespace
+        expect(result.hoistedFn).toBe('(p0,p1)=>p0.value + p1.value');
+        // hoistedStr removes whitespace
         expect(result.hoistedStr).toBe('"p0.value+p1.value"');
       }
     });

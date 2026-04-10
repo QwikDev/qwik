@@ -30,7 +30,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **EXTRACT-04**: Generate segment module with exported const using deterministic name
 - [ ] **EXTRACT-05**: Rewrite parent module replacing `$()` calls with `qrl(() => import(...))` references
 - [ ] **EXTRACT-06**: Handle custom inlined functions (user-defined `$`-suffixed functions)
-- [ ] **EXTRACT-07**: Emit segment metadata (origin, name, hash, displayName, parent, ctxKind, ctxName, captures, loc, paramNames, captureNames)
+- [x] **EXTRACT-07**: Emit segment metadata (origin, name, hash, displayName, parent, ctxKind, ctxName, captures, loc, paramNames, captureNames)
 
 ### Capture Analysis
 
@@ -51,9 +51,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Import Handling
 
-- [ ] **IMP-01**: Rewrite `@builder.io/qwik` to `@qwik.dev/core`
-- [ ] **IMP-02**: Rewrite `@builder.io/qwik-city` to `@qwik.dev/router`
-- [ ] **IMP-03**: Rewrite `@builder.io/qwik-react` to `@qwik.dev/react`
+- [x] **IMP-01**: Rewrite `@builder.io/qwik` to `@qwik.dev/core`
+- [x] **IMP-02**: Rewrite `@builder.io/qwik-city` to `@qwik.dev/router`
+- [x] **IMP-03**: Rewrite `@builder.io/qwik-react` to `@qwik.dev/react`
 - [ ] **IMP-04**: Add necessary imports to parent module (`qrl`, `componentQrl`, etc.)
 - [ ] **IMP-05**: Add necessary imports to segment modules (only what each segment references)
 - [ ] **IMP-06**: Deduplicate imports — don't re-import already-imported symbols
@@ -134,7 +134,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **API-01**: Export `transformModule()` function with same interface as current NAPI binding
 - [ ] **API-02**: Return transformed parent module code, array of segments (code + metadata), and diagnostics
-- [ ] **API-03**: Accept options: filename, entryStrategy, mode (dev/prod), isServer, stripExports, etc.
+- [x] **API-03**: Accept options: filename, entryStrategy, mode (dev/prod), isServer, stripExports, etc.
 
 ## v2 Requirements
 
@@ -181,21 +181,21 @@ Requirements for initial release. Each maps to roadmap phases.
 | EXTRACT-04 | Phase 2 | Pending |
 | EXTRACT-05 | Phase 2 | Pending |
 | EXTRACT-06 | Phase 2 | Pending |
-| EXTRACT-07 | Phase 2 | Pending |
+| EXTRACT-07 | Phase 2 | Complete |
 | CALL-01 | Phase 2 | Pending |
 | CALL-02 | Phase 2 | Pending |
 | CALL-03 | Phase 2 | Pending |
 | CALL-04 | Phase 2 | Pending |
 | CALL-05 | Phase 2 | Pending |
-| IMP-01 | Phase 2 | Pending |
-| IMP-02 | Phase 2 | Pending |
-| IMP-03 | Phase 2 | Pending |
+| IMP-01 | Phase 2 | Complete |
+| IMP-02 | Phase 2 | Complete |
+| IMP-03 | Phase 2 | Complete |
 | IMP-04 | Phase 2 | Pending |
 | IMP-05 | Phase 2 | Pending |
 | IMP-06 | Phase 2 | Pending |
 | API-01 | Phase 2 | Pending |
 | API-02 | Phase 2 | Pending |
-| API-03 | Phase 2 | Pending |
+| API-03 | Phase 2 | Complete |
 | CAPT-01 | Phase 3 | Pending |
 | CAPT-02 | Phase 3 | Pending |
 | CAPT-03 | Phase 3 | Pending |

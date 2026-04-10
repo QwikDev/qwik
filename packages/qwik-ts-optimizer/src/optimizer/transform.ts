@@ -17,6 +17,7 @@ import { collectImports, type ImportInfo } from './marker-detection.js';
 import { buildQrlDeclaration } from './rewrite-calls.js';
 import { resolveEntryField } from './entry-strategy.js';
 import { buildQrlDevDeclaration, buildDevFilePath, buildJsxSourceInfo } from './dev-mode.js';
+import { isStrippedSegment, generateStrippedSegmentCode } from './strip-ctx.js';
 import { analyzeCaptures, collectScopeIdentifiers } from './capture-analysis.js';
 import {
   analyzeMigration,
@@ -224,6 +225,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       ? buildDevFilePath(input.path, options.srcDir, input.devPath)
       : undefined;
 
+    const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
+    const isInlineStrategy = entryStrategy.type === 'inline' || entryStrategy.type === 'hoist';
+
     const parentResult = rewriteParentModule(
       input.code,
       relPath,
@@ -236,6 +240,11 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         : undefined,
       emitMode,
       devFile,
+      isInlineStrategy
+        ? { inline: true, stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers }
+        : options.stripCtxName || options.stripEventHandlers
+          ? { inline: false, stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers }
+          : undefined,
     );
 
     // 4. Build parent TransformModule
@@ -253,8 +262,71 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // Updated extractions have parent info from rewriteParentModule
     const updatedExtractions = parentResult.extractions;
 
+    // For inline/hoist strategy, segments are inlined into parent -- no separate segment modules.
+    // But we still emit SegmentAnalysis metadata entries.
+    // For stripped segments, emit null exports with loc [0,0].
+
     for (const ext of updatedExtractions) {
       if (ext.isSync) continue; // sync$ is inlined, no separate segment module
+
+      // Check if this segment is stripped
+      const stripped = isStrippedSegment(
+        ext.ctxName,
+        ext.ctxKind,
+        options.stripCtxName,
+        options.stripEventHandlers,
+      );
+
+      // If stripped, override loc to [0, 0]
+      if (stripped) {
+        ext.loc = [0, 0];
+      }
+
+      // For inline/hoist strategy, do NOT emit separate segment TransformModules.
+      // The parent module already contains everything via _noopQrl + .s() calls.
+      // But still emit SegmentAnalysis metadata (as segment modules with no code output).
+      if (isInlineStrategy) {
+        // Build metadata only -- no separate segment file
+        const entryField = resolveEntryField(
+          entryStrategy.type,
+          ext.symbolName,
+          ext.ctxName,
+          null,
+          'manual' in entryStrategy ? entryStrategy.manual : undefined,
+        );
+
+        const segmentAnalysis: SegmentMetadataInternal = {
+          origin: ext.origin,
+          name: ext.symbolName,
+          entry: entryField,
+          displayName: ext.displayName,
+          hash: ext.hash,
+          canonicalFilename: ext.canonicalFilename,
+          extension: ext.extension,
+          parent: ext.parent,
+          ctxKind: ext.ctxKind,
+          ctxName: ext.ctxName,
+          captures: ext.captures,
+          loc: ext.loc,
+          captureNames: ext.captureNames,
+          paramNames: ext.paramNames,
+        };
+
+        // Inline strategy still creates TransformModule entries for metadata tracking
+        // but with empty code (the code is in the parent)
+        const segmentModule: TransformModule = {
+          path: ext.canonicalFilename + ext.extension,
+          isEntry: true,
+          code: stripped ? generateStrippedSegmentCode(ext.symbolName) : '',
+          map: null,
+          segment: segmentAnalysis,
+          origPath: null,
+        };
+        allModules.push(segmentModule);
+        continue;
+      }
+
+      // Default strategy: emit separate segment modules
 
       // Determine nested QRL declarations for segments that have children
       const children = updatedExtractions.filter((c) => c.parent === ext.symbolName && !c.isSync);
@@ -310,20 +382,21 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         captureInfo.captureNames = ext.captureNames;
       }
 
-      const segmentCode = generateSegmentCode(
-        ext,
-        nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
-        (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0)
-          ? captureInfo
-          : undefined,
-        (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx)
-          ? { enableJsx: true, importedNames }
-          : undefined,
-      );
+      // Generate segment code: stripped segments get null exports, others get full codegen
+      const segmentCode = stripped
+        ? generateStrippedSegmentCode(ext.symbolName)
+        : generateSegmentCode(
+            ext,
+            nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
+            (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0)
+              ? captureInfo
+              : undefined,
+            (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx)
+              ? { enableJsx: true, importedNames }
+              : undefined,
+          );
 
       // 2d. Build segment metadata with captureNames and paramNames
-      // Resolve entry field based on entry strategy
-      const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
       // Find parent component symbol for component entry strategy
       let parentComponentSymbol: string | null = null;
       if (entryStrategy.type === 'component') {

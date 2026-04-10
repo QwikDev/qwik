@@ -292,6 +292,14 @@ export function generateSegmentCode(
           parts.splice(parts.indexOf('//'), 0, `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`);
         }
       }
+
+      // Emit hoisted signal declarations (_hf functions) for segment-level signals
+      if (jsxResult.hoistedDeclarations && jsxResult.hoistedDeclarations.length > 0) {
+        for (const decl of jsxResult.hoistedDeclarations) {
+          // Insert before the export statement (after separator)
+          parts.push(decl);
+        }
+      }
     } catch {
       // If JSX parsing fails, use the original body text
     }

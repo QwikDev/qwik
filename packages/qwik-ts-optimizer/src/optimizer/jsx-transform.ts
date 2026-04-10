@@ -405,6 +405,7 @@ export function processJsxTag(nameNode: any): string {
 function processChildren(
   children: any[],
   source: string,
+  s?: import('magic-string').default,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (!children || children.length === 0) {
     return { text: null, type: 'none' };
@@ -429,14 +430,14 @@ function processChildren(
 
   if (meaningful.length === 1) {
     const child = meaningful[0];
-    return processOneChild(child, source);
+    return processOneChild(child, source, s);
   }
 
   // Multiple children -> array
   const parts: string[] = [];
   let isDynamic = false;
   for (const child of meaningful) {
-    const { text, type } = processOneChild(child, source);
+    const { text, type } = processOneChild(child, source, s);
     if (text !== null) {
       parts.push(text);
     }
@@ -455,6 +456,7 @@ function processChildren(
 function processOneChild(
   child: any,
   source: string,
+  s?: import('magic-string').default,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (child._trimmedText) {
     return { text: `"${child._trimmedText}"`, type: 'static' };
@@ -471,7 +473,8 @@ function processOneChild(
     if (!expr || expr.type === 'JSXEmptyExpression') {
       return { text: null, type: 'none' };
     }
-    const exprText = source.slice(expr.start, expr.end);
+    // Use MagicString buffer if available (picks up inner JSX transforms)
+    const exprText = s ? s.slice(expr.start, expr.end) : source.slice(expr.start, expr.end);
     // Check if expression is a literal
     if (
       expr.type === 'StringLiteral' ||
@@ -488,9 +491,9 @@ function processOneChild(
   }
 
   if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
-    // Nested JSX - the text would already have been replaced by the
-    // bottom-up transform pass, so use the source text directly
-    const childText = source.slice(child.start, child.end);
+    // Nested JSX — use MagicString buffer to get already-transformed text
+    // (bottom-up walk transforms inner elements first)
+    const childText = s ? s.slice(child.start, child.end) : source.slice(child.start, child.end);
     return { text: childText, type: 'static' };
   }
 
@@ -774,6 +777,7 @@ export function transformJsxElement(
   const { text: childrenText, type: childrenType } = processChildren(
     node.children,
     source,
+    s,
   );
 
   // --- Flags ---
@@ -868,6 +872,7 @@ export function transformJsxFragment(
   const { text: childrenText, type: childrenType } = processChildren(
     node.children,
     source,
+    s,
   );
 
   const flags = computeFlags(false, childrenType);

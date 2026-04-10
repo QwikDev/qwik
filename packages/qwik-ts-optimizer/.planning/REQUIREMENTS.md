@@ -102,16 +102,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Entry Strategies
 
-- [ ] **ENT-01**: Smart mode (default) — each segment as separate file with dynamic import
+- [x] **ENT-01**: Smart mode (default) — each segment as separate file with dynamic import
 - [ ] **ENT-02**: Inline/Hoist mode — segments inlined using `_noopQrl` + `.s()` pattern
-- [ ] **ENT-03**: Component entry strategy — group segments by component
-- [ ] **ENT-04**: Manual chunks strategy — custom grouping via configuration
+- [x] **ENT-03**: Component entry strategy — group segments by component
+- [x] **ENT-04**: Manual chunks strategy — custom grouping via configuration
 
 ### Build Modes
 
-- [ ] **MODE-01**: Development mode — `qrlDEV()` with file/line/displayName metadata
-- [ ] **MODE-02**: Dev mode JSX source info (fileName, lineNumber, columnNumber)
-- [ ] **MODE-03**: HMR injection — `_useHmr(filePath)` in component segments
+- [x] **MODE-01**: Development mode — `qrlDEV()` with file/line/displayName metadata
+- [x] **MODE-02**: Dev mode JSX source info (fileName, lineNumber, columnNumber)
+- [x] **MODE-03**: HMR injection — `_useHmr(filePath)` in component segments
 - [ ] **MODE-04**: Server strip mode — server-only code replaced with null exports
 - [ ] **MODE-05**: Client strip mode — client-only code replaced with null
 - [ ] **MODE-06**: Strip exports mode — specified exports replaced with throw statements
@@ -232,13 +232,13 @@ Requirements for initial release. Each maps to roadmap phases.
 | LOOP-03 | Phase 4 | Complete |
 | LOOP-04 | Phase 4 | Complete |
 | LOOP-05 | Phase 4 | Complete |
-| ENT-01 | Phase 5 | Pending |
+| ENT-01 | Phase 5 | Complete |
 | ENT-02 | Phase 5 | Pending |
-| ENT-03 | Phase 5 | Pending |
-| ENT-04 | Phase 5 | Pending |
-| MODE-01 | Phase 5 | Pending |
-| MODE-02 | Phase 5 | Pending |
-| MODE-03 | Phase 5 | Pending |
+| ENT-03 | Phase 5 | Complete |
+| ENT-04 | Phase 5 | Complete |
+| MODE-01 | Phase 5 | Complete |
+| MODE-02 | Phase 5 | Complete |
+| MODE-03 | Phase 5 | Complete |
 | MODE-04 | Phase 5 | Pending |
 | MODE-05 | Phase 5 | Pending |
 | MODE-06 | Phase 5 | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-04-10T21:44:43.317Z"
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-04-10T22:13:13.263Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
+  total_plans: 21
+  completed_plans: 19
+  percent: 90
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** Runtime-identical output to SWC optimizer -- same segments, captures, hashes, QRL structure
-**Current focus:** Phase 04 — JSX, Signals, and Event Handlers
+**Current focus:** Phase 05 — Entry Strategies and Build Modes
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 05 (Entry Strategies and Build Modes) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-10
 
 Progress: [░░░░░░░░░░] 0%
@@ -73,6 +73,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P05 | 8min | 2 tasks | 9 files |
 | Phase 04 P06 | 3min | 2 tasks | 3 files |
 | Phase 04 P07 | 5min | 2 tasks | 2 files |
+| Phase 05 P01 | 4min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Skip ranges approach for magic-string: extraction argument ranges passed as skip ranges to JSX transform to avoid conflicts with already-rewritten regions
 - [Phase 04]: Signal/event/bind gap closure: processProps dispatch order is passive->bind->event->signal->classify; hoisted _hf declarations placed in preamble after QRL decls
 - [Phase 04]: Loop context tracked via loopStack in walk enter/leave; q:p/q:ps injected into constEntries for HTML elements inside loops
+- [Phase 05]: Entry strategy resolution is a pure function; dev mode uses parameter threading not global config
 
 ### Pending Todos
 
@@ -129,6 +131,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T21:40:44.797Z
-Stopped at: Completed 04-07-PLAN.md
+Last session: 2026-04-10T22:13:13.261Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None

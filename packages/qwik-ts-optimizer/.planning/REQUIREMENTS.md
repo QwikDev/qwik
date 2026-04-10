@@ -77,12 +77,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Event Handler Transform
 
-- [ ] **EVT-01**: Transform `onClick$` to `q-e:click` in constProps
-- [ ] **EVT-02**: Transform `document:onFocus$` to `q-d:focus`
-- [ ] **EVT-03**: Transform `window:onClick$` to `q-w:click`
-- [ ] **EVT-04**: Handle custom event names and kebab-case conversion
-- [ ] **EVT-05**: Handle passive events and `preventdefault` directives
-- [ ] **EVT-06**: Extract event handler closures as segments
+- [x] **EVT-01**: Transform `onClick$` to `q-e:click` in constProps
+- [x] **EVT-02**: Transform `document:onFocus$` to `q-d:focus`
+- [x] **EVT-03**: Transform `window:onClick$` to `q-w:click`
+- [x] **EVT-04**: Handle custom event names and kebab-case conversion
+- [x] **EVT-05**: Handle passive events and `preventdefault` directives
+- [x] **EVT-06**: Extract event handler closures as segments
 
 ### Loop-Context Hoisting
 
@@ -119,9 +119,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Bind Syntax
 
-- [ ] **BIND-01**: Transform `bind:value` to value prop + `q-e:input` handler with `inlinedQrl`
-- [ ] **BIND-02**: Transform `bind:checked` to checked prop + `q-e:input` handler
-- [ ] **BIND-03**: Preserve unknown `bind:xxx` attributes as-is
+- [x] **BIND-01**: Transform `bind:value` to value prop + `q-e:input` handler with `inlinedQrl`
+- [x] **BIND-02**: Transform `bind:checked` to checked prop + `q-e:input` handler
+- [x] **BIND-03**: Preserve unknown `bind:xxx` attributes as-is
 
 ### Diagnostics
 
@@ -218,15 +218,15 @@ Requirements for initial release. Each maps to roadmap phases.
 | SIG-03 | Phase 4 | Complete |
 | SIG-04 | Phase 4 | Complete |
 | SIG-05 | Phase 4 | Complete |
-| EVT-01 | Phase 4 | Pending |
-| EVT-02 | Phase 4 | Pending |
-| EVT-03 | Phase 4 | Pending |
-| EVT-04 | Phase 4 | Pending |
-| EVT-05 | Phase 4 | Pending |
-| EVT-06 | Phase 4 | Pending |
-| BIND-01 | Phase 4 | Pending |
-| BIND-02 | Phase 4 | Pending |
-| BIND-03 | Phase 4 | Pending |
+| EVT-01 | Phase 4 | Complete |
+| EVT-02 | Phase 4 | Complete |
+| EVT-03 | Phase 4 | Complete |
+| EVT-04 | Phase 4 | Complete |
+| EVT-05 | Phase 4 | Complete |
+| EVT-06 | Phase 4 | Complete |
+| BIND-01 | Phase 4 | Complete |
+| BIND-02 | Phase 4 | Complete |
+| BIND-03 | Phase 4 | Complete |
 | LOOP-01 | Phase 4 | Pending |
 | LOOP-02 | Phase 4 | Pending |
 | LOOP-03 | Phase 4 | Pending |

@@ -87,6 +87,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260410-ith | Switch from npm to pnpm, add hash tests, replace regex with magic-regexp | 2026-04-10 | c5655fd | [260410-ith-switch-from-npm-to-pnpm-add-hash-tests-r](./quick/260410-ith-switch-from-npm-to-pnpm-add-hash-tests-r/) |
+| 260410-jbb | Convert remaining raw regex to magic-regexp in snapshot-parser.ts and siphash.test.ts | 2026-04-10 | b9a85ec | [260410-jbb-convert-remaining-raw-regex-to-magic-reg](./quick/260410-jbb-convert-remaining-raw-regex-to-magic-reg/) |
 
 ## Session Continuity
 

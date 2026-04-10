@@ -11,13 +11,14 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "siphash": "^1.1.0",
-    "pathe": "^2.0.3"
+    "pathe": "^2.0.3",
+    "siphash": "^1.1.0"
   },
   "devDependencies": {
-    "vitest": "^4.1.4",
-    "oxc-parser": "^0.124.0",
+    "@types/node": "^25.6.0",
     "fast-deep-equal": "^3.1.3",
-    "typescript": "^5.7.0"
+    "oxc-parser": "^0.124.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.4"
   }
 }

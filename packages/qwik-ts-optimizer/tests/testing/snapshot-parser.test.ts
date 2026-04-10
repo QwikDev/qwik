@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import type { ParsedSnapshot } from '../../src/testing/snapshot-parser.js';
 
-const SNAPS_DIR = join(import.meta.dirname, '../../match-these-snaps');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const SNAPS_DIR = join(__dirname, '../../match-these-snaps');
 
 function loadSnap(name: string): string {
   return readFileSync(join(SNAPS_DIR, name), 'utf-8');
@@ -140,7 +142,7 @@ describe('parseSnapshot', () => {
   });
 
   describe('bulk validation: all 209 .snap files', () => {
-    const snapFiles = readdirSync(SNAPS_DIR).filter(f => f.endsWith('.snap'));
+    const snapFiles = readdirSync(SNAPS_DIR).filter((f: string) => f.endsWith('.snap'));
 
     it('finds 209 snapshot files', () => {
       expect(snapFiles).toHaveLength(209);

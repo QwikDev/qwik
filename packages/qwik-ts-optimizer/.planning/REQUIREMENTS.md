@@ -103,7 +103,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Entry Strategies
 
 - [x] **ENT-01**: Smart mode (default) — each segment as separate file with dynamic import
-- [ ] **ENT-02**: Inline/Hoist mode — segments inlined using `_noopQrl` + `.s()` pattern
+- [x] **ENT-02**: Inline/Hoist mode — segments inlined using `_noopQrl` + `.s()` pattern
 - [x] **ENT-03**: Component entry strategy — group segments by component
 - [x] **ENT-04**: Manual chunks strategy — custom grouping via configuration
 
@@ -112,8 +112,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **MODE-01**: Development mode — `qrlDEV()` with file/line/displayName metadata
 - [x] **MODE-02**: Dev mode JSX source info (fileName, lineNumber, columnNumber)
 - [x] **MODE-03**: HMR injection — `_useHmr(filePath)` in component segments
-- [ ] **MODE-04**: Server strip mode — server-only code replaced with null exports
-- [ ] **MODE-05**: Client strip mode — client-only code replaced with null
+- [x] **MODE-04**: Server strip mode — server-only code replaced with null exports
+- [x] **MODE-05**: Client strip mode — client-only code replaced with null
 - [ ] **MODE-06**: Strip exports mode — specified exports replaced with throw statements
 - [ ] **MODE-07**: `isServer`/`isBrowser`/`isDev` const replacement
 
@@ -233,14 +233,14 @@ Requirements for initial release. Each maps to roadmap phases.
 | LOOP-04 | Phase 4 | Complete |
 | LOOP-05 | Phase 4 | Complete |
 | ENT-01 | Phase 5 | Complete |
-| ENT-02 | Phase 5 | Pending |
+| ENT-02 | Phase 5 | Complete |
 | ENT-03 | Phase 5 | Complete |
 | ENT-04 | Phase 5 | Complete |
 | MODE-01 | Phase 5 | Complete |
 | MODE-02 | Phase 5 | Complete |
 | MODE-03 | Phase 5 | Complete |
-| MODE-04 | Phase 5 | Pending |
-| MODE-05 | Phase 5 | Pending |
+| MODE-04 | Phase 5 | Complete |
+| MODE-05 | Phase 5 | Complete |
 | MODE-06 | Phase 5 | Pending |
 | MODE-07 | Phase 5 | Pending |
 | DIAG-01 | Phase 6 | Pending |

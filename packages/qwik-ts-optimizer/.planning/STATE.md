@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-04-10T22:13:13.263Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-04-10T22:19:18.141Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 21
-  completed_plans: 19
-  percent: 90
+  completed_plans: 20
+  percent: 95
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 ## Current Position
 
 Phase: 05 (Entry Strategies and Build Modes) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -74,6 +74,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P06 | 3min | 2 tasks | 3 files |
 | Phase 04 P07 | 5min | 2 tasks | 2 files |
 | Phase 05 P01 | 4min | 2 tasks | 8 files |
+| Phase 05 P02 | 4min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Signal/event/bind gap closure: processProps dispatch order is passive->bind->event->signal->classify; hoisted _hf declarations placed in preamble after QRL decls
 - [Phase 04]: Loop context tracked via loopStack in walk enter/leave; q:p/q:ps injected into constEntries for HTML elements inside loops
 - [Phase 05]: Entry strategy resolution is a pure function; dev mode uses parameter threading not global config
+- [Phase 05]: Pre-compute QRL variable names before call site rewriting so stripped segments use sentinel names in both declarations and call sites
 
 ### Pending Todos
 
@@ -131,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T22:13:13.261Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-04-10T22:19:18.140Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None

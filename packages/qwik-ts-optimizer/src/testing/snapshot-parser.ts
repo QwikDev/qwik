@@ -5,6 +5,8 @@
  * metadata, parent module blocks, and diagnostics.
  */
 
+import { createRegExp, exactly, oneOrMore, char, whitespace, linefeed, multiline as m, global as g } from 'magic-regexp';
+
 export interface SegmentMetadata {
   origin: string;
   name: string;
@@ -163,7 +165,16 @@ function extractInput(body: string): { input: string | null; rest: string } {
   const afterInput = body.slice(inputIdx + inputMarker.length);
 
   // Find the next section delimiter (===...===) after INPUT
-  const delimMatch = afterInput.match(/^={3,}\s*.+?\s*==$/m);
+  const delimMatch = afterInput.match(createRegExp(
+    exactly('=').times.atLeast(3)
+      .and(whitespace.times.any())
+      .and(oneOrMore(char))
+      .and(whitespace.times.any())
+      .and(exactly('=='))
+      .at.lineStart()
+      .at.lineEnd(),
+    [m],
+  ));
   if (!delimMatch || delimMatch.index === undefined) {
     // No sections after input -- entire rest is input
     return { input: afterInput.trim(), rest: '' };
@@ -180,7 +191,15 @@ function extractInput(body: string): { input: string | null; rest: string } {
  *   ============================= filename.tsx (ENTRY POINT)==
  *   ============================= filename.tsx ==
  */
-const SECTION_DELIM_RE = /^(={3,})\s*(.+?)\s*(==)$/;
+const SECTION_DELIM_RE = createRegExp(
+  exactly('=').times.atLeast(3).groupedAs('eq')
+    .and(whitespace.times.any())
+    .and(oneOrMore(char).groupedAs('name'))
+    .and(whitespace.times.any())
+    .and(exactly('==').groupedAs('end'))
+    .at.lineStart()
+    .at.lineEnd(),
+);
 
 function parseSections(body: string): {
   segments: SegmentBlock[];
@@ -197,7 +216,7 @@ function parseSections(body: string): {
   for (let i = 0; i < lines.length; i++) {
     const match = lines[i].match(SECTION_DELIM_RE);
     if (match) {
-      const rawFilename = match[2].trim();
+      const rawFilename = (match.groups?.name ?? match[2])!.trim();
       const isEntryPoint = rawFilename.includes('(ENTRY POINT)');
       const filename = rawFilename.replace('(ENTRY POINT)', '').trim();
       delimiters.push({ index: i, filename, isEntryPoint });
@@ -263,16 +282,23 @@ function extractCodeAndSourceMap(sectionBody: string): {
   sourceMap: string | null;
 } {
   // Find the Some("...") source map line
-  const someMatch = sectionBody.match(/^Some\("(.*)"\)$/m);
+  const someMatch = sectionBody.match(createRegExp(
+    exactly('Some("')
+      .and(char.times.any().groupedAs('val'))
+      .and(exactly('")'))
+      .at.lineStart()
+      .at.lineEnd(),
+    [m],
+  ));
 
   let sourceMap: string | null = null;
   let code: string;
 
   if (someMatch && someMatch.index !== undefined) {
-    sourceMap = someMatch[1]
+    sourceMap = (someMatch.groups?.val ?? someMatch[1])!
       // Unescape the JSON-like escaped string
-      .replace(/\\"/g, '"')
-      .replace(/\\\\/g, '\\');
+      .replace(createRegExp(exactly('\\"'), [g]), '"')
+      .replace(createRegExp(exactly('\\\\'), [g]), '\\');
 
     // Code is everything before the Some(...) line
     code = sectionBody.slice(0, someMatch.index).trimEnd();
@@ -290,7 +316,9 @@ function extractCodeAndSourceMap(sectionBody: string): {
   }
 
   // Trim leading/trailing whitespace but preserve internal formatting
-  code = code.replace(/^\n+/, '').replace(/\n+$/, '');
+  code = code
+    .replace(createRegExp(oneOrMore(linefeed).at.lineStart()), '')
+    .replace(createRegExp(oneOrMore(linefeed).at.lineEnd()), '');
 
   return { code, sourceMap };
 }

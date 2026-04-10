@@ -373,12 +373,13 @@ export const App = component$(() => {
     });
 
     const segments = result.modules.filter((m) => m.segment !== null);
-    // Find the transparent$ segment (it should have ctxKind jSXProp)
+    // Find the transparent$ segment -- Rust optimizer treats ALL $-suffixed JSX
+    // attribute extractions as eventHandler, not just on* event props.
     const transparentSeg = segments.find(
       (s) => s.segment!.ctxName === 'transparent$'
     );
     if (transparentSeg) {
-      expect(transparentSeg.segment!.ctxKind).toBe('jSXProp');
+      expect(transparentSeg.segment!.ctxKind).toBe('eventHandler');
     }
   });
 
@@ -676,8 +677,9 @@ export const App = component$(() => {
     // The <div> inside the for-of loop should have q:p for the iteration variable
     expect(code).toContain('"q:p": item');
     // Flags should include bit 4 (loop context)
-    // Match the flags argument in _jsxSorted call (5 = 1|4, or 7 = 1|2|4)
-    const divMatch = code.match(/_jsxSorted\("div",\s*null,\s*\{[^}]+\},\s*\w+,\s*(\d+),/);
+    // Match the flags argument in _jsxSorted call -- varProps may be non-null
+    // now that onClick$ is extracted as a separate segment with q-e:click prop
+    const divMatch = code.match(/_jsxSorted\("div",\s*(?:null|\{[^}]*\}),\s*\{[^}]+\},\s*\w+,\s*(\d+),/);
     expect(divMatch).toBeTruthy();
     const flags = parseInt(divMatch![1], 10);
     expect(flags & 4).toBe(4);

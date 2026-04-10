@@ -57,6 +57,11 @@ function stripPositions(node: any): any {
   if (Array.isArray(node)) return node.map(stripPositions);
   if (node === null || typeof node !== 'object') return node;
 
+  // Unwrap ParenthesizedExpression -- semantically equivalent to the inner expression
+  if (node.type === 'ParenthesizedExpression' && node.expression) {
+    return stripPositions(node.expression);
+  }
+
   const cleaned: Record<string, any> = {};
   for (const [key, value] of Object.entries(node)) {
     // Skip position-related fields

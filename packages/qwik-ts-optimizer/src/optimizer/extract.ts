@@ -23,6 +23,7 @@ import {
   getCtxName,
   type ImportInfo,
 } from './marker-detection.js';
+import { isEventProp, transformEventPropName } from './event-handler-transform.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -189,8 +190,14 @@ export function extractSegments(
   // Value is how many pushes were done for this node
   const pushedNodes = new Map<any, number>();
 
+  // Track parent relationships for JSX attribute detection
+  const parentMap = new Map<any, any>();
+
   walk(program, {
     enter(node: any, parent: any) {
+      // Record parent relationship for later lookup
+      if (parent) parentMap.set(node, parent);
+
       // --- Context stack pushes for naming ---
       let pushCount = 0;
 
@@ -232,14 +239,38 @@ export function extractSegments(
         }
       }
 
-      // JSXAttribute with $-suffixed name
-      if (
-        node.type === 'JSXAttribute' &&
-        node.name?.type === 'JSXIdentifier' &&
-        node.name.name.endsWith('$')
-      ) {
-        ctx.push(node.name.name);
-        pushCount++;
+      // JSXAttribute: push attribute name for naming context.
+      // For event handler attrs like onClick$, push the transformed name
+      // (e.g., "q_e_click") to match Rust optimizer naming.
+      // For non-event attrs, push the raw name (e.g., "onClick" for onClick={$()}).
+      if (node.type === 'JSXAttribute') {
+        let rawAttrName: string | null = null;
+        if (node.name?.type === 'JSXIdentifier') {
+          rawAttrName = node.name.name;
+        } else if (node.name?.type === 'JSXNamespacedName') {
+          // e.g., host:onClick$ -> "host:onClick$"
+          rawAttrName = `${node.name.namespace?.name ?? ''}:${node.name.name?.name ?? ''}`;
+        }
+
+        if (rawAttrName) {
+          if (rawAttrName.endsWith('$') && isEventProp(rawAttrName)) {
+            // Transform onClick$ -> q-e:click -> q_e_click for naming
+            const transformed = transformEventPropName(rawAttrName, new Set());
+            if (transformed) {
+              ctx.push(transformed.replace(/[-:]/g, '_'));
+            } else {
+              ctx.push(rawAttrName);
+            }
+          } else if (rawAttrName.endsWith('$') && rawAttrName.startsWith('host:')) {
+            // host: prefix events: push "host_" + stripped name for naming
+            // e.g., host:onClick$ -> "host_onClick"
+            const stripped = rawAttrName.slice(5, -1); // remove "host:" and "$"
+            ctx.push('host_' + stripped);
+          } else {
+            ctx.push(rawAttrName);
+          }
+          pushCount++;
+        }
       }
 
       // ExportDefaultDeclaration: push file stem if the declaration isn't a named function/class
@@ -284,21 +315,33 @@ export function extractSegments(
         const isSync = isSyncMarker(canonicalCallee);
         const qrlCallee = computeQrlCallee(canonicalCallee);
 
-        // Check the context stack for JSX event attribute
-        const ctxStack = ctx.getContextStack();
-        // Look for JSX event attr in the stack (second to last would be attr name)
-        // The last entry is the callee name we just pushed
-        const attrCtx = ctxStack.length >= 2 ? ctxStack[ctxStack.length - 2] : undefined;
-        const isEventAttr =
-          attrCtx !== undefined &&
-          attrCtx.startsWith('on') &&
-          attrCtx.endsWith('$');
+        // Check if this $() call is inside a JSX attribute value.
+        // Walk up the parent chain to find a JSXAttribute ancestor.
+        // We use parentMap (built during walk) to check.
+        let isEventAttr = false;
+        let isJsxNonEventAttr = false;
+        let attrCtx: string | undefined;
 
-        // Non-event JSX prop: ends with $ but does NOT start with "on"
-        const isJsxNonEventAttr =
-          attrCtx !== undefined &&
-          attrCtx.endsWith('$') &&
-          !attrCtx.startsWith('on');
+        // Check immediate parent chain: CallExpression -> JSXExpressionContainer -> JSXAttribute
+        if (parent?.type === 'JSXExpressionContainer') {
+          // The parent of JSXExpressionContainer should be a JSXAttribute
+          const jsxAttrParent = parentMap.get(parent);
+          if (jsxAttrParent?.type === 'JSXAttribute') {
+            let jsxAttrName: string | null = null;
+            if (jsxAttrParent.name?.type === 'JSXIdentifier') {
+              jsxAttrName = jsxAttrParent.name.name;
+            } else if (jsxAttrParent.name?.type === 'JSXNamespacedName') {
+              jsxAttrName = `${jsxAttrParent.name.namespace?.name ?? ''}:${jsxAttrParent.name.name?.name ?? ''}`;
+            }
+            if (jsxAttrName?.endsWith('$')) {
+              // Use context stack to get the attr name (already transformed)
+              const ctxStack = ctx.getContextStack();
+              attrCtx = ctxStack.length >= 2 ? ctxStack[ctxStack.length - 2] : jsxAttrName;
+              isEventAttr = jsxAttrName.startsWith('on') || jsxAttrName.startsWith('document:on') || jsxAttrName.startsWith('window:on');
+              isJsxNonEventAttr = !isEventAttr;
+            }
+          }
+        }
 
         const ctxKind = getCtxKind(canonicalCallee, isEventAttr, isJsxNonEventAttr);
         const ctxName = getCtxName(canonicalCallee, isEventAttr, isEventAttr ? attrCtx : undefined);
@@ -349,6 +392,98 @@ export function extractSegments(
           paramNames: [], // Phase 3: populated by transform.ts
           segmentImports,
         });
+      }
+
+      // --- JSX $-suffixed attribute extraction ---
+      // When we see onClick$={expr}, extract expr as a segment.
+      // The attribute name (e.g., onClick$) determines the ctxName/ctxKind.
+      // The value (inside JSXExpressionContainer) is the segment body.
+      // Determine $-suffixed JSX attribute name for extraction
+      let jsxAttrName: string | null = null;
+      if (
+        node.type === 'JSXAttribute' &&
+        node.value?.type === 'JSXExpressionContainer' &&
+        node.value.expression
+      ) {
+        if (node.name?.type === 'JSXIdentifier' && node.name.name.endsWith('$')) {
+          jsxAttrName = node.name.name;
+        } else if (node.name?.type === 'JSXNamespacedName') {
+          const full = `${node.name.namespace?.name ?? ''}:${node.name.name?.name ?? ''}`;
+          if (full.endsWith('$')) {
+            jsxAttrName = full;
+          }
+        }
+      }
+      if (jsxAttrName !== null) {
+        const attrName = jsxAttrName;
+        const expr = node.value.expression;
+
+        // Skip if expression is itself a $() call -- that's handled by marker call detection
+        if (expr.type === 'CallExpression' && isMarkerCall(expr, imports, customInlined)) {
+          // Already handled by marker call detection above
+        } else if (
+          expr.type === 'ArrowFunctionExpression' ||
+          expr.type === 'FunctionExpression'
+        ) {
+          // This is a direct function expression in a $-suffixed JSX prop:
+          // onClick$={() => ...} or onInput$={function() {...}}
+          // Extract it as a segment.
+
+          // Push the attribute name to name context (already done above for JSXAttribute)
+          // The attrName is already in the context stack from the JSXAttribute push above.
+
+          const bodyText = source.slice(expr.start, expr.end);
+
+          // All $-suffixed JSX attribute extractions are treated as eventHandler
+          // by the Rust optimizer, regardless of whether they start with "on".
+          const ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
+          const ctxName = attrName; // e.g., onClick$, custom$, onInput$
+
+          const displayName = ctx.getDisplayName();
+          const symbolName = ctx.getSymbolName();
+
+          const lastUnder = symbolName.lastIndexOf('_');
+          const hash = lastUnder >= 0 ? symbolName.slice(lastUnder + 1) : symbolName;
+
+          const extension = determineExtension(expr, sourceExt);
+          const [line, col] = computeLineCol(source, expr.start);
+
+          const bodyIds = collectIdentifiers(expr);
+          const segImports: ImportInfo[] = [];
+          for (const [localName, info] of imports) {
+            if (bodyIds.has(localName)) {
+              segImports.push(info);
+            }
+          }
+
+          results.push({
+            symbolName,
+            displayName,
+            hash,
+            canonicalFilename: displayName + '_' + hash,
+            callStart: node.start, // The JSXAttribute node
+            callEnd: node.end,
+            calleeStart: node.name.start,
+            calleeEnd: node.name.end,
+            argStart: expr.start,
+            argEnd: expr.end,
+            bodyText,
+            calleeName: attrName,
+            isBare: false,
+            isSync: false,
+            qrlCallee: '', // JSX event attrs use qrl() directly
+            ctxKind,
+            ctxName,
+            origin: relPath,
+            extension,
+            loc: [line, col],
+            parent: null,
+            captures: false,
+            captureNames: [],
+            paramNames: [],
+            segmentImports: segImports,
+          });
+        }
       }
 
       if (pushCount > 0) pushedNodes.set(node, pushCount);

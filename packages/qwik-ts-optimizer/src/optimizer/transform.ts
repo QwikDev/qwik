@@ -14,7 +14,7 @@ import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import MagicString from 'magic-string';
 import { extractSegments } from './extract.js';
 import { rewriteParentModule } from './rewrite-parent.js';
-import { generateSegmentCode, type SegmentCaptureInfo } from './segment-codegen.js';
+import { generateSegmentCode, type SegmentCaptureInfo, type NestedCallSiteInfo } from './segment-codegen.js';
 import { collectImports, type ImportInfo } from './marker-detection.js';
 import { buildQrlDeclaration } from './rewrite-calls.js';
 import { resolveEntryField } from './entry-strategy.js';
@@ -173,9 +173,9 @@ function removeUnusedImports(code: string, filename: string): string {
     // Skip side-effect imports (no specifiers)
     if (!node.specifiers || node.specifiers.length === 0) continue;
 
-    // Skip Qwik imports
-    const source = node.source?.value ?? '';
-    if (QWIK_IMPORT_PREFIXES.some((prefix) => source.startsWith(prefix))) continue;
+    // Note: We intentionally do NOT skip Qwik imports. After rewriting,
+    // original $-suffixed imports (e.g., component$) become unused and should
+    // be removed. The rewriter adds Qrl-suffixed imports that ARE referenced.
 
     importNodes.push(node);
 
@@ -494,6 +494,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
     const isInlineStrategy = entryStrategy.type === 'inline' || entryStrategy.type === 'hoist';
 
+    const shouldTranspileJsx = options.transpileJsx !== false;
     const parentResult = rewriteParentModule(
       input.code,
       relPath,
@@ -501,7 +502,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       originalImports,
       migrationDecisions,
       moduleLevelDecls,
-      (ext === '.tsx' || ext === '.jsx')
+      (shouldTranspileJsx && (ext === '.tsx' || ext === '.jsx'))
         ? { enableJsx: true, importedNames }
         : undefined,
       emitMode,
@@ -718,8 +719,38 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         captureInfo.captureNames = ext.captureNames;
       }
 
+      // Build nested call site info for body rewriting
+      const nestedCallSites: NestedCallSiteInfo[] = [];
+      for (const child of children) {
+        const qrlVarName = `q_${child.symbolName}`;
+        // Detect if this child came from a JSX $-attr extraction
+        const isJsxAttr = child.ctxKind === 'eventHandler' &&
+          child.calleeName.endsWith('$') &&
+          child.calleeName !== '$';
+        if (isJsxAttr) {
+          // For JSX attr extractions: replace the entire attribute
+          nestedCallSites.push({
+            qrlVarName,
+            callStart: child.callStart,
+            callEnd: child.callEnd,
+            isJsxAttr: true,
+            attrStart: child.callStart,
+            attrEnd: child.callEnd,
+            transformedPropName: transformEventPropName(child.calleeName, new Set()) ?? child.calleeName,
+          });
+        } else {
+          // Regular $() call site
+          nestedCallSites.push({
+            qrlVarName,
+            callStart: child.callStart,
+            callEnd: child.callEnd,
+            isJsxAttr: false,
+          });
+        }
+      }
+
       // Generate segment code: stripped segments get null exports, others get full codegen
-      const segmentCode = stripped
+      let segmentCode = stripped
         ? generateStrippedSegmentCode(ext.symbolName)
         : generateSegmentCode(
             ext,
@@ -727,10 +758,17 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0)
               ? captureInfo
               : undefined,
-            (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx)
+            (shouldTranspileJsx && (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx))
               ? { enableJsx: true, importedNames }
               : undefined,
+            nestedCallSites.length > 0 ? nestedCallSites : undefined,
           );
+
+      // Clean up unused imports in segment code (after body rewriting may have
+      // removed references to original identifiers like $)
+      if (!stripped && nestedCallSites.length > 0) {
+        segmentCode = removeUnusedImports(segmentCode, ext.canonicalFilename + ext.extension);
+      }
 
       // 2d. Build segment metadata with captureNames and paramNames
       // Find parent component symbol for component entry strategy

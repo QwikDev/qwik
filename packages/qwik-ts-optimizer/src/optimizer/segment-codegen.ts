@@ -141,6 +141,26 @@ export interface SegmentJsxOptions {
 }
 
 /**
+ * Info about a nested call site that needs to be rewritten in a segment body.
+ */
+export interface NestedCallSiteInfo {
+  /** The QRL variable name to replace the call site with */
+  qrlVarName: string;
+  /** Start of the call expression in the ORIGINAL source */
+  callStart: number;
+  /** End of the call expression in the ORIGINAL source */
+  callEnd: number;
+  /** Whether this is a JSX $-suffixed attribute extraction (not a $() call) */
+  isJsxAttr: boolean;
+  /** For JSX attrs: the start of the JSXAttribute node in original source */
+  attrStart?: number;
+  /** For JSX attrs: the end of the JSXAttribute node in original source */
+  attrEnd?: number;
+  /** The transformed event prop name (e.g., "q-e:click") for JSX attr rewrites */
+  transformedPropName?: string;
+}
+
+/**
  * Generate the segment module source code for an extracted segment.
  *
  * Output structure:
@@ -163,8 +183,15 @@ export function generateSegmentCode(
   nestedQrlDecls?: string[],
   captureInfo?: SegmentCaptureInfo,
   jsxOptions?: SegmentJsxOptions,
+  nestedCallSites?: NestedCallSiteInfo[],
 ): string {
   const parts: string[] = [];
+
+  // Determine which identifiers the segment body actually uses.
+  // If we have nested call site rewrites, the body changes -- some
+  // original identifiers (like $) may no longer be used while new ones
+  // (like qrl) are needed. We'll filter imports after body rewriting.
+  // For now, collect all segment imports and filter later.
 
   // Group imports by source, tracking specifier form for each
   interface SegmentImportSpec {
@@ -256,6 +283,17 @@ export function generateSegmentCode(
 
   // Nested QRL declarations (Plan 04)
   if (nestedQrlDecls && nestedQrlDecls.length > 0) {
+    // Add qrl import needed by nested QRL declarations
+    if (!parts.some(p => p.includes('{ qrl }') || p.includes(', qrl '))) {
+      // Insert before separator or at start
+      const sepIdx = parts.indexOf('//');
+      if (sepIdx >= 0) {
+        parts.splice(sepIdx, 0, `import { qrl } from "@qwik.dev/core";`);
+      } else {
+        parts.push(`import { qrl } from "@qwik.dev/core";`);
+        parts.push('//');
+      }
+    }
     for (const decl of nestedQrlDecls) {
       parts.push(decl);
     }
@@ -264,6 +302,42 @@ export function generateSegmentCode(
 
   // Exported segment body (with _captures unpacking if needed)
   let bodyText = extraction.bodyText;
+
+  // Rewrite nested call sites in the body text.
+  // Nested $() calls and $-suffixed JSX attrs need to be replaced with QRL variable references.
+  if (nestedCallSites && nestedCallSites.length > 0) {
+    // Sort by descending start position so replacements don't shift earlier positions
+    const sorted = [...nestedCallSites].sort((a, b) => {
+      const aStart = a.isJsxAttr ? (a.attrStart ?? a.callStart) : a.callStart;
+      const bStart = b.isJsxAttr ? (b.attrStart ?? b.callStart) : b.callStart;
+      return bStart - aStart;
+    });
+
+    // Body text starts at extraction.argStart in the original source
+    const bodyOffset = extraction.argStart;
+
+    for (const site of sorted) {
+      if (site.isJsxAttr && site.attrStart !== undefined && site.attrEnd !== undefined && site.transformedPropName) {
+        // JSX $-suffixed attribute: replace entire attribute with transformed prop name and QRL ref
+        // e.g., onClick$={() => ...} -> q-e:click={q_symbolName}
+        const relStart = site.attrStart - bodyOffset;
+        const relEnd = site.attrEnd - bodyOffset;
+        if (relStart >= 0 && relEnd <= bodyText.length) {
+          bodyText = bodyText.slice(0, relStart) +
+            `${site.transformedPropName}={${site.qrlVarName}}` +
+            bodyText.slice(relEnd);
+        }
+      } else {
+        // Regular $() call: replace call expression with QRL variable
+        const relStart = site.callStart - bodyOffset;
+        const relEnd = site.callEnd - bodyOffset;
+        if (relStart >= 0 && relEnd <= bodyText.length) {
+          bodyText = bodyText.slice(0, relStart) + site.qrlVarName + bodyText.slice(relEnd);
+        }
+      }
+    }
+  }
+
   if (captureInfo && captureInfo.captureNames.length > 0) {
     bodyText = injectCapturesUnpacking(bodyText, captureInfo.captureNames);
   }

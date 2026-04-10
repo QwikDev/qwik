@@ -19,9 +19,8 @@ import {
  */
 function parseExpr(expr: string): { node: any; source: string } {
   const source = `const __x = ${expr};`;
-  const result = parseSync(source, { sourceFilename: 'test.tsx' });
-  const program = JSON.parse(result.program);
-  const decl = program.body[0];
+  const { program } = parseSync('test.tsx', source);
+  const decl = program.body[0] as any;
   // VariableDeclaration -> declarations[0] -> init
   return { node: decl.declarations[0].init, source };
 }

@@ -14,31 +14,29 @@ The optimizer must produce output that is runtime-identical to the SWC optimizer
 
 - [x] Generate deterministic symbol names and hashes matching the SWC algorithm — Validated in Phase 1: Test Infrastructure and Hash Verification (389/389 hashes match, 389/389 names match)
 - [x] Pass all ~180 snapshot tests via AST-based comparison (semantic equivalence, not string identity) — Test infrastructure validated in Phase 1 (snapshot parser, AST compare, batch runner operational)
+- [x] Parse TS/TSX/JS/JSX source files via oxc-parser — Validated in Phase 2: Core Extraction Pipeline
+- [x] Detect marker function calls (names ending with `$`) and extract segment closures — Validated in Phase 2
+- [x] Emit transformed parent module with QRL references replacing `$()` calls — Validated in Phase 2
+- [x] Emit extracted segment modules with correct imports and captures — Validated in Phase 2 (captures deferred to Phase 3)
+- [x] Handle `component$` → `componentQrl`, `useStylesScoped$` → `useStylesScopedQrl`, etc. call form rewrites — Validated in Phase 2
+- [x] Handle import renaming (`@builder.io/*` → `@qwik.dev/*`) — Validated in Phase 2
+- [x] Expose a `transformModule()` function consumable by the existing Vite plugin — Validated in Phase 2
 
 ### Active
 
-- [ ] Parse TS/TSX/JS/JSX source files via oxc-parser
-- [ ] Strip TypeScript syntax via oxc-transform
-- [ ] Detect marker function calls (names ending with `$`) and extract segment closures
 - [ ] Compute scoped identifiers (captures) crossing `$()` boundaries using oxc-walker's scope tracking
-- [ ] Generate deterministic symbol names and hashes matching the SWC algorithm
-- [ ] Emit transformed parent module with QRL references replacing `$()` calls
-- [ ] Emit extracted segment modules with correct imports and captures
+- [ ] Strip TypeScript syntax via oxc-transform
+- [ ] Handle variable migration (moving declarations from parent to segment when safe)
 - [ ] Handle JSX transforms: `_jsxSorted`, `_jsxSplit`, varProps/constProps classification, flags bitmask
 - [ ] Handle `_fnSignal` / `_wrapProp` inlining for signal expressions in JSX props
-- [ ] Handle variable migration (moving declarations from parent to segment when safe)
 - [ ] Handle hoisted QRL patterns (module-scope dedup + loop-context `.w()` hoisting)
-- [ ] Handle `component$` → `componentQrl`, `useStylesScoped$` → `useStylesScopedQrl`, etc. call form rewrites
 - [ ] Handle event handler extraction (`onClick$` → `q-e:click` with capture parameters)
 - [ ] Handle `q:p` / `q:ps` capture injection for event handlers on elements
-- [ ] Handle import renaming (`@builder.io/*` → `@qwik.dev/*`)
 - [ ] Handle const replacement (`isServer`, `isBrowser`, `isDev`)
 - [ ] Handle strip server/client code modes
 - [ ] Handle strip exports mode
 - [ ] Emit diagnostics (C02 FunctionReference, C03 CanNotCapture, C05 MissingQrlImplementation)
 - [ ] Support all entry strategies (smart, single, component, inline/hoist)
-- [ ] Expose a `transformModule()` function consumable by the existing Vite plugin
-- [ ] Pass all ~180 snapshot tests via AST-based comparison (semantic equivalence, not string identity)
 
 ### Out of Scope
 
@@ -103,4 +101,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 after Phase 1 completion*
+*Last updated: 2026-04-10 after Phase 2 completion*

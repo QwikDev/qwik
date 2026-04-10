@@ -127,10 +127,10 @@ export const App = component$(() => {
   it('Test 7: PURE annotation on componentQrl but NOT on useTaskQrl', () => {
     const source = `import { component$, useTask$ } from "@qwik.dev/core";
 export const App = component$(() => {
-  useTask$(() => {
-    console.log("task");
-  });
   return <div>Hello</div>;
+});
+export const task = useTask$(() => {
+  console.log("task");
 });`;
     const code = rewrite(source);
 

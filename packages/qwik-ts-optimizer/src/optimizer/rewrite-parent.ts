@@ -1,0 +1,307 @@
+/**
+ * Parent module rewriting engine for the Qwik optimizer.
+ *
+ * Uses magic-string to surgically edit the original source text at
+ * AST-provided positions, replacing $() calls with QRL references,
+ * managing imports, and assembling the final parent module output.
+ *
+ * Output structure:
+ *   [optimizer-added imports]
+ *   [original non-marker imports]
+ *   //
+ *   [QRL const declarations]
+ *   //
+ *   [rewritten module body]
+ *
+ * Implements: EXTRACT-03, EXTRACT-05, EXTRACT-06, IMP-04, IMP-06
+ */
+
+import MagicString from 'magic-string';
+import { parseSync } from 'oxc-parser';
+import type { ExtractionResult } from './extract.js';
+import type { ImportInfo } from './marker-detection.js';
+import { rewriteImportSource } from './rewrite-imports.js';
+import {
+  buildQrlDeclaration,
+  buildSyncTransform,
+  needsPureAnnotation,
+  getQrlImportSource,
+} from './rewrite-calls.js';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface ParentRewriteResult {
+  /** Rewritten parent module source code. */
+  code: string;
+  /** All extractions (possibly with nested parent refs). */
+  extractions: ExtractionResult[];
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Determine which import specifiers in an import declaration are markers
+ * that should be removed (they're replaced by Qrl variants).
+ */
+function isMarkerSpecifier(
+  importedName: string,
+  extractedCalleeNames: Set<string>,
+): boolean {
+  return extractedCalleeNames.has(importedName);
+}
+
+/**
+ * Check if an extraction is for a custom inlined function (not imported from qwik core).
+ * Custom inlined functions have their Qrl variant defined locally, so we don't add an import.
+ */
+function isCustomInlined(
+  ext: ExtractionResult,
+  originalImports: Map<string, ImportInfo>,
+): boolean {
+  const importInfo = originalImports.get(ext.calleeName);
+  // If the callee is not in imports, or not from qwik core, it's custom inlined
+  if (!importInfo) return true;
+  return !importInfo.isQwikCore;
+}
+
+// ---------------------------------------------------------------------------
+// Main function
+// ---------------------------------------------------------------------------
+
+/**
+ * Rewrite a parent module source using magic-string.
+ *
+ * @param source - Original source code text
+ * @param relPath - Relative file path
+ * @param extractions - Extraction results from extractSegments()
+ * @param originalImports - Import map from collectImports()
+ * @returns Rewritten parent module code and updated extractions
+ */
+export function rewriteParentModule(
+  source: string,
+  relPath: string,
+  extractions: ExtractionResult[],
+  originalImports: Map<string, ImportInfo>,
+): ParentRewriteResult {
+  const s = new MagicString(source);
+  const { program } = parseSync(relPath, source);
+
+  // Collect all callee names that were extracted (for removing $ imports)
+  const extractedCalleeNames = new Set<string>();
+  for (const ext of extractions) {
+    extractedCalleeNames.add(ext.calleeName);
+  }
+
+  // Track which symbols are already imported (for dedup - IMP-06)
+  const alreadyImported = new Set<string>();
+  for (const [localName] of originalImports) {
+    alreadyImported.add(localName);
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 1: Rewrite existing import sources (IMP-01..03)
+  // -----------------------------------------------------------------------
+  for (const node of program.body) {
+    if (node.type !== 'ImportDeclaration') continue;
+
+    const sourceNode = node.source;
+    const originalSource = sourceNode.value;
+    const newSource = rewriteImportSource(originalSource);
+
+    if (newSource !== originalSource) {
+      // Overwrite just inside the quotes
+      s.overwrite(sourceNode.start + 1, sourceNode.end - 1, newSource);
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 2: Remove marker specifiers from existing import statements
+  // -----------------------------------------------------------------------
+  for (const node of program.body) {
+    if (node.type !== 'ImportDeclaration') continue;
+
+    const specifiers = node.specifiers;
+    if (!specifiers || specifiers.length === 0) continue;
+
+    // Find which specifiers are markers to remove
+    const toRemove: number[] = [];
+    for (let i = 0; i < specifiers.length; i++) {
+      const spec = specifiers[i];
+      if (spec.type !== 'ImportSpecifier') continue;
+      const importedName = (spec as any).imported?.name ?? spec.local.name;
+      if (isMarkerSpecifier(importedName, extractedCalleeNames)) {
+        toRemove.push(i);
+      }
+    }
+
+    if (toRemove.length === 0) continue;
+
+    if (toRemove.length === specifiers.length) {
+      // All specifiers are markers: remove the entire import statement
+      // Include the trailing newline if present
+      let end = node.end;
+      if (end < source.length && source[end] === '\n') end++;
+      s.overwrite(node.start, end, '');
+    } else {
+      // Remove only the marker specifiers
+      // Rebuild the specifier list keeping non-markers
+      const kept: string[] = [];
+      for (let i = 0; i < specifiers.length; i++) {
+        if (!toRemove.includes(i)) {
+          const spec = specifiers[i];
+          const localName = spec.local.name;
+          const importedName = (spec as any).imported?.name ?? localName;
+          if (importedName !== localName) {
+            kept.push(`${importedName} as ${localName}`);
+          } else {
+            kept.push(localName);
+          }
+        }
+      }
+      // Rebuild: import { kept } from "source";
+      const sourceNode = node.source;
+      const sourceValue = source.slice(sourceNode.start, sourceNode.end);
+      const newImport = `import { ${kept.join(', ')} } from ${sourceValue};`;
+      let end = node.end;
+      if (end < source.length && source[end] === '\n') end++;
+      s.overwrite(node.start, end, newImport + '\n');
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 3: Determine nesting (parent-child relationships)
+  // -----------------------------------------------------------------------
+  // Sort by callStart ascending to detect containment
+  const sorted = [...extractions].sort((a, b) => a.callStart - b.callStart);
+
+  // Mark nested extractions: an extraction is nested if its call range
+  // is fully contained within another extraction's argument range.
+  // Also set the parent field for nested extractions.
+  for (let i = 0; i < sorted.length; i++) {
+    for (let j = 0; j < sorted.length; j++) {
+      if (i === j) continue;
+      // Check if sorted[i] is inside sorted[j]'s argument
+      if (
+        sorted[i].callStart >= sorted[j].argStart &&
+        sorted[i].callEnd <= sorted[j].argEnd
+      ) {
+        sorted[i].parent = sorted[j].symbolName;
+        break;
+      }
+    }
+  }
+
+  // Update the extractions array with parent info
+  for (const ext of sorted) {
+    const orig = extractions.find((e) => e.symbolName === ext.symbolName);
+    if (orig) orig.parent = ext.parent;
+  }
+
+  // Top-level extractions: those with no parent
+  const topLevel = extractions.filter((e) => e.parent === null);
+
+  // -----------------------------------------------------------------------
+  // Step 4: Rewrite call sites (only top-level extractions)
+  // -----------------------------------------------------------------------
+  for (const ext of topLevel) {
+    if (ext.isSync) {
+      // sync$: replace entire call with _qrlSync(original, "minified")
+      s.overwrite(ext.callStart, ext.callEnd, buildSyncTransform(ext.bodyText));
+    } else if (ext.isBare) {
+      // Bare $(): replace entire call with q_symbolName
+      s.overwrite(ext.callStart, ext.callEnd, `q_${ext.symbolName}`);
+    } else {
+      // Named marker (component$, useTask$, etc.)
+      // Replace callee
+      s.overwrite(ext.calleeStart, ext.calleeEnd, ext.qrlCallee);
+      // Replace argument
+      s.overwrite(ext.argStart, ext.argEnd, `q_${ext.symbolName}`);
+      // Add PURE annotation for componentQrl calls
+      if (needsPureAnnotation(ext.qrlCallee)) {
+        s.appendLeft(ext.callStart, '/*#__PURE__*/ ');
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 4: Build optimizer-added imports (IMP-04)
+  // -----------------------------------------------------------------------
+  const neededImports = new Map<string, string>(); // symbol -> source
+
+  // qrl is always needed if any non-sync segments extracted
+  const hasNonSync = extractions.some((e) => !e.isSync);
+  if (hasNonSync && !alreadyImported.has('qrl')) {
+    neededImports.set('qrl', '@qwik.dev/core');
+  }
+
+  // Each unique qrlCallee needs an import
+  for (const ext of extractions) {
+    if (ext.isSync) {
+      // _qrlSync import
+      if (!alreadyImported.has('_qrlSync')) {
+        neededImports.set('_qrlSync', '@qwik.dev/core');
+      }
+      continue;
+    }
+    if (ext.isBare) continue; // bare $ doesn't need a Qrl wrapper import
+
+    const qrlCallee = ext.qrlCallee;
+    if (qrlCallee && !alreadyImported.has(qrlCallee)) {
+      // Only add import if not custom inlined (custom inlined are locally defined)
+      if (!isCustomInlined(ext, originalImports)) {
+        neededImports.set(qrlCallee, getQrlImportSource(qrlCallee));
+      }
+    }
+  }
+
+  // Sort imports alphabetically by symbol name
+  const sortedImports = Array.from(neededImports.entries()).sort((a, b) =>
+    a[0].localeCompare(b[0]),
+  );
+
+  // Build import statements (each separate)
+  const importStatements = sortedImports.map(
+    ([symbol, src]) => `import { ${symbol} } from "${src}";`,
+  );
+
+  // -----------------------------------------------------------------------
+  // Step 5: Build QRL declarations
+  // -----------------------------------------------------------------------
+  const nonSyncExtractions = extractions.filter((e) => !e.isSync);
+  const qrlDecls = nonSyncExtractions
+    .map((ext) => buildQrlDeclaration(ext.symbolName, ext.canonicalFilename))
+    .sort();
+
+  // -----------------------------------------------------------------------
+  // Step 6: Assemble final output
+  // -----------------------------------------------------------------------
+  const preambleParts: string[] = [];
+
+  if (importStatements.length > 0) {
+    preambleParts.push(importStatements.join('\n'));
+  }
+
+  // The modified body (with import rewrites and call rewrites) already comes from s.toString()
+  // We need to prepend: imports + // + QRL decls + //
+
+  const preamble: string[] = [];
+  if (importStatements.length > 0) {
+    preamble.push(...importStatements);
+  }
+  if (qrlDecls.length > 0) {
+    preamble.push('//');
+    preamble.push(...qrlDecls);
+  }
+  preamble.push('//');
+
+  s.prepend(preamble.join('\n') + '\n');
+
+  return {
+    code: s.toString(),
+    extractions,
+  };
+}

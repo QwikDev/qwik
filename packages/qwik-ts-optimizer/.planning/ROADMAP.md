@@ -126,7 +126,7 @@ Plans:
 
 Plans:
 - [x] 06-01-PLAN.md — Diagnostic emission (C02, C03, C05, preventdefault-passive-check) and @qwik-disable-next-line suppression (DIAG-01..04)
-- [ ] 06-02-PLAN.md — Convergence infrastructure: snapshot options map, import cleanup, explicitExtensions (DIAG-04)
+- [x] 06-02-PLAN.md — Convergence infrastructure: snapshot options map, import cleanup, explicitExtensions (DIAG-04)
 - [ ] 06-03-PLAN.md — Final convergence: TS stripping, edge case fixes, 209/209 snapshot validation (DIAG-01..04)
 
 ## Progress

@@ -29,6 +29,7 @@ import type {
 
 /** Event handlers get the captured ids as a string `this` */
 type Handler = (this: string | undefined, ev: Event, el: Element) => void | Promise<void>;
+type Task = () => void | Promise<void>;
 
 const doc = document as Document;
 const win = window as unknown as qWindow;
@@ -45,6 +46,7 @@ const roots = new Set<EventTarget & ParentNode>([doc]);
 const symbols = new Map<string, Handler>();
 let observer: IntersectionObserver | undefined;
 let hasInitialized: number | undefined;
+let queuedTasks: Promise<void> | undefined;
 
 // ====== Utilities ======
 const nativeQuerySelectorAll = (root: ParentNode, selector: string) =>
@@ -76,6 +78,19 @@ const findShadowRoots = (fragment: EventTarget & ParentNode) => {
 
 const isPromise = (promise: any): promise is Promise<any> =>
   promise && typeof promise.then === 'function';
+
+const runTasks = async (tasks: Task[]) => {
+  for (let i = 0; i < tasks.length; i++) {
+    await tasks[i]();
+  }
+};
+
+const queueTasks = (tasks: Task[]) => {
+  if (tasks.length) {
+    const run = () => runTasks(tasks);
+    queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run();
+  }
+};
 
 const resolveContainer = (containerEl: QContainerElement) => {
   if (containerEl._qwikjson_ === undefined) {
@@ -129,20 +144,90 @@ const isCaptureHandlerElement = (
   (!!(element as QElement)._qDispatch?.[scopedKebabName] ||
     element.hasAttribute('q-' + scopedKebabName));
 
+const resolveHandler = (
+  container: QContainerElement,
+  element: Element,
+  qBase: string,
+  base: URL,
+  chunk: string,
+  symbol: string,
+  reqTime: number
+) => {
+  const eventData: QwikSymbolEvent['detail'] = {
+    qBase,
+    symbol,
+    element,
+    reqTime,
+  };
+  if (chunk === '') {
+    const hash = container.getAttribute('q:instance')!;
+    const handler = ((doc as any)['qFuncs_' + hash] || [])[Number.parseInt(symbol)];
+    if (!handler) {
+      const error = new Error('sym:' + symbol);
+      emitEvent<QwikErrorEvent>('qerror', {
+        importError: 'sync',
+        error,
+        ...eventData,
+      });
+      console.error(error);
+    }
+    return handler as Handler | undefined;
+  }
+
+  const key = `${symbol}|${qBase}|${chunk}`;
+  const handler = symbols.get(key);
+  if (handler) {
+    return handler;
+  }
+
+  const href = new URL(chunk, base).href;
+  const module = import(/* @vite-ignore */ href);
+  resolveContainer(container);
+  return module.then(
+    (module) => {
+      const handler = module[symbol] as Handler | undefined;
+      if (!handler) {
+        const error = new Error(`${symbol} not in ${href}`);
+        emitEvent<QwikErrorEvent>('qerror', {
+          importError: 'no-symbol',
+          error,
+          ...eventData,
+        });
+        console.error(error);
+      } else {
+        symbols.set(key, handler);
+        emitEvent<QwikSymbolEvent>('qsymbol', eventData);
+      }
+      return handler;
+    },
+    (error) => {
+      emitEvent<QwikErrorEvent>('qerror', {
+        importError: 'async',
+        error,
+        ...eventData,
+      });
+      console.error(error);
+      return undefined;
+    }
+  );
+};
+
 // ====== Event Processing ======
 
 /**
  * Dispatch an event by invoking QRL handlers. If there are multiple handlers, they are awaited in
  * order.
  */
-const dispatch = async (
+const dispatch = (
   element: Element,
   ev: Event,
   scopedKebabName: string,
+  tasks: Task[],
   /** This must only be provided if checking for preventDefault and stopPropagation attributes */
   kebabName?: string,
   allowPreventDefault = true
 ) => {
+  let defer = false;
   if (kebabName) {
     if (allowPreventDefault && element.hasAttribute('preventdefault:' + kebabName)) {
       ev.preventDefault();
@@ -155,17 +240,40 @@ const dispatch = async (
   const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
   if (handlers) {
     if (typeof handlers === 'function') {
-      const result = handlers(ev, element);
-      if (isPromise(result)) {
-        await result;
+      const run = () => handlers(ev, element);
+      if (defer) {
+        tasks.push(async () => {
+          const result = run();
+          if (isPromise(result)) {
+            await result;
+          }
+        });
+      } else {
+        const result = run();
+        if (isPromise(result)) {
+          defer = true;
+          tasks.push(() => result);
+        }
       }
     } else if (handlers.length) {
       for (let i = 0; i < handlers.length; i++) {
         const handler = handlers[i];
-        const result = handler?.(ev, element);
-        // only await if there is a promise returned so everything stays sync if possible
-        if (isPromise(result)) {
-          await result;
+        if (handler) {
+          const run = () => handler(ev, element);
+          if (defer) {
+            tasks.push(async () => {
+              const result = run();
+              if (isPromise(result)) {
+                await result;
+              }
+            });
+          } else {
+            const result = run();
+            if (isPromise(result)) {
+              defer = true;
+              tasks.push(() => result);
+            }
+          }
         }
       }
     }
@@ -185,71 +293,43 @@ const dispatch = async (
       const qrl = qrls[i];
       const reqTime = performance.now();
       const [chunk, symbol, capturedIds] = qrl.split('#');
-      const eventData: QwikSymbolEvent['detail'] = {
-        qBase,
-        symbol,
-        element,
-        reqTime,
-      };
-
-      let handler: Handler | undefined;
-      let importError: undefined | 'sync' | 'async' | 'no-symbol';
-      let error: undefined | Error;
-
-      // Load the handler
-      if (chunk === '') {
-        // Sync QRL
-        const hash = container.getAttribute('q:instance')!;
-        handler = ((doc as any)['qFuncs_' + hash] || [])[Number.parseInt(symbol)];
-        if (!handler) {
-          importError = 'sync';
-          error = new Error('sym:' + symbol);
-        }
-      } else {
-        const key = `${symbol}|${qBase}|${chunk}`;
-        handler = symbols.get(key);
-
-        if (!handler) {
-          const href = new URL(chunk, base).href;
+      const run = (handler: Handler | undefined) => {
+        if (handler && element.isConnected) {
           try {
-            const module = import(/* @vite-ignore */ href);
-            resolveContainer(container);
-            handler = (await module)[symbol];
-            if (!handler) {
-              importError = 'no-symbol';
-              error = new Error(`${symbol} not in ${href}`);
-            } else {
-              symbols.set(key, handler);
-              emitEvent<QwikSymbolEvent>('qsymbol', eventData);
+            const result = handler.call(capturedIds, ev, element);
+            if (isPromise(result)) {
+              return result.catch((error) => {
+                emitEvent<QwikErrorEvent>('qerror', {
+                  error,
+                  qBase,
+                  symbol,
+                  element,
+                  reqTime,
+                });
+              });
             }
-          } catch (err) {
-            importError = 'async';
-            error = err as Error;
+          } catch (error) {
+            emitEvent<QwikErrorEvent>('qerror', {
+              error,
+              qBase,
+              symbol,
+              element,
+              reqTime,
+            });
           }
         }
-      }
-
-      if (!handler) {
-        emitEvent<QwikErrorEvent>('qerror', {
-          importError,
-          error,
-          ...eventData,
+      };
+      const handler = resolveHandler(container, element, qBase, base, chunk, symbol, reqTime);
+      if (defer || isPromise(handler)) {
+        defer = true;
+        tasks.push(async () => {
+          await run(isPromise(handler) ? await handler : handler);
         });
-        console.error(error);
-        continue;
-      }
-
-      // Execute the handler
-      // After the await, the element could have been removed
-      if (element.isConnected) {
-        try {
-          const result = handler.call(capturedIds, ev, element);
-          // only await if there is a promise returned
-          if (isPromise(result)) {
-            await result;
-          }
-        } catch (error) {
-          emitEvent<QwikErrorEvent>('qerror', { error, ...eventData });
+      } else {
+        const result = run(handler);
+        if (isPromise(result)) {
+          defer = true;
+          tasks.push(() => result);
         }
       }
     }
@@ -264,7 +344,7 @@ const dispatch = async (
  *
  * @param ev - Browser event.
  */
-const processElementEvent = async (
+const processElementEvent = (
   ev: Event,
   scope: 'e' | 'ep' = elementPrefix,
   allowPreventDefault = true
@@ -274,6 +354,7 @@ const processElementEvent = async (
   const captureAttribute = capturePrefix + kebabName;
   const elements: Element[] = [];
   const captureHandlers: boolean[] = [];
+  const tasks: Task[] = [];
   let current = ev.target as Node | null;
 
   while (current) {
@@ -288,12 +369,10 @@ const processElementEvent = async (
 
   for (let i = elements.length - 1; i >= 0; i--) {
     if (captureHandlers[i]) {
-      const results = dispatch(elements[i], ev, scopedKebabName, kebabName, allowPreventDefault);
+      dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
       const continuePropagation = !ev.cancelBubble;
-      if (isPromise(results)) {
-        await results;
-      }
       if (!continuePropagation || ev.cancelBubble) {
+        queueTasks(tasks);
         return;
       }
     }
@@ -301,16 +380,15 @@ const processElementEvent = async (
 
   for (let i = 0; i < elements.length; i++) {
     if (!captureHandlers[i]) {
-      const results = dispatch(elements[i], ev, scopedKebabName, kebabName, allowPreventDefault);
+      dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
       const doBubble = ev.bubbles && !ev.cancelBubble;
-      if (isPromise(results)) {
-        await results;
-      }
       if (!doBubble || ev.cancelBubble) {
+        queueTasks(tasks);
         return;
       }
     }
   }
+  queueTasks(tasks);
 };
 
 const processPassiveElementEvent = (ev: Event) =>
@@ -320,10 +398,12 @@ const broadcast = (scope: QwikLoaderEventScope, ev: Event, allowPreventDefault =
   const kebabName = camelToKebab(ev.type);
   const scopedKebabName = scope + ':' + kebabName;
   const elements = querySelectorAll('[q-' + scope + '\\:' + kebabName + ']');
+  const tasks: Task[] = [];
   for (let i = 0; i < elements.length; i++) {
     const el = elements[i];
-    dispatch(el, ev, scopedKebabName, kebabName, allowPreventDefault);
+    dispatch(el, ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
   }
+  queueTasks(tasks);
 };
 
 /**
@@ -334,11 +414,11 @@ const broadcast = (scope: QwikLoaderEventScope, ev: Event, allowPreventDefault =
  *
  * @param ev - Browser event.
  */
-const processDocumentEvent = async (ev: Event) => {
+const processDocumentEvent = (ev: Event) => {
   broadcast(documentPrefix, ev);
 };
 
-const processPassiveDocumentEvent = async (ev: Event) => {
+const processPassiveDocumentEvent = (ev: Event) => {
   broadcast(passiveDocumentPrefix, ev, false);
 };
 
@@ -366,11 +446,13 @@ const processReadyStateChange = () => {
       events.delete('d:qinit');
       const ev = createEvent('qinit');
       const elements = querySelectorAll('[q-d\\:qinit]');
+      const tasks: Task[] = [];
       for (let i = 0; i < elements.length; i++) {
         const el = elements[i];
-        dispatch(el, ev, 'd:qinit');
+        dispatch(el, ev, 'd:qinit', tasks);
         el.removeAttribute('q-d:qinit');
       }
+      queueTasks(tasks);
     }
 
     if (events.has('d:qidle')) {
@@ -379,23 +461,32 @@ const processReadyStateChange = () => {
       riC.bind(win)(() => {
         const ev = createEvent('qidle');
         const elements = querySelectorAll('[q-d\\:qidle]');
+        const tasks: Task[] = [];
         for (let i = 0; i < elements.length; i++) {
           const el = elements[i];
-          dispatch(el, ev, 'd:qidle');
+          dispatch(el, ev, 'd:qidle', tasks);
           el.removeAttribute('q-d:qidle');
         }
+        queueTasks(tasks);
       });
     }
 
     if (events.has('e:qvisible')) {
       observer ||= new IntersectionObserver((entries) => {
+        const tasks: Task[] = [];
         for (let i = 0; i < entries.length; i++) {
           const entry = entries[i];
           if (entry.isIntersecting) {
             observer!.unobserve(entry.target);
-            dispatch(entry.target, createEvent<QwikVisibleEvent>('qvisible', entry), 'e:qvisible');
+            dispatch(
+              entry.target,
+              createEvent<QwikVisibleEvent>('qvisible', entry),
+              'e:qvisible',
+              tasks
+            );
           }
         }
+        queueTasks(tasks);
       });
       const elements = querySelectorAll('[q-e\\:qvisible]:not([q\\:observed])');
       for (let i = 0; i < elements.length; i++) {

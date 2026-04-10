@@ -67,7 +67,7 @@ Prefer `pnpm build --qwik --qwikrouter --dev` to build qwik and qwik-city faster
 pnpm vitest run packages/qwik/src/core/tests/use-task.spec.tsx
 
 # E2E test — single file
-pnpm playwright test e2e/qwik-e2e/tests/e2e.events.e2e.ts --project chromium
+pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
 ```
 
 ## Architecture Essentials
@@ -178,7 +178,8 @@ packages/qwik/src/core/
 - Test fixture apps: `e2e/qwik-e2e/apps/`
 - Dev server: `e2e/qwik-e2e/dev-server.ts`
 - Run: `pnpm test.e2e.chromium`
-- Run one: `pnpm playwright test <path> --project chromium`
+- Run one: `pnpm playwright test <path> --browser=chromium --config e2e/qwik-e2e/playwright.config.ts`
+- Note: this config uses browser selection, not named Playwright projects, so `--project chromium` is incorrect here
 - Browsers: Chromium and WebKit enabled (Firefox disabled)
 - Additional E2E suites: `e2e/adapters-e2e/`, `e2e/qwik-react-e2e/`
 

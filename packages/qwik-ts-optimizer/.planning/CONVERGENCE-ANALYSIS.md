@@ -2,10 +2,12 @@
 
 ## Current State: 76/210 (36.4%)
 
-Breakdown of 134 failures:
+Updated breakdown after const-idents worktree fixes:
 - **Parent-only fail**: 36 tests (segments OK, parent bad)
-- **Segment-only fail**: 68 tests (parent OK, segments bad)  
-- **Both fail**: 30 tests
+- **Segment-only fail**: 69 tests (parent OK, segments bad) — +1 from inline QRL fix
+- **Both fail**: 29 tests — -1 from inline QRL fix
+
+Note: Inline QRL fix moved 1 test from "both fail" to "segment-only fail" (parent now correct)
 
 ## Segment-Only Failures (68 tests, 89 code mismatches)
 

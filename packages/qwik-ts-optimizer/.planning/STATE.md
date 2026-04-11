@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-04-11T13:38:27.766Z"
+status: verifying
+stopped_at: Completed 14-03-PLAN.md
+last_updated: "2026-04-11T14:06:52.918Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 28
-  completed_plans: 27
-  percent: 96
+  completed_plans: 28
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 
 Phase: 14 (Segment Codegen Batch 2) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -114,6 +114,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13 P03 | 23min | 2 tasks | 5 files |
 | Phase 14 P01 | 9min | 2 tasks | 2 files |
 | Phase 14 P02 | 12min | 2 tasks | 3 files |
+| Phase 14 P03 | 26min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -200,6 +201,7 @@ Recent decisions affecting current work:
 - [Phase 14]: Bare $() calls still emit plain QRL variable; only named markers get calleeQrl wrapping
 - [Phase 14]: Enum value inlining uses map-based replacement in segment bodies rather than full-file TS transpilation before extraction
 - [Phase 14]: Already-exported variables skip _auto_ prefix in segment imports -- imported directly by original name
+- [Phase 14]: Bind-desugared prop names always quoted; merge order follows JSX attribute order; paramNames signal exclusion reverted (deep prop access still needs _fnSignal)
 
 ### Pending Todos
 
@@ -219,6 +221,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T13:38:27.764Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-04-11T14:06:52.916Z
+Stopped at: Completed 14-03-PLAN.md
 Resume file: None

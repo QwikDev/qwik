@@ -91,10 +91,10 @@
   2. Running convergence tests on hoist-strategy snapshots produces zero const-fn pattern AST mismatches
   3. Entry strategy selection assigns the correct strategy per snapshot (no strategy misidentification)
   4. All 73 previously-passing snapshots still pass (zero regressions)
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 17-01-PLAN.md -- Fix import ordering to use Map insertion order (matching SWC discovery order)
+- [x] 17-01-PLAN.md -- Fix import ordering to use Map insertion order (matching SWC discovery order)
 - [ ] 17-02-PLAN.md -- Fix _hf deduplication via shared SignalHoister + suppress _captures import for inline
 
 ### Phase 18: Capture Classification Convergence
@@ -149,7 +149,7 @@ Phases execute in numeric order: 17 -> 18 -> 19 -> 20 -> 21
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 17. Inline/Hoist Strategy Convergence | 0/2 | Planning complete | - |
+| 17. Inline/Hoist Strategy Convergence | 1/2 | In Progress|  |
 | 18. Capture Classification Convergence | 0/TBD | Not started | - |
 | 19. JSX Transform Convergence | 0/TBD | Not started | - |
 | 20. Migration and Sync Convergence | 0/TBD | Not started | - |

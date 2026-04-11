@@ -142,9 +142,9 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 
 ### Inline/Hoist Strategy
 
-- [ ] **IHS-01**: Inline strategy `.s()` body text produces AST-matching output for all inline-strategy snapshots
-- [ ] **IHS-02**: Hoist strategy generates correct const-fn pattern producing AST-matching output for all hoist-strategy snapshots
-- [ ] **IHS-03**: Entry strategy selection produces the correct segment structure per snapshot expected output
+- [x] **IHS-01**: Inline strategy `.s()` body text produces AST-matching output for all inline-strategy snapshots
+- [x] **IHS-02**: Hoist strategy generates correct const-fn pattern producing AST-matching output for all hoist-strategy snapshots
+- [x] **IHS-03**: Entry strategy selection produces the correct segment structure per snapshot expected output
 
 ### Capture Classification
 
@@ -286,9 +286,9 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 | DIAG-02 | Phase 6 | Complete |
 | DIAG-03 | Phase 6 | Complete |
 | DIAG-04 | Phase 6 | Complete |
-| IHS-01 | Phase 17 | Pending |
-| IHS-02 | Phase 17 | Pending |
-| IHS-03 | Phase 17 | Pending |
+| IHS-01 | Phase 17 | Complete |
+| IHS-02 | Phase 17 | Complete |
+| IHS-03 | Phase 17 | Complete |
 | CAP-01 | Phase 18 | Pending |
 | CAP-02 | Phase 18 | Pending |
 | CAP-03 | Phase 18 | Pending |

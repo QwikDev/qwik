@@ -47,7 +47,13 @@ Plans:
   1. All 24 snapshots pass parent + segment AST comparison
   2. All phase 7 locked snapshots + 10 original still pass
   3. Zero regressions in unit tests
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 08-01-PLAN.md — TS stripping from parent output + capture suppression for _auto_ migrated vars
+- [ ] 08-02-PLAN.md — No-extraction passthrough, inlinedQrl(null) detection, hoist-to-const for inline strategy
+- [ ] 08-03-PLAN.md — Signal wrapping in JSX children + _rawProps destructuring optimization
+- [ ] 08-04-PLAN.md — regCtxName / _regSymbol support for server-tagged extractions
+- [ ] 08-05-PLAN.md — Remaining snapshot fixes and final regression sweep
 
 ### Phase 9: Untransformed Extraction
 **Goal**: All 11 untransformed snapshots pass (extraction not currently happening)
@@ -132,8 +138,8 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 7. Parent Rewrite Batch 1 | 2/5 | Gap closure in progress | - |
-| 8. Parent Rewrite Batch 2 | 0/TBD | Not started | - |
+| 7. Parent Rewrite Batch 1 | 5/5 | Gap closure complete | - |
+| 8. Parent Rewrite Batch 2 | 0/5 | Planning complete | - |
 | 9. Untransformed Extraction | 0/TBD | Not started | - |
 | 10. Segment Identity Batch 1 | 0/TBD | Not started | - |
 | 11. Segment Identity Batch 2 | 0/TBD | Not started | - |

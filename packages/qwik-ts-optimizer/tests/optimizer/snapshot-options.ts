@@ -195,6 +195,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
     entryStrategy: { type: 'segment' },
     stripCtxName: ['server'],
+    mode: 'prod',  // Expected output uses s_ prefix naming
   },
   example_server_auth: {
     transpileTs: true,

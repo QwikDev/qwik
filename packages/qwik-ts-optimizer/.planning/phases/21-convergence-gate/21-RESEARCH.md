@@ -315,19 +315,19 @@ destructure_args_inline_cmp_block_stmt, destructure_args_inline_cmp_block_stmt2,
 | A2 | Root cause families overlap significantly | Root Cause Families | If families are more independent, total addressable tests could be higher |
 | A3 | The 2 Phase 19 unit test failures are intentional and should be updated | Non-convergence failures | If the SWC alignment was wrong, tests should be reverted instead |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should v3.0 be considered "shipped" at 36% convergence?**
+1. **Should v3.0 be considered "shipped" at 36% convergence?** (RESOLVED — document results, gate records actual state)
    - What we know: The gate criteria (70%) are not met
    - What's unclear: Whether the infrastructure gains justify closing v3.0 anyway
    - Recommendation: Ship v3.0 with documented results, plan v4.0 for const_idents
 
-2. **Should the 2 Phase 19 unit test expectations be updated?**
+2. **Should the 2 Phase 19 unit test expectations be updated?** (RESOLVED — yes, update to match SWC-aligned behavior)
    - What we know: Phase 19 intentionally changed classifyProp to match SWC
    - What's unclear: Whether the change is correct for all cases
    - Recommendation: Update test expectations to match SWC-aligned behavior (Phase 19 verification explicitly recommends this)
 
-3. **What is the actual const_idents impact?**
+3. **What is the actual const_idents impact?** (RESOLVED — needs implementation to measure, estimated 25-35 tests)
    - What we know: 3 reverted changes in Phase 19 were blocked by lack of const_idents
    - What's unclear: Exactly how many of the 134 failures would be fixed
    - Recommendation: Implement const_idents as first task of v4.0, then re-measure

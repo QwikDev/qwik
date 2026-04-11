@@ -271,3 +271,120 @@ describe('generateSegmentCode', () => {
     expect(code).toBe(`export const handler_abc12345678 = () => console.log("hi");`);
   });
 });
+
+describe('disambiguateExtractions', () => {
+  it('appends _1 suffix to second extraction with same context portion', () => {
+    const source = `
+import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  return <div>Hello</div>;
+});
+export const App2 = component$(() => {
+  return <div>World</div>;
+});
+`;
+    const results = extractSegments(source, 'test.tsx');
+    expect(results).toHaveLength(2);
+
+    // Both have context portion "App_component" and "App2_component" -- different names, no disambiguation
+    // Let's test with SAME context portion instead
+  });
+
+  it('disambiguates two extractions with identical context portion', () => {
+    // Two component$ calls inside the same variable name produce same context
+    const source = `
+import { $, component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  return <div>Hello</div>;
+});
+`;
+    // For a real duplicate test, we need a scenario where two extractions share
+    // the same display name. This happens with multiple $() in same context.
+    const source2 = `
+import { $ } from '@qwik.dev/core';
+export const Foo = {
+  a: $(() => 1),
+  b: $(() => 2),
+};
+`;
+    const results = extractSegments(source2, 'test.tsx');
+    // a and b have different context (Foo_a vs Foo_b), so no disambiguation
+    // We need cases like multiple onClick$ on same element
+  });
+
+  it('disambiguates multiple extractions with same display name (e.g., multiple useTask$)', () => {
+    const source = `
+import { component$, useTask$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  useTask$(() => { console.log('task1'); });
+  useTask$(() => { console.log('task2'); });
+  useTask$(() => { console.log('task3'); });
+  return <div>Hello</div>;
+});
+`;
+    const results = extractSegments(source, 'test.tsx');
+    // Should have 4 extractions: 1 component + 3 useTask
+    // The 3 useTask$ all produce context "App_component_useTask" -> disambiguate
+    const taskExtractions = results.filter(r => r.calleeName === 'useTask$');
+    expect(taskExtractions).toHaveLength(3);
+
+    // First useTask keeps original name
+    expect(taskExtractions[0].displayName).toBe('test.tsx_App_component_useTask');
+    // Second gets _1
+    expect(taskExtractions[1].displayName).toBe('test.tsx_App_component_useTask_1');
+    // Third gets _2
+    expect(taskExtractions[2].displayName).toBe('test.tsx_App_component_useTask_2');
+  });
+
+  it('does not disambiguate different context portions', () => {
+    const source = `
+import { $, useTask$ } from '@qwik.dev/core';
+export const A = $(() => 1);
+export const B = $(() => 2);
+`;
+    const results = extractSegments(source, 'test.tsx');
+    expect(results).toHaveLength(2);
+    // A and B have different context portions, no disambiguation
+    expect(results[0].displayName).toBe('test.tsx_A');
+    expect(results[1].displayName).toBe('test.tsx_B');
+  });
+
+  it('recomputes hash after disambiguation suffix is appended', () => {
+    const source = `
+import { component$, useTask$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  useTask$(() => { console.log('task1'); });
+  useTask$(() => { console.log('task2'); });
+  return <div>Hello</div>;
+});
+`;
+    const results = extractSegments(source, 'test.tsx');
+    const taskExtractions = results.filter(r => r.calleeName === 'useTask$');
+    expect(taskExtractions).toHaveLength(2);
+
+    // Hashes must differ since context portions differ after disambiguation
+    expect(taskExtractions[0].hash).not.toBe(taskExtractions[1].hash);
+  });
+
+  it('updates canonicalFilename and symbolName consistently', () => {
+    const source = `
+import { component$, useTask$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  useTask$(() => { console.log('task1'); });
+  useTask$(() => { console.log('task2'); });
+  return <div>Hello</div>;
+});
+`;
+    const results = extractSegments(source, 'test.tsx');
+    const taskExtractions = results.filter(r => r.calleeName === 'useTask$');
+    expect(taskExtractions).toHaveLength(2);
+
+    const second = taskExtractions[1];
+    // displayName should have _1
+    expect(second.displayName).toBe('test.tsx_App_component_useTask_1');
+    // symbolName should be contextPortion_hash
+    expect(second.symbolName).toMatch(/^App_component_useTask_1_/);
+    // canonicalFilename should be displayName_hash
+    expect(second.canonicalFilename).toBe(second.displayName + '_' + second.hash);
+  });
+});

@@ -30,7 +30,7 @@ import {
   needsPureAnnotation,
   getQrlImportSource,
 } from './rewrite-calls.js';
-import { buildQrlDevDeclaration } from './dev-mode.js';
+import { buildQrlDevDeclaration, buildDevFilePath } from './dev-mode.js';
 import {
   buildNoopQrlDeclaration,
   buildNoopQrlDevDeclaration,

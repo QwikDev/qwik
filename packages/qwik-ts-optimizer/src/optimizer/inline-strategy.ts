@@ -131,3 +131,31 @@ export function buildStrippedNoopQrlDev(
 export function buildSCall(varName: string, bodyText: string): string {
   return `${varName}.s(${bodyText});`;
 }
+
+// ---------------------------------------------------------------------------
+// Hoist strategy helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a const function declaration for hoist strategy.
+ *
+ * Format (verified from example_mutable_children snapshot):
+ * ```
+ * const {symbolName} = {bodyText};
+ * ```
+ */
+export function buildHoistConstDecl(symbolName: string, bodyText: string): string {
+  return `const ${symbolName} = ${bodyText};`;
+}
+
+/**
+ * Build a simple .s() call for hoist strategy (variable name only, no body).
+ *
+ * Format (verified from example_mutable_children snapshot):
+ * ```
+ * {qrlVarName}.s({symbolName});
+ * ```
+ */
+export function buildHoistSCall(qrlVarName: string, symbolName: string): string {
+  return `${qrlVarName}.s(${symbolName});`;
+}

@@ -113,12 +113,18 @@ function stripPositions(node: any, ancestors: any[] = []): any {
 
   const cleaned: Record<string, any> = {};
   for (const [key, value] of Object.entries(node)) {
-    // Skip position-related fields and cosmetic raw spellings.
+    // Skip position-related fields, cosmetic raw spellings, and TS type annotations.
+    // TypeScript types don't affect runtime behavior, so they should not affect
+    // semantic AST comparison (e.g., `(x: Stuff)` and `(x)` are equivalent).
     if (
       key === 'start' ||
       key === 'end' ||
       key === 'loc' ||
       key === 'range' ||
+      key === 'typeAnnotation' ||
+      key === 'returnType' ||
+      key === 'typeParameters' ||
+      key === 'typeArguments' ||
       (key === 'raw' && shouldStripRaw(node, ancestors))
     )
       continue;

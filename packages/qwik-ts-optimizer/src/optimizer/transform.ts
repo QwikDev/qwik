@@ -540,7 +540,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       emitMode,
       devFile,
       isInlineStrategy
-        ? { inline: true, stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers }
+        ? { inline: true, entryType: entryStrategy.type as 'inline' | 'hoist', stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers }
         : options.stripCtxName || options.stripEventHandlers
           ? { inline: false, stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers }
           : undefined,

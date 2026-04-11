@@ -19,6 +19,7 @@
 
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
+import { transformSync as oxcTransformSync } from 'oxc-transform';
 import type { ExtractionResult } from './extract.js';
 import type { ImportInfo } from './marker-detection.js';
 import type { MigrationDecision, ModuleLevelDecl } from './variable-migration.js';
@@ -36,6 +37,8 @@ import {
   buildStrippedNoopQrl,
   buildStrippedNoopQrlDev,
   buildSCall,
+  buildHoistConstDecl,
+  buildHoistSCall,
 } from './inline-strategy.js';
 import { isStrippedSegment } from './strip-ctx.js';
 import { injectCapturesUnpacking } from './segment-codegen.js';
@@ -52,6 +55,8 @@ import type { EmitMode } from './types.js';
 export interface InlineStrategyOptions {
   /** Whether to use inline/hoist strategy (_noopQrl + .s()) */
   inline: boolean;
+  /** Entry strategy type: 'inline' puts body in .s(), 'hoist' extracts body as const */
+  entryType?: 'inline' | 'hoist';
   /** Strip context names (server/client strip) */
   stripCtxName?: string[];
   /** Strip event handlers */
@@ -117,6 +122,8 @@ interface SCallBodyJsxOptions {
   importedNames: Set<string>;
   /** Dev mode options for JSX source info */
   devOptions?: { relPath: string };
+  /** Starting key counter value (for continuation from module-level JSX) */
+  keyCounterStart?: number;
 }
 
 /**
@@ -136,7 +143,7 @@ function transformSCallBody(
   allExtractions: ExtractionResult[],
   qrlVarNames: Map<string, string>,
   jsxBodyOptions?: SCallBodyJsxOptions,
-): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[] } {
+): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
   let body = ext.bodyText;
   const additionalImports = new Map<string, string>();
   const hoistedDeclarations: string[] = [];
@@ -204,6 +211,7 @@ function transformSCallBody(
   }
 
   // 4. JSX transpilation within the body text
+  let finalKeyCounterValue: number | undefined;
   if (jsxBodyOptions?.enableJsx) {
     // Wrap the body as a parseable module-level expression
     const wrapperPrefix = 'const __body__ = ';
@@ -229,6 +237,7 @@ function transformSCallBody(
         bodyImportedNames,
         [], // No skip ranges within the body
         jsxBodyOptions.devOptions,
+        jsxBodyOptions.keyCounterStart,
       );
 
       // Extract the transformed body by stripping the wrapper prefix
@@ -250,10 +259,13 @@ function transformSCallBody(
 
       // Collect hoisted declarations for the parent preamble
       hoistedDeclarations.push(...bodyJsxResult.hoistedDeclarations);
+
+      // Return the final key counter value for continuation
+      finalKeyCounterValue = bodyJsxResult.keyCounterValue;
     }
   }
 
-  return { transformedBody: body, additionalImports, hoistedDeclarations };
+  return { transformedBody: body, additionalImports, hoistedDeclarations, keyCounterValue: finalKeyCounterValue };
 }
 
 // ---------------------------------------------------------------------------
@@ -597,6 +609,7 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   const isDevMode = mode === 'dev';
   let jsxResult: JsxTransformOutput | null = null;
+  let jsxKeyCounterValue = 0; // Track the JSX key counter across module + body transforms
   if (jsxOptions?.enableJsx) {
     // Build skip ranges from extraction argument ranges.
     // These regions have already been rewritten (e.g., $() argument replaced with q_symbolName)
@@ -613,6 +626,7 @@ export function rewriteParentModule(
       source, s, program, jsxOptions.importedNames, skipRanges,
       isDevMode ? { relPath } : undefined,
     );
+    jsxKeyCounterValue = jsxResult.keyCounterValue;
   }
 
   // -----------------------------------------------------------------------
@@ -830,17 +844,21 @@ export function rewriteParentModule(
   qrlDecls.sort();
 
   // -----------------------------------------------------------------------
-  // Step 5c: Build .s() calls for inline strategy
+  // Step 5c: Build .s() calls for inline/hoist strategy
   // -----------------------------------------------------------------------
   const sCalls: string[] = [];
   const inlineHoistedDeclarations: string[] = [];
+  const isHoist = inlineOptions?.entryType === 'hoist';
   if (isInline) {
     // Build JSX options for inline body transformation (if JSX is enabled)
-    const sCallJsxOptions: SCallBodyJsxOptions | undefined = jsxOptions?.enableJsx
+    // For hoist strategy, pass the current key counter so body keys continue
+    // from the module-level counter (ensuring sequential u6_N numbering).
+    let sCallJsxOptions: SCallBodyJsxOptions | undefined = jsxOptions?.enableJsx
       ? {
           enableJsx: true,
           importedNames: jsxOptions.importedNames,
           devOptions: isDevMode ? { relPath } : undefined,
+          keyCounterStart: isHoist ? jsxKeyCounterValue : undefined,
         }
       : undefined;
 
@@ -866,50 +884,90 @@ export function rewriteParentModule(
       }
     }
 
-    // Emit nested .s() calls first (their bodies are leaf — no transformation needed for nesting,
-    // but captures may need injection)
+    // For hoist strategy: find the containing statement for each extraction
+    // so we can insert const + .s() before it in the body.
+    // Map symbolName -> statement start position in original source
+    const extContainingStmtStart = new Map<string, number>();
+    if (isHoist) {
+      for (const ext of allNonSync) {
+        // Find the program.body statement that contains this extraction's callStart
+        for (const stmt of program.body) {
+          if (stmt.type === 'ImportDeclaration') continue;
+          if (ext.callStart >= stmt.start && ext.callStart < stmt.end) {
+            extContainingStmtStart.set(ext.symbolName, stmt.start);
+            break;
+          }
+        }
+      }
+    }
+
+    /**
+     * Process a single extraction: build the .s() call (inline) or
+     * const + .s(varName) (hoist), collecting imports and hoisted decls.
+     */
+    const processExtraction = (ext: ExtractionResult) => {
+      const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
+      const { transformedBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformSCallBody(
+        ext, extractions, qrlVarNames, sCallJsxOptions,
+      );
+      // For hoist strategy, advance the key counter after each body transform
+      if (isHoist && keyCounterValue !== undefined && sCallJsxOptions) {
+        jsxKeyCounterValue = keyCounterValue;
+        sCallJsxOptions = { ...sCallJsxOptions, keyCounterStart: jsxKeyCounterValue };
+      }
+      inlineHoistedDeclarations.push(...hoistedDeclarations);
+      for (const [sym, src] of additionalImports) {
+        if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
+          neededImports.set(sym, src);
+        }
+      }
+
+      if (isHoist) {
+        // Hoist strategy: insert const declaration + .s(varName) before
+        // the containing statement in the body via magic-string.
+        // Strip TypeScript type annotations from the body text since hoist
+        // output is emitted as .js (TS types would cause parse errors).
+        let hoistBody = transformedBody;
+        try {
+          const stripped = oxcTransformSync('__body__.tsx', hoistBody);
+          if (stripped.code && !stripped.errors?.length) {
+            hoistBody = stripped.code;
+            // Strip trailing semicolon added by transform
+            if (hoistBody.endsWith(';\n')) hoistBody = hoistBody.slice(0, -2);
+            else if (hoistBody.endsWith(';')) hoistBody = hoistBody.slice(0, -1);
+          }
+        } catch {
+          // If TS stripping fails, use original body
+        }
+        const constDecl = buildHoistConstDecl(ext.symbolName, hoistBody);
+        const sCall = buildHoistSCall(varName, ext.symbolName);
+        const stmtStart = extContainingStmtStart.get(ext.symbolName);
+        if (stmtStart !== undefined) {
+          s.appendLeft(stmtStart, constDecl + '\n' + sCall + '\n');
+        } else {
+          // Fallback: put in preamble if no containing statement found
+          sCalls.push(constDecl);
+          sCalls.push(sCall);
+        }
+      } else {
+        // Inline strategy: put body inside .s() call in preamble
+        sCalls.push(buildSCall(varName, transformedBody));
+      }
+    };
+
+    // Emit nested .s() calls first
     for (const ext of nestedExts) {
-      const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      const { transformedBody, additionalImports, hoistedDeclarations } = transformSCallBody(
-        ext, extractions, qrlVarNames, sCallJsxOptions,
-      );
-      sCalls.push(buildSCall(varName, transformedBody));
-      inlineHoistedDeclarations.push(...hoistedDeclarations);
-      for (const [sym, src] of additionalImports) {
-        if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
-          neededImports.set(sym, src);
-        }
-      }
+      processExtraction(ext);
     }
 
-    // Then top-level non-component .s() calls (with transformed bodies)
+    // Then top-level non-component .s() calls
     for (const ext of topNonComponent) {
-      const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      const { transformedBody, additionalImports, hoistedDeclarations } = transformSCallBody(
-        ext, extractions, qrlVarNames, sCallJsxOptions,
-      );
-      sCalls.push(buildSCall(varName, transformedBody));
-      inlineHoistedDeclarations.push(...hoistedDeclarations);
-      for (const [sym, src] of additionalImports) {
-        if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
-          neededImports.set(sym, src);
-        }
-      }
+      processExtraction(ext);
     }
 
-    // Component .s() calls last (with transformed bodies)
+    // Component .s() calls last
     for (const ext of topComponent) {
-      const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      const { transformedBody, additionalImports, hoistedDeclarations } = transformSCallBody(
-        ext, extractions, qrlVarNames, sCallJsxOptions,
-      );
-      sCalls.push(buildSCall(varName, transformedBody));
-      inlineHoistedDeclarations.push(...hoistedDeclarations);
-      for (const [sym, src] of additionalImports) {
-        if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
-          neededImports.set(sym, src);
-        }
-      }
+      processExtraction(ext);
     }
   }
 

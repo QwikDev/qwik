@@ -45,6 +45,8 @@ export interface JsxTransformOutput {
   needsFragment: boolean;
   /** Hoisted signal function declarations (const _hf0 = ...; const _hf0_str = ...;) */
   hoistedDeclarations: string[];
+  /** Final key counter value (for continuation in subsequent transforms) */
+  keyCounterValue: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -325,7 +327,11 @@ export function computeFlags(
  * Keys follow the pattern "u6_N" where N is a zero-based counter.
  */
 export class JsxKeyCounter {
-  private count = 0;
+  private count: number;
+
+  constructor(startAt = 0) {
+    this.count = startAt;
+  }
 
   /**
    * Generate the next key value.
@@ -333,6 +339,11 @@ export class JsxKeyCounter {
    */
   next(): string {
     return `u6_${this.count++}`;
+  }
+
+  /** Get the current counter value (for continuation). */
+  current(): number {
+    return this.count;
   }
 
   /** Reset the counter (e.g., for a new module). */
@@ -504,9 +515,11 @@ function processOneChild(
 
   if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
     // Nested JSX — use MagicString buffer to get already-transformed text
-    // (bottom-up walk transforms inner elements first)
+    // (bottom-up walk transforms inner elements first).
+    // Classified as 'dynamic' because after transpilation these become _jsxSorted()
+    // function calls, which the Rust optimizer treats as non-static children.
     const childText = s ? s.slice(child.start, child.end) : source.slice(child.start, child.end);
-    return { text: childText, type: 'static' };
+    return { text: childText, type: 'dynamic' };
   }
 
   return { text: null, type: 'none' };
@@ -804,8 +817,10 @@ export function transformJsxElement(
   let keyStr: string | null;
   if (explicitKey !== null) {
     keyStr = explicitKey;
-  } else if (isSoleChild) {
-    // Sole JSX child of a parent element: key is null (matches Rust optimizer behavior)
+  } else if (isSoleChild && tagIsHtml) {
+    // HTML element that is a child of a parent JSX element/fragment: key is null.
+    // Components (uppercase) always get generated keys even as children.
+    // This matches Rust optimizer behavior.
     keyStr = null;
   } else {
     // Default: generate a key
@@ -892,7 +907,9 @@ export function transformJsxFragment(
   );
 
   const flags = computeFlags(false, childrenType);
-  const keyStr = isSoleChild ? 'null' : `"${keyCounter.next()}"`;
+  // Fragments always get generated keys (even as children), matching Rust optimizer.
+  // Only HTML elements get null keys when they are children of parent JSX.
+  const keyStr = `"${keyCounter.next()}"`;
 
   const callString = `_jsxSorted(_Fragment, null, null, ${childrenText ?? 'null'}, ${flags}, ${keyStr})`;
 
@@ -942,8 +959,9 @@ export function transformAllJsx(
   importedNames: Set<string>,
   skipRanges?: Array<{ start: number; end: number }>,
   devOptions?: { relPath: string },
+  keyCounterStart?: number,
 ): JsxTransformOutput {
-  const keyCounter = new JsxKeyCounter();
+  const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0);
   const signalHoister = new SignalHoister();
   const neededImports = new Set<string>();
   let needsFragment = false;
@@ -1079,5 +1097,5 @@ export function transformAllJsx(
   // Get hoisted signal declarations
   const hoistedDeclarations = signalHoister.getDeclarations();
 
-  return { neededImports, needsFragment, hoistedDeclarations };
+  return { neededImports, needsFragment, hoistedDeclarations, keyCounterValue: keyCounter.current() };
 }

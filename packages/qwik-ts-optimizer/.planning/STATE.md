@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-04-11T12:27:23.570Z"
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-04-11T12:32:24.168Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 6
   total_plans: 25
-  completed_plans: 23
-  percent: 92
+  completed_plans: 24
+  percent: 96
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 ## Current Position
 
 Phase: 13 (Segment Codegen Batch 1) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-11
 
@@ -109,6 +109,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 12 P02 | 21min | 2 tasks | 7 files |
 | Phase 12 P03 | 43min | 2 tasks | 5 files |
 | Phase 13 P01 | 2min | 2 tasks | 3 files |
+| Phase 13 P02 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -188,6 +189,7 @@ Recent decisions affecting current work:
 - [Phase 12]: q:p goes to varEntries matching Rust optimizer; _fnSignal children are dynamic; signal dedup uses function body text as key
 - [Phase 12]: ParamNames use declaration position ordering, not alphabetical; shared slot allocation with trailing omission; q:p from capture analysis not iterVars
 - [Phase 13]: applyRawPropsTransform applied BEFORE nested call rewriting in segment codegen; TS stripping uses same oxcTransformSync pattern as parent; dead code elimination uses simple regex for if(false)
+- [Phase 13]: collectBodyIdentifiers uses full AST parse via oxc-parser/oxc-walker with regex fallback; import re-collection runs after ALL body transforms; sameFileExportNames includes exported AND top-level declared names
 
 ### Pending Todos
 
@@ -207,6 +209,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T12:27:23.567Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-04-11T12:32:24.166Z
+Stopped at: Completed 13-02-PLAN.md
 Resume file: None

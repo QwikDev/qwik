@@ -45,7 +45,7 @@ export interface SegmentImportContext {
   /** The parent module path (e.g., "./test") for self-referential imports */
   parentModulePath: string;
   /** Migration decisions for _auto_ import detection on JSX tags */
-  migrationDecisions: Array<{ varName: string; action: string }>;
+  migrationDecisions: Array<{ varName: string; action: string; isExported?: boolean }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -467,6 +467,18 @@ export function generateSegmentCode(
   const rawPropsResult = applyRawPropsTransform(bodyText);
   if (rawPropsResult !== bodyText) {
     bodyText = rawPropsResult;
+    // If _restProps was introduced by the transform, ensure its import is added
+    if (bodyText.includes('_restProps(')) {
+      const sepIdx = parts.indexOf('//');
+      if (!parts.some(p => p.includes('_restProps'))) {
+        const imp = `import { _restProps } from "@qwik.dev/core";`;
+        if (sepIdx >= 0) {
+          parts.splice(sepIdx, 0, imp);
+        } else {
+          parts.push(imp);
+        }
+      }
+    }
   }
 
   // Rewrite nested call sites in the body text.
@@ -788,9 +800,11 @@ export function generateSegmentCode(
       // Check same-file exports (self-referential component imports)
       if (importContext.sameFileExports.has(id)) {
         // Check if this is a migrated variable needing _auto_ import
+        // Variables that are already exported from the parent can be imported directly;
+        // only non-exported variables need the _auto_ prefix re-export mechanism
         const migrationDecision = importContext.migrationDecisions.find(d => d.varName === id);
         let importStmt: string;
-        if (migrationDecision && migrationDecision.action === 'reexport') {
+        if (migrationDecision && migrationDecision.action === 'reexport' && !migrationDecision.isExported) {
           importStmt = `import { _auto_${id} as ${id} } from "${importContext.parentModulePath}";`;
         } else {
           importStmt = `import { ${id} } from "${importContext.parentModulePath}";`;

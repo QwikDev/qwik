@@ -287,6 +287,46 @@ interface SCallBodyJsxOptions {
 }
 
 /**
+ * Inject a line right after the opening brace or arrow of a function body.
+ * For block bodies (`=> { ...}`), inserts after `{`.
+ * For expression bodies (`=> expr`), converts to block body with return.
+ */
+function injectLineAfterBodyOpen(bodyText: string, line: string): string {
+  // Find the arrow `=>`
+  let depth = 0;
+  let inString: string | null = null;
+  let arrowIdx = -1;
+  for (let i = 0; i < bodyText.length - 1; i++) {
+    const ch = bodyText[i];
+    if (inString) {
+      if (ch === inString && bodyText[i - 1] !== '\\') inString = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') { inString = ch; continue; }
+    if (ch === '(' || ch === '[' || ch === '<') { depth++; continue; }
+    if (ch === ')' || ch === ']' || ch === '>') { depth--; continue; }
+    if (depth === 0 && ch === '=' && bodyText[i + 1] === '>') { arrowIdx = i; break; }
+  }
+  if (arrowIdx === -1) {
+    // Try function expression
+    const braceIdx = bodyText.indexOf('{');
+    if (braceIdx >= 0) {
+      return bodyText.slice(0, braceIdx + 1) + '\n' + line + bodyText.slice(braceIdx + 1);
+    }
+    return bodyText;
+  }
+  let afterArrow = arrowIdx + 2;
+  while (afterArrow < bodyText.length && /\s/.test(bodyText[afterArrow])) afterArrow++;
+  if (bodyText[afterArrow] === '{') {
+    return bodyText.slice(0, afterArrow + 1) + '\n' + line + bodyText.slice(afterArrow + 1);
+  }
+  // Expression body: convert to block
+  const expr = bodyText.slice(afterArrow);
+  const prefix = bodyText.slice(0, arrowIdx + 2);
+  return prefix + ' {\n' + line + '\nreturn ' + expr + ';\n}';
+}
+
+/**
  * Apply _rawProps destructuring optimization to a component body.
  *
  * When a component's arrow function has destructured parameters like ({field1, field2}),
@@ -323,13 +363,17 @@ export function applyRawPropsTransform(body: string): string {
   const firstParam = params[0];
   if (firstParam.type !== 'ObjectPattern') return body;
 
-  // Collect destructured field names and their local aliases
+  // Collect destructured field names and their local aliases, and detect rest element
   const fields: Array<{ key: string; local: string }> = [];
+  let restElementName: string | null = null;
   for (const prop of firstParam.properties ?? []) {
     if (prop.type === 'RestElement') {
-      // Rest element ({...rest}) -- bail out, _rawProps doesn't apply
-      // (rest props use _restProps pattern instead)
-      return body;
+      // Rest element ({...rest}) -- collect the rest variable name
+      const restId = prop.argument?.type === 'Identifier' ? prop.argument.name : null;
+      if (restId) {
+        restElementName = restId;
+      }
+      continue;
     }
     if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
       const keyName = prop.key?.type === 'Identifier' ? prop.key.name : null;
@@ -342,10 +386,75 @@ export function applyRawPropsTransform(body: string): string {
     }
   }
 
-  if (fields.length === 0) return body;
-
   // Calculate positions relative to the body string (subtract wrapperPrefix length)
   const offset = wrapperPrefix.length;
+
+  // Pure rest props ({...rest}) with no named fields
+  if (restElementName && fields.length === 0) {
+    const paramStartPos = firstParam.start - offset;
+    const paramEndPos = firstParam.end - offset;
+    let result = body.slice(0, paramStartPos) + '_rawProps' + body.slice(paramEndPos);
+    // Prepend _restProps assignment after the arrow/function body opening
+    const restLine = `const ${restElementName} = _restProps(_rawProps);`;
+    result = injectLineAfterBodyOpen(result, restLine);
+    return result;
+  }
+
+  // Mixed rest props ({message, id, ...rest}) -- handle both fields AND rest element
+  if (restElementName && fields.length > 0) {
+    const paramStartPos = firstParam.start - offset;
+    const paramEndPos = firstParam.end - offset;
+    let result = body.slice(0, paramStartPos) + '_rawProps' + body.slice(paramEndPos);
+    // Prepend _restProps assignment with excluded keys
+    const excludedKeys = fields.map(f => `"${f.key}"`).join(',\n    ');
+    const restLine = `const ${restElementName} = _restProps(_rawProps, [\n    ${excludedKeys}\n]);`;
+    result = injectLineAfterBodyOpen(result, restLine);
+
+    // Replace field references with _rawProps.fieldName (same logic as non-rest case)
+    const fieldLocalToKey = new Map<string, string>();
+    for (const f of fields) {
+      fieldLocalToKey.set(f.local, f.key);
+    }
+
+    const reparseSource = wrapperPrefix + result;
+    const reparseResult2 = parseSync('__rp3__.tsx', reparseSource);
+    if (!reparseResult2.program || reparseResult2.errors?.length) return result;
+
+    const replacements: Array<{ start: number; end: number; key: string }> = [];
+    function walkForIdents(node: any, parentKey?: string, parentNode?: any): void {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'Identifier' && fieldLocalToKey.has(node.name)) {
+        const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+        const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+        const isParam = parentKey === 'params';
+        if (!isPropertyKey && !isMemberProp && !isParam) {
+          replacements.push({ start: node.start - offset, end: node.end - offset, key: fieldLocalToKey.get(node.name)! });
+        }
+      }
+      for (const key of Object.keys(node)) {
+        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+        const val = node[key];
+        if (val && typeof val === 'object') {
+          if (Array.isArray(val)) {
+            for (const item of val) {
+              if (item && typeof item.type === 'string') walkForIdents(item, key, node);
+            }
+          } else if (typeof val.type === 'string') {
+            walkForIdents(val, key, node);
+          }
+        }
+      }
+    }
+    walkForIdents(reparseResult2.program);
+    replacements.sort((a, b) => b.start - a.start);
+    for (const r of replacements) {
+      result = result.slice(0, r.start) + '_rawProps.' + r.key + result.slice(r.end);
+    }
+    return result;
+  }
+
+  if (fields.length === 0) return body;
+
   const paramStart = firstParam.start - offset;
   const paramEnd = firstParam.end - offset;
 

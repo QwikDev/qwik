@@ -1346,10 +1346,17 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         const migrationKey = preRenameSymbolName.get(ext.symbolName) ?? ext.symbolName;
 
         // _auto_ imports: from migration decisions where action is "reexport" and the variable is used by this segment
+        // Variables that are already exported don't need _auto_ prefix -- segments can import them directly
         const segUsage = segmentUsage.get(migrationKey);
         if (segUsage) {
           for (const decision of migrationDecisions) {
             if (decision.action === 'reexport' && segUsage.has(decision.varName)) {
+              const decl = moduleLevelDecls.find(d => d.name === decision.varName);
+              if (decl?.isExported) {
+                // Already exported -- segment will import it directly via importContext path
+                // Don't add to autoImports (which would add _auto_ prefix)
+                continue;
+              }
               captureInfo.autoImports.push({
                 varName: decision.varName,
                 parentModulePath,
@@ -1476,7 +1483,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         moduleImports: moduleImportsForContext,
         sameFileExports: sameFileExportNames,
         parentModulePath,
-        migrationDecisions: migrationDecisions.map(d => ({ varName: d.varName, action: d.action })),
+        migrationDecisions: migrationDecisions.map(d => {
+          const decl = moduleLevelDecls.find(ml => ml.name === d.varName);
+          return { varName: d.varName, action: d.action, isExported: decl?.isExported ?? false };
+        }),
       };
 
       // Generate segment code: stripped segments get null exports, others get full codegen

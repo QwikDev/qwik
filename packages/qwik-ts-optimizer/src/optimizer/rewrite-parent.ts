@@ -1575,6 +1575,10 @@ export function rewriteParentModule(
   if (migrationDecisions) {
     for (const decision of migrationDecisions) {
       if (decision.action === 'reexport') {
+        // Skip _auto_ re-export for variables that are already exported --
+        // they can be imported directly by their original name from the parent module
+        const decl = moduleLevelDecls?.find(d => d.name === decision.varName);
+        if (decl?.isExported) continue;
         s.append(`\nexport { ${decision.varName} as _auto_${decision.varName} };`);
       }
     }

@@ -450,9 +450,15 @@ export function generateSegmentCode(
     for (const moved of captureInfo.movedDeclarations) {
       for (const dep of moved.importDeps) {
         const rewrittenSource = rewriteImportSource(dep.source);
-        const importLine = dep.importedName === dep.localName
-          ? `import { ${dep.localName} } from "${rewrittenSource}";`
-          : `import { ${dep.importedName} as ${dep.localName} } from "${rewrittenSource}";`;
+        let importLine: string;
+        if (dep.importedName === '*') {
+          // Namespace import: import * as localName from "source"
+          importLine = `import * as ${dep.localName} from "${rewrittenSource}";`;
+        } else if (dep.importedName === dep.localName) {
+          importLine = `import { ${dep.localName} } from "${rewrittenSource}";`;
+        } else {
+          importLine = `import { ${dep.importedName} as ${dep.localName} } from "${rewrittenSource}";`;
+        }
         // Deduplicate: only add if not already present
         if (!parts.some(p => p.includes(`${dep.localName}`) && p.includes(`"${rewrittenSource}"`))) {
           // Insert before the separator if present

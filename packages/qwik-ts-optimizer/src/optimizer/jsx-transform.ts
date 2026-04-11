@@ -565,6 +565,7 @@ function processProps(
   passiveEvents: Set<string>,
   signalHoister: SignalHoister,
   inLoop?: boolean,
+  qrlsWithCaptures?: Set<string>,
 ): {
   varEntries: string[];
   constEntries: string[];
@@ -676,11 +677,25 @@ function processProps(
       }
     }
 
-    // Pre-rewritten event props (q-e:* from transformSCallBody) in loop context
-    // go to varEntries to match Rust optimizer behavior
-    if (propName.startsWith('q-e:') && inLoop) {
+    // Pre-rewritten event props (q-e:* from transformSCallBody) in loop context.
+    // When qpOverrides is active (segment body): only event handlers whose QRL has
+    // captures go to varEntries; handlers without captures go to constEntries.
+    // When qpOverrides is not active (parent rewriting): all go to varEntries.
+    if ((propName.startsWith('q-e:') || propName.startsWith('q-ep:') || propName.startsWith('q-dp:') || propName.startsWith('q-wp:')) && inLoop) {
       const formattedName = `"${propName}"`;
-      varEntries.push(`${formattedName}: ${valueText}`);
+      if (qrlsWithCaptures) {
+        // Per-QRL classification: event handlers whose QRL has loop-local captures
+        // go to varEntries (they need q:p delivery). Others go to constEntries.
+        // The valueText is the QRL variable name (e.g., q_symbolName).
+        const qrlName = valueText.trim();
+        if (qrlsWithCaptures.has(qrlName)) {
+          varEntries.push(`${formattedName}: ${valueText}`);
+        } else {
+          constEntries.push(`${formattedName}: ${valueText}`);
+        }
+      } else {
+        varEntries.push(`${formattedName}: ${valueText}`);
+      }
       continue;
     }
 
@@ -791,6 +806,7 @@ export function transformJsxElement(
   isSoleChild?: boolean,
   enableChildSignals: boolean = true,
   qpOverrides?: Map<number, string[]>,
+  qrlsWithCaptures?: Set<string>,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
@@ -823,7 +839,7 @@ export function transformJsxElement(
     hasVarProps,
     hasSpread,
     neededImports: propImports,
-  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop);
+  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures);
 
   // Merge prop imports
   for (const imp of propImports) {
@@ -831,9 +847,9 @@ export function transformJsxElement(
   }
 
   // --- Loop context: inject q:p/q:ps prop ---
-  // q:p goes to varEntries (matching Rust optimizer behavior) since the
-  // loop variable value is dynamic. This also causes event handlers on this
-  // element to be placed in varEntries.
+  // q:p/q:ps is only added to elements that have event handlers with captures.
+  // The qpOverrides map (from capture analysis) determines which elements get q:p/q:ps
+  // and with what values. Elements without event handlers don't get q:p/q:ps.
   if (inLoop && tagIsHtml) {
     // Check for qpOverrides first (from capture analysis via nestedCallSites)
     const overrideParams = qpOverrides?.get(node.start);
@@ -845,7 +861,9 @@ export function transformJsxElement(
           : qpResult.propName;
         varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
       }
-    } else {
+    } else if (!qpOverrides) {
+      // No override system active (parent rewriting context, not segment body).
+      // Fall back to iterVars-based q:p for all elements in loop.
       const qpResult = buildQpProp(loopCtx!.iterVars);
       if (qpResult) {
         const formattedQpName = needsQuoting(qpResult.propName)
@@ -854,6 +872,8 @@ export function transformJsxElement(
         varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
       }
     }
+    // When qpOverrides is present but no override for this element: element has no
+    // event handlers with captures, so no q:p/q:ps is needed.
   }
 
   // --- Children ---
@@ -871,7 +891,11 @@ export function transformJsxElement(
   );
 
   // --- Flags ---
-  const flags = hasSpread ? 0 : computeFlags(hasVarProps, childrenType, !!loopCtx);
+  // Loop context flag (bit 2) is only set when the element has q:p/q:ps (event handler captures).
+  // Elements inside a loop but without event handler captures don't get the loop flag.
+  const hasQpProp = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'));
+  const effectiveLoopCtx = qpOverrides ? hasQpProp : !!loopCtx;
+  const flags = hasSpread ? 0 : computeFlags(hasVarProps, childrenType, effectiveLoopCtx);
 
   // --- Key ---
   // Key assignment logic:
@@ -1030,6 +1054,8 @@ export function transformAllJsx(
   enableSignals: boolean = true,
   /** Override q:p/q:ps values for specific elements. Key is element tag start position in source. */
   qpOverrides?: Map<number, string[]>,
+  /** Set of QRL variable names that have loop-local captures (for var/const prop classification) */
+  qrlsWithCaptures?: Set<string>,
 ): JsxTransformOutput {
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0);
   const signalHoister = new SignalHoister();
@@ -1121,6 +1147,7 @@ export function transformAllJsx(
           isSoleChild,
           enableSignals,
           qpOverrides,
+          qrlsWithCaptures,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);

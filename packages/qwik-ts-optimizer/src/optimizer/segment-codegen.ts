@@ -469,6 +469,18 @@ export function generateSegmentCode(
       const bodyParse = parseSync('segment.tsx', wrappedBody);
       const bodyS = new MagicString(wrappedBody);
 
+      // Build set of QRL variable names that have loop-local captures (must be before qpOverrides)
+      let qrlsWithCaptures: Set<string> | undefined;
+      if (nestedCallSites) {
+        const tempSet = new Set<string>();
+        for (const site of nestedCallSites) {
+          if (site.loopLocalParamNames && site.loopLocalParamNames.length > 0) {
+            tempSet.add(site.qrlVarName);
+          }
+        }
+        if (tempSet.size > 0) qrlsWithCaptures = tempSet;
+      }
+
       // Build qpOverrides map: for each JSX element with event handler QRLs,
       // collect the union of loopLocalParamNames from all handlers on that element.
       let qpOverrides: Map<number, string[]> | undefined;
@@ -534,7 +546,7 @@ export function generateSegmentCode(
       }
 
       const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
-        undefined, undefined, undefined, true, qpOverrides);
+        undefined, undefined, undefined, true, qpOverrides, qrlsWithCaptures);
       const transformedWrapped = bodyS.toString();
       // Unwrap the parentheses
       bodyText = transformedWrapped.slice(1, -1);

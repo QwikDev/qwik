@@ -379,7 +379,66 @@ export function generateSegmentCode(
     }
   }
 
+  // Rewrite function signature when paramNames has loop/q:p padding pattern
+  if (extraction.paramNames.length >= 2 &&
+      extraction.paramNames[0] === '_' &&
+      extraction.paramNames[1] === '_1') {
+    bodyText = rewriteFunctionSignature(bodyText, extraction.paramNames);
+  }
+
   parts.push(`export const ${extraction.symbolName} = ${bodyText};`);
 
   return parts.join('\n');
+}
+
+/**
+ * Rewrite a function's parameter list to use the given paramNames.
+ *
+ * Handles arrow functions: `() => body` -> `(_, _1, loopVar) => body`
+ * Handles function expressions: `function() { body }` -> `function(_, _1, loopVar) { body }`
+ *
+ * @param bodyText - The raw function body text
+ * @param paramNames - The full parameter list to inject (e.g., ["_", "_1", "item"])
+ * @returns Modified body text with rewritten function signature
+ */
+function rewriteFunctionSignature(bodyText: string, paramNames: string[]): string {
+  const paramList = paramNames.join(', ');
+
+  // Try arrow function first: find `=>` and the preceding param list
+  const arrowIdx = findArrowIndex(bodyText);
+  if (arrowIdx !== -1) {
+    // Scan backwards from arrow to find the param list
+    let parenEnd = arrowIdx - 1;
+    while (parenEnd >= 0 && /\s/.test(bodyText[parenEnd])) parenEnd--;
+
+    if (bodyText[parenEnd] === ')') {
+      // Parenthesized params: find matching opening paren
+      let depth = 1;
+      let parenStart = parenEnd - 1;
+      while (parenStart >= 0 && depth > 0) {
+        if (bodyText[parenStart] === ')') depth++;
+        else if (bodyText[parenStart] === '(') depth--;
+        parenStart--;
+      }
+      parenStart++; // parenStart is now at the opening `(`
+      return bodyText.slice(0, parenStart + 1) + paramList + bodyText.slice(parenEnd);
+    } else {
+      // Single param without parens: e.g., `x => body`
+      // Find the start of the identifier
+      let identEnd = parenEnd + 1;
+      let identStart = parenEnd;
+      while (identStart > 0 && /\w/.test(bodyText[identStart - 1])) identStart--;
+      return bodyText.slice(0, identStart) + '(' + paramList + ')' + bodyText.slice(identEnd);
+    }
+  }
+
+  // Try function expression: `function(...) {`
+  const funcMatch = bodyText.match(/^(\s*function\s*\w*\s*)\(([^)]*)\)/);
+  if (funcMatch) {
+    const prefix = funcMatch[1];
+    const matchLen = funcMatch[0].length;
+    return prefix + '(' + paramList + ')' + bodyText.slice(matchLen);
+  }
+
+  return bodyText;
 }

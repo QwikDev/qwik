@@ -27,7 +27,8 @@
     "discuss_mode": "discuss",
     "skip_discuss": false,
     "code_review": true,
-    "code_review_depth": "standard"
+    "code_review_depth": "standard",
+    "_auto_chain_active": false
   },
   "hooks": {
     "context_warnings": true

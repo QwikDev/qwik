@@ -74,9 +74,10 @@ describe('classifyProp', () => {
     expect(classifyProp(node, importedNames)).toBe('const');
   });
 
-  it('returns const for member expression on imported value (styles.foo)', () => {
+  it('returns var for member expression on imported value (styles.foo)', () => {
     const node = parseExpr('styles.foo');
-    expect(classifyProp(node, importedNames)).toBe('const');
+    // SWC is_const.rs treats ALL member expressions as var regardless of import status
+    expect(classifyProp(node, importedNames)).toBe('var');
   });
 
   it('returns var for signal.value access', () => {
@@ -262,7 +263,7 @@ describe('transformJsxElement', () => {
     expect(result!.constProps).toBeNull();
   });
 
-  it('puts imported value props in constProps', () => {
+  it('puts imported member expression props in varProps', () => {
     const source = '<div class={styles.foo}/>';
     const s = new MagicString(source);
     const { program } = parseSync('test.tsx', source);
@@ -278,8 +279,8 @@ describe('transformJsxElement', () => {
       keyCounter,
     );
 
-    expect(result!.constProps).toContain('class: styles.foo');
-    expect(result!.varProps).toBeNull();
+    expect(result!.varProps).toContain('class: styles.foo');
+    expect(result!.constProps).toBeNull();
   });
 
   it('handles self-closing elements with no children', () => {

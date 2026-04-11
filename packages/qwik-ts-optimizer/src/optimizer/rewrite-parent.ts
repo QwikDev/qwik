@@ -1020,9 +1020,10 @@ export function rewriteParentModule(
   // 1. NOT exported
   // 2. NOT referenced elsewhere in the module body
   // Then the Rust optimizer strips `const foo = `, leaving just the call expression.
-  // We detect this by finding VariableDeclaration nodes whose init range contains
-  // a top-level extraction's call site.
+  // For bare $() calls on unused bindings, SWC also skips the separate QRL const
+  // declaration and inlines the qrl() call directly.
   // Only active when minify is not 'none' (Rust optimizer's simplify mode).
+  const inlinedQrlSymbols = new Set<string>(); // symbols that should NOT get separate QRL const decls
   if (minify !== 'none') {
     for (const stmt of program.body) {
       // Skip exported declarations
@@ -1036,23 +1037,19 @@ export function rewriteParentModule(
       if (!declarator.init) continue;
 
       // Check if ANY top-level extraction's call site is within or IS this declarator's init.
-      // This includes both the case where the extraction IS the init (e.g., `const Foo = component$(...)`)
-      // and where it's nested inside the init. The Rust optimizer strips unused bindings in both cases.
       const initStart = declarator.init.start;
       const initEnd = declarator.init.end;
-      const containsExtraction = topLevel.some(
+      const matchingExtractions = topLevel.filter(
         (ext) => !ext.isSync &&
           ext.callStart >= initStart && ext.callEnd <= initEnd,
       );
 
       // Also check if init is a pre-existing inlinedQrl(null, ...) call.
-      // These are already-processed QRL calls that should pass through, but
-      // unused bindings wrapping them should be stripped (Rust optimizer behavior).
       const isInlinedQrlCall = declarator.init.type === 'CallExpression' &&
         declarator.init.callee?.type === 'Identifier' &&
         declarator.init.callee.name === 'inlinedQrl';
 
-      if (!containsExtraction && !isInlinedQrlCall) continue;
+      if (matchingExtractions.length === 0 && !isInlinedQrlCall) continue;
 
       // The variable name
       const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;
@@ -1072,8 +1069,27 @@ export function rewriteParentModule(
         // Variable is not used elsewhere: strip `const/let/var varName = ` prefix
         // Remove from declaration start to the init start
         s.remove(decl.start, initStart);
+
+        // For bare $() extractions on unused bindings, mark them for inline QRL
+        // (skip separate QRL const declaration, inline the qrl() call directly)
+        for (const ext of matchingExtractions) {
+          if (ext.isBare) {
+            inlinedQrlSymbols.add(ext.symbolName);
+          }
+        }
       }
     }
+  }
+
+  // Step 4a-2: For inlined QRL symbols, replace the call site with the full qrl() expression
+  // instead of a reference to a QRL const (which won't exist).
+  for (const ext of topLevel) {
+    if (!inlinedQrlSymbols.has(ext.symbolName)) continue;
+    // The call site was already replaced with `q_symbolName` in Step 4.
+    // Now overwrite it with the inline qrl() expression.
+    const inlineExt = explicitExtensions ? '.js' : '';
+    const inlineQrl = `/*#__PURE__*/ qrl(()=>import("./${ext.canonicalFilename}${inlineExt}"), "${ext.symbolName}")`;
+    s.overwrite(ext.callStart, ext.callEnd, inlineQrl);
   }
 
   // -----------------------------------------------------------------------
@@ -1237,7 +1253,13 @@ export function rewriteParentModule(
       }
       continue;
     }
-    if (ext.isBare) continue; // bare $ doesn't need a Qrl wrapper import
+    if (ext.isBare) {
+      // bare $ doesn't need a Qrl wrapper import, but inlined bare QRLs need `qrl` import
+      if (inlinedQrlSymbols.has(ext.symbolName) && !alreadyImported.has('qrl')) {
+        neededImports.set('qrl', '@qwik.dev/core');
+      }
+      continue;
+    }
 
     const qrlCallee = ext.qrlCallee;
     if (qrlCallee && !alreadyImported.has(qrlCallee)) {
@@ -1271,8 +1293,8 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // For inline/hoist strategy: ALL non-sync extractions (including nested) get QRL declarations.
   // For other strategies: only top-level (non-nested) non-sync extractions.
-  const topLevelNonSync = extractions.filter((e) => !e.isSync && e.parent === null);
-  const allNonSync = extractions.filter((e) => !e.isSync);
+  const topLevelNonSync = extractions.filter((e) => !e.isSync && e.parent === null && !inlinedQrlSymbols.has(e.symbolName));
+  const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
 
   // Track stripped segment counter for sentinel naming
   let strippedCounter = 0;

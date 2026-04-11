@@ -50,10 +50,11 @@ const handler = $(() => {
 });`;
     const code = rewrite(source, 'test.ts');
 
-    // Bare $ extractions produce a QRL declaration and replace usage with variable name
-    expect(code).toMatch(/const q_handler_\w+ = \/\*#__PURE__\*\/ qrl\(/);
-    // The original call site is replaced with the QRL variable reference
-    expect(code).toMatch(/q_handler_\w+;/);
+    // Non-exported bare $ bindings: SWC inlines the qrl() call directly (no const declaration)
+    // The `const handler = ` prefix is stripped since handler is not exported or referenced elsewhere
+    expect(code).toMatch(/\/\*#__PURE__\*\/ qrl\(\(\)=>import\(/);
+    // Should NOT have a separate const q_ declaration for unused bare $ bindings
+    expect(code).not.toMatch(/const q_handler/);
     // Should NOT have $( in the output
     expect(code).not.toContain('$(');
   });
@@ -68,13 +69,17 @@ const handler = $(() => {
 });`;
     const code = rewrite(source);
 
-    // Should have multiple QRL declarations
+    // Should have QRL declaration for exported component$ (handler is non-exported bare $ → inlined)
     const qrlDecls = code
       .split('\n')
       .filter((line) => line.startsWith('const q_'));
-    expect(qrlDecls.length).toBe(2);
-    // Should be sorted alphabetically
-    expect(qrlDecls[0] < qrlDecls[1]).toBe(true);
+    expect(qrlDecls.length).toBe(1);
+    // The non-exported bare $ handler should be inlined (no const q_handler)
+    expect(code).not.toMatch(/const q_handler/);
+    // But it should have the inline qrl() expression
+    expect(code).toMatch(/\/\*#__PURE__\*\/ qrl\(\(\)=>import\(.*handler/);
+    // The exported component$ should still have a const q_ declaration
+    expect(code).toMatch(/const q_.*component/);
   });
 
   it('Test 4: @builder.io/qwik rewritten to @qwik.dev/core', () => {

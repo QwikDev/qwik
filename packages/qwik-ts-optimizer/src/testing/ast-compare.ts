@@ -65,7 +65,14 @@ function stripPositions(node: any): any {
   const cleaned: Record<string, any> = {};
   for (const [key, value] of Object.entries(node)) {
     // Skip position-related fields
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'range')
+    // Skip position-related and cosmetic fields
+    if (
+      key === 'start' ||
+      key === 'end' ||
+      key === 'loc' ||
+      key === 'range' ||
+      key === 'raw' // quote style, numeric format — not semantic
+    )
       continue;
     cleaned[key] = stripPositions(value);
   }

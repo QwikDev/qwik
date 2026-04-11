@@ -147,7 +147,11 @@ Plans:
   1. All 26 snapshots pass parent + segment AST comparison
   2. All previously-locked snapshots still pass
   3. Zero regressions in unit tests
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 15-01-PLAN.md — Unconditional segment JSX, bind spread gate, _auto_ suppression, router QRL source
+- [ ] 15-02-PLAN.md — Flags bitmask correction and prop classification for component elements
+- [ ] 15-03-PLAN.md — Key prefix, for-of capture, remaining fixes, and convergence sweep
 
 ### Phase 16: Final Convergence
 **Goal**: 209/209 snapshots pass, full validation
@@ -170,5 +174,5 @@ Plans:
 | 12. Segment Identity Batch 3 | 3/3 | Complete    | 2026-04-11 |
 | 13. Segment Codegen Batch 1 | 3/3 | Complete    | 2026-04-11 |
 | 14. Segment Codegen Batch 2 | 3/3 | Complete    | 2026-04-11 |
-| 15. Segment Codegen Batch 3 | 0/TBD | Not started | - |
+| 15. Segment Codegen Batch 3 | 0/3 | Planning complete | - |
 | 16. Final Convergence | 0/TBD | Not started | - |

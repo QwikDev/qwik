@@ -466,10 +466,11 @@ export function generateSegmentCode(
   // Strip diagnostic comments (@qwik-disable-next-line) from segment bodies
   bodyText = bodyText.replace(/\/\*\s*@qwik-disable-next-line\s+\w+\s*\*\/\s*\n?/g, '');
 
-  // Strip passive:* JSX attribute directives from segment bodies.
-  // These are consumed by event prop renaming (q-ep:, q-wp:, q-dp: prefixes)
-  // and should not appear in the output.
+  // Strip passive:* and preventdefault:* JSX attribute directives from segment bodies.
+  // passive:* is consumed by event prop renaming (q-ep:, q-wp:, q-dp: prefixes).
+  // preventdefault:* is consumed by the event system and should not appear in output.
   bodyText = bodyText.replace(/\s*passive:\w+/g, '');
+  bodyText = bodyText.replace(/\s*preventdefault:\w+/g, '');
 
   // Inline TS enum member references when transpileTs is enabled
   // e.g., Thing.A -> 0, Thing.B -> 1

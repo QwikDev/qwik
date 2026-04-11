@@ -659,9 +659,12 @@ function processProps(
       continue; // key is not included in props
     }
 
-    // --- (a) Strip passive: directives ---
+    // --- (a) Strip passive: and preventdefault: directives ---
     if (isPassiveDirective(propName)) {
       continue; // consumed by collectPassiveDirectives, not in output
+    }
+    if (propName.startsWith('preventdefault:')) {
+      continue; // consumed by runtime, not emitted in output
     }
 
     // Get value expression

@@ -158,29 +158,31 @@ export function rewriteParentModule(
   }
 
   // -----------------------------------------------------------------------
-  // Step 1: Rewrite existing import sources (IMP-01..03)
+  // Step 1+2: Remove import declarations from body, track surviving user imports
   // -----------------------------------------------------------------------
-  for (const node of program.body) {
-    if (node.type !== 'ImportDeclaration') continue;
+  // Instead of editing imports in-place, we REMOVE all import declarations from
+  // the body and reassemble them in the preamble (Step 6). This ensures optimizer
+  // imports appear first, then surviving user imports, matching Rust output ordering.
+  const survivingUserImports: string[] = [];
 
-    const sourceNode = node.source;
-    const originalSource = sourceNode.value;
-    const newSource = rewriteImportSource(originalSource);
-
-    if (newSource !== originalSource) {
-      // Overwrite just inside the quotes
-      s.overwrite(sourceNode.start + 1, sourceNode.end - 1, newSource);
-    }
-  }
-
-  // -----------------------------------------------------------------------
-  // Step 2: Remove marker specifiers from existing import statements
-  // -----------------------------------------------------------------------
   for (const node of program.body) {
     if (node.type !== 'ImportDeclaration') continue;
 
     const specifiers = node.specifiers;
-    if (!specifiers || specifiers.length === 0) continue;
+    const sourceNode = node.source;
+    const rewrittenSource = rewriteImportSource(sourceNode.value);
+
+    // Detect quote style from original source (node.source.raw starts with ' or ")
+    const rawSource = (sourceNode as any).raw ?? sourceNode.value;
+    const quoteChar = rawSource.startsWith("'") ? "'" : '"';
+
+    // Side-effect imports (no specifiers): keep in original position, just rewrite source
+    if (!specifiers || specifiers.length === 0) {
+      if (rewrittenSource !== sourceNode.value) {
+        s.overwrite(sourceNode.start + 1, sourceNode.end - 1, rewrittenSource);
+      }
+      continue;
+    }
 
     // Find which specifiers are markers to remove
     const toRemove: number[] = [];
@@ -193,54 +195,51 @@ export function rewriteParentModule(
       }
     }
 
-    if (toRemove.length === 0) continue;
+    // Remove the import declaration from the body
+    let end = node.end;
+    if (end < source.length && source[end] === '\n') end++;
+    s.remove(node.start, end);
 
     if (toRemove.length === specifiers.length) {
-      // All specifiers are markers: remove the entire import statement
-      // Include the trailing newline if present
-      let end = node.end;
-      if (end < source.length && source[end] === '\n') end++;
-      s.overwrite(node.start, end, '');
-    } else {
-      // Remove only the marker specifiers
-      // Rebuild the specifier list keeping non-markers, handling all import forms
-      let defaultPart = '';
-      let nsPart = '';
-      const namedParts: string[] = [];
-      for (let i = 0; i < specifiers.length; i++) {
-        if (toRemove.includes(i)) continue;
-        const spec = specifiers[i];
-        if (spec.type === 'ImportDefaultSpecifier') {
-          defaultPart = spec.local.name;
-        } else if (spec.type === 'ImportNamespaceSpecifier') {
-          nsPart = `* as ${spec.local.name}`;
+      // All specifiers are markers: import is fully consumed, no surviving user import
+      continue;
+    }
+
+    // Build surviving user import with non-marker specifiers, preserving original quote style
+    let defaultPart = '';
+    let nsPart = '';
+    const namedParts: string[] = [];
+    for (let i = 0; i < specifiers.length; i++) {
+      if (toRemove.includes(i)) continue;
+      const spec = specifiers[i];
+      if (spec.type === 'ImportDefaultSpecifier') {
+        defaultPart = spec.local.name;
+      } else if (spec.type === 'ImportNamespaceSpecifier') {
+        nsPart = `* as ${spec.local.name}`;
+      } else {
+        const localName = spec.local.name;
+        const importedName = (spec as any).imported?.name ?? localName;
+        if (importedName !== localName) {
+          namedParts.push(`${importedName} as ${localName}`);
         } else {
-          const localName = spec.local.name;
-          const importedName = (spec as any).imported?.name ?? localName;
-          if (importedName !== localName) {
-            namedParts.push(`${importedName} as ${localName}`);
-          } else {
-            namedParts.push(localName);
-          }
+          namedParts.push(localName);
         }
       }
-      // Rebuild import with correct syntax for each form
-      const sourceNode = node.source;
-      const rewrittenSource = rewriteImportSource(sourceNode.value);
-      let importParts = '';
-      if (nsPart) {
-        importParts = defaultPart ? `${defaultPart}, ${nsPart}` : nsPart;
-      } else if (namedParts.length > 0) {
-        importParts = defaultPart
-          ? `${defaultPart}, { ${namedParts.join(', ')} }`
-          : `{ ${namedParts.join(', ')} }`;
-      } else if (defaultPart) {
-        importParts = defaultPart;
-      }
-      const newImport = `import ${importParts} from "${rewrittenSource}";`;
-      let end = node.end;
-      if (end < source.length && source[end] === '\n') end++;
-      s.overwrite(node.start, end, newImport + '\n');
+    }
+
+    let importParts = '';
+    if (nsPart) {
+      importParts = defaultPart ? `${defaultPart}, ${nsPart}` : nsPart;
+    } else if (namedParts.length > 0) {
+      importParts = defaultPart
+        ? `${defaultPart}, { ${namedParts.join(', ')} }`
+        : `{ ${namedParts.join(', ')} }`;
+    } else if (defaultPart) {
+      importParts = defaultPart;
+    }
+
+    if (importParts) {
+      survivingUserImports.push(`import ${importParts} from ${quoteChar}${rewrittenSource}${quoteChar};`);
     }
   }
 
@@ -661,6 +660,10 @@ export function rewriteParentModule(
   const preamble: string[] = [];
   if (importStatements.length > 0) {
     preamble.push(...importStatements);
+  }
+  // Add surviving user imports after optimizer imports (matching Rust ordering)
+  if (survivingUserImports.length > 0) {
+    preamble.push(...survivingUserImports);
   }
   if (qrlDecls.length > 0) {
     preamble.push('//');

@@ -244,19 +244,19 @@ Many of the 135 failing tests have root causes in const_idents (Phase 19 deferre
 | A1 | The const_idents issue for _qrlSync prop classification can be special-cased without full const_idents tracking | Pitfall 4 | Low -- _qrlSync is a known Qwik internal, safe to hardcode as const |
 | A2 | SWC's root declaration removal when a var becomes unused (e.g., `const t = translate()` -> `translate()`) follows specific rules we can replicate | Pitfall: shadowed vars | Medium -- need to verify if SWC removes binding or keeps side-effecting initializer |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Side-effecting initializer preservation**
+1. **Side-effecting initializer preservation** (RESOLVED — preserve call, drop binding, per snapshot evidence)
    - What we know: SWC converts `const t = translate()` to just `translate()` when `t` is not used
    - What's unclear: Does SWC always preserve the call for side effects, or does it sometimes remove entirely?
    - Recommendation: Preserve the initializer call (drop binding, keep expression) for safety. This matches the `should_not_auto_export_var_shadowed_in_catch` snapshot.
 
-2. **Comment handling on moved declarations**
+2. **Comment handling on moved declarations** (RESOLVED — AST comparison ignores comments, non-issue)
    - What we know: SWC's minified output naturally strips comments from moved declarations
    - What's unclear: Whether our AST comparison treats extra comments as mismatches
    - Recommendation: AST comparison already ignores comments (they're not in the AST). This is a non-issue for convergence testing.
 
-3. **const_idents special-casing for _qrlSync**
+3. **const_idents special-casing for _qrlSync** (RESOLVED — special-case _qrlSync and _wrapProp in classifyProp)
    - What we know: _qrlSync prop classification affects flags and prop bucket
    - What's unclear: Whether special-casing _qrlSync alone is enough or if other known-const calls need it too
    - Recommendation: Special-case `_qrlSync` and `_wrapProp` in classifyProp as const. This is a tactical fix; full const_idents tracking is deferred to Phase 21.

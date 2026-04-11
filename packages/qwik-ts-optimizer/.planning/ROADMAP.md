@@ -14,7 +14,7 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
 - [ ] **Phase 8: Parent Rewrite Batch 2** — Remaining 24 parent-rewrite-only failures
 - [ ] **Phase 9: Untransformed Extraction** — All 11 untransformed failures
 - [x] **Phase 10: Segment Identity Batch 1** — First 21 segment-identity failures (completed 2026-04-11)
-- [ ] **Phase 11: Segment Identity Batch 2** — Next 21 segment-identity failures
+- [x] **Phase 11: Segment Identity Batch 2** — Next 21 segment-identity failures (completed 2026-04-11)
 - [ ] **Phase 12: Segment Identity Batch 3** — Remaining 21 segment-identity failures
 - [ ] **Phase 13: Segment Codegen Batch 1** — First 25 segment-codegen failures
 - [ ] **Phase 14: Segment Codegen Batch 2** — Next 25 segment-codegen failures
@@ -95,7 +95,7 @@ Plans:
 Plans:
 - [x] 11-01-PLAN.md — JSXFragment context, passive event naming, custom call context push
 - [x] 11-02-PLAN.md — Captures metadata reconciliation and snapshot options correction
-- [ ] 11-03-PLAN.md — Complex multi-segment fixes and Phase 11 convergence gate
+- [x] 11-03-PLAN.md — Complex multi-segment fixes and Phase 11 convergence gate
 
 ### Phase 12: Segment Identity Batch 3
 **Goal**: Remaining 21 segment-identity snapshots pass
@@ -154,7 +154,7 @@ Plans:
 | 8. Parent Rewrite Batch 2 | 0/5 | Planning complete | - |
 | 9. Untransformed Extraction | 0/3 | Planning complete | - |
 | 10. Segment Identity Batch 1 | 3/3 | Complete    | 2026-04-11 |
-| 11. Segment Identity Batch 2 | 2/3 | In Progress|  |
+| 11. Segment Identity Batch 2 | 3/3 | Complete   | 2026-04-11 |
 | 12. Segment Identity Batch 3 | 0/TBD | Not started | - |
 | 13. Segment Codegen Batch 1 | 0/TBD | Not started | - |
 | 14. Segment Codegen Batch 2 | 0/TBD | Not started | - |

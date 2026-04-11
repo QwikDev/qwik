@@ -44,6 +44,7 @@ import { isStrippedSegment } from './strip-ctx.js';
 import { injectCapturesUnpacking } from './segment-codegen.js';
 import { transformEventPropName } from './event-handler-transform.js';
 import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
+import { SignalHoister } from './signal-analysis.js';
 import { stripExportDeclarations } from './strip-exports.js';
 import { replaceConstants } from './const-replacement.js';
 import type { EmitMode } from './types.js';
@@ -549,6 +550,7 @@ function transformSCallBody(
   qrlVarNames: Map<string, string>,
   jsxBodyOptions?: SCallBodyJsxOptions,
   regCtxName?: string[],
+  sharedSignalHoister?: SignalHoister,
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
   let body = ext.bodyText;
   const additionalImports = new Map<string, string>();
@@ -705,6 +707,7 @@ function transformSCallBody(
         undefined, // qrlsWithCaptures
         undefined, // paramNames
         jsxBodyOptions.relPath, // for key prefix derivation
+        sharedSignalHoister, // shared hoister for _hf counter continuity
       );
 
       // Extract the transformed body by stripping the wrapper prefix
@@ -1410,6 +1413,10 @@ export function rewriteParentModule(
         }
       : undefined;
 
+    // Shared signal hoister for all inline/hoist body JSX transforms.
+    // Ensures _hf counter is sequential across components (no duplicate _hf0).
+    const sharedHoister = jsxOptions?.enableJsx ? new SignalHoister() : undefined;
+
     // ALL non-sync, non-stripped extractions get .s() calls (including nested).
     // Order: nested extractions first (in extraction order per parent group),
     // then top-level non-component, then top-level component.
@@ -1456,7 +1463,7 @@ export function rewriteParentModule(
     const processExtraction = (ext: ExtractionResult) => {
       const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
       const { transformedBody: rawBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformSCallBody(
-        ext, extractions, qrlVarNames, sCallJsxOptions, inlineOptions?.regCtxName,
+        ext, extractions, qrlVarNames, sCallJsxOptions, inlineOptions?.regCtxName, sharedHoister,
       );
 
       // Wrap body with _regSymbol for regCtxName-matched extractions
@@ -1530,6 +1537,12 @@ export function rewriteParentModule(
     // Component .s() calls last
     for (const ext of topComponent) {
       processExtraction(ext);
+    }
+
+    // For shared hoister: replace per-body _hf declarations with deduplicated set
+    if (sharedHoister) {
+      inlineHoistedDeclarations.length = 0;
+      inlineHoistedDeclarations.push(...sharedHoister.getDeclarations());
     }
   }
 

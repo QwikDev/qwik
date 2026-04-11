@@ -1147,10 +1147,12 @@ export function transformAllJsx(
   paramNames?: Set<string>,
   /** Relative file path for computing key prefix (defaults to "test.tsx") */
   relPath?: string,
+  /** Shared SignalHoister for counter continuity across multiple body transforms */
+  sharedSignalHoister?: SignalHoister,
 ): JsxTransformOutput {
   const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0, prefix);
-  const signalHoister = new SignalHoister();
+  const signalHoister = sharedSignalHoister ?? new SignalHoister();
   const neededImports = new Set<string>();
   let needsFragment = false;
   const ranges = skipRanges ?? [];

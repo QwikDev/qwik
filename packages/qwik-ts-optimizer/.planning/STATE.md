@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 12-03-PLAN.md
-last_updated: "2026-04-11T11:56:50.089Z"
+status: executing
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-04-11T12:27:23.570Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 6
-  total_plans: 22
-  completed_plans: 22
-  percent: 100
+  total_plans: 25
+  completed_plans: 23
+  percent: 92
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** Runtime-identical output to SWC optimizer -- same segments, captures, hashes, QRL structure
-**Current focus:** Phase 12 — Segment Identity Batch 3
+**Current focus:** Phase 13 — Segment Codegen Batch 1
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 13 (Segment Codegen Batch 1) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -108,6 +108,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 12 P01 | 11min | 2 tasks | 2 files |
 | Phase 12 P02 | 21min | 2 tasks | 7 files |
 | Phase 12 P03 | 43min | 2 tasks | 5 files |
+| Phase 13 P01 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -186,6 +187,7 @@ Recent decisions affecting current work:
 - [Phase 12]: Loop-local vs cross-scope partition: only immediate loop iterVars and body declarations are loop-local
 - [Phase 12]: q:p goes to varEntries matching Rust optimizer; _fnSignal children are dynamic; signal dedup uses function body text as key
 - [Phase 12]: ParamNames use declaration position ordering, not alphabetical; shared slot allocation with trailing omission; q:p from capture analysis not iterVars
+- [Phase 13]: applyRawPropsTransform applied BEFORE nested call rewriting in segment codegen; TS stripping uses same oxcTransformSync pattern as parent; dead code elimination uses simple regex for if(false)
 
 ### Pending Todos
 
@@ -205,6 +207,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T11:55:51.428Z
-Stopped at: Completed 12-03-PLAN.md
+Last session: 2026-04-11T12:27:23.567Z
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None

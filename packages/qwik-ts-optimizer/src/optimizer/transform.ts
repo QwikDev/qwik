@@ -536,6 +536,17 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       extraction.captureNames = result.captureNames;
       extraction.paramNames = result.paramNames;
       extraction.captures = result.captures;
+
+      // Reconcile captures with paramNames: when captures are injected as
+      // function parameters (Rust's _auto_ pattern), the captures flag is false
+      // because scoped_idents is empty -- the captured variables become formal params.
+      if (extraction.captures && extraction.paramNames.length > 0) {
+        const paramSet = new Set(extraction.paramNames);
+        const allCapturesInParams = extraction.captureNames.every(name => paramSet.has(name));
+        if (allCapturesInParams) {
+          extraction.captures = false;
+        }
+      }
     }
 
     // 2a-diag. Diagnostic detection: C02 (function/class references crossing $() boundary)
@@ -870,6 +881,18 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         // Remove migrated vars from capture names
         ext.captureNames = ext.captureNames.filter((name) => !migratedVarNames.has(name));
         ext.captures = ext.captureNames.length > 0;
+
+        // Reconcile captures with paramNames after migration filtering:
+        // when remaining captures are all delivered as function parameters,
+        // the captures flag is false (Rust's scoped_idents is empty).
+        if (ext.captures && ext.paramNames.length > 0) {
+          const paramSet = new Set(ext.paramNames);
+          const allCapturesInParams = ext.captureNames.every(name => paramSet.has(name));
+          if (allCapturesInParams) {
+            ext.captures = false;
+          }
+        }
+
         // For codegen: only use _captures for remaining scope-level captures
         captureInfo.captureNames = ext.captureNames;
       }

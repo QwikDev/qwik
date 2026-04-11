@@ -18,7 +18,7 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
 - [x] **Phase 12: Segment Identity Batch 3** — Remaining 21 segment-identity failures (completed 2026-04-11)
 - [x] **Phase 13: Segment Codegen Batch 1** — First 25 segment-codegen failures (completed 2026-04-11)
 - [x] **Phase 14: Segment Codegen Batch 2** — Next 25 segment-codegen failures (completed 2026-04-11)
-- [ ] **Phase 15: Segment Codegen Batch 3** — Remaining 26 segment-codegen failures
+- [x] **Phase 15: Segment Codegen Batch 3** — Remaining 26 segment-codegen failures (completed 2026-04-11)
 - [ ] **Phase 16: Final Convergence** — Any remaining failures + 209/209 validation
 
 ## Phase Details
@@ -151,7 +151,7 @@ Plans:
 Plans:
 - [x] 15-01-PLAN.md — Unconditional segment JSX, bind spread gate, _auto_ suppression, router QRL source
 - [x] 15-02-PLAN.md — Flags bitmask correction and prop classification for component elements
-- [ ] 15-03-PLAN.md — Key prefix, for-of capture, remaining fixes, and convergence sweep
+- [x] 15-03-PLAN.md — Key prefix, for-of capture, remaining fixes, and convergence sweep
 
 ### Phase 16: Final Convergence
 **Goal**: 209/209 snapshots pass, full validation
@@ -174,5 +174,5 @@ Plans:
 | 12. Segment Identity Batch 3 | 3/3 | Complete    | 2026-04-11 |
 | 13. Segment Codegen Batch 1 | 3/3 | Complete    | 2026-04-11 |
 | 14. Segment Codegen Batch 2 | 3/3 | Complete    | 2026-04-11 |
-| 15. Segment Codegen Batch 3 | 2/3 | In Progress|  |
+| 15. Segment Codegen Batch 3 | 3/3 | Complete   | 2026-04-11 |
 | 16. Final Convergence | 0/TBD | Not started | - |

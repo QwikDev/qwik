@@ -31,7 +31,10 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
   1. All 24 snapshots pass parent + segment AST comparison
   2. All 10 previously-passing snapshots still pass
   3. Zero regressions in 471 unit tests
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 07-01-PLAN.md — Import assembly unification and user import preservation
+- [ ] 07-02-PLAN.md — .s() body transformation pipeline for inline/hoist strategy
 
 ### Phase 8: Parent Rewrite Batch 2
 **Goal**: Remaining 24 parent-rewrite-only snapshots pass
@@ -126,7 +129,7 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 7. Parent Rewrite Batch 1 | 0/TBD | Not started | - |
+| 7. Parent Rewrite Batch 1 | 0/2 | Planning complete | - |
 | 8. Parent Rewrite Batch 2 | 0/TBD | Not started | - |
 | 9. Untransformed Extraction | 0/TBD | Not started | - |
 | 10. Segment Identity Batch 1 | 0/TBD | Not started | - |

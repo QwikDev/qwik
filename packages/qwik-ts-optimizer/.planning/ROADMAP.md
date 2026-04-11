@@ -152,7 +152,10 @@ Plans:
   2. All 73 previously-passing tests still pass (zero regressions from v2.0 baseline)
   3. All unit tests pass with zero regressions
   4. `npx tsc --noEmit` produces zero errors
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 21-01-PLAN.md — Run convergence gate checks, fix Phase 19 test expectations, produce gate report
 
 ## Progress
 

@@ -105,10 +105,31 @@ function getSourceExtension(relPath: string): string {
 /**
  * Get the file stem (basename) from a relative path.
  * e.g., "src/components/test.tsx" -> "test.tsx"
+ *
+ * When the filename is "index.*", derives the stem from the parent directory
+ * name to match Rust optimizer behavior. For example:
+ * "src/components/mongo/index.tsx" -> "mongo" (not "index.tsx")
+ *
+ * Returns { stem, isIndex } where isIndex indicates the filename was index.*
+ * (used to skip default export push since directory name already serves as prefix).
  */
-function getFileStem(relPath: string): string {
+function getFileStem(relPath: string): { stem: string; isIndex: boolean } {
   const slashIdx = relPath.lastIndexOf('/');
-  return slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
+  const basename = slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
+
+  // Check if the filename is "index.*"
+  const dotIdx = basename.lastIndexOf('.');
+  const nameWithoutExt = dotIdx >= 0 ? basename.slice(0, dotIdx) : basename;
+
+  if (nameWithoutExt === 'index' && slashIdx >= 0) {
+    // Use parent directory name instead (without extension)
+    const dirPath = relPath.slice(0, slashIdx);
+    const parentSlashIdx = dirPath.lastIndexOf('/');
+    const dirName = parentSlashIdx >= 0 ? dirPath.slice(parentSlashIdx + 1) : dirPath;
+    return { stem: dirName, isIndex: true };
+  }
+
+  return { stem: basename, isIndex: false };
 }
 
 /**
@@ -218,7 +239,7 @@ export function extractSegments(
   const imports = collectImports(program);
   const customInlined = collectCustomInlined(program);
 
-  const fileStem = getFileStem(relPath);
+  const { stem: fileStem, isIndex: isIndexFile } = getFileStem(relPath);
   const sourceExt = getSourceExtension(relPath);
   const ctx = new ContextStack(fileStem, relPath, scope);
 
@@ -317,7 +338,9 @@ export function extractSegments(
         const hasName =
           (decl?.type === 'FunctionDeclaration' && decl.id) ||
           (decl?.type === 'ClassDeclaration' && decl.id);
-        if (!hasName) {
+        if (!hasName && !isIndexFile) {
+          // For index files, the fileStem is already the directory name
+          // which serves as the display name prefix -- no extra push needed
           ctx.pushDefaultExport();
           pushCount++;
         }

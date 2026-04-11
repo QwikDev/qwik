@@ -509,7 +509,13 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // 2b. Run variable migration analysis
     const moduleLevelDecls = collectModuleLevelDecls(program, input.code);
     const { segmentUsage, rootUsage } = computeSegmentUsage(program, extractions);
-    const migrationDecisions = analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage);
+    const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
+    const isInlineStrategy = entryStrategy.type === 'inline' || entryStrategy.type === 'hoist';
+    // For inline/hoist strategy, skip migration -- segments share the parent module scope
+    // so variables don't need to be moved or re-exported.
+    const migrationDecisions = isInlineStrategy
+      ? []
+      : analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage);
 
     // Compute parent module path for _auto_ imports (no extension)
     const parentModulePath = computeParentModulePath(relPath);
@@ -519,9 +525,6 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const devFile = emitMode === 'dev'
       ? buildDevFilePath(input.path, options.srcDir, input.devPath)
       : undefined;
-
-    const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
-    const isInlineStrategy = entryStrategy.type === 'inline' || entryStrategy.type === 'hoist';
 
     const shouldTranspileJsx = options.transpileJsx !== false;
     const parentResult = rewriteParentModule(

@@ -547,6 +547,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       options.stripExports,
       options.isServer,
       options.explicitExtensions,
+      options.transpileTs,
     );
 
     // 3b. Import cleanup: remove non-Qwik imports whose identifiers are no longer

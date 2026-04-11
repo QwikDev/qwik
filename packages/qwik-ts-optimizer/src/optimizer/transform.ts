@@ -1145,13 +1145,17 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
         // Even with no captures, event handlers in a loop context need (_, _1) padding
         // for the q:p delivery mechanism. Check loop context before skipping.
+        // Exception: component event handlers (onClick$ on <MyComponent/>) are just props,
+        // not Qwik event handlers, so they don't need (_, _1) padding.
         if (undeclaredIds.length === 0) {
-          const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
-          if (enclosingLoops && enclosingLoops.length > 0) {
-            // In a loop: add minimal (_, _1) padding even with no captures
-            extraction.paramNames = ['_', '_1'];
-            extraction.captureNames = [];
-            extraction.captures = false;
+          if (!extraction.isComponentEvent) {
+            const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
+            if (enclosingLoops && enclosingLoops.length > 0) {
+              // In a loop: add minimal (_, _1) padding even with no captures
+              extraction.paramNames = ['_', '_1'];
+              extraction.captureNames = [];
+              extraction.captures = false;
+            }
           }
           continue;
         }
@@ -1259,12 +1263,15 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
         if (uniqueCaptures.length === 0) {
           // Even with no scope captures, event handlers in a loop context need (_, _1)
-          // padding for the q:p delivery mechanism
-          const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
-          if (enclosingLoops && enclosingLoops.length > 0) {
-            extraction.paramNames = ['_', '_1'];
-            extraction.captureNames = [];
-            extraction.captures = false;
+          // padding for the q:p delivery mechanism.
+          // Exception: component event handlers are just props, no padding needed.
+          if (!extraction.isComponentEvent) {
+            const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
+            if (enclosingLoops && enclosingLoops.length > 0) {
+              extraction.paramNames = ['_', '_1'];
+              extraction.captureNames = [];
+              extraction.captures = false;
+            }
           }
           continue;
         }

@@ -65,7 +65,7 @@ Plans:
   3. Zero regressions in unit tests
 **Plans**: 3 plans
 Plans:
-- [ ] 09-01-PLAN.md — Broaden marker detection for non-Qwik packages and renamed imports
+- [x] 09-01-PLAN.md — Broaden marker detection for non-Qwik packages and renamed imports
 - [ ] 09-02-PLAN.md — Parse error recovery for malformed inputs (example_3, example_immutable_analysis)
 - [ ] 09-03-PLAN.md — inlinedQrl() extraction support with .w() capture syntax
 

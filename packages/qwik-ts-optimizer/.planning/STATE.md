@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 08-05-PLAN.md
-last_updated: "2026-04-11T06:41:24.942Z"
+status: executing
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-04-11T07:22:08.413Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_plans: 13
+  completed_plans: 11
+  percent: 85
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** Runtime-identical output to SWC optimizer -- same segments, captures, hashes, QRL structure
-**Current focus:** Phase 08 — Parent Rewrite Batch 2
+**Current focus:** Phase 09 — Untransformed Extraction
 
 ## Current Position
 
-Phase: 9
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 09 (Untransformed Extraction) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -92,6 +92,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08 P03 | 16min | 2 tasks | 4 files |
 | Phase 08 P04 | 13min | 1 tasks | 2 files |
 | Phase 08 P05 | 21min | 2 tasks | 4 files |
+| Phase 09 P01 | 6min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,8 @@ Recent decisions affecting current work:
 - [Phase 08]: JSXElement context push: tag name pushed on JSXElement (not JSXOpeningElement) so children inherit context for display names
 - [Phase 08]: oxc-transform jsx:'preserve' strips TS types without transpiling JSX when transpileJsx=false
 - [Phase 08]: Component elements (uppercase tag) keep untransformed event names in display path; HTML elements use transformed q_e_click format
+- [Phase 09]: isMarkerCall checks importedName.endsWith('$') instead of isQwikCore -- any $-suffixed import is a marker regardless of source package
+- [Phase 09]: isCustomInlined returns false when callee is found in imports -- imported bindings are not custom inlined regardless of package source
 
 ### Pending Todos
 
@@ -170,6 +173,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T06:20:42.189Z
-Stopped at: Completed 08-05-PLAN.md
+Last session: 2026-04-11T07:22:08.411Z
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None

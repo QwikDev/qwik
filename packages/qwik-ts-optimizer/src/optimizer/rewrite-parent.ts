@@ -81,6 +81,20 @@ export interface ParentRewriteResult {
 // ---------------------------------------------------------------------------
 
 /**
+ * Parse array literal items from source text like "[left, true, right]".
+ * Returns an array of trimmed item strings.
+ */
+function parseArrayItems(arrayText: string): string[] {
+  // Strip surrounding brackets
+  let inner = arrayText.trim();
+  if (inner.startsWith('[')) inner = inner.slice(1);
+  if (inner.endsWith(']')) inner = inner.slice(0, -1);
+  inner = inner.trim();
+  if (!inner) return [];
+  return inner.split(',').map(s => s.trim()).filter(s => s.length > 0);
+}
+
+/**
  * Determine which import specifiers in an import declaration are markers
  * that should be removed (they're replaced by Qrl variants).
  */
@@ -633,6 +647,11 @@ export function rewriteParentModule(
   const extractedCalleeNames = new Set<string>();
   for (const ext of extractions) {
     extractedCalleeNames.add(ext.calleeName);
+    // For inlinedQrl, also mark _captures as a marker specifier to remove from parent
+    if (ext.isInlinedQrl) {
+      extractedCalleeNames.add('_captures');
+      extractedCalleeNames.add('_inlinedQrl');
+    }
   }
 
   // Track which symbols are already imported (for dedup - IMP-06)
@@ -830,6 +849,10 @@ export function rewriteParentModule(
     if (ext.isSync) {
       // sync$: replace entire call with _qrlSync(original, "minified")
       s.overwrite(ext.callStart, ext.callEnd, buildSyncTransform(ext.bodyText));
+    } else if (ext.isInlinedQrl) {
+      // inlinedQrl(body, name, [captures]): replace entire call with QRL variable name.
+      // The .w([captures]) wrapping is handled in Step 4b-inlinedQrl below.
+      s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ext.symbolName));
     } else if (ext.isBare) {
       // Bare $(): replace entire call with QRL variable name
       s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ext.symbolName));
@@ -923,6 +946,20 @@ export function rewriteParentModule(
 
   for (const ext of topLevel) {
     if (ext.isSync) continue;
+
+    if (ext.isInlinedQrl) {
+      // inlinedQrl: use explicit capture array (includes non-identifier values like true)
+      if (!ext.explicitCaptures) continue;
+      // Parse the capture array items from the source text
+      const captureItems = parseArrayItems(ext.explicitCaptures);
+      if (captureItems.length === 0) continue;
+      const wrapVars = captureItems.join(',\n    ');
+      const wText = `.w([\n    ${wrapVars}\n])`;
+      // inlinedQrl: entire call was replaced with QRL var name at callStart..callEnd
+      s.appendLeft(ext.callEnd, wText);
+      continue;
+    }
+
     if (ext.captureNames.length === 0) continue;
 
     // Filter out migrated (_auto_) variables from captures
@@ -1031,6 +1068,13 @@ export function rewriteParentModule(
       const qrlSymbol = isDevMode ? 'qrlDEV' : 'qrl';
       if (!alreadyImported.has(qrlSymbol)) {
         neededImports.set(qrlSymbol, '@qwik.dev/core');
+      }
+      // inlinedQrl in lib mode for local files uses qrlDEV even when not in dev mode
+      const hasInlinedQrlLocal = topLevel.some(
+        (e) => e.isInlinedQrl && !relPath.includes('node_modules'),
+      );
+      if (hasInlinedQrlLocal && !isDevMode && !alreadyImported.has('qrlDEV')) {
+        neededImports.set('qrlDEV', '@qwik.dev/core');
       }
     }
   }
@@ -1156,7 +1200,7 @@ export function rewriteParentModule(
             ext.displayName,
           ));
         } else {
-          qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions));
+          qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension));
         }
         qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
       }
@@ -1173,8 +1217,21 @@ export function rewriteParentModule(
           ext.loc[1],
           ext.displayName,
         ));
+      } else if (ext.isInlinedQrl && !relPath.includes('node_modules')) {
+        // inlinedQrl in lib/test mode for local files: use qrlDEV with byte-offset loc
+        // The Rust optimizer always uses qrlDEV for inlinedQrl in Test mode
+        // when the file is not in node_modules
+        const inlinedDevFile = devFilePath ?? buildDevFilePath(relPath, '', undefined);
+        qrlDecls.push(buildQrlDevDeclaration(
+          ext.symbolName,
+          ext.canonicalFilename,
+          inlinedDevFile,
+          ext.loc[0],
+          ext.loc[1],
+          ext.displayName,
+        ));
       } else {
-        qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions));
+        qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension));
       }
       qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
     }

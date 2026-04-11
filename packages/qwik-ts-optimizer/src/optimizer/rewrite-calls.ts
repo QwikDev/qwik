@@ -49,8 +49,11 @@ export function buildQrlDeclaration(
   symbolName: string,
   canonicalFilename: string,
   explicitExtensions?: boolean,
+  segmentExtension?: string,
 ): string {
-  const ext = explicitExtensions ? '.js' : '';
+  // When explicit extensions are requested, use the segment extension if provided
+  // (e.g., .mjs for files from node_modules), falling back to .js
+  const ext = explicitExtensions ? (segmentExtension || '.js') : '';
   return `const q_${symbolName} = /*#__PURE__*/ qrl(()=>import("./${canonicalFilename}${ext}"), "${symbolName}");`;
 }
 

@@ -435,7 +435,8 @@ export function extractSegments(
           // Determine ctxName: for inlinedQrl, check parent call expression
           // e.g., componentQrl(inlinedQrl(...)) -> ctxName = "component$"
           // e.g., useTaskQrl(inlinedQrl(...)) -> ctxName = "useTask$"
-          let inlinedCtxName = calleeName;
+          // If no parent wrapper, use the symbol name (e.g., "task")
+          let inlinedCtxName = nameValue;
           if (parent?.type === 'CallExpression') {
             const parentCallee = getCalleeName(parent);
             if (parentCallee) {
@@ -450,7 +451,8 @@ export function extractSegments(
             }
           }
 
-          const extension = determineExtension(arg0, sourceExt);
+          // For inlinedQrl, use source file extension (not body-based detection)
+          const extension = sourceExt;
           const [line, col] = computeLineCol(source, arg0.start);
 
           // Collect imports referenced in segment body

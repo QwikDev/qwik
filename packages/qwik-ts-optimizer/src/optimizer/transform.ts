@@ -528,6 +528,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         parentScopeIds = moduleScopeIds;
       }
 
+      // Skip capture analysis for inlinedQrl extractions -- captures are already
+      // explicit from the array argument parsed during extraction.
+      if (extraction.isInlinedQrl) continue;
+
       const result = analyzeCaptures(closureNode, parentScopeIds, importedNames);
       extraction.captureNames = result.captureNames;
       extraction.paramNames = result.paramNames;
@@ -597,8 +601,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     }
 
     // 2b. Run variable migration analysis
+    // Exclude inlinedQrl extractions from migration -- their captures are explicit
     const moduleLevelDecls = collectModuleLevelDecls(program, repairedCode);
-    const { segmentUsage, rootUsage } = computeSegmentUsage(program, extractions);
+    const nonInlinedExtractions = extractions.filter((e) => !e.isInlinedQrl);
+    const { segmentUsage, rootUsage } = computeSegmentUsage(program, nonInlinedExtractions);
     const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
     const isInlineStrategy = entryStrategy.type === 'inline' || entryStrategy.type === 'hoist';
     // For inline/hoist strategy, skip migration -- segments share the parent module scope
@@ -612,7 +618,12 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
     // 3. Rewrite parent module (pass migration decisions + JSX options + mode)
     const emitMode = options.mode ?? 'prod';
-    const devFile = emitMode === 'dev'
+    // For inlinedQrl extractions in lib mode (local files), we also need devFile
+    // because the Rust optimizer always uses qrlDEV for inlinedQrl in Test mode
+    const hasLocalInlinedQrl = extractions.some(
+      (e) => e.isInlinedQrl && !relPath.includes('node_modules'),
+    );
+    const devFile = (emitMode === 'dev' || hasLocalInlinedQrl)
       ? buildDevFilePath(input.path, options.srcDir, input.devPath)
       : undefined;
 
@@ -791,7 +802,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // Determine nested QRL declarations for segments that have children
       const children = updatedExtractions.filter((c) => c.parent === ext.symbolName && !c.isSync);
       const nestedQrlDecls = children.map((child) =>
-        buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions),
+        buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension),
       );
 
       // 2c. Build SegmentCaptureInfo for this extraction
@@ -802,7 +813,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       };
 
       // For top-level segments (no parent): wire migration info
-      if (ext.parent === null) {
+      // Skip migration for inlinedQrl -- captures are explicit, not scope-based
+      if (ext.parent === null && !ext.isInlinedQrl) {
         // _auto_ imports: from migration decisions where action is "reexport" and the variable is used by this segment
         const segUsage = segmentUsage.get(ext.symbolName);
         if (segUsage) {
@@ -872,15 +884,23 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         }
       }
 
+      // For inlinedQrl segments, skip capture injection (body already has _captures refs)
+      // but still pass autoImports and movedDeclarations if any
+      const effectiveCaptureInfo = ext.isInlinedQrl
+        ? (captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0
+            ? { ...captureInfo, captureNames: [] }
+            : undefined)
+        : (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0)
+          ? captureInfo
+          : undefined;
+
       // Generate segment code: stripped segments get null exports, others get full codegen
       let segmentCode = stripped
         ? generateStrippedSegmentCode(ext.symbolName)
         : generateSegmentCode(
             ext,
             nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
-            (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0)
-              ? captureInfo
-              : undefined,
+            effectiveCaptureInfo,
             (shouldTranspileJsx && (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx))
               ? { enableJsx: true, importedNames }
               : undefined,

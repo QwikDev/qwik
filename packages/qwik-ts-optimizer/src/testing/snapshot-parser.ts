@@ -162,7 +162,10 @@ function extractInput(body: string): { input: string | null; rest: string } {
     return { input: null, rest: body };
   }
 
-  const afterInput = body.slice(inputIdx + inputMarker.length);
+  let afterInput = body.slice(inputIdx + inputMarker.length);
+  // Strip the newline immediately after ==INPUT== (part of the marker line)
+  // but preserve all subsequent whitespace (affects byte offsets for qrlDEV lo/hi)
+  if (afterInput.startsWith('\n')) afterInput = afterInput.slice(1);
 
   // Find the next section delimiter (===...===) after INPUT
   const delimMatch = afterInput.match(createRegExp(
@@ -177,10 +180,13 @@ function extractInput(body: string): { input: string | null; rest: string } {
   ));
   if (!delimMatch || delimMatch.index === undefined) {
     // No sections after input -- entire rest is input
-    return { input: afterInput.trim(), rest: '' };
+    // Use trimEnd() to preserve leading newlines (they affect byte offsets
+    // for qrlDEV lo/hi values which the Rust optimizer computes from the
+    // original input including leading whitespace)
+    return { input: afterInput.trimEnd(), rest: '' };
   }
 
-  const input = afterInput.slice(0, delimMatch.index).trim();
+  const input = afterInput.slice(0, delimMatch.index).trimEnd();
   const rest = afterInput.slice(delimMatch.index);
 
   return { input: input || null, rest };

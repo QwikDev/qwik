@@ -302,16 +302,23 @@ export function computeFlags(
   childrenType: 'none' | 'static' | 'dynamic',
   inLoop: boolean = false,
 ): number {
+  // Evidence from Rust snapshot corpus:
+  //   flags=3: static/no children, no loop (bit 0 + bit 1)
+  //   flags=1: dynamic children, no loop (bit 0 only)
+  //   flags=4: loop context with q:p + varProps + dynamic children (bit 2 only)
+  //
+  // Outside loop context: bit 0 is ALWAYS set regardless of varProps.
+  // Inside loop context (q:p): bit 0 reflects whether props are immutable.
   let flags = 0;
-  // Bit 0 (value 1): no var props (all immutable)
-  if (!hasVarProps) {
+  // Bit 0 (value 1): immutable props. Always set outside loop; inside loop, only if no varProps.
+  if (!inLoop || !hasVarProps) {
     flags |= 1;
   }
   // Bit 1 (value 2): children are static (text, const expressions, no children)
   if (childrenType !== 'dynamic') {
     flags |= 2;
   }
-  // Bit 2: loop context
+  // Bit 2 (value 4): loop context
   if (inLoop) {
     flags |= 4;
   }
@@ -738,9 +745,11 @@ function processProps(
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`
           : propName;
-        // Store field _wrapProp (2-arg form like _wrapProp(obj, "field")) goes to varEntries
-        // Signal _wrapProp (1-arg form like _wrapProp(signal)) goes to constEntries
-        if (signalResult.isStoreField) {
+        // Store field _wrapProp (2-arg form like _wrapProp(obj, "field")):
+        //   - HTML elements: goes to varEntries (reactive store access)
+        //   - Component elements: goes to constEntries (Rust optimizer behavior)
+        // Signal _wrapProp (1-arg form like _wrapProp(signal)) always goes to constEntries
+        if (signalResult.isStoreField && tagIsHtml) {
           varEntries.push(`${formattedName}: ${signalResult.code}`);
         } else {
           constEntries.push(`${formattedName}: ${signalResult.code}`);
@@ -754,7 +763,14 @@ function processProps(
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`
           : propName;
-        constEntries.push(`${formattedName}: ${fnSignalCall}`);
+        // For component elements in loop context, _fnSignal props that depend
+        // on iteration variables go to varEntries (Rust optimizer behavior).
+        // This handles cases like .map((item) => <Comp prop={item.field} />)
+        if (!tagIsHtml && inLoop) {
+          varEntries.push(`${formattedName}: ${fnSignalCall}`);
+        } else {
+          constEntries.push(`${formattedName}: ${fnSignalCall}`);
+        }
         neededImports.add('_fnSignal');
         continue;
       }
@@ -924,10 +940,10 @@ export function transformJsxElement(
   );
 
   // --- Flags ---
-  // Loop context flag (bit 2) is only set when the element has q:p/q:ps (event handler captures).
-  // Elements inside a loop but without event handler captures don't get the loop flag.
+  // Loop context flag (bit 2) is only set for HTML elements with q:p/q:ps (event handler captures).
+  // Component elements in loops don't get the loop flag -- they use varEntries placement instead.
   const hasQpProp = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'));
-  const effectiveLoopCtx = qpOverrides ? hasQpProp : !!loopCtx;
+  const effectiveLoopCtx = tagIsHtml && (qpOverrides ? hasQpProp : !!loopCtx);
   const flags = hasSpread ? 0 : computeFlags(hasVarProps, childrenType, effectiveLoopCtx);
 
   // --- Key ---

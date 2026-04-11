@@ -683,13 +683,19 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // BinaryExpression, ObjectExpression, or other compound expressions
+  // ObjectExpression values are NOT wrapped in _fnSignal.
+  // They go directly as var props (e.g., class={{ ... }} stays as an object literal).
+  // This matches Rust optimizer behavior where object literals are classified as var.
+  if (exprNode.type === 'ObjectExpression') {
+    return { type: 'none' };
+  }
+
+  // BinaryExpression or other compound expressions
   // Check for reactive roots (signal.value, store access)
   if (
     exprNode.type === 'BinaryExpression' ||
     exprNode.type === 'ConditionalExpression' ||
     exprNode.type === 'LogicalExpression' ||
-    exprNode.type === 'ObjectExpression' ||
     exprNode.type === 'TemplateLiteral'
   ) {
     // SIG-05: mixed with unknown call -> NOT wrapped

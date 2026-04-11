@@ -149,20 +149,33 @@ describe('computeFlags', () => {
     expect(computeFlags(false, 'dynamic')).toBe(1);
   });
 
-  it('returns 2 for varProps + static children', () => {
-    expect(computeFlags(true, 'static')).toBe(2);
+  it('returns 3 for varProps + static children (bit 0 always set outside loop)', () => {
+    // Outside loop context, bit 0 is always set regardless of varProps
+    expect(computeFlags(true, 'static')).toBe(3);
   });
 
-  it('returns 0 for varProps + dynamic children', () => {
-    expect(computeFlags(true, 'dynamic')).toBe(0);
+  it('returns 1 for varProps + dynamic children (bit 0 always set outside loop)', () => {
+    // Outside loop context, bit 0 is always set regardless of varProps
+    expect(computeFlags(true, 'dynamic')).toBe(1);
   });
 
   it('returns 3 for no varProps + no children', () => {
     expect(computeFlags(false, 'none')).toBe(3);
   });
 
-  it('returns 2 for varProps + no children', () => {
-    expect(computeFlags(true, 'none')).toBe(2);
+  it('returns 3 for varProps + no children (bit 0 always set outside loop)', () => {
+    // Outside loop context, bit 0 is always set regardless of varProps
+    expect(computeFlags(true, 'none')).toBe(3);
+  });
+
+  it('returns 4 for varProps + dynamic children in loop context', () => {
+    // In loop context with varProps: bit 2 set, bit 0 NOT set
+    expect(computeFlags(true, 'dynamic', true)).toBe(4);
+  });
+
+  it('returns 7 for no varProps + static children in loop context', () => {
+    // In loop context without varProps: all three bits set
+    expect(computeFlags(false, 'static', true)).toBe(7);
   });
 });
 

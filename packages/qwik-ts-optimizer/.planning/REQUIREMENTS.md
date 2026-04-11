@@ -136,7 +136,46 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **API-02**: Return transformed parent module code, array of segments (code + metadata), and diagnostics
 - [x] **API-03**: Accept options: filename, entryStrategy, mode (dev/prod), isServer, stripExports, etc.
 
-## v2 Requirements
+## v3.0 Requirements — Reference-Guided Convergence
+
+Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families identified in v2.0. SWC reference files in `swc-reference-only/` available as behavioral reference (not reimplementation target).
+
+### Inline/Hoist Strategy
+
+- [ ] **IHS-01**: Inline strategy `.s()` body text produces AST-matching output for all inline-strategy snapshots
+- [ ] **IHS-02**: Hoist strategy generates correct const-fn pattern producing AST-matching output for all hoist-strategy snapshots
+- [ ] **IHS-03**: Entry strategy selection produces the correct segment structure per snapshot expected output
+
+### Capture Classification
+
+- [ ] **CAP-01**: Loop-local variables delivered via function parameters with correct `paramNames` padding, verified by snapshot AST comparison
+- [ ] **CAP-02**: Cross-scope captures delivered via `._captures` + `.w()` hoisting, verified by snapshot AST comparison
+- [ ] **CAP-03**: Segment metadata (`captures`, `captureNames`, `paramNames`) matches snapshot expected metadata
+
+### JSX Transform Refinement
+
+- [ ] **JSXR-01**: Flags bitmask values in `_jsxSorted`/`_jsxC` calls match snapshot expected values
+- [ ] **JSXR-02**: Prop classification (var vs const buckets) produces AST-matching `_jsxSorted` calls
+- [ ] **JSXR-03**: `_jsxSplit` generation for spread props matches snapshot expected output
+- [ ] **JSXR-04**: Signal wrapping (`_wrapProp`/`_fnSignal`) placement produces AST-matching segment and parent output
+
+### Variable Migration Refinement
+
+- [ ] **MIGR-01**: Variable move vs reexport decisions produce correct parent and segment AST output
+- [ ] **MIGR-02**: `_auto_` re-exports generated only where snapshot expected output includes them
+- [ ] **MIGR-03**: Destructured binding migration produces AST-matching segment imports and body
+
+### Sync Functions
+
+- [ ] **SYNC-01**: `_qrlSync()` calls produce AST-matching output for all sync-related snapshots
+
+### Convergence Gate
+
+- [ ] **CONV-01**: 147+/210 convergence tests pass (70%+ pass rate)
+- [ ] **CONV-02**: All 73 previously-passing tests still pass (zero regressions)
+- [ ] **CONV-03**: Zero unit test regressions
+
+## Future Requirements
 
 ### Performance
 

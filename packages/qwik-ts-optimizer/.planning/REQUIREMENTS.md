@@ -171,9 +171,9 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 
 ### Convergence Gate
 
-- [ ] **CONV-01**: 147+/210 convergence tests pass (70%+ pass rate)
-- [ ] **CONV-02**: All 73 previously-passing tests still pass (zero regressions)
-- [ ] **CONV-03**: Zero unit test regressions
+- [x] **CONV-01**: 147+/210 convergence tests pass (70%+ pass rate)
+- [x] **CONV-02**: All 73 previously-passing tests still pass (zero regressions)
+- [x] **CONV-03**: Zero unit test regressions
 
 ## Future Requirements
 
@@ -300,9 +300,9 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 | MIGR-02 | Phase 20 | Complete |
 | MIGR-03 | Phase 20 | Complete |
 | SYNC-01 | Phase 20 | Complete |
-| CONV-01 | Phase 21 | Pending |
-| CONV-02 | Phase 21 | Pending |
-| CONV-03 | Phase 21 | Pending |
+| CONV-01 | Phase 21 | Complete |
+| CONV-02 | Phase 21 | Complete |
+| CONV-03 | Phase 21 | Complete |
 
 **Coverage:**
 - v1 requirements: 81 total, mapped: 81, unmapped: 0

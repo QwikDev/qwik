@@ -121,9 +121,9 @@ Plans:
   3. Zero regressions in unit tests
 **Plans**: 3 plans
 Plans:
-- [x] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
-- [x] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
-- [x] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate (completed 2026-04-11)
+- [ ] 13-01-PLAN.md — Segment body transforms: _rawProps, TS stripping, sync$, dead code, separator
+- [ ] 13-02-PLAN.md — Post-transform segment import re-collection
+- [ ] 13-03-PLAN.md — Missing segments, convergence sweep, and regression gate
 
 ### Phase 14: Segment Codegen Batch 2
 **Goal**: Next 25 segment-codegen snapshots pass
@@ -176,7 +176,7 @@ Plans:
 | 10. Segment Identity Batch 1 | 3/3 | Complete    | 2026-04-11 |
 | 11. Segment Identity Batch 2 | 3/3 | Complete    | 2026-04-11 |
 | 12. Segment Identity Batch 3 | 3/3 | Complete    | 2026-04-11 |
-| 13. Segment Codegen Batch 1 | 0/TBD | Not started | - |
+| 13. Segment Codegen Batch 1 | 0/3 | Planning complete | - |
 | 14. Segment Codegen Batch 2 | 0/TBD | Not started | - |
 | 15. Segment Codegen Batch 3 | 0/TBD | Not started | - |
 | 16. Final Convergence | 0/TBD | Not started | - |

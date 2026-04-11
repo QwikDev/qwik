@@ -205,6 +205,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/** @internal */
 export type VNodeJournal = Array<VNodeOperation>;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -286,6 +287,7 @@ export const vnode_newText = (textNode: Text, textContent: string | undefined): 
   return vnode;
 };
 
+/** @internal */
 export const vnode_newVirtual = (): VirtualVNode => {
   const vnode: VirtualVNode = new VirtualVNode(
     null,
@@ -309,6 +311,7 @@ export const vnode_isVNode = (vNode: any): vNode is VNode => {
   return vNode instanceof VNode;
 };
 
+/** @internal */
 export const vnode_isElementVNode = (vNode: VNode): vNode is ElementVNode => {
   return (vNode.flags & VNodeFlags.Element) === VNodeFlags.Element;
 };
@@ -398,6 +401,7 @@ export const vnode_getNodeTypeName = (vNode: VNode): string => {
   return '<unknown>';
 };
 
+/** @internal */
 export const vnode_getProp = <T = unknown>(
   vNode: VNode,
   key: string,
@@ -415,6 +419,7 @@ export const vnode_getProp = <T = unknown>(
   return null;
 };
 
+/** @internal */
 export const vnode_setProp = (vNode: VNode, key: string, value: unknown) => {
   if (value == null && vNode.props) {
     delete vNode.props[key];
@@ -858,6 +863,7 @@ const vnode_getChildWithIdx = (vNode: VNode, childIdx: number): VNode => {
 };
 
 const vNodeStack: VNode[] = [];
+/** @internal */
 export const vnode_getVNodeForChildNode = (
   vNode: ElementVNode,
   childElement: Element
@@ -1308,6 +1314,7 @@ export const vnode_inflateProjectionTrailingText = (
   }
 };
 
+/** @internal */
 export const vnode_insertBefore = (
   journal: VNodeJournal,
   parent: ElementVNode | VirtualVNode,
@@ -1341,6 +1348,7 @@ export const vnode_getDomParentVNode = (
   return vnode;
 };
 
+/** @internal */
 export const vnode_remove = (
   journal: VNodeJournal,
   vParent: ElementVNode | VirtualVNode,
@@ -1446,6 +1454,7 @@ export const vnode_truncate = (
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/** @internal */
 export const vnode_getElementName = (vnode: ElementVNode): string => {
   const elementVNode = ensureElementVNode(vnode);
   let elementName = elementVNode.elementName;

@@ -1057,3 +1057,38 @@ export type ServerQRL<T extends ServerFunction> = QRL<
   | ((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>)
   | ((...args: Parameters<T>) => ReturnType<T>)
 >;
+
+type LinkDataBasicPrefetchStrategy = 'viewport' | 'focus' | 'pointerdown';
+/**
+ * Defines the fine pointer prefetching strategy for link data to enhance navigation performance.
+ * The strategies include:
+ *
+ * - `'viewport'`: Prefetch when the link becomes visible in the viewport.
+ * - `'hover'`: Prefetch when the user hovers over the link.
+ * - `'pointerdown'`: Prefetch when the user presses the mouse button down on the link.
+ * - `'focus'`: Prefetch when the link receives focus.
+ *
+ * @public
+ */
+export type LinkDataFinePrefetchStrategy = LinkDataBasicPrefetchStrategy | 'hover';
+/**
+ * Defines the coarse pointer prefetching strategy for link data to enhance navigation performance.
+ * The strategies include:
+ *
+ * - `'viewport'`: Prefetch when the link becomes visible in the viewport.
+ * - `'pointerdown'`: Prefetch when the user presses the mouse button down on the link.
+ * - `'focus'`: Prefetch when the link receives focus.
+ *
+ * @public
+ */
+export type LinkDataCoarsePrefetchStrategy = LinkDataBasicPrefetchStrategy;
+
+/**
+ * Specifies when link data should be prefetched to improve navigation performance.
+ *
+ * @public
+ */
+export interface LinkDataPrefetchOptions {
+  coarsePointer?: LinkDataCoarsePrefetchStrategy[];
+  finePointer?: LinkDataFinePrefetchStrategy[];
+}

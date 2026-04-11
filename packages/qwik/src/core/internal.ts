@@ -82,3 +82,16 @@ export {
   _updateProjectionProps,
   _removeProjection,
 } from './shared/projection/external-projection';
+
+/** TESTING */
+export {
+  type VNodeJournal as _VNodeJournal,
+  vnode_getElementName as _vnode_getElementName,
+  vnode_getProp as _vnode_getProp,
+  vnode_getVNodeForChildNode as _vnode_getVNodeForChildNode,
+  vnode_insertBefore as _vnode_insertBefore,
+  vnode_newVirtual as _vnode_newVirtual,
+  vnode_remove as _vnode_remove,
+  vnode_setProp as _vnode_setProp,
+  vnode_isElementVNode as _vnode_isElementVNode,
+} from './client/vnode-utils';

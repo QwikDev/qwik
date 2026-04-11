@@ -3,6 +3,7 @@ import type { NormalizedPluginOptions } from '../types';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { assert, test } from 'vitest';
+import { DEFAULT_LINK_DATA_PREFETCH_STRATEGY } from '../../runtime/src/link-prefetch-strategy';
 
 const routesDir = tmpdir();
 const serverPluginsDir = tmpdir();
@@ -80,6 +81,7 @@ const menuFilePath = join(routesDir, 'docs', 'menu.md');
       platform: {},
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
+      linkDataPrefetch: DEFAULT_LINK_DATA_PREFETCH_STRATEGY,
     };
     globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     assert.equal(getMarkdownRelativeUrl(opts, menuFilePath, t.href), t.expect);

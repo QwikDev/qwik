@@ -21,6 +21,7 @@ import { generateQwikRouterEntries } from '../runtime-generation/generate-entrie
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
 import type { RoutingContext } from '../types';
+import { DEFAULT_LINK_DATA_PREFETCH_STRATEGY } from '../../runtime/src/link-prefetch-strategy';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
 import { collectServerFnModuleIds } from './server-fns';
@@ -100,6 +101,18 @@ function qwikRouterPlugin(
           'globalThis.__NO_TRAILING_SLASH__': JSON.stringify(userOpts?.trailingSlash === false),
           'globalThis.__SSR_CACHE_SIZE__': JSON.stringify(
             viteEnv.command === 'serve' ? 0 : (userOpts?.ssrCacheSize ?? 50)
+          ),
+          'globalThis.__LINK_DATA_PREFETCH_STRATEGY__': JSON.stringify(
+            userOpts?.linkDataPrefetch
+              ? {
+                  coarsePointer:
+                    userOpts.linkDataPrefetch.coarsePointer ??
+                    DEFAULT_LINK_DATA_PREFETCH_STRATEGY.coarsePointer,
+                  finePointer:
+                    userOpts.linkDataPrefetch.finePointer ??
+                    DEFAULT_LINK_DATA_PREFETCH_STRATEGY.finePointer,
+                }
+              : DEFAULT_LINK_DATA_PREFETCH_STRATEGY
           ),
         },
         appType: 'custom',

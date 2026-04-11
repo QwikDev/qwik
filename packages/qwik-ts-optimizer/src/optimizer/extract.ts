@@ -259,6 +259,16 @@ export function extractSegments(
   // Track parent relationships for JSX attribute detection
   const parentMap = new Map<any, any>();
 
+  // Track marker call depth for JSX extraction scoping.
+  // JSX $-suffixed attributes are only extracted when inside a marker call scope.
+  let markerCallDepth = 0;
+  const markerCallNodes = new Set<any>();
+
+  // Detect @jsxImportSource pragma. When set to a non-Qwik package (e.g., "react"),
+  // JSX $-suffixed attribute extraction is suppressed entirely because the JSX
+  // uses a foreign runtime that doesn't understand Qwik's event handler extraction.
+  const hasNonQwikJsxImportSource = /\/\*\s*@jsxImportSource\s+(?!@qwik|@builder\.io\/qwik)\S+/.test(source);
+
   walk(program, {
     enter(node: any, parent: any) {
       // Record parent relationship for later lookup
@@ -623,6 +633,12 @@ export function extractSegments(
         });
       }
 
+      // Track marker call depth for JSX extraction scoping
+      if (node.type === 'CallExpression' && isMarkerCall(node, imports, customInlined)) {
+        markerCallDepth++;
+        markerCallNodes.add(node);
+      }
+
       // --- JSX $-suffixed attribute extraction ---
       // When we see onClick$={expr}, extract expr as a segment.
       // The attribute name (e.g., onClick$) determines the ctxName/ctxKind.
@@ -643,7 +659,7 @@ export function extractSegments(
           }
         }
       }
-      if (jsxAttrName !== null) {
+      if (jsxAttrName !== null && markerCallDepth > 0 && !hasNonQwikJsxImportSource) {
         const attrName = jsxAttrName;
         const expr = node.value.expression;
 
@@ -723,6 +739,12 @@ export function extractSegments(
     },
 
     leave(node: any) {
+      // Decrement marker call depth when leaving a marker call
+      if (markerCallNodes.has(node)) {
+        markerCallDepth--;
+        markerCallNodes.delete(node);
+      }
+
       const count = pushedNodes.get(node);
       if (count !== undefined) {
         for (let i = 0; i < count; i++) {

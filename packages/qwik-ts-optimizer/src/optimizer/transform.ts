@@ -655,6 +655,17 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       : undefined;
 
     const shouldTranspileJsx = options.transpileJsx !== false;
+
+    // When JSX will be transpiled, downgrade extensions on extraction results
+    // so that QRL declarations in parent and segments reference the correct file extension.
+    // .tsx -> .ts (JSX removed, TS may remain), .jsx -> .js (JSX removed)
+    if (shouldTranspileJsx) {
+      for (const extraction of extractions) {
+        if (extraction.extension === '.tsx') extraction.extension = '.ts';
+        else if (extraction.extension === '.jsx') extraction.extension = '.js';
+      }
+    }
+
     const parentResult = rewriteParentModule(
       repairedCode,
       relPath,

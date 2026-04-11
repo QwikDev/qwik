@@ -11,6 +11,7 @@ import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import { rewriteImportSource } from './rewrite-imports.js';
+import { getQrlImportSource } from './rewrite-calls.js';
 import { applyRawPropsTransform } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx } from './jsx-transform.js';
@@ -277,6 +278,12 @@ export interface NestedCallSiteInfo {
   loopLocalParamNames?: string[];
   /** Unified q:ps params for the entire element (all handlers combined, declaration order) */
   elementQpParams?: string[];
+  /** The Qrl-suffixed callee name (e.g., "useTaskQrl") for named markers */
+  qrlCallee?: string;
+  /** Capture names from the nested extraction (for .w() chaining) */
+  captureNames?: string[];
+  /** The import source for the Qrl-suffixed callee (for import resolution) */
+  importSource?: string;
 }
 
 /**
@@ -492,11 +499,21 @@ export function generateSegmentCode(
           }
         }
       } else {
-        // Regular $() call: replace call expression with QRL variable
+        // Regular $() call: replace call expression with QRL variable or calleeQrl(qrlVar)
         const relStart = site.callStart - bodyOffset;
         const relEnd = site.callEnd - bodyOffset;
         if (relStart >= 0 && relEnd <= bodyText.length) {
-          bodyText = bodyText.slice(0, relStart) + site.qrlVarName + bodyText.slice(relEnd);
+          if (site.qrlCallee) {
+            // Named marker (useTask$, useStyles$, etc.) -> calleeQrl(qrlVar)
+            let qrlRef = site.qrlVarName;
+            if (site.captureNames && site.captureNames.length > 0) {
+              qrlRef += '.w([\n        ' + site.captureNames.join(',\n        ') + '\n    ])';
+            }
+            bodyText = bodyText.slice(0, relStart) + `${site.qrlCallee}(${qrlRef})` + bodyText.slice(relEnd);
+          } else {
+            // Bare $() call -- replace with QRL variable directly
+            bodyText = bodyText.slice(0, relStart) + site.qrlVarName + bodyText.slice(relEnd);
+          }
         }
       }
     }
@@ -772,22 +789,40 @@ export function generateSegmentCode(
       }
     }
 
-    // Check for Qrl-suffixed runtime imports introduced by nested call rewriting
-    // e.g., useTaskQrl, useComputedQrl -- these need @qwik.dev/core imports
-    const qrlSuffixRegex = /\b(\w+Qrl)\b/g;
-    let qrlMatch;
-    while ((qrlMatch = qrlSuffixRegex.exec(bodyText)) !== null) {
-      const qrlName = qrlMatch[1];
-      // Skip if already imported
-      if (parts.some(p => p.includes(qrlName))) continue;
-      // Only add if it looks like a Qwik runtime function (starts with lowercase or 'use')
-      if (qrlName.startsWith('use') || qrlName[0] === qrlName[0].toLowerCase()) {
-        const sepIdx = parts.indexOf('//');
-        const importStmt = `import { ${qrlName} } from "@qwik.dev/core";`;
-        if (sepIdx >= 0) {
-          parts.splice(sepIdx, 0, importStmt);
-        } else {
-          parts.unshift(importStmt);
+    // Add imports for Qrl-suffixed callees from nested call site rewriting
+    // e.g., useTaskQrl from @qwik.dev/core, or custom package Qrl variants
+    if (nestedCallSites) {
+      const addedQrlCallees = new Set<string>();
+      for (const site of nestedCallSites) {
+        if (site.qrlCallee && !addedQrlCallees.has(site.qrlCallee)) {
+          addedQrlCallees.add(site.qrlCallee);
+          // Skip if already imported
+          if (parts.some(p => p.includes(site.qrlCallee!))) continue;
+          const importSource = getQrlImportSource(site.qrlCallee!, site.importSource);
+          const sepIdx = parts.indexOf('//');
+          const importStmt = `import { ${site.qrlCallee} } from "${importSource}";`;
+          if (sepIdx >= 0) {
+            parts.splice(sepIdx, 0, importStmt);
+          } else {
+            parts.unshift(importStmt);
+          }
+        }
+      }
+    } else {
+      // Fallback: regex-based detection for Qrl-suffixed runtime imports
+      const qrlSuffixRegex = /\b(\w+Qrl)\b/g;
+      let qrlMatch;
+      while ((qrlMatch = qrlSuffixRegex.exec(bodyText)) !== null) {
+        const qrlName = qrlMatch[1];
+        if (parts.some(p => p.includes(qrlName))) continue;
+        if (qrlName.startsWith('use') || qrlName[0] === qrlName[0].toLowerCase()) {
+          const sepIdx = parts.indexOf('//');
+          const importStmt = `import { ${qrlName} } from "@qwik.dev/core";`;
+          if (sepIdx >= 0) {
+            parts.splice(sepIdx, 0, importStmt);
+          } else {
+            parts.unshift(importStmt);
+          }
         }
       }
     }

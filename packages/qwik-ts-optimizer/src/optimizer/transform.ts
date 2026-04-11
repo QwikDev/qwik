@@ -1409,6 +1409,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             callStart: child.callStart,
             callEnd: child.callEnd,
             isJsxAttr: false,
+            // Named marker info for calleeQrl() wrapping
+            qrlCallee: child.isBare ? undefined : child.qrlCallee || undefined,
+            captureNames: child.captureNames.length > 0 ? child.captureNames : undefined,
+            importSource: child.importSource || undefined,
           });
         }
       }

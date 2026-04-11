@@ -1017,9 +1017,11 @@ export function rewriteParentModule(
       s.overwrite(ext.calleeStart, ext.calleeEnd, ext.qrlCallee);
       // Replace argument with QRL variable name
       s.overwrite(ext.argStart, ext.argEnd, getQrlVarName(ext.symbolName));
-      // Add PURE annotation for componentQrl calls
+      // Add PURE annotation for componentQrl calls.
+      // Use prependRight so the annotation survives if Step 4a removes
+      // the preceding `const varName = ` for unused bindings.
       if (needsPureAnnotation(ext.qrlCallee)) {
-        s.appendLeft(ext.callStart, '/*#__PURE__*/ ');
+        s.prependRight(ext.callStart, '/*#__PURE__*/ ');
       }
     }
   }

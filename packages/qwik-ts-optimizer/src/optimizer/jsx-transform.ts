@@ -579,6 +579,9 @@ function processProps(
     return { varEntries, constEntries, key, hasVarProps: false, hasSpread, neededImports };
   }
 
+  // Pre-scan for spreads so bind gate works regardless of attribute order
+  const hasSpreadAttr = attributes.some(a => a.type === 'JSXSpreadAttribute');
+
   for (const attr of attributes) {
     if (attr.type === 'JSXSpreadAttribute') {
       hasSpread = true;
@@ -643,7 +646,7 @@ function processProps(
     }
 
     // --- (b) Bind desugaring ---
-    if (isBindProp(propName) && !hasSpread) {
+    if (isBindProp(propName) && !hasSpreadAttr) {
       const bindResult = transformBindProp(propName, valueText);
       // Bind-desugared prop names are always quoted (matching Rust optimizer)
       const formattedBindName = `"${bindResult.propName}"`;
@@ -666,6 +669,12 @@ function processProps(
       for (const imp of bindResult.needsImport) {
         neededImports.add(imp);
       }
+      continue;
+    }
+
+    // In spread/split mode, bind props pass through un-desugared into varEntries
+    if (isBindProp(propName) && hasSpreadAttr) {
+      varEntries.push(`"${propName}": ${valueText}`);
       continue;
     }
 

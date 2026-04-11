@@ -546,8 +546,8 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_transform_event_names_without_jsx_transpile: {},
   should_transform_passive_event_names_without_jsx_transpile: {},
   should_preserve_non_ident_explicit_captures: {},
-  ternary_prop: {},
-  transform_qrl_in_regular_prop: {},
+  ternary_prop: { transpileJsx: true },
+  transform_qrl_in_regular_prop: { transpileJsx: true },
 
   // --- Inline entry strategy, transpileTs + transpileJsx (inlinedQrl in output, no ENTRY POINT segments) ---
   fun_with_scopes: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },

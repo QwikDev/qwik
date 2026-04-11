@@ -13,7 +13,7 @@
 
 export type SignalExprResult =
   | { type: 'none' }
-  | { type: 'wrapProp'; code: string }
+  | { type: 'wrapProp'; code: string; isStoreField?: boolean }
   | { type: 'fnSignal'; deps: string[]; hoistedFn: string; hoistedStr: string };
 
 // ---------------------------------------------------------------------------
@@ -292,6 +292,16 @@ function collectReactiveRoots(
       return; // Don't recurse further
     }
 
+    // Single-level store field access (props.field, store.field) -> root is object
+    if (isStoreFieldAccess(n, importedNames)) {
+      const root = getMemberChainRoot(n.object);
+      if (root != null && !seen.has(root)) {
+        seen.add(root);
+        roots.push(root);
+      }
+      return; // Don't recurse further
+    }
+
     // Recurse into child nodes
     for (const key of Object.keys(n)) {
       if (key === 'type' || key === 'start' || key === 'end' || key === 'loc')
@@ -311,6 +321,93 @@ function collectReactiveRoots(
 
   walk(node);
   return roots;
+}
+
+/**
+ * Collect ALL dependency identifiers from an expression: reactive roots
+ * (signal.value, store accesses) PLUS bare local identifiers.
+ *
+ * This is used after we've confirmed there are reactive roots -- bare
+ * identifiers that are non-imported local variables also become deps
+ * since _fnSignal needs to track all mutable values for re-evaluation.
+ *
+ * Returns unique dep names in order of first appearance.
+ */
+function collectAllDeps(
+  node: any,
+  importedNames: Set<string>,
+): string[] {
+  // Collect reactive roots and bare identifiers separately.
+  // Reactive roots go first in the dep list (matching Rust optimizer ordering).
+  const reactiveRoots: string[] = [];
+  const bareIdents: string[] = [];
+  const seen = new Set<string>();
+
+  function walk(n: any): void {
+    if (n == null) return;
+
+    // signal.value access -> reactive root
+    if (isSignalValueAccess(n)) {
+      const root = getMemberChainRoot(n.object);
+      if (root != null && !seen.has(root)) {
+        seen.add(root);
+        reactiveRoots.push(root);
+      }
+      return;
+    }
+
+    // Deep store access -> reactive root
+    if (isDeepStoreAccess(n, importedNames)) {
+      const root = getMemberChainRoot(n);
+      if (root != null && !seen.has(root)) {
+        seen.add(root);
+        reactiveRoots.push(root);
+      }
+      return;
+    }
+
+    // Single-level store field access -> reactive root
+    if (isStoreFieldAccess(n, importedNames)) {
+      const root = getMemberChainRoot(n.object);
+      if (root != null && !seen.has(root)) {
+        seen.add(root);
+        reactiveRoots.push(root);
+      }
+      return;
+    }
+
+    // Bare local identifier (non-imported, non-global)
+    if (n.type === 'Identifier' && !importedNames.has(n.name) && !GLOBAL_NAMES.has(n.name)) {
+      if (!seen.has(n.name)) {
+        seen.add(n.name);
+        bareIdents.push(n.name);
+      }
+      return;
+    }
+
+    // Recurse into child nodes, but skip property keys in objects
+    for (const key of Object.keys(n)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc') continue;
+      // Skip the 'key' child of Property nodes (object literal keys aren't deps)
+      if (key === 'key' && (n.type === 'Property' || n.type === 'ObjectProperty')) continue;
+      // Skip the 'property' child of MemberExpression (property names aren't deps)
+      if (key === 'property' && (n.type === 'MemberExpression' || n.type === 'StaticMemberExpression') && !n.computed) continue;
+      const val = n[key];
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            if (item && typeof item.type === 'string') walk(item);
+          }
+        } else if (typeof val.type === 'string') {
+          walk(val);
+        }
+      }
+    }
+  }
+
+  walk(node);
+  // Reactive roots first, then bare identifiers
+  return [...reactiveRoots, ...bareIdents];
 }
 
 // ---------------------------------------------------------------------------
@@ -342,7 +439,7 @@ function generateFnSignal(
   // We need to find root identifiers that are the base of reactive accesses.
   const replacements: Array<{ start: number; end: number; replacement: string }> = [];
 
-  function findRootReplacements(n: any): void {
+  function findRootReplacements(n: any, parentKey?: string, parentNode?: any): void {
     if (n == null) return;
 
     // For signal.value or deep store access, find the root identifier
@@ -358,6 +455,35 @@ function generateFnSignal(
       return;
     }
 
+    // Single-level store field access (e.g., _rawProps.fromProps)
+    if (isStoreFieldAccess(n, new Set())) {
+      const rootId = findRootIdentifier(n.object);
+      if (rootId && rootToParam.has(rootId.name)) {
+        replacements.push({
+          start: rootId.start - exprStart,
+          end: rootId.end - exprStart,
+          replacement: rootToParam.get(rootId.name)!,
+        });
+      }
+      return;
+    }
+
+    // Bare identifier that is a dep -- replace with pN
+    if (n.type === 'Identifier' && rootToParam.has(n.name)) {
+      // Skip property keys in object literals
+      const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+      // Skip property names in non-computed member expressions
+      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression') && !parentNode.computed;
+      if (!isPropertyKey && !isMemberProp) {
+        replacements.push({
+          start: n.start - exprStart,
+          end: n.end - exprStart,
+          replacement: rootToParam.get(n.name)!,
+        });
+      }
+      return;
+    }
+
     for (const key of Object.keys(n)) {
       if (key === 'type' || key === 'start' || key === 'end' || key === 'loc')
         continue;
@@ -365,10 +491,10 @@ function generateFnSignal(
       if (val && typeof val === 'object') {
         if (Array.isArray(val)) {
           for (const item of val) {
-            if (item && typeof item.type === 'string') findRootReplacements(item);
+            if (item && typeof item.type === 'string') findRootReplacements(item, key, n);
           }
         } else if (typeof val.type === 'string') {
-          findRootReplacements(val);
+          findRootReplacements(val, key, n);
         }
       }
     }
@@ -549,6 +675,7 @@ export function analyzeSignalExpression(
       return {
         type: 'wrapProp',
         code: `_wrapProp(${objText}, "${propName}")`,
+        isStoreField: true,
       };
     }
 
@@ -556,12 +683,14 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // BinaryExpression or other compound expressions
-  // Check for reactive roots (signal.value or deep store access)
+  // BinaryExpression, ObjectExpression, or other compound expressions
+  // Check for reactive roots (signal.value, store access)
   if (
     exprNode.type === 'BinaryExpression' ||
     exprNode.type === 'ConditionalExpression' ||
-    exprNode.type === 'LogicalExpression'
+    exprNode.type === 'LogicalExpression' ||
+    exprNode.type === 'ObjectExpression' ||
+    exprNode.type === 'TemplateLiteral'
   ) {
     // SIG-05: mixed with unknown call -> NOT wrapped
     if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
@@ -570,17 +699,23 @@ export function analyzeSignalExpression(
     if (containsImportedReference(exprNode, importedNames))
       return { type: 'none' };
 
-    // Collect reactive roots (signal.value + deep store accesses)
+    // Collect reactive roots (signal.value + store accesses)
     const roots = collectReactiveRoots(exprNode, importedNames);
     if (roots.length === 0) return { type: 'none' };
+
+    // Also collect bare local identifiers as additional deps.
+    // When there's a reactive root (signal.value, store.field), all local
+    // variable references in the expression become dependencies too,
+    // since _fnSignal needs to track all mutable values for re-evaluation.
+    const allDeps = collectAllDeps(exprNode, importedNames);
 
     // Generate fnSignal
     const { hoistedFn, hoistedStr } = generateFnSignal(
       exprNode,
       source,
-      roots,
+      allDeps,
     );
-    return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+    return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
   }
 
   return { type: 'none' };

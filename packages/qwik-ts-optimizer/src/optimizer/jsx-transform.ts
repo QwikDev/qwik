@@ -681,7 +681,13 @@ function processProps(
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`
           : propName;
-        constEntries.push(`${formattedName}: ${signalResult.code}`);
+        // Store field _wrapProp (2-arg form like _wrapProp(obj, "field")) goes to varEntries
+        // Signal _wrapProp (1-arg form like _wrapProp(signal)) goes to constEntries
+        if (signalResult.isStoreField) {
+          varEntries.push(`${formattedName}: ${signalResult.code}`);
+        } else {
+          constEntries.push(`${formattedName}: ${signalResult.code}`);
+        }
         neededImports.add('_wrapProp');
         continue;
       }

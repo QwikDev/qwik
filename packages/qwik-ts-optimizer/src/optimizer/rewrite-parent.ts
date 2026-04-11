@@ -127,6 +127,140 @@ interface SCallBodyJsxOptions {
 }
 
 /**
+ * Apply _rawProps destructuring optimization to a component body.
+ *
+ * When a component's arrow function has destructured parameters like ({field1, field2}),
+ * and the Rust optimizer would rewrite them as:
+ * 1. Parameter: ({field1, field2}) -> (_rawProps)
+ * 2. All bare references to field1, field2 in the body -> _rawProps.field1, _rawProps.field2
+ *
+ * After this rewrite, the signal analysis naturally detects _rawProps.field as a
+ * store field access, generating _wrapProp(_rawProps, "field") or _fnSignal with _rawProps dep.
+ */
+function applyRawPropsTransform(body: string): string {
+  // Parse the body to get the AST and find destructured params
+  const wrapperPrefix = 'const __rp__ = ';
+  const wrappedSource = wrapperPrefix + body;
+
+  const parseResult = parseSync('__rp__.tsx', wrappedSource);
+  if (!parseResult.program || parseResult.errors?.length) {
+    return body;
+  }
+
+  // Find the arrow/function expression in the init of the const declaration
+  const decl = parseResult.program.body?.[0];
+  if (!decl || decl.type !== 'VariableDeclaration') return body;
+  const init = decl.declarations?.[0]?.init;
+  if (!init) return body;
+
+  // Get params from arrow function or function expression
+  let params: any[] | undefined;
+  if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
+    params = init.params;
+  }
+  if (!params || params.length === 0) return body;
+
+  const firstParam = params[0];
+  if (firstParam.type !== 'ObjectPattern') return body;
+
+  // Collect destructured field names and their local aliases
+  const fields: Array<{ key: string; local: string }> = [];
+  for (const prop of firstParam.properties ?? []) {
+    if (prop.type === 'RestElement') {
+      // Rest element ({...rest}) -- bail out, _rawProps doesn't apply
+      // (rest props use _restProps pattern instead)
+      return body;
+    }
+    if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
+      const keyName = prop.key?.type === 'Identifier' ? prop.key.name : null;
+      const valName = prop.value?.type === 'Identifier' ? prop.value.name :
+                      prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier'
+                        ? prop.value.left.name : null;
+      if (keyName && valName) {
+        fields.push({ key: keyName, local: valName });
+      }
+    }
+  }
+
+  if (fields.length === 0) return body;
+
+  // Calculate positions relative to the body string (subtract wrapperPrefix length)
+  const offset = wrapperPrefix.length;
+  const paramStart = firstParam.start - offset;
+  const paramEnd = firstParam.end - offset;
+
+  // Step 1: Replace the destructuring pattern with _rawProps
+  let result = body.slice(0, paramStart) + '_rawProps' + body.slice(paramEnd);
+
+  // Step 2: Replace all bare identifier references to destructured fields
+  // with _rawProps.fieldName. We need to be careful to only replace bare
+  // identifiers, not property names in object literals or member expressions.
+  //
+  // Strategy: re-parse after param replacement, walk the AST to find
+  // Identifier nodes that match field local names, and replace them
+  // with _rawProps.keyName (using the original key, not the alias).
+  const fieldLocalToKey = new Map<string, string>();
+  for (const f of fields) {
+    fieldLocalToKey.set(f.local, f.key);
+  }
+
+  // Re-parse to find identifier positions in the updated body
+  const reparseSource = wrapperPrefix + result;
+  const reparseResult = parseSync('__rp2__.tsx', reparseSource);
+  if (!reparseResult.program || reparseResult.errors?.length) return result;
+
+  // Collect all identifier positions that need replacement (descending order for safe replacement)
+  const replacements: Array<{ start: number; end: number; key: string }> = [];
+
+  function walkForIdentifiers(node: any, parentKey?: string, parentNode?: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type === 'Identifier' && fieldLocalToKey.has(node.name)) {
+      // Skip if this identifier is a property key in an object literal (shorthand or not)
+      // Skip if this is the parameter itself (in the _rawProps position)
+      // Skip if this is a property name in a member expression (x.field -- skip 'field')
+      const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+      const isParam = parentKey === 'params';
+
+      if (!isPropertyKey && !isMemberProp && !isParam) {
+        replacements.push({
+          start: node.start - offset,
+          end: node.end - offset,
+          key: fieldLocalToKey.get(node.name)!,
+        });
+      }
+    }
+
+    for (const key of Object.keys(node)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+      const val = node[key];
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            if (item && typeof item.type === 'string') {
+              walkForIdentifiers(item, key, node);
+            }
+          }
+        } else if (typeof val.type === 'string') {
+          walkForIdentifiers(val, key, node);
+        }
+      }
+    }
+  }
+
+  walkForIdentifiers(reparseResult.program);
+
+  // Sort descending by start position and apply replacements
+  replacements.sort((a, b) => b.start - a.start);
+  for (const r of replacements) {
+    result = result.slice(0, r.start) + '_rawProps.' + r.key + result.slice(r.end);
+  }
+
+  return result;
+}
+
+/**
  * Transform an extraction's body text for use in an inline .s() call.
  *
  * For parent extractions (those with nested children), the body is transformed:
@@ -208,6 +342,18 @@ function transformSCallBody(
   if (ext.captureNames.length > 0) {
     body = injectCapturesUnpacking(body, ext.captureNames);
     additionalImports.set('_captures', '@qwik.dev/core');
+  }
+
+  // 3b. _rawProps destructuring optimization for component$ extractions
+  //     When a component has destructured params like ({field1, field2}),
+  //     rewrite to (_rawProps) and replace field refs with _rawProps.field
+  // Apply _rawProps to any extraction with destructured params (component$, etc.)
+  // The ctxName includes the $ suffix (e.g., 'component$')
+  {
+    const rawPropsResult = applyRawPropsTransform(body);
+    if (rawPropsResult !== body) {
+      body = rawPropsResult;
+    }
   }
 
   // 4. JSX transpilation within the body text

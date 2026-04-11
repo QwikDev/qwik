@@ -42,6 +42,7 @@ describe('signal-analysis', () => {
       expect(result).toEqual({
         type: 'wrapProp',
         code: '_wrapProp(props, "class")',
+        isStoreField: true,
       });
     });
 
@@ -51,6 +52,7 @@ describe('signal-analysis', () => {
       expect(result).toEqual({
         type: 'wrapProp',
         code: '_wrapProp(props, "data-nu")',
+        isStoreField: true,
       });
     });
 

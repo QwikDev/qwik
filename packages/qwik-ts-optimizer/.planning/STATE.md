@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-04-11T14:37:00.676Z"
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-04-11T14:53:09.273Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 8
   total_plans: 31
-  completed_plans: 29
-  percent: 94
+  completed_plans: 30
+  percent: 97
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 ## Current Position
 
 Phase: 15 (Segment Codegen Batch 3) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-11
 
@@ -117,6 +117,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 14 P02 | 12min | 2 tasks | 3 files |
 | Phase 14 P03 | 26min | 2 tasks | 3 files |
 | Phase 15 P01 | 10min | 2 tasks | 4 files |
+| Phase 15 P02 | 13min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -206,6 +207,9 @@ Recent decisions affecting current work:
 - [Phase 14]: Bind-desugared prop names always quoted; merge order follows JSX attribute order; paramNames signal exclusion reverted (deep prop access still needs _fnSignal)
 - [Phase 15]: Unconditional segment JSX transpilation deferred -- Rust optimizer respects transpileJsx for segments; snapshot-options corrected instead
 - [Phase 15]: Already-exported variables skip _auto_ prefix in parent re-export; segments import them directly by original name
+- [Phase 15]: Flags bit 0 always set outside loop: corpus shows only flags=1 and flags=3 in non-loop snapshots
+- [Phase 15]: Loop bit restricted to HTML elements: component elements use varEntries placement instead of bit 2
+- [Phase 15]: ObjectExpression excluded from _fnSignal: Rust treats object literals as var props, not signal expressions
 
 ### Pending Todos
 
@@ -225,6 +229,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T14:37:00.674Z
-Stopped at: Completed 15-01-PLAN.md
+Last session: 2026-04-11T14:53:09.271Z
+Stopped at: Completed 15-02-PLAN.md
 Resume file: None

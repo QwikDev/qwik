@@ -114,10 +114,14 @@ function stripExtension(filePath: string): string {
  * so we use only the basename (no directory component), prefixed with "./".
  * e.g., "project/test.tsx" -> "./test", "test.tsx" -> "./test"
  */
-function computeParentModulePath(relPath: string): string {
+function computeParentModulePath(relPath: string, explicitExtensions?: boolean): string {
   // Extract basename: take everything after the last "/"
   const slashIdx = relPath.lastIndexOf('/');
   const basename = slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
+  if (explicitExtensions) {
+    // When preserveFilenames/explicitExtensions is enabled, keep the original extension
+    return './' + basename;
+  }
   const stripped = stripExtension(basename);
   return './' + stripped;
 }
@@ -1605,8 +1609,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       ? []
       : analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage);
 
-    // Compute parent module path for _auto_ imports (no extension)
-    const parentModulePath = computeParentModulePath(relPath);
+    // Compute parent module path for self-referential imports
+    // When explicitExtensions is enabled, include the original file extension
+    const parentModulePath = computeParentModulePath(relPath, options.explicitExtensions);
 
     // 2c. Prod mode s_ naming: use s_{hash} for symbolName
     // displayName and canonicalFilename remain full human-readable form

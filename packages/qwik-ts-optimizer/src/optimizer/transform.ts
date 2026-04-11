@@ -723,7 +723,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           extraction.captureNames = [];
           extraction.captures = false;
         } else {
-          // IN a loop: partition captures into loop-local vs cross-scope
+          // IN a loop: partition captures into loop-local vs cross-scope.
+          // Only the IMMEDIATE (innermost) loop's variables are loop-local.
+          // Variables from outer loops are cross-scope captures (delivered via .w() hoisting).
           const immediateLoop = enclosingLoops[enclosingLoops.length - 1];
 
           // Collect loop-local variable names:

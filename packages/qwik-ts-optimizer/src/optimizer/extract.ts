@@ -76,6 +76,9 @@ export interface ExtractionResult {
   isInlinedQrl: boolean;
   explicitCaptures: string | null;
   inlinedQrlNameArg: string | null;
+
+  // Component element event handler (uppercase tag like <CustomComponent onClick$={...}>)
+  isComponentEvent: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -525,6 +528,7 @@ export function extractSegments(
             isInlinedQrl: true,
             explicitCaptures: explicitCapturesText,
             inlinedQrlNameArg: nameValue,
+            isComponentEvent: false,
           });
         }
 
@@ -650,6 +654,7 @@ export function extractSegments(
           isInlinedQrl: false,
           explicitCaptures: null,
           inlinedQrlNameArg: null,
+          isComponentEvent: false,
         });
       }
 
@@ -704,6 +709,14 @@ export function extractSegments(
           const ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
           const ctxName = attrName; // e.g., onClick$, custom$, onInput$
 
+          // Detect if this event handler is on a component element (uppercase tag)
+          const parentOpeningTag = parent?.type === 'JSXOpeningElement'
+            ? (parent.name?.type === 'JSXIdentifier' ? parent.name.name : '')
+            : '';
+          const isComponentEvent = parentOpeningTag.length > 0 &&
+            parentOpeningTag[0] === parentOpeningTag[0].toUpperCase() &&
+            parentOpeningTag[0] !== parentOpeningTag[0].toLowerCase();
+
           const displayName = ctx.getDisplayName();
           const symbolName = ctx.getSymbolName();
 
@@ -751,6 +764,7 @@ export function extractSegments(
             isInlinedQrl: false,
             explicitCaptures: null,
             inlinedQrlNameArg: null,
+            isComponentEvent,
           });
         }
       }

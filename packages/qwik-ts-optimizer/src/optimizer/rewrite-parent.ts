@@ -465,25 +465,49 @@ function transformSCallBody(
         } else if (child.ctxKind === 'eventHandler') {
           // JSX event handler attribute: onClick$={() => ...) -> q-e:click={q_varName}
           // The callStart..callEnd range covers the full attribute text: onClick$(() => ...}
-          // Transform the event prop name (e.g., onClick$ -> q-e:click)
-          const transformedPropName = transformEventPropName(child.ctxName, new Set());
+
+          // For component elements (uppercase tag), keep original event name (onClick$)
+          // For HTML elements, transform to q-e:click
+          let propName: string;
+          if (child.isComponentEvent) {
+            // Component element: keep onClick$={q_ref}
+            propName = child.ctxName;
+          } else {
+            const transformedPropName = transformEventPropName(child.ctxName, new Set());
+            propName = transformedPropName ?? child.ctxName;
+          }
+
           // For regCtxName-matched extractions, wrap the QRL var in serverQrl()
           const isRegCtx = matchesRegCtxName(child, regCtxName);
-          const qrlRef = isRegCtx ? `serverQrl(${childVarName})` : childVarName;
+          let qrlRef = isRegCtx ? `serverQrl(${childVarName})` : childVarName;
           if (isRegCtx) {
             additionalImports.set('serverQrl', '@qwik.dev/core');
           }
-          if (transformedPropName) {
-            let replacement = `${transformedPropName}={${qrlRef}`;
-            if (!isRegCtx && child.captureNames.length > 0) {
-              replacement += '.w([\n        ' + child.captureNames.join(',\n        ') + '\n    ])';
-            }
-            replacement += '}';
-            body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
-          } else {
-            // Fallback: just replace with var name
-            body = body.slice(0, relCallStart) + qrlRef + body.slice(relCallEnd);
+
+          // Cross-scope loop captures: generate standalone .w() hoisting
+          // instead of inline .w() on the QRL ref
+          const hasLoopCrossCaptures = !isRegCtx &&
+            child.captures &&
+            child.captureNames.length > 0 &&
+            child.paramNames.length >= 2 &&
+            child.paramNames[0] === '_' && child.paramNames[1] === '_1';
+
+          if (hasLoopCrossCaptures) {
+            // Generate: const SymbolName = q_SymbolName.w([\n    captureVar\n]);
+            // This goes before the loop body, hoisted into the map callback
+            const hoistedName = child.symbolName;
+            const wCaptures = child.captureNames.join(',\n            ');
+            const hoistDecl = `const ${hoistedName} = ${childVarName}.w([\n            ${wCaptures}\n        ]);`;
+            hoistedDeclarations.push(hoistDecl);
+            // Use the hoisted variable name (not q_ prefixed) in the JSX
+            qrlRef = hoistedName;
+          } else if (!isRegCtx && child.captureNames.length > 0) {
+            // Non-loop captures: inline .w() on the QRL ref
+            qrlRef += '.w([\n        ' + child.captureNames.join(',\n        ') + '\n    ])';
           }
+
+          const replacement = `${propName}={${qrlRef}}`;
+          body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
         } else {
           // Named marker: callee$(args) -> calleeQrl(qrlVar)
           let replacement = child.qrlCallee + '(' + childVarName;

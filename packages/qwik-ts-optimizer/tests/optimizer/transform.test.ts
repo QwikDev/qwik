@@ -679,9 +679,9 @@ export const App = component$(() => {
     // The <div> inside the for-of loop should have q:p for the iteration variable
     expect(code).toContain('"q:p": item');
     // Flags should include bit 4 (loop context)
-    // Match the flags argument in _jsxSorted call -- varProps may be non-null
-    // now that onClick$ is extracted as a separate segment with q-e:click prop
-    const divMatch = code.match(/_jsxSorted\("div",\s*(?:null|\{[^}]*\}),\s*\{[^}]+\},\s*\w+,\s*(\d+),/);
+    // Match the flags argument in _jsxSorted call -- q:p goes to varEntries (2nd arg)
+    // and constEntries may be null when all props are in varEntries
+    const divMatch = code.match(/_jsxSorted\("div",\s*\{[^}]+\},\s*(?:null|\{[^}]*\}),\s*\w+,\s*(\d+),/);
     expect(divMatch).toBeTruthy();
     const flags = parseInt(divMatch![1], 10);
     expect(flags & 4).toBe(4);

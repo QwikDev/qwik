@@ -1090,6 +1090,19 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           child.calleeName.endsWith('$') &&
           child.calleeName !== '$';
         if (isJsxAttr) {
+          // For component elements (uppercase tag), keep original event name (onClick$)
+          // For HTML elements, transform to q-e:click
+          const propName = child.isComponentEvent
+            ? child.calleeName
+            : (transformEventPropName(child.calleeName, new Set()) ?? child.calleeName);
+
+          // Detect cross-scope loop captures that need .w() hoisting
+          const hasLoopCrossCaptures =
+            child.captures &&
+            child.captureNames.length > 0 &&
+            child.paramNames.length >= 2 &&
+            child.paramNames[0] === '_' && child.paramNames[1] === '_1';
+
           // For JSX attr extractions: replace the entire attribute
           nestedCallSites.push({
             qrlVarName,
@@ -1098,7 +1111,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             isJsxAttr: true,
             attrStart: child.callStart,
             attrEnd: child.callEnd,
-            transformedPropName: transformEventPropName(child.calleeName, new Set()) ?? child.calleeName,
+            transformedPropName: propName,
+            // Cross-scope loop captures: generate .w() hoisting
+            hoistedSymbolName: hasLoopCrossCaptures ? child.symbolName : undefined,
+            hoistedCaptureNames: hasLoopCrossCaptures ? child.captureNames : undefined,
           });
         } else {
           // Regular $() call site

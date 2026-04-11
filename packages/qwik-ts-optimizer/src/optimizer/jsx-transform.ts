@@ -528,7 +528,8 @@ function processOneChild(
         const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr);
         const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
         neededImports?.add('_fnSignal');
-        return { text: fnSignalCall, type: 'static' };
+        // _fnSignal children are dynamic (reactive signal expressions)
+        return { text: fnSignalCall, type: 'dynamic' };
       }
     }
 
@@ -563,6 +564,7 @@ function processProps(
   tagIsHtml: boolean,
   passiveEvents: Set<string>,
   signalHoister: SignalHoister,
+  inLoop?: boolean,
 ): {
   varEntries: string[];
   constEntries: string[];
@@ -672,6 +674,14 @@ function processProps(
         constEntries.push(`${formattedName}: ${valueText}`);
         continue;
       }
+    }
+
+    // Pre-rewritten event props (q-e:* from transformSCallBody) in loop context
+    // go to varEntries to match Rust optimizer behavior
+    if (propName.startsWith('q-e:') && inLoop) {
+      const formattedName = `"${propName}"`;
+      varEntries.push(`${formattedName}: ${valueText}`);
+      continue;
     }
 
     // --- (d) Signal analysis ---
@@ -801,6 +811,9 @@ export function transformJsxElement(
   // Use provided signalHoister or create a local one
   const hoister = signalHoister ?? new SignalHoister();
 
+  // Determine if in loop context (needed for prop classification and q:p placement)
+  const inLoop = !!loopCtx && loopCtx.iterVars.length > 0;
+
   // --- Props ---
   const {
     varEntries,
@@ -809,7 +822,7 @@ export function transformJsxElement(
     hasVarProps,
     hasSpread,
     neededImports: propImports,
-  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister);
+  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop);
 
   // Merge prop imports
   for (const imp of propImports) {
@@ -817,14 +830,16 @@ export function transformJsxElement(
   }
 
   // --- Loop context: inject q:p/q:ps prop ---
-  const inLoop = !!loopCtx && loopCtx.iterVars.length > 0;
+  // q:p goes to varEntries (matching Rust optimizer behavior) since the
+  // loop variable value is dynamic. This also causes event handlers on this
+  // element to be placed in varEntries.
   if (inLoop && tagIsHtml) {
     const qpResult = buildQpProp(loopCtx!.iterVars);
     if (qpResult) {
       const formattedQpName = needsQuoting(qpResult.propName)
         ? `"${qpResult.propName}"`
         : qpResult.propName;
-      constEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
+      varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
     }
   }
 

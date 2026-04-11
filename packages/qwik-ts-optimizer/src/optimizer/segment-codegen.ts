@@ -126,6 +126,64 @@ function injectIntoBlockBody(bodyText: string, line: string): string {
   return bodyText.slice(0, braceIdx + 1) + '\n' + line + bodyText.slice(braceIdx + 1);
 }
 
+/**
+ * Find the body start position of the arrow function that provides the given
+ * captured variable as a parameter.
+ *
+ * Scans backwards from `pos` to find `paramName =>` patterns, then returns
+ * the position right after the body opener `(` or `{` where a declaration
+ * can be injected.
+ *
+ * @param text - The body text to scan
+ * @param pos - The position to start scanning backwards from
+ * @param capturedVarName - The variable name that should be a parameter of the target arrow
+ */
+function findEnclosingArrowBodyForCapture(text: string, pos: number, capturedVarName: string): number {
+  // Scan backwards to find `=> (` or `=> {` patterns
+  let i = pos - 1;
+  while (i >= 1) {
+    // Look for `(` or `{` that follows `=>`
+    if (text[i] === '(' || text[i] === '{') {
+      let j = i - 1;
+      while (j >= 0 && /\s/.test(text[j])) j--;
+      if (j >= 1 && text[j] === '>' && text[j - 1] === '=') {
+        // Found `=> (` or `=> {` -- check if the parameter list contains capturedVarName
+        // Scan backwards past `=>` to find the parameter list
+        let paramEnd = j - 2; // before `=>`
+        while (paramEnd >= 0 && /\s/.test(text[paramEnd])) paramEnd--;
+
+        // Extract parameter text
+        let paramText = '';
+        if (text[paramEnd] === ')') {
+          // Parenthesized params: find matching `(`
+          let depth = 1;
+          let pStart = paramEnd - 1;
+          while (pStart >= 0 && depth > 0) {
+            if (text[pStart] === ')') depth++;
+            else if (text[pStart] === '(') depth--;
+            pStart--;
+          }
+          pStart++; // now at opening `(`
+          paramText = text.slice(pStart + 1, paramEnd);
+        } else if (/\w/.test(text[paramEnd])) {
+          // Single identifier param without parens
+          let pStart = paramEnd;
+          while (pStart > 0 && /\w/.test(text[pStart - 1])) pStart--;
+          paramText = text.slice(pStart, paramEnd + 1);
+        }
+
+        // Check if capturedVarName is one of the parameters
+        const params = paramText.split(',').map(p => p.trim());
+        if (params.includes(capturedVarName)) {
+          return i + 1; // Position right after `(` or `{`
+        }
+      }
+    }
+    i--;
+  }
+  return -1;
+}
+
 // ---------------------------------------------------------------------------
 // Main function
 // ---------------------------------------------------------------------------
@@ -158,6 +216,10 @@ export interface NestedCallSiteInfo {
   attrEnd?: number;
   /** The transformed event prop name (e.g., "q-e:click") for JSX attr rewrites */
   transformedPropName?: string;
+  /** For cross-scope loop captures: the symbol name (without q_ prefix) for .w() hoisting */
+  hoistedSymbolName?: string;
+  /** For cross-scope loop captures: the capture variable names for .w() */
+  hoistedCaptureNames?: string[];
 }
 
 /**
@@ -316,16 +378,36 @@ export function generateSegmentCode(
     // Body text starts at extraction.argStart in the original source
     const bodyOffset = extraction.argStart;
 
+    // Collect .w() hoisting declarations keyed by position for injection
+    const hoistDeclarations: Array<{ position: number; declaration: string }> = [];
+
     for (const site of sorted) {
       if (site.isJsxAttr && site.attrStart !== undefined && site.attrEnd !== undefined && site.transformedPropName) {
+        // Determine the QRL ref name used in the prop value
+        const propValueRef = site.hoistedSymbolName ?? site.qrlVarName;
+
         // JSX $-suffixed attribute: replace entire attribute with transformed prop name and QRL ref
         // e.g., onClick$={() => ...} -> q-e:click={q_symbolName}
         const relStart = site.attrStart - bodyOffset;
         const relEnd = site.attrEnd - bodyOffset;
         if (relStart >= 0 && relEnd <= bodyText.length) {
           bodyText = bodyText.slice(0, relStart) +
-            `${site.transformedPropName}={${site.qrlVarName}}` +
+            `${site.transformedPropName}={${propValueRef}}` +
             bodyText.slice(relEnd);
+        }
+
+        // If this site needs .w() hoisting, find the enclosing map callback body
+        // and queue a declaration injection there
+        if (site.hoistedSymbolName && site.hoistedCaptureNames && site.hoistedCaptureNames.length > 0) {
+          // Find the enclosing arrow function body that provides the captured variable
+          // by scanning backwards to find the arrow function with the captured var as param
+          const searchStart = relStart;
+          const enclosingPos = findEnclosingArrowBodyForCapture(bodyText, searchStart, site.hoistedCaptureNames[0]);
+          if (enclosingPos >= 0) {
+            const captureList = site.hoistedCaptureNames.join(',\n        ');
+            const decl = `const ${site.hoistedSymbolName} = ${site.qrlVarName}.w([\n            ${captureList}\n        ]);`;
+            hoistDeclarations.push({ position: enclosingPos, declaration: decl });
+          }
         }
       } else {
         // Regular $() call: replace call expression with QRL variable
@@ -333,6 +415,39 @@ export function generateSegmentCode(
         const relEnd = site.callEnd - bodyOffset;
         if (relStart >= 0 && relEnd <= bodyText.length) {
           bodyText = bodyText.slice(0, relStart) + site.qrlVarName + bodyText.slice(relEnd);
+        }
+      }
+    }
+
+    // Inject .w() hoisting declarations by converting arrow expression bodies to block bodies
+    if (hoistDeclarations.length > 0) {
+      hoistDeclarations.sort((a, b) => b.position - a.position);
+      for (const hoist of hoistDeclarations) {
+        const pos = hoist.position;
+        // pos is right after `(` or `{` following `=>`
+        // Check if this is an expression body (preceded by `=> (`) or block body (`=> {`)
+        const charBefore = bodyText[pos - 1];
+        if (charBefore === '(') {
+          // Expression body: `=> (expr)` -- convert to block body `=> {\ndecl;\nreturn (expr);\n}`
+          // Find the matching closing paren for this expression body
+          let depth = 1;
+          let closeIdx = pos;
+          while (closeIdx < bodyText.length && depth > 0) {
+            if (bodyText[closeIdx] === '(') depth++;
+            else if (bodyText[closeIdx] === ')') depth--;
+            closeIdx++;
+          }
+          closeIdx--; // now at the closing `)`
+
+          // Replace: `(expr)` -> `{\ndecl;\nreturn expr;\n}`
+          const exprContent = bodyText.slice(pos, closeIdx).replace(/^\s+/, '');
+          const blockBody = `{\n        ${hoist.declaration}\n        return ${exprContent};\n    }`;
+          bodyText = bodyText.slice(0, pos - 1) + blockBody + bodyText.slice(closeIdx + 1);
+        } else if (charBefore === '{') {
+          // Block body: just inject after the opening brace
+          bodyText = bodyText.slice(0, pos) +
+            '\n        ' + hoist.declaration +
+            bodyText.slice(pos);
         }
       }
     }
@@ -374,8 +489,9 @@ export function generateSegmentCode(
           parts.push(decl);
         }
       }
-    } catch {
+    } catch (err: any) {
       // If JSX parsing fails, use the original body text
+      // If JSX parsing/transform fails, use the original body text
     }
   }
 

@@ -35,7 +35,7 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
 Plans:
 - [x] 07-01-PLAN.md — Import assembly unification and user import preservation
 - [x] 07-02-PLAN.md — .s() body transformation pipeline for inline/hoist strategy
-- [ ] 07-03-PLAN.md — Segment-strategy fixes and inline-minor issues (gap closure)
+- [x] 07-03-PLAN.md — Segment-strategy fixes and inline-minor issues (gap closure)
 - [ ] 07-04-PLAN.md — JSX transpilation in inline .s() bodies (gap closure)
 - [ ] 07-05-PLAN.md — Hoist const-function pattern and final sweep (gap closure)
 

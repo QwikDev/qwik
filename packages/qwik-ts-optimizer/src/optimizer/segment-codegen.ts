@@ -497,6 +497,8 @@ export function generateSegmentCode(
 
     // Body text starts at extraction.argStart in the original source
     const bodyOffset = extraction.argStart;
+    // Component-scope .w() declarations collected during iteration, injected after all sites
+    let componentScopeWDecls: string[] | undefined;
 
     // Collect .w() hoisting declarations keyed by position for injection
     const hoistDeclarations: Array<{ position: number; declaration: string }> = [];
@@ -527,6 +529,13 @@ export function generateSegmentCode(
             const captureList = site.hoistedCaptureNames.join(',\n        ');
             const decl = `const ${site.hoistedSymbolName} = ${site.qrlVarName}.w([\n            ${captureList}\n        ]);`;
             hoistDeclarations.push({ position: enclosingPos, declaration: decl });
+          } else {
+            // Captured variable is from the component scope (not a loop parameter).
+            // Collect for injection before the return statement (handled after all sites).
+            if (!componentScopeWDecls) componentScopeWDecls = [];
+            const captureList = site.hoistedCaptureNames.join(',\n        ');
+            const decl = `const ${site.hoistedSymbolName} = ${site.qrlVarName}.w([\n        ${captureList}\n    ]);`;
+            componentScopeWDecls.push(decl);
           }
         }
       } else {
@@ -583,6 +592,19 @@ export function generateSegmentCode(
             '\n        ' + hoist.declaration +
             bodyText.slice(pos);
         }
+      }
+    }
+
+    // Inject component-scope .w() declarations before the return statement
+    if (componentScopeWDecls && componentScopeWDecls.length > 0) {
+      const returnIdx = bodyText.indexOf('return ');
+      if (returnIdx >= 0) {
+        // Find the indentation of the return statement
+        let lineStart = returnIdx - 1;
+        while (lineStart >= 0 && bodyText[lineStart] !== '\n') lineStart--;
+        const indent = bodyText.slice(lineStart + 1, returnIdx);
+        const declBlock = componentScopeWDecls.join('\n' + indent) + '\n' + indent;
+        bodyText = bodyText.slice(0, returnIdx) + declBlock + bodyText.slice(returnIdx);
       }
     }
   }
@@ -741,7 +763,11 @@ export function generateSegmentCode(
     parts.push(...importSection, '//');
   }
   if (hoistedSection.length > 0) {
-    parts.push(...hoistedSection, '//');
+    parts.push(...hoistedSection);
+    // Only add separator after hoisted section if QRL declarations follow
+    if (qrlDeclSection.length > 0) {
+      parts.push('//');
+    }
   }
   if (qrlDeclSection.length > 0) {
     parts.push(...qrlDeclSection, '//');

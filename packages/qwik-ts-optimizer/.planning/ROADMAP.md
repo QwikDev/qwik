@@ -75,7 +75,7 @@
 - Decimal phases (17.1, 17.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 17: Inline/Hoist Strategy Convergence** - Fix .s() body text and hoist const-fn pattern to match SWC behavioral rules (completed 2026-04-11)
-- [ ] **Phase 18: Capture Classification Convergence** - Fix paramNames padding, _captures/.w() delivery, and capture metadata
+- [x] **Phase 18: Capture Classification Convergence** - Fix paramNames padding, _captures/.w() delivery, and capture metadata (completed 2026-04-11)
 - [ ] **Phase 19: JSX Transform Convergence** - Fix flags bitmask, prop classification, _jsxSplit, and signal wrapping placement
 - [ ] **Phase 20: Migration and Sync Convergence** - Fix variable move/reexport decisions and _qrlSync serialization
 - [ ] **Phase 21: Convergence Gate** - Validate 147+/210 pass rate with zero regressions
@@ -106,11 +106,11 @@ Plans:
   2. Cross-scope captures appear via _captures array access in segment bodies and .w() wrapping in parent QRL references
   3. Segment metadata (captures, captureNames, paramNames arrays) matches snapshot expected metadata exactly
   4. All previously-passing snapshots still pass (zero regressions)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 18-01-PLAN.md -- Fix alphabetical sort for paramNames slots and cross-scope capture delivery
-- [ ] 18-02-PLAN.md -- Validate and fix remaining capture metadata mismatches
+- [x] 18-02-PLAN.md -- Validate and fix remaining capture metadata mismatches
 
 ### Phase 19: JSX Transform Convergence
 **Goal**: JSX output (_jsxSorted, _jsxSplit, signal wrapping) matches SWC behavioral rules for all JSX-heavy snapshots
@@ -154,7 +154,7 @@ Phases execute in numeric order: 17 -> 18 -> 19 -> 20 -> 21
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 17. Inline/Hoist Strategy Convergence | 2/2 | Complete    | 2026-04-11 |
-| 18. Capture Classification Convergence | 1/2 | In Progress|  |
+| 18. Capture Classification Convergence | 2/2 | Complete   | 2026-04-11 |
 | 19. JSX Transform Convergence | 0/TBD | Not started | - |
 | 20. Migration and Sync Convergence | 0/TBD | Not started | - |
 | 21. Convergence Gate | 0/TBD | Not started | - |

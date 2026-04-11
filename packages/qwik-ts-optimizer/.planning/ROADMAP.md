@@ -135,9 +135,9 @@ Plans:
   3. Zero regressions in unit tests
 **Plans**: 3 plans
 Plans:
-- [x] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
-- [x] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
-- [x] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
+- [ ] 14-01-PLAN.md — Nested marker call rewriting with calleeQrl wrapping in segment bodies
+- [ ] 14-02-PLAN.md — TS enum transpilation, _rawProps/_restProps extension, diagnostic stripping
+- [ ] 14-03-PLAN.md — Bind merging, _fnSignal suppression, convergence sweep and regression gate
 
 ### Phase 15: Segment Codegen Batch 3
 **Goal**: Remaining 26 segment-codegen snapshots pass
@@ -147,11 +147,7 @@ Plans:
   1. All 26 snapshots pass parent + segment AST comparison
   2. All previously-locked snapshots still pass
   3. Zero regressions in unit tests
-**Plans**: 3 plans
-Plans:
-- [x] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
-- [x] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
-- [x] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate (completed 2026-04-11)
+**Plans**: TBD
 
 ### Phase 16: Final Convergence
 **Goal**: 209/209 snapshots pass, full validation
@@ -160,11 +156,7 @@ Plans:
   1. convergence.test.ts reports 209/209 (or 208/208 excluding no-input relative_paths)
   2. Zero regressions in all unit tests
   3. `npx tsc --noEmit` clean
-**Plans**: 3 plans
-Plans:
-- [x] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
-- [x] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
-- [x] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
+**Plans**: TBD
 
 ## Progress
 
@@ -177,6 +169,6 @@ Plans:
 | 11. Segment Identity Batch 2 | 3/3 | Complete    | 2026-04-11 |
 | 12. Segment Identity Batch 3 | 3/3 | Complete    | 2026-04-11 |
 | 13. Segment Codegen Batch 1 | 3/3 | Complete    | 2026-04-11 |
-| 14. Segment Codegen Batch 2 | 0/TBD | Not started | - |
+| 14. Segment Codegen Batch 2 | 0/3 | Planning complete | - |
 | 15. Segment Codegen Batch 3 | 0/TBD | Not started | - |
 | 16. Final Convergence | 0/TBD | Not started | - |

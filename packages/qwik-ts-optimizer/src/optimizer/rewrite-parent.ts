@@ -284,6 +284,8 @@ interface SCallBodyJsxOptions {
   devOptions?: { relPath: string };
   /** Starting key counter value (for continuation from module-level JSX) */
   keyCounterStart?: number;
+  /** Relative file path for key prefix derivation */
+  relPath?: string;
 }
 
 /**
@@ -698,6 +700,11 @@ function transformSCallBody(
         [], // No skip ranges within the body
         jsxBodyOptions.devOptions,
         jsxBodyOptions.keyCounterStart,
+        true, // enableSignals
+        undefined, // qpOverrides
+        undefined, // qrlsWithCaptures
+        undefined, // paramNames
+        jsxBodyOptions.relPath, // for key prefix derivation
       );
 
       // Extract the transformed body by stripping the wrapper prefix
@@ -1136,6 +1143,10 @@ export function rewriteParentModule(
       isDevMode ? { relPath } : undefined,
       undefined, // keyCounterStart
       jsxOptions.enableSignals !== false, // disable signal analysis when no extractions
+      undefined, // qpOverrides
+      undefined, // qrlsWithCaptures
+      undefined, // paramNames
+      relPath,   // for key prefix derivation
     );
     jsxKeyCounterValue = jsxResult.keyCounterValue;
   }
@@ -1395,6 +1406,7 @@ export function rewriteParentModule(
           importedNames: jsxOptions.importedNames,
           devOptions: isDevMode ? { relPath } : undefined,
           keyCounterStart: isHoist ? jsxKeyCounterValue : undefined,
+          relPath,
         }
       : undefined;
 

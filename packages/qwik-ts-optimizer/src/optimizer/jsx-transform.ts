@@ -14,6 +14,7 @@ import { analyzeSignalExpression, SignalHoister, type SignalExprResult } from '.
 import { transformEventPropName, isEventProp, isPassiveDirective, collectPassiveDirectives } from './event-handler-transform.js';
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind-transform.js';
 import { detectLoopContext, buildQpProp, type LoopContext } from './loop-hoisting.js';
+import { computeKeyPrefix } from './key-prefix.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -331,21 +332,24 @@ export function computeFlags(
 
 /**
  * Per-module counter for generating deterministic JSX element keys.
- * Keys follow the pattern "u6_N" where N is a zero-based counter.
+ * Keys follow the pattern "{prefix}_{N}" where prefix is derived from
+ * the file path hash (e.g., "u6" for test.tsx, "KD" for components/apps/apps.tsx).
  */
 export class JsxKeyCounter {
   private count: number;
+  private prefix: string;
 
-  constructor(startAt = 0) {
+  constructor(startAt = 0, prefix = 'u6') {
     this.count = startAt;
+    this.prefix = prefix;
   }
 
   /**
    * Generate the next key value.
-   * @returns Key string like "u6_0", "u6_1", etc.
+   * @returns Key string like "u6_0", "KD_1", etc.
    */
   next(): string {
-    return `u6_${this.count++}`;
+    return `${this.prefix}_${this.count++}`;
   }
 
   /** Get the current counter value (for continuation). */
@@ -568,6 +572,7 @@ function processProps(
 ): {
   varEntries: string[];
   constEntries: string[];
+  beforeSpreadEntries: string[];
   key: string | null;
   hasVarProps: boolean;
   hasSpread: boolean;
@@ -575,6 +580,7 @@ function processProps(
 } {
   const varEntries: string[] = [];
   const constEntries: string[] = [];
+  const beforeSpreadEntries: string[] = []; // Props before spread go here
   const neededImports = new Set<string>();
   let key: string | null = null;
   let hasSpread = false;
@@ -583,13 +589,19 @@ function processProps(
   const bindHandlers = new Map<string, string>();
 
   if (!attributes || attributes.length === 0) {
-    return { varEntries, constEntries, key, hasVarProps: false, hasSpread, neededImports };
+    return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasSpread, neededImports };
   }
 
   // Pre-scan for spreads so bind gate works regardless of attribute order
   const hasSpreadAttr = attributes.some(a => a.type === 'JSXSpreadAttribute');
+  // Track index of the spread attribute for ordering classification
+  const spreadIndex = attributes.findIndex(a => a.type === 'JSXSpreadAttribute');
 
-  for (const attr of attributes) {
+  for (let attrIdx = 0; attrIdx < attributes.length; attrIdx++) {
+    const attr = attributes[attrIdx];
+    // In spread mode, non-event/non-signal props that appear BEFORE the spread
+    // go to varEntries (they must precede _getVarProps in evaluation order)
+    const beforeSpread = hasSpreadAttr && attrIdx < spreadIndex;
     if (attr.type === 'JSXSpreadAttribute') {
       hasSpread = true;
       continue;
@@ -788,7 +800,10 @@ function processProps(
 
     const entry = `${formattedName}: ${valueText}`;
 
-    if (classification === 'var') {
+    if (beforeSpread) {
+      // Props before a spread go to beforeSpreadEntries (placed before _getVarProps)
+      beforeSpreadEntries.push(entry);
+    } else if (classification === 'var') {
       varEntries.push(entry);
     } else {
       constEntries.push(entry);
@@ -813,8 +828,9 @@ function processProps(
   return {
     varEntries,
     constEntries,
+    beforeSpreadEntries,
     key,
-    hasVarProps: varEntries.length > 0,
+    hasVarProps: varEntries.length > 0 || beforeSpreadEntries.length > 0,
     hasSpread,
     neededImports,
   };
@@ -884,6 +900,7 @@ export function transformJsxElement(
   const {
     varEntries,
     constEntries,
+    beforeSpreadEntries,
     key: explicitKey,
     hasVarProps,
     hasSpread,
@@ -984,9 +1001,10 @@ export function transformJsxElement(
       ? source.slice(spreadAttr.argument.start, spreadAttr.argument.end)
       : 'props';
 
-    const varPropsPart = varEntries.length > 0
-      ? `{ ..._getVarProps(${spreadArg}), ${varEntries.join(', ')} }`
-      : `{ ..._getVarProps(${spreadArg}) }`;
+    // Build varPropsPart: beforeSpreadEntries come BEFORE _getVarProps, varEntries come AFTER
+    const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';
+    const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
+    const varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart} }`;
     const constPropsPart = constEntries.length > 0
       ? `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`
       : `_getConstProps(${spreadArg})`;
@@ -1107,8 +1125,11 @@ export function transformAllJsx(
   qrlsWithCaptures?: Set<string>,
   /** Function parameter names -- excluded from signal analysis but classified as var in props */
   paramNames?: Set<string>,
+  /** Relative file path for computing key prefix (defaults to "test.tsx") */
+  relPath?: string,
 ): JsxTransformOutput {
-  const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0);
+  const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
+  const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0, prefix);
   const signalHoister = new SignalHoister();
   const neededImports = new Set<string>();
   let needsFragment = false;

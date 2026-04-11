@@ -690,6 +690,27 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
                 }
               }
             }
+            // Also collect for-of/for-in/for loop iterator variables
+            // that contain the extraction (these are block-scoped to the loop)
+            if ((node.type === 'ForOfStatement' || node.type === 'ForInStatement' || node.type === 'ForStatement') &&
+                node.start !== undefined && node.end !== undefined &&
+                node.start >= enclosingStart && node.end <= enclosingEnd &&
+                node.start < extraction.callStart && node.end > extraction.callEnd) {
+              // For for-of/for-in: the iterator variable is in node.left
+              const left = node.left ?? node.init;
+              if (left?.type === 'VariableDeclaration') {
+                for (const decl of left.declarations ?? []) {
+                  if (decl.id) {
+                    const names = new Set<string>();
+                    collectBindingNamesFromNode(decl.id, names);
+                    for (const n of names) {
+                      allScopeIds.add(n);
+                      if (!declPositions.has(n)) declPositions.set(n, decl.start ?? left.start ?? 0);
+                    }
+                  }
+                }
+              }
+            }
           },
           leave() {},
         });
@@ -1497,7 +1518,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
             effectiveCaptureInfo,
             (shouldTranspileJsx && (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx))
-              ? { enableJsx: true, importedNames }
+              ? { enableJsx: true, importedNames, relPath }
               : undefined,
             nestedCallSites.length > 0 ? nestedCallSites : undefined,
             importContext,

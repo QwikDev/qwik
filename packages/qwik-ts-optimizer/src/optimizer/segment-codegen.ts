@@ -10,6 +10,7 @@
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { rewriteImportSource } from './rewrite-imports.js';
+import { applyRawPropsTransform } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx } from './jsx-transform.js';
 
@@ -369,6 +370,13 @@ export function generateSegmentCode(
   // Exported segment body (with _captures unpacking if needed)
   let bodyText = extraction.bodyText;
 
+  // Apply _rawProps destructuring optimization for component$ extractions
+  // Must happen BEFORE nested call rewriting and JSX transform
+  const rawPropsResult = applyRawPropsTransform(bodyText);
+  if (rawPropsResult !== bodyText) {
+    bodyText = rawPropsResult;
+  }
+
   // Rewrite nested call sites in the body text.
   // Nested $() calls and $-suffixed JSX attrs need to be replaced with QRL variable references.
   if (nestedCallSites && nestedCallSites.length > 0) {
@@ -575,6 +583,28 @@ export function generateSegmentCode(
       // If JSX parsing fails, use the original body text
       // If JSX parsing/transform fails, use the original body text
     }
+  }
+
+  // Transform sync$() calls to _qrlSync() in segment bodies
+  if (bodyText.includes('sync$(')) {
+    bodyText = bodyText.replace(/\bsync\$\(/g, '_qrlSync(');
+    // Ensure _qrlSync import is present
+    const syncSepIdx = parts.indexOf('//');
+    if (syncSepIdx >= 0 && !parts.some(p => p.includes('_qrlSync'))) {
+      parts.splice(syncSepIdx, 0, `import { _qrlSync } from "@qwik.dev/core";`);
+    }
+  }
+
+  // Ensure exactly one // separator between imports and body
+  // Remove any duplicate separators and ensure one exists if there are imports
+  const importParts = parts.filter(p => p !== '//');
+  const sepPoint = importParts.findIndex(p => !p.startsWith('import '));
+  if (sepPoint > 0) {
+    parts.length = 0;
+    parts.push(...importParts.slice(0, sepPoint), '//', ...importParts.slice(sepPoint));
+  } else if (importParts.length > 0 && importParts.every(p => p.startsWith('import '))) {
+    parts.length = 0;
+    parts.push(...importParts, '//');
   }
 
   // Rewrite function signature when paramNames has loop/q:p padding pattern

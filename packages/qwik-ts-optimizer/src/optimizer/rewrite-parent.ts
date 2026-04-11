@@ -297,7 +297,7 @@ interface SCallBodyJsxOptions {
  * After this rewrite, the signal analysis naturally detects _rawProps.field as a
  * store field access, generating _wrapProp(_rawProps, "field") or _fnSignal with _rawProps dep.
  */
-function applyRawPropsTransform(body: string): string {
+export function applyRawPropsTransform(body: string): string {
   // Parse the body to get the AST and find destructured params
   const wrapperPrefix = 'const __rp__ = ';
   const wrappedSource = wrapperPrefix + body;

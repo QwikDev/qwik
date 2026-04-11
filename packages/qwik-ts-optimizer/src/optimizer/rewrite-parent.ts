@@ -1079,12 +1079,13 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // Step 4b: .w() wrapping for captures (CAPT-03)
   // -----------------------------------------------------------------------
-  // Build a Set of migrated variable names (_auto_ reexported) to suppress
-  // from .w() capture wrapping -- these are already exposed via
-  // `export { x as _auto_x }` and don't need redundant .w() wrapping.
+  // Build a Set of migrated variable names (reexported as _auto_ OR moved into segment)
+  // to suppress from .w() capture wrapping. Reexported vars are exposed via
+  // `export { x as _auto_x }`, and moved vars are physically inlined into the segment.
+  // Neither needs redundant .w() wrapping.
   const migratedNames = new Set(
     (migrationDecisions ?? [])
-      .filter(d => d.action === 'reexport')
+      .filter(d => d.action === 'reexport' || d.action === 'move')
       .map(d => d.varName),
   );
 

@@ -28,8 +28,8 @@ export interface SegmentCaptureInfo {
   captureNames: string[];
   /** _auto_VARNAME imports from parent module (module-level migration). */
   autoImports: Array<{ varName: string; parentModulePath: string }>;
-  /** Declaration text physically moved into the segment. */
-  movedDeclarations: string[];
+  /** Declarations physically moved into the segment, with their import dependencies. */
+  movedDeclarations: Array<{ text: string; importDeps: Array<{ localName: string; importedName: string; source: string }> }>;
   /** If true, skip _captures unpacking injection (body already has _captures refs, e.g. inlinedQrl). */
   skipCaptureInjection?: boolean;
 }
@@ -446,8 +446,27 @@ export function generateSegmentCode(
 
   // Moved declarations (before nested QRL decls and export)
   if (captureInfo && captureInfo.movedDeclarations.length > 0) {
-    for (const declText of captureInfo.movedDeclarations) {
-      parts.push(declText);
+    // First, merge import dependencies from moved declarations into the import set
+    for (const moved of captureInfo.movedDeclarations) {
+      for (const dep of moved.importDeps) {
+        const rewrittenSource = rewriteImportSource(dep.source);
+        const importLine = dep.importedName === dep.localName
+          ? `import { ${dep.localName} } from "${rewrittenSource}";`
+          : `import { ${dep.importedName} as ${dep.localName} } from "${rewrittenSource}";`;
+        // Deduplicate: only add if not already present
+        if (!parts.some(p => p.includes(`${dep.localName}`) && p.includes(`"${rewrittenSource}"`))) {
+          // Insert before the separator if present
+          const sepIdx = parts.indexOf('//');
+          if (sepIdx >= 0) {
+            parts.splice(sepIdx, 0, importLine);
+          } else {
+            parts.push(importLine);
+          }
+        }
+      }
+    }
+    for (const moved of captureInfo.movedDeclarations) {
+      parts.push(moved.text);
     }
   }
 
@@ -882,6 +901,10 @@ export function generateSegmentCode(
         // Variables that are already exported from the parent can be imported directly;
         // only non-exported variables need the _auto_ prefix re-export mechanism
         const migrationDecision = importContext.migrationDecisions.find(d => d.varName === id);
+
+        // Skip variables that are moved into this segment -- they're already present
+        // as moved declarations, not imports
+        if (migrationDecision && migrationDecision.action === 'move') continue;
         let importStmt: string;
         if (migrationDecision && migrationDecision.action === 'reexport' && !migrationDecision.isExported) {
           importStmt = `import { _auto_${id} as ${id} } from "${importContext.parentModulePath}";`;

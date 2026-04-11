@@ -1980,7 +1980,30 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           if (decision.action === 'move' && decision.targetSegment === migrationKey) {
             const decl = moduleLevelDecls.find((d) => d.name === decision.varName);
             if (decl) {
-              captureInfo.movedDeclarations.push(decl.declText);
+              // Compute import dependencies: find all identifiers in the declaration
+              // text that match imports from originalImports
+              const importDeps: Array<{ localName: string; importedName: string; source: string }> = [];
+              // Walk the AST nodes within the declaration range to find referenced identifiers
+              const declIdentifiers = new Set<string>();
+              walk(program, {
+                enter(node: any) {
+                  if (node.type === 'Identifier' && node.start >= decl.declStart && node.end <= decl.declEnd) {
+                    declIdentifiers.add(node.name);
+                  }
+                },
+              });
+              // Check which referenced identifiers are imports
+              for (const idName of declIdentifiers) {
+                const imp = originalImports.get(idName);
+                if (imp) {
+                  importDeps.push({
+                    localName: imp.localName,
+                    importedName: imp.importedName,
+                    source: imp.source,
+                  });
+                }
+              }
+              captureInfo.movedDeclarations.push({ text: decl.declText, importDeps });
             }
           }
         }

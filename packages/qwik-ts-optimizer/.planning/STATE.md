@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 13-03-PLAN.md
-last_updated: "2026-04-11T12:58:22.268Z"
+status: executing
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-04-11T13:23:21.705Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 7
-  total_plans: 25
-  completed_plans: 25
-  percent: 100
+  total_plans: 28
+  completed_plans: 26
+  percent: 93
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** Runtime-identical output to SWC optimizer -- same segments, captures, hashes, QRL structure
-**Current focus:** Phase 13 — Segment Codegen Batch 1
+**Current focus:** Phase 14 — Segment Codegen Batch 2
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 14 (Segment Codegen Batch 2) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -112,6 +112,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13 P01 | 2min | 2 tasks | 3 files |
 | Phase 13 P02 | 3min | 2 tasks | 2 files |
 | Phase 13 P03 | 23min | 2 tasks | 5 files |
+| Phase 14 P01 | 9min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -194,6 +195,8 @@ Recent decisions affecting current work:
 - [Phase 13]: collectBodyIdentifiers uses full AST parse via oxc-parser/oxc-walker with regex fallback; import re-collection runs after ALL body transforms; sameFileExportNames includes exported AND top-level declared names
 - [Phase 13]: JSX $-attr extraction gate removed: markerCallDepth > 0 no longer required, enabling event handler extraction from any JSX context
 - [Phase 13]: removeUnusedImports runs unconditionally after dead code elimination for all segments; detects JSXIdentifier references
+- [Phase 14]: Used getQrlImportSource from rewrite-calls.ts for consistent import source resolution across parent and segment codegen
+- [Phase 14]: Bare $() calls still emit plain QRL variable; only named markers get calleeQrl wrapping
 
 ### Pending Todos
 
@@ -213,6 +216,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T12:57:38.173Z
-Stopped at: Completed 13-03-PLAN.md
+Last session: 2026-04-11T13:23:21.702Z
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None

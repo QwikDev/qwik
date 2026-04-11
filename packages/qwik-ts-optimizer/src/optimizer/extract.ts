@@ -301,6 +301,16 @@ export function extractSegments(
         pushCount++;
       }
 
+      // Custom $-suffixed calls (e.g., useMemo$()): push callee name to context stack
+      // for display name generation. This is ONLY for naming -- it does NOT trigger extraction.
+      if (node.type === 'CallExpression' && node.callee?.type === 'Identifier') {
+        const calleeName = node.callee.name;
+        if (calleeName.endsWith('$') && !isMarkerCall(node, imports, customInlined)) {
+          ctx.push(calleeName.slice(0, -1)); // "useMemo$" -> "useMemo"
+          pushCount++;
+        }
+      }
+
       // JSXElement: push tag name from the opening element.
       // We push on JSXElement (not JSXOpeningElement) so the tag name stays
       // on the context stack for all JSXElement children, including nested
@@ -318,6 +328,12 @@ export function extractSegments(
           ctx.push(tagName);
           pushCount++;
         }
+      }
+
+      // JSXFragment (<>...</>): push "Fragment" onto context stack
+      if (node.type === 'JSXFragment') {
+        ctx.push('Fragment');
+        pushCount++;
       }
 
       // JSXAttribute: push attribute name for naming context.

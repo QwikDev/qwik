@@ -19,7 +19,7 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
 - [x] **Phase 13: Segment Codegen Batch 1** — First 25 segment-codegen failures (completed 2026-04-11)
 - [x] **Phase 14: Segment Codegen Batch 2** — Next 25 segment-codegen failures (completed 2026-04-11)
 - [x] **Phase 15: Segment Codegen Batch 3** — Remaining 26 segment-codegen failures (completed 2026-04-11)
-- [ ] **Phase 16: Final Convergence** — Any remaining failures + 209/209 validation
+- [x] **Phase 16: Final Convergence** — Any remaining failures + 209/209 validation (completed 2026-04-11)
 
 ## Phase Details
 
@@ -166,7 +166,7 @@ Plans:
 - [x] 16-02-PLAN.md — Parent import cleanup + event handler prop classification fix
 - [x] 16-03-PLAN.md — Dead code elimination + dev mode qrlDEV + side-effect simplification
 - [x] 16-04-PLAN.md — Remaining edge cases (Patterns 8-12) + tsc errors + unit test fixes
-- [ ] 16-05-PLAN.md — Final convergence sweep and 209/209 validation gate
+- [x] 16-05-PLAN.md — Final convergence sweep and 209/209 validation gate
 
 ## Progress
 
@@ -181,4 +181,4 @@ Plans:
 | 13. Segment Codegen Batch 1 | 3/3 | Complete    | 2026-04-11 |
 | 14. Segment Codegen Batch 2 | 3/3 | Complete    | 2026-04-11 |
 | 15. Segment Codegen Batch 3 | 3/3 | Complete    | 2026-04-11 |
-| 16. Final Convergence | 4/5 | In Progress|  |
+| 16. Final Convergence | 5/5 | Complete   | 2026-04-11 |

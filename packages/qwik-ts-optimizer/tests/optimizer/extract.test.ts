@@ -221,6 +221,10 @@ describe('generateSegmentCode', () => {
       segmentImports: [
         { localName: 'foo', importedName: 'foo', source: './foo', isQwikCore: false },
       ],
+      importSource: '@qwik.dev/core',
+      isInlinedQrl: false,
+      explicitCaptures: null,
+      inlinedQrlNameArg: null,
     };
 
     const code = generateSegmentCode(extraction);
@@ -256,6 +260,10 @@ describe('generateSegmentCode', () => {
       captureNames: [],
       paramNames: [],
       segmentImports: [],
+      importSource: '',
+      isInlinedQrl: false,
+      explicitCaptures: null,
+      inlinedQrlNameArg: null,
     };
 
     const code = generateSegmentCode(extraction);

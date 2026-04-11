@@ -70,6 +70,11 @@ export interface ExtractionResult {
 
   // Imports needed by this segment
   segmentImports: ImportInfo[];
+
+  // inlinedQrl support
+  isInlinedQrl: boolean;
+  explicitCaptures: string | null;
+  inlinedQrlNameArg: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -364,6 +369,136 @@ export function extractSegments(
         }
       }
 
+      // --- inlinedQrl detection ---
+      // inlinedQrl(body, nameString, [captures]) is a pre-processed QRL call.
+      // Detect it BEFORE regular marker detection since inlinedQrl is NOT a $-suffixed marker.
+      if (
+        node.type === 'CallExpression' &&
+        node.callee?.type === 'Identifier' &&
+        (node.callee.name === 'inlinedQrl' || node.callee.name === '_inlinedQrl') &&
+        imports.get(node.callee.name)?.isQwikCore &&
+        node.arguments?.length >= 2
+      ) {
+        const calleeName = node.callee.name;
+        const arg0 = node.arguments[0]; // body (function/arrow)
+        const arg1 = node.arguments[1]; // symbol name (string literal)
+        const arg2 = node.arguments[2]; // captures array (optional)
+
+        // arg1 must be a string literal
+        const nameValue = arg1?.type === 'StringLiteral'
+          ? arg1.value
+          : (arg1?.type === 'Literal' && typeof arg1.value === 'string')
+            ? arg1.value
+            : null;
+
+        if (arg0 && nameValue) {
+          const bodyText = source.slice(arg0.start, arg0.end);
+
+          // Parse symbol name: split into displayName part and hash part
+          // "task" -> symbolName="task", hash="task", displayName="fileStem_task"
+          // "qwikifyQrl_component_zH94hIe0Ick" -> hash="zH94hIe0Ick", displayName="fileStem_qwikifyQrl_component"
+          const lastUnder = nameValue.lastIndexOf('_');
+          let inlinedHash: string;
+          let displayNameSuffix: string;
+          if (lastUnder > 0) {
+            const lastPart = nameValue.slice(lastUnder + 1);
+            // Heuristic: if last segment is alphanumeric and >= 8 chars, treat as hash
+            if (lastPart.length >= 8 && /^[a-zA-Z0-9]+$/.test(lastPart)) {
+              inlinedHash = lastPart;
+              displayNameSuffix = nameValue.slice(0, lastUnder);
+            } else {
+              inlinedHash = nameValue;
+              displayNameSuffix = nameValue;
+            }
+          } else {
+            inlinedHash = nameValue;
+            displayNameSuffix = nameValue;
+          }
+
+          const inlinedDisplayName = fileStem + '_' + displayNameSuffix;
+          const inlinedCanonicalFilename = inlinedDisplayName + '_' + inlinedHash;
+
+          // Parse captures from arg2 (array expression)
+          let explicitCapturesText: string | null = null;
+          const inlinedCaptureNames: string[] = [];
+          if (arg2 && (arg2.type === 'ArrayExpression' || arg2.type === 'ArrayPattern')) {
+            explicitCapturesText = source.slice(arg2.start, arg2.end);
+            // Extract identifier names, filter non-identifiers (true, false, numbers, strings)
+            for (const elem of arg2.elements ?? []) {
+              if (elem?.type === 'Identifier') {
+                inlinedCaptureNames.push(elem.name);
+              }
+              // Non-identifier elements (true, false, numbers, strings) are filtered out
+            }
+          }
+
+          // Determine ctxName: for inlinedQrl, check parent call expression
+          // e.g., componentQrl(inlinedQrl(...)) -> ctxName = "component$"
+          // e.g., useTaskQrl(inlinedQrl(...)) -> ctxName = "useTask$"
+          let inlinedCtxName = calleeName;
+          if (parent?.type === 'CallExpression') {
+            const parentCallee = getCalleeName(parent);
+            if (parentCallee) {
+              // Resolve canonical name
+              const canonicalParentCallee = resolveCanonicalCalleeName(parentCallee, imports);
+              // Convert Qrl suffix back to $ for ctxName
+              if (canonicalParentCallee.endsWith('Qrl')) {
+                inlinedCtxName = canonicalParentCallee.slice(0, -3) + '$';
+              } else {
+                inlinedCtxName = canonicalParentCallee;
+              }
+            }
+          }
+
+          const extension = determineExtension(arg0, sourceExt);
+          const [line, col] = computeLineCol(source, arg0.start);
+
+          // Collect imports referenced in segment body
+          const bodyIds = collectIdentifiers(arg0);
+          const segImports: ImportInfo[] = [];
+          for (const [localName, info] of imports) {
+            if (bodyIds.has(localName)) {
+              segImports.push(info);
+            }
+          }
+
+          results.push({
+            symbolName: nameValue,
+            displayName: inlinedDisplayName,
+            hash: inlinedHash,
+            canonicalFilename: inlinedCanonicalFilename,
+            callStart: node.start,
+            callEnd: node.end,
+            calleeStart: node.callee.start,
+            calleeEnd: node.callee.end,
+            argStart: arg0.start,
+            argEnd: arg0.end,
+            bodyText,
+            calleeName,
+            isBare: false,
+            isSync: false,
+            qrlCallee: '',
+            importSource: imports.get(calleeName)?.source ?? '@qwik.dev/core',
+            ctxKind: 'function',
+            ctxName: inlinedCtxName,
+            origin: relPath,
+            extension,
+            loc: [arg0.start, arg0.end],
+            parent: null,
+            captures: inlinedCaptureNames.length > 0,
+            captureNames: inlinedCaptureNames,
+            paramNames: [],
+            segmentImports: segImports,
+            isInlinedQrl: true,
+            explicitCaptures: explicitCapturesText,
+            inlinedQrlNameArg: nameValue,
+          });
+        }
+
+        if (pushCount > 0) pushedNodes.set(node, pushCount);
+        return;
+      }
+
       // --- Marker call detection ---
       // When entering a marker call, push the callee name onto context
       // so it's part of the display name (e.g., "component$" -> "component")
@@ -479,6 +614,9 @@ export function extractSegments(
           captureNames: [], // Phase 3: populated by transform.ts
           paramNames: [], // Phase 3: populated by transform.ts
           segmentImports,
+          isInlinedQrl: false,
+          explicitCaptures: null,
+          inlinedQrlNameArg: null,
         });
       }
 
@@ -571,6 +709,9 @@ export function extractSegments(
             captureNames: [],
             paramNames: [],
             segmentImports: segImports,
+            isInlinedQrl: false,
+            explicitCaptures: null,
+            inlinedQrlNameArg: null,
           });
         }
       }

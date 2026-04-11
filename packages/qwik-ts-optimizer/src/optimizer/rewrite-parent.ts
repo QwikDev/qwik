@@ -870,7 +870,12 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   const sCalls: string[] = [];
   const inlineHoistedDeclarations: string[] = [];
-  const isHoist = inlineOptions?.entryType === 'hoist';
+  // Use hoist-to-const pattern when:
+  // 1. entryType is explicitly 'hoist', OR
+  // 2. entryType is 'inline' but both transpileTs and transpileJsx are enabled
+  //    (Rust optimizer hoists body to const when output is .js with transpilation)
+  const isHoist = inlineOptions?.entryType === 'hoist' ||
+    (inlineOptions?.entryType === 'inline' && !!transpileTs && !!jsxOptions?.enableJsx);
   if (isInline) {
     // Build JSX options for inline body transformation (if JSX is enabled)
     // For hoist strategy, pass the current key counter so body keys continue

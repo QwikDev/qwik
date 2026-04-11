@@ -711,7 +711,7 @@ function processProps(
 
     // Pre-rewritten event props (q-e:* from transformSCallBody / extraction rewriting).
     // These are already-renamed event handler props pointing to QRL variables.
-    if (propName.startsWith('q-e:') || propName.startsWith('q-ep:') || propName.startsWith('q-dp:') || propName.startsWith('q-wp:')) {
+    if (propName.startsWith('q-e:') || propName.startsWith('q-d:') || propName.startsWith('q-w:') || propName.startsWith('q-ep:') || propName.startsWith('q-dp:') || propName.startsWith('q-wp:')) {
       const formattedName = `"${propName}"`;
       if (inLoop) {
         if (qrlsWithCaptures) {

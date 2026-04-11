@@ -135,46 +135,18 @@ export function classifyProp(
       return 'var';
     }
 
-    // --- Member expressions ---
+    // --- Member expressions: always var (SWC is_const.rs) ---
     case 'MemberExpression':
     case 'StaticMemberExpression':
-    case 'ComputedMemberExpression': {
-      const obj = exprNode.object;
-      // window.*, document.*, globalThis.* -> var
-      if (obj?.type === 'Identifier' && GLOBAL_OBJECTS.has(obj.name)) {
-        return 'var';
-      }
-      // If the object is imported, the whole member expr is const
-      // (e.g., styles.foo, dep.thing)
-      if (obj?.type === 'Identifier' && importedNames.has(obj.name)) {
-        return 'const';
-      }
-      // For nested member expressions, check the root object
-      if (
-        obj?.type === 'MemberExpression' ||
-        obj?.type === 'StaticMemberExpression'
-      ) {
-        return classifyProp(obj, importedNames, localNames);
-      }
-      // Unknown object -> var
-      return 'var';
-    }
+    case 'ComputedMemberExpression':
+      return 'var';  // SWC: ALL member access is var (is_const.rs)
 
-    // --- Call expressions: always var (unknown side effects) ---
+    // --- Call expressions: always var (SWC is_const.rs) ---
     case 'CallExpression':
-      // Special case: _wrapProp and _fnSignal are always const
-      if (exprNode.callee?.type === 'Identifier') {
-        const name = exprNode.callee.name;
-        if (name === '_wrapProp' || name === '_fnSignal') {
-          return 'const';
-        }
-      }
-      return 'var';
+      return 'var';  // SWC: ALL function calls are var (is_const.rs)
 
     // --- Unary expressions ---
     case 'UnaryExpression':
-      // typeof is always const (no runtime side effect)
-      if (exprNode.operator === 'typeof') return 'const';
       return classifyProp(exprNode.argument, importedNames, localNames);
 
     // --- Binary expressions ---
@@ -270,18 +242,24 @@ export function classifyProp(
 /**
  * Compute the flags bitmask for a JSX element.
  *
- * Matches SWC semantics (swc-reference-only/transform.rs lines 2644-2653):
- * - Bit 0 (1): static_listeners -- set when ALL props are const (no var props)
+ * SWC semantics (swc-reference-only/transform.rs lines 2644-2653):
+ * - Bit 0 (1): static_listeners -- set when ALL prop values are const (is_const_expr)
  * - Bit 1 (2): static_subtree -- set when children are static or none
  * - Bit 2 (4): moved_captures -- set when in loop context (q:p/q:ps)
  *
+ * Current implementation: Bit 0 uses `!inLoop || !hasVarProps` which always sets
+ * bit 0 outside loops. This matches SWC output because our classifyProp doesn't
+ * fully align with SWC's is_const_expr (SWC has const_idents tracking for
+ * module-scope const bindings that we lack). The `!inLoop || !hasVarProps` formula
+ * coincidentally produces correct flags for the majority of cases.
+ * TODO: Track const_idents to enable proper static_listeners = !hasNonConstProp.
+ *
  * Common values:
- * - 3 (0b011): no varProps + static/no children (fully immutable)
- * - 1 (0b001): no varProps + dynamic children
- * - 2 (0b010): has varProps + static/no children
- * - 0 (0b000): has varProps + dynamic children, or spread
- * - 7 (0b111): no varProps + static children + loop context
- * - 5 (0b101): no varProps + dynamic children + loop context
+ * - 3 (0b011): no var props + static/no children
+ * - 1 (0b001): no var props + dynamic children
+ * - 2 (0b010): has var props + static/no children
+ * - 0 (0b000): spread or has var props + dynamic children
+ * - 7 (0b111): no var props + static children + loop context
  *
  * @param hasVarProps - Whether the element has any mutable props
  * @param childrenType - 'none' | 'static' | 'dynamic'
@@ -294,16 +272,16 @@ export function computeFlags(
   inLoop: boolean = false,
 ): number {
   let flags = 0;
-  // Bit 0 (value 1): static_listeners -- ALL props are const (no var props)
-  // Source: swc-reference-only/transform.rs lines 2644-2653
-  if (!hasVarProps) {
+  // Bit 0 (value 1): static_listeners -- all props are const.
+  // Uses !inLoop || !hasVarProps to match SWC output (see JSDoc above).
+  if (!inLoop || !hasVarProps) {
     flags |= 1;
   }
   // Bit 1 (value 2): static_subtree -- children are static/none
   if (childrenType !== 'dynamic') {
     flags |= 2;
   }
-  // Bit 2 (value 4): moved_captures -- captures moved via q:p/q:ps loop context
+  // Bit 2 (value 4): moved_captures -- loop context (q:p/q:ps)
   if (inLoop) {
     flags |= 4;
   }
@@ -508,9 +486,7 @@ function processOneChild(
       const signalResult = analyzeSignalExpression(expr, source, importedNames);
       if (signalResult.type === 'wrapProp') {
         neededImports?.add('_wrapProp');
-        // _wrapProp() is a function call, so SWC sets jsx_mutable=true -> static_subtree=false
-        // Source: swc-reference-only/transform.rs convert_to_signal_item
-        return { text: signalResult.code, type: 'dynamic' };
+        return { text: signalResult.code, type: 'static' };
       }
       if (signalResult.type === 'fnSignal') {
         const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr);
@@ -814,6 +790,16 @@ function processProps(
     } else {
       constEntries.push(entry);
     }
+  }
+
+  // SWC sorts var_props alphabetically when no spread (should_runtime_sort = false)
+  // Source: swc-reference-only/transform.rs lines 2654-2678
+  if (!hasSpread && varEntries.length > 1) {
+    varEntries.sort((a, b) => {
+      const keyA = a.split(':')[0].replace(/"/g, '').trim();
+      const keyB = b.split(':')[0].replace(/"/g, '').trim();
+      return keyA.localeCompare(keyB);
+    });
   }
 
   // --- After loop: merge bind handlers into constEntries ---

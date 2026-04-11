@@ -76,7 +76,7 @@
 
 - [x] **Phase 17: Inline/Hoist Strategy Convergence** - Fix .s() body text and hoist const-fn pattern to match SWC behavioral rules (completed 2026-04-11)
 - [x] **Phase 18: Capture Classification Convergence** - Fix paramNames padding, _captures/.w() delivery, and capture metadata (completed 2026-04-11)
-- [ ] **Phase 19: JSX Transform Convergence** - Fix flags bitmask, prop classification, _jsxSplit, and signal wrapping placement
+- [x] **Phase 19: JSX Transform Convergence** - Fix flags bitmask, prop classification, _jsxSplit, and signal wrapping placement (completed 2026-04-11)
 - [ ] **Phase 20: Migration and Sync Convergence** - Fix variable move/reexport decisions and _qrlSync serialization
 - [ ] **Phase 21: Convergence Gate** - Validate 147+/210 pass rate with zero regressions
 
@@ -122,11 +122,11 @@ Plans:
   3. Spread-prop elements produce correct _jsxSplit with _getVarProps/_getConstProps matching snapshot output
   4. _wrapProp and _fnSignal calls appear at correct positions in both parent and segment output
   5. All previously-passing snapshots still pass (zero regressions)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 19-01-PLAN.md -- Fix flags bitmask swap and align classifyProp with SWC is_const
-- [ ] 19-02-PLAN.md -- Add _createElement fallback for spread+key and fix signal wrapping edge cases
+- [x] 19-02-PLAN.md -- Add _createElement fallback for spread+key and fix signal wrapping edge cases
 
 ### Phase 20: Migration and Sync Convergence
 **Goal**: Variable migration decisions and _qrlSync serialization match SWC behavioral rules
@@ -159,6 +159,6 @@ Phases execute in numeric order: 17 -> 18 -> 19 -> 20 -> 21
 |-------|---------------|--------|-----------|
 | 17. Inline/Hoist Strategy Convergence | 2/2 | Complete    | 2026-04-11 |
 | 18. Capture Classification Convergence | 2/2 | Complete    | 2026-04-11 |
-| 19. JSX Transform Convergence | 1/2 | In Progress|  |
+| 19. JSX Transform Convergence | 2/2 | Complete   | 2026-04-11 |
 | 20. Migration and Sync Convergence | 0/TBD | Not started | - |
 | 21. Convergence Gate | 0/TBD | Not started | - |

@@ -156,7 +156,7 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 
 - [x] **JSXR-01**: Flags bitmask values in `_jsxSorted`/`_jsxC` calls match snapshot expected values
 - [x] **JSXR-02**: Prop classification (var vs const buckets) produces AST-matching `_jsxSorted` calls
-- [ ] **JSXR-03**: `_jsxSplit` generation for spread props matches snapshot expected output
+- [x] **JSXR-03**: `_jsxSplit` generation for spread props matches snapshot expected output
 - [x] **JSXR-04**: Signal wrapping (`_wrapProp`/`_fnSignal`) placement produces AST-matching segment and parent output
 
 ### Variable Migration Refinement
@@ -294,7 +294,7 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 | CAP-03 | Phase 18 | Complete |
 | JSXR-01 | Phase 19 | Complete |
 | JSXR-02 | Phase 19 | Complete |
-| JSXR-03 | Phase 19 | Pending |
+| JSXR-03 | Phase 19 | Complete |
 | JSXR-04 | Phase 19 | Complete |
 | MIGR-01 | Phase 20 | Pending |
 | MIGR-02 | Phase 20 | Pending |

@@ -418,8 +418,14 @@ export function generateSegmentCode(
       if (braceStart >= 0) {
         parts[qwikCoreImportIdx] = existing.slice(0, braceStart + 2) + '_captures, ' + existing.slice(braceStart + 2);
       } else {
-        // Default import only — add named import
-        parts[qwikCoreImportIdx] = existing.replace(' from', ', { _captures } from');
+        // Default or namespace import — check for `import * as`
+        if (existing.includes('* as')) {
+          // Namespace import — cannot merge named imports, add separate import
+          parts.push(`import { _captures } from "@qwik.dev/core";`);
+        } else {
+          // Default import only — add named import
+          parts[qwikCoreImportIdx] = existing.replace(' from', ', { _captures } from');
+        }
       }
     } else {
       parts.push(`import { _captures } from "@qwik.dev/core";`);

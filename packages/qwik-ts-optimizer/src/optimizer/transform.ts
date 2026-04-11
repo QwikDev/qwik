@@ -289,8 +289,16 @@ function applySegmentDCE(code: string): string {
   // `false && expr` -> `false`
   // `true || expr` -> `true`
   // `false || expr` -> `expr`
-  result = result.replace(/\btrue\s*&&\s*/g, '');
-  result = result.replace(/\bfalse\s*\|\|\s*/g, '');
+  // Only replace when NOT inside a string literal (check that the match position
+  // is not within quotes by counting unescaped quotes before the match)
+  result = result.replace(/\btrue\s*&&\s*/g, (match, offset) => {
+    if (isInsideString(result, offset)) return match;
+    return '';
+  });
+  result = result.replace(/\bfalse\s*\|\|\s*/g, (match, offset) => {
+    if (isInsideString(result, offset)) return match;
+    return '';
+  });
 
   // `false && expr` needs to replace the whole expression with `false`
   // This is trickier because we need to find the end of the expression.
@@ -301,6 +309,24 @@ function applySegmentDCE(code: string): string {
   result = result.replace(/\n\s*\n\s*\n/g, '\n\n');
 
   return result;
+}
+
+/**
+ * Check if a position in source text is inside a string literal.
+ * Scans from the start counting unescaped quote characters.
+ */
+function isInsideString(text: string, offset: number): boolean {
+  let inSingle = false;
+  let inDouble = false;
+  let inTemplate = false;
+  for (let i = 0; i < offset; i++) {
+    const ch = text[i];
+    if (text[i - 1] === '\\') continue; // skip escaped chars
+    if (ch === "'" && !inDouble && !inTemplate) inSingle = !inSingle;
+    else if (ch === '"' && !inSingle && !inTemplate) inDouble = !inDouble;
+    else if (ch === '`' && !inSingle && !inDouble) inTemplate = !inTemplate;
+  }
+  return inSingle || inDouble || inTemplate;
 }
 
 /**
@@ -502,7 +528,7 @@ function applySegmentSideEffectSimplification(code: string, filename: string): s
           if (declarator.id?.type === 'Identifier' && declarator.init) {
             // Get the containing statement
             const stmtNode = node;
-            if (declarator.declarations?.length > 1) continue; // skip multi-declarator
+            if (node.declarations?.length > 1) continue; // skip multi-declarator
 
             varDecls.push({
               name: declarator.id.name,

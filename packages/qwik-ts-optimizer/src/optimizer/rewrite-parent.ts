@@ -308,6 +308,7 @@ export function rewriteParentModule(
   stripExports?: string[],
   isServer?: boolean,
   explicitExtensions?: boolean,
+  transpileTs?: boolean,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const { program } = parseSync(relPath, source);
@@ -587,12 +588,25 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // Step 4b: .w() wrapping for captures (CAPT-03)
   // -----------------------------------------------------------------------
+  // Build a Set of migrated variable names (_auto_ reexported) to suppress
+  // from .w() capture wrapping -- these are already exposed via
+  // `export { x as _auto_x }` and don't need redundant .w() wrapping.
+  const migratedNames = new Set(
+    (migrationDecisions ?? [])
+      .filter(d => d.action === 'reexport')
+      .map(d => d.varName),
+  );
+
   for (const ext of topLevel) {
     if (ext.isSync) continue;
     if (ext.captureNames.length === 0) continue;
 
+    // Filter out migrated (_auto_) variables from captures
+    const effectiveCaptures = ext.captureNames.filter(name => !migratedNames.has(name));
+    if (effectiveCaptures.length === 0) continue; // skip .w() entirely
+
     // Build the .w() call: .w([\n        var1,\n        var2\n    ])
-    const wrapVars = ext.captureNames.join(',\n        ');
+    const wrapVars = effectiveCaptures.join(',\n        ');
     const wText = `.w([\n        ${wrapVars}\n    ])`;
 
     if (ext.isBare) {
@@ -1051,8 +1065,19 @@ export function rewriteParentModule(
     }
   }
 
+  // -----------------------------------------------------------------------
+  // Step 7: TS type stripping (final step, after all magic-string ops)
+  // -----------------------------------------------------------------------
+  let finalCode = s.toString();
+  if (transpileTs) {
+    const stripped = oxcTransformSync('output.tsx', finalCode, { typescript: { onlyRemoveTypeImports: false } });
+    if (stripped.code) {
+      finalCode = stripped.code;
+    }
+  }
+
   return {
-    code: s.toString(),
+    code: finalCode,
     extractions,
   };
 }

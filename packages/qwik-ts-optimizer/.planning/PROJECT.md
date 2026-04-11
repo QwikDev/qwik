@@ -100,13 +100,25 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope -- reasons still valid?
 4. Update Context with current state
 
-## Current Milestone: v2.0 Snapshot Convergence
+## Previous Milestone: v2.0 Snapshot Convergence (Complete)
 
-**Goal:** Get all 209 snapshot tests passing via AST comparison with hard locking — no regressions ever.
+**Result:** 73/210 (35%) convergence from 10/209 baseline. Built core optimizer infrastructure: import assembly, .s() body transformation, JSX transpilation, capture classification, segment disambiguation, prod naming, loop-aware captures, bind merging, dead code elimination. 10 phases, 43 plans executed.
 
-**Starting point:** 10/209 fully passing, 82/209 parent modules pass, 471 unit tests green.
+## Current Milestone: v3.0 Reference-Guided Convergence
 
-**Strategy:** Fix by failure family (parent-rewrite → untransformed → segment-identity → segment-codegen), ~20 snapshots per phase, hard lock after each phase.
+**Goal:** Reach 70%+ snapshot convergence (147+/210) using SWC Rust reference source to implement correct behavioral rules.
+
+**Target features:**
+- Fix inline/hoist strategy body codegen (transform.rs + entry_strategy.rs reference)
+- Fix capture classification and delivery — params vs _captures vs .w() (code_move.rs reference)
+- Fix JSX prop classification — var/const, flags bitmask, _jsxSplit (collector.rs + props_destructuring.rs reference)
+- Fix variable migration edge cases (code_move.rs + filter_exports.rs reference)
+- Fix _qrlSync serialization (inlined_fn.rs reference)
+- Resolve compound failures blocking v2.0 progress
+
+**Key context:** SWC reference files in `swc-reference-only/` are read-only behavioral reference — understand rules, don't reimplement SWC. SWC core APIs at https://github.com/swc-project/swc/tree/main/crates.
+
+**Starting point:** 73/210 convergence, 483 unit tests, 0 tsc source errors.
 
 ---
-*Last updated: 2026-04-10 after v2.0 milestone start*
+*Last updated: 2026-04-11 after v3.0 milestone start*

@@ -250,6 +250,8 @@ export interface SegmentJsxOptions {
   enableJsx: boolean;
   /** Set of imported identifier names (for prop classification) */
   importedNames: Set<string>;
+  /** Set of function parameter names (excluded from signal analysis but classified as var) */
+  paramNames?: Set<string>;
 }
 
 /**
@@ -668,7 +670,7 @@ export function generateSegmentCode(
       }
 
       const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
-        undefined, undefined, undefined, true, qpOverrides, qrlsWithCaptures);
+        undefined, undefined, undefined, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames);
       const transformedWrapped = bodyS.toString();
       // Unwrap the parentheses
       bodyText = transformedWrapped.slice(1, -1);

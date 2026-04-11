@@ -557,6 +557,7 @@ function processProps(
   signalHoister: SignalHoister,
   inLoop?: boolean,
   qrlsWithCaptures?: Set<string>,
+  paramNames?: Set<string>,
 ): {
   varEntries: string[];
   constEntries: string[];
@@ -644,17 +645,23 @@ function processProps(
     // --- (b) Bind desugaring ---
     if (isBindProp(propName) && !hasSpread) {
       const bindResult = transformBindProp(propName, valueText);
-      const formattedBindName = needsQuoting(bindResult.propName)
-        ? `"${bindResult.propName}"`
-        : bindResult.propName;
+      // Bind-desugared prop names are always quoted (matching Rust optimizer)
+      const formattedBindName = `"${bindResult.propName}"`;
       constEntries.push(`${formattedBindName}: ${bindResult.propValue}`);
       if (bindResult.handler) {
-        // Track bind handler for merging
+        // Track bind handler for merging.
+        // When an explicit event handler (QRL) already exists, bind handler
+        // comes AFTER it: [explicitQrl, inlinedQrl(...)]. Otherwise just store.
         const existing = bindHandlers.get(bindResult.handler.name);
-        bindHandlers.set(
-          bindResult.handler.name,
-          mergeEventHandlers(existing ?? null, bindResult.handler.code),
-        );
+        if (existing) {
+          // Explicit handler first, bind handler second
+          bindHandlers.set(
+            bindResult.handler.name,
+            `[${existing}, ${bindResult.handler.code}]`,
+          );
+        } else {
+          bindHandlers.set(bindResult.handler.name, bindResult.handler.code);
+        }
       }
       for (const imp of bindResult.needsImport) {
         neededImports.add(imp);
@@ -674,31 +681,49 @@ function processProps(
       }
     }
 
-    // Pre-rewritten event props (q-e:* from transformSCallBody) in loop context.
-    // When qpOverrides is active (segment body): only event handlers whose QRL has
-    // captures go to varEntries; handlers without captures go to constEntries.
-    // When qpOverrides is not active (parent rewriting): all go to varEntries.
-    if ((propName.startsWith('q-e:') || propName.startsWith('q-ep:') || propName.startsWith('q-dp:') || propName.startsWith('q-wp:')) && inLoop) {
+    // Pre-rewritten event props (q-e:* from transformSCallBody / extraction rewriting).
+    // These are already-renamed event handler props pointing to QRL variables.
+    if (propName.startsWith('q-e:') || propName.startsWith('q-ep:') || propName.startsWith('q-dp:') || propName.startsWith('q-wp:')) {
       const formattedName = `"${propName}"`;
-      if (qrlsWithCaptures) {
-        // Per-QRL classification: event handlers whose QRL has loop-local captures
-        // go to varEntries (they need q:p delivery). Others go to constEntries.
-        // The valueText is the QRL variable name (e.g., q_symbolName).
-        const qrlName = valueText.trim();
-        if (qrlsWithCaptures.has(qrlName)) {
-          varEntries.push(`${formattedName}: ${valueText}`);
+      if (inLoop) {
+        if (qrlsWithCaptures) {
+          // Per-QRL classification: event handlers whose QRL has loop-local captures
+          // go to varEntries (they need q:p delivery). Others go to constEntries.
+          const qrlName = valueText.trim();
+          if (qrlsWithCaptures.has(qrlName)) {
+            varEntries.push(`${formattedName}: ${valueText}`);
+          } else {
+            constEntries.push(`${formattedName}: ${valueText}`);
+          }
         } else {
-          constEntries.push(`${formattedName}: ${valueText}`);
+          varEntries.push(`${formattedName}: ${valueText}`);
         }
       } else {
-        varEntries.push(`${formattedName}: ${valueText}`);
+        // Outside loop: track for merging with bind handlers.
+        // Pre-rewritten QRL refs go to the event handler merge map so they can
+        // be combined with bind-generated handlers into arrays.
+        const eventKey = propName;  // e.g., "q-e:input"
+        const existing = bindHandlers.get(eventKey);
+        if (existing) {
+          // Bind handler was already registered -- merge: QRL first, then bind
+          bindHandlers.set(eventKey, `[${valueText}, ${existing}]`);
+        } else {
+          // Store QRL for potential merge with later bind handler
+          bindHandlers.set(eventKey, valueText);
+        }
       }
       continue;
     }
 
     // --- (d) Signal analysis ---
     if (valueNode) {
-      const signalResult = analyzeSignalExpression(valueNode, source, importedNames);
+      // For signal analysis, augment importedNames with paramNames so function
+      // parameters (like 'props') are excluded from reactive store detection.
+      // This prevents _fnSignal wrapping for props.field in component segments.
+      const signalImports = paramNames && paramNames.size > 0
+        ? new Set([...importedNames, ...paramNames])
+        : importedNames;
+      const signalResult = analyzeSignalExpression(valueNode, source, signalImports);
       if (signalResult.type === 'wrapProp') {
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`
@@ -804,6 +829,7 @@ export function transformJsxElement(
   enableChildSignals: boolean = true,
   qpOverrides?: Map<number, string[]>,
   qrlsWithCaptures?: Set<string>,
+  paramNames?: Set<string>,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
@@ -836,7 +862,7 @@ export function transformJsxElement(
     hasVarProps,
     hasSpread,
     neededImports: propImports,
-  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures);
+  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames);
 
   // Merge prop imports
   for (const imp of propImports) {
@@ -1053,6 +1079,8 @@ export function transformAllJsx(
   qpOverrides?: Map<number, string[]>,
   /** Set of QRL variable names that have loop-local captures (for var/const prop classification) */
   qrlsWithCaptures?: Set<string>,
+  /** Function parameter names -- excluded from signal analysis but classified as var in props */
+  paramNames?: Set<string>,
 ): JsxTransformOutput {
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0);
   const signalHoister = new SignalHoister();
@@ -1145,6 +1173,7 @@ export function transformAllJsx(
           enableSignals,
           qpOverrides,
           qrlsWithCaptures,
+          paramNames,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);

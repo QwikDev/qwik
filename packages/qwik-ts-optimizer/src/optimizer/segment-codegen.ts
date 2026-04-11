@@ -11,7 +11,7 @@ import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import { rewriteImportSource } from './rewrite-imports.js';
-import { getQrlImportSource } from './rewrite-calls.js';
+import { getQrlImportSource, buildSyncTransform } from './rewrite-calls.js';
 import { applyRawPropsTransform } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx } from './jsx-transform.js';
@@ -784,9 +784,55 @@ export function generateSegmentCode(
     }
   }
 
-  // Transform sync$() calls to _qrlSync() in segment bodies
+  // Transform sync$() calls to _qrlSync() with minified string argument in segment bodies
   if (bodyText.includes('sync$(')) {
-    bodyText = bodyText.replace(/\bsync\$\(/g, '_qrlSync(');
+    // Replace each sync$(fn) with buildSyncTransform(fn) output: _qrlSync(fn, "minified")
+    // Must track paren depth to find the matching closing paren
+    let result = '';
+    let i = 0;
+    while (i < bodyText.length) {
+      const syncIdx = bodyText.indexOf('sync$(', i);
+      if (syncIdx === -1) {
+        result += bodyText.slice(i);
+        break;
+      }
+      // Check word boundary: char before sync$ must not be alphanumeric or underscore
+      if (syncIdx > 0) {
+        const prevChar = bodyText[syncIdx - 1];
+        if (/[\w$]/.test(prevChar)) {
+          result += bodyText.slice(i, syncIdx + 6);
+          i = syncIdx + 6;
+          continue;
+        }
+      }
+      // Append everything before this sync$ call
+      result += bodyText.slice(i, syncIdx);
+      // Find the matching closing paren for sync$(...)
+      const openParen = syncIdx + 5; // index of '(' after 'sync$'
+      let depth = 1;
+      let j = openParen + 1;
+      while (j < bodyText.length && depth > 0) {
+        const ch = bodyText[j];
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (ch === "'" || ch === '"' || ch === '`') {
+          // Skip string/template literals
+          const quote = ch;
+          j++;
+          while (j < bodyText.length) {
+            if (bodyText[j] === '\\') { j += 2; continue; }
+            if (bodyText[j] === quote) break;
+            j++;
+          }
+        }
+        j++;
+      }
+      // j now points one past the closing ')'
+      const fnText = bodyText.slice(openParen + 1, j - 1);
+      result += buildSyncTransform(fnText);
+      i = j;
+    }
+    bodyText = result;
     // Ensure _qrlSync import is present
     const syncSepIdx = parts.indexOf('//');
     if (syncSepIdx >= 0 && !parts.some(p => p.includes('_qrlSync'))) {

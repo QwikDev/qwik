@@ -148,7 +148,7 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 
 ### Capture Classification
 
-- [ ] **CAP-01**: Loop-local variables delivered via function parameters with correct `paramNames` padding, verified by snapshot AST comparison
+- [x] **CAP-01**: Loop-local variables delivered via function parameters with correct `paramNames` padding, verified by snapshot AST comparison
 - [ ] **CAP-02**: Cross-scope captures delivered via `._captures` + `.w()` hoisting, verified by snapshot AST comparison
 - [ ] **CAP-03**: Segment metadata (`captures`, `captureNames`, `paramNames`) matches snapshot expected metadata
 
@@ -289,7 +289,7 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 | IHS-01 | Phase 17 | Complete |
 | IHS-02 | Phase 17 | Complete |
 | IHS-03 | Phase 17 | Complete |
-| CAP-01 | Phase 18 | Pending |
+| CAP-01 | Phase 18 | Complete |
 | CAP-02 | Phase 18 | Pending |
 | CAP-03 | Phase 18 | Pending |
 | JSXR-01 | Phase 19 | Pending |

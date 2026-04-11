@@ -254,6 +254,8 @@ export interface SegmentJsxOptions {
   paramNames?: Set<string>;
   /** Relative file path for computing JSX key prefix */
   relPath?: string;
+  /** Dev mode options for JSX source info (fileName, lineNumber, columnNumber) */
+  devOptions?: { relPath: string };
 }
 
 /**
@@ -432,14 +434,16 @@ export function generateSegmentCode(
 
   // Nested QRL declarations (Plan 04)
   if (nestedQrlDecls && nestedQrlDecls.length > 0) {
-    // Add qrl import needed by nested QRL declarations
-    if (!parts.some(p => p.includes('{ qrl }') || p.includes(', qrl '))) {
+    // Add qrl or qrlDEV import needed by nested QRL declarations
+    const usesQrlDev = nestedQrlDecls.some(d => d.includes('qrlDEV('));
+    const qrlSymbol = usesQrlDev ? 'qrlDEV' : 'qrl';
+    if (!parts.some(p => p.includes(`{ ${qrlSymbol} }`) || p.includes(`, ${qrlSymbol} `))) {
       // Insert before separator or at start
       const sepIdx = parts.indexOf('//');
       if (sepIdx >= 0) {
-        parts.splice(sepIdx, 0, `import { qrl } from "@qwik.dev/core";`);
+        parts.splice(sepIdx, 0, `import { ${qrlSymbol} } from "@qwik.dev/core";`);
       } else {
-        parts.push(`import { qrl } from "@qwik.dev/core";`);
+        parts.push(`import { ${qrlSymbol} } from "@qwik.dev/core";`);
         parts.push('//');
       }
     }
@@ -698,7 +702,7 @@ export function generateSegmentCode(
       }
 
       const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
-        undefined, undefined, undefined, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath);
+        undefined, jsxOptions.devOptions, undefined, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath);
       const transformedWrapped = bodyS.toString();
       // Unwrap the parentheses
       bodyText = transformedWrapped.slice(1, -1);

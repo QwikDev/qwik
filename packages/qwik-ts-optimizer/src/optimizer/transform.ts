@@ -1821,9 +1821,20 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
       // Determine nested QRL declarations for segments that have children
       const children = updatedExtractions.filter((c) => c.parent === ext.symbolName && !c.isSync);
-      const nestedQrlDecls = children.map((child) =>
-        buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension),
-      );
+      const isDevMode = emitMode === 'dev';
+      const nestedQrlDecls = children.map((child) => {
+        if (isDevMode && devFile) {
+          return buildQrlDevDeclaration(
+            child.symbolName,
+            child.canonicalFilename,
+            devFile,
+            child.loc[0],
+            child.loc[1],
+            child.displayName,
+          );
+        }
+        return buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension);
+      });
 
       // 2c. Build SegmentCaptureInfo for this extraction
       const captureInfo: SegmentCaptureInfo = {
@@ -1991,7 +2002,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
             effectiveCaptureInfo,
             (shouldTranspileJsx && (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx))
-              ? { enableJsx: true, importedNames, relPath }
+              ? { enableJsx: true, importedNames, relPath, devOptions: isDevMode ? { relPath } : undefined }
               : undefined,
             nestedCallSites.length > 0 ? nestedCallSites : undefined,
             importContext,

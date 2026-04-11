@@ -33,7 +33,7 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
   3. Zero regressions in 471 unit tests
 **Plans**: 2 plans
 Plans:
-- [ ] 07-01-PLAN.md — Import assembly unification and user import preservation
+- [x] 07-01-PLAN.md — Import assembly unification and user import preservation
 - [ ] 07-02-PLAN.md — .s() body transformation pipeline for inline/hoist strategy
 
 ### Phase 8: Parent Rewrite Batch 2

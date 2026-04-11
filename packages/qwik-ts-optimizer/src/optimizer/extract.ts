@@ -25,7 +25,7 @@ import {
   type CustomInlinedInfo,
   type ImportInfo,
 } from './marker-detection.js';
-import { isEventProp, transformEventPropName } from './event-handler-transform.js';
+import { isEventProp, transformEventPropName, collectPassiveDirectives } from './event-handler-transform.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -363,7 +363,11 @@ export function extractSegments(
               ctx.push(rawAttrName.slice(0, -1)); // "onClick$" -> "onClick"
             } else {
               // HTML element: transform to q-e:event_name format
-              const transformed = transformEventPropName(rawAttrName, new Set());
+              // Collect passive directives from sibling attributes on the same element
+              const jsxOpening = parent?.type === 'JSXOpeningElement' ? parent : null;
+              const siblingAttrs = jsxOpening?.attributes ?? [];
+              const passiveEvents = collectPassiveDirectives(siblingAttrs);
+              const transformed = transformEventPropName(rawAttrName, passiveEvents);
               if (transformed) {
                 ctx.push(transformed.replace(/[-:]/g, '_'));
               } else {

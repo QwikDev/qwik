@@ -856,7 +856,7 @@ export function rewriteParentModule(
     const isQwikSource = rewrittenSource.startsWith('@qwik.dev/') ||
       rewrittenSource.startsWith('@builder.io/qwik');
     let preserveAll = false;
-    if (isQwikSource && quoteChar === "'") {
+    if (isQwikSource && quoteChar === "'" && !jsxOptions?.enableJsx) {
       const hasNonDollarSurvivor = specifiers.some((spec: any, i: number) => {
         if (toRemove.includes(i)) return false;
         if (spec.type !== 'ImportSpecifier') return true; // default/namespace always non-$

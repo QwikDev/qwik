@@ -149,7 +149,7 @@ const QWIK_IMPORT_PREFIXES = [
  * @param filename - Filename for parser (determines language)
  * @returns Cleaned code with unused imports removed
  */
-function removeUnusedImports(code: string, filename: string): string {
+function removeUnusedImports(code: string, filename: string, transpileJsx?: boolean): string {
   let parsed;
   try {
     parsed = parseSync(filename, code);
@@ -241,13 +241,13 @@ function removeUnusedImports(code: string, filename: string): string {
     // Check if this is a single-quoted Qwik import (surviving user import)
     const importSource = spec.node.source?.value ?? '';
     const isQwikImport = QWIK_IMPORT_PREFIXES.some((p) => importSource.startsWith(p));
-    if (isQwikImport) {
+    if (isQwikImport && !transpileJsx) {
       const quoteChar = code[spec.node.source.start];
       if (quoteChar === "'") {
-        // Check if ALL specifiers in this import are unreferenced AND
-        // the import has at least one non-$-suffixed specifier (like useStore).
-        // When all specifiers are $-suffixed (like {$, component$}), they're
-        // all markers and should be cleaned up normally.
+        // When transpileJsx is OFF (default), the Rust optimizer preserves
+        // single-quoted Qwik imports that have non-$-suffixed specifiers
+        // even when all specifiers are unreferenced in the parent body.
+        // When transpileJsx is ON, the optimizer removes them.
         const siblings = importSpecs.filter((s) => s.node === spec.node);
         const allUnreferenced = siblings.every((s) => !referencedNames.has(s.localName));
         const hasNonDollarSpec = (spec.node.specifiers ?? []).some((s: any) => {
@@ -1090,7 +1090,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
     // 3b. Import cleanup: remove non-Qwik imports whose identifiers are no longer
     // referenced in the parent module after extraction moved their consumers to segments.
-    const cleanedCode = removeUnusedImports(parentResult.code, relPath);
+    const cleanedCode = removeUnusedImports(parentResult.code, relPath, options.transpileJsx);
 
     // 4. Build parent TransformModule
     const parentModule: TransformModule = {

@@ -311,14 +311,14 @@ None -- existing test infrastructure (convergence.test.ts, debug-diff.test.ts, c
 | A1 | The 137 failing convergence tests include ~15-25 that are primarily blocked by capture classification issues (the rest are blocked by JSX, migration, or sync issues) | Architecture Patterns | Plan scope may be too large or too small; verify by running targeted tests after fixes |
 | A2 | SWC's non-loop q:ps behavior (union of all handler captures) is the same pattern used for component-scope event handlers, not just loop contexts | Key Snapshot Patterns | If wrong, non-loop capture delivery may need different handling |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **How many tests will this phase actually fix?**
+1. **How many tests will this phase actually fix?** (RESOLVED — track empirically during execution)
    - What we know: 137 tests fail, capture classification is one of 7 failure families
    - What's unclear: Exact count of tests blocked PRIMARILY by capture issues vs tests where capture is one of multiple issues
    - Recommendation: Track convergence count before and after each plan; accept that some tests may need Phase 19/20 fixes too
 
-2. **Does the convergence test compare captureNames/paramNames metadata arrays?**
+2. **Does the convergence test compare captureNames/paramNames metadata arrays?** (RESOLVED — AST comparison implicitly validates, no change needed)
    - What we know: The test compares `captures` (boolean) and segment code AST, but NOT `captureNames` or `paramNames` arrays directly [VERIFIED: convergence.test.ts lines 120-131]
    - What's unclear: Whether metadata mismatch in captureNames/paramNames causes segment code AST mismatch (it should, since these arrays determine function signature and _captures unpacking)
    - Recommendation: The code AST comparison implicitly validates both -- no change needed

@@ -108,6 +108,18 @@ function isCustomInlined(
 // ---------------------------------------------------------------------------
 
 /**
+ * Options for JSX transpilation within inline .s() body text.
+ */
+interface SCallBodyJsxOptions {
+  /** Whether to apply JSX transpilation */
+  enableJsx: boolean;
+  /** Set of imported identifier names (for prop classification) */
+  importedNames: Set<string>;
+  /** Dev mode options for JSX source info */
+  devOptions?: { relPath: string };
+}
+
+/**
  * Transform an extraction's body text for use in an inline .s() call.
  *
  * For parent extractions (those with nested children), the body is transformed:
@@ -115,6 +127,7 @@ function isCustomInlined(
  * 2. $-suffixed callee names renamed to Qrl-suffixed
  * 3. .w([captures]) appended for children with captures
  * 4. _captures[N] unpacking injected for this extraction's own captures
+ * 5. JSX transpilation (if enabled) -- converts raw JSX to _jsxSorted calls
  *
  * For leaf extractions (no nested children, no own captures), the body is returned as-is.
  */
@@ -122,9 +135,11 @@ function transformSCallBody(
   ext: ExtractionResult,
   allExtractions: ExtractionResult[],
   qrlVarNames: Map<string, string>,
-): { transformedBody: string; additionalImports: Map<string, string> } {
+  jsxBodyOptions?: SCallBodyJsxOptions,
+): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[] } {
   let body = ext.bodyText;
   const additionalImports = new Map<string, string>();
+  const hoistedDeclarations: string[] = [];
 
   // 1. Find nested extractions (children of this extraction)
   const nested = allExtractions.filter(e => e.parent === ext.symbolName);
@@ -147,7 +162,7 @@ function transformSCallBody(
           body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
         } else if (child.ctxKind === 'eventHandler') {
           // JSX event handler attribute: onClick$={() => ...) -> q-e:click={q_varName}
-          // The callStart..callEnd range covers the full attribute text: onClick$={() => ...}
+          // The callStart..callEnd range covers the full attribute text: onClick$(() => ...}
           // Transform the event prop name (e.g., onClick$ -> q-e:click)
           const transformedPropName = transformEventPropName(child.ctxName, new Set());
           if (transformedPropName) {
@@ -188,7 +203,57 @@ function transformSCallBody(
     additionalImports.set('_captures', '@qwik.dev/core');
   }
 
-  return { transformedBody: body, additionalImports };
+  // 4. JSX transpilation within the body text
+  if (jsxBodyOptions?.enableJsx) {
+    // Wrap the body as a parseable module-level expression
+    const wrapperPrefix = 'const __body__ = ';
+    const wrappedSource = wrapperPrefix + body;
+
+    // Parse the wrapped source to get an AST
+    const parseResult = parseSync('__body__.tsx', wrappedSource);
+    if (parseResult.program && !parseResult.errors?.length) {
+      const bodyS = new MagicString(wrappedSource);
+
+      // Augment importedNames with QRL variable names so they're classified as
+      // const in prop classification (they're module-level const declarations)
+      const bodyImportedNames = new Set(jsxBodyOptions.importedNames);
+      for (const [, varName] of qrlVarNames) {
+        bodyImportedNames.add(varName);
+      }
+
+      // Run JSX transform on the wrapped body
+      const bodyJsxResult = transformAllJsx(
+        wrappedSource,
+        bodyS,
+        parseResult.program,
+        bodyImportedNames,
+        [], // No skip ranges within the body
+        jsxBodyOptions.devOptions,
+      );
+
+      // Extract the transformed body by stripping the wrapper prefix
+      const transformedWrapped = bodyS.toString();
+      body = transformedWrapped.slice(wrapperPrefix.length);
+
+      // Strip trailing semicolon if one was added by the wrapper
+      if (body.endsWith(';') && !ext.bodyText.endsWith(';')) {
+        body = body.slice(0, -1);
+      }
+
+      // Collect imports needed by JSX transform
+      for (const sym of bodyJsxResult.neededImports) {
+        additionalImports.set(sym, '@qwik.dev/core');
+      }
+      if (bodyJsxResult.needsFragment) {
+        additionalImports.set('Fragment as _Fragment', '@qwik.dev/core/jsx-runtime');
+      }
+
+      // Collect hoisted declarations for the parent preamble
+      hoistedDeclarations.push(...bodyJsxResult.hoistedDeclarations);
+    }
+  }
+
+  return { transformedBody: body, additionalImports, hoistedDeclarations };
 }
 
 // ---------------------------------------------------------------------------
@@ -768,7 +833,17 @@ export function rewriteParentModule(
   // Step 5c: Build .s() calls for inline strategy
   // -----------------------------------------------------------------------
   const sCalls: string[] = [];
+  const inlineHoistedDeclarations: string[] = [];
   if (isInline) {
+    // Build JSX options for inline body transformation (if JSX is enabled)
+    const sCallJsxOptions: SCallBodyJsxOptions | undefined = jsxOptions?.enableJsx
+      ? {
+          enableJsx: true,
+          importedNames: jsxOptions.importedNames,
+          devOptions: isDevMode ? { relPath } : undefined,
+        }
+      : undefined;
+
     // ALL non-sync, non-stripped extractions get .s() calls (including nested).
     // Order: nested extractions first (in extraction order per parent group),
     // then top-level non-component, then top-level component.
@@ -795,10 +870,11 @@ export function rewriteParentModule(
     // but captures may need injection)
     for (const ext of nestedExts) {
       const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      const { transformedBody, additionalImports } = transformSCallBody(
-        ext, extractions, qrlVarNames,
+      const { transformedBody, additionalImports, hoistedDeclarations } = transformSCallBody(
+        ext, extractions, qrlVarNames, sCallJsxOptions,
       );
       sCalls.push(buildSCall(varName, transformedBody));
+      inlineHoistedDeclarations.push(...hoistedDeclarations);
       for (const [sym, src] of additionalImports) {
         if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
           neededImports.set(sym, src);
@@ -809,10 +885,11 @@ export function rewriteParentModule(
     // Then top-level non-component .s() calls (with transformed bodies)
     for (const ext of topNonComponent) {
       const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      const { transformedBody, additionalImports } = transformSCallBody(
-        ext, extractions, qrlVarNames,
+      const { transformedBody, additionalImports, hoistedDeclarations } = transformSCallBody(
+        ext, extractions, qrlVarNames, sCallJsxOptions,
       );
       sCalls.push(buildSCall(varName, transformedBody));
+      inlineHoistedDeclarations.push(...hoistedDeclarations);
       for (const [sym, src] of additionalImports) {
         if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
           neededImports.set(sym, src);
@@ -823,10 +900,11 @@ export function rewriteParentModule(
     // Component .s() calls last (with transformed bodies)
     for (const ext of topComponent) {
       const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      const { transformedBody, additionalImports } = transformSCallBody(
-        ext, extractions, qrlVarNames,
+      const { transformedBody, additionalImports, hoistedDeclarations } = transformSCallBody(
+        ext, extractions, qrlVarNames, sCallJsxOptions,
       );
       sCalls.push(buildSCall(varName, transformedBody));
+      inlineHoistedDeclarations.push(...hoistedDeclarations);
       for (const [sym, src] of additionalImports) {
         if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
           neededImports.set(sym, src);
@@ -868,6 +946,10 @@ export function rewriteParentModule(
   // Add hoisted signal declarations (_hf0, _hf0_str, etc.)
   if (jsxResult && jsxResult.hoistedDeclarations.length > 0) {
     preamble.push(...jsxResult.hoistedDeclarations);
+  }
+  // Add hoisted declarations from inline .s() body JSX transforms
+  if (inlineHoistedDeclarations.length > 0) {
+    preamble.push(...inlineHoistedDeclarations);
   }
   // Add .s() calls for inline strategy (after QRL declarations, before body/exports)
   if (sCalls.length > 0) {

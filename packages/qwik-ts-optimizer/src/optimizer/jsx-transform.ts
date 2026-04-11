@@ -411,13 +411,25 @@ function processChildren(
     return { text: null, type: 'none' };
   }
 
-  // Filter out empty/whitespace-only JSXText nodes
+  // Filter out empty/whitespace-only JSXText nodes, but preserve
+  // whitespace-only text between non-text siblings as " " (standard JSX behavior)
   const meaningful: any[] = [];
-  for (const child of children) {
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
     if (child.type === 'JSXText') {
       const trimmed = child.value?.trim();
       if (trimmed) {
         meaningful.push({ ...child, _trimmedText: trimmed });
+      } else if (child.value && /\S/.test(child.value) === false && child.value.length > 0) {
+        // Whitespace-only text: check if it's between two non-text siblings
+        // (expression containers or JSX elements). If so, preserve as " ".
+        const prevSibling = children[i - 1];
+        const nextSibling = children[i + 1];
+        const hasPrev = prevSibling && prevSibling.type !== 'JSXText';
+        const hasNext = nextSibling && nextSibling.type !== 'JSXText';
+        if (hasPrev && hasNext) {
+          meaningful.push({ ...child, _trimmedText: ' ' });
+        }
       }
     } else {
       meaningful.push(child);
@@ -725,6 +737,7 @@ export function transformJsxElement(
   passiveEvents?: Set<string>,
   signalHoister?: SignalHoister,
   loopCtx?: LoopContext | null,
+  isSoleChild?: boolean,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
@@ -786,12 +799,14 @@ export function transformJsxElement(
   // --- Key ---
   // Key assignment logic:
   // - If explicit key prop, use it
+  // - If this element is the sole child of a parent JSX element, key is null
   // - Otherwise generate u6_N key
-  // (The "null for sole children" logic is handled at the call site level,
-  //  not here -- the parent decides whether to assign a key)
   let keyStr: string | null;
   if (explicitKey !== null) {
     keyStr = explicitKey;
+  } else if (isSoleChild) {
+    // Sole JSX child of a parent element: key is null (matches Rust optimizer behavior)
+    keyStr = null;
   } else {
     // Default: generate a key
     keyStr = `"${keyCounter.next()}"`;
@@ -862,6 +877,7 @@ export function transformJsxFragment(
   s: MagicString,
   importedNames: Set<string>,
   keyCounter: JsxKeyCounter,
+  isSoleChild?: boolean,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXFragment') return null;
 
@@ -876,7 +892,7 @@ export function transformJsxFragment(
   );
 
   const flags = computeFlags(false, childrenType);
-  const keyStr = `"${keyCounter.next()}"`;
+  const keyStr = isSoleChild ? 'null' : `"${keyCounter.next()}"`;
 
   const callString = `_jsxSorted(_Fragment, null, null, ${childrenText ?? 'null'}, ${flags}, ${keyStr})`;
 
@@ -960,11 +976,26 @@ export function transformAllJsx(
   // Loop context tracking: stack of active loop contexts
   const loopStack: LoopContext[] = [];
 
+  // Track which JSX nodes are children of a parent JSX element/fragment.
+  // Child JSX elements get key=null instead of a generated key (only root elements get keys).
+  const childJsxNodes = new WeakSet<object>();
+
   walk(program, {
     enter(node: any) {
       const loopCtx = detectLoopContext(node, source);
       if (loopCtx) {
         loopStack.push(loopCtx);
+      }
+
+      // Mark all JSX element/fragment children of JSX elements/fragments.
+      // These get key=null since only root-level JSX gets generated keys.
+      if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
+        const children = node.children ?? [];
+        for (const child of children) {
+          if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
+            childJsxNodes.add(child);
+          }
+        }
       }
     },
     leave(node: any) {
@@ -987,6 +1018,9 @@ export function transformAllJsx(
           node.openingElement?.attributes ?? [],
         );
 
+        // Check if this element is a child of a parent JSX element/fragment
+        const isSoleChild = childJsxNodes.has(node);
+
         const result = transformJsxElement(
           node,
           source,
@@ -996,6 +1030,7 @@ export function transformAllJsx(
           passiveEvents,
           signalHoister,
           currentLoop,
+          isSoleChild,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);
@@ -1013,12 +1048,14 @@ export function transformAllJsx(
           }
         }
       } else if (node.type === 'JSXFragment') {
+        const isChildFragment = childJsxNodes.has(node);
         const result = transformJsxFragment(
           node,
           source,
           s,
           importedNames,
           keyCounter,
+          isChildFragment,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);

@@ -1,3 +1,4 @@
+import type { LinkDataPrefetchOptions } from '../runtime/src/types';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 
 /**
@@ -169,6 +170,8 @@ export interface PluginOptions {
   rewriteRoutes?: RewriteRouteOption[];
   /** The serialization strategy for route loaders. Defaults to `never`. */
   defaultLoadersSerializationStrategy?: SerializationStrategy;
+  /** Specifies when link data should be prefetched to improve navigation performance. */
+  linkDataPrefetch?: LinkDataPrefetchOptions;
 }
 
 export interface MdxPlugins {

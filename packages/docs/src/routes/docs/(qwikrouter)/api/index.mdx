@@ -608,13 +608,17 @@ Whether Qwik should prefetch and cache the target page of this `Link`, this incl
 
 This **improves UX performance** for client-side (**SPA**) navigations.
 
-Prefetching occurs when a the Link enters the viewport in production (`q-e:qvisible`), or with `mouseover`/`focus` during dev.
+This only changes when route data is fetched. It does not change how Qwik preloads the javascript needed for the next page.
+
+Route data prefetching occurs based on the active strategy.
+
+By default, fine pointers use `hover` and coarse pointers use `viewport`. You can override this per link with `prefetchDataStrategy`, or set app-wide defaults with the router's `linkDataPrefetch` option.
 
 Prefetching will not occur if the user has the **data saver** setting enabled.
 
 Setting this value to `"js"` will prefetch only javascript bundles required to render this page on the client, `false` will disable prefetching altogether.
 
-<Note title="Warning">If you have a menu with many links, all of them will be loaded immediately when you enter the production page, which may result with too many requests</Note>
+<Note title="Warning">If you use `viewport` route data prefetching for many visible links, the browser may start many `q-data.json` requests at once.</Note>
 
 ```tsx
 import { component$ } from '@qwik.dev/core';
@@ -631,6 +635,15 @@ export default component$(() => {
       </Link>
       <Link href="/c">
         page content & js will be prefetched
+      </Link>
+      <Link
+        href="/d"
+        prefetchDataStrategy={{
+          coarsePointer: ['pointerdown'],
+          finePointer: ['hover', 'focus'],
+        }}
+      >
+        page prefetch timing is customized
       </Link>
     </div>
   );

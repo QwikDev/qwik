@@ -25,6 +25,35 @@ describe('qwikRouter plugin', () => {
     });
   });
 
+  describe('linkDataPrefetch', () => {
+    it('should use the default pointer strategies when not provided', async () => {
+      const plugins = qwikRouter();
+
+      await expect((plugins[0] as any)?.config?.({}, { command: 'build' })).resolves.toMatchObject({
+        define: {
+          'globalThis.__LINK_DATA_PREFETCH_STRATEGY__':
+            '{"coarsePointer":["viewport"],"finePointer":["hover"]}',
+        },
+      });
+    });
+
+    it('should serialize custom pointer strategies when provided', async () => {
+      const plugins = qwikRouter({
+        linkDataPrefetch: {
+          coarsePointer: ['pointerdown', 'focus'],
+          finePointer: ['hover', 'pointerdown', 'focus'],
+        },
+      });
+
+      await expect((plugins[0] as any)?.config?.({}, { command: 'build' })).resolves.toMatchObject({
+        define: {
+          'globalThis.__LINK_DATA_PREFETCH_STRATEGY__':
+            '{"coarsePointer":["pointerdown","focus"],"finePointer":["hover","pointerdown","focus"]}',
+        },
+      });
+    });
+  });
+
   describe('config hook', () => {
     it('should include ssr config for legacy vite build --ssr compatibility', async () => {
       const plugins = qwikRouter();

@@ -293,12 +293,55 @@ export default component$(() => {
 
 ### `<Link prefetch>`
 
-By default, a `Link` component will start prefetching the next page as soon as the user hovers over the corresponding link in the UI. So if the application is done prefetching when the user clicks on the link, the next page will appear instantly. Although Qwik applications already excel at lazy loading javascript, this behavior can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
+By default, a `Link` component will prefetch differently depending on the user's input device:
+
+- fine pointers such as a mouse use `['hover']`
+- coarse pointers such as touchscreens use `['viewport']`
+
+So on desktop, route data is usually fetched when a link is hovered, while on touch devices it is fetched when the link becomes visible. If the application is done prefetching when the user activates the link, the next page can appear instantly. Although Qwik applications already excel at lazy loading javascript, this behavior can be especially helpful for content-heavy pages or SSR pages that need to wait for database or API calls.
 
 If this is not your desired behavior, you can set the `prefetch` prop to false.
 ```tsx
- <Link prefetch={false} href="/about">About</Link>
+<Link prefetch={false} href="/about">
+  About
+</Link>
 ```
+
+You can also set `prefetch="js"` to prefetch only the javascript bundles required for the route, without prefetching route data.
+
+```tsx
+<Link prefetch="js" href="/about">
+  About
+</Link>
+```
+
+### `<Link prefetchDataStrategy>`
+
+Use the `prefetchDataStrategy` prop to override when a specific link should prefetch route data.
+
+```tsx
+<Link
+  href="/pricing"
+  prefetchDataStrategy={{
+    coarsePointer: ['pointerdown'],
+    finePointer: ['hover', 'focus'],
+  }}
+>
+  Pricing
+</Link>
+```
+
+This only affects `loadClientData()` prefetching. It does not change how Qwik preloads the
+javascript needed for the next page.
+
+Available strategy values are:
+
+- `viewport` to prefetch when the link becomes visible
+- `hover` to prefetch on mouse hover for fine pointers
+- `focus` to prefetch when the link receives keyboard focus
+- `pointerdown` to prefetch as soon as the user presses the link
+
+An empty array disables prefetching for that pointer type.
 
 ### Scroll Restoration
 

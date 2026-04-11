@@ -17,6 +17,7 @@ import {
   parseRouteIndexName,
   removeExtension,
 } from './fs';
+import { DEFAULT_LINK_DATA_PREFETCH_STRATEGY } from '../runtime/src/link-prefetch-strategy';
 
 const routesDir = normalizePath(join(tmpdir(), 'src', 'routes'));
 const serverPluginsDir = normalizePath(join(tmpdir(), 'src', 'routes'));
@@ -264,6 +265,7 @@ test('createFileId, Menu', () => {
       platform: {},
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
+      linkDataPrefetch: DEFAULT_LINK_DATA_PREFETCH_STRATEGY,
     };
     globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     const pathname = getPathnameFromDirPath(opts, t.dirPath);
@@ -366,6 +368,7 @@ test('parseRouteIndexName', () => {
       platform: {},
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
+      linkDataPrefetch: DEFAULT_LINK_DATA_PREFETCH_STRATEGY,
     };
     globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     const pathname = getMenuPathname(opts, t.filePath);

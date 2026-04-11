@@ -2012,7 +2012,22 @@ export const _vnode_ensureElementInflated: (container: _Container, vnode: _VNode
 export const _vnode_getAttrKeys: (container: _Container, vnode: _ElementVNode | _VirtualVNode) => string[];
 
 // @internal (undocumented)
+export const _vnode_getElementName: (vnode: _ElementVNode) => string;
+
+// @internal (undocumented)
 export const _vnode_getFirstChild: (vnode: _VNode) => _VNode | null;
+
+// @internal (undocumented)
+export const _vnode_getProp: <T = unknown>(vNode: _VNode, key: string, getObject: ((id: string) => unknown) | null) => T | null;
+
+// @internal (undocumented)
+export const _vnode_getVNodeForChildNode: (vNode: _ElementVNode, childElement: Element) => _ElementVNode;
+
+// @internal (undocumented)
+export const _vnode_insertBefore: (journal: _VNodeJournal, parent: _ElementVNode | _VirtualVNode, newChild: _VNode, insertBefore: _VNode | null) => void;
+
+// @internal (undocumented)
+export const _vnode_isElementVNode: (vNode: _VNode) => vNode is _ElementVNode;
 
 // @internal (undocumented)
 export const _vnode_isMaterialized: (vNode: _VNode) => boolean;
@@ -2022,6 +2037,15 @@ export const _vnode_isTextVNode: (vNode: _VNode) => vNode is _TextVNode;
 
 // @internal (undocumented)
 export const _vnode_isVirtualVNode: (vNode: _VNode) => vNode is _VirtualVNode;
+
+// @internal (undocumented)
+export const _vnode_newVirtual: () => _VirtualVNode;
+
+// @internal (undocumented)
+export const _vnode_remove: (journal: _VNodeJournal, vParent: _ElementVNode | _VirtualVNode, vToRemove: _VNode, removeDOM: boolean) => void;
+
+// @internal (undocumented)
+export const _vnode_setProp: (vNode: _VNode, key: string, value: unknown) => void;
 
 // @internal (undocumented)
 export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean, container?: _Container | null): string;
@@ -2067,6 +2091,11 @@ export const enum _VNodeFlags {
     // (undocumented)
     Virtual = 2
 }
+
+// Warning: (ae-forgotten-export) The symbol "VNodeOperation" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export type _VNodeJournal = Array<VNodeOperation>;
 
 // @internal (undocumented)
 export const _waitUntilRendered: (container: _Container) => Promise<void>;

@@ -103,10 +103,12 @@ function isCustomInlined(
   // Search by importedName to handle aliases (e.g., `import { component$ as c$ }`).
   for (const [, info] of originalImports) {
     if (info.importedName === ext.calleeName) {
-      return !info.isQwikCore;
+      // Found in imports -- it's imported, not custom inlined.
+      // The Qrl variant import is needed (from the same source package).
+      return false;
     }
   }
-  // Not found in imports at all — must be custom inlined
+  // Not found in imports at all — must be custom inlined (locally defined via wrap pattern)
   return true;
 }
 
@@ -482,7 +484,7 @@ function transformSCallBody(
 
           // Track that we need the Qrl-suffixed callee import
           if (child.qrlCallee) {
-            additionalImports.set(child.qrlCallee, getQrlImportSource(child.qrlCallee));
+            additionalImports.set(child.qrlCallee, getQrlImportSource(child.qrlCallee, child.importSource));
           }
         }
       }
@@ -1048,7 +1050,7 @@ export function rewriteParentModule(
     if (qrlCallee && !alreadyImported.has(qrlCallee)) {
       // Only add import if not custom inlined (custom inlined are locally defined)
       if (!isCustomInlined(ext, originalImports)) {
-        neededImports.set(qrlCallee, getQrlImportSource(qrlCallee));
+        neededImports.set(qrlCallee, getQrlImportSource(qrlCallee, ext.importSource));
       }
     }
   }

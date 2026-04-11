@@ -117,12 +117,38 @@ export function needsPureAnnotation(qrlCalleeName: string): boolean {
 // Import source
 // ---------------------------------------------------------------------------
 
+/** Known Qwik package prefixes -- mirrors QWIK_CORE_PREFIXES in marker-detection.ts */
+const QWIK_PACKAGES = [
+  '@qwik.dev/core',
+  '@qwik.dev/react',
+  '@qwik.dev/router',
+  '@builder.io/qwik-react',
+  '@builder.io/qwik-city',
+  '@builder.io/qwik',
+];
+
+/** Check if a module source is a Qwik package. */
+function isQwikPackage(source: string): boolean {
+  for (const prefix of QWIK_PACKAGES) {
+    if (source === prefix || source.startsWith(prefix + '/')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Get the import source for a Qrl callee.
  *
- * Most come from @qwik.dev/core, but qwikifyQrl comes from @qwik.dev/react.
+ * For non-Qwik packages (e.g., 'forms', '@auth/qwik'), the Qrl variant
+ * is imported from the same package as the original marker.
+ * For Qwik packages, uses standard resolution (most from @qwik.dev/core).
  */
-export function getQrlImportSource(qrlCalleeName: string): string {
+export function getQrlImportSource(qrlCalleeName: string, originalSource?: string): string {
+  // Non-Qwik packages: import Qrl variant from the same package
+  if (originalSource && !isQwikPackage(originalSource)) {
+    return originalSource;
+  }
   if (qrlCalleeName === 'qwikifyQrl') return '@qwik.dev/react';
   return '@qwik.dev/core';
 }

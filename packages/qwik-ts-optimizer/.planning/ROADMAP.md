@@ -160,7 +160,13 @@ Plans:
   1. convergence.test.ts reports 209/209 (or 208/208 excluding no-input relative_paths)
   2. Zero regressions in all unit tests
   3. `npx tsc --noEmit` clean
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 16-01-PLAN.md — Segment body .w() capture wiring + _wrapProp/_fnSignal signal wrapping
+- [ ] 16-02-PLAN.md — Parent import cleanup + event handler prop classification fix
+- [ ] 16-03-PLAN.md — Dead code elimination + dev mode qrlDEV + side-effect simplification
+- [ ] 16-04-PLAN.md — Remaining edge cases (Patterns 8-12) + tsc errors + unit test fixes
+- [ ] 16-05-PLAN.md — Final convergence sweep and 209/209 validation gate
 
 ## Progress
 
@@ -175,4 +181,4 @@ Plans:
 | 13. Segment Codegen Batch 1 | 3/3 | Complete    | 2026-04-11 |
 | 14. Segment Codegen Batch 2 | 3/3 | Complete    | 2026-04-11 |
 | 15. Segment Codegen Batch 3 | 3/3 | Complete    | 2026-04-11 |
-| 16. Final Convergence | 0/TBD | Not started | - |
+| 16. Final Convergence | 0/5 | Planning complete | - |

@@ -44,7 +44,7 @@ export interface SegmentCaptureInfo {
  * @param captureNames - Alphabetically sorted capture variable names
  * @returns Modified body text with _captures unpacking injected
  */
-function injectCapturesUnpacking(bodyText: string, captureNames: string[]): string {
+export function injectCapturesUnpacking(bodyText: string, captureNames: string[]): string {
   if (captureNames.length === 0) return bodyText;
 
   // Build the unpacking line: const var1 = _captures[0], var2 = _captures[1];

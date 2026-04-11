@@ -38,6 +38,8 @@ import {
   buildSCall,
 } from './inline-strategy.js';
 import { isStrippedSegment } from './strip-ctx.js';
+import { injectCapturesUnpacking } from './segment-codegen.js';
+import { transformEventPropName } from './event-handler-transform.js';
 import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
 import { stripExportDeclarations } from './strip-exports.js';
 import { replaceConstants } from './const-replacement.js';
@@ -99,6 +101,94 @@ function isCustomInlined(
   }
   // Not found in imports at all — must be custom inlined
   return true;
+}
+
+// ---------------------------------------------------------------------------
+// .s() body transformation for inline/hoist strategy
+// ---------------------------------------------------------------------------
+
+/**
+ * Transform an extraction's body text for use in an inline .s() call.
+ *
+ * For parent extractions (those with nested children), the body is transformed:
+ * 1. Nested $() call sites rewritten to QRL variable references
+ * 2. $-suffixed callee names renamed to Qrl-suffixed
+ * 3. .w([captures]) appended for children with captures
+ * 4. _captures[N] unpacking injected for this extraction's own captures
+ *
+ * For leaf extractions (no nested children, no own captures), the body is returned as-is.
+ */
+function transformSCallBody(
+  ext: ExtractionResult,
+  allExtractions: ExtractionResult[],
+  qrlVarNames: Map<string, string>,
+): { transformedBody: string; additionalImports: Map<string, string> } {
+  let body = ext.bodyText;
+  const additionalImports = new Map<string, string>();
+
+  // 1. Find nested extractions (children of this extraction)
+  const nested = allExtractions.filter(e => e.parent === ext.symbolName);
+
+  // 2. Rewrite nested call sites in descending position order
+  //    to avoid position shifting issues
+  if (nested.length > 0) {
+    const bodyOffset = ext.argStart;
+    const sortedNested = [...nested].sort((a, b) => b.callStart - a.callStart);
+
+    for (const child of sortedNested) {
+      const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
+
+      const relCallStart = child.callStart - bodyOffset;
+      const relCallEnd = child.callEnd - bodyOffset;
+
+      if (relCallStart >= 0 && relCallEnd <= body.length) {
+        if (child.isBare) {
+          // Bare $() -> just the QRL variable name
+          body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
+        } else if (child.ctxKind === 'eventHandler') {
+          // JSX event handler attribute: onClick$={() => ...) -> q-e:click={q_varName}
+          // The callStart..callEnd range covers the full attribute text: onClick$={() => ...}
+          // Transform the event prop name (e.g., onClick$ -> q-e:click)
+          const transformedPropName = transformEventPropName(child.ctxName, new Set());
+          if (transformedPropName) {
+            let replacement = `${transformedPropName}={${childVarName}`;
+            if (child.captureNames.length > 0) {
+              replacement += '.w([\n        ' + child.captureNames.join(',\n        ') + '\n    ])';
+            }
+            replacement += '}';
+            body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
+          } else {
+            // Fallback: just replace with var name
+            body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
+          }
+        } else {
+          // Named marker: callee$(args) -> calleeQrl(qrlVar)
+          let replacement = child.qrlCallee + '(' + childVarName;
+
+          // Add .w([captures]) if the child has captures
+          if (child.captureNames.length > 0) {
+            replacement += '.w([\n        ' + child.captureNames.join(',\n        ') + '\n    ])';
+          }
+
+          replacement += ')';
+          body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
+
+          // Track that we need the Qrl-suffixed callee import
+          if (child.qrlCallee) {
+            additionalImports.set(child.qrlCallee, getQrlImportSource(child.qrlCallee));
+          }
+        }
+      }
+    }
+  }
+
+  // 3. Inject _captures unpacking if this extraction has captures
+  if (ext.captureNames.length > 0) {
+    body = injectCapturesUnpacking(body, ext.captureNames);
+    additionalImports.set('_captures', '@qwik.dev/core');
+  }
+
+  return { transformedBody: body, additionalImports };
 }
 
 // ---------------------------------------------------------------------------
@@ -299,7 +389,8 @@ export function rewriteParentModule(
   const earlyQrlVarNames = new Map<string, string>();
   let earlyStrippedCounter = 0;
   if (inlineOptions) {
-    for (const ext of topLevel) {
+    // For inline/hoist, compute QRL var names for ALL non-sync extractions (including nested)
+    for (const ext of extractions) {
       if (ext.isSync) continue;
       const stripped = isStrippedSegment(
         ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
@@ -393,31 +484,22 @@ export function rewriteParentModule(
   const neededImports = new Map<string, string>(); // symbol -> source
   const isInline = inlineOptions?.inline === true;
 
-  // Only top-level extractions contribute imports to the parent module.
-  // Nested extractions get their imports in the segment module that contains them.
+  // For inline/hoist: ALL non-sync extractions (including nested) contribute imports.
+  // For other strategies: only top-level extractions contribute imports to the parent module.
   const hasTopLevelNonSync = topLevel.some((e) => !e.isSync);
+  const hasAnyNonSync = extractions.some((e) => !e.isSync);
 
   if (isInline) {
     // Inline strategy: import _noopQrl or _noopQrlDEV instead of qrl/qrlDEV
-    if (hasTopLevelNonSync) {
+    if (hasAnyNonSync) {
       const noopSymbol = isDevMode ? '_noopQrlDEV' : '_noopQrl';
       if (!alreadyImported.has(noopSymbol)) {
         neededImports.set(noopSymbol, '@qwik.dev/core');
       }
     }
-    // Also check if any non-stripped segments need _captures for .s() bodies
-    const hasStripped = topLevel.some(
-      (e) => !e.isSync && inlineOptions && isStrippedSegment(
-        e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-      ),
-    );
-    const hasNonStripped = topLevel.some(
-      (e) => !e.isSync && !(inlineOptions && isStrippedSegment(
-        e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
-      )),
-    );
-    // _captures import needed if any non-stripped segment has captures
-    const needsCapturesImport = topLevel.some(
+    // _captures import needed if any non-stripped extraction has captures
+    // (checked across ALL extractions, not just top-level)
+    const needsCapturesImport = extractions.some(
       (e) => !e.isSync && e.captureNames.length > 0 && !(inlineOptions && isStrippedSegment(
         e.ctxName, e.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
       )),
@@ -496,21 +578,17 @@ export function rewriteParentModule(
     // They will be prepended after imports in the preamble assembly step
   }
 
-  // Sort imports alphabetically by symbol name
-  const sortedImports = Array.from(neededImports.entries()).sort((a, b) =>
-    a[0].localeCompare(b[0]),
-  );
-
-  // Build import statements (each separate)
-  const importStatements = sortedImports.map(
-    ([symbol, src]) => `import { ${symbol} } from "${src}";`,
-  );
+  // NOTE: Import statement generation is deferred until after Step 5c,
+  // because transformSCallBody() in Step 5c may add additional imports
+  // (e.g., Qrl-suffixed callee imports like useStylesQrl, useBrowserVisibleTaskQrl).
 
   // -----------------------------------------------------------------------
   // Step 5b: Build QRL declarations
   // -----------------------------------------------------------------------
-  // Only top-level (non-nested) non-sync extractions get QRL declarations in the parent
+  // For inline/hoist strategy: ALL non-sync extractions (including nested) get QRL declarations.
+  // For other strategies: only top-level (non-nested) non-sync extractions.
   const topLevelNonSync = extractions.filter((e) => !e.isSync && e.parent === null);
+  const allNonSync = extractions.filter((e) => !e.isSync);
 
   // Track stripped segment counter for sentinel naming
   let strippedCounter = 0;
@@ -520,8 +598,8 @@ export function rewriteParentModule(
   const qrlDecls: string[] = [];
 
   if (isInline) {
-    // Inline/hoist strategy: _noopQrl declarations
-    for (const ext of topLevelNonSync) {
+    // Inline/hoist strategy: _noopQrl declarations for ALL non-sync extractions
+    for (const ext of allNonSync) {
       const stripped = inlineOptions && isStrippedSegment(
         ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
       );
@@ -619,37 +697,83 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   const sCalls: string[] = [];
   if (isInline) {
-    // Order: stripped/noop segments first, then non-stripped, then component body last
-    const stripped: ExtractionResult[] = [];
-    const nonStripped: ExtractionResult[] = [];
-    const components: ExtractionResult[] = [];
+    // ALL non-sync, non-stripped extractions get .s() calls (including nested).
+    // Order: nested extractions first (in extraction order per parent group),
+    // then top-level non-component, then top-level component.
+    const nestedExts: ExtractionResult[] = [];
+    const topNonComponent: ExtractionResult[] = [];
+    const topComponent: ExtractionResult[] = [];
 
-    for (const ext of topLevelNonSync) {
-      const isStripped = inlineOptions && isStrippedSegment(
+    for (const ext of allNonSync) {
+      const isStrippedExt = inlineOptions && isStrippedSegment(
         ext.ctxName, ext.ctxKind, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers,
       );
-      if (isStripped) {
-        stripped.push(ext);
+      if (isStrippedExt) continue; // Stripped segments: no .s() call
+
+      if (ext.parent !== null) {
+        nestedExts.push(ext);
       } else if (ext.ctxName === 'component') {
-        components.push(ext);
+        topComponent.push(ext);
       } else {
-        nonStripped.push(ext);
+        topNonComponent.push(ext);
       }
     }
 
-    // Stripped segments: no .s() call (they are noop)
-    // Non-stripped, non-component segments: emit .s() with body
-    for (const ext of nonStripped) {
+    // Emit nested .s() calls first (their bodies are leaf — no transformation needed for nesting,
+    // but captures may need injection)
+    for (const ext of nestedExts) {
       const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      sCalls.push(buildSCall(varName, ext.bodyText));
+      const { transformedBody, additionalImports } = transformSCallBody(
+        ext, extractions, qrlVarNames,
+      );
+      sCalls.push(buildSCall(varName, transformedBody));
+      for (const [sym, src] of additionalImports) {
+        if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
+          neededImports.set(sym, src);
+        }
+      }
     }
 
-    // Component segments last
-    for (const ext of components) {
+    // Then top-level non-component .s() calls (with transformed bodies)
+    for (const ext of topNonComponent) {
       const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      sCalls.push(buildSCall(varName, ext.bodyText));
+      const { transformedBody, additionalImports } = transformSCallBody(
+        ext, extractions, qrlVarNames,
+      );
+      sCalls.push(buildSCall(varName, transformedBody));
+      for (const [sym, src] of additionalImports) {
+        if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
+          neededImports.set(sym, src);
+        }
+      }
+    }
+
+    // Component .s() calls last (with transformed bodies)
+    for (const ext of topComponent) {
+      const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
+      const { transformedBody, additionalImports } = transformSCallBody(
+        ext, extractions, qrlVarNames,
+      );
+      sCalls.push(buildSCall(varName, transformedBody));
+      for (const [sym, src] of additionalImports) {
+        if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
+          neededImports.set(sym, src);
+        }
+      }
     }
   }
+
+  // -----------------------------------------------------------------------
+  // Step 5d: Build import statements (deferred from Step 5 to include
+  // additional imports discovered during Step 5c body transformation)
+  // -----------------------------------------------------------------------
+  const sortedImports = Array.from(neededImports.entries()).sort((a, b) =>
+    a[0].localeCompare(b[0]),
+  );
+
+  const importStatements = sortedImports.map(
+    ([symbol, src]) => `import { ${symbol} } from "${src}";`,
+  );
 
   // -----------------------------------------------------------------------
   // Step 6: Assemble final output
@@ -675,9 +799,11 @@ export function rewriteParentModule(
   }
   // Add .s() calls for inline strategy (after QRL declarations, before body/exports)
   if (sCalls.length > 0) {
+    preamble.push('//');
     preamble.push(...sCalls);
+  } else {
+    preamble.push('//');
   }
-  preamble.push('//');
 
   s.prepend(preamble.join('\n') + '\n');
 

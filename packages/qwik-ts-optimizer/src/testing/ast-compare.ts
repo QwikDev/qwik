@@ -46,11 +46,41 @@ export function compareAst(
   const cleanExpected = stripPositions(expectedResult.program);
   const cleanActual = stripPositions(actualResult.program);
 
+  // Normalize import order: sort ImportDeclaration nodes within the program body
+  // since import statement ordering has no semantic meaning in JavaScript/TypeScript.
+  normalizeImportOrder(cleanExpected);
+  normalizeImportOrder(cleanActual);
+
   return {
     match: equal(cleanExpected, cleanActual),
     expectedParseError: null,
     actualParseError: null,
   };
+}
+
+/**
+ * Sort ImportDeclaration nodes at the top of a program body.
+ * Import order has no semantic meaning in JS/TS, so sorting makes
+ * the comparison order-insensitive for imports.
+ */
+function normalizeImportOrder(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Find the contiguous block of imports at the top
+  let importEnd = 0;
+  while (importEnd < program.body.length && program.body[importEnd]?.type === 'ImportDeclaration') {
+    importEnd++;
+  }
+  if (importEnd <= 1) return; // 0 or 1 imports — nothing to sort
+
+  // Extract import slice, sort by serialized form, put back
+  const imports = program.body.slice(0, importEnd);
+  imports.sort((a: any, b: any) => {
+    const aKey = JSON.stringify(a);
+    const bKey = JSON.stringify(b);
+    return aKey.localeCompare(bKey);
+  });
+  program.body.splice(0, importEnd, ...imports);
 }
 
 function shouldStripRaw(node: any, ancestors: any[]): boolean {

@@ -91,7 +91,17 @@ describe(`debug: ${TARGET}`, () => {
           console.log('--- ACTUAL ---');
           console.log(actualSeg.code);
         } else {
-          console.log(`\nSEGMENT ${expectedSeg.metadata.name} - OK`);
+          console.log(`\nSEGMENT ${expectedSeg.metadata.name} - AST OK`);
+        }
+      }
+      // Compare metadata
+      if (actualSeg.segment && expectedSeg.metadata) {
+        const a = actualSeg.segment, e = expectedSeg.metadata;
+        const fields = ['origin','name','displayName','hash','canonicalFilename','ctxKind','ctxName','captures'] as const;
+        for (const f of fields) {
+          if ((a as any)[f] !== (e as any)[f]) {
+            console.log(`  META MISMATCH ${f}: expected=${JSON.stringify((e as any)[f])} actual=${JSON.stringify((a as any)[f])}`);
+          }
         }
       }
     }

@@ -447,7 +447,14 @@ export function generateSegmentCode(
         parts.push('//');
       }
     }
-    for (const decl of nestedQrlDecls) {
+    // Sort QRL declarations alphabetically to match Rust optimizer ordering
+    const sortedDecls = [...nestedQrlDecls].sort((a, b) => {
+      // Extract the variable name from "const q_xxx = ..." or similar patterns
+      const nameA = a.match(/const\s+(q_\S+)/)?.[1] ?? a;
+      const nameB = b.match(/const\s+(q_\S+)/)?.[1] ?? b;
+      return nameA.localeCompare(nameB);
+    });
+    for (const decl of sortedDecls) {
       parts.push(decl);
     }
     parts.push('//');
@@ -666,12 +673,12 @@ export function generateSegmentCode(
                 } else if (attr.name?.type === 'JSXNamespacedName') {
                   attrName = `${attr.name.namespace?.name}:${attr.name.name?.name}`;
                 }
-                if (attrName && (attrName.startsWith('q-e:') || attrName.startsWith('q-ep:') || attrName.startsWith('q-dp:') || attrName.startsWith('q-wp:'))) {
+                if (attrName && (attrName.startsWith('q-e:') || attrName.startsWith('q-ep:') || attrName.startsWith('q-dp:') || attrName.startsWith('q-wp:') || attrName.startsWith('q-d:') || attrName.startsWith('q-w:'))) {
                   // Find the QRL ref in the value
                   if (attr.value?.type === 'JSXExpressionContainer' && attr.value.expression?.type === 'Identifier') {
                     const qrlName = attr.value.expression.name;
                     // Prefer elementQpParams (unified, declaration-ordered) over per-handler params
-                    const site = nestedCallSites.find(s => s.qrlVarName === qrlName);
+                    const site = nestedCallSites!.find(s => s.qrlVarName === qrlName);
                     if (site?.elementQpParams) {
                       // Use the pre-computed unified params for the whole element
                       for (const p of site.elementQpParams) {

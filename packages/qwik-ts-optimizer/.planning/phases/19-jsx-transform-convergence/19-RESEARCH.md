@@ -354,19 +354,19 @@ Note: Categories overlap -- many tests fail for multiple reasons. Fixing Categor
 | A1 | Fixing flags bitmask swap alone will flip many tests from fail to pass | Key Failing Snapshot Categories | If other issues dominate, flags fix alone won't show improvement; but it's still a prerequisite |
 | A2 | `_createElement` is the correct import name for spread+key fallback | Root Cause #3 | The import might need to be `createElement` aliased to `_createElement` per snapshot evidence |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **How many tests will flip from fix-by-fix?**
+1. **How many tests will flip from fix-by-fix?** (RESOLVED — iterative measurement after each fix per plan approach)
    - What we know: Flags mismatch affects virtually all JSX tests. Prop classification and signal wrapping affect smaller subsets.
    - What's unclear: The exact count of tests that will pass after each individual fix
    - Recommendation: Fix flags first, measure, then tackle prop classification
 
-2. **Component prop routing for non-HTML tags**
+2. **Component prop routing for non-HTML tags** (RESOLVED — Plan 19-01 Task 2 Part B adds tagIsHtml-based routing)
    - What we know: SWC routes component props to var_props by default (opposite of HTML)
    - What's unclear: Whether the current TS code already handles this via `tagIsHtml` checks in processProps
    - Recommendation: Verify with `should_mark_props_as_var_props_for_inner_cmp` snapshot
 
-3. **var_props alphabetical sorting**
+3. **var_props alphabetical sorting** (RESOLVED — Plan 19-01 Task 2 Part C adds varEntries.sort())
    - What we know: SWC sorts var_props alphabetically when no spread
    - What's unclear: Whether the current TS code already sorts or if this needs adding
    - Recommendation: Check if prop order mismatches exist in failing tests; add sorting if needed

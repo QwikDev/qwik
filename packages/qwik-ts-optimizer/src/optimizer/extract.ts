@@ -596,14 +596,39 @@ export function extractSegments(
             if (jsxAttrName?.endsWith('$')) {
               // The stack top is the current marker call; the previous entry is the JSX attr.
               attrCtx = ctx.peek(1) ?? jsxAttrName;
-              isEventAttr = jsxAttrName.startsWith('on') || jsxAttrName.startsWith('document:on') || jsxAttrName.startsWith('window:on');
-              isJsxNonEventAttr = !isEventAttr;
+
+              // SWC: component elements (is_fn=true) use SegmentKind::JSXProp for ALL $-suffixed attrs,
+              // including onClick$. Only HTML elements use SegmentKind::EventHandler.
+              // Check if the enclosing JSX element is a component (tag starts with uppercase).
+              const jsxOpeningElement = parentMap.get(jsxAttrParent);
+              let isComponentElement = false;
+              if (jsxOpeningElement?.type === 'JSXOpeningElement') {
+                const tagName = jsxOpeningElement.name;
+                if (tagName?.type === 'JSXIdentifier') {
+                  // Component if first char is uppercase
+                  isComponentElement = tagName.name[0] === tagName.name[0].toUpperCase();
+                } else if (tagName?.type === 'JSXMemberExpression') {
+                  isComponentElement = true; // member expressions like Foo.Bar are always components
+                }
+              }
+
+              if (isComponentElement) {
+                // All $-suffixed props on components are jSXProp (SWC behavior)
+                isEventAttr = false;
+                isJsxNonEventAttr = true;
+              } else {
+                // HTML elements: on* -> eventHandler, others -> jSXProp
+                isEventAttr = jsxAttrName.startsWith('on') || jsxAttrName.startsWith('document:on') || jsxAttrName.startsWith('window:on');
+                isJsxNonEventAttr = !isEventAttr;
+              }
             }
           }
         }
 
         const ctxKind = getCtxKind(canonicalCallee, isEventAttr, isJsxNonEventAttr);
-        const ctxName = getCtxName(canonicalCallee, isEventAttr, isEventAttr ? attrCtx : undefined);
+        // For both eventHandler and jSXProp, use the attribute name as ctxName
+        const isJsxAttrContext = isEventAttr || isJsxNonEventAttr;
+        const ctxName = getCtxName(canonicalCallee, isJsxAttrContext, isJsxAttrContext ? attrCtx : undefined);
 
         const displayName = ctx.getDisplayName();
         const symbolName = ctx.getSymbolName();

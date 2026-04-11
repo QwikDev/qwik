@@ -932,11 +932,12 @@ export function transformJsxElement(
     neededImports.add(imp);
   }
 
-  // --- Loop context: inject q:p/q:ps prop ---
-  // q:p/q:ps is only added to elements that have event handlers with captures.
+  // --- Capture context: inject q:p/q:ps prop ---
+  // q:p/q:ps is added to HTML elements that have event handlers with captures.
+  // This applies both in loop contexts AND non-loop contexts (SWC Rule 5).
   // The qpOverrides map (from capture analysis) determines which elements get q:p/q:ps
   // and with what values. Elements without event handlers don't get q:p/q:ps.
-  if (inLoop && tagIsHtml) {
+  if (tagIsHtml) {
     // Check for qpOverrides first (from capture analysis via nestedCallSites)
     const overrideParams = qpOverrides?.get(node.start);
     if (overrideParams && overrideParams.length > 0) {
@@ -945,9 +946,11 @@ export function transformJsxElement(
         const formattedQpName = needsQuoting(qpResult.propName)
           ? `"${qpResult.propName}"`
           : qpResult.propName;
+        // q:ps/q:p goes into varProps (second arg of _jsxSorted) per SWC behavior
+        // These contain runtime variable references, making them "mutable" props
         varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
       }
-    } else if (!qpOverrides) {
+    } else if (inLoop && !qpOverrides) {
       // No override system active (parent rewriting context, not segment body).
       // Fall back to iterVars-based q:p for all elements in loop.
       const qpResult = buildQpProp(loopCtx!.iterVars);
@@ -955,6 +958,7 @@ export function transformJsxElement(
         const formattedQpName = needsQuoting(qpResult.propName)
           ? `"${qpResult.propName}"`
           : qpResult.propName;
+        // q:ps/q:p goes into varProps (second arg of _jsxSorted)
         varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
       }
     }
@@ -979,9 +983,25 @@ export function transformJsxElement(
   // --- Flags ---
   // Loop context flag (bit 2) is only set for HTML elements with q:p/q:ps (event handler captures).
   // Component elements in loops don't get the loop flag -- they use varEntries placement instead.
-  const hasQpProp = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'));
+  const hasQpProp = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'))
+    || constEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'));
   const effectiveLoopCtx = tagIsHtml && (qpOverrides ? hasQpProp : !!loopCtx);
-  const flags = hasSpread ? 0 : computeFlags(hasVarProps, childrenType, effectiveLoopCtx);
+  // Use actual varEntries state (may have been modified by q:ps injection after processProps)
+  const effectiveHasVarProps = varEntries.length > 0 || beforeSpreadEntries.length > 0;
+  // For non-loop capture context (q:ps without real loop), compute base flags as non-loop
+  // then OR in the capture bit. This matches SWC behavior where non-loop captures
+  // get flags like 7 (normal 3 + capture 4) instead of loop flags like 4.
+  const isRealLoop = !!loopCtx && loopCtx.iterVars.length > 0;
+  const isCaptureOnly = effectiveLoopCtx && !isRealLoop;
+  let flags: number;
+  if (hasSpread) {
+    flags = 0;
+  } else if (isCaptureOnly) {
+    // Non-loop capture: base flags (no loop influence) + capture bit
+    flags = computeFlags(hasVarProps, childrenType, false) | 4;
+  } else {
+    flags = computeFlags(effectiveHasVarProps, childrenType, effectiveLoopCtx);
+  }
 
   // --- Key ---
   // Key assignment logic:

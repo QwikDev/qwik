@@ -1211,8 +1211,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
 
         if (!enclosingLoops || enclosingLoops.length === 0) {
-          // NOT in a loop: ALL captured vars become paramNames
-          extraction.paramNames = generateParamPadding(uniqueCaptures);
+          // NOT in a loop: ALL captured vars become paramNames, sorted ALPHABETICALLY per SWC Rule 7
+          const sortedCaptures = [...uniqueCaptures].sort();
+          extraction.paramNames = generateParamPadding(sortedCaptures);
           extraction.captureNames = [];
           extraction.captures = false;
         } else {
@@ -1482,6 +1483,34 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const moduleLevelDecls = collectModuleLevelDecls(program, repairedCode);
     const nonInlinedExtractions = extractions.filter((e) => !e.isInlinedQrl);
     const { segmentUsage, rootUsage } = computeSegmentUsage(program, nonInlinedExtractions);
+
+    // Variables delivered via q:ps (paramNames captures) are referenced by the parent
+    // component at render time, so they must not be migrated away from the parent.
+    // Add them to the parent segment's usage set.
+    for (const ext of extractions) {
+      if (ext.ctxKind !== 'eventHandler') continue;
+      if (ext.paramNames.length < 3 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1') continue;
+      // Find parent extraction
+      let parentExt: typeof ext | null = null;
+      for (const other of extractions) {
+        if (other.symbolName === ext.symbolName) continue;
+        if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
+          if (!parentExt || other.argStart >= parentExt.argStart) {
+            parentExt = other;
+          }
+        }
+      }
+      if (!parentExt) continue;
+      const parentUsage = segmentUsage.get(parentExt.symbolName);
+      if (!parentUsage) continue;
+      // Add actual capture var names (not padding) to parent's usage
+      for (let i = 2; i < ext.paramNames.length; i++) {
+        const p = ext.paramNames[i];
+        if (/^_\d*$/.test(p)) continue; // skip padding (_2, _3, etc.)
+        parentUsage.add(p);
+      }
+    }
+
     const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
     const isInlineStrategy = entryStrategy.type === 'inline' || entryStrategy.type === 'hoist';
     // For inline/hoist strategy, skip migration -- segments share the parent module scope

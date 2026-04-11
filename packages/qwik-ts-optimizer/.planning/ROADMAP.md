@@ -91,7 +91,11 @@ Plans:
   1. All 21 snapshots pass parent + segment AST comparison
   2. All previously-locked snapshots still pass
   3. Zero regressions in unit tests
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 11-01-PLAN.md — JSXFragment context, passive event naming, custom call context push
+- [ ] 11-02-PLAN.md — Captures metadata reconciliation and snapshot options correction
+- [ ] 11-03-PLAN.md — Complex multi-segment fixes and Phase 11 convergence gate
 
 ### Phase 12: Segment Identity Batch 3
 **Goal**: Remaining 21 segment-identity snapshots pass
@@ -150,7 +154,7 @@ Plans:
 | 8. Parent Rewrite Batch 2 | 0/5 | Planning complete | - |
 | 9. Untransformed Extraction | 0/3 | Planning complete | - |
 | 10. Segment Identity Batch 1 | 3/3 | Complete    | 2026-04-11 |
-| 11. Segment Identity Batch 2 | 0/TBD | Not started | - |
+| 11. Segment Identity Batch 2 | 0/3 | Planning complete | - |
 | 12. Segment Identity Batch 3 | 0/TBD | Not started | - |
 | 13. Segment Codegen Batch 1 | 0/TBD | Not started | - |
 | 14. Segment Codegen Batch 2 | 0/TBD | Not started | - |

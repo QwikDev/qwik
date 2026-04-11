@@ -1617,6 +1617,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       }
     }
 
+    // Compute output extension early (before `ext` is shadowed by extraction loop)
+    const qrlOutputExt = computeOutputExtension(ext, options.transpileTs, options.transpileJsx);
+
     const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
     const isInlineStrategy = entryStrategy.type === 'inline' || entryStrategy.type === 'hoist';
     // For inline/hoist strategy, skip migration -- segments share the parent module scope
@@ -1691,7 +1694,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       options.explicitExtensions,
       options.transpileTs,
       options.minify,
-      computeOutputExtension(ext, options.transpileTs, options.transpileJsx),
+      qrlOutputExt,
     );
 
     // 3b. Apply DCE to parent module (after const replacement turned isServer/isBrowser to true/false)
@@ -1971,8 +1974,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             child.displayName,
           );
         }
-        const outExt = computeOutputExtension(ext, options.transpileTs, options.transpileJsx);
-        return buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension, outExt);
+        return buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension, qrlOutputExt);
       });
 
       // 2c. Build SegmentCaptureInfo for this extraction

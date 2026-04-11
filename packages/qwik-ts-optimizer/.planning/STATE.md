@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 15-03-PLAN.md
-last_updated: "2026-04-11T15:13:54.953Z"
+status: executing
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-04-11T15:49:37.130Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 9
-  total_plans: 31
-  completed_plans: 31
-  percent: 100
+  total_plans: 36
+  completed_plans: 32
+  percent: 89
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** Runtime-identical output to SWC optimizer -- same segments, captures, hashes, QRL structure
-**Current focus:** Phase 15 — Segment Codegen Batch 3
+**Current focus:** Phase 16 — Final Convergence
 
 ## Current Position
 
-Phase: 16
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 16 (Final Convergence) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -120,6 +120,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 15 P01 | 10min | 2 tasks | 4 files |
 | Phase 15 P02 | 13min | 1 tasks | 3 files |
 | Phase 15 P03 | 16min | 2 tasks | 5 files |
+| Phase 16 P01 | 19min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -215,6 +216,7 @@ Recent decisions affecting current work:
 - [Phase 15]: Key prefix uses SipHash-1-3 base64 first 2 chars of relative file path hash, matching Rust optimizer
 - [Phase 15]: For-of/for-in/for loop iterator variables collected via ForOfStatement AST walk for capture promotion to paramNames
 - [Phase 15]: Props before JSX spread go to beforeSpreadEntries, placed before _getVarProps() for correct evaluation order
+- [Phase 16]: Component-scope captures injected before return statement; section ordering: imports // _hf // QRL // export
 
 ### Pending Todos
 
@@ -234,6 +236,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T15:13:11.110Z
-Stopped at: Completed 15-03-PLAN.md
+Last session: 2026-04-11T15:49:37.128Z
+Stopped at: Completed 16-01-PLAN.md
 Resume file: None

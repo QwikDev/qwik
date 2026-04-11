@@ -1,144 +1,138 @@
-# Roadmap: Qwik Optimizer (TypeScript)
+# Roadmap: v2.0 Snapshot Convergence
 
 ## Overview
 
-This roadmap transforms the Qwik optimizer from Rust/SWC to TypeScript, building bottom-up from test infrastructure and hash verification through extraction, capture analysis, JSX transforms, and build modes. Each phase delivers a verifiable capability that subsequent phases build on. The batch-of-10 snapshot locking strategy prevents the whack-a-mole convergence trap that killed the prior Rust rewrite.
+Get all 209 snapshot tests passing via AST comparison. Ordered by failure family — parent-rewrite fixes first (closest wins), then untransformed extraction, then segment identity, then segment codegen. Hard lock after each phase: all previously-passing snapshots must stay green.
+
+**Starting point:** 10/209 fully passing, 82/209 parent modules pass AST comparison, 471 unit tests green.
+
+**Hard gate per phase:** Every snapshot in the phase must pass (parent + all segments match via AST comparison). All previously-locked snapshots must still pass. No exceptions.
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [ ] **Phase 1: Test Infrastructure and Hash Verification** - Snapshot parser, AST comparison, SipHash-1-3, display name construction
-- [ ] **Phase 2: Core Extraction Pipeline** - Segment extraction, call form rewriting, import handling, public API shell
-- [ ] **Phase 3: Capture Analysis and Variable Migration** - Scope-aware capture detection, captures injection, variable migration
-- [ ] **Phase 4: JSX, Signals, and Event Handlers** - JSX transform, signal optimizations, event handlers, bind syntax, loop hoisting
-- [ ] **Phase 5: Entry Strategies and Build Modes** - Smart/inline/component strategies, dev/prod modes, strip modes, const replacement
-- [ ] **Phase 6: Diagnostics and Convergence** - Error diagnostics, suppression directives, final snapshot convergence
+- [ ] **Phase 7: Parent Rewrite Batch 1** — First 24 parent-rewrite-only failures
+- [ ] **Phase 8: Parent Rewrite Batch 2** — Remaining 24 parent-rewrite-only failures
+- [ ] **Phase 9: Untransformed Extraction** — All 11 untransformed failures
+- [ ] **Phase 10: Segment Identity Batch 1** — First 21 segment-identity failures
+- [ ] **Phase 11: Segment Identity Batch 2** — Next 21 segment-identity failures
+- [ ] **Phase 12: Segment Identity Batch 3** — Remaining 21 segment-identity failures
+- [ ] **Phase 13: Segment Codegen Batch 1** — First 25 segment-codegen failures
+- [ ] **Phase 14: Segment Codegen Batch 2** — Next 25 segment-codegen failures
+- [ ] **Phase 15: Segment Codegen Batch 3** — Remaining 26 segment-codegen failures
+- [ ] **Phase 16: Final Convergence** — Any remaining failures + 209/209 validation
 
 ## Phase Details
 
-### Phase 1: Test Infrastructure and Hash Verification
-**Goal**: Tooling and foundational algorithms are verified against all snapshots before any codegen begins
-**Depends on**: Nothing (first phase)
-**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, HASH-01, HASH-02, HASH-03, HASH-04, HASH-05
-**Success Criteria** (what must be TRUE):
-  1. Snapshot parser loads any `.snap` file and extracts INPUT, segment outputs, metadata JSON, and diagnostics as structured data
-  2. AST comparison correctly identifies semantically equivalent code as matching and semantically different code as non-matching (ignoring whitespace/formatting)
-  3. SipHash-1-3 with zero keys produces hashes byte-identical to every hash value found in all snapshot metadata
-  4. Display names and symbol names constructed from file path and context match every snapshot's metadata exactly
-  5. Test runner can execute a batch of N snapshots, report pass/fail, and lock passing batches so they never regress
-**Plans:** 3 plans
+### Phase 7: Parent Rewrite Batch 1
+**Goal**: First 24 parent-rewrite-only snapshots pass (segments already OK, fix parent module shape)
+**Depends on**: Nothing (first phase of v2.0)
+**Snapshots**: example_1, example_default_export_index, example_derived_signals_children, example_derived_signals_cmp, example_derived_signals_complext_children, example_derived_signals_div, example_derived_signals_multiple_children, example_dev_mode_inlined, example_functional_component, example_immutable_function_components, example_inlined_entry_strategy, example_input_bind, example_issue_33443, example_issue_4438, example_lib_mode, example_missing_custom_inlined_functions, example_mutable_children, example_optimization_issue_3542, example_optimization_issue_3561, example_optimization_issue_3795, example_optimization_issue_4386, example_parsed_inlined_qrls, example_preserve_filenames, example_props_optimization
+**Success Criteria**:
+  1. All 24 snapshots pass parent + segment AST comparison
+  2. All 10 previously-passing snapshots still pass
+  3. Zero regressions in 471 unit tests
+**Plans**: TBD
 
-Plans:
-- [x] 01-01-PLAN.md — Project setup and snapshot parser (TEST-01)
-- [x] 01-02-PLAN.md — SipHash-1-3 hashing and naming construction (HASH-01 through HASH-05)
-- [x] 01-03-PLAN.md — AST comparison, metadata comparison, and batch runner (TEST-02, TEST-03, TEST-04)
+### Phase 8: Parent Rewrite Batch 2
+**Goal**: Remaining 24 parent-rewrite-only snapshots pass
+**Depends on**: Phase 7
+**Snapshots**: example_props_wrapping, example_props_wrapping2, example_props_wrapping_children, example_props_wrapping_children2, example_qwik_react_inline, example_reg_ctx_name_segments_hoisted, example_reg_ctx_name_segments_inlined, example_strip_client_code, example_transpile_ts_only, example_use_optimization, fun_with_scopes, inlined_qrl_uses_identifier_reference_when_hoisted_snapshot, issue_476, root_level_self_referential_qrl_inline, should_ignore_null_inlined_qrl, should_keep_module_level_var_used_in_both_main_and_qrl, should_keep_non_migrated_binding_from_shared_array_destructuring_declarator, should_keep_non_migrated_binding_from_shared_destructuring_declarator, should_keep_non_migrated_binding_from_shared_destructuring_with_default, should_keep_non_migrated_binding_from_shared_destructuring_with_rest, should_keep_root_var_used_by_export_decl_and_qrl, should_keep_root_var_used_by_exported_function_and_qrl, should_not_generate_conflicting_props_identifiers, should_not_move_over_side_effects
+**Success Criteria**:
+  1. All 24 snapshots pass parent + segment AST comparison
+  2. All phase 7 locked snapshots + 10 original still pass
+  3. Zero regressions in unit tests
+**Plans**: TBD
 
-### Phase 2: Core Extraction Pipeline
-**Goal**: The optimizer can parse source files, detect marker functions, extract segments, rewrite parent modules, and produce the correct module structure
-**Depends on**: Phase 1
-**Requirements**: EXTRACT-01, EXTRACT-02, EXTRACT-03, EXTRACT-04, EXTRACT-05, EXTRACT-06, EXTRACT-07, CALL-01, CALL-02, CALL-03, CALL-04, CALL-05, IMP-01, IMP-02, IMP-03, IMP-04, IMP-05, IMP-06, API-01, API-02, API-03
-**Success Criteria** (what must be TRUE):
-  1. Given a source file with `$()` calls, the optimizer produces separate segment modules with correct exported constants and deterministic names
-  2. The parent module is rewritten with QRL references (`qrl(() => import(...))`) replacing `$()` calls, including nested segments with correct parent-child relationships
-  3. Call forms are rewritten correctly (`component$` to `componentQrl`, `useTask$` to `useTaskQrl`, `sync$` to `_qrlSync`, etc.) with `/*#__PURE__*/` annotations
-  4. Import paths are rewritten (`@builder.io/qwik` to `@qwik.dev/core`, etc.) and necessary imports are added to both parent and segment modules without duplication
-  5. `transformModule()` function accepts the same options interface as the NAPI binding and returns transformed code, segment array, and diagnostics
-**Plans:** 5 plans
+### Phase 9: Untransformed Extraction
+**Goal**: All 11 untransformed snapshots pass (extraction not currently happening)
+**Depends on**: Phase 8
+**Snapshots**: example_3, example_immutable_analysis, example_qwik_react, example_renamed_exports, example_server_auth, should_not_auto_export_var_shadowed_in_catch, should_not_auto_export_var_shadowed_in_do_while, should_not_auto_export_var_shadowed_in_labeled_block, should_not_auto_export_var_shadowed_in_switch, should_not_inline_exported_var_into_segment, should_preserve_non_ident_explicit_captures
+**Success Criteria**:
+  1. All 11 snapshots pass parent + segment AST comparison
+  2. All previously-locked snapshots still pass
+  3. Zero regressions in unit tests
+**Plans**: TBD
 
-Plans:
-- [x] 02-01-PLAN.md — API types, dependency installation, and import path rewriting (EXTRACT-07, API-03, IMP-01..03)
-- [x] 02-02-PLAN.md — Context stack for naming and marker function detection (EXTRACT-01)
-- [x] 02-03-PLAN.md — Extraction engine, segment codegen, and call form rewriting (EXTRACT-02, EXTRACT-04, EXTRACT-07, IMP-05, CALL-01..05)
-- [x] 02-04-PLAN.md — Parent module rewriting with magic-string, nested segments, custom inlined functions (EXTRACT-03, EXTRACT-05, EXTRACT-06, IMP-04, IMP-06)
-- [x] 02-05-PLAN.md — transformModule() public API and snapshot batch validation (API-01, API-02)
+### Phase 10: Segment Identity Batch 1
+**Goal**: First 21 segment-identity snapshots pass (fix wrong names/hashes)
+**Depends on**: Phase 9
+**Snapshots**: example_8, example_build_server, example_capture_imports, example_capturing_fn_class, example_component_with_event_listeners_inside_loop, example_custom_inlined_functions, example_dev_mode, example_explicit_ext_no_transpile, example_explicit_ext_transpile, example_exports, example_functional_component_2, example_functional_component_capture_props, example_invalid_references, example_invalid_segment_expr1, example_jsx, example_jsx_import_source, example_jsx_listeners, example_multi_capture, example_noop_dev_mode, example_preserve_filenames_segments, example_prod_node
+**Success Criteria**:
+  1. All 21 snapshots pass parent + segment AST comparison
+  2. All previously-locked snapshots still pass
+  3. Zero regressions in unit tests
+**Plans**: TBD
 
-### Phase 3: Capture Analysis and Variable Migration
-**Goal**: The optimizer correctly identifies variables crossing `$()` boundaries, injects capture machinery, and migrates movable declarations
-**Depends on**: Phase 2
-**Requirements**: CAPT-01, CAPT-02, CAPT-03, CAPT-04, CAPT-05, CAPT-06, MIG-01, MIG-02, MIG-03, MIG-04, MIG-05
-**Success Criteria** (what must be TRUE):
-  1. Variables referenced inside a `$()` closure but declared outside are detected as captures, including edge cases with `var` hoisting and destructured bindings
-  2. Segment modules receive `_captures` array unpacking for captured variables, and parent modules receive `.w([captured1, captured2])` wrapping on QRL references
-  3. Variables used only by one segment are migrated into that segment's module; shared variables are re-exported from parent as `_auto_VARNAME`
-  4. Exported variables and declarations with side effects are never migrated
-  5. Capture metadata (captures, captureNames, paramNames) in segment output matches snapshot expectations exactly
-**Plans**: 3 plans
+### Phase 11: Segment Identity Batch 2
+**Goal**: Next 21 segment-identity snapshots pass
+**Depends on**: Phase 10
+**Snapshots**: example_qwik_conflict, example_qwik_router_client, example_reg_ctx_name_segments, example_strip_server_code, example_transpile_jsx_only, example_with_tagname, impure_template_fns, issue_150, issue_5008, lib_mode_fn_signal, should_convert_jsx_events, should_convert_passive_jsx_events, should_disable_multiple_rules_from_single_directive, should_disable_passive_warning_with_qwik_disable_next_line, should_extract_multiple_qrls_with_item_and_index, should_extract_multiple_qrls_with_item_and_index_and_capture_ref, should_extract_single_qrl, should_extract_single_qrl_2, should_extract_single_qrl_with_index, should_extract_single_qrl_with_nested_components, should_handle_dangerously_set_inner_html
+**Success Criteria**:
+  1. All 21 snapshots pass parent + segment AST comparison
+  2. All previously-locked snapshots still pass
+  3. Zero regressions in unit tests
+**Plans**: TBD
 
-Plans:
-- [x] 03-01-PLAN.md — Capture analysis module (CAPT-01, CAPT-04, CAPT-05, CAPT-06)
-- [x] 03-02-PLAN.md — Variable migration analysis module (MIG-01..05)
-- [x] 03-03-PLAN.md — Wire captures/migration into pipeline (CAPT-02, CAPT-03)
+### Phase 12: Segment Identity Batch 3
+**Goal**: Remaining 21 segment-identity snapshots pass
+**Depends on**: Phase 11
+**Snapshots**: should_ignore_preventdefault_with_passive, should_not_transform_events_on_non_elements, should_not_wrap_fn, should_only_disable_the_next_line, should_transform_block_scoped_variables_and_item_index_in_loop, should_transform_block_scoped_variables_in_loop, should_transform_component_with_normal_function, should_transform_event_names_without_jsx_transpile, should_transform_handlers_capturing_cross_scope_in_nested_loops, should_transform_loop_multiple_handler_with_different_captures, should_transform_multiple_block_scoped_variables_and_item_index_in_loop, should_transform_multiple_block_scoped_variables_in_loop, should_transform_multiple_event_handlers, should_transform_multiple_event_handlers_case2, should_transform_nested_loops, should_transform_nested_loops_handler_captures_only_inner_scope, should_transform_passive_event_names_without_jsx_transpile, should_transform_same_element_one_handler_with_captures_one_without, should_transform_three_nested_loops_handler_captures_outer_only, should_transform_two_handlers_capturing_different_block_scope_in_loop, should_wrap_prop_from_destructured_array
+**Success Criteria**:
+  1. All 21 snapshots pass parent + segment AST comparison
+  2. All previously-locked snapshots still pass
+  3. Zero regressions in unit tests
+**Plans**: TBD
 
-### Phase 4: JSX, Signals, and Event Handlers
-**Goal**: JSX elements are transformed to optimized `_jsxSorted` calls with signal-aware prop classification, event handler extraction, and loop-context hoisting
-**Depends on**: Phase 3
-**Requirements**: JSX-01, JSX-02, JSX-03, JSX-04, JSX-05, JSX-06, SIG-01, SIG-02, SIG-03, SIG-04, SIG-05, EVT-01, EVT-02, EVT-03, EVT-04, EVT-05, EVT-06, BIND-01, BIND-02, BIND-03, LOOP-01, LOOP-02, LOOP-03, LOOP-04, LOOP-05
-**Success Criteria** (what must be TRUE):
-  1. JSX elements produce `_jsxSorted(tag, varProps, constProps, children, flags, key)` calls with correct prop classification (signals/stores in varProps, literals in constProps) and deterministic keys
-  2. Signal expressions in JSX props are wrapped with `_wrapProp` or generate `_fnSignal` with hoisted `_hf` module-scope functions as appropriate
-  3. Event handlers (`onClick$`, `document:onFocus$`, `window:onClick$`, etc.) are extracted as segments and transformed to `q-e:click`, `q-d:focus`, `q-w:click` in constProps
-  4. Event handlers inside loops have their `.w([captures])` hoisted above the loop, with `q:p`/`q:ps` injection and positional parameter padding
-  5. `bind:value` and `bind:checked` produce value prop + `q-e:input` handler with `inlinedQrl`
-**Plans**: 7 plans
+### Phase 13: Segment Codegen Batch 1
+**Goal**: First 25 segment-codegen snapshots pass (segment found by name but code wrong)
+**Depends on**: Phase 12
+**Snapshots**: component_level_self_referential_qrl, destructure_args_colon_props, destructure_args_colon_props2, destructure_args_colon_props3, destructure_args_inline_cmp_block_stmt, destructure_args_inline_cmp_block_stmt2, destructure_args_inline_cmp_expr_stmt, example_10, example_11, example_7, example_9, example_class_name, example_dead_code, example_default_export, example_drop_side_effects, example_export_issue, example_getter_generation, example_import_assertion, example_jsx_keyed, example_jsx_keyed_dev, example_lightweight_functional, example_manual_chunks, example_of_synchronous_qrl, example_segment_variable_migration, example_self_referential_component_migration
+**Success Criteria**:
+  1. All 25 snapshots pass parent + segment AST comparison
+  2. All previously-locked snapshots still pass
+  3. Zero regressions in unit tests
+**Plans**: TBD
 
-Plans:
-- [x] 04-01-PLAN.md — JSX element transformation with prop classification, flags, keys, spreads, fragments (JSX-01..06)
-- [x] 04-02-PLAN.md — Signal analysis with _wrapProp, _fnSignal, and hoisted functions (SIG-01..05)
-- [x] 04-03-PLAN.md — Event handler naming and bind syntax desugaring (EVT-01..06, BIND-01..03)
-- [x] 04-04-PLAN.md — Loop detection, .w() hoisting, q:p/q:ps injection, parameter padding (LOOP-01..05)
-- [x] 04-05-PLAN.md — Pipeline integration, type updates, and JSX snapshot validation (all Phase 4 reqs)
-- [x] 04-06-PLAN.md — Gap closure: wire signal, event, and bind modules into JSX prop processing (SIG-01..05, EVT-01..06, BIND-01..03)
-- [x] 04-07-PLAN.md — Gap closure: wire loop hoisting into JSX transform pipeline (LOOP-01..05)
+### Phase 14: Segment Codegen Batch 2
+**Goal**: Next 25 segment-codegen snapshots pass
+**Depends on**: Phase 13
+**Snapshots**: example_spread_jsx, example_strip_exports_used, example_ts_enums, example_ts_enums_issue_1341, example_ts_enums_no_transpile, example_use_client_effect, example_use_server_mount, example_with_style, hmr, hoisted_fn_signal_in_loop, issue_7216_add_test, issue_964, moves_captures_when_possible, rename_builder_io, root_level_self_referential_qrl, should_convert_rest_props, should_destructure_args, should_disable_qwik_transform_error_by_code, should_ignore_passive_jsx_events_without_handlers, should_make_component_jsx_split_with_bind, should_mark_props_as_var_props_for_inner_cmp, should_merge_attributes_with_spread_props, should_merge_attributes_with_spread_props_before_and_after, should_merge_bind_checked_and_on_input, should_merge_bind_value_and_on_input
+**Success Criteria**:
+  1. All 25 snapshots pass parent + segment AST comparison
+  2. All previously-locked snapshots still pass
+  3. Zero regressions in unit tests
+**Plans**: TBD
 
-### Phase 5: Entry Strategies and Build Modes
-**Goal**: The optimizer supports all entry strategies and build mode configurations that Qwik's Vite plugin can request
-**Depends on**: Phase 4
-**Requirements**: ENT-01, ENT-02, ENT-03, ENT-04, MODE-01, MODE-02, MODE-03, MODE-04, MODE-05, MODE-06, MODE-07
-**Success Criteria** (what must be TRUE):
-  1. Smart mode (default) produces each segment as a separate file with dynamic import references
-  2. Inline/hoist mode produces segments inlined using `_noopQrl` + `.s()` pattern instead of separate files
-  3. Dev mode generates `qrlDEV()` with file/line/displayName metadata, JSX source info, and `_useHmr(filePath)` in component segments
-  4. Server strip mode replaces server-only code with null exports; client strip mode does the same for client-only code; strip exports mode replaces specified exports with throw statements
-  5. `isServer`, `isBrowser`, and `isDev` constants are replaced with their correct boolean values based on configuration
-**Plans**: 3 plans
+### Phase 15: Segment Codegen Batch 3
+**Goal**: Remaining 26 segment-codegen snapshots pass
+**Depends on**: Phase 14
+**Snapshots**: should_merge_on_input_and_bind_checked, should_merge_on_input_and_bind_value, should_migrate_destructured_binding_with_imported_dependency, should_move_bind_value_to_var_props, should_move_props_related_to_iteration_variables_to_var_props, should_not_transform_bind_checked_in_var_props_for_jsx_split, should_not_transform_bind_value_in_var_props_for_jsx_split, should_not_wrap_ternary_function_operator_with_fn, should_not_wrap_var_template_string, should_split_spread_props, should_split_spread_props_with_additional_prop, should_split_spread_props_with_additional_prop2, should_split_spread_props_with_additional_prop3, should_split_spread_props_with_additional_prop4, should_split_spread_props_with_additional_prop5, should_transform_handler_in_for_of_loop, should_transform_qrls_in_ternary_expression, should_work, should_wrap_inner_inline_component_prop, should_wrap_logical_expression_in_template, should_wrap_object_with_fn_signal, should_wrap_store_expression, should_wrap_type_asserted_variables_in_template, support_windows_paths, ternary_prop, transform_qrl_in_regular_prop
+**Success Criteria**:
+  1. All 26 snapshots pass parent + segment AST comparison
+  2. All previously-locked snapshots still pass
+  3. Zero regressions in unit tests
+**Plans**: TBD
 
-Plans:
-- [x] 05-01-PLAN.md — Entry strategy metadata, dev mode qrlDEV/JSX source info/_useHmr (ENT-01, ENT-03, ENT-04, MODE-01, MODE-02, MODE-03)
-- [x] 05-02-PLAN.md — Inline/hoist strategy and server/client strip modes (ENT-02, MODE-04, MODE-05)
-- [x] 05-03-PLAN.md — Strip exports and isServer/isBrowser/isDev const replacement (MODE-06, MODE-07)
-
-### Phase 6: Diagnostics and Convergence
-**Goal**: The optimizer emits correct diagnostics for invalid code patterns and passes all remaining snapshot tests
-**Depends on**: Phase 5
-**Requirements**: DIAG-01, DIAG-02, DIAG-03, DIAG-04
-**Success Criteria** (what must be TRUE):
-  1. C02 FunctionReference error is emitted when functions or classes cross a `$()` boundary
-  2. C03 CanNotCapture and C05 MissingQrlImplementation errors are emitted for their respective invalid patterns
-  3. `@qwik-disable-next-line` comment directive suppresses the next diagnostic
-  4. All ~180 snapshot tests pass via AST-based comparison with no regressions from previously locked batches
-
-**Plans**: 3 plans
-
-Plans:
-- [x] 06-01-PLAN.md — Diagnostic emission (C02, C03, C05, preventdefault-passive-check) and @qwik-disable-next-line suppression (DIAG-01..04)
-- [x] 06-02-PLAN.md — Convergence infrastructure: snapshot options map, import cleanup, explicitExtensions (DIAG-04)
-- [x] 06-03-PLAN.md — Final convergence: TS stripping, edge case fixes, 209/209 snapshot validation (DIAG-01..04)
+### Phase 16: Final Convergence
+**Goal**: 209/209 snapshots pass, full validation
+**Depends on**: Phase 15
+**Success Criteria**:
+  1. convergence.test.ts reports 209/209 (or 208/208 excluding no-input relative_paths)
+  2. Zero regressions in all unit tests
+  3. `npx tsc --noEmit` clean
+**Plans**: TBD
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
-
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 1. Test Infrastructure and Hash Verification | 3/3 | Complete | 2026-04-10 |
-| 2. Core Extraction Pipeline | 5/5 | Complete | 2026-04-10 |
-| 3. Capture Analysis and Variable Migration | 3/3 | Complete | 2026-04-10 |
-| 4. JSX, Signals, and Event Handlers | 7/7 | Complete | 2026-04-10 |
-| 5. Entry Strategies and Build Modes | 0/3 | Planning complete | - |
-| 6. Diagnostics and Convergence | 0/3 | Planning complete | - |
+| 7. Parent Rewrite Batch 1 | 0/TBD | Not started | - |
+| 8. Parent Rewrite Batch 2 | 0/TBD | Not started | - |
+| 9. Untransformed Extraction | 0/TBD | Not started | - |
+| 10. Segment Identity Batch 1 | 0/TBD | Not started | - |
+| 11. Segment Identity Batch 2 | 0/TBD | Not started | - |
+| 12. Segment Identity Batch 3 | 0/TBD | Not started | - |
+| 13. Segment Codegen Batch 1 | 0/TBD | Not started | - |
+| 14. Segment Codegen Batch 2 | 0/TBD | Not started | - |
+| 15. Segment Codegen Batch 3 | 0/TBD | Not started | - |
+| 16. Final Convergence | 0/TBD | Not started | - |

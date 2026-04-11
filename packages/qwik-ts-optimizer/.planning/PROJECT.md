@@ -100,5 +100,13 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope -- reasons still valid?
 4. Update Context with current state
 
+## Current Milestone: v2.0 Snapshot Convergence
+
+**Goal:** Get all 209 snapshot tests passing via AST comparison with hard locking — no regressions ever.
+
+**Starting point:** 10/209 fully passing, 82/209 parent modules pass, 471 unit tests green.
+
+**Strategy:** Fix by failure family (parent-rewrite → untransformed → segment-identity → segment-codegen), ~20 snapshots per phase, hard lock after each phase.
+
 ---
-*Last updated: 2026-04-10 after Phase 2 completion*
+*Last updated: 2026-04-10 after v2.0 milestone start*

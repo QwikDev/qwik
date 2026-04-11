@@ -119,6 +119,475 @@ function computeParentModulePath(relPath: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Segment body const replacement and DCE
+// ---------------------------------------------------------------------------
+
+/**
+ * Qwik import sources that can provide isServer/isBrowser/isDev constants.
+ */
+const CONST_IMPORT_SOURCES = [
+  '@qwik.dev/core',
+  '@qwik.dev/core/build',
+  '@builder.io/qwik',
+  '@builder.io/qwik/build',
+  '@builder.io/qwik-city/build',
+];
+
+/**
+ * Apply isServer/isBrowser const replacement to segment code.
+ *
+ * Parses the segment code to find imports of isServer/isBrowser from Qwik
+ * packages, then replaces all references with boolean literals.
+ */
+function applySegmentConstReplacement(code: string, filename: string, isServer?: boolean): string {
+  if (isServer === undefined) return code;
+
+  let parsed;
+  try {
+    parsed = parseSync(filename, code);
+  } catch {
+    return code;
+  }
+
+  const program = parsed.program;
+
+  // Find const imports: isServer, isBrowser, isDev from Qwik sources
+  // Map: localName -> replacement value
+  const replacements = new Map<string, string>();
+  const importLocalNames = new Set<string>();
+
+  for (const node of program.body) {
+    if (node.type !== 'ImportDeclaration') continue;
+    const source = node.source?.value ?? '';
+    if (!CONST_IMPORT_SOURCES.includes(source)) continue;
+
+    for (const spec of node.specifiers || []) {
+      if (spec.type !== 'ImportSpecifier') continue;
+      const importedName = spec.imported?.name ?? spec.local?.name;
+      const localName = spec.local?.name;
+      if (!localName) continue;
+
+      importLocalNames.add(localName);
+
+      if (importedName === 'isServer') {
+        replacements.set(localName, String(isServer));
+      } else if (importedName === 'isBrowser') {
+        replacements.set(localName, String(!isServer));
+      }
+    }
+  }
+
+  if (replacements.size === 0) return code;
+
+  // Apply replacements using MagicString for precise text surgery
+  const s = new MagicString(code);
+
+  // Walk AST to replace identifier references
+  const importRanges = new Set<string>();
+  for (const node of program.body) {
+    if (node.type === 'ImportDeclaration') {
+      for (const spec of node.specifiers || []) {
+        importRanges.add(`${spec.local.start}:${spec.local.end}`);
+      }
+    }
+  }
+
+  walk(program, {
+    enter(node: any, parent: any) {
+      if (node.type !== 'Identifier') return;
+      const replacement = replacements.get(node.name);
+      if (replacement === undefined) return;
+
+      // Skip import declaration identifiers
+      if (importRanges.has(`${node.start}:${node.end}`)) return;
+      // Skip property access (obj.isServer)
+      if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed) return;
+      // Skip variable declarator id
+      if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
+      // Skip import specifier imported name
+      if (parent?.type === 'ImportSpecifier' && parent.imported === node) return;
+
+      s.overwrite(node.start, node.end, replacement);
+    },
+  });
+
+  return s.toString();
+}
+
+/**
+ * Apply dead code elimination to segment code.
+ *
+ * Handles:
+ * - `if (false) { ... }` -> removed entirely
+ * - `if (false) { ... } else { ... }` -> keeps else body
+ * - `if (true) { ... }` -> keeps body, drops condition
+ * - `if (true) { ... } else { ... }` -> keeps if body, drops else
+ * - Nested braces handled correctly via brace depth tracking
+ */
+function applySegmentDCE(code: string): string {
+  // Process if(false) and if(true) patterns iteratively until no more changes
+  let result = code;
+  let changed = true;
+  let iterations = 0;
+
+  while (changed && iterations < 10) {
+    changed = false;
+    iterations++;
+
+    // Match if(false) or if(true) with proper brace tracking
+    const ifPattern = /\bif\s*\(\s*(true|false)\s*\)\s*\{/g;
+    let match;
+    const replacements: Array<{ start: number; end: number; replacement: string }> = [];
+
+    while ((match = ifPattern.exec(result)) !== null) {
+      const condValue = match[1] === 'true';
+      const braceStart = match.index + match[0].length - 1; // position of opening {
+
+      // Find matching closing brace
+      const closeIdx = findMatchingBrace(result, braceStart);
+      if (closeIdx === -1) continue;
+
+      const ifBody = result.slice(braceStart + 1, closeIdx);
+
+      // Check for else clause
+      let elseBody: string | null = null;
+      let totalEnd = closeIdx + 1;
+      const afterClose = result.slice(closeIdx + 1).match(/^\s*else\s*\{/);
+      if (afterClose) {
+        const elseBraceStart = closeIdx + 1 + afterClose[0].length - 1;
+        const elseCloseIdx = findMatchingBrace(result, elseBraceStart);
+        if (elseCloseIdx !== -1) {
+          elseBody = result.slice(elseBraceStart + 1, elseCloseIdx);
+          totalEnd = elseCloseIdx + 1;
+        }
+      }
+
+      let replacement: string;
+      if (condValue) {
+        // if (true) { body } -> body
+        // if (true) { body } else { ... } -> body
+        replacement = ifBody;
+      } else {
+        // if (false) { ... } -> removed
+        // if (false) { ... } else { body } -> body
+        replacement = elseBody ?? '';
+      }
+
+      replacements.push({ start: match.index, end: totalEnd, replacement: replacement.trim() });
+    }
+
+    // Apply replacements in reverse order to preserve positions
+    for (let i = replacements.length - 1; i >= 0; i--) {
+      const r = replacements[i];
+      result = result.slice(0, r.start) + r.replacement + result.slice(r.end);
+      changed = true;
+    }
+  }
+
+  // Simplify logical AND/OR expressions with boolean literals
+  // `true && expr` -> `expr`
+  // `false && expr` -> `false`
+  // `true || expr` -> `true`
+  // `false || expr` -> `expr`
+  result = result.replace(/\btrue\s*&&\s*/g, '');
+  result = result.replace(/\bfalse\s*\|\|\s*/g, '');
+
+  // `false && expr` needs to replace the whole expression with `false`
+  // This is trickier because we need to find the end of the expression.
+  // For JSX contexts like `{false && <p>...</p>}`, use brace tracking.
+  result = simplifyFalseAndExpressions(result);
+
+  // Clean up blank lines left by DCE
+  result = result.replace(/\n\s*\n\s*\n/g, '\n\n');
+
+  return result;
+}
+
+/**
+ * Find the matching closing brace for an opening brace, handling nesting.
+ */
+function findMatchingBrace(text: string, openPos: number): number {
+  let depth = 1;
+  let inString: string | null = null;
+  let i = openPos + 1;
+
+  while (i < text.length && depth > 0) {
+    const ch = text[i];
+
+    // Track string literals
+    if (inString) {
+      if (ch === inString && text[i - 1] !== '\\') {
+        inString = null;
+      }
+      i++;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') {
+      inString = ch;
+      i++;
+      continue;
+    }
+
+    if (ch === '{') depth++;
+    else if (ch === '}') depth--;
+
+    if (depth === 0) return i;
+    i++;
+  }
+  return -1;
+}
+
+/**
+ * Simplify `false && expr` patterns in code.
+ *
+ * In JSX contexts like `{false && <p>...</p>}`, replaces the entire
+ * expression with just `false`. Uses brace/angle tracking for JSX.
+ */
+function simplifyFalseAndExpressions(code: string): string {
+  const pattern = /\bfalse\s*&&\s*/g;
+  let match;
+  const replacements: Array<{ start: number; end: number; replacement: string }> = [];
+
+  while ((match = pattern.exec(code)) !== null) {
+    const exprStart = match.index + match[0].length;
+    // Find the end of the right-hand expression
+    const exprEnd = findExpressionEnd(code, exprStart);
+    if (exprEnd > exprStart) {
+      replacements.push({ start: match.index, end: exprEnd, replacement: 'false' });
+    }
+  }
+
+  if (replacements.length === 0) return code;
+
+  let result = code;
+  for (let i = replacements.length - 1; i >= 0; i--) {
+    const r = replacements[i];
+    result = result.slice(0, r.start) + r.replacement + result.slice(r.end);
+  }
+  return result;
+}
+
+/**
+ * Find the end of a JSX/JS expression starting at the given position.
+ * Handles JSX tags, parentheses, function calls, etc.
+ */
+function findExpressionEnd(code: string, start: number): number {
+  let i = start;
+  let depth = 0; // tracks <> and () and {} nesting
+  let inString: string | null = null;
+  let angleBraceDepth = 0;
+  let parenDepth = 0;
+  let curlyDepth = 0;
+
+  while (i < code.length) {
+    const ch = code[i];
+
+    if (inString) {
+      if (ch === inString && code[i - 1] !== '\\') inString = null;
+      i++;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') { inString = ch; i++; continue; }
+
+    if (ch === '(') { parenDepth++; i++; continue; }
+    if (ch === ')') {
+      if (parenDepth === 0) return i;
+      parenDepth--; i++; continue;
+    }
+    if (ch === '{') { curlyDepth++; i++; continue; }
+    if (ch === '}') {
+      if (curlyDepth === 0) return i;
+      curlyDepth--; i++; continue;
+    }
+    if (ch === '<') {
+      // Check for JSX closing tag or self-closing
+      if (code[i + 1] === '/') {
+        // Closing tag: find matching >
+        const closeEnd = code.indexOf('>', i);
+        if (closeEnd >= 0 && angleBraceDepth > 0) {
+          angleBraceDepth--;
+          i = closeEnd + 1;
+          if (angleBraceDepth === 0 && parenDepth === 0 && curlyDepth === 0) return i;
+          continue;
+        }
+      }
+      // Opening tag
+      angleBraceDepth++;
+      // Scan to end of opening tag
+      let j = i + 1;
+      let tagCurly = 0;
+      while (j < code.length) {
+        if (code[j] === '{') tagCurly++;
+        else if (code[j] === '}') tagCurly--;
+        else if (code[j] === '>' && tagCurly === 0) {
+          // Check for self-closing />
+          if (code[j - 1] === '/') {
+            angleBraceDepth--;
+            i = j + 1;
+            if (angleBraceDepth === 0 && parenDepth === 0 && curlyDepth === 0) return i;
+          } else {
+            i = j + 1;
+          }
+          break;
+        }
+        j++;
+      }
+      if (j >= code.length) return code.length;
+      continue;
+    }
+
+    // At top level (no nesting), stop at expression-ending characters
+    if (angleBraceDepth === 0 && parenDepth === 0 && curlyDepth === 0) {
+      if (ch === '\n' || ch === ';' || ch === ',') return i;
+    }
+
+    i++;
+  }
+  return i;
+}
+
+/**
+ * Apply side-effect simplification to segment code.
+ *
+ * Transforms unused variable declarations in segment bodies:
+ * - `const x = expr.prop;` -> `expr.prop;` (member expression, x unused)
+ * - `const x = a + b;` -> `a, b;` (binary expression, x unused -- extract operand refs)
+ * - `const x = fn();` -> `fn();` (call expression, x unused)
+ *
+ * Only applied to the export body section, not to imports or QRL declarations.
+ */
+function applySegmentSideEffectSimplification(code: string, filename: string): string {
+  // Find the export line to only process the body
+  const exportMatch = code.match(/^export const \w+ = /m);
+  if (!exportMatch) return code;
+
+  const exportStart = code.indexOf(exportMatch[0]);
+  const beforeExport = code.slice(0, exportStart);
+  const exportSection = code.slice(exportStart);
+
+  // Parse the body to find unused variable declarations
+  let parsed;
+  try {
+    parsed = parseSync(filename, exportSection);
+  } catch {
+    return code;
+  }
+
+  // Collect all identifier references in the body
+  const allRefs = new Map<string, number>();
+  const varDecls: Array<{
+    name: string;
+    initStart: number;
+    initEnd: number;
+    declStart: number;
+    declEnd: number;
+    initType: string;
+    initText: string;
+  }> = [];
+
+  walk(parsed.program, {
+    enter(node: any, parent: any) {
+      if (node.type === 'Identifier' && node.name) {
+        // Skip if this is a variable declarator id
+        if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
+        // Skip import specifiers
+        if (parent?.type === 'ImportSpecifier') return;
+
+        allRefs.set(node.name, (allRefs.get(node.name) ?? 0) + 1);
+      }
+
+      // Collect const variable declarations
+      if (node.type === 'VariableDeclaration' && node.kind === 'const') {
+        for (const declarator of node.declarations) {
+          if (declarator.id?.type === 'Identifier' && declarator.init) {
+            // Get the containing statement
+            const stmtNode = node;
+            if (declarator.declarations?.length > 1) continue; // skip multi-declarator
+
+            varDecls.push({
+              name: declarator.id.name,
+              initStart: declarator.init.start,
+              initEnd: declarator.init.end,
+              declStart: stmtNode.start,
+              declEnd: stmtNode.end,
+              initType: declarator.init.type,
+              initText: exportSection.slice(declarator.init.start, declarator.init.end),
+            });
+          }
+        }
+      }
+    },
+  });
+
+  // Find truly unused variable declarations (name referenced 0 times outside its declaration)
+  const replacements: Array<{ start: number; end: number; replacement: string }> = [];
+
+  for (const decl of varDecls) {
+    const refCount = allRefs.get(decl.name) ?? 0;
+    if (refCount > 0) continue; // Variable is referenced somewhere
+
+    // Skip class declarations and function declarations
+    if (decl.initType === 'ClassExpression' || decl.initType === 'FunctionExpression' ||
+        decl.initType === 'ArrowFunctionExpression') continue;
+
+    // Skip the export const symbolName declaration itself
+    if (exportSection.includes(`export const ${decl.name} =`)) continue;
+
+    let replacement: string;
+
+    if (decl.initType === 'MemberExpression' || decl.initType === 'CallExpression' ||
+        decl.initType === 'Identifier') {
+      // Simple expression: drop const, keep as expression statement
+      replacement = decl.initText + ';';
+    } else if (decl.initType === 'BinaryExpression') {
+      // Binary expression: extract unique identifier operands as comma expression
+      const operandIds = extractBinaryOperandIdentifiers(decl.initText);
+      if (operandIds.length > 0) {
+        replacement = operandIds.join(', ') + ';';
+      } else {
+        replacement = decl.initText + ';';
+      }
+    } else {
+      continue; // Don't simplify other types
+    }
+
+    replacements.push({ start: decl.declStart, end: decl.declEnd, replacement });
+  }
+
+  if (replacements.length === 0) return code;
+
+  // Apply replacements in reverse order
+  let result = exportSection;
+  replacements.sort((a, b) => b.start - a.start);
+  for (const r of replacements) {
+    result = result.slice(0, r.start) + r.replacement + result.slice(r.end);
+  }
+
+  return beforeExport + result;
+}
+
+/**
+ * Extract unique top-level identifier references from a binary expression text.
+ * e.g., "ident1 + ident3" -> ["ident1", "ident3"]
+ */
+function extractBinaryOperandIdentifiers(text: string): string[] {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  const idRegex = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b/g;
+  let match;
+  while ((match = idRegex.exec(text)) !== null) {
+    const name = match[1];
+    // Skip keywords
+    if (['const', 'let', 'var', 'new', 'typeof', 'void', 'delete', 'true', 'false', 'null', 'undefined'].includes(name)) continue;
+    if (!seen.has(name)) {
+      seen.add(name);
+      ids.push(name);
+    }
+  }
+  return ids;
+}
+
+// ---------------------------------------------------------------------------
 // Import cleanup
 // ---------------------------------------------------------------------------
 
@@ -1088,9 +1557,13 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       options.minify,
     );
 
-    // 3b. Import cleanup: remove non-Qwik imports whose identifiers are no longer
+    // 3b. Apply DCE to parent module (after const replacement turned isServer/isBrowser to true/false)
+    let parentCode = parentResult.code;
+    parentCode = applySegmentDCE(parentCode);
+
+    // 3c. Import cleanup: remove non-Qwik imports whose identifiers are no longer
     // referenced in the parent module after extraction moved their consumers to segments.
-    const cleanedCode = removeUnusedImports(parentResult.code, relPath, options.transpileJsx);
+    const cleanedCode = removeUnusedImports(parentCode, relPath, options.transpileJsx);
 
     // 4. Build parent TransformModule
     const parentModule: TransformModule = {
@@ -1537,9 +2010,19 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         }
       }
 
-      // Strip if(false) blocks from segment bodies (matches Rust optimizer behavior)
+      // Apply isServer/isBrowser const replacement to segment bodies
+      if (!stripped && options.isServer !== undefined) {
+        segmentCode = applySegmentConstReplacement(segmentCode, ext.canonicalFilename + ext.extension, options.isServer);
+      }
+
+      // Apply dead code elimination (handles if(false), if(true), nested braces)
       if (!stripped) {
-        segmentCode = segmentCode.replace(/\bif\s*\(\s*false\s*\)\s*\{[^}]*\}/g, '');
+        segmentCode = applySegmentDCE(segmentCode);
+      }
+
+      // Apply side-effect simplification (unused variable bindings)
+      if (!stripped) {
+        segmentCode = applySegmentSideEffectSimplification(segmentCode, ext.canonicalFilename + ext.extension);
       }
 
       // Clean up unused imports in segment code (after dead code elimination and

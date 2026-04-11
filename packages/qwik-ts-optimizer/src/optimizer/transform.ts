@@ -43,6 +43,9 @@ import { transformEventPropName, isEventProp, collectPassiveDirectives } from '.
 import { transformBindProp, isBindProp } from './bind-transform.js';
 import { detectLoopContext, findEnclosingLoop, analyzeLoopHandler, generateParamPadding, type LoopContext } from './loop-hoisting.js';
 
+// Phase 13: TS stripping for segment code
+import { transformSync as oxcTransformSync } from 'oxc-transform';
+
 // Phase 6: Diagnostics
 import {
   emitC02,
@@ -1028,6 +1031,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       : undefined;
 
     const shouldTranspileJsx = options.transpileJsx !== false;
+    const shouldTranspileTs = options.transpileTs === true;
 
     // When JSX will be transpiled, downgrade extensions on extraction results
     // so that QRL declarations in parent and segments reference the correct file extension.
@@ -1370,6 +1374,23 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // removed references to original identifiers like $)
       if (!stripped && nestedCallSites.length > 0) {
         segmentCode = removeUnusedImports(segmentCode, ext.canonicalFilename + ext.extension);
+      }
+
+      // Strip TS types from segment code when transpileTs is enabled
+      if (!stripped && shouldTranspileTs) {
+        const tsStripOptions: Record<string, any> = { typescript: { onlyRemoveTypeImports: false } };
+        if (!shouldTranspileJsx) {
+          tsStripOptions.jsx = 'preserve';
+        }
+        const tsStripped = oxcTransformSync(ext.canonicalFilename + ext.extension, segmentCode, tsStripOptions);
+        if (tsStripped.code) {
+          segmentCode = tsStripped.code;
+        }
+      }
+
+      // Strip if(false) blocks from segment bodies (matches Rust optimizer behavior)
+      if (!stripped) {
+        segmentCode = segmentCode.replace(/\bif\s*\(\s*false\s*\)\s*\{[^}]*\}/g, '');
       }
 
       // 2d. Build segment metadata with captureNames and paramNames

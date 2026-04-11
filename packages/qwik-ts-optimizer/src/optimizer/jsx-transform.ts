@@ -705,8 +705,9 @@ function processProps(
         const eventKey = propName;  // e.g., "q-e:input"
         const existing = bindHandlers.get(eventKey);
         if (existing) {
-          // Bind handler was already registered -- merge: QRL first, then bind
-          bindHandlers.set(eventKey, `[${valueText}, ${existing}]`);
+          // Bind handler was already registered -- merge preserving attribute order:
+          // bind came first, QRL second -> [bind, qrl]
+          bindHandlers.set(eventKey, `[${existing}, ${valueText}]`);
         } else {
           // Store QRL for potential merge with later bind handler
           bindHandlers.set(eventKey, valueText);

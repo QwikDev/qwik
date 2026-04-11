@@ -1497,7 +1497,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
             effectiveCaptureInfo,
             (shouldTranspileJsx && (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx))
-              ? { enableJsx: true, importedNames, paramNames: new Set(ext.paramNames) }
+              ? { enableJsx: true, importedNames }
               : undefined,
             nestedCallSites.length > 0 ? nestedCallSites : undefined,
             importContext,

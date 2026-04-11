@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Reference-Guided Convergence
-status: verifying
-stopped_at: Completed 18-02-PLAN.md
-last_updated: "2026-04-11T19:48:02.210Z"
+status: executing
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-04-11T20:54:35.720Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_plans: 6
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-11)
 
 **Core value:** Runtime-identical output to SWC optimizer -- same segments, captures, hashes, QRL structure
-**Current focus:** Phase 18 — Capture Classification Convergence
+**Current focus:** Phase 19 — JSX Transform Convergence
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 19 (JSX Transform Convergence) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 17 P02 | 4min | 2 tasks | 2 files |
 | Phase 18 P01 | 25min | 1 tasks | 2 files |
 | Phase 18 P02 | 12min | 1 tasks | 2 files |
+| Phase 19 P01 | 18min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Recent decisions affecting current work:
 - [Phase 18]: Non-loop captures sorted alphabetically; loop captures keep declaration-position sort to avoid regressions
 - [Phase 18]: q:ps placed in varProps (2nd arg), event handlers in constProps (3rd arg) per SWC _jsxSorted convention
 - [Phase 18]: Explicit captures from inlinedQrl array args populate captureNames with identifiers only; skipCaptureInjection flag separates import filtering from _captures unpacking
+- [Phase 19]: Kept computeFlags !inLoop || !hasVarProps -- proper static_listeners needs const_idents tracking
+- [Phase 19]: classifyProp aligned with SWC is_const.rs: member access and function calls always var
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T19:40:30.594Z
-Stopped at: Completed 18-02-PLAN.md
+Last session: 2026-04-11T20:54:35.718Z
+Stopped at: Completed 19-01-PLAN.md
 Resume file: None

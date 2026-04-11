@@ -122,10 +122,10 @@ Plans:
   3. Spread-prop elements produce correct _jsxSplit with _getVarProps/_getConstProps matching snapshot output
   4. _wrapProp and _fnSignal calls appear at correct positions in both parent and segment output
   5. All previously-passing snapshots still pass (zero regressions)
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 19-01-PLAN.md -- Fix flags bitmask swap and align classifyProp with SWC is_const
+- [x] 19-01-PLAN.md -- Fix flags bitmask swap and align classifyProp with SWC is_const
 - [ ] 19-02-PLAN.md -- Add _createElement fallback for spread+key and fix signal wrapping edge cases
 
 ### Phase 20: Migration and Sync Convergence
@@ -159,6 +159,6 @@ Phases execute in numeric order: 17 -> 18 -> 19 -> 20 -> 21
 |-------|---------------|--------|-----------|
 | 17. Inline/Hoist Strategy Convergence | 2/2 | Complete    | 2026-04-11 |
 | 18. Capture Classification Convergence | 2/2 | Complete    | 2026-04-11 |
-| 19. JSX Transform Convergence | 0/2 | In progress | - |
+| 19. JSX Transform Convergence | 1/2 | In Progress|  |
 | 20. Migration and Sync Convergence | 0/TBD | Not started | - |
 | 21. Convergence Gate | 0/TBD | Not started | - |

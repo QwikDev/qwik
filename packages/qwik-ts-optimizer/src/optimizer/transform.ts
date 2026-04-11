@@ -313,20 +313,36 @@ function applySegmentDCE(code: string): string {
 
 /**
  * Check if a position in source text is inside a string literal.
- * Scans from the start counting unescaped quote characters.
+ * Handles escaped quotes (including double-escaped \\") and template expressions.
  */
 function isInsideString(text: string, offset: number): boolean {
   let inSingle = false;
   let inDouble = false;
   let inTemplate = false;
+  let templateDepth = 0; // track ${...} nesting inside template literals
   for (let i = 0; i < offset; i++) {
     const ch = text[i];
-    if (text[i - 1] === '\\') continue; // skip escaped chars
+    // Count consecutive backslashes before this char to handle \\, \\\\, etc.
+    if (ch === '\\' && (inSingle || inDouble || (inTemplate && templateDepth === 0))) {
+      i++; // skip the next character (it's escaped)
+      continue;
+    }
+    if (inTemplate && templateDepth > 0) {
+      // Inside a ${...} expression — track brace nesting
+      if (ch === '{') templateDepth++;
+      else if (ch === '}') templateDepth--;
+      continue;
+    }
+    if (inTemplate && ch === '$' && text[i + 1] === '{') {
+      templateDepth = 1;
+      i++; // skip the '{'
+      continue;
+    }
     if (ch === "'" && !inDouble && !inTemplate) inSingle = !inSingle;
     else if (ch === '"' && !inSingle && !inTemplate) inDouble = !inDouble;
     else if (ch === '`' && !inSingle && !inDouble) inTemplate = !inTemplate;
   }
-  return inSingle || inDouble || inTemplate;
+  return inSingle || inDouble || (inTemplate && templateDepth === 0);
 }
 
 /**

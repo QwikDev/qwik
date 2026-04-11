@@ -53,7 +53,7 @@ Plans:
 - [x] 08-02-PLAN.md — No-extraction passthrough, inlinedQrl(null) detection, hoist-to-const for inline strategy
 - [x] 08-03-PLAN.md — Signal wrapping in JSX children + _rawProps destructuring optimization
 - [x] 08-04-PLAN.md — regCtxName / _regSymbol support for server-tagged extractions
-- [ ] 08-05-PLAN.md — Remaining snapshot fixes and final regression sweep
+- [x] 08-05-PLAN.md — Remaining snapshot fixes and final regression sweep
 
 ### Phase 9: Untransformed Extraction
 **Goal**: All 11 untransformed snapshots pass (extraction not currently happening)

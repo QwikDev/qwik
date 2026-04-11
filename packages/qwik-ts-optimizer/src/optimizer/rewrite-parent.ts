@@ -1082,8 +1082,10 @@ export function rewriteParentModule(
 
         // For bare $() extractions on unused bindings, mark them for inline QRL
         // (skip separate QRL const declaration, inline the qrl() call directly)
+        // BUT only if the $() call IS the entire init expression -- when it's wrapped
+        // in another call like component($(...)), the QRL should still be hoisted.
         for (const ext of matchingExtractions) {
-          if (ext.isBare) {
+          if (ext.isBare && ext.callStart === initStart && ext.callEnd === initEnd) {
             inlinedQrlSymbols.add(ext.symbolName);
           }
         }

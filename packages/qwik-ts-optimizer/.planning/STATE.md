@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-04-11T10:18:29.233Z"
+status: executing
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-04-11T10:45:22.121Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 5
-  total_plans: 19
-  completed_plans: 19
-  percent: 100
+  total_plans: 22
+  completed_plans: 20
+  percent: 91
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** Runtime-identical output to SWC optimizer -- same segments, captures, hashes, QRL structure
-**Current focus:** Phase 11 — Segment Identity Batch 2
+**Current focus:** Phase 12 — Segment Identity Batch 3
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 12 (Segment Identity Batch 3) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -104,6 +104,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11 P01 | 3min | 2 tasks | 1 files |
 | Phase 11 P02 | 13min | 2 tasks | 2 files |
 | Phase 11 P03 | 18min | 2 tasks | 1 files |
+| Phase 12 P01 | 11min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -177,6 +178,9 @@ Recent decisions affecting current work:
 - [Phase 11]: Captures reconciliation checks allCapturesInParams at two pipeline points; capture-to-param promotion deferred pending loop detection
 - [Phase 11]: Extension downgrade (.tsx->.ts, .jsx->.js) applied early on extraction objects for consistent extensions across parent and segment output
 - [Phase 11]: All 22 Phase 11 target failures classified as codegen issues (not identity); deferred to Phases 13-15
+- [Phase 12]: Event handler captures from immediate parent scope become paramNames with _,_1 padding (not just loop contexts)
+- [Phase 12]: Re-detect captures from intermediate scopes (e.g. .map() callbacks) via AST scope walking
+- [Phase 12]: Loop-local vs cross-scope partition: only immediate loop iterVars and body declarations are loop-local
 
 ### Pending Todos
 
@@ -196,6 +200,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T10:17:49.040Z
-Stopped at: Completed 11-03-PLAN.md
+Last session: 2026-04-11T10:45:22.119Z
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None

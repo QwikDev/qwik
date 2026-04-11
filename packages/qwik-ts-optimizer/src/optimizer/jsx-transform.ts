@@ -1001,17 +1001,46 @@ export function transformJsxElement(
 
   // --- Build call ---
   if (hasSpread) {
-    neededImports.add('_jsxSplit');
-    neededImports.add('_getVarProps');
-    neededImports.add('_getConstProps');
-
-    // Find the spread argument
+    // Find the spread argument (shared by both branches)
     const spreadAttr = openingElement.attributes.find(
       (a: any) => a.type === 'JSXSpreadAttribute',
     );
     const spreadArg = spreadAttr
       ? source.slice(spreadAttr.argument.start, spreadAttr.argument.end)
       : 'props';
+
+    if (explicitKey !== null) {
+      // Spread + explicit key -> use _createElement (SWC behavior)
+      // Source: example_spread_jsx snapshot evidence
+      neededImports.add('createElement as _createElement');
+
+      // Collect all non-key props (beforeSpread, var, const) as object entries
+      const allPropEntries: string[] = [];
+      for (const entry of [...beforeSpreadEntries, ...varEntries, ...constEntries]) {
+        allPropEntries.push(entry);
+      }
+      allPropEntries.push(`key: ${explicitKey}`);
+
+      // Build: _createElement(tag, {...spread, prop1: val1, key: keyExpr})
+      const propsObj = `{ ...${spreadArg}, ${allPropEntries.join(', ')} }`;
+      const callString = `_createElement(${tag}, ${propsObj})`;
+
+      return {
+        tag,
+        varProps: null,
+        constProps: null,
+        children: childrenText,
+        flags: 0,
+        key: explicitKey,
+        callString,
+        neededImports,
+      };
+    }
+
+    // Spread without explicit key -> use _jsxSplit (existing behavior)
+    neededImports.add('_jsxSplit');
+    neededImports.add('_getVarProps');
+    neededImports.add('_getConstProps');
 
     // Build varPropsPart: beforeSpreadEntries come BEFORE _getVarProps, varEntries come AFTER
     const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';

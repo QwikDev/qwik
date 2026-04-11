@@ -41,7 +41,7 @@ import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
 import { analyzeSignalExpression, SignalHoister } from './signal-analysis.js';
 import { transformEventPropName, isEventProp, collectPassiveDirectives } from './event-handler-transform.js';
 import { transformBindProp, isBindProp } from './bind-transform.js';
-import { detectLoopContext, findEnclosingLoop, analyzeLoopHandler } from './loop-hoisting.js';
+import { detectLoopContext, findEnclosingLoop, analyzeLoopHandler, generateParamPadding, type LoopContext } from './loop-hoisting.js';
 
 // Phase 6: Diagnostics
 import {
@@ -545,6 +545,179 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         const allCapturesInParams = extraction.captureNames.every(name => paramSet.has(name));
         if (allCapturesInParams) {
           extraction.captures = false;
+        }
+      }
+    }
+
+    // 2a-loop. Event handler capture-to-param promotion.
+    // The Rust optimizer delivers event handler captured variables via q:p positional
+    // parameters instead of _captures. For event handlers NOT in a loop, ALL captured
+    // vars become paramNames with ["_", "_1", ...vars] padding and captures = false.
+    // For event handlers IN a loop, only the immediate loop's iter vars and block-scoped
+    // vars become paramNames; other captures remain as captureNames with captures = true.
+    {
+      // Build a map of extraction positions to their enclosing loop contexts
+      // by walking the original AST and tracking a loop stack.
+      const extractionLoopMap = new Map<string, LoopContext[]>();
+      const loopStack: LoopContext[] = [];
+
+      walk(program, {
+        enter(node: any, _key: string, _index: number | undefined) {
+          const loopCtx = detectLoopContext(node, repairedCode);
+          if (loopCtx) {
+            loopStack.push(loopCtx);
+          }
+          // Check if this node's range matches any extraction's call range
+          if (node.start !== undefined && node.end !== undefined && loopStack.length > 0) {
+            for (const ext of extractions) {
+              if (node.start <= ext.callStart && node.end >= ext.callEnd) {
+                // This node contains the extraction -- record current loop stack
+                // We only need the innermost, but store all for nested loop analysis
+                if (!extractionLoopMap.has(ext.symbolName) ||
+                    extractionLoopMap.get(ext.symbolName)!.length < loopStack.length) {
+                  extractionLoopMap.set(ext.symbolName, [...loopStack]);
+                }
+              }
+            }
+          }
+        },
+        leave(node: any, _key: string, _index: number | undefined) {
+          const loopCtx = detectLoopContext(node, repairedCode);
+          if (loopCtx) {
+            loopStack.pop();
+          }
+        },
+      });
+
+      for (const extraction of extractions) {
+        // Only process event handlers
+        if (extraction.ctxKind !== 'eventHandler') continue;
+        if (extraction.isInlinedQrl) continue;
+
+        // Re-detect captures for event handlers by checking undeclared identifiers
+        // against ALL enclosing scopes (including loop callback scopes that
+        // capture analysis misses because they're intermediate nested functions).
+        const closureNode = closureNodes.get(extraction.symbolName);
+        if (!closureNode) continue;
+
+        let undeclaredIds: string[];
+        try {
+          undeclaredIds = getUndeclaredIdentifiersInFunction(closureNode);
+        } catch {
+          continue;
+        }
+        if (undeclaredIds.length === 0) continue;
+
+        // Collect ALL scope-visible identifiers from enclosing scopes.
+        // This includes the enclosing extraction's body scope PLUS any
+        // intermediate function scopes (like .map() callbacks).
+        const allScopeIds = new Set<string>();
+
+        // Add enclosing extraction's body scope
+        let enclosingExt: typeof extractions[0] | null = null;
+        for (const other of extractions) {
+          if (other.symbolName === extraction.symbolName) continue;
+          if (extraction.callStart >= other.argStart && extraction.callEnd <= other.argEnd) {
+            if (!enclosingExt || (other.argStart >= enclosingExt.argStart && other.argEnd <= enclosingExt.argEnd)) {
+              enclosingExt = other;
+            }
+          }
+        }
+
+        if (enclosingExt) {
+          const parentIds = bodyScopeIds.get(enclosingExt.symbolName);
+          if (parentIds) {
+            for (const id of parentIds) allScopeIds.add(id);
+          }
+        } else {
+          for (const id of moduleScopeIds) allScopeIds.add(id);
+        }
+
+        // Also collect identifiers from intermediate scopes between the
+        // enclosing extraction and this extraction. Walk the AST to find
+        // function scopes that contain the extraction.
+        const enclosingStart = enclosingExt ? enclosingExt.argStart : 0;
+        const enclosingEnd = enclosingExt ? enclosingExt.argEnd : repairedCode.length;
+        walk(program, {
+          enter(node: any) {
+            if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') &&
+                node.start !== undefined && node.end !== undefined &&
+                node.start >= enclosingStart && node.end <= enclosingEnd &&
+                node.start < extraction.callStart && node.end > extraction.callEnd) {
+              // This function contains our extraction -- collect its params and body declarations
+              for (const param of node.params ?? []) {
+                collectBindingNamesFromNode(param, allScopeIds);
+              }
+              if (node.body?.type === 'BlockStatement') {
+                for (const stmt of node.body.body ?? []) {
+                  if (stmt.type === 'VariableDeclaration') {
+                    for (const decl of stmt.declarations ?? []) {
+                      if (decl.id) collectBindingNamesFromNode(decl.id, allScopeIds);
+                    }
+                  }
+                }
+              }
+            }
+          },
+          leave() {},
+        });
+
+        // Filter undeclared identifiers against all scope identifiers
+        const allCaptures = undeclaredIds
+          .filter(name => allScopeIds.has(name) && !importedNames.has(name))
+          .sort();
+        const uniqueCaptures = [...new Set(allCaptures)];
+
+        if (uniqueCaptures.length === 0) continue;
+
+        const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
+
+        if (!enclosingLoops || enclosingLoops.length === 0) {
+          // NOT in a loop: ALL captured vars become paramNames
+          extraction.paramNames = generateParamPadding(uniqueCaptures);
+          extraction.captureNames = [];
+          extraction.captures = false;
+        } else {
+          // IN a loop: partition captures into loop-local vs cross-scope
+          const immediateLoop = enclosingLoops[enclosingLoops.length - 1];
+
+          // Collect loop-local variable names:
+          // 1. Immediate loop's iterVars
+          const loopLocalSet = new Set<string>(immediateLoop.iterVars);
+
+          // 2. Block-scoped declarations inside the immediate loop body
+          walk(program, {
+            enter(node: any) {
+              if (node.type === 'VariableDeclaration' &&
+                  node.start !== undefined && node.end !== undefined &&
+                  node.start >= immediateLoop.loopBodyStart &&
+                  node.end <= immediateLoop.loopBodyEnd) {
+                for (const decl of node.declarations ?? []) {
+                  if (decl.id?.type === 'Identifier') {
+                    loopLocalSet.add(decl.id.name);
+                  }
+                }
+              }
+            },
+            leave() {},
+          });
+
+          // Partition captures
+          const loopLocalVars: string[] = [];
+          const crossScopeCaptures: string[] = [];
+          for (const name of uniqueCaptures) {
+            if (loopLocalSet.has(name)) {
+              loopLocalVars.push(name);
+            } else {
+              crossScopeCaptures.push(name);
+            }
+          }
+
+          if (loopLocalVars.length > 0) {
+            extraction.paramNames = generateParamPadding(loopLocalVars);
+          }
+          extraction.captureNames = crossScopeCaptures.sort();
+          extraction.captures = crossScopeCaptures.length > 0;
         }
       }
     }
@@ -1137,4 +1310,46 @@ function detectPassivePreventdefaultConflicts(
       }
     },
   });
+}
+
+// ---------------------------------------------------------------------------
+// Helpers for loop-aware capture classification
+// ---------------------------------------------------------------------------
+
+/**
+ * Collect binding names from an AST pattern node into a Set.
+ * Handles Identifier, ObjectPattern, ArrayPattern, RestElement, AssignmentPattern.
+ */
+function collectBindingNamesFromNode(node: any, names: Set<string>): void {
+  if (!node) return;
+  switch (node.type) {
+    case 'Identifier':
+      names.add(node.name);
+      break;
+    case 'ObjectPattern':
+      for (const prop of node.properties ?? []) {
+        if (prop.type === 'RestElement') {
+          collectBindingNamesFromNode(prop.argument, names);
+        } else {
+          collectBindingNamesFromNode(prop.value, names);
+        }
+      }
+      break;
+    case 'ArrayPattern':
+      for (const elem of node.elements ?? []) {
+        collectBindingNamesFromNode(elem, names);
+      }
+      break;
+    case 'RestElement':
+      collectBindingNamesFromNode(node.argument, names);
+      break;
+    case 'AssignmentPattern':
+      collectBindingNamesFromNode(node.left, names);
+      break;
+    default:
+      if (node.parameter) {
+        collectBindingNamesFromNode(node.parameter, names);
+      }
+      break;
+  }
 }

@@ -15,7 +15,7 @@ import MagicString from 'magic-string';
 import { extractSegments } from './extract.js';
 import { repairInput } from './input-repair.js';
 import { rewriteParentModule } from './rewrite-parent.js';
-import { generateSegmentCode, type SegmentCaptureInfo, type NestedCallSiteInfo } from './segment-codegen.js';
+import { generateSegmentCode, type SegmentCaptureInfo, type NestedCallSiteInfo, type SegmentImportContext } from './segment-codegen.js';
 import { collectImports, type ImportInfo } from './marker-detection.js';
 import { buildQrlDeclaration } from './rewrite-calls.js';
 import { resolveEntryField } from './entry-strategy.js';
@@ -1153,6 +1153,72 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // But we still emit SegmentAnalysis metadata entries.
     // For stripped segments, emit null exports with loc [0,0].
 
+    // Collect same-file exported/declared names for self-referential segment imports
+    const sameFileExportNames = new Set<string>();
+    for (const node of program.body) {
+      if (node.type === 'ExportNamedDeclaration') {
+        if (node.declaration) {
+          if (node.declaration.type === 'FunctionDeclaration' && node.declaration.id?.name) {
+            sameFileExportNames.add(node.declaration.id.name);
+          } else if (node.declaration.type === 'VariableDeclaration') {
+            for (const decl of node.declaration.declarations) {
+              if (decl.id?.type === 'Identifier') {
+                sameFileExportNames.add(decl.id.name);
+              }
+            }
+          } else if (node.declaration.type === 'ClassDeclaration' && node.declaration.id?.name) {
+            sameFileExportNames.add(node.declaration.id.name);
+          }
+        }
+        if (node.specifiers) {
+          for (const spec of node.specifiers) {
+            if (spec.exported?.name) sameFileExportNames.add(spec.exported.name);
+          }
+        }
+      } else if (node.type === 'FunctionDeclaration' && node.id?.name) {
+        sameFileExportNames.add(node.id.name);
+      } else if (node.type === 'VariableDeclaration') {
+        for (const decl of node.declarations) {
+          if (decl.id?.type === 'Identifier') {
+            sameFileExportNames.add(decl.id.name);
+          }
+        }
+      }
+    }
+
+    // Collect import attributes from AST (e.g., with { type: "json" })
+    const importAttributesMap = new Map<string, Record<string, string>>();
+    for (const node of program.body) {
+      if (node.type !== 'ImportDeclaration') continue;
+      const attrs = node.attributes || node.assertions;
+      if (attrs && attrs.length > 0) {
+        const attrObj: Record<string, string> = {};
+        for (const attr of attrs) {
+          const key = attr.key?.name ?? attr.key?.value;
+          const value = attr.value?.value;
+          if (key && value) attrObj[key] = value;
+        }
+        // Associate with each specifier's local name
+        for (const spec of node.specifiers) {
+          const localName = spec.local?.name;
+          if (localName) {
+            importAttributesMap.set(localName, attrObj);
+          }
+        }
+      }
+    }
+
+    // Build moduleImports array for SegmentImportContext
+    const moduleImportsForContext: SegmentImportContext['moduleImports'] = [];
+    for (const [, imp] of originalImports) {
+      moduleImportsForContext.push({
+        localName: imp.localName,
+        importedName: imp.importedName,
+        source: imp.source,
+        importAttributes: importAttributesMap.get(imp.localName),
+      });
+    }
+
     for (const ext of updatedExtractions) {
       if (ext.isSync) continue; // sync$ is inlined, no separate segment module
 
@@ -1357,6 +1423,14 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           ? captureInfo
           : undefined;
 
+      // Build import context for post-transform import re-collection
+      const importContext: SegmentImportContext = {
+        moduleImports: moduleImportsForContext,
+        sameFileExports: sameFileExportNames,
+        parentModulePath,
+        migrationDecisions: migrationDecisions.map(d => ({ varName: d.varName, action: d.action })),
+      };
+
       // Generate segment code: stripped segments get null exports, others get full codegen
       let segmentCode = stripped
         ? generateStrippedSegmentCode(ext.symbolName)
@@ -1368,6 +1442,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
               ? { enableJsx: true, importedNames }
               : undefined,
             nestedCallSites.length > 0 ? nestedCallSites : undefined,
+            importContext,
           );
 
       // Clean up unused imports in segment code (after body rewriting may have

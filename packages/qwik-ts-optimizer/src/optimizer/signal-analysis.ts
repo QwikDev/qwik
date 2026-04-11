@@ -731,13 +731,23 @@ export function analyzeSignalExpression(
 export class SignalHoister {
   counter = 0;
   hoistedFunctions: Array<{ name: string; fn: string; str: string }> = [];
+  /** Deduplication map: function body text -> existing _hf variable name */
+  private dedupMap = new Map<string, string>();
 
   /**
    * Add a hoisted function, returns the _hfN name.
+   * Deduplicates: if an identical function body already exists, reuses its name.
    */
   hoist(fn: string, str: string): string {
+    // Check for existing identical function body
+    const existing = this.dedupMap.get(fn);
+    if (existing) {
+      return existing;
+    }
+
     const name = `_hf${this.counter}`;
     this.hoistedFunctions.push({ name, fn, str });
+    this.dedupMap.set(fn, name);
     this.counter++;
     return name;
   }

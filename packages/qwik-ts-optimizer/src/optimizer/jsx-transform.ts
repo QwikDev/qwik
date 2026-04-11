@@ -270,28 +270,18 @@ export function classifyProp(
 /**
  * Compute the flags bitmask for a JSX element.
  *
- * - Bit 0 (1): children are static/const (set when no dynamic children)
- * - Bit 1 (2): props are immutable (set when NO varProps)
- * - Bit 2 (4): loop context
+ * Matches SWC semantics (swc-reference-only/transform.rs lines 2644-2653):
+ * - Bit 0 (1): static_listeners -- set when ALL props are const (no var props)
+ * - Bit 1 (2): static_subtree -- set when children are static or none
+ * - Bit 2 (4): moved_captures -- set when in loop context (q:p/q:ps)
  *
  * Common values:
- * - 3 (0b011): fully immutable (no varProps + const children)
- * - 1 (0b001): const children only, has varProps... wait no.
- *
- * Correction from snapshots:
- * - 3 = no varProps + static/no children
- * - 1 = no varProps + dynamic children (children flag bit NOT set)
- * - 2 = has varProps + static/no children
- * - 0 = spread or has varProps + dynamic children
- *
- * Wait, let me re-read the snapshot evidence:
- * - `<div class="class">12</div>` -> flags=3 (string child, all const props)
- * - `<div class="class">{children}</div>` -> flags=1 (dynamic child, all const props)
- * - `<Div document={window.document} ...>` -> flags=2 (has varProps)
- * - `_jsxSplit(...)` -> flags=0 (spread)
- *
- * So: bit 0 (1) = children are static text/const, bit 1 (2) = no varProps
- * flags = (childrenStatic ? 1 : 0) | (noVarProps ? 2 : 0) | (inLoop ? 4 : 0)
+ * - 3 (0b011): no varProps + static/no children (fully immutable)
+ * - 1 (0b001): no varProps + dynamic children
+ * - 2 (0b010): has varProps + static/no children
+ * - 0 (0b000): has varProps + dynamic children, or spread
+ * - 7 (0b111): no varProps + static children + loop context
+ * - 5 (0b101): no varProps + dynamic children + loop context
  *
  * @param hasVarProps - Whether the element has any mutable props
  * @param childrenType - 'none' | 'static' | 'dynamic'
@@ -303,23 +293,17 @@ export function computeFlags(
   childrenType: 'none' | 'static' | 'dynamic',
   inLoop: boolean = false,
 ): number {
-  // Evidence from Rust snapshot corpus:
-  //   flags=3: static/no children, no loop (bit 0 + bit 1)
-  //   flags=1: dynamic children, no loop (bit 0 only)
-  //   flags=4: loop context with q:p + varProps + dynamic children (bit 2 only)
-  //
-  // Outside loop context: bit 0 is ALWAYS set regardless of varProps.
-  // Inside loop context (q:p): bit 0 reflects whether props are immutable.
   let flags = 0;
-  // Bit 0 (value 1): immutable props. Always set outside loop; inside loop, only if no varProps.
-  if (!inLoop || !hasVarProps) {
+  // Bit 0 (value 1): static_listeners -- ALL props are const (no var props)
+  // Source: swc-reference-only/transform.rs lines 2644-2653
+  if (!hasVarProps) {
     flags |= 1;
   }
-  // Bit 1 (value 2): children are static (text, const expressions, no children)
+  // Bit 1 (value 2): static_subtree -- children are static/none
   if (childrenType !== 'dynamic') {
     flags |= 2;
   }
-  // Bit 2 (value 4): loop context
+  // Bit 2 (value 4): moved_captures -- captures moved via q:p/q:ps loop context
   if (inLoop) {
     flags |= 4;
   }
@@ -524,7 +508,9 @@ function processOneChild(
       const signalResult = analyzeSignalExpression(expr, source, importedNames);
       if (signalResult.type === 'wrapProp') {
         neededImports?.add('_wrapProp');
-        return { text: signalResult.code, type: 'static' };
+        // _wrapProp() is a function call, so SWC sets jsx_mutable=true -> static_subtree=false
+        // Source: swc-reference-only/transform.rs convert_to_signal_item
+        return { text: signalResult.code, type: 'dynamic' };
       }
       if (signalResult.type === 'fnSignal') {
         const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr);

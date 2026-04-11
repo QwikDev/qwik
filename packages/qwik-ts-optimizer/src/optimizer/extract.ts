@@ -11,6 +11,7 @@
 
 import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
+import { qwikHash } from '../hashing/siphash.js';
 import { ContextStack } from './context-stack.js';
 import {
   collectImports,
@@ -732,5 +733,57 @@ export function extractSegments(
     },
   });
 
+  disambiguateExtractions(results, fileStem, relPath, scope);
+
   return results;
+}
+
+// ---------------------------------------------------------------------------
+// Disambiguation
+// ---------------------------------------------------------------------------
+
+/**
+ * Disambiguate extractions that share the same display name by appending
+ * _1, _2, etc. suffixes. The first occurrence keeps its original name
+ * (index 0), subsequent duplicates get _1, _2, etc.
+ *
+ * This matches Rust optimizer's `register_context_name` behavior.
+ * After appending the suffix, the hash is recomputed since the hash input
+ * includes the context portion.
+ *
+ * Must be called BEFORE parent module rewriting so QRL declarations
+ * reference the disambiguated names.
+ */
+function disambiguateExtractions(
+  extractions: ExtractionResult[],
+  fileStem: string,
+  relPath: string,
+  scope?: string,
+): void {
+  const nameCounters = new Map<string, number>();
+  const prefix = fileStem + '_';
+
+  for (const ext of extractions) {
+    // Extract context portion from displayName
+    const contextPortion = ext.displayName.startsWith(prefix)
+      ? ext.displayName.slice(prefix.length)
+      : ext.displayName;
+
+    const existing = nameCounters.get(contextPortion);
+    if (existing === undefined) {
+      // First occurrence: index 0, no suffix
+      nameCounters.set(contextPortion, 0);
+    } else {
+      // Duplicate: increment counter, append suffix
+      const newIndex = existing + 1;
+      nameCounters.set(contextPortion, newIndex);
+
+      const newContext = contextPortion + '_' + newIndex;
+      const newHash = qwikHash(scope, relPath, newContext);
+      ext.displayName = prefix + newContext;
+      ext.hash = newHash;
+      ext.symbolName = newContext + '_' + newHash;
+      ext.canonicalFilename = ext.displayName + '_' + newHash;
+    }
+  }
 }

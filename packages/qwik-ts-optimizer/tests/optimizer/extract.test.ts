@@ -79,12 +79,14 @@ export const Root = component$(() => {
 });
 `;
     const results = extractSegments(source, 'test.tsx');
-    const bareDisplayNames = results
-      .filter((r) => r.ctxName === '$')
-      .map((r) => r.displayName);
+    const bareResults = results
+      .filter((r) => r.ctxName === '$');
+    const bareDisplayNames = bareResults.map((r) => r.displayName);
 
+    // Both bare $() segments share context "Root_component" so disambiguation applies:
+    // first keeps original, second gets _1 suffix (matching Rust optimizer behavior)
     expect(bareDisplayNames).toContain('test.tsx_Root_component_useStyles');
-    expect(bareDisplayNames).toContain('test.tsx_Root_component');
+    expect(bareDisplayNames).toContain('test.tsx_Root_component_1');
   });
 
   it('extracts useTask$() with qrlCallee="useTaskQrl"', () => {

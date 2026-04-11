@@ -721,8 +721,6 @@ function removeUnusedImports(code: string, filename: string, transpileJsx?: bool
 
     for (let i = 0; i < node.specifiers.length; i++) {
       const spec = node.specifiers[i];
-      // Skip namespace imports -- they could be referenced via property access
-      if (spec.type === 'ImportNamespaceSpecifier') continue;
 
       const localName = spec.local?.name;
       if (localName) {
@@ -815,13 +813,8 @@ function removeUnusedImports(code: string, filename: string, transpileJsx?: bool
   for (const [node, specs] of specsByNode) {
     const totalSpecs = node.specifiers?.length ?? 0;
     const unreferencedCount = specs.length;
-    // Count how many specifiers in this import are namespace (which we never remove)
-    const namespaceCount = (node.specifiers ?? []).filter(
-      (s: any) => s.type === 'ImportNamespaceSpecifier',
-    ).length;
-    const removableTotal = totalSpecs - namespaceCount;
 
-    if (unreferencedCount >= removableTotal && namespaceCount === 0) {
+    if (unreferencedCount >= totalSpecs) {
       // All specifiers are unreferenced: remove entire import declaration
       let end = node.end;
       if (end < code.length && code[end] === '\n') end++;

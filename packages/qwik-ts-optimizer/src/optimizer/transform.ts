@@ -1954,7 +1954,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             child.displayName,
           );
         }
-        return buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension);
+        return buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension, !!(options.transpileTs || options.transpileJsx));
       });
 
       // 2c. Build SegmentCaptureInfo for this extraction

@@ -1099,7 +1099,7 @@ export function rewriteParentModule(
     if (!inlinedQrlSymbols.has(ext.symbolName)) continue;
     // The call site was already replaced with `q_symbolName` in Step 4.
     // Now overwrite it with the inline qrl() expression.
-    const inlineExt = explicitExtensions ? '.js' : '';
+    const inlineExt = explicitExtensions ? (transpileTs ? '.js' : (ext.extension ? ext.extension : '.js')) : '';
     const inlineQrl = `/*#__PURE__*/ qrl(()=>import("./${ext.canonicalFilename}${inlineExt}"), "${ext.symbolName}")`;
     s.overwrite(ext.callStart, ext.callEnd, inlineQrl);
   }
@@ -1383,7 +1383,7 @@ export function rewriteParentModule(
             ext.displayName,
           ));
         } else {
-          qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension));
+          qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension, !!transpileTs));
         }
         qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
       }
@@ -1414,7 +1414,7 @@ export function rewriteParentModule(
           ext.displayName,
         ));
       } else {
-        qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension));
+        qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension, !!transpileTs));
       }
       qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
     }

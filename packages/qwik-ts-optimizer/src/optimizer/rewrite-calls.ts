@@ -50,10 +50,15 @@ export function buildQrlDeclaration(
   canonicalFilename: string,
   explicitExtensions?: boolean,
   segmentExtension?: string,
+  transpiling?: boolean,
 ): string {
-  // When explicit extensions are requested, always use .js (matching Rust optimizer).
-  // The segment extension (.ts, .tsx, etc.) is for metadata, not import paths.
-  const ext = explicitExtensions ? '.js' : '';
+  // When explicit extensions are requested:
+  // - If transpiling (TS/JSX -> JS), use .js
+  // - If NOT transpiling, use the original source extension (e.g., .tsx)
+  let ext = '';
+  if (explicitExtensions) {
+    ext = transpiling ? '.js' : (segmentExtension ? segmentExtension : '.js');
+  }
   return `const q_${symbolName} = /*#__PURE__*/ qrl(()=>import("./${canonicalFilename}${ext}"), "${symbolName}");`;
 }
 

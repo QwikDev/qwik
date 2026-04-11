@@ -284,13 +284,18 @@ export function extractSegments(
         pushCount++;
       }
 
-      // JSXOpeningElement: push tag name
-      if (node.type === 'JSXOpeningElement') {
+      // JSXElement: push tag name from the opening element.
+      // We push on JSXElement (not JSXOpeningElement) so the tag name stays
+      // on the context stack for all JSXElement children, including nested
+      // JSXElements and JSXAttributes. JSXOpeningElement is a sibling of
+      // children in the AST, so pushing there would pop before children.
+      if (node.type === 'JSXElement' && node.openingElement) {
+        const opening = node.openingElement;
         const tagName =
-          node.name?.type === 'JSXIdentifier'
-            ? node.name.name
-            : node.name?.type === 'JSXMemberExpression'
-              ? node.name.property?.name ?? ''
+          opening.name?.type === 'JSXIdentifier'
+            ? opening.name.name
+            : opening.name?.type === 'JSXMemberExpression'
+              ? opening.name.property?.name ?? ''
               : '';
         if (tagName) {
           ctx.push(tagName);
@@ -313,12 +318,24 @@ export function extractSegments(
 
         if (rawAttrName) {
           if (rawAttrName.endsWith('$') && isEventProp(rawAttrName)) {
-            // Transform onClick$ -> q-e:click -> q_e_click for naming
-            const transformed = transformEventPropName(rawAttrName, new Set());
-            if (transformed) {
-              ctx.push(transformed.replace(/[-:]/g, '_'));
+            // For HTML elements (lowercase tag), transform onClick$ -> q-e:click -> q_e_click.
+            // For component elements (uppercase tag), keep original name without $ suffix
+            // (e.g., onClick$ -> onClick). This matches Rust optimizer naming.
+            const parentTag = parent?.type === 'JSXOpeningElement'
+              ? (parent.name?.type === 'JSXIdentifier' ? parent.name.name : '')
+              : '';
+            const isComponentElement = parentTag.length > 0 && parentTag[0] === parentTag[0].toUpperCase() && parentTag[0] !== parentTag[0].toLowerCase();
+            if (isComponentElement) {
+              // Component element: push raw name without $ suffix
+              ctx.push(rawAttrName.slice(0, -1)); // "onClick$" -> "onClick"
             } else {
-              ctx.push(rawAttrName);
+              // HTML element: transform to q-e:event_name format
+              const transformed = transformEventPropName(rawAttrName, new Set());
+              if (transformed) {
+                ctx.push(transformed.replace(/[-:]/g, '_'));
+              } else {
+                ctx.push(rawAttrName);
+              }
             }
           } else if (rawAttrName.endsWith('$') && rawAttrName.startsWith('host:')) {
             // host: prefix events: push "host_" + stripped name for naming

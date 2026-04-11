@@ -556,7 +556,13 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_not_move_over_side_effects: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
 
   // --- Inline entry strategy with transpileTs + transpileJsx + hoist-like patterns ---
-  root_level_self_referential_qrl_inline: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'inline' } },
+  root_level_self_referential_qrl_inline: {
+    filename: 'node_modules/qwik-tree/index.qwik.jsx',
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+    mode: 'dev',
+  },
 
   // --- Hoist entry strategy ---
   example_props_wrapping: { transpileTs: true, transpileJsx: true, entryStrategy: { type: 'hoist' } },

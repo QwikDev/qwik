@@ -111,6 +111,22 @@ function stripPositions(node: any, ancestors: any[] = []): any {
     return stripPositions(node.expression, ancestors);
   }
 
+  // Normalize single-statement BlockStatement in control flow (if/else/for/while/do-while)
+  // `if (x) y++;` and `if (x) { y++; }` are semantically identical.
+  if (node.type === 'BlockStatement' && Array.isArray(node.body) && node.body.length === 1) {
+    const parentNode = ancestors[0];
+    if (
+      parentNode?.type === 'IfStatement' ||
+      parentNode?.type === 'ForStatement' ||
+      parentNode?.type === 'ForInStatement' ||
+      parentNode?.type === 'ForOfStatement' ||
+      parentNode?.type === 'WhileStatement' ||
+      parentNode?.type === 'DoWhileStatement'
+    ) {
+      return stripPositions(node.body[0], ancestors);
+    }
+  }
+
   const cleaned: Record<string, any> = {};
   for (const [key, value] of Object.entries(node)) {
     // Skip position-related fields, cosmetic raw spellings, and TS type annotations.

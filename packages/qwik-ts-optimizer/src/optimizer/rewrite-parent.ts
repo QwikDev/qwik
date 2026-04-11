@@ -1107,8 +1107,8 @@ export function rewriteParentModule(
         if (isDevMode && devFilePath) {
           qrlDecls.push(buildNoopQrlDevDeclaration(ext.symbolName, {
             file: devFilePath,
-            lo: ext.loc[0],
-            hi: ext.loc[1],
+            lo: ext.argStart,
+            hi: ext.argEnd,
             displayName: ext.displayName,
           }));
         } else {
@@ -1270,7 +1270,11 @@ export function rewriteParentModule(
         }
       }
 
-      if (isHoist) {
+      // regCtxName-matched extractions use inline .s(_regSymbol(...)) pattern
+      // when the entry type is 'inline' (even if auto-promoted to hoist).
+      // When explicitly 'hoist', they use the normal hoist const + .s() pattern.
+      const forceInlineForRegCtx = isRegCtxMatch && inlineOptions?.entryType === 'inline';
+      if (isHoist && !forceInlineForRegCtx) {
         // Hoist strategy: insert const declaration + .s(varName) before
         // the containing statement in the body via magic-string.
         // Strip TypeScript type annotations from the body text since hoist
@@ -1404,7 +1408,13 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   let finalCode = s.toString();
   if (transpileTs) {
-    const stripped = oxcTransformSync('output.tsx', finalCode, { typescript: { onlyRemoveTypeImports: false } });
+    // When transpileJsx is false (jsxOptions is undefined), use jsx:'preserve'
+    // so oxc-transform strips TypeScript types but leaves JSX syntax intact.
+    const tsStripOptions: Record<string, any> = { typescript: { onlyRemoveTypeImports: false } };
+    if (!jsxOptions?.enableJsx) {
+      tsStripOptions.jsx = 'preserve';
+    }
+    const stripped = oxcTransformSync('output.tsx', finalCode, tsStripOptions);
     if (stripped.code) {
       finalCode = stripped.code;
     }

@@ -34,7 +34,7 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
 **Plans**: 2 plans
 Plans:
 - [x] 07-01-PLAN.md — Import assembly unification and user import preservation
-- [ ] 07-02-PLAN.md — .s() body transformation pipeline for inline/hoist strategy
+- [x] 07-02-PLAN.md — .s() body transformation pipeline for inline/hoist strategy
 
 ### Phase 8: Parent Rewrite Batch 2
 **Goal**: Remaining 24 parent-rewrite-only snapshots pass

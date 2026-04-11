@@ -74,7 +74,7 @@
 - Integer phases (17, 18, ...): Planned milestone work
 - Decimal phases (17.1, 17.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 17: Inline/Hoist Strategy Convergence** - Fix .s() body text and hoist const-fn pattern to match SWC behavioral rules
+- [x] **Phase 17: Inline/Hoist Strategy Convergence** - Fix .s() body text and hoist const-fn pattern to match SWC behavioral rules (completed 2026-04-11)
 - [ ] **Phase 18: Capture Classification Convergence** - Fix paramNames padding, _captures/.w() delivery, and capture metadata
 - [ ] **Phase 19: JSX Transform Convergence** - Fix flags bitmask, prop classification, _jsxSplit, and signal wrapping placement
 - [ ] **Phase 20: Migration and Sync Convergence** - Fix variable move/reexport decisions and _qrlSync serialization
@@ -91,11 +91,11 @@
   2. Running convergence tests on hoist-strategy snapshots produces zero const-fn pattern AST mismatches
   3. Entry strategy selection assigns the correct strategy per snapshot (no strategy misidentification)
   4. All 73 previously-passing snapshots still pass (zero regressions)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 17-01-PLAN.md -- Fix import ordering to use Map insertion order (matching SWC discovery order)
-- [ ] 17-02-PLAN.md -- Fix _hf deduplication via shared SignalHoister + suppress _captures import for inline
+- [x] 17-02-PLAN.md -- Fix _hf deduplication via shared SignalHoister + suppress _captures import for inline
 
 ### Phase 18: Capture Classification Convergence
 **Goal**: Capture delivery mechanism (params vs _captures vs .w()) matches SWC behavioral rules for all loop and cross-scope patterns
@@ -149,7 +149,7 @@ Phases execute in numeric order: 17 -> 18 -> 19 -> 20 -> 21
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 17. Inline/Hoist Strategy Convergence | 1/2 | In Progress|  |
+| 17. Inline/Hoist Strategy Convergence | 2/2 | Complete   | 2026-04-11 |
 | 18. Capture Classification Convergence | 0/TBD | Not started | - |
 | 19. JSX Transform Convergence | 0/TBD | Not started | - |
 | 20. Migration and Sync Convergence | 0/TBD | Not started | - |

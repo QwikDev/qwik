@@ -13,6 +13,7 @@ import { parseSync } from 'oxc-parser';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import MagicString from 'magic-string';
 import { extractSegments } from './extract.js';
+import { repairInput } from './input-repair.js';
 import { rewriteParentModule } from './rewrite-parent.js';
 import { generateSegmentCode, type SegmentCaptureInfo, type NestedCallSiteInfo } from './segment-codegen.js';
 import { collectImports, type ImportInfo } from './marker-detection.js';
@@ -363,8 +364,11 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     if (ext === '.ts' || ext === '.tsx') isTypeScript = true;
     if (ext === '.tsx' || ext === '.jsx') isJsx = true;
 
+    // 0. Repair input if oxc-parser cannot parse it (SWC-recoverable errors)
+    const repairedCode = repairInput(input.code, relPath);
+
     // 1. Extract segments
-    const extractions = extractSegments(input.code, relPath, options.scope);
+    const extractions = extractSegments(repairedCode, relPath, options.scope);
 
     // 1a. No-extraction passthrough: if no $() markers found AND no JSX transpilation
     // needed, preserve source as-is with only a `//` separator between imports and body.
@@ -373,8 +377,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const earlyTranspileJsx = options.transpileJsx !== false;
     const needsJsxTransform = earlyTranspileJsx && (ext === '.tsx' || ext === '.jsx');
     if (extractions.length === 0 && !needsJsxTransform) {
-      const { program: passProgram } = parseSync(relPath, input.code);
-      const passS = new MagicString(input.code);
+      const { program: passProgram } = parseSync(relPath, repairedCode);
+      const passS = new MagicString(repairedCode);
 
       // Find the end of the last import declaration
       let lastImportEnd = -1;
@@ -382,7 +386,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         if (node.type === 'ImportDeclaration') {
           let end = node.end;
           // Include trailing newline if present
-          if (end < input.code.length && input.code[end] === '\n') end++;
+          if (end < repairedCode.length && repairedCode[end] === '\n') end++;
           lastImportEnd = end;
         }
       }
@@ -428,7 +432,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       if (lastImportEnd >= 0) {
         // Remove blank lines between last import and body, insert //
         let bodyStart = lastImportEnd;
-        while (bodyStart < input.code.length && input.code[bodyStart] === '\n') {
+        while (bodyStart < repairedCode.length && repairedCode[bodyStart] === '\n') {
           bodyStart++;
         }
         if (bodyStart > lastImportEnd) {
@@ -453,7 +457,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     }
 
     // 2. Collect imports for parent rewriting (need to re-parse for the import map)
-    const { program } = parseSync(relPath, input.code);
+    const { program } = parseSync(relPath, repairedCode);
     const originalImports = collectImports(program);
 
     // Build importedNames set for capture analysis (excludes from captures)
@@ -464,7 +468,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
     // 2a. Run capture analysis for each extraction
     // First, collect module-level scope identifiers for top-level capture analysis
-    const moduleScopeIds = collectScopeIdentifiers(program, input.code, relPath);
+    const moduleScopeIds = collectScopeIdentifiers(program, repairedCode, relPath);
 
     // Pre-parse each extraction's body to get closure AST nodes, and collect
     // scope identifiers from each body (needed for nested capture analysis)
@@ -593,7 +597,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     }
 
     // 2b. Run variable migration analysis
-    const moduleLevelDecls = collectModuleLevelDecls(program, input.code);
+    const moduleLevelDecls = collectModuleLevelDecls(program, repairedCode);
     const { segmentUsage, rootUsage } = computeSegmentUsage(program, extractions);
     const entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
     const isInlineStrategy = entryStrategy.type === 'inline' || entryStrategy.type === 'hoist';
@@ -614,7 +618,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
     const shouldTranspileJsx = options.transpileJsx !== false;
     const parentResult = rewriteParentModule(
-      input.code,
+      repairedCode,
       relPath,
       extractions,
       originalImports,
@@ -695,8 +699,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         // Scan extractions for usages, or find call expressions in the AST
         const callSites = findCallSites(program, exportName);
         for (const site of callSites) {
-          const [startLine, startCol] = computeLineColFromOffset(input.code, site.start);
-          const [endLine, endCol] = computeLineColFromOffset(input.code, site.end);
+          const [startLine, startCol] = computeLineColFromOffset(repairedCode, site.start);
+          const [endLine, endCol] = computeLineColFromOffset(repairedCode, site.end);
           diagnostics.push(emitC05(exportName, qrlName, relPath, {
             lo: site.start,
             hi: site.end,
@@ -711,7 +715,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
     // 4b-diag. preventdefault-passive-check: detect contradictory passive + preventdefault
     if (ext === '.tsx' || ext === '.jsx') {
-      detectPassivePreventdefaultConflicts(program, relPath, input.code, diagnostics);
+      detectPassivePreventdefaultConflicts(program, relPath, repairedCode, diagnostics);
     }
 
     // 5. Generate segment modules for non-sync extractions

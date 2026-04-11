@@ -50,14 +50,16 @@ export function buildQrlDeclaration(
   canonicalFilename: string,
   explicitExtensions?: boolean,
   segmentExtension?: string,
-  transpiling?: boolean,
+  outputExtension?: string,
 ): string {
-  // When explicit extensions are requested:
-  // - If transpiling (TS/JSX -> JS), use .js
-  // - If NOT transpiling, use the original source extension (e.g., .tsx)
+  // When explicit extensions are requested, append the output extension.
+  // The caller determines the correct extension based on transpilation settings:
+  // - transpileTs: .js (TypeScript is fully stripped)
+  // - transpileJsx only: .ts (JSX gone, TS remains)
+  // - neither: source extension (.tsx, .ts, etc.)
   let ext = '';
   if (explicitExtensions) {
-    ext = transpiling ? '.js' : (segmentExtension ? segmentExtension : '.js');
+    ext = outputExtension ?? '.js';
   }
   return `const q_${symbolName} = /*#__PURE__*/ qrl(()=>import("./${canonicalFilename}${ext}"), "${symbolName}");`;
 }

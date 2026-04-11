@@ -126,6 +126,22 @@ function computeParentModulePath(relPath: string, explicitExtensions?: boolean):
   return './' + stripped;
 }
 
+/**
+ * Compute the output file extension for QRL imports based on transpilation settings.
+ * - transpileTs (with or without transpileJsx): .js (TypeScript fully stripped)
+ * - transpileJsx only (no transpileTs): .ts (JSX gone, TS remains)
+ * - neither: use source extension (.tsx, .ts, etc.)
+ */
+function computeOutputExtension(
+  sourceExt: string,
+  transpileTs?: boolean,
+  transpileJsx?: boolean,
+): string {
+  if (transpileTs) return '.js';
+  if (transpileJsx) return '.ts';
+  return sourceExt; // e.g., '.tsx', '.ts'
+}
+
 // ---------------------------------------------------------------------------
 // Segment body const replacement and DCE
 // ---------------------------------------------------------------------------
@@ -1675,6 +1691,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       options.explicitExtensions,
       options.transpileTs,
       options.minify,
+      computeOutputExtension(ext, options.transpileTs, options.transpileJsx),
     );
 
     // 3b. Apply DCE to parent module (after const replacement turned isServer/isBrowser to true/false)
@@ -1954,7 +1971,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             child.displayName,
           );
         }
-        return buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension, !!(options.transpileTs || options.transpileJsx));
+        const outExt = computeOutputExtension(ext, options.transpileTs, options.transpileJsx);
+        return buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension, outExt);
       });
 
       // 2c. Build SegmentCaptureInfo for this extraction

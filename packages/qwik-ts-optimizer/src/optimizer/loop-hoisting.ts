@@ -235,6 +235,8 @@ export function generateParamPadding(loopVarNames: string[]): string[] {
  */
 export function buildQpProp(
   loopVars: string[],
+  /** If true, preserve the input order (declaration order from capture analysis) */
+  preserveOrder: boolean = false,
 ): { propName: string; propValue: string } | null {
   if (loopVars.length === 0) return null;
 
@@ -242,8 +244,8 @@ export function buildQpProp(
     return { propName: 'q:p', propValue: loopVars[0] };
   }
 
-  const sorted = [...loopVars].sort();
-  return { propName: 'q:ps', propValue: '[' + sorted.join(', ') + ']' };
+  const vars = preserveOrder ? loopVars : [...loopVars].sort();
+  return { propName: 'q:ps', propValue: '[' + vars.join(', ') + ']' };
 }
 
 // ---------------------------------------------------------------------------

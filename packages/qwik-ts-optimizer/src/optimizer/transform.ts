@@ -555,6 +555,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // vars become paramNames with ["_", "_1", ...vars] padding and captures = false.
     // For event handlers IN a loop, only the immediate loop's iter vars and block-scoped
     // vars become paramNames; other captures remain as captureNames with captures = true.
+    // Shared declaration position map for ordering loop-local params by source position
+    const globalDeclPositions = new Map<string, number>();
+
     {
       // Build a map of extraction positions to their enclosing loop contexts
       // by walking the original AST and tracking a loop stack.
@@ -606,7 +609,19 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         } catch {
           continue;
         }
-        if (undeclaredIds.length === 0) continue;
+
+        // Even with no captures, event handlers in a loop context need (_, _1) padding
+        // for the q:p delivery mechanism. Check loop context before skipping.
+        if (undeclaredIds.length === 0) {
+          const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
+          if (enclosingLoops && enclosingLoops.length > 0) {
+            // In a loop: add minimal (_, _1) padding even with no captures
+            extraction.paramNames = ['_', '_1'];
+            extraction.captureNames = [];
+            extraction.captures = false;
+          }
+          continue;
+        }
 
         // Collect ALL scope-visible identifiers from enclosing scopes.
         // This includes the enclosing extraction's body scope PLUS any
@@ -636,6 +651,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         // Also collect identifiers from intermediate scopes between the
         // enclosing extraction and this extraction. Walk the AST to find
         // function scopes that contain the extraction.
+        // Track declaration positions for ordering captures by source position.
+        const declPositions = new Map<string, number>();
         const enclosingStart = enclosingExt ? enclosingExt.argStart : 0;
         const enclosingEnd = enclosingExt ? enclosingExt.argEnd : repairedCode.length;
         walk(program, {
@@ -646,13 +663,25 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
                 node.start < extraction.callStart && node.end > extraction.callEnd) {
               // This function contains our extraction -- collect its params and body declarations
               for (const param of node.params ?? []) {
-                collectBindingNamesFromNode(param, allScopeIds);
+                const names = new Set<string>();
+                collectBindingNamesFromNode(param, names);
+                for (const n of names) {
+                  allScopeIds.add(n);
+                  if (!declPositions.has(n)) declPositions.set(n, param.start ?? 0);
+                }
               }
               if (node.body?.type === 'BlockStatement') {
                 for (const stmt of node.body.body ?? []) {
                   if (stmt.type === 'VariableDeclaration') {
                     for (const decl of stmt.declarations ?? []) {
-                      if (decl.id) collectBindingNamesFromNode(decl.id, allScopeIds);
+                      if (decl.id) {
+                        const names = new Set<string>();
+                        collectBindingNamesFromNode(decl.id, names);
+                        for (const n of names) {
+                          allScopeIds.add(n);
+                          if (!declPositions.has(n)) declPositions.set(n, decl.start ?? stmt.start ?? 0);
+                        }
+                      }
                     }
                   }
                 }
@@ -662,13 +691,29 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           leave() {},
         });
 
-        // Filter undeclared identifiers against all scope identifiers
-        const allCaptures = undeclaredIds
-          .filter(name => allScopeIds.has(name) && !importedNames.has(name))
-          .sort();
-        const uniqueCaptures = [...new Set(allCaptures)];
+        // Copy declaration positions to global map for shared slot allocation
+        for (const [name, pos] of declPositions) {
+          if (!globalDeclPositions.has(name)) globalDeclPositions.set(name, pos);
+        }
 
-        if (uniqueCaptures.length === 0) continue;
+        // Filter undeclared identifiers against all scope identifiers
+        // Sort by declaration position (source order) to match Rust optimizer behavior
+        const allCaptures = undeclaredIds
+          .filter(name => allScopeIds.has(name) && !importedNames.has(name));
+        const uniqueCaptures = [...new Set(allCaptures)]
+          .sort((a, b) => (declPositions.get(a) ?? 0) - (declPositions.get(b) ?? 0));
+
+        if (uniqueCaptures.length === 0) {
+          // Even with no scope captures, event handlers in a loop context need (_, _1)
+          // padding for the q:p delivery mechanism
+          const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
+          if (enclosingLoops && enclosingLoops.length > 0) {
+            extraction.paramNames = ['_', '_1'];
+            extraction.captureNames = [];
+            extraction.captures = false;
+          }
+          continue;
+        }
 
         const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
 
@@ -718,6 +763,159 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           }
           extraction.captureNames = crossScopeCaptures.sort();
           extraction.captures = crossScopeCaptures.length > 0;
+        }
+      }
+    }
+
+    // 2a-slots. Unify parameter slots for multiple event handlers on the same element.
+    // When multiple event handlers on the same JSX element have loop-local params,
+    // they share a unified parameter list. Each handler uses _ padding for slots
+    // belonging to variables it doesn't capture.
+    {
+      // Group event handlers by parent extraction and element position
+      const handlersByParent = new Map<string, typeof extractions>();
+      for (const ext of extractions) {
+        if (ext.ctxKind !== 'eventHandler') continue;
+        if (ext.paramNames.length < 2 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1') continue;
+        // Find the parent extraction
+        let parentName: string | null = null;
+        for (const other of extractions) {
+          if (other.symbolName === ext.symbolName) continue;
+          if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
+            if (!parentName || (other.argStart >= (extractions.find(e => e.symbolName === parentName)?.argStart ?? 0))) {
+              parentName = other.symbolName;
+            }
+          }
+        }
+        if (!parentName) continue;
+        if (!handlersByParent.has(parentName)) handlersByParent.set(parentName, []);
+        handlersByParent.get(parentName)!.push(ext);
+      }
+
+      // For each parent, group handlers by their containing JSX element
+      for (const [, handlers] of handlersByParent) {
+        if (handlers.length < 2) continue;
+
+        // Group by containing element: scan backwards in source from callStart to find '<'
+        const elementGroups = new Map<number, typeof extractions>();
+        for (const h of handlers) {
+          let pos = h.callStart - 1;
+          while (pos > 0 && repairedCode[pos] !== '<') pos--;
+          const existing = elementGroups.get(pos);
+          if (existing) {
+            existing.push(h);
+          } else {
+            elementGroups.set(pos, [h]);
+          }
+        }
+
+        // For each element group with 2+ handlers, unify their loop-local params
+        for (const [, group] of elementGroups) {
+          if (group.length < 2) continue;
+
+          // Collect all unique loop-local params across all handlers, sorted by declaration position
+          const allLoopLocals: string[] = [];
+          const seen = new Set<string>();
+          for (const h of group) {
+            for (let i = 2; i < h.paramNames.length; i++) {
+              const p = h.paramNames[i];
+              if (!seen.has(p)) {
+                seen.add(p);
+                allLoopLocals.push(p);
+              }
+            }
+          }
+          // Sort by declaration position (source order) using globalDeclPositions
+          allLoopLocals.sort((a, b) => (globalDeclPositions.get(a) ?? 0) - (globalDeclPositions.get(b) ?? 0));
+
+          if (allLoopLocals.length === 0) continue;
+
+          // Now reassign paramNames for each handler using unified slots.
+          // Handlers with no loop-local captures keep just (_, _1) -- they don't
+          // participate in slot allocation.
+          for (const h of group) {
+            const handlerCaptures = new Set<string>();
+            for (let i = 2; i < h.paramNames.length; i++) {
+              handlerCaptures.add(h.paramNames[i]);
+            }
+            if (handlerCaptures.size === 0) continue; // no captures, keep (_, _1) only
+            // Build new paramNames with unified slots.
+            // Trailing unused positions are omitted (not padded).
+            const newParams = ['_', '_1'];
+            let paddingCounter = 2; // Start at _2 for first gap
+            let lastCaptureIdx = -1;
+            // Find the last position in the unified list that this handler uses
+            for (let idx = 0; idx < allLoopLocals.length; idx++) {
+              if (handlerCaptures.has(allLoopLocals[idx])) lastCaptureIdx = idx;
+            }
+            // Only fill slots up to the last used position
+            for (let idx = 0; idx <= lastCaptureIdx; idx++) {
+              const p = allLoopLocals[idx];
+              if (handlerCaptures.has(p)) {
+                newParams.push(p);
+              } else {
+                newParams.push(`_${paddingCounter}`);
+              }
+              paddingCounter++;
+            }
+            h.paramNames = newParams;
+          }
+        }
+      }
+    }
+
+    // Build elementQpParams map: for each event handler, store the unified q:ps params
+    // for its containing element. For multi-handler elements, this was computed in slot
+    // unification. For single-handler elements, use loopLocalParams directly.
+    const elementQpParamsMap = new Map<string, string[]>();
+    // From slot unification (already populated for multi-handler groups):
+    // We need to re-derive it. Let's scan all event handlers with paramNames.
+    {
+      // Group event handlers by parent and element (same logic as slot unification)
+      const handlersByParent2 = new Map<string, typeof extractions>();
+      for (const ext of extractions) {
+        if (ext.ctxKind !== 'eventHandler') continue;
+        if (ext.paramNames.length < 2 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1') continue;
+        let parentName: string | null = null;
+        for (const other of extractions) {
+          if (other.symbolName === ext.symbolName) continue;
+          if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
+            if (!parentName || (other.argStart >= (extractions.find(e => e.symbolName === parentName)?.argStart ?? 0))) {
+              parentName = other.symbolName;
+            }
+          }
+        }
+        if (!parentName) continue;
+        if (!handlersByParent2.has(parentName)) handlersByParent2.set(parentName, []);
+        handlersByParent2.get(parentName)!.push(ext);
+      }
+
+      for (const [, handlers] of handlersByParent2) {
+        // Group by element
+        const elementGroups2 = new Map<number, typeof extractions>();
+        for (const h of handlers) {
+          let pos = h.callStart - 1;
+          while (pos > 0 && repairedCode[pos] !== '<') pos--;
+          const existing = elementGroups2.get(pos);
+          if (existing) existing.push(h);
+          else elementGroups2.set(pos, [h]);
+        }
+
+        for (const [, group] of elementGroups2) {
+          // Collect actual (non-padding) loop-local vars in declaration order
+          const allVars: string[] = [];
+          const seen = new Set<string>();
+          for (const h of group) {
+            for (let i = 2; i < h.paramNames.length; i++) {
+              const p = h.paramNames[i];
+              if (/^_\d+$/.test(p) || p === '_') continue;
+              if (!seen.has(p)) { seen.add(p); allVars.push(p); }
+            }
+          }
+          allVars.sort((a, b) => (globalDeclPositions.get(a) ?? 0) - (globalDeclPositions.get(b) ?? 0));
+          for (const h of group) {
+            elementQpParamsMap.set(h.symbolName, allVars);
+          }
         }
       }
     }
@@ -860,6 +1058,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       options.isServer,
       options.explicitExtensions,
       options.transpileTs,
+      options.minify,
     );
 
     // 3b. Import cleanup: remove non-Qwik imports whose identifiers are no longer
@@ -1103,6 +1302,17 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             child.paramNames.length >= 2 &&
             child.paramNames[0] === '_' && child.paramNames[1] === '_1';
 
+          // Extract loop-local param names (paramNames minus _, _1 padding and _N gap placeholders)
+          const loopLocalParams: string[] = [];
+          if (child.paramNames.length >= 2 && child.paramNames[0] === '_' && child.paramNames[1] === '_1') {
+            for (let pi = 2; pi < child.paramNames.length; pi++) {
+              const p = child.paramNames[pi];
+              // Skip padding placeholders (_2, _3, etc.)
+              if (/^_\d+$/.test(p)) continue;
+              loopLocalParams.push(p);
+            }
+          }
+
           // For JSX attr extractions: replace the entire attribute
           nestedCallSites.push({
             qrlVarName,
@@ -1115,6 +1325,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             // Cross-scope loop captures: generate .w() hoisting
             hoistedSymbolName: hasLoopCrossCaptures ? child.symbolName : undefined,
             hoistedCaptureNames: hasLoopCrossCaptures ? child.captureNames : undefined,
+            // Loop-local params for q:ps injection
+            loopLocalParamNames: loopLocalParams.length > 0 ? loopLocalParams : undefined,
+            // Unified q:ps params for the whole element (declaration-ordered)
+            elementQpParams: elementQpParamsMap.get(child.symbolName),
           });
         } else {
           // Regular $() call site

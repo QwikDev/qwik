@@ -663,6 +663,7 @@ export function rewriteParentModule(
   isServer?: boolean,
   explicitExtensions?: boolean,
   transpileTs?: boolean,
+  minify?: string,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const { program } = parseSync(relPath, source);
@@ -902,7 +903,8 @@ export function rewriteParentModule(
   // Then the Rust optimizer strips `const foo = `, leaving just the call expression.
   // We detect this by finding VariableDeclaration nodes whose init range contains
   // a top-level extraction's call site.
-  {
+  // Only active when minify is not 'none' (Rust optimizer's simplify mode).
+  if (minify !== 'none') {
     for (const stmt of program.body) {
       // Skip exported declarations
       if (stmt.type === 'ExportNamedDeclaration') continue;
@@ -914,15 +916,14 @@ export function rewriteParentModule(
       const declarator = decl.declarations[0];
       if (!declarator.init) continue;
 
-      // Check if ANY top-level extraction's call site is within this declarator's init range
-      // but NOT the init itself (if the extraction IS the init, keep the binding)
+      // Check if ANY top-level extraction's call site is within or IS this declarator's init.
+      // This includes both the case where the extraction IS the init (e.g., `const Foo = component$(...)`)
+      // and where it's nested inside the init. The Rust optimizer strips unused bindings in both cases.
       const initStart = declarator.init.start;
       const initEnd = declarator.init.end;
-      const containsNestedExtraction = topLevel.some(
+      const containsExtraction = topLevel.some(
         (ext) => !ext.isSync &&
-          ext.callStart >= initStart && ext.callEnd <= initEnd &&
-          // The extraction must be NESTED inside the init, not the init itself
-          !(ext.callStart === initStart && ext.callEnd === initEnd),
+          ext.callStart >= initStart && ext.callEnd <= initEnd,
       );
 
       // Also check if init is a pre-existing inlinedQrl(null, ...) call.
@@ -932,7 +933,7 @@ export function rewriteParentModule(
         declarator.init.callee?.type === 'Identifier' &&
         declarator.init.callee.name === 'inlinedQrl';
 
-      if (!containsNestedExtraction && !isInlinedQrlCall) continue;
+      if (!containsExtraction && !isInlinedQrlCall) continue;
 
       // The variable name
       const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;

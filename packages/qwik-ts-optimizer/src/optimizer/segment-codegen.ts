@@ -220,6 +220,10 @@ export interface NestedCallSiteInfo {
   hoistedSymbolName?: string;
   /** For cross-scope loop captures: the capture variable names for .w() */
   hoistedCaptureNames?: string[];
+  /** Loop-local param names (paramNames minus _, _1 padding and _N gaps) for q:ps injection */
+  loopLocalParamNames?: string[];
+  /** Unified q:ps params for the entire element (all handlers combined, declaration order) */
+  elementQpParams?: string[];
 }
 
 /**
@@ -464,7 +468,73 @@ export function generateSegmentCode(
       const wrappedBody = `(${bodyText})`;
       const bodyParse = parseSync('segment.tsx', wrappedBody);
       const bodyS = new MagicString(wrappedBody);
-      const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames);
+
+      // Build qpOverrides map: for each JSX element with event handler QRLs,
+      // collect the union of loopLocalParamNames from all handlers on that element.
+      let qpOverrides: Map<number, string[]> | undefined;
+      if (nestedCallSites && nestedCallSites.some(s => s.loopLocalParamNames && s.loopLocalParamNames.length > 0)) {
+        qpOverrides = new Map();
+        // Build a map from QRL variable name to loopLocalParamNames
+        const qrlParamMap = new Map<string, string[]>();
+        for (const site of nestedCallSites) {
+          if (site.loopLocalParamNames && site.loopLocalParamNames.length > 0) {
+            qrlParamMap.set(site.qrlVarName, site.loopLocalParamNames);
+          }
+        }
+        // Walk the parsed body to find JSX elements with q-e:* attributes referencing QRLs
+        function walkAst(node: any): void {
+          if (!node || typeof node !== 'object') return;
+          if (Array.isArray(node)) { node.forEach(walkAst); return; }
+          if (node.type === 'JSXElement' && node.openingElement) {
+            const attrs = node.openingElement.attributes || [];
+            const elementParams: string[] = [];
+            const seen = new Set<string>();
+            for (const attr of attrs) {
+              if (attr.type === 'JSXAttribute') {
+                // Handle both JSXIdentifier and JSXNamespacedName (q-e:click is namespaced)
+                let attrName: string | null = null;
+                if (attr.name?.type === 'JSXIdentifier') {
+                  attrName = attr.name.name;
+                } else if (attr.name?.type === 'JSXNamespacedName') {
+                  attrName = `${attr.name.namespace?.name}:${attr.name.name?.name}`;
+                }
+                if (attrName && (attrName.startsWith('q-e:') || attrName.startsWith('q-ep:') || attrName.startsWith('q-dp:') || attrName.startsWith('q-wp:'))) {
+                  // Find the QRL ref in the value
+                  if (attr.value?.type === 'JSXExpressionContainer' && attr.value.expression?.type === 'Identifier') {
+                    const qrlName = attr.value.expression.name;
+                    // Prefer elementQpParams (unified, declaration-ordered) over per-handler params
+                    const site = nestedCallSites.find(s => s.qrlVarName === qrlName);
+                    if (site?.elementQpParams) {
+                      // Use the pre-computed unified params for the whole element
+                      for (const p of site.elementQpParams) {
+                        if (!seen.has(p)) { seen.add(p); elementParams.push(p); }
+                      }
+                    } else {
+                      const params = qrlParamMap.get(qrlName);
+                      if (params) {
+                        for (const p of params) {
+                          if (!seen.has(p)) { seen.add(p); elementParams.push(p); }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            if (elementParams.length > 0) {
+              qpOverrides!.set(node.start, elementParams);
+            }
+          }
+          for (const key of Object.keys(node)) {
+            if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+            walkAst(node[key]);
+          }
+        }
+        walkAst(bodyParse.program);
+      }
+
+      const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
+        undefined, undefined, undefined, true, qpOverrides);
       const transformedWrapped = bodyS.toString();
       // Unwrap the parentheses
       bodyText = transformedWrapped.slice(1, -1);

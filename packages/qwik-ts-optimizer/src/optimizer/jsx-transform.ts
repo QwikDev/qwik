@@ -790,6 +790,7 @@ export function transformJsxElement(
   loopCtx?: LoopContext | null,
   isSoleChild?: boolean,
   enableChildSignals: boolean = true,
+  qpOverrides?: Map<number, string[]>,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
@@ -834,12 +835,24 @@ export function transformJsxElement(
   // loop variable value is dynamic. This also causes event handlers on this
   // element to be placed in varEntries.
   if (inLoop && tagIsHtml) {
-    const qpResult = buildQpProp(loopCtx!.iterVars);
-    if (qpResult) {
-      const formattedQpName = needsQuoting(qpResult.propName)
-        ? `"${qpResult.propName}"`
-        : qpResult.propName;
-      varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
+    // Check for qpOverrides first (from capture analysis via nestedCallSites)
+    const overrideParams = qpOverrides?.get(node.start);
+    if (overrideParams && overrideParams.length > 0) {
+      const qpResult = buildQpProp(overrideParams, true);
+      if (qpResult) {
+        const formattedQpName = needsQuoting(qpResult.propName)
+          ? `"${qpResult.propName}"`
+          : qpResult.propName;
+        varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
+      }
+    } else {
+      const qpResult = buildQpProp(loopCtx!.iterVars);
+      if (qpResult) {
+        const formattedQpName = needsQuoting(qpResult.propName)
+          ? `"${qpResult.propName}"`
+          : qpResult.propName;
+        varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
+      }
     }
   }
 
@@ -1015,6 +1028,8 @@ export function transformAllJsx(
   devOptions?: { relPath: string },
   keyCounterStart?: number,
   enableSignals: boolean = true,
+  /** Override q:p/q:ps values for specific elements. Key is element tag start position in source. */
+  qpOverrides?: Map<number, string[]>,
 ): JsxTransformOutput {
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0);
   const signalHoister = new SignalHoister();
@@ -1105,6 +1120,7 @@ export function transformAllJsx(
           currentLoop,
           isSoleChild,
           enableSignals,
+          qpOverrides,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);

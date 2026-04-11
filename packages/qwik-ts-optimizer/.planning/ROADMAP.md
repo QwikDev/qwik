@@ -36,7 +36,7 @@ Plans:
 - [x] 07-01-PLAN.md — Import assembly unification and user import preservation
 - [x] 07-02-PLAN.md — .s() body transformation pipeline for inline/hoist strategy
 - [x] 07-03-PLAN.md — Segment-strategy fixes and inline-minor issues (gap closure)
-- [ ] 07-04-PLAN.md — JSX transpilation in inline .s() bodies (gap closure)
+- [x] 07-04-PLAN.md — JSX transpilation in inline .s() bodies (gap closure)
 - [ ] 07-05-PLAN.md — Hoist const-function pattern and final sweep (gap closure)
 
 ### Phase 8: Parent Rewrite Batch 2

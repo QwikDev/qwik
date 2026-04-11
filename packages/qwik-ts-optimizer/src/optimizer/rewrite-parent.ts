@@ -931,7 +931,11 @@ export function rewriteParentModule(
   // Mark nested extractions: an extraction is nested if its call range
   // is fully contained within another extraction's argument range.
   // Also set the parent field for nested extractions.
+  // We pick the INNERMOST (closest/smallest) containing parent to handle
+  // multi-level nesting correctly (e.g., component$ > component$ > onClick$).
   for (let i = 0; i < sorted.length; i++) {
+    let bestParent: typeof sorted[0] | null = null;
+    let bestRange = Infinity;
     for (let j = 0; j < sorted.length; j++) {
       if (i === j) continue;
       // Check if sorted[i] is inside sorted[j]'s argument
@@ -939,9 +943,15 @@ export function rewriteParentModule(
         sorted[i].callStart >= sorted[j].argStart &&
         sorted[i].callEnd <= sorted[j].argEnd
       ) {
-        sorted[i].parent = sorted[j].symbolName;
-        break;
+        const range = sorted[j].argEnd - sorted[j].argStart;
+        if (range < bestRange) {
+          bestRange = range;
+          bestParent = sorted[j];
+        }
       }
+    }
+    if (bestParent) {
+      sorted[i].parent = bestParent.symbolName;
     }
   }
 

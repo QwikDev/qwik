@@ -79,7 +79,7 @@ Plans:
   3. Zero regressions in unit tests
 **Plans**: 3 plans
 Plans:
-- [ ] 10-01-PLAN.md — Duplicate display name disambiguation with _1/_2 counters
+- [x] 10-01-PLAN.md — Duplicate display name disambiguation with _1/_2 counters
 - [ ] 10-02-PLAN.md — Prod mode s_ naming, import-source naming, captures metadata fix
 - [ ] 10-03-PLAN.md — JSX extraction scoping and final Phase 10 sweep
 
@@ -149,7 +149,7 @@ Plans:
 | 7. Parent Rewrite Batch 1 | 5/5 | Gap closure complete | - |
 | 8. Parent Rewrite Batch 2 | 0/5 | Planning complete | - |
 | 9. Untransformed Extraction | 0/3 | Planning complete | - |
-| 10. Segment Identity Batch 1 | 0/3 | Planning complete | - |
+| 10. Segment Identity Batch 1 | 1/3 | In Progress|  |
 | 11. Segment Identity Batch 2 | 0/TBD | Not started | - |
 | 12. Segment Identity Batch 3 | 0/TBD | Not started | - |
 | 13. Segment Codegen Batch 1 | 0/TBD | Not started | - |

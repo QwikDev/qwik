@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-04-11T05:06:32.807Z"
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-04-11T05:21:08.870Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 10
-  completed_plans: 6
-  percent: 60
+  completed_plans: 7
+  percent: 70
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 ## Current Position
 
 Phase: 08 (Parent Rewrite Batch 2) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-04-11
 
@@ -87,6 +87,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07 P04 | 14min | 1 tasks | 2 files |
 | Phase 07 P05 | 22min | 2 tasks | 5 files |
 | Phase 08 P01 | 3min | 2 tasks | 2 files |
+| Phase 08 P02 | 13min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,7 @@ Recent decisions affecting current work:
 - [Phase 07]: Body JSX transpilation uses wrap-parse-transform-unwrap pattern; child JSX elements get null keys matching Rust optimizer; QRL var names treated as const in body context
 - [Phase 07]: Hoist body inserted via magic-string at containing statement position, not in preamble; oxc-transform strips TS types from hoist body; JSX child elements classified as dynamic; component-aware null-key assignment
 - [Phase 08]: Filter reexport migration decisions for capture suppression; TS stripping is absolute final step after all magic-string ops
+- [Phase 08]: No-extraction passthrough gated on !needsJsxTransform; hoist-to-const triggered by transpileTs && transpileJsx on inline strategy
 
 ### Pending Todos
 
@@ -159,6 +161,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T05:06:32.805Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-04-11T05:21:08.868Z
+Stopped at: Completed 08-02-PLAN.md
 Resume file: None

@@ -50,7 +50,7 @@ Plans:
 **Plans**: 5 plans
 Plans:
 - [x] 08-01-PLAN.md — TS stripping from parent output + capture suppression for _auto_ migrated vars
-- [ ] 08-02-PLAN.md — No-extraction passthrough, inlinedQrl(null) detection, hoist-to-const for inline strategy
+- [x] 08-02-PLAN.md — No-extraction passthrough, inlinedQrl(null) detection, hoist-to-const for inline strategy
 - [ ] 08-03-PLAN.md — Signal wrapping in JSX children + _rawProps destructuring optimization
 - [ ] 08-04-PLAN.md — regCtxName / _regSymbol support for server-tagged extractions
 - [ ] 08-05-PLAN.md — Remaining snapshot fixes and final regression sweep

@@ -108,7 +108,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
-- [ ] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
+- [x] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
 - [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
 ### Phase 13: Segment Codegen Batch 1
@@ -121,7 +121,7 @@ Plans:
   3. Zero regressions in unit tests
 **Plans**: 3 plans
 Plans:
-- [ ] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
+- [x] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
 - [ ] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
 - [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
@@ -175,7 +175,7 @@ Plans:
 | 9. Untransformed Extraction | 0/3 | Planning complete | - |
 | 10. Segment Identity Batch 1 | 3/3 | Complete    | 2026-04-11 |
 | 11. Segment Identity Batch 2 | 3/3 | Complete    | 2026-04-11 |
-| 12. Segment Identity Batch 3 | 1/3 | In Progress|  |
+| 12. Segment Identity Batch 3 | 2/3 | In Progress|  |
 | 13. Segment Codegen Batch 1 | 0/TBD | Not started | - |
 | 14. Segment Codegen Batch 2 | 0/TBD | Not started | - |
 | 15. Segment Codegen Batch 3 | 0/TBD | Not started | - |

@@ -275,14 +275,14 @@ None -- existing test infrastructure covers all phase requirements through conve
 | A2 | _hf counter is the primary cause of statement count mismatch in hoist tests | Root Cause 2 | Low -- AST diff clearly shows duplicate _hf declarations |
 | A3 | Map insertion order matches SWC discovery order for imports | Root Cause 1 | Medium -- our import discovery sequence may differ from SWC's AST fold order |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Import discovery order fidelity**
+1. **Import discovery order fidelity** (RESOLVED — Plan 17-01 removes alphabetical sort; convergence tests verify order matches SWC)
    - What we know: SWC uses insertion order (Vec). Our neededImports is a Map (insertion order).
    - What's unclear: Whether our code adds symbols to neededImports in the same order SWC calls ensure_core_import. The SWC processes statements in AST order; our code may process in different order (e.g., JSX symbols before call rewrite symbols).
    - Recommendation: After removing sort, run convergence tests. If import order still differs, trace the insertion order and compare to SWC reference to identify the ordering gap.
 
-2. **_hf counter sharing mechanism**
+2. **_hf counter sharing mechanism** (RESOLVED — Plan 17-02 checks SignalHoister API and adds shared counter)
    - What we know: The JSX key counter is already shared via `sCallJsxOptions.keyCounterStart`. A similar mechanism is needed for _hf signal function counter.
    - What's unclear: Whether SignalHoister in signal-analysis.ts already supports an offset parameter.
    - Recommendation: Check SignalHoister API during implementation; may need to add a `hfCounterStart` parameter.

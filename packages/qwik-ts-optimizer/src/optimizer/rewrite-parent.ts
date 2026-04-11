@@ -1506,6 +1506,13 @@ export function rewriteParentModule(
     const stripped = oxcTransformSync('output.tsx', finalCode, tsStripOptions);
     if (stripped.code) {
       finalCode = stripped.code;
+      // oxc-transform produces `let` for exported enum IIFEs, but Rust optimizer uses `var`.
+      // Post-process: `let Thing = function(Thing)` -> `var Thing = function(Thing)`
+      // Also handles: `export let Thing = ...` -> `export var Thing = ...`
+      finalCode = finalCode.replace(
+        /\b((?:export\s+)?)let\s+(\w+)\s*=\s*(\/\*[^*]*\*\/\s*)?function\s*\(\2\)/g,
+        '$1var $2 = $3function($2)',
+      );
     }
   }
 

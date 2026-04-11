@@ -311,6 +311,7 @@ export function generateSegmentCode(
   jsxOptions?: SegmentJsxOptions,
   nestedCallSites?: NestedCallSiteInfo[],
   importContext?: SegmentImportContext,
+  enumValueMap?: Map<string, Map<string, string>>,
 ): string {
   const parts: string[] = [];
 
@@ -446,6 +447,20 @@ export function generateSegmentCode(
 
   // Exported segment body (with _captures unpacking if needed)
   let bodyText = extraction.bodyText;
+
+  // Strip diagnostic comments (@qwik-disable-next-line) from segment bodies
+  bodyText = bodyText.replace(/\/\*\s*@qwik-disable-next-line\s+\w+\s*\*\/\s*\n?/g, '');
+
+  // Inline TS enum member references when transpileTs is enabled
+  // e.g., Thing.A -> 0, Thing.B -> 1
+  if (enumValueMap && enumValueMap.size > 0) {
+    for (const [enumName, members] of enumValueMap) {
+      for (const [memberName, value] of members) {
+        const pattern = new RegExp(`\\b${enumName}\\.${memberName}\\b`, 'g');
+        bodyText = bodyText.replace(pattern, value);
+      }
+    }
+  }
 
   // Apply _rawProps destructuring optimization for component$ extractions
   // Must happen BEFORE nested call rewriting and JSX transform

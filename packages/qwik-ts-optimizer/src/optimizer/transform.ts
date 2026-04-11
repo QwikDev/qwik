@@ -1219,6 +1219,50 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       });
     }
 
+    // Collect TS enum declarations for value inlining in segment bodies
+    // When transpileTs is enabled, enum member references (Thing.A) are resolved
+    // to their literal values (0) in segment bodies
+    const enumValueMap = new Map<string, Map<string, string>>();
+    if (shouldTranspileTs) {
+      for (const node of program.body) {
+        let enumDecl: any = null;
+        if (node.type === 'TSEnumDeclaration') {
+          enumDecl = node;
+        } else if (node.type === 'ExportNamedDeclaration' && node.declaration?.type === 'TSEnumDeclaration') {
+          enumDecl = node.declaration;
+        }
+        if (enumDecl && enumDecl.id?.name && enumDecl.body?.members) {
+          const members = new Map<string, string>();
+          let autoValue = 0;
+          for (const member of enumDecl.body.members) {
+            const memberName = member.id?.name ?? member.id?.value;
+            if (!memberName) continue;
+            if (member.initializer) {
+              // Explicit initializer -- extract literal value
+              if (member.initializer.type === 'NumericLiteral' || member.initializer.type === 'Literal') {
+                const val = String(member.initializer.value);
+                members.set(memberName, val);
+                autoValue = Number(member.initializer.value) + 1;
+              } else if (member.initializer.type === 'StringLiteral') {
+                members.set(memberName, JSON.stringify(member.initializer.value));
+                autoValue = NaN; // String enums break auto-increment
+              } else {
+                // Complex initializer -- skip inlining for this member
+                autoValue = NaN;
+              }
+            } else {
+              // Auto-incremented value
+              members.set(memberName, String(autoValue));
+              autoValue++;
+            }
+          }
+          if (members.size > 0) {
+            enumValueMap.set(enumDecl.id.name, members);
+          }
+        }
+      }
+    }
+
     for (const ext of updatedExtractions) {
       if (ext.isSync) continue; // sync$ is inlined, no separate segment module
 
@@ -1447,6 +1491,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
               : undefined,
             nestedCallSites.length > 0 ? nestedCallSites : undefined,
             importContext,
+            enumValueMap.size > 0 ? enumValueMap : undefined,
           );
 
       // Strip TS types from segment code when transpileTs is enabled

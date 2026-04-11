@@ -366,6 +366,92 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // 1. Extract segments
     const extractions = extractSegments(input.code, relPath, options.scope);
 
+    // 1a. No-extraction passthrough: if no $() markers found AND no JSX transpilation
+    // needed, preserve source as-is with only a `//` separator between imports and body.
+    // This avoids import stripping or unused import removal for files with no Qwik
+    // markers (e.g., issue_476, should_ignore_null_inlined_qrl).
+    const earlyTranspileJsx = options.transpileJsx !== false;
+    const needsJsxTransform = earlyTranspileJsx && (ext === '.tsx' || ext === '.jsx');
+    if (extractions.length === 0 && !needsJsxTransform) {
+      const { program: passProgram } = parseSync(relPath, input.code);
+      const passS = new MagicString(input.code);
+
+      // Find the end of the last import declaration
+      let lastImportEnd = -1;
+      for (const node of passProgram.body) {
+        if (node.type === 'ImportDeclaration') {
+          let end = node.end;
+          // Include trailing newline if present
+          if (end < input.code.length && input.code[end] === '\n') end++;
+          lastImportEnd = end;
+        }
+      }
+
+      // Strip unused variable bindings wrapping inlinedQrl(null, ...) calls.
+      // These are pre-processed QRL calls that should pass through, but the
+      // Rust optimizer strips `const foo = ` when foo is unreferenced.
+      const bodyReferencedNames = new Set<string>();
+      for (const stmt of passProgram.body) {
+        if (stmt.type === 'ImportDeclaration') continue;
+        if (stmt.type !== 'VariableDeclaration') {
+          // Collect all identifiers referenced in non-variable statements
+          walk(stmt, {
+            enter(node: any) {
+              if (node.type === 'Identifier' && node.name) {
+                bodyReferencedNames.add(node.name);
+              }
+            },
+          });
+        }
+      }
+
+      for (const stmt of passProgram.body) {
+        if (stmt.type !== 'VariableDeclaration') continue;
+        if (stmt.declarations?.length !== 1) continue;
+        const declarator = stmt.declarations[0];
+        if (!declarator.init) continue;
+        // Check if init is an inlinedQrl(...) call
+        const init = declarator.init;
+        if (init.type !== 'CallExpression') continue;
+        const callee = init.callee;
+        if (callee?.type !== 'Identifier' || callee.name !== 'inlinedQrl') continue;
+        // Check if variable name is unreferenced
+        const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;
+        if (!varName) continue;
+        if (!bodyReferencedNames.has(varName)) {
+          // Strip `const/let/var varName = ` prefix, keeping the init expression
+          passS.remove(stmt.start, init.start);
+        }
+      }
+
+      // Insert // separator
+      if (lastImportEnd >= 0) {
+        // Remove blank lines between last import and body, insert //
+        let bodyStart = lastImportEnd;
+        while (bodyStart < input.code.length && input.code[bodyStart] === '\n') {
+          bodyStart++;
+        }
+        if (bodyStart > lastImportEnd) {
+          passS.overwrite(lastImportEnd, bodyStart, '//\n');
+        } else {
+          passS.appendRight(lastImportEnd, '//\n');
+        }
+      } else {
+        passS.prepend('//\n');
+      }
+
+      const parentModule: TransformModule = {
+        path: relPath,
+        isEntry: false,
+        code: passS.toString(),
+        map: null,
+        segment: null,
+        origPath: input.path,
+      };
+      allModules.push(parentModule);
+      continue;
+    }
+
     // 2. Collect imports for parent rewriting (need to re-parse for the import map)
     const { program } = parseSync(relPath, input.code);
     const originalImports = collectImports(program);

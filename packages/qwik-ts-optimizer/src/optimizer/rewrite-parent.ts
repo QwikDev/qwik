@@ -561,7 +561,15 @@ export function rewriteParentModule(
           // The extraction must be NESTED inside the init, not the init itself
           !(ext.callStart === initStart && ext.callEnd === initEnd),
       );
-      if (!containsNestedExtraction) continue;
+
+      // Also check if init is a pre-existing inlinedQrl(null, ...) call.
+      // These are already-processed QRL calls that should pass through, but
+      // unused bindings wrapping them should be stripped (Rust optimizer behavior).
+      const isInlinedQrlCall = declarator.init.type === 'CallExpression' &&
+        declarator.init.callee?.type === 'Identifier' &&
+        declarator.init.callee.name === 'inlinedQrl';
+
+      if (!containsNestedExtraction && !isInlinedQrlCall) continue;
 
       // The variable name
       const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;

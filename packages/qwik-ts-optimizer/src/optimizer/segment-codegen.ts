@@ -11,7 +11,7 @@ import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import { rewriteImportSource } from './rewrite-imports.js';
-import { getQrlImportSource, buildSyncTransform } from './rewrite-calls.js';
+import { getQrlImportSource, buildSyncTransform, needsPureAnnotation } from './rewrite-calls.js';
 import { applyRawPropsTransform } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx } from './jsx-transform.js';
@@ -610,7 +610,8 @@ export function generateSegmentCode(
             if (site.captureNames && site.captureNames.length > 0) {
               qrlRef += '.w([\n        ' + site.captureNames.join(',\n        ') + '\n    ])';
             }
-            bodyText = bodyText.slice(0, relStart) + `${site.qrlCallee}(${qrlRef})` + bodyText.slice(relEnd);
+            const purePrefix = needsPureAnnotation(site.qrlCallee) ? '/*#__PURE__*/ ' : '';
+            bodyText = bodyText.slice(0, relStart) + `${purePrefix}${site.qrlCallee}(${qrlRef})` + bodyText.slice(relEnd);
           } else {
             // Bare $() call -- replace with QRL variable directly
             let qrlRef = site.qrlVarName;

@@ -105,7 +105,11 @@ Plans:
   1. All 21 snapshots pass parent + segment AST comparison
   2. All previously-locked snapshots still pass
   3. Zero regressions in unit tests
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
+- [ ] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
+- [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
 ### Phase 13: Segment Codegen Batch 1
 **Goal**: First 25 segment-codegen snapshots pass (segment found by name but code wrong)
@@ -115,7 +119,11 @@ Plans:
   1. All 25 snapshots pass parent + segment AST comparison
   2. All previously-locked snapshots still pass
   3. Zero regressions in unit tests
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
+- [ ] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
+- [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
 ### Phase 14: Segment Codegen Batch 2
 **Goal**: Next 25 segment-codegen snapshots pass
@@ -125,7 +133,11 @@ Plans:
   1. All 25 snapshots pass parent + segment AST comparison
   2. All previously-locked snapshots still pass
   3. Zero regressions in unit tests
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
+- [ ] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
+- [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
 ### Phase 15: Segment Codegen Batch 3
 **Goal**: Remaining 26 segment-codegen snapshots pass
@@ -135,7 +147,11 @@ Plans:
   1. All 26 snapshots pass parent + segment AST comparison
   2. All previously-locked snapshots still pass
   3. Zero regressions in unit tests
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
+- [ ] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
+- [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
 ### Phase 16: Final Convergence
 **Goal**: 209/209 snapshots pass, full validation
@@ -144,7 +160,11 @@ Plans:
   1. convergence.test.ts reports 209/209 (or 208/208 excluding no-input relative_paths)
   2. Zero regressions in all unit tests
   3. `npx tsc --noEmit` clean
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
+- [ ] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
+- [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
 ## Progress
 
@@ -155,7 +175,7 @@ Plans:
 | 9. Untransformed Extraction | 0/3 | Planning complete | - |
 | 10. Segment Identity Batch 1 | 3/3 | Complete    | 2026-04-11 |
 | 11. Segment Identity Batch 2 | 3/3 | Complete    | 2026-04-11 |
-| 12. Segment Identity Batch 3 | 0/TBD | Not started | - |
+| 12. Segment Identity Batch 3 | 0/3 | Planning complete | - |
 | 13. Segment Codegen Batch 1 | 0/TBD | Not started | - |
 | 14. Segment Codegen Batch 2 | 0/TBD | Not started | - |
 | 15. Segment Codegen Batch 3 | 0/TBD | Not started | - |

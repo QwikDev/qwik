@@ -109,12 +109,16 @@ function stripExtension(filePath: string): string {
 }
 
 /**
- * Compute the parent module path for _auto_ imports.
- * This is the relative path without extension, prefixed with "./" if needed.
+ * Compute the parent module path for segment imports back to the parent module.
+ * Segments are always emitted in the same directory as the parent file,
+ * so we use only the basename (no directory component), prefixed with "./".
+ * e.g., "project/test.tsx" -> "./test", "test.tsx" -> "./test"
  */
 function computeParentModulePath(relPath: string): string {
-  const stripped = stripExtension(relPath);
-  if (stripped.startsWith('./') || stripped.startsWith('../')) return stripped;
+  // Extract basename: take everything after the last "/"
+  const slashIdx = relPath.lastIndexOf('/');
+  const basename = slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
+  const stripped = stripExtension(basename);
   return './' + stripped;
 }
 

@@ -433,7 +433,15 @@ pub fn find_migratable_vars(
 					return false;
 				}
 
+				// Don't migrate a variable that is used by another segment
+				// (it was pulled in as a transitive dependency, but other segments need it too)
 				let candidate_target = assignment.get(candidate_id).copied().unwrap_or(*seg_idx);
+				if let Some(usage) = root_var_usage.get(candidate_id) {
+					if usage.iter().any(|&seg| seg != candidate_target) {
+						return false;
+					}
+				}
+
 				if !shared_declarator_migrates_as_a_unit(
 					candidate_id,
 					candidate_target,

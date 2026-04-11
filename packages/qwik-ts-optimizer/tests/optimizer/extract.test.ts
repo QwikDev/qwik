@@ -227,6 +227,7 @@ describe('generateSegmentCode', () => {
       isInlinedQrl: false,
       explicitCaptures: null,
       inlinedQrlNameArg: null,
+      isComponentEvent: false,
     };
 
     const code = generateSegmentCode(extraction);
@@ -266,6 +267,7 @@ describe('generateSegmentCode', () => {
       isInlinedQrl: false,
       explicitCaptures: null,
       inlinedQrlNameArg: null,
+      isComponentEvent: false,
     };
 
     const code = generateSegmentCode(extraction);

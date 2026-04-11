@@ -163,7 +163,7 @@ function applySegmentConstReplacement(code: string, filename: string, isServer?:
 
     for (const spec of node.specifiers || []) {
       if (spec.type !== 'ImportSpecifier') continue;
-      const importedName = spec.imported?.name ?? spec.local?.name;
+      const importedName = (spec.imported?.type === 'Identifier' ? spec.imported.name : spec.imported?.value) ?? spec.local?.name;
       const localName = spec.local?.name;
       if (!localName) continue;
 
@@ -1037,7 +1037,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       const loopStack: LoopContext[] = [];
 
       walk(program, {
-        enter(node: any, _key: string, _index: number | undefined) {
+        enter(node: any, _parent: any, _ctx: any) {
           const loopCtx = detectLoopContext(node, repairedCode);
           if (loopCtx) {
             loopStack.push(loopCtx);
@@ -1056,7 +1056,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             }
           }
         },
-        leave(node: any, _key: string, _index: number | undefined) {
+        leave(node: any, _parent: any, _ctx: any) {
           const loopCtx = detectLoopContext(node, repairedCode);
           if (loopCtx) {
             loopStack.pop();
@@ -1666,7 +1666,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         }
         if (node.specifiers) {
           for (const spec of node.specifiers) {
-            if (spec.exported?.name) sameFileExportNames.add(spec.exported.name);
+            const exportedName = spec.exported?.type === 'Identifier' ? spec.exported.name : spec.exported?.value;
+            if (exportedName) sameFileExportNames.add(exportedName);
           }
         }
       } else if (node.type === 'FunctionDeclaration' && node.id?.name) {
@@ -1684,11 +1685,11 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const importAttributesMap = new Map<string, Record<string, string>>();
     for (const node of program.body) {
       if (node.type !== 'ImportDeclaration') continue;
-      const attrs = node.attributes || node.assertions;
+      const attrs = node.attributes || (node as any).assertions;
       if (attrs && attrs.length > 0) {
         const attrObj: Record<string, string> = {};
         for (const attr of attrs) {
-          const key = attr.key?.name ?? attr.key?.value;
+          const key = attr.key?.type === 'Identifier' ? attr.key.name : attr.key?.value;
           const value = attr.value?.value;
           if (key && value) attrObj[key] = value;
         }

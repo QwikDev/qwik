@@ -50,9 +50,10 @@ const handler = $(() => {
 });`;
     const code = rewrite(source, 'test.ts');
 
-    // Bare $ should be replaced with q_symbolName directly
-    // Should NOT have a wrapper function like qrl(q_...)
-    expect(code).toMatch(/const handler = q_\w+/);
+    // Bare $ extractions produce a QRL declaration and replace usage with variable name
+    expect(code).toMatch(/const q_handler_\w+ = \/\*#__PURE__\*\/ qrl\(/);
+    // The original call site is replaced with the QRL variable reference
+    expect(code).toMatch(/q_handler_\w+;/);
     // Should NOT have $( in the output
     expect(code).not.toContain('$(');
   });

@@ -576,7 +576,7 @@ export const Comp = (props) => {
     });
 
     const parent = result.modules[0];
-    expect(parent.code).toContain('value: val');
+    expect(parent.code).toContain('"value": val');
     expect(parent.code).toContain('"q-e:input"');
     expect(parent.code).toContain('inlinedQrl(_val');
   });
@@ -598,7 +598,7 @@ export const Comp = (props) => {
     });
 
     const parent = result.modules[0];
-    expect(parent.code).toContain('checked: chk');
+    expect(parent.code).toContain('"checked": chk');
     expect(parent.code).toContain('"q-e:input"');
     expect(parent.code).toContain('inlinedQrl(_chk');
   });

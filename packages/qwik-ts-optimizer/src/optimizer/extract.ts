@@ -21,6 +21,7 @@ import {
   isSyncMarker,
   getCtxKind,
   getCtxName,
+  type CustomInlinedInfo,
   type ImportInfo,
 } from './marker-detection.js';
 import { isEventProp, transformEventPropName } from './event-handler-transform.js';
@@ -108,6 +109,43 @@ function getSourceExtension(relPath: string): string {
 function getFileStem(relPath: string): string {
   const slashIdx = relPath.lastIndexOf('/');
   return slashIdx >= 0 ? relPath.slice(slashIdx + 1) : relPath;
+}
+
+/**
+ * Resolve the canonical (imported) name for an identifier callee.
+ * e.g., `import { component$ as c$ }` -> "component$"
+ */
+function resolveCanonicalCalleeName(
+  calleeName: string,
+  imports: Map<string, ImportInfo>,
+): string {
+  const importInfo = imports.get(calleeName);
+  return importInfo ? importInfo.importedName : calleeName;
+}
+
+/**
+ * Bare $() segments inherit the direct wrapper call name as naming context.
+ * Examples:
+ * - component($(() => {})) -> "..._component"
+ * - useStyles($('thing')) -> "..._useStyles"
+ * - componentQrl($(() => {})) -> "..._componentQrl"
+ */
+function getDirectWrapperContextName(
+  node: any,
+  parent: any,
+  imports: Map<string, ImportInfo>,
+  customInlined: Map<string, CustomInlinedInfo>,
+): string | null {
+  if (parent?.type !== 'CallExpression') return null;
+  if (!Array.isArray(parent.arguments) || !parent.arguments.some((arg: any) => arg === node)) {
+    return null;
+  }
+  if (isMarkerCall(parent, imports, customInlined)) return null;
+
+  const wrapperCallee = getCalleeName(parent);
+  if (!wrapperCallee) return null;
+
+  return resolveCanonicalCalleeName(wrapperCallee, imports);
 }
 
 /**
@@ -297,8 +335,17 @@ export function extractSegments(
 
         // Resolve the canonical (imported) name for aliased imports
         // e.g., `import { component$ as c$ }` → calleeName is "c$" but canonical is "component$"
-        const importInfo = imports.get(calleeName);
-        const canonicalCallee = importInfo ? importInfo.importedName : calleeName;
+        const canonicalCallee = resolveCanonicalCalleeName(calleeName, imports);
+
+        // Bare $() segments inherit the immediate wrapper call name for hashing.
+        // This matches Rust naming for cases like component($(...)) and useStyles($(...)).
+        const wrapperContext = canonicalCallee === '$'
+          ? getDirectWrapperContextName(node, parent, imports, customInlined)
+          : null;
+        if (wrapperContext) {
+          ctx.push(wrapperContext);
+          pushCount++;
+        }
 
         // Push callee name for naming context
         ctx.push(canonicalCallee);
@@ -334,9 +381,8 @@ export function extractSegments(
               jsxAttrName = `${jsxAttrParent.name.namespace?.name ?? ''}:${jsxAttrParent.name.name?.name ?? ''}`;
             }
             if (jsxAttrName?.endsWith('$')) {
-              // Use context stack to get the attr name (already transformed)
-              const ctxStack = ctx.getContextStack();
-              attrCtx = ctxStack.length >= 2 ? ctxStack[ctxStack.length - 2] : jsxAttrName;
+              // The stack top is the current marker call; the previous entry is the JSX attr.
+              attrCtx = ctx.peek(1) ?? jsxAttrName;
               isEventAttr = jsxAttrName.startsWith('on') || jsxAttrName.startsWith('document:on') || jsxAttrName.startsWith('window:on');
               isJsxNonEventAttr = !isEventAttr;
             }

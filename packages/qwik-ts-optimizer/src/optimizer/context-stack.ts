@@ -60,6 +60,15 @@ export class ContextStack {
   }
 
   /**
+   * Peek at the current stack without cloning it.
+   * offset=0 returns the top entry, offset=1 returns the previous entry, etc.
+   */
+  peek(offset: number = 0): string | undefined {
+    const idx = this.stack.length - 1 - offset;
+    return idx >= 0 ? this.stack[idx] : undefined;
+  }
+
+  /**
    * Push a default export context.
    * For default exports without a named declaration, push the file stem
    * derived from the fileStem (handles bracket-style route names).

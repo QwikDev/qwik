@@ -14,6 +14,21 @@ describe('compareAst', () => {
     expect(result.match).toBe(true);
   });
 
+  it('literal spelling differences are ignored', () => {
+    expect(compareAst('const x = "a";', "const x = 'a';", 'test.ts').match).toBe(true);
+    expect(compareAst('const x = 0x10;', 'const x = 16;', 'test.ts').match).toBe(true);
+  });
+
+  it('untagged template raw spelling differences are ignored', () => {
+    const result = compareAst('const t = `\\x41`;', 'const t = `A`;', 'test.ts');
+    expect(result.match).toBe(true);
+  });
+
+  it('tagged template raw spelling differences are preserved', () => {
+    const result = compareAst('tag`\\x41`;', 'tag`A`;', 'test.ts');
+    expect(result.match).toBe(false);
+  });
+
   it('semantically different code does NOT match', () => {
     const result = compareAst('const x = 1;', 'const x = 2;', 'test.ts');
     expect(result.match).toBe(false);

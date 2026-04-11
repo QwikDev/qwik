@@ -11,14 +11,41 @@ import { getSnapshotTransformOptions } from './snapshot-options.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAP_DIR = join(__dirname, '../../match-these-snaps');
 
-function strip(node: any): any {
-  if (Array.isArray(node)) return node.map(strip);
+function shouldStripRaw(node: any, ancestors: any[]): boolean {
+  if (node?.type === 'Literal' || node?.type === 'JSXText') {
+    return true;
+  }
+
+  const [parent, grandparent, greatGrandparent] = ancestors;
+  if (
+    parent?.type === 'TemplateElement' &&
+    grandparent?.type === 'TemplateLiteral' &&
+    greatGrandparent?.type !== 'TaggedTemplateExpression'
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function strip(node: any, ancestors: any[] = []): any {
+  if (Array.isArray(node)) return node.map((item) => strip(item, ancestors));
   if (node === null || typeof node !== 'object') return node;
-  if (node.type === 'ParenthesizedExpression' && node.expression) return strip(node.expression);
+  if (node.type === 'ParenthesizedExpression' && node.expression) {
+    return strip(node.expression, ancestors);
+  }
   const c: any = {};
   for (const [k, v] of Object.entries(node)) {
-    if (['start','end','loc','range','raw'].includes(k)) continue;
-    c[k] = strip(v);
+    if (
+      k === 'start' ||
+      k === 'end' ||
+      k === 'loc' ||
+      k === 'range' ||
+      (k === 'raw' && shouldStripRaw(node, ancestors))
+    ) {
+      continue;
+    }
+    c[k] = strip(v, [node, ...ancestors].slice(0, 3));
   }
   return c;
 }

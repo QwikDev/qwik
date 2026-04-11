@@ -39,6 +39,54 @@ const handler = $(() => {
     expect(seg.calleeName).toBe('$');
   });
 
+  it('includes the direct wrapper call name for bare $() segments', () => {
+    const source = `
+import { $, component } from '@qwik.dev/core';
+const renderHeader2 = component($(() => {
+  console.log('mount');
+}));
+`;
+    const results = extractSegments(source, 'test.tsx');
+    expect(results).toHaveLength(1);
+
+    const seg = results[0];
+    expect(seg.displayName).toBe('test.tsx_renderHeader2_component');
+    expect(seg.symbolName).toMatch(/^renderHeader2_component_/);
+    expect(seg.ctxName).toBe('$');
+  });
+
+  it('inherits local wrapper call names for bare $() segments', () => {
+    const source = `
+import { $ } from '@qwik.dev/core';
+const TestNoHmr = componentQrl($(() => {
+  return <div>Test</div>;
+}));
+`;
+    const results = extractSegments(source, 'test.tsx');
+    expect(results).toHaveLength(1);
+    expect(results[0].displayName).toBe('test.tsx_TestNoHmr_componentQrl');
+  });
+
+  it('composes wrapper context with enclosing marker context', () => {
+    const source = `
+import { $, component$, useStyles } from '@qwik.dev/core';
+
+export const Root = component$(() => {
+  useStyles($('thing'));
+  return $(() => {
+    return <div/>;
+  });
+});
+`;
+    const results = extractSegments(source, 'test.tsx');
+    const bareDisplayNames = results
+      .filter((r) => r.ctxName === '$')
+      .map((r) => r.displayName);
+
+    expect(bareDisplayNames).toContain('test.tsx_Root_component_useStyles');
+    expect(bareDisplayNames).toContain('test.tsx_Root_component');
+  });
+
   it('extracts useTask$() with qrlCallee="useTaskQrl"', () => {
     const source = `
 import { useTask$ } from '@qwik.dev/core';

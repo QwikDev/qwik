@@ -53,28 +53,46 @@ export function compareAst(
   };
 }
 
-function stripPositions(node: any): any {
-  if (Array.isArray(node)) return node.map(stripPositions);
+function shouldStripRaw(node: any, ancestors: any[]): boolean {
+  if (node?.type === 'Literal' || node?.type === 'JSXText') {
+    return true;
+  }
+
+  // TemplateElement.value.raw is cosmetic for untagged templates,
+  // but observable for tagged templates via strings.raw.
+  const [parent, grandparent, greatGrandparent] = ancestors;
+  if (
+    parent?.type === 'TemplateElement' &&
+    grandparent?.type === 'TemplateLiteral' &&
+    greatGrandparent?.type !== 'TaggedTemplateExpression'
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function stripPositions(node: any, ancestors: any[] = []): any {
+  if (Array.isArray(node)) return node.map((item) => stripPositions(item, ancestors));
   if (node === null || typeof node !== 'object') return node;
 
   // Unwrap ParenthesizedExpression -- semantically equivalent to the inner expression
   if (node.type === 'ParenthesizedExpression' && node.expression) {
-    return stripPositions(node.expression);
+    return stripPositions(node.expression, ancestors);
   }
 
   const cleaned: Record<string, any> = {};
   for (const [key, value] of Object.entries(node)) {
-    // Skip position-related fields
-    // Skip position-related and cosmetic fields
+    // Skip position-related fields and cosmetic raw spellings.
     if (
       key === 'start' ||
       key === 'end' ||
       key === 'loc' ||
       key === 'range' ||
-      key === 'raw' // quote style, numeric format — not semantic
+      (key === 'raw' && shouldStripRaw(node, ancestors))
     )
       continue;
-    cleaned[key] = stripPositions(value);
+    cleaned[key] = stripPositions(value, [node, ...ancestors].slice(0, 3));
   }
   return cleaned;
 }

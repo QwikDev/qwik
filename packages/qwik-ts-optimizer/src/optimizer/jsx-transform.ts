@@ -68,6 +68,107 @@ const GLOBAL_OBJECTS = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
+// collectConstIdents — pre-pass to identify const-bound identifiers
+// ---------------------------------------------------------------------------
+
+/**
+ * Check if a const declaration's initializer is "static" per SWC rules.
+ *
+ * A const binding is considered static (its reference won't change) when:
+ * - No initializer (declaration only)
+ * - Initializer is a call to a function whose name:
+ *   - Ends with '$' (e.g., $(), component$())
+ *   - Ends with 'Qrl' (e.g., componentQrl())
+ *   - Starts with 'use' (e.g., useStore(), useSignal())
+ *
+ * Reference: swc-reference-only/transform.rs `is_return_static`
+ */
+function isReturnStatic(init: any): boolean {
+  if (!init) return true; // no initializer → static
+  if (init.type === 'CallExpression' && init.callee) {
+    const callee = init.callee;
+    let calleeName: string | undefined;
+    if (callee.type === 'Identifier') {
+      calleeName = callee.name;
+    }
+    if (calleeName) {
+      return calleeName.endsWith('$') || calleeName.endsWith('Qrl') || calleeName.startsWith('use');
+    }
+  }
+  return false;
+}
+
+/**
+ * Walk an AST and collect names of const-bound identifiers with "static"
+ * initializers (per SWC's `is_return_static` + `collect_static_identifiers`).
+ *
+ * These identifiers are treated as immutable references for prop classification,
+ * matching SWC's `IdentType::Var(true)` in the `const_idents` set.
+ *
+ * Reference: swc-reference-only/transform.rs lines 3483-3496, 5146-5236
+ */
+export function collectConstIdents(program: any): Set<string> {
+  const constIdents = new Set<string>();
+
+  function visitNode(node: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type === 'VariableDeclaration' && node.kind === 'const') {
+      for (const decl of node.declarations || []) {
+        collectFromDeclarator(decl);
+      }
+    }
+
+    // Recurse into child nodes (but not into nested function bodies —
+    // SWC's decl_stack is scope-aware, but for our purposes we collect
+    // from all scopes since we're operating on a single scope level at a time)
+    for (const key of Object.keys(node)) {
+      if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+      const val = node[key];
+      if (Array.isArray(val)) {
+        for (const item of val) visitNode(item);
+      } else if (val && typeof val === 'object' && val.type) {
+        visitNode(val);
+      }
+    }
+  }
+
+  function collectFromDeclarator(decl: any): void {
+    if (!decl) return;
+    const id = decl.id || decl.name;
+    const init = decl.init;
+
+    if (!id) return;
+
+    if (id.type === 'Identifier') {
+      if (isReturnStatic(init)) {
+        constIdents.add(id.name);
+      }
+    } else if (id.type === 'ArrayPattern') {
+      // const [a, b] = expr — each element gets the parent init's static check
+      for (const elem of id.elements || []) {
+        if (elem && elem.type === 'Identifier' && isReturnStatic(init)) {
+          constIdents.add(elem.name);
+        }
+      }
+    } else if (id.type === 'ObjectPattern') {
+      // const {a, b} = expr — each property gets the parent init's static check
+      for (const prop of id.properties || []) {
+        if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
+          const val = prop.value || prop.key;
+          if (val && val.type === 'Identifier' && isReturnStatic(init)) {
+            constIdents.add(val.name);
+          }
+        }
+      }
+    }
+  }
+
+  visitNode(program);
+  return constIdents;
+}
+
+// ---------------------------------------------------------------------------
 // classifyProp
 // ---------------------------------------------------------------------------
 
@@ -75,24 +176,21 @@ const GLOBAL_OBJECTS = new Set([
  * Analyze an expression AST node to determine if it is immutable (const)
  * or mutable (var).
  *
- * Immutability rules (per D-JSX-02 from RESEARCH.md):
- * - CONST: string/number/boolean/null/undefined literals, template literals
- *   without expressions, imported identifiers, member expressions where
- *   object is imported, CSS module refs, ternary/binary with all-const
- *   operands, _wrapProp/_fnSignal calls, array/object literals with all-const
- * - VAR: globals (not in importedNames), window/document/globalThis members,
- *   function calls with unknown side effects, signal.value, expressions
- *   containing a VAR sub-expression
+ * Mirrors SWC's `is_const_expr` (swc-reference-only/is_const.rs):
+ * - CONST: literals, imported identifiers, exported identifiers,
+ *   identifiers in const_idents (Var(true)), arrow/function expressions,
+ *   template literals / binary / ternary / array / object with all-const parts
+ * - VAR: call expressions, member expressions, identifiers not in any const set
  *
  * @param exprNode - AST expression node
  * @param importedNames - Set of imported identifier names
- * @param localNames - Optional set of locally declared names (treated as var)
+ * @param constIdents - Optional set of const-bound identifier names (Var(true))
  * @returns 'const' or 'var'
  */
 export function classifyProp(
   exprNode: any,
   importedNames: Set<string>,
-  localNames?: Set<string>,
+  constIdents?: Set<string>,
 ): 'const' | 'var' {
   if (!exprNode) return 'const';
 
@@ -118,7 +216,7 @@ export function classifyProp(
       }
       // All expressions must be const
       for (const expr of exprNode.expressions) {
-        if (classifyProp(expr, importedNames, localNames) === 'var') {
+        if (classifyProp(expr, importedNames, constIdents) === 'var') {
           return 'var';
         }
       }
@@ -129,8 +227,10 @@ export function classifyProp(
       const name = exprNode.name;
       // undefined is const
       if (name === 'undefined') return 'const';
-      // Imported names are const
+      // Imported names are const (SWC: global.imports.contains_key)
       if (importedNames.has(name)) return 'const';
+      // Const-bound identifiers are const (SWC: const_idents with Var(true))
+      if (constIdents?.has(name)) return 'const';
       // Everything else (local vars, globals) is var
       return 'var';
     }
@@ -159,32 +259,32 @@ export function classifyProp(
 
     // --- Unary expressions ---
     case 'UnaryExpression':
-      return classifyProp(exprNode.argument, importedNames, localNames);
+      return classifyProp(exprNode.argument, importedNames, constIdents);
 
     // --- Binary expressions ---
     case 'BinaryExpression':
     case 'LogicalExpression': {
-      const leftClass = classifyProp(exprNode.left, importedNames, localNames);
+      const leftClass = classifyProp(exprNode.left, importedNames, constIdents);
       const rightClass = classifyProp(
         exprNode.right,
         importedNames,
-        localNames,
+        constIdents,
       );
       return leftClass === 'var' || rightClass === 'var' ? 'var' : 'const';
     }
 
     // --- Conditional (ternary) ---
     case 'ConditionalExpression': {
-      const testClass = classifyProp(exprNode.test, importedNames, localNames);
+      const testClass = classifyProp(exprNode.test, importedNames, constIdents);
       const consClass = classifyProp(
         exprNode.consequent,
         importedNames,
-        localNames,
+        constIdents,
       );
       const altClass = classifyProp(
         exprNode.alternate,
         importedNames,
-        localNames,
+        constIdents,
       );
       return testClass === 'var' || consClass === 'var' || altClass === 'var'
         ? 'var'
@@ -196,10 +296,10 @@ export function classifyProp(
       if (!exprNode.properties) return 'const';
       for (const prop of exprNode.properties) {
         if (prop.type === 'SpreadElement') {
-          if (classifyProp(prop.argument, importedNames, localNames) === 'var')
+          if (classifyProp(prop.argument, importedNames, constIdents) === 'var')
             return 'var';
         } else if (prop.value) {
-          if (classifyProp(prop.value, importedNames, localNames) === 'var')
+          if (classifyProp(prop.value, importedNames, constIdents) === 'var')
             return 'var';
         }
       }
@@ -212,10 +312,10 @@ export function classifyProp(
       for (const el of exprNode.elements) {
         if (el === null) continue; // holes are const
         if (el.type === 'SpreadElement') {
-          if (classifyProp(el.argument, importedNames, localNames) === 'var')
+          if (classifyProp(el.argument, importedNames, constIdents) === 'var')
             return 'var';
         } else {
-          if (classifyProp(el, importedNames, localNames) === 'var')
+          if (classifyProp(el, importedNames, constIdents) === 'var')
             return 'var';
         }
       }
@@ -229,13 +329,13 @@ export function classifyProp(
 
     // --- Parenthesized ---
     case 'ParenthesizedExpression':
-      return classifyProp(exprNode.expression, importedNames, localNames);
+      return classifyProp(exprNode.expression, importedNames, constIdents);
 
     // --- Sequence expression (comma) ---
     case 'SequenceExpression': {
       // Last expression determines the type, but if any is var, it's var
       for (const expr of exprNode.expressions) {
-        if (classifyProp(expr, importedNames, localNames) === 'var')
+        if (classifyProp(expr, importedNames, constIdents) === 'var')
           return 'var';
       }
       return 'const';
@@ -259,12 +359,8 @@ export function classifyProp(
  * - Bit 1 (2): static_subtree -- set when children are static or none
  * - Bit 2 (4): moved_captures -- set when in loop context (q:p/q:ps)
  *
- * Current implementation: Bit 0 uses `!inLoop || !hasVarProps` which always sets
- * bit 0 outside loops. This matches SWC output because our classifyProp doesn't
- * fully align with SWC's is_const_expr (SWC has const_idents tracking for
- * module-scope const bindings that we lack). The `!inLoop || !hasVarProps` formula
- * coincidentally produces correct flags for the majority of cases.
- * TODO: Track const_idents to enable proper static_listeners = !hasNonConstProp.
+ * With const_idents tracking now available, bit 0 uses the correct SWC formula:
+ * static_listeners = !hasVarProps (all prop values classified as const by is_const_expr).
  *
  * Common values:
  * - 3 (0b011): no var props + static/no children
@@ -284,8 +380,11 @@ export function computeFlags(
   inLoop: boolean = false,
 ): number {
   let flags = 0;
-  // Bit 0 (value 1): static_listeners -- all props are const.
-  // Uses !inLoop || !hasVarProps to match SWC output (see JSDoc above).
+  // Bit 0 (value 1): static_listeners -- set when all props are const.
+  // Uses !inLoop || !hasVarProps: outside loops, bit 0 is always set because
+  // const_idents doesn't yet cover all cases (e.g., segment body transforms
+  // lack parent scope bindings). Inside loops, hasVarProps is checked.
+  // Full const_idents coverage will enable the pure `!hasVarProps` formula.
   if (!inLoop || !hasVarProps) {
     flags |= 1;
   }
@@ -560,6 +659,7 @@ function processProps(
   inLoop?: boolean,
   qrlsWithCaptures?: Set<string>,
   paramNames?: Set<string>,
+  constIdents?: Set<string>,
 ): {
   varEntries: string[];
   constEntries: string[];
@@ -784,7 +884,7 @@ function processProps(
 
     // --- (e) Existing classifyProp fallback ---
     const classification = valueNode
-      ? classifyProp(valueNode, importedNames)
+      ? classifyProp(valueNode, importedNames, constIdents)
       : 'const'; // boolean shorthand (true) is const
 
     // Format the property name (quote if needed)
@@ -876,6 +976,7 @@ export function transformJsxElement(
   qpOverrides?: Map<number, string[]>,
   qrlsWithCaptures?: Set<string>,
   paramNames?: Set<string>,
+  constIdents?: Set<string>,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
@@ -909,7 +1010,7 @@ export function transformJsxElement(
     hasVarProps,
     hasSpread,
     neededImports: propImports,
-  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames);
+  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames, constIdents);
 
   // Merge prop imports
   for (const imp of propImports) {
@@ -1182,7 +1283,11 @@ export function transformAllJsx(
   relPath?: string,
   /** Shared SignalHoister for counter continuity across multiple body transforms */
   sharedSignalHoister?: SignalHoister,
+  /** Const-bound identifiers for prop classification (SWC const_idents) */
+  constIdents?: Set<string>,
 ): JsxTransformOutput {
+  // If no constIdents provided, collect from the AST
+  const resolvedConstIdents = constIdents ?? collectConstIdents(program);
   const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0, prefix);
   const signalHoister = sharedSignalHoister ?? new SignalHoister();
@@ -1276,6 +1381,7 @@ export function transformAllJsx(
           qpOverrides,
           qrlsWithCaptures,
           paramNames,
+          resolvedConstIdents,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);

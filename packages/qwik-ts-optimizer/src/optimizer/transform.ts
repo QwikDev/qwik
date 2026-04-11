@@ -1000,9 +1000,23 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         parentScopeIds = moduleScopeIds;
       }
 
-      // Skip capture analysis for inlinedQrl extractions -- captures are already
-      // explicit from the array argument parsed during extraction.
-      if (extraction.isInlinedQrl) continue;
+      // For inlinedQrl extractions, populate captureNames from the explicit captures
+      // array argument. Extract identifier names only (non-identifiers like `true` are
+      // capture slots but not named captures for metadata purposes).
+      if (extraction.isInlinedQrl) {
+        if (extraction.explicitCaptures) {
+          const items = extraction.explicitCaptures
+            .replace(/^\[/, '').replace(/\]$/, '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+          // Only identifiers become captureNames (not literals like true, false, null, numbers)
+          const identCaptures = items.filter(s => /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(s) && s !== 'true' && s !== 'false' && s !== 'null' && s !== 'undefined');
+          extraction.captureNames = identCaptures;
+          extraction.captures = identCaptures.length > 0;
+        }
+        continue;
+      }
 
       const result = analyzeCaptures(closureNode, parentScopeIds, importedNames);
       extraction.captureNames = result.captureNames;
@@ -1029,11 +1043,12 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // vars become paramNames; other captures remain as captureNames with captures = true.
     // Shared declaration position map for ordering loop-local params by source position
     const globalDeclPositions = new Map<string, number>();
+    // Build a map of extraction positions to their enclosing loop contexts
+    // by walking the original AST and tracking a loop stack.
+    // Defined at outer scope so slot unification and elementQpParams can access it.
+    const extractionLoopMap = new Map<string, LoopContext[]>();
 
     {
-      // Build a map of extraction positions to their enclosing loop contexts
-      // by walking the original AST and tracking a loop stack.
-      const extractionLoopMap = new Map<string, LoopContext[]>();
       const loopStack: LoopContext[] = [];
 
       walk(program, {
@@ -1321,8 +1336,17 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
               }
             }
           }
-          // Sort by declaration position (source order) using globalDeclPositions
-          allLoopLocals.sort((a, b) => (globalDeclPositions.get(a) ?? 0) - (globalDeclPositions.get(b) ?? 0));
+          // Determine sort order: non-loop handlers use alphabetical sort (SWC Rule 7),
+          // loop handlers use declaration-position sort.
+          const anyInLoop = group.some(h => {
+            const loops = extractionLoopMap.get(h.symbolName);
+            return loops && loops.length > 0;
+          });
+          if (anyInLoop) {
+            allLoopLocals.sort((a, b) => (globalDeclPositions.get(a) ?? 0) - (globalDeclPositions.get(b) ?? 0));
+          } else {
+            allLoopLocals.sort((a, b) => a.localeCompare(b));
+          }
 
           if (allLoopLocals.length === 0) continue;
 
@@ -1408,7 +1432,16 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
               if (!seen.has(p)) { seen.add(p); allVars.push(p); }
             }
           }
-          allVars.sort((a, b) => (globalDeclPositions.get(a) ?? 0) - (globalDeclPositions.get(b) ?? 0));
+          // Non-loop handlers use alphabetical sort; loop handlers use declaration order
+          const anyInLoop2 = group.some(h => {
+            const loops = extractionLoopMap.get(h.symbolName);
+            return loops && loops.length > 0;
+          });
+          if (anyInLoop2) {
+            allVars.sort((a, b) => (globalDeclPositions.get(a) ?? 0) - (globalDeclPositions.get(b) ?? 0));
+          } else {
+            allVars.sort((a, b) => a.localeCompare(b));
+          }
           for (const h of group) {
             elementQpParamsMap.set(h.symbolName, allVars);
           }
@@ -2021,11 +2054,13 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         }
       }
 
-      // For inlinedQrl segments, skip capture injection (body already has _captures refs)
-      // but still pass autoImports and movedDeclarations if any
+      // For inlinedQrl segments, the body already has _captures references, so we skip
+      // _captures unpacking injection. But we still need captureNames for import filtering
+      // (captured variables should not be imported -- they're delivered via _captures).
+      // Set skipCaptureInjection flag so segment-codegen knows not to inject unpacking.
       const effectiveCaptureInfo = ext.isInlinedQrl
-        ? (captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0
-            ? { ...captureInfo, captureNames: [] }
+        ? (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0
+            ? { ...captureInfo, skipCaptureInjection: true }
             : undefined)
         : (captureInfo.captureNames.length > 0 || captureInfo.autoImports.length > 0 || captureInfo.movedDeclarations.length > 0)
           ? captureInfo

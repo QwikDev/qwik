@@ -30,6 +30,8 @@ export interface SegmentCaptureInfo {
   autoImports: Array<{ varName: string; parentModulePath: string }>;
   /** Declaration text physically moved into the segment. */
   movedDeclarations: string[];
+  /** If true, skip _captures unpacking injection (body already has _captures refs, e.g. inlinedQrl). */
+  skipCaptureInjection?: boolean;
 }
 
 /**
@@ -332,8 +334,17 @@ export function generateSegmentCode(
     localName: string;
     importedName: string; // 'default', '*', or the original exported name
   }
+  // Build a set of captured variable names -- these are delivered via _captures,
+  // so they should NOT be imported even if they were imports in the parent module.
+  const capturedNames = new Set<string>(
+    captureInfo ? captureInfo.captureNames : [],
+  );
+
   const importsBySource = new Map<string, SegmentImportSpec[]>();
   for (const imp of extraction.segmentImports) {
+    // Skip imports for variables that are delivered via _captures
+    if (capturedNames.has(imp.localName)) continue;
+
     const rewrittenSource = rewriteImportSource(imp.source);
     const existing = importsBySource.get(rewrittenSource);
     const spec: SegmentImportSpec = { localName: imp.localName, importedName: imp.importedName };
@@ -394,7 +405,9 @@ export function generateSegmentCode(
   }
 
   // _captures import (scope-level captures)
-  if (captureInfo && captureInfo.captureNames.length > 0) {
+  // Skip for inlinedQrl (skipCaptureInjection) -- body already references _captures directly
+  // and it's already in segmentImports from the parent module.
+  if (captureInfo && captureInfo.captureNames.length > 0 && !captureInfo.skipCaptureInjection) {
     // Check if @qwik.dev/core is already in imports — merge _captures into it
     const qwikCoreImportIdx = parts.findIndex((p) => p.includes('"@qwik.dev/core"'));
     if (qwikCoreImportIdx >= 0) {
@@ -626,7 +639,7 @@ export function generateSegmentCode(
     }
   }
 
-  if (captureInfo && captureInfo.captureNames.length > 0) {
+  if (captureInfo && captureInfo.captureNames.length > 0 && !captureInfo.skipCaptureInjection) {
     bodyText = injectCapturesUnpacking(bodyText, captureInfo.captureNames);
   }
 
@@ -812,6 +825,9 @@ export function generateSegmentCode(
     const bodyIdentifiers = collectBodyIdentifiers(bodyText);
 
     for (const id of bodyIdentifiers) {
+      // Skip variables delivered via _captures (not imported)
+      if (capturedNames.has(id)) continue;
+
       // Skip if already imported
       let alreadyImported = false;
       for (const specs of importsBySource.values()) {

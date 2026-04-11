@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 16-03-PLAN.md
-last_updated: "2026-04-11T16:24:01.249Z"
+stopped_at: Completed 16-04-PLAN.md
+last_updated: "2026-04-11T16:37:27.582Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 36
-  completed_plans: 34
-  percent: 94
+  completed_plans: 35
+  percent: 97
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 ## Current Position
 
 Phase: 16 (Final Convergence) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-04-11
 
@@ -123,6 +123,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 16 P01 | 19min | 2 tasks | 1 files |
 | Phase 16 P02 | 19min | 2 tasks | 3 files |
 | Phase 16 P03 | 10min | 2 tasks | 2 files |
+| Phase 16 P04 | 11min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -222,6 +223,8 @@ Recent decisions affecting current work:
 - [Phase 16]: preserveAll for Qwik imports gated on !transpileJsx; q-d: and q-w: prefixes added to event prop classification
 - [Phase 16]: Segment const replacement applied as post-processing; DCE uses iterative brace-tracked pattern matching; side-effect simplification converts unused bindings to expression statements
 - [Phase 16]: Dev mode segments emit qrlDEV() with location metadata; JSX devOptions threaded for source info
+- [Phase 16]: QRL declarations in segment bodies sorted alphabetically to match Rust optimizer
+- [Phase 16]: oxc-walker callbacks use (node, parent, ctx) 3-arg signature per published type defs
 
 ### Pending Todos
 
@@ -241,6 +244,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T16:24:01.247Z
-Stopped at: Completed 16-03-PLAN.md
+Last session: 2026-04-11T16:37:27.579Z
+Stopped at: Completed 16-04-PLAN.md
 Resume file: None

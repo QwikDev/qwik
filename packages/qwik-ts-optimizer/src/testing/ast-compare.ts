@@ -137,6 +137,7 @@ function stripPositions(node: any, ancestors: any[] = []): any {
       key === 'end' ||
       key === 'loc' ||
       key === 'range' ||
+      key === 'shorthand' ||
       key === 'typeAnnotation' ||
       key === 'returnType' ||
       key === 'typeParameters' ||

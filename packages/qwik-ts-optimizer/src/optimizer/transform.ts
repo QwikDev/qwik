@@ -618,11 +618,18 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
     // 2c. Prod mode s_ naming: use s_{hash} for symbolName
     // displayName and canonicalFilename remain full human-readable form
+    // Save original symbolNames BEFORE rename so migration lookups still work.
+    // segmentUsage keys and migrationDecision.targetSegment use pre-rename names,
+    // but after prod rename ext.symbolName becomes "s_{hash}".
+    // Map: renamed symbolName -> original symbolName (identity for non-prod).
+    const preRenameSymbolName = new Map<string, string>();
     const emitMode = options.mode ?? 'prod';
     if (emitMode === 'prod') {
       for (const ext of extractions) {
         if (ext.isInlinedQrl) continue; // inlinedQrl has its own naming
+        const original = ext.symbolName;
         ext.symbolName = 's_' + ext.hash;
+        preRenameSymbolName.set(ext.symbolName, original);
       }
     }
 
@@ -824,8 +831,12 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // For top-level segments (no parent): wire migration info
       // Skip migration for inlinedQrl -- captures are explicit, not scope-based
       if (ext.parent === null && !ext.isInlinedQrl) {
+        // Use pre-rename symbolName for migration lookups (segmentUsage keys and
+        // migrationDecision.targetSegment were computed before prod s_ rename)
+        const migrationKey = preRenameSymbolName.get(ext.symbolName) ?? ext.symbolName;
+
         // _auto_ imports: from migration decisions where action is "reexport" and the variable is used by this segment
-        const segUsage = segmentUsage.get(ext.symbolName);
+        const segUsage = segmentUsage.get(migrationKey);
         if (segUsage) {
           for (const decision of migrationDecisions) {
             if (decision.action === 'reexport' && segUsage.has(decision.varName)) {
@@ -839,7 +850,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
         // Moved declarations: from migration decisions where action is "move" and targetSegment matches
         for (const decision of migrationDecisions) {
-          if (decision.action === 'move' && decision.targetSegment === ext.symbolName) {
+          if (decision.action === 'move' && decision.targetSegment === migrationKey) {
             const decl = moduleLevelDecls.find((d) => d.name === decision.varName);
             if (decl) {
               captureInfo.movedDeclarations.push(decl.declText);

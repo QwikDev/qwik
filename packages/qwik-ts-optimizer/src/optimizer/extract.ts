@@ -53,6 +53,7 @@ export interface ExtractionResult {
   isBare: boolean;
   isSync: boolean;
   qrlCallee: string;
+  importSource: string;
 
   // Metadata
   ctxKind: 'function' | 'eventHandler' | 'jSXProp';
@@ -467,6 +468,7 @@ export function extractSegments(
           isBare,
           isSync,
           qrlCallee,
+          importSource: imports.get(calleeName)?.source ?? '',
           ctxKind,
           ctxName,
           origin: relPath,
@@ -558,6 +560,7 @@ export function extractSegments(
             isBare: false,
             isSync: false,
             qrlCallee: '', // JSX event attrs use qrl() directly
+            importSource: '',
             ctxKind,
             ctxName,
             origin: relPath,

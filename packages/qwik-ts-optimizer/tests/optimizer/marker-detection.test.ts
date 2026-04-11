@@ -101,10 +101,54 @@ describe('marker-detection', () => {
       expect(isMarkerCall(call, imports, new Map())).toBe(true);
     });
 
-    it('returns false for randomFunc$() not imported from qwik', () => {
+    it('returns true for formAction$() imported from non-Qwik package "forms"', () => {
       const program = parse(`
-        import { randomFunc$ } from 'some-lib';
-        randomFunc$(() => {});
+        import { formAction$ } from 'forms';
+        formAction$(() => {});
+      `);
+      const imports = collectImports(program);
+      const call = findFirstCall(program);
+      expect(call).not.toBeNull();
+      expect(isMarkerCall(call, imports, new Map())).toBe(true);
+    });
+
+    it('returns true for serverAuth$() imported from "@auth/qwik"', () => {
+      const program = parse(`
+        import { serverAuth$ } from '@auth/qwik';
+        serverAuth$(() => {});
+      `);
+      const imports = collectImports(program);
+      const call = findFirstCall(program);
+      expect(call).not.toBeNull();
+      expect(isMarkerCall(call, imports, new Map())).toBe(true);
+    });
+
+    it('returns true for Component when imported as { component$ as Component }', () => {
+      const program = parse(`
+        import { component$ as Component } from '@qwik.dev/core';
+        Component(() => {});
+      `);
+      const imports = collectImports(program);
+      const call = findFirstCall(program);
+      expect(call).not.toBeNull();
+      expect(isMarkerCall(call, imports, new Map())).toBe(true);
+    });
+
+    it('returns true for onRender when imported as { $ as onRender }', () => {
+      const program = parse(`
+        import { $ as onRender } from '@qwik.dev/core';
+        onRender(() => {});
+      `);
+      const imports = collectImports(program);
+      const call = findFirstCall(program);
+      expect(call).not.toBeNull();
+      expect(isMarkerCall(call, imports, new Map())).toBe(true);
+    });
+
+    it('returns false for local functions ending with $ that are NOT imported', () => {
+      const program = parse(`
+        function myFunc$() {}
+        myFunc$();
       `);
       const imports = collectImports(program);
       const call = findFirstCall(program);

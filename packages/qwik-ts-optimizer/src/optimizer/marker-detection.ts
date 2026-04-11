@@ -146,9 +146,12 @@ export function getCalleeName(callExpr: any): string | null {
 /**
  * Check if a CallExpression is a marker call that should trigger extraction.
  *
- * A marker call is one where:
- * 1. Callee name ends with `$`
- * 2. AND (imported from qwik core OR found in customInlined map)
+ * A marker call is one where the callee is an imported binding whose
+ * *original* (imported) name ends with `$`, OR it's in the customInlined map.
+ * This handles:
+ * - Qwik core imports: component$, useTask$, $
+ * - Non-Qwik package imports: formAction$ from 'forms', serverAuth$ from '@auth/qwik'
+ * - Renamed imports: import { component$ as Component } (importedName ends with $)
  */
 export function isMarkerCall(
   callExpr: any,
@@ -157,14 +160,13 @@ export function isMarkerCall(
 ): boolean {
   const name = getCalleeName(callExpr);
   if (!name) return false;
-  if (!name.endsWith('$')) return false;
 
-  // Check if it's a qwik core import
+  // Check if it's an imported binding whose original name ends with $
   const importInfo = imports.get(name);
-  if (importInfo?.isQwikCore) return true;
+  if (importInfo && importInfo.importedName.endsWith('$')) return true;
 
-  // Check if it's a custom inlined function
-  if (customInlined.has(name)) return true;
+  // Check if it's a custom inlined function (must have local name ending with $)
+  if (name.endsWith('$') && customInlined.has(name)) return true;
 
   return false;
 }

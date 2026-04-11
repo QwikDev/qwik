@@ -286,12 +286,28 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 | DIAG-02 | Phase 6 | Complete |
 | DIAG-03 | Phase 6 | Complete |
 | DIAG-04 | Phase 6 | Complete |
+| IHS-01 | Phase 17 | Pending |
+| IHS-02 | Phase 17 | Pending |
+| IHS-03 | Phase 17 | Pending |
+| CAP-01 | Phase 18 | Pending |
+| CAP-02 | Phase 18 | Pending |
+| CAP-03 | Phase 18 | Pending |
+| JSXR-01 | Phase 19 | Pending |
+| JSXR-02 | Phase 19 | Pending |
+| JSXR-03 | Phase 19 | Pending |
+| JSXR-04 | Phase 19 | Pending |
+| MIGR-01 | Phase 20 | Pending |
+| MIGR-02 | Phase 20 | Pending |
+| MIGR-03 | Phase 20 | Pending |
+| SYNC-01 | Phase 20 | Pending |
+| CONV-01 | Phase 21 | Pending |
+| CONV-02 | Phase 21 | Pending |
+| CONV-03 | Phase 21 | Pending |
 
 **Coverage:**
-- v1 requirements: 81 total
-- Mapped to phases: 81
-- Unmapped: 0
+- v1 requirements: 81 total, mapped: 81, unmapped: 0
+- v3.0 requirements: 16 total, mapped: 16, unmapped: 0
 
 ---
 *Requirements defined: 2026-04-10*
-*Last updated: 2026-04-10 after roadmap creation*
+*Last updated: 2026-04-10 after v3.0 roadmap creation*

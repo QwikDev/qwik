@@ -543,7 +543,11 @@ export function generateSegmentCode(
             bodyText = bodyText.slice(0, relStart) + `${site.qrlCallee}(${qrlRef})` + bodyText.slice(relEnd);
           } else {
             // Bare $() call -- replace with QRL variable directly
-            bodyText = bodyText.slice(0, relStart) + site.qrlVarName + bodyText.slice(relEnd);
+            let qrlRef = site.qrlVarName;
+            if (site.captureNames && site.captureNames.length > 0) {
+              qrlRef += '.w([\n        ' + site.captureNames.join(',\n        ') + '\n    ])';
+            }
+            bodyText = bodyText.slice(0, relStart) + qrlRef + bodyText.slice(relEnd);
           }
         }
       }
@@ -714,30 +718,36 @@ export function generateSegmentCode(
   }
 
   // Ensure correct // separators between sections.
-  // Expected layout: [imports] // [qrl-decls] // [hoisted-decls] [export body]
+  // Expected layout: [imports] // [hoisted-decls (_hf)] // [qrl-decls (const q_)] // [export body]
   // Remove all existing separators and rebuild with correct placement.
   const allParts = parts.filter(p => p !== '//');
   const importSection: string[] = [];
-  const declSection: string[] = [];
+  const hoistedSection: string[] = [];
+  const qrlDeclSection: string[] = [];
+  const otherDeclSection: string[] = [];
   for (const p of allParts) {
     if (p.startsWith('import ')) {
       importSection.push(p);
+    } else if (p.trimStart().startsWith('const q_')) {
+      qrlDeclSection.push(p);
+    } else if (p.trimStart().startsWith('const _hf') || p.trimStart().startsWith('const _hf')) {
+      hoistedSection.push(p);
     } else {
-      declSection.push(p);
+      otherDeclSection.push(p);
     }
   }
   parts.length = 0;
   if (importSection.length > 0) {
     parts.push(...importSection, '//');
   }
-  if (declSection.length > 0) {
-    // If there are QRL declarations (const q_... = ...), add separator after them
-    const qrlDeclEnd = declSection.findLastIndex(p => p.trimStart().startsWith('const q_'));
-    if (qrlDeclEnd >= 0) {
-      parts.push(...declSection.slice(0, qrlDeclEnd + 1), '//', ...declSection.slice(qrlDeclEnd + 1));
-    } else {
-      parts.push(...declSection);
-    }
+  if (hoistedSection.length > 0) {
+    parts.push(...hoistedSection, '//');
+  }
+  if (qrlDeclSection.length > 0) {
+    parts.push(...qrlDeclSection, '//');
+  }
+  if (otherDeclSection.length > 0) {
+    parts.push(...otherDeclSection);
   }
 
   // Rewrite function signature when paramNames has loop/q:p padding pattern

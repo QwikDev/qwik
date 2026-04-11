@@ -684,7 +684,7 @@ export function extractSegments(
           }
         }
       }
-      if (jsxAttrName !== null && markerCallDepth > 0 && !hasNonQwikJsxImportSource) {
+      if (jsxAttrName !== null && !hasNonQwikJsxImportSource) {
         const attrName = jsxAttrName;
         const expr = node.value.expression;
 

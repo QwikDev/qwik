@@ -208,7 +208,7 @@ function removeUnusedImports(code: string, filename: string): string {
         return;
       }
 
-      if (node.type === 'Identifier' && node.name) {
+      if ((node.type === 'Identifier' || node.type === 'JSXIdentifier') && node.name) {
         // Skip property keys in non-shorthand object properties
         if (
           parent?.type === 'Property' &&
@@ -1445,12 +1445,6 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             importContext,
           );
 
-      // Clean up unused imports in segment code (after body rewriting may have
-      // removed references to original identifiers like $)
-      if (!stripped && nestedCallSites.length > 0) {
-        segmentCode = removeUnusedImports(segmentCode, ext.canonicalFilename + ext.extension);
-      }
-
       // Strip TS types from segment code when transpileTs is enabled
       if (!stripped && shouldTranspileTs) {
         const tsStripOptions: Record<string, any> = { typescript: { onlyRemoveTypeImports: false } };
@@ -1466,6 +1460,12 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // Strip if(false) blocks from segment bodies (matches Rust optimizer behavior)
       if (!stripped) {
         segmentCode = segmentCode.replace(/\bif\s*\(\s*false\s*\)\s*\{[^}]*\}/g, '');
+      }
+
+      // Clean up unused imports in segment code (after dead code elimination and
+      // body rewriting may have removed references to original identifiers)
+      if (!stripped) {
+        segmentCode = removeUnusedImports(segmentCode, ext.canonicalFilename + ext.extension);
       }
 
       // 2d. Build segment metadata with captureNames and paramNames

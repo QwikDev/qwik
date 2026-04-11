@@ -434,17 +434,8 @@ function processChildren(
       const trimmed = child.value?.trim();
       if (trimmed) {
         meaningful.push({ ...child, _trimmedText: trimmed });
-      } else if (child.value && /\S/.test(child.value) === false && child.value.length > 0) {
-        // Whitespace-only text: check if it's between two non-text siblings
-        // (expression containers or JSX elements). If so, preserve as " ".
-        const prevSibling = children[i - 1];
-        const nextSibling = children[i + 1];
-        const hasPrev = prevSibling && prevSibling.type !== 'JSXText';
-        const hasNext = nextSibling && nextSibling.type !== 'JSXText';
-        if (hasPrev && hasNext) {
-          meaningful.push({ ...child, _trimmedText: ' ' });
-        }
       }
+      // Whitespace-only JSXText between siblings is stripped (matching Rust optimizer)
     } else {
       meaningful.push(child);
     }
@@ -603,6 +594,12 @@ function processProps(
     }
 
     if (!propName) continue;
+
+    // className -> class conversion for HTML elements (matching Rust optimizer behavior)
+    // Component elements keep className as-is
+    if (propName === 'className' && tagIsHtml) {
+      propName = 'class';
+    }
 
     // Extract key prop
     if (propName === 'key') {

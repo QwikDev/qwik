@@ -51,9 +51,9 @@ export function buildQrlDeclaration(
   explicitExtensions?: boolean,
   segmentExtension?: string,
 ): string {
-  // When explicit extensions are requested, use the segment extension if provided
-  // (e.g., .mjs for files from node_modules), falling back to .js
-  const ext = explicitExtensions ? (segmentExtension || '.js') : '';
+  // When explicit extensions are requested, always use .js (matching Rust optimizer).
+  // The segment extension (.ts, .tsx, etc.) is for metadata, not import paths.
+  const ext = explicitExtensions ? '.js' : '';
   return `const q_${symbolName} = /*#__PURE__*/ qrl(()=>import("./${canonicalFilename}${ext}"), "${symbolName}");`;
 }
 

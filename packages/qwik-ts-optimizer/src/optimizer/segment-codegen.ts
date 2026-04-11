@@ -338,8 +338,22 @@ export function generateSegmentCode(
     const nsSpec = specs.find((s) => s.importedName === '*');
     const namedSpecs = specs.filter((s) => s.importedName !== 'default' && s.importedName !== '*');
 
+    // Check for import attributes from importContext (e.g., with { type: "json" })
+    let importAttrsSuffix = '';
+    if (importContext) {
+      const anySpec = specs[0];
+      const moduleImp = importContext.moduleImports.find(m => m.localName === anySpec.localName);
+      if (moduleImp?.importAttributes) {
+        const attrs = Object.entries(moduleImp.importAttributes)
+          .map(([k, v]) => `${k}: "${v}"`)
+          .join(', ');
+        importAttrsSuffix = ` with {\n    ${attrs}\n}`;
+      }
+    }
+
+    let importStmt: string;
     if (nsSpec) {
-      parts.push(`import * as ${nsSpec.localName} from "${source}";`);
+      importStmt = `import * as ${nsSpec.localName} from "${source}"${importAttrsSuffix};`;
     } else {
       const specParts: string[] = [];
       if (defaultSpec) specParts.push(defaultSpec.localName);
@@ -352,14 +366,17 @@ export function generateSegmentCode(
         if (defaultSpec) {
           // default + named: import foo, { bar } from "source";
           specParts.push(`{ ${namedStr} }`);
-          parts.push(`import ${specParts.join(', ')} from "${source}";`);
+          importStmt = `import ${specParts.join(', ')} from "${source}"${importAttrsSuffix};`;
         } else {
-          parts.push(`import { ${namedStr} } from "${source}";`);
+          importStmt = `import { ${namedStr} } from "${source}"${importAttrsSuffix};`;
         }
       } else if (defaultSpec) {
-        parts.push(`import ${defaultSpec.localName} from "${source}";`);
+        importStmt = `import ${defaultSpec.localName} from "${source}"${importAttrsSuffix};`;
+      } else {
+        importStmt = '';
       }
     }
+    if (importStmt) parts.push(importStmt);
   }
 
   // _captures import (scope-level captures)
@@ -648,16 +665,31 @@ export function generateSegmentCode(
     }
   }
 
-  // Ensure exactly one // separator between imports and body
-  // Remove any duplicate separators and ensure one exists if there are imports
-  const importParts = parts.filter(p => p !== '//');
-  const sepPoint = importParts.findIndex(p => !p.startsWith('import '));
-  if (sepPoint > 0) {
-    parts.length = 0;
-    parts.push(...importParts.slice(0, sepPoint), '//', ...importParts.slice(sepPoint));
-  } else if (importParts.length > 0 && importParts.every(p => p.startsWith('import '))) {
-    parts.length = 0;
-    parts.push(...importParts, '//');
+  // Ensure correct // separators between sections.
+  // Expected layout: [imports] // [qrl-decls] // [hoisted-decls] [export body]
+  // Remove all existing separators and rebuild with correct placement.
+  const allParts = parts.filter(p => p !== '//');
+  const importSection: string[] = [];
+  const declSection: string[] = [];
+  for (const p of allParts) {
+    if (p.startsWith('import ')) {
+      importSection.push(p);
+    } else {
+      declSection.push(p);
+    }
+  }
+  parts.length = 0;
+  if (importSection.length > 0) {
+    parts.push(...importSection, '//');
+  }
+  if (declSection.length > 0) {
+    // If there are QRL declarations (const q_... = ...), add separator after them
+    const qrlDeclEnd = declSection.findLastIndex(p => p.trimStart().startsWith('const q_'));
+    if (qrlDeclEnd >= 0) {
+      parts.push(...declSection.slice(0, qrlDeclEnd + 1), '//', ...declSection.slice(qrlDeclEnd + 1));
+    } else {
+      parts.push(...declSection);
+    }
   }
 
   // Rewrite function signature when paramNames has loop/q:p padding pattern

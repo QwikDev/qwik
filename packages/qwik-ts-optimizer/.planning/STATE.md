@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-04-11T13:23:21.705Z"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-04-11T13:38:27.766Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 7
   total_plans: 28
-  completed_plans: 26
-  percent: 93
+  completed_plans: 27
+  percent: 96
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 ## Current Position
 
 Phase: 14 (Segment Codegen Batch 2) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-11
 
@@ -113,6 +113,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13 P02 | 3min | 2 tasks | 2 files |
 | Phase 13 P03 | 23min | 2 tasks | 5 files |
 | Phase 14 P01 | 9min | 2 tasks | 2 files |
+| Phase 14 P02 | 12min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -197,6 +198,8 @@ Recent decisions affecting current work:
 - [Phase 13]: removeUnusedImports runs unconditionally after dead code elimination for all segments; detects JSXIdentifier references
 - [Phase 14]: Used getQrlImportSource from rewrite-calls.ts for consistent import source resolution across parent and segment codegen
 - [Phase 14]: Bare $() calls still emit plain QRL variable; only named markers get calleeQrl wrapping
+- [Phase 14]: Enum value inlining uses map-based replacement in segment bodies rather than full-file TS transpilation before extraction
+- [Phase 14]: Already-exported variables skip _auto_ prefix in segment imports -- imported directly by original name
 
 ### Pending Todos
 
@@ -216,6 +219,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T13:23:21.702Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-04-11T13:38:27.764Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None

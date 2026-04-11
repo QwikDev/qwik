@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Reference-Guided Convergence
-status: verifying
-stopped_at: Completed 19-02-PLAN.md
-last_updated: "2026-04-11T21:11:58.478Z"
+status: executing
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-04-11T21:44:49.737Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_plans: 8
+  completed_plans: 7
+  percent: 88
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-11)
 
 **Core value:** Runtime-identical output to SWC optimizer -- same segments, captures, hashes, QRL structure
-**Current focus:** Phase 19 — JSX Transform Convergence
+**Current focus:** Phase 20 — Migration and Sync Convergence
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 20 (Migration and Sync Convergence) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 18 P02 | 12min | 1 tasks | 2 files |
 | Phase 19 P01 | 18min | 2 tasks | 1 files |
 | Phase 19 P02 | 8min | 2 tasks | 1 files |
+| Phase 20 P01 | 11min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 19]: classifyProp aligned with SWC is_const.rs: member access and function calls always var
 - [Phase 19]: Signal wrapping edge cases not fixable in JSX transform alone -- require const_idents tracking
 - [Phase 19]: Remaining 135 failures: 36 parent-only, 67 segment-only, 32 both; root causes are const_idents, captures, migration
+- [Phase 20]: Declaration-site identifiers at root level excluded from rootUsage matching SWC build_main_module_usage_set
+- [Phase 20]: Both move and reexport migration decisions suppress .w() captures in parent; import re-collection skips moved vars
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T21:04:59.473Z
-Stopped at: Completed 19-02-PLAN.md
+Last session: 2026-04-11T21:44:49.734Z
+Stopped at: Completed 20-01-PLAN.md
 Resume file: None

@@ -161,9 +161,9 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 
 ### Variable Migration Refinement
 
-- [ ] **MIGR-01**: Variable move vs reexport decisions produce correct parent and segment AST output
-- [ ] **MIGR-02**: `_auto_` re-exports generated only where snapshot expected output includes them
-- [ ] **MIGR-03**: Destructured binding migration produces AST-matching segment imports and body
+- [x] **MIGR-01**: Variable move vs reexport decisions produce correct parent and segment AST output
+- [x] **MIGR-02**: `_auto_` re-exports generated only where snapshot expected output includes them
+- [x] **MIGR-03**: Destructured binding migration produces AST-matching segment imports and body
 
 ### Sync Functions
 
@@ -296,9 +296,9 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 | JSXR-02 | Phase 19 | Complete |
 | JSXR-03 | Phase 19 | Complete |
 | JSXR-04 | Phase 19 | Complete |
-| MIGR-01 | Phase 20 | Pending |
-| MIGR-02 | Phase 20 | Pending |
-| MIGR-03 | Phase 20 | Pending |
+| MIGR-01 | Phase 20 | Complete |
+| MIGR-02 | Phase 20 | Complete |
+| MIGR-03 | Phase 20 | Complete |
 | SYNC-01 | Phase 20 | Pending |
 | CONV-01 | Phase 21 | Pending |
 | CONV-02 | Phase 21 | Pending |

@@ -621,7 +621,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       migrationDecisions,
       moduleLevelDecls,
       (shouldTranspileJsx && (ext === '.tsx' || ext === '.jsx'))
-        ? { enableJsx: true, importedNames }
+        ? { enableJsx: true, importedNames, enableSignals: extractions.length > 0 }
         : undefined,
       emitMode,
       devFile,

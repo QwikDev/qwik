@@ -591,6 +591,9 @@ export interface JsxRewriteOptions {
   enableJsx: boolean;
   /** Set of imported identifier names (for prop classification) */
   importedNames: Set<string>;
+  /** Whether to enable signal analysis (_wrapProp/_fnSignal) in JSX children.
+   *  Should be false when no segments are extracted (skip-transform / lib mode). */
+  enableSignals?: boolean;
 }
 
 /**
@@ -958,6 +961,8 @@ export function rewriteParentModule(
     jsxResult = transformAllJsx(
       source, s, program, jsxOptions.importedNames, skipRanges,
       isDevMode ? { relPath } : undefined,
+      undefined, // keyCounterStart
+      jsxOptions.enableSignals !== false, // disable signal analysis when no extractions
     );
     jsxKeyCounterValue = jsxResult.keyCounterValue;
   }

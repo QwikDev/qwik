@@ -779,6 +779,7 @@ export function transformJsxElement(
   signalHoister?: SignalHoister,
   loopCtx?: LoopContext | null,
   isSoleChild?: boolean,
+  enableChildSignals: boolean = true,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
@@ -828,12 +829,16 @@ export function transformJsxElement(
   }
 
   // --- Children ---
+  // When child signals are disabled (no extractions / skip-transform mode), don't pass
+  // importedNames or signalHoister to children processing so _wrapProp/_fnSignal
+  // wrapping is skipped. This matches the Rust optimizer's behavior for lib mode
+  // files where $() calls are preserved without segment extraction.
   const { text: childrenText, type: childrenType } = processChildren(
     node.children,
     source,
     s,
-    importedNames,
-    hoister,
+    enableChildSignals ? importedNames : undefined,
+    enableChildSignals ? hoister : undefined,
     neededImports,
   );
 
@@ -994,6 +999,7 @@ export function transformAllJsx(
   skipRanges?: Array<{ start: number; end: number }>,
   devOptions?: { relPath: string },
   keyCounterStart?: number,
+  enableSignals: boolean = true,
 ): JsxTransformOutput {
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0);
   const signalHoister = new SignalHoister();
@@ -1083,6 +1089,7 @@ export function transformAllJsx(
           signalHoister,
           currentLoop,
           isSoleChild,
+          enableSignals,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);

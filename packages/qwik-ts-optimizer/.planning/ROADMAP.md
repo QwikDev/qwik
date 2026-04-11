@@ -159,6 +159,6 @@ Phases execute in numeric order: 17 -> 18 -> 19 -> 20 -> 21
 |-------|---------------|--------|-----------|
 | 17. Inline/Hoist Strategy Convergence | 2/2 | Complete    | 2026-04-11 |
 | 18. Capture Classification Convergence | 2/2 | Complete    | 2026-04-11 |
-| 19. JSX Transform Convergence | 2/2 | Complete   | 2026-04-11 |
+| 19. JSX Transform Convergence | 2/2 | Complete    | 2026-04-11 |
 | 20. Migration and Sync Convergence | 0/TBD | Not started | - |
 | 21. Convergence Gate | 0/TBD | Not started | - |

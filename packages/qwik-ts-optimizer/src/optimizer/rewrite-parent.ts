@@ -1536,10 +1536,10 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // Step 5d: Build import statements (deferred from Step 5 to include
   // additional imports discovered during Step 5c body transformation)
+  // NOTE: Import order follows Map insertion order (discovery order),
+  // matching SWC's Vec<(Id, Import)> insertion ordering.
   // -----------------------------------------------------------------------
-  const sortedImports = Array.from(neededImports.entries()).sort((a, b) =>
-    a[0].localeCompare(b[0]),
-  );
+  const sortedImports = Array.from(neededImports.entries());
 
   const importStatements = sortedImports.map(
     ([symbol, src]) => `import { ${symbol} } from "${src}";`,

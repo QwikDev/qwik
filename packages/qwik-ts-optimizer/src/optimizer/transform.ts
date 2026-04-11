@@ -173,9 +173,10 @@ function removeUnusedImports(code: string, filename: string): string {
     // Skip side-effect imports (no specifiers)
     if (!node.specifiers || node.specifiers.length === 0) continue;
 
-    // Note: We intentionally do NOT skip Qwik imports. After rewriting,
-    // original $-suffixed imports (e.g., component$) become unused and should
-    // be removed. The rewriter adds Qrl-suffixed imports that ARE referenced.
+    // Note: We intentionally do NOT skip Qwik imports entirely. After rewriting,
+    // unreferenced non-marker specifiers (e.g., onRender) should still be removed.
+    // But we DO skip $-suffixed specifiers in Qwik imports (they may have been
+    // preserved intentionally in the surviving user import to match Rust behavior).
 
     importNodes.push(node);
 
@@ -227,9 +228,37 @@ function removeUnusedImports(code: string, filename: string): string {
   });
 
   // 3. Find unreferenced import specifiers
-  const unreferencedSpecs = importSpecs.filter(
-    (spec) => !referencedNames.has(spec.localName),
-  );
+  // For surviving user Qwik imports (single-quoted, from original source):
+  // - If ALL specifiers are unreferenced: preserve the entire import (Rust behavior)
+  // - If SOME specifiers are referenced: normal cleanup (remove unreferenced)
+  const unreferencedSpecs = importSpecs.filter((spec) => {
+    if (referencedNames.has(spec.localName)) return false;
+
+    // Check if this is a single-quoted Qwik import (surviving user import)
+    const importSource = spec.node.source?.value ?? '';
+    const isQwikImport = QWIK_IMPORT_PREFIXES.some((p) => importSource.startsWith(p));
+    if (isQwikImport) {
+      const quoteChar = code[spec.node.source.start];
+      if (quoteChar === "'") {
+        // Check if ALL specifiers in this import are unreferenced AND
+        // the import has at least one non-$-suffixed specifier (like useStore).
+        // When all specifiers are $-suffixed (like {$, component$}), they're
+        // all markers and should be cleaned up normally.
+        const siblings = importSpecs.filter((s) => s.node === spec.node);
+        const allUnreferenced = siblings.every((s) => !referencedNames.has(s.localName));
+        const hasNonDollarSpec = (spec.node.specifiers ?? []).some((s: any) => {
+          if (s.type !== 'ImportSpecifier') return true;
+          const importedName = s.imported?.name ?? s.local?.name ?? '';
+          return !importedName.endsWith('$');
+        });
+        if (allUnreferenced && hasNonDollarSpec) {
+          return false; // preserve entire import when it has non-$ specifiers
+        }
+      }
+    }
+
+    return true;
+  });
 
   if (unreferencedSpecs.length === 0) return code;
 

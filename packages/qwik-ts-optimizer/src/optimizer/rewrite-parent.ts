@@ -295,12 +295,29 @@ export function rewriteParentModule(
       continue;
     }
 
-    // Build surviving user import with non-marker specifiers, preserving original quote style
+    // For single-quoted Qwik core imports (user-written): if the surviving
+    // (non-marker) specifiers include a non-$-suffixed identifier (like useStore),
+    // preserve ALL original specifiers including markers. This matches Rust optimizer
+    // behavior where the original user import is kept intact.
+    const isQwikSource = rewrittenSource.startsWith('@qwik.dev/') ||
+      rewrittenSource.startsWith('@builder.io/qwik');
+    let preserveAll = false;
+    if (isQwikSource && quoteChar === "'") {
+      const hasNonDollarSurvivor = specifiers.some((spec: any, i: number) => {
+        if (toRemove.includes(i)) return false;
+        if (spec.type !== 'ImportSpecifier') return true; // default/namespace always non-$
+        const importedName = spec.imported?.name ?? spec.local.name;
+        return !importedName.endsWith('$');
+      });
+      if (hasNonDollarSurvivor) preserveAll = true;
+    }
+
+    // Build surviving user import, preserving original quote style
     let defaultPart = '';
     let nsPart = '';
     const namedParts: string[] = [];
     for (let i = 0; i < specifiers.length; i++) {
-      if (toRemove.includes(i)) continue;
+      if (!preserveAll && toRemove.includes(i)) continue;
       const spec = specifiers[i];
       if (spec.type === 'ImportDefaultSpecifier') {
         defaultPart = spec.local.name;
@@ -431,6 +448,61 @@ export function rewriteParentModule(
       // Add PURE annotation for componentQrl calls
       if (needsPureAnnotation(ext.qrlCallee)) {
         s.appendLeft(ext.callStart, '/*#__PURE__*/ ');
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 4a: Remove unused variable bindings wrapping QRL call sites
+  // -----------------------------------------------------------------------
+  // When a variable declaration like `const foo = component$(...)` is:
+  // 1. NOT exported
+  // 2. NOT referenced elsewhere in the module body
+  // Then the Rust optimizer strips `const foo = `, leaving just the call expression.
+  // We detect this by finding VariableDeclaration nodes whose init range contains
+  // a top-level extraction's call site.
+  {
+    for (const stmt of program.body) {
+      // Skip exported declarations
+      if (stmt.type === 'ExportNamedDeclaration') continue;
+      if (stmt.type !== 'VariableDeclaration') continue;
+
+      const decl = stmt;
+      if (!decl.declarations || decl.declarations.length !== 1) continue;
+
+      const declarator = decl.declarations[0];
+      if (!declarator.init) continue;
+
+      // Check if ANY top-level extraction's call site is within this declarator's init range
+      // but NOT the init itself (if the extraction IS the init, keep the binding)
+      const initStart = declarator.init.start;
+      const initEnd = declarator.init.end;
+      const containsNestedExtraction = topLevel.some(
+        (ext) => !ext.isSync &&
+          ext.callStart >= initStart && ext.callEnd <= initEnd &&
+          // The extraction must be NESTED inside the init, not the init itself
+          !(ext.callStart === initStart && ext.callEnd === initEnd),
+      );
+      if (!containsNestedExtraction) continue;
+
+      // The variable name
+      const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;
+      if (!varName) continue;
+
+      // Check if varName is referenced elsewhere in the module body
+      // (excluding the declaration itself and import sections).
+      const wordBoundaryRegex = new RegExp(`\\b${varName}\\b`);
+      let bodyText = '';
+      for (const bodyStmt of program.body) {
+        if (bodyStmt.type === 'ImportDeclaration') continue;
+        if (bodyStmt === decl) continue;
+        bodyText += source.slice(bodyStmt.start, bodyStmt.end) + '\n';
+      }
+
+      if (!wordBoundaryRegex.test(bodyText)) {
+        // Variable is not used elsewhere: strip `const/let/var varName = ` prefix
+        // Remove from declaration start to the init start
+        s.remove(decl.start, initStart);
       }
     }
   }

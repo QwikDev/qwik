@@ -63,7 +63,11 @@ Plans:
   1. All 11 snapshots pass parent + segment AST comparison
   2. All previously-locked snapshots still pass
   3. Zero regressions in unit tests
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 09-01-PLAN.md — Broaden marker detection for non-Qwik packages and renamed imports
+- [ ] 09-02-PLAN.md — Parse error recovery for malformed inputs (example_3, example_immutable_analysis)
+- [ ] 09-03-PLAN.md — inlinedQrl() extraction support with .w() capture syntax
 
 ### Phase 10: Segment Identity Batch 1
 **Goal**: First 21 segment-identity snapshots pass (fix wrong names/hashes)
@@ -140,7 +144,7 @@ Plans:
 |-------|---------------|--------|-----------|
 | 7. Parent Rewrite Batch 1 | 5/5 | Gap closure complete | - |
 | 8. Parent Rewrite Batch 2 | 0/5 | Planning complete | - |
-| 9. Untransformed Extraction | 0/TBD | Not started | - |
+| 9. Untransformed Extraction | 0/3 | Planning complete | - |
 | 10. Segment Identity Batch 1 | 0/TBD | Not started | - |
 | 11. Segment Identity Batch 2 | 0/TBD | Not started | - |
 | 12. Segment Identity Batch 3 | 0/TBD | Not started | - |

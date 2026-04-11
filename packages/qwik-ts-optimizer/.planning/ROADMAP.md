@@ -15,7 +15,7 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
 - [ ] **Phase 9: Untransformed Extraction** — All 11 untransformed failures
 - [x] **Phase 10: Segment Identity Batch 1** — First 21 segment-identity failures (completed 2026-04-11)
 - [x] **Phase 11: Segment Identity Batch 2** — Next 21 segment-identity failures (completed 2026-04-11)
-- [ ] **Phase 12: Segment Identity Batch 3** — Remaining 21 segment-identity failures
+- [x] **Phase 12: Segment Identity Batch 3** — Remaining 21 segment-identity failures (completed 2026-04-11)
 - [ ] **Phase 13: Segment Codegen Batch 1** — First 25 segment-codegen failures
 - [ ] **Phase 14: Segment Codegen Batch 2** — Next 25 segment-codegen failures
 - [ ] **Phase 15: Segment Codegen Batch 3** — Remaining 26 segment-codegen failures
@@ -109,7 +109,7 @@ Plans:
 Plans:
 - [x] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
 - [x] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
-- [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
+- [x] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
 ### Phase 13: Segment Codegen Batch 1
 **Goal**: First 25 segment-codegen snapshots pass (segment found by name but code wrong)
@@ -122,7 +122,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
-- [ ] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
+- [x] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
 - [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
 ### Phase 14: Segment Codegen Batch 2
@@ -135,7 +135,7 @@ Plans:
   3. Zero regressions in unit tests
 **Plans**: 3 plans
 Plans:
-- [ ] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
+- [x] 12-01-PLAN.md — Loop-aware capture classification and segment signature rewriting
 - [ ] 12-02-PLAN.md — .w() hoisting, q:p placement, signal dedup, and non-loop fixes
 - [ ] 12-03-PLAN.md — Phase 12 convergence sweep and regression gate
 
@@ -175,7 +175,7 @@ Plans:
 | 9. Untransformed Extraction | 0/3 | Planning complete | - |
 | 10. Segment Identity Batch 1 | 3/3 | Complete    | 2026-04-11 |
 | 11. Segment Identity Batch 2 | 3/3 | Complete    | 2026-04-11 |
-| 12. Segment Identity Batch 3 | 2/3 | In Progress|  |
+| 12. Segment Identity Batch 3 | 3/3 | Complete   | 2026-04-11 |
 | 13. Segment Codegen Batch 1 | 0/TBD | Not started | - |
 | 14. Segment Codegen Batch 2 | 0/TBD | Not started | - |
 | 15. Segment Codegen Batch 3 | 0/TBD | Not started | - |

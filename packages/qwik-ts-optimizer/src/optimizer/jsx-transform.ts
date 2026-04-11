@@ -417,6 +417,9 @@ function processChildren(
   children: any[],
   source: string,
   s?: import('magic-string').default,
+  importedNames?: Set<string>,
+  signalHoister?: SignalHoister,
+  neededImports?: Set<string>,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (!children || children.length === 0) {
     return { text: null, type: 'none' };
@@ -453,14 +456,14 @@ function processChildren(
 
   if (meaningful.length === 1) {
     const child = meaningful[0];
-    return processOneChild(child, source, s);
+    return processOneChild(child, source, s, importedNames, signalHoister, neededImports);
   }
 
   // Multiple children -> array
   const parts: string[] = [];
   let isDynamic = false;
   for (const child of meaningful) {
-    const { text, type } = processOneChild(child, source, s);
+    const { text, type } = processOneChild(child, source, s, importedNames, signalHoister, neededImports);
     if (text !== null) {
       parts.push(text);
     }
@@ -480,6 +483,9 @@ function processOneChild(
   child: any,
   source: string,
   s?: import('magic-string').default,
+  importedNames?: Set<string>,
+  signalHoister?: SignalHoister,
+  neededImports?: Set<string>,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (child._trimmedText) {
     return { text: `"${child._trimmedText}"`, type: 'static' };
@@ -510,6 +516,22 @@ function processOneChild(
     ) {
       return { text: exprText, type: 'static' };
     }
+
+    // Signal analysis for children expressions
+    if (importedNames && signalHoister) {
+      const signalResult = analyzeSignalExpression(expr, source, importedNames);
+      if (signalResult.type === 'wrapProp') {
+        neededImports?.add('_wrapProp');
+        return { text: signalResult.code, type: 'static' };
+      }
+      if (signalResult.type === 'fnSignal') {
+        const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr);
+        const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
+        neededImports?.add('_fnSignal');
+        return { text: fnSignalCall, type: 'static' };
+      }
+    }
+
     return { text: exprText, type: 'dynamic' };
   }
 
@@ -804,6 +826,9 @@ export function transformJsxElement(
     node.children,
     source,
     s,
+    importedNames,
+    hoister,
+    neededImports,
   );
 
   // --- Flags ---
@@ -904,6 +929,9 @@ export function transformJsxFragment(
     node.children,
     source,
     s,
+    importedNames,
+    undefined,  // no signalHoister for fragments (no props to hoist from)
+    undefined,
   );
 
   const flags = computeFlags(false, childrenType);

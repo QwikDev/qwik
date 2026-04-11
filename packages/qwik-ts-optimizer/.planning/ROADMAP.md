@@ -77,7 +77,7 @@
 - [x] **Phase 17: Inline/Hoist Strategy Convergence** - Fix .s() body text and hoist const-fn pattern to match SWC behavioral rules (completed 2026-04-11)
 - [x] **Phase 18: Capture Classification Convergence** - Fix paramNames padding, _captures/.w() delivery, and capture metadata (completed 2026-04-11)
 - [x] **Phase 19: JSX Transform Convergence** - Fix flags bitmask, prop classification, _jsxSplit, and signal wrapping placement (completed 2026-04-11)
-- [ ] **Phase 20: Migration and Sync Convergence** - Fix variable move/reexport decisions and _qrlSync serialization
+- [x] **Phase 20: Migration and Sync Convergence** - Fix variable move/reexport decisions and _qrlSync serialization (completed 2026-04-11)
 - [ ] **Phase 21: Convergence Gate** - Validate 147+/210 pass rate with zero regressions
 
 ## Phase Details
@@ -137,11 +137,11 @@ Plans:
   2. Destructured binding migration produces correct segment imports and body AST
   3. _qrlSync() calls produce AST-matching output for all sync-related snapshots
   4. All previously-passing snapshots still pass (zero regressions)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 20-01-PLAN.md -- Fix variable migration decisions (computeSegmentUsage filtering + moved decl import deps)
-- [ ] 20-02-PLAN.md -- Fix _qrlSync serialization in segments + classifyProp const_idents special-cases
+- [x] 20-02-PLAN.md -- Fix _qrlSync serialization in segments + classifyProp const_idents special-cases
 
 ### Phase 21: Convergence Gate
 **Goal**: Validate that v3.0 work achieves 70%+ convergence with zero regressions
@@ -164,5 +164,5 @@ Phases execute in numeric order: 17 -> 18 -> 19 -> 20 -> 21
 | 17. Inline/Hoist Strategy Convergence | 2/2 | Complete    | 2026-04-11 |
 | 18. Capture Classification Convergence | 2/2 | Complete    | 2026-04-11 |
 | 19. JSX Transform Convergence | 2/2 | Complete    | 2026-04-11 |
-| 20. Migration and Sync Convergence | 1/2 | In Progress|  |
+| 20. Migration and Sync Convergence | 2/2 | Complete   | 2026-04-11 |
 | 21. Convergence Gate | 0/TBD | Not started | - |

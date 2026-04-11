@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Reference-Guided Convergence
-status: executing
-stopped_at: Completed 20-01-PLAN.md
-last_updated: "2026-04-11T21:44:49.737Z"
+status: verifying
+stopped_at: Completed 20-02-PLAN.md
+last_updated: "2026-04-11T21:53:00.289Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-11)
 
 Phase: 20 (Migration and Sync Convergence) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 19 P01 | 18min | 2 tasks | 1 files |
 | Phase 19 P02 | 8min | 2 tasks | 1 files |
 | Phase 20 P01 | 11min | 2 tasks | 6 files |
+| Phase 20 P02 | 6min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,7 @@ Recent decisions affecting current work:
 - [Phase 19]: Remaining 135 failures: 36 parent-only, 67 segment-only, 32 both; root causes are const_idents, captures, migration
 - [Phase 20]: Declaration-site identifiers at root level excluded from rootUsage matching SWC build_main_module_usage_set
 - [Phase 20]: Both move and reexport migration decisions suppress .w() captures in parent; import re-collection skips moved vars
+- [Phase 20]: Reuse buildSyncTransform for segment body sync$ replacement; CONST_CALL_IDENTS hardcoded set matching SWC const_idents
 
 ### Pending Todos
 
@@ -97,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T21:44:49.734Z
-Stopped at: Completed 20-01-PLAN.md
+Last session: 2026-04-11T21:53:00.287Z
+Stopped at: Completed 20-02-PLAN.md
 Resume file: None

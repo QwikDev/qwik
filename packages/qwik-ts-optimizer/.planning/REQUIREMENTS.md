@@ -167,7 +167,7 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 
 ### Sync Functions
 
-- [ ] **SYNC-01**: `_qrlSync()` calls produce AST-matching output for all sync-related snapshots
+- [x] **SYNC-01**: `_qrlSync()` calls produce AST-matching output for all sync-related snapshots
 
 ### Convergence Gate
 
@@ -299,7 +299,7 @@ Target: 70%+ snapshot convergence (147+/210) by fixing the 7 failure families id
 | MIGR-01 | Phase 20 | Complete |
 | MIGR-02 | Phase 20 | Complete |
 | MIGR-03 | Phase 20 | Complete |
-| SYNC-01 | Phase 20 | Pending |
+| SYNC-01 | Phase 20 | Complete |
 | CONV-01 | Phase 21 | Pending |
 | CONV-02 | Phase 21 | Pending |
 | CONV-03 | Phase 21 | Pending |

@@ -541,10 +541,27 @@ function processOneChild(
   if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
     // Nested JSX — use MagicString buffer to get already-transformed text
     // (bottom-up walk transforms inner elements first).
-    // Classified as 'dynamic' because after transpilation these become _jsxSorted()
-    // function calls, which the Rust optimizer treats as non-static children.
     const childText = s ? s.slice(child.start, child.end) : source.slice(child.start, child.end);
-    return { text: childText, type: 'dynamic' };
+    // Classify as static or dynamic based on tag type and varProps:
+    // - Component elements (uppercase tag like Slot, Cmp): always dynamic
+    // - Fragments: always static
+    // - HTML elements: static if no varProps, dynamic if they have varProps
+    // After bottom-up transformation, _jsxSorted("tag", {varProps}, ...) indicates varProps.
+    // _jsxSorted("tag", null, ...) indicates no varProps.
+    if (child.type === 'JSXFragment') {
+      return { text: childText, type: 'static' };
+    }
+    const tagName = child.openingElement?.name;
+    const tagStr = tagName?.type === 'JSXIdentifier' ? tagName.name : '';
+    const isComponentTag = tagStr.length > 0 && tagStr[0] === tagStr[0].toUpperCase() && tagStr[0] !== tagStr[0].toLowerCase();
+    if (isComponentTag) {
+      return { text: childText, type: 'dynamic' };
+    }
+    // For HTML elements: check if the transformed text has varProps (non-null 2nd arg)
+    // Pattern: _jsxSorted("tag", {... or _jsxSorted("tag", null
+    const varPropsMatch = childText.match(/_jsxSorted\([^,]+,\s*(\{|null)/);
+    const hasChildVarProps = varPropsMatch ? varPropsMatch[1] === '{' : false;
+    return { text: childText, type: hasChildVarProps ? 'dynamic' : 'static' };
   }
 
   return { text: null, type: 'none' };

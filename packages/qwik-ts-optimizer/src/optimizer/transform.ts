@@ -1919,10 +1919,28 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           child.calleeName !== '$';
         if (isJsxAttr) {
           // For component elements (uppercase tag), keep original event name (onClick$)
-          // For HTML elements, transform to q-e:click
-          const propName = child.isComponentEvent
-            ? child.calleeName
-            : (transformEventPropName(child.calleeName, new Set()) ?? child.calleeName);
+          // For HTML elements, transform to q-e:click (or q-ep:/q-wp:/q-dp: for passive)
+          let propName: string;
+          if (child.isComponentEvent) {
+            propName = child.calleeName;
+          } else {
+            // Detect passive events from the display name path in the symbol name.
+            // The extraction phase already collected passive directives and encoded them
+            // in the context stack (e.g., q_ep_click, q_wp_scroll, q_dp_touchstart).
+            const passiveSet = new Set<string>();
+            const symName = child.symbolName;
+            // Check if symbol name contains a passive event prefix pattern
+            const passiveMatch = symName.match(/q_([ewdp]{2})_(\w+)_/);
+            if (passiveMatch) {
+              const prefix = passiveMatch[1]; // ep, wp, dp
+              if (prefix === 'ep' || prefix === 'wp' || prefix === 'dp') {
+                // Extract the event name from the passive prefix
+                const eventName = passiveMatch[2];
+                passiveSet.add(eventName);
+              }
+            }
+            propName = transformEventPropName(child.calleeName, passiveSet) ?? child.calleeName;
+          }
 
           // Detect cross-scope loop captures that need .w() hoisting
           const hasLoopCrossCaptures =

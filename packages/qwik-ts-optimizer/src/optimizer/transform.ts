@@ -616,8 +616,17 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // Compute parent module path for _auto_ imports (no extension)
     const parentModulePath = computeParentModulePath(relPath);
 
-    // 3. Rewrite parent module (pass migration decisions + JSX options + mode)
+    // 2c. Prod mode s_ naming: use s_{hash} for symbolName
+    // displayName and canonicalFilename remain full human-readable form
     const emitMode = options.mode ?? 'prod';
+    if (emitMode === 'prod') {
+      for (const ext of extractions) {
+        if (ext.isInlinedQrl) continue; // inlinedQrl has its own naming
+        ext.symbolName = 's_' + ext.hash;
+      }
+    }
+
+    // 3. Rewrite parent module (pass migration decisions + JSX options + mode)
     // For inlinedQrl extractions in lib mode (local files), we also need devFile
     // because the Rust optimizer always uses qrlDEV for inlinedQrl in Test mode
     const hasLocalInlinedQrl = extractions.some(

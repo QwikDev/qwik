@@ -209,6 +209,7 @@ export const App = component$(() => {
         },
       ],
       srcDir: '.',
+      mode: 'lib',
     });
 
     const parent = result.modules[0];
@@ -244,6 +245,7 @@ export const App = component$(() => {
         },
       ],
       srcDir: '.',
+      mode: 'lib',
     });
 
     const parent = result.modules[0];

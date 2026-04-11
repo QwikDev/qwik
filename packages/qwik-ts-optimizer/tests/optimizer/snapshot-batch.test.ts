@@ -86,6 +86,7 @@ describe('snapshot batch validation', () => {
         const result = transformModule({
           input: [{ path: filename, code: parsed.input }],
           srcDir: '.',
+          mode: 'lib',
         });
 
         // Compare parent module
@@ -162,6 +163,7 @@ describe('snapshot batch validation', () => {
         const result = transformModule({
           input: [{ path: filename, code: parsed.input }],
           srcDir: '.',
+          mode: 'lib',
         });
 
         // Verify segment metadata matches for segments that exist
@@ -229,6 +231,7 @@ describe('snapshot batch validation', () => {
         const result = transformModule({
           input: [{ path: filename, code: parsed.input }],
           srcDir: '.',
+          mode: 'lib',
         });
 
         // Compare parent module only

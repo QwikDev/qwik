@@ -106,7 +106,11 @@ Plans:
   2. Cross-scope captures appear via _captures array access in segment bodies and .w() wrapping in parent QRL references
   3. Segment metadata (captures, captureNames, paramNames arrays) matches snapshot expected metadata exactly
   4. All previously-passing snapshots still pass (zero regressions)
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 18-01-PLAN.md -- Fix alphabetical sort for paramNames slots and cross-scope capture delivery
+- [ ] 18-02-PLAN.md -- Validate and fix remaining capture metadata mismatches
 
 ### Phase 19: JSX Transform Convergence
 **Goal**: JSX output (_jsxSorted, _jsxSplit, signal wrapping) matches SWC behavioral rules for all JSX-heavy snapshots
@@ -150,7 +154,7 @@ Phases execute in numeric order: 17 -> 18 -> 19 -> 20 -> 21
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 17. Inline/Hoist Strategy Convergence | 2/2 | Complete    | 2026-04-11 |
-| 18. Capture Classification Convergence | 0/TBD | Not started | - |
+| 18. Capture Classification Convergence | 0/2 | Not started | - |
 | 19. JSX Transform Convergence | 0/TBD | Not started | - |
 | 20. Migration and Sync Convergence | 0/TBD | Not started | - |
 | 21. Convergence Gate | 0/TBD | Not started | - |

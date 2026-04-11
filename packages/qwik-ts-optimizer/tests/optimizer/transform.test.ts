@@ -221,17 +221,18 @@ export const App = component$(() => {
     // The segment should NOT have _captures
     expect(appSegment!.segment!.captures).toBe(false);
 
-    // Parent should have _auto_ export for TITLE
-    expect(parent.code).toContain('_auto_TITLE');
-
-    // Segment should have _auto_ import
-    expect(appSegment!.code).toContain('_auto_TITLE');
-    expect(appSegment!.code).toContain('as TITLE');
+    // TITLE is only used by one segment and is safe to move (not exported, no side effects).
+    // SWC moves single-segment-exclusive variables into the segment rather than re-exporting.
+    // The segment should contain the moved declaration, NOT an _auto_ import.
+    expect(appSegment!.code).toContain('const TITLE');
+    expect(parent.code).not.toContain('_auto_TITLE');
   });
 
-  it('migration: variable used by segment gets _auto_ reexport when also in root scope', () => {
-    // helperFn appears in root scope (its own declaration) AND in the segment,
-    // so migration correctly chooses reexport (not move).
+  it('migration: variable used only by segment gets moved (not reexported)', () => {
+    // helperFn is declared at root but only used by the App segment.
+    // SWC's build_main_module_usage_set skips Stmt::Decl items, so
+    // the declaration site does not count as "root usage". Since helperFn
+    // is used by exactly one segment, it should be MOVED, not reexported.
     const result = transformModule({
       input: [
         {
@@ -253,11 +254,9 @@ export const App = component$(() => {
     const appSegment = segments.find((s) => s.segment!.displayName.includes('App'));
     expect(appSegment).toBeDefined();
 
-    // Parent should have _auto_ export
-    expect(parent.code).toContain('_auto_helperFn');
-
-    // Segment should import _auto_helperFn
-    expect(appSegment!.code).toContain('_auto_helperFn as helperFn');
+    // helperFn should be MOVED into the segment (single-use, safe, not exported)
+    expect(appSegment!.code).toContain('const helperFn');
+    expect(parent.code).not.toContain('_auto_helperFn');
 
     // Segment should NOT use _captures for this
     expect(appSegment!.segment!.captures).toBe(false);

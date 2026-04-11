@@ -258,6 +258,153 @@ export function collectModuleLevelDecls(
 }
 
 // ---------------------------------------------------------------------------
+// Local declaration collection for scope-aware filtering
+// ---------------------------------------------------------------------------
+
+/**
+ * Collect all identifiers that are declaration sites within a given AST range.
+ * This mirrors SWC's `collect_local_declarations_from_expr` which collects:
+ * - Arrow/function params
+ * - Variable declarations (var, let, const) in any block scope
+ * - Function/class declaration names
+ * - Catch clause params
+ * - For/for-in/for-of loop variables
+ *
+ * These locally-declared names should not be treated as external dependencies
+ * of the segment (they shadow outer-scope names).
+ */
+export function collectLocalDeclarations(program: any, start: number, end: number): Set<string> {
+  const locals = new Set<string>();
+
+  walk(program, {
+    enter(node: any) {
+      // Only process nodes within the extraction range
+      if (node.start < start || node.end > end) return;
+
+      // Arrow function parameters
+      if (node.type === 'ArrowFunctionExpression' && node.params) {
+        for (const param of node.params) {
+          const names: string[] = [];
+          collectBindingNames(param, names);
+          for (const n of names) locals.add(n);
+        }
+      }
+
+      // Function expression/declaration parameters and name
+      if (node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') {
+        if (node.id?.name) locals.add(node.id.name);
+        for (const param of node.params ?? []) {
+          const names: string[] = [];
+          collectBindingNames(param, names);
+          for (const n of names) locals.add(n);
+        }
+      }
+
+      // Variable declarations
+      if (node.type === 'VariableDeclaration') {
+        for (const decl of node.declarations ?? []) {
+          if (decl.id) {
+            const names: string[] = [];
+            collectBindingNames(decl.id, names);
+            for (const n of names) locals.add(n);
+          }
+        }
+      }
+
+      // Class declarations
+      if (node.type === 'ClassDeclaration' && node.id?.name) {
+        locals.add(node.id.name);
+      }
+
+      // Catch clause parameters
+      if (node.type === 'CatchClause' && node.param) {
+        const names: string[] = [];
+        collectBindingNames(node.param, names);
+        for (const n of names) locals.add(n);
+      }
+    },
+  });
+
+  return locals;
+}
+
+/**
+ * Collect the set of identifier positions that are declaration-site bindings
+ * at the top level of the module. SWC's `build_main_module_usage_set` explicitly
+ * skips `Stmt::Decl` items — identifiers that are the binding name of a
+ * VariableDeclaration, FunctionDeclaration, or ClassDeclaration at root scope
+ * should not count as "root usage".
+ */
+function collectRootDeclPositions(program: any): Set<number> {
+  const positions = new Set<number>();
+
+  for (const stmt of program.body ?? []) {
+    let declaration = stmt;
+
+    // Handle export wrappers
+    if (stmt.type === 'ExportNamedDeclaration' && stmt.declaration) {
+      declaration = stmt.declaration;
+    } else if (stmt.type === 'ExportDefaultDeclaration' && stmt.declaration) {
+      declaration = stmt.declaration;
+    }
+
+    if (declaration.type === 'VariableDeclaration') {
+      for (const decl of declaration.declarations ?? []) {
+        if (decl.id) {
+          collectBindingPositions(decl.id, positions);
+        }
+      }
+    } else if (declaration.type === 'FunctionDeclaration' && declaration.id) {
+      positions.add(declaration.id.start);
+    } else if (declaration.type === 'ClassDeclaration' && declaration.id) {
+      positions.add(declaration.id.start);
+    }
+  }
+
+  return positions;
+}
+
+/**
+ * Collect the start positions of all binding name identifiers from a pattern.
+ */
+function collectBindingPositions(node: any, positions: Set<number>): void {
+  if (!node) return;
+
+  switch (node.type) {
+    case 'Identifier':
+      positions.add(node.start);
+      break;
+
+    case 'ObjectPattern':
+      for (const prop of node.properties ?? []) {
+        if (prop.type === 'RestElement') {
+          collectBindingPositions(prop.argument, positions);
+        } else {
+          collectBindingPositions(prop.value, positions);
+        }
+      }
+      break;
+
+    case 'ArrayPattern':
+      for (const elem of node.elements ?? []) {
+        collectBindingPositions(elem, positions);
+      }
+      break;
+
+    case 'RestElement':
+      collectBindingPositions(node.argument, positions);
+      break;
+
+    case 'AssignmentPattern':
+      collectBindingPositions(node.left, positions);
+      break;
+
+    default:
+      break;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // computeSegmentUsage
 // ---------------------------------------------------------------------------
 
@@ -265,6 +412,10 @@ export function collectModuleLevelDecls(
  * Walk the AST collecting all Identifier references. For each identifier,
  * determine if it falls within any extraction's arg range (argStart..argEnd).
  * If so, attribute it to that segment. If outside ALL ranges, attribute to root.
+ *
+ * Filters out:
+ * - Locally-declared identifiers within each extraction (params, local vars, catch params)
+ * - Declaration-site identifiers at the root level (binding names of top-level declarations)
  */
 export function computeSegmentUsage(
   program: any,
@@ -278,6 +429,15 @@ export function computeSegmentUsage(
     segmentUsage.set(ext.symbolName, new Set());
   }
 
+  // Pre-compute local declarations for each extraction range
+  const extractionLocals = new Map<string, Set<string>>();
+  for (const ext of extractions) {
+    extractionLocals.set(ext.symbolName, collectLocalDeclarations(program, ext.argStart, ext.argEnd));
+  }
+
+  // Pre-compute declaration-site positions at root level
+  const rootDeclPositions = collectRootDeclPositions(program);
+
   walk(program, {
     enter(node: any) {
       if (node.type !== 'Identifier') return;
@@ -289,14 +449,21 @@ export function computeSegmentUsage(
       let inSegment = false;
       for (const ext of extractions) {
         if (pos >= ext.argStart && pos < ext.argEnd) {
-          segmentUsage.get(ext.symbolName)!.add(name);
+          // Skip locally-declared identifiers (params, local vars, catch params)
+          const locals = extractionLocals.get(ext.symbolName)!;
+          if (!locals.has(name)) {
+            segmentUsage.get(ext.symbolName)!.add(name);
+          }
           inSegment = true;
           break;
         }
       }
 
       if (!inSegment) {
-        rootUsage.add(name);
+        // Skip declaration-site identifiers at root level
+        if (!rootDeclPositions.has(pos)) {
+          rootUsage.add(name);
+        }
       }
     },
   });

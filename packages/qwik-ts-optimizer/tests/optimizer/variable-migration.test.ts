@@ -322,9 +322,10 @@ describe('computeSegmentUsage', () => {
     ]);
 
     expect(segmentUsage.get('seg1')?.has('x')).toBe(true);
-    // 'x' in `const x = 1` is a declaration, but 'x' on the left of `= 1`
-    // appears outside any extraction range — rootUsage should have it
-    expect(rootUsage.has('x')).toBe(true);
+    // 'x' in `const x = 1` is a declaration-site binding at root level.
+    // SWC's build_main_module_usage_set skips Stmt::Decl items, so
+    // declaration-site identifiers are NOT in rootUsage.
+    expect(rootUsage.has('x')).toBe(false);
   });
 
   it('attributes identifiers outside all ranges to root', () => {

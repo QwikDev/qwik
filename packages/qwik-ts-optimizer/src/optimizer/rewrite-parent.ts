@@ -61,6 +61,8 @@ export interface InlineStrategyOptions {
   stripCtxName?: string[];
   /** Strip event handlers */
   stripEventHandlers?: boolean;
+  /** Register context names (server-tagged extractions get _regSymbol wrapping) */
+  regCtxName?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -106,6 +108,148 @@ function isCustomInlined(
   }
   // Not found in imports at all — must be custom inlined
   return true;
+}
+
+// ---------------------------------------------------------------------------
+// regCtxName matching
+// ---------------------------------------------------------------------------
+
+/**
+ * Check if an extraction matches a regCtxName entry.
+ *
+ * Match rule: extraction's callee name (e.g., "server$") starts with the
+ * regCtxName value (e.g., "server") followed by "$".
+ */
+function matchesRegCtxName(ext: ExtractionResult, regCtxName?: string[]): boolean {
+  if (!regCtxName || regCtxName.length === 0) return false;
+  for (const name of regCtxName) {
+    if (ext.calleeName === name + '$') return true;
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+// Const literal resolution for regCtxName capture inlining
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a parent extraction body and find const declarations with literal values
+ * for the given capture names.
+ *
+ * Returns a map of variable name -> literal source text (e.g., "'hola'").
+ */
+function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<string, string> {
+  const result = new Map<string, string>();
+  if (captureNames.length === 0) return result;
+
+  const wrapperPrefix = 'const __rl__ = ';
+  const wrappedSource = wrapperPrefix + parentBody;
+  const parseResult = parseSync('__rl__.tsx', wrappedSource);
+  if (!parseResult.program || parseResult.errors?.length) return result;
+
+  const offset = wrapperPrefix.length;
+  const captureSet = new Set(captureNames);
+
+  // Walk the parsed body to find const declarations
+  function walkNode(node: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type === 'VariableDeclaration' && node.kind === 'const') {
+      for (const decl of node.declarations ?? []) {
+        if (decl.id?.type === 'Identifier' && captureSet.has(decl.id.name) && decl.init) {
+          // Check if init is a simple literal
+          const init = decl.init;
+          if (init.type === 'StringLiteral' || init.type === 'Literal') {
+            // Get the literal source text from the parent body
+            const literalStart = init.start - offset;
+            const literalEnd = init.end - offset;
+            if (literalStart >= 0 && literalEnd <= parentBody.length) {
+              result.set(decl.id.name, parentBody.slice(literalStart, literalEnd));
+            }
+          } else if (init.type === 'NumericLiteral') {
+            const literalStart = init.start - offset;
+            const literalEnd = init.end - offset;
+            if (literalStart >= 0 && literalEnd <= parentBody.length) {
+              result.set(decl.id.name, parentBody.slice(literalStart, literalEnd));
+            }
+          }
+        }
+      }
+    }
+
+    for (const key of Object.keys(node)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+      const val = node[key];
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            if (item && typeof item.type === 'string') walkNode(item);
+          }
+        } else if (typeof val.type === 'string') {
+          walkNode(val);
+        }
+      }
+    }
+  }
+
+  walkNode(parseResult.program);
+  return result;
+}
+
+/**
+ * Replace captured identifier references in a body text with their inlined
+ * literal values. Uses AST-based replacement to avoid replacing property names.
+ */
+function inlineConstCaptures(body: string, constValues: Map<string, string>): string {
+  const wrapperPrefix = 'const __ic__ = ';
+  const wrappedSource = wrapperPrefix + body;
+  const parseResult = parseSync('__ic__.tsx', wrappedSource);
+  if (!parseResult.program || parseResult.errors?.length) return body;
+
+  const offset = wrapperPrefix.length;
+  const replacements: Array<{ start: number; end: number; value: string }> = [];
+
+  function walkNode(node: any, parentKey?: string, parentNode?: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type === 'Identifier' && constValues.has(node.name)) {
+      // Skip property keys and member expression property names
+      const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+
+      if (!isPropertyKey && !isMemberProp) {
+        replacements.push({
+          start: node.start - offset,
+          end: node.end - offset,
+          value: constValues.get(node.name)!,
+        });
+      }
+    }
+
+    for (const key of Object.keys(node)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+      const val = node[key];
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            if (item && typeof item.type === 'string') walkNode(item, key, node);
+          }
+        } else if (typeof val.type === 'string') {
+          walkNode(val, key, node);
+        }
+      }
+    }
+  }
+
+  walkNode(parseResult.program);
+
+  // Sort descending and apply
+  replacements.sort((a, b) => b.start - a.start);
+  let result = body;
+  for (const r of replacements) {
+    result = result.slice(0, r.start) + r.value + result.slice(r.end);
+  }
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -277,6 +421,7 @@ function transformSCallBody(
   allExtractions: ExtractionResult[],
   qrlVarNames: Map<string, string>,
   jsxBodyOptions?: SCallBodyJsxOptions,
+  regCtxName?: string[],
 ): { transformedBody: string; additionalImports: Map<string, string>; hoistedDeclarations: string[]; keyCounterValue?: number } {
   let body = ext.bodyText;
   const additionalImports = new Map<string, string>();
@@ -306,16 +451,22 @@ function transformSCallBody(
           // The callStart..callEnd range covers the full attribute text: onClick$(() => ...}
           // Transform the event prop name (e.g., onClick$ -> q-e:click)
           const transformedPropName = transformEventPropName(child.ctxName, new Set());
+          // For regCtxName-matched extractions, wrap the QRL var in serverQrl()
+          const isRegCtx = matchesRegCtxName(child, regCtxName);
+          const qrlRef = isRegCtx ? `serverQrl(${childVarName})` : childVarName;
+          if (isRegCtx) {
+            additionalImports.set('serverQrl', '@qwik.dev/core');
+          }
           if (transformedPropName) {
-            let replacement = `${transformedPropName}={${childVarName}`;
-            if (child.captureNames.length > 0) {
+            let replacement = `${transformedPropName}={${qrlRef}`;
+            if (!isRegCtx && child.captureNames.length > 0) {
               replacement += '.w([\n        ' + child.captureNames.join(',\n        ') + '\n    ])';
             }
             replacement += '}';
             body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
           } else {
             // Fallback: just replace with var name
-            body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
+            body = body.slice(0, relCallStart) + qrlRef + body.slice(relCallEnd);
           }
         } else {
           // Named marker: callee$(args) -> calleeQrl(qrlVar)
@@ -339,7 +490,21 @@ function transformSCallBody(
   }
 
   // 3. Inject _captures unpacking if this extraction has captures
-  if (ext.captureNames.length > 0) {
+  //    For regCtxName-matched extractions, inline const literal values instead
+  //    of using _captures (matching Rust optimizer behavior).
+  const isRegCtx = matchesRegCtxName(ext, regCtxName);
+  if (isRegCtx && ext.captureNames.length > 0) {
+    // Find parent extraction to resolve const values
+    const parentExt = allExtractions.find(e => e.symbolName === ext.parent);
+    if (parentExt) {
+      const constValues = resolveConstLiterals(parentExt.bodyText, ext.captureNames);
+      if (constValues.size > 0) {
+        // Replace captured identifiers with their literal values in the body
+        body = inlineConstCaptures(body, constValues);
+      }
+    }
+    // Don't inject _captures for regCtxName extractions
+  } else if (ext.captureNames.length > 0) {
     body = injectCapturesUnpacking(body, ext.captureNames);
     additionalImports.set('_captures', '@qwik.dev/core');
   }
@@ -1080,9 +1245,19 @@ export function rewriteParentModule(
      */
     const processExtraction = (ext: ExtractionResult) => {
       const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
-      const { transformedBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformSCallBody(
-        ext, extractions, qrlVarNames, sCallJsxOptions,
+      const { transformedBody: rawBody, additionalImports, hoistedDeclarations, keyCounterValue } = transformSCallBody(
+        ext, extractions, qrlVarNames, sCallJsxOptions, inlineOptions?.regCtxName,
       );
+
+      // Wrap body with _regSymbol for regCtxName-matched extractions
+      const isRegCtxMatch = matchesRegCtxName(ext, inlineOptions?.regCtxName);
+      let transformedBody = rawBody;
+      if (isRegCtxMatch) {
+        // Wrap: _regSymbol(() => body, "hash")
+        // with /*#__PURE__*/ annotation
+        transformedBody = `/*#__PURE__*/ _regSymbol(${rawBody}, "${ext.hash}")`;
+        neededImports.set('_regSymbol', '@qwik.dev/core');
+      }
       // For hoist strategy, advance the key counter after each body transform
       if (isHoist && keyCounterValue !== undefined && sCallJsxOptions) {
         jsxKeyCounterValue = keyCounterValue;

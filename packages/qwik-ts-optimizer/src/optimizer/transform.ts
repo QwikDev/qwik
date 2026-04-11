@@ -626,9 +626,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       emitMode,
       devFile,
       isInlineStrategy
-        ? { inline: true, entryType: entryStrategy.type as 'inline' | 'hoist', stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers }
-        : options.stripCtxName || options.stripEventHandlers
-          ? { inline: false, stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers }
+        ? { inline: true, entryType: entryStrategy.type as 'inline' | 'hoist', stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers, regCtxName: options.regCtxName }
+        : options.stripCtxName || options.stripEventHandlers || options.regCtxName
+          ? { inline: false, stripCtxName: options.stripCtxName, stripEventHandlers: options.stripEventHandlers, regCtxName: options.regCtxName }
           : undefined,
       options.stripExports,
       options.isServer,

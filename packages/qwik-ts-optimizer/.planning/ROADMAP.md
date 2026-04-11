@@ -16,7 +16,7 @@ Get all 209 snapshot tests passing via AST comparison. Ordered by failure family
 - [x] **Phase 10: Segment Identity Batch 1** — First 21 segment-identity failures (completed 2026-04-11)
 - [x] **Phase 11: Segment Identity Batch 2** — Next 21 segment-identity failures (completed 2026-04-11)
 - [x] **Phase 12: Segment Identity Batch 3** — Remaining 21 segment-identity failures (completed 2026-04-11)
-- [ ] **Phase 13: Segment Codegen Batch 1** — First 25 segment-codegen failures
+- [x] **Phase 13: Segment Codegen Batch 1** — First 25 segment-codegen failures (completed 2026-04-11)
 - [ ] **Phase 14: Segment Codegen Batch 2** — Next 25 segment-codegen failures
 - [ ] **Phase 15: Segment Codegen Batch 3** — Remaining 26 segment-codegen failures
 - [ ] **Phase 16: Final Convergence** — Any remaining failures + 209/209 validation
@@ -123,7 +123,7 @@ Plans:
 Plans:
 - [x] 13-01-PLAN.md — Segment body transforms: _rawProps, TS stripping, sync$, dead code, separator
 - [x] 13-02-PLAN.md — Post-transform segment import re-collection
-- [ ] 13-03-PLAN.md — Missing segments, convergence sweep, and regression gate
+- [x] 13-03-PLAN.md — Missing segments, convergence sweep, and regression gate
 
 ### Phase 14: Segment Codegen Batch 2
 **Goal**: Next 25 segment-codegen snapshots pass
@@ -176,7 +176,7 @@ Plans:
 | 10. Segment Identity Batch 1 | 3/3 | Complete    | 2026-04-11 |
 | 11. Segment Identity Batch 2 | 3/3 | Complete    | 2026-04-11 |
 | 12. Segment Identity Batch 3 | 3/3 | Complete    | 2026-04-11 |
-| 13. Segment Codegen Batch 1 | 2/3 | In Progress|  |
+| 13. Segment Codegen Batch 1 | 3/3 | Complete   | 2026-04-11 |
 | 14. Segment Codegen Batch 2 | 0/TBD | Not started | - |
 | 15. Segment Codegen Batch 3 | 0/TBD | Not started | - |
 | 16. Final Convergence | 0/TBD | Not started | - |

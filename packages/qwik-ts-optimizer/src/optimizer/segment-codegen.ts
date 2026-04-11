@@ -9,6 +9,7 @@
 
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
+import { walk } from 'oxc-walker';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { applyRawPropsTransform } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
@@ -28,6 +29,22 @@ export interface SegmentCaptureInfo {
   autoImports: Array<{ varName: string; parentModulePath: string }>;
   /** Declaration text physically moved into the segment. */
   movedDeclarations: string[];
+}
+
+/**
+ * Additional import context passed from transform.ts for post-transform
+ * import re-collection. After body transforms (JSX, nested calls, sync$),
+ * the segment body may reference identifiers not in the original segmentImports.
+ */
+export interface SegmentImportContext {
+  /** All imports from the parent module (for re-scanning after body transforms) */
+  moduleImports: Array<{ localName: string; importedName: string; source: string; importAttributes?: Record<string, string> }>;
+  /** Exported/declared names in the parent module (for self-referential imports) */
+  sameFileExports: Set<string>;
+  /** The parent module path (e.g., "./test") for self-referential imports */
+  parentModulePath: string;
+  /** Migration decisions for _auto_ import detection on JSX tags */
+  migrationDecisions: Array<{ varName: string; action: string }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -186,6 +203,41 @@ function findEnclosingArrowBodyForCapture(text: string, pos: number, capturedVar
 }
 
 // ---------------------------------------------------------------------------
+// Post-transform import helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a body text string and extract all Identifier and JSXIdentifier names.
+ * Used to determine which imports a segment body needs after all transforms.
+ */
+function collectBodyIdentifiers(bodyText: string): Set<string> {
+  const ids = new Set<string>();
+  try {
+    const wrapped = `(${bodyText})`;
+    const parsed = parseSync('segment.tsx', wrapped);
+    walk(parsed.program, {
+      enter(node: any) {
+        if (node.type === 'Identifier' && node.name) {
+          ids.add(node.name);
+        }
+        if (node.type === 'JSXIdentifier' && node.name) {
+          ids.add(node.name);
+        }
+      }
+    });
+  } catch {
+    // Fallback: regex-based identifier extraction for capital-letter identifiers
+    // (components, namespaces) and known runtime functions
+    const identRegex = /\b([A-Z_$][a-zA-Z0-9_$]*)\b/g;
+    let match;
+    while ((match = identRegex.exec(bodyText)) !== null) {
+      ids.add(match[1]);
+    }
+  }
+  return ids;
+}
+
+// ---------------------------------------------------------------------------
 // Main function
 // ---------------------------------------------------------------------------
 
@@ -251,6 +303,7 @@ export function generateSegmentCode(
   captureInfo?: SegmentCaptureInfo,
   jsxOptions?: SegmentJsxOptions,
   nestedCallSites?: NestedCallSiteInfo[],
+  importContext?: SegmentImportContext,
 ): string {
   const parts: string[] = [];
 
@@ -612,6 +665,100 @@ export function generateSegmentCode(
       extraction.paramNames[0] === '_' &&
       extraction.paramNames[1] === '_1') {
     bodyText = rewriteFunctionSignature(bodyText, extraction.paramNames);
+  }
+
+  // Post-transform import re-collection: scan the final body text for identifiers
+  // that need imports not already in the import list. This catches:
+  // - Same-file component references (JSX tags referencing sibling components)
+  // - Namespace imports (import * as ns)
+  // - Import assertions (with { type: 'json' })
+  // - _auto_ migration imports for JSX tags
+  // - Self-referential component imports
+  // - Qrl-suffixed runtime imports from nested call rewriting
+  if (importContext) {
+    const bodyIdentifiers = collectBodyIdentifiers(bodyText);
+
+    for (const id of bodyIdentifiers) {
+      // Skip if already imported
+      let alreadyImported = false;
+      for (const specs of importsBySource.values()) {
+        if (specs.some(s => s.localName === id)) { alreadyImported = true; break; }
+      }
+      if (alreadyImported) continue;
+
+      // Skip if already in parts as an import
+      if (parts.some(p => p.includes(`{ ${id} }`) || p.includes(`{ ${id},`) || p.includes(`, ${id} }`) || p.includes(`, ${id},`) || p.includes(`as ${id}`) || p.includes(`* as ${id}`))) continue;
+
+      // Check module imports from the parent
+      const moduleImp = importContext.moduleImports.find(m => m.localName === id);
+      if (moduleImp) {
+        const rewrittenSource = rewriteImportSource(moduleImp.source);
+        // Build import statement, preserving import attributes if present
+        let importStmt: string;
+        if (moduleImp.importedName === '*') {
+          importStmt = `import * as ${moduleImp.localName} from "${rewrittenSource}";`;
+        } else if (moduleImp.importedName === 'default') {
+          importStmt = `import ${moduleImp.localName} from "${rewrittenSource}";`;
+        } else if (moduleImp.importedName !== moduleImp.localName) {
+          importStmt = `import { ${moduleImp.importedName} as ${moduleImp.localName} } from "${rewrittenSource}";`;
+        } else {
+          importStmt = `import { ${moduleImp.localName} } from "${rewrittenSource}";`;
+        }
+        // Add import attributes if present (e.g., with { type: "json" })
+        if (moduleImp.importAttributes) {
+          const attrs = Object.entries(moduleImp.importAttributes)
+            .map(([k, v]) => `${k}: "${v}"`)
+            .join(', ');
+          importStmt = importStmt.replace('";', `" with { ${attrs} };`);
+        }
+        // Insert before separator
+        const sepIdx = parts.indexOf('//');
+        if (sepIdx >= 0) {
+          parts.splice(sepIdx, 0, importStmt);
+        } else {
+          parts.unshift(importStmt);
+        }
+        continue;
+      }
+
+      // Check same-file exports (self-referential component imports)
+      if (importContext.sameFileExports.has(id)) {
+        // Check if this is a migrated variable needing _auto_ import
+        const migrationDecision = importContext.migrationDecisions.find(d => d.varName === id);
+        let importStmt: string;
+        if (migrationDecision && migrationDecision.action === 'reexport') {
+          importStmt = `import { _auto_${id} as ${id} } from "${importContext.parentModulePath}";`;
+        } else {
+          importStmt = `import { ${id} } from "${importContext.parentModulePath}";`;
+        }
+        const sepIdx = parts.indexOf('//');
+        if (sepIdx >= 0) {
+          parts.splice(sepIdx, 0, importStmt);
+        } else {
+          parts.unshift(importStmt);
+        }
+      }
+    }
+
+    // Check for Qrl-suffixed runtime imports introduced by nested call rewriting
+    // e.g., useTaskQrl, useComputedQrl -- these need @qwik.dev/core imports
+    const qrlSuffixRegex = /\b(\w+Qrl)\b/g;
+    let qrlMatch;
+    while ((qrlMatch = qrlSuffixRegex.exec(bodyText)) !== null) {
+      const qrlName = qrlMatch[1];
+      // Skip if already imported
+      if (parts.some(p => p.includes(qrlName))) continue;
+      // Only add if it looks like a Qwik runtime function (starts with lowercase or 'use')
+      if (qrlName.startsWith('use') || qrlName[0] === qrlName[0].toLowerCase()) {
+        const sepIdx = parts.indexOf('//');
+        const importStmt = `import { ${qrlName} } from "@qwik.dev/core";`;
+        if (sepIdx >= 0) {
+          parts.splice(sepIdx, 0, importStmt);
+        } else {
+          parts.unshift(importStmt);
+        }
+      }
+    }
   }
 
   parts.push(`export const ${extraction.symbolName} = ${bodyText};`);

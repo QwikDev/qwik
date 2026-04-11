@@ -355,18 +355,21 @@ export function classifyProp(
  * Compute the flags bitmask for a JSX element.
  *
  * SWC semantics (swc-reference-only/transform.rs lines 2644-2653):
- * - Bit 0 (1): static_listeners -- set when ALL prop values are const (is_const_expr)
+ * - Bit 0 (1): static_listeners -- set when all QRL/event-handler props are const
  * - Bit 1 (2): static_subtree -- set when children are static or none
  * - Bit 2 (4): moved_captures -- set when in loop context (q:p/q:ps)
  *
- * With const_idents tracking now available, bit 0 uses the correct SWC formula:
- * static_listeners = !hasVarProps (all prop values classified as const by is_const_expr).
+ * Note: In SWC, static_listeners only tracks event handler (QRL) props, NOT all
+ * props. Non-event var props don't clear static_listeners. Since we don't yet
+ * separately track event handler constness, we use `!inLoop || !hasVarProps`
+ * which is more permissive and matches SWC output for the common case where
+ * event handlers are arrow/function expressions (always const).
  *
  * Common values:
  * - 3 (0b011): no var props + static/no children
  * - 1 (0b001): no var props + dynamic children
- * - 2 (0b010): has var props + static/no children
- * - 0 (0b000): spread or has var props + dynamic children
+ * - 2 (0b010): has var props + static/no children (in loop)
+ * - 0 (0b000): spread or has var props + dynamic children (in loop)
  * - 7 (0b111): no var props + static children + loop context
  *
  * @param hasVarProps - Whether the element has any mutable props
@@ -380,11 +383,10 @@ export function computeFlags(
   inLoop: boolean = false,
 ): number {
   let flags = 0;
-  // Bit 0 (value 1): static_listeners -- set when all props are const.
-  // Uses !inLoop || !hasVarProps: outside loops, bit 0 is always set because
-  // const_idents doesn't yet cover all cases (e.g., segment body transforms
-  // lack parent scope bindings). Inside loops, hasVarProps is checked.
-  // Full const_idents coverage will enable the pure `!hasVarProps` formula.
+  // Bit 0 (value 1): static_listeners -- all event handler props are const.
+  // SWC only clears this for non-const QRL props (not regular var props).
+  // We approximate with !inLoop || !hasVarProps since event handlers are
+  // typically arrow/fn expressions (always const in classifyProp).
   if (!inLoop || !hasVarProps) {
     flags |= 1;
   }

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 14-03-PLAN.md
-last_updated: "2026-04-11T14:07:51.067Z"
+status: executing
+stopped_at: Completed 15-01-PLAN.md
+last_updated: "2026-04-11T14:37:00.676Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 10
   completed_phases: 8
-  total_plans: 28
-  completed_plans: 28
-  percent: 100
+  total_plans: 31
+  completed_plans: 29
+  percent: 94
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** Runtime-identical output to SWC optimizer -- same segments, captures, hashes, QRL structure
-**Current focus:** Phase 14 — Segment Codegen Batch 2
+**Current focus:** Phase 15 — Segment Codegen Batch 3
 
 ## Current Position
 
-Phase: 15
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 15 (Segment Codegen Batch 3) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -116,6 +116,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 14 P01 | 9min | 2 tasks | 2 files |
 | Phase 14 P02 | 12min | 2 tasks | 3 files |
 | Phase 14 P03 | 26min | 2 tasks | 3 files |
+| Phase 15 P01 | 10min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -203,6 +204,8 @@ Recent decisions affecting current work:
 - [Phase 14]: Enum value inlining uses map-based replacement in segment bodies rather than full-file TS transpilation before extraction
 - [Phase 14]: Already-exported variables skip _auto_ prefix in segment imports -- imported directly by original name
 - [Phase 14]: Bind-desugared prop names always quoted; merge order follows JSX attribute order; paramNames signal exclusion reverted (deep prop access still needs _fnSignal)
+- [Phase 15]: Unconditional segment JSX transpilation deferred -- Rust optimizer respects transpileJsx for segments; snapshot-options corrected instead
+- [Phase 15]: Already-exported variables skip _auto_ prefix in parent re-export; segments import them directly by original name
 
 ### Pending Todos
 
@@ -222,6 +225,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T14:06:52.916Z
-Stopped at: Completed 14-03-PLAN.md
+Last session: 2026-04-11T14:37:00.674Z
+Stopped at: Completed 15-01-PLAN.md
 Resume file: None

@@ -312,21 +312,25 @@ export class AsyncSignalImpl<T>
 
   /** Invalidates the signal, causing it to re-compute its value. */
   override async invalidate(info?: unknown) {
-    this.$flags$ |= SignalFlags.INVALID;
-    this.$clearNextPoll$();
     if (arguments.length > 0) {
       this.$info$ = info;
       this.$infoVersion$++;
     }
-    // When allowStale is false (CLEAR_ON_INVALIDATE set), clear the value so reads throw
-    // the computation promise instead of returning stale data (useful for navigations)
-    if (this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE) {
+    this.$setInvalid$(true, this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE);
+  }
+
+  $setInvalid$(allowRecalc: boolean, mustClear: boolean | number): void {
+    this.$flags$ |= SignalFlags.INVALID;
+    this.$clearNextPoll$();
+    if (mustClear) {
       this.$untrackedValue$ = NEEDS_COMPUTATION;
     }
-    if (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size) {
+    if (
+      allowRecalc &&
+      (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size)
+    ) {
       // compute in next microtask
-      await true;
-      this.$computeIfNeeded$();
+      Promise.resolve().then(() => this.$computeIfNeeded$());
     }
   }
 
@@ -506,14 +510,14 @@ export class AsyncSignalImpl<T>
 
     this.$clearNextPoll$();
 
-    if (this.$interval$ < 0) {
-      this.$pollTimeoutId$ = setTimeout(() => {
-        this.$pollTimeoutId$ = undefined;
-        this.$flags$ |= SignalFlags.INVALID;
-      }, -this.$interval$);
-    } else {
-      this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$interval$);
-    }
+    this.$pollTimeoutId$ = setTimeout(() => {
+      const allowRecalc = this.$interval$ > 0;
+      // Even when clear on invalidate, we don't clear if we're merely re-running due to interval
+      // We expect to get the new value soon, so we can avoid showing a loading state
+      const mustClear = this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE && !allowRecalc;
+
+      this.$setInvalid$(allowRecalc, mustClear);
+    }, Math.abs(this.$interval$));
 
     this.$pollTimeoutId$?.unref?.();
   }

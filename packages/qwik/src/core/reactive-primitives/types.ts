@@ -70,19 +70,11 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    */
   eagerCleanup?: boolean;
   /**
-   * Wait for previous invocation to complete before running again.
-   *
-   * Defaults to `true`.
-   *
-   * @deprecated Not implemented yet
-   */
-  awaitPrevious?: boolean;
-  /**
    * Controls staleness and polling behavior.
    *
    * - **Positive**: Re-run the function after `interval` ms if subscribers exist (polling).
    * - **Negative**: Mark the value as stale after `|interval|` ms, but do NOT auto-recompute.
-   *   Consumers can check staleness and manually trigger recomputation.
+   *   Recomputation happens when reading `.value` or `.loading`.
    * - **`0`** (default): No staleness tracking or polling.
    */
   interval?: number;
@@ -95,10 +87,17 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
   clientOnly?: boolean;
   /**
    * When true (default), the previous value is kept while the signal re-computes after
-   * invalidation, so reads return stale data instead of throwing a promise.
+   * invalidation, so reads return stale data instead of throwing a promise. Reactivity will then
+   * update the readers when the new value is ready.
    *
    * When false, invalidation clears the value so reads throw the computation promise (like the
    * initial load), which is useful for navigations where showing old data would be confusing.
+   *
+   * Note that `interval` invalidations are not affected by this option and will keep the old value
+   * while the new value is loading, to avoid flashing loaders during polling.
+   *
+   * This option only affects manual invalidations via `invalidate()`, and `interval` invalidations
+   * where no new value will be loaded (`interval` is negative, or there are no subscribers).
    *
    * Defaults to `true`.
    */

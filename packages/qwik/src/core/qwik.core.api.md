@@ -34,8 +34,6 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
 // @public (undocumented)
 export interface AsyncSignalOptions<T> extends ComputedOptions {
     allowStale?: boolean;
-    // @deprecated
-    awaitPrevious?: boolean;
     clientOnly?: boolean;
     concurrency?: number;
     eagerCleanup?: boolean;

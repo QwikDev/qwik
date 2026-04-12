@@ -313,6 +313,37 @@ function findEnclosingArrowBodyForCapture(text: string, pos: number, capturedVar
   return -1;
 }
 
+/**
+ * Find the end position (after the semicolon) of a variable declaration
+ * for the given variable name, searching forward from startPos.
+ *
+ * Matches patterns like: `const varName = ...;` or `let varName = ...;`
+ *
+ * @returns Position right after the semicolon, or -1 if not found
+ */
+function findVarDeclarationEnd(text: string, startPos: number, varName: string): number {
+  // Search for `const varName =` or `let varName =` patterns
+  const patterns = [
+    new RegExp(`\\b(?:const|let|var)\\s+${varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*=`),
+  ];
+  for (const pattern of patterns) {
+    const searchText = text.slice(startPos);
+    const match = pattern.exec(searchText);
+    if (match) {
+      // Found the declaration. Find the semicolon that ends it.
+      const declStart = startPos + match.index;
+      const semiIdx = text.indexOf(';', declStart + match[0].length);
+      if (semiIdx >= 0) {
+        // Return position after the semicolon (and any trailing newline)
+        let endPos = semiIdx + 1;
+        if (text[endPos] === '\n') endPos++;
+        return endPos;
+      }
+    }
+  }
+  return -1;
+}
+
 // ---------------------------------------------------------------------------
 // Post-transform import helpers
 // ---------------------------------------------------------------------------
@@ -697,11 +728,16 @@ export function generateSegmentCode(
           // Find the enclosing arrow function body that provides the captured variable
           // by scanning backwards to find the arrow function with the captured var as param
           const searchStart = relStart;
-          const enclosingPos = findEnclosingArrowBodyForCapture(bodyText, searchStart, site.hoistedCaptureNames[0]);
+          const capturedVar = site.hoistedCaptureNames[0];
+          const enclosingPos = findEnclosingArrowBodyForCapture(bodyText, searchStart, capturedVar);
           if (enclosingPos >= 0) {
             const captureList = site.hoistedCaptureNames.join(',\n        ');
             const decl = `const ${site.hoistedSymbolName} = ${site.qrlVarName}.w([\n            ${captureList}\n        ]);`;
-            hoistDeclarations.push({ position: enclosingPos, declaration: decl });
+            // Check if the captured variable is declared as a local variable
+            // (not a parameter). If so, place .w() after the declaration.
+            const varDeclPos = findVarDeclarationEnd(bodyText, enclosingPos, capturedVar);
+            const insertPos = varDeclPos >= 0 ? varDeclPos : enclosingPos;
+            hoistDeclarations.push({ position: insertPos, declaration: decl });
           } else {
             // Captured variable is from the component scope (not a loop parameter).
             // Collect for injection before the return statement (handled after all sites).

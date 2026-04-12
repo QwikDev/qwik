@@ -88,6 +88,12 @@ function normalizeProgram(program: any): void {
   normalizeAutoExports(program);
   stripUnusedImports(program);
   normalizeImportOrder(program);
+  // Renumber _hf functions BEFORE sorting declarations, so both sides get
+  // the same canonical names for the same content. If we sort first, the
+  // physical order matches but the names still differ, making the renumbering
+  // think it's already identity.
+  normalizeArrowBodies(program);
+  renumberHoistedFunctions(program);
   normalizeQrlDeclarationOrder(program);
   sortSpecifiersWithinImports(program);
   sortIndependentExpressionStatements(program);
@@ -99,8 +105,6 @@ function normalizeProgram(program: any): void {
   unwrapSingleStatementBlocks(program);
   sortObjectProperties(program);
   normalizeDevModePositions(program);
-  normalizeArrowBodies(program);
-  renumberHoistedFunctions(program);
   inlineSegmentBodyIntoSCall(program);
 }
 

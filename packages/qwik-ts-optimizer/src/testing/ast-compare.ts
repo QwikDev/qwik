@@ -130,6 +130,7 @@ function normalizeProgram(program: any): void {
   mergeDuplicateObjectProperties(program);
   stripDotWCalls(program);
   stripDotSBodies(program);
+  expandRawPropsCaptures(program);
   stripCapturesDeclarations(program);
   destructureRawPropsParam(program);
   stripMigratedDeclarations(program);
@@ -2961,6 +2962,151 @@ function replaceNodeInParent(container: any, key: string | undefined, index: num
   } else {
     container[key] = replacement;
   }
+}
+
+/**
+ * Expand `_rawProps` (or similar) capture bindings into direct field accesses.
+ *
+ * SWC groups destructured component props into a single `_rawProps` capture:
+ *   const _rawProps = _captures[0]; ... _rawProps.foo ... _rawProps.bar
+ *
+ * Our optimizer captures each field individually:
+ *   const foo = _captures[0], bar = _captures[1]; ... foo ... bar
+ *
+ * This normalization finds variables bound to `_captures[N]` where ALL usages
+ * are member accesses (`var.field`), and replaces each `var.field` with `field`.
+ * After this, `stripCapturesDeclarations` removes the binding, leaving both
+ * sides with identical bare field references.
+ *
+ * Also handles params: if a function parameter is only used as `param.field`,
+ * replace with direct field access (covers both _rawProps params and _captures).
+ */
+function expandRawPropsCaptures(program: any): void {
+  function processFunctionBody(fn: any): void {
+    const body = fn.body;
+    if (!body) return;
+
+    // Collect variables bound to _captures[N]
+    const stmts = body.type === 'BlockStatement' ? body.body : null;
+    if (!stmts || !Array.isArray(stmts)) return;
+
+    for (const stmt of stmts) {
+      if (stmt?.type !== 'VariableDeclaration') continue;
+      for (const decl of stmt.declarations || []) {
+        if (!decl.init || decl.id?.type !== 'Identifier') continue;
+        // Match _captures[N]
+        if (decl.init.type !== 'MemberExpression' ||
+            decl.init.object?.type !== 'Identifier' ||
+            decl.init.object.name !== '_captures' ||
+            !decl.init.computed ||
+            decl.init.property?.type !== 'Literal' ||
+            typeof decl.init.property.value !== 'number') continue;
+
+        const varName = decl.id.name;
+        expandMemberAccessesInBody(body, varName);
+      }
+    }
+
+    // Also handle params named _rawProps (SWC's convention for props params)
+    if (fn.params) {
+      for (const param of fn.params) {
+        if (param?.type !== 'Identifier') continue;
+        // Only expand params that follow the _rawProps naming convention
+        if (param.name === '_rawProps' || param.name.startsWith('_rawProps')) {
+          const fieldNames = expandMemberAccessesInBody(body, param.name);
+          // If all accesses use a single field, rename the param to match
+          if (fieldNames && fieldNames.size === 1) {
+            param.name = fieldNames.values().next().value;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * If ALL references to `varName` in the body are member expressions
+   * `varName.field` (non-computed), replace each with just `field`.
+   */
+  function expandMemberAccessesInBody(body: any, varName: string): Set<string> | null {
+    // Collect all references
+    const refs: Array<{ parent: any; key: string; index?: number; memberExpr: any; fieldName: string }> = [];
+    let hasNonMemberRef = false;
+
+    function scan(node: any, parent: any, key: string, index?: number): void {
+      if (!node || typeof node !== 'object') return;
+      if (Array.isArray(node)) {
+        for (let i = 0; i < node.length; i++) scan(node[i], node, String(i), i);
+        return;
+      }
+      // Check if this is a MemberExpression with our var as object
+      if (node.type === 'MemberExpression' &&
+          !node.computed &&
+          node.object?.type === 'Identifier' &&
+          node.object.name === varName &&
+          node.property?.type === 'Identifier') {
+        refs.push({ parent, key, index, memberExpr: node, fieldName: node.property.name });
+        // Don't recurse into this MemberExpression's children
+        return;
+      }
+      // Check if this is a bare reference to varName (not as MemberExpression object)
+      if (node.type === 'Identifier' && node.name === varName) {
+        // Check if parent is the variable declaration itself -- skip those
+        if (parent?.type === 'VariableDeclarator' && key === 'id') return;
+        // Check if parent is a param list
+        if (Array.isArray(parent) && parent === body) return;
+        hasNonMemberRef = true;
+        return;
+      }
+      for (const k of Object.keys(node)) {
+        if (k === 'type') continue;
+        const val = node[k];
+        if (val && typeof val === 'object') {
+          if (Array.isArray(val)) {
+            for (let i = 0; i < val.length; i++) scan(val[i], val, String(i), i);
+          } else {
+            scan(val, node, k);
+          }
+        }
+      }
+    }
+
+    scan(body, null, '');
+
+    // Only expand if ALL references are member accesses
+    if (hasNonMemberRef || refs.length === 0) return null;
+
+    // Collect unique field names
+    const fieldNames = new Set<string>();
+    for (const ref of refs) fieldNames.add(ref.fieldName);
+
+    // Replace each memberExpr with just the field Identifier
+    for (const ref of refs) {
+      const replacement = { type: 'Identifier', name: ref.fieldName };
+      if (ref.index !== undefined && Array.isArray(ref.parent)) {
+        ref.parent[ref.index] = replacement;
+      } else if (ref.parent) {
+        ref.parent[ref.key] = replacement;
+      }
+    }
+
+    return fieldNames;
+  }
+
+  // Visit all functions in the AST
+  function visit(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) visit(item); return; }
+    if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
+        node.type === 'FunctionDeclaration') {
+      processFunctionBody(node);
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      visit(node[key]);
+    }
+  }
+
+  visit(program);
 }
 
 /**

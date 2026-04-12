@@ -369,13 +369,15 @@ export function computeFlags(
   hasVarProps: boolean,
   childrenType: 'none' | 'static' | 'dynamic',
   inLoop: boolean = false,
+  hasVarEventHandler: boolean = false,
 ): number {
   let flags = 0;
   // Bit 0 (value 1): static_listeners -- all event handler props are const.
-  // SWC only clears this for non-const QRL props (not regular var props).
-  // We approximate with !inLoop || !hasVarProps since event handlers are
-  // typically arrow/fn expressions (always const in classifyProp).
-  if (!inLoop || !hasVarProps) {
+  // SWC sets this when there are no event handlers, or ALL event handlers
+  // are const. A var event handler (e.g. _qrlSync() call) clears this bit.
+  // In loop context, var props also clear this bit since loop iteration
+  // vars make event handler captures non-const.
+  if (!hasVarEventHandler && (!inLoop || !hasVarProps)) {
     flags |= 1;
   }
   // Bit 1 (value 2): static_subtree -- children are static/none
@@ -704,6 +706,7 @@ function processProps(
   beforeSpreadEntries: string[];
   key: string | null;
   hasVarProps: boolean;
+  hasVarEventHandler: boolean;
   hasSpread: boolean;
   neededImports: Set<string>;
 } {
@@ -713,6 +716,7 @@ function processProps(
   const neededImports = new Set<string>();
   let key: string | null = null;
   let hasSpread = false;
+  let hasVarEventHandler = false;
 
   // Track bind handlers for merging (event name -> handler code)
   const bindHandlers = new Map<string, string>();
@@ -836,7 +840,16 @@ function processProps(
         const formattedName = needsQuoting(renamedProp)
           ? `"${renamedProp}"`
           : renamedProp;
-        constEntries.push(`${formattedName}: ${valueText}`);
+        // Event handler values go to constEntries by default (arrow fns,
+        // identifiers referencing QRL vars, etc. are const).
+        // Exception: call expressions (e.g. sync$()/_qrlSync()) are var in SWC
+        // because is_const returns false for CallExpression.
+        if (valueNode && valueNode.type === 'CallExpression') {
+          varEntries.push(`${formattedName}: ${valueText}`);
+          hasVarEventHandler = true;
+        } else {
+          constEntries.push(`${formattedName}: ${valueText}`);
+        }
         continue;
       }
     }
@@ -974,6 +987,7 @@ function processProps(
     beforeSpreadEntries,
     key,
     hasVarProps: varEntries.length > 0 || beforeSpreadEntries.length > 0,
+    hasVarEventHandler,
     hasSpread,
     neededImports,
   };
@@ -1047,6 +1061,7 @@ export function transformJsxElement(
     beforeSpreadEntries,
     key: explicitKey,
     hasVarProps,
+    hasVarEventHandler,
     hasSpread,
     neededImports: propImports,
   } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames, constIdents);
@@ -1122,9 +1137,9 @@ export function transformJsxElement(
     flags = 0;
   } else if (isCaptureOnly) {
     // Non-loop capture: base flags (no loop influence) + capture bit
-    flags = computeFlags(hasVarProps, childrenType, false) | 4;
+    flags = computeFlags(hasVarProps, childrenType, false, hasVarEventHandler) | 4;
   } else {
-    flags = computeFlags(effectiveHasVarProps, childrenType, effectiveLoopCtx);
+    flags = computeFlags(effectiveHasVarProps, childrenType, effectiveLoopCtx, hasVarEventHandler);
   }
 
   // --- Key ---

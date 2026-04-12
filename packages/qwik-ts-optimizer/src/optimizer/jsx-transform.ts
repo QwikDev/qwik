@@ -867,6 +867,7 @@ function processProps(
   hasVarProps: boolean;
   hasVarEventHandler: boolean;
   hasSpread: boolean;
+  additionalSpreads: string[];
   neededImports: Set<string>;
 } {
   const varEntries: string[] = [];
@@ -881,7 +882,7 @@ function processProps(
   const bindHandlers = new Map<string, string>();
 
   if (!attributes || attributes.length === 0) {
-    return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasVarEventHandler: false, hasSpread, neededImports };
+    return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasVarEventHandler: false, hasSpread, additionalSpreads: [], neededImports };
   }
 
   // Pre-scan for spreads so bind gate works regardless of attribute order
@@ -1457,7 +1458,7 @@ export function transformJsxElement(
     const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
     // Build additional spreads suffix (for multiple spread attributes like {...props} ... {...other})
     const additionalSpreadsPart = additionalSpreads.length > 0
-      ? `, ${additionalSpreads.map(s => `...${s}`).join(', ')}`
+      ? `, ${additionalSpreads.map((s: string) => `...${s}`).join(', ')}`
       : '';
     let varPropsPart: string;
     let constPropsPart: string;

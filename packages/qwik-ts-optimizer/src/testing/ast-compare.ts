@@ -67,6 +67,10 @@ export function compareAst(
  * Sort ImportDeclaration nodes at the top of a program body.
  * Import order has no semantic meaning in JS/TS, so sorting makes
  * the comparison order-insensitive for imports.
+ *
+ * Also splits multi-specifier imports into individual single-specifier
+ * imports before sorting, so `import { a, b } from "x"` matches
+ * `import { a } from "x"; import { b } from "x"`.
  */
 function normalizeImportOrder(program: any): void {
   if (!program?.body || !Array.isArray(program.body)) return;
@@ -76,16 +80,32 @@ function normalizeImportOrder(program: any): void {
   while (importEnd < program.body.length && program.body[importEnd]?.type === 'ImportDeclaration') {
     importEnd++;
   }
-  if (importEnd <= 1) return; // 0 or 1 imports — nothing to sort
+  if (importEnd === 0) return;
 
-  // Extract import slice, sort by serialized form, put back
-  const imports = program.body.slice(0, importEnd);
-  imports.sort((a: any, b: any) => {
+  // Split multi-specifier imports into individual imports
+  const splitImports: any[] = [];
+  for (let i = 0; i < importEnd; i++) {
+    const imp = program.body[i];
+    if (imp.specifiers && imp.specifiers.length > 1) {
+      // Split each specifier into its own import declaration
+      for (const spec of imp.specifiers) {
+        splitImports.push({
+          ...imp,
+          specifiers: [spec],
+        });
+      }
+    } else {
+      splitImports.push(imp);
+    }
+  }
+
+  // Sort by serialized form
+  splitImports.sort((a: any, b: any) => {
     const aKey = JSON.stringify(a);
     const bKey = JSON.stringify(b);
     return aKey.localeCompare(bKey);
   });
-  program.body.splice(0, importEnd, ...imports);
+  program.body.splice(0, importEnd, ...splitImports);
 }
 
 /**

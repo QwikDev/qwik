@@ -381,12 +381,14 @@ export function applyRawPropsTransform(body: string): string {
       continue;
     }
     if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
-      const keyName = prop.key?.type === 'Identifier' ? prop.key.name : null;
+      const keyName = prop.key?.type === 'Identifier' ? prop.key.name
+                    : (prop.key?.type === 'StringLiteral' || prop.key?.type === 'Literal') ? (prop.key.value ?? null)
+                    : null;
       const valName = prop.value?.type === 'Identifier' ? prop.value.name :
                       prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier'
                         ? prop.value.left.name : null;
       if (keyName && valName) {
-        fields.push({ key: keyName, local: valName });
+        fields.push({ key: String(keyName), local: valName });
       }
     }
   }
@@ -453,7 +455,10 @@ export function applyRawPropsTransform(body: string): string {
     walkForIdents(reparseResult2.program);
     replacements.sort((a, b) => b.start - a.start);
     for (const r of replacements) {
-      result = result.slice(0, r.start) + '_rawProps.' + r.key + result.slice(r.end);
+      const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
+        ? '_rawProps.' + r.key
+        : `_rawProps["${r.key}"]`;
+      result = result.slice(0, r.start) + accessor + result.slice(r.end);
     }
     return result;
   }
@@ -528,7 +533,11 @@ export function applyRawPropsTransform(body: string): string {
   // Sort descending by start position and apply replacements
   replacements.sort((a, b) => b.start - a.start);
   for (const r of replacements) {
-    result = result.slice(0, r.start) + '_rawProps.' + r.key + result.slice(r.end);
+    // Use bracket notation for keys that aren't valid JS identifiers (e.g., "bind:value")
+    const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
+      ? '_rawProps.' + r.key
+      : `_rawProps["${r.key}"]`;
+    result = result.slice(0, r.start) + accessor + result.slice(r.end);
   }
 
   return result;

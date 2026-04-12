@@ -510,14 +510,9 @@ export function generateSegmentCode(
   // Exported segment body (with _captures unpacking if needed)
   let bodyText = extraction.bodyText;
 
-  // Strip diagnostic comments (@qwik-disable-next-line) from segment bodies
-  bodyText = bodyText.replace(/\/\*\s*@qwik-disable-next-line\s+\w+\s*\*\/\s*\n?/g, '');
-
-  // Strip passive:* and preventdefault:* JSX attribute directives from segment bodies.
-  // passive:* is consumed by event prop renaming (q-ep:, q-wp:, q-dp: prefixes).
-  // preventdefault:* is consumed by the event system and should not appear in output.
-  bodyText = bodyText.replace(/\s*passive:\w+/g, '');
-  bodyText = bodyText.replace(/\s*preventdefault:\w+/g, '');
+  // NOTE: @qwik-disable-next-line comment stripping and passive:* attribute stripping are
+  // deferred until after nested call site rewriting, because stripping changes text length
+  // and would shift the position-based offsets used by the nested call site replacement code.
 
   // Inline TS enum member references when transpileTs is enabled
   // e.g., Thing.A -> 0, Thing.B -> 1
@@ -673,6 +668,15 @@ export function generateSegmentCode(
       }
     }
   }
+
+  // Strip diagnostic comments and passive:* JSX attribute directives from segment bodies.
+  // This must happen AFTER nested call site rewriting (above) because that code uses
+  // position-based offsets into the original body text, and stripping would shift them.
+  bodyText = bodyText.replace(/\/\*\s*@qwik-disable-next-line\s+\w+\s*\*\/\s*\n?/g, '');
+  // passive:* is consumed by event prop renaming (q-ep:, q-wp:, q-dp: prefixes).
+  // NOTE: preventdefault:* is NOT stripped here -- it must survive into the JSX transform
+  // so it becomes a `"preventdefault:event": true` prop in the _jsxSorted output.
+  bodyText = bodyText.replace(/\s*passive:\w+/g, '');
 
   if (captureInfo && captureInfo.captureNames.length > 0 && !captureInfo.skipCaptureInjection) {
     bodyText = injectCapturesUnpacking(bodyText, captureInfo.captureNames);

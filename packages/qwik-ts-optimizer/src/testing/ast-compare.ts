@@ -90,119 +90,81 @@ export function compareAst(
  * Each normalization eliminates a class of cosmetic differences.
  */
 function normalizeProgram(program: any): void {
-  // ONLY truly cosmetic normalizations — no behavioral differences hidden
+  // STRICTLY cosmetic normalizations only — nothing that hides behavioral differences
+
+  // Import ordering/splitting — no semantic meaning in JS
   normalizeImportOrder(program);
-  // Normalize import aliases: `import { X as X1 }` -> `import { X }` when
-  // the alias was introduced to avoid conflicts that don't exist in our output.
-  normalizeImportAliases(program);
-  normalizeArrowBodies(program);
-  normalizeQrlDeclarationOrder(program);
   sortSpecifiersWithinImports(program);
+  deduplicateImports(program);
+
+  // Arrow body form — `x => { return y }` === `x => y`
+  normalizeArrowBodies(program);
+
+  // Declaration ordering — independent declarations can appear in any order
+  normalizeQrlDeclarationOrder(program);
   sortIndependentExpressionStatements(program);
   sortIndependentTopLevelStatements(program);
-  // Canonicalize QRL variable names: `q_qrl_4294901760` (SWC sentinel) and
-  // `q_sym_hash` (ours) both reference the same QRL. Rename to q_<symbolName>.
-  canonicalizeQrlVarNames(program);
+
+  // Literal forms — `void 0` === `undefined`, `!0` === `true`
   normalizeVoidZero(program);
   normalizeBooleanLiterals(program);
+
+  // Module directives — `"use strict"` is implicit in ESM
   stripDirectives(program);
-  deduplicateImports(program);
+
+  // Control flow form — `if(x) { y }` === `if(x) y`
   unwrapSingleStatementBlocks(program);
+
+  // Dev mode positions — line/col numbers differ between optimizers
   normalizeDevModePositions(program);
+
+  // TS enum IIFE form — different transpilers produce different IIFE shapes
   normalizeEnumIIFE(program);
+
+  // Object property order — non-spread property order is cosmetic
   sortObjectProperties(program);
+
+  // TS type annotations — stripped at runtime
   stripTypeAnnotations(program);
-  // Renumber _hfN hoisted functions by their body content so that different
-  // numbering between SWC and our optimizer doesn't cause false mismatches.
-  // This is purely cosmetic: the function bodies are identical, only the
-  // numeric suffixes differ.
+
+  // _hf numbering — same function bodies, different numeric suffixes
   renumberHoistedFunctions(program);
-  // Strip _auto_ export/import specifiers. SWC uses `export { X as _auto_X }`
-  // to make parent bindings available to segments. Our optimizer may or may not
-  // use this pattern. Both approaches provide the same binding at runtime.
+
+  // _auto_ exports — `export { X as _auto_X }` is a module-linking pattern,
+  // both approaches make the same binding available to segments
   normalizeAutoExports(program);
-  // Rename _jsxSplit -> _jsxSorted. _jsxSplit is just an optimization variant
-  // of _jsxSorted with the same arg layout. No semantic difference.
-  normalizeJsxCalleeNames(program);
-  // Merge constProps into varProps in _jsxSorted/_jsxSplit calls.
-  // The split between const and var props is a reactivity optimization hint,
-  // not semantic. Both produce identical rendered output.
-  mergeJsxSplitProps(program);
-  // Merge _getVarProps + _getConstProps spreads into ...obj.
-  // Together they reconstruct the original object.
-  mergeGetVarConstProps(program);
-  // Strip q:p and q:ps properties from JSX calls. These are optimization
-  // hints for the runtime's signal tracking, not semantically necessary.
-  stripQpProperties(program);
-  // Merge duplicate object properties (last-write-wins semantics in JS).
+
+  // QRL variable naming — `q_qrl_4294901760` vs `q_sym_hash` reference same QRL
+  canonicalizeQrlVarNames(program);
+
+  // Import aliases — `import { X as X1 }` when no conflict exists
+  normalizeImportAliases(program);
+
+  // Duplicate object properties — last-write-wins in JS spec
   mergeDuplicateObjectProperties(program);
-  // Strip `.w([captures])` from QRL references. Capture correctness is
-  // already verified via segment metadata (captures: true/false), so
-  // the specific capture bindings in `.w()` calls are redundant for
-  // code comparison. SWC and our optimizer may pass different capture
-  // shapes (whole object vs individual fields).
-  stripDotWCalls(program);
-  // Normalize JSX flags to 0. Flags encode children type, mutability, and
-  // event handler presence. These are optimization hints that affect
-  // reactivity granularity but not rendered output. SWC and our optimizer
-  // may compute different flags for the same JSX structure.
-  normalizeJsxFlags(program);
-  // Canonicalize _captures[N] bindings to _cap0, _cap1, etc. Both sides
-  // assign the same captured values, just with different local names
-  // (SWC: _rawProps, data; ours: color, selectedItem). Name-insensitive.
-  canonicalizeCaptureBindings(program);
-  // Strip _captures import and const declarations that become unused
-  // after canonicalization.
-  stripCapturesDeclarations(program);
-  // Normalize _wrapProp(obj, "prop") -> obj.prop. _wrapProp is a reactive
-  // signal wrapper; both produce the same initial rendered value. The
-  // reactivity granularity difference is accepted (same class as JSX flags).
-  normalizeWrapProp(program);
-  // Inline destructured bindings into usage sites:
-  // `const { "bind:value": x } = props; foo(x)` -> `foo(props["bind:value"])`
-  // This normalizes our destructuring approach to match SWC's _wrapProp
-  // (which normalizeWrapProp already converted to member access).
-  inlineDestructuredBindings(program);
-  // Destructure _rawProps parameter and expand _captures member accesses.
-  // SWC uses `_rawProps.field` while we may destructure or use different names.
-  destructureRawPropsParam(program);
-  expandRawPropsCaptures(program);
-  // Inline _fnSignal(_hfN, [args], _hfN_str) by substituting the hoisted
-  // function body with actual arguments. _fnSignal creates a reactive signal
-  // wrapper; the inlined form produces the same initial value. Same class of
-  // accepted reactivity difference as normalizeWrapProp and normalizeJsxFlags.
-  inlineFnSignalSimple(program);
-  // After stripping declarations, re-run normalizations that depend on statement count:
-  // - Arrow bodies may now have single returns (can become expression body)
-  // - Single-statement blocks in control flow can be unwrapped
-  normalizeArrowBodies(program);
-  unwrapSingleStatementBlocks(program);
-  // Inline `const X = fn; q_X.s(X);` -> `q_X.s(fn);`
-  // This is cosmetic: both forms set the same function on the QRL.
-  // SWC inlines directly, our optimizer declares then references.
+
+  // Inline segment body into .s() call — `const X = fn; q.s(X)` === `q.s(fn)`
   inlineSegmentBodyIntoSCall(program);
-  // Strip unused local declarations and call bindings that may be left
-  // behind after inlining.
+
+  // Strip pure side-effect-free expression statements
+  stripPureExpressionStatements(program);
+
+  // Strip unused declarations left after inlining
   stripUnusedCallBindings(program);
   stripUnusedLocalDeclarations(program);
-  // Strip migrated declarations: when SWC inlines a function/class from
-  // parent scope into a segment, and we import it instead, both provide
-  // the same binding. Strip the inlined declaration if an import exists.
-  stripMigratedDeclarations(program);
-  // Strip `if (!isServer) return;` guards. One optimizer adds server guards
-  // to server segments while the other strips them entirely. Both are valid.
-  stripIsServerGuards(program);
-  // Strip pure expression statements with no side effects.
-  stripPureExpressionStatements(program);
-  // Strip _useHmr(...) calls from function bodies. HMR injection is a
-  // dev-only feature that SWC adds but our optimizer may not.
-  stripUseHmrCalls(program);
-  // Strip unused module-level declarations (const, function, class) that
-  // are not referenced elsewhere in the module.
   stripUnusedModuleLevelDeclarations(program);
-  // Strip orphaned side-effect calls from the parent module that only
-  // exist to provide bindings to segments (SWC keeps them, we import).
+
+  // Strip orphaned side-effect calls (imports that only existed to provide
+  // bindings — if the binding was inlined, the call is dead code)
   stripOrphanedSideEffectCalls(program);
+
+  // Second pass — arrow bodies and blocks may have changed after stripping
+  normalizeArrowBodies(program);
+  unwrapSingleStatementBlocks(program);
+  // After stripping unused declarations, arrow bodies may now qualify for
+  // expression form (single return statement) and blocks may be unwrappable.
+  normalizeArrowBodies(program);
+  unwrapSingleStatementBlocks(program);
   // Second pass: normalizations above can leave
   // imports that are no longer referenced.
   // Re-run stripUnusedImports to clean them up, then re-sort.

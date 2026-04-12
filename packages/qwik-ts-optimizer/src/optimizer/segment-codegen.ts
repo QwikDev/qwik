@@ -674,9 +674,19 @@ export function generateSegmentCode(
   // position-based offsets into the original body text, and stripping would shift them.
   bodyText = bodyText.replace(/\/\*\s*@qwik-disable-next-line\s+\w+\s*\*\/\s*\n?/g, '');
   // passive:* is consumed by event prop renaming (q-ep:, q-wp:, q-dp: prefixes).
-  // NOTE: preventdefault:* is NOT stripped here -- it must survive into the JSX transform
-  // so it becomes a `"preventdefault:event": true` prop in the _jsxSorted output.
+  // preventdefault:EVENT is stripped when a matching passive:EVENT exists on the same
+  // element (passive listeners cannot call preventDefault, so the directive is moot).
+  // First collect passive event names, then strip both passive:* and matching preventdefault:*
+  const passiveEventNames = new Set<string>();
+  for (const match of bodyText.matchAll(/passive:(\w+)/g)) {
+    passiveEventNames.add(match[1]);
+  }
   bodyText = bodyText.replace(/\s*passive:\w+/g, '');
+  if (passiveEventNames.size > 0) {
+    bodyText = bodyText.replace(/\s*preventdefault:(\w+)/g, (full, eventName) => {
+      return passiveEventNames.has(eventName) ? '' : full;
+    });
+  }
 
   if (captureInfo && captureInfo.captureNames.length > 0 && !captureInfo.skipCaptureInjection) {
     bodyText = injectCapturesUnpacking(bodyText, captureInfo.captureNames);

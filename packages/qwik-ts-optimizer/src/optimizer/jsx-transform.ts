@@ -801,8 +801,14 @@ function processProps(
       continue; // consumed by collectPassiveDirectives, not in output
     }
     if (propName.startsWith('preventdefault:')) {
-      // Rust optimizer emits preventdefault:event as a const prop with value true
-      constEntries.push(`"${propName}": true`);
+      // Rust optimizer emits preventdefault:event as a const prop with value true,
+      // BUT only when there is no matching passive:EVENT on the same element.
+      // When passive:EVENT is present, the preventdefault is dropped because
+      // passive listeners cannot call preventDefault().
+      const eventName = propName.slice('preventdefault:'.length);
+      if (!passiveEvents.has(eventName)) {
+        constEntries.push(`"${propName}": true`);
+      }
       continue;
     }
 

@@ -2087,17 +2087,26 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             // Detect passive events from the display name path in the symbol name.
             // The extraction phase already collected passive directives and encoded them
             // in the context stack (e.g., q_ep_click, q_wp_scroll, q_dp_touchstart).
+            // Detect passive events: the extraction phase encodes the passive
+            // prefix in the naming context stack. The calleeName (e.g., onClick$)
+            // is transformed by the extract phase, and the resulting symbol name
+            // contains q_ep_, q_wp_, or q_dp_ for passive events.
+            // Instead of parsing the event name from the symbol, just check if
+            // the display name (which the extract phase sets) contains the passive prefix
+            // and if so, pass the event name from the calleeName.
             const passiveSet = new Set<string>();
-            const symName = child.symbolName;
-            // Check if symbol name contains a passive event prefix pattern
-            const passiveMatch = symName.match(/q_([ewdp]{2})_(\w+)_/);
-            if (passiveMatch) {
-              const prefix = passiveMatch[1]; // ep, wp, dp
-              if (prefix === 'ep' || prefix === 'wp' || prefix === 'dp') {
-                // Extract the event name from the passive prefix
-                const eventName = passiveMatch[2];
-                passiveSet.add(eventName);
-              }
+            const displayNamePath = child.displayName ?? child.symbolName;
+            const callee = child.calleeName; // e.g., onClick$, window:onScroll$
+            // Get the event name from the callee: strip scope prefix and $ suffix
+            let eventNameForPassive = callee;
+            if (eventNameForPassive.startsWith('document:')) eventNameForPassive = eventNameForPassive.slice(9);
+            else if (eventNameForPassive.startsWith('window:')) eventNameForPassive = eventNameForPassive.slice(7);
+            if (eventNameForPassive.startsWith('on') && eventNameForPassive.endsWith('$')) {
+              eventNameForPassive = eventNameForPassive.slice(2, -1).toLowerCase();
+            }
+            // Check if the display name path contains the passive prefix
+            if (displayNamePath.includes('_q_ep_') || displayNamePath.includes('_q_wp_') || displayNamePath.includes('_q_dp_')) {
+              passiveSet.add(eventNameForPassive);
             }
             propName = transformEventPropName(child.calleeName, passiveSet) ?? child.calleeName;
           }

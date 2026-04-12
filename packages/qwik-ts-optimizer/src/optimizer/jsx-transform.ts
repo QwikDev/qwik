@@ -801,7 +801,9 @@ function processProps(
       continue; // consumed by collectPassiveDirectives, not in output
     }
     if (propName.startsWith('preventdefault:')) {
-      continue; // consumed by runtime, not emitted in output
+      // Rust optimizer emits preventdefault:event as a const prop with value true
+      constEntries.push(`"${propName}": true`);
+      continue;
     }
 
     // Get value expression

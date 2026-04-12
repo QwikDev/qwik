@@ -1621,17 +1621,22 @@ export function rewriteParentModule(
   if (survivingUserImports.length > 0) {
     preamble.push(...survivingUserImports);
   }
+  // Add hoisted signal declarations (_hf0, _hf0_str, etc.) BEFORE QRL declarations.
+  // Rust optimizer places signal hoists between first // separator and QRL declarations.
+  const allHoistedDecls: string[] = [];
+  if (jsxResult && jsxResult.hoistedDeclarations.length > 0) {
+    allHoistedDecls.push(...jsxResult.hoistedDeclarations);
+  }
+  if (inlineHoistedDeclarations.length > 0) {
+    allHoistedDecls.push(...inlineHoistedDeclarations);
+  }
+  if (allHoistedDecls.length > 0) {
+    preamble.push('//');
+    preamble.push(...allHoistedDecls);
+  }
   if (qrlDecls.length > 0) {
     preamble.push('//');
     preamble.push(...qrlDecls);
-  }
-  // Add hoisted signal declarations (_hf0, _hf0_str, etc.)
-  if (jsxResult && jsxResult.hoistedDeclarations.length > 0) {
-    preamble.push(...jsxResult.hoistedDeclarations);
-  }
-  // Add hoisted declarations from inline .s() body JSX transforms
-  if (inlineHoistedDeclarations.length > 0) {
-    preamble.push(...inlineHoistedDeclarations);
   }
   // Add .s() calls for inline strategy (after QRL declarations, before body/exports)
   if (sCalls.length > 0) {

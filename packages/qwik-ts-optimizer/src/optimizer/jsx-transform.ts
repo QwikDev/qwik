@@ -838,15 +838,25 @@ function processProps(
         const formattedName = needsQuoting(renamedProp)
           ? `"${renamedProp}"`
           : renamedProp;
-        // Event handler values go to constEntries by default (arrow fns,
-        // identifiers referencing QRL vars, etc. are const).
-        // Exception: call expressions (e.g. sync$()/_qrlSync()) are var in SWC
-        // because is_const returns false for CallExpression.
-        if (valueNode && valueNode.type === 'CallExpression') {
+        // Event handler value classification:
+        // - Arrow/function expressions are always const
+        // - Identifiers are const (QRL refs, const-bound locals)
+        // - Literals are const
+        // - Everything else (call exprs, ternaries, member exprs) is var
+        const isConstEvent = !valueNode ||
+          valueNode.type === 'ArrowFunctionExpression' ||
+          valueNode.type === 'FunctionExpression' ||
+          valueNode.type === 'Identifier' ||
+          valueNode.type === 'Literal' ||
+          valueNode.type === 'StringLiteral' ||
+          valueNode.type === 'NumericLiteral' ||
+          valueNode.type === 'BooleanLiteral' ||
+          valueNode.type === 'NullLiteral';
+        if (isConstEvent) {
+          constEntries.push(`${formattedName}: ${valueText}`);
+        } else {
           varEntries.push(`${formattedName}: ${valueText}`);
           hasVarEventHandler = true;
-        } else {
-          constEntries.push(`${formattedName}: ${valueText}`);
         }
         continue;
       }

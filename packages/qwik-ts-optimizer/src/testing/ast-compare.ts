@@ -458,6 +458,8 @@ function canonicalizeQrlVarNames(program: any): void {
   renameIdents(program);
 }
 
+
+
 function shouldStripRaw(node: any, ancestors: any[]): boolean {
   if (node?.type === 'Literal' || node?.type === 'JSXText') {
     return true;

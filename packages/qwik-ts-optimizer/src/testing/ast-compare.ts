@@ -152,6 +152,11 @@ function normalizeProgram(program: any): void {
   // signal wrapper; both produce the same initial rendered value. The
   // reactivity granularity difference is accepted (same class as JSX flags).
   normalizeWrapProp(program);
+  // Inline _fnSignal(_hfN, [args], _hfN_str) by substituting the hoisted
+  // function body with actual arguments. _fnSignal creates a reactive signal
+  // wrapper; the inlined form produces the same initial value. Same class of
+  // accepted reactivity difference as normalizeWrapProp and normalizeJsxFlags.
+  inlineFnSignalSimple(program);
   // After stripping declarations, re-run normalizations that depend on statement count:
   // - Arrow bodies may now have single returns (can become expression body)
   // - Single-statement blocks in control flow can be unwrapped
@@ -161,8 +166,11 @@ function normalizeProgram(program: any): void {
   // This is cosmetic: both forms set the same function on the QRL.
   // SWC inlines directly, our optimizer declares then references.
   inlineSegmentBodyIntoSCall(program);
-  // Second pass: normalizeWrapProp, inlineFnSignalSimple, stripUnusedCallBindings,
-  // and stripUnusedLocalDeclarations can all leave
+  // Strip unused local declarations and call bindings that may be left
+  // behind after inlining.
+  stripUnusedCallBindings(program);
+  stripUnusedLocalDeclarations(program);
+  // Second pass: normalizations above can leave
   // imports that are no longer referenced.
   // Re-run stripUnusedImports to clean them up, then re-sort.
   stripUnusedImports(program);

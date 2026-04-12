@@ -1222,13 +1222,26 @@ export function transformJsxElement(
     neededImports.add('_getVarProps');
     neededImports.add('_getConstProps');
 
-    // Build varPropsPart: beforeSpreadEntries come BEFORE _getVarProps, varEntries come AFTER
+    // Build varPropsPart and constPropsPart for _jsxSplit.
+    // When there are additional non-spread varEntries (like bind: props),
+    // _getConstProps merges into varPropsPart alongside _getVarProps.
+    // Otherwise, _getConstProps stays in constPropsPart.
     const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';
     const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
-    const varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart} }`;
-    const constPropsPart = constEntries.length > 0
-      ? `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`
-      : `_getConstProps(${spreadArg})`;
+    let varPropsPart: string;
+    let constPropsPart: string;
+    if (varEntries.length > 0) {
+      // Has additional var entries -> merge _getConstProps into varPropsPart
+      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart} }`;
+      constPropsPart = constEntries.length > 0
+        ? `{ ${constEntries.join(', ')} }`
+        : 'null';
+    } else {
+      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}) }`;
+      constPropsPart = constEntries.length > 0
+        ? `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`
+        : `_getConstProps(${spreadArg})`;
+    }
 
     const callString = `_jsxSplit(${tag}, ${varPropsPart}, ${constPropsPart}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
 

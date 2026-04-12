@@ -1817,9 +1817,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         }
       } else if (node.type === 'ExportDefaultDeclaration') {
         // export default function Foo() {} or export default class Bar {}
-        if (node.declaration?.id?.name) {
-          sameFileExportNames.add(node.declaration.id.name);
-          defaultExportedNames.add(node.declaration.id.name);
+        const decl = node.declaration as any;
+        if (decl?.id?.name) {
+          sameFileExportNames.add(decl.id.name);
+          defaultExportedNames.add(decl.id.name);
         }
       } else if (node.type === 'FunctionDeclaration' && node.id?.name) {
         sameFileExportNames.add(node.id.name);

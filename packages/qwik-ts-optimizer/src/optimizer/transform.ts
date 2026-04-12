@@ -1777,6 +1777,27 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // Updated extractions have parent info from rewriteParentModule
     const updatedExtractions = parentResult.extractions;
 
+    // Sort extractions so children are processed before parents (depth-first, leaves first).
+    // This matches SWC's behavior where child segment JSX keys come before parent segment keys.
+    // The sort is stable: among siblings at the same depth, original order is preserved.
+    const extractionDepth = new Map<string, number>();
+    for (const ext of updatedExtractions) {
+      let depth = 0;
+      let current = ext.parent;
+      while (current) {
+        depth++;
+        const parentExt = updatedExtractions.find((e) => e.symbolName === current);
+        current = parentExt?.parent ?? null;
+      }
+      extractionDepth.set(ext.symbolName, depth);
+    }
+    updatedExtractions.sort((a, b) => {
+      const da = extractionDepth.get(a.symbolName) ?? 0;
+      const db = extractionDepth.get(b.symbolName) ?? 0;
+      // Higher depth (children) comes first; ties preserve original order (stable sort)
+      return db - da;
+    });
+
     // Track running JSX key counter across segments (starts from parent module's final value)
     let segmentKeyCounter = parentResult.jsxKeyCounterValue ?? 0;
 
@@ -1859,6 +1880,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
     // Build moduleImports array for SegmentImportContext
     const moduleImportsForContext: SegmentImportContext['moduleImports'] = [];
+    const addedModuleImports = new Set<string>();
     for (const [, imp] of originalImports) {
       moduleImportsForContext.push({
         localName: imp.localName,
@@ -1866,6 +1888,28 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         source: imp.source,
         importAttributes: importAttributesMap.get(imp.localName),
       });
+      addedModuleImports.add(imp.localName);
+    }
+
+    // Also include optimizer-injected runtime imports (qrl, componentQrl, etc.)
+    // that the parent module uses but weren't in the original source imports.
+    // These are needed so segment post-transform import scanning can find them.
+    const runtimeImports = [
+      'qrl', 'qrlDEV', 'componentQrl', '_noopQrl', '_noopQrlDEV', '_qrlSync',
+      '_captures', '_jsxSorted', '_jsxSplit', '_fnSignal', '_wrapProp',
+      '_restProps', '_getVarProps', '_getConstProps', '_regSymbol', '_useHmr',
+      'serverQrl', 'serverLoaderQrl', 'serverStuffQrl', 'serverActionQrl',
+      'useTaskQrl', 'useStyleQrl', 'useStylesQrl', 'useClientMountQrl',
+      'formActionQrl', 'useServerMountQrl', 'inlinedQrl',
+    ];
+    for (const name of runtimeImports) {
+      if (!addedModuleImports.has(name)) {
+        moduleImportsForContext.push({
+          localName: name,
+          importedName: name,
+          source: '@qwik.dev/core',
+        });
+      }
     }
 
     // Collect TS enum declarations for value inlining in segment bodies

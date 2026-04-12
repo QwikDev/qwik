@@ -9,7 +9,7 @@
 
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
-import { walk } from 'oxc-walker';
+import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { getQrlImportSource, buildSyncTransform, needsPureAnnotation } from './rewrite-calls.js';
 import { applyRawPropsTransform } from './rewrite-parent.js';
@@ -222,13 +222,45 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
   try {
     const wrapped = `(${bodyText})`;
     const parsed = parseSync('segment.tsx', wrapped);
+
+    // Find the function node (ArrowFunctionExpression or FunctionExpression)
+    // wrapped in an ExpressionStatement inside the program
+    let funcNode: any = null;
     walk(parsed.program, {
       enter(node: any) {
-        if (node.type === 'Identifier' && node.name) {
-          ids.add(node.name);
+        if (!funcNode && (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')) {
+          funcNode = node;
         }
+      }
+    });
+
+    if (funcNode) {
+      // Use scope-aware undeclared identifier detection.
+      // This correctly handles block-scoped shadowing (catch, switch, labeled, do-while)
+      // so locally-declared variables are NOT included.
+      const undeclared = getUndeclaredIdentifiersInFunction(funcNode);
+      for (const name of undeclared) {
+        ids.add(name);
+      }
+    } else {
+      // No function node found -- fall back to collecting all identifiers
+      walk(parsed.program, {
+        enter(node: any) {
+          if (node.type === 'Identifier' && node.name) {
+            ids.add(node.name);
+          }
+        }
+      });
+    }
+
+    // Also collect JSXIdentifier names (components) which may not be in undeclared list
+    walk(parsed.program, {
+      enter(node: any) {
         if (node.type === 'JSXIdentifier' && node.name) {
-          ids.add(node.name);
+          // Only add uppercase names (component references, not HTML tags)
+          if (node.name[0] >= 'A' && node.name[0] <= 'Z') {
+            ids.add(node.name);
+          }
         }
       }
     });

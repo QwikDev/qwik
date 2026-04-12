@@ -1849,13 +1849,22 @@ function stripUnusedModuleLevelDeclarations(program: any): void {
   let changed = true;
   while (changed) {
     changed = false;
-    // Collect all referenced names from non-plain-VariableDeclaration statements
+    // Collect all referenced names from non-declaration contexts.
+    // For declarations, only collect from init expressions (not binding patterns).
+    // For functions/classes, only collect from body (not the declared name).
     const referencedNames = new Set<string>();
     for (const stmt of program.body) {
       if (stmt?.type === 'VariableDeclaration') {
         for (const decl of stmt.declarations || []) {
           if (decl.init) collectAllIdents(decl.init, referencedNames);
         }
+      } else if (stmt?.type === 'FunctionDeclaration') {
+        // Collect from params and body, but not the function name
+        for (const p of stmt.params || []) collectAllIdents(p, referencedNames);
+        if (stmt.body) collectAllIdents(stmt.body, referencedNames);
+      } else if (stmt?.type === 'ClassDeclaration') {
+        if (stmt.body) collectAllIdents(stmt.body, referencedNames);
+        if (stmt.superClass) collectAllIdents(stmt.superClass, referencedNames);
       } else {
         collectAllIdents(stmt, referencedNames);
       }
@@ -1863,16 +1872,31 @@ function stripUnusedModuleLevelDeclarations(program: any): void {
 
     for (let i = program.body.length - 1; i >= 0; i--) {
       const stmt = program.body[i];
-      // Only strip plain VariableDeclaration (not export, not import)
-      if (stmt?.type !== 'VariableDeclaration') continue;
-      const allUnused = (stmt.declarations || []).every((decl: any) => {
-        const names = new Map<string, number>();
-        collectDeclaredNames(decl.id, i, names);
-        return Array.from(names.keys()).every(n => !referencedNames.has(n));
-      });
-      if (allUnused) {
-        program.body.splice(i, 1);
-        changed = true;
+      // Strip plain VariableDeclaration (not export, not import)
+      if (stmt?.type === 'VariableDeclaration') {
+        const allUnused = (stmt.declarations || []).every((decl: any) => {
+          const names = new Map<string, number>();
+          collectDeclaredNames(decl.id, i, names);
+          return Array.from(names.keys()).every(n => !referencedNames.has(n));
+        });
+        if (allUnused) {
+          program.body.splice(i, 1);
+          changed = true;
+        }
+      }
+      // Strip plain FunctionDeclaration whose name is unused
+      if (stmt?.type === 'FunctionDeclaration' && stmt.id?.name) {
+        if (!referencedNames.has(stmt.id.name)) {
+          program.body.splice(i, 1);
+          changed = true;
+        }
+      }
+      // Strip plain ClassDeclaration whose name is unused
+      if (stmt?.type === 'ClassDeclaration' && stmt.id?.name) {
+        if (!referencedNames.has(stmt.id.name)) {
+          program.body.splice(i, 1);
+          changed = true;
+        }
       }
     }
   }

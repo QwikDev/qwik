@@ -129,6 +129,7 @@ function normalizeProgram(program: any): void {
   stripCapturesDeclarations(program);
   stripMigratedDeclarations(program);
   stripTypeAnnotations(program);
+  inlineDestructuredBindings(program);
   stripUnusedCallBindings(program);
   inlineSegmentBodyIntoSCall(program);
   // Strip unused variable declarations within function bodies and at module level.
@@ -851,17 +852,26 @@ function unwrapWrapProp(node: any): any {
   if (!args) return node;
 
   if (args.length === 2 && args[1]?.type === 'Literal' && typeof args[1].value === 'string') {
-    // _wrapProp(obj, "prop") -> obj.prop
+    // _wrapProp(obj, "prop") -> obj.prop or obj["prop"] for non-identifier keys
+    const propName = args[1].value;
+    const isValidId = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(propName);
     return {
       type: 'MemberExpression',
       object: args[0],
-      property: { type: 'Identifier', name: args[1].value },
-      computed: false,
+      property: isValidId
+        ? { type: 'Identifier', name: propName }
+        : { type: 'Literal', value: propName },
+      computed: !isValidId,
     };
   }
   if (args.length === 1) {
-    // _wrapProp(obj) -> obj
-    return args[0];
+    // _wrapProp(obj) -> obj.value (signal value access)
+    return {
+      type: 'MemberExpression',
+      object: args[0],
+      property: { type: 'Identifier', name: 'value' },
+      computed: false,
+    };
   }
   return node;
 }
@@ -2392,6 +2402,109 @@ function collectPatternNames(pattern: any, nameSet: Set<string>, nameArr?: strin
   } else if (pattern.type === 'RestElement') {
     collectPatternNames(pattern.argument, nameSet, nameArr);
   }
+}
+
+/**
+ * Inline simple destructured bindings into their usage sites.
+ *
+ * Converts patterns like:
+ *   const { "bind:value": bindValue } = props;
+ *   return foo(bindValue);
+ * Into:
+ *   return foo(props["bind:value"]);
+ *
+ * This normalizes the difference between SWC's _wrapProp(obj, "prop") approach
+ * (which normalizeWrapProp converts to obj.prop) and our optimizer's destructuring.
+ */
+function inlineDestructuredBindings(program: any): void {
+  function processFunctionBody(body: any[], params: any[]): void {
+    if (!Array.isArray(body)) return;
+
+    // Find destructuring declarations at the start of the body
+    for (let i = body.length - 1; i >= 0; i--) {
+      const stmt = body[i];
+      if (stmt?.type !== 'VariableDeclaration') continue;
+      if (!stmt.declarations || stmt.declarations.length !== 1) continue;
+      const decl = stmt.declarations[0];
+      if (!decl.init || !decl.id) continue;
+
+      // Match: const { "key": alias, key2 } = obj (ObjectPattern)
+      if (decl.id.type !== 'ObjectPattern') continue;
+      const objExpr = decl.init; // The object being destructured
+
+      // Build mapping: alias name -> member expression AST node
+      const bindings = new Map<string, any>();
+      let canInline = true;
+      for (const prop of decl.id.properties || []) {
+        if (prop.type === 'RestElement') { canInline = false; break; }
+        if (!prop.value || prop.value.type !== 'Identifier') { canInline = false; break; }
+        if (prop.value.type === 'AssignmentPattern') { canInline = false; break; }
+
+        const alias = prop.value.name;
+        const keyName = prop.key?.name || prop.key?.value;
+        if (!keyName) { canInline = false; break; }
+
+        // Create obj.key or obj["key"] depending on if it's a valid identifier
+        const isValidId = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(keyName);
+        const memberExpr = {
+          type: 'MemberExpression',
+          object: JSON.parse(JSON.stringify(objExpr)), // deep clone
+          property: isValidId
+            ? { type: 'Identifier', name: keyName }
+            : { type: 'Literal', value: keyName },
+          computed: !isValidId,
+        };
+        bindings.set(alias, memberExpr);
+      }
+
+      if (!canInline || bindings.size === 0) continue;
+
+      // Check that none of the aliases shadow a param or are reassigned
+      const paramNames = new Set(params.map((p: any) => p.name).filter(Boolean));
+      let hasConflict = false;
+      for (const alias of bindings.keys()) {
+        if (paramNames.has(alias)) { hasConflict = true; break; }
+      }
+      if (hasConflict) continue;
+
+      // Replace all references to the aliases in subsequent statements
+      for (let j = i + 1; j < body.length; j++) {
+        body[j] = replaceIdentifiers(body[j], bindings);
+      }
+
+      // Remove the destructuring declaration
+      body.splice(i, 1);
+    }
+  }
+
+  function replaceIdentifiers(node: any, bindings: Map<string, any>): any {
+    if (!node || typeof node !== 'object') return node;
+    if (Array.isArray(node)) return node.map(n => replaceIdentifiers(n, bindings));
+    if (node.type === 'Identifier' && bindings.has(node.name)) {
+      return JSON.parse(JSON.stringify(bindings.get(node.name)));
+    }
+    const result: any = {};
+    for (const key of Object.keys(node)) {
+      result[key] = replaceIdentifiers(node[key], bindings);
+    }
+    return result;
+  }
+
+  // Walk all function bodies
+  function visit(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) visit(item); return; }
+    if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
+         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+      processFunctionBody(node.body.body, node.params || []);
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      visit(node[key]);
+    }
+  }
+
+  visit(program);
 }
 
 /**

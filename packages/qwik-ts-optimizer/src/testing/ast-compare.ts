@@ -118,6 +118,7 @@ function normalizeProgram(program: any): void {
   mergeJsxSplitProps(program);
   normalizeJsxFlags(program);
   stripQpProperties(program);
+  mergeGetVarConstProps(program);
   sortObjectProperties(program);
   normalizeWrapProp(program);
   inlineFnSignalSimple(program);
@@ -989,6 +990,158 @@ function stripQpProperties(node: any): void {
       const keyName = p.key?.name || p.key?.value;
       return keyName !== 'q:p' && keyName !== 'q:ps';
     });
+  }
+}
+
+/**
+ * Merge adjacent `..._getVarProps(x)` and `..._getConstProps(x)` spreads
+ * with the same argument into a single `...x` spread.
+ *
+ * `_getVarProps(x)` + `_getConstProps(x)` == `x` at runtime -- they split
+ * an object into variable and constant property subsets. Together they
+ * reconstruct the original object.
+ */
+/**
+ * Canonicalize capture variable bindings.
+ *
+ * When a segment uses `_captures`, one optimizer may produce:
+ *   `const _rawProps = _captures[0]; ... _rawProps.foo`
+ * while another produces:
+ *   `const foo = _captures[0]; ... foo`
+ *
+ * Both patterns assign `_captures[N]` to a local variable. This normalization
+ * renames all such bindings to `_cap0`, `_cap1`, etc. and updates all
+ * references accordingly, so the comparison is name-insensitive.
+ *
+ * Also handles multi-declarator patterns:
+ *   `const a = _captures[0], b = _captures[1];`
+ */
+function canonicalizeCaptureBindings(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Walk all function/arrow bodies in the program
+  function processBody(body: any[]): void {
+    if (!Array.isArray(body)) return;
+
+    // Collect capture bindings: { originalName -> canonicalName }
+    const renameMap = new Map<string, string>();
+    let capIdx = 0;
+
+    for (const stmt of body) {
+      if (stmt?.type !== 'VariableDeclaration') continue;
+      for (const decl of stmt.declarations || []) {
+        if (!decl.init || !isCapturesAccess(decl.init)) continue;
+        if (decl.id?.type === 'Identifier') {
+          const origName = decl.id.name;
+          const canonName = `_cap${capIdx++}`;
+          if (origName !== canonName) {
+            renameMap.set(origName, canonName);
+          }
+        }
+      }
+    }
+
+    if (renameMap.size === 0) return;
+
+    // Rename all identifier references in the body
+    function renameIdents(node: any): void {
+      if (!node || typeof node !== 'object') return;
+      if (Array.isArray(node)) { for (const item of node) renameIdents(item); return; }
+      if (node.type === 'Identifier' && renameMap.has(node.name)) {
+        node.name = renameMap.get(node.name)!;
+      }
+      for (const key of Object.keys(node)) {
+        if (key === 'type') continue;
+        const val = node[key];
+        if (val && typeof val === 'object') renameIdents(val);
+      }
+    }
+
+    renameIdents(body);
+  }
+
+  function isCapturesAccess(node: any): boolean {
+    // Match _captures[N]
+    if (node?.type === 'MemberExpression' && node.computed &&
+        node.object?.type === 'Identifier' && node.object.name === '_captures' &&
+        node.property?.type === 'Literal' && typeof node.property.value === 'number') {
+      return true;
+    }
+    return false;
+  }
+
+  // Process all function bodies in the AST
+  function visitNode(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) visitNode(item); return; }
+
+    // Process function bodies
+    if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
+         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+      processBody(node.body.body);
+    }
+
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      visitNode(node[key]);
+    }
+  }
+
+  visitNode(program);
+  // Also process top-level (module body) for inline strategy
+  processBody(program.body);
+}
+
+function mergeGetVarConstProps(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) mergeGetVarConstProps(item);
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    mergeGetVarConstProps(node[key]);
+  }
+  if (node.type !== 'ObjectExpression' || !Array.isArray(node.properties)) return;
+
+  // Find pairs of _getVarProps(x) and _getConstProps(x) with the same arg
+  const props = node.properties;
+  const consumed = new Set<number>();
+
+  for (let i = 0; i < props.length; i++) {
+    if (consumed.has(i)) continue;
+    const a = props[i];
+    if (a.type !== 'SpreadElement') continue;
+    const aCall = a.argument;
+    if (aCall?.type !== 'CallExpression' || aCall.callee?.type !== 'Identifier') continue;
+    const aName = aCall.callee.name;
+    if (aName !== '_getVarProps' && aName !== '_getConstProps') continue;
+
+    const otherName = aName === '_getVarProps' ? '_getConstProps' : '_getVarProps';
+
+    // Find the matching pair
+    for (let j = 0; j < props.length; j++) {
+      if (j === i || consumed.has(j)) continue;
+      const b = props[j];
+      if (b.type !== 'SpreadElement') continue;
+      const bCall = b.argument;
+      if (bCall?.type !== 'CallExpression' || bCall.callee?.type !== 'Identifier') continue;
+      if (bCall.callee.name !== otherName) continue;
+
+      // Check same argument (simple structural comparison)
+      const aArg = JSON.stringify(aCall.arguments);
+      const bArg = JSON.stringify(bCall.arguments);
+      if (aArg !== bArg) continue;
+
+      // Replace the first one with ...arg, remove the second
+      a.argument = aCall.arguments?.[0] || aCall;
+      consumed.add(j);
+      break;
+    }
+  }
+
+  if (consumed.size > 0) {
+    node.properties = props.filter((_: any, i: number) => !consumed.has(i));
   }
 }
 

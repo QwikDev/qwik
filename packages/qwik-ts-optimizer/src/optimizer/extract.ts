@@ -425,7 +425,13 @@ export function extractSegments(
             ? arg1.value
             : null;
 
-        if (arg0 && nameValue) {
+        // Skip extraction when the body is null — inlinedQrl(null, ...) is a no-op passthrough
+        const isNullBody = arg0 && (
+          arg0.type === 'NullLiteral' ||
+          (arg0.type === 'Literal' && arg0.value === null)
+        );
+
+        if (arg0 && nameValue && !isNullBody) {
           const bodyText = source.slice(arg0.start, arg0.end);
 
           // Parse symbol name: split into displayName part and hash part

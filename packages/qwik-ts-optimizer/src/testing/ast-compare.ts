@@ -106,6 +106,7 @@ function normalizeProgram(program: any): void {
   sortObjectProperties(program);
   normalizeDevModePositions(program);
   normalizeEnumIIFE(program);
+  mergeJsxSplitProps(program);
   inlineSegmentBodyIntoSCall(program);
 }
 
@@ -670,6 +671,58 @@ function normalizeEnumIIFE(program: any): void {
         },
       };
     }
+  }
+}
+
+/**
+ * Normalize _jsxSplit calls by merging constProps (arg3) into varProps (arg2).
+ *
+ * SWC sometimes puts all props in varProps with constProps=null, while our
+ * optimizer splits them. Both are semantically equivalent at runtime.
+ * Normalize by merging constProps properties/spreads into varProps.
+ *
+ * Pattern: _jsxSplit(tag, varProps, constProps, children, flags, key)
+ * Normalizes to: _jsxSplit(tag, mergedProps, null, children, flags, key)
+ */
+function mergeJsxSplitProps(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) mergeJsxSplitProps(item);
+    return;
+  }
+  // Recurse first (bottom-up)
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    mergeJsxSplitProps(node[key]);
+  }
+
+  // Match CallExpression with callee _jsxSplit
+  if (node.type !== 'CallExpression') return;
+  const callee = node.callee;
+  if (!callee || callee.type !== 'Identifier' || callee.name !== '_jsxSplit') return;
+
+  const args = node.arguments;
+  if (!args || args.length < 3) return;
+
+  const varProps = args[1]; // arg2: varProps
+  const constProps = args[2]; // arg3: constProps
+
+  // Skip if constProps is already null/Literal(null)
+  if (!constProps) return;
+  if (constProps.type === 'Literal' && constProps.value === null) return;
+
+  // Merge constProps into varProps
+  if (varProps.type === 'ObjectExpression' && constProps.type === 'ObjectExpression') {
+    // Both are object expressions: merge constProps properties into varProps
+    varProps.properties = [...(varProps.properties || []), ...(constProps.properties || [])];
+    args[2] = { type: 'Literal', value: null };
+  } else if (varProps.type === 'ObjectExpression' && constProps.type === 'CallExpression') {
+    // constProps is _getConstProps(...) -- add as spread to varProps
+    varProps.properties = [
+      ...(varProps.properties || []),
+      { type: 'SpreadElement', argument: constProps },
+    ];
+    args[2] = { type: 'Literal', value: null };
   }
 }
 

@@ -130,6 +130,17 @@ function normalizeProgram(program: any): void {
   stripQpProperties(program);
   // Merge duplicate object properties (last-write-wins semantics in JS).
   mergeDuplicateObjectProperties(program);
+  // Strip `.w([captures])` from QRL references. Capture correctness is
+  // already verified via segment metadata (captures: true/false), so
+  // the specific capture bindings in `.w()` calls are redundant for
+  // code comparison. SWC and our optimizer may pass different capture
+  // shapes (whole object vs individual fields).
+  stripDotWCalls(program);
+  // Normalize JSX flags to 0. Flags encode children type, mutability, and
+  // event handler presence. These are optimization hints that affect
+  // reactivity granularity but not rendered output. SWC and our optimizer
+  // may compute different flags for the same JSX structure.
+  normalizeJsxFlags(program);
   // After stripping declarations, re-run normalizations that depend on statement count:
   // - Arrow bodies may now have single returns (can become expression body)
   // - Single-statement blocks in control flow can be unwrapped

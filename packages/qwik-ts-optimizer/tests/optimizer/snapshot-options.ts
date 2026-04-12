@@ -616,7 +616,7 @@ export function getSnapshotTransformOptions(
   const srcDir = overrides.srcDir ?? DEFAULT_OPTIONS.srcDir;
 
   return {
-    input: [{ path: filename, code: inputCode }],
+    input: [{ path: filename, code: inputCode, devPath: overrides.devPath }],
     srcDir,
     transpileTs: overrides.transpileTs ?? DEFAULT_OPTIONS.transpileTs,
     transpileJsx: overrides.transpileJsx ?? DEFAULT_OPTIONS.transpileJsx,

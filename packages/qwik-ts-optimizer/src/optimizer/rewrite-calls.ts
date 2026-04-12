@@ -92,6 +92,10 @@ function minifyFunctionText(text: string): string {
   // Trim
   result = result.trim();
 
+  // Strip parentheses around single arrow function parameter
+  // (event)=>{...} -> event=>{...}
+  result = result.replace(/^\((\w+)\)=>/, '$1=>');
+
   return result;
 }
 

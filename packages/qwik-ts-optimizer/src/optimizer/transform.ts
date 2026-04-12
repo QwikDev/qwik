@@ -1084,6 +1084,26 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       extraction.paramNames = result.paramNames;
       extraction.captures = result.captures;
 
+      // Filter out function/class declarations from captures.
+      // The SWC optimizer does not capture fn/class decls -- it emits C02 diagnostics instead.
+      // These identifiers are not serializable and must not appear in captureNames.
+      if (extraction.captureNames.length > 0) {
+        const classifyScope = enclosingExt
+          ? (() => {
+              try {
+                const wrapped = `(${enclosingExt.bodyText})`;
+                const parsed = parseSync('segment.tsx', wrapped);
+                return parsed.program;
+              } catch { return program; }
+            })()
+          : program;
+        extraction.captureNames = extraction.captureNames.filter((name) => {
+          const declType = classifyDeclarationType(classifyScope, name);
+          return declType === 'var';
+        });
+        extraction.captures = extraction.captureNames.length > 0;
+      }
+
       // Reconcile captures with paramNames: when captures are injected as
       // function parameters (Rust's _auto_ pattern), the captures flag is false
       // because scoped_idents is empty -- the captured variables become formal params.

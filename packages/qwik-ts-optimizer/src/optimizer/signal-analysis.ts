@@ -917,8 +917,10 @@ export function analyzeSignalExpression(
   if (exprNode.type === 'ObjectExpression') {
     const roots = collectReactiveRoots(exprNode, importedNames, localNames);
     if (roots.length > 0) {
-      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
-      return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr, isObjectExpr: true };
+      // Collect all deps including bare local identifiers (matching SWC behavior)
+      const allDeps = collectAllDeps(exprNode, importedNames);
+      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr, isObjectExpr: true };
     }
     return { type: 'none' };
   }
@@ -927,8 +929,10 @@ export function analyzeSignalExpression(
   if (exprNode.type === 'ArrayExpression') {
     const roots = collectReactiveRoots(exprNode, importedNames, localNames);
     if (roots.length > 0) {
-      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
-      return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+      // Collect all deps including bare local identifiers (matching SWC behavior)
+      const allDeps = collectAllDeps(exprNode, importedNames);
+      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
     }
     return { type: 'none' };
   }

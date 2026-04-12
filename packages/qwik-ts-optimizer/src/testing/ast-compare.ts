@@ -100,6 +100,7 @@ function normalizeProgram(program: any): void {
   sortObjectProperties(program);
   normalizeDevModePositions(program);
   normalizeArrowBodies(program);
+  renumberHoistedFunctions(program);
   inlineSegmentBodyIntoSCall(program);
 }
 
@@ -442,6 +443,100 @@ function normalizeArrowBodies(node: any): void {
     node.body = node.body.body[0].argument;
     node.expression = true;
   }
+}
+
+/**
+ * Renumber _hfN / _hfN_str declarations to be content-stable.
+ *
+ * Both sides may assign different indices to the same hoisted signal function.
+ * By sorting _hf declarations by their stringified init expression and
+ * renumbering 0, 1, 2, ..., both sides will use the same index for
+ * semantically identical functions.
+ *
+ * Also renames all references (_hf0 -> _hf_new_0, etc.) throughout the AST.
+ */
+function renumberHoistedFunctions(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Collect _hfN declarations: { index, initJson, stmtIdx, isStr }
+  const hfDecls: Array<{
+    oldName: string; // e.g., "_hf0" or "_hf0_str"
+    initJson: string;
+    stmtIdx: number;
+    isStr: boolean;
+    oldIndex: number;
+  }> = [];
+
+  for (let i = 0; i < program.body.length; i++) {
+    const stmt = program.body[i];
+    if (stmt?.type !== 'VariableDeclaration') continue;
+    for (const decl of stmt.declarations || []) {
+      if (decl.id?.type !== 'Identifier') continue;
+      const name = decl.id.name;
+      const match = /^_hf(\d+)(_str)?$/.exec(name);
+      if (!match) continue;
+      hfDecls.push({
+        oldName: name,
+        initJson: JSON.stringify(decl.init),
+        stmtIdx: i,
+        isStr: !!match[2],
+        oldIndex: parseInt(match[1], 10),
+      });
+    }
+  }
+
+  if (hfDecls.length === 0) return;
+
+  // Group by oldIndex and sort by the function body (non-_str) content
+  const byOldIndex = new Map<number, typeof hfDecls>();
+  for (const d of hfDecls) {
+    const list = byOldIndex.get(d.oldIndex) ?? [];
+    list.push(d);
+    byOldIndex.set(d.oldIndex, list);
+  }
+
+  // Sort old indices by the function body content (the non-_str entry's initJson)
+  const sortedOldIndices = [...byOldIndex.keys()].sort((a, b) => {
+    const aFn = byOldIndex.get(a)!.find(d => !d.isStr);
+    const bFn = byOldIndex.get(b)!.find(d => !d.isStr);
+    const aKey = aFn?.initJson ?? '';
+    const bKey = bFn?.initJson ?? '';
+    return aKey.localeCompare(bKey);
+  });
+
+  // Build mapping: old index -> new index
+  const indexMap = new Map<number, number>();
+  for (let newIdx = 0; newIdx < sortedOldIndices.length; newIdx++) {
+    indexMap.set(sortedOldIndices[newIdx], newIdx);
+  }
+
+  // Check if mapping is identity (no change needed)
+  let isIdentity = true;
+  for (const [old, nw] of indexMap) {
+    if (old !== nw) { isIdentity = false; break; }
+  }
+  if (isIdentity) return;
+
+  // Rename all _hfN identifiers in the entire AST
+  function renameHf(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) renameHf(item); return; }
+    if (node.type === 'Identifier' && typeof node.name === 'string') {
+      const m = /^_hf(\d+)(_str)?$/.exec(node.name);
+      if (m) {
+        const oldIdx = parseInt(m[1], 10);
+        const newIdx = indexMap.get(oldIdx);
+        if (newIdx !== undefined && newIdx !== oldIdx) {
+          node.name = `_hf${newIdx}${m[2] || ''}`;
+        }
+      }
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      renameHf(node[key]);
+    }
+  }
+  renameHf(program);
 }
 
 /**

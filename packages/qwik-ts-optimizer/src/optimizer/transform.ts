@@ -2107,6 +2107,14 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
               }
             }
             if (hasPropsFields) {
+              // Store the field map so transformSCallBody can replace references
+              const propsFieldCaptures = new Map<string, string>();
+              for (const name of ext.captureNames) {
+                if (fieldMap.has(name)) {
+                  propsFieldCaptures.set(name, fieldMap.get(name)!);
+                }
+              }
+              ext.propsFieldCaptures = propsFieldCaptures;
               ext.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
               ext.captures = ext.captureNames.length > 0;
             }

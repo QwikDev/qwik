@@ -79,6 +79,10 @@ export interface ExtractionResult {
 
   // Component element event handler (uppercase tag like <CustomComponent onClick$={...}>)
   isComponentEvent: boolean;
+
+  // Props field capture consolidation: maps original local name -> prop key name.
+  // Set when captures from a parent component's destructured props are consolidated into _rawProps.
+  propsFieldCaptures?: Map<string, string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -743,11 +747,6 @@ export function extractSegments(
 
           const bodyText = source.slice(expr.start, expr.end);
 
-          // All $-suffixed JSX attribute extractions are treated as eventHandler
-          // by the Rust optimizer, regardless of whether they start with "on".
-          const ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
-          const ctxName = attrName; // e.g., onClick$, custom$, onInput$
-
           // Detect if this event handler is on a component element (uppercase tag)
           const parentOpeningTag = parent?.type === 'JSXOpeningElement'
             ? (parent.name?.type === 'JSXIdentifier' ? parent.name.name : '')
@@ -755,6 +754,11 @@ export function extractSegments(
           const isComponentEvent = parentOpeningTag.length > 0 &&
             parentOpeningTag[0] === parentOpeningTag[0].toUpperCase() &&
             parentOpeningTag[0] !== parentOpeningTag[0].toLowerCase();
+
+          // All $-suffixed JSX attribute extractions are treated as eventHandler
+          // by the Rust optimizer, regardless of whether they start with "on".
+          const ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
+          const ctxName = attrName; // e.g., onClick$, custom$, onInput$
 
           const displayName = ctx.getDisplayName();
           const symbolName = ctx.getSymbolName();

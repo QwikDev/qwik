@@ -687,6 +687,84 @@ export function applyRawPropsTransform(body: string): string {
  *
  * For leaf extractions (no nested children, no own captures), the body is returned as-is.
  */
+
+/**
+ * Replace original field name references with _rawProps.field in a body string.
+ * Used for child segments whose captures were consolidated from individual prop fields
+ * into a single _rawProps capture. AST-based to avoid replacing property keys,
+ * member property names, or declaration names.
+ */
+function replacePropsFieldReferencesInBody(body: string, fieldMap: Map<string, string>): string {
+  const wrapperPrefix = 'const __rpfb__ = ';
+  const wrappedSource = wrapperPrefix + body;
+  let parseResult;
+  try {
+    parseResult = parseSync('__rpfb__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
+  } catch {
+    return body;
+  }
+  if (!parseResult.program || parseResult.errors?.length) return body;
+
+  const offset = wrapperPrefix.length;
+  const replacements: Array<{ start: number; end: number; accessor: string; isShorthand?: boolean }> = [];
+
+  function walkNode(node: any, parentKey?: string, parentNode?: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type === 'Identifier' && fieldMap.has(node.name)) {
+      const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+      const isParam = parentKey === 'params';
+      // Skip the declaration in _captures unpacking: `const color = _captures[0]` -> skip `color`
+      const isDeclId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
+      const isShorthandValue = parentKey === 'value' &&
+        (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
+        parentNode?.shorthand === true;
+
+      const key = fieldMap.get(node.name)!;
+      const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)
+        ? '_rawProps.' + key
+        : `_rawProps["${key}"]`;
+
+      if (isShorthandValue) {
+        replacements.push({ start: node.start - offset, end: node.end - offset, accessor, isShorthand: true });
+      } else if (!isPropertyKey && !isMemberProp && !isParam && !isDeclId) {
+        replacements.push({ start: node.start - offset, end: node.end - offset, accessor });
+      }
+    }
+
+    for (const k of Object.keys(node)) {
+      if (k === 'type' || k === 'start' || k === 'end' || k === 'loc' || k === 'range') continue;
+      const val = node[k];
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            if (item && typeof item.type === 'string') walkNode(item, k, node);
+          }
+        } else if (typeof val.type === 'string') {
+          walkNode(val, k, node);
+        }
+      }
+    }
+  }
+
+  walkNode(parseResult.program);
+
+  if (replacements.length === 0) return body;
+
+  replacements.sort((a, b) => b.start - a.start);
+  let result = body;
+  for (const r of replacements) {
+    if (r.isShorthand) {
+      const key = fieldMap.get(result.slice(r.start, r.end))!;
+      result = result.slice(0, r.start) + key + ': ' + r.accessor + result.slice(r.end);
+    } else {
+      result = result.slice(0, r.start) + r.accessor + result.slice(r.end);
+    }
+  }
+  return result;
+}
+
 function transformSCallBody(
   ext: ExtractionResult,
   allExtractions: ExtractionResult[],
@@ -807,14 +885,14 @@ function transformSCallBody(
     body = injectCapturesUnpacking(body, ext.captureNames);
     additionalImports.set('_captures', '@qwik.dev/core');
   }
-
-  // 3b. _rawProps destructuring optimization for component$ extractions
+  // 3b. _rawProps destructuring optimization for component$ extractions ONLY.
   //     When a component has destructured params like ({field1, field2}),
-  //     rewrite to (_rawProps) and replace field refs with _rawProps.field
-  // Apply _rawProps to any extraction with destructured params (component$, etc.)
-  // The ctxName includes the $ suffix (e.g., 'component$')
+  //     rewrite to (_rawProps) and replace field refs with _rawProps.field.
+  //     Other closures (useTask$, useVisibleTask$, $, etc.) keep their original
+  //     destructuring patterns intact (e.g., ({ track }) stays as-is).
+  const isComponentCtx = ext.ctxName === 'component$' || ext.ctxName === 'componentQrl';
   {
-    const rawPropsResult = applyRawPropsTransform(body);
+    const rawPropsResult = isComponentCtx ? applyRawPropsTransform(body) : body;
     if (rawPropsResult !== body) {
       body = rawPropsResult;
       // If _restProps was introduced, ensure its import is tracked
@@ -824,6 +902,14 @@ function transformSCallBody(
       // Consolidate .w([_rawProps.foo, _rawProps.bar]) -> .w([_rawProps])
       body = consolidateRawPropsInWCalls(body);
     }
+  }
+
+  // 3c. For child segments whose captures were consolidated into _rawProps,
+  //     replace original field name references with _rawProps.field in the body.
+  //     This handles the case where useComputed$(() => color) inside component$({color})
+  //     needs to become useComputed$(() => _rawProps.color).
+  if (ext.propsFieldCaptures && ext.propsFieldCaptures.size > 0) {
+    body = replacePropsFieldReferencesInBody(body, ext.propsFieldCaptures);
   }
 
   // 4. JSX transpilation within the body text
@@ -1142,6 +1228,41 @@ export function rewriteParentModule(
   for (const ext of sorted) {
     const orig = extractions.find((e) => e.symbolName === ext.symbolName);
     if (orig) orig.parent = ext.parent;
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 3a-rawProps: Pre-consolidate _rawProps captures for child segments
+  // -----------------------------------------------------------------------
+  // For child segments inside component$ that capture destructured prop fields,
+  // consolidate them into a single _rawProps capture. This must happen BEFORE
+  // body generation (transformSCallBody) so field references can be replaced.
+  if (inlineOptions?.inline) {
+    for (const ext of extractions) {
+      if (ext.parent !== null && ext.captureNames.length > 0) {
+        const parentExt = extractions.find(e => e.symbolName === ext.parent);
+        if (parentExt) {
+          const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
+          if (fieldMap.size > 0) {
+            const nonPropsCaptures: string[] = [];
+            let hasPropsFields = false;
+            const propsFieldCaptures = new Map<string, string>();
+            for (const name of ext.captureNames) {
+              if (fieldMap.has(name)) {
+                hasPropsFields = true;
+                propsFieldCaptures.set(name, fieldMap.get(name)!);
+              } else {
+                nonPropsCaptures.push(name);
+              }
+            }
+            if (hasPropsFields) {
+              ext.propsFieldCaptures = propsFieldCaptures;
+              ext.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
+              ext.captures = ext.captureNames.length > 0;
+            }
+          }
+        }
+      }
+    }
   }
 
   // Top-level extractions: those with no parent

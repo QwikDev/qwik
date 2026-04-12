@@ -831,10 +831,13 @@ export function generateSegmentCode(
     }
   }
 
-  // Apply _rawProps destructuring optimization for component$ extractions.
+  // Apply _rawProps destructuring optimization for component$ extractions ONLY.
   // Must happen AFTER nested call site rewriting (which uses original source positions)
   // but BEFORE JSX transform (which needs to see _rawProps references).
-  const rawPropsResult = applyRawPropsTransform(bodyText);
+  // Only component$ callbacks have their first param (props) transformed to _rawProps.
+  // Other closures (useTask$, useVisibleTask$, $, etc.) keep their original destructuring.
+  const isComponentSegment = extraction.ctxName === 'component$' || extraction.ctxName === 'componentQrl';
+  const rawPropsResult = isComponentSegment ? applyRawPropsTransform(bodyText) : bodyText;
   if (rawPropsResult !== bodyText) {
     bodyText = rawPropsResult;
     // Consolidate .w([_rawProps.foo, _rawProps.bar]) -> .w([_rawProps])

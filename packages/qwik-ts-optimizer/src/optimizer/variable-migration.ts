@@ -78,8 +78,8 @@ function isInitializerSafe(node: any): boolean {
       return true;
 
     case 'TemplateLiteral':
-      // Safe only if no expressions (pure template with only quasis)
-      return (node.expressions?.length ?? 0) === 0;
+      // Safe if all expressions are safe (identifier refs, literals, etc.)
+      return (node.expressions ?? []).every((expr: any) => isInitializerSafe(expr));
 
     case 'ObjectExpression':
       // Safe if ALL property values are safe
@@ -106,9 +106,26 @@ function isInitializerSafe(node: any): boolean {
       // `-1`, `!false`, `+0` etc. are safe if argument is safe
       return isInitializerSafe(node.argument);
 
+    case 'BinaryExpression':
+    case 'LogicalExpression':
+      // `a + b`, `a && b` etc. are safe if both sides are safe
+      return isInitializerSafe(node.left) && isInitializerSafe(node.right);
+
+    case 'ConditionalExpression':
+      // `a ? b : c` is safe if all parts are safe
+      return isInitializerSafe(node.test) && isInitializerSafe(node.consequent) && isInitializerSafe(node.alternate);
+
+    case 'MemberExpression':
+      // Property access on safe objects (e.g., `obj.field`, `import.meta.env.X`)
+      // Could trigger getters, but matches SWC migration behavior
+      return !node.computed && isInitializerSafe(node.object);
+
+    case 'MetaProperty':
+      // `import.meta` is safe
+      return true;
+
     default:
-      // CallExpression, NewExpression, MemberExpression, Identifier,
-      // BinaryExpression, etc. — conservatively treat as side-effecting
+      // CallExpression, NewExpression, etc. — conservatively treat as side-effecting
       return false;
   }
 }

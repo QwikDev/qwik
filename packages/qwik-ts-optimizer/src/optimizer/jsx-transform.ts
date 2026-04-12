@@ -1106,12 +1106,20 @@ function processProps(
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`
           : propName;
-        // Store field _wrapProp (2-arg form like _wrapProp(obj, "field")):
-        //   - HTML elements: goes to varEntries (reactive store access)
-        //   - Component elements: goes to constEntries (Rust optimizer behavior)
-        // Signal _wrapProp (1-arg form like _wrapProp(signal)) always goes to constEntries
+        // _wrapProp placement:
+        // - Component elements: always constEntries (regardless of object binding)
+        // - HTML elements with const-bound object: constEntries
+        // - HTML elements with non-const object (params, loop vars): varEntries
+        // - Signal _wrapProp (1-arg, no isStoreField): always constEntries
         if (signalResult.isStoreField && tagIsHtml) {
-          varEntries.push(`${formattedName}: ${signalResult.code}`);
+          // 2-arg _wrapProp on HTML: check if the object is const-bound
+          const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1];
+          const isConst = objName ? (importedNames.has(objName) || (constIdents?.has(objName) ?? false)) : false;
+          if (isConst) {
+            constEntries.push(`${formattedName}: ${signalResult.code}`);
+          } else {
+            varEntries.push(`${formattedName}: ${signalResult.code}`);
+          }
         } else {
           constEntries.push(`${formattedName}: ${signalResult.code}`);
         }

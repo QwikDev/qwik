@@ -826,6 +826,7 @@ export function rewriteParentModule(
   transpileTs?: boolean,
   minify?: string,
   outputExtension?: string,
+  _rootUsage?: Set<string>,
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const { program } = parseSync(relPath, source, { experimentalRawTransfer: true } as any);

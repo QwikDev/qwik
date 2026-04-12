@@ -1301,14 +1301,19 @@ export function transformJsxElement(
       }
     } else if (inLoop && !qpOverrides) {
       // No override system active (parent rewriting context, not segment body).
-      // Fall back to iterVars-based q:p for all elements in loop.
-      const qpResult = buildQpProp(loopCtx!.iterVars);
-      if (qpResult) {
-        const formattedQpName = needsQuoting(qpResult.propName)
-          ? `"${qpResult.propName}"`
-          : qpResult.propName;
-        // q:ps/q:p goes into varProps (second arg of _jsxSorted)
-        varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
+      // Fall back to iterVars-based q:p for elements in loop WITH event handler props.
+      // SWC only adds q:p when there are q-e:*/host:* event handlers that need captures.
+      const hasEventHandlers = varEntries.some(e => e.startsWith('"q-e:') || e.startsWith('"q-d:') || e.startsWith('"q-w:') || e.startsWith('"q-ep:') || e.startsWith('"q-dp:') || e.startsWith('"q-wp:') || e.startsWith('"host:'))
+        || constEntries.some(e => e.startsWith('"q-e:') || e.startsWith('"q-d:') || e.startsWith('"q-w:') || e.startsWith('"q-ep:') || e.startsWith('"q-dp:') || e.startsWith('"q-wp:') || e.startsWith('"host:'));
+      if (hasEventHandlers) {
+        const qpResult = buildQpProp(loopCtx!.iterVars);
+        if (qpResult) {
+          const formattedQpName = needsQuoting(qpResult.propName)
+            ? `"${qpResult.propName}"`
+            : qpResult.propName;
+          // q:ps/q:p goes into varProps (second arg of _jsxSorted)
+          varEntries.push(`${formattedQpName}: ${qpResult.propValue}`);
+        }
       }
     }
     // When qpOverrides is present but no override for this element: element has no
@@ -1336,7 +1341,7 @@ export function transformJsxElement(
   // Component elements in loops don't get the loop flag -- they use varEntries placement instead.
   const hasQpProp = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'))
     || constEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:ps"'));
-  const effectiveLoopCtx = tagIsHtml && (qpOverrides ? hasQpProp : !!loopCtx);
+  const effectiveLoopCtx = tagIsHtml && (qpOverrides ? hasQpProp : (!!loopCtx && hasQpProp));
   // Use actual varEntries state (may have been modified by q:ps injection after processProps)
   const effectiveHasVarProps = varEntries.length > 0 || beforeSpreadEntries.length > 0;
   // For non-loop capture context (q:ps without real loop), compute base flags as non-loop

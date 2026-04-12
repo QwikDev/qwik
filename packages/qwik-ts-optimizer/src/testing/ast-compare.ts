@@ -75,6 +75,8 @@ function normalizeProgram(program: any): void {
   sortObjectProperties(program);
   normalizeDevModePositions(program);
   inlineSegmentBodyIntoSCall(program);
+  normalizeAutoExports(program);
+  stripUnusedImports(program);
 }
 
 /**
@@ -610,6 +612,96 @@ function inlineSegmentBodyIntoSCall(program: any): void {
   // Remove inlined const declarations
   if (toRemoveIndices.size > 0) {
     program.body = program.body.filter((_: any, i: number) => !toRemoveIndices.has(i));
+  }
+}
+
+/**
+ * Normalize _auto_ exports and imports.
+ *
+ * The optimizer may emit `export { X as _auto_X }` in the parent module
+ * to make a local binding available to segments. Segments may then import
+ * `import { _auto_X as X } from "./test"`.
+ *
+ * Both forms are semantically equivalent to just `export { X }` and
+ * `import { X }`. Normalize by:
+ * 1. Stripping `export { X as _auto_X }` named export specifiers
+ * 2. Rewriting `import { _auto_X as X }` to `import { X }`
+ */
+function normalizeAutoExports(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Strip _auto_ export specifiers
+  for (let i = program.body.length - 1; i >= 0; i--) {
+    const stmt = program.body[i];
+    if (stmt?.type === 'ExportNamedDeclaration' && !stmt.declaration && stmt.specifiers) {
+      // Remove specifiers where exported name starts with _auto_
+      stmt.specifiers = stmt.specifiers.filter((spec: any) => {
+        const exported = spec.exported?.name || '';
+        return !exported.startsWith('_auto_');
+      });
+      // If no specifiers left, remove the whole export statement
+      if (stmt.specifiers.length === 0) {
+        program.body.splice(i, 1);
+      }
+    }
+  }
+
+  // Normalize _auto_ import specifiers: import { _auto_X as X } -> import { X }
+  for (const stmt of program.body) {
+    if (stmt?.type !== 'ImportDeclaration' || !stmt.specifiers) continue;
+    for (const spec of stmt.specifiers) {
+      if (spec.type !== 'ImportSpecifier') continue;
+      const imported = spec.imported?.name || '';
+      if (imported.startsWith('_auto_')) {
+        // Rewrite to import the local name directly
+        spec.imported = { ...spec.local };
+      }
+    }
+  }
+}
+
+/**
+ * Strip import declarations whose local bindings are never referenced
+ * in the rest of the program. This normalizes cases where one side
+ * leaves behind unused original imports (e.g., `import { component$ }`)
+ * after rewriting to the Qrl form.
+ */
+function stripUnusedImports(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Collect all identifier names referenced in non-import statements
+  const usedNames = new Set<string>();
+  function collectIdents(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { node.forEach(collectIdents); return; }
+    if (node.type === 'Identifier' && node.name) {
+      usedNames.add(node.name);
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'start' || key === 'end' || key === 'loc' || key === 'range' || key === 'type') continue;
+      collectIdents(node[key]);
+    }
+  }
+
+  for (const stmt of program.body) {
+    if (stmt?.type === 'ImportDeclaration') continue;
+    collectIdents(stmt);
+  }
+
+  // Remove import specifiers whose local name is not used
+  for (let i = program.body.length - 1; i >= 0; i--) {
+    const stmt = program.body[i];
+    if (stmt?.type !== 'ImportDeclaration') continue;
+    if (!stmt.specifiers || stmt.specifiers.length === 0) continue; // side-effect import
+
+    stmt.specifiers = stmt.specifiers.filter((spec: any) => {
+      const localName = spec.local?.name;
+      return localName && usedNames.has(localName);
+    });
+
+    if (stmt.specifiers.length === 0) {
+      program.body.splice(i, 1);
+    }
   }
 }
 

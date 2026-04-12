@@ -1433,19 +1433,23 @@ export function transformJsxElement(
     neededImports.add('_getConstProps');
 
     // Build varPropsPart and constPropsPart for _jsxSplit.
-    // When there are additional non-spread varEntries (like bind: props),
-    // _getConstProps merges into varPropsPart alongside _getVarProps.
-    // Otherwise, _getConstProps stays in constPropsPart.
+    // SWC merges _getConstProps into varPropsPart in two cases:
+    // 1. When there are both var entries AND const entries after the spread
+    // 2. When there are non-bind var entries (like _fnSignal) even without const entries
+    // Bind-only var entries without const entries don't trigger the merge.
     const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';
     const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
+    const hasNonBindVarEntries = varEntries.some(e => !e.startsWith('"bind:'));
+    const shouldMergeConst = (varEntries.length > 0 && constEntries.length > 0) || hasNonBindVarEntries;
     let varPropsPart: string;
     let constPropsPart: string;
-    if (varEntries.length > 0 && constEntries.length > 0) {
-      // Has both additional var entries AND const entries: merge _getConstProps
-      // into varPropsPart so constPropsPart only has explicit const entries.
-      // This matches SWC behavior for spread + bind + event handler combos.
+    if (shouldMergeConst) {
+      // Merge _getConstProps into varPropsPart.
+      // Any explicit const entries go separately in constPropsPart.
       varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart} }`;
-      constPropsPart = `{ ${constEntries.join(', ')} }`;
+      constPropsPart = constEntries.length > 0
+        ? `{ ${constEntries.join(', ')} }`
+        : 'null';
     } else {
       varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart} }`;
       constPropsPart = constEntries.length > 0

@@ -241,21 +241,9 @@ export function classifyProp(
     case 'ComputedMemberExpression':
       return 'var';  // SWC: ALL member access is var (is_const.rs)
 
-    // --- Call expressions: var unless callee is a known Qwik const-producing function ---
-    case 'CallExpression': {
-      // SWC const_idents: certain Qwik internal calls are known to produce const values
-      const callee = exprNode.callee;
-      if (callee?.type === 'Identifier') {
-        const CONST_CALL_IDENTS = new Set([
-          '_qrlSync', '_wrapProp', '_wrapSignal', '_fnSignal',
-          'qrl', 'inlinedQrl', '_noopQrl',
-        ]);
-        if (CONST_CALL_IDENTS.has(callee.name)) {
-          return 'const';
-        }
-      }
+    // --- Call expressions: always var (SWC is_const.rs: visit_call_expr -> false) ---
+    case 'CallExpression':
       return 'var';
-    }
 
     // --- Unary expressions ---
     case 'UnaryExpression':

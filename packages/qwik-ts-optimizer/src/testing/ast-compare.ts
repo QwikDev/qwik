@@ -114,6 +114,8 @@ function normalizeProgram(program: any): void {
   unwrapSingleStatementBlocks(program);
   normalizeDevModePositions(program);
   normalizeDevQrlCalls(program);
+  stripJsxSourceInfo(program);
+  stripUseHmrCalls(program);
   normalizeEnumIIFE(program);
   normalizeJsxCalleeNames(program);
   mergeJsxSplitProps(program);
@@ -1287,6 +1289,69 @@ function normalizeDevQrlCalls(node: any): void {
       node.arguments = [args[0]];
     }
   }
+}
+
+/**
+ * Strip the 7th argument (JSX source info) from _jsxSorted/_jsxSplit calls.
+ *
+ * In dev mode, SWC adds source location info as the 7th argument:
+ * `_jsxSorted("div", null, null, "text", 3, "u6_0", { fileName, lineNumber, columnNumber })`
+ * Our optimizer may not add this info. Stripping it normalizes the difference.
+ */
+function stripJsxSourceInfo(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) stripJsxSourceInfo(item);
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    stripJsxSourceInfo(node[key]);
+  }
+  if (node.type !== 'CallExpression') return;
+  const callee = node.callee;
+  if (!callee || callee.type !== 'Identifier') return;
+  if (callee.name !== '_jsxSorted' && callee.name !== '_jsxSplit') return;
+  // Strip 7th argument (index 6) if it exists
+  if (node.arguments && node.arguments.length > 6) {
+    node.arguments = node.arguments.slice(0, 6);
+  }
+}
+
+/**
+ * Strip `_useHmr(...)` calls from function bodies.
+ *
+ * HMR injection is a dev-only feature. SWC adds `_useHmr(filepath)` in
+ * component segments. Our optimizer may not add this. Strip it so it
+ * doesn't cause comparison failures.
+ */
+function stripUseHmrCalls(program: any): void {
+  function processBody(body: any[]): void {
+    if (!Array.isArray(body)) return;
+    for (let i = body.length - 1; i >= 0; i--) {
+      const stmt = body[i];
+      if (stmt?.type !== 'ExpressionStatement') continue;
+      const expr = stmt.expression;
+      if (expr?.type !== 'CallExpression') continue;
+      if (expr.callee?.type !== 'Identifier' || expr.callee.name !== '_useHmr') continue;
+      body.splice(i, 1);
+    }
+  }
+
+  function visit(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) visit(item); return; }
+    if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
+         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+      processBody(node.body.body);
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      visit(node[key]);
+    }
+  }
+
+  visit(program);
 }
 
 /**

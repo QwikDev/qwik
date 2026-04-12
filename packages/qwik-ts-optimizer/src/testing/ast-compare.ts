@@ -171,6 +171,14 @@ function isReorderableDeclaration(stmt: any): boolean {
   if (decl.init?.type === 'ArrowFunctionExpression' || decl.init?.type === 'FunctionExpression') return true;
   // String literal declarations (e.g., _hf0_str = "...") paired with signal fns
   if (decl.init?.type === 'Literal' && typeof decl.init.value === 'string' && name.startsWith('_hf')) return true;
+  // .w() hoisting declarations: const xxx = q_xxx.w([...]) or const xxx = someRef.w([...])
+  // These are independent capture bindings that can be safely reordered.
+  if (decl.init?.type === 'CallExpression' &&
+      decl.init.callee?.type === 'MemberExpression' &&
+      decl.init.callee.property?.type === 'Identifier' &&
+      decl.init.callee.property.name === 'w') {
+    return true;
+  }
   return false;
 }
 
@@ -179,19 +187,42 @@ function isReorderableDeclaration(stmt: any): boolean {
  * These are independent and their order has no semantic meaning.
  */
 function normalizeQrlDeclarationOrder(program: any): void {
-  if (!program?.body || !Array.isArray(program.body)) return;
+  sortReorderableBlock(program?.body);
+  // Recurse into function/arrow bodies to sort .w() hoisting declarations
+  walkBodies(program, (body: any[]) => sortReorderableBlock(body));
+}
 
+/**
+ * Sort contiguous blocks of reorderable statements within a body array.
+ */
+function sortReorderableBlock(body: any): void {
+  if (!body || !Array.isArray(body)) return;
   let i = 0;
-  while (i < program.body.length) {
-    // Find start of a contiguous reorderable block
-    if (!isReorderableDeclaration(program.body[i])) { i++; continue; }
+  while (i < body.length) {
+    if (!isReorderableDeclaration(body[i])) { i++; continue; }
     const blockStart = i;
-    while (i < program.body.length && isReorderableDeclaration(program.body[i])) { i++; }
+    while (i < body.length && isReorderableDeclaration(body[i])) { i++; }
     if (i - blockStart <= 1) continue;
-
-    const block = program.body.slice(blockStart, i);
+    const block = body.slice(blockStart, i);
     block.sort((a: any, b: any) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
-    program.body.splice(blockStart, i - blockStart, ...block);
+    body.splice(blockStart, i - blockStart, ...block);
+  }
+}
+
+/**
+ * Walk all statement bodies in an AST (function bodies, arrow bodies, block bodies)
+ * and call the callback for each body array.
+ */
+function walkBodies(node: any, cb: (body: any[]) => void): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) { node.forEach(n => walkBodies(n, cb)); return; }
+  // Call cb for any block body we find
+  if (node.type === 'BlockStatement' && Array.isArray(node.body)) {
+    cb(node.body);
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+    walkBodies(node[key], cb);
   }
 }
 

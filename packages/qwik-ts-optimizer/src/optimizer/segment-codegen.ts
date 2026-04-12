@@ -44,6 +44,10 @@ export interface SegmentImportContext {
   moduleImports: Array<{ localName: string; importedName: string; source: string; importAttributes?: Record<string, string> }>;
   /** Exported/declared names in the parent module (for self-referential imports) */
   sameFileExports: Set<string>;
+  /** Names that are the default export (export default function Foo) -- need `import { default as Foo }` */
+  defaultExportedNames?: Set<string>;
+  /** Map from local variable name to its exported name when they differ (e.g., `internal` -> `expr2` for `export { internal as expr2 }`) */
+  renamedExports?: Map<string, string>;
   /** The parent module path (e.g., "./test") for self-referential imports */
   parentModulePath: string;
   /** Migration decisions for _auto_ import detection on JSX tags */
@@ -1016,6 +1020,11 @@ export function generateSegmentCode(
         let importStmt: string;
         if (migrationDecision && migrationDecision.action === 'reexport' && !migrationDecision.isExported) {
           importStmt = `import { _auto_${id} as ${id} } from "${importContext.parentModulePath}";`;
+        } else if (importContext.defaultExportedNames?.has(id)) {
+          importStmt = `import { default as ${id} } from "${importContext.parentModulePath}";`;
+        } else if (importContext.renamedExports?.has(id)) {
+          const exportedAs = importContext.renamedExports.get(id)!;
+          importStmt = `import { ${exportedAs} as ${id} } from "${importContext.parentModulePath}";`;
         } else {
           importStmt = `import { ${id} } from "${importContext.parentModulePath}";`;
         }
@@ -1065,6 +1074,46 @@ export function generateSegmentCode(
         }
       }
     }
+  }
+
+  // Final separator normalization: ensure imports are followed by '//' before body content.
+  // Post-transform import re-collection may have added imports without proper separators.
+  {
+    const finalParts = parts.filter(p => p !== '//');
+    const finalImports: string[] = [];
+    const finalOther: string[] = [];
+    for (const p of finalParts) {
+      if (p.startsWith('import ')) {
+        finalImports.push(p);
+      } else {
+        finalOther.push(p);
+      }
+    }
+    parts.length = 0;
+    if (finalImports.length > 0) {
+      parts.push(...finalImports, '//');
+    }
+    // Re-insert hoisted (_hf) and qrl (const q_) sections with proper separators
+    const hoisted: string[] = [];
+    const qrlDecls: string[] = [];
+    const rest: string[] = [];
+    for (const p of finalOther) {
+      if (p.trimStart().startsWith('const _hf')) {
+        hoisted.push(p);
+      } else if (p.trimStart().startsWith('const q_')) {
+        qrlDecls.push(p);
+      } else {
+        rest.push(p);
+      }
+    }
+    if (hoisted.length > 0) {
+      parts.push(...hoisted);
+      if (qrlDecls.length > 0) parts.push('//');
+    }
+    if (qrlDecls.length > 0) {
+      parts.push(...qrlDecls, '//');
+    }
+    parts.push(...rest);
   }
 
   parts.push(`export const ${extraction.symbolName} = ${bodyText};`);

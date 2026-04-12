@@ -1786,6 +1786,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
     // Collect same-file exported/declared names for self-referential segment imports
     const sameFileExportNames = new Set<string>();
+    const defaultExportedNames = new Set<string>();
+    const renamedExports = new Map<string, string>();
     for (const node of program.body) {
       if (node.type === 'ExportNamedDeclaration') {
         if (node.declaration) {
@@ -1793,9 +1795,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             sameFileExportNames.add(node.declaration.id.name);
           } else if (node.declaration.type === 'VariableDeclaration') {
             for (const decl of node.declaration.declarations) {
-              if (decl.id?.type === 'Identifier') {
-                sameFileExportNames.add(decl.id.name);
-              }
+              collectBindingNamesFromNode(decl.id, sameFileExportNames);
             }
           } else if (node.declaration.type === 'ClassDeclaration' && node.declaration.id?.name) {
             sameFileExportNames.add(node.declaration.id.name);
@@ -1807,15 +1807,27 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
           for (const spec of node.specifiers) {
             const exportedName = spec.exported?.type === 'Identifier' ? spec.exported.name : spec.exported?.value;
             if (exportedName) sameFileExportNames.add(exportedName);
+            // Also add the local name so segments can import it
+            const localName = spec.local?.type === 'Identifier' ? spec.local.name : spec.local?.value;
+            if (localName && localName !== exportedName) {
+              sameFileExportNames.add(localName);
+              renamedExports.set(localName, exportedName);
+            }
           }
+        }
+      } else if (node.type === 'ExportDefaultDeclaration') {
+        // export default function Foo() {} or export default class Bar {}
+        if (node.declaration?.id?.name) {
+          sameFileExportNames.add(node.declaration.id.name);
+          defaultExportedNames.add(node.declaration.id.name);
         }
       } else if (node.type === 'FunctionDeclaration' && node.id?.name) {
         sameFileExportNames.add(node.id.name);
+      } else if (node.type === 'ClassDeclaration' && node.id?.name) {
+        sameFileExportNames.add(node.id.name);
       } else if (node.type === 'VariableDeclaration') {
         for (const decl of node.declarations) {
-          if (decl.id?.type === 'Identifier') {
-            sameFileExportNames.add(decl.id.name);
-          }
+          collectBindingNamesFromNode(decl.id, sameFileExportNames);
         }
       } else if (node.type === 'TSEnumDeclaration' && node.id?.name) {
         sameFileExportNames.add(node.id.name);
@@ -2181,6 +2193,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       const importContext: SegmentImportContext = {
         moduleImports: moduleImportsForContext,
         sameFileExports: sameFileExportNames,
+        defaultExportedNames: defaultExportedNames.size > 0 ? defaultExportedNames : undefined,
+        renamedExports: renamedExports.size > 0 ? renamedExports : undefined,
         parentModulePath,
         migrationDecisions: migrationDecisions.map(d => {
           const decl = moduleLevelDecls.find(ml => ml.name === d.varName);

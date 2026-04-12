@@ -263,6 +263,40 @@ function isDeepStoreAccess(node: any, importedNames: Set<string>, localNames?: S
 }
 
 /**
+ * Collect all non-imported identifier names from an expression.
+ * Used when a `.value` access has a complex object like `(a || b).value`
+ * to find all signal references within the expression.
+ */
+function collectIdentifiersFromExpr(
+  node: any,
+  importedNames: Set<string>,
+  seen: Set<string>,
+  roots: string[],
+): void {
+  if (node == null) return;
+  if (node.type === 'Identifier') {
+    if (!importedNames.has(node.name) && !seen.has(node.name)) {
+      seen.add(node.name);
+      roots.push(node.name);
+    }
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type' || key === 'start' || key === 'end' || key === 'loc') continue;
+    const val = node[key];
+    if (val && typeof val === 'object') {
+      if (Array.isArray(val)) {
+        for (const item of val) {
+          if (item && typeof item.type === 'string') collectIdentifiersFromExpr(item, importedNames, seen, roots);
+        }
+      } else if (typeof val.type === 'string') {
+        collectIdentifiersFromExpr(val, importedNames, seen, roots);
+      }
+    }
+  }
+}
+
+/**
  * Collect all reactive roots from an expression.
  * Reactive roots are:
  * - The object of a `.value` access (signal pattern)
@@ -284,11 +318,17 @@ function collectReactiveRoots(
     // signal.value access -> root is the object name
     if (isSignalValueAccess(n)) {
       const root = getMemberChainRoot(n.object);
-      if (root != null && !seen.has(root)) {
-        seen.add(root);
-        roots.push(root);
+      if (root != null) {
+        if (!seen.has(root)) {
+          seen.add(root);
+          roots.push(root);
+        }
+        return; // Don't recurse further into this node
       }
-      return; // Don't recurse further into this node
+      // Complex expression like (a || b).value -- collect all non-imported
+      // identifiers from the object as reactive roots
+      collectIdentifiersFromExpr(n.object, importedNames, seen, roots);
+      return;
     }
 
     // Deep store access -> root is the chain root
@@ -460,6 +500,13 @@ function generateFnSignal(
           end: rootId.end - exprStart,
           replacement: rootToParam.get(rootId.name)!,
         });
+        return;
+      }
+      // Complex object expression (e.g., (a || b).value) -- recurse into the object
+      // to find all identifier references that need parameterization
+      if (isSignalValueAccess(n) && !rootId) {
+        findRootReplacements(n.object);
+        return;
       }
       return;
     }
@@ -723,16 +770,40 @@ export function analyzeSignalExpression(
     // SWC only applies _wrapProp/_fnSignal when the object is a known local
     // (in decl_stack) or a global (import/export). Unknown identifiers that
     // aren't in scope get no signal treatment.
-    const objIdent = exprNode.object?.type === 'Identifier' ? exprNode.object.name : null;
+    // Unwrap TS type assertions and parenthesized expressions to find the underlying identifier
+    let unwrapped = exprNode.object;
+    while (unwrapped) {
+      if (unwrapped.type === 'TSAsExpression' || unwrapped.type === 'TSNonNullExpression' ||
+          unwrapped.type === 'TSTypeAssertion' || unwrapped.type === 'TSInstantiationExpression' ||
+          unwrapped.type === 'TSSatisfiesExpression' || unwrapped.type === 'ParenthesizedExpression') {
+        unwrapped = unwrapped.expression;
+      } else {
+        break;
+      }
+    }
+    const objIdent = unwrapped?.type === 'Identifier' ? unwrapped.name : null;
     const isKnownIdent = objIdent === null || // non-ident object (e.g., call result) is fine
       importedNames.has(objIdent) ||
       GLOBAL_NAMES.has(objIdent) ||
       (localNames?.has(objIdent) ?? true); // if no localNames provided, assume known (backwards compat)
 
-    // signal.value -> _wrapProp(signal)
+    // signal.value -> _wrapProp(signal) for simple identifiers,
+    // _fnSignal for complex expressions like (a || b).value
     if (isSignalValueAccess(exprNode) && isKnownIdent) {
-      const objText = source.slice(exprNode.object.start, exprNode.object.end);
-      return { type: 'wrapProp', code: `_wrapProp(${objText})` };
+      if (objIdent !== null) {
+        // Simple identifier (possibly wrapped in TS assertion): signal.value -> _wrapProp(signal)
+        return { type: 'wrapProp', code: `_wrapProp(${objIdent})` };
+      } else {
+        // Complex expression: (a || b).value -> _fnSignal
+        const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+        if (roots.length > 0) {
+          const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
+          return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+        }
+        // If no reactive roots found, fallback to _wrapProp
+        const objText = source.slice(exprNode.object.start, exprNode.object.end);
+        return { type: 'wrapProp', code: `_wrapProp(${objText})` };
+      }
     }
 
     // Deep store access (store.address.city.name) -> fnSignal

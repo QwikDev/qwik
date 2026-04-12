@@ -268,6 +268,20 @@ export function collectModuleLevelDecls(
     }
   }
 
+  // Second pass: mark decls as exported when they appear in `export { name }` specifiers
+  // (separate from their declaration statement)
+  for (const stmt of program.body ?? []) {
+    if (stmt.type === 'ExportNamedDeclaration' && !stmt.declaration && stmt.specifiers) {
+      for (const spec of stmt.specifiers) {
+        const localName = spec.local?.type === 'Identifier' ? spec.local.name : spec.local?.value;
+        if (localName) {
+          const decl = decls.find(d => d.name === localName);
+          if (decl) decl.isExported = true;
+        }
+      }
+    }
+  }
+
   return decls;
 }
 

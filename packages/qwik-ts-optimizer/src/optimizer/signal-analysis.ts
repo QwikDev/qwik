@@ -124,6 +124,22 @@ const GLOBAL_NAMES = new Set([
  * Check if an expression contains a function call whose callee is NOT
  * an imported name (i.e., an "unknown" call).
  */
+/**
+ * Check if a node tree contains JSX elements or fragments.
+ * Expressions containing JSX cannot be wrapped in _fnSignal because
+ * the hoisted function body would contain JSX which can't be serialized.
+ */
+function containsJsx(node: any): boolean {
+  if (node == null || typeof node !== 'object') return false;
+  if (Array.isArray(node)) return node.some(containsJsx);
+  if (node.type === 'JSXElement' || node.type === 'JSXFragment') return true;
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    if (containsJsx(node[key])) return true;
+  }
+  return false;
+}
+
 function containsUnknownCall(node: any, importedNames: Set<string>): boolean {
   if (node == null) return false;
 
@@ -916,6 +932,11 @@ export function analyzeSignalExpression(
     // SIG-05: mixed with imported reference -> NOT wrapped (goes to varProps)
     if (containsImportedReference(exprNode, importedNames))
       return { type: 'none' };
+
+    // Expressions containing JSX elements cannot be wrapped in _fnSignal —
+    // JSX can't be serialized into the hoisted function string representation.
+    // SWC leaves these as-is in the output.
+    if (containsJsx(exprNode)) return { type: 'none' };
 
     // Collect reactive roots (signal.value + store accesses)
     const roots = collectReactiveRoots(exprNode, importedNames, localNames);

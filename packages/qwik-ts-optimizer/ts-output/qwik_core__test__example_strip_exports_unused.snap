@@ -1,0 +1,67 @@
+==INPUT==
+
+
+
+import { component$ } from '@qwik.dev/core';
+import mongodb from 'mongodb';
+
+export const onGet = () => {
+	const data = mongodb.collection.whatever;
+	return {
+		body: {
+		data
+		}
+	}
+};
+
+export default component$(()=> {
+	return <div>cmp</div>
+});
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+
+export const onGet = ()=>{
+    throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
+};
+
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("")
+============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
+
+export const test_component_LUXeXe0DQrg = ()=> {
+	return <div>cmp</div>
+};
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": ".tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    15,
+    27
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

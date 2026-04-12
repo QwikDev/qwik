@@ -1,0 +1,151 @@
+==INPUT==
+
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const Greeter = component$(() => {
+	return (
+		<div>
+			<div passive:click onClick$={() => {}}/>
+			<div passive:scroll window:onScroll$={() => {}}/>
+			<div passive:touchstart document:onTouchStart$={() => {}}/>
+			<div passive:mouseover/>
+		</div>
+	)
+});
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
+//
+
+export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
+
+
+Some("")
+============================= test.tsx_Greeter_component_div_div_q_ep_click_TfPSP48mcOk.js (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_ep_click_TfPSP48mcOk = () => {};
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_ep_click_TfPSP48mcOk",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_ep_click",
+  "hash": "TfPSP48mcOk",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_ep_click_TfPSP48mcOk",
+  "path": "",
+  "extension": ".js",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    8,
+    33
+  ]
+}
+*/
+============================= test.tsx_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo.js (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo = () => {};
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_wp_scroll",
+  "hash": "jjcqiis8xgo",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo",
+  "path": "",
+  "extension": ".js",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "window:onScroll$",
+  "captures": false,
+  "loc": [
+    9,
+    42
+  ]
+}
+*/
+============================= test.tsx_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY.js (ENTRY POINT)==
+
+export const Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY = () => {};
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_div_div_q_dp_touchstart",
+  "hash": "bnDJsbR1WQY",
+  "canonicalFilename": "test.tsx_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY",
+  "path": "",
+  "extension": ".js",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "document:onTouchStart$",
+  "captures": false,
+  "loc": [
+    10,
+    52
+  ]
+}
+*/
+============================= test.tsx_Greeter_component_n7HuG2hhU0Q.tsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY"), "Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY");
+const q_Greeter_component_div_div_q_ep_click_TfPSP48mcOk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_div_div_q_ep_click_TfPSP48mcOk"), "Greeter_component_div_div_q_ep_click_TfPSP48mcOk");
+const q_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo"), "Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo");
+//
+export const Greeter_component_n7HuG2hhU0Q = () => {
+	return (
+		<div>
+			<div q-ep:click={q_Greeter_component_div_div_q_ep_click_TfPSP48mcOk}/>
+			<div q-wp:scroll={q_Greeter_component_div_div_q_wp_scroll_jjcqiis8xgo}/>
+			<div q-dp:touchstart={q_Greeter_component_div_div_q_dp_touchstart_bnDJsbR1WQY}/>
+			<div/>
+		</div>
+	)
+};
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_n7HuG2hhU0Q",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component",
+  "hash": "n7HuG2hhU0Q",
+  "canonicalFilename": "test.tsx_Greeter_component_n7HuG2hhU0Q",
+  "path": "",
+  "extension": ".tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    5,
+    35
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

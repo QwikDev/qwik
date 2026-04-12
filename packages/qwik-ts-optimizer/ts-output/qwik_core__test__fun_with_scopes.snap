@@ -1,0 +1,299 @@
+==INPUT==
+
+
+
+		import { inlinedQrl,$,component$,jsx,useStylesScoped$ } from '@qwik.dev/core';
+			export default () => {
+				const serverFnHash = globalThis.foo();
+				const data = globalThis.bar();
+				const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
+				console.log(qrl);
+			}
+
+			function Lifecycle(props, key, flags) {
+				return component$(() => {
+					return /* @__PURE__ */ jsx(Slot, {});
+				})(props, key, flags);
+			}
+			export const rawFn = (event, element) => {
+						handleFieldEvent(form, field, name, event, element, [
+							"touched",
+							"input"
+						], getElementInput(element, field, type));
+					}
+			export function Field({ children, name, type, ...props }) {
+				const { of: form } = props;
+				const field = getFieldStore(form, name);
+				return /* @__PURE__ */ jsx(Lifecycle, {
+					store: field,
+					...props,
+					children: children(field, {
+						name,
+						autoFocus: isServer && !!field.error,
+						ref: $((element) => {
+							field.internal.elements.push(element);
+						}),
+						onInput$: $(rawFn),
+					})
+				}, name);
+			}
+
+			const STYLE_RED = `.container {background-color: red;}`;
+			describe.each([])('$render.name: useStylesScoped', ({ render }) => {
+
+				it('should render object style', async () => {
+					const StyledComponent = component$(() => {
+						const stylesScopedData = useStylesScoped$(STYLE_RED);
+						const store = useStore({
+							count: 10,
+						});
+
+						return (
+							<button class={['container', `count-${store.count}`]} onClick$={() => store.count++}>
+								Hello world
+							</button>
+						);
+					});
+
+					const { vNode, getStyles, document } = await render(<StyledComponent />, { debug });
+				})
+			})
+
+============================= test.tsx ==
+
+import { _noopQrl } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useStylesScopedQrl } from "@qwik.dev/core";
+import { inlinedQrl, jsx } from "@qwik.dev/core";
+//
+const q_Field_children_onInput_14q1XwJfjq0 = /* @__PURE__ */ _noopQrl("Field_children_onInput_14q1XwJfjq0");
+const q_Field_children_ref_ovkykQxrYgM = /* @__PURE__ */ _noopQrl("Field_children_ref_ovkykQxrYgM");
+const q_Lifecycle_component_r7jPBpjrWLc = /* @__PURE__ */ _noopQrl("Lifecycle_component_r7jPBpjrWLc");
+const q_StyledComponent_component_Wg7SquUqgAE = /* @__PURE__ */ _noopQrl("StyledComponent_component_Wg7SquUqgAE");
+const q_StyledComponent_component_button_q_e_click_TSmqO2JiBqI = /* @__PURE__ */ _noopQrl("StyledComponent_component_button_q_e_click_TSmqO2JiBqI");
+const q_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0 = /* @__PURE__ */ _noopQrl("StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0");
+//
+export default () => {
+	const serverFnHash = globalThis.foo();
+	const data = globalThis.bar();
+	const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
+	console.log(qrl);
+};
+const Lifecycle_component_r7jPBpjrWLc = () => {
+	return /* @__PURE__ */ jsx(Slot, {});
+};
+q_Lifecycle_component_r7jPBpjrWLc.s(Lifecycle_component_r7jPBpjrWLc);
+function Lifecycle(props, key, flags) {
+	return /* @__PURE__ */ componentQrl(q_Lifecycle_component_r7jPBpjrWLc)(props, key, flags);
+}
+export const rawFn = (event, element) => {
+	handleFieldEvent(form, field, name, event, element, ["touched", "input"], getElementInput(element, field, type));
+};
+const Field_children_ref_ovkykQxrYgM = (element) => {
+	field.internal.elements.push(element);
+};
+q_Field_children_ref_ovkykQxrYgM.s(Field_children_ref_ovkykQxrYgM);
+const Field_children_onInput_14q1XwJfjq0 = rawFn;
+q_Field_children_onInput_14q1XwJfjq0.s(Field_children_onInput_14q1XwJfjq0);
+export function Field({ children, name, type, ...props }) {
+	const { of: form } = props;
+	const field = getFieldStore(form, name);
+	return /* @__PURE__ */ jsx(Lifecycle, {
+		store: field,
+		...props,
+		children: children(field, {
+			name,
+			autoFocus: isServer && !!field.error,
+			ref: q_Field_children_ref_ovkykQxrYgM,
+			onInput$: q_Field_children_onInput_14q1XwJfjq0
+		})
+	}, name);
+}
+const STYLE_RED = `.container {background-color: red;}`;
+const StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0 = STYLE_RED;
+q_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0.s(StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0);
+const StyledComponent_component_button_q_e_click_TSmqO2JiBqI = () => store.count++;
+q_StyledComponent_component_button_q_e_click_TSmqO2JiBqI.s(StyledComponent_component_button_q_e_click_TSmqO2JiBqI);
+const StyledComponent_component_Wg7SquUqgAE = () => {
+	const STYLE_RED = _captures[0];
+	const stylesScopedData = useStylesScopedQrl(q_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0);
+	const store = useStore({ count: 10 });
+	return /* @__PURE__ */ _jsxSorted("button", { class: ["container", `count-${store.count}`] }, { "q-e:click": q_StyledComponent_component_button_q_e_click_TSmqO2JiBqI }, "Hello world", 3, "u6_1");
+};
+q_StyledComponent_component_Wg7SquUqgAE.s(StyledComponent_component_Wg7SquUqgAE);
+describe.each([])("$render.name: useStylesScoped", ({ render }) => {
+	it("should render object style", async () => {
+		const StyledComponent = /* @__PURE__ */ componentQrl(q_StyledComponent_component_Wg7SquUqgAE.w([STYLE_RED]));
+		const { vNode, getStyles, document } = await render(/* @__PURE__ */ _jsxSorted(StyledComponent, null, null, null, 3, "u6_0"), { debug });
+	});
+});
+
+
+
+Some("")
+============================= test.tsx_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0.js (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0",
+  "entry": null,
+  "displayName": "test.tsx_StyledComponent_component_stylesScopedData_useStylesScoped",
+  "hash": "zPcFvTS0nh0",
+  "canonicalFilename": "test.tsx_StyledComponent_component_stylesScopedData_useStylesScoped_zPcFvTS0nh0",
+  "path": "",
+  "extension": ".js",
+  "parent": "StyledComponent_component_Wg7SquUqgAE",
+  "ctxKind": "function",
+  "ctxName": "useStylesScoped$",
+  "captures": false,
+  "loc": [
+    44,
+    49
+  ]
+}
+*/
+============================= test.tsx_StyledComponent_component_button_q_e_click_TSmqO2JiBqI.js (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "StyledComponent_component_button_q_e_click_TSmqO2JiBqI",
+  "entry": null,
+  "displayName": "test.tsx_StyledComponent_component_button_q_e_click",
+  "hash": "TSmqO2JiBqI",
+  "canonicalFilename": "test.tsx_StyledComponent_component_button_q_e_click_TSmqO2JiBqI",
+  "path": "",
+  "extension": ".js",
+  "parent": "StyledComponent_component_Wg7SquUqgAE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    50,
+    72
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "store"
+  ]
+}
+*/
+============================= test.tsx_Lifecycle_component_r7jPBpjrWLc.js (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Lifecycle_component_r7jPBpjrWLc",
+  "entry": null,
+  "displayName": "test.tsx_Lifecycle_component",
+  "hash": "r7jPBpjrWLc",
+  "canonicalFilename": "test.tsx_Lifecycle_component_r7jPBpjrWLc",
+  "path": "",
+  "extension": ".js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    12,
+    23
+  ]
+}
+*/
+============================= test.tsx_Field_children_ref_ovkykQxrYgM.js (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Field_children_ref_ovkykQxrYgM",
+  "entry": null,
+  "displayName": "test.tsx_Field_children_ref",
+  "hash": "ovkykQxrYgM",
+  "canonicalFilename": "test.tsx_Field_children_ref_ovkykQxrYgM",
+  "path": "",
+  "extension": ".js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    31,
+    14
+  ],
+  "paramNames": [
+    "element"
+  ]
+}
+*/
+============================= test.tsx_Field_children_onInput_14q1XwJfjq0.js (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Field_children_onInput_14q1XwJfjq0",
+  "entry": null,
+  "displayName": "test.tsx_Field_children_onInput",
+  "hash": "14q1XwJfjq0",
+  "canonicalFilename": "test.tsx_Field_children_onInput_14q1XwJfjq0",
+  "path": "",
+  "extension": ".js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    34,
+    19
+  ]
+}
+*/
+============================= test.tsx_StyledComponent_component_Wg7SquUqgAE.ts (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "StyledComponent_component_Wg7SquUqgAE",
+  "entry": null,
+  "displayName": "test.tsx_StyledComponent_component",
+  "hash": "Wg7SquUqgAE",
+  "canonicalFilename": "test.tsx_StyledComponent_component_Wg7SquUqgAE",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": true,
+  "loc": [
+    43,
+    41
+  ],
+  "captureNames": [
+    "STYLE_RED"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

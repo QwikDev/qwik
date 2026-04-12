@@ -1,0 +1,194 @@
+==INPUT==
+
+
+
+import { component$, $, useStore, wrap, useEffect } from '@qwik.dev/core';
+
+export const useMemoQrl = (qrt) => {
+	useEffect(qrt);
+};
+
+export const useMemo$ = wrap(useMemoQrl);
+
+export const App = component$((props) => {
+	const state = useStore({count: 0});
+	useMemo$(() => {
+		console.log(state.count);
+	});
+	return $(() => (
+		<div>{state.count}</div>
+	));
+});
+
+export const Lightweight = (props) => {
+	useMemo$(() => {
+		console.log(state.count);
+	});
+};
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { wrap, useEffect } from "@qwik.dev/core";
+//
+const q_App_component_ckEPmXZlub0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_Lightweight_useMemo_UIcxVTQF1a8 = /* @__PURE__ */ qrl(() => import("./test.tsx_Lightweight_useMemo_UIcxVTQF1a8"), "Lightweight_useMemo_UIcxVTQF1a8");
+//
+export const useMemoQrl = (qrt) => {
+	useEffect(qrt);
+};
+export const useMemo$ = wrap(useMemoQrl);
+export const App = /* @__PURE__ */ componentQrl(q_App_component_ckEPmXZlub0);
+export const Lightweight = (props) => {
+	useMemoQrl(q_Lightweight_useMemo_UIcxVTQF1a8);
+};
+
+
+
+Some("")
+============================= test.tsx_App_component_useMemo_6Sc9KVki3Y0.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const App_component_useMemo_6Sc9KVki3Y0 = () => {
+	const state = _captures[0];
+	console.log(state.count);
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_useMemo_6Sc9KVki3Y0",
+  "entry": null,
+  "displayName": "test.tsx_App_component_useMemo",
+  "hash": "6Sc9KVki3Y0",
+  "canonicalFilename": "test.tsx_App_component_useMemo_6Sc9KVki3Y0",
+  "path": "",
+  "extension": ".js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": true,
+  "loc": [
+    13,
+    11
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+============================= test.tsx_App_component_1_w0t0o3QMovU.ts (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const App_component_1_w0t0o3QMovU = () => {
+	const state = _captures[0];
+	return /* @__PURE__ */ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_1_w0t0o3QMovU",
+  "entry": null,
+  "displayName": "test.tsx_App_component_1",
+  "hash": "w0t0o3QMovU",
+  "canonicalFilename": "test.tsx_App_component_1_w0t0o3QMovU",
+  "path": "",
+  "extension": ".ts",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    16,
+    11
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.ts (ENTRY POINT)==
+
+import { useStore } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useMemoQrl } from "./test";
+//
+const q_App_component_1_w0t0o3QMovU = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+const q_App_component_useMemo_6Sc9KVki3Y0 = /* @__PURE__ */ qrl(() => import("./test.tsx_App_component_useMemo_6Sc9KVki3Y0"), "App_component_useMemo_6Sc9KVki3Y0");
+//
+export const App_component_ckEPmXZlub0 = (props) => {
+	const state = useStore({ count: 0 });
+	useMemoQrl(q_App_component_useMemo_6Sc9KVki3Y0.w([state]));
+	return q_App_component_1_w0t0o3QMovU.w([state]);
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    11,
+    31
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Lightweight_useMemo_UIcxVTQF1a8.js (ENTRY POINT)==
+
+export const Lightweight_useMemo_UIcxVTQF1a8 = () => {
+	console.log(state.count);
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Lightweight_useMemo_UIcxVTQF1a8",
+  "entry": null,
+  "displayName": "test.tsx_Lightweight_useMemo",
+  "hash": "UIcxVTQF1a8",
+  "canonicalFilename": "test.tsx_Lightweight_useMemo_UIcxVTQF1a8",
+  "path": "",
+  "extension": ".js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": false,
+  "loc": [
+    22,
+    11
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

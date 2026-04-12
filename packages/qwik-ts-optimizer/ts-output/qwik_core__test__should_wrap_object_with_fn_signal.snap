@@ -1,0 +1,73 @@
+==INPUT==
+
+
+
+import { component$ } from '@qwik.dev/core';
+export default component$((props) => {
+	// not destructure it so it is a var prop
+	const item = props.something.count;
+	return (
+		<>
+			<div data-no-wrap={item ? item * 2 : null} data-wrap={props.myobj.id + "test"}></div>
+		</>
+	);
+});
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+
+Some("")
+============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _fnSignal } from "@qwik.dev/core";
+//
+const _hf0 = (p0) => p0.myobj.id + "test";
+const _hf0_str = "p0.myobj.id+\"test\"";
+export const test_component_LUXeXe0DQrg = (props) => {
+	// not destructure it so it is a var prop
+	const item = props.something.count;
+	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, /* @__PURE__ */ _jsxSorted("div", {
+		"data-no-wrap": item ? item * 2 : null,
+		"data-wrap": _fnSignal(_hf0, [props], _hf0_str)
+	}, null, null, 3, null), 1, "u6_0");
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    4,
+    27
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

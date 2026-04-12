@@ -1,0 +1,79 @@
+==INPUT==
+
+
+
+import { $, component$, useStore, useSignal } from '@qwik.dev/core';
+export default component$((props: { id: number }) => {
+      const renders = useStore(
+        {
+          count: 0,
+        },
+        { reactive: false }
+      );
+      renders.count++;
+      const rerenders = renders.count + 0;
+      const Id = (props: any) => <div>Id: {props.id}</div>;
+      return (
+        <>
+          <Id id={props.id} />
+          {rerenders}
+        </>
+      );
+    });
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+
+Some("")
+============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+
+import { useStore } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+//
+export const test_component_LUXeXe0DQrg = (props) => {
+	const renders = useStore({ count: 0 }, { reactive: false });
+	renders.count++;
+	const rerenders = renders.count + 0;
+	const Id = (props) => /* @__PURE__ */ _jsxSorted("div", null, null, ["Id: ", _wrapProp(props, "id")], 1, "u6_0");
+	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, [/* @__PURE__ */ _jsxSorted(Id, null, { id: _wrapProp(props, "id") }, null, 3, "u6_1"), rerenders], 1, "u6_2");
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    4,
+    27
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

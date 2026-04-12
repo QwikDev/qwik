@@ -1,0 +1,31 @@
+==INPUT==
+
+
+
+import { component$ as Component, $ as onRender } from '@qwik.dev/core';
+
+export const handler = $(()=>console.log('hola'));
+
+export const App = component$((props) => {
+	useStyles$('hola');
+	return $(() => (
+		<div>{state.thing}</div>
+	));
+});
+
+============================= test.tsx ==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const handler = $(() => console.log("hola"));
+export const App = component$((props) => {
+	useStyles$("hola");
+	return $(() => /* @__PURE__ */ _jsxSorted("div", null, null, state.thing, 1, "u6_0"));
+});
+
+
+
+Some("")
+== DIAGNOSTICS ==
+
+[]

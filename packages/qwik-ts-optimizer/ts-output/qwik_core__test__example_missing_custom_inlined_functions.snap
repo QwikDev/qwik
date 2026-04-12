@@ -1,0 +1,62 @@
+==INPUT==
+
+
+
+import { component$ as Component, $ as onRender, useStore, wrap, useEffect } from '@qwik.dev/core';
+
+
+export const useMemo$ = (qrt) => {
+	useEffect(qrt);
+};
+
+export const App = component$((props) => {
+	const state = useStore({count: 0});
+	useMemo$(() => {
+		console.log(state.count);
+	});
+	return $(() => (
+		<div>{state.count}</div>
+	));
+});
+
+============================= test.tsx ==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { useStore, useEffect } from "@qwik.dev/core";
+//
+export const useMemo$ = (qrt) => {
+	useEffect(qrt);
+};
+export const App = component$((props) => {
+	const state = useStore({ count: 0 });
+	useMemo$(() => {
+		console.log(state.count);
+	});
+	return $(() => /* @__PURE__ */ _jsxSorted("div", null, null, state.count, 1, "u6_0"));
+});
+
+
+
+Some("")
+== DIAGNOSTICS ==
+
+[
+  {
+    "category": "error",
+    "code": "C05",
+    "file": "test.tsx",
+    "message": "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly",
+    "highlights": [
+      {
+        "lo": 241,
+        "hi": 249,
+        "startLine": 12,
+        "startCol": 2,
+        "endLine": 12,
+        "endCol": 10
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

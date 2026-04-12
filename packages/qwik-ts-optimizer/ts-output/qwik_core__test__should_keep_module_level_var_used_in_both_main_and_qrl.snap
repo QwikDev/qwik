@@ -1,0 +1,88 @@
+==INPUT==
+
+
+
+import { $, isServer } from '@qwik.dev/core';
+
+const state = {
+  counter: 0,
+  id: Math.random().toString(36).slice(2, 8),
+};
+
+console.log('Module init, id:', state.id);
+
+export function doSomething() {
+  if (!isServer) {
+    state.counter++;
+  }
+}
+
+export function useHook() {
+  const fn = $(() => {
+    state.counter++;
+    console.log(state.id);
+  });
+  return fn;
+}
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { isServer } from "@qwik.dev/core";
+//
+const q_useHook_fn_kScGJcREaTg = /* @__PURE__ */ qrl(() => import("./test.tsx_useHook_fn_kScGJcREaTg"), "useHook_fn_kScGJcREaTg");
+//
+const state = {
+	counter: 0,
+	id: Math.random().toString(36).slice(2, 8)
+};
+console.log("Module init, id:", state.id);
+export function doSomething() {
+	if (!isServer) {
+		state.counter++;
+	}
+}
+export function useHook() {
+	const fn = q_useHook_fn_kScGJcREaTg;
+	return fn;
+}
+export { state as _auto_state };
+
+
+
+Some("")
+============================= test.tsx_useHook_fn_kScGJcREaTg.js (ENTRY POINT)==
+
+import { _auto_state as state } from "./test";
+//
+export const useHook_fn_kScGJcREaTg = () => {
+	state.counter++;
+	console.log(state.id);
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "useHook_fn_kScGJcREaTg",
+  "entry": null,
+  "displayName": "test.tsx_useHook_fn",
+  "hash": "kScGJcREaTg",
+  "canonicalFilename": "test.tsx_useHook_fn_kScGJcREaTg",
+  "path": "",
+  "extension": ".js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    19,
+    16
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

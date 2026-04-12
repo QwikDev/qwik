@@ -1,0 +1,69 @@
+==INPUT==
+
+
+
+		import { component$, useSignal } from "@qwik.dev/core";
+		export default component$((props) => {
+			const { test, ...rest } = props;
+			const test = useSignal(rest['bind:value']);
+			return (
+				<>
+				{test.value}
+				</>
+			);
+		});
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /* @__PURE__ */ qrl(() => import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /* @__PURE__ */ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+
+Some("")
+============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+
+import { useSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+//
+export const test_component_LUXeXe0DQrg = (props) => {
+			const { test, ...rest } = props;
+			const test = useSignal(rest['bind:value']);
+			return (
+				/*#__PURE__*/ _jsxSorted(_Fragment, null, null, test.value, 1, "u6_0")
+			);
+		};
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    4,
+    29
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

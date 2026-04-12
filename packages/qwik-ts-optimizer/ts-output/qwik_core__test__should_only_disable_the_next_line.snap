@@ -1,0 +1,143 @@
+==INPUT==
+
+
+
+		import { component$ } from '@qwik.dev/core';
+
+		const PassiveOnlyComponent = component$(() => {
+			return (
+				<div>
+					{/* @qwik-disable-next-line preventdefault-passive-check */}
+					<button passive:click preventdefault:click onClick$={() => {}}>
+						click
+					</button>
+					<button passive:click preventdefault:click onClick$={() => {}}>
+						click
+					</button>
+				</div>
+			);
+		});
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_PassiveOnlyComponent_component_LuEXQIZuHLw = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw"), "PassiveOnlyComponent_component_LuEXQIZuHLw");
+//
+/* @__PURE__ */ componentQrl(q_PassiveOnlyComponent_component_LuEXQIZuHLw);
+
+
+
+Some("")
+============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA.js (ENTRY POINT)==
+
+export const PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = () => {};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click",
+  "hash": "w9du90RdaGA",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA",
+  "path": "",
+  "extension": ".js",
+  "parent": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    9,
+    59
+  ]
+}
+*/
+============================= test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM.js (ENTRY POINT)==
+
+export const PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM = () => {};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1",
+  "hash": "6Gurw67eshM",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM",
+  "path": "",
+  "extension": ".js",
+  "parent": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    12,
+    59
+  ]
+}
+*/
+============================= test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw.ts (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+const q_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM"), "PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM");
+const q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA = /* @__PURE__ */ qrl(() => import("./test.tsx_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA"), "PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA");
+//
+export const PassiveOnlyComponent_component_LuEXQIZuHLw = () => {
+	return /* @__PURE__ */ _jsxSorted("div", null, null, [/* @__PURE__ */ _jsxSorted("button", null, { "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_w9du90RdaGA }, "click", 3, null), /* @__PURE__ */ _jsxSorted("button", null, { "q-ep:click": q_PassiveOnlyComponent_component_div_button_q_ep_click_1_6Gurw67eshM }, "click", 3, null)], 3, "u6_0");
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "entry": null,
+  "displayName": "test.tsx_PassiveOnlyComponent_component",
+  "hash": "LuEXQIZuHLw",
+  "canonicalFilename": "test.tsx_PassiveOnlyComponent_component_LuEXQIZuHLw",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    5,
+    43
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[
+  {
+    "category": "warning",
+    "code": "preventdefault-passive-check",
+    "file": "test.tsx",
+    "message": "preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()",
+    "highlights": [
+      {
+        "lo": 289,
+        "hi": 352,
+        "startLine": 12,
+        "startCol": 6,
+        "endLine": 12,
+        "endCol": 69
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

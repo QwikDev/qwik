@@ -1,0 +1,74 @@
+==INPUT==
+
+
+
+import { $, component$ } from '@qwik.dev/core';
+import thing from "../state";
+
+export function foo() {
+	return import("../foo/state2")
+}
+
+export const Header = component$(() => {
+	return (
+		<div>
+			{import("../folder/state3")}
+			{thing}
+		</div>
+	);
+});
+
+============================= project/folder/test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_Header_component_RGgm7Ks9QWI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_RGgm7Ks9QWI"), "Header_component_RGgm7Ks9QWI");
+//
+
+export function foo() {
+	return import("../foo/state2")
+}
+
+export const Header = /*#__PURE__*/ componentQrl(q_Header_component_RGgm7Ks9QWI);
+
+
+Some("")
+============================= test.tsx_Header_component_RGgm7Ks9QWI.tsx (ENTRY POINT)==
+
+import thing from "../state";
+//
+export const Header_component_RGgm7Ks9QWI = () => {
+	return (
+		<div>
+			{import("../folder/state3")}
+			{thing}
+		</div>
+	);
+};
+
+
+Some("")
+/*
+{
+  "origin": "project/folder/test.tsx",
+  "name": "Header_component_RGgm7Ks9QWI",
+  "entry": "entry_hooks",
+  "displayName": "test.tsx_Header_component",
+  "hash": "RGgm7Ks9QWI",
+  "canonicalFilename": "test.tsx_Header_component_RGgm7Ks9QWI",
+  "path": "",
+  "extension": ".tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    10,
+    34
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

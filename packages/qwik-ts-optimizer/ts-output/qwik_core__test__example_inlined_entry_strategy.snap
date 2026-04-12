@@ -1,0 +1,176 @@
+==INPUT==
+
+
+
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwik.dev/core';
+import { thing } from './sibling';
+import mongodb from 'mongodb';
+
+export const Child = component$(() => {
+
+	useStyles$('somestring');
+	const state = useStore({
+		count: 0
+	});
+
+	// Double count watch
+	useBrowserVisibleTask$(() => {
+		state.count = thing.doStuff() + import("./sibling");
+	});
+
+	return (
+		<div onClick$={() => console.log(mongodb)}>
+		</div>
+	);
+});
+
+============================= test.tsx ==
+
+import { _noopQrl } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { useBrowserVisibleTaskQrl } from "@qwik.dev/core";
+import { useStylesQrl } from "@qwik.dev/core";
+import { useStore } from '@qwik.dev/core';
+import { thing } from './sibling';
+import mongodb from 'mongodb';
+//
+const q_Child_component_9GyF01GDKqw = /*#__PURE__*/ _noopQrl("Child_component_9GyF01GDKqw");
+const q_Child_component_div_q_e_click_cROa4sult1s = /*#__PURE__*/ _noopQrl("Child_component_div_q_e_click_cROa4sult1s");
+const q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA = /*#__PURE__*/ _noopQrl("Child_component_useBrowserVisibleTask_0IGFPOyJmQA");
+const q_Child_component_useStyles_qBZTuFM0160 = /*#__PURE__*/ _noopQrl("Child_component_useStyles_qBZTuFM0160");
+//
+q_Child_component_useStyles_qBZTuFM0160.s('somestring');
+q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.s(() => {
+const state = _captures[0];
+		state.count = thing.doStuff() + import("./sibling");
+	});
+q_Child_component_div_q_e_click_cROa4sult1s.s(() => console.log(mongodb));
+q_Child_component_9GyF01GDKqw.s(() => {
+
+	useStylesQrl(q_Child_component_useStyles_qBZTuFM0160);
+	const state = useStore({
+		count: 0
+	});
+
+	// Double count watch
+	useBrowserVisibleTaskQrl(q_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.w([
+        state
+    ]));
+
+	return (
+		<div q-e:click={q_Child_component_div_q_e_click_cROa4sult1s}>
+		</div>
+	);
+});
+
+export const Child = /*#__PURE__*/ componentQrl(q_Child_component_9GyF01GDKqw);
+
+
+Some("")
+============================= test.tsx_Child_component_useStyles_qBZTuFM0160.js (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_useStyles_qBZTuFM0160",
+  "entry": null,
+  "displayName": "test.tsx_Child_component_useStyles",
+  "hash": "qBZTuFM0160",
+  "canonicalFilename": "test.tsx_Child_component_useStyles_qBZTuFM0160",
+  "path": "",
+  "extension": ".js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "function",
+  "ctxName": "useStyles$",
+  "captures": false,
+  "loc": [
+    9,
+    13
+  ]
+}
+*/
+============================= test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.js (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_useBrowserVisibleTask_0IGFPOyJmQA",
+  "entry": null,
+  "displayName": "test.tsx_Child_component_useBrowserVisibleTask",
+  "hash": "0IGFPOyJmQA",
+  "canonicalFilename": "test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA",
+  "path": "",
+  "extension": ".js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "function",
+  "ctxName": "useBrowserVisibleTask$",
+  "captures": true,
+  "loc": [
+    15,
+    25
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+============================= test.tsx_Child_component_div_q_e_click_cROa4sult1s.js (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_div_q_e_click_cROa4sult1s",
+  "entry": null,
+  "displayName": "test.tsx_Child_component_div_q_e_click",
+  "hash": "cROa4sult1s",
+  "canonicalFilename": "test.tsx_Child_component_div_q_e_click_cROa4sult1s",
+  "path": "",
+  "extension": ".js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    20,
+    18
+  ]
+}
+*/
+============================= test.tsx_Child_component_9GyF01GDKqw.tsx (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_9GyF01GDKqw",
+  "entry": null,
+  "displayName": "test.tsx_Child_component",
+  "hash": "9GyF01GDKqw",
+  "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
+  "path": "",
+  "extension": ".tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    7,
+    33
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

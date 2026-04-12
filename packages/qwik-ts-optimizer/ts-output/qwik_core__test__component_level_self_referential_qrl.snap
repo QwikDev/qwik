@@ -1,0 +1,174 @@
+==INPUT==
+
+
+
+import { component$, useAsync$ } from '@qwik.dev/core';
+		
+// Component-level self-referential component
+export const Foo = component$((props) => {
+	const sig = useAsync$(async ({cleanup}) => {
+		const timer = setInterval(() => {
+			sig.value++;
+		}, 1000);
+		cleanup(() => clearInterval(timer));
+		return 0;
+	});
+	const other = useAsync$(async ({cleanup}) => {
+		const timer = setInterval(() => {
+			other.value++;
+		}, 900);
+		cleanup(() => clearInterval(timer));
+		return 0;
+	});
+	return (
+		<div>
+			{other.value}
+		</div>
+	);
+});
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+//
+
+// Component-level self-referential component
+export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE);
+
+
+Some("")
+============================= test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Foo_component_sig_useAsync_f0BGwWm4eeY = async (_rawProps) => {
+const sig = _captures[0];
+		const timer = setInterval(() => {
+			sig.value++;
+		}, 1000);
+		_rawProps.cleanup(() => clearInterval(timer));
+		return 0;
+	};
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_sig_useAsync_f0BGwWm4eeY",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_sig_useAsync",
+  "hash": "f0BGwWm4eeY",
+  "canonicalFilename": "test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY",
+  "path": "",
+  "extension": ".js",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "function",
+  "ctxName": "useAsync$",
+  "captures": true,
+  "loc": [
+    7,
+    24
+  ],
+  "paramNames": [
+    "cleanup"
+  ],
+  "captureNames": [
+    "sig"
+  ]
+}
+*/
+============================= test.tsx_Foo_component_other_useAsync_fsHooibmyyE.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Foo_component_other_useAsync_fsHooibmyyE = async (_rawProps) => {
+const other = _captures[0];
+		const timer = setInterval(() => {
+			other.value++;
+		}, 900);
+		_rawProps.cleanup(() => clearInterval(timer));
+		return 0;
+	};
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_other_useAsync_fsHooibmyyE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_other_useAsync",
+  "hash": "fsHooibmyyE",
+  "canonicalFilename": "test.tsx_Foo_component_other_useAsync_fsHooibmyyE",
+  "path": "",
+  "extension": ".js",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "function",
+  "ctxName": "useAsync$",
+  "captures": true,
+  "loc": [
+    14,
+    26
+  ],
+  "paramNames": [
+    "cleanup"
+  ],
+  "captureNames": [
+    "other"
+  ]
+}
+*/
+============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+import { useAsyncQrl } from "@qwik.dev/core";
+//
+const q_Foo_component_other_useAsync_fsHooibmyyE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_other_useAsync_fsHooibmyyE"), "Foo_component_other_useAsync_fsHooibmyyE");
+const q_Foo_component_sig_useAsync_f0BGwWm4eeY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_sig_useAsync_f0BGwWm4eeY"), "Foo_component_sig_useAsync_f0BGwWm4eeY");
+//
+export const Foo_component_HTDRsvUbLiE = (props) => {
+	const sig = useAsyncQrl(q_Foo_component_sig_useAsync_f0BGwWm4eeY.w([
+        sig
+    ]));
+	const other = useAsyncQrl(q_Foo_component_other_useAsync_fsHooibmyyE.w([
+        other
+    ]));
+	return (
+		<div>
+			{other.value}
+		</div>
+	);
+};
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
+  "path": "",
+  "extension": ".tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    6,
+    31
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

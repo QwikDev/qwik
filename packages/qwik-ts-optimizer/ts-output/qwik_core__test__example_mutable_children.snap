@@ -1,0 +1,358 @@
+==INPUT==
+
+
+
+import { component$, useStore, Slot, Fragment } from '@qwik.dev/core';
+import Image from './image.jpg?jsx';
+
+export function Fn1(props: Stuff) {
+	return (
+		<>
+			<div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+		</>
+	);
+}
+
+export function Fn2(props: Stuff) {
+	return (
+		<div>{prop.value && <Stuff></Stuff>}<div></div></div>
+	);
+}
+
+export function Fn3(props: Stuff) {
+	if (prop.value) {
+		return (
+			<Stuff></Stuff>
+		);
+	}
+	return (
+		<div></div>
+	);
+}
+
+export function Fn4(props: Stuff) {
+	if (prop.value) {
+		return (
+			<div></div>
+		);
+	}
+	return (
+		<Stuff></Stuff>
+	);
+}
+
+export const Arrow = (props: Stuff) => <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>;
+
+export const AppDynamic1 = component$((props: Stuff) => {
+	return (
+		<>
+			<div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+		</>
+	);
+});
+export const AppDynamic2 = component$((props: Stuff) => {
+	return (
+		<div>{prop.value && <Stuff></Stuff>}<div></div></div>
+	);
+});
+
+export const AppDynamic3 = component$((props: Stuff) => {
+	if (prop.value) {
+		return (
+			<Stuff></Stuff>
+		);
+	}
+	return (
+		<div></div>
+	);
+});
+
+export const AppDynamic4 = component$((props: Stuff) => {
+	if (prop.value) {
+		return (
+			<div></div>
+		);
+	}
+	return (
+		<Stuff></Stuff>
+	);
+});
+
+export const AppStatic = component$((props: Stuff) => {
+	return (
+		<>
+			<div>Static {f ? 1 : 3}</div>
+			<div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+
+			<div>{prop.value && <div></div>}</div>
+			<div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
+			<div>{prop.value && <><div></div></>}</div>
+			<div>{prop.value && <Image/>}</div>
+			<div>Static {f ? 1 : 3}</div>
+			<div>Static</div>
+			<div>Static {props.value}</div>
+			<div>Static {stuff()}</div>
+			<div>Static {stuff()}</div>
+		</>
+	);
+});
+
+============================= test.tsx ==
+
+import { _noopQrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _wrapProp } from "@qwik.dev/core";
+import { Slot, Fragment } from '@qwik.dev/core';
+import Image from './image.jpg?jsx';
+//
+const _hf0 = (p0)=>p0.value && <Stuff></Stuff>;
+const _hf0_str = "p0.value&&<Stuff></Stuff>";
+const _hf0 = (p0)=>p0.value && <Stuff></Stuff>;
+const _hf0_str = "p0.value&&<Stuff></Stuff>";
+const _hf1 = (p0)=>p0.value && <div></div>;
+const _hf1_str = "p0.value&&<div></div>";
+const _hf2 = (p0)=>p0.value && <Fragment><Slot></Slot></Fragment>;
+const _hf2_str = "p0.value&&<Fragment><Slot></Slot></Fragment>";
+const _hf3 = (p0)=>p0.value && <><div></div></>;
+const _hf3_str = "p0.value&&<><div></div></>";
+const _hf4 = (p0)=>p0.value && <Image/>;
+const _hf4_str = "p0.value&&<Image/>";
+//
+const q_AppDynamic1_component_R00UJ05gbes = /*#__PURE__*/ _noopQrl("AppDynamic1_component_R00UJ05gbes");
+const q_AppDynamic2_component_3EY2zm0v00A = /*#__PURE__*/ _noopQrl("AppDynamic2_component_3EY2zm0v00A");
+const q_AppDynamic3_component_FVq83NlbTDQ = /*#__PURE__*/ _noopQrl("AppDynamic3_component_FVq83NlbTDQ");
+const q_AppDynamic4_component_IO0yr8UvWEI = /*#__PURE__*/ _noopQrl("AppDynamic4_component_IO0yr8UvWEI");
+const q_AppStatic_component_gYRXqF3G5nE = /*#__PURE__*/ _noopQrl("AppStatic_component_gYRXqF3G5nE");
+//
+
+export function Fn1(props: Stuff) {
+	return (
+		/*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxSorted("p", null, null, "1", 3, "u6_0") : /*#__PURE__*/ _jsxSorted(Stuff, null, null, "2", 3, "u6_1"), 1, null), 1, "u6_2")
+	);
+}
+
+export function Fn2(props: Stuff) {
+	return (
+		/*#__PURE__*/ _jsxSorted("div", null, null, [_fnSignal(_hf0, [prop], _hf0_str), /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null)], 1, "u6_4")
+	);
+}
+
+export function Fn3(props: Stuff) {
+	if (prop.value) {
+		return (
+			/*#__PURE__*/ _jsxSorted(Stuff, null, null, null, 3, "u6_5")
+		);
+	}
+	return (
+		/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_6")
+	);
+}
+
+export function Fn4(props: Stuff) {
+	if (prop.value) {
+		return (
+			/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_7")
+		);
+	}
+	return (
+		/*#__PURE__*/ _jsxSorted(Stuff, null, null, null, 3, "u6_8")
+	);
+}
+
+export const Arrow = (props: Stuff) => /*#__PURE__*/ _jsxSorted("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxSorted("p", null, null, "1", 3, "u6_9") : /*#__PURE__*/ _jsxSorted(Stuff, null, null, "2", 3, "u6_10"), 1, "u6_11");
+
+const AppDynamic1_component_R00UJ05gbes = (props) => {
+	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, /* @__PURE__ */ _jsxSorted("div", null, null, prop < 2 ? /* @__PURE__ */ _jsxSorted("p", null, null, "1", 3, "u6_12") : /* @__PURE__ */ _jsxSorted(Stuff, null, null, "2", 3, "u6_13"), 1, null), 1, "u6_14");
+};
+q_AppDynamic1_component_R00UJ05gbes.s(AppDynamic1_component_R00UJ05gbes);
+export const AppDynamic1 = /*#__PURE__*/ componentQrl(q_AppDynamic1_component_R00UJ05gbes);
+const AppDynamic2_component_3EY2zm0v00A = (props) => {
+	return /* @__PURE__ */ _jsxSorted("div", null, null, [_fnSignal(_hf0, [prop], _hf0_str), /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, null)], 1, "u6_16");
+};
+q_AppDynamic2_component_3EY2zm0v00A.s(AppDynamic2_component_3EY2zm0v00A);
+export const AppDynamic2 = /*#__PURE__*/ componentQrl(q_AppDynamic2_component_3EY2zm0v00A);
+
+const AppDynamic3_component_FVq83NlbTDQ = (props) => {
+	if (prop.value) {
+		return /* @__PURE__ */ _jsxSorted(Stuff, null, null, null, 3, "u6_17");
+	}
+	return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_18");
+};
+q_AppDynamic3_component_FVq83NlbTDQ.s(AppDynamic3_component_FVq83NlbTDQ);
+export const AppDynamic3 = /*#__PURE__*/ componentQrl(q_AppDynamic3_component_FVq83NlbTDQ);
+
+const AppDynamic4_component_IO0yr8UvWEI = (props) => {
+	if (prop.value) {
+		return /* @__PURE__ */ _jsxSorted("div", null, null, null, 3, "u6_19");
+	}
+	return /* @__PURE__ */ _jsxSorted(Stuff, null, null, null, 3, "u6_20");
+};
+q_AppDynamic4_component_IO0yr8UvWEI.s(AppDynamic4_component_IO0yr8UvWEI);
+export const AppDynamic4 = /*#__PURE__*/ componentQrl(q_AppDynamic4_component_IO0yr8UvWEI);
+
+const AppStatic_component_gYRXqF3G5nE = (props) => {
+	return /* @__PURE__ */ _jsxSorted(_Fragment, null, null, [
+		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", f ? 1 : 3], 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, prop < 2 ? /* @__PURE__ */ _jsxSorted("p", null, null, "1", 3, "u6_21") : /* @__PURE__ */ _jsxSorted("p", null, null, "2", 3, "u6_22"), 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, _fnSignal(_hf1, [prop], _hf1_str), 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, _fnSignal(_hf2, [prop], _hf2_str), 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, _fnSignal(_hf3, [prop], _hf3_str), 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, _fnSignal(_hf4, [prop], _hf4_str), 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", f ? 1 : 3], 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, "Static", 3, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", _wrapProp(props)], 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", stuff()], 1, null),
+		/* @__PURE__ */ _jsxSorted("div", null, null, ["Static ", stuff()], 1, null)
+	], 1, "u6_28");
+};
+q_AppStatic_component_gYRXqF3G5nE.s(AppStatic_component_gYRXqF3G5nE);
+export const AppStatic = /*#__PURE__*/ componentQrl(q_AppStatic_component_gYRXqF3G5nE);
+
+
+Some("")
+============================= test.tsx_AppDynamic1_component_R00UJ05gbes.ts (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "AppDynamic1_component_R00UJ05gbes",
+  "entry": null,
+  "displayName": "test.tsx_AppDynamic1_component",
+  "hash": "R00UJ05gbes",
+  "canonicalFilename": "test.tsx_AppDynamic1_component_R00UJ05gbes",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    39
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_AppDynamic2_component_3EY2zm0v00A.ts (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "AppDynamic2_component_3EY2zm0v00A",
+  "entry": null,
+  "displayName": "test.tsx_AppDynamic2_component",
+  "hash": "3EY2zm0v00A",
+  "canonicalFilename": "test.tsx_AppDynamic2_component_3EY2zm0v00A",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    51,
+    39
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_AppDynamic3_component_FVq83NlbTDQ.ts (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "AppDynamic3_component_FVq83NlbTDQ",
+  "entry": null,
+  "displayName": "test.tsx_AppDynamic3_component",
+  "hash": "FVq83NlbTDQ",
+  "canonicalFilename": "test.tsx_AppDynamic3_component_FVq83NlbTDQ",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    57,
+    39
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_AppDynamic4_component_IO0yr8UvWEI.ts (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "AppDynamic4_component_IO0yr8UvWEI",
+  "entry": null,
+  "displayName": "test.tsx_AppDynamic4_component",
+  "hash": "IO0yr8UvWEI",
+  "canonicalFilename": "test.tsx_AppDynamic4_component_IO0yr8UvWEI",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    68,
+    39
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_AppStatic_component_gYRXqF3G5nE.ts (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "AppStatic_component_gYRXqF3G5nE",
+  "entry": null,
+  "displayName": "test.tsx_AppStatic_component",
+  "hash": "gYRXqF3G5nE",
+  "canonicalFilename": "test.tsx_AppStatic_component_gYRXqF3G5nE",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    79,
+    37
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

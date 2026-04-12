@@ -1,0 +1,270 @@
+==INPUT==
+
+
+
+import { component$, useTask$, useStore, useStyles$ } from '@qwik.dev/core';
+import mongo from 'mongodb';
+import redis from 'redis';
+
+export const Parent = component$(() => {
+	const state = useStore({
+		text: ''
+	});
+
+	// Double count watch
+	useTask$(async () => {
+		state.text = await mongo.users();
+		redis.set(state.text);
+	});
+
+	return (
+		<div onClick$={() => console.log('parent')}>
+			{state.text}
+		</div>
+	);
+});
+
+export const Child = component$(() => {
+	const state = useStore({
+		text: ''
+	});
+
+	// Double count watch
+	useTask$(async () => {
+		state.text = await mongo.users();
+	});
+
+	return (
+		<div onClick$={() => console.log('child')}>
+			{state.text}
+		</div>
+	);
+});
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_Child_component_9GyF01GDKqw = /* @__PURE__ */ qrl(() => import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw");
+const q_Parent_component_0TaiDayHrlo = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo");
+//
+export const Parent = /* @__PURE__ */ componentQrl(q_Parent_component_0TaiDayHrlo);
+export const Child = /* @__PURE__ */ componentQrl(q_Child_component_9GyF01GDKqw);
+
+
+
+Some("")
+============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js (ENTRY POINT)==
+
+import mongo from "mongodb";
+import redis from "redis";
+import { _captures } from "@qwik.dev/core";
+//
+export const Parent_component_useTask_gDH1EtUWqBU = async () => {
+	const state = _captures[0];
+	state.text = await mongo.users();
+	redis.set(state.text);
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_useTask_gDH1EtUWqBU",
+  "entry": null,
+  "displayName": "test.tsx_Parent_component_useTask",
+  "hash": "gDH1EtUWqBU",
+  "canonicalFilename": "test.tsx_Parent_component_useTask_gDH1EtUWqBU",
+  "path": "",
+  "extension": ".js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    13,
+    11
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+============================= test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA.js (ENTRY POINT)==
+
+export const Parent_component_div_q_e_click_zM9okM0TYrA = () => console.log("parent");
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_div_q_e_click_zM9okM0TYrA",
+  "entry": null,
+  "displayName": "test.tsx_Parent_component_div_q_e_click",
+  "hash": "zM9okM0TYrA",
+  "canonicalFilename": "test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA",
+  "path": "",
+  "extension": ".js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    19,
+    18
+  ]
+}
+*/
+============================= test.tsx_Child_component_useTask_Oh4n7ZeqJkU.js (ENTRY POINT)==
+
+import mongo from "mongodb";
+import { _captures } from "@qwik.dev/core";
+//
+export const Child_component_useTask_Oh4n7ZeqJkU = async () => {
+	const state = _captures[0];
+	state.text = await mongo.users();
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_useTask_Oh4n7ZeqJkU",
+  "entry": null,
+  "displayName": "test.tsx_Child_component_useTask",
+  "hash": "Oh4n7ZeqJkU",
+  "canonicalFilename": "test.tsx_Child_component_useTask_Oh4n7ZeqJkU",
+  "path": "",
+  "extension": ".js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    31,
+    11
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+============================= test.tsx_Child_component_div_q_e_click_cROa4sult1s.js (ENTRY POINT)==
+
+export const Child_component_div_q_e_click_cROa4sult1s = () => console.log("child");
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_div_q_e_click_cROa4sult1s",
+  "entry": null,
+  "displayName": "test.tsx_Child_component_div_q_e_click",
+  "hash": "cROa4sult1s",
+  "canonicalFilename": "test.tsx_Child_component_div_q_e_click_cROa4sult1s",
+  "path": "",
+  "extension": ".js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    36,
+    18
+  ]
+}
+*/
+============================= test.tsx_Parent_component_0TaiDayHrlo.ts (ENTRY POINT)==
+
+import { useStore } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+//
+const q_Parent_component_div_q_e_click_zM9okM0TYrA = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA"), "Parent_component_div_q_e_click_zM9okM0TYrA");
+const q_Parent_component_useTask_gDH1EtUWqBU = /* @__PURE__ */ qrl(() => import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "Parent_component_useTask_gDH1EtUWqBU");
+//
+export const Parent_component_0TaiDayHrlo = () => {
+	const state = useStore({ text: "" });
+	// Double count watch
+	useTaskQrl(q_Parent_component_useTask_gDH1EtUWqBU.w([state]));
+	return /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_Parent_component_div_q_e_click_zM9okM0TYrA }, _wrapProp(state, "text"), 3, "u6_0");
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_0TaiDayHrlo",
+  "entry": null,
+  "displayName": "test.tsx_Parent_component",
+  "hash": "0TaiDayHrlo",
+  "canonicalFilename": "test.tsx_Parent_component_0TaiDayHrlo",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    7,
+    34
+  ]
+}
+*/
+============================= test.tsx_Child_component_9GyF01GDKqw.ts (ENTRY POINT)==
+
+import { useStore } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+//
+const q_Child_component_div_q_e_click_cROa4sult1s = /* @__PURE__ */ qrl(() => import("./test.tsx_Child_component_div_q_e_click_cROa4sult1s"), "Child_component_div_q_e_click_cROa4sult1s");
+const q_Child_component_useTask_Oh4n7ZeqJkU = /* @__PURE__ */ qrl(() => import("./test.tsx_Child_component_useTask_Oh4n7ZeqJkU"), "Child_component_useTask_Oh4n7ZeqJkU");
+//
+export const Child_component_9GyF01GDKqw = () => {
+	const state = useStore({ text: "" });
+	// Double count watch
+	useTaskQrl(q_Child_component_useTask_Oh4n7ZeqJkU.w([state]));
+	return /* @__PURE__ */ _jsxSorted("div", null, { "q-e:click": q_Child_component_div_q_e_click_cROa4sult1s }, _wrapProp(state, "text"), 3, "u6_1");
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_9GyF01GDKqw",
+  "entry": null,
+  "displayName": "test.tsx_Child_component",
+  "hash": "9GyF01GDKqw",
+  "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
+  "path": "",
+  "extension": ".ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    25,
+    33
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

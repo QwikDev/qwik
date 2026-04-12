@@ -1,0 +1,110 @@
+==INPUT==
+
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const AtomStatus = component$(({ctx,atom})=>{
+	let status = atom.status;
+	if(!atom.real) {
+		status="WILL-VANISH"
+	} else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
+		status="WTFED"
+	}
+	return (
+		<span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
+		</span>
+	);
+})
+
+============================= test.tsx ==
+
+import { _noopQrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_AtomStatus_component_hdwpoUtydSA = /* @__PURE__ */ _noopQrl("AtomStatus_component_hdwpoUtydSA");
+const q_AtomStatus_component_span_q_e_click_0yqKAycyBF0 = /* @__PURE__ */ _noopQrl("AtomStatus_component_span_q_e_click_0yqKAycyBF0");
+//
+q_AtomStatus_component_span_q_e_click_0yqKAycyBF0.s((ev) => atomStatusClick(ctx, ev, [atom]));
+q_AtomStatus_component_hdwpoUtydSA.s((_rawProps) => {
+	let status = _rawProps.atom.status;
+	if (!_rawProps.atom.real) {
+		status = "WILL-VANISH";
+	} else if (JSON.stringify(_rawProps.atom.atom) == JSON.stringify(_rawProps.atom.real)) {
+		status = "WTFED";
+	}
+	return <span title={_rawProps.atom.ID} q-e:click={q_AtomStatus_component_span_q_e_click_0yqKAycyBF0} class={[
+		"atom",
+		status,
+		_rawProps.ctx.store[_rawProps.atom.ID] ? "selected" : null
+	]}>
+		</span>;
+});
+export const AtomStatus = /* @__PURE__ */ componentQrl(q_AtomStatus_component_hdwpoUtydSA);
+
+
+
+Some("")
+============================= test.tsx_AtomStatus_component_span_q_e_click_0yqKAycyBF0.js (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "AtomStatus_component_span_q_e_click_0yqKAycyBF0",
+  "entry": null,
+  "displayName": "test.tsx_AtomStatus_component_span_q_e_click",
+  "hash": "0yqKAycyBF0",
+  "canonicalFilename": "test.tsx_AtomStatus_component_span_q_e_click_0yqKAycyBF0",
+  "path": "",
+  "extension": ".js",
+  "parent": "AtomStatus_component_hdwpoUtydSA",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    13,
+    35
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "atom",
+    "ctx"
+  ]
+}
+*/
+============================= test.tsx_AtomStatus_component_hdwpoUtydSA.tsx (ENTRY POINT)==
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "AtomStatus_component_hdwpoUtydSA",
+  "entry": null,
+  "displayName": "test.tsx_AtomStatus_component",
+  "hash": "hdwpoUtydSA",
+  "canonicalFilename": "test.tsx_AtomStatus_component_hdwpoUtydSA",
+  "path": "",
+  "extension": ".tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    5,
+    38
+  ],
+  "paramNames": [
+    "ctx",
+    "atom"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,84 @@
+==INPUT==
+
+
+
+import { formAction$ } from 'forms';
+const x = 'module-level';
+export const action = formAction$((data) => {
+  switch (data.kind) {
+    case 'a': {
+      const x = 'shadowed-in-block';
+      return x;
+    }
+    case 'b': {
+      const x = 'shadowed-in-case';
+      return x;
+    }
+  }
+  return x;
+});
+
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { formActionQrl } from "forms";
+//
+const q_action_formAction_dIQV5vh1He4 = /* @__PURE__ */ qrl(() => import("./test.tsx_action_formAction_dIQV5vh1He4"), "action_formAction_dIQV5vh1He4");
+//
+const x = "module-level";
+export const action = formActionQrl(q_action_formAction_dIQV5vh1He4.w([x]));
+
+
+
+Some("")
+============================= test.tsx_action_formAction_dIQV5vh1He4.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const action_formAction_dIQV5vh1He4 = (data) => {
+	const x = _captures[0];
+	switch (data.kind) {
+		case "a": {
+			const x = "shadowed-in-block";
+			return x;
+		}
+		case "b": {
+			const x = "shadowed-in-case";
+			return x;
+		}
+	}
+	return x;
+};
+
+
+
+Some("")
+/*
+{
+  "origin": "test.tsx",
+  "name": "action_formAction_dIQV5vh1He4",
+  "entry": null,
+  "displayName": "test.tsx_action_formAction",
+  "hash": "dIQV5vh1He4",
+  "canonicalFilename": "test.tsx_action_formAction_dIQV5vh1He4",
+  "path": "",
+  "extension": ".js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "formAction$",
+  "captures": true,
+  "loc": [
+    5,
+    35
+  ],
+  "paramNames": [
+    "data"
+  ],
+  "captureNames": [
+    "x"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

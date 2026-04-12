@@ -111,8 +111,12 @@ function normalizeProgram(program: any): void {
   // - Single-statement blocks in control flow can be unwrapped
   normalizeArrowBodies(program);
   unwrapSingleStatementBlocks(program);
+  // Inline `const X = fn; q_X.s(X);` -> `q_X.s(fn);`
+  // This is cosmetic: both forms set the same function on the QRL.
+  // SWC inlines directly, our optimizer declares then references.
+  inlineSegmentBodyIntoSCall(program);
   // Second pass: normalizeWrapProp, inlineFnSignalSimple, stripUnusedCallBindings,
-  // inlineSegmentBodyIntoSCall, and stripUnusedLocalDeclarations can all leave
+  // and stripUnusedLocalDeclarations can all leave
   // imports that are no longer referenced.
   // Re-run stripUnusedImports to clean them up, then re-sort.
   stripUnusedImports(program);

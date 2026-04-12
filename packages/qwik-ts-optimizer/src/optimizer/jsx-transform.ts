@@ -611,8 +611,6 @@ function processOneChild(
         const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr);
         const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
         neededImports?.add('_fnSignal');
-        // In SWC, _fnSignal results are const (create_synthetic_qqsegment
-        // returns is_const=true), so they don't set jsx_mutable -> static.
         return { text: fnSignalCall, type: 'static' };
       }
     }

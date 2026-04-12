@@ -790,7 +790,6 @@ export function generateSegmentCode(
         }
       }
     } catch (err: any) {
-      // If JSX parsing fails, use the original body text
       // If JSX parsing/transform fails, use the original body text
     }
   }

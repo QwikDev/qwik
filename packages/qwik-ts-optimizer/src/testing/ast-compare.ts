@@ -51,6 +51,11 @@ export function compareAst(
   normalizeImportOrder(cleanExpected);
   normalizeImportOrder(cleanActual);
 
+  // Normalize QRL declaration order: sort contiguous blocks of const declarations
+  // that are independent QRL/noopQrl/hoisted function definitions.
+  normalizeQrlDeclarationOrder(cleanExpected);
+  normalizeQrlDeclarationOrder(cleanActual);
+
   return {
     match: equal(cleanExpected, cleanActual),
     expectedParseError: null,
@@ -81,6 +86,44 @@ function normalizeImportOrder(program: any): void {
     return aKey.localeCompare(bKey);
   });
   program.body.splice(0, importEnd, ...imports);
+}
+
+/**
+ * Check if a statement is an independent QRL/noopQrl const declaration or
+ * hoisted signal function (_hf0, _hf0_str, etc.) that can be safely reordered.
+ */
+function isReorderableDeclaration(stmt: any): boolean {
+  if (stmt?.type !== 'VariableDeclaration' || stmt.kind !== 'const') return false;
+  if (!stmt.declarations || stmt.declarations.length !== 1) return false;
+  const decl = stmt.declarations[0];
+  if (!decl.id || decl.id.type !== 'Identifier') return false;
+  const name = decl.id.name;
+  // QRL declarations: const q_xxx = qrl(...) or _noopQrl(...)
+  if (name.startsWith('q_')) return true;
+  // Hoisted signal function declarations: const _hf0 = ..., const _hf0_str = ...
+  if (/^_hf\d+(_str)?$/.test(name)) return true;
+  return false;
+}
+
+/**
+ * Sort contiguous blocks of reorderable declarations (QRL refs, hoisted fns).
+ * These are independent and their order has no semantic meaning.
+ */
+function normalizeQrlDeclarationOrder(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  let i = 0;
+  while (i < program.body.length) {
+    // Find start of a contiguous reorderable block
+    if (!isReorderableDeclaration(program.body[i])) { i++; continue; }
+    const blockStart = i;
+    while (i < program.body.length && isReorderableDeclaration(program.body[i])) { i++; }
+    if (i - blockStart <= 1) continue;
+
+    const block = program.body.slice(blockStart, i);
+    block.sort((a: any, b: any) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    program.body.splice(blockStart, i - blockStart, ...block);
+  }
 }
 
 function shouldStripRaw(node: any, ancestors: any[]): boolean {

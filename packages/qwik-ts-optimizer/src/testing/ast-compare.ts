@@ -72,6 +72,7 @@ function normalizeProgram(program: any): void {
   stripDirectives(program);
   deduplicateImports(program);
   unwrapSingleStatementBlocks(program);
+  sortObjectProperties(program);
 }
 
 /**
@@ -419,6 +420,37 @@ function unwrapSingleStatementBlocks(node: any): void {
          node.type === 'ForOfStatement' || node.type === 'WhileStatement' ||
          node.type === 'DoWhileStatement' || node.type === 'IfStatement')) {
       node[prop] = node[prop].body[0];
+    }
+  }
+}
+
+/**
+ * Sort properties within ObjectExpression nodes by key name.
+ * Property order in object literals passed to _jsxSorted/_jsxSplit
+ * is not semantically meaningful, so sorting makes comparison order-insensitive.
+ * Only sorts non-spread properties; spread elements stay in place.
+ */
+function sortObjectProperties(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) sortObjectProperties(item);
+    return;
+  }
+  // Recurse first (bottom-up)
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    sortObjectProperties(node[key]);
+  }
+  // Sort properties of ObjectExpression
+  if (node.type === 'ObjectExpression' && Array.isArray(node.properties)) {
+    // Only sort if no spread elements (spread order is meaningful)
+    const hasSpread = node.properties.some((p: any) => p.type === 'SpreadElement');
+    if (!hasSpread && node.properties.length > 1) {
+      node.properties.sort((a: any, b: any) => {
+        const aKey = a.key?.name || a.key?.value || '';
+        const bKey = b.key?.name || b.key?.value || '';
+        return String(aKey).localeCompare(String(bKey));
+      });
     }
   }
 }

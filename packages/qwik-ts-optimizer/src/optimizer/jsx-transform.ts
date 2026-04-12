@@ -511,8 +511,11 @@ function processChildren(
     return { text: null, type: 'none' };
   }
 
-  // Filter out empty/whitespace-only JSXText nodes, but preserve
-  // whitespace-only text between non-text siblings as " " (standard JSX behavior)
+  // Filter JSXText nodes:
+  // - Non-whitespace text: preserve (trimmed)
+  // - Whitespace-only between two JSXExpressionContainer siblings: preserve as " "
+  //   (e.g., `<span>{a} {b}</span>` -> children: [a, " ", b])
+  // - All other whitespace-only JSXText: strip (matching Rust SWC behavior)
   const meaningful: any[] = [];
   for (let i = 0; i < children.length; i++) {
     const child = children[i];
@@ -520,8 +523,21 @@ function processChildren(
       const trimmed = child.value?.trim();
       if (trimmed) {
         meaningful.push({ ...child, _trimmedText: trimmed });
+      } else {
+        // Whitespace-only: preserve as " " only between expression containers
+        // (not between JSX elements, which get their whitespace stripped)
+        const prevSibling = meaningful.length > 0 ? meaningful[meaningful.length - 1] : null;
+        const nextSibling = children.slice(i + 1).find(
+          (c: any) => c.type !== 'JSXText' || c.value?.trim(),
+        );
+        if (
+          prevSibling && nextSibling &&
+          prevSibling.type === 'JSXExpressionContainer' &&
+          nextSibling.type === 'JSXExpressionContainer'
+        ) {
+          meaningful.push({ ...child, _trimmedText: ' ' });
+        }
       }
-      // Whitespace-only JSXText between siblings is stripped (matching Rust optimizer)
     } else {
       meaningful.push(child);
     }

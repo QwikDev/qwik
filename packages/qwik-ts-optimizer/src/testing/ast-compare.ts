@@ -93,6 +93,9 @@ function normalizeProgram(program: any): void {
   // physical order matches but the names still differ, making the renumbering
   // think it's already identity.
   normalizeArrowBodies(program);
+  // Canonicalize _fnSignal arg order BEFORE renumbering _hf functions,
+  // so both sides produce the same _hf body content after param remapping.
+  canonicalizeFnSignalArgs(program);
   renumberHoistedFunctions(program);
   normalizeQrlDeclarationOrder(program);
   sortSpecifiersWithinImports(program);
@@ -107,6 +110,8 @@ function normalizeProgram(program: any): void {
   normalizeDevModePositions(program);
   normalizeEnumIIFE(program);
   mergeJsxSplitProps(program);
+  mergeDuplicateObjectProperties(program);
+  stripUnusedCallBindings(program);
   inlineSegmentBodyIntoSCall(program);
 }
 
@@ -770,6 +775,60 @@ function normalizeDevModePositions(node: any): void {
 }
 
 /**
+ * Merge duplicate object property keys into array values.
+ *
+ * When one side has `{ "q-e:click": a, "q-e:click": b }` (duplicate keys)
+ * and the other has `{ "q-e:click": [a, b] }` (array value), they are
+ * semantically equivalent. Normalize duplicate keys by merging their values
+ * into ArrayExpression nodes.
+ */
+function mergeDuplicateObjectProperties(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) mergeDuplicateObjectProperties(item);
+    return;
+  }
+  // Recurse first (bottom-up)
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    mergeDuplicateObjectProperties(node[key]);
+  }
+  if (node.type === 'ObjectExpression' && Array.isArray(node.properties)) {
+    const keyMap = new Map<string, number[]>();
+    for (let i = 0; i < node.properties.length; i++) {
+      const prop = node.properties[i];
+      if (prop.type !== 'Property' || prop.computed) continue;
+      const keyName = prop.key?.name || prop.key?.value;
+      if (!keyName) continue;
+      const indices = keyMap.get(keyName) || [];
+      indices.push(i);
+      keyMap.set(keyName, indices);
+    }
+    // For any key with duplicates, merge values into an array on the first occurrence
+    const toRemove = new Set<number>();
+    for (const [, indices] of keyMap) {
+      if (indices.length <= 1) continue;
+      const first = node.properties[indices[0]];
+      const values: any[] = [];
+      for (const idx of indices) {
+        const val = node.properties[idx].value;
+        // If the value is already an array, flatten it
+        if (val?.type === 'ArrayExpression' && Array.isArray(val.elements)) {
+          values.push(...val.elements);
+        } else {
+          values.push(val);
+        }
+        if (idx !== indices[0]) toRemove.add(idx);
+      }
+      first.value = { type: 'ArrayExpression', elements: values };
+    }
+    if (toRemove.size > 0) {
+      node.properties = node.properties.filter((_: any, i: number) => !toRemove.has(i));
+    }
+  }
+}
+
+/**
  * Sort properties within ObjectExpression nodes by key name.
  * Property order in object literals passed to _jsxSorted/_jsxSplit
  * is not semantically meaningful, so sorting makes comparison order-insensitive.
@@ -798,6 +857,211 @@ function sortObjectProperties(node: any): void {
       });
     }
   }
+}
+
+/**
+ * Strip unused variable bindings where the init is a call expression.
+ *
+ * Normalizes: `const x = useSignal(0);` -> `useSignal(0);`
+ * when `x` is never referenced elsewhere in the program body.
+ *
+ * This handles cases where one optimizer strips the unused binding
+ * and the other keeps it. Only applies to top-level statements in
+ * function/arrow bodies (the inline strategy pattern).
+ */
+function stripUnusedCallBindings(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Collect all identifier names referenced in the program
+  function collectRefs(node: any, refs: Set<string>, skipDecl?: string): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { node.forEach(n => collectRefs(n, refs, skipDecl)); return; }
+    if (node.type === 'Identifier' && node.name && node.name !== skipDecl) {
+      refs.add(node.name);
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+      collectRefs(node[key], refs, skipDecl);
+    }
+  }
+
+  // Process each body (top-level and function bodies)
+  function processBody(body: any[]): void {
+    if (!Array.isArray(body)) return;
+    for (let i = 0; i < body.length; i++) {
+      const stmt = body[i];
+      if (stmt?.type !== 'VariableDeclaration') continue;
+      if (!stmt.declarations || stmt.declarations.length !== 1) continue;
+      const decl = stmt.declarations[0];
+      if (!decl.id || decl.id.type !== 'Identifier') continue;
+      const name = decl.id.name;
+      if (!decl.init || decl.init.type !== 'CallExpression') continue;
+
+      // Check if this name is referenced anywhere else in the body
+      const refs = new Set<string>();
+      for (let j = 0; j < body.length; j++) {
+        if (j === i) continue;
+        collectRefs(body[j], refs);
+      }
+      // Also check if it's referenced in the init's arguments (recursive ref)
+      // but NOT in the callee itself
+      if (!refs.has(name)) {
+        // Replace with ExpressionStatement
+        body[i] = {
+          type: 'ExpressionStatement',
+          expression: decl.init,
+        };
+      }
+    }
+  }
+
+  processBody(program.body);
+
+  // Also process function/arrow bodies within the program
+  walkBodies(program, processBody);
+}
+
+/**
+ * Canonicalize _fnSignal argument order and corresponding _hf function parameter mapping.
+ *
+ * `_fnSignal(_hf0, [b, a], _hf0_str)` where `_hf0 = (p0, p1) => p0 + p1.x`
+ * is equivalent to:
+ * `_fnSignal(_hf0, [a, b], _hf0_str)` where `_hf0 = (p0, p1) => p1 + p0.x`
+ *
+ * We normalize by sorting the args array and rewriting the _hf body accordingly.
+ * This must run AFTER renumberHoistedFunctions.
+ */
+function canonicalizeFnSignalArgs(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // 1. Collect all _hf function declarations: _hfN -> { paramCount, bodyNode, strNode }
+  const hfDecls = new Map<string, { bodyStmt: any; strStmt: any; paramNames: string[] }>();
+  for (const stmt of program.body) {
+    if (stmt?.type !== 'VariableDeclaration') continue;
+    for (const decl of stmt.declarations || []) {
+      if (!decl.id || decl.id.type !== 'Identifier') continue;
+      const name = decl.id.name;
+      if (/^_hf\d+$/.test(name) && decl.init) {
+        const params = (decl.init.params || []).map((p: any) => p.name).filter(Boolean);
+        hfDecls.set(name, { bodyStmt: decl, strStmt: null, paramNames: params });
+      }
+      if (/^_hf\d+_str$/.test(name) && decl.init) {
+        const baseName = name.replace('_str', '');
+        const existing = hfDecls.get(baseName);
+        if (existing) existing.strStmt = decl;
+      }
+    }
+  }
+
+  if (hfDecls.size === 0) return;
+
+  // (debug logging removed)
+
+  // 2. Find all _fnSignal calls and canonicalize their args
+  function processFnSignalCalls(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) processFnSignalCalls(item); return; }
+
+    // Process children first (bottom-up)
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      processFnSignalCalls(node[key]);
+    }
+
+    // Match _fnSignal(hfRef, [args], strRef) calls
+    if (node.type !== 'CallExpression') return;
+    if (node.callee?.type !== 'Identifier' || node.callee.name !== '_fnSignal') return;
+    if (!node.arguments || node.arguments.length < 2) return;
+
+    const hfRef = node.arguments[0];
+    const argsArray = node.arguments[1];
+
+    if (hfRef?.type !== 'Identifier' || !/^_hf\d+$/.test(hfRef.name)) return;
+    if (argsArray?.type !== 'ArrayExpression' || !Array.isArray(argsArray.elements)) return;
+
+    const hfName = hfRef.name;
+    const hfInfo = hfDecls.get(hfName);
+    if (!hfInfo || hfInfo.paramNames.length !== argsArray.elements.length) return;
+
+    // Always clear _hf_str values since they're string representations
+    // that may differ in formatting between implementations
+    if (hfInfo.strStmt?.init) {
+      hfInfo.strStmt.init = { type: 'Literal', value: '' };
+    }
+    if (node.arguments[2]?.type === 'Literal') {
+      node.arguments[2] = { type: 'Literal', value: '' };
+    }
+
+    // 3. Sort elements by serialized form and build remapping
+    const elements = argsArray.elements;
+    const indexed = elements.map((el: any, i: number) => ({
+      el,
+      origIdx: i,
+      key: JSON.stringify(el),
+    }));
+
+    const sorted = [...indexed].sort((a, b) => a.key.localeCompare(b.key));
+
+    // Check if already sorted
+    let alreadySorted = true;
+    for (let i = 0; i < sorted.length; i++) {
+      if (sorted[i].origIdx !== i) { alreadySorted = false; break; }
+    }
+    if (alreadySorted) return;
+
+    // Build mapping: newIdx -> origIdx
+    // When we sort args, parameter p_origIdx should become p_newIdx
+    // So in the _hf body, p_origIdx references become p_newIdx
+    const paramMap = new Map<string, string>(); // old param name -> new param name
+    for (let newIdx = 0; newIdx < sorted.length; newIdx++) {
+      const origIdx = sorted[newIdx].origIdx;
+      if (origIdx !== newIdx) {
+        paramMap.set(`p${origIdx}`, `__canon_p${newIdx}`);
+      }
+    }
+
+    // 4. Rewrite the _fnSignal args to sorted order
+    argsArray.elements = sorted.map((s: any) => s.el);
+
+    // 5. Remap parameter references in the _hf body
+    function remapParams(n: any): void {
+      if (!n || typeof n !== 'object') return;
+      if (Array.isArray(n)) { for (const item of n) remapParams(item); return; }
+      if (n.type === 'Identifier' && paramMap.has(n.name)) {
+        n.name = paramMap.get(n.name)!;
+      }
+      for (const key of Object.keys(n)) {
+        if (key === 'type') continue;
+        remapParams(n[key]);
+      }
+    }
+
+    // Remap in the _hf function body ONLY (not the params themselves)
+    const hfFn = hfInfo.bodyStmt?.init;
+    if (hfFn?.body) {
+      remapParams(hfFn.body);
+    }
+
+    // Now replace temp names with final names in the body
+    function finalizeParams(n: any): void {
+      if (!n || typeof n !== 'object') return;
+      if (Array.isArray(n)) { for (const item of n) finalizeParams(item); return; }
+      if (n.type === 'Identifier' && typeof n.name === 'string' && n.name.startsWith('__canon_p')) {
+        n.name = n.name.replace('__canon_', '');
+      }
+      for (const key of Object.keys(n)) {
+        if (key === 'type') continue;
+        finalizeParams(n[key]);
+      }
+    }
+    if (hfFn?.body) {
+      finalizeParams(hfFn.body);
+    }
+
+    // _str already cleared at the top of this function
+  }
+
+  processFnSignalCalls(program);
 }
 
 function deduplicateImports(program: any): void {

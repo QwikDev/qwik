@@ -166,7 +166,7 @@ export function getQrlImportSource(qrlCalleeName: string, originalSource?: strin
   if (qrlCalleeName === 'qwikifyQrl') return '@qwik.dev/react';
   const ROUTER_QRLS = new Set([
     'globalActionQrl', 'routeActionQrl', 'routeLoaderQrl',
-    'serverQrl', 'zodQrl',
+    'zodQrl',
   ]);
   if (ROUTER_QRLS.has(qrlCalleeName)) return '@qwik.dev/router';
   return '@qwik.dev/core';

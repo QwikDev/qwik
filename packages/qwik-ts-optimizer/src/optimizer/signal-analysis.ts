@@ -42,6 +42,7 @@ export function isSignalValueAccess(node: any): boolean {
 export function isStoreFieldAccess(
   node: any,
   importedNames: Set<string>,
+  localNames?: Set<string>,
 ): boolean {
   if (node == null || node.type !== 'MemberExpression') return false;
 
@@ -55,6 +56,11 @@ export function isStoreFieldAccess(
 
   // Must not be a well-known global
   if (GLOBAL_NAMES.has(objName)) return false;
+
+  // Must be a known local identifier when localNames is provided.
+  // Unknown globals (not imported, not in GLOBAL_NAMES, not in localNames) should
+  // NOT be treated as store fields — SWC skips signal analysis for them.
+  if (localNames && !localNames.has(objName)) return false;
 
   // Get property name
   const propName = getPropertyName(node);
@@ -243,7 +249,7 @@ function getMemberChainDepth(node: any): number {
  * Check if a MemberExpression is a deep store access (depth >= 2)
  * on a local (non-imported, non-global) identifier.
  */
-function isDeepStoreAccess(node: any, importedNames: Set<string>): boolean {
+function isDeepStoreAccess(node: any, importedNames: Set<string>, localNames?: Set<string>): boolean {
   if (node.type !== 'MemberExpression') return false;
   const depth = getMemberChainDepth(node);
   if (depth < 2) return false;
@@ -251,6 +257,8 @@ function isDeepStoreAccess(node: any, importedNames: Set<string>): boolean {
   if (root == null) return false;
   if (importedNames.has(root)) return false;
   if (GLOBAL_NAMES.has(root)) return false;
+  // Must be a known local when localNames is provided
+  if (localNames && !localNames.has(root)) return false;
   return true;
 }
 
@@ -265,6 +273,7 @@ function isDeepStoreAccess(node: any, importedNames: Set<string>): boolean {
 function collectReactiveRoots(
   node: any,
   importedNames: Set<string>,
+  localNames?: Set<string>,
 ): string[] {
   const roots: string[] = [];
   const seen = new Set<string>();
@@ -283,7 +292,7 @@ function collectReactiveRoots(
     }
 
     // Deep store access -> root is the chain root
-    if (isDeepStoreAccess(n, importedNames)) {
+    if (isDeepStoreAccess(n, importedNames, localNames)) {
       const root = getMemberChainRoot(n);
       if (root != null && !seen.has(root)) {
         seen.add(root);
@@ -293,7 +302,7 @@ function collectReactiveRoots(
     }
 
     // Single-level store field access (props.field, store.field) -> root is object
-    if (isStoreFieldAccess(n, importedNames)) {
+    if (isStoreFieldAccess(n, importedNames, localNames)) {
       const root = getMemberChainRoot(n.object);
       if (root != null && !seen.has(root)) {
         seen.add(root);
@@ -666,6 +675,8 @@ export function analyzeSignalExpression(
   exprNode: any,
   source: string,
   importedNames: Set<string>,
+  /** All locally declared names (for distinguishing known locals from unknown globals) */
+  localNames?: Set<string>,
 ): SignalExprResult {
   if (exprNode == null) return { type: 'none' };
 
@@ -708,15 +719,25 @@ export function analyzeSignalExpression(
 
   // MemberExpression
   if (exprNode.type === 'MemberExpression') {
+    // Skip signal analysis for member expressions on unknown globals.
+    // SWC only applies _wrapProp/_fnSignal when the object is a known local
+    // (in decl_stack) or a global (import/export). Unknown identifiers that
+    // aren't in scope get no signal treatment.
+    const objIdent = exprNode.object?.type === 'Identifier' ? exprNode.object.name : null;
+    const isKnownIdent = objIdent === null || // non-ident object (e.g., call result) is fine
+      importedNames.has(objIdent) ||
+      GLOBAL_NAMES.has(objIdent) ||
+      (localNames?.has(objIdent) ?? true); // if no localNames provided, assume known (backwards compat)
+
     // signal.value -> _wrapProp(signal)
-    if (isSignalValueAccess(exprNode)) {
+    if (isSignalValueAccess(exprNode) && isKnownIdent) {
       const objText = source.slice(exprNode.object.start, exprNode.object.end);
       return { type: 'wrapProp', code: `_wrapProp(${objText})` };
     }
 
     // Deep store access (store.address.city.name) -> fnSignal
-    if (isDeepStoreAccess(exprNode, importedNames)) {
-      const roots = collectReactiveRoots(exprNode, importedNames);
+    if (isKnownIdent && isDeepStoreAccess(exprNode, importedNames, localNames)) {
+      const roots = collectReactiveRoots(exprNode, importedNames, localNames);
       if (roots.length > 0) {
         const { hoistedFn, hoistedStr } = generateFnSignal(
           exprNode,
@@ -728,7 +749,7 @@ export function analyzeSignalExpression(
     }
 
     // store.field / props['field'] (single-level, local obj)
-    if (isStoreFieldAccess(exprNode, importedNames)) {
+    if (isKnownIdent && isStoreFieldAccess(exprNode, importedNames, localNames)) {
       const objText = source.slice(exprNode.object.start, exprNode.object.end);
       const propName = getPropertyName(exprNode)!;
       return {
@@ -765,7 +786,7 @@ export function analyzeSignalExpression(
       return { type: 'none' };
 
     // Collect reactive roots (signal.value + store accesses)
-    const roots = collectReactiveRoots(exprNode, importedNames);
+    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
 
     // Also collect bare local identifiers as additional deps.

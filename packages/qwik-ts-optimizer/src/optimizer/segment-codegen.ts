@@ -14,7 +14,7 @@ import { rewriteImportSource } from './rewrite-imports.js';
 import { getQrlImportSource, buildSyncTransform, needsPureAnnotation } from './rewrite-calls.js';
 import { applyRawPropsTransform } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
-import { transformAllJsx } from './jsx-transform.js';
+import { transformAllJsx, collectConstIdents } from './jsx-transform.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -784,8 +784,21 @@ export function generateSegmentCode(
         walkAst(bodyParse.program);
       }
 
+      // Build constIdents for segment JSX: include const-bound locals from the segment body.
+      // Note: QRL variable names (q_xxx) are NOT added to constIdents. SWC's const_idents
+      // is collected before JSX transformation, so generated QRL vars aren't in it.
+      // This means QRL vars are classified as 'var' by classifyProp, which matches SWC.
+      const segConstIdents = collectConstIdents(bodyParse.program);
+      // Add capture variable names (they're const-bound via _captures unpacking)
+      if (captureInfo?.captureNames) {
+        for (const name of captureInfo.captureNames) {
+          segConstIdents.add(name);
+        }
+      }
+
       const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
-        undefined, jsxOptions.devOptions, jsxOptions.keyCounterStart, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath);
+        undefined, jsxOptions.devOptions, jsxOptions.keyCounterStart, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath,
+        undefined, segConstIdents);
       segmentKeyCounterValue = jsxResult.keyCounterValue;
       const transformedWrapped = bodyS.toString();
       // Unwrap the parentheses

@@ -168,6 +168,96 @@ export function collectConstIdents(program: any): Set<string> {
   return constIdents;
 }
 
+/**
+ * Collect ALL locally declared identifier names from an AST program.
+ * Includes: const/let/var bindings, function params, function declarations,
+ * class declarations, catch clause params, etc.
+ *
+ * This represents SWC's full `decl_stack` (all scopes), used to distinguish
+ * known locals from unknown globals for signal analysis.
+ */
+export function collectAllLocalNames(program: any): Set<string> {
+  const names = new Set<string>();
+
+  function addIdent(node: any): void {
+    if (!node) return;
+    if (node.type === 'Identifier') {
+      names.add(node.name);
+    } else if (node.type === 'ArrayPattern') {
+      for (const elem of node.elements || []) {
+        if (elem) addIdent(elem.type === 'RestElement' ? elem.argument : elem);
+      }
+    } else if (node.type === 'ObjectPattern') {
+      for (const prop of node.properties || []) {
+        if (prop.type === 'RestElement') {
+          addIdent(prop.argument);
+        } else {
+          addIdent(prop.value || prop.key);
+        }
+      }
+    } else if (node.type === 'AssignmentPattern') {
+      addIdent(node.left);
+    }
+  }
+
+  function visit(node: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    // Variable declarations (const, let, var)
+    if (node.type === 'VariableDeclaration') {
+      for (const decl of node.declarations || []) {
+        addIdent(decl.id || decl.name);
+      }
+    }
+
+    // Function declarations
+    if (node.type === 'FunctionDeclaration' && node.id) {
+      addIdent(node.id);
+    }
+
+    // Class declarations
+    if (node.type === 'ClassDeclaration' && node.id) {
+      addIdent(node.id);
+    }
+
+    // Function/arrow params
+    if ((node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' ||
+         node.type === 'ArrowFunctionExpression') && node.params) {
+      for (const param of node.params) {
+        addIdent(param);
+      }
+    }
+
+    // Catch clause param
+    if (node.type === 'CatchClause' && node.param) {
+      addIdent(node.param);
+    }
+
+    // For-in/for-of loop variable
+    if ((node.type === 'ForInStatement' || node.type === 'ForOfStatement') && node.left) {
+      if (node.left.type === 'VariableDeclaration') {
+        for (const decl of node.left.declarations || []) {
+          addIdent(decl.id || decl.name);
+        }
+      }
+    }
+
+    // Recurse
+    for (const key of Object.keys(node)) {
+      if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+      const val = node[key];
+      if (Array.isArray(val)) {
+        for (const item of val) visit(item);
+      } else if (val && typeof val === 'object' && val.type) {
+        visit(val);
+      }
+    }
+  }
+
+  visit(program);
+  return names;
+}
+
 // ---------------------------------------------------------------------------
 // classifyProp
 // ---------------------------------------------------------------------------
@@ -505,6 +595,7 @@ function processChildren(
   importedNames?: Set<string>,
   signalHoister?: SignalHoister,
   neededImports?: Set<string>,
+  constIdents?: Set<string>,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (!children || children.length === 0) {
     return { text: null, type: 'none' };
@@ -581,14 +672,14 @@ function processChildren(
 
   if (meaningful.length === 1) {
     const child = meaningful[0];
-    return processOneChild(child, source, s, importedNames, signalHoister, neededImports);
+    return processOneChild(child, source, s, importedNames, signalHoister, neededImports, constIdents);
   }
 
   // Multiple children -> array
   const parts: string[] = [];
   let isDynamic = false;
   for (const child of meaningful) {
-    const { text, type } = processOneChild(child, source, s, importedNames, signalHoister, neededImports);
+    const { text, type } = processOneChild(child, source, s, importedNames, signalHoister, neededImports, constIdents);
     if (text !== null) {
       parts.push(text);
     }
@@ -611,6 +702,7 @@ function processOneChild(
   importedNames?: Set<string>,
   signalHoister?: SignalHoister,
   neededImports?: Set<string>,
+  constIdents?: Set<string>,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (child._trimmedText) {
     return { text: `"${child._trimmedText}"`, type: 'static' };
@@ -647,14 +739,37 @@ function processOneChild(
       const signalResult = analyzeSignalExpression(expr, source, importedNames);
       if (signalResult.type === 'wrapProp') {
         neededImports?.add('_wrapProp');
-        // SWC treats _wrapProp children as static for flag purposes.
-        return { text: signalResult.code, type: 'static' };
+        // SWC treats _wrapProp children as static for flag purposes ONLY when
+        // the signal/store target is const-bound (Var(true)). Function params
+        // like .map() callback vars are Var(false) -> dynamic.
+        let wrapIsConst = true;
+        if (expr.type === 'MemberExpression' && expr.object?.type === 'Identifier') {
+          const objName = expr.object.name;
+          if (!importedNames.has(objName) && !(constIdents?.has(objName))) {
+            wrapIsConst = false;
+          }
+        }
+        return { text: signalResult.code, type: wrapIsConst ? 'static' : 'dynamic' };
       }
       if (signalResult.type === 'fnSignal') {
         const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr);
         const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
         neededImports?.add('_fnSignal');
-        return { text: fnSignalCall, type: 'static' };
+        // fnSignal children are static only when all deps are const-bound
+        const depsConst = signalResult.deps.every(dep =>
+          importedNames.has(dep) || (constIdents?.has(dep) ?? false)
+        );
+        return { text: fnSignalCall, type: depsConst ? 'static' : 'dynamic' };
+      }
+    }
+
+    // Use classifyProp to determine if the expression is const for flag purposes.
+    // SWC treats children expressions as static (for static_subtree flag) unless they
+    // involve function calls, unknown globals, or reactive member accesses on locals.
+    if (importedNames) {
+      const propClass = classifyProp(expr, importedNames, constIdents);
+      if (propClass === 'const') {
+        return { text: exprText, type: 'static' };
       }
     }
 
@@ -1181,6 +1296,7 @@ export function transformJsxElement(
     enableChildSignals ? importedNames : undefined,
     enableChildSignals ? hoister : undefined,
     neededImports,
+    constIdents,
   );
 
   // --- Flags ---
@@ -1333,6 +1449,7 @@ export function transformJsxFragment(
   importedNames: Set<string>,
   keyCounter: JsxKeyCounter,
   isSoleChild?: boolean,
+  constIdents?: Set<string>,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXFragment') return null;
 
@@ -1347,6 +1464,7 @@ export function transformJsxFragment(
     importedNames,
     undefined,  // no signalHoister for fragments (no props to hoist from)
     undefined,
+    constIdents,
   );
 
   const flags = computeFlags(false, childrenType);
@@ -1538,6 +1656,7 @@ export function transformAllJsx(
           importedNames,
           keyCounter,
           isChildFragment,
+          resolvedConstIdents,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);

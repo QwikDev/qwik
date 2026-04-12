@@ -459,7 +459,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   destructure_args_inline_cmp_block_stmt2: { transpileTs: true, transpileJsx: true },
   destructure_args_inline_cmp_expr_stmt: { transpileTs: true, transpileJsx: true },
   example_component_with_event_listeners_inside_loop: { transpileTs: true, transpileJsx: true },
-  hmr: { transpileTs: true, transpileJsx: true },
+  hmr: { transpileTs: true, transpileJsx: true, mode: 'hmr' },
   hoisted_fn_signal_in_loop: { transpileTs: true, transpileJsx: true },
   issue_7216_add_test: { transpileTs: true, transpileJsx: true },
   moves_captures_when_possible: { transpileTs: true, transpileJsx: true },

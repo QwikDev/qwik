@@ -1327,7 +1327,7 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // Step 2c: Const replacement (MODE-07)
   // -----------------------------------------------------------------------
-  const isDev = mode === 'dev' ? true : mode === 'prod' ? false : undefined;
+  const isDev = (mode === 'dev' || mode === 'hmr') ? true : mode === 'prod' ? false : undefined;
   if (isServer !== undefined || isDev !== undefined) {
     replaceConstants(source, s, program, originalImports, isServer, isDev);
   }
@@ -1672,7 +1672,7 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // Step 4c: JSX transformation (Phase 4)
   // -----------------------------------------------------------------------
-  const isDevMode = mode === 'dev';
+  const isDevMode = mode === 'dev' || mode === 'hmr';
   let jsxResult: JsxTransformOutput | null = null;
   let jsxKeyCounterValue = 0; // Track the JSX key counter across module + body transforms
   if (jsxOptions?.enableJsx) {

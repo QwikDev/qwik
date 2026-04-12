@@ -103,7 +103,7 @@ export type EntryStrategy =
   | { type: 'smart'; manual?: Record<string, string> };
 
 export type MinifyMode = 'simplify' | 'none';
-export type EmitMode = 'dev' | 'prod' | 'lib';
+export type EmitMode = 'dev' | 'prod' | 'lib' | 'hmr';
 
 // ---------------------------------------------------------------------------
 // Diagnostics

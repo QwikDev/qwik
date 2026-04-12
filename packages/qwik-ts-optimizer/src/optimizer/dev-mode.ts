@@ -109,5 +109,5 @@ export function buildJsxSourceInfo(
  * evidence becomes available.
  */
 export function buildUseHmrCall(filePath: string): string {
-  return `_useHmr(import.meta.hot, "${filePath}");`;
+  return `_useHmr("${filePath}");`;
 }

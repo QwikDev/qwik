@@ -249,6 +249,55 @@ function applySegmentConstReplacement(code: string, filename: string, isServer?:
  * - `if (true) { ... } else { ... }` -> keeps if body, drops else
  * - Nested braces handled correctly via brace depth tracking
  */
+/**
+ * Inject _useHmr() call into a component segment's function body for dev mode HMR support.
+ *
+ * Adds `_useHmr("filePath");` as the first statement in the exported function body,
+ * and adds the corresponding import statement.
+ */
+function injectUseHmr(segmentCode: string, devFile: string): string {
+  // Find the export const ... = pattern and locate the function body opening brace
+  const exportMatch = segmentCode.match(/export\s+const\s+\w+\s*=\s*/);
+  if (!exportMatch) return segmentCode;
+
+  const afterExport = exportMatch.index! + exportMatch[0].length;
+  // Find the arrow function's block body: skip past params and => to find {
+  const rest = segmentCode.slice(afterExport);
+  const arrowIdx = rest.indexOf('=>');
+  if (arrowIdx === -1) return segmentCode;
+
+  // Find the opening { of the block body after =>
+  const afterArrow = rest.slice(arrowIdx + 2);
+  const braceIdx = afterArrow.indexOf('{');
+  if (braceIdx === -1) return segmentCode;
+
+  // Calculate absolute position of the opening {
+  const absPos = afterExport + arrowIdx + 2 + braceIdx + 1;
+
+  // Detect indentation: find the next non-whitespace line after the brace
+  const afterBrace = segmentCode.slice(absPos);
+  const indentMatch = afterBrace.match(/\n(\s+)/);
+  const indent = indentMatch ? indentMatch[1] : '    ';
+
+  // Insert the _useHmr call right after the opening brace
+  const hmrCall = `\n${indent}_useHmr("${devFile}");`;
+  let result = segmentCode.slice(0, absPos) + hmrCall + segmentCode.slice(absPos);
+
+  // Add the _useHmr import if not already present
+  if (!result.includes('import { _useHmr }')) {
+    // Find the // separator after imports
+    const sepIdx = result.indexOf('\n//\n');
+    if (sepIdx >= 0) {
+      result = result.slice(0, sepIdx) + `\nimport { _useHmr } from "@qwik.dev/core";` + result.slice(sepIdx);
+    } else {
+      // No separator, prepend the import
+      result = `import { _useHmr } from "@qwik.dev/core";\n//\n` + result;
+    }
+  }
+
+  return result;
+}
+
 function applySegmentDCE(code: string): string {
   // Process if(false) and if(true) patterns iteratively until no more changes
   let result = code;
@@ -1753,7 +1802,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const hasLocalInlinedQrl = extractions.some(
       (e) => e.isInlinedQrl && !relPath.includes('node_modules'),
     );
-    const devFile = (emitMode === 'dev' || hasLocalInlinedQrl)
+    const devFile = (emitMode === 'dev' || emitMode === 'hmr' || hasLocalInlinedQrl)
       ? buildDevFilePath(input.path, options.srcDir, input.devPath)
       : undefined;
 
@@ -2170,7 +2219,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
 
       // Determine nested QRL declarations for segments that have children
       const children = updatedExtractions.filter((c) => c.parent === ext.symbolName && !c.isSync);
-      const isDevMode = emitMode === 'dev';
+      const isDevMode = emitMode === 'dev' || emitMode === 'hmr';
       const nestedQrlDecls = children.map((child) => {
         if (isDevMode && devFile) {
           return buildQrlDevDeclaration(
@@ -2480,6 +2529,14 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // Apply side-effect simplification (unused variable bindings)
       if (!stripped) {
         segmentCode = applySegmentSideEffectSimplification(segmentCode, ext.canonicalFilename + ext.extension);
+      }
+
+      // Inject _useHmr() call for component$ segments in HMR mode.
+      // SWC injects _useHmr("filePath") at the start of component segment bodies
+      // only in EmitMode::Hmr (not Dev). This enables hot module replacement.
+      if (!stripped && emitMode === 'hmr' && devFile &&
+          (ext.ctxName === 'component$' || ext.ctxName === 'componentQrl' || ext.ctxName === 'component')) {
+        segmentCode = injectUseHmr(segmentCode, devFile);
       }
 
       // Clean up unused imports in segment code (after dead code elimination and

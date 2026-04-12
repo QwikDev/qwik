@@ -14,7 +14,7 @@ import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import MagicString from 'magic-string';
 import { extractSegments } from './extract.js';
 import { repairInput } from './input-repair.js';
-import { rewriteParentModule } from './rewrite-parent.js';
+import { rewriteParentModule, extractDestructuredFieldMap } from './rewrite-parent.js';
 import { generateSegmentCode, type SegmentCaptureInfo, type NestedCallSiteInfo, type SegmentImportContext } from './segment-codegen.js';
 import { collectImports, type ImportInfo } from './marker-detection.js';
 import { buildQrlDeclaration } from './rewrite-calls.js';
@@ -2047,6 +2047,30 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         ext.loc = [0, 0];
       }
 
+      // For inline strategy: also apply _rawProps consolidation for metadata
+      // (the actual body rewriting happens in rewriteParentModule via transformSCallBody)
+      if (isInlineStrategy && ext.parent !== null && ext.captureNames.length > 0) {
+        const parentExt = updatedExtractions.find(e => e.symbolName === ext.parent);
+        if (parentExt) {
+          const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
+          if (fieldMap.size > 0) {
+            const nonPropsCaptures: string[] = [];
+            let hasPropsFields = false;
+            for (const name of ext.captureNames) {
+              if (fieldMap.has(name)) {
+                hasPropsFields = true;
+              } else {
+                nonPropsCaptures.push(name);
+              }
+            }
+            if (hasPropsFields) {
+              ext.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
+              ext.captures = ext.captureNames.length > 0;
+            }
+          }
+        }
+      }
+
       // For inline/hoist strategy, do NOT emit separate segment TransformModules.
       // The parent module already contains everything via _noopQrl + .s() calls.
       // But still emit SegmentAnalysis metadata (as segment modules with no code output).
@@ -2116,6 +2140,38 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         autoImports: [],
         movedDeclarations: [],
       };
+
+      // 2c-rawProps. For child segments whose parent has destructured props,
+      // consolidate individual prop-field captures into a single _rawProps capture.
+      // This matches SWC behavior: inner closures capture _rawProps (whole object)
+      // instead of individual destructured fields.
+      if (ext.parent !== null && ext.captureNames.length > 0) {
+        const parentExt = updatedExtractions.find(e => e.symbolName === ext.parent);
+        if (parentExt) {
+          const fieldMap = extractDestructuredFieldMap(parentExt.bodyText);
+          if (fieldMap.size > 0) {
+            // Check which captures are destructured prop fields
+            const propsFieldCaptures = new Map<string, string>();
+            const nonPropsCaptures: string[] = [];
+            for (const name of ext.captureNames) {
+              if (fieldMap.has(name)) {
+                propsFieldCaptures.set(name, fieldMap.get(name)!);
+              } else {
+                nonPropsCaptures.push(name);
+              }
+            }
+            if (propsFieldCaptures.size > 0) {
+              // Replace individual prop captures with _rawProps
+              const newCaptureNames = [...nonPropsCaptures, '_rawProps'].sort();
+              captureInfo.captureNames = newCaptureNames;
+              captureInfo.propsFieldCaptures = propsFieldCaptures;
+              // Also update ext for metadata emission
+              ext.captureNames = newCaptureNames;
+              ext.captures = newCaptureNames.length > 0;
+            }
+          }
+        }
+      }
 
       // For top-level segments (no parent): wire migration info
       // Skip migration for inlinedQrl -- captures are explicit, not scope-based

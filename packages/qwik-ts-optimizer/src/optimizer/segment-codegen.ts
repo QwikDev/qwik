@@ -12,7 +12,7 @@ import { parseSync } from 'oxc-parser';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { getQrlImportSource, buildSyncTransform, needsPureAnnotation } from './rewrite-calls.js';
-import { applyRawPropsTransform } from './rewrite-parent.js';
+import { applyRawPropsTransform, consolidateRawPropsInWCalls } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx, collectConstIdents } from './jsx-transform.js';
 
@@ -32,6 +32,13 @@ export interface SegmentCaptureInfo {
   movedDeclarations: Array<{ text: string; importDeps: Array<{ localName: string; importedName: string; source: string }> }>;
   /** If true, skip _captures unpacking injection (body already has _captures refs, e.g. inlinedQrl). */
   skipCaptureInjection?: boolean;
+  /**
+   * Map from original prop field local name to prop key name.
+   * When set, these captures have been consolidated into _rawProps.
+   * The segment body should replace bare references to these fields with _rawProps.key.
+   * e.g., { "foo": "foo", "bindValue": "bind:value" }
+   */
+  propsFieldCaptures?: Map<string, string>;
 }
 
 /**
@@ -52,6 +59,103 @@ export interface SegmentImportContext {
   parentModulePath: string;
   /** Migration decisions for _auto_ import detection on JSX tags */
   migrationDecisions: Array<{ varName: string; action: string; isExported?: boolean }>;
+}
+
+// ---------------------------------------------------------------------------
+// Props field reference replacement
+// ---------------------------------------------------------------------------
+
+/**
+ * Replace bare references to destructured prop field names with _rawProps.field
+ * in a segment body. This supports the SWC pattern where inner closures capture
+ * the whole _rawProps object instead of individual fields.
+ *
+ * Uses AST-based replacement to avoid replacing property keys, member expression
+ * properties, or other non-reference positions.
+ *
+ * @param bodyText - The segment body text (arrow function expression)
+ * @param fieldMap - Map from local name to prop key name (e.g., "foo" -> "foo", "bindValue" -> "bind:value")
+ */
+function replacePropsFieldReferences(bodyText: string, fieldMap: Map<string, string>): string {
+  // Parse the body as an expression to get proper AST
+  const wrappedSource = `(${bodyText})`;
+  let parseResult;
+  try {
+    parseResult = parseSync('__rpf__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
+  } catch {
+    return bodyText;
+  }
+  if (!parseResult.program || parseResult.errors?.length) return bodyText;
+
+  // Collect replacement positions by walking the AST
+  const replacements: Array<{ start: number; end: number; key: string; isShorthand?: boolean }> = [];
+  const offset = 1; // account for leading `(`
+
+  function walkNode(node: any, parentKey?: string, parentNode?: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type === 'Identifier' && fieldMap.has(node.name)) {
+      // Skip property keys in object literals
+      const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+      // Skip member expression properties (obj.field)
+      const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+      // Skip function params
+      const isParam = parentKey === 'params';
+      // Handle shorthand properties: { foo } -> { foo: _rawProps.foo }
+      const isShorthandValue = parentKey === 'value' &&
+        (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
+        parentNode?.shorthand === true;
+
+      if (isShorthandValue) {
+        replacements.push({
+          start: node.start - offset,
+          end: node.end - offset,
+          key: fieldMap.get(node.name)!,
+          isShorthand: true,
+        });
+      } else if (!isPropertyKey && !isMemberProp && !isParam) {
+        replacements.push({
+          start: node.start - offset,
+          end: node.end - offset,
+          key: fieldMap.get(node.name)!,
+        });
+      }
+    }
+
+    for (const key of Object.keys(node)) {
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+      const val = node[key];
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            if (item && typeof item.type === 'string') walkNode(item, key, node);
+          }
+        } else if (typeof val.type === 'string') {
+          walkNode(val, key, node);
+        }
+      }
+    }
+  }
+
+  walkNode(parseResult.program);
+
+  if (replacements.length === 0) return bodyText;
+
+  // Apply replacements in descending order
+  replacements.sort((a, b) => b.start - a.start);
+  let result = bodyText;
+  for (const r of replacements) {
+    const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
+      ? '_rawProps.' + r.key
+      : `_rawProps["${r.key}"]`;
+    if (r.isShorthand) {
+      result = result.slice(0, r.start) + r.key + ': ' + accessor + result.slice(r.end);
+    } else {
+      result = result.slice(0, r.start) + accessor + result.slice(r.end);
+    }
+  }
+
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -697,6 +801,8 @@ export function generateSegmentCode(
   const rawPropsResult = applyRawPropsTransform(bodyText);
   if (rawPropsResult !== bodyText) {
     bodyText = rawPropsResult;
+    // Consolidate .w([_rawProps.foo, _rawProps.bar]) -> .w([_rawProps])
+    bodyText = consolidateRawPropsInWCalls(bodyText);
     // If _restProps was introduced by the transform, ensure its import is added
     if (bodyText.includes('_restProps(')) {
       const sepIdx = parts.indexOf('//');
@@ -737,6 +843,13 @@ export function generateSegmentCode(
     }
     return `<${tagName}${cleaned}>`;
   });
+
+  // When propsFieldCaptures is set, replace bare field references in the body
+  // with _rawProps.field references. This supports the SWC behavior where destructured
+  // prop fields are consolidated into a single _rawProps capture.
+  if (captureInfo?.propsFieldCaptures && captureInfo.propsFieldCaptures.size > 0) {
+    bodyText = replacePropsFieldReferences(bodyText, captureInfo.propsFieldCaptures);
+  }
 
   if (captureInfo && captureInfo.captureNames.length > 0 && !captureInfo.skipCaptureInjection) {
     bodyText = injectCapturesUnpacking(bodyText, captureInfo.captureNames);

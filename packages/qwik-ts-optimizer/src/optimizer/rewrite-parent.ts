@@ -342,6 +342,110 @@ function injectLineAfterBodyOpen(bodyText: string, line: string): string {
  * After this rewrite, the signal analysis naturally detects _rawProps.field as a
  * store field access, generating _wrapProp(_rawProps, "field") or _fnSignal with _rawProps dep.
  */
+/**
+ * Result from applyRawPropsTransform including info about which fields were transformed.
+ */
+export interface RawPropsTransformResult {
+  /** The transformed body text */
+  body: string;
+  /** Whether any transformation was applied */
+  transformed: boolean;
+  /** The destructured field local names that were replaced with _rawProps.field */
+  destructuredFieldLocals: string[];
+}
+
+export function applyRawPropsTransformDetailed(body: string): RawPropsTransformResult {
+  const result = applyRawPropsTransform(body);
+  if (result === body) {
+    return { body, transformed: false, destructuredFieldLocals: [] };
+  }
+  // Extract the field names by re-parsing the original body
+  const fieldLocals = [...extractDestructuredFieldMap(body).keys()];
+  return { body: result, transformed: true, destructuredFieldLocals: fieldLocals };
+}
+
+/**
+ * Extract a map from local binding name to property key name from a destructured first parameter.
+ * Given `({foo, "bind:value": bindValue}) => ...`, returns Map { "foo" -> "foo", "bindValue" -> "bind:value" }.
+ */
+export function extractDestructuredFieldMap(body: string): Map<string, string> {
+  const wrapperPrefix = 'const __rp__ = ';
+  const wrappedSource = wrapperPrefix + body;
+  const parseResult = parseSync('__rpx__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
+  if (!parseResult.program || parseResult.errors?.length) return new Map();
+  const decl = parseResult.program.body?.[0];
+  if (!decl || decl.type !== 'VariableDeclaration') return new Map();
+  const init = decl.declarations?.[0]?.init;
+  if (!init) return new Map();
+  let params: any[] | undefined;
+  if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
+    params = init.params;
+  }
+  if (!params || params.length === 0) return new Map();
+  const firstParam = params[0];
+  if (firstParam.type !== 'ObjectPattern') return new Map();
+  const fieldMap = new Map<string, string>();
+  for (const prop of firstParam.properties ?? []) {
+    if (prop.type === 'RestElement') continue;
+    if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
+      const keyName = prop.key?.type === 'Identifier' ? prop.key.name
+                    : (prop.key?.type === 'StringLiteral' || prop.key?.type === 'Literal') ? (prop.key.value ?? null)
+                    : null;
+      const valName = prop.value?.type === 'Identifier' ? prop.value.name :
+                      prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier'
+                        ? prop.value.left.name : null;
+      if (keyName && valName) fieldMap.set(valName, String(keyName));
+    }
+  }
+  return fieldMap;
+}
+
+/**
+ * After _rawProps transform, consolidate .w([...]) arrays:
+ * Replace any _rawProps.xxx entries with a single _rawProps, deduped.
+ *
+ * e.g., `.w([arg0, _rawProps.foo, _rawProps.bar])` -> `.w([arg0, _rawProps])`
+ *
+ * Returns the consolidated body text.
+ */
+export function consolidateRawPropsInWCalls(body: string): string {
+  // Find all .w([...]) patterns and consolidate _rawProps.xxx to _rawProps
+  return body.replace(/\.w\(\[\s*([\s\S]*?)\s*\]\)/g, (fullMatch, captureContent: string) => {
+    // Split by comma, trim whitespace
+    const items = captureContent.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+    if (items.length === 0) return fullMatch;
+
+    // Check if any items are _rawProps.xxx
+    let hasRawPropsField = false;
+    const consolidated: string[] = [];
+    let hasRawProps = false;
+    for (const item of items) {
+      if (item.startsWith('_rawProps.') || item.startsWith('_rawProps[')) {
+        hasRawPropsField = true;
+        if (!hasRawProps) {
+          consolidated.push('_rawProps');
+          hasRawProps = true;
+        }
+      } else if (item === '_rawProps') {
+        if (!hasRawProps) {
+          consolidated.push('_rawProps');
+          hasRawProps = true;
+        }
+      } else {
+        consolidated.push(item);
+      }
+    }
+
+    if (!hasRawPropsField) return fullMatch;
+
+    // Rebuild .w([...]) with consolidated items
+    if (consolidated.length === 1) {
+      return `.w([\n        ${consolidated[0]}\n    ])`;
+    }
+    return `.w([\n        ${consolidated.join(',\n        ')}\n    ])`;
+  });
+}
+
 export function applyRawPropsTransform(body: string): string {
   // Parse the body to get the AST and find destructured params
   const wrapperPrefix = 'const __rp__ = ';
@@ -717,6 +821,8 @@ function transformSCallBody(
       if (body.includes('_restProps(')) {
         additionalImports.set('_restProps', '@qwik.dev/core');
       }
+      // Consolidate .w([_rawProps.foo, _rawProps.bar]) -> .w([_rawProps])
+      body = consolidateRawPropsInWCalls(body);
     }
   }
 

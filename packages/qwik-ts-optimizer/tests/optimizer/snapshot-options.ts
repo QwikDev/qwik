@@ -196,6 +196,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'segment' },
     stripCtxName: ['server'],
     mode: 'prod',  // Expected output uses s_ prefix naming
+    isServer: true,  // Expected output has isServer guards removed
   },
   example_server_auth: {
     transpileTs: true,

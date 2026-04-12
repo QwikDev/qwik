@@ -255,16 +255,28 @@ function applySegmentDCE(code: string): string {
   let changed = true;
   let iterations = 0;
 
+  // Pre-pass: simplify boolean negation expressions
+  // !true -> false, !false -> true (outside strings)
+  result = result.replace(/!true\b/g, (match, offset) => {
+    if (isInsideString(result, offset)) return match;
+    return 'false';
+  });
+  result = result.replace(/!false\b/g, (match, offset) => {
+    if (isInsideString(result, offset)) return match;
+    return 'true';
+  });
+
   while (changed && iterations < 10) {
     changed = false;
     iterations++;
 
-    // Match if(false) or if(true) with proper brace tracking
-    const ifPattern = /\bif\s*\(\s*(true|false)\s*\)\s*\{/g;
-    let match;
     const replacements: Array<{ start: number; end: number; replacement: string }> = [];
 
-    while ((match = ifPattern.exec(result)) !== null) {
+    // Match if(false) or if(true) with braced body
+    const ifBracedPattern = /\bif\s*\(\s*(true|false)\s*\)\s*\{/g;
+    let match;
+
+    while ((match = ifBracedPattern.exec(result)) !== null) {
       const condValue = match[1] === 'true';
       const braceStart = match.index + match[0].length - 1; // position of opening {
 
@@ -301,9 +313,40 @@ function applySegmentDCE(code: string): string {
       replacements.push({ start: match.index, end: totalEnd, replacement: replacement.trim() });
     }
 
+    // Match if(false) or if(true) with braceless body (single statement)
+    // e.g., if (false) return; or if (false) throw new Error();
+    const ifBracelessPattern = /\bif\s*\(\s*(true|false)\s*\)\s+(?!\{)/g;
+    while ((match = ifBracelessPattern.exec(result)) !== null) {
+      // Skip if this overlaps with an already-found braced match
+      const matchStart = match.index;
+      if (replacements.some(r => matchStart >= r.start && matchStart < r.end)) continue;
+
+      const condValue = match[1] === 'true';
+      const stmtStart = match.index + match[0].length;
+
+      // Find end of statement (semicolon)
+      const semiIdx = result.indexOf(';', stmtStart);
+      if (semiIdx === -1) continue;
+
+      const stmt = result.slice(stmtStart, semiIdx + 1).trim();
+      const totalEnd = semiIdx + 1;
+
+      // Remove trailing newline if present
+      let adjustedEnd = totalEnd;
+      if (result[adjustedEnd] === '\n') adjustedEnd++;
+
+      if (condValue) {
+        // if (true) statement; -> statement;
+        replacements.push({ start: match.index, end: adjustedEnd, replacement: stmt });
+      } else {
+        // if (false) statement; -> removed
+        replacements.push({ start: match.index, end: adjustedEnd, replacement: '' });
+      }
+    }
+
     // Apply replacements in reverse order to preserve positions
-    for (let i = replacements.length - 1; i >= 0; i--) {
-      const r = replacements[i];
+    replacements.sort((a, b) => b.start - a.start);
+    for (const r of replacements) {
       result = result.slice(0, r.start) + r.replacement + result.slice(r.end);
       changed = true;
     }

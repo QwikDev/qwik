@@ -1720,7 +1720,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       migrationDecisions,
       moduleLevelDecls,
       (shouldTranspileJsx && (ext === '.tsx' || ext === '.jsx'))
-        ? { enableJsx: true, importedNames, enableSignals: extractions.length > 0 }
+        ? { enableJsx: true, importedNames, enableSignals: true }
         : undefined,
       emitMode,
       devFile,

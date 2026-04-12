@@ -713,6 +713,10 @@ function transformSCallBody(
     const rawPropsResult = applyRawPropsTransform(body);
     if (rawPropsResult !== body) {
       body = rawPropsResult;
+      // If _restProps was introduced, ensure its import is tracked
+      if (body.includes('_restProps(')) {
+        additionalImports.set('_restProps', '@qwik.dev/core');
+      }
     }
   }
 

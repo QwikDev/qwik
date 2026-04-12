@@ -14,7 +14,7 @@
 export type SignalExprResult =
   | { type: 'none' }
   | { type: 'wrapProp'; code: string; isStoreField?: boolean }
-  | { type: 'fnSignal'; deps: string[]; hoistedFn: string; hoistedStr: string };
+  | { type: 'fnSignal'; deps: string[]; hoistedFn: string; hoistedStr: string; isObjectExpr?: boolean };
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -911,10 +911,15 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // ObjectExpression values: SWC does NOT wrap object literals in _fnSignal,
-  // even when they contain reactive roots. Object-valued props go to varProps
-  // as-is (e.g., class: { active: store.value }).
+  // ObjectExpression values: SWC wraps objects in _fnSignal when their values
+  // contain reactive roots, EXCEPT for the `class` prop which goes to varProps as-is.
+  // The caller is responsible for filtering by prop name.
   if (exprNode.type === 'ObjectExpression') {
+    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+    if (roots.length > 0) {
+      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
+      return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr, isObjectExpr: true };
+    }
     return { type: 'none' };
   }
 

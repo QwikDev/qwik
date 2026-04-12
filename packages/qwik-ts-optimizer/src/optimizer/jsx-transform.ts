@@ -1119,27 +1119,33 @@ function processProps(
         continue;
       }
       if (signalResult.type === 'fnSignal') {
-        const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, valueNode.start ?? 0);
-        const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
-        const formattedName = needsQuoting(propName)
-          ? `"${propName}"`
-          : propName;
-        // _fnSignal placement depends on whether deps are all const-bound.
-        // If all deps are const (imports, const-declared locals), it goes to constEntries.
-        // If any dep is var (function params like _rawProps), it goes to varEntries.
-        // This matches SWC's is_const check on the synthetic prop's deps.
-        const depsAllConst = signalResult.deps.every(dep => {
-          if (importedNames.has(dep)) return true;
-          if (constIdents?.has(dep)) return true;
-          return false;
-        });
-        if (depsAllConst && !inLoop) {
-          constEntries.push(`${formattedName}: ${fnSignalCall}`);
+        // SWC does NOT wrap object expressions in _fnSignal for `class`/`className` props.
+        // Those go to varProps as raw object literals. Other object props DO get wrapped.
+        if (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) {
+          // Fall through to normal classifyProp handling
         } else {
-          varEntries.push(`${formattedName}: ${fnSignalCall}`);
+          const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, valueNode.start ?? 0);
+          const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
+          const formattedName = needsQuoting(propName)
+            ? `"${propName}"`
+            : propName;
+          // _fnSignal placement depends on whether deps are all const-bound.
+          // If all deps are const (imports, const-declared locals), it goes to constEntries.
+          // If any dep is var (function params like _rawProps), it goes to varEntries.
+          // This matches SWC's is_const check on the synthetic prop's deps.
+          const depsAllConst = signalResult.deps.every(dep => {
+            if (importedNames.has(dep)) return true;
+            if (constIdents?.has(dep)) return true;
+            return false;
+          });
+          if (depsAllConst && !inLoop) {
+            constEntries.push(`${formattedName}: ${fnSignalCall}`);
+          } else {
+            varEntries.push(`${formattedName}: ${fnSignalCall}`);
+          }
+          neededImports.add('_fnSignal');
+          continue;
         }
-        neededImports.add('_fnSignal');
-        continue;
       }
     }
 

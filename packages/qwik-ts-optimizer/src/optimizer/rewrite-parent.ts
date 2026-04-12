@@ -470,6 +470,149 @@ export function applyRawPropsTransform(body: string): string {
   if (!params || params.length === 0) return body;
 
   const firstParam = params[0];
+
+  // Calculate positions relative to the body string (subtract wrapperPrefix length)
+  const offset = wrapperPrefix.length;
+
+  // Handle body-level destructure from a named parameter:
+  // (props) => { const { 'bind:value': bindValue } = props; ... }
+  // Transform to: (props) => { ... props["bind:value"] ... }
+  // Keep the original param name (not _rawProps) so that signal analysis produces
+  // _wrapProp(props, "bind:value") matching SWC's output exactly.
+  if (firstParam.type === 'Identifier') {
+    const paramName = firstParam.name;
+    // Look for variable declarations that destructure from this param in the function body
+    const funcBody = init.body;
+    if (!funcBody || funcBody.type !== 'BlockStatement') return body;
+
+    // Find `const { ... } = paramName;` in the body
+    let destructureDecl: any = null;
+    let destructureDeclIdx = -1;
+    for (let i = 0; i < (funcBody.body?.length ?? 0); i++) {
+      const stmt = funcBody.body[i];
+      if (stmt.type === 'VariableDeclaration') {
+        for (const d of stmt.declarations ?? []) {
+          if (d.id?.type === 'ObjectPattern' && d.init?.type === 'Identifier' && d.init.name === paramName) {
+            destructureDecl = d;
+            destructureDeclIdx = i;
+            break;
+          }
+        }
+      }
+      if (destructureDecl) break;
+    }
+
+    if (!destructureDecl) return body;
+
+    // Extract fields from the destructure pattern
+    const bodyFields: Array<{ key: string; local: string }> = [];
+    let bodyRestElementName: string | null = null;
+    for (const prop of destructureDecl.id.properties ?? []) {
+      if (prop.type === 'RestElement') {
+        const restId = prop.argument?.type === 'Identifier' ? prop.argument.name : null;
+        if (restId) bodyRestElementName = restId;
+        continue;
+      }
+      if (prop.type === 'Property' || prop.type === 'ObjectProperty') {
+        const keyName = prop.key?.type === 'Identifier' ? prop.key.name
+                      : (prop.key?.type === 'StringLiteral' || prop.key?.type === 'Literal') ? (prop.key.value ?? null)
+                      : null;
+        const valName = prop.value?.type === 'Identifier' ? prop.value.name :
+                        prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier'
+                          ? prop.value.left.name : null;
+        if (keyName && valName) {
+          bodyFields.push({ key: String(keyName), local: valName });
+        }
+      }
+    }
+
+    if (bodyFields.length === 0 && !bodyRestElementName) return body;
+
+    // Step 1: Keep the param as-is (no rename). Remove the destructure statement.
+    let result = body;
+
+    // Remove the `const { ... } = props;` statement (including leading whitespace and trailing newline)
+    const stmtNode = funcBody.body[destructureDeclIdx];
+    const stmtStart = stmtNode.start - offset;
+    const stmtEnd = stmtNode.end - offset;
+    // Walk backwards from statement start to find the beginning of the line (including leading whitespace)
+    let lineStart = stmtStart;
+    while (lineStart > 0 && (result[lineStart - 1] === ' ' || result[lineStart - 1] === '\t')) {
+      lineStart--;
+    }
+    // Remove the statement and any trailing newline
+    let afterStmt = result.slice(stmtEnd);
+    if (afterStmt.startsWith('\n')) afterStmt = afterStmt.slice(1);
+    else if (afterStmt.startsWith('\r\n')) afterStmt = afterStmt.slice(2);
+    result = result.slice(0, lineStart) + afterStmt;
+
+    // If there's a rest element, inject _restProps assignment
+    if (bodyRestElementName) {
+      if (bodyFields.length > 0) {
+        const excludedKeys = bodyFields.map(f => `"${f.key}"`).join(',\n    ');
+        const restLine = `const ${bodyRestElementName} = _restProps(${paramName}, [\n    ${excludedKeys}\n]);`;
+        result = injectLineAfterBodyOpen(result, restLine);
+      } else {
+        const restLine = `const ${bodyRestElementName} = _restProps(${paramName});`;
+        result = injectLineAfterBodyOpen(result, restLine);
+      }
+    }
+
+    // Step 2: Replace references to destructured locals with paramName.key
+    const fieldLocalToKey = new Map<string, string>();
+    for (const f of bodyFields) {
+      fieldLocalToKey.set(f.local, f.key);
+    }
+
+    const reparseSource = wrapperPrefix + result;
+    const reparseResult = parseSync('__rp_body__.tsx', reparseSource, { experimentalRawTransfer: true } as any);
+    if (!reparseResult.program || reparseResult.errors?.length) return result;
+
+    const replacements: Array<{ start: number; end: number; key: string; isShorthand?: boolean }> = [];
+    function walkForBodyIdents(node: any, parentKey?: string, parentNode?: any): void {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'Identifier' && fieldLocalToKey.has(node.name)) {
+        const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
+        const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
+        const isParam = parentKey === 'params';
+        const isShorthandValue = parentKey === 'value' &&
+          (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
+          parentNode?.shorthand === true;
+        if (isShorthandValue) {
+          replacements.push({ start: node.start - offset, end: node.end - offset, key: fieldLocalToKey.get(node.name)!, isShorthand: true });
+        } else if (!isPropertyKey && !isMemberProp && !isParam) {
+          replacements.push({ start: node.start - offset, end: node.end - offset, key: fieldLocalToKey.get(node.name)! });
+        }
+      }
+      for (const key of Object.keys(node)) {
+        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+        const val = node[key];
+        if (val && typeof val === 'object') {
+          if (Array.isArray(val)) {
+            for (const item of val) {
+              if (item && typeof item.type === 'string') walkForBodyIdents(item, key, node);
+            }
+          } else if (typeof val.type === 'string') {
+            walkForBodyIdents(val, key, node);
+          }
+        }
+      }
+    }
+    walkForBodyIdents(reparseResult.program);
+    replacements.sort((a, b) => b.start - a.start);
+    for (const r of replacements) {
+      const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
+        ? `${paramName}.${r.key}`
+        : `${paramName}["${r.key}"]`;
+      if (r.isShorthand) {
+        result = result.slice(0, r.start) + r.key + ': ' + accessor + result.slice(r.end);
+      } else {
+        result = result.slice(0, r.start) + accessor + result.slice(r.end);
+      }
+    }
+    return result;
+  }
+
   if (firstParam.type !== 'ObjectPattern') return body;
 
   // Collect destructured field names and their local aliases, and detect rest element
@@ -497,8 +640,6 @@ export function applyRawPropsTransform(body: string): string {
     }
   }
 
-  // Calculate positions relative to the body string (subtract wrapperPrefix length)
-  const offset = wrapperPrefix.length;
 
   // Pure rest props ({...rest}) with no named fields
   if (restElementName && fields.length === 0) {

@@ -1531,21 +1531,25 @@ export function transformJsxFragment(
   keyCounter: JsxKeyCounter,
   isSoleChild?: boolean,
   constIdents?: Set<string>,
+  signalHoister?: SignalHoister,
+  allDeclaredNames?: Set<string>,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXFragment') return null;
 
   const neededImports = new Set<string>();
   neededImports.add('_jsxSorted');
 
-  // Process children
+  // Process children -- pass signalHoister so signal analysis (_wrapProp/_fnSignal)
+  // runs on fragment children (e.g., <>{_rawProps["bind:value"]}</>)
   const { text: childrenText, type: childrenType } = processChildren(
     node.children,
     source,
     s,
     importedNames,
-    undefined,  // no signalHoister for fragments (no props to hoist from)
-    undefined,
+    signalHoister,
+    neededImports,
     constIdents,
+    allDeclaredNames,
   );
 
   const flags = computeFlags(false, childrenType);
@@ -1743,6 +1747,8 @@ export function transformAllJsx(
           keyCounter,
           isChildFragment,
           resolvedConstIdents,
+          signalHoister,
+          allDeclaredNames,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);

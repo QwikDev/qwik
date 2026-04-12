@@ -907,10 +907,11 @@ function processProps(
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`
           : propName;
-        // For component elements in loop context, _fnSignal props that depend
-        // on iteration variables go to varEntries (Rust optimizer behavior).
-        // This handles cases like .map((item) => <Comp prop={item.field} />)
-        if (!tagIsHtml && inLoop) {
+        // In SWC, convert_to_getter produces _fnSignal which is treated as const
+        // (is_const=true from create_synthetic_qqsegment). Goes to constEntries.
+        // Exception: in loop context, _fnSignal props that depend on iteration
+        // variables go to varEntries (Rust optimizer behavior).
+        if (inLoop) {
           varEntries.push(`${formattedName}: ${fnSignalCall}`);
         } else {
           constEntries.push(`${formattedName}: ${fnSignalCall}`);

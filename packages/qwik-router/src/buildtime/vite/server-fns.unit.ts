@@ -92,11 +92,10 @@ describe('collectServerFnModuleIds', () => {
       filePath: '/app/plugin.ts',
       ext: 'ts',
     };
-    const ctx: Pick<RoutingContext, 'entries' | 'layouts' | 'routes' | 'serverPlugins'> = {
+    const ctx: Pick<RoutingContext, 'layouts' | 'routes' | 'serverPlugins'> = {
       routes: [route],
       layouts: [layout],
       serverPlugins: [serverPlugin],
-      entries: [],
     };
 
     const serverFnModules = await collectServerFnModuleIds(ctx, resolvedVirtualId, async (id) => {

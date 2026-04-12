@@ -7,7 +7,7 @@ type ServerFnModuleInfo = Pick<
 >;
 
 export async function collectServerFnModuleIds(
-  ctx: Pick<RoutingContext, 'entries' | 'layouts' | 'routes' | 'serverPlugins'>,
+  ctx: Pick<RoutingContext, 'layouts' | 'routes' | 'serverPlugins'>,
   resolvedVirtualId: string,
   loadModule: (id: string) => Promise<ServerFnModuleInfo>
 ) {
@@ -17,7 +17,6 @@ export async function collectServerFnModuleIds(
   const routes = ctx.routes;
   const layouts = ctx.layouts;
   const serverPlugins = ctx.serverPlugins;
-  const entries = ctx.entries;
 
   for (let i = 0; i < routes.length; i++) {
     const route = routes[i];
@@ -32,9 +31,6 @@ export async function collectServerFnModuleIds(
   }
   for (let i = 0; i < serverPlugins.length; i++) {
     queuedModuleIds.add(serverPlugins[i].filePath);
-  }
-  for (let i = 0; i < entries.length; i++) {
-    queuedModuleIds.add(entries[i].filePath);
   }
 
   while (queuedModuleIds.size > 0) {

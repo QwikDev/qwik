@@ -583,7 +583,7 @@ function generateFnSignal(
   // String representation: minimal whitespace, with string literals normalized
   // to double quotes (matching Rust SWC optimizer behavior which re-serializes
   // the AST, producing double-quoted strings).
-  const strBody = normalizeStringQuotes(removeWhitespace(fnBody));
+  const strBody = stripTrailingCommas(normalizeStringQuotes(removeWhitespace(fnBody)));
 
   // Determine quote style for string representation
   // If the string body contains double quotes, use single quotes for wrapping
@@ -609,47 +609,93 @@ function findRootIdentifier(node: any): any | null {
  * Preserves whitespace inside string literals.
  */
 function removeWhitespace(text: string): string {
-  let result = '';
-  let inString: string | null = null;
+  // Tokenize roughly: we need to preserve spaces around JS keywords like `in`,
+  // `instanceof`, `typeof`, `void`, `new`, `delete` etc. that would otherwise
+  // merge with adjacent identifiers. SWC re-prints from AST so keywords get
+  // proper spacing; we must match that behavior.
+  //
+  // Strategy: collect non-whitespace "tokens" (strings, template literals, and
+  // runs of non-whitespace chars), then join them -- inserting a single space
+  // only when two adjacent tokens would merge into an invalid sequence.
 
-  for (let i = 0; i < text.length; i++) {
+  const tokens: string[] = [];
+  let i = 0;
+
+  while (i < text.length) {
     const ch = text[i];
 
-    if (inString) {
-      result += ch;
-      if (ch === inString && text[i - 1] !== '\\') {
-        inString = null;
-      }
+    // Skip whitespace
+    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') {
+      i++;
       continue;
     }
 
+    // String literal
     if (ch === '"' || ch === "'") {
-      inString = ch;
-      result += ch;
+      let tok = ch;
+      i++;
+      while (i < text.length && text[i] !== ch) {
+        if (text[i] === '\\') { tok += text[i]; i++; }
+        if (i < text.length) { tok += text[i]; i++; }
+      }
+      if (i < text.length) { tok += text[i]; i++; } // closing quote
+      tokens.push(tok);
       continue;
     }
 
+    // Template literal
     if (ch === '`') {
-      // Template literals - just include everything until closing backtick
-      result += ch;
+      let tok = ch;
       i++;
       while (i < text.length && text[i] !== '`') {
-        result += text[i];
+        tok += text[i];
         i++;
       }
-      if (i < text.length) result += text[i]; // closing backtick
+      if (i < text.length) { tok += text[i]; i++; }
+      tokens.push(tok);
       continue;
     }
 
-    // Skip whitespace (spaces, tabs)
-    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') {
-      continue;
+    // Run of non-whitespace, non-string chars
+    let tok = '';
+    while (i < text.length) {
+      const c = text[i];
+      if (c === ' ' || c === '\t' || c === '\n' || c === '\r') break;
+      if (c === '"' || c === "'" || c === '`') break;
+      tok += c;
+      i++;
     }
+    if (tok) tokens.push(tok);
+  }
 
-    result += ch;
+  // Join tokens, inserting space only where needed (identifier-like chars on both sides)
+  let result = '';
+  for (let t = 0; t < tokens.length; t++) {
+    if (t > 0) {
+      const prevLast = result[result.length - 1];
+      const curFirst = tokens[t][0];
+      // If both sides are word-like characters, we need a space
+      if (isWordChar(prevLast) && isWordChar(curFirst)) {
+        result += ' ';
+      }
+    }
+    result += tokens[t];
   }
 
   return result;
+}
+
+function isWordChar(ch: string): boolean {
+  return /[a-zA-Z0-9_$]/.test(ch);
+}
+
+/**
+ * Strip trailing commas before closing braces/brackets/parens.
+ * SWC re-serializes from AST so trailing commas are dropped.
+ * E.g. `{foo:"bar",baz:true,}` -> `{foo:"bar",baz:true}`
+ */
+function stripTrailingCommas(text: string): string {
+  return text.replace(/,(\}|\]|\))/g, '$1');
 }
 
 /**

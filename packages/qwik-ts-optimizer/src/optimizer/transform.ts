@@ -18,6 +18,7 @@ import { rewriteParentModule } from './rewrite-parent.js';
 import { generateSegmentCode, type SegmentCaptureInfo, type NestedCallSiteInfo, type SegmentImportContext } from './segment-codegen.js';
 import { collectImports, type ImportInfo } from './marker-detection.js';
 import { buildQrlDeclaration } from './rewrite-calls.js';
+import { rewriteFilePath } from './rewrite-imports.js';
 import { resolveEntryField } from './entry-strategy.js';
 import { buildQrlDevDeclaration, buildDevFilePath, buildJsxSourceInfo } from './dev-mode.js';
 import { isStrippedSegment, generateStrippedSegmentCode } from './strip-ctx.js';
@@ -2011,7 +2012,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         );
 
         const segmentAnalysis: SegmentMetadataInternal = {
-          origin: ext.origin,
+          origin: rewriteFilePath(ext.origin),
           name: ext.symbolName,
           entry: entryField,
           displayName: ext.displayName,

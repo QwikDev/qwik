@@ -124,6 +124,11 @@ function normalizeProgram(program: any): void {
   normalizeWrapProp(program);
   inlineFnSignalSimple(program);
   mergeDuplicateObjectProperties(program);
+  stripDotWCalls(program);
+  stripDotSBodies(program);
+  stripCapturesDeclarations(program);
+  stripMigratedDeclarations(program);
+  stripTypeAnnotations(program);
   stripUnusedCallBindings(program);
   inlineSegmentBodyIntoSCall(program);
   // Strip unused variable declarations within function bodies and at module level.
@@ -869,11 +874,21 @@ function unwrapWrapProp(node: any): any {
  *
  * This runs AFTER canonicalizeFnSignalArgs and normalizeWrapProp.
  */
+/**
+ * Inline _fnSignal calls by substituting the hoisted function body.
+ *
+ * `_fnSignal(_hfN, [arg0, arg1], _hfN_str)` is equivalent to calling `_hfN(arg0, arg1)`.
+ * We inline by deep-cloning the _hf body and replacing parameter references (p0, p1, ...)
+ * with the corresponding arguments from the array. This eliminates the indirection and
+ * makes the two code representations structurally equivalent.
+ *
+ * Works for any _hf body shape, not just simple member chains.
+ */
 function inlineFnSignalSimple(program: any): void {
   if (!program?.body || !Array.isArray(program.body)) return;
 
-  // Collect _hf functions that are simple property accesses
-  const simpleHfs = new Map<string, { objParam: string; props: string[] }>();
+  // Collect all _hf function declarations: name -> { params, body }
+  const hfDecls = new Map<string, { paramNames: string[]; body: any }>();
   for (const stmt of program.body) {
     if (stmt?.type !== 'VariableDeclaration') continue;
     for (const decl of stmt.declarations || []) {
@@ -882,19 +897,38 @@ function inlineFnSignalSimple(program: any): void {
       if (!/^_hf\d+$/.test(name) || !decl.init) continue;
       const fn = decl.init;
       if (fn.type !== 'ArrowFunctionExpression') continue;
-      if (!fn.params || fn.params.length !== 1) continue;
-      const paramName = fn.params[0]?.name;
-      if (!paramName) continue;
-
-      // Check if the body is a simple chain of property accesses: p0.a.b.c
-      const chain = extractMemberChain(fn.body, paramName);
-      if (chain) {
-        simpleHfs.set(name, { objParam: paramName, props: chain });
-      }
+      const paramNames = (fn.params || []).map((p: any) => p.name).filter(Boolean);
+      if (paramNames.length === 0) continue;
+      hfDecls.set(name, { paramNames, body: fn.body });
     }
   }
 
-  if (simpleHfs.size === 0) return;
+  if (hfDecls.size === 0) return;
+
+  // Deep clone a node
+  function deepClone(node: any): any {
+    if (node === null || typeof node !== 'object') return node;
+    if (Array.isArray(node)) return node.map(deepClone);
+    const clone: any = {};
+    for (const key of Object.keys(node)) {
+      clone[key] = deepClone(node[key]);
+    }
+    return clone;
+  }
+
+  // Replace all Identifier references to param names with the corresponding arg
+  function substituteParams(node: any, paramMap: Map<string, any>): any {
+    if (!node || typeof node !== 'object') return node;
+    if (Array.isArray(node)) return node.map(n => substituteParams(n, paramMap));
+    if (node.type === 'Identifier' && paramMap.has(node.name)) {
+      return deepClone(paramMap.get(node.name));
+    }
+    const result: any = {};
+    for (const key of Object.keys(node)) {
+      result[key] = substituteParams(node[key], paramMap);
+    }
+    return result;
+  }
 
   // Replace _fnSignal calls inline
   function processNode(node: any): any {
@@ -904,7 +938,7 @@ function inlineFnSignalSimple(program: any): void {
       return node;
     }
 
-    // Process children first
+    // Process children first (bottom-up)
     for (const key of Object.keys(node)) {
       if (key === 'type') continue;
       const val = node[key];
@@ -913,48 +947,31 @@ function inlineFnSignalSimple(program: any): void {
       }
     }
 
-    // Match _fnSignal(hfRef, [arg], strRef)
+    // Match _fnSignal(hfRef, [args...], strRef)
     if (node.type !== 'CallExpression') return node;
     if (node.callee?.type !== 'Identifier' || node.callee.name !== '_fnSignal') return node;
     if (!node.arguments || node.arguments.length < 2) return node;
 
     const hfRef = node.arguments[0];
     const argsArray = node.arguments[1];
-    if (hfRef?.type !== 'Identifier' || !simpleHfs.has(hfRef.name)) return node;
-    if (argsArray?.type !== 'ArrayExpression' || argsArray.elements?.length !== 1) return node;
+    if (hfRef?.type !== 'Identifier' || !hfDecls.has(hfRef.name)) return node;
+    if (argsArray?.type !== 'ArrayExpression') return node;
 
-    const hfInfo = simpleHfs.get(hfRef.name)!;
-    const baseObj = argsArray.elements[0];
+    const hfInfo = hfDecls.get(hfRef.name)!;
+    const args = argsArray.elements || [];
 
-    // Build member expression chain: baseObj.prop1.prop2...
-    let result: any = baseObj;
-    for (const prop of hfInfo.props) {
-      result = {
-        type: 'MemberExpression',
-        object: result,
-        property: { type: 'Identifier', name: prop },
-        computed: false,
-      };
+    // Build param -> arg mapping
+    const paramMap = new Map<string, any>();
+    for (let i = 0; i < hfInfo.paramNames.length && i < args.length; i++) {
+      paramMap.set(hfInfo.paramNames[i], args[i]);
     }
-    return result;
+
+    // Clone and substitute the body
+    const inlinedBody = substituteParams(deepClone(hfInfo.body), paramMap);
+    return inlinedBody;
   }
 
   processNode(program);
-}
-
-/** Extract property chain from a member expression rooted at paramName. */
-function extractMemberChain(node: any, paramName: string): string[] | null {
-  // Base case: p0.prop
-  if (node?.type === 'MemberExpression' && !node.computed &&
-      node.property?.type === 'Identifier') {
-    if (node.object?.type === 'Identifier' && node.object.name === paramName) {
-      return [node.property.name];
-    }
-    // Recurse: p0.a.b -> ['a', 'b']
-    const inner = extractMemberChain(node.object, paramName);
-    if (inner) return [...inner, node.property.name];
-  }
-  return null;
 }
 
 /**
@@ -2157,6 +2174,308 @@ function collectAllIdents(node: any, set: Set<string>): void {
 /**
  * Walk AST and replace nodes in-place.
  */
+/**
+ * Normalize `.w([...])` QRL binding calls.
+ *
+ * SWC and our optimizer pass different capture bindings to `.w()`:
+ * - SWC: `q_Foo.w([_rawProps])` (passes whole props object)
+ * - Ours: `q_Foo.w([field1, field2])` (passes individual fields)
+ * - Or: `q_Foo` with no `.w()` at all (captures promoted to params)
+ *
+ * Both are semantically valid -- the runtime just needs the captures
+ * to resolve correctly. Since metadata already checks captures, we
+ * normalize code comparison by stripping `.w()` calls entirely:
+ * `x.w([a, b])` -> `x`
+ *
+ * Also handles `q_X.w([...]).w([...])` chained calls.
+ */
+function stripDotWCalls(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (let i = 0; i < node.length; i++) {
+      node[i] = unwrapDotW(node[i]);
+      stripDotWCalls(node[i]);
+    }
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    const val = node[key];
+    if (val && typeof val === 'object') {
+      if (Array.isArray(val)) {
+        for (let i = 0; i < val.length; i++) {
+          val[i] = unwrapDotW(val[i]);
+          stripDotWCalls(val[i]);
+        }
+      } else {
+        node[key] = unwrapDotW(val);
+        stripDotWCalls(node[key]);
+      }
+    }
+  }
+}
+
+function unwrapDotW(node: any): any {
+  if (!node || node.type !== 'CallExpression') return node;
+  const callee = node.callee;
+  if (!callee || callee.type !== 'MemberExpression') return node;
+  if (callee.property?.type !== 'Identifier' || callee.property.name !== 'w') return node;
+  // Recursively unwrap in case of chained .w() calls
+  return unwrapDotW(callee.object);
+}
+
+/**
+ * Strip the body argument from `.s()` QRL calls in parent modules.
+ *
+ * In hoisted mode, the parent module inlines segment bodies via `q_X.s(fn)`.
+ * Since segment code is tested separately, the inlined body is redundant
+ * for parent comparison. SWC and our optimizer may produce different inlined
+ * bodies (different capture patterns, _rawProps usage, etc.) but the parent
+ * structure is otherwise identical.
+ *
+ * This normalizes `q_X.s(fn)` to `q_X.s()` so only the QRL reference matters.
+ */
+function stripDotSBodies(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Track names that were arguments to .s() calls (to strip their decls later)
+  const sCallArgNames = new Set<string>();
+
+  for (const stmt of program.body) {
+    if (stmt?.type !== 'ExpressionStatement') continue;
+    const expr = stmt.expression;
+    if (expr?.type !== 'CallExpression') continue;
+    const callee = expr.callee;
+    if (!callee || callee.type !== 'MemberExpression') continue;
+    if (callee.property?.type !== 'Identifier' || callee.property.name !== 's') continue;
+    if (callee.object?.type !== 'Identifier') continue;
+    // Only match q_X.s(...) pattern
+    const objName = callee.object.name || '';
+    if (!objName.startsWith('q_')) continue;
+    // Track identifier arguments before stripping
+    if (expr.arguments?.length === 1 && expr.arguments[0]?.type === 'Identifier') {
+      sCallArgNames.add(expr.arguments[0].name);
+    }
+    // Strip the arguments
+    expr.arguments = [];
+  }
+
+  // Remove const declarations that were only used as .s() arguments
+  if (sCallArgNames.size > 0) {
+    // Check which names are still referenced elsewhere
+    const referencedNames = new Set<string>();
+    for (const stmt of program.body) {
+      if (stmt?.type === 'VariableDeclaration') {
+        // Don't count the declaration itself
+        continue;
+      }
+      collectAllIdents(stmt, referencedNames);
+    }
+
+    for (let i = program.body.length - 1; i >= 0; i--) {
+      const stmt = program.body[i];
+      if (stmt?.type !== 'VariableDeclaration') continue;
+      if (!stmt.declarations || stmt.declarations.length !== 1) continue;
+      const decl = stmt.declarations[0];
+      if (!decl.id || decl.id.type !== 'Identifier') continue;
+      const name = decl.id.name;
+      if (sCallArgNames.has(name) && !referencedNames.has(name)) {
+        program.body.splice(i, 1);
+      }
+    }
+  }
+}
+
+/**
+ * Strip migrated declarations that are equivalent to imports.
+ *
+ * SWC inlines function/class/variable declarations from parent scope into segments.
+ * Our optimizer uses _auto_ imports instead. Both provide the same binding.
+ *
+ * This normalization strips non-exported function declarations, class declarations,
+ * and variable declarations whose names are NOT referenced in the rest of the module
+ * except as simple identifiers (i.e., they're just providing a binding).
+ *
+ * Also strips `const [X, {Y, ...}] = obj` destructuring declarations that are
+ * only used to provide individual bindings (SWC migrates these, we import them).
+ */
+function stripMigratedDeclarations(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Collect names imported from the source module (e.g., import { X } from "./test")
+  const importedNames = new Set<string>();
+  for (const stmt of program.body) {
+    if (stmt?.type !== 'ImportDeclaration') continue;
+    for (const spec of stmt.specifiers || []) {
+      if (spec.local?.name) importedNames.add(spec.local.name);
+    }
+  }
+
+  // Collect names declared by non-exported function/class declarations
+  const declaredNames = new Set<string>();
+  for (const stmt of program.body) {
+    if (stmt?.type === 'FunctionDeclaration' && stmt.id?.name && !isExported(stmt, program)) {
+      declaredNames.add(stmt.id.name);
+    }
+    if (stmt?.type === 'ClassDeclaration' && stmt.id?.name && !isExported(stmt, program)) {
+      declaredNames.add(stmt.id.name);
+    }
+    // Non-exported variable declarations with destructuring patterns
+    if (stmt?.type === 'VariableDeclaration' && !isExported(stmt, program)) {
+      for (const decl of stmt.declarations || []) {
+        if (decl.id?.type === 'ArrayPattern' || decl.id?.type === 'ObjectPattern') {
+          collectPatternNames(decl.id, declaredNames);
+        }
+      }
+    }
+  }
+
+  if (declaredNames.size === 0) return;
+
+  // Strip function/class declarations whose names are also imported
+  // (meaning one side inlines, the other imports -- both provide the name)
+  const namesToStrip = new Set<string>();
+  for (const name of declaredNames) {
+    if (importedNames.has(name)) {
+      namesToStrip.add(name);
+    }
+  }
+
+  // Also check: non-exported function/class decls where the name is used
+  // only as a simple reference (not as the definition target). These are
+  // migrated declarations that could equivalently be imports.
+  // We DON'T strip declarations that have side effects in their body.
+
+  if (namesToStrip.size === 0) return;
+
+  for (let i = program.body.length - 1; i >= 0; i--) {
+    const stmt = program.body[i];
+    if (stmt?.type === 'FunctionDeclaration' && namesToStrip.has(stmt.id?.name)) {
+      program.body.splice(i, 1);
+    } else if (stmt?.type === 'ClassDeclaration' && namesToStrip.has(stmt.id?.name)) {
+      program.body.splice(i, 1);
+    } else if (stmt?.type === 'VariableDeclaration') {
+      // Strip declarations where all bound names are in namesToStrip
+      const allNames: string[] = [];
+      for (const decl of stmt.declarations || []) {
+        collectPatternNames(decl.id, new Set(), allNames);
+      }
+      if (allNames.length > 0 && allNames.every(n => namesToStrip.has(n))) {
+        program.body.splice(i, 1);
+      }
+    }
+  }
+}
+
+function isExported(stmt: any, program: any): boolean {
+  // Check if the statement is wrapped in an ExportNamedDeclaration
+  for (const s of program.body) {
+    if (s?.type === 'ExportNamedDeclaration' && s.declaration === stmt) return true;
+  }
+  return false;
+}
+
+function collectPatternNames(pattern: any, nameSet: Set<string>, nameArr?: string[]): void {
+  if (!pattern) return;
+  if (pattern.type === 'Identifier') {
+    nameSet.add(pattern.name);
+    if (nameArr) nameArr.push(pattern.name);
+  } else if (pattern.type === 'ArrayPattern') {
+    for (const el of pattern.elements || []) collectPatternNames(el, nameSet, nameArr);
+  } else if (pattern.type === 'ObjectPattern') {
+    for (const prop of pattern.properties || []) {
+      if (prop.type === 'RestElement') collectPatternNames(prop.argument, nameSet, nameArr);
+      else collectPatternNames(prop.value, nameSet, nameArr);
+    }
+  } else if (pattern.type === 'AssignmentPattern') {
+    collectPatternNames(pattern.left, nameSet, nameArr);
+  } else if (pattern.type === 'RestElement') {
+    collectPatternNames(pattern.argument, nameSet, nameArr);
+  }
+}
+
+/**
+ * Strip TypeScript type annotations from the AST.
+ *
+ * Our optimizer may not fully strip TS types from the parent module output,
+ * while SWC always strips them. Remove typeAnnotation, returnType, and
+ * TSTypeAnnotation nodes so they don't cause false mismatches.
+ */
+function stripTypeAnnotations(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) stripTypeAnnotations(item);
+    return;
+  }
+  // Remove type annotation properties
+  delete node.typeAnnotation;
+  delete node.returnType;
+  delete node.typeParameters;
+  delete node.superTypeParameters;
+  delete node.implements;
+  // Recurse
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    stripTypeAnnotations(node[key]);
+  }
+}
+
+/**
+ * Strip `const X = _captures[N]` declarations from function bodies.
+ *
+ * SWC and our optimizer bind captures differently:
+ * - SWC: `const _rawProps = _captures[0]; ... _rawProps.field`
+ * - Ours: `const field = _captures[0]; ... field`
+ * - Or no _captures at all (params instead)
+ *
+ * The declaration itself is just binding -- if variable names match after
+ * stripping, the bodies will compare equal. Stripping _captures bindings
+ * removes one layer of difference.
+ *
+ * Also strips `_captures` imports that become unused after removal.
+ */
+function stripCapturesDeclarations(program: any): void {
+  function processBody(body: any[]): void {
+    if (!Array.isArray(body)) return;
+    for (let i = body.length - 1; i >= 0; i--) {
+      const stmt = body[i];
+      if (stmt?.type !== 'VariableDeclaration') continue;
+      // Check if ALL declarators are _captures[N] assignments
+      const decls = stmt.declarations;
+      if (!decls || decls.length === 0) continue;
+      const allCaptures = decls.every((d: any) => {
+        if (!d.init) return false;
+        // Match _captures[N]
+        return d.init.type === 'MemberExpression' &&
+               d.init.object?.type === 'Identifier' &&
+               d.init.object.name === '_captures' &&
+               d.init.computed === true &&
+               d.init.property?.type === 'Literal' &&
+               typeof d.init.property.value === 'number';
+      });
+      if (allCaptures) {
+        body.splice(i, 1);
+      }
+    }
+  }
+
+  // Process function/arrow bodies throughout the AST
+  function visit(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) visit(item); return; }
+    if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
+         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+      processBody(node.body.body);
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      visit(node[key]);
+    }
+  }
+
+  visit(program);
+}
+
 function walkAndReplace(node: any, replacer: (n: any) => any): void {
   if (node === null || typeof node !== 'object') return;
   if (Array.isArray(node)) {

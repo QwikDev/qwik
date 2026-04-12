@@ -41,3 +41,20 @@ export function rewriteImportSource(source: string): string {
   }
   return source;
 }
+
+/**
+ * Rewrite legacy @builder.io package names within a file path.
+ *
+ * Unlike rewriteImportSource which handles bare import specifiers,
+ * this handles full file paths like "../node_modules/@builder.io/qwik-react/index.mjs"
+ * by finding and replacing the package name portion.
+ */
+export function rewriteFilePath(filePath: string): string {
+  for (const [from, to] of IMPORT_REWRITES) {
+    const idx = filePath.indexOf(from);
+    if (idx >= 0) {
+      return filePath.slice(0, idx) + to + filePath.slice(idx + from.length);
+    }
+  }
+  return filePath;
+}

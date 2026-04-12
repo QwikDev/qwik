@@ -130,6 +130,10 @@ function normalizeProgram(program: any): void {
   // _hf numbering — same function bodies, different numeric suffixes
   renumberHoistedFunctions(program);
 
+  // Inline _fnSignal calls by substituting the hoisted function body.
+  // This eliminates _hf indirection so both sides compare structurally.
+  inlineFnSignalSimple(program);
+
   // _auto_ exports — `export { X as _auto_X }` is a module-linking pattern,
   // both approaches make the same binding available to segments
   normalizeAutoExports(program);

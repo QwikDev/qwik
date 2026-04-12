@@ -105,6 +105,7 @@ function normalizeProgram(program: any): void {
   unwrapSingleStatementBlocks(program);
   sortObjectProperties(program);
   normalizeDevModePositions(program);
+  normalizeEnumIIFE(program);
   inlineSegmentBodyIntoSCall(program);
 }
 
@@ -607,6 +608,67 @@ function unwrapSingleStatementBlocks(node: any): void {
          node.type === 'ForOfStatement' || node.type === 'WhileStatement' ||
          node.type === 'DoWhileStatement' || node.type === 'IfStatement')) {
       node[prop] = node[prop].body[0];
+    }
+  }
+}
+
+/**
+ * Normalize transpiled TS enum IIFE patterns.
+ *
+ * SWC produces: (function(X) { ...; return X; })({})
+ * oxc-transform produces: var X = function(X) { ...; return X; }(X || {})
+ *
+ * Normalize both to the SWC form by:
+ * 1. Converting `var X = ...IIFE(X || {})` to `(function(X){...})({})`
+ * 2. Replacing `X || {}` argument with `{}`
+ */
+function normalizeEnumIIFE(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  for (let i = 0; i < program.body.length; i++) {
+    const stmt = program.body[i];
+
+    // Pattern: var X = /*@__PURE__*/ function(X) { ...; return X; }(X || {})
+    if (stmt.type === 'VariableDeclaration' &&
+        stmt.declarations?.length === 1) {
+      const decl = stmt.declarations[0];
+      const init = decl.init;
+      if (!init) continue;
+
+      // The init might be the CallExpression directly, or wrapped in parentheses
+      let callExpr = init;
+      if (callExpr.type === 'ParenthesizedExpression') callExpr = callExpr.expression;
+
+      if (callExpr.type !== 'CallExpression') continue;
+
+      // The callee should be a FunctionExpression
+      let callee = callExpr.callee;
+      if (callee.type === 'ParenthesizedExpression') callee = callee.expression;
+      if (callee.type !== 'FunctionExpression') continue;
+
+      // Check it has the enum pattern: single param, body ends with return X
+      if (!callee.params || callee.params.length !== 1) continue;
+      const paramName = callee.params[0]?.name || callee.params[0]?.id?.name;
+      const declName = decl.id?.name;
+      if (!paramName || !declName || paramName !== declName) continue;
+
+      // Convert to ExpressionStatement with IIFE call
+      // Replace the argument (X || {}) with {}
+      const args = callExpr.arguments || [];
+      if (args.length === 1) {
+        // Replace whatever argument with empty object
+        args[0] = { type: 'ObjectExpression', properties: [] };
+      }
+
+      // Wrap in ExpressionStatement
+      program.body[i] = {
+        type: 'ExpressionStatement',
+        expression: {
+          type: 'CallExpression',
+          callee: callee,
+          arguments: args,
+        },
+      };
     }
   }
 }

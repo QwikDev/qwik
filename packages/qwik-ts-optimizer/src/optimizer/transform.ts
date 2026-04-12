@@ -1611,6 +1611,31 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       }
     }
 
+    // When transpileTs is enabled, TS enum values are inlined into segment bodies
+    // (e.g., Thing.A becomes 0). The enum name is no longer needed by segments,
+    // so remove it from segmentUsage to prevent unnecessary auto-exports/migration.
+    if (options.transpileTs === true) {
+      const enumNames = new Set<string>();
+      for (const node of program.body) {
+        let enumDecl: any = null;
+        if (node.type === 'TSEnumDeclaration') {
+          enumDecl = node;
+        } else if (node.type === 'ExportNamedDeclaration' && node.declaration?.type === 'TSEnumDeclaration') {
+          enumDecl = node.declaration;
+        }
+        if (enumDecl?.id?.name) {
+          enumNames.add(enumDecl.id.name);
+        }
+      }
+      if (enumNames.size > 0) {
+        for (const [, usedNames] of segmentUsage) {
+          for (const name of enumNames) {
+            usedNames.delete(name);
+          }
+        }
+      }
+    }
+
     // Compute output extension early (before `ext` is shadowed by extraction loop)
     const qrlOutputExt = computeOutputExtension(ext, options.transpileTs, options.transpileJsx);
 

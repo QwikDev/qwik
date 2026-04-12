@@ -127,6 +127,28 @@ function stripPositions(node: any, ancestors: any[] = []): any {
     }
   }
 
+  // Normalize property keys: { "class": v } and { class: v } are semantically
+  // identical but produce different AST nodes (Literal vs Identifier for key).
+  // Normalize non-computed property keys to Identifier form for consistent comparison.
+  if (node.type === 'Property' && !node.computed && node.key) {
+    const normalizedNode = { ...node };
+    if (node.key.type === 'Literal' && typeof node.key.value === 'string') {
+      normalizedNode.key = { type: 'Identifier', name: node.key.value };
+    }
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(normalizedNode)) {
+      if (
+        key === 'start' || key === 'end' || key === 'loc' || key === 'range' ||
+        key === 'shorthand' || key === 'typeAnnotation' || key === 'returnType' ||
+        key === 'typeParameters' || key === 'typeArguments' ||
+        (key === 'raw' && shouldStripRaw(normalizedNode, ancestors))
+      )
+        continue;
+      cleaned[key] = stripPositions(value, [normalizedNode, ...ancestors].slice(0, 3));
+    }
+    return cleaned;
+  }
+
   const cleaned: Record<string, any> = {};
   for (const [key, value] of Object.entries(node)) {
     // Skip position-related fields, cosmetic raw spellings, and TS type annotations.

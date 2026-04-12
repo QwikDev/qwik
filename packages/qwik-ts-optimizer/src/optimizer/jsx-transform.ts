@@ -532,10 +532,17 @@ function processChildren(
         const trimmedLines = lines.map((l: string) => l.trim()).filter((l: string) => l.length > 0);
         normalized = trimmedLines.join(' ');
       } else {
-        // Single-line: only trim leading whitespace, preserve trailing
-        // (trailing space before an expression is semantically meaningful)
-        normalized = raw.replace(/^\s+/, '');
-        // But also trim trailing if this is the LAST meaningful child
+        // Single-line: preserve leading whitespace when previous sibling is an
+        // expression container (e.g., `{key} - {value}` should keep the space
+        // before `-`). Otherwise trim leading whitespace.
+        const prevChild = i > 0 ? children[i - 1] : null;
+        if (prevChild && prevChild.type === 'JSXExpressionContainer') {
+          // Preserve leading whitespace — it's semantically meaningful
+          normalized = raw;
+        } else {
+          normalized = raw.replace(/^\s+/, '');
+        }
+        // Trim trailing if this is the LAST meaningful child
         const nextNonWhitespace = children.slice(i + 1).find(
           (c: any) => c.type !== 'JSXText' || (c.value?.trim()),
         );

@@ -1104,13 +1104,11 @@ function processProps(
 
     // --- (d) Signal analysis ---
     if (valueNode) {
-      // For signal analysis, augment importedNames with paramNames so function
-      // parameters (like 'props') are excluded from reactive store detection.
-      // This prevents _fnSignal wrapping for props.field in component segments.
-      const signalImports = paramNames && paramNames.size > 0
-        ? new Set([...importedNames, ...paramNames])
-        : importedNames;
-      const signalResult = analyzeSignalExpression(valueNode, source, signalImports, allDeclaredNames);
+      // SWC performs signal analysis on all expressions including those that
+      // reference function params (like 'props'). The is_const classification
+      // (which determines var vs const bucket) uses props separately, but the
+      // signal wrapping itself applies to params too.
+      const signalResult = analyzeSignalExpression(valueNode, source, importedNames, allDeclaredNames);
       if (signalResult.type === 'wrapProp') {
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`

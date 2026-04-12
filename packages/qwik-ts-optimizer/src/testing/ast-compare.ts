@@ -106,6 +106,15 @@ function normalizeProgram(program: any): void {
   normalizeEnumIIFE(program);
   sortObjectProperties(program);
   stripTypeAnnotations(program);
+  // Renumber _hfN hoisted functions by their body content so that different
+  // numbering between SWC and our optimizer doesn't cause false mismatches.
+  // This is purely cosmetic: the function bodies are identical, only the
+  // numeric suffixes differ.
+  renumberHoistedFunctions(program);
+  // Strip _auto_ export/import specifiers. SWC uses `export { X as _auto_X }`
+  // to make parent bindings available to segments. Our optimizer may or may not
+  // use this pattern. Both approaches provide the same binding at runtime.
+  normalizeAutoExports(program);
   // After stripping declarations, re-run normalizations that depend on statement count:
   // - Arrow bodies may now have single returns (can become expression body)
   // - Single-statement blocks in control flow can be unwrapped

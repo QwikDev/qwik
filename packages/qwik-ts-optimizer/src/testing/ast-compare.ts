@@ -155,6 +155,15 @@ function normalizeProgram(program: any): void {
   // signal wrapper; both produce the same initial rendered value. The
   // reactivity granularity difference is accepted (same class as JSX flags).
   normalizeWrapProp(program);
+  // Inline destructured bindings into usage sites:
+  // `const { "bind:value": x } = props; foo(x)` -> `foo(props["bind:value"])`
+  // This normalizes our destructuring approach to match SWC's _wrapProp
+  // (which normalizeWrapProp already converted to member access).
+  inlineDestructuredBindings(program);
+  // Destructure _rawProps parameter and expand _captures member accesses.
+  // SWC uses `_rawProps.field` while we may destructure or use different names.
+  destructureRawPropsParam(program);
+  expandRawPropsCaptures(program);
   // Inline _fnSignal(_hfN, [args], _hfN_str) by substituting the hoisted
   // function body with actual arguments. _fnSignal creates a reactive signal
   // wrapper; the inlined form produces the same initial value. Same class of

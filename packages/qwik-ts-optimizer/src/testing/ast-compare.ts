@@ -513,7 +513,7 @@ function renumberHoistedFunctions(program: any): void {
       if (!match) continue;
       hfDecls.push({
         oldName: name,
-        initJson: JSON.stringify(decl.init),
+        initJson: JSON.stringify(decl.init, (k, v) => k === 'raw' ? undefined : v),
         stmtIdx: i,
         isStr: !!match[2],
         oldIndex: parseInt(match[1], 10),

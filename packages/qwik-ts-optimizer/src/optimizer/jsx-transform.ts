@@ -673,7 +673,7 @@ function processChildren(
 
   if (meaningful.length === 1) {
     const child = meaningful[0];
-    return processOneChild(child, source, s, importedNames, signalHoister, neededImports, constIdents);
+    return processOneChild(child, source, s, importedNames, signalHoister, neededImports, constIdents, allDeclaredNames);
   }
 
   // Multiple children -> array

@@ -1714,7 +1714,6 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       options.transpileTs,
       options.minify,
       qrlOutputExt,
-      rootUsage,
     );
 
     // 3b. Apply DCE to parent module (after const replacement turned isServer/isBrowser to true/false)

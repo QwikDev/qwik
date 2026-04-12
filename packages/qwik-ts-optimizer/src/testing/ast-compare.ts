@@ -116,6 +116,24 @@ function normalizeProgram(program: any): void {
   mergeDuplicateObjectProperties(program);
   stripUnusedCallBindings(program);
   inlineSegmentBodyIntoSCall(program);
+  // Strip unused variable declarations within function bodies and at module level.
+  // SWC sometimes strips destructuring/declarations that are never used;
+  // our optimizer keeps them. Both are valid but produce different ASTs.
+  stripUnusedLocalDeclarations(program);
+  // Also strip non-exported, non-imported module-level declarations that are unused
+  stripUnusedModuleLevelDeclarations(program);
+  // After stripping declarations, re-run normalizations that depend on statement count:
+  // - Arrow bodies may now have single returns (can become expression body)
+  // - Single-statement blocks in control flow can be unwrapped
+  normalizeArrowBodies(program);
+  unwrapSingleStatementBlocks(program);
+  // Second pass: normalizeWrapProp, inlineFnSignalSimple, stripUnusedCallBindings,
+  // inlineSegmentBodyIntoSCall, and stripUnusedLocalDeclarations can all leave
+  // imports that are no longer referenced.
+  // Re-run stripUnusedImports to clean them up, then re-sort.
+  stripUnusedImports(program);
+  normalizeImportOrder(program);
+  deduplicateImports(program);
 }
 
 /**
@@ -413,6 +431,13 @@ function isIndependentTopLevel(stmt: any): boolean {
     if (expr?.type === 'CallExpression' &&
         expr.callee?.type === 'Identifier' &&
         (expr.callee.name === 'qrl' || expr.callee.name === 'qrlDEV')) return true;
+    // q_xxx.s(callback) expression statements
+    if (expr?.type === 'CallExpression' &&
+        expr.callee?.type === 'MemberExpression' &&
+        expr.callee.object?.type === 'Identifier' &&
+        expr.callee.object.name?.startsWith('q_') &&
+        expr.callee.property?.type === 'Identifier' &&
+        expr.callee.property.name === 's') return true;
   }
   // Export declarations: export const X = componentQrl(...)
   if (stmt?.type === 'ExportNamedDeclaration') return true;
@@ -1467,6 +1492,246 @@ function stripUnusedImports(program: any): void {
     if (stmt.specifiers.length === 0) {
       program.body.splice(i, 1);
     }
+  }
+}
+
+/**
+ * Strip unused local variable declarations within function/arrow bodies.
+ *
+ * SWC's optimizer sometimes strips destructuring/declarations whose bindings
+ * are never referenced in the rest of the function body. Our optimizer may
+ * keep them. Both produce identical runtime behavior when the declaration
+ * has no side effects that matter for comparison. This normalization removes
+ * variable declarations where ALL declared names are unused within their
+ * containing function body, making the two outputs match.
+ *
+ * Only applies inside function bodies (not at module/program level where
+ * declarations can be exports).
+ */
+function stripUnusedLocalDeclarations(program: any): void {
+  if (!program || typeof program !== 'object') return;
+
+  // Walk and find function bodies and nested blocks
+  function visitNode(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { node.forEach(visitNode); return; }
+
+    // Process function bodies
+    if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
+         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+      stripUnusedDeclsInBlock(node.body, node.params || []);
+    }
+
+    // Also process nested blocks inside control flow (do-while, for, while, if, labeled, etc.)
+    // These are inside function bodies so we can safely strip unused locals
+    if (node.type === 'BlockStatement' && Array.isArray(node.body)) {
+      stripUnusedDeclsInBlock(node, []);
+    }
+
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      visitNode(node[key]);
+    }
+  }
+
+  visitNode(program);
+
+  // After stripping, also strip labeled statements that are now empty or only contain
+  // a break to themselves (no-ops)
+  stripNoopLabeledStatements(program);
+}
+
+/**
+ * Strip labeled statements that are no-ops: `label: {}` or `label: { break label; }`
+ */
+function stripNoopLabeledStatements(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (let i = node.length - 1; i >= 0; i--) {
+      stripNoopLabeledStatements(node[i]);
+      const item = node[i];
+      if (item?.type === 'LabeledStatement') {
+        const body = item.body;
+        const label = item.label?.name;
+        // label: {} (empty block)
+        if (body?.type === 'BlockStatement' && (!body.body || body.body.length === 0)) {
+          node.splice(i, 1);
+          continue;
+        }
+        // label: { break label; }
+        if (body?.type === 'BlockStatement' && body.body?.length === 1 &&
+            body.body[0]?.type === 'BreakStatement' &&
+            body.body[0].label?.name === label) {
+          node.splice(i, 1);
+          continue;
+        }
+      }
+    }
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    const val = node[key];
+    if (val && typeof val === 'object') {
+      stripNoopLabeledStatements(val);
+    }
+  }
+}
+
+/**
+ * Strip non-exported module-level variable declarations whose names are unused.
+ * E.g., `const x = "module-level"` where `x` is never referenced elsewhere.
+ */
+function stripUnusedModuleLevelDeclarations(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    // Collect all referenced names from non-plain-VariableDeclaration statements
+    const referencedNames = new Set<string>();
+    for (const stmt of program.body) {
+      if (stmt?.type === 'VariableDeclaration') {
+        for (const decl of stmt.declarations || []) {
+          if (decl.init) collectAllIdents(decl.init, referencedNames);
+        }
+      } else {
+        collectAllIdents(stmt, referencedNames);
+      }
+    }
+
+    for (let i = program.body.length - 1; i >= 0; i--) {
+      const stmt = program.body[i];
+      // Only strip plain VariableDeclaration (not export, not import)
+      if (stmt?.type !== 'VariableDeclaration') continue;
+      const allUnused = (stmt.declarations || []).every((decl: any) => {
+        const names = new Map<string, number>();
+        collectDeclaredNames(decl.id, i, names);
+        return Array.from(names.keys()).every(n => !referencedNames.has(n));
+      });
+      if (allUnused) {
+        program.body.splice(i, 1);
+        changed = true;
+      }
+    }
+  }
+}
+
+function stripUnusedDeclsInBlock(block: any, params: any[]): void {
+  if (!block?.body || !Array.isArray(block.body)) return;
+
+  // Iteratively remove unused declarations until stable
+  let changed = true;
+  while (changed) {
+    changed = false;
+
+    // Determine which names are "declarations" vs "references".
+    // A declaration defines a name. A reference uses one.
+    // We need to figure out which declarations are never referenced.
+    const declStmtTypes = new Set(['VariableDeclaration', 'FunctionDeclaration', 'ClassDeclaration']);
+
+    // Collect referenced names from non-declaration contexts
+    const referencedNames = new Set<string>();
+    // Params are always referenced
+    for (const p of params) {
+      collectAllIdents(p, referencedNames);
+    }
+    for (let i = 0; i < block.body.length; i++) {
+      const stmt = block.body[i];
+      if (stmt?.type === 'VariableDeclaration') {
+        // Only collect from init expressions, not from binding patterns
+        for (const decl of stmt.declarations || []) {
+          if (decl.init) collectAllIdents(decl.init, referencedNames);
+        }
+      } else if (stmt?.type === 'FunctionDeclaration') {
+        // Collect from params and body, not from the function name itself
+        for (const p of stmt.params || []) collectAllIdents(p, referencedNames);
+        if (stmt.body) collectAllIdents(stmt.body, referencedNames);
+      } else if (stmt?.type === 'ClassDeclaration') {
+        // Collect from class body, not from class name
+        if (stmt.body) collectAllIdents(stmt.body, referencedNames);
+        if (stmt.superClass) collectAllIdents(stmt.superClass, referencedNames);
+      } else if (stmt?.type === 'TryStatement') {
+        // For try/catch, check if the block bodies are empty (only have the catch binding)
+        // Skip collecting from try/catch - handled separately below
+        collectAllIdents(stmt, referencedNames);
+      } else {
+        collectAllIdents(stmt, referencedNames);
+      }
+    }
+
+    // Remove unused VariableDeclarations
+    for (let i = block.body.length - 1; i >= 0; i--) {
+      const stmt = block.body[i];
+      if (stmt?.type === 'VariableDeclaration') {
+        const allUnused = (stmt.declarations || []).every((decl: any) => {
+          const names = new Map<string, number>();
+          collectDeclaredNames(decl.id, i, names);
+          return Array.from(names.keys()).every(n => !referencedNames.has(n));
+        });
+        if (allUnused) {
+          block.body.splice(i, 1);
+          changed = true;
+        }
+      } else if (stmt?.type === 'FunctionDeclaration' && stmt.id?.name) {
+        // Remove unused function declarations
+        if (!referencedNames.has(stmt.id.name)) {
+          block.body.splice(i, 1);
+          changed = true;
+        }
+      } else if (stmt?.type === 'ClassDeclaration' && stmt.id?.name) {
+        // Remove unused class declarations
+        if (!referencedNames.has(stmt.id.name)) {
+          block.body.splice(i, 1);
+          changed = true;
+        }
+      } else if (stmt?.type === 'TryStatement') {
+        // Strip try/catch blocks where the try body is empty (or only has empty statements)
+        const tryBody = stmt.block?.body || [];
+        const hasContent = tryBody.some((s: any) => s?.type !== 'EmptyStatement');
+        if (!hasContent) {
+          block.body.splice(i, 1);
+          changed = true;
+        }
+      }
+    }
+  }
+}
+
+function collectDeclaredNames(pattern: any, stmtIndex: number, map: Map<string, number>): void {
+  if (!pattern) return;
+  if (pattern.type === 'Identifier') {
+    map.set(pattern.name, stmtIndex);
+  } else if (pattern.type === 'ObjectPattern') {
+    for (const prop of pattern.properties || []) {
+      if (prop.type === 'RestElement') {
+        collectDeclaredNames(prop.argument, stmtIndex, map);
+      } else {
+        collectDeclaredNames(prop.value, stmtIndex, map);
+      }
+    }
+  } else if (pattern.type === 'ArrayPattern') {
+    for (const elem of pattern.elements || []) {
+      if (elem?.type === 'RestElement') {
+        collectDeclaredNames(elem.argument, stmtIndex, map);
+      } else {
+        collectDeclaredNames(elem, stmtIndex, map);
+      }
+    }
+  } else if (pattern.type === 'AssignmentPattern') {
+    collectDeclaredNames(pattern.left, stmtIndex, map);
+  }
+}
+
+function collectAllIdents(node: any, set: Set<string>): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) { node.forEach(n => collectAllIdents(n, set)); return; }
+  if (node.type === 'Identifier' && node.name) {
+    set.add(node.name);
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    collectAllIdents(node[key], set);
   }
 }
 

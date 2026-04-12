@@ -1230,14 +1230,14 @@ export function transformJsxElement(
     const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
     let varPropsPart: string;
     let constPropsPart: string;
-    if (varEntries.length > 0) {
-      // Has additional var entries -> merge _getConstProps into varPropsPart
+    if (varEntries.length > 0 && constEntries.length > 0) {
+      // Has both additional var entries AND const entries: merge _getConstProps
+      // into varPropsPart so constPropsPart only has explicit const entries.
+      // This matches SWC behavior for spread + bind + event handler combos.
       varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart} }`;
-      constPropsPart = constEntries.length > 0
-        ? `{ ${constEntries.join(', ')} }`
-        : 'null';
+      constPropsPart = `{ ${constEntries.join(', ')} }`;
     } else {
-      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}) }`;
+      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart} }`;
       constPropsPart = constEntries.length > 0
         ? `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`
         : `_getConstProps(${spreadArg})`;

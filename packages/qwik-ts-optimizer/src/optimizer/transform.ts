@@ -1605,6 +1605,21 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const nonInlinedExtractions = extractions.filter((e) => !e.isInlinedQrl);
     const { segmentUsage, rootUsage } = computeSegmentUsage(program, nonInlinedExtractions);
 
+    // Augment segmentUsage with captureNames from scope-aware capture analysis.
+    // computeSegmentUsage uses name-based local filtering which can miss outer-scope
+    // references when block-scoped variables shadow them (e.g., `const x` in a switch
+    // case shadows module-level `const x`, but `return x` after the switch refers to
+    // the outer one). The capture analysis (getUndeclaredIdentifiersInFunction) is
+    // scope-aware and correctly identifies these cross-scope references.
+    for (const ext of nonInlinedExtractions) {
+      const usage = segmentUsage.get(ext.symbolName);
+      if (usage && ext.captureNames) {
+        for (const name of ext.captureNames) {
+          usage.add(name);
+        }
+      }
+    }
+
     // Variables delivered via q:ps (paramNames captures) are referenced by the parent
     // component at render time, so they must not be migrated away from the parent.
     // Add them to the parent segment's usage set.

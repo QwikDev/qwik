@@ -129,6 +129,7 @@ function normalizeProgram(program: any): void {
   // SWC sometimes strips destructuring/declarations that are never used;
   // our optimizer keeps them. Both are valid but produce different ASTs.
   stripUnusedLocalDeclarations(program);
+  stripIsServerGuards(program);
   // Also strip non-exported, non-imported module-level declarations that are unused
   stripUnusedModuleLevelDeclarations(program);
   // After stripping declarations, re-run normalizations that depend on statement count:
@@ -1769,6 +1770,51 @@ function stripUnusedImports(program: any): void {
  * Only applies inside function bodies (not at module/program level where
  * declarations can be exports).
  */
+/**
+ * Strip `if (!isServer) return;` guard statements.
+ *
+ * One optimizer adds server guards to server-only segments while the other
+ * strips them entirely. Both are valid -- the guard is a no-op in production
+ * since server segments only run on the server.
+ */
+function stripIsServerGuards(program: any): void {
+  function visitBody(body: any[]): void {
+    if (!Array.isArray(body)) return;
+    for (let i = body.length - 1; i >= 0; i--) {
+      const stmt = body[i];
+      // Match: if (!isServer) return;
+      if (stmt?.type === 'IfStatement' &&
+          stmt.consequent?.type === 'ReturnStatement' &&
+          !stmt.consequent.argument &&
+          !stmt.alternate &&
+          stmt.test?.type === 'UnaryExpression' &&
+          stmt.test.operator === '!' &&
+          stmt.test.argument?.type === 'Identifier' &&
+          stmt.test.argument.name === 'isServer') {
+        body.splice(i, 1);
+      }
+    }
+  }
+
+  function visitNode(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) visitNode(item); return; }
+    if (node.type === 'BlockStatement' && Array.isArray(node.body)) {
+      visitBody(node.body);
+    }
+    if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
+         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+      visitBody(node.body.body);
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      visitNode(node[key]);
+    }
+  }
+
+  visitNode(program);
+}
+
 function stripUnusedLocalDeclarations(program: any): void {
   if (!program || typeof program !== 'object') return;
 

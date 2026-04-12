@@ -648,7 +648,8 @@ function processOneChild(
     // an element dynamic.
     if (child.type === 'JSXFragment') {
       // Check if the fragment's transformed flag indicates dynamic subtree
-      const fragFlagMatch = childText.match(/_jsxSorted\(_Fragment,\s*null,\s*null,\s*(?:.*?),\s*(\d+)/);
+      // Match the flag from the END of the text: ..., N, key)
+      const fragFlagMatch = childText.match(/,\s*(\d+),\s*(?:"[^"]*"|null)\s*\)$/);
       if (fragFlagMatch) {
         const fragFlag = parseInt(fragFlagMatch[1], 10);
         // If bit 1 (static_subtree) is NOT set, this fragment has dynamic children -> propagate

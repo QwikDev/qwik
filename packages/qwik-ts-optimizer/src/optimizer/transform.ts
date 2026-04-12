@@ -899,7 +899,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const repairedCode = repairInput(input.code, relPath);
 
     // 1. Extract segments
-    const extractions = extractSegments(repairedCode, relPath, options.scope);
+    const willTranspileJsx = options.transpileJsx !== false && (ext === '.tsx' || ext === '.jsx');
+    const extractions = extractSegments(repairedCode, relPath, options.scope, willTranspileJsx);
 
     // 1a. No-extraction passthrough: if no $() markers found AND no JSX transpilation
     // needed, preserve source as-is with only a `//` separator between imports and body.

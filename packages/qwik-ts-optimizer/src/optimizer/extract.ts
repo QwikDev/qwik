@@ -243,6 +243,7 @@ export function extractSegments(
   source: string,
   relPath: string,
   scope?: string,
+  transpileJsx?: boolean,
 ): ExtractionResult[] {
   const { program } = parseSync(relPath, source, { experimentalRawTransfer: true } as any);
 
@@ -333,8 +334,13 @@ export function extractSegments(
         }
       }
 
-      // JSXFragment (<>...</>): push "Fragment" onto context stack
-      if (node.type === 'JSXFragment') {
+      // JSXFragment (<>...</>): push "Fragment" onto context stack ONLY when
+      // transpileJsx is true. In Rust SWC, when transpileJsx is enabled, the
+      // jsx plugin converts <> to jsx(Fragment, ...) BEFORE the optimizer fold.
+      // The optimizer's handle_jsx then pushes "Fragment" (as an Ident) to
+      // stack_ctxt. When transpileJsx is false, JSXFragment has no fold_jsx_fragment
+      // handler, so nothing is pushed.
+      if (node.type === 'JSXFragment' && transpileJsx) {
         ctx.push('Fragment');
         pushCount++;
       }

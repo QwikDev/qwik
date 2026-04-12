@@ -867,11 +867,11 @@ export function rewriteParentModule(
     // For single-quoted Qwik core imports (user-written): if the surviving
     // (non-marker) specifiers include a non-$-suffixed identifier (like useStore),
     // preserve ALL original specifiers including markers. This matches Rust optimizer
-    // behavior where the original user import is kept intact.
+    // behavior where the original user import is kept intact when minify is 'none'.
     const isQwikSource = rewrittenSource.startsWith('@qwik.dev/') ||
       rewrittenSource.startsWith('@builder.io/qwik');
     let preserveAll = false;
-    if (isQwikSource && quoteChar === "'" && !jsxOptions?.enableJsx) {
+    if (isQwikSource && quoteChar === "'" && minify === 'none') {
       const hasNonDollarSurvivor = specifiers.some((spec: any, i: number) => {
         if (toRemove.includes(i)) return false;
         if (spec.type !== 'ImportSpecifier') return true; // default/namespace always non-$

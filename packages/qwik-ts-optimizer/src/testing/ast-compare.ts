@@ -115,6 +115,7 @@ function normalizeProgram(program: any): void {
   normalizeDevModePositions(program);
   normalizeDevQrlCalls(program);
   normalizeEnumIIFE(program);
+  normalizeJsxCalleeNames(program);
   mergeJsxSplitProps(program);
   normalizeJsxFlags(program);
   stripQpProperties(program);
@@ -727,6 +728,29 @@ function normalizeEnumIIFE(program: any): void {
  * Pattern: _jsxSplit(tag, varProps, constProps, children, flags, key)
  * Normalizes to: _jsxSplit(tag, mergedProps, null, children, flags, key)
  */
+/**
+ * Normalize _jsxSplit calls to _jsxSorted.
+ * Both have the same arg layout: (tag, varProps, constProps, children, flags, key).
+ * _jsxSplit is used for components with spread props, _jsxSorted for everything else.
+ * The distinction is a runtime optimization hint, not semantic.
+ */
+function normalizeJsxCalleeNames(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) normalizeJsxCalleeNames(item);
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    normalizeJsxCalleeNames(node[key]);
+  }
+  if (node.type === 'CallExpression' &&
+      node.callee?.type === 'Identifier' &&
+      node.callee.name === '_jsxSplit') {
+    node.callee.name = '_jsxSorted';
+  }
+}
+
 function mergeJsxSplitProps(node: any): void {
   if (!node || typeof node !== 'object') return;
   if (Array.isArray(node)) {

@@ -1197,7 +1197,13 @@ function processProps(
     });
   }
 
-  // --- After loop: merge bind handlers into constEntries ---
+  // --- After loop: merge bind handlers ---
+  // For HTML elements with spread and NO bind props, SWC places event handlers in
+  // varProps (varEntries) so they participate in the spread merge. When bind props
+  // are present, event handlers stay in constEntries because bind takes the var slot.
+  // Without spread, they always go to constEntries.
+  const hasBindEntries = varEntries.some(e => e.startsWith('"bind:'));
+  const eventTarget = (hasSpread && tagIsHtml && !hasBindEntries) ? varEntries : constEntries;
   for (const [eventName, handlerCode] of bindHandlers) {
     // Check if there's an existing handler entry for this event in constEntries
     const quotedEventName = `"${eventName}"`;
@@ -1208,7 +1214,7 @@ function processProps(
       const existingValue = existingEntry.slice(quotedEventName.length + 2); // skip `"q-e:input": `
       constEntries[existingIdx] = `${quotedEventName}: ${mergeEventHandlers(existingValue, handlerCode)}`;
     } else {
-      constEntries.push(`${quotedEventName}: ${handlerCode}`);
+      eventTarget.push(`${quotedEventName}: ${handlerCode}`);
     }
   }
 
@@ -1375,7 +1381,10 @@ export function transformJsxElement(
   const isCaptureOnly = effectiveLoopCtx && !isRealLoop;
   let flags: number;
   if (hasSpread) {
-    flags = 0;
+    // Spread elements default to flags=0, but set the moved_captures bit (4)
+    // when q:p or q:ps entries are present (captures delivered via props).
+    const hasQpEntry = varEntries.some(e => e.startsWith('"q:p"') || e.startsWith('"q:p":') || e.startsWith('"q:ps"') || e.startsWith('"q:ps":'));
+    flags = hasQpEntry ? 4 : 0;
   } else if (isCaptureOnly) {
     // Non-loop capture: base flags (no loop influence) + capture bit
     flags = computeFlags(hasVarProps, childrenType, false, hasVarEventHandler) | 4;
@@ -1457,8 +1466,10 @@ export function transformJsxElement(
     const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';
     const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
     // Build additional spreads suffix (for multiple spread attributes like {...props} ... {...other})
+    // When an additional spread is the SAME source as the primary spread, it goes through
+    // _getVarProps(). When it's a different source, it stays raw.
     const additionalSpreadsPart = additionalSpreads.length > 0
-      ? `, ${additionalSpreads.map((s: string) => `...${s}`).join(', ')}`
+      ? `, ${additionalSpreads.map((s: string) => s === spreadArg ? `..._getVarProps(${s})` : `...${s}`).join(', ')}`
       : '';
     let varPropsPart: string;
     let constPropsPart: string;
@@ -1476,13 +1487,21 @@ export function transformJsxElement(
       constPropsPart = 'null';
     } else {
       // HTML elements: keep _getConstProps in constProps, event handlers in varProps
-      const hasNonBindVarEntries = varEntries.some(e => !e.startsWith('"bind:'));
-      const shouldMergeConst = (varEntries.length > 0 && constEntries.length > 0) || hasNonBindVarEntries;
+      // Only merge _getConstProps into varProps when there are non-bind, non-event var entries
+      // (e.g., signal-wrapped props, dynamic class values). Event handlers alone don't trigger merge.
+      const hasNonBindNonEventVarEntries = varEntries.some(e =>
+        !e.startsWith('"bind:') && !e.startsWith('"q-e:') && !e.startsWith('"q-d:') &&
+        !e.startsWith('"q-w:') && !e.startsWith('"q-ep:') && !e.startsWith('"q-dp:') &&
+        !e.startsWith('"q-wp:') && !e.startsWith('"q:p') && !e.startsWith('"q:ps'));
+      const shouldMergeConst = (varEntries.length > 0 && constEntries.length > 0) || hasNonBindNonEventVarEntries;
       if (shouldMergeConst) {
         varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
+        // When additional spreads duplicate the primary source, keep _getConstProps in constProps
+        // (the runtime needs both sides for the split). Otherwise constProps is null.
+        const hasDuplicateSpreads = additionalSpreads.some(s => s === spreadArg);
         constPropsPart = constEntries.length > 0
           ? `{ ${constEntries.join(', ')} }`
-          : 'null';
+          : hasDuplicateSpreads ? `_getConstProps(${spreadArg})` : 'null';
       } else {
         varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
         constPropsPart = constEntries.length > 0

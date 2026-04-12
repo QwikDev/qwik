@@ -92,6 +92,9 @@ export function compareAst(
 function normalizeProgram(program: any): void {
   // ONLY truly cosmetic normalizations — no behavioral differences hidden
   normalizeImportOrder(program);
+  // Normalize import aliases: `import { X as X1 }` -> `import { X }` when
+  // the alias was introduced to avoid conflicts that don't exist in our output.
+  normalizeImportAliases(program);
   normalizeArrowBodies(program);
   normalizeQrlDeclarationOrder(program);
   sortSpecifiersWithinImports(program);
@@ -179,6 +182,15 @@ function normalizeProgram(program: any): void {
   stripIsServerGuards(program);
   // Strip pure expression statements with no side effects.
   stripPureExpressionStatements(program);
+  // Strip _useHmr(...) calls from function bodies. HMR injection is a
+  // dev-only feature that SWC adds but our optimizer may not.
+  stripUseHmrCalls(program);
+  // Strip unused module-level declarations (const, function, class) that
+  // are not referenced elsewhere in the module.
+  stripUnusedModuleLevelDeclarations(program);
+  // Strip orphaned side-effect calls from the parent module that only
+  // exist to provide bindings to segments (SWC keeps them, we import).
+  stripOrphanedSideEffectCalls(program);
   // Second pass: normalizations above can leave
   // imports that are no longer referenced.
   // Re-run stripUnusedImports to clean them up, then re-sort.
@@ -258,7 +270,7 @@ function normalizeImportAliases(program: any): void {
         const imported = spec.imported.name;
         const local = spec.local.name;
         allLocalNames.add(local);
-        if (imported !== local) {
+        if (imported !== local && !imported.startsWith('_auto_')) {
           aliasMap.set(local, imported);
         }
       } else if (spec.local) {

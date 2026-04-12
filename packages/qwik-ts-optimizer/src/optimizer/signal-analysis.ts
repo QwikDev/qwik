@@ -923,6 +923,16 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
+  // ArrayExpression: wrap in _fnSignal when containing reactive roots
+  if (exprNode.type === 'ArrayExpression') {
+    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+    if (roots.length > 0) {
+      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
+      return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+    }
+    return { type: 'none' };
+  }
+
   // BinaryExpression or other compound expressions
   // Check for reactive roots (signal.value, store access)
   if (

@@ -1799,6 +1799,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             }
           } else if (node.declaration.type === 'ClassDeclaration' && node.declaration.id?.name) {
             sameFileExportNames.add(node.declaration.id.name);
+          } else if (node.declaration.type === 'TSEnumDeclaration' && node.declaration.id?.name) {
+            sameFileExportNames.add(node.declaration.id.name);
           }
         }
         if (node.specifiers) {
@@ -1815,6 +1817,8 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             sameFileExportNames.add(decl.id.name);
           }
         }
+      } else if (node.type === 'TSEnumDeclaration' && node.id?.name) {
+        sameFileExportNames.add(node.id.name);
       }
     }
 

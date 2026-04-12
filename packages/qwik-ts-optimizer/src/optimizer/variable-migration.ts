@@ -251,6 +251,20 @@ export function collectModuleLevelDecls(
           kind: 'class',
         });
       }
+    } else if (declaration.type === 'TSEnumDeclaration') {
+      const name = declaration.id?.name;
+      if (name) {
+        decls.push({
+          name,
+          declStart: stmt.start,
+          declEnd: stmt.end,
+          declText: source.slice(stmt.start, stmt.end),
+          isExported,
+          hasSideEffects: false, // enum declarations are safe
+          isPartOfSharedDestructuring: false,
+          kind: 'const', // enums behave like const for migration purposes
+        });
+      }
     }
   }
 

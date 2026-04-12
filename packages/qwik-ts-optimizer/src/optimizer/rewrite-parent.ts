@@ -810,6 +810,14 @@ export function rewriteParentModule(
     }
   }
 
+  // Always mark the bare `$` import as a marker to strip from parent.
+  // Even when `$` is not directly called (e.g., only `component$`, `server$` are called),
+  // the `$` import is a Qwik marker function that gets consumed by the optimizer.
+  // SWC strips it unconditionally when any extraction occurs.
+  if (extractions.length > 0) {
+    extractedCalleeNames.add('$');
+  }
+
   // Track which symbols are already imported (for dedup - IMP-06)
   const alreadyImported = new Set<string>();
   for (const [localName] of originalImports) {
@@ -823,6 +831,17 @@ export function rewriteParentModule(
   // the body and reassemble them in the preamble (Step 6). This ensures optimizer
   // imports appear first, then surviving user imports, matching Rust output ordering.
   const survivingUserImports: string[] = [];
+  // Track structured info for each surviving import so we can filter unused specifiers later
+  interface SurvivingImportInfo {
+    defaultPart: string;
+    nsPart: string;
+    namedParts: { local: string; imported: string }[];
+    quote: string;
+    source: string;
+    isSideEffect: boolean;
+    preservedAll: boolean;
+  }
+  const survivingImportInfos: SurvivingImportInfo[] = [];
 
   for (const node of program.body) {
     if (node.type !== 'ImportDeclaration') continue;
@@ -885,6 +904,7 @@ export function rewriteParentModule(
     let defaultPart = '';
     let nsPart = '';
     const namedParts: string[] = [];
+    const namedPartsStructured: { local: string; imported: string }[] = [];
     for (let i = 0; i < specifiers.length; i++) {
       if (!preserveAll && toRemove.includes(i)) continue;
       const spec = specifiers[i];
@@ -895,6 +915,7 @@ export function rewriteParentModule(
       } else {
         const localName = spec.local.name;
         const importedName = (spec as any).imported?.name ?? localName;
+        namedPartsStructured.push({ local: localName, imported: importedName });
         if (importedName !== localName) {
           namedParts.push(`${importedName} as ${localName}`);
         } else {
@@ -916,6 +937,15 @@ export function rewriteParentModule(
 
     if (importParts) {
       survivingUserImports.push(`import ${importParts} from ${quoteChar}${rewrittenSource}${quoteChar};`);
+      survivingImportInfos.push({
+        defaultPart,
+        nsPart,
+        namedParts: namedPartsStructured,
+        quote: quoteChar,
+        source: rewrittenSource,
+        isSideEffect: false,
+        preservedAll: preserveAll,
+      });
     }
   }
 
@@ -1606,6 +1636,74 @@ export function rewriteParentModule(
   const importStatements = sortedImports.map(
     ([symbol, src]) => `import { ${symbol} } from "${src}";`,
   );
+
+  // -----------------------------------------------------------------------
+  // Step 5e: Filter surviving user imports to remove unused specifiers.
+  // After extraction, some imported identifiers are only used inside segment
+  // bodies and are no longer referenced in the parent module body.
+  // The SWC optimizer strips these; we must do the same.
+  // -----------------------------------------------------------------------
+  if (survivingUserImports.length > 0 && survivingImportInfos.length > 0) {
+    // Get the current body text (after all magic-string edits)
+    const bodyText = s.toString();
+    // Also include QRL declarations and .s() calls in the reference check,
+    // since they may reference identifiers from surviving imports
+    const allPreambleText = [...qrlDecls, ...sCalls, ...inlineHoistedDeclarations].join('\n');
+    const fullRefText = bodyText + '\n' + allPreambleText;
+
+    for (let idx = survivingUserImports.length - 1; idx >= 0; idx--) {
+      const info = survivingImportInfos[idx];
+      // Never filter side-effect imports, namespace imports, or preserveAll imports
+      // (preserveAll imports are kept intact per minify:'none' behavior)
+      if (info.isSideEffect || info.nsPart || info.preservedAll) continue;
+
+      // Check default import
+      let defaultUsed = false;
+      if (info.defaultPart) {
+        const re = new RegExp(`\\b${info.defaultPart}\\b`);
+        defaultUsed = re.test(fullRefText);
+      }
+
+      // Check each named specifier
+      const usedNamed: { local: string; imported: string }[] = [];
+      for (const np of info.namedParts) {
+        const re = new RegExp(`\\b${np.local}\\b`);
+        if (re.test(fullRefText)) {
+          usedNamed.push(np);
+        }
+      }
+
+      // If nothing is used, remove entirely
+      if (!defaultUsed && usedNamed.length === 0 && !info.nsPart) {
+        survivingUserImports.splice(idx, 1);
+        survivingImportInfos.splice(idx, 1);
+        continue;
+      }
+
+      // If some named specifiers were dropped, rebuild the import
+      if (usedNamed.length < info.namedParts.length) {
+        const namedStrs = usedNamed.map(np =>
+          np.imported !== np.local ? `${np.imported} as ${np.local}` : np.local
+        );
+        let importParts = '';
+        const dp = defaultUsed ? info.defaultPart : '';
+        if (namedStrs.length > 0) {
+          importParts = dp
+            ? `${dp}, { ${namedStrs.join(', ')} }`
+            : `{ ${namedStrs.join(', ')} }`;
+        } else if (dp) {
+          importParts = dp;
+        }
+        if (importParts) {
+          survivingUserImports[idx] = `import ${importParts} from ${info.quote}${info.source}${info.quote};`;
+          survivingImportInfos[idx] = { ...info, namedParts: usedNamed, defaultPart: dp };
+        } else {
+          survivingUserImports.splice(idx, 1);
+          survivingImportInfos.splice(idx, 1);
+        }
+      }
+    }
+  }
 
   // -----------------------------------------------------------------------
   // Step 6: Assemble final output

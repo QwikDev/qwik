@@ -235,11 +235,20 @@ export function classifyProp(
       return 'var';
     }
 
-    // --- Member expressions: always var (SWC is_const.rs) ---
+    // --- Member expressions ---
+    // SWC classifies member expressions on module-level imports as const.
+    // For example, `dep.thing` or `styles.foo` where `dep`/`styles` are imports
+    // go to constProps. But member access on const-declared locals like `store.count`
+    // remains var because local state can be reactive.
     case 'MemberExpression':
     case 'StaticMemberExpression':
-    case 'ComputedMemberExpression':
-      return 'var';  // SWC: ALL member access is var (is_const.rs)
+    case 'ComputedMemberExpression': {
+      const obj = exprNode.object;
+      if (obj && obj.type === 'Identifier' && importedNames.has(obj.name)) {
+        return 'const';
+      }
+      return 'var';
+    }
 
     // --- Call expressions: always var (SWC is_const.rs: visit_call_expr -> false) ---
     case 'CallExpression':
@@ -537,18 +546,21 @@ function processChildren(
       if (normalized) {
         meaningful.push({ ...child, _trimmedText: normalized });
       } else {
-        // Whitespace-only: preserve as " " only between expression containers
-        // (not between JSX elements, which get their whitespace stripped)
-        const prevSibling = meaningful.length > 0 ? meaningful[meaningful.length - 1] : null;
-        const nextSibling = children.slice(i + 1).find(
-          (c: any) => c.type !== 'JSXText' || c.value?.trim(),
-        );
-        if (
-          prevSibling && nextSibling &&
-          prevSibling.type === 'JSXExpressionContainer' &&
-          nextSibling.type === 'JSXExpressionContainer'
-        ) {
-          meaningful.push({ ...child, _trimmedText: ' ' });
+        // Whitespace-only text: preserve as " " only when on the same line
+        // (no newlines) between two expression containers. Multi-line
+        // whitespace between expressions is stripped by SWC.
+        if (!hasNewline) {
+          const prevSibling = meaningful.length > 0 ? meaningful[meaningful.length - 1] : null;
+          const nextSibling = children.slice(i + 1).find(
+            (c: any) => c.type !== 'JSXText' || c.value?.trim(),
+          );
+          if (
+            prevSibling && nextSibling &&
+            prevSibling.type === 'JSXExpressionContainer' &&
+            nextSibling.type === 'JSXExpressionContainer'
+          ) {
+            meaningful.push({ ...child, _trimmedText: ' ' });
+          }
         }
       }
     } else {
@@ -628,6 +640,7 @@ function processOneChild(
       const signalResult = analyzeSignalExpression(expr, source, importedNames);
       if (signalResult.type === 'wrapProp') {
         neededImports?.add('_wrapProp');
+        // SWC treats _wrapProp children as static for flag purposes.
         return { text: signalResult.code, type: 'static' };
       }
       if (signalResult.type === 'fnSignal') {

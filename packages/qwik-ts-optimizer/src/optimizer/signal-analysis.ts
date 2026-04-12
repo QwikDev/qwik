@@ -895,22 +895,11 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // ObjectExpression values: wrap in _fnSignal only if they contain reactive roots.
-  // e.g., {props: _rawProps.fromProps} -> _fnSignal((p0) => ({props: p0.fromProps}), [_rawProps], ...)
-  // Plain object literals without reactive roots are NOT wrapped.
+  // ObjectExpression values: SWC does NOT wrap object literals in _fnSignal,
+  // even when they contain reactive roots. Object-valued props go to varProps
+  // as-is (e.g., class: { active: store.value }).
   if (exprNode.type === 'ObjectExpression') {
-    // SIG-05: mixed with unknown call -> NOT wrapped
-    if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
-
-    // SIG-05: mixed with imported reference -> NOT wrapped
-    if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
-
-    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-    if (roots.length === 0) return { type: 'none' };
-
-    const allDeps = collectAllDeps(exprNode, importedNames);
-    const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
-    return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
+    return { type: 'none' };
   }
 
   // BinaryExpression or other compound expressions

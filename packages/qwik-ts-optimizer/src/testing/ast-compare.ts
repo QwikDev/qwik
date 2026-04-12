@@ -141,6 +141,13 @@ function normalizeProgram(program: any): void {
   // reactivity granularity but not rendered output. SWC and our optimizer
   // may compute different flags for the same JSX structure.
   normalizeJsxFlags(program);
+  // Canonicalize _captures[N] bindings to _cap0, _cap1, etc. Both sides
+  // assign the same captured values, just with different local names
+  // (SWC: _rawProps, data; ours: color, selectedItem). Name-insensitive.
+  canonicalizeCaptureBindings(program);
+  // Strip _captures import and const declarations that become unused
+  // after canonicalization.
+  stripCapturesDeclarations(program);
   // After stripping declarations, re-run normalizations that depend on statement count:
   // - Arrow bodies may now have single returns (can become expression body)
   // - Single-statement blocks in control flow can be unwrapped

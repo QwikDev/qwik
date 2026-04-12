@@ -920,14 +920,19 @@ function processProps(
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`
           : propName;
-        // In SWC, convert_to_getter produces _fnSignal which is treated as const
-        // (is_const=true from create_synthetic_qqsegment). Goes to constEntries.
-        // Exception: in loop context, _fnSignal props that depend on iteration
-        // variables go to varEntries (Rust optimizer behavior).
-        if (inLoop) {
-          varEntries.push(`${formattedName}: ${fnSignalCall}`);
-        } else {
+        // _fnSignal placement depends on whether deps are all const-bound.
+        // If all deps are const (imports, const-declared locals), it goes to constEntries.
+        // If any dep is var (function params like _rawProps), it goes to varEntries.
+        // This matches SWC's is_const check on the synthetic prop's deps.
+        const depsAllConst = signalResult.deps.every(dep => {
+          if (importedNames.has(dep)) return true;
+          if (constIdents?.has(dep)) return true;
+          return false;
+        });
+        if (depsAllConst && !inLoop) {
           constEntries.push(`${formattedName}: ${fnSignalCall}`);
+        } else {
+          varEntries.push(`${formattedName}: ${fnSignalCall}`);
         }
         neededImports.add('_fnSignal');
         continue;

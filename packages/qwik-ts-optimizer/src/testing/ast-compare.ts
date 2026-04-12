@@ -66,6 +66,7 @@ function normalizeProgram(program: any): void {
   normalizeQrlDeclarationOrder(program);
   sortSpecifiersWithinImports(program);
   sortIndependentExpressionStatements(program);
+  sortIndependentTopLevelStatements(program);
   normalizeVoidZero(program);
   normalizeBooleanLiterals(program);
   stripDirectives(program);
@@ -307,6 +308,39 @@ function isIndependentExprStatement(stmt: any): boolean {
   if (expr?.type === 'CallExpression' &&
       expr.callee?.type === 'Identifier' &&
       /^_hf\d+/.test(expr.callee.name)) return true;
+  return false;
+}
+
+/**
+ * Sort contiguous blocks of independent top-level statements.
+ * Bare QRL expression calls (qrl(()=>import(...))) and export declarations
+ * are independent module-level statements whose relative order doesn't matter.
+ */
+function sortIndependentTopLevelStatements(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+  let i = 0;
+  while (i < program.body.length) {
+    if (!isIndependentTopLevel(program.body[i])) { i++; continue; }
+    const start = i;
+    while (i < program.body.length && isIndependentTopLevel(program.body[i])) i++;
+    if (i - start <= 1) continue;
+    const block = program.body.slice(start, i);
+    block.sort((a: any, b: any) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    program.body.splice(start, i - start, ...block);
+  }
+}
+
+function isIndependentTopLevel(stmt: any): boolean {
+  // Bare QRL call: qrl(() => import(...), "name")
+  if (stmt?.type === 'ExpressionStatement') {
+    const expr = stmt.expression;
+    if (expr?.type === 'CallExpression' &&
+        expr.callee?.type === 'Identifier' &&
+        (expr.callee.name === 'qrl' || expr.callee.name === 'qrlDEV')) return true;
+  }
+  // Export declarations: export const X = componentQrl(...)
+  if (stmt?.type === 'ExportNamedDeclaration') return true;
+  if (stmt?.type === 'ExportDefaultDeclaration') return true;
   return false;
 }
 

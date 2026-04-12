@@ -638,8 +638,23 @@ function processOneChild(
     // - Fragments: always static
     // - HTML elements: static if no varProps, dynamic if they have varProps
     // After bottom-up transformation, _jsxSorted("tag", {varProps}, ...) indicates varProps.
-    // _jsxSorted("tag", null, ...) indicates no varProps.
+    // In SWC, jsx_mutable propagates upward: if ANY descendant element
+    // has dynamic children (flag without bit 1 set), the parent also
+    // becomes dynamic. Check the child element's own flag in the
+    // transformed text to detect this propagation.
+    //
+    // Also check: component tags are always dynamic, and varProps make
+    // an element dynamic.
     if (child.type === 'JSXFragment') {
+      // Check if the fragment's transformed flag indicates dynamic subtree
+      const fragFlagMatch = childText.match(/_jsxSorted\(_Fragment,\s*null,\s*null,\s*(?:.*?),\s*(\d+)/);
+      if (fragFlagMatch) {
+        const fragFlag = parseInt(fragFlagMatch[1], 10);
+        // If bit 1 (static_subtree) is NOT set, this fragment has dynamic children -> propagate
+        if ((fragFlag & 2) === 0) {
+          return { text: childText, type: 'dynamic' };
+        }
+      }
       return { text: childText, type: 'static' };
     }
     const tagName = child.openingElement?.name;
@@ -648,11 +663,26 @@ function processOneChild(
     if (isComponentTag) {
       return { text: childText, type: 'dynamic' };
     }
-    // For HTML elements: check if the transformed text has varProps (non-null 2nd arg)
-    // Pattern: _jsxSorted("tag", {... or _jsxSorted("tag", null
+    // For HTML elements: check the transformed text for dynamic indicators:
+    // 1. varProps (non-null 2nd arg of _jsxSorted)
+    // 2. Flag without bit 1 set (dynamic subtree in child)
     const varPropsMatch = childText.match(/_jsxSorted\([^,]+,\s*(\{|null)/);
     const hasChildVarProps = varPropsMatch ? varPropsMatch[1] === '{' : false;
-    return { text: childText, type: hasChildVarProps ? 'dynamic' : 'static' };
+    if (hasChildVarProps) {
+      return { text: childText, type: 'dynamic' };
+    }
+    // Check child's own flag for dynamic subtree propagation
+    // Match the LAST _jsxSorted call's flag (the outermost one for this child)
+    // Pattern: ..., N, key) at the end of the child text
+    const childFlagMatch = childText.match(/,\s*(\d+),\s*(?:"[^"]*"|null)\s*\)$/);
+    if (childFlagMatch) {
+      const childFlag = parseInt(childFlagMatch[1], 10);
+      // If bit 1 (static_subtree) is NOT set, child has dynamic children -> propagate
+      if ((childFlag & 2) === 0) {
+        return { text: childText, type: 'dynamic' };
+      }
+    }
+    return { text: childText, type: 'static' };
   }
 
   return { text: null, type: 'none' };

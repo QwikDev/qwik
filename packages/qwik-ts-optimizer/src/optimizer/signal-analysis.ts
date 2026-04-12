@@ -969,15 +969,16 @@ export function analyzeSignalExpression(
  */
 export class SignalHoister {
   counter = 0;
-  hoistedFunctions: Array<{ name: string; fn: string; str: string }> = [];
+  hoistedFunctions: Array<{ name: string; fn: string; str: string; sourcePos: number }> = [];
   /** Deduplication map: function body text -> existing _hf variable name */
   private dedupMap = new Map<string, string>();
 
   /**
    * Add a hoisted function, returns the _hfN name.
    * Deduplicates: if an identical function body already exists, reuses its name.
+   * @param sourcePos - Position in original source where signal expression occurs (for ordering)
    */
-  hoist(fn: string, str: string): string {
+  hoist(fn: string, str: string, sourcePos: number = 0): string {
     // Check for existing identical function body
     const existing = this.dedupMap.get(fn);
     if (existing) {
@@ -985,7 +986,7 @@ export class SignalHoister {
     }
 
     const name = `_hf${this.counter}`;
-    this.hoistedFunctions.push({ name, fn, str });
+    this.hoistedFunctions.push({ name, fn, str, sourcePos });
     this.dedupMap.set(fn, name);
     this.counter++;
     return name;
@@ -1001,5 +1002,47 @@ export class SignalHoister {
       lines.push(`const ${h.name}_str = ${h.str};`);
     }
     return lines;
+  }
+
+  /**
+   * Build a renaming map that renumbers _hf variables by source position order.
+   * SWC processes elements top-down (props before children recursion),
+   * but our walk processes bottom-up (leave callback). This method creates
+   * a map to renumber from walk order to source position order.
+   * Returns null if no renumbering is needed (already in order).
+   */
+  buildRenameMap(): Map<string, string> | null {
+    if (this.hoistedFunctions.length <= 1) return null;
+
+    // Sort by source position to get SWC order
+    const sorted = [...this.hoistedFunctions].sort((a, b) => a.sourcePos - b.sourcePos);
+
+    // Check if already in order
+    let needsRename = false;
+    for (let i = 0; i < sorted.length; i++) {
+      if (sorted[i].name !== `_hf${i}`) {
+        needsRename = true;
+        break;
+      }
+    }
+    if (!needsRename) return null;
+
+    // Build rename map: old name -> new name
+    const renameMap = new Map<string, string>();
+    for (let i = 0; i < sorted.length; i++) {
+      const oldName = sorted[i].name;
+      const newName = `_hf${i}`;
+      if (oldName !== newName) {
+        renameMap.set(oldName, newName);
+      }
+    }
+
+    // Also update the hoistedFunctions array to be in the new order
+    this.hoistedFunctions = sorted.map((h, i) => ({
+      ...h,
+      name: `_hf${i}`,
+    }));
+
+    return renameMap;
   }
 }

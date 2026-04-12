@@ -754,7 +754,7 @@ function processOneChild(
         return { text: signalResult.code, type: wrapIsConst ? 'static' : 'dynamic' };
       }
       if (signalResult.type === 'fnSignal') {
-        const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr);
+        const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, expr.start ?? 0);
         const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
         neededImports?.add('_fnSignal');
         // fnSignal children are static only when all deps are const-bound
@@ -1119,7 +1119,7 @@ function processProps(
         continue;
       }
       if (signalResult.type === 'fnSignal') {
-        const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr);
+        const hfName = signalHoister.hoist(signalResult.hoistedFn, signalResult.hoistedStr, valueNode.start ?? 0);
         const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`
@@ -1719,7 +1719,36 @@ export function transformAllJsx(
     },
   });
 
-  // Get hoisted signal declarations
+  // Renumber _hf variables to match SWC's top-down source order.
+  // Our bottom-up walk processes inner elements first, but SWC processes
+  // outer element props before recursing into children.
+  const renameMap = signalHoister.buildRenameMap();
+  if (renameMap && renameMap.size > 0) {
+    // Apply renames to the MagicString output.
+    // Use a two-phase rename (old -> temp -> new) to avoid collisions.
+    const content = s.toString();
+    let renamed = content;
+    // Phase 1: old names -> temporary placeholders
+    const tempMap = new Map<string, string>();
+    for (const [oldName, newName] of renameMap) {
+      const temp = `__hf_temp_${oldName.slice(3)}__`;
+      tempMap.set(temp, newName);
+      // Replace both _hfN and _hfN_str
+      renamed = renamed.split(`${oldName}_str`).join(`${temp}_str`);
+      renamed = renamed.split(oldName).join(temp);
+    }
+    // Phase 2: temporary placeholders -> new names
+    for (const [temp, newName] of tempMap) {
+      renamed = renamed.split(`${temp}_str`).join(`${newName}_str`);
+      renamed = renamed.split(temp).join(newName);
+    }
+    // Overwrite the entire MagicString content
+    if (renamed !== content) {
+      s.overwrite(0, s.original.length, renamed);
+    }
+  }
+
+  // Get hoisted signal declarations (already renumbered by buildRenameMap)
   const hoistedDeclarations = signalHoister.getDeclarations();
 
   return { neededImports, needsFragment, hoistedDeclarations, keyCounterValue: keyCounter.current() };

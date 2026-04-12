@@ -41,7 +41,7 @@ import {
   buildHoistSCall,
 } from './inline-strategy.js';
 import { isStrippedSegment } from './strip-ctx.js';
-import { injectCapturesUnpacking } from './segment-codegen.js';
+import { injectCapturesUnpacking, rewriteFunctionSignature } from './segment-codegen.js';
 import { transformEventPropName } from './event-handler-transform.js';
 import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
 import { SignalHoister } from './signal-analysis.js';
@@ -2032,9 +2032,18 @@ export function rewriteParentModule(
         ext, extractions, qrlVarNames, sCallJsxOptions, inlineOptions?.regCtxName, sharedHoister,
       );
 
+      // Rewrite function signature for event handlers with paramNames (positional params).
+      // This applies to inline/hoist strategy where segment-codegen's rewrite is not used.
+      // SWC delivers captured vars as positional params: (_, _1, capturedVar) => body
+      let sigRewrittenBody = rawBody;
+      if (ext.paramNames.length >= 2 &&
+          ext.paramNames[0] === '_' && ext.paramNames[1] === '_1') {
+        sigRewrittenBody = rewriteFunctionSignature(rawBody, ext.paramNames);
+      }
+
       // Wrap body with _regSymbol for regCtxName-matched extractions
       const isRegCtxMatch = matchesRegCtxName(ext, inlineOptions?.regCtxName);
-      let transformedBody = rawBody;
+      let transformedBody = sigRewrittenBody;
       if (isRegCtxMatch) {
         // Wrap: _regSymbol(() => body, "hash")
         // with /*#__PURE__*/ annotation

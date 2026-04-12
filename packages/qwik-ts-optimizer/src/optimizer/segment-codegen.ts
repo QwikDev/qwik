@@ -1343,7 +1343,7 @@ export function generateSegmentCode(
  * @param paramNames - The full parameter list to inject (e.g., ["_", "_1", "item"])
  * @returns Modified body text with rewritten function signature
  */
-function rewriteFunctionSignature(bodyText: string, paramNames: string[]): string {
+export function rewriteFunctionSignature(bodyText: string, paramNames: string[]): string {
   const paramList = paramNames.join(', ');
 
   // Try arrow function first: find `=>` and the preceding param list

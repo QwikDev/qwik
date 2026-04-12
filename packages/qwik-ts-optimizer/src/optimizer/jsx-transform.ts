@@ -539,6 +539,20 @@ export function isHtmlElement(tagName: string): boolean {
 }
 
 /**
+ * Text-only HTML elements whose children should NOT be signal-wrapped.
+ *
+ * SWC skips convert_children() for these tags (transform.rs `is_text_only`),
+ * instead marking the element as mutable and leaving children as-is.
+ */
+const TEXT_ONLY_TAGS = new Set([
+  'text', 'textarea', 'title', 'option', 'script', 'style', 'noscript',
+]);
+
+export function isTextOnlyElement(tagName: string): boolean {
+  return TEXT_ONLY_TAGS.has(tagName);
+}
+
+/**
  * Extract tag representation from a JSX opening element name node.
  *
  * - JSXIdentifier with lowercase name -> `"div"` (string literal)
@@ -859,6 +873,7 @@ function processProps(
   paramNames?: Set<string>,
   constIdents?: Set<string>,
   allDeclaredNames?: Set<string>,
+  skipSignalAnalysis?: boolean,
 ): {
   varEntries: string[];
   constEntries: string[];
@@ -1104,7 +1119,9 @@ function processProps(
     }
 
     // --- (d) Signal analysis ---
-    if (valueNode) {
+    // Skip signal analysis for _createElement path (spread + explicit key).
+    // SWC's _createElement is a raw passthrough -- props are not signal-wrapped.
+    if (valueNode && !skipSignalAnalysis) {
       // SWC performs signal analysis on all expressions including those that
       // reference function params (like 'props'). The is_const classification
       // (which determines var vs const bucket) uses props separately, but the
@@ -1283,6 +1300,11 @@ export function transformJsxElement(
   const tagIsHtml = tag.startsWith('"') && tag.length > 2 &&
     tag[1] === tag[1].toLowerCase() && tag[1] >= 'a' && tag[1] <= 'z';
 
+  // Text-only elements (title, textarea, etc.) skip signal wrapping for children.
+  // SWC marks these as mutable and preserves children as-is (transform.rs `is_text_only`).
+  const rawTagName = tagIsHtml ? tag.slice(1, -1) : '';
+  const textOnly = tagIsHtml && isTextOnlyElement(rawTagName);
+
   // Collect passive directives for this element
   const elementPassiveEvents = passiveEvents ??
     collectPassiveDirectives(openingElement.attributes);
@@ -1292,6 +1314,18 @@ export function transformJsxElement(
 
   // Determine if in loop context (needed for prop classification and q:p placement)
   const inLoop = !!loopCtx && loopCtx.iterVars.length > 0;
+
+  // Pre-detect _createElement path (spread + explicit key).
+  // SWC skips signal analysis for _createElement props since they're passed through as-is.
+  const preHasSpread = openingElement.attributes?.some(
+    (a: any) => a.type === 'JSXSpreadAttribute',
+  ) ?? false;
+  const preHasKey = openingElement.attributes?.some(
+    (a: any) => a.type === 'JSXAttribute' &&
+      ((a.name?.type === 'JSXIdentifier' && a.name.name === 'key') ||
+       (a.name?.type === 'JSXNamespacedName' && a.name.name?.name === 'key')),
+  ) ?? false;
+  const willUseCreateElement = preHasSpread && preHasKey;
 
   // --- Props ---
   const {
@@ -1304,7 +1338,7 @@ export function transformJsxElement(
     hasVarEventHandler,
     hasSpread,
     neededImports: propImports,
-  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames, constIdents, allDeclaredNames);
+  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames, constIdents, allDeclaredNames, willUseCreateElement);
 
   // Merge prop imports
   for (const imp of propImports) {
@@ -1355,12 +1389,15 @@ export function transformJsxElement(
   // importedNames or signalHoister to children processing so _wrapProp/_fnSignal
   // wrapping is skipped. This matches the Rust optimizer's behavior for lib mode
   // files where $() calls are preserved without segment extraction.
+  // Text-only elements (title, textarea, etc.) also skip signal wrapping for children,
+  // matching SWC's is_text_only behavior which preserves children as-is.
+  const childSignalsEnabled = enableChildSignals && !textOnly;
   const { text: childrenText, type: childrenType } = processChildren(
     node.children,
     source,
     s,
-    enableChildSignals ? importedNames : undefined,
-    enableChildSignals ? hoister : undefined,
+    childSignalsEnabled ? importedNames : undefined,
+    childSignalsEnabled ? hoister : undefined,
     neededImports,
     constIdents,
     allDeclaredNames,

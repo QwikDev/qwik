@@ -204,6 +204,8 @@ function stripPositions(node: any, ancestors: any[] = []): any {
         key === 'start' || key === 'end' || key === 'loc' || key === 'range' ||
         key === 'shorthand' || key === 'typeAnnotation' || key === 'returnType' ||
         key === 'typeParameters' || key === 'typeArguments' ||
+        (key === 'decorators' && Array.isArray(value) && value.length === 0) ||
+        (key === 'optional' && value === false) ||
         (key === 'raw' && shouldStripRaw(normalizedNode, ancestors))
       )
         continue;
@@ -227,6 +229,10 @@ function stripPositions(node: any, ancestors: any[] = []): any {
       key === 'returnType' ||
       key === 'typeParameters' ||
       key === 'typeArguments' ||
+      // Strip empty decorators arrays (oxc-parser includes them on Identifiers, etc.)
+      (key === 'decorators' && Array.isArray(value) && value.length === 0) ||
+      // Strip `optional: false` -- default value, semantically irrelevant
+      (key === 'optional' && value === false) ||
       (key === 'raw' && shouldStripRaw(node, ancestors))
     )
       continue;

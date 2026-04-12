@@ -501,18 +501,41 @@ function processChildren(
     return { text: null, type: 'none' };
   }
 
-  // Filter JSXText nodes:
-  // - Non-whitespace text: preserve (trimmed)
-  // - Whitespace-only between two JSXExpressionContainer siblings: preserve as " "
-  //   (e.g., `<span>{a} {b}</span>` -> children: [a, " ", b])
-  // - All other whitespace-only JSXText: strip (matching Rust SWC behavior)
+  // Filter and normalize JSXText nodes following the standard JSX whitespace rules:
+  // 1. Lines that are entirely whitespace are removed
+  // 2. Leading/trailing whitespace on each line is trimmed
+  // 3. Newlines between text are collapsed to a single space
+  // 4. But inline trailing/leading spaces (no newline) are preserved
+  //    e.g., `Count: ` stays `"Count: "` when followed by an expression
+  // 5. Whitespace-only between expression containers: preserve as " "
   const meaningful: any[] = [];
   for (let i = 0; i < children.length; i++) {
     const child = children[i];
     if (child.type === 'JSXText') {
-      const trimmed = child.value?.trim();
-      if (trimmed) {
-        meaningful.push({ ...child, _trimmedText: trimmed });
+      const raw = child.value ?? '';
+      // Apply JSX whitespace normalization:
+      // Split into lines, trim each line, remove empty lines,
+      // then join with single space. But preserve if single-line.
+      const hasNewline = raw.includes('\n');
+      let normalized: string;
+      if (hasNewline) {
+        const lines = raw.split('\n');
+        const trimmedLines = lines.map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+        normalized = trimmedLines.join(' ');
+      } else {
+        // Single-line: only trim leading whitespace, preserve trailing
+        // (trailing space before an expression is semantically meaningful)
+        normalized = raw.replace(/^\s+/, '');
+        // But also trim trailing if this is the LAST meaningful child
+        const nextNonWhitespace = children.slice(i + 1).find(
+          (c: any) => c.type !== 'JSXText' || (c.value?.trim()),
+        );
+        if (!nextNonWhitespace) {
+          normalized = normalized.trimEnd();
+        }
+      }
+      if (normalized) {
+        meaningful.push({ ...child, _trimmedText: normalized });
       } else {
         // Whitespace-only: preserve as " " only between expression containers
         // (not between JSX elements, which get their whitespace stripped)
@@ -720,7 +743,7 @@ function processProps(
   const bindHandlers = new Map<string, string>();
 
   if (!attributes || attributes.length === 0) {
-    return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasSpread, neededImports };
+    return { varEntries, constEntries, beforeSpreadEntries, key, hasVarProps: false, hasVarEventHandler: false, hasSpread, neededImports };
   }
 
   // Pre-scan for spreads so bind gate works regardless of attribute order

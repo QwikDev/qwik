@@ -133,6 +133,7 @@ function normalizeProgram(program: any): void {
   stripIsServerGuards(program);
   // Also strip non-exported, non-imported module-level declarations that are unused
   stripUnusedModuleLevelDeclarations(program);
+  stripOrphanedSideEffectCalls(program);
   // After stripping declarations, re-run normalizations that depend on statement count:
   // - Arrow bodies may now have single returns (can become expression body)
   // - Single-statement blocks in control flow can be unwrapped
@@ -1913,6 +1914,69 @@ function stripNoopLabeledStatements(node: any): void {
  * Strip non-exported module-level variable declarations whose names are unused.
  * E.g., `const x = "module-level"` where `x` is never referenced elsewhere.
  */
+/**
+ * Strip module-level ExpressionStatements that are calls whose result is unused
+ * AND whose callee (or arguments) are the sole remaining references to imports
+ * that would become unused after removing the call.
+ *
+ * This handles the case where stripUnusedCallBindings converts
+ * `const bar = foo()` into `foo()` (an ExpressionStatement), but the call
+ * was only kept for side effects associated with a now-removed `_auto_` export.
+ *
+ * We identify such calls as: ExpressionStatements with CallExpression or
+ * NewExpression where the callee is an import-only identifier, and removing
+ * the statement would make that import unused.
+ */
+function stripOrphanedSideEffectCalls(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Collect imported names
+  const importedNames = new Set<string>();
+  for (const stmt of program.body) {
+    if (stmt?.type !== 'ImportDeclaration') continue;
+    for (const spec of stmt.specifiers || []) {
+      if (spec.local?.name) importedNames.add(spec.local.name);
+    }
+  }
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let i = program.body.length - 1; i >= 0; i--) {
+      const stmt = program.body[i];
+      if (stmt?.type !== 'ExpressionStatement') continue;
+      const expr = stmt.expression;
+      if (expr?.type !== 'CallExpression' && expr?.type !== 'NewExpression') continue;
+
+      // Collect all identifiers used in this expression
+      const usedIdents = new Set<string>();
+      collectAllIdents(expr, usedIdents);
+
+      // Check if ALL used identifiers are either:
+      // 1. Import-only names (not referenced in any other statement)
+      // 2. Literals/computed values
+      const allImportOnly = [...usedIdents].every(name => {
+        if (!importedNames.has(name)) return false;
+        // Check if this import name is referenced in any other statement
+        for (let j = 0; j < program.body.length; j++) {
+          if (j === i) continue;
+          const other = program.body[j];
+          if (other?.type === 'ImportDeclaration') continue; // skip import stmts
+          const refs = new Set<string>();
+          collectAllIdents(other, refs);
+          if (refs.has(name)) return false; // referenced elsewhere
+        }
+        return true;
+      });
+
+      if (allImportOnly && usedIdents.size > 0) {
+        program.body.splice(i, 1);
+        changed = true;
+      }
+    }
+  }
+}
+
 function stripUnusedModuleLevelDeclarations(program: any): void {
   if (!program?.body || !Array.isArray(program.body)) return;
 

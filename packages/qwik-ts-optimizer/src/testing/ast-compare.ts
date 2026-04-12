@@ -74,6 +74,7 @@ function normalizeProgram(program: any): void {
   unwrapSingleStatementBlocks(program);
   sortObjectProperties(program);
   normalizeDevModePositions(program);
+  inlineSegmentBodyIntoSCall(program);
 }
 
 /**
@@ -536,6 +537,79 @@ function deduplicateImports(program: any): void {
         return aName.localeCompare(bName);
       });
     }
+  }
+}
+
+/**
+ * Inline segment body declarations into their `.s()` calls.
+ *
+ * Normalizes the cosmetic difference between:
+ *   Pattern A: `q_X.s(() => { ... });`
+ *   Pattern B: `const X = () => { ... }; q_X.s(X);`
+ *
+ * When we see `const X = <expr>; q_Y.s(X);` where X is referenced
+ * only once (in the `.s()` call), inline the expression into `.s()`.
+ */
+function inlineSegmentBodyIntoSCall(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Build a map of const declarations: name -> { initNode, stmtIndex }
+  const constDecls = new Map<string, { init: any; stmtIndex: number }>();
+  for (let i = 0; i < program.body.length; i++) {
+    const stmt = program.body[i];
+    if (stmt?.type === 'VariableDeclaration' && stmt.kind === 'const' &&
+        stmt.declarations?.length === 1) {
+      const decl = stmt.declarations[0];
+      if (decl.id?.type === 'Identifier' && decl.init) {
+        constDecls.set(decl.id.name, { init: decl.init, stmtIndex: i });
+      }
+    }
+  }
+
+  // Find q_X.s(Y) calls where Y is an identifier referencing a const decl
+  const toInline: { sCallStmtIndex: number; constStmtIndex: number; argName: string }[] = [];
+
+  for (let i = 0; i < program.body.length; i++) {
+    const stmt = program.body[i];
+    if (stmt?.type !== 'ExpressionStatement') continue;
+    const expr = stmt.expression;
+    // Match q_X.s(Y) pattern
+    if (expr?.type !== 'CallExpression') continue;
+    if (expr.callee?.type !== 'MemberExpression') continue;
+    if (expr.callee.object?.type !== 'Identifier') continue;
+    if (expr.callee.property?.type !== 'Identifier' || expr.callee.property.name !== 's') continue;
+    if (!expr.callee.object.name?.startsWith('q_')) continue;
+    if (expr.arguments?.length !== 1) continue;
+    const arg = expr.arguments[0];
+    if (arg?.type !== 'Identifier') continue;
+
+    const constInfo = constDecls.get(arg.name);
+    if (!constInfo) continue;
+
+    // Only inline if the const init is a function expression or arrow function
+    const initType = constInfo.init?.type;
+    if (initType !== 'ArrowFunctionExpression' && initType !== 'FunctionExpression') continue;
+
+    toInline.push({
+      sCallStmtIndex: i,
+      constStmtIndex: constInfo.stmtIndex,
+      argName: arg.name,
+    });
+  }
+
+  // Apply inlining (reverse order to preserve indices)
+  const toRemoveIndices = new Set<number>();
+  for (const { sCallStmtIndex, constStmtIndex, argName } of toInline) {
+    const constInfo = constDecls.get(argName)!;
+    // Replace the argument in the .s() call with the init expression
+    program.body[sCallStmtIndex].expression.arguments[0] = constInfo.init;
+    // Mark the const declaration for removal
+    toRemoveIndices.add(constStmtIndex);
+  }
+
+  // Remove inlined const declarations
+  if (toRemoveIndices.size > 0) {
+    program.body = program.body.filter((_: any, i: number) => !toRemoveIndices.has(i));
   }
 }
 

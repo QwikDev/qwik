@@ -676,17 +676,25 @@ export function generateSegmentCode(
   // passive:* is consumed by event prop renaming (q-ep:, q-wp:, q-dp: prefixes).
   // preventdefault:EVENT is stripped when a matching passive:EVENT exists on the same
   // element (passive listeners cannot call preventDefault, so the directive is moot).
-  // First collect passive event names, then strip both passive:* and matching preventdefault:*
-  const passiveEventNames = new Set<string>();
-  for (const match of bodyText.matchAll(/passive:(\w+)/g)) {
-    passiveEventNames.add(match[1]);
-  }
-  bodyText = bodyText.replace(/\s*passive:\w+/g, '');
-  if (passiveEventNames.size > 0) {
-    bodyText = bodyText.replace(/\s*preventdefault:(\w+)/g, (full, eventName) => {
-      return passiveEventNames.has(eventName) ? '' : full;
-    });
-  }
+  // Strip passive:* and matching preventdefault:* PER-ELEMENT.
+  // We can't strip preventdefault:click globally just because passive:click exists on some
+  // other element. Process each JSX opening tag separately.
+  bodyText = bodyText.replace(/<(\w+)([^>]*?)>/g, (fullMatch, tagName, attrsStr) => {
+    // Collect passive events on THIS element
+    const elementPassive = new Set<string>();
+    for (const m of attrsStr.matchAll(/passive:(\w+)/g)) {
+      elementPassive.add(m[1]);
+    }
+    // Strip passive:* attributes
+    let cleaned = attrsStr.replace(/\s*passive:\w+/g, '');
+    // Strip preventdefault:EVENT only when matching passive:EVENT exists on same element
+    if (elementPassive.size > 0) {
+      cleaned = cleaned.replace(/\s*preventdefault:(\w+)/g, (pdFull: string, eventName: string) => {
+        return elementPassive.has(eventName) ? '' : pdFull;
+      });
+    }
+    return `<${tagName}${cleaned}>`;
+  });
 
   if (captureInfo && captureInfo.captureNames.length > 0 && !captureInfo.skipCaptureInjection) {
     bodyText = injectCapturesUnpacking(bodyText, captureInfo.captureNames);

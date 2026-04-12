@@ -518,35 +518,9 @@ export function generateSegmentCode(
   // deferred until after nested call site rewriting, because stripping changes text length
   // and would shift the position-based offsets used by the nested call site replacement code.
 
-  // Inline TS enum member references when transpileTs is enabled
-  // e.g., Thing.A -> 0, Thing.B -> 1
-  if (enumValueMap && enumValueMap.size > 0) {
-    for (const [enumName, members] of enumValueMap) {
-      for (const [memberName, value] of members) {
-        const pattern = new RegExp(`\\b${enumName}\\.${memberName}\\b`, 'g');
-        bodyText = bodyText.replace(pattern, value);
-      }
-    }
-  }
-
-  // Apply _rawProps destructuring optimization for component$ extractions
-  // Must happen BEFORE nested call rewriting and JSX transform
-  const rawPropsResult = applyRawPropsTransform(bodyText);
-  if (rawPropsResult !== bodyText) {
-    bodyText = rawPropsResult;
-    // If _restProps was introduced by the transform, ensure its import is added
-    if (bodyText.includes('_restProps(')) {
-      const sepIdx = parts.indexOf('//');
-      if (!parts.some(p => p.includes('_restProps'))) {
-        const imp = `import { _restProps } from "@qwik.dev/core";`;
-        if (sepIdx >= 0) {
-          parts.splice(sepIdx, 0, imp);
-        } else {
-          parts.push(imp);
-        }
-      }
-    }
-  }
+  // IMPORTANT: Nested call site rewriting MUST happen first, before any text modifications
+  // (enum inlining, rawProps transform, etc.) because it uses original source positions.
+  // Any text length changes before this would shift the position-based offsets.
 
   // Rewrite nested call sites in the body text.
   // Nested $() calls and $-suffixed JSX attrs need to be replaced with QRL variable references.
@@ -669,6 +643,38 @@ export function generateSegmentCode(
         const indent = bodyText.slice(lineStart + 1, returnIdx);
         const declBlock = componentScopeWDecls.join('\n' + indent) + '\n' + indent;
         bodyText = bodyText.slice(0, returnIdx) + declBlock + bodyText.slice(returnIdx);
+      }
+    }
+  }
+
+  // Inline TS enum member references when transpileTs is enabled
+  // e.g., Thing.A -> 0, Thing.B -> 1
+  // Must happen AFTER nested call site rewriting (which uses original source positions).
+  if (enumValueMap && enumValueMap.size > 0) {
+    for (const [enumName, members] of enumValueMap) {
+      for (const [memberName, value] of members) {
+        const pattern = new RegExp(`\\b${enumName}\\.${memberName}\\b`, 'g');
+        bodyText = bodyText.replace(pattern, value);
+      }
+    }
+  }
+
+  // Apply _rawProps destructuring optimization for component$ extractions.
+  // Must happen AFTER nested call site rewriting (which uses original source positions)
+  // but BEFORE JSX transform (which needs to see _rawProps references).
+  const rawPropsResult = applyRawPropsTransform(bodyText);
+  if (rawPropsResult !== bodyText) {
+    bodyText = rawPropsResult;
+    // If _restProps was introduced by the transform, ensure its import is added
+    if (bodyText.includes('_restProps(')) {
+      const sepIdx = parts.indexOf('//');
+      if (!parts.some(p => p.includes('_restProps'))) {
+        const imp = `import { _restProps } from "@qwik.dev/core";`;
+        if (sepIdx >= 0) {
+          parts.splice(sepIdx, 0, imp);
+        } else {
+          parts.push(imp);
+        }
       }
     }
   }

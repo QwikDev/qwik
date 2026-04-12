@@ -427,14 +427,19 @@ export function applyRawPropsTransform(body: string): string {
     const reparseResult2 = parseSync('__rp3__.tsx', reparseSource, { experimentalRawTransfer: true } as any);
     if (!reparseResult2.program || reparseResult2.errors?.length) return result;
 
-    const replacements: Array<{ start: number; end: number; key: string }> = [];
+    const replacements: Array<{ start: number; end: number; key: string; isShorthand?: boolean }> = [];
     function walkForIdents(node: any, parentKey?: string, parentNode?: any): void {
       if (!node || typeof node !== 'object') return;
       if (node.type === 'Identifier' && fieldLocalToKey.has(node.name)) {
         const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
         const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
         const isParam = parentKey === 'params';
-        if (!isPropertyKey && !isMemberProp && !isParam) {
+        const isShorthandValue = parentKey === 'value' &&
+          (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
+          parentNode?.shorthand === true;
+        if (isShorthandValue) {
+          replacements.push({ start: node.start - offset, end: node.end - offset, key: fieldLocalToKey.get(node.name)!, isShorthand: true });
+        } else if (!isPropertyKey && !isMemberProp && !isParam) {
           replacements.push({ start: node.start - offset, end: node.end - offset, key: fieldLocalToKey.get(node.name)! });
         }
       }
@@ -458,7 +463,11 @@ export function applyRawPropsTransform(body: string): string {
       const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
         ? '_rawProps.' + r.key
         : `_rawProps["${r.key}"]`;
-      result = result.slice(0, r.start) + accessor + result.slice(r.end);
+      if (r.isShorthand) {
+        result = result.slice(0, r.start) + r.key + ': ' + accessor + result.slice(r.end);
+      } else {
+        result = result.slice(0, r.start) + accessor + result.slice(r.end);
+      }
     }
     return result;
   }
@@ -489,7 +498,7 @@ export function applyRawPropsTransform(body: string): string {
   if (!reparseResult.program || reparseResult.errors?.length) return result;
 
   // Collect all identifier positions that need replacement (descending order for safe replacement)
-  const replacements: Array<{ start: number; end: number; key: string }> = [];
+  const replacements: Array<{ start: number; end: number; key: string; isShorthand?: boolean }> = [];
 
   function walkForIdentifiers(node: any, parentKey?: string, parentNode?: any): void {
     if (!node || typeof node !== 'object') return;
@@ -502,7 +511,21 @@ export function applyRawPropsTransform(body: string): string {
       const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
       const isParam = parentKey === 'params';
 
-      if (!isPropertyKey && !isMemberProp && !isParam) {
+      // For shorthand properties ({ some }), the value IS the same identifier as the key.
+      // We need to handle this specially: replace the whole property with `key: _rawProps.key`.
+      const isShorthandValue = parentKey === 'value' &&
+        (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
+        parentNode?.shorthand === true;
+
+      if (isShorthandValue) {
+        // Replace the shorthand property identifier, but mark it so we prepend "key: "
+        replacements.push({
+          start: node.start - offset,
+          end: node.end - offset,
+          key: fieldLocalToKey.get(node.name)!,
+          isShorthand: true,
+        });
+      } else if (!isPropertyKey && !isMemberProp && !isParam) {
         replacements.push({
           start: node.start - offset,
           end: node.end - offset,
@@ -537,7 +560,12 @@ export function applyRawPropsTransform(body: string): string {
     const accessor = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(r.key)
       ? '_rawProps.' + r.key
       : `_rawProps["${r.key}"]`;
-    result = result.slice(0, r.start) + accessor + result.slice(r.end);
+    if (r.isShorthand) {
+      // Shorthand property: { some } -> { some: _rawProps.some }
+      result = result.slice(0, r.start) + r.key + ': ' + accessor + result.slice(r.end);
+    } else {
+      result = result.slice(0, r.start) + accessor + result.slice(r.end);
+    }
   }
 
   return result;
@@ -586,9 +614,12 @@ function transformSCallBody(
         if (child.isBare) {
           // Bare $() -> just the QRL variable name
           body = body.slice(0, relCallStart) + childVarName + body.slice(relCallEnd);
-        } else if (child.ctxKind === 'eventHandler') {
-          // JSX event handler attribute: onClick$={() => ...) -> q-e:click={q_varName}
-          // The callStart..callEnd range covers the full attribute text: onClick$(() => ...}
+        } else if (child.ctxKind === 'eventHandler' && !child.qrlCallee) {
+          // Direct JSX event handler attribute: onClick$={() => ...) -> q-e:click={q_varName}
+          // The callStart..callEnd range covers the full attribute text: onClick$={() => ...}
+          // NOTE: Named markers inside JSX attrs (onClick$={server$(...)}) have qrlCallee set
+          // and their callStart..callEnd only covers the call expression, so they use the
+          // named marker path below instead.
 
           // For component elements (uppercase tag), keep original event name (onClick$)
           // For HTML elements, transform to q-e:click
@@ -1041,6 +1072,7 @@ export function rewriteParentModule(
   // -----------------------------------------------------------------------
   // Step 4: Rewrite call sites (only top-level extractions)
   // -----------------------------------------------------------------------
+  const eventHandlerExtraImports: Array<{ sym: string; src: string }> = [];
   for (const ext of topLevel) {
     if (ext.isSync) {
       // sync$: replace entire call with _qrlSync(original, "minified")
@@ -1052,6 +1084,32 @@ export function rewriteParentModule(
     } else if (ext.isBare) {
       // Bare $(): replace entire call with QRL variable name
       s.overwrite(ext.callStart, ext.callEnd, getQrlVarName(ext.symbolName));
+    } else if (ext.ctxKind === 'eventHandler' && !ext.qrlCallee) {
+      // Direct JSX event handler attribute: onClick$={fn} -> q-e:click={q_var} (or onClick$={q_var} for components)
+      // Named markers inside JSX attrs (onClick$={server$(...)}) have qrlCallee set and
+      // their callStart..callEnd only covers the call expression, so they use the named marker path.
+      let propName: string;
+      if (ext.isComponentEvent) {
+        propName = ext.ctxName;
+      } else {
+        const transformedPropName = transformEventPropName(ext.ctxName, new Set());
+        propName = transformedPropName ?? ext.ctxName;
+      }
+
+      // For regCtxName-matched extractions, wrap the QRL var in serverQrl()
+      const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
+      let qrlRef = isRegCtx ? `serverQrl(${getQrlVarName(ext.symbolName)})` : getQrlVarName(ext.symbolName);
+      if (isRegCtx) {
+        eventHandlerExtraImports.push({ sym: 'serverQrl', src: '@qwik.dev/core' });
+      }
+
+      // Add .w([captures]) for captured variables
+      if (!isRegCtx && ext.captureNames.length > 0) {
+        qrlRef += '.w([\n        ' + ext.captureNames.join(',\n        ') + '\n    ])';
+      }
+
+      const replacement = `${propName}={${qrlRef}}`;
+      s.overwrite(ext.callStart, ext.callEnd, replacement);
     } else {
       // Named marker (component$, useTask$, etc.)
       // Replace callee
@@ -1373,6 +1431,13 @@ export function rewriteParentModule(
   for (const { callee, source } of noArgQrlCallees) {
     if (!neededImports.has(callee)) {
       neededImports.set(callee, getQrlImportSource(callee, source));
+    }
+  }
+
+  // Add imports for top-level event handler rewrites (Step 4 event handlers)
+  for (const { sym, src } of eventHandlerExtraImports) {
+    if (!alreadyImported.has(sym) && !neededImports.has(sym)) {
+      neededImports.set(sym, src);
     }
   }
 

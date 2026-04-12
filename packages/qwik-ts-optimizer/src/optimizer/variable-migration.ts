@@ -70,6 +70,13 @@ function isInitializerSafe(node: any): boolean {
     case 'FunctionExpression':
       return true;
 
+    case 'Identifier':
+      // Identifier references (e.g., `const { a } = source` where source is
+      // an import) are safe — reading a binding has no side effects.
+      // Property access during destructuring could trigger getters, but for
+      // migration purposes this matches SWC's behavior.
+      return true;
+
     case 'TemplateLiteral':
       // Safe only if no expressions (pure template with only quasis)
       return (node.expressions?.length ?? 0) === 0;

@@ -65,6 +65,16 @@ export const Link = component$<LinkProps>((props) => {
   const prefetchData = (shouldPrefetch && prefetchProp !== 'js') || undefined;
   const prefetch = prefetchData || (shouldPrefetch && untrack(shouldPreload, clientNavPath, loc));
 
+  // The checks below are to avoid attaching event listeners if they won't be used based on the prefetch strategy,
+  // which can improve html size by reducing unnecessary attributes.
+  const allPrefetchStrategies = [
+    ...(prefetchDataStrategy?.coarsePointer || coarsePointerGlobalPrefetchOptions),
+    ...(prefetchDataStrategy?.finePointer || finePointerGlobalPrefetchOptions),
+  ];
+  const hasAnyHoverStrategy = allPrefetchStrategies.includes('hover' as any);
+  const hasAnyFocusStrategy = allPrefetchStrategies.includes('focus');
+  const hasAnyPointerDownStrategy = allPrefetchStrategies.includes('pointerdown');
+
   const handleBundlePrefetch = prefetch
     ? $((_: any, elm: HTMLAnchorElement) => {
         if ((navigator as any).connection?.saveData) {
@@ -76,7 +86,7 @@ export const Link = component$<LinkProps>((props) => {
           preloadRouteBundles(url.pathname);
         }
       })
-    : undefined;
+    : null;
 
   const handleDataPrefetch = prefetchData
     ? $((_: any, elm: HTMLAnchorElement) => {
@@ -92,7 +102,7 @@ export const Link = component$<LinkProps>((props) => {
           });
         }
       })
-    : undefined;
+    : null;
 
   const preventDefault = clientNavPath
     ? sync$((event: MouseEvent) => {
@@ -100,7 +110,7 @@ export const Link = component$<LinkProps>((props) => {
           event.preventDefault();
         }
       })
-    : undefined;
+    : null;
 
   const handleClientSideNavigation = clientNavPath
     ? $((event: Event, elm: HTMLAnchorElement) => {
@@ -114,7 +124,7 @@ export const Link = component$<LinkProps>((props) => {
           }
         }
       })
-    : undefined;
+    : null;
 
   const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
     const url = new URL(elm.href);
@@ -155,12 +165,12 @@ export const Link = component$<LinkProps>((props) => {
     // Bundle preloading still happens automatically. The strategy only controls route data
     // prefetching performed via `loadClientData()`.
     if (isProdOrTest && anchorRef.value) {
-      handleBundlePrefetch?.(undefined, anchorRef.value);
+      handleBundlePrefetch?.(null, anchorRef.value);
     }
 
     const prefetchOptions = prefetchStrategies.value;
     if (isProdOrTest && prefetchOptions.includes('viewport') && anchorRef.value) {
-      handleDataPrefetch?.(undefined, anchorRef.value);
+      handleDataPrefetch?.(null, anchorRef.value);
     }
   });
 
@@ -168,21 +178,21 @@ export const Link = component$<LinkProps>((props) => {
     const prefetchOptions = prefetchStrategies.value;
     // TODO: hover doesnt exist on touch devices
     if (prefetchOptions.includes('hover' as any)) {
-      handleDataPrefetch?.(undefined, elm);
+      handleDataPrefetch?.(null, elm);
     }
   });
 
   const prefetchFocusData = $(async (_: any, elm: HTMLAnchorElement) => {
     const prefetchOptions = prefetchStrategies.value;
     if (prefetchOptions.includes('focus')) {
-      handleDataPrefetch?.(undefined, elm);
+      handleDataPrefetch?.(null, elm);
     }
   });
 
   const prefetchPointerDownData = $(async (_: any, elm: HTMLAnchorElement) => {
     const prefetchOptions = prefetchStrategies.value;
     if (prefetchOptions.includes('pointerdown')) {
-      handleDataPrefetch?.(undefined, elm);
+      handleDataPrefetch?.(null, elm);
     }
   });
 
@@ -199,9 +209,12 @@ export const Link = component$<LinkProps>((props) => {
         handleClientSideNavigation,
       ]}
       data-prefetch={prefetchData}
-      onMouseOver$={[linkProps.onMouseOver$, prefetchHoverData]}
-      onFocus$={[linkProps.onFocus$, prefetchFocusData]}
-      onPointerDown$={[linkProps.onPointerDown$, prefetchPointerDownData]}
+      onMouseOver$={[linkProps.onMouseOver$, hasAnyHoverStrategy ? prefetchHoverData : null]}
+      onFocus$={[linkProps.onFocus$, hasAnyFocusStrategy ? prefetchFocusData : null]}
+      onPointerDown$={[
+        linkProps.onPointerDown$,
+        hasAnyPointerDownStrategy ? prefetchPointerDownData : null,
+      ]}
       // We need to prevent the onQVisible$ from being called twice since it is handled in the visible task
       onQVisible$={[]}
     >

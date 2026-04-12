@@ -73,6 +73,7 @@ function normalizeProgram(program: any): void {
   deduplicateImports(program);
   unwrapSingleStatementBlocks(program);
   sortObjectProperties(program);
+  normalizeDevModePositions(program);
 }
 
 /**
@@ -420,6 +421,49 @@ function unwrapSingleStatementBlocks(node: any): void {
          node.type === 'ForOfStatement' || node.type === 'WhileStatement' ||
          node.type === 'DoWhileStatement' || node.type === 'IfStatement')) {
       node[prop] = node[prop].body[0];
+    }
+  }
+}
+
+/**
+ * Normalize dev mode `lo` and `hi` position values in qrlDEV/_noopQrlDEV calls.
+ * These byte offsets differ between SWC and our optimizer due to different
+ * position tracking. Replace them with 0 to make comparison position-insensitive.
+ */
+function normalizeDevModePositions(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) normalizeDevModePositions(item);
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    normalizeDevModePositions(node[key]);
+  }
+  // Match ObjectExpression with lo/hi properties (dev mode info object)
+  if (node.type === 'ObjectExpression' && Array.isArray(node.properties)) {
+    const hasLo = node.properties.some((p: any) => p.key?.name === 'lo' || p.key?.value === 'lo');
+    const hasHi = node.properties.some((p: any) => p.key?.name === 'hi' || p.key?.value === 'hi');
+    const hasFile = node.properties.some((p: any) => p.key?.name === 'file' || p.key?.value === 'file');
+    if (hasLo && hasHi && hasFile) {
+      for (const prop of node.properties) {
+        const keyName = prop.key?.name || prop.key?.value;
+        if (keyName === 'lo' || keyName === 'hi') {
+          prop.value = { type: 'Literal', value: 0 };
+        }
+      }
+    }
+    // Also normalize lineNumber/columnNumber in JSX dev source info objects
+    const hasLine = node.properties.some((p: any) => (p.key?.name || p.key?.value) === 'lineNumber');
+    const hasCol = node.properties.some((p: any) => (p.key?.name || p.key?.value) === 'columnNumber');
+    const hasFileName = node.properties.some((p: any) => (p.key?.name || p.key?.value) === 'fileName');
+    if (hasLine && hasCol && hasFileName) {
+      for (const prop of node.properties) {
+        const keyName = prop.key?.name || prop.key?.value;
+        if (keyName === 'lineNumber' || keyName === 'columnNumber') {
+          prop.value = { type: 'Literal', value: 0 };
+        }
+      }
     }
   }
 }

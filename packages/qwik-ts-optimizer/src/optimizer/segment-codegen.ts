@@ -719,12 +719,17 @@ export function generateSegmentCode(
       const bodyS = new MagicString(wrappedBody);
 
       // Build set of QRL variable names that have loop-local captures (must be before qpOverrides)
+      // Include both qrlVarName (q_-prefixed) and hoistedSymbolName (no prefix) since
+      // the body text uses hoistedSymbolName when event handlers have cross-scope captures.
       let qrlsWithCaptures: Set<string> | undefined;
       if (nestedCallSites) {
         const tempSet = new Set<string>();
         for (const site of nestedCallSites) {
           if (site.loopLocalParamNames && site.loopLocalParamNames.length > 0) {
             tempSet.add(site.qrlVarName);
+            if (site.hoistedSymbolName) {
+              tempSet.add(site.hoistedSymbolName);
+            }
           }
         }
         if (tempSet.size > 0) qrlsWithCaptures = tempSet;
@@ -735,11 +740,17 @@ export function generateSegmentCode(
       let qpOverrides: Map<number, string[]> | undefined;
       if (nestedCallSites && nestedCallSites.some(s => s.loopLocalParamNames && s.loopLocalParamNames.length > 0)) {
         qpOverrides = new Map();
-        // Build a map from QRL variable name to loopLocalParamNames
+        // Build a map from QRL variable name to loopLocalParamNames.
+        // Also map hoistedSymbolName since that's what ends up in the body text
+        // when event handlers have cross-scope captures (.w() hoisting).
         const qrlParamMap = new Map<string, string[]>();
         for (const site of nestedCallSites) {
           if (site.loopLocalParamNames && site.loopLocalParamNames.length > 0) {
             qrlParamMap.set(site.qrlVarName, site.loopLocalParamNames);
+            // The body text uses hoistedSymbolName (no q_ prefix) when present
+            if (site.hoistedSymbolName) {
+              qrlParamMap.set(site.hoistedSymbolName, site.loopLocalParamNames);
+            }
           }
         }
         // Walk the parsed body to find JSX elements with q-e:* attributes referencing QRLs
@@ -752,19 +763,30 @@ export function generateSegmentCode(
             const seen = new Set<string>();
             for (const attr of attrs) {
               if (attr.type === 'JSXAttribute') {
-                // Handle both JSXIdentifier and JSXNamespacedName (q-e:click is namespaced)
+                // Match event handler attributes by checking if their VALUE references
+                // a known QRL variable name from nestedCallSites.
+                // At this point, attributes still have pre-transform names (onClick$, etc.)
+                // not post-transform names (q-e:click), so we match on value, not name.
+                // Also handle post-transform names (q-e:*) for robustness.
                 let attrName: string | null = null;
                 if (attr.name?.type === 'JSXIdentifier') {
                   attrName = attr.name.name;
                 } else if (attr.name?.type === 'JSXNamespacedName') {
                   attrName = `${attr.name.namespace?.name}:${attr.name.name?.name}`;
                 }
-                if (attrName && (attrName.startsWith('q-e:') || attrName.startsWith('q-ep:') || attrName.startsWith('q-dp:') || attrName.startsWith('q-wp:') || attrName.startsWith('q-d:') || attrName.startsWith('q-w:'))) {
+                const isEventAttr = attrName && (
+                  attrName.endsWith('$') ||
+                  attrName.startsWith('q-e:') || attrName.startsWith('q-ep:') ||
+                  attrName.startsWith('q-dp:') || attrName.startsWith('q-wp:') ||
+                  attrName.startsWith('q-d:') || attrName.startsWith('q-w:')
+                );
+                if (isEventAttr) {
                   // Find the QRL ref in the value
                   if (attr.value?.type === 'JSXExpressionContainer' && attr.value.expression?.type === 'Identifier') {
                     const qrlName = attr.value.expression.name;
                     // Prefer elementQpParams (unified, declaration-ordered) over per-handler params
-                    const site = nestedCallSites!.find(s => s.qrlVarName === qrlName);
+                    // Match by qrlVarName or hoistedSymbolName (body text may use either)
+                    const site = nestedCallSites!.find(s => s.qrlVarName === qrlName || s.hoistedSymbolName === qrlName);
                     if (site?.elementQpParams) {
                       // Use the pre-computed unified params for the whole element
                       for (const p of site.elementQpParams) {

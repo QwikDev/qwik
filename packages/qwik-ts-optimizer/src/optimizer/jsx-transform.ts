@@ -596,6 +596,7 @@ function processChildren(
   signalHoister?: SignalHoister,
   neededImports?: Set<string>,
   constIdents?: Set<string>,
+  allDeclaredNames?: Set<string>,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (!children || children.length === 0) {
     return { text: null, type: 'none' };
@@ -679,7 +680,7 @@ function processChildren(
   const parts: string[] = [];
   let isDynamic = false;
   for (const child of meaningful) {
-    const { text, type } = processOneChild(child, source, s, importedNames, signalHoister, neededImports, constIdents);
+    const { text, type } = processOneChild(child, source, s, importedNames, signalHoister, neededImports, constIdents, allDeclaredNames);
     if (text !== null) {
       parts.push(text);
     }
@@ -703,6 +704,7 @@ function processOneChild(
   signalHoister?: SignalHoister,
   neededImports?: Set<string>,
   constIdents?: Set<string>,
+  allDeclaredNames?: Set<string>,
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (child._trimmedText) {
     return { text: `"${child._trimmedText}"`, type: 'static' };
@@ -736,7 +738,7 @@ function processOneChild(
 
     // Signal analysis for children expressions
     if (importedNames && signalHoister) {
-      const signalResult = analyzeSignalExpression(expr, source, importedNames);
+      const signalResult = analyzeSignalExpression(expr, source, importedNames, allDeclaredNames);
       if (signalResult.type === 'wrapProp') {
         neededImports?.add('_wrapProp');
         // SWC treats _wrapProp children as static for flag purposes ONLY when
@@ -856,6 +858,7 @@ function processProps(
   qrlsWithCaptures?: Set<string>,
   paramNames?: Set<string>,
   constIdents?: Set<string>,
+  allDeclaredNames?: Set<string>,
 ): {
   varEntries: string[];
   constEntries: string[];
@@ -1028,6 +1031,33 @@ function processProps(
       }
     }
 
+    // --- (c2) QRL prop passthrough (host:onClick$, custom$, shouldRemove$, etc.) ---
+    // Props ending with '$' that weren't transformed by the event handler renaming above
+    // are QRL references. SWC's convert_qrl_word treats any $-suffix prop as a QRL.
+    // For host: prefixed events, transformEventPropName returns null (passthrough).
+    // For non-event $ props (custom$, etc.), isEventProp returns false.
+    // These should be classified based on their value's constness, like event handlers.
+    if (propName.endsWith('$') && !propName.startsWith('q-e:') && !propName.startsWith('q-d:') && !propName.startsWith('q-w:')) {
+      const formattedName = needsQuoting(propName)
+        ? `"${propName}"`
+        : propName;
+      const isConstQrl = !valueNode ||
+        valueNode.type === 'ArrowFunctionExpression' ||
+        valueNode.type === 'FunctionExpression' ||
+        valueNode.type === 'Identifier' ||
+        valueNode.type === 'Literal' ||
+        valueNode.type === 'StringLiteral' ||
+        valueNode.type === 'NumericLiteral' ||
+        valueNode.type === 'BooleanLiteral' ||
+        valueNode.type === 'NullLiteral';
+      if (isConstQrl) {
+        constEntries.push(`${formattedName}: ${valueText}`);
+      } else {
+        varEntries.push(`${formattedName}: ${valueText}`);
+      }
+      continue;
+    }
+
     // Pre-rewritten event props (q-e:* from transformSCallBody / extraction rewriting).
     // These are already-renamed event handler props pointing to QRL variables.
     if (propName.startsWith('q-e:') || propName.startsWith('q-d:') || propName.startsWith('q-w:') || propName.startsWith('q-ep:') || propName.startsWith('q-dp:') || propName.startsWith('q-wp:')) {
@@ -1071,7 +1101,7 @@ function processProps(
       const signalImports = paramNames && paramNames.size > 0
         ? new Set([...importedNames, ...paramNames])
         : importedNames;
-      const signalResult = analyzeSignalExpression(valueNode, source, signalImports);
+      const signalResult = analyzeSignalExpression(valueNode, source, signalImports, allDeclaredNames);
       if (signalResult.type === 'wrapProp') {
         const formattedName = needsQuoting(propName)
           ? `"${propName}"`
@@ -1209,6 +1239,7 @@ export function transformJsxElement(
   qrlsWithCaptures?: Set<string>,
   paramNames?: Set<string>,
   constIdents?: Set<string>,
+  allDeclaredNames?: Set<string>,
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
@@ -1243,7 +1274,7 @@ export function transformJsxElement(
     hasVarEventHandler,
     hasSpread,
     neededImports: propImports,
-  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames, constIdents);
+  } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames, constIdents, allDeclaredNames);
 
   // Merge prop imports
   for (const imp of propImports) {
@@ -1297,6 +1328,7 @@ export function transformJsxElement(
     enableChildSignals ? hoister : undefined,
     neededImports,
     constIdents,
+    allDeclaredNames,
   );
 
   // --- Flags ---
@@ -1537,6 +1569,10 @@ export function transformAllJsx(
 ): JsxTransformOutput {
   // If no constIdents provided, collect from the AST
   const resolvedConstIdents = constIdents ?? collectConstIdents(program);
+  // Collect ALL declared names (const/let/var/function/params) for signal analysis.
+  // This lets us distinguish locally declared variables from unknown globals.
+  // SWC uses its scope-aware decl_collect for this.
+  const allDeclaredNames = collectAllLocalNames(program);
   const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0, prefix);
   const signalHoister = sharedSignalHoister ?? new SignalHoister();
@@ -1631,6 +1667,7 @@ export function transformAllJsx(
           qrlsWithCaptures,
           paramNames,
           resolvedConstIdents,
+          allDeclaredNames,
         );
         if (result) {
           const devSuffix = getDevSourceSuffix(node.start);

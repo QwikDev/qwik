@@ -574,7 +574,11 @@ function generateFnSignal(
   const params = roots.map((_, i) => `p${i}`).join(',');
 
   // Hoisted function: preserves original spacing in body
-  const hoistedFn = `(${params})=>${fnBody}`;
+  // Wrap object expressions in parens so arrow function returns object, not block
+  const needsParens = exprNode.type === 'ObjectExpression';
+  const hoistedFn = needsParens
+    ? `(${params})=>(${fnBody})`
+    : `(${params})=>${fnBody}`;
 
   // String representation: minimal whitespace, with string literals normalized
   // to double quotes (matching Rust SWC optimizer behavior which re-serializes
@@ -834,11 +838,22 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // ObjectExpression values are NOT wrapped in _fnSignal.
-  // They go directly as var props (e.g., class={{ ... }} stays as an object literal).
-  // This matches Rust optimizer behavior where object literals are classified as var.
+  // ObjectExpression values: wrap in _fnSignal only if they contain reactive roots.
+  // e.g., {props: _rawProps.fromProps} -> _fnSignal((p0) => ({props: p0.fromProps}), [_rawProps], ...)
+  // Plain object literals without reactive roots are NOT wrapped.
   if (exprNode.type === 'ObjectExpression') {
-    return { type: 'none' };
+    // SIG-05: mixed with unknown call -> NOT wrapped
+    if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
+
+    // SIG-05: mixed with imported reference -> NOT wrapped
+    if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
+
+    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+    if (roots.length === 0) return { type: 'none' };
+
+    const allDeps = collectAllDeps(exprNode, importedNames);
+    const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+    return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
   }
 
   // BinaryExpression or other compound expressions

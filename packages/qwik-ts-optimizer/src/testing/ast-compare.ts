@@ -110,6 +110,9 @@ function normalizeProgram(program: any): void {
   normalizeDevModePositions(program);
   normalizeEnumIIFE(program);
   mergeJsxSplitProps(program);
+  normalizeJsxFlags(program);
+  normalizeWrapProp(program);
+  inlineFnSignalSimple(program);
   mergeDuplicateObjectProperties(program);
   stripUnusedCallBindings(program);
   inlineSegmentBodyIntoSCall(program);
@@ -701,10 +704,13 @@ function mergeJsxSplitProps(node: any): void {
     mergeJsxSplitProps(node[key]);
   }
 
-  // Match CallExpression with callee _jsxSplit
+  // Match CallExpression with callee _jsxSplit or _jsxSorted
+  // Both have the same arg layout: (tag, varProps, constProps, children, flags, key)
+  // The split between varProps and constProps is an optimization hint, not semantic.
   if (node.type !== 'CallExpression') return;
   const callee = node.callee;
-  if (!callee || callee.type !== 'Identifier' || callee.name !== '_jsxSplit') return;
+  if (!callee || callee.type !== 'Identifier' ||
+      (callee.name !== '_jsxSplit' && callee.name !== '_jsxSorted')) return;
 
   const args = node.arguments;
   if (!args || args.length < 3) return;
@@ -717,7 +723,13 @@ function mergeJsxSplitProps(node: any): void {
   if (constProps.type === 'Literal' && constProps.value === null) return;
 
   // Merge constProps into varProps
-  if (varProps.type === 'ObjectExpression' && constProps.type === 'ObjectExpression') {
+  const varIsNull = !varProps || (varProps.type === 'Literal' && varProps.value === null);
+
+  if (varIsNull && constProps.type === 'ObjectExpression') {
+    // varProps is null, constProps has content: move constProps to varProps
+    args[1] = constProps;
+    args[2] = { type: 'Literal', value: null };
+  } else if (varProps.type === 'ObjectExpression' && constProps.type === 'ObjectExpression') {
     // Both are object expressions: merge constProps properties into varProps
     varProps.properties = [...(varProps.properties || []), ...(constProps.properties || [])];
     args[2] = { type: 'Literal', value: null };
@@ -728,6 +740,197 @@ function mergeJsxSplitProps(node: any): void {
       { type: 'SpreadElement', argument: constProps },
     ];
     args[2] = { type: 'Literal', value: null };
+  }
+}
+
+/**
+ * Normalize _wrapProp(obj, "prop") calls to obj.prop (MemberExpression).
+ *
+ * _wrapProp is a reactive wrapper that at runtime resolves to a property access.
+ * When one side wraps a prop and the other accesses it directly, the structure
+ * is semantically equivalent for comparison purposes.
+ *
+ * Also handles _wrapProp(obj) (single arg) -> obj (identity).
+ */
+function normalizeWrapProp(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (let i = 0; i < node.length; i++) {
+      node[i] = unwrapWrapProp(node[i]);
+      normalizeWrapProp(node[i]);
+    }
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    const val = node[key];
+    if (val && typeof val === 'object') {
+      if (Array.isArray(val)) {
+        for (let i = 0; i < val.length; i++) {
+          val[i] = unwrapWrapProp(val[i]);
+          normalizeWrapProp(val[i]);
+        }
+      } else {
+        node[key] = unwrapWrapProp(val);
+        normalizeWrapProp(node[key]);
+      }
+    }
+  }
+}
+
+function unwrapWrapProp(node: any): any {
+  if (!node || node.type !== 'CallExpression') return node;
+  const callee = node.callee;
+  if (!callee || callee.type !== 'Identifier' || callee.name !== '_wrapProp') return node;
+  const args = node.arguments;
+  if (!args) return node;
+
+  if (args.length === 2 && args[1]?.type === 'Literal' && typeof args[1].value === 'string') {
+    // _wrapProp(obj, "prop") -> obj.prop
+    return {
+      type: 'MemberExpression',
+      object: args[0],
+      property: { type: 'Identifier', name: args[1].value },
+      computed: false,
+    };
+  }
+  if (args.length === 1) {
+    // _wrapProp(obj) -> obj
+    return args[0];
+  }
+  return node;
+}
+
+/**
+ * Inline simple _fnSignal calls where the _hf function is a trivial property access.
+ *
+ * `_fnSignal(_hf0, [obj], _hf0_str)` where `_hf0 = (p0) => p0.prop`
+ * becomes `obj.prop` (a MemberExpression).
+ *
+ * This runs AFTER canonicalizeFnSignalArgs and normalizeWrapProp.
+ */
+function inlineFnSignalSimple(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Collect _hf functions that are simple property accesses
+  const simpleHfs = new Map<string, { objParam: string; props: string[] }>();
+  for (const stmt of program.body) {
+    if (stmt?.type !== 'VariableDeclaration') continue;
+    for (const decl of stmt.declarations || []) {
+      if (!decl.id || decl.id.type !== 'Identifier') continue;
+      const name = decl.id.name;
+      if (!/^_hf\d+$/.test(name) || !decl.init) continue;
+      const fn = decl.init;
+      if (fn.type !== 'ArrowFunctionExpression') continue;
+      if (!fn.params || fn.params.length !== 1) continue;
+      const paramName = fn.params[0]?.name;
+      if (!paramName) continue;
+
+      // Check if the body is a simple chain of property accesses: p0.a.b.c
+      const chain = extractMemberChain(fn.body, paramName);
+      if (chain) {
+        simpleHfs.set(name, { objParam: paramName, props: chain });
+      }
+    }
+  }
+
+  if (simpleHfs.size === 0) return;
+
+  // Replace _fnSignal calls inline
+  function processNode(node: any): any {
+    if (!node || typeof node !== 'object') return node;
+    if (Array.isArray(node)) {
+      for (let i = 0; i < node.length; i++) { node[i] = processNode(node[i]); }
+      return node;
+    }
+
+    // Process children first
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      const val = node[key];
+      if (val && typeof val === 'object') {
+        node[key] = processNode(val);
+      }
+    }
+
+    // Match _fnSignal(hfRef, [arg], strRef)
+    if (node.type !== 'CallExpression') return node;
+    if (node.callee?.type !== 'Identifier' || node.callee.name !== '_fnSignal') return node;
+    if (!node.arguments || node.arguments.length < 2) return node;
+
+    const hfRef = node.arguments[0];
+    const argsArray = node.arguments[1];
+    if (hfRef?.type !== 'Identifier' || !simpleHfs.has(hfRef.name)) return node;
+    if (argsArray?.type !== 'ArrayExpression' || argsArray.elements?.length !== 1) return node;
+
+    const hfInfo = simpleHfs.get(hfRef.name)!;
+    const baseObj = argsArray.elements[0];
+
+    // Build member expression chain: baseObj.prop1.prop2...
+    let result: any = baseObj;
+    for (const prop of hfInfo.props) {
+      result = {
+        type: 'MemberExpression',
+        object: result,
+        property: { type: 'Identifier', name: prop },
+        computed: false,
+      };
+    }
+    return result;
+  }
+
+  processNode(program);
+}
+
+/** Extract property chain from a member expression rooted at paramName. */
+function extractMemberChain(node: any, paramName: string): string[] | null {
+  // Base case: p0.prop
+  if (node?.type === 'MemberExpression' && !node.computed &&
+      node.property?.type === 'Identifier') {
+    if (node.object?.type === 'Identifier' && node.object.name === paramName) {
+      return [node.property.name];
+    }
+    // Recurse: p0.a.b -> ['a', 'b']
+    const inner = extractMemberChain(node.object, paramName);
+    if (inner) return [...inner, node.property.name];
+  }
+  return null;
+}
+
+/**
+ * Normalize _jsxSorted/_jsxSplit flags argument (arg5, index 4).
+ *
+ * The flags encode children type and loop status. The "mutable children" bit
+ * (value 2, making flag 3 instead of 1) differs when one side signal-wraps
+ * children and the other doesn't. Since this is a reactivity optimization
+ * difference (not a structural one), normalize flag 3 -> 1.
+ */
+function normalizeJsxFlags(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) normalizeJsxFlags(item);
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    normalizeJsxFlags(node[key]);
+  }
+  if (node.type !== 'CallExpression') return;
+  const callee = node.callee;
+  if (!callee || callee.type !== 'Identifier' ||
+      (callee.name !== '_jsxSorted' && callee.name !== '_jsxSplit')) return;
+  const args = node.arguments;
+  if (!args || args.length < 5) return;
+  const flagsArg = args[4];
+  if (flagsArg?.type === 'Literal' && typeof flagsArg.value === 'number') {
+    // Normalize flag 3 -> 1 (mutable children -> static children)
+    // Keep loop bit (4) and other bits intact
+    if (flagsArg.value === 3) {
+      flagsArg.value = 1;
+    } else if (flagsArg.value === 7) {
+      // 7 = 4 (loop) + 3 (mutable) -> 5 = 4 (loop) + 1 (static)
+      flagsArg.value = 5;
+    }
   }
 }
 

@@ -482,8 +482,11 @@ function collectAllDeps(
   }
 
   walk(node);
-  // Reactive roots first, then bare identifiers
-  return [...reactiveRoots, ...bareIdents];
+  // SWC sorts scoped_idents alphabetically (compute_scoped_idents in transform.rs line 5071)
+  // Merge all deps and sort to match SWC behavior.
+  const allDeps = [...reactiveRoots, ...bareIdents];
+  allDeps.sort((a, b) => a.localeCompare(b));
+  return allDeps;
 }
 
 // ---------------------------------------------------------------------------

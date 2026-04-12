@@ -888,6 +888,9 @@ function processProps(
   const hasSpreadAttr = attributes.some(a => a.type === 'JSXSpreadAttribute');
   // Track index of the spread attribute for ordering classification
   const spreadIndex = attributes.findIndex(a => a.type === 'JSXSpreadAttribute');
+  // Track additional spread expressions beyond the first one (e.g., {...globalThis.nothing})
+  const additionalSpreads: string[] = [];
+  let spreadCount = 0;
 
   for (let attrIdx = 0; attrIdx < attributes.length; attrIdx++) {
     const attr = attributes[attrIdx];
@@ -896,6 +899,12 @@ function processProps(
     const beforeSpread = hasSpreadAttr && attrIdx < spreadIndex;
     if (attr.type === 'JSXSpreadAttribute') {
       hasSpread = true;
+      spreadCount++;
+      if (spreadCount > 1) {
+        // Additional spreads beyond the first get tracked for inclusion in varProps
+        const spreadExpr = source.slice(attr.argument.start, attr.argument.end);
+        additionalSpreads.push(spreadExpr);
+      }
       continue;
     }
 
@@ -1208,6 +1217,7 @@ function processProps(
     varEntries,
     constEntries,
     beforeSpreadEntries,
+    additionalSpreads,
     key,
     hasVarProps: varEntries.length > 0 || beforeSpreadEntries.length > 0,
     hasVarEventHandler,
@@ -1283,6 +1293,7 @@ export function transformJsxElement(
     varEntries,
     constEntries,
     beforeSpreadEntries,
+    additionalSpreads,
     key: explicitKey,
     hasVarProps,
     hasVarEventHandler,
@@ -1441,28 +1452,44 @@ export function transformJsxElement(
     neededImports.add('_getConstProps');
 
     // Build varPropsPart and constPropsPart for _jsxSplit.
-    // SWC merges _getConstProps into varPropsPart in two cases:
-    // 1. When there are both var entries AND const entries after the spread
-    // 2. When there are non-bind var entries (like _fnSignal) even without const entries
-    // Bind-only var entries without const entries don't trigger the merge.
+    // SWC behavior differs for component vs HTML elements:
+    // - Component elements: merge EVERYTHING into varProps, constProps = null
+    // - HTML elements: event handlers go to varProps, _getConstProps stays in constProps
     const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';
     const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
-    const hasNonBindVarEntries = varEntries.some(e => !e.startsWith('"bind:'));
-    const shouldMergeConst = (varEntries.length > 0 && constEntries.length > 0) || hasNonBindVarEntries;
+    // Build additional spreads suffix (for multiple spread attributes like {...props} ... {...other})
+    const additionalSpreadsPart = additionalSpreads.length > 0
+      ? `, ${additionalSpreads.map(s => `...${s}`).join(', ')}`
+      : '';
     let varPropsPart: string;
     let constPropsPart: string;
-    if (shouldMergeConst) {
-      // Merge _getConstProps into varPropsPart.
-      // Any explicit const entries go separately in constPropsPart.
-      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart} }`;
-      constPropsPart = constEntries.length > 0
-        ? `{ ${constEntries.join(', ')} }`
-        : 'null';
+    // For component elements with extra props/spreads beyond the bare spread,
+    // SWC merges everything (including _getConstProps and const entries) into varProps.
+    // A bare component spread (no extra entries) keeps normal separation.
+    const componentHasExtras = !tagIsHtml && (
+      constEntries.length > 0 || varEntries.length > 0 ||
+      beforeSpreadEntries.length > 0 || additionalSpreads.length > 0
+    );
+    if (componentHasExtras) {
+      // Component elements with extras: merge _getConstProps + const entries + additional spreads into varProps
+      const constPart = constEntries.length > 0 ? `, ${constEntries.join(', ')}` : '';
+      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${constPart}${additionalSpreadsPart} }`;
+      constPropsPart = 'null';
     } else {
-      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart} }`;
-      constPropsPart = constEntries.length > 0
-        ? `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`
-        : `_getConstProps(${spreadArg})`;
+      // HTML elements: keep _getConstProps in constProps, event handlers in varProps
+      const hasNonBindVarEntries = varEntries.some(e => !e.startsWith('"bind:'));
+      const shouldMergeConst = (varEntries.length > 0 && constEntries.length > 0) || hasNonBindVarEntries;
+      if (shouldMergeConst) {
+        varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
+        constPropsPart = constEntries.length > 0
+          ? `{ ${constEntries.join(', ')} }`
+          : 'null';
+      } else {
+        varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
+        constPropsPart = constEntries.length > 0
+          ? `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`
+          : `_getConstProps(${spreadArg})`;
+      }
     }
 
     const callString = `_jsxSplit(${tag}, ${varPropsPart}, ${constPropsPart}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;

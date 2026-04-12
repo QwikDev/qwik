@@ -100,6 +100,9 @@ function normalizeProgram(program: any): void {
   sortSpecifiersWithinImports(program);
   sortIndependentExpressionStatements(program);
   sortIndependentTopLevelStatements(program);
+  // Canonicalize QRL variable names: `q_qrl_4294901760` (SWC sentinel) and
+  // `q_sym_hash` (ours) both reference the same QRL. Rename to q_<symbolName>.
+  canonicalizeQrlVarNames(program);
   normalizeVoidZero(program);
   normalizeBooleanLiterals(program);
   stripDirectives(program);

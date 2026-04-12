@@ -795,6 +795,15 @@ export function generateSegmentCode(
     }
   }
 
+  // Ensure _Fragment import is present when bodyText references _Fragment
+  // (may have been pre-transformed in parent before segment extraction)
+  if (bodyText.includes('_Fragment') && !parts.some(p => p.startsWith('import') && p.includes('_Fragment'))) {
+    const sepIdx = parts.indexOf('//');
+    if (sepIdx >= 0) {
+      parts.splice(sepIdx, 0, `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`);
+    }
+  }
+
   // Transform sync$() calls to _qrlSync() with minified string argument in segment bodies
   if (bodyText.includes('sync$(')) {
     // Replace each sync$(fn) with buildSyncTransform(fn) output: _qrlSync(fn, "minified")

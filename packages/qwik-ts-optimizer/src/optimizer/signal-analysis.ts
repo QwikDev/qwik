@@ -128,11 +128,22 @@ function containsUnknownCall(node: any, importedNames: Set<string>): boolean {
   if (node == null) return false;
 
   if (node.type === 'CallExpression') {
-    const calleeName = getCalleeIdentifierName(node.callee);
-    // If callee is not an imported name, it's an unknown call
-    if (calleeName == null || !importedNames.has(calleeName)) {
-      return true;
+    // Method calls (obj.method()) are allowed in signal expressions -- SWC
+    // preserves them inside _fnSignal wrappers (e.g., signal.formData?.get('x')).
+    // Only standalone function calls (fn()) are "unknown calls" that prevent wrapping.
+    if (node.callee?.type !== 'MemberExpression' && node.callee?.type !== 'ChainExpression') {
+      const calleeName = getCalleeIdentifierName(node.callee);
+      // If callee is not an imported name, it's an unknown call
+      if (calleeName == null || !importedNames.has(calleeName)) {
+        return true;
+      }
     }
+  }
+
+  // Tagged template expressions are effectively function calls (e.g., $localize`text`)
+  // SWC treats them as unknown calls and skips signal wrapping.
+  if (node.type === 'TaggedTemplateExpression') {
+    return true;
   }
 
   // Recurse into child nodes

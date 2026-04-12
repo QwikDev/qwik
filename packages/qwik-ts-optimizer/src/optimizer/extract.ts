@@ -572,8 +572,10 @@ export function extractSegments(
           pushCount++;
         }
 
-        // Push callee name for naming context
-        ctx.push(canonicalCallee);
+        // Push the *local* callee name for naming context.
+        // SWC uses the local alias name (e.g., "Component" for `component$ as Component`),
+        // not the canonical/imported name (e.g., "component$").
+        ctx.push(calleeName);
         pushCount++;
 
         const arg = node.arguments?.[0];

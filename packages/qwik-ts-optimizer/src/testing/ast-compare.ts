@@ -71,6 +71,7 @@ function normalizeProgram(program: any): void {
   normalizeBooleanLiterals(program);
   stripDirectives(program);
   deduplicateImports(program);
+  unwrapSingleStatementBlocks(program);
 }
 
 /**
@@ -389,6 +390,39 @@ function stripDirectives(program: any): void {
  * Deduplicate imports from the same source — merge specifiers.
  * `import { a } from "x"; import { b } from "x"` → single import with both.
  */
+/**
+ * Unwrap single-statement BlockStatements in loop/if/else bodies.
+ * `for(...) { stmt; }` → `for(...) stmt;`
+ * This normalizes a cosmetic difference: some generators wrap loop bodies
+ * in blocks while others don't when there's only one statement.
+ */
+function unwrapSingleStatementBlocks(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) unwrapSingleStatementBlocks(item);
+    return;
+  }
+
+  // Recursively process all children first (bottom-up)
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    unwrapSingleStatementBlocks(node[key]);
+  }
+
+  // Unwrap single-statement blocks in loop/if bodies
+  const bodyProps = ['body', 'consequent', 'alternate'];
+  for (const prop of bodyProps) {
+    if (node[prop]?.type === 'BlockStatement' &&
+        node[prop].body?.length === 1 &&
+        // Only unwrap for for/while/do-while/if, not function bodies
+        (node.type === 'ForStatement' || node.type === 'ForInStatement' ||
+         node.type === 'ForOfStatement' || node.type === 'WhileStatement' ||
+         node.type === 'DoWhileStatement' || node.type === 'IfStatement')) {
+      node[prop] = node[prop].body[0];
+    }
+  }
+}
+
 function deduplicateImports(program: any): void {
   if (!program?.body) return;
   const importMap = new Map<string, any>();

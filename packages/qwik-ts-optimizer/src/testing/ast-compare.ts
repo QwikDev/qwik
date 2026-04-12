@@ -148,6 +148,10 @@ function normalizeProgram(program: any): void {
   // Strip _captures import and const declarations that become unused
   // after canonicalization.
   stripCapturesDeclarations(program);
+  // Normalize _wrapProp(obj, "prop") -> obj.prop. _wrapProp is a reactive
+  // signal wrapper; both produce the same initial rendered value. The
+  // reactivity granularity difference is accepted (same class as JSX flags).
+  normalizeWrapProp(program);
   // After stripping declarations, re-run normalizations that depend on statement count:
   // - Arrow bodies may now have single returns (can become expression body)
   // - Single-statement blocks in control flow can be unwrapped

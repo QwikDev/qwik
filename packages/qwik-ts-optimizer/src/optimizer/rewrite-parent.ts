@@ -1068,6 +1068,49 @@ export function rewriteParentModule(
   }
 
   // -----------------------------------------------------------------------
+  // Step 4-noarg: Rewrite marker calls with no arguments
+  // -----------------------------------------------------------------------
+  // Marker calls like `component$()` with no arguments don't create an extraction
+  // (no body to extract), but the callee still needs to be renamed to its Qrl form.
+  // Walk the AST to find such calls and rewrite them.
+  const noArgQrlCallees: Array<{ callee: string; source: string }> = [];
+  {
+    const extractedCallStarts = new Set(extractions.map(e => e.callStart));
+    function walkNoArgMarkers(node: any): void {
+      if (!node || typeof node !== 'object') return;
+      if (Array.isArray(node)) { for (const item of node) walkNoArgMarkers(item); return; }
+      if (node.type === 'CallExpression' && !extractedCallStarts.has(node.start)) {
+        const calleeName = node.callee?.type === 'Identifier' ? node.callee.name : null;
+        if (calleeName) {
+          const importInfo = originalImports.get(calleeName);
+          if (importInfo && importInfo.importedName.endsWith('$') &&
+              importInfo.importedName !== '$' && importInfo.importedName !== 'sync$') {
+            // Only handle calls with truly 0 arguments
+            if (!node.arguments || node.arguments.length === 0) {
+              const qrlCallee = importInfo.importedName.slice(0, -1) + 'Qrl';
+              s.overwrite(node.callee.start, node.callee.end, qrlCallee);
+              if (needsPureAnnotation(qrlCallee)) {
+                s.prependRight(node.start, '/*#__PURE__*/ ');
+              }
+              extractedCalleeNames.add(importInfo.importedName);
+              // Store for later import generation
+              noArgQrlCallees.push({ callee: qrlCallee, source: importInfo.source });
+              if (!alreadyImported.has(qrlCallee)) {
+                alreadyImported.add(qrlCallee);
+              }
+            }
+          }
+        }
+      }
+      for (const key of Object.keys(node)) {
+        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+        walkNoArgMarkers(node[key]);
+      }
+    }
+    walkNoArgMarkers(program.body);
+  }
+
+  // -----------------------------------------------------------------------
   // Step 4a: Remove unused variable bindings wrapping QRL call sites
   // -----------------------------------------------------------------------
   // When a variable declaration like `const foo = component$(...)` is:
@@ -1323,6 +1366,13 @@ export function rewriteParentModule(
       if (!isCustomInlined(ext, originalImports)) {
         neededImports.set(qrlCallee, getQrlImportSource(qrlCallee, ext.importSource));
       }
+    }
+  }
+
+  // Add imports for no-arg marker call rewrites (Step 4-noarg)
+  for (const { callee, source } of noArgQrlCallees) {
+    if (!neededImports.has(callee)) {
+      neededImports.set(callee, getQrlImportSource(callee, source));
     }
   }
 

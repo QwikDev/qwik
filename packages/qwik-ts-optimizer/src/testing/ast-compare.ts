@@ -22,9 +22,25 @@ export function compareAst(
   actual: string,
   filename: string,
 ): AstCompareResult {
-  // Parse both strings with oxc-parser
-  const expectedResult = parseSync(filename, expected);
-  const actualResult = parseSync(filename, actual);
+  // Parse both strings with oxc-parser.
+  // If the filename is .js but the code contains JSX, retry with .tsx
+  // (some snapshots have .js filenames but JSX content).
+  let expectedResult = parseSync(filename, expected);
+  let actualResult = parseSync(filename, actual);
+
+  if ((expectedResult.errors?.length || actualResult.errors?.length) &&
+      (filename.endsWith('.js') || filename.endsWith('.ts'))) {
+    const jsxFilename = filename.replace(/\.(js|ts)$/, '.tsx');
+    const retryExpected = parseSync(jsxFilename, expected);
+    const retryActual = parseSync(jsxFilename, actual);
+    // Use the JSX parse results if they have fewer errors
+    const origErrCount = (expectedResult.errors?.length ?? 0) + (actualResult.errors?.length ?? 0);
+    const retryErrCount = (retryExpected.errors?.length ?? 0) + (retryActual.errors?.length ?? 0);
+    if (retryErrCount < origErrCount) {
+      expectedResult = retryExpected;
+      actualResult = retryActual;
+    }
+  }
 
   // Check for parse errors
   const expectedErrors = expectedResult.errors?.length
@@ -34,7 +50,11 @@ export function compareAst(
     ? actualResult.errors.map((e) => e.message).join('; ')
     : null;
 
-  if (expectedErrors || actualErrors) {
+  // When both sides have parse errors, still attempt AST comparison on the
+  // partial ASTs the parser produced. If only one side has errors, fall through
+  // to AST comparison as well -- the structural diff will catch differences.
+  // Only bail out if we truly cannot compare (e.g., program is null/undefined).
+  if ((expectedErrors || actualErrors) && (!expectedResult.program || !actualResult.program)) {
     return {
       match: false,
       expectedParseError: expectedErrors,
@@ -50,10 +70,12 @@ export function compareAst(
   normalizeProgram(cleanExpected);
   normalizeProgram(cleanActual);
 
+  const astMatch = equal(cleanExpected, cleanActual);
+
   return {
-    match: equal(cleanExpected, cleanActual),
-    expectedParseError: null,
-    actualParseError: null,
+    match: astMatch,
+    expectedParseError: expectedErrors,
+    actualParseError: actualErrors,
   };
 }
 

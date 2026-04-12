@@ -1776,6 +1776,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     // Updated extractions have parent info from rewriteParentModule
     const updatedExtractions = parentResult.extractions;
 
+    // Track running JSX key counter across segments (starts from parent module's final value)
+    let segmentKeyCounter = parentResult.jsxKeyCounterValue ?? 0;
+
     // For inline/hoist strategy, segments are inlined into parent -- no separate segment modules.
     // But we still emit SegmentAnalysis metadata entries.
     // For stripped segments, emit null exports with loc [0,0].
@@ -2172,19 +2175,24 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       };
 
       // Generate segment code: stripped segments get null exports, others get full codegen
-      let segmentCode = stripped
-        ? generateStrippedSegmentCode(ext.symbolName)
+      const segmentResult = stripped
+        ? { code: generateStrippedSegmentCode(ext.symbolName) }
         : generateSegmentCode(
             ext,
             nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
             effectiveCaptureInfo,
             (shouldTranspileJsx && (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx))
-              ? { enableJsx: true, importedNames, relPath, devOptions: isDevMode ? { relPath } : undefined }
+              ? { enableJsx: true, importedNames, relPath, devOptions: isDevMode ? { relPath } : undefined, keyCounterStart: segmentKeyCounter }
               : undefined,
             nestedCallSites.length > 0 ? nestedCallSites : undefined,
             importContext,
             enumValueMap.size > 0 ? enumValueMap : undefined,
           );
+      let segmentCode = segmentResult.code;
+      // Advance the running key counter for subsequent segments
+      if (segmentResult.keyCounterValue !== undefined) {
+        segmentKeyCounter = segmentResult.keyCounterValue;
+      }
 
       // Strip TS types from segment code when transpileTs is enabled
       if (!stripped && shouldTranspileTs) {

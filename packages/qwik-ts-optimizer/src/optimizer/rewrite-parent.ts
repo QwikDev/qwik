@@ -75,6 +75,8 @@ export interface ParentRewriteResult {
   code: string;
   /** All extractions (possibly with nested parent refs). */
   extractions: ExtractionResult[];
+  /** Final JSX key counter value after parent module transform (for segment continuation). */
+  jsxKeyCounterValue?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -1695,5 +1697,6 @@ export function rewriteParentModule(
   return {
     code: finalCode,
     extractions,
+    jsxKeyCounterValue: jsxKeyCounterValue || undefined,
   };
 }

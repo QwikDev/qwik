@@ -256,6 +256,8 @@ export interface SegmentJsxOptions {
   paramNames?: Set<string>;
   /** Relative file path for computing JSX key prefix */
   relPath?: string;
+  /** Starting value for the JSX key counter (for continuation across segments) */
+  keyCounterStart?: number;
   /** Dev mode options for JSX source info (fileName, lineNumber, columnNumber) */
   devOptions?: { relPath: string };
 }
@@ -320,8 +322,9 @@ export function generateSegmentCode(
   nestedCallSites?: NestedCallSiteInfo[],
   importContext?: SegmentImportContext,
   enumValueMap?: Map<string, Map<string, string>>,
-): string {
+): { code: string; keyCounterValue?: number } {
   const parts: string[] = [];
+  let segmentKeyCounterValue: number | undefined;
 
   // Determine which identifiers the segment body actually uses.
   // If we have nested call site rewrites, the body changes -- some
@@ -760,7 +763,8 @@ export function generateSegmentCode(
       }
 
       const jsxResult = transformAllJsx(wrappedBody, bodyS, bodyParse.program, jsxOptions.importedNames,
-        undefined, jsxOptions.devOptions, undefined, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath);
+        undefined, jsxOptions.devOptions, jsxOptions.keyCounterStart, true, qpOverrides, qrlsWithCaptures, jsxOptions.paramNames, jsxOptions.relPath);
+      segmentKeyCounterValue = jsxResult.keyCounterValue;
       const transformedWrapped = bodyS.toString();
       // Unwrap the parentheses
       bodyText = transformedWrapped.slice(1, -1);
@@ -1014,7 +1018,7 @@ export function generateSegmentCode(
 
   parts.push(`export const ${extraction.symbolName} = ${bodyText};`);
 
-  return parts.join('\n');
+  return { code: parts.join('\n'), keyCounterValue: segmentKeyCounterValue };
 }
 
 /**

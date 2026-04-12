@@ -99,6 +99,7 @@ function normalizeProgram(program: any): void {
   unwrapSingleStatementBlocks(program);
   sortObjectProperties(program);
   normalizeDevModePositions(program);
+  normalizeArrowBodies(program);
   inlineSegmentBodyIntoSCall(program);
 }
 
@@ -412,6 +413,35 @@ function stripDirectives(program: any): void {
         stmt.expression.value === 'use strict') return false;
     return true;
   });
+}
+
+/**
+ * Normalize arrow function bodies: `(x) => { return expr; }` → `(x) => expr`.
+ * This is a cosmetic difference: both forms are semantically identical for
+ * single-return-statement arrow functions.
+ */
+function normalizeArrowBodies(node: any): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) normalizeArrowBodies(item);
+    return;
+  }
+  // Recurse first (bottom-up)
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    normalizeArrowBodies(node[key]);
+  }
+  // ArrowFunctionExpression with block body containing single return statement
+  if (node.type === 'ArrowFunctionExpression' &&
+      node.body?.type === 'BlockStatement' &&
+      Array.isArray(node.body.body) &&
+      node.body.body.length === 1 &&
+      node.body.body[0]?.type === 'ReturnStatement' &&
+      node.body.body[0].argument != null) {
+    // Convert to expression body
+    node.body = node.body.body[0].argument;
+    node.expression = true;
+  }
 }
 
 /**

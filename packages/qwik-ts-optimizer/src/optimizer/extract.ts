@@ -244,7 +244,7 @@ export function extractSegments(
   relPath: string,
   scope?: string,
 ): ExtractionResult[] {
-  const { program } = parseSync(relPath, source);
+  const { program } = parseSync(relPath, source, { experimentalRawTransfer: true } as any);
 
   const imports = collectImports(program);
   const customInlined = collectCustomInlined(program);

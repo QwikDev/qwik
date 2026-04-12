@@ -163,7 +163,7 @@ function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<s
 
   const wrapperPrefix = 'const __rl__ = ';
   const wrappedSource = wrapperPrefix + parentBody;
-  const parseResult = parseSync('__rl__.tsx', wrappedSource);
+  const parseResult = parseSync('__rl__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
   if (!parseResult.program || parseResult.errors?.length) return result;
 
   const offset = wrapperPrefix.length;
@@ -222,7 +222,7 @@ function resolveConstLiterals(parentBody: string, captureNames: string[]): Map<s
 function inlineConstCaptures(body: string, constValues: Map<string, string>): string {
   const wrapperPrefix = 'const __ic__ = ';
   const wrappedSource = wrapperPrefix + body;
-  const parseResult = parseSync('__ic__.tsx', wrappedSource);
+  const parseResult = parseSync('__ic__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
   if (!parseResult.program || parseResult.errors?.length) return body;
 
   const offset = wrapperPrefix.length;
@@ -347,7 +347,7 @@ export function applyRawPropsTransform(body: string): string {
   const wrapperPrefix = 'const __rp__ = ';
   const wrappedSource = wrapperPrefix + body;
 
-  const parseResult = parseSync('__rp__.tsx', wrappedSource);
+  const parseResult = parseSync('__rp__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
   if (!parseResult.program || parseResult.errors?.length) {
     return body;
   }
@@ -422,7 +422,7 @@ export function applyRawPropsTransform(body: string): string {
     }
 
     const reparseSource = wrapperPrefix + result;
-    const reparseResult2 = parseSync('__rp3__.tsx', reparseSource);
+    const reparseResult2 = parseSync('__rp3__.tsx', reparseSource, { experimentalRawTransfer: true } as any);
     if (!reparseResult2.program || reparseResult2.errors?.length) return result;
 
     const replacements: Array<{ start: number; end: number; key: string }> = [];
@@ -480,7 +480,7 @@ export function applyRawPropsTransform(body: string): string {
 
   // Re-parse to find identifier positions in the updated body
   const reparseSource = wrapperPrefix + result;
-  const reparseResult = parseSync('__rp2__.tsx', reparseSource);
+  const reparseResult = parseSync('__rp2__.tsx', reparseSource, { experimentalRawTransfer: true } as any);
   if (!reparseResult.program || reparseResult.errors?.length) return result;
 
   // Collect all identifier positions that need replacement (descending order for safe replacement)
@@ -684,7 +684,7 @@ function transformSCallBody(
     const wrappedSource = wrapperPrefix + body;
 
     // Parse the wrapped source to get an AST
-    const parseResult = parseSync('__body__.tsx', wrappedSource);
+    const parseResult = parseSync('__body__.tsx', wrappedSource, { experimentalRawTransfer: true } as any);
     if (parseResult.program && !parseResult.errors?.length) {
       const bodyS = new MagicString(wrappedSource);
 
@@ -788,7 +788,7 @@ export function rewriteParentModule(
   outputExtension?: string,
 ): ParentRewriteResult {
   const s = new MagicString(source);
-  const { program } = parseSync(relPath, source);
+  const { program } = parseSync(relPath, source, { experimentalRawTransfer: true } as any);
 
   // Collect all callee names that were extracted (for removing $ imports)
   const extractedCalleeNames = new Set<string>();

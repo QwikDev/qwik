@@ -26,7 +26,7 @@ import { parseSync } from 'oxc-parser';
  * @returns Repaired source or original source unchanged
  */
 export function repairInput(source: string, filename: string): string {
-  const initial = parseSync(filename, source);
+  const initial = parseSync(filename, source, { experimentalRawTransfer: true } as any);
   if (initial.program.body.length > 0) {
     // Parses fine -- no repair needed
     return source;
@@ -87,7 +87,7 @@ function tryRemoveUnmatchedParens(source: string, filename: string): string | nu
     for (let i = closePositions.length - 1; i >= 0; i--) {
       const pos = closePositions[i];
       const candidate = source.slice(0, pos) + source.slice(pos + 1);
-      const result = parseSync(filename, candidate);
+      const result = parseSync(filename, candidate, { experimentalRawTransfer: true } as any);
       if (result.program.body.length > 0) {
         return candidate;
       }
@@ -127,7 +127,7 @@ function tryWrapJsxTextArrows(source: string, filename: string): string | null {
     repaired = repaired.slice(0, start) + '{"' + escaped + '"}' + repaired.slice(end);
   }
 
-  const result = parseSync(filename, repaired);
+  const result = parseSync(filename, repaired, { experimentalRawTransfer: true } as any);
   if (result.program.body.length > 0) {
     return repaired;
   }

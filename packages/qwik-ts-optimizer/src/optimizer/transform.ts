@@ -168,7 +168,7 @@ function applySegmentConstReplacement(code: string, filename: string, isServer?:
 
   let parsed;
   try {
-    parsed = parseSync(filename, code);
+    parsed = parseSync(filename, code, { experimentalRawTransfer: true } as any);
   } catch {
     return code;
   }
@@ -534,7 +534,7 @@ function applySegmentSideEffectSimplification(code: string, filename: string): s
   // Parse the body to find unused variable declarations
   let parsed;
   try {
-    parsed = parseSync(filename, exportSection);
+    parsed = parseSync(filename, exportSection, { experimentalRawTransfer: true } as any);
   } catch {
     return code;
   }
@@ -687,7 +687,7 @@ const QWIK_IMPORT_PREFIXES = [
 function removeUnusedImports(code: string, filename: string, transpileJsx?: boolean): string {
   let parsed;
   try {
-    parsed = parseSync(filename, code);
+    parsed = parseSync(filename, code, { experimentalRawTransfer: true } as any);
   } catch {
     // If parsing fails, return code unchanged
     return code;
@@ -908,7 +908,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const earlyTranspileJsx = options.transpileJsx !== false;
     const needsJsxTransform = earlyTranspileJsx && (ext === '.tsx' || ext === '.jsx');
     if (extractions.length === 0 && !needsJsxTransform) {
-      const { program: passProgram } = parseSync(relPath, repairedCode);
+      const { program: passProgram } = parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any);
       const passS = new MagicString(repairedCode);
 
       // Find the end of the last import declaration
@@ -988,7 +988,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     }
 
     // 2. Collect imports for parent rewriting (need to re-parse for the import map)
-    const { program } = parseSync(relPath, repairedCode);
+    const { program } = parseSync(relPath, repairedCode, { experimentalRawTransfer: true } as any);
     const originalImports = collectImports(program);
 
     // Build importedNames set for capture analysis (excludes from captures)

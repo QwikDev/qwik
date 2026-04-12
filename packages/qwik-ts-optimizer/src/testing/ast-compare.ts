@@ -62,6 +62,9 @@ export function compareAst(
  * Each normalization eliminates a class of cosmetic differences.
  */
 function normalizeProgram(program: any): void {
+  // Run _auto_ normalization BEFORE import ordering so rewritten imports sort correctly
+  normalizeAutoExports(program);
+  stripUnusedImports(program);
   normalizeImportOrder(program);
   normalizeQrlDeclarationOrder(program);
   sortSpecifiersWithinImports(program);
@@ -75,8 +78,6 @@ function normalizeProgram(program: any): void {
   sortObjectProperties(program);
   normalizeDevModePositions(program);
   inlineSegmentBodyIntoSCall(program);
-  normalizeAutoExports(program);
-  stripUnusedImports(program);
 }
 
 /**

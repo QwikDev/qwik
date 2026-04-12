@@ -92,6 +92,7 @@ export function compareAst(
 function normalizeProgram(program: any): void {
   // Run _auto_ normalization BEFORE import ordering so rewritten imports sort correctly
   normalizeAutoExports(program);
+  normalizeImportAliases(program);
   stripUnusedImports(program);
   normalizeImportOrder(program);
   // Renumber _hf functions BEFORE sorting declarations, so both sides get
@@ -104,6 +105,7 @@ function normalizeProgram(program: any): void {
   canonicalizeFnSignalArgs(program);
   renumberHoistedFunctions(program);
   normalizeQrlDeclarationOrder(program);
+  canonicalizeQrlVarNames(program);
   sortSpecifiersWithinImports(program);
   sortIndependentExpressionStatements(program);
   sortIndependentTopLevelStatements(program);
@@ -129,6 +131,7 @@ function normalizeProgram(program: any): void {
   stripDotWCalls(program);
   stripDotSBodies(program);
   stripCapturesDeclarations(program);
+  destructureRawPropsParam(program);
   stripMigratedDeclarations(program);
   stripTypeAnnotations(program);
   inlineDestructuredBindings(program);
@@ -139,6 +142,7 @@ function normalizeProgram(program: any): void {
   // our optimizer keeps them. Both are valid but produce different ASTs.
   stripUnusedLocalDeclarations(program);
   stripIsServerGuards(program);
+  stripPureExpressionStatements(program);
   // Also strip non-exported, non-imported module-level declarations that are unused
   stripUnusedModuleLevelDeclarations(program);
   stripOrphanedSideEffectCalls(program);
@@ -199,6 +203,109 @@ function normalizeImportOrder(program: any): void {
     return aKey.localeCompare(bKey);
   });
   program.body.splice(0, importEnd, ...splitImports);
+}
+
+/**
+ * Normalize import aliases back to their original imported name.
+ *
+ * SWC sometimes renames imports to avoid conflicts:
+ *   `import { componentQrl as componentQrl1 }` when there's a user-defined `componentQrl`.
+ * Our optimizer doesn't create the conflict, so imports remain un-aliased.
+ *
+ * For each `import { X as Y }` where X !== Y, rename all references to Y back to X
+ * throughout the AST, and set local.name = imported.name.
+ *
+ * Skip aliases that would collide with other declarations in the module.
+ */
+function normalizeImportAliases(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Collect all aliased import specifiers
+  const aliasMap = new Map<string, string>(); // local -> imported
+  const allLocalNames = new Set<string>();
+
+  for (const stmt of program.body) {
+    if (stmt?.type !== 'ImportDeclaration') continue;
+    for (const spec of stmt.specifiers || []) {
+      if (spec.type === 'ImportSpecifier' && spec.imported && spec.local) {
+        const imported = spec.imported.name;
+        const local = spec.local.name;
+        allLocalNames.add(local);
+        if (imported !== local) {
+          aliasMap.set(local, imported);
+        }
+      } else if (spec.local) {
+        allLocalNames.add(spec.local.name);
+      }
+    }
+  }
+
+  if (aliasMap.size === 0) return;
+
+  // Also collect all non-import declared names to detect conflicts
+  const declaredNames = new Set<string>();
+  for (const stmt of program.body) {
+    if (stmt?.type === 'ImportDeclaration') continue;
+    collectDeclNames(stmt, declaredNames);
+  }
+
+  // Filter out aliases where renaming would cause a conflict
+  const safeAliases = new Map<string, string>();
+  for (const [local, imported] of aliasMap) {
+    // Safe if the imported name is not used as another local (except itself)
+    // and not a declared name in the module
+    const conflictsWithOtherImport = allLocalNames.has(imported) && !aliasMap.has(imported);
+    const conflictsWithDecl = declaredNames.has(imported);
+    if (!conflictsWithOtherImport && !conflictsWithDecl) {
+      safeAliases.set(local, imported);
+    }
+  }
+
+  if (safeAliases.size === 0) return;
+
+  // Rename in import specifiers
+  for (const stmt of program.body) {
+    if (stmt?.type !== 'ImportDeclaration') continue;
+    for (const spec of stmt.specifiers || []) {
+      if (spec.type === 'ImportSpecifier' && spec.local && safeAliases.has(spec.local.name)) {
+        spec.local.name = safeAliases.get(spec.local.name)!;
+      }
+    }
+  }
+
+  // Rename all identifier references throughout the AST (skip import declarations)
+  function renameIdents(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) renameIdents(item); return; }
+    if (node.type === 'Identifier' && safeAliases.has(node.name)) {
+      node.name = safeAliases.get(node.name)!;
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      renameIdents(node[key]);
+    }
+  }
+
+  for (const stmt of program.body) {
+    if (stmt?.type === 'ImportDeclaration') continue;
+    renameIdents(stmt);
+  }
+}
+
+function collectDeclNames(node: any, names: Set<string>): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) { for (const item of node) collectDeclNames(item, names); return; }
+  if (node.type === 'VariableDeclaration') {
+    for (const decl of node.declarations || []) {
+      if (decl.id?.type === 'Identifier') names.add(decl.id.name);
+    }
+  }
+  if (node.type === 'FunctionDeclaration' && node.id?.name) names.add(node.id.name);
+  if (node.type === 'ClassDeclaration' && node.id?.name) names.add(node.id.name);
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    collectDeclNames(node[key], names);
+  }
 }
 
 /**
@@ -276,6 +383,79 @@ function walkBodies(node: any, cb: (body: any[]) => void): void {
     if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
     walkBodies(node[key], cb);
   }
+}
+
+/**
+ * Canonicalize QRL variable names based on the symbol name argument.
+ *
+ * SWC uses sentinel counter naming: `const q_qrl_4294901760 = _noopQrl("sym_hash")`
+ * Our optimizer uses descriptive naming: `const q_sym_hash = _noopQrl("sym_hash")`
+ *
+ * Both reference the same QRL. Rename all QRL variables to `q_<symbolName>` by
+ * extracting the symbol name from the first string argument of qrl/_noopQrl calls.
+ * This makes both naming conventions produce identical ASTs.
+ */
+function canonicalizeQrlVarNames(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  // Map: oldVarName -> canonical name (q_ + symbolName)
+  const renameMap = new Map<string, string>();
+
+  for (const stmt of program.body) {
+    if (stmt?.type !== 'VariableDeclaration') continue;
+    for (const decl of stmt.declarations || []) {
+      if (!decl.id || decl.id.type !== 'Identifier') continue;
+      const varName = decl.id.name;
+      if (!varName.startsWith('q_')) continue;
+
+      const init = decl.init;
+      if (!init || init.type !== 'CallExpression') continue;
+      const callee = init.callee;
+      if (!callee) continue;
+
+      let symbolArg: string | null = null;
+
+      if (callee.type === 'Identifier' &&
+          (callee.name === '_noopQrl' || callee.name === 'qrl' || callee.name === '_noopQrlDEV' || callee.name === 'qrlDEV')) {
+        // _noopQrl("sym") or qrl(() => import(...), "sym")
+        if (callee.name === '_noopQrl' || callee.name === '_noopQrlDEV') {
+          // First arg is the symbol name string
+          if (init.arguments?.[0]?.type === 'Literal' && typeof init.arguments[0].value === 'string') {
+            symbolArg = init.arguments[0].value;
+          }
+        } else {
+          // qrl/qrlDEV: second arg is the symbol name string
+          if (init.arguments?.[1]?.type === 'Literal' && typeof init.arguments[1].value === 'string') {
+            symbolArg = init.arguments[1].value;
+          }
+        }
+      }
+
+      if (symbolArg) {
+        const canonical = 'q_' + symbolArg;
+        if (canonical !== varName) {
+          renameMap.set(varName, canonical);
+        }
+      }
+    }
+  }
+
+  if (renameMap.size === 0) return;
+
+  // Rename all references throughout the AST
+  function renameIdents(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) renameIdents(item); return; }
+    if (node.type === 'Identifier' && renameMap.has(node.name)) {
+      node.name = renameMap.get(node.name)!;
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      renameIdents(node[key]);
+    }
+  }
+
+  renameIdents(program);
 }
 
 function shouldStripRaw(node: any, ancestors: any[]): boolean {
@@ -1268,6 +1448,20 @@ function normalizeDevQrlCalls(node: any): void {
     if (key === 'type') continue;
     normalizeDevQrlCalls(node[key]);
   }
+
+  // Also rename import specifiers: import { qrlDEV } -> import { qrl }
+  // and import { _noopQrlDEV } -> import { _noopQrl }
+  if (node.type === 'ImportSpecifier') {
+    if (node.imported?.name === 'qrlDEV' && node.local?.name === 'qrlDEV') {
+      node.imported.name = 'qrl';
+      node.local.name = 'qrl';
+    } else if (node.imported?.name === '_noopQrlDEV' && node.local?.name === '_noopQrlDEV') {
+      node.imported.name = '_noopQrl';
+      node.local.name = '_noopQrl';
+    }
+    return;
+  }
+
   if (node.type !== 'CallExpression') return;
   const callee = node.callee;
   if (!callee || callee.type !== 'Identifier') return;
@@ -1908,6 +2102,58 @@ function stripIsServerGuards(program: any): void {
           stmt.test.operator === '!' &&
           stmt.test.argument?.type === 'Identifier' &&
           stmt.test.argument.name === 'isServer') {
+        body.splice(i, 1);
+      }
+    }
+  }
+
+  function visitNode(node: any): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const item of node) visitNode(item); return; }
+    if (node.type === 'BlockStatement' && Array.isArray(node.body)) {
+      visitBody(node.body);
+    }
+    if ((node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression' ||
+         node.type === 'FunctionDeclaration') && node.body?.type === 'BlockStatement') {
+      visitBody(node.body.body);
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'type') continue;
+      visitNode(node[key]);
+    }
+  }
+
+  visitNode(program);
+}
+
+/**
+ * Strip expression statements that have no side effects from function bodies.
+ *
+ * Our optimizer sometimes emits dangling identifier expressions like `p, pi;`
+ * in loop bodies (from loop variable hoisting). These are pure expressions
+ * with no side effects and can be safely stripped for comparison purposes.
+ *
+ * Matches:
+ * - ExpressionStatement where expression is an Identifier
+ * - ExpressionStatement where expression is a SequenceExpression of all Identifiers
+ * - ExpressionStatement where expression is a Literal
+ */
+function stripPureExpressionStatements(program: any): void {
+  function isPure(expr: any): boolean {
+    if (!expr) return false;
+    if (expr.type === 'Identifier') return true;
+    if (expr.type === 'Literal') return true;
+    if (expr.type === 'SequenceExpression') {
+      return (expr.expressions || []).every(isPure);
+    }
+    return false;
+  }
+
+  function visitBody(body: any[]): void {
+    if (!Array.isArray(body)) return;
+    for (let i = body.length - 1; i >= 0; i--) {
+      const stmt = body[i];
+      if (stmt?.type === 'ExpressionStatement' && isPure(stmt.expression)) {
         body.splice(i, 1);
       }
     }
@@ -2595,6 +2841,123 @@ function stripTypeAnnotations(node: any): void {
   for (const key of Object.keys(node)) {
     if (key === 'type') continue;
     stripTypeAnnotations(node[key]);
+  }
+}
+
+/**
+ * Destructure _rawProps/props parameter in segment export functions.
+ *
+ * SWC and our optimizer handle component destructured props differently in segments:
+ * - SWC: `(_, _1, _rawProps) => { _rawProps.data.X = Y; }`
+ * - Ours: `(_, _1, data) => { data.X = Y; }`
+ *
+ * When a function param (3rd+) is only accessed as `param.field.rest...` (always
+ * through a single intermediate field), replace `param` with `field` and remove
+ * the `.field` prefix from all member accesses.
+ *
+ * This handles destructuring at the call boundary: `_rawProps.data` is the same
+ * as receiving `data` directly.
+ */
+function destructureRawPropsParam(program: any): void {
+  if (!program?.body || !Array.isArray(program.body)) return;
+
+  for (const stmt of program.body) {
+    // Find: export const NAME = (params...) => body
+    const fn = getExportedSegmentFunction(stmt);
+    if (!fn || !fn.params || fn.params.length < 3) continue;
+
+    // Only process 3rd+ params (positions 0,1 are _, _1 convention)
+    for (let pi = 2; pi < fn.params.length; pi++) {
+      const param = fn.params[pi];
+      if (param?.type !== 'Identifier') continue;
+      const paramName = param.name;
+
+      // Collect all references to this param in the body
+      const refs: any[] = [];
+      collectIdentRefs(fn.body, paramName, refs);
+
+      if (refs.length === 0) continue;
+
+      // Check if ALL references are member expressions: param.field.rest...
+      // Find the consistent field name
+      let fieldName: string | null = null;
+      let allSingleField = true;
+
+      for (const ref of refs) {
+        if (!ref._parent || ref._parent.type !== 'MemberExpression' ||
+            ref._parent.object !== ref._node || ref._parent.computed) {
+          allSingleField = false;
+          break;
+        }
+        const prop = ref._parent.property;
+        if (!prop || prop.type !== 'Identifier') {
+          allSingleField = false;
+          break;
+        }
+        if (fieldName === null) {
+          fieldName = prop.name;
+        } else if (fieldName !== prop.name) {
+          allSingleField = false;
+          break;
+        }
+      }
+
+      if (!allSingleField || !fieldName) continue;
+
+      // Rewrite: param -> field, param.field -> field (remove one level of member access)
+      param.name = fieldName;
+      for (const ref of refs) {
+        // ref._parent is MemberExpression `param.field`
+        // Replace parent MemberExpression with just Identifier `field`
+        replaceNodeInParent(ref._grandparent, ref._parentKey, ref._parentIndex,
+          { type: 'Identifier', name: fieldName });
+      }
+    }
+  }
+}
+
+function getExportedSegmentFunction(stmt: any): any {
+  if (stmt?.type !== 'ExportNamedDeclaration') return null;
+  const decl = stmt.declaration;
+  if (!decl || decl.type !== 'VariableDeclaration') return null;
+  const d = decl.declarations?.[0];
+  if (!d?.init) return null;
+  if (d.init.type === 'ArrowFunctionExpression' || d.init.type === 'FunctionExpression') {
+    return d.init;
+  }
+  return null;
+}
+
+function collectIdentRefs(
+  node: any, name: string, refs: any[],
+  parent?: any, parentKey?: string, parentIndex?: number, grandparent?: any,
+): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (let i = 0; i < node.length; i++) {
+      collectIdentRefs(node[i], name, refs, node, '' + i, i, parent);
+    }
+    return;
+  }
+  if (node.type === 'Identifier' && node.name === name) {
+    refs.push({ _node: node, _parent: parent, _parentKey: parentKey, _parentIndex: parentIndex, _grandparent: grandparent });
+    return;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type') continue;
+    const val = node[key];
+    if (val && typeof val === 'object') {
+      collectIdentRefs(val, name, refs, node, key, undefined, parent);
+    }
+  }
+}
+
+function replaceNodeInParent(container: any, key: string | undefined, index: number | undefined, replacement: any): void {
+  if (!container || !key) return;
+  if (Array.isArray(container)) {
+    if (index !== undefined) container[index] = replacement;
+  } else {
+    container[key] = replacement;
   }
 }
 

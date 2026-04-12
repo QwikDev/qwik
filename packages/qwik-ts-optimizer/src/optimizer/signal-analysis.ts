@@ -520,8 +520,10 @@ function generateFnSignal(
   // Hoisted function: preserves original spacing in body
   const hoistedFn = `(${params})=>${fnBody}`;
 
-  // String representation: minimal whitespace
-  const strBody = removeWhitespace(fnBody);
+  // String representation: minimal whitespace, with string literals normalized
+  // to double quotes (matching Rust SWC optimizer behavior which re-serializes
+  // the AST, producing double-quoted strings).
+  const strBody = normalizeStringQuotes(removeWhitespace(fnBody));
 
   // Determine quote style for string representation
   // If the string body contains double quotes, use single quotes for wrapping
@@ -587,6 +589,63 @@ function removeWhitespace(text: string): string {
     result += ch;
   }
 
+  return result;
+}
+
+/**
+ * Normalize string literals from single quotes to double quotes.
+ * Matches Rust SWC optimizer behavior: re-serialized AST uses double quotes.
+ * `'yes'` -> `"yes"`, already-double-quoted strings are left alone.
+ */
+function normalizeStringQuotes(text: string): string {
+  let result = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'") {
+      // Find closing single quote (handle escapes)
+      let j = i + 1;
+      let content = '';
+      while (j < text.length && text[j] !== "'") {
+        if (text[j] === '\\') {
+          // Handle escape sequences
+          if (text[j + 1] === "'") {
+            // Escaped single quote -> just the quote char in double-quote context
+            content += "'";
+            j += 2;
+          } else {
+            content += text[j] + text[j + 1];
+            j += 2;
+          }
+        } else {
+          // If the content contains an unescaped double quote, escape it
+          if (text[j] === '"') {
+            content += '\\"';
+          } else {
+            content += text[j];
+          }
+          j++;
+        }
+      }
+      result += '"' + content + '"';
+      i = j; // skip past closing quote
+    } else if (ch === '"') {
+      // Already double-quoted, pass through as-is
+      result += ch;
+      i++;
+      while (i < text.length && text[i] !== '"') {
+        if (text[i] === '\\') {
+          result += text[i] + text[i + 1];
+          i += 2;
+        } else {
+          result += text[i];
+          i++;
+        }
+      }
+      if (i < text.length) result += text[i]; // closing "
+    } else {
+      result += ch;
+    }
+  }
   return result;
 }
 

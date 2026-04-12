@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { compareAst } from '../../src/testing/ast-compare.js';
 import { compareMetadata } from '../../src/testing/metadata-compare.js';
+import type { SegmentMetadata } from '../../src/testing/snapshot-parser.js';
 import { transformModule } from '../../src/optimizer/transform.js';
 import { getSnapshotFiles } from '../../src/testing/batch-runner.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
@@ -115,7 +116,7 @@ describe('segment-only convergence debug', () => {
 
         // Check metadata
         if (actualSeg.segment && expectedSeg.metadata) {
-          const metaCompare = compareMetadata(expectedSeg.metadata, actualSeg.segment);
+          const metaCompare = compareMetadata(expectedSeg.metadata, actualSeg.segment as unknown as SegmentMetadata);
           if (!metaCompare.match) {
             const diffFields = metaCompare.mismatches.map((m) => m.field);
             testResult.segmentFailures.push({
@@ -132,6 +133,7 @@ describe('segment-only convergence debug', () => {
         const parseFilename = expectedSeg.filename || 'test.tsx';
         let codeAstMatch = true;
         let codeParseError = false;
+        let codeParseErr: unknown;
 
         try {
           const astResult = compareAst(expectedSeg.code, actualSeg.code, parseFilename);
@@ -142,6 +144,7 @@ describe('segment-only convergence debug', () => {
           }
         } catch (err) {
           codeParseError = true;
+          codeParseErr = err;
         }
 
         if (codeParseError) {
@@ -149,7 +152,7 @@ describe('segment-only convergence debug', () => {
             snapName,
             segmentName: expectedSeg.metadata.name,
             category: 'code_parse_error',
-            details: String(err),
+            details: String(codeParseErr),
           });
         } else if (!codeAstMatch) {
           testResult.segmentFailures.push({

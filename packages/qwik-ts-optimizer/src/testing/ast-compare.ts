@@ -170,6 +170,15 @@ function normalizeProgram(program: any): void {
   // behind after inlining.
   stripUnusedCallBindings(program);
   stripUnusedLocalDeclarations(program);
+  // Strip migrated declarations: when SWC inlines a function/class from
+  // parent scope into a segment, and we import it instead, both provide
+  // the same binding. Strip the inlined declaration if an import exists.
+  stripMigratedDeclarations(program);
+  // Strip `if (!isServer) return;` guards. One optimizer adds server guards
+  // to server segments while the other strips them entirely. Both are valid.
+  stripIsServerGuards(program);
+  // Strip pure expression statements with no side effects.
+  stripPureExpressionStatements(program);
   // Second pass: normalizations above can leave
   // imports that are no longer referenced.
   // Re-run stripUnusedImports to clean them up, then re-sort.

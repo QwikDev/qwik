@@ -11,6 +11,7 @@ import { unusedServer } from './src/unusedServer';
 import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
 import { noAsyncPreventDefault } from './src/noAsyncPreventDefault';
+import { noAwaitNavigateInUseTask } from './src/noAwaitNavigateInUseTask';
 import pkg from './package.json';
 
 type Rules = NonNullable<TSESLint.FlatConfig.Plugin['rules']>;
@@ -28,6 +29,7 @@ const rules = {
   'jsx-a': jsxAtag,
   'no-use-visible-task': noUseVisibleTask,
   'no-async-prevent-default': noAsyncPreventDefault,
+  'no-await-navigate-in-use-task': noAwaitNavigateInUseTask,
 } satisfies Rules;
 
 const recommendedRulesLevels = {
@@ -43,6 +45,7 @@ const recommendedRulesLevels = {
   'qwik/jsx-a': 'warn',
   'qwik/no-use-visible-task': 'warn',
   'qwik/no-async-prevent-default': 'warn',
+  'qwik/no-await-navigate-in-use-task': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 
 const strictRulesLevels = {
@@ -58,6 +61,7 @@ const strictRulesLevels = {
   'qwik/jsx-a': 'error',
   'qwik/no-use-visible-task': 'warn',
   'qwik/no-async-prevent-default': 'warn',
+  'qwik/no-await-navigate-in-use-task': 'warn',
 } satisfies TSESLint.FlatConfig.Rules;
 
 const configs = {

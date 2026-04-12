@@ -90,22 +90,10 @@ export function compareAst(
  * Each normalization eliminates a class of cosmetic differences.
  */
 function normalizeProgram(program: any): void {
-  // Run _auto_ normalization BEFORE import ordering so rewritten imports sort correctly
-  normalizeAutoExports(program);
-  normalizeImportAliases(program);
-  stripUnusedImports(program);
+  // ONLY truly cosmetic normalizations — no behavioral differences hidden
   normalizeImportOrder(program);
-  // Renumber _hf functions BEFORE sorting declarations, so both sides get
-  // the same canonical names for the same content. If we sort first, the
-  // physical order matches but the names still differ, making the renumbering
-  // think it's already identity.
   normalizeArrowBodies(program);
-  // Canonicalize _fnSignal arg order BEFORE renumbering _hf functions,
-  // so both sides produce the same _hf body content after param remapping.
-  canonicalizeFnSignalArgs(program);
-  renumberHoistedFunctions(program);
   normalizeQrlDeclarationOrder(program);
-  canonicalizeQrlVarNames(program);
   sortSpecifiersWithinImports(program);
   sortIndependentExpressionStatements(program);
   sortIndependentTopLevelStatements(program);
@@ -115,38 +103,9 @@ function normalizeProgram(program: any): void {
   deduplicateImports(program);
   unwrapSingleStatementBlocks(program);
   normalizeDevModePositions(program);
-  normalizeDevQrlCalls(program);
-  stripJsxSourceInfo(program);
-  stripUseHmrCalls(program);
   normalizeEnumIIFE(program);
-  normalizeJsxCalleeNames(program);
-  mergeJsxSplitProps(program);
-  normalizeJsxFlags(program);
-  stripQpProperties(program);
-  mergeGetVarConstProps(program);
   sortObjectProperties(program);
-  normalizeWrapProp(program);
-  inlineFnSignalSimple(program);
-  mergeDuplicateObjectProperties(program);
-  stripDotWCalls(program);
-  stripDotSBodies(program);
-  expandRawPropsCaptures(program);
-  stripCapturesDeclarations(program);
-  destructureRawPropsParam(program);
-  stripMigratedDeclarations(program);
   stripTypeAnnotations(program);
-  inlineDestructuredBindings(program);
-  stripUnusedCallBindings(program);
-  inlineSegmentBodyIntoSCall(program);
-  // Strip unused variable declarations within function bodies and at module level.
-  // SWC sometimes strips destructuring/declarations that are never used;
-  // our optimizer keeps them. Both are valid but produce different ASTs.
-  stripUnusedLocalDeclarations(program);
-  stripIsServerGuards(program);
-  stripPureExpressionStatements(program);
-  // Also strip non-exported, non-imported module-level declarations that are unused
-  stripUnusedModuleLevelDeclarations(program);
-  stripOrphanedSideEffectCalls(program);
   // After stripping declarations, re-run normalizations that depend on statement count:
   // - Arrow bodies may now have single returns (can become expression body)
   // - Single-statement blocks in control flow can be unwrapped

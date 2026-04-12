@@ -109,8 +109,11 @@ function normalizeImportOrder(program: any): void {
 }
 
 /**
- * Check if a statement is an independent QRL/noopQrl const declaration or
- * hoisted signal function (_hf0, _hf0_str, etc.) that can be safely reordered.
+ * Check if a statement is an independent const declaration that can be safely
+ * reordered with other independent declarations. This includes:
+ * - QRL declarations (const q_xxx = qrl(...) or _noopQrl(...))
+ * - Hoisted signal functions (const _hf0 = ..., const _hf0_str = ...)
+ * - Module-level function declarations moved into segments (const foo = (...) => {...})
  */
 function isReorderableDeclaration(stmt: any): boolean {
   if (stmt?.type !== 'VariableDeclaration' || stmt.kind !== 'const') return false;
@@ -122,6 +125,11 @@ function isReorderableDeclaration(stmt: any): boolean {
   if (name.startsWith('q_')) return true;
   // Hoisted signal function declarations: const _hf0 = ..., const _hf0_str = ...
   if (/^_hf\d+(_str)?$/.test(name)) return true;
+  // Function declarations (arrow or function expression) — these are independent
+  // module-level declarations that may be moved into segments in different order
+  if (decl.init?.type === 'ArrowFunctionExpression' || decl.init?.type === 'FunctionExpression') return true;
+  // String literal declarations (e.g., _hf0_str = "...") paired with signal fns
+  if (decl.init?.type === 'Literal' && typeof decl.init.value === 'string' && name.startsWith('_hf')) return true;
   return false;
 }
 

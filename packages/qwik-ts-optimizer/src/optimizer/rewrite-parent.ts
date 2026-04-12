@@ -482,7 +482,7 @@ export function applyRawPropsTransform(body: string): string {
   if (firstParam.type === 'Identifier') {
     const paramName = firstParam.name;
     // Look for variable declarations that destructure from this param in the function body
-    const funcBody = init.body;
+    const funcBody = (init as any).body;
     if (!funcBody || funcBody.type !== 'BlockStatement') return body;
 
     // Find `const { ... } = paramName;` in the body

@@ -795,12 +795,20 @@ export function generateSegmentCode(
     }
   }
 
-  // Ensure _Fragment import is present when bodyText references _Fragment
-  // (may have been pre-transformed in parent before segment extraction)
-  if (bodyText.includes('_Fragment') && !parts.some(p => p.startsWith('import') && p.includes('_Fragment'))) {
-    const sepIdx = parts.indexOf('//');
-    if (sepIdx >= 0) {
-      parts.splice(sepIdx, 0, `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`);
+  // Ensure required imports are present when bodyText references symbols
+  // that may have been pre-transformed in parent before segment extraction.
+  // This handles cases where JSX transform ran on the parent module and the
+  // segment body inherits transformed code with _jsxSorted/_Fragment/etc.
+  const coreSymbols = ['_jsxSorted', '_jsxSplit', '_fnSignal', '_wrapProp', '_restProps', '_getVarProps', '_getConstProps'];
+  const sepIdx = parts.indexOf('//');
+  if (sepIdx >= 0) {
+    for (const sym of coreSymbols) {
+      if (bodyText.includes(sym) && !parts.some(p => p.startsWith('import') && p.includes(sym))) {
+        parts.splice(sepIdx, 0, `import { ${sym} } from "@qwik.dev/core";`);
+      }
+    }
+    if (bodyText.includes('_Fragment') && !parts.some(p => p.startsWith('import') && p.includes('_Fragment'))) {
+      parts.splice(parts.indexOf('//'), 0, `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`);
     }
   }
 

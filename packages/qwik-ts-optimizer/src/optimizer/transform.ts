@@ -1717,13 +1717,27 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
     const shouldTranspileJsx = options.transpileJsx !== false;
     const shouldTranspileTs = options.transpileTs === true;
 
+    // Save source extensions before downgrading (needed for TS stripping which
+    // requires a .ts/.tsx filename to know the code contains TypeScript syntax)
+    const sourceExtensions = new Map<string, string>();
+    for (const extraction of extractions) {
+      sourceExtensions.set(extraction.symbolName, extraction.extension);
+    }
+
     // When JSX will be transpiled, downgrade extensions on extraction results
     // so that QRL declarations in parent and segments reference the correct file extension.
     // .tsx -> .ts (JSX removed, TS may remain), .jsx -> .js (JSX removed)
-    if (shouldTranspileJsx) {
+    // When TS will also be transpiled, further downgrade .ts -> .js
+    if (shouldTranspileJsx || shouldTranspileTs) {
       for (const extraction of extractions) {
-        if (extraction.extension === '.tsx') extraction.extension = '.ts';
-        else if (extraction.extension === '.jsx') extraction.extension = '.js';
+        if (shouldTranspileJsx) {
+          if (extraction.extension === '.tsx') extraction.extension = shouldTranspileTs ? '.js' : '.ts';
+          else if (extraction.extension === '.jsx') extraction.extension = '.js';
+          else if (shouldTranspileTs && extraction.extension === '.ts') extraction.extension = '.js';
+        } else if (shouldTranspileTs) {
+          if (extraction.extension === '.ts') extraction.extension = '.js';
+          else if (extraction.extension === '.tsx') extraction.extension = '.jsx';
+        }
       }
     }
 
@@ -2315,7 +2329,10 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             ext,
             nestedQrlDecls.length > 0 ? nestedQrlDecls : undefined,
             effectiveCaptureInfo,
-            (shouldTranspileJsx && (ext.extension === '.tsx' || ext.extension === '.jsx' || isJsx))
+            (() => {
+              const srcExt = sourceExtensions.get(ext.symbolName) ?? ext.extension;
+              return shouldTranspileJsx && (srcExt === '.tsx' || srcExt === '.jsx' || isJsx);
+            })()
               ? { enableJsx: true, importedNames, relPath, devOptions: isDevMode ? { relPath } : undefined, keyCounterStart: segmentKeyCounter }
               : undefined,
             nestedCallSites.length > 0 ? nestedCallSites : undefined,
@@ -2329,12 +2346,15 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       }
 
       // Strip TS types from segment code when transpileTs is enabled
+      // Use the source extension (.ts/.tsx) so oxc knows the code contains TypeScript,
+      // even though the output extension has already been downgraded to .js
       if (!stripped && shouldTranspileTs) {
         const tsStripOptions: Record<string, any> = { typescript: { onlyRemoveTypeImports: false } };
         if (!shouldTranspileJsx) {
           tsStripOptions.jsx = 'preserve';
         }
-        const tsStripped = oxcTransformSync(ext.canonicalFilename + ext.extension, segmentCode, tsStripOptions);
+        const sourceExt = sourceExtensions.get(ext.symbolName) ?? ext.extension;
+        const tsStripped = oxcTransformSync(ext.canonicalFilename + sourceExt, segmentCode, tsStripOptions);
         if (tsStripped.code) {
           segmentCode = tsStripped.code;
         }

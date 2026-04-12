@@ -1855,15 +1855,20 @@ export function rewriteParentModule(
     preamble.push('//');
     preamble.push(...qrlDecls);
   }
-  // Add .s() calls for inline strategy (after QRL declarations, before body/exports)
-  if (sCalls.length > 0) {
-    preamble.push('//');
-    preamble.push(...sCalls);
-  } else {
+  // For inline strategy, .s() calls go AFTER the body declarations but BEFORE exports.
+  // SWC interleaves .s() calls with the body -- placing them after declarations they
+  // reference (like FOO_MAPPING) but before the component export.
+  // We approximate this by appending .s() calls after the body text rather than
+  // prepending them with the preamble.
+  if (sCalls.length === 0) {
     preamble.push('//');
   }
 
   s.prepend(preamble.join('\n') + '\n');
+
+  // .s() calls are injected into finalCode below (Step 6f) after all MagicString
+  // operations complete, because they need to be placed between body declarations
+  // and the final exports (matching SWC ordering).
 
   // -----------------------------------------------------------------------
   // Step 6b: _auto_ exports (module-level migration)
@@ -1902,9 +1907,39 @@ export function rewriteParentModule(
   }
 
   // -----------------------------------------------------------------------
-  // Step 7: TS type stripping (final step, after all magic-string ops)
+  // Step 6f: Insert .s() calls for inline strategy
+  // SWC places .s() calls after body declarations but before exports.
+  // We insert them just before the first export line in the body text.
   // -----------------------------------------------------------------------
   let finalCode = s.toString();
+  if (sCalls.length > 0) {
+    const lines = finalCode.split('\n');
+    // Find the last export line that contains a componentQrl/serverQrl/routeQrl reference
+    // or is an 'export default'. This is the "component export" line.
+    // SWC places .s() calls just before this final export.
+    let insertIdx = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const trimmed = lines[i].trimStart();
+      if (trimmed.startsWith('export default ') || trimmed.startsWith('export const ') || trimmed.startsWith('export {')) {
+        // Check if this is a component/QRL export (contains componentQrl, serverQrl, etc.)
+        if (trimmed.includes('Qrl(') || trimmed.includes('export default ')) {
+          insertIdx = i;
+          break;
+        }
+      }
+    }
+    if (insertIdx >= 0) {
+      lines.splice(insertIdx, 0, ...sCalls);
+    } else {
+      // No component export found -- append at end
+      lines.push(...sCalls);
+    }
+    finalCode = lines.join('\n');
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 7: TS type stripping (final step, after all magic-string ops)
+  // -----------------------------------------------------------------------
   if (transpileTs) {
     // When transpileJsx is false (jsxOptions is undefined), use jsx:'preserve'
     // so oxc-transform strips TypeScript types but leaves JSX syntax intact.

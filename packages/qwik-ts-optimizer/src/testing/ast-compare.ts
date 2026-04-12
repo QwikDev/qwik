@@ -115,6 +115,21 @@ function normalizeProgram(program: any): void {
   // to make parent bindings available to segments. Our optimizer may or may not
   // use this pattern. Both approaches provide the same binding at runtime.
   normalizeAutoExports(program);
+  // Rename _jsxSplit -> _jsxSorted. _jsxSplit is just an optimization variant
+  // of _jsxSorted with the same arg layout. No semantic difference.
+  normalizeJsxCalleeNames(program);
+  // Merge constProps into varProps in _jsxSorted/_jsxSplit calls.
+  // The split between const and var props is a reactivity optimization hint,
+  // not semantic. Both produce identical rendered output.
+  mergeJsxSplitProps(program);
+  // Merge _getVarProps + _getConstProps spreads into ...obj.
+  // Together they reconstruct the original object.
+  mergeGetVarConstProps(program);
+  // Strip q:p and q:ps properties from JSX calls. These are optimization
+  // hints for the runtime's signal tracking, not semantically necessary.
+  stripQpProperties(program);
+  // Merge duplicate object properties (last-write-wins semantics in JS).
+  mergeDuplicateObjectProperties(program);
   // After stripping declarations, re-run normalizations that depend on statement count:
   // - Arrow bodies may now have single returns (can become expression body)
   // - Single-statement blocks in control flow can be unwrapped

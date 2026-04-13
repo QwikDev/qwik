@@ -2345,7 +2345,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         );
 
         const segmentAnalysis: SegmentMetadataInternal = {
-          origin: rewriteFilePath(ext.origin),
+          origin: ext.origin,
           name: ext.symbolName,
           entry: entryField,
           displayName: ext.displayName,

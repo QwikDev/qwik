@@ -763,8 +763,8 @@ export function extractSegments(
             parentOpeningTag[0] === parentOpeningTag[0].toUpperCase() &&
             parentOpeningTag[0] !== parentOpeningTag[0].toLowerCase();
 
-          // All $-suffixed JSX attribute extractions are treated as eventHandler.
-          // This matches the SWC snap output behavior for both HTML and component elements.
+          // All $-suffixed JSX attribute extractions (direct function expressions)
+          // are treated as eventHandler. This matches SWC snap output behavior.
           const ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
           const ctxName = attrName; // e.g., onClick$, custom$, onInput$
 

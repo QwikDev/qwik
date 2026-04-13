@@ -40,7 +40,7 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS } from '../utils/markers';
 import { isObjectEmpty } from '../utils/objects';
 import { isPromise, maybeThen } from '../utils/promises';
-import { Constants, TypeIds } from './constants';
+import { Constants, explicitUndefined, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
 import {
   SerializationBackRef,
@@ -272,6 +272,8 @@ export class Serializer {
             this.output(TypeIds.Constant, Constants.STORE_ALL_PROPS);
           } else if (value === _UNINITIALIZED) {
             this.output(TypeIds.Constant, Constants.UNINITIALIZED);
+          } else if (value === explicitUndefined) {
+            this.output(TypeIds.Constant, Constants.Undefined);
           }
           break;
         case 'function':
@@ -475,39 +477,32 @@ export class Serializer {
           out.push(asyncFlags || undefined);
         }
 
-        let keepUndefined = false;
-
         if (
           v !== NEEDS_COMPUTATION ||
           interval !== undefined ||
           concurrency !== undefined ||
           timeout !== undefined
         ) {
-          out.push(v);
-
-          if (v === undefined) {
-            /**
-             * If value is undefined, we need to keep it in the output. If we don't do that, later
-             * during resuming, the value will be set to symbol(invalid) with flag invalid, and
-             * thats is incorrect.
-             */
-            keepUndefined = true;
-          }
+          /**
+           * If value is undefined, we need to keep it in the output. If we don't do that, later
+           * during resuming, the value will be set to symbol(invalid) with flag invalid, and thats
+           * is incorrect.
+           */
+          out.push(v === undefined ? explicitUndefined : v);
         }
         if (isAsync) {
           out.push(interval);
           out.push(concurrency);
           out.push(timeout);
         }
-        this.output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out, keepUndefined);
+        this.output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out);
       } else {
         const v = value.$untrackedValue$;
-        const keepUndefined = v === undefined;
-        const out = [v];
+        const out = [v === undefined ? explicitUndefined : v];
         if (value.$effects$) {
           out.push(...value.$effects$);
         }
-        this.output(TypeIds.Signal, out, keepUndefined);
+        this.output(TypeIds.Signal, out);
       }
     } else if (value instanceof URL) {
       this.output(TypeIds.URL, value.href);

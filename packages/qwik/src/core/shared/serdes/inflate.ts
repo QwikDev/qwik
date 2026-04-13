@@ -156,7 +156,7 @@ export const inflate = (
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
-        Error,
+        Error | undefined,
         number?,
         unknown?,
         number?,
@@ -164,10 +164,18 @@ export const inflate = (
         number?,
       ];
       asyncSignal.$computeQrl$ = d[0] as AsyncQRL<unknown>;
-      asyncSignal.$effects$ = new Set(d[1] as EffectSubscription[]);
-      asyncSignal.$loadingEffects$ = new Set(d[2] as EffectSubscription[]);
-      asyncSignal.$errorEffects$ = new Set(d[3] as EffectSubscription[]);
-      asyncSignal.$untrackedError$ = d[4] as Error;
+      if (d[1]) {
+        asyncSignal.$effects$ = new Set(d[1] as EffectSubscription[]);
+      }
+      if (d[2]) {
+        asyncSignal.$loadingEffects$ = new Set(d[2] as EffectSubscription[]);
+      }
+      if (d[3]) {
+        asyncSignal.$errorEffects$ = new Set(d[3] as EffectSubscription[]);
+      }
+      if (d[4]) {
+        asyncSignal.$untrackedError$ = d[4];
+      }
 
       asyncSignal.$flags$ = (d[5] as number) ?? 0;
 
@@ -188,7 +196,10 @@ export const inflate = (
       // Note, we use the setter so that it schedules polling if needed
       asyncSignal.interval = (d[7] ?? 0) as number;
 
-      asyncSignal.$concurrency$ = (d[8] ?? 1) as number;
+      if (d[8] !== undefined && d[8] !== 1) {
+        asyncSignal.$concurrency$ = (d[8] ?? 1) as number;
+        asyncSignal.$jobs$ = [];
+      }
       asyncSignal.$timeoutMs$ = (d[9] ?? 0) as number;
       restoreEffectBackRefForEffects(asyncSignal.$effects$, asyncSignal);
       restoreEffectBackRefForEffects(asyncSignal.$loadingEffects$, asyncSignal);

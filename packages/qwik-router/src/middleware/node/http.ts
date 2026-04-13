@@ -44,6 +44,88 @@ export function normalizeUrl(url: string, base: string) {
   return normalizeRequestUrl(url, base);
 }
 
+function createNodeResponseSink(res: ServerResponse) {
+  let closed = res.closed || res.destroyed;
+  const closedPromise = closed
+    ? Promise.resolve()
+    : new Promise<void>((resolve) => {
+        res.once('close', () => {
+          closed = true;
+          resolve();
+        });
+      });
+
+  const write = (chunk: Uint8Array) => {
+    if (closed || res.closed || res.destroyed) {
+      // If the response has already been closed or destroyed (for example the client has disconnected)
+      // then writing into it will cause an error. So just stop writing since no one
+      // is listening.
+      return;
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      let settled = false;
+
+      const finish = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+
+        // Let Node process the completed write before SSR keeps emitting more chunks.
+        setImmediate(resolve);
+      };
+
+      const fail = (error: unknown) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        reject(error);
+      };
+
+      closedPromise.then(finish);
+
+      try {
+        res.write(chunk, (error) => {
+          if (error) {
+            if (isIgnoredError(error.message)) {
+              finish();
+              return;
+            }
+            fail(error);
+            return;
+          }
+          finish();
+        });
+      } catch (error) {
+        if (error instanceof Error && isIgnoredError(error.message)) {
+          finish();
+          return;
+        }
+        fail(error);
+      }
+    });
+  };
+
+  const close = () => {
+    if (closed || res.closed || res.destroyed) {
+      return;
+    }
+
+    return new Promise<void>((resolve) => {
+      res.end(() => {
+        resolve();
+      });
+    });
+  };
+
+  return {
+    write,
+    close,
+  };
+}
+
 export async function fromNodeHttp(
   url: URL,
   req: IncomingMessage | Http2ServerRequest,
@@ -100,6 +182,7 @@ export async function fromNodeHttp(
     },
     getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
+      const sink = createNodeResponseSink(res);
 
       try {
         for (const [key, value] of headers) {
@@ -118,20 +201,10 @@ export async function fromNodeHttp(
 
       return new WritableStream<Uint8Array>({
         write(chunk) {
-          if (res.closed || res.destroyed) {
-            // If the response has already been closed or destroyed (for example the client has disconnected)
-            // then writing into it will cause an error. So just stop writing since no one
-            // is listening.
-            return;
-          }
-          res.write(chunk, (error) => {
-            if (error && !isIgnoredError(error.message)) {
-              console.error(error);
-            }
-          });
+          return sink.write(chunk);
         },
         close() {
-          res.end();
+          return sink.close();
         },
       });
     },

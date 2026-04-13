@@ -1,6 +1,6 @@
 packages:
   - packages/*
-  - e2e/*
+  - e2e/**
 
 autoInstallPeers: false
 

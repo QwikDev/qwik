@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "generatedAt": "2026-04-13T17:38:45.714Z",
+  "routes": {
+    "/": {
+      "rawBytes": 7996,
+      "gzipBytes": 2635
+    },
+    "/counter": {
+      "rawBytes": 8216,
+      "gzipBytes": 2720
+    },
+    "/reveal": {
+      "rawBytes": 8273,
+      "gzipBytes": 2759
+    },
+    "/task": {
+      "rawBytes": 8013,
+      "gzipBytes": 2658
+    },
+    "/visible-task": {
+      "rawBytes": 8351,
+      "gzipBytes": 2782
+    },
+    "/use-async": {
+      "rawBytes": 8002,
+      "gzipBytes": 2642
+    },
+    "/use-computed": {
+      "rawBytes": 8028,
+      "gzipBytes": 2659
+    },
+    "/route-loader": {
+      "rawBytes": 8331,
+      "gzipBytes": 2781
+    },
+    "/route-action": {
+      "rawBytes": 8888,
+      "gzipBytes": 3010
+    }
+  }
+}

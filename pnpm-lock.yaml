@@ -273,6 +273,57 @@ importers:
 
   e2e/qwik-e2e: {}
 
+  e2e/qwik-e2e/apps/e2e: {}
+
+  e2e/qwik-e2e/apps/e2e-library: {}
+
+  e2e/qwik-e2e/apps/perf.prod: {}
+
+  e2e/qwik-e2e/apps/preloader-test:
+    devDependencies:
+      '@qwik-ui/headless':
+        specifier: 0.7.1
+        version: 0.7.1
+      body-scroll-lock-upgrade:
+        specifier: 1.1.0
+        version: 1.1.0
+      focus-trap:
+        specifier: 7.5.4
+        version: 7.5.4
+
+  e2e/qwik-e2e/apps/preloader-test/server: {}
+
+  e2e/qwik-e2e/apps/qwikrouter-ssg-snapshot: {}
+
+  e2e/qwik-e2e/apps/qwikrouter-test: {}
+
+  e2e/qwik-e2e/apps/qwikrouter-test.prod: {}
+
+  e2e/qwik-e2e/apps/qwikrouter-test.prod/server: {}
+
+  e2e/qwik-e2e/apps/qwikrouter-test/server: {}
+
+  e2e/qwik-e2e/apps/runtime-size-fixture:
+    devDependencies:
+      '@qwik.dev/core':
+        specifier: workspace:*
+        version: link:../../../../packages/qwik
+      '@qwik.dev/router':
+        specifier: workspace:*
+        version: link:../../../../packages/qwik-router
+
+  e2e/qwik-e2e/apps/runtime-size-fixture/server: {}
+
+  e2e/qwik-e2e/apps/starter-partytown-test:
+    dependencies:
+      '@qwik.dev/partytown':
+        specifier: latest
+        version: 0.13.2
+
+  e2e/qwik-e2e/apps/todo-old-test: {}
+
+  e2e/qwik-e2e/apps/todo-test: {}
+
   e2e/qwik-react-e2e:
     devDependencies:
       '@qwik.dev/react':
@@ -3658,6 +3709,10 @@ packages:
     resolution: {integrity: sha512-rbBQslITfPFXpqcDlh5jKrb2hwGuTncyB9Z4Vu/8WKHO1iLiAxPcML16yKFxEBkMxq4hEjFRUc31ztg93sH3Rg==}
     engines: {node: '>=16.0.0'}
 
+  '@qwik-ui/headless@0.7.1':
+    resolution: {integrity: sha512-6P8PL6fLJxsBx2kTLX4EFaENJEP9TO+dorKCisL6hoj5o1twEb0n6YNdqelgitodkljx5dgrk9mm2aV9EVosug==}
+    engines: {node: '>=16.0.0'}
+
   '@qwik.dev/devtools@0.2.5':
     resolution: {integrity: sha512-rM0ZXVwanth8i6MZQLy1vQ06LC2xnuLZqlHSffJHzdR22gZXX9hkSsMIijC8+Xv6M7HjfRybHJZo5TjpXzGtdA==}
     peerDependencies:
@@ -3670,6 +3725,11 @@ packages:
 
   '@qwik.dev/partytown@0.11.2':
     resolution: {integrity: sha512-795y49CqBiKiwKAD+QBZlzlqEK275hVcazZ7wBPSfgC23L+vWuA7PJmMpgxojOucZHzYi5rAAQ+IP1I3BKVZxw==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
+  '@qwik.dev/partytown@0.13.2':
+    resolution: {integrity: sha512-Umls4bSkuzqLVcGvf8OgwIn/OldproSAbaQ/iYGe8VPYBpl2CaOSxabWwkeC72LDFqxVL0b0q8XlI8MuChDyzg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -12880,6 +12940,15 @@ snapshots:
       body-scroll-lock-upgrade: 1.1.0
       focus-trap: 7.5.4
 
+  '@qwik-ui/headless@0.7.1':
+    dependencies:
+      '@builder.io/qwik': link:packages/qwik
+      '@floating-ui/core': 1.7.3
+      '@floating-ui/dom': 1.7.4
+      '@oddbird/popover-polyfill': 0.4.3
+      body-scroll-lock-upgrade: 1.1.0
+      focus-trap: 7.5.4
+
   '@qwik.dev/devtools@0.2.5(@qwik.dev/core@packages+qwik)(@qwik.dev/router@packages+qwik-router)(@tailwindcss/vite@4.1.18(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2)))(tailwindcss@4.1.18)(vite@7.3.1(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(yaml@2.8.2))':
     dependencies:
       '@qwik.dev/core': link:packages/qwik
@@ -12899,6 +12968,10 @@ snapshots:
       - supports-color
 
   '@qwik.dev/partytown@0.11.2':
+    dependencies:
+      dotenv: 16.6.1
+
+  '@qwik.dev/partytown@0.13.2':
     dependencies:
       dotenv: 16.6.1
 

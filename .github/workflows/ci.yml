@@ -767,18 +767,13 @@ jobs:
     needs:
       - changes
       - build-other-packages
-      - build-docs
 
     steps:
       - name: Verify prerequisites
         if: |
           !(
             needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success' &&
-            (
-              needs.build-docs.result == 'success' ||
-              needs.build-docs.result == 'skipped'
-            )
+            needs.build-other-packages.result == 'success'
           )
         run: exit 1
 
@@ -800,6 +795,12 @@ jobs:
         run: pnpm ci.restore-artifacts
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Build Runtime Size Fixture
+        run: pnpm run build.runtime-size-fixture
+
+      - name: Runtime Size Benchmark
+        run: pnpm run test.bench.runtime-size
 
       - name: Timing Benchmarks
         run: pnpm run test.bench.timing

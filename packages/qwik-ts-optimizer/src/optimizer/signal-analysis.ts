@@ -965,12 +965,43 @@ export function analyzeSignalExpression(
     return { type: 'none' };
   }
 
-  // CallExpression with `mutable` callee -> NOT wrapped
+  // ChainExpression: unwrap and analyze the inner expression, but generate
+  // the _fnSignal from the whole chain (preserving `?.` syntax).
+  if (exprNode.type === 'ChainExpression') {
+    // Check if the inner expression has reactive roots
+    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+    if (roots.length > 0) {
+      // Check for unknown calls (standalone function calls, not method calls)
+      if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
+      if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
+      if (containsJsx(exprNode)) return { type: 'none' };
+      const allDeps = collectAllDeps(exprNode, importedNames);
+      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
+    }
+    return { type: 'none' };
+  }
+
+  // CallExpression: method calls on signal/store roots produce _fnSignal,
+  // standalone function calls and `mutable()` do not.
   if (exprNode.type === 'CallExpression') {
     const calleeName = getCalleeIdentifierName(exprNode.callee);
     if (calleeName === 'mutable') return { type: 'none' };
     // signal.value() -> NOT wrapped (call on .value)
     if (isSignalValueAccess(exprNode.callee)) return { type: 'none' };
+
+    // Method calls on signal/store roots: e.g., store.items.filter(...)
+    // Check if the callee chain roots at a reactive local variable
+    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
+    if (roots.length > 0) {
+      if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
+      if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
+      if (containsJsx(exprNode)) return { type: 'none' };
+      const allDeps = collectAllDeps(exprNode, importedNames);
+      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
+    }
+
     // Other call expressions are not wrapped
     return { type: 'none' };
   }

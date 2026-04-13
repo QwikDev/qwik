@@ -670,17 +670,28 @@ export function generateSegmentCode(
 
   // Nested QRL declarations (Plan 04)
   if (nestedQrlDecls && nestedQrlDecls.length > 0) {
-    // Add qrl or qrlDEV import needed by nested QRL declarations
-    const usesQrlDev = nestedQrlDecls.some(d => d.includes('qrlDEV('));
-    const qrlSymbol = usesQrlDev ? 'qrlDEV' : 'qrl';
-    if (!parts.some(p => p.includes(`{ ${qrlSymbol} }`) || p.includes(`, ${qrlSymbol} `))) {
-      // Insert before separator or at start
-      const sepIdx = parts.indexOf('//');
-      if (sepIdx >= 0) {
-        parts.splice(sepIdx, 0, `import { ${qrlSymbol} } from "@qwik.dev/core";`);
-      } else {
-        parts.push(`import { ${qrlSymbol} } from "@qwik.dev/core";`);
-        parts.push('//');
+    // Determine which imports are needed by the nested QRL declarations
+    const usesQrlDev = nestedQrlDecls.some(d => d.includes('qrlDEV(') && !d.includes('_noopQrlDEV('));
+    const usesQrl = nestedQrlDecls.some(d => d.includes('qrl(') && !d.includes('_noopQrl(') && !d.includes('qrlDEV('));
+    const usesNoopQrlDev = nestedQrlDecls.some(d => d.includes('_noopQrlDEV('));
+    const usesNoopQrl = nestedQrlDecls.some(d => d.includes('_noopQrl(') && !d.includes('_noopQrlDEV('));
+
+    // Add needed imports
+    const neededSymbols: string[] = [];
+    if (usesQrlDev) neededSymbols.push('qrlDEV');
+    if (usesQrl) neededSymbols.push('qrl');
+    if (usesNoopQrlDev) neededSymbols.push('_noopQrlDEV');
+    if (usesNoopQrl) neededSymbols.push('_noopQrl');
+
+    for (const sym of neededSymbols) {
+      if (!parts.some(p => p.includes(`{ ${sym} }`) || p.includes(`, ${sym} `) || p.includes(`{ ${sym},`) || p.includes(`, ${sym},`))) {
+        const sepIdx = parts.indexOf('//');
+        if (sepIdx >= 0) {
+          parts.splice(sepIdx, 0, `import { ${sym} } from "@qwik.dev/core";`);
+        } else {
+          parts.push(`import { ${sym} } from "@qwik.dev/core";`);
+          parts.push('//');
+        }
       }
     }
     // Sort QRL declarations alphabetically to match Rust optimizer ordering

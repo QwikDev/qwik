@@ -22,6 +22,7 @@ import { rewriteFilePath } from './rewrite-imports.js';
 import { resolveEntryField } from './entry-strategy.js';
 import { buildQrlDevDeclaration, buildDevFilePath, buildJsxSourceInfo } from './dev-mode.js';
 import { isStrippedSegment, generateStrippedSegmentCode } from './strip-ctx.js';
+import { buildStrippedNoopQrl, buildStrippedNoopQrlDev, getSentinelCounter } from './inline-strategy.js';
 import { analyzeCaptures, collectScopeIdentifiers } from './capture-analysis.js';
 import {
   analyzeMigration,
@@ -2380,7 +2381,32 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // Determine nested QRL declarations for segments that have children
       const children = updatedExtractions.filter((c) => c.parent === ext.symbolName && !c.isSync);
       const isDevMode = emitMode === 'dev' || emitMode === 'hmr';
+      // Track stripped index counter for sentinel naming (q_qrl_N)
+      let strippedIdx = 0;
+      // Map from child symbolName to its QRL variable name (may be sentinel for stripped)
+      const childQrlVarNames = new Map<string, string>();
       const nestedQrlDecls = children.map((child) => {
+        const childStripped = isStrippedSegment(
+          child.ctxName,
+          child.ctxKind,
+          options.stripCtxName,
+          options.stripEventHandlers,
+        );
+        if (childStripped) {
+          const idx = strippedIdx++;
+          const counter = getSentinelCounter(idx);
+          childQrlVarNames.set(child.symbolName, `q_qrl_${counter}`);
+          if (isDevMode && devFile) {
+            return buildStrippedNoopQrlDev(child.symbolName, idx, {
+              file: devFile,
+              lo: 0,
+              hi: 0,
+              displayName: child.displayName,
+            });
+          }
+          return buildStrippedNoopQrl(child.symbolName, idx);
+        }
+        childQrlVarNames.set(child.symbolName, `q_${child.symbolName}`);
         if (isDevMode && devFile) {
           const devExt = options.explicitExtensions ? (qrlOutputExt ?? '.js') : undefined;
           return buildQrlDevDeclaration(
@@ -2536,7 +2562,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       // Build nested call site info for body rewriting
       const nestedCallSites: NestedCallSiteInfo[] = [];
       for (const child of children) {
-        const qrlVarName = `q_${child.symbolName}`;
+        const qrlVarName = childQrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
         // Detect if this child came from a JSX $-attr extraction
         const isJsxAttr = child.ctxKind === 'eventHandler' &&
           child.calleeName.endsWith('$') &&

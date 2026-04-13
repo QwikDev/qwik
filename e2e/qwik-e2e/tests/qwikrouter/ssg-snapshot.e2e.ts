@@ -129,5 +129,6 @@ function normalizeStateDump(stateDump: string) {
     .replace(/qFuncs_[A-Za-z0-9_-]+/g, 'qFuncs_xxxxxx')
     .replace(/q-[A-Za-z0-9_-]+\.(js|css)/g, 'q-xxxxxxxx.$1')
     .replaceAll(/RootRef .*/g, 'RootRef [omitted]')
-    .replaceAll(/QRL ".*"/g, 'QRL "[omitted]"');
+    .replaceAll(/QRL ".*"/g, 'QRL "[omitted]"')
+    .replace(/^\(\d+ chars\)$/m, '');
 }

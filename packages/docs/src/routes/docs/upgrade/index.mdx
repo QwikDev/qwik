@@ -268,8 +268,8 @@ Still compile in v2, removed in v3.
 | Track deps | `ctx.track(() => sig.value)` | `ctx.track(sig)` (both forms work) |
 | Abort | Manual `AbortController` | `ctx.abortSignal` |
 | Previous value | - | `ctx.previous` |
-| Polling | - | `options.interval` |
-| Initial value | - | `options.initial` |
+| Polling | - | `options.expires` + `options.poll` |
+| Initial value | - | `options.initial` (stale) |
 | Rendering | `<Resource onResolved={} />` | `if`/`else` branching |
 
 <LongNote title="Full before/after example">

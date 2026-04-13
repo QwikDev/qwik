@@ -2811,7 +2811,7 @@ export function rewriteParentModule(
           if (upLevels <= fileDirDepth) {
             // Resolves within srcDir: convert to side-effect import
             survivingUserImports[idx] = `import ${info.quote}${src}${info.quote};`;
-            survivingImportInfos[idx] = { ...info, namedParts: [], defaultPart: undefined, isSideEffect: true };
+            survivingImportInfos[idx] = { ...info, namedParts: [], defaultPart: '', isSideEffect: true };
             continue;
           }
         }

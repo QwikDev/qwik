@@ -2382,6 +2382,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
       const isDevMode = emitMode === 'dev' || emitMode === 'hmr';
       const nestedQrlDecls = children.map((child) => {
         if (isDevMode && devFile) {
+          const devExt = options.explicitExtensions ? (qrlOutputExt ?? '.js') : undefined;
           return buildQrlDevDeclaration(
             child.symbolName,
             child.canonicalFilename,
@@ -2389,6 +2390,7 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
             child.loc[0],
             child.loc[1],
             child.displayName,
+            devExt,
           );
         }
         return buildQrlDeclaration(child.symbolName, child.canonicalFilename, options.explicitExtensions, child.extension, qrlOutputExt);

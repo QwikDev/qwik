@@ -33,9 +33,11 @@ export function buildQrlDevDeclaration(
   lo: number,
   hi: number,
   displayName: string,
+  explicitExtension?: string,
 ): string {
+  const ext = explicitExtension ?? '';
   return (
-    `const q_${symbolName} = /*#__PURE__*/ qrlDEV(()=>import("./${canonicalFilename}"), "${symbolName}", {\n` +
+    `const q_${symbolName} = /*#__PURE__*/ qrlDEV(()=>import("./${canonicalFilename}${ext}"), "${symbolName}", {\n` +
     `    file: "${devFile}",\n` +
     `    lo: ${lo},\n` +
     `    hi: ${hi},\n` +

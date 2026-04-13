@@ -2521,6 +2521,7 @@ export function rewriteParentModule(
         qrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
       } else {
         if (isDevMode && devFilePath) {
+          const devExt = explicitExtensions ? (outputExtension ?? '.js') : undefined;
           qrlDecls.push(buildQrlDevDeclaration(
             ext.symbolName,
             ext.canonicalFilename,
@@ -2528,6 +2529,7 @@ export function rewriteParentModule(
             ext.loc[0],
             ext.loc[1],
             ext.displayName,
+            devExt,
           ));
         } else {
           qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension, outputExtension));
@@ -2537,6 +2539,7 @@ export function rewriteParentModule(
     }
   } else {
     // Default: standard qrl declarations
+    const devExt = explicitExtensions ? (outputExtension ?? '.js') : undefined;
     for (const ext of topLevelNonSync) {
       if (isDevMode && devFilePath) {
         qrlDecls.push(buildQrlDevDeclaration(
@@ -2546,6 +2549,7 @@ export function rewriteParentModule(
           ext.loc[0],
           ext.loc[1],
           ext.displayName,
+          devExt,
         ));
       } else if (ext.isInlinedQrl && !relPath.includes('node_modules')) {
         // inlinedQrl in lib/test mode for local files: use qrlDEV with byte-offset loc
@@ -2559,6 +2563,7 @@ export function rewriteParentModule(
           ext.loc[0],
           ext.loc[1],
           ext.displayName,
+          devExt,
         ));
       } else {
         qrlDecls.push(buildQrlDeclaration(ext.symbolName, ext.canonicalFilename, explicitExtensions, ext.extension, outputExtension));

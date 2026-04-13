@@ -5,6 +5,9 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { Slot } from '../jsx/slot.public';
 import { Fragment } from '../jsx/jsx-runtime';
 
+/** Used to represent an undefined value that must be serialized */
+export const explicitUndefined = Symbol('undefined');
+
 export const enum Constants {
   Undefined,
   Null,

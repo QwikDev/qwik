@@ -146,6 +146,27 @@ describe('shared-serialization', () => {
       `);
       expect(objs).toHaveLength(8);
     });
+    it('should serialize short integer-like plain object keys as numbers', async () => {
+      expect(await dump({ 123: 'a', '-45': 'b', '012': 'c', 1234567: 'd', 12345678: 'f', 0: 'e' }))
+        .toMatchInlineSnapshot(`
+        "
+        0 Object [
+          {string} "0"
+          {string} "e"
+          {number} 123
+          {string} "a"
+          {number} 1234567
+          {string} "d"
+          {string} "12345678"
+          {string} "f"
+          {number} -45
+          {string} "b"
+          {string} "012"
+          {string} "c"
+        ]
+        (90 chars)"
+      `);
+    });
     it(title(TypeIds.URL), async () => {
       expect(await dump(new URL('http://example.com:80/'))).toMatchInlineSnapshot(`
         "
@@ -684,6 +705,8 @@ describe('shared-serialization', () => {
         ),
         { timeout: 5000 }
       );
+      const undefinedSignal = createAsyncSignal(inlinedQrl(() => {}, 'undefinedSignal'));
+      undefinedSignal.untrackedLoading;
 
       await retryOnPromise(() => {
         // note that this won't subscribe because we're not setting up the context
@@ -692,11 +715,20 @@ describe('shared-serialization', () => {
         expect(always.value).toBe(2);
       });
 
-      const objs = await serialize(dirty, clean, never, always, polling, concurrent, timeout);
+      const objs = await serialize(
+        dirty,
+        clean,
+        never,
+        always,
+        polling,
+        concurrent,
+        timeout,
+        undefinedSignal
+      );
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 AsyncSignal [
-          QRL "8#9#7"
+          QRL "9#10#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -704,7 +736,7 @@ describe('shared-serialization', () => {
           {number} 1
         ]
         1 AsyncSignal [
-          QRL "8#10#7"
+          QRL "9#11#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -713,10 +745,10 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         2 AsyncSignal [
-          QRL "8#11#7"
+          QRL "9#12#8"
         ]
         3 AsyncSignal [
-          QRL "8#12#7"
+          QRL "9#13#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -725,7 +757,7 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         4 AsyncSignal [
-          QRL "8#13#7"
+          QRL "9#14#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -735,7 +767,7 @@ describe('shared-serialization', () => {
           {number} 100
         ]
         5 AsyncSignal [
-          QRL "8#14#7"
+          QRL "9#15#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -746,7 +778,7 @@ describe('shared-serialization', () => {
           {number} 23
         ]
         6 AsyncSignal [
-          QRL "8#15#7"
+          QRL "9#16#8"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -757,7 +789,16 @@ describe('shared-serialization', () => {
           Constant undefined
           {number} 5000
         ]
-        7 Signal [
+        7 AsyncSignal [
+          QRL "9#17"
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+          Constant undefined
+        ]
+        8 Signal [
           {number} 1
           EffectSubscription [
             RootRef 1
@@ -775,15 +816,16 @@ describe('shared-serialization', () => {
             Constant null
           ]
         ]
-        8 {string} "mock-chunk"
-        9 {string} "dirty"
-        10 {string} "clean"
-        11 {string} "never"
-        12 {string} "always"
-        13 {string} "polling"
-        14 {string} "concurrent"
-        15 {string} "timeout"
-        (443 chars)"
+        9 {string} "mock-chunk"
+        10 {string} "dirty"
+        11 {string} "clean"
+        12 {string} "never"
+        13 {string} "always"
+        14 {string} "polling"
+        15 {string} "concurrent"
+        16 {string} "timeout"
+        17 {string} "undefinedSignal"
+        (502 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -1854,6 +1896,27 @@ describe('serializer - internal', () => {
     const ser = await _serialize({ a: 1 });
     const des = _deserialize(ser);
     expect(des).toEqual({ a: 1 });
+  });
+  it('_serialize should emit short integer-like plain object keys as numbers', async () => {
+    const ser = await _serialize({
+      123: 'a',
+      '-45': 'b',
+      '012': 'c',
+      1234567: 'd',
+      12345678: 'f',
+      0: 'e',
+    });
+    expect(ser).toBe(
+      '[5,[0,"0",0,"e",0,123,0,"a",0,1234567,0,"d",0,"12345678",0,"f",0,-45,0,"b",0,"012",0,"c"]]'
+    );
+    expect(_deserialize(ser)).toEqual({
+      123: 'a',
+      '-45': 'b',
+      '012': 'c',
+      1234567: 'd',
+      12345678: 'f',
+      0: 'e',
+    });
   });
 });
 

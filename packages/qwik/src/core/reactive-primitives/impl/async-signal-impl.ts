@@ -1,9 +1,10 @@
 import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
+import { QError, qError } from '../../shared/error/error';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { Container } from '../../shared/types';
-import { isPromise, retryOnPromise } from '../../shared/utils/promises';
+import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import type { SSRContainer } from '../../ssr/ssr-types';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { trackFn } from '../../use/utils/tracker';
@@ -36,18 +37,25 @@ const log = (...args: any[]) =>
 /** Retains job metadata and also serves as the argument for the compute function */
 class AsyncJob<T> implements AsyncCtx<T> {
   /** First holds the compute promise and then the cleanup promise */
-  $promise$: Promise<void> | null = null;
+  $promise$: Promise<void> | null | void = null;
   $cleanupRequested$: boolean = false;
   $canWrite$: boolean = true;
-  $track$: AsyncCtx<T>['track'] | undefined;
-  $cleanups$: Parameters<AsyncCtx<T>['cleanup']>[0][] | undefined;
-  $abortController$: AbortController | undefined;
+  declare $track$: AsyncCtx<T>['track'] | undefined;
+  declare $cleanups$: Parameters<AsyncCtx<T>['cleanup']>[0][] | undefined;
+  declare $abortController$: AbortController | undefined;
+  declare info: unknown;
+  declare $infoVersion$: number | undefined;
 
   constructor(
     readonly $signal$: AsyncSignalImpl<T>,
-    readonly info: unknown,
-    readonly $infoVersion$: number
-  ) {}
+    info: unknown,
+    $infoVersion$: number | undefined
+  ) {
+    if (info !== undefined) {
+      this.info = info;
+      this.$infoVersion$ = $infoVersion$;
+    }
+  }
 
   get track(): AsyncCtx<T>['track'] {
     return (this.$track$ ||= trackFn(this.$signal$, this.$signal$.$container$));
@@ -94,19 +102,19 @@ export class AsyncSignalImpl<T>
 {
   $untrackedLoading$: boolean = false;
   $untrackedError$: Error | undefined = undefined;
-
-  $loadingEffects$: undefined | Set<EffectSubscription> = undefined;
-  $errorEffects$: undefined | Set<EffectSubscription> = undefined;
   $current$: AsyncJob<T> | null = null;
-  // TODO only create the array if concurrency > 1
-  $jobs$: AsyncJob<T>[] = [];
-  $concurrency$: number = 1;
-  $interval$: number = 0;
-  $timeoutMs$: number | undefined;
-  $info$: unknown = undefined;
-  $infoVersion$: number = 0;
+
+  // Only declare these less common properties, to save some memory
+  declare $jobs$: AsyncJob<T>[] | undefined;
+  declare $concurrency$: number | undefined;
+  declare $interval$: number | undefined;
+  declare $timeoutMs$: number | undefined;
+  declare $loadingEffects$: undefined | Set<EffectSubscription>;
+  declare $errorEffects$: undefined | Set<EffectSubscription>;
   declare $pollTimeoutId$: ReturnType<typeof setTimeout> | undefined;
   declare $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
+  declare $info$: unknown | undefined;
+  declare $infoVersion$: number | undefined;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
@@ -118,31 +126,34 @@ export class AsyncSignalImpl<T>
     options?: AsyncSignalOptions<T>
   ) {
     super(container, fn, flags);
-    const interval = options?.interval;
-    const concurrency = options?.concurrency ?? 1;
-    const initial = options?.initial;
-    const timeout = options?.timeout;
-    const eagerCleanup = options?.eagerCleanup;
-    const clientOnly = options?.clientOnly;
+    if (!options) {
+      return;
+    }
 
     // Handle initial value - eagerly evaluate if function, set $untrackedValue$ and $promiseValue$
     // Do NOT call setValue() which would clear the INVALID flag and prevent async computation
+    const initial = options.initial;
     if (initial !== undefined) {
       const initialValue = typeof initial === 'function' ? (initial as () => T)() : initial;
       this.$untrackedValue$ = initialValue;
     }
 
-    this.$concurrency$ = concurrency;
+    const concurrency = options.concurrency;
+    if (concurrency !== undefined && concurrency >= 0 && concurrency !== 1) {
+      this.$concurrency$ = concurrency;
+      this.$jobs$ = [];
+    }
+    const timeout = options.timeout;
     if (timeout) {
       this.$timeoutMs$ = timeout;
     }
-    if (eagerCleanup) {
+    if (options.eagerCleanup) {
       this.$flags$ |= AsyncSignalFlags.EAGER_CLEANUP;
     }
-    if (clientOnly) {
+    if (options.clientOnly) {
       this.$flags$ |= AsyncSignalFlags.CLIENT_ONLY;
     }
-    if (options?.allowStale === false) {
+    if (options.allowStale === false) {
       if (isDev && initial !== undefined) {
         throw new Error(
           'allowStale: false and initial cannot be used together. ' +
@@ -151,6 +162,7 @@ export class AsyncSignalImpl<T>
       }
       this.$flags$ |= AsyncSignalFlags.CLEAR_ON_INVALIDATE;
     }
+    const interval = options.interval;
     if (interval) {
       this.interval = interval;
     }
@@ -181,11 +193,7 @@ export class AsyncSignalImpl<T>
       this.$flags$ & AsyncSignalFlags.CLIENT_ONLY &&
       this.$untrackedValue$ === NEEDS_COMPUTATION
     ) {
-      throw new Error(
-        isDev
-          ? 'During SSR, cannot read .value from clientOnly async signal without an initial value. Use .loading or provide an initial value.'
-          : 'Cannot read .value from clientOnly'
-      );
+      throw qError(QError.asyncClientOnlyValueDuringSSR);
     }
     return this.$untrackedValue$;
   }
@@ -214,8 +222,12 @@ export class AsyncSignalImpl<T>
     this.untrackedError = undefined;
     this.$info$ = undefined;
     // Prevent pending computations from overwriting this value
-    for (let i = 0; i < this.$jobs$.length; i++) {
-      this.$jobs$[i].$canWrite$ = false;
+    if (this.$jobs$) {
+      for (let i = 0; i < this.$jobs$.length; i++) {
+        this.$jobs$[i].$canWrite$ = false;
+      }
+    } else if (this.$current$) {
+      this.$current$.$canWrite$ = false;
     }
     this.$clearNextPoll$();
     super.value = value;
@@ -299,34 +311,38 @@ export class AsyncSignalImpl<T>
   }
 
   get interval() {
-    return this.$interval$;
+    return this.$interval$ || 0;
   }
 
   set interval(value: number) {
     this.$clearNextPoll$();
     this.$interval$ = value;
-    if (this.$interval$ !== 0 && this.$hasSubscribers$()) {
+    if (this.$interval$ && this.$hasSubscribers$()) {
       this.$scheduleNextPoll$();
     }
   }
 
   /** Invalidates the signal, causing it to re-compute its value. */
   override async invalidate(info?: unknown) {
-    this.$flags$ |= SignalFlags.INVALID;
-    this.$clearNextPoll$();
     if (arguments.length > 0) {
       this.$info$ = info;
-      this.$infoVersion$++;
+      this.$infoVersion$ = this.$infoVersion$ === undefined ? 1 : this.$infoVersion$ + 1;
     }
-    // When allowStale is false (CLEAR_ON_INVALIDATE set), clear the value so reads throw
-    // the computation promise instead of returning stale data (useful for navigations)
-    if (this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE) {
+    this.$setInvalid$(true, this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE);
+  }
+
+  $setInvalid$(allowRecalc: boolean, mustClear: boolean | number): void {
+    this.$flags$ |= SignalFlags.INVALID;
+    this.$clearNextPoll$();
+    if (mustClear) {
       this.$untrackedValue$ = NEEDS_COMPUTATION;
     }
-    if (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size) {
+    if (
+      allowRecalc &&
+      (this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size)
+    ) {
       // compute in next microtask
-      await true;
-      this.$computeIfNeeded$();
+      Promise.resolve().then(() => this.$computeIfNeeded$());
     }
   }
 
@@ -378,26 +394,33 @@ export class AsyncSignalImpl<T>
     }
     this.$clearNextPoll$();
 
-    if (this.$current$) {
-      this.$requestCleanups$(this.$current$);
+    // Clear flag here to make sure the cleanups don't start another compute
+    this.$flags$ &= ~SignalFlags.INVALID;
+
+    const current = this.$current$;
+    if (current) {
+      this.$requestCleanups$(current);
     }
 
-    const limit = this.$concurrency$ === 0 ? Number.POSITIVE_INFINITY : this.$concurrency$;
-    if (this.$jobs$.length >= limit) {
+    const limit = this.$concurrency$ === 0 ? Number.POSITIVE_INFINITY : (this.$concurrency$ ?? 1);
+    // We only have $jobs$[] when concurrency != 1
+    if (this.$jobs$ ? this.$jobs$.length >= limit : current?.$promise$) {
       DEBUG && log(`Concurrency limit ${limit} reached, not starting new computation`);
       // We requested cleanups for all the previous jobs, once one finishes it will be removed from the jobs array and trigger computeIfNeeded
+      // Restore invalid state
+      this.$flags$ |= SignalFlags.INVALID;
       return;
     }
 
     DEBUG && log('Starting new async computation');
 
-    this.$flags$ &= ~SignalFlags.INVALID;
-
     // We put the actual computation in a separate method so we can easily retain the promise
     const infoVersion = this.$infoVersion$;
     const running = new AsyncJob(this, this.$info$, infoVersion);
     this.$current$ = running;
-    this.$jobs$.push(running);
+    if (this.$jobs$) {
+      this.$jobs$.push(running);
+    }
     running.$promise$ = this.$runComputation$(running);
   }
 
@@ -406,17 +429,22 @@ export class AsyncSignalImpl<T>
 
     this.untrackedLoading = true;
 
-    const fn = this.$computeQrl$.resolved || (await this.$computeQrl$.resolve());
+    let fn = this.$computeQrl$.resolved;
+    if (!fn) {
+      fn = await this.$computeQrl$.resolve();
+      if (running.$abortController$?.signal.aborted) {
+        DEBUG && log('Computation aborted before it started');
+        running.$promise$ = null;
+        return;
+      }
+    }
 
     try {
       if (this.$timeoutMs$) {
         this.$computationTimeoutId$ = setTimeout(() => {
-          running.$abortController$?.abort();
-          const error = new Error(`timeout`);
-          if (isCurrent()) {
-            this.untrackedError = error;
-            running.$canWrite$ = false;
-          }
+          const error = new Error(`timeout ${this.$timeoutMs$}ms`);
+          this.$setError$(running, error);
+          running.$abortController$?.abort(error);
         }, this.$timeoutMs$);
       }
 
@@ -427,10 +455,15 @@ export class AsyncSignalImpl<T>
       running.$promise$ = null;
 
       if (running.$canWrite$) {
-        const index = this.$jobs$.indexOf(running);
-        if (index !== -1) {
-          for (let i = 0; i < index; i++) {
-            this.$jobs$[i].$canWrite$ = false;
+        const jobs = this.$jobs$;
+        if (jobs) {
+          let doDisable = false;
+          for (let i = jobs.length - 1; i >= 0; i--) {
+            if (jobs[i] === running) {
+              doDisable = true;
+            } else if (doDisable) {
+              jobs[i].$canWrite$ = false;
+            }
           }
         }
 
@@ -439,19 +472,16 @@ export class AsyncSignalImpl<T>
 
         // Note that these assignments run setters
         this.untrackedError = undefined;
-        // Use super.value instead of this.value to avoid the AsyncSignalImpl setter
-        // which clears INVALID and disables all jobs. INVALID must persist so that
-        // line 442 can detect dependency changes during computation and re-run.
+        /**
+         * Use super.value instead of this.value to persist invalid state, so that invalidation
+         * during computation recomputes
+         */
         super.value = value;
       }
     } catch (err) {
       running.$promise$ = null;
       DEBUG && log('Error caught in promise.catch', err);
-      if (isCurrent()) {
-        this.untrackedError = err as Error;
-        // Reset value so next read throws the promise instead of returning stale data
-        this.$untrackedValue$ = NEEDS_COMPUTATION;
-      }
+      this.$setError$(running, err as Error);
     }
 
     if (isCurrent()) {
@@ -471,14 +501,37 @@ export class AsyncSignalImpl<T>
     }
   }
 
+  /**
+   * Sets the error from the given job. We only accept errors from the current job and we ignore
+   * AbortErrors.
+   */
+  $setError$(job: AsyncJob<T>, error: Error): void {
+    if (job !== this.$current$ || !job.$canWrite$) {
+      return;
+    }
+    job.$canWrite$ = false;
+    if (error instanceof Error && error.name === 'AbortError') {
+      // AbortError from AbortSignal is a cancellation, not an actual error
+      return;
+    }
+    this.untrackedError = error;
+    // Job failures should be rare and require retrying
+    this.untrackedValue = NEEDS_COMPUTATION;
+  }
+
   /** Called after SSR/unmount */
   async $destroy$() {
     this.$clearNextPoll$();
     clearTimeout(this.$computationTimeoutId$);
-    if (this.$current$) {
-      await this.$requestCleanups$(this.$current$);
+    const current = this.$current$;
+    if (current) {
+      this.$requestCleanups$(current);
     }
-    await Promise.all(this.$jobs$.map((job) => job.$promise$));
+    if (this.$jobs$) {
+      await Promise.all(this.$jobs$.map((job) => job.$promise$));
+    } else {
+      await current?.$promise$;
+    }
   }
 
   private $clearNextPoll$() {
@@ -489,20 +542,20 @@ export class AsyncSignalImpl<T>
   }
 
   private $scheduleNextPoll$() {
-    if (!(import.meta.env.TEST ? !isServerPlatform() : isBrowser) || this.$interval$ === 0) {
+    if ((import.meta.env.TEST ? isServerPlatform() : isServer) || !this.$interval$) {
       return;
     }
 
     this.$clearNextPoll$();
 
-    if (this.$interval$ < 0) {
-      this.$pollTimeoutId$ = setTimeout(() => {
-        this.$pollTimeoutId$ = undefined;
-        this.$flags$ |= SignalFlags.INVALID;
-      }, -this.$interval$);
-    } else {
-      this.$pollTimeoutId$ = setTimeout(this.invalidate.bind(this), this.$interval$);
-    }
+    const allowRecalc = this.$interval$ > 0;
+    // Even when clear on invalidate, we don't clear if we're merely re-running due to interval
+    // We expect to get the new value soon, so we can avoid showing a loading state
+    const mustClear = this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE && !allowRecalc;
+    this.$pollTimeoutId$ = setTimeout(
+      () => this.$setInvalid$(allowRecalc, mustClear),
+      Math.abs(this.$interval$)
+    );
 
     this.$pollTimeoutId$?.unref?.();
   }
@@ -511,53 +564,62 @@ export class AsyncSignalImpl<T>
     return !!(this.$effects$?.size || this.$loadingEffects$?.size || this.$errorEffects$?.size);
   }
 
-  async $requestCleanups$(job: AsyncJob<T>, reason?: any) {
+  $requestCleanups$(job: AsyncJob<T>, reason?: any) {
     if (job.$cleanupRequested$) {
-      return job.$promise$;
+      return;
     }
     DEBUG && log('Requesting cleanups for job', job);
     job.$cleanupRequested$ = true;
     job.$abortController$?.abort(reason);
-    job.$promise$ = Promise.resolve(job.$promise$).then(
-      () => (job.$promise$ = this.$runCleanups$(job))
-    );
+    job.$promise$ = maybeThen(job.$promise$, () => this.$runCleanups$(job));
   }
   /** Clean up and trigger signal compute once complete */
-  async $runCleanups$(job: AsyncJob<T>) {
+  $runCleanups$(job: AsyncJob<T>) {
     const cleanups = job.$cleanups$;
-    if (cleanups?.length) {
-      DEBUG && log('cleanup start', job);
-      const onError = (err: any) => {
-        const handleError = this.$container$?.handleError;
-        if (handleError) {
-          handleError(err, null!);
-        } else {
-          console.error('Error in async signal cleanup', err);
+    DEBUG && log('cleanup start', job);
+    const onError = (err: any) => {
+      const handleError = this.$container$?.handleError;
+      if (handleError) {
+        handleError(err, null!);
+      } else {
+        console.error('Error in async signal cleanup', err);
+      }
+    };
+    const onDone = () => {
+      job.$promise$ = null;
+      if (cleanups) {
+        cleanups.length = 0;
+      }
+      DEBUG && log('cleanup finished', job);
+      // Now trigger compute
+      const jobs = this.$jobs$;
+      if (jobs) {
+        const idx = jobs.indexOf(job);
+        if (idx !== -1) {
+          jobs.splice(idx, 1);
         }
-      };
+      }
+      this.$computeIfNeeded$();
+    };
+    let promiseChain: Promise<void> | undefined = undefined;
+    if (cleanups) {
       DEBUG && log('cleanup start for real', job);
       // Keep this sync-ish so sync functions run immediately.
-      await Promise.all(
-        cleanups.map((fn) => {
-          try {
-            const result = fn();
-            if (isPromise(result)) {
-              return result.catch(onError);
-            }
-          } catch (err) {
-            onError(err);
+      for (let i = 0; i < cleanups.length; i++) {
+        try {
+          const result = cleanups[i]();
+          if (isPromise(result)) {
+            promiseChain = (promiseChain ? promiseChain.then(() => result) : result).catch(onError);
           }
-        })
-      );
-      cleanups.length = 0;
-      DEBUG && log('cleanup finished', job);
+        } catch (err) {
+          onError(err);
+        }
+      }
     }
-    // Now trigger compute
-    const jobs = this.$jobs$;
-    const idx = jobs.indexOf(job);
-    if (idx !== -1) {
-      jobs.splice(idx, 1);
+    if (promiseChain) {
+      return promiseChain.then(onDone);
+    } else {
+      onDone();
     }
-    this.$computeIfNeeded$();
   }
 }

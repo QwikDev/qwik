@@ -108,28 +108,28 @@ test.describe('resource serialization', () => {
 
     await expect(button1).toHaveText('PASS: Success 0');
     await expect(button2).toHaveText('ERROR: Error: failed 0');
-    await expect(button3).toHaveText('ERROR: Error: timeout 0');
+    await expect(button3).toHaveText('ERROR: Error: timeout 100ms 0');
 
     // Click button 1
     await button1.click();
 
     await expect(button1).toHaveText('PASS: Success 1');
     await expect(button2).toHaveText('ERROR: Error: failed 0');
-    await expect(button3).toHaveText('ERROR: Error: timeout 0');
+    await expect(button3).toHaveText('ERROR: Error: timeout 100ms 0');
 
     // Click button 2
     await button2.click();
 
     await expect(button1).toHaveText('PASS: Success 1');
     await expect(button2).toHaveText('ERROR: Error: failed 1');
-    await expect(button3).toHaveText('ERROR: Error: timeout 1');
+    await expect(button3).toHaveText('ERROR: Error: timeout 100ms 1');
 
     // Click button 2
     await button2.click();
 
     await expect(button1).toHaveText('PASS: Success 1');
     await expect(button2).toHaveText('ERROR: Error: failed 2');
-    await expect(button3).toHaveText('ERROR: Error: timeout 2');
+    await expect(button3).toHaveText('ERROR: Error: timeout 100ms 2');
   });
 
   test('issue 2014 - resource signal resumability', async ({ page }) => {

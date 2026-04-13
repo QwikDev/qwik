@@ -157,32 +157,56 @@ describe('async signal', () => {
 
     it('should switch from polling to stale-only when interval becomes negative', async () => {
       await withContainer(async () => {
-        const ref = { computeCalls: 0 };
-        const signal = createAsync$(
-          async () => {
-            ref.computeCalls++;
-            return ref.computeCalls;
-          },
-          { interval: 50 }
-        ) as AsyncSignalImpl<number>;
-
-        await retryOnPromise(async () => {
-          effect$(() => signal.value);
-        });
-        await signal.promise();
-
-        expect(ref.computeCalls).toBe(1);
-        expect(signal.$pollTimeoutId$).toBeDefined();
-
+        const signal = createAsync$(async () => 1, { interval: 50 }) as AsyncSignalImpl<number>;
+        signal.untrackedValue = 1;
+        signal.$flags$ &= ~SignalFlags.INVALID;
         signal.interval = -10;
+        (signal as any).$scheduleNextPoll$();
+
+        await delay(20);
+
+        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$untrackedValue$).toBe(1);
+        expect(signal.$pollTimeoutId$).toBeUndefined();
+      });
+    });
+
+    it('should keep the current value while positive interval polling reruns with allowStale false', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 84, {
+          interval: 10,
+          allowStale: false,
+        }) as AsyncSignalImpl<number>;
+        signal.untrackedValue = 42;
+        signal.$flags$ &= ~SignalFlags.INVALID;
+        (signal as any).$scheduleNextPoll$();
 
         expect(signal.$pollTimeoutId$).toBeDefined();
 
         await delay(20);
 
-        expect(ref.computeCalls).toBe(1);
         expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
-        expect(signal.$untrackedValue$).toBe(1);
+        expect(signal.$untrackedValue$).toBe(42);
+        expect(signal.$pollTimeoutId$).toBeUndefined();
+      });
+    });
+
+    it('should clear the current value when stale-only polling invalidates with allowStale false', async () => {
+      await withContainer(async () => {
+        const signal = createAsync$(async () => 84, {
+          interval: -10,
+          allowStale: false,
+        }) as AsyncSignalImpl<number>;
+        signal.untrackedValue = 42;
+        signal.$flags$ &= ~SignalFlags.INVALID;
+        (signal as any).$scheduleNextPoll$();
+
+        expect(signal.$pollTimeoutId$).toBeDefined();
+
+        await delay(20);
+
+        expect(signal.$flags$ & SignalFlags.INVALID).toBe(SignalFlags.INVALID);
+        expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
         expect(signal.$pollTimeoutId$).toBeUndefined();
       });
     });
@@ -648,6 +672,64 @@ describe('async signal', () => {
 
         expect(signal.value).toBe(5);
         expect(signal.error).toBeUndefined();
+      });
+    });
+
+    it('should ignore AbortError from a superseded computation', async () => {
+      await withContainer(async () => {
+        const ref = {
+          started: 0,
+          resolveCurrent: undefined as ((value: number) => void) | undefined,
+        };
+
+        const signal = createAsync$(
+          async ({ abortSignal }) => {
+            ref.started++;
+
+            return new Promise<number>((resolve, reject) => {
+              const onAbort = () => {
+                const err = new Error('aborted');
+                err.name = 'AbortError';
+                reject(err);
+              };
+              abortSignal.addEventListener('abort', onAbort, { once: true });
+
+              ref.resolveCurrent = (value: number) => {
+                abortSignal.removeEventListener('abort', onAbort);
+                resolve(value);
+              };
+            });
+          },
+          { initial: 0 }
+        ) as AsyncSignalImpl<number>;
+
+        effect$(() => signal.value);
+
+        await retryOnPromise(() => {
+          if (ref.started !== 1 || !ref.resolveCurrent) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        await signal.invalidate();
+
+        await retryOnPromise(() => {
+          if (ref.started !== 2 || !ref.resolveCurrent) {
+            throw new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          return ref.started;
+        });
+
+        expect(signal.error).toBeUndefined();
+        expect(signal.value).toBe(0);
+
+        ref.resolveCurrent!(7);
+        await signal.promise();
+
+        expect(signal.value).toBe(7);
+        expect(signal.error).toBeUndefined();
+        expect(signal.$untrackedValue$).toBe(7);
       });
     });
 

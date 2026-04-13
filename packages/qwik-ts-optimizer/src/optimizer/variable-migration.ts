@@ -492,22 +492,35 @@ export function computeSegmentUsage(
 
   walk(program, {
     enter(node: any) {
-      if (node.type !== 'Identifier') return;
+      // Include both Identifier and JSXIdentifier nodes.
+      // JSX tags like <Hola> create JSXIdentifier nodes that reference
+      // module-level declarations and need to be tracked for migration.
+      if (node.type !== 'Identifier' && node.type !== 'JSXIdentifier') return;
 
       const pos = node.start;
       const name = node.name;
 
-      // Check if this identifier falls within any extraction range
+      // Check if this identifier falls within any extraction range.
+      // When nested extractions overlap (e.g., $() inside component$()),
+      // prefer the innermost (smallest) range so identifiers are attributed
+      // to the most specific segment.
       let inSegment = false;
+      let bestExt: (typeof extractions)[0] | null = null;
+      let bestSize = Infinity;
       for (const ext of extractions) {
         if (pos >= ext.argStart && pos < ext.argEnd) {
-          // Skip locally-declared identifiers (params, local vars, catch params)
-          const locals = extractionLocals.get(ext.symbolName)!;
-          if (!locals.has(name)) {
-            segmentUsage.get(ext.symbolName)!.add(name);
+          const size = ext.argEnd - ext.argStart;
+          if (size < bestSize) {
+            bestSize = size;
+            bestExt = ext;
           }
           inSegment = true;
-          break;
+        }
+      }
+      if (bestExt) {
+        const locals = extractionLocals.get(bestExt.symbolName)!;
+        if (!locals.has(name)) {
+          segmentUsage.get(bestExt.symbolName)!.add(name);
         }
       }
 

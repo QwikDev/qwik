@@ -193,8 +193,12 @@ export const inflate = (
         asyncSignal.$flags$ |= SignalFlags.INVALID;
       }
 
-      // Note, we use the setter so that it schedules polling if needed
-      asyncSignal.interval = (d[7] ?? 0) as number;
+      // Handle old format (negative = no poll) and new format (always positive, flag in d[5])
+      const rawExpires = (d[7] ?? 0) as number;
+      asyncSignal.expires = Math.abs(rawExpires);
+      if (rawExpires < 0) {
+        asyncSignal.$flags$ |= AsyncSignalFlags.NO_POLL;
+      }
 
       if (d[8] !== undefined && d[8] !== 1) {
         asyncSignal.$concurrency$ = (d[8] ?? 1) as number;

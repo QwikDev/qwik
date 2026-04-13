@@ -70,13 +70,23 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    */
   eagerCleanup?: boolean;
   /**
-   * Controls staleness and polling behavior.
+   * Time in milliseconds after which the value expires.
    *
-   * - **Positive**: Re-run the function after `interval` ms if subscribers exist (polling).
-   * - **Negative**: Mark the value as stale after `|interval|` ms, but do NOT auto-recompute.
-   *   Recomputation happens when reading `.value` or `.loading`.
-   * - **`0`** (default): No staleness tracking or polling.
+   * When the value expires and subscribers exist, the signal is invalidated. If `poll` is `true`
+   * (default), the function is re-run automatically. If `poll` is `false`, the value is marked
+   * stale and recomputation happens when reading `.value` or `.loading`.
+   *
+   * `0` (default) means no expiration.
    */
+  expires?: number;
+  /**
+   * Whether to automatically re-run the function when the value expires. Only relevant when
+   * `expires` is set.
+   *
+   * Defaults to `true`.
+   */
+  poll?: boolean;
+  /** @deprecated Use `expires` and `poll` instead. Will be removed before v2 */
   interval?: number;
   /**
    * When true, the async computation is postponed to the browser. On SSR, the signal remains
@@ -93,11 +103,11 @@ export interface AsyncSignalOptions<T> extends ComputedOptions {
    * When false, invalidation clears the value so reads throw the computation promise (like the
    * initial load), which is useful for navigations where showing old data would be confusing.
    *
-   * Note that `interval` invalidations are not affected by this option and will keep the old value
-   * while the new value is loading, to avoid flashing loaders during polling.
+   * Note that polling invalidations (`expires` with `poll: true`) are not affected by this option
+   * and will keep the old value while the new value is loading, to avoid flashing loaders.
    *
-   * This option only affects manual invalidations via `invalidate()`, and `interval` invalidations
-   * where no new value will be loaded (`interval` is negative, or there are no subscribers).
+   * This option only affects manual invalidations via `invalidate()`, and non-polling expirations
+   * (`poll: false`, or there are no subscribers).
    *
    * Defaults to `true`.
    */
@@ -135,6 +145,7 @@ export const enum AsyncSignalFlags {
   EAGER_CLEANUP = 32,
   CLIENT_ONLY = 64,
   CLEAR_ON_INVALIDATE = 128,
+  NO_POLL = 256,
 }
 
 export type AllSignalFlags =

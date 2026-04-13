@@ -69,7 +69,7 @@ class AsyncJob<T> implements AsyncCtx<T> {
   cache(): void {
     isDev &&
       console.error(
-        'useResource cache() method does not do anything. Use `useAsync$` instead of `useResource$`, use the `interval` option for polling behavior.'
+        'useResource cache() method does not do anything. Use `useAsync$` instead of `useResource$`, use the `expires` option for polling behavior.'
       );
   }
 
@@ -107,7 +107,7 @@ export class AsyncSignalImpl<T>
   // Only declare these less common properties, to save some memory
   declare $jobs$: AsyncJob<T>[] | undefined;
   declare $concurrency$: number | undefined;
-  declare $interval$: number | undefined;
+  declare $expires$: number | undefined;
   declare $timeoutMs$: number | undefined;
   declare $loadingEffects$: undefined | Set<EffectSubscription>;
   declare $errorEffects$: undefined | Set<EffectSubscription>;
@@ -162,9 +162,12 @@ export class AsyncSignalImpl<T>
       }
       this.$flags$ |= AsyncSignalFlags.CLEAR_ON_INVALIDATE;
     }
-    const interval = options.interval;
-    if (interval) {
-      this.interval = interval;
+    const expires = options.expires ?? (options.interval ? Math.abs(options.interval) : undefined);
+    if (expires) {
+      this.expires = expires;
+    }
+    if (options.poll === false || (options.interval !== undefined && options.interval < 0)) {
+      this.$flags$ |= AsyncSignalFlags.NO_POLL;
     }
   }
 
@@ -310,16 +313,48 @@ export class AsyncSignalImpl<T>
     return this.$untrackedError$;
   }
 
+  get expires() {
+    return this.$expires$ || 0;
+  }
+
+  set expires(value: number) {
+    this.$clearNextPoll$();
+    this.$expires$ = value;
+    if (this.$expires$ && this.$hasSubscribers$()) {
+      this.$scheduleNextPoll$();
+    }
+  }
+
+  get poll() {
+    return !(this.$flags$ & AsyncSignalFlags.NO_POLL);
+  }
+
+  set poll(value: boolean) {
+    if (value) {
+      this.$flags$ &= ~AsyncSignalFlags.NO_POLL;
+    } else {
+      this.$flags$ |= AsyncSignalFlags.NO_POLL;
+    }
+    // Reschedule since poll behavior changed
+    if (this.$expires$ && this.$hasSubscribers$()) {
+      this.$clearNextPoll$();
+      this.$scheduleNextPoll$();
+    }
+  }
+
+  /** @deprecated Use `expires` and `poll` instead. */
   get interval() {
-    return this.$interval$ || 0;
+    const expires = this.$expires$ || 0;
+    return this.$flags$ & AsyncSignalFlags.NO_POLL ? -expires : expires;
   }
 
   set interval(value: number) {
-    this.$clearNextPoll$();
-    this.$interval$ = value;
-    if (this.$interval$ && this.$hasSubscribers$()) {
-      this.$scheduleNextPoll$();
+    if (value < 0) {
+      this.$flags$ |= AsyncSignalFlags.NO_POLL;
+    } else {
+      this.$flags$ &= ~AsyncSignalFlags.NO_POLL;
     }
+    this.expires = Math.abs(value);
   }
 
   /** Invalidates the signal, causing it to re-compute its value. */
@@ -542,19 +577,19 @@ export class AsyncSignalImpl<T>
   }
 
   private $scheduleNextPoll$() {
-    if ((import.meta.env.TEST ? isServerPlatform() : isServer) || !this.$interval$) {
+    if ((import.meta.env.TEST ? isServerPlatform() : isServer) || !this.$expires$) {
       return;
     }
 
     this.$clearNextPoll$();
 
-    const allowRecalc = this.$interval$ > 0;
-    // Even when clear on invalidate, we don't clear if we're merely re-running due to interval
+    const allowRecalc = !(this.$flags$ & AsyncSignalFlags.NO_POLL);
+    // Even when clear on invalidate, we don't clear if we're merely re-running due to polling
     // We expect to get the new value soon, so we can avoid showing a loading state
     const mustClear = this.$flags$ & AsyncSignalFlags.CLEAR_ON_INVALIDATE && !allowRecalc;
     this.$pollTimeoutId$ = setTimeout(
       () => this.$setInvalid$(allowRecalc, mustClear),
-      Math.abs(this.$interval$)
+      this.$expires$!
     );
 
     this.$pollTimeoutId$?.unref?.();

@@ -108,6 +108,8 @@ function replacePropsFieldReferences(bodyText: string, fieldMap: Map<string, str
       const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
       // Skip function params
       const isParam = parentKey === 'params';
+      // Skip variable declarator IDs (e.g., `const test = ...` where test is being re-declared)
+      const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
       // Handle shorthand properties: { foo } -> { foo: _rawProps.foo }
       const isShorthandValue = parentKey === 'value' &&
         (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
@@ -120,7 +122,7 @@ function replacePropsFieldReferences(bodyText: string, fieldMap: Map<string, str
           key: fieldMap.get(node.name)!,
           isShorthand: true,
         });
-      } else if (!isPropertyKey && !isMemberProp && !isParam) {
+      } else if (!isPropertyKey && !isMemberProp && !isParam && !isDeclaratorId) {
         replacements.push({
           start: node.start - offset,
           end: node.end - offset,
@@ -737,13 +739,24 @@ export function generateSegmentCode(
           const searchStart = relStart;
           const capturedVar = site.hoistedCaptureNames[0];
           const enclosingPos = findEnclosingArrowBodyForCapture(bodyText, searchStart, capturedVar);
-          if (enclosingPos >= 0) {
+          // Check if the enclosing arrow is a LOOP callback (nested arrow) vs the
+          // component function itself. If enclosingPos points to the top-level function
+          // body (< 20 chars from start), the captures are component-scoped and should
+          // use the componentScopeWDecls path (placed before return).
+          const isLoopCallback = enclosingPos >= 0 && enclosingPos > 20;
+          if (isLoopCallback) {
             const captureList = site.hoistedCaptureNames.join(',\n        ');
             const decl = `const ${site.hoistedSymbolName} = ${site.qrlVarName}.w([\n            ${captureList}\n        ]);`;
-            // Check if the captured variable is declared as a local variable
-            // (not a parameter). If so, place .w() after the declaration.
-            const varDeclPos = findVarDeclarationEnd(bodyText, enclosingPos, capturedVar);
-            const insertPos = varDeclPos >= 0 ? varDeclPos : enclosingPos;
+            // Check ALL captured variables for local declarations and place .w()
+            // after the LAST one. This ensures all referenced variables are in scope.
+            let latestDeclPos = -1;
+            for (const capVar of site.hoistedCaptureNames) {
+              const varDeclPos = findVarDeclarationEnd(bodyText, enclosingPos, capVar);
+              if (varDeclPos > latestDeclPos) {
+                latestDeclPos = varDeclPos;
+              }
+            }
+            const insertPos = latestDeclPos >= 0 ? latestDeclPos : enclosingPos;
             hoistDeclarations.push({ position: insertPos, declaration: decl });
           } else {
             // Captured variable is from the component scope (not a loop parameter).
@@ -807,6 +820,20 @@ export function generateSegmentCode(
           // Block body: just inject after the opening brace
           bodyText = bodyText.slice(0, pos) +
             '\n        ' + hoist.declaration +
+            bodyText.slice(pos);
+        } else {
+          // Position is in the middle of a block body (e.g., after a variable declaration).
+          // Inject the declaration at this position with proper indentation.
+          // Detect indentation from the next non-empty line
+          let indent = '\t';
+          const nextNewline = bodyText.indexOf('\n', pos);
+          if (nextNewline >= 0) {
+            const nextLine = bodyText.slice(nextNewline + 1);
+            const indentMatch = nextLine.match(/^(\s+)/);
+            if (indentMatch) indent = indentMatch[1];
+          }
+          bodyText = bodyText.slice(0, pos) +
+            indent + hoist.declaration + '\n' +
             bodyText.slice(pos);
         }
       }
@@ -1347,9 +1374,124 @@ export function generateSegmentCode(
     parts.push(...rest);
   }
 
+  // Dead const literal elimination: remove `const X = literal;` declarations
+  // from the function body when X is no longer referenced elsewhere.
+  // This matches SWC behavior: after extracting nested handlers that captured
+  // const literal variables, those declarations become dead code in the parent body.
+  // Only apply when there are nested call sites (otherwise no consts became dead).
+  if (nestedCallSites && nestedCallSites.length > 0) {
+    bodyText = removeDeadConstLiterals(bodyText);
+  }
+
   parts.push(`export const ${extraction.symbolName} = ${bodyText};`);
 
   return { code: parts.join('\n'), keyCounterValue: segmentKeyCounterValue };
+}
+
+/**
+ * Remove `const X = literal;` declarations from a function body when X is
+ * no longer referenced anywhere else in the body.
+ *
+ * After extracting nested handlers that captured const literal variables
+ * (and inlining the literal values into the child segments), those
+ * declarations become dead code in the parent body. SWC removes them.
+ *
+ * Only removes declarations with simple literal initializers (string, number,
+ * boolean, null) to ensure no side effects are dropped.
+ */
+export function removeDeadConstLiterals(bodyText: string): string {
+  // Wrap for parsing
+  const wrapper = `const __dce__ = ${bodyText}`;
+  let parsed: any;
+  try {
+    parsed = parseSync('__dce__.tsx', wrapper, { experimentalRawTransfer: true } as any);
+  } catch {
+    return bodyText;
+  }
+  if (!parsed?.program?.body?.[0]) return bodyText;
+
+  const decl = parsed.program.body[0];
+  const init = decl.declarations?.[0]?.init;
+  if (!init) return bodyText;
+
+  // Find the function body statements
+  let fnBody: any;
+  if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
+    fnBody = init.body;
+  }
+  if (!fnBody || fnBody.type !== 'BlockStatement') return bodyText;
+
+  const offset = 'const __dce__ = '.length;
+  const stmts = fnBody.body;
+  if (!stmts || stmts.length === 0) return bodyText;
+
+  // Find const declarations with literal initializers
+  interface DeadCandidate {
+    name: string;
+    stmtStart: number; // relative to bodyText
+    stmtEnd: number;   // relative to bodyText
+  }
+  const candidates: DeadCandidate[] = [];
+
+  for (const stmt of stmts) {
+    if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const') continue;
+    if (stmt.declarations.length !== 1) continue;
+    const d = stmt.declarations[0];
+    if (d.id?.type !== 'Identifier') continue;
+    const initNode = d.init;
+    if (!initNode) continue;
+    // Only literal initializers (no side effects)
+    const isLiteral = initNode.type === 'StringLiteral' ||
+      initNode.type === 'NumericLiteral' ||
+      initNode.type === 'BooleanLiteral' ||
+      initNode.type === 'NullLiteral' ||
+      (initNode.type === 'Literal' && typeof initNode.value !== 'object');
+    if (!isLiteral) continue;
+
+    candidates.push({
+      name: d.id.name,
+      stmtStart: stmt.start - offset,
+      stmtEnd: stmt.end - offset,
+    });
+  }
+
+  if (candidates.length === 0) return bodyText;
+
+  // For each candidate, check if the name appears elsewhere in the body
+  // (outside the declaration itself). Use a word-boundary check.
+  const toRemove: DeadCandidate[] = [];
+  for (const c of candidates) {
+    // Remove the declaration text from the body to check references
+    const before = bodyText.slice(0, c.stmtStart);
+    const after = bodyText.slice(c.stmtEnd);
+    const rest = before + after;
+    // Check for word-boundary occurrences of the name
+    const re = new RegExp(`(?<![\\w$])${c.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w$])`);
+    if (!re.test(rest)) {
+      toRemove.push(c);
+    }
+  }
+
+  if (toRemove.length === 0) return bodyText;
+
+  // Remove declarations from end to start to preserve positions
+  toRemove.sort((a, b) => b.stmtStart - a.stmtStart);
+  let result = bodyText;
+  for (const c of toRemove) {
+    // Also consume trailing whitespace/newline
+    let end = c.stmtEnd;
+    while (end < result.length && (result[end] === '\n' || result[end] === '\r' || result[end] === ';')) {
+      end++;
+    }
+    // Also consume leading whitespace (tabs/spaces on the same line)
+    let start = c.stmtStart;
+    while (start > 0 && (result[start - 1] === '\t' || result[start - 1] === ' ')) {
+      start--;
+    }
+    result = result.slice(0, start) + result.slice(end);
+  }
+
+  return result;
 }
 
 /**

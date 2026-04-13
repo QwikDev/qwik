@@ -576,11 +576,14 @@ export function extractSegments(
           pushCount++;
         }
 
-        // Push the *local* callee name for naming context.
-        // SWC uses the local alias name (e.g., "Component" for `component$ as Component`),
-        // not the canonical/imported name (e.g., "component$").
-        ctx.push(calleeName);
-        pushCount++;
+        // Push the callee name for naming context.
+        // For bare $() calls (including aliases like `$ as onRender`), SWC does NOT push
+        // the callee name -- it only uses the wrapper context + counter. For other markers
+        // (component$, useTask$, etc.), push the *local* alias name.
+        if (canonicalCallee !== '$') {
+          ctx.push(calleeName);
+          pushCount++;
+        }
 
         const arg = node.arguments?.[0];
         if (!arg) {
@@ -755,8 +758,8 @@ export function extractSegments(
             parentOpeningTag[0] === parentOpeningTag[0].toUpperCase() &&
             parentOpeningTag[0] !== parentOpeningTag[0].toLowerCase();
 
-          // All $-suffixed JSX attribute extractions are treated as eventHandler
-          // by the Rust optimizer, regardless of whether they start with "on".
+          // All $-suffixed JSX attribute extractions are treated as eventHandler.
+          // This matches the SWC snap output behavior for both HTML and component elements.
           const ctxKind: 'function' | 'eventHandler' | 'jSXProp' = 'eventHandler';
           const ctxName = attrName; // e.g., onClick$, custom$, onInput$
 

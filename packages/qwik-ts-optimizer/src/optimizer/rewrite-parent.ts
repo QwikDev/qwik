@@ -41,7 +41,7 @@ import {
   buildHoistSCall,
 } from './inline-strategy.js';
 import { isStrippedSegment } from './strip-ctx.js';
-import { injectCapturesUnpacking, rewriteFunctionSignature } from './segment-codegen.js';
+import { injectCapturesUnpacking, rewriteFunctionSignature, removeDeadConstLiterals } from './segment-codegen.js';
 import { transformEventPropName } from './event-handler-transform.js';
 import { transformAllJsx, type JsxTransformOutput } from './jsx-transform.js';
 import { SignalHoister } from './signal-analysis.js';
@@ -571,12 +571,13 @@ export function applyRawPropsTransform(body: string): string {
         const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
         const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
         const isParam = parentKey === 'params';
+        const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
         const isShorthandValue = parentKey === 'value' &&
           (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
           parentNode?.shorthand === true;
         if (isShorthandValue) {
           replacements.push({ start: node.start - offset, end: node.end - offset, key: fieldLocalToKey.get(node.name)!, isShorthand: true });
-        } else if (!isPropertyKey && !isMemberProp && !isParam) {
+        } else if (!isPropertyKey && !isMemberProp && !isParam && !isDeclaratorId) {
           replacements.push({ start: node.start - offset, end: node.end - offset, key: fieldLocalToKey.get(node.name)! });
         }
       }
@@ -675,12 +676,13 @@ export function applyRawPropsTransform(body: string): string {
         const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
         const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
         const isParam = parentKey === 'params';
+        const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
         const isShorthandValue = parentKey === 'value' &&
           (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty') &&
           parentNode?.shorthand === true;
         if (isShorthandValue) {
           replacements.push({ start: node.start - offset, end: node.end - offset, key: fieldLocalToKey.get(node.name)!, isShorthand: true });
-        } else if (!isPropertyKey && !isMemberProp && !isParam) {
+        } else if (!isPropertyKey && !isMemberProp && !isParam && !isDeclaratorId) {
           replacements.push({ start: node.start - offset, end: node.end - offset, key: fieldLocalToKey.get(node.name)! });
         }
       }
@@ -751,6 +753,7 @@ export function applyRawPropsTransform(body: string): string {
       const isPropertyKey = parentKey === 'key' && (parentNode?.type === 'Property' || parentNode?.type === 'ObjectProperty');
       const isMemberProp = parentKey === 'property' && (parentNode?.type === 'MemberExpression' || parentNode?.type === 'StaticMemberExpression');
       const isParam = parentKey === 'params';
+      const isDeclaratorId = parentKey === 'id' && parentNode?.type === 'VariableDeclarator';
 
       // For shorthand properties ({ some }), the value IS the same identifier as the key.
       // We need to handle this specially: replace the whole property with `key: _rawProps.key`.
@@ -766,7 +769,7 @@ export function applyRawPropsTransform(body: string): string {
           key: fieldLocalToKey.get(node.name)!,
           isShorthand: true,
         });
-      } else if (!isPropertyKey && !isMemberProp && !isParam) {
+      } else if (!isPropertyKey && !isMemberProp && !isParam && !isDeclaratorId) {
         replacements.push({
           start: node.start - offset,
           end: node.end - offset,
@@ -1108,6 +1111,14 @@ function transformSCallBody(
       // Return the final key counter value for continuation
       finalKeyCounterValue = bodyJsxResult.keyCounterValue;
     }
+  }
+
+  // Dead const literal elimination: remove `const X = literal;` declarations
+  // from the body when X is no longer referenced (after nested extractions
+  // consumed those const captures and they were inlined into child segments).
+  const hasNestedExts = allExtractions.some(e => e.parent === ext.symbolName);
+  if (hasNestedExts) {
+    body = removeDeadConstLiterals(body);
   }
 
   return { transformedBody: body, additionalImports, hoistedDeclarations, keyCounterValue: finalKeyCounterValue };
@@ -2323,6 +2334,9 @@ export function rewriteParentModule(
     const stripped = oxcTransformSync('output.tsx', finalCode, tsStripOptions);
     if (stripped.code) {
       finalCode = stripped.code;
+      // oxc-transform normalizes /*#__PURE__*/ to /* @__PURE__ */ but the Rust optimizer
+      // uses the compact form. Convert back to match SWC output.
+      finalCode = finalCode.replace(/\/\* @__PURE__ \*\//g, '/*#__PURE__*/');
       // oxc-transform produces `let` for exported enum IIFEs, but Rust optimizer uses `var`.
       // Post-process: `let Thing = function(Thing)` -> `var Thing = function(Thing)`
       // Also handles: `export let Thing = ...` -> `export var Thing = ...`

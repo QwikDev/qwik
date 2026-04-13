@@ -2544,6 +2544,9 @@ export function transformModule(options: TransformModulesOptions): TransformOutp
         const tsStripped = oxcTransformSync(ext.canonicalFilename + sourceExt, segmentCode, tsStripOptions);
         if (tsStripped.code) {
           segmentCode = tsStripped.code;
+          // oxc-transform normalizes /*#__PURE__*/ to /* @__PURE__ */ but the Rust optimizer
+          // uses the compact form. Convert back to match SWC output.
+          segmentCode = segmentCode.replace(/\/\* @__PURE__ \*\//g, '/*#__PURE__*/');
         }
       }
 

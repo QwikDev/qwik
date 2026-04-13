@@ -425,6 +425,32 @@ test('loadRoute — _G with params preserves captured params', async () => {
   assert.deepEqual(result.$params$, { slug: 'my-post' });
 });
 
+test('loadRoute — _G empty string rewrite resolves prefix root to index', async () => {
+  const rootLayout = makeLoader();
+  const pageLoader = makeLoader();
+  const routes: RouteData = {
+    _L: rootLayout,
+    _M: [
+      {
+        _I: pageLoader,
+      },
+    ],
+    en: {
+      _G: '',
+    },
+    de: {
+      _G: '',
+    },
+  };
+  const resultEn = await loadRoute(routes, false, '/en');
+  assert.isFalse(resultEn.$notFound$);
+  assert.equal(resultEn.$mods$.length, 2); // rootLayout + pageLoader
+
+  const resultDe = await loadRoute(routes, false, '/de');
+  assert.isFalse(resultDe.$notFound$);
+  assert.equal(resultDe.$mods$.length, 2);
+});
+
 test('loadRoute — _G target not found returns 404', async () => {
   const routes: RouteData = {
     es: {

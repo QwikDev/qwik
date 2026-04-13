@@ -1335,10 +1335,11 @@ export function transformJsxElement(
     additionalSpreads,
     key: explicitKey,
     hasVarProps,
-    hasVarEventHandler,
+    hasVarEventHandler: initialHasVarEventHandler,
     hasSpread,
     neededImports: propImports,
   } = processProps(openingElement.attributes, source, importedNames, tagIsHtml, elementPassiveEvents, hoister, inLoop, qrlsWithCaptures, paramNames, constIdents, allDeclaredNames, willUseCreateElement);
+  let hasVarEventHandler = initialHasVarEventHandler;
 
   // Merge prop imports
   for (const imp of propImports) {
@@ -1382,6 +1383,37 @@ export function transformJsxElement(
     }
     // When qpOverrides is present but no override for this element: element has no
     // event handlers with captures, so no q:p/q:ps is needed.
+  }
+
+  // --- Move event handlers to varProps when q:ps captures include non-static-const vars ---
+  // SWC behavior: when a handler's captured idents include variables whose initializer
+  // is not "static" (not a use*/Qrl/$() call), the handler is non-const and goes to
+  // varProps. We check if the q:ps override params include any var NOT in constIdents.
+  // Reference: swc-reference-only/transform.rs is_return_static + compute_scoped_idents
+  if (tagIsHtml && !inLoop) {
+    const overrideParams = qpOverrides?.get(node.start);
+    if (overrideParams && overrideParams.length > 0) {
+      const hasNonConstParam = overrideParams.some(p => !constIdents?.has(p) && !importedNames.has(p));
+      if (hasNonConstParam) {
+        // Move event handler entries from constEntries to varEntries
+        for (let i = constEntries.length - 1; i >= 0; i--) {
+          const entry = constEntries[i];
+          if (entry.startsWith('"q-e:') || entry.startsWith('"q-d:') || entry.startsWith('"q-w:') || entry.startsWith('"q-ep:') || entry.startsWith('"q-dp:') || entry.startsWith('"q-wp:')) {
+            varEntries.push(entry);
+            constEntries.splice(i, 1);
+            hasVarEventHandler = true;
+          }
+        }
+        // Re-sort varEntries alphabetically after moving entries (SWC sorts var_props)
+        if (!hasSpread && varEntries.length > 1) {
+          varEntries.sort((a, b) => {
+            const keyA = a.split(':')[0].replace(/"/g, '').trim();
+            const keyB = b.split(':')[0].replace(/"/g, '').trim();
+            return keyA.localeCompare(keyB);
+          });
+        }
+      }
+    }
   }
 
   // --- Children ---

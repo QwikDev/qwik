@@ -6,6 +6,7 @@
  * key generation, spread handling, and fragment support.
  */
 
+import { createRegExp, exactly, oneOrMore, anyOf, digit, whitespace, charNotIn } from 'magic-regexp';
 import type MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
 import { analyzeSignalExpression, SignalHoister } from './signal-analysis.js';
@@ -13,6 +14,20 @@ import { transformEventPropName, isEventProp, isPassiveDirective, collectPassive
 import { isBindProp, transformBindProp, mergeEventHandlers } from './bind-transform.js';
 import { detectLoopContext, buildQpProp, type LoopContext } from './loop-hoisting.js';
 import { computeKeyPrefix } from './key-prefix.js';
+
+// original: /,\s*(\d+),\s*(?:"[^"]*"|null)\s*\)$/
+const jsxFlagTail = createRegExp(
+  exactly(',').and(whitespace.times.any()).and(oneOrMore(digit).grouped())
+    .and(',').and(whitespace.times.any())
+    .and(anyOf(exactly('"').and(charNotIn('"').times.any()).and('"'), exactly('null')))
+    .and(whitespace.times.any()).and(')').at.lineEnd(),
+);
+
+// original: /_jsxSorted\([^,]+,\s*(\{|null)/
+const jsxSortedVarProps = createRegExp(
+  exactly('_jsxSorted(').and(oneOrMore(charNotIn(','))).and(',').and(whitespace.times.any())
+    .and(anyOf('{', 'null').grouped()),
+);
 
 export interface JsxTransformResult {
   tag: string;
@@ -562,9 +577,9 @@ function processChildren(
  * Parses the trailing ", N, key)" pattern from _jsxSorted output.
  */
 function hasStaticSubtreeFlag(transformedText: string): boolean {
-  const flagMatch = transformedText.match(/,\s*(\d+),\s*(?:"[^"]*"|null)\s*\)$/);
+  const flagMatch = transformedText.match(jsxFlagTail);
   if (!flagMatch) return true;
-  const flag = parseInt(flagMatch[1], 10);
+  const flag = parseInt(flagMatch[1]!, 10);
   return (flag & 2) !== 0;
 }
 
@@ -587,7 +602,7 @@ function classifyNestedJsxChild(
   if (isComponent) return 'dynamic';
 
   // HTML elements: dynamic if they have varProps or a dynamic subtree flag
-  const varPropsMatch = childText.match(/_jsxSorted\([^,]+,\s*(\{|null)/);
+  const varPropsMatch = childText.match(jsxSortedVarProps);
   if (varPropsMatch && varPropsMatch[1] === '{') return 'dynamic';
 
   return hasStaticSubtreeFlag(childText) ? 'static' : 'dynamic';

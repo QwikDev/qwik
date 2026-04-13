@@ -7,6 +7,7 @@
  * binding interface.
  */
 
+import { createRegExp, exactly, oneOrMore, anyOf, wordChar, wordBoundary, whitespace, multiline, global } from 'magic-regexp';
 import { parseSync } from "oxc-parser";
 import { walk, getUndeclaredIdentifiersInFunction } from "oxc-walker";
 import MagicString from "magic-string";
@@ -63,6 +64,70 @@ import {
   parseDisableDirectives,
   filterSuppressedDiagnostics,
 } from "./diagnostics.js";
+
+// original: /export\s+const\s+\w+\s*=\s*/
+const exportConstAssign = createRegExp(
+  exactly('export').and(oneOrMore(whitespace)).and('const').and(oneOrMore(whitespace))
+    .and(oneOrMore(wordChar)).and(whitespace.times.any()).and('=').and(whitespace.times.any()),
+);
+
+// original: /^export const \w+ = /m
+const exportConstLine = createRegExp(
+  exactly('export const ').and(oneOrMore(wordChar)).and(' = ').at.lineStart(),
+  [multiline],
+);
+
+// original: /!true\b/g
+const notTrueLiteral = createRegExp(exactly('!true').and(wordBoundary), [global]);
+
+// original: /!false\b/g
+const notFalseLiteral = createRegExp(exactly('!false').and(wordBoundary), [global]);
+
+// original: /\bif\s*\(\s*(true|false)\s*\)\s*\{/g
+const ifBracedBoolLiteral = createRegExp(
+  wordBoundary.and('if').and(whitespace.times.any()).and('(').and(whitespace.times.any())
+    .and(anyOf('true', 'false').grouped()).and(whitespace.times.any()).and(')').and(whitespace.times.any()).and('{'),
+  [global],
+);
+
+// original: /\btrue\s*&&\s*/g
+const trueAndOp = createRegExp(
+  wordBoundary.and('true').and(whitespace.times.any()).and('&&').and(whitespace.times.any()),
+  [global],
+);
+
+// original: /\bfalse\s*\|\|\s*/g
+const falseOrOp = createRegExp(
+  wordBoundary.and('false').and(whitespace.times.any()).and('||').and(whitespace.times.any()),
+  [global],
+);
+
+// original: /\bfalse\s*&&\s*/g
+const falseAndOp = createRegExp(
+  wordBoundary.and('false').and(whitespace.times.any()).and('&&').and(whitespace.times.any()),
+  [global],
+);
+
+// original: /^\s*else\s*\{/
+const elseClause = createRegExp(
+  whitespace.times.any().and('else').and(whitespace.times.any()).and('{').at.lineStart(),
+);
+
+// original: /\*\s+as\s+(\w+)/
+const nsImportPattern = createRegExp(
+  exactly('*').and(oneOrMore(whitespace)).and('as').and(oneOrMore(whitespace)).and(oneOrMore(wordChar).grouped()),
+);
+
+// original: /\b(?:if\s*\(\s*(?:true|false|!true|!false)\b|true\s*&&|false\s*\|\||false\s*&&)/
+const dceGuard = createRegExp(
+  wordBoundary.and(anyOf(
+    exactly('if').and(whitespace.times.any()).and('(').and(whitespace.times.any())
+      .and(anyOf('true', 'false', '!true', '!false')).and(wordBoundary),
+    exactly('true').and(whitespace.times.any()).and('&&'),
+    exactly('false').and(whitespace.times.any()).and('||'),
+    exactly('false').and(whitespace.times.any()).and('&&'),
+  )),
+);
 
 /**
  * Determine file extension from a path string.
@@ -274,10 +339,10 @@ function applySegmentConstReplacement(
  */
 function injectUseHmr(segmentCode: string, devFile: string): string {
   // Find the export const ... = pattern and locate the function body opening brace
-  const exportMatch = segmentCode.match(/export\s+const\s+\w+\s*=\s*/);
+  const exportMatch = segmentCode.match(exportConstAssign);
   if (!exportMatch) return segmentCode;
 
-  const afterExport = exportMatch.index! + exportMatch[0].length;
+  const afterExport = exportMatch.index! + exportMatch[0]!.length;
   // Find the arrow function's block body: skip past params and => to find {
   const rest = segmentCode.slice(afterExport);
   const arrowIdx = rest.indexOf("=>");
@@ -327,11 +392,11 @@ function applySegmentDCE(code: string): string {
 
   // Pre-pass: simplify boolean negation expressions
   // !true -> false, !false -> true (outside strings)
-  result = result.replace(/!true\b/g, (match, offset) => {
+  result = result.replace(notTrueLiteral, (match, offset) => {
     if (isInsideString(result, offset)) return match;
     return "false";
   });
-  result = result.replace(/!false\b/g, (match, offset) => {
+  result = result.replace(notFalseLiteral, (match, offset) => {
     if (isInsideString(result, offset)) return match;
     return "true";
   });
@@ -347,7 +412,8 @@ function applySegmentDCE(code: string): string {
     }> = [];
 
     // Match if(false) or if(true) with braced body
-    const ifBracedPattern = /\bif\s*\(\s*(true|false)\s*\)\s*\{/g;
+    ifBracedBoolLiteral.lastIndex = 0;
+    const ifBracedPattern = ifBracedBoolLiteral;
     let match;
 
     while ((match = ifBracedPattern.exec(result)) !== null) {
@@ -363,9 +429,9 @@ function applySegmentDCE(code: string): string {
       // Check for else clause
       let elseBody: string | null = null;
       let totalEnd = closeIdx + 1;
-      const afterClose = result.slice(closeIdx + 1).match(/^\s*else\s*\{/);
+      const afterClose = result.slice(closeIdx + 1).match(elseClause);
       if (afterClose) {
-        const elseBraceStart = closeIdx + 1 + afterClose[0].length - 1;
+        const elseBraceStart = closeIdx + 1 + afterClose[0]!.length - 1;
         const elseCloseIdx = findMatchingBrace(result, elseBraceStart);
         if (elseCloseIdx !== -1) {
           elseBody = result.slice(elseBraceStart + 1, elseCloseIdx);
@@ -446,11 +512,11 @@ function applySegmentDCE(code: string): string {
   // `false || expr` -> `expr`
   // Only replace when NOT inside a string literal (check that the match position
   // is not within quotes by counting unescaped quotes before the match)
-  result = result.replace(/\btrue\s*&&\s*/g, (match, offset) => {
+  result = result.replace(trueAndOp, (match, offset) => {
     if (isInsideString(result, offset)) return match;
     return "";
   });
-  result = result.replace(/\bfalse\s*\|\|\s*/g, (match, offset) => {
+  result = result.replace(falseOrOp, (match, offset) => {
     if (isInsideString(result, offset)) return match;
     return "";
   });
@@ -544,7 +610,8 @@ function findMatchingBrace(text: string, openPos: number): number {
  * expression with just `false`. Uses brace/angle tracking for JSX.
  */
 function simplifyFalseAndExpressions(code: string): string {
-  const pattern = /\bfalse\s*&&\s*/g;
+  falseAndOp.lastIndex = 0;
+  const pattern = falseAndOp;
   let match;
   const replacements: Array<{
     start: number;
@@ -686,10 +753,10 @@ function applySegmentSideEffectSimplification(
   filename: string,
 ): string {
   // Find the export line to only process the body
-  const exportMatch = code.match(/^export const \w+ = /m);
+  const exportMatch = code.match(exportConstLine);
   if (!exportMatch) return code;
 
-  const exportStart = code.indexOf(exportMatch[0]);
+  const exportStart = code.indexOf(exportMatch[0]!);
   const beforeExport = code.slice(0, exportStart);
   const exportSection = code.slice(exportStart);
 
@@ -910,8 +977,8 @@ function removeUnusedImports(
       );
       if (defaultMatch) localNames.push(defaultMatch[1]);
       // Namespace import: import * as ns from "..."
-      const nsMatch = line.match(/\*\s+as\s+(\w+)/);
-      if (nsMatch) localNames.push(nsMatch[1]);
+      const nsMatch = line.match(nsImportPattern);
+      if (nsMatch) localNames.push(nsMatch[1]!);
     }
     if (localNames.length > 0) {
       for (const name of localNames) {
@@ -1284,11 +1351,7 @@ function postProcessSegmentCode(
   }
 
   // Dead code elimination
-  if (
-    /\b(?:if\s*\(\s*(?:true|false|!true|!false)\b|true\s*&&|false\s*\|\||false\s*&&)/.test(
-      result,
-    )
-  ) {
+  if (dceGuard.test(result)) {
     result = applySegmentDCE(result);
   }
 

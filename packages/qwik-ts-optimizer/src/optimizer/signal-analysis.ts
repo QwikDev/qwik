@@ -5,6 +5,14 @@
  * wrapping (_wrapProp) or hoisted function signal (_fnSignal) representations.
  */
 
+import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
+
+// original: /,(\}|\]|\))/g
+const trailingComma = createRegExp(
+  exactly(',').and(anyOf('}', ']', ')').grouped()),
+  [global],
+);
+
 export type SignalExprResult =
   | { type: 'none' }
   | { type: 'wrapProp'; code: string; isStoreField?: boolean }
@@ -518,7 +526,7 @@ function isWordChar(ch: string): boolean {
 
 /** Strip trailing commas before closing delimiters. SWC re-serializes from AST so these drop. */
 function stripTrailingCommas(text: string): string {
-  return text.replace(/,(\}|\]|\))/g, '$1');
+  return text.replace(trailingComma, '$1');
 }
 
 /**

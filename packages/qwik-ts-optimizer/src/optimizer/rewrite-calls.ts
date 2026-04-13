@@ -8,7 +8,24 @@
  * - sync$ -> _qrlSync
  */
 
+import { createRegExp, exactly, oneOrMore, whitespace, wordChar, charIn, charNotIn, global } from 'magic-regexp';
 import { rewriteImportSource } from './rewrite-imports.js';
+
+// original: /\/\/[^\n]*/g
+const lineComment = createRegExp(exactly('//').and(charNotIn('\n').times.any()), [global]);
+
+// original: /\s*([{}(),:;=<>+\-*/%&|!?.])\s*/g
+const spacesAroundOperators = createRegExp(
+  whitespace.times.any()
+    .and(charIn('{}(),:;=<>+\\-*/%&|!?.').grouped())
+    .and(whitespace.times.any()),
+  [global],
+);
+
+// original: /^\((\w+)\)=>/
+const singleArrowParam = createRegExp(
+  exactly('(').and(oneOrMore(wordChar).grouped()).and(')=>').at.lineStart(),
+);
 
 /**
  * Get the Qrl callee name from a marker name.
@@ -49,14 +66,14 @@ function minifyFunctionText(text: string): string {
   // Remove block comments
   result = result.replace(/\/\*[\s\S]*?\*\//g, '');
   // Remove line comments
-  result = result.replace(/\/\/[^\n]*/g, '');
+  result = result.replace(lineComment, '');
   // Collapse whitespace
   result = result.replace(/\s+/g, ' ');
   // Remove spaces around operators and delimiters
-  result = result.replace(/\s*([{}(),:;=<>+\-*/%&|!?.])\s*/g, '$1');
+  result = result.replace(spacesAroundOperators, '$1');
   result = result.trim();
   // Strip parentheses around single arrow function parameter: (x)=> -> x=>
-  result = result.replace(/^\((\w+)\)=>/, '$1=>');
+  result = result.replace(singleArrowParam, '$1=>');
 
   return result;
 }

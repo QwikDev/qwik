@@ -5,6 +5,7 @@
  * @qwik-disable-next-line suppression directives.
  */
 
+import { createRegExp, exactly, maybe, whitespace } from 'magic-regexp';
 import type { Diagnostic, DiagnosticHighlightFlat } from './types.js';
 
 /** C02: captured function/class reference across a $() boundary. */
@@ -73,7 +74,11 @@ export function emitPreventdefaultPassiveCheck(
 }
 
 const DIRECTIVE_MARKER = '@qwik-disable-next-line';
-const TRAILING_COMMENT_CLOSER = /\*\/\s*\}?\s*$/;
+
+// original: /\*\/\s*\}?\s*$/
+const TRAILING_COMMENT_CLOSER = createRegExp(
+  exactly('*/').and(whitespace.times.any()).and(maybe(exactly('}'))).and(whitespace.times.any()).at.lineEnd(),
+);
 
 /**
  * Parse @qwik-disable-next-line directives from source code.

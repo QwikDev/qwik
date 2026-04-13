@@ -5,6 +5,7 @@
  * module contains only the imports it references plus the exported segment body.
  */
 
+import { createRegExp, exactly, oneOrMore, maybe, anyOf, wordChar, wordBoundary, whitespace, charNotIn, global } from 'magic-regexp';
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
@@ -13,6 +14,31 @@ import { getQrlImportSource, buildSyncTransform, needsPureAnnotation } from './r
 import { applyRawPropsTransform, consolidateRawPropsInWCalls, inlineConstCaptures } from './rewrite-parent.js';
 import type { ExtractionResult } from './extract.js';
 import { transformAllJsx, collectConstIdents } from './jsx-transform.js';
+
+// original: /\/\*\s*@qwik-disable-next-line\s+\w+\s*\*\/\s*\n?/g
+const qwikDisableDirective = createRegExp(
+  exactly('/*').and(whitespace.times.any()).and('@qwik-disable-next-line')
+    .and(oneOrMore(whitespace)).and(oneOrMore(wordChar))
+    .and(whitespace.times.any()).and('*/').and(whitespace.times.any()).and(maybe(exactly('\n'))),
+  [global],
+);
+
+// original: /const\s+(q_\S+)/
+const qrlConstName = createRegExp(
+  exactly('const').and(oneOrMore(whitespace)).and(exactly('q_').and(oneOrMore(charNotIn(' \t\n\r'))).grouped()),
+);
+
+// original: /\b(\w+Qrl)\b/g
+const qrlSuffixPattern = createRegExp(
+  wordBoundary.and(oneOrMore(wordChar).and('Qrl').grouped()).and(wordBoundary),
+  [global],
+);
+
+// original: /^(\s*function\s*\w*\s*)\(([^)]*)\)/
+const funcSignaturePattern = createRegExp(
+  whitespace.times.any().and('function').and(whitespace.times.any()).and(wordChar.times.any()).and(whitespace.times.any()).grouped()
+    .and('(').and(charNotIn(')').times.any().grouped()).and(')').at.lineStart(),
+);
 
 export interface SegmentCaptureInfo {
   /** Variables received via _captures (scope-level captures). */
@@ -499,8 +525,8 @@ function addNestedQrlDeclarations(parts: string[], nestedQrlDecls: string[] | un
 
   // Sort alphabetically to match Rust optimizer ordering
   const sortedDecls = [...nestedQrlDecls].sort((a, b) => {
-    const nameA = a.match(/const\s+(q_\S+)/)?.[1] ?? a;
-    const nameB = b.match(/const\s+(q_\S+)/)?.[1] ?? b;
+    const nameA = a.match(qrlConstName)?.[1] ?? a;
+    const nameB = b.match(qrlConstName)?.[1] ?? b;
     return nameA.localeCompare(nameB);
   });
   for (const decl of sortedDecls) parts.push(decl);
@@ -689,7 +715,7 @@ function applyRawPropsIfComponent(
  * Must run AFTER nested call site rewriting (which uses original positions).
  */
 function stripDiagnosticsAndDirectives(bodyText: string): string {
-  bodyText = bodyText.replace(/\/\*\s*@qwik-disable-next-line\s+\w+\s*\*\/\s*\n?/g, '');
+  bodyText = bodyText.replace(qwikDisableDirective, '');
 
   // Strip passive:* and matching preventdefault:* PER-ELEMENT.
   // Cannot strip preventdefault:click globally just because passive:click
@@ -998,7 +1024,8 @@ function addQrlCalleeImports(
       insertImportBeforeSeparator(parts, `import { ${site.qrlCallee} } from "${importSource}";`);
     }
   } else {
-    const qrlSuffixRegex = /\b(\w+Qrl)\b/g;
+    qrlSuffixPattern.lastIndex = 0;
+    const qrlSuffixRegex = qrlSuffixPattern;
     let qrlMatch;
     while ((qrlMatch = qrlSuffixRegex.exec(bodyText)) !== null) {
       const qrlName = qrlMatch[1];
@@ -1254,9 +1281,9 @@ export function rewriteFunctionSignature(bodyText: string, paramNames: string[])
     return bodyText.slice(0, identStart) + '(' + paramList + ')' + bodyText.slice(parenEnd + 1);
   }
 
-  const funcMatch = bodyText.match(/^(\s*function\s*\w*\s*)\(([^)]*)\)/);
+  const funcMatch = bodyText.match(funcSignaturePattern);
   if (funcMatch) {
-    return funcMatch[1] + '(' + paramList + ')' + bodyText.slice(funcMatch[0].length);
+    return funcMatch[1]! + '(' + paramList + ')' + bodyText.slice(funcMatch[0]!.length);
   }
 
   return bodyText;

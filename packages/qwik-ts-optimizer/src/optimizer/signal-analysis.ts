@@ -483,6 +483,11 @@ function findRootIdentifier(node: AstNode | null | undefined): IdentifierNode | 
  * Remove whitespace around operators for the minimal string representation.
  * Preserves whitespace inside string literals. Inserts a space only where
  * adjacent tokens would merge (e.g., keyword boundaries like `in`, `instanceof`).
+ *
+ * NOTE: This is intentionally a character-level tokenizer rather than AST-based.
+ * It operates on tiny expression fragments (already extracted from AST nodes)
+ * to produce a minimal serialized form matching SWC's AST-reprinted output.
+ * Re-parsing these fragments would be more complex than the tokenizer itself.
  */
 function removeWhitespace(text: string): string {
   const tokens: string[] = [];
@@ -598,6 +603,9 @@ function skipStringLiteral(text: string, i: number): number {
 /**
  * Find the matching close-paren for an open paren at position 0.
  * Skips string/template literals. Returns -1 if not found.
+ *
+ * NOTE: Intentionally text-based. Used by stripOuterParens/stripTernaryConditionParens
+ * on tiny expression fragments during serialization. Not worth re-parsing.
  */
 function findMatchingParen(text: string): number {
   let depth = 0;
@@ -654,6 +662,9 @@ function stripTernaryConditionParens(text: string): string {
 /**
  * Normalize single-quoted string literals to double quotes.
  * Matches SWC behavior: re-serialized AST uses double quotes.
+ *
+ * NOTE: Intentionally character-level. Operates on tiny serialized expression
+ * fragments to match SWC's double-quote convention. Not worth re-parsing.
  */
 function normalizeStringQuotes(text: string): string {
   let result = '';

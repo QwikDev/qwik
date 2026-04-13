@@ -19,6 +19,11 @@ import { buildSyncTransform, needsPureAnnotation, getQrlImportSource } from '../
 import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
 import type { ExtractionResult } from '../extract.js';
 import type { NestedCallSiteInfo, SegmentCaptureInfo } from '../segment-codegen.js';
+import {
+  findArrowIndex,
+  scanMatchingParenForward,
+  scanMatchingParenBackward,
+} from '../utils/text-scanning.js';
 
 const qwikDisableDirective = createRegExp(
   exactly('/*').and(whitespace.times.any()).and('@qwik-disable-next-line')
@@ -44,6 +49,12 @@ function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
 /**
  * Scan backwards from `pos` to find an enclosing arrow whose parameter list
  * includes `capturedVarName`, returning the injection position inside the body.
+ *
+ * NOTE: Intentionally text-based. This runs on post-transform body text after
+ * nested call site rewriting has already modified the source, so the original
+ * AST positions are stale. Re-parsing could work but this function's backward
+ * scan logic is tightly coupled to the text-replacement approach used by
+ * rewriteNestedCallSitesInline.
  */
 function findEnclosingArrowBodyForCapture(text: string, pos: number, capturedVarName: string): number {
   let i = pos - 1;
@@ -493,28 +504,8 @@ export function injectCapturesUnpacking(bodyText: string, captureNames: string[]
   return prefix + ' {\n' + unpackLine + '\nreturn ' + expr + ';\n}';
 }
 
-/**
- * Find the index of the `=>` arrow in a function text.
- */
-export function findArrowIndex(text: string): number {
-  let depth = 0;
-  let inString: string | null = null;
-
-  for (let i = 0; i < text.length - 1; i++) {
-    const ch = text[i];
-
-    if (inString) {
-      if (ch === inString && text[i - 1] !== '\\') inString = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === '`') { inString = ch; continue; }
-    if (ch === '(' || ch === '[' || ch === '<') { depth++; continue; }
-    if (ch === ')' || ch === ']' || ch === '>') { depth--; continue; }
-    if (depth === 0 && ch === '=' && text[i + 1] === '>') return i;
-  }
-
-  return -1;
-}
+// findArrowIndex is re-exported for external consumers (e.g., segment-codegen.ts)
+export { findArrowIndex };
 
 function injectIntoBlockBody(bodyText: string, line: string): string {
   const braceIdx = bodyText.indexOf('{');
@@ -522,48 +513,8 @@ function injectIntoBlockBody(bodyText: string, line: string): string {
   return bodyText.slice(0, braceIdx + 1) + '\n' + line + bodyText.slice(braceIdx + 1);
 }
 
-// ── Paren-depth scanning helpers ──
-
-/**
- * Scan forward from `start` (the position AFTER the opening paren) to find
- * the matching close paren, respecting nesting and string literals.
- * Returns the index one past the closing paren.
- */
-function scanMatchingParenForward(text: string, start: number): number {
-  let depth = 1;
-  let j = start;
-  while (j < text.length && depth > 0) {
-    const ch = text[j];
-    if (ch === '(') depth++;
-    else if (ch === ')') depth--;
-    else if (ch === "'" || ch === '"' || ch === '`') {
-      const quote = ch;
-      j++;
-      while (j < text.length) {
-        if (text[j] === '\\') { j += 2; continue; }
-        if (text[j] === quote) break;
-        j++;
-      }
-    }
-    j++;
-  }
-  return j;
-}
-
-/**
- * Scan backward from `start` to find the matching open paren.
- * Returns the index of the opening paren.
- */
-function scanMatchingParenBackward(text: string, start: number): number {
-  let depth = 1;
-  let i = start;
-  while (i >= 0 && depth > 0) {
-    if (text[i] === ')') depth++;
-    else if (text[i] === '(') depth--;
-    i--;
-  }
-  return i + 1;
-}
+// scanMatchingParenForward and scanMatchingParenBackward are imported from
+// the shared text-scanning utility (see import at top of file).
 
 // ── Shared helpers ──
 
